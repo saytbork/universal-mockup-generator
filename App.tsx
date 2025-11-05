@@ -1,7 +1,6 @@
 
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { GoogleGenAI, Modality } from "@google/genai";
 import { MockupOptions, OptionCategory } from './types';
 import { 
   LIGHTING_OPTIONS, SETTING_OPTIONS, AGE_GROUP_OPTIONS, CAMERA_OPTIONS, 
@@ -64,28 +63,11 @@ const App: React.FC = () => {
   const [isVideoLoading, setIsVideoLoading] = useState(false);
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null);
   const [videoError, setVideoError] = useState<string | null>(null);
-  const [isKeySelected, setIsKeySelected] = useState(false);
 
   // State to manage which accordion is currently open
   const [openAccordion, setOpenAccordion] = useState<string | null>('Scene & Product');
   const [selectedCategories, setSelectedCategories] = useState<Set<OptionCategory>>(new Set());
   const accordionOrder = ['Scene & Product', 'Photography', 'Person Details'];
-
-  useEffect(() => {
-    const checkApiKey = async () => {
-      if (window.aistudio && await window.aistudio.hasSelectedApiKey()) {
-        setIsKeySelected(true);
-      }
-    };
-    checkApiKey();
-  }, []);
-
-  const handleSelectKey = async () => {
-    if (window.aistudio) {
-      await window.aistudio.openSelectKey();
-      setIsKeySelected(true);
-    }
-  };
 
   const handleToggleAccordion = (title: string) => {
     setOpenAccordion(current => (current === title ? null : title));
@@ -214,26 +196,27 @@ const App: React.FC = () => {
     setIsImageLoading(true);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const { base64, mimeType } = await fileToBase64(uploadedImageFile);
       const finalPrompt = constructPrompt();
       
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: { parts: [{ inlineData: { data: base64, mimeType }}, {text: finalPrompt}] },
-        config: {
-          responseModalities: [Modality.IMAGE],
-        },
-      });
+      // TODO: Replace with a fetch call to your new backend endpoint
+      const response = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          base64,
+          mimeType,
+          prompt: finalPrompt,
+        }));
 
-      for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-          setGeneratedImageUrl(`data:image/png;base64,${part.inlineData.data}`);
-          return; // Exit after finding the image
-        }
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate image.');
       }
 
-      throw new Error("Image generation failed or returned no images.");
+      const { imageUrl } = await response.json();
+      setGeneratedImageUrl(imageUrl);
+
     } catch (err) {
       console.error(err);
       // Fix: Safely convert unknown error type to string.
@@ -247,15 +230,7 @@ const App: React.FC = () => {
         // Not a JSON string, use original message
       }
       
-      if (errorMessage.includes("Requested entity was not found")) {
-        setImageError("Your API Key is invalid. Please select a valid key to continue.");
-        setIsKeySelected(false);
-      } else if (errorMessage.toLowerCase().includes("quota")) {
-        setImageError("API quota exceeded. Please select a different API key, or check your current key's plan and billing details.");
-        setIsKeySelected(false);
-      } else {
-        setImageError(errorMessage);
-      }
+      setImageError(errorMessage);
     } finally {
       setIsImageLoading(false);
     }
@@ -271,31 +246,22 @@ const App: React.FC = () => {
     setImageError(null);
 
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const base64Image = generatedImageUrl.split(',')[1];
         
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash-image',
-            contents: { 
-                parts: [
-                    { inlineData: { data: base64Image, mimeType: 'image/png' } }, 
-                    { text: editPrompt }
-                ] 
-            },
-            config: {
-                responseModalities: [Modality.IMAGE],
-            },
+        // TODO: Replace with a fetch call to your new backend endpoint
+        const response = await fetch('/api/edit-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ base64Image, prompt: editPrompt })
         });
 
-        for (const part of response.candidates[0].content.parts) {
-            if (part.inlineData) {
-                setGeneratedImageUrl(`data:image/png;base64,${part.inlineData.data}`);
-                setEditPrompt(''); // Clear prompt after successful edit
-                return; // Exit after finding the image
-            }
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to edit image.');
         }
-
-        throw new Error("Image edit failed or returned no images.");
+        const { imageUrl } = await response.json();
+        setGeneratedImageUrl(imageUrl);
+        setEditPrompt(''); // Clear prompt after successful edit
     } catch (err) {
         console.error(err);
         let errorMessage = String(err);
@@ -308,15 +274,7 @@ const App: React.FC = () => {
             // Not a JSON string, use original message
         }
         
-        if (errorMessage.includes("Requested entity was not found")) {
-            setImageError("Your API Key is invalid. Please select a valid key to continue.");
-            setIsKeySelected(false);
-        } else if (errorMessage.toLowerCase().includes("quota")) {
-            setImageError("API quota exceeded. Please select a different API key, or check your current key's plan and billing details.");
-            setIsKeySelected(false);
-        } else {
-            setImageError(errorMessage);
-        }
+        setImageError(errorMessage);
     } finally {
         setIsImageLoading(false);
     }
@@ -333,47 +291,27 @@ const App: React.FC = () => {
     setGeneratedVideoUrl(null);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const base64Image = generatedImageUrl.split(',')[1];
 
       const getVideoAspectRatio = (): '16:9' | '9:16' => {
         if (options.aspectRatio === '1:1') return '9:16'; // VEO doesn't support 1:1, default to vertical
         return options.aspectRatio as '16:9' | '9:16';
       };
-
-      let operation = await ai.models.generateVideos({
-        model: 'veo-3.1-fast-generate-preview',
-        prompt: videoPrompt,
-        image: {
-          imageBytes: base64Image,
-          mimeType: 'image/png',
-        },
-        config: {
-          numberOfVideos: 1,
-          resolution: '720p',
-          aspectRatio: getVideoAspectRatio(),
-        }
-      });
       
-      while (!operation.done) {
-        await new Promise(resolve => setTimeout(resolve, 10000));
-        operation = await ai.operations.getVideosOperation({operation: operation});
+      // TODO: Replace with a fetch call to your new backend endpoint
+      const response = await fetch('/api/generate-video', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ base64Image, prompt: videoPrompt, aspectRatio: getVideoAspectRatio() })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate video.');
       }
 
-      if (operation.error) {
-        throw new Error(operation.error.message || 'Video generation failed with an unknown error.');
-      }
-
-      const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
-      if (downloadLink) {
-        const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
-        const blob = await response.blob();
-        setGeneratedVideoUrl(URL.createObjectURL(blob));
-      } else {
-        throw new Error("Video generation completed but no download link was provided.");
-      }
-
-    // FIX: Refactored the error handling block to simplify logic, remove duplication, and fix a potential type error.
+      const { videoUrl } = await response.json();
+      setGeneratedVideoUrl(videoUrl);
     } catch (err) {
         console.error(err);
         let errorMessage = err instanceof Error ? err.message : String(err);
@@ -388,50 +326,18 @@ const App: React.FC = () => {
             // Not a JSON string, use original message
         }
         
-        if (errorMessage.includes("Requested entity was not found")) {
-            setVideoError("Your API Key is invalid. Please select a valid key to continue.");
-            setIsKeySelected(false);
-        } else if (errorMessage.toLowerCase().includes("quota")) {
-            setVideoError("API quota exceeded. Please select a different API key, or check your current key's plan and billing details.");
-            setIsKeySelected(false);
-        } else {
-            setVideoError(errorMessage);
-        }
+        setVideoError(errorMessage);
     } finally {
         setIsVideoLoading(false);
     }
 };
  
-
   const isPersonOptionsDisabled = options.ageGroup === 'no person';
-
-  const ApiKeySelector = () => (
-    <div className="absolute inset-0 bg-gray-900 bg-opacity-90 flex flex-col justify-center items-center z-10 p-8 text-center rounded-lg">
-      <h2 className="text-2xl font-bold mb-4 text-white">API Key Required</h2>
-      <p className="mb-6 text-gray-300 max-w-md">
-        To generate mockups, please select your Gemini API key. Your key is stored securely and only used to run this application.
-      </p>
-      <button
-        onClick={handleSelectKey}
-        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
-      >
-        Select API Key
-      </button>
-      <p className="mt-4 text-xs text-gray-500">
-        For information on billing, see the{' '}
-        <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="underline hover:text-indigo-400">
-          Gemini API documentation
-        </a>.
-      </p>
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto relative">
         
-        {!isKeySelected && <ApiKeySelector />}
-
         <header className="text-center mb-8">
           <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500">
             Universal AI Mockup Generator
@@ -442,7 +348,7 @@ const App: React.FC = () => {
         </header>
 
         <main className="flex flex-col gap-8">
-          <fieldset disabled={!isKeySelected} className="contents">
+          <fieldset className="contents">
             <ImageUploader onImageUpload={handleImageUpload} uploadedImagePreview={uploadedImagePreview} />
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
