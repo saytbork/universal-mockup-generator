@@ -207,8 +207,7 @@ const App: React.FC = () => {
           base64,
           mimeType,
           prompt: finalPrompt,
-        },
-      });
+        }));
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -253,7 +252,7 @@ const App: React.FC = () => {
         const response = await fetch('/api/edit-image', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ base64Image, prompt: editPrompt }),
+            body: JSON.stringify({ base64Image, prompt: editPrompt })
         });
 
         if (!response.ok) {
@@ -303,7 +302,7 @@ const App: React.FC = () => {
       const response = await fetch('/api/generate-video', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ base64Image, prompt: videoPrompt, aspectRatio: getVideoAspectRatio() }),
+        body: JSON.stringify({ base64Image, prompt: videoPrompt, aspectRatio: getVideoAspectRatio() })
       });
 
       if (!response.ok) {
