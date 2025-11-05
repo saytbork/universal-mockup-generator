@@ -3,18 +3,26 @@
 </div>
 
 # Run and deploy your AI Studio app
-
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/drive/1nCgjRcjb-rdBNvRyhB2EXhnZ2KH4aSwg
+This is a UGC (User-Generated Content) style mockup generator built with React, Vite, and the Google Gemini API. It allows users to upload a product image and generate realistic lifestyle photos and videos featuring their product.
 
 ## Run Locally
 
 **Prerequisites:**  Node.js
 
+1. **Install Vercel CLI:**
+   ```bash
+   npm install -g vercel
+   ```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+3. **Set up Environment Variables:** Create a file named `.env.local` in the root of the project and add your Gemini API key:
+   ```
+   GEMINI_API_KEY=YOUR_GEMINI_API_KEY_HERE
+   ```
+4. **Run the development server:** Use the Vercel CLI to run the app locally. This will run both the frontend and the backend functions.
+   ```bash
+   vercel dev
+   ```
