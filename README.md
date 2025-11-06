@@ -15,41 +15,17 @@ View your app in AI Studio: https://ai.studio/apps/drive/1nCgjRcjb-rdBNvRyhB2EXh
 
 1. Install dependencies:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+2. Copy `.env.example` to `.env.local` and set `VITE_GEMINI_API_KEY` to your Gemini API key (or start the dev server and paste a key into the in-app prompt).
 3. Run the app:
    `npm run dev`
 
-## Server proxy (hide your API key)
+## Deploy to Vercel
 
-To let other users use the app without asking them for your API key, a server-side proxy is included under `server/index.js`.
-
-Quick steps:
-
-1. Install dependencies (if you haven't already):
-
-   ```bash
-   npm install
-   ```
-
-2. Create a `.env` file in the project root with:
-
-   ```
-   GENERATIVE_API_KEY=sk-...your-key-here
-   PORT=8787
-   ```
-
-3. Start the server:
-
-   ```bash
-   npm run start:server
-   ```
-
-4. Start the frontend in a separate terminal:
-
-   ```bash
-   npm run dev
-   ```
-
-Now the frontend will call the proxy endpoints at `/api/*` so users don't need to provide the API key.
-
-See the `server/index.js` file for endpoint details and production notes.
+1. Create a new Vercel project and import this repository (or link the local folder with `vercel link`).
+2. Set the project environment variables:
+   - `VITE_GEMINI_API_KEY`: Gemini API key that has both image and VEO video access.
+3. Keep the default build settings:
+   - Framework Preset: **Vite**
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
+4. Deploy. Vercel serves the `dist` output as a static site and the client-side app reads the key at build time. If you need to rotate the key, update the variable in Vercel and redeploy.

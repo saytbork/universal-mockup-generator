@@ -7,18 +7,11 @@ export default defineConfig(({ mode }) => {
   // `cwd` is not recognized on the `process` object. `.` correctly refers to the
   // current working directory for loading environment variables.
   const env = loadEnv(mode, '.', '');
+  const apiKey = env.VITE_GEMINI_API_KEY || env.API_KEY || '';
   return {
     plugins: [react()],
     define: {
-      'process.env.API_KEY': JSON.stringify(env.API_KEY)
-    },
-    server: {
-      proxy: {
-        '/api': {
-          target: 'http://localhost:8787',
-          changeOrigin: true,
-        }
-      }
+      'process.env.API_KEY': JSON.stringify(apiKey)
     }
   }
 })

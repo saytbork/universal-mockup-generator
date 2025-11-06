@@ -13,8 +13,8 @@ const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({ label, options, selec
   return (
     <div className="flex flex-col space-y-3">
       <label className="text-sm font-medium text-gray-400">{label}</label>
-      <div className="overflow-x-auto custom-scrollbar">
-        <div className="flex flex-nowrap gap-2 py-2">
+      <div>
+        <div className="flex flex-nowrap lg:flex-wrap gap-2 py-2 overflow-x-auto lg:overflow-visible custom-scrollbar">
           {options.map((option) => (
             <button
               key={option.value}

@@ -1,0 +1,10 @@
+:root {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: #111827; /* Tailwind gray-900 */
+  color: #f9fafb; /* Tailwind gray-50 */
+}

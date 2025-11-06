@@ -16,9 +16,21 @@ import Accordion from './components/Accordion';
 import ChipSelectGroup from './components/ChipSelectGroup';
 import ImageEditor from './components/ImageEditor';
 
-// FIX: Removed conflicting global type declaration for `window.aistudio`.
-// The TypeScript error indicates that this type is already declared globally,
-// making this declaration redundant and causing a conflict.
+const LOCAL_STORAGE_KEY = 'ugc-product-mockup-generator-api-key';
+
+type AiStudioApi = {
+  hasSelectedApiKey: () => Promise<boolean>;
+  openSelectKey: () => Promise<void>;
+};
+
+const getEnvApiKey = (): string | undefined => {
+  const fromVite = import.meta.env.VITE_GEMINI_API_KEY;
+  if (fromVite) {
+    return fromVite.trim();
+  }
+  const fromProcess = process.env.API_KEY;
+  return fromProcess ? fromProcess.trim() : undefined;
+};
 
 const fileToBase64 = (file: File): Promise<{base64: string, mimeType: string}> => {
   return new Promise((resolve, reject) => {
@@ -35,6 +47,7 @@ const fileToBase64 = (file: File): Promise<{base64: string, mimeType: string}> =
 
 
 const App: React.FC = () => {
+  const envApiKey = getEnvApiKey();
   const [options, setOptions] = useState<MockupOptions>({
     lighting: LIGHTING_OPTIONS[0].value,
     setting: SETTING_OPTIONS[0].value,
@@ -58,13 +71,18 @@ const App: React.FC = () => {
   const [isImageLoading, setIsImageLoading] = useState(false);
   const [imageError, setImageError] = useState<string | null>(null);
   const [editPrompt, setEditPrompt] = useState('');
+  const [apiKey, setApiKey] = useState<string>(envApiKey ?? '');
+  const [manualApiKey, setManualApiKey] = useState('');
+  const [apiKeyError, setApiKeyError] = useState<string | null>(null);
+  const [isUsingStoredKey, setIsUsingStoredKey] = useState(false);
   
   // State for video generation
   const [videoPrompt, setVideoPrompt] = useState('');
   const [isVideoLoading, setIsVideoLoading] = useState(false);
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null);
   const [videoError, setVideoError] = useState<string | null>(null);
-  const [isKeySelected, setIsKeySelected] = useState(false);
+  const [isAiStudioAvailable, setIsAiStudioAvailable] = useState(false);
+  const [isKeySelected, setIsKeySelected] = useState(Boolean(envApiKey));
 
   // State to manage which accordion is currently open
   const [openAccordion, setOpenAccordion] = useState<string | null>('Scene & Product');
@@ -72,20 +90,101 @@ const App: React.FC = () => {
   const accordionOrder = ['Scene & Product', 'Photography', 'Person Details'];
 
   useEffect(() => {
-    const checkApiKey = async () => {
-      if (window.aistudio && await window.aistudio.hasSelectedApiKey()) {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const aiStudioInstance = (window as typeof window & { aistudio?: AiStudioApi }).aistudio;
+    setIsAiStudioAvailable(Boolean(aiStudioInstance));
+
+    const storedKey = window.localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (storedKey) {
+      setApiKey(storedKey);
+      setManualApiKey(storedKey);
+      setIsKeySelected(true);
+      setIsUsingStoredKey(true);
+      return;
+    }
+
+    if (envApiKey) {
+      setIsKeySelected(true);
+      return;
+    }
+
+    const checkAiStudioSelection = async () => {
+      if (aiStudioInstance && await aiStudioInstance.hasSelectedApiKey()) {
         setIsKeySelected(true);
       }
     };
-    checkApiKey();
+
+    checkAiStudioSelection();
+  }, [envApiKey]);
+
+  const removeStoredApiKey = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(LOCAL_STORAGE_KEY);
+    }
+    setIsUsingStoredKey(false);
   }, []);
 
-  const handleSelectKey = async () => {
-    if (window.aistudio) {
-      await window.aistudio.openSelectKey();
-      setIsKeySelected(true);
+  const requireNewApiKey = useCallback(() => {
+    setApiKey('');
+    setManualApiKey('');
+    setIsKeySelected(false);
+  }, []);
+
+  const handleApiKeyInvalid = useCallback(() => {
+    if (isUsingStoredKey) {
+      removeStoredApiKey();
     }
+    requireNewApiKey();
+  }, [isUsingStoredKey, removeStoredApiKey, requireNewApiKey]);
+
+  const handleManualApiKeySubmit = useCallback(() => {
+    const trimmed = manualApiKey.trim();
+    if (!trimmed) {
+      setApiKeyError('Please enter a valid Gemini API key.');
+      return;
+    }
+
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(LOCAL_STORAGE_KEY, trimmed);
+    }
+
+    setApiKey(trimmed);
+    setIsKeySelected(true);
+    setApiKeyError(null);
+    setIsUsingStoredKey(true);
+  }, [manualApiKey]);
+
+  const handleManualApiKeyChange = useCallback((value: string) => {
+    setManualApiKey(value);
+    if (apiKeyError) {
+      setApiKeyError(null);
+    }
+  }, [apiKeyError]);
+
+  const handleSelectKey = async () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const aiStudioInstance = (window as typeof window & { aistudio?: AiStudioApi }).aistudio;
+    if (!aiStudioInstance) {
+      return;
+    }
+    await aiStudioInstance.openSelectKey();
+    setIsKeySelected(true);
   };
+
+  const getActiveApiKeyOrNotify = useCallback((notify: (message: string) => void): string | null => {
+    const resolvedKey = apiKey || envApiKey;
+    if (!resolvedKey) {
+      notify('Please configure your Gemini API key to continue.');
+      requireNewApiKey();
+      return null;
+    }
+    return resolvedKey;
+  }, [apiKey, envApiKey, requireNewApiKey]);
 
   const handleToggleAccordion = (title: string) => {
     setOpenAccordion(current => (current === title ? null : title));
@@ -214,7 +313,12 @@ const App: React.FC = () => {
     setIsImageLoading(true);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
+      if (!resolvedApiKey) {
+        setIsImageLoading(false);
+        return;
+      }
+      const ai = new GoogleGenAI({ apiKey: resolvedApiKey });
       const { base64, mimeType } = await fileToBase64(uploadedImageFile);
       const finalPrompt = constructPrompt();
       
@@ -249,10 +353,10 @@ const App: React.FC = () => {
       
       if (errorMessage.includes("Requested entity was not found")) {
         setImageError("Your API Key is invalid. Please select a valid key to continue.");
-        setIsKeySelected(false);
+        handleApiKeyInvalid();
       } else if (errorMessage.toLowerCase().includes("quota")) {
         setImageError("API quota exceeded. Please select a different API key, or check your current key's plan and billing details.");
-        setIsKeySelected(false);
+        handleApiKeyInvalid();
       } else {
         setImageError(errorMessage);
       }
@@ -271,7 +375,12 @@ const App: React.FC = () => {
     setImageError(null);
 
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
+        if (!resolvedApiKey) {
+          setIsImageLoading(false);
+          return;
+        }
+        const ai = new GoogleGenAI({ apiKey: resolvedApiKey });
         const base64Image = generatedImageUrl.split(',')[1];
         
         const response = await ai.models.generateContent({
@@ -310,10 +419,10 @@ const App: React.FC = () => {
         
         if (errorMessage.includes("Requested entity was not found")) {
             setImageError("Your API Key is invalid. Please select a valid key to continue.");
-            setIsKeySelected(false);
+            handleApiKeyInvalid();
         } else if (errorMessage.toLowerCase().includes("quota")) {
             setImageError("API quota exceeded. Please select a different API key, or check your current key's plan and billing details.");
-            setIsKeySelected(false);
+            handleApiKeyInvalid();
         } else {
             setImageError(errorMessage);
         }
@@ -333,7 +442,12 @@ const App: React.FC = () => {
     setGeneratedVideoUrl(null);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const resolvedApiKey = getActiveApiKeyOrNotify(message => setVideoError(message));
+      if (!resolvedApiKey) {
+        setIsVideoLoading(false);
+        return;
+      }
+      const ai = new GoogleGenAI({ apiKey: resolvedApiKey });
       const base64Image = generatedImageUrl.split(',')[1];
 
       const getVideoAspectRatio = (): '16:9' | '9:16' => {
@@ -366,7 +480,7 @@ const App: React.FC = () => {
 
       const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
       if (downloadLink) {
-        const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
+        const response = await fetch(`${downloadLink}&key=${resolvedApiKey}`);
         const blob = await response.blob();
         setGeneratedVideoUrl(URL.createObjectURL(blob));
       } else {
@@ -390,10 +504,10 @@ const App: React.FC = () => {
         
         if (errorMessage.includes("Requested entity was not found")) {
             setVideoError("Your API Key is invalid. Please select a valid key to continue.");
-            setIsKeySelected(false);
+            handleApiKeyInvalid();
         } else if (errorMessage.toLowerCase().includes("quota")) {
             setVideoError("API quota exceeded. Please select a different API key, or check your current key's plan and billing details.");
-            setIsKeySelected(false);
+            handleApiKeyInvalid();
         } else {
             setVideoError(errorMessage);
         }
@@ -409,19 +523,45 @@ const App: React.FC = () => {
     <div className="absolute inset-0 bg-gray-900 bg-opacity-90 flex flex-col justify-center items-center z-10 p-8 text-center rounded-lg">
       <h2 className="text-2xl font-bold mb-4 text-white">API Key Required</h2>
       <p className="mb-6 text-gray-300 max-w-md">
-        To generate mockups, please select your Gemini API key. Your key is stored securely and only used to run this application.
+        To generate mockups, set a Gemini API key. You can paste a key below or define <code className="font-mono">VITE_GEMINI_API_KEY</code> in a local <code className="font-mono">.env</code> file when building the app.
       </p>
-      <button
-        onClick={handleSelectKey}
-        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
-      >
-        Select API Key
-      </button>
-      <p className="mt-4 text-xs text-gray-500">
-        For information on billing, see the{' '}
+      {isAiStudioAvailable && (
+        <button
+          onClick={handleSelectKey}
+          className="mb-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+        >
+          Select API Key from AI Studio
+        </button>
+      )}
+      <div className="w-full max-w-md space-y-3">
+        <input
+          type="password"
+          placeholder="AI... or ya29..."
+          value={manualApiKey}
+          onChange={(event) => handleManualApiKeyChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              handleManualApiKeySubmit();
+            }
+          }}
+          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+        />
+        <button
+          onClick={handleManualApiKeySubmit}
+          disabled={!manualApiKey.trim()}
+          className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-900/40 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out shadow-lg"
+        >
+          Save API Key
+        </button>
+        {apiKeyError && <p className="text-sm text-red-400">{apiKeyError}</p>}
+      </div>
+      <p className="mt-4 text-xs text-gray-500 max-w-md">
+        Keys saved here live only in this browser&apos;s local storage. Visit the{' '}
         <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="underline hover:text-indigo-400">
-          Gemini API documentation
-        </a>.
+          Gemini API docs
+        </a>{' '}
+        to review quotas and billing.
       </p>
     </div>
   );
@@ -439,6 +579,14 @@ const App: React.FC = () => {
           <p className="mt-2 text-lg text-gray-400">
             Generate photo-realistic UGC-style images for your products in seconds.
           </p>
+          {isKeySelected && isUsingStoredKey && (
+            <button
+              onClick={handleApiKeyInvalid}
+              className="mt-4 inline-flex items-center justify-center rounded-lg border border-gray-600 px-4 py-2 text-sm font-semibold text-gray-200 hover:bg-gray-800 transition"
+            >
+              Change API Key
+            </button>
+          )}
         </header>
 
         <main className="flex flex-col gap-8">
