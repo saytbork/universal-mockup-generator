@@ -39,6 +39,19 @@ const MoodReferencePanel: React.FC<MoodReferencePanelProps> = ({
       </div>
       <label
         className={`border-2 border-dashed border-gray-600 rounded-xl p-6 flex flex-col items-center justify-center gap-3 ${disabled ? 'cursor-not-allowed pointer-events-none' : 'cursor-pointer hover:border-indigo-400'} transition`}
+        onDragOver={(event) => {
+          if (disabled) return;
+          event.preventDefault();
+          event.stopPropagation();
+        }}
+        onDrop={(event) => {
+          if (disabled) return;
+          event.preventDefault();
+          event.stopPropagation();
+          if (event.dataTransfer.files && event.dataTransfer.files[0]) {
+            onFileSelect(event.dataTransfer.files[0]);
+          }
+        }}
       >
         <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" disabled={disabled} />
         {isProcessing ? (
