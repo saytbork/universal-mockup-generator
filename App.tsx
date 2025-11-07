@@ -17,6 +17,11 @@ import ChipSelectGroup from './components/ChipSelectGroup';
 import ImageEditor from './components/ImageEditor';
 
 const LOCAL_STORAGE_KEY = 'ugc-product-mockup-generator-api-key';
+const EMAIL_STORAGE_KEY = 'ugc-product-mockup-generator-user-email';
+const IMAGE_COUNT_KEY = 'ugc-product-mockup-generator-image-count';
+const VIDEO_ACCESS_KEY = 'ugc-product-mockup-generator-video-access';
+const VIDEO_SECRET_CODE = '713371';
+const IMAGE_TRIAL_LIMIT = 5;
 
 type AiStudioApi = {
   hasSelectedApiKey: () => Promise<boolean>;
@@ -75,6 +80,16 @@ const App: React.FC = () => {
   const [manualApiKey, setManualApiKey] = useState('');
   const [apiKeyError, setApiKeyError] = useState<string | null>(null);
   const [isUsingStoredKey, setIsUsingStoredKey] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+  const [emailInput, setEmailInput] = useState('');
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [imageGenerationCount, setImageGenerationCount] = useState(0);
+  const [hasVideoAccess, setHasVideoAccess] = useState(false);
+  const [videoAccessInput, setVideoAccessInput] = useState('');
+  const [videoAccessError, setVideoAccessError] = useState<string | null>(null);
+  const isTrialLocked = imageGenerationCount >= IMAGE_TRIAL_LIMIT;
+  const remainingGenerations = Math.max(IMAGE_TRIAL_LIMIT - imageGenerationCount, 0);
   
   // State for video generation
   const [videoPrompt, setVideoPrompt] = useState('');
@@ -96,6 +111,26 @@ const App: React.FC = () => {
 
     const aiStudioInstance = (window as typeof window & { aistudio?: AiStudioApi }).aistudio;
     setIsAiStudioAvailable(Boolean(aiStudioInstance));
+
+    const storedEmail = window.localStorage.getItem(EMAIL_STORAGE_KEY);
+    if (storedEmail) {
+      setUserEmail(storedEmail);
+      setIsLoggedIn(true);
+      setEmailInput(storedEmail);
+    }
+
+    const storedCount = window.localStorage.getItem(IMAGE_COUNT_KEY);
+    if (storedCount) {
+      const parsed = Number.parseInt(storedCount, 10);
+      if (!Number.isNaN(parsed)) {
+        setImageGenerationCount(parsed);
+      }
+    }
+
+    const storedVideoAccess = window.localStorage.getItem(VIDEO_ACCESS_KEY);
+    if (storedVideoAccess === 'granted') {
+      setHasVideoAccess(true);
+    }
 
     const storedKey = window.localStorage.getItem(LOCAL_STORAGE_KEY);
     if (storedKey) {
@@ -163,6 +198,48 @@ const App: React.FC = () => {
       setApiKeyError(null);
     }
   }, [apiKeyError]);
+
+  const handleVideoAccessCodeChange = useCallback((value: string) => {
+    setVideoAccessInput(value);
+    if (videoAccessError) {
+      setVideoAccessError(null);
+    }
+  }, [videoAccessError]);
+
+  const handleVideoAccessSubmit = useCallback(() => {
+    if (videoAccessInput.trim() === VIDEO_SECRET_CODE) {
+      setHasVideoAccess(true);
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(VIDEO_ACCESS_KEY, 'granted');
+      }
+      setVideoAccessError(null);
+    } else {
+      setVideoAccessError('Invalid access code.');
+    }
+  }, [videoAccessInput]);
+
+  const handleEmailChange = useCallback((value: string) => {
+    setEmailInput(value);
+    if (emailError) {
+      setEmailError(null);
+    }
+  }, [emailError]);
+
+  const handleEmailSubmit = useCallback(() => {
+    const trimmed = emailInput.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmed)) {
+      setEmailError('Enter a valid email address to continue.');
+      return;
+    }
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(EMAIL_STORAGE_KEY, trimmed);
+    }
+    setUserEmail(trimmed);
+    setIsLoggedIn(true);
+    setEmailError(null);
+  }, [emailInput]);
+
 
   const handleSelectKey = async () => {
     if (typeof window === 'undefined') {
@@ -240,6 +317,20 @@ const App: React.FC = () => {
     setOpenAccordion('Scene & Product');
   }, []);
 
+  const handleLogout = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(EMAIL_STORAGE_KEY);
+      window.localStorage.removeItem(VIDEO_ACCESS_KEY);
+    }
+    handleReset();
+    setUserEmail('');
+    setEmailInput('');
+    setIsLoggedIn(false);
+    setHasVideoAccess(false);
+    setVideoAccessInput('');
+    setVideoAccessError(null);
+  }, [handleReset]);
+
   const handleImageUpload = useCallback((file: File) => {
     const ALLOWED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
     
@@ -304,6 +395,10 @@ const App: React.FC = () => {
   }
 
   const handleGenerateClick = async () => {
+    if (isTrialLocked) {
+      setImageError("Free plan limit reached. Upgrade to a paid plan to continue generating images.");
+      return;
+    }
     if (!uploadedImageFile) {
       setImageError("Please upload a product image first.");
       return;
@@ -333,6 +428,11 @@ const App: React.FC = () => {
       for (const part of response.candidates[0].content.parts) {
         if (part.inlineData) {
           setGeneratedImageUrl(`data:image/png;base64,${part.inlineData.data}`);
+          const newCount = imageGenerationCount + 1;
+          setImageGenerationCount(newCount);
+          if (typeof window !== 'undefined') {
+            window.localStorage.setItem(IMAGE_COUNT_KEY, String(newCount));
+          }
           return; // Exit after finding the image
         }
       }
@@ -432,6 +532,10 @@ const App: React.FC = () => {
   };
 
   const handleGenerateVideo = async () => {
+    if (!hasVideoAccess) {
+        setVideoError("Video generation is locked. Enter your access code to unlock this feature.");
+        return;
+    }
     if (!generatedImageUrl) {
         setVideoError("An image must be generated first.");
         return;
@@ -519,6 +623,64 @@ const App: React.FC = () => {
 
   const isPersonOptionsDisabled = options.ageGroup === 'no person';
 
+  const EmailGate = () => (
+    <div className="absolute inset-0 bg-gray-900 bg-opacity-90 flex flex-col justify-center items-center z-20 p-8 text-center rounded-lg">
+      <h2 className="text-2xl font-bold mb-4 text-white">Log in to continue</h2>
+      <p className="mb-6 text-gray-300 max-w-md">
+        Enter your work email to track plan limits and unlock the generator. We&apos;ll send product updates occasionally.
+      </p>
+      <div className="w-full max-w-md space-y-3">
+        <input
+          type="email"
+          placeholder="you@company.com"
+          value={emailInput}
+          onChange={(event) => handleEmailChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              handleEmailSubmit();
+            }
+          }}
+          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+        />
+        <button
+          onClick={handleEmailSubmit}
+          className="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out shadow-lg"
+        >
+          Continue
+        </button>
+        {emailError && <p className="text-sm text-red-400">{emailError}</p>}
+      </div>
+      <p className="mt-4 text-xs text-gray-500 max-w-md">
+        By logging in you agree to receive product emails. You can opt out anytime.
+      </p>
+    </div>
+  );
+
+  const TrialLimitOverlay = () => (
+    <div className="absolute inset-0 bg-gray-900/95 flex flex-col justify-center items-center z-30 p-8 text-center rounded-lg">
+      <h2 className="text-2xl font-bold mb-4 text-white">Free plan limit reached</h2>
+      <p className="mb-6 text-gray-300 max-w-lg">
+        You used all {IMAGE_TRIAL_LIMIT} complimentary generations. Upgrade to Growth or Premium to keep generating unlimited scenes and videos.
+      </p>
+      <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
+        <a
+          href="/#pricing"
+          className="flex-1 inline-flex items-center justify-center rounded-full bg-indigo-500 px-6 py-3 font-semibold text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-600 transition"
+        >
+          See pricing
+        </a>
+        <a
+          href="mailto:hola@universalugc.com"
+          className="flex-1 inline-flex items-center justify-center rounded-full border border-white/20 px-6 py-3 font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition"
+        >
+          Talk to sales
+        </a>
+      </div>
+      <p className="mt-4 text-xs text-gray-500">Already upgraded? Contact support to refresh your quota.</p>
+    </div>
+  );
+
   const ApiKeySelector = () => (
     <div className="absolute inset-0 bg-gray-900 bg-opacity-90 flex flex-col justify-center items-center z-10 p-8 text-center rounded-lg">
       <h2 className="text-2xl font-bold mb-4 text-white">API Key Required</h2>
@@ -570,7 +732,8 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto relative">
         
-        {!isKeySelected && <ApiKeySelector />}
+        {!isLoggedIn ? <EmailGate /> : !isKeySelected && <ApiKeySelector />}
+        {isLoggedIn && isKeySelected && isTrialLocked && <TrialLimitOverlay />}
 
         <header className="text-center mb-8">
           <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500">
@@ -587,10 +750,26 @@ const App: React.FC = () => {
               Change API Key
             </button>
           )}
+          {isLoggedIn && (
+            <>
+              <div className="mt-4 flex flex-col sm:flex-row gap-3 items-center justify-center text-sm text-gray-400">
+                <span>Signed in as {userEmail}</span>
+                <button
+                  onClick={handleLogout}
+                  className="inline-flex items-center justify-center rounded-full border border-gray-600 px-3 py-1 font-semibold text-gray-200 hover:bg-gray-800 transition"
+                >
+                  Switch account
+                </button>
+              </div>
+              <p className="mt-2 text-xs text-gray-400">
+                Free plan usage: {remainingGenerations} of {IMAGE_TRIAL_LIMIT} image generations remaining.
+              </p>
+            </>
+          )}
         </header>
 
         <main className="flex flex-col gap-8">
-          <fieldset disabled={!isKeySelected} className="contents">
+          <fieldset disabled={!isLoggedIn || !isKeySelected || isTrialLocked} className="contents">
             <ImageUploader onImageUpload={handleImageUpload} uploadedImagePreview={uploadedImagePreview} />
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -666,7 +845,7 @@ const App: React.FC = () => {
                     isEditing={isImageLoading}
                   />
                 )}
-                 {generatedImageUrl && (
+                {generatedImageUrl && (
                   <VideoGenerator
                     videoPrompt={videoPrompt}
                     onPromptChange={e => setVideoPrompt(e.target.value)}
@@ -675,6 +854,11 @@ const App: React.FC = () => {
                     videoError={videoError}
                     generatedVideoUrl={generatedVideoUrl}
                     isGenerating={isVideoLoading || isImageLoading}
+                    hasAccess={hasVideoAccess}
+                    accessCode={videoAccessInput}
+                    onAccessCodeChange={handleVideoAccessCodeChange}
+                    onAccessSubmit={handleVideoAccessSubmit}
+                    accessError={videoAccessError}
                   />
                 )}
               </div>

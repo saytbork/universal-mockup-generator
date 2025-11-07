@@ -19,6 +19,9 @@ View your app in AI Studio: https://ai.studio/apps/drive/1nCgjRcjb-rdBNvRyhB2EXh
 3. Run the app:
    `npm run dev`
 
+The local dev server exposes a marketing landing page at `/` and the generator UI at `/app`.
+You will be prompted to sign in with an email address before accessing the generator so plan limits can be enforced; the email is stored only in the browser. The default free tier allows 5 image generations per browser profile (stored in `localStorage`), after which an upgrade overlay blocks further use. Video generation remains locked until the private access code (default `713371`) is entered inside the video panel.
+
 ## Deploy to Vercel
 
 1. Create a new Vercel project and import this repository (or link the local folder with `vercel link`).
