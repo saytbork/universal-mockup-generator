@@ -20,7 +20,18 @@ View your app in AI Studio: https://ai.studio/apps/drive/1nCgjRcjb-rdBNvRyhB2EXh
    `npm run dev`
 
 The local dev server exposes a marketing landing page at `/` and the generator UI at `/app`.
-You will be prompted to sign in with an email address before accessing the generator so plan limits can be enforced; the email is stored only in the browser. The default free tier allows 5 image generations per browser profile (stored in `localStorage`), after which an upgrade overlay blocks further use. Video generation remains locked until the private access code (default `713371`) is entered inside the video panel.
+You will be prompted to sign in with an email address before accessing the generator so plan limits can be enforced; the email is stored only in the browser. The default free tier allows 5 image generations per browser profile (stored in `localStorage`), after which an upgrade overlay blocks further use. Video generation remains locked until the private access code (default `713371`) is entered inside the video panel. You can optionally drop a mood/inspiration image and the app will auto-adjust lighting/scene parameters based on the detected palette.
+
+### Optional: Stripe Payment Links
+
+The landing page’s paid plans use Stripe Payment Links. Add these env vars to `.env.local` (and Vercel):
+
+```
+VITE_STRIPE_LINK_GROWTH=https://buy.stripe.com/...
+VITE_STRIPE_LINK_PREMIUM=https://buy.stripe.com/...
+```
+
+They can be standard Payment Links or Checkout URLs. If not provided, the Growth/Premium buttons in the modal stay disabled with a helpful message.
 
 ## Deploy to Vercel
 

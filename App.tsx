@@ -1,9 +1,13 @@
 
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { GoogleGenAI, Modality } from "@google/genai";
-import { MockupOptions, OptionCategory } from './types';
+import { MockupOptions, OptionCategory, Option } from './types';
 import { 
+  CONTENT_STYLE_OPTIONS,
+  PLACEMENT_STYLE_OPTIONS,
+  PLACEMENT_CAMERA_OPTIONS,
   LIGHTING_OPTIONS, SETTING_OPTIONS, AGE_GROUP_OPTIONS, CAMERA_OPTIONS, 
   ISO_OPTIONS, PERSPECTIVE_OPTIONS, SELFIE_TYPE_OPTIONS, ETHNICITY_OPTIONS,
   GENDER_OPTIONS, ASPECT_RATIO_OPTIONS, ENVIRONMENT_ORDER_OPTIONS, PERSON_APPEARANCE_OPTIONS,
@@ -15,6 +19,7 @@ import VideoGenerator from './components/VideoGenerator';
 import Accordion from './components/Accordion';
 import ChipSelectGroup from './components/ChipSelectGroup';
 import ImageEditor from './components/ImageEditor';
+import MoodReferencePanel from './components/MoodReferencePanel';
 
 const LOCAL_STORAGE_KEY = 'ugc-product-mockup-generator-api-key';
 const EMAIL_STORAGE_KEY = 'ugc-product-mockup-generator-user-email';
@@ -50,10 +55,221 @@ const fileToBase64 = (file: File): Promise<{base64: string, mimeType: string}> =
   });
 };
 
+const rgbToHex = (r: number, g: number, b: number): string => {
+  const toHex = (value: number) => value.toString(16).padStart(2, '0');
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+};
+
+const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
+  const sanitized = hex.replace('#', '');
+  if (sanitized.length !== 6) return null;
+  const bigint = Number.parseInt(sanitized, 16);
+  return {
+    r: (bigint >> 16) & 255,
+    g: (bigint >> 8) & 255,
+    b: bigint & 255,
+  };
+};
+
+const rgbToHsl = (r: number, g: number, b: number): { h: number; s: number; l: number } => {
+  r /= 255;
+  g /= 255;
+  b /= 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h = 0;
+  let s = 0;
+  const l = (max + min) / 2;
+
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r:
+        h = (g - b) / d + (g < b ? 6 : 0);
+        break;
+      case g:
+        h = (b - r) / d + 2;
+        break;
+      case b:
+      default:
+        h = (r - g) / d + 4;
+        break;
+    }
+    h /= 6;
+  }
+
+  return { h: h * 360, s, l };
+};
+
+const extractPaletteFromImage = (file: File): Promise<string[]> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const size = 64;
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error('Canvas context unavailable'));
+        return;
+      }
+      ctx.drawImage(img, 0, 0, size, size);
+      const { data } = ctx.getImageData(0, 0, size, size);
+      const buckets = new Map<string, number>();
+      for (let i = 0; i < data.length; i += 4) {
+        const alpha = data[i + 3];
+        if (alpha < 128) continue;
+        const r = Math.round(data[i] / 32) * 32;
+        const g = Math.round(data[i + 1] / 32) * 32;
+        const b = Math.round(data[i + 2] / 32) * 32;
+        const key = `${r}-${g}-${b}`;
+        buckets.set(key, (buckets.get(key) ?? 0) + 1);
+      }
+      const palette = [...buckets.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([key]) => {
+          const [r, g, b] = key.split('-').map(Number);
+          return rgbToHex(r, g, b);
+        });
+      URL.revokeObjectURL(objectUrl);
+      resolve(palette);
+    };
+    img.onerror = (error) => {
+      URL.revokeObjectURL(objectUrl);
+      reject(error);
+    };
+    img.src = objectUrl;
+  });
+};
+
+type MoodSuggestion = {
+  moodLabel: string;
+  lightingLabel: string;
+  settingLabel: string;
+  placementStyleLabel: string;
+  placementCameraLabel: string;
+};
+
+const deriveMoodSuggestions = (palette: string[]): MoodSuggestion => {
+  const defaultSuggestion: MoodSuggestion = {
+    moodLabel: 'balanced studio vibes',
+    lightingLabel: 'Natural Light',
+    settingLabel: 'Home Office',
+    placementStyleLabel: 'On-White Studio',
+    placementCameraLabel: 'Product Tabletop Rig',
+  };
+  const hslColors = palette
+    .map(hexToRgb)
+    .filter((rgb): rgb is { r: number; g: number; b: number } => Boolean(rgb))
+    .map(({ r, g, b }) => rgbToHsl(r, g, b));
+
+  if (!hslColors.length) {
+    return defaultSuggestion;
+  }
+
+  const totals = hslColors.reduce(
+    (acc, color) => {
+      acc.s += color.s;
+      acc.l += color.l;
+      const rad = (color.h * Math.PI) / 180;
+      acc.hx += Math.cos(rad);
+      acc.hy += Math.sin(rad);
+      return acc;
+    },
+    { s: 0, l: 0, hx: 0, hy: 0 }
+  );
+
+  const avgSat = totals.s / hslColors.length;
+  const avgLight = totals.l / hslColors.length;
+  const avgHue =
+    (Math.atan2(totals.hy / hslColors.length, totals.hx / hslColors.length) * 180) / Math.PI + 360;
+  const normalizedAvgHue = avgHue % 360;
+
+  const mostSaturated = [...hslColors].sort((a, b) => b.s - a.s)[0];
+  const primaryHue = mostSaturated && mostSaturated.s > 0.25 ? mostSaturated.h : normalizedAvgHue;
+
+  if (avgLight < 0.3) {
+    return {
+      moodLabel: 'moody editorial luxe',
+      lightingLabel: 'Mood Lighting',
+      settingLabel: 'Boutique Hotel',
+      placementStyleLabel: 'Luxury Editorial',
+      placementCameraLabel: 'Cinema Camera',
+    };
+  }
+
+  if (avgLight > 0.78 && avgSat < 0.25) {
+    return {
+      moodLabel: 'airy minimalist',
+      lightingLabel: 'Natural Light',
+      settingLabel: 'On-White Studio',
+      placementStyleLabel: 'On-White Studio',
+      placementCameraLabel: 'Product Tabletop Rig',
+    };
+  }
+
+  if (primaryHue >= 190 && primaryHue <= 250 && avgSat > 0.25) {
+    return {
+      moodLabel: 'coastal & aquatic',
+      lightingLabel: 'Sunny Day',
+      settingLabel: 'Beach',
+      placementStyleLabel: 'Splash Shot',
+      placementCameraLabel: 'Overhead Rig',
+    };
+  }
+
+  if (primaryHue >= 90 && primaryHue <= 150 && avgSat > 0.25) {
+    return {
+      moodLabel: 'botanical lifestyle',
+      lightingLabel: 'Natural Light',
+      settingLabel: 'Garden Party',
+      placementStyleLabel: 'Nature Elements',
+      placementCameraLabel: 'Macro Lens',
+    };
+  }
+
+  if ((primaryHue <= 40 || primaryHue >= 330) && avgSat > 0.25) {
+    return {
+      moodLabel: 'sunset glamour',
+      lightingLabel: 'Golden Hour',
+      settingLabel: 'Rooftop',
+      placementStyleLabel: 'Luxury Editorial',
+      placementCameraLabel: 'Cinema Camera',
+    };
+  }
+
+  if (primaryHue >= 50 && primaryHue <= 80 && avgSat > 0.25) {
+    return {
+      moodLabel: 'earthy daylight',
+      lightingLabel: 'Sunny Day',
+      settingLabel: 'Mountain Cabin',
+      placementStyleLabel: 'Nature Elements',
+      placementCameraLabel: 'Macro Lens',
+    };
+  }
+
+  return defaultSuggestion;
+};
+
+const getOptionValueByLabel = (options: Option[], label: string): string => {
+  const match = options.find((option) => option.label === label);
+  return match ? match.value : options[0].value;
+};
 
 const App: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const envApiKey = getEnvApiKey();
   const [options, setOptions] = useState<MockupOptions>({
+    contentStyle: '',
+    placementStyle: PLACEMENT_STYLE_OPTIONS[0].value,
+    placementCamera: PLACEMENT_CAMERA_OPTIONS[0].value,
     lighting: LIGHTING_OPTIONS[0].value,
     setting: SETTING_OPTIONS[0].value,
     environmentOrder: ENVIRONMENT_ORDER_OPTIONS[0].value,
@@ -88,8 +304,22 @@ const App: React.FC = () => {
   const [hasVideoAccess, setHasVideoAccess] = useState(false);
   const [videoAccessInput, setVideoAccessInput] = useState('');
   const [videoAccessError, setVideoAccessError] = useState<string | null>(null);
-  const isTrialLocked = imageGenerationCount >= IMAGE_TRIAL_LIMIT;
+  const [moodImagePreview, setMoodImagePreview] = useState<string | null>(null);
+  const [moodPalette, setMoodPalette] = useState<string[]>([]);
+  const [moodSummary, setMoodSummary] = useState<string | null>(null);
+  const [moodPromptCue, setMoodPromptCue] = useState<string | null>(null);
+  const [isMoodProcessing, setIsMoodProcessing] = useState(false);
+  const isDevBypass = useMemo(() => {
+    if (!import.meta.env.DEV) return false;
+    const params = new URLSearchParams(location.search);
+    return params.has('dev');
+  }, [location.search]);
+  const isTrialLocked = !isDevBypass && imageGenerationCount >= IMAGE_TRIAL_LIMIT;
   const remainingGenerations = Math.max(IMAGE_TRIAL_LIMIT - imageGenerationCount, 0);
+  const hasSelectedIntent = Boolean(options.contentStyle);
+  const hasUploadedProduct = Boolean(uploadedImagePreview);
+  const canUseMood = hasUploadedProduct;
+  const contentStyleValue = hasSelectedIntent ? options.contentStyle : CONTENT_STYLE_OPTIONS[0].value;
   
   // State for video generation
   const [videoPrompt, setVideoPrompt] = useState('');
@@ -155,6 +385,14 @@ const App: React.FC = () => {
     checkAiStudioSelection();
   }, [envApiKey]);
 
+  useEffect(() => {
+    return () => {
+      if (moodImagePreview) {
+        URL.revokeObjectURL(moodImagePreview);
+      }
+    };
+  }, [moodImagePreview]);
+
   const removeStoredApiKey = useCallback(() => {
     if (typeof window !== 'undefined') {
       window.localStorage.removeItem(LOCAL_STORAGE_KEY);
@@ -218,6 +456,84 @@ const App: React.FC = () => {
     }
   }, [videoAccessInput]);
 
+  const handleSeePricing = useCallback(() => {
+    navigate('/#pricing');
+  }, [navigate]);
+
+  const applyMoodInspiration = useCallback((palette: string[]) => {
+    if (!palette.length) {
+      setMoodSummary('Could not detect enough color data from the reference.');
+      return;
+    }
+    const suggestion = deriveMoodSuggestions(palette);
+    setOptions(prev => {
+      const updated = { ...prev };
+      updated.lighting = getOptionValueByLabel(LIGHTING_OPTIONS, suggestion.lightingLabel);
+      updated.setting = getOptionValueByLabel(SETTING_OPTIONS, suggestion.settingLabel);
+      if (prev.contentStyle === 'product') {
+        updated.placementStyle = getOptionValueByLabel(PLACEMENT_STYLE_OPTIONS, suggestion.placementStyleLabel);
+        updated.placementCamera = getOptionValueByLabel(PLACEMENT_CAMERA_OPTIONS, suggestion.placementCameraLabel);
+      }
+      return updated;
+    });
+    setSelectedCategories(prev => {
+      const next = new Set(prev);
+      next.add('lighting');
+      next.add('setting');
+      if (options.contentStyle === 'product') {
+        next.add('placementStyle');
+        next.add('placementCamera');
+      }
+      return next;
+    });
+    setMoodSummary(`Mood hint: ${suggestion.moodLabel}. Tuned lighting to ${suggestion.lightingLabel} and scene to ${suggestion.settingLabel}.`);
+    setMoodPromptCue(`Match the atmosphere of a ${suggestion.moodLabel} palette with ${suggestion.lightingLabel} lighting and details reminiscent of ${suggestion.settingLabel}.`);
+  }, [options.contentStyle]);
+
+  const handleMoodImageUpload = useCallback(async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      setMoodSummary('Please upload an image file.');
+      setMoodPromptCue(null);
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setMoodSummary('Please keep inspiration images under 5MB.');
+      setMoodPromptCue(null);
+      return;
+    }
+    setIsMoodProcessing(true);
+    setMoodSummary(null);
+    setMoodPromptCue(null);
+    setMoodPalette([]);
+    setMoodImagePreview(prev => {
+      if (prev) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(file);
+    });
+    try {
+      const palette = await extractPaletteFromImage(file);
+      setMoodPalette(palette);
+      applyMoodInspiration(palette);
+    } catch (err) {
+      console.error(err);
+      setMoodSummary('We could not analyze that reference. Try another image.');
+      setMoodPromptCue(null);
+    } finally {
+      setIsMoodProcessing(false);
+    }
+  }, [applyMoodInspiration]);
+
+  const handleClearMood = useCallback(() => {
+    setMoodImagePreview(prev => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+    setMoodPalette([]);
+    setMoodSummary(null);
+    setMoodPromptCue(null);
+    setMoodPromptCue(null);
+    setMoodPromptCue(null);
+  }, []);
+
   const handleEmailChange = useCallback((value: string) => {
     setEmailInput(value);
     if (emailError) {
@@ -269,9 +585,20 @@ const App: React.FC = () => {
 
   const handleOptionChange = (category: OptionCategory, value: string, accordionTitle: string) => {
     const newOptions = { ...options, [category]: value };
-    setOptions(newOptions);
-  
     const updatedSelectedCategories = new Set(selectedCategories).add(category);
+
+    if (category === 'contentStyle') {
+      if (value === 'product') {
+        newOptions.ageGroup = 'no person';
+        updatedSelectedCategories.add('ageGroup');
+        newOptions.placementStyle = PLACEMENT_STYLE_OPTIONS[0].value;
+        newOptions.placementCamera = PLACEMENT_CAMERA_OPTIONS[0].value;
+        updatedSelectedCategories.add('placementStyle');
+        updatedSelectedCategories.add('placementCamera');
+      }
+    }
+
+    setOptions(newOptions);
     setSelectedCategories(updatedSelectedCategories);
   
     const advance = () => {
@@ -291,6 +618,10 @@ const App: React.FC = () => {
     
     let requiredCategories = accordionCategoryMap[accordionTitle];
     if (!requiredCategories) return;
+
+    if (accordionTitle === 'Scene & Product' && newOptions.contentStyle === 'product') {
+      requiredCategories = [...requiredCategories, 'placementStyle', 'placementCamera'];
+    }
   
     // If 'Person Details' is the current accordion and 'no person' is selected,
     // then only 'ageGroup' is required to advance.
@@ -315,6 +646,12 @@ const App: React.FC = () => {
     setEditPrompt('');
     setSelectedCategories(new Set());
     setOpenAccordion('Scene & Product');
+    setMoodPalette([]);
+    setMoodSummary(null);
+    setMoodImagePreview(prev => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
   }, []);
 
   const handleLogout = useCallback(() => {
@@ -329,6 +666,12 @@ const App: React.FC = () => {
     setHasVideoAccess(false);
     setVideoAccessInput('');
     setVideoAccessError(null);
+    setMoodPalette([]);
+    setMoodSummary(null);
+    setMoodImagePreview(prev => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
   }, [handleReset]);
 
   const handleImageUpload = useCallback((file: File) => {
@@ -350,7 +693,9 @@ const App: React.FC = () => {
   }, [handleReset]);
   
   const constructPrompt = (): string => {
-    const personIncluded = options.ageGroup !== 'no person';
+    const currentStyle = contentStyleValue;
+    const isUgcStyle = currentStyle !== 'product';
+    const personIncluded = isUgcStyle && options.ageGroup !== 'no person';
 
     const getInteractionDescription = (interaction: string): string => {
       switch (interaction) {
@@ -371,11 +716,20 @@ const App: React.FC = () => {
       }
     };
 
-    let prompt = `Create an ultra-realistic, authentic UGC (User Generated Content) style lifestyle photo with a ${options.aspectRatio} aspect ratio. The photo must look genuine, emotional, and cinematic, as if taken by a real person with a ${options.camera}. `;
+    let prompt = `Create an ultra-realistic, authentic ${isUgcStyle ? 'UGC lifestyle' : 'product placement'} photo with a ${options.aspectRatio} aspect ratio. `;
+    prompt += isUgcStyle
+      ? `The shot should feel candid, emotional, and cinematic, as if taken by a real person with a ${options.camera}. `
+      : `The shot should feel refined and advertising-ready, with deliberate staging captured on a ${options.camera}. `;
 
     prompt += `The scene is a ${options.setting}, illuminated by ${options.lighting}. The overall environment has a ${options.environmentOrder} feel. The photo is shot from a ${options.perspective}. The camera settings should reflect ${options.iso}, creating a natural look. `;
     
     prompt += `The focus is on the provided product, which has a ${options.productMaterial} finish. Place this exact product into the scene naturally. Ensure its material, reflections, and shadows are rendered realistically according to the environment. Do not alter the product's design or branding. `;
+    if (!isUgcStyle) {
+      prompt += ` No people should appear in the frame. Style the set like a premium product placement shoot with thoughtful props, surfaces, and depth, highlighting the product as the hero. Use a ${options.placementCamera} approach and style the scene as ${options.placementStyle}. `;
+    }
+    if (moodPromptCue) {
+      prompt += ` ${moodPromptCue}`;
+    }
 
     if (personIncluded) {
         prompt += `The photo features a ${options.gender} person, age ${options.ageGroup}, of ${options.ethnicity} ethnicity, who has a ${options.personAppearance}. `;
@@ -621,39 +975,98 @@ const App: React.FC = () => {
 };
  
 
-  const isPersonOptionsDisabled = options.ageGroup === 'no person';
+  const isProductPlacement = contentStyleValue === 'product';
+  const isPersonOptionsDisabled = isProductPlacement || options.ageGroup === 'no person';
 
-  const EmailGate = () => (
-    <div className="absolute inset-0 bg-gray-900 bg-opacity-90 flex flex-col justify-center items-center z-20 p-8 text-center rounded-lg">
-      <h2 className="text-2xl font-bold mb-4 text-white">Log in to continue</h2>
-      <p className="mb-6 text-gray-300 max-w-md">
-        Enter your work email to track plan limits and unlock the generator. We&apos;ll send product updates occasionally.
-      </p>
-      <div className="w-full max-w-md space-y-3">
-        <input
-          type="email"
-          placeholder="you@company.com"
-          value={emailInput}
-          onChange={(event) => handleEmailChange(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              event.preventDefault();
-              handleEmailSubmit();
-            }
-          }}
-          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-        />
+  const renderLoginScreen = () => (
+    <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center px-4">
+      <div className="max-w-md w-full bg-gray-900/70 border border-gray-800 rounded-2xl p-8 text-center shadow-2xl space-y-6">
+        <div>
+          <p className="text-xs uppercase tracking-[0.3em] text-indigo-300 mb-2">Access Required</p>
+          <h1 className="text-3xl font-bold">Log in to continue</h1>
+          <p className="mt-3 text-sm text-gray-400">
+            Enter your work email so we can enforce plan limits and send occasional product updates.
+          </p>
+        </div>
+        <div className="space-y-3 text-left">
+          <label className="text-xs uppercase tracking-widest text-gray-500">Work email</label>
+          <input
+            type="email"
+            placeholder="you@company.com"
+            value={emailInput}
+            onChange={(event) => handleEmailChange(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                handleEmailSubmit();
+              }
+            }}
+            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          />
+          {emailError && <p className="text-sm text-red-400">{emailError}</p>}
+        </div>
         <button
           onClick={handleEmailSubmit}
           className="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out shadow-lg"
         >
           Continue
         </button>
-        {emailError && <p className="text-sm text-red-400">{emailError}</p>}
+        <p className="text-xs text-gray-500">
+          By logging in you agree to receive product emails. Unsubscribe anytime.
+        </p>
       </div>
-      <p className="mt-4 text-xs text-gray-500 max-w-md">
-        By logging in you agree to receive product emails. You can opt out anytime.
-      </p>
+    </div>
+  );
+
+  const renderApiKeyScreen = () => (
+    <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center px-4">
+      <div className="max-w-md w-full bg-gray-900/70 border border-gray-800 rounded-2xl p-8 text-center shadow-2xl space-y-6">
+        <div>
+          <p className="text-xs uppercase tracking-[0.3em] text-indigo-300 mb-2">Connect Gemini API</p>
+          <h1 className="text-3xl font-bold">Bring your API key</h1>
+          <p className="mt-3 text-sm text-gray-400">
+            Paste a Gemini API key to run generations locally. You can also select one from AI Studio if available.
+          </p>
+        </div>
+        {isAiStudioAvailable && (
+          <button
+            onClick={handleSelectKey}
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+          >
+            Select API Key from AI Studio
+          </button>
+        )}
+        <div className="space-y-3 text-left">
+          <label className="text-xs uppercase tracking-widest text-gray-500">Gemini API key</label>
+          <input
+            type="password"
+            placeholder="AI... or ya29..."
+            value={manualApiKey}
+            onChange={(event) => handleManualApiKeyChange(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                handleManualApiKeySubmit();
+              }
+            }}
+            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          />
+          {apiKeyError && <p className="text-sm text-red-400">{apiKeyError}</p>}
+        </div>
+        <button
+          onClick={handleManualApiKeySubmit}
+          disabled={!manualApiKey.trim()}
+          className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-900/40 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out shadow-lg"
+        >
+          Save API Key
+        </button>
+        <p className="text-xs text-gray-500">
+          Keys are stored locally in this browser only. Review{' '}
+          <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noreferrer" className="text-indigo-300 underline">
+            Gemini API billing
+          </a>.
+        </p>
+      </div>
     </div>
   );
 
@@ -664,12 +1077,12 @@ const App: React.FC = () => {
         You used all {IMAGE_TRIAL_LIMIT} complimentary generations. Upgrade to Growth or Premium to keep generating unlimited scenes and videos.
       </p>
       <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
-        <a
-          href="/#pricing"
+        <button
+          onClick={handleSeePricing}
           className="flex-1 inline-flex items-center justify-center rounded-full bg-indigo-500 px-6 py-3 font-semibold text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-600 transition"
         >
           See pricing
-        </a>
+        </button>
         <a
           href="mailto:hola@universalugc.com"
           className="flex-1 inline-flex items-center justify-center rounded-full border border-white/20 px-6 py-3 font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition"
@@ -681,59 +1094,18 @@ const App: React.FC = () => {
     </div>
   );
 
-  const ApiKeySelector = () => (
-    <div className="absolute inset-0 bg-gray-900 bg-opacity-90 flex flex-col justify-center items-center z-10 p-8 text-center rounded-lg">
-      <h2 className="text-2xl font-bold mb-4 text-white">API Key Required</h2>
-      <p className="mb-6 text-gray-300 max-w-md">
-        To generate mockups, set a Gemini API key. You can paste a key below or define <code className="font-mono">VITE_GEMINI_API_KEY</code> in a local <code className="font-mono">.env</code> file when building the app.
-      </p>
-      {isAiStudioAvailable && (
-        <button
-          onClick={handleSelectKey}
-          className="mb-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
-        >
-          Select API Key from AI Studio
-        </button>
-      )}
-      <div className="w-full max-w-md space-y-3">
-        <input
-          type="password"
-          placeholder="AI... or ya29..."
-          value={manualApiKey}
-          onChange={(event) => handleManualApiKeyChange(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              event.preventDefault();
-              handleManualApiKeySubmit();
-            }
-          }}
-          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-        />
-        <button
-          onClick={handleManualApiKeySubmit}
-          disabled={!manualApiKey.trim()}
-          className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-900/40 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out shadow-lg"
-        >
-          Save API Key
-        </button>
-        {apiKeyError && <p className="text-sm text-red-400">{apiKeyError}</p>}
-      </div>
-      <p className="mt-4 text-xs text-gray-500 max-w-md">
-        Keys saved here live only in this browser&apos;s local storage. Visit the{' '}
-        <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="underline hover:text-indigo-400">
-          Gemini API docs
-        </a>{' '}
-        to review quotas and billing.
-      </p>
-    </div>
-  );
+  if (!isLoggedIn) {
+    return renderLoginScreen();
+  }
+
+  if (!isKeySelected) {
+    return renderApiKeyScreen();
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto relative">
-        
-        {!isLoggedIn ? <EmailGate /> : !isKeySelected && <ApiKeySelector />}
-        {isLoggedIn && isKeySelected && isTrialLocked && <TrialLimitOverlay />}
+        {isTrialLocked && <TrialLimitOverlay />}
 
         <header className="text-center mb-8">
           <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500">
@@ -769,15 +1141,60 @@ const App: React.FC = () => {
         </header>
 
         <main className="flex flex-col gap-8">
-          <fieldset disabled={!isLoggedIn || !isKeySelected || isTrialLocked} className="contents">
-            <ImageUploader onImageUpload={handleImageUpload} uploadedImagePreview={uploadedImagePreview} />
-            
+            <div className="grid gap-6 lg:grid-cols-3">
+              <div className="bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-4 h-full">
+                <div className="flex flex-col gap-1">
+                  <p className="text-xs uppercase tracking-widest text-indigo-300">Step 1</p>
+                  <h2 className="text-2xl font-bold text-gray-200">Choose Content Intent</h2>
+                  <p className="text-sm text-gray-400">
+                    {isProductPlacement
+                      ? 'Product Placement focuses on stylized scenes with zero people so the product stays hero.'
+                      : 'UGC Lifestyle enables authentic creator vibes, including people interacting with the product.'}
+                  </p>
+                </div>
+                <ChipSelectGroup
+                  label="Content Style"
+                  options={CONTENT_STYLE_OPTIONS}
+                  selectedValue={options.contentStyle}
+                  onChange={(value) => handleOptionChange('contentStyle', value, 'Content Intent')}
+                />
+              </div>
+              <div className="bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-4 h-full">
+                <div className="flex flex-col gap-1">
+                  <p className="text-xs uppercase tracking-widest text-indigo-300">Step 2</p>
+                  <h2 className="text-2xl font-bold text-gray-200">Add Your Product Photo</h2>
+                  <p className="text-sm text-gray-400">
+                    Upload a transparent PNG, JPG, or WebP of your product to anchor every scene.
+                  </p>
+                </div>
+                <ImageUploader
+                  onImageUpload={handleImageUpload}
+                  uploadedImagePreview={uploadedImagePreview}
+                  disabled={!hasSelectedIntent}
+                  lockedMessage="Select Step 1 first to unlock uploads."
+                />
+              </div>
+              <MoodReferencePanel
+                onFileSelect={handleMoodImageUpload}
+                previewUrl={moodImagePreview}
+                palette={moodPalette}
+                summary={moodSummary}
+                isProcessing={isMoodProcessing}
+                onClear={handleClearMood}
+                disabled={!canUseMood}
+                lockedMessage="Upload your product image to activate mood analysis."
+              />
+            </div>
+          <fieldset disabled={!hasUploadedProduct || isTrialLocked} className="contents">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Controls Column */}
-              <div className="lg:col-span-1 bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col max-h-[calc(100vh-12rem)]">
-                <h2 className="text-2xl font-bold mb-4 text-gray-200 border-b border-gray-600 pb-3 flex-shrink-0">2. Customize Your Mockup</h2>
+              <div className={`lg:col-span-1 bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col max-h-[calc(100vh-12rem)] ${!hasUploadedProduct ? 'opacity-60' : ''}`}>
+                <div className="mb-4 border-b border-gray-600 pb-3 flex-shrink-0">
+                  <p className="text-xs uppercase tracking-widest text-indigo-300">Step 3</p>
+                  <h2 className="text-2xl font-bold text-gray-200">Customize Your Mockup</h2>
+                </div>
                 
-                <div className="flex-grow overflow-y-auto custom-scrollbar -mr-4 pr-4">
+                <div className={`flex-grow overflow-y-auto custom-scrollbar -mr-4 pr-4 ${!hasUploadedProduct ? 'pointer-events-none' : ''}`}>
                    <Accordion 
                       title="Scene & Product" 
                       isOpen={openAccordion === 'Scene & Product'} 
@@ -787,6 +1204,22 @@ const App: React.FC = () => {
                         <ChipSelectGroup label="Product Material" options={PRODUCT_MATERIAL_OPTIONS} selectedValue={options.productMaterial} onChange={(value) => handleOptionChange('productMaterial', value, 'Scene & Product')} />
                         <ChipSelectGroup label="Location / Setting" options={SETTING_OPTIONS} selectedValue={options.setting} onChange={(value) => handleOptionChange('setting', value, 'Scene & Product')} />
                         <ChipSelectGroup label="Environment Order" options={ENVIRONMENT_ORDER_OPTIONS} selectedValue={options.environmentOrder} onChange={(value) => handleOptionChange('environmentOrder', value, 'Scene & Product')} />
+                        {isProductPlacement && (
+                          <div className="space-y-4">
+                            <ChipSelectGroup
+                              label="Studio Setup"
+                              options={PLACEMENT_STYLE_OPTIONS}
+                              selectedValue={options.placementStyle}
+                              onChange={(value) => handleOptionChange('placementStyle', value, 'Scene & Product')}
+                            />
+                            <ChipSelectGroup
+                              label="Hero Camera Rig"
+                              options={PLACEMENT_CAMERA_OPTIONS}
+                              selectedValue={options.placementCamera}
+                              onChange={(value) => handleOptionChange('placementCamera', value, 'Scene & Product')}
+                            />
+                          </div>
+                        )}
                       </div>
                     </Accordion>
                     <Accordion 
@@ -808,7 +1241,10 @@ const App: React.FC = () => {
                       onToggle={() => handleToggleAccordion('Person Details')}
                     >
                       <div className="space-y-4">
-                        <ChipSelectGroup label="Age Group" options={AGE_GROUP_OPTIONS} selectedValue={options.ageGroup} onChange={(value) => handleOptionChange('ageGroup', value, 'Person Details')} />
+                        <ChipSelectGroup label="Age Group" options={AGE_GROUP_OPTIONS} selectedValue={options.ageGroup} onChange={(value) => handleOptionChange('ageGroup', value, 'Person Details')} disabled={isProductPlacement} />
+                        {isProductPlacement && (
+                          <p className="text-xs text-gray-500">Person options are disabled for product placement shots.</p>
+                        )}
                         <ChipSelectGroup label="Appearance Level" options={PERSON_APPEARANCE_OPTIONS} selectedValue={options.personAppearance} onChange={(value) => handleOptionChange('personAppearance', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
                         <ChipSelectGroup label="Product Interaction" options={PRODUCT_INTERACTION_OPTIONS} selectedValue={options.productInteraction} onChange={(value) => handleOptionChange('productInteraction', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
                         <ChipSelectGroup label="Gender" options={GENDER_OPTIONS} selectedValue={options.gender} onChange={(value) => handleOptionChange('gender', value, 'Person Details')} disabled={isPersonOptionsDisabled} />

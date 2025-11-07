@@ -1,8 +1,22 @@
-import React from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Sparkles, Wand2, Camera, ShieldCheck, PlaySquare, Users, CheckCircle2, ArrowRight, Mail, Trophy, Rocket, CreditCard 
 } from 'lucide-react';
+import PlanCheckoutModal from './components/PlanCheckoutModal';
+
+type PricingPlan = {
+  name: string;
+  price: string;
+  cadence: string;
+  badge: string;
+  icon: typeof Sparkles;
+  highlights: string[];
+  cta: string;
+  featured?: boolean;
+  isFree?: boolean;
+  checkoutUrl?: string;
+};
 
 const features = [
   {
@@ -47,7 +61,9 @@ const galleryImages = [
   },
 ];
 
-const pricing = [
+const getEnv = (key: string) => import.meta.env[key as keyof ImportMetaEnv] as string | undefined;
+
+const pricing: PricingPlan[] = [
   {
     name: 'Free Launch',
     price: '$0',
@@ -55,11 +71,12 @@ const pricing = [
     badge: 'Email required',
     icon: Mail,
     highlights: [
-      '20 image generations/month',
+      '10 image generations/month',
       'Watermarked exports',
       'Community support',
     ],
     cta: 'Start free',
+    isFree: true,
   },
   {
     name: 'Growth (Popular)',
@@ -68,12 +85,13 @@ const pricing = [
     badge: 'Most teams pick this',
     icon: Trophy,
     highlights: [
-      '250 image generations + 20 videos',
+      '200 image generations + 10 videos',
       'Priority rendering queue',
       'Commercial usage license',
     ],
     cta: 'Upgrade to Growth',
     featured: true,
+    checkoutUrl: getEnv('VITE_STRIPE_LINK_GROWTH'),
   },
   {
     name: 'Premium Studio',
@@ -82,118 +100,144 @@ const pricing = [
     badge: 'Full production access',
     icon: Rocket,
     highlights: [
-      '1,000 image generations + 80 videos',
+      '600 image generations + 30 videos',
       'Custom style templates & collaboration',
       'Dedicated support + roadmap input',
     ],
     cta: 'Talk to sales',
+    checkoutUrl: getEnv('VITE_STRIPE_LINK_PREMIUM'),
   },
 ];
 
 const paymentMethods = ['Visa', 'Mastercard', 'American Express', 'Apple Pay', 'Google Pay'];
 
 const LandingPage: React.FC = () => {
+  const [selectedPlan, setSelectedPlan] = useState<PricingPlan | null>(null);
+  const [checkoutEmail, setCheckoutEmail] = useState('');
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const handleSmoothScroll = useCallback((selector: string) => {
+    return (event: React.MouseEvent) => {
+      event.preventDefault();
+      const target = document.querySelector(selector);
+      if (!target) return;
+      const offset = 80;
+      const top = target.getBoundingClientRect().top + window.pageYOffset - offset;
+      window.scrollTo({ top, behavior: 'smooth' });
+    };
+  }, []);
+  const handleOpenCheckout = (plan: PricingPlan) => {
+    setSelectedPlan(plan);
+    setCheckoutEmail('');
+    setCheckoutError(null);
+  };
+
+  const handleCloseCheckout = () => {
+    setSelectedPlan(null);
+    setCheckoutEmail('');
+  };
+
+  const handleConfirmCheckout = () => {
+    if (!selectedPlan) return;
+    if (!selectedPlan.checkoutUrl) {
+      setCheckoutError('Stripe payment link is not configured for this plan. Add VITE_STRIPE_LINK variables.');
+      return;
+    }
+    try {
+      const targetUrl = new URL(selectedPlan.checkoutUrl);
+      if (checkoutEmail) {
+        targetUrl.searchParams.set('prefilled_email', checkoutEmail);
+      }
+      window.open(targetUrl.toString(), '_blank', 'noopener,noreferrer');
+      handleCloseCheckout();
+    } catch (err) {
+      console.error(err);
+      setCheckoutError('Invalid Stripe payment link. Please verify the URL.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
       <div className="bg-gradient-to-br from-indigo-900/40 via-gray-950 to-gray-950">
-        <header className="max-w-6xl mx-auto px-6 py-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <nav className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between text-sm">
           <div className="flex items-center gap-3 text-white text-xl font-semibold">
-            <div className="p-2 rounded-xl bg-indigo-600/80">
+            <div className="p-2 rounded-xl bg-indigo-600/80 shadow-lg shadow-indigo-500/50">
               <Camera className="w-6 h-6" />
             </div>
             Universal Mockup Generator
           </div>
-          <div className="flex items-center gap-4">
-            <a
-              href="#gallery"
-              className="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 text-sm font-medium hover:border-indigo-400 transition"
-            >
-              View live demo <ArrowRight className="w-4 h-4" />
-            </a>
-            <Link
-              to="/app"
-              className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-600 transition"
-            >
-              Launch App
+          <div className="hidden md:flex items-center gap-6 text-gray-300">
+            <button onClick={handleSmoothScroll('#features')} className="hover:text-white transition">Features</button>
+            <button onClick={handleSmoothScroll('#gallery')} className="hover:text-white transition">Gallery</button>
+            <button onClick={handleSmoothScroll('#workflow')} className="hover:text-white transition">Workflow</button>
+            <button onClick={handleSmoothScroll('#pricing')} className="hover:text-white transition">Pricing</button>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link to="/app" className="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 text-sm font-medium hover:border-indigo-400 transition">
+              Launch builder
+            </Link>
+            <Link to="/app" className="md:hidden inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 text-sm font-medium hover:border-indigo-400 transition">
+              Start
             </Link>
           </div>
-        </header>
+        </nav>
 
-        <section className="max-w-6xl mx-auto px-6 pb-20">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
+        <header className="relative overflow-hidden py-12">
+          <div className="absolute inset-0 opacity-30 pointer-events-none" style={{ background: 'radial-gradient(circle at 20% 20%, rgba(79,70,229,0.35), transparent 55%)' }} />
+          <div className="max-w-6xl mx-auto px-6 pt-8 pb-20 flex flex-col items-center text-center gap-12 relative">
+            <div className="max-w-3xl space-y-6 animate-fade-up">
               <p className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-1 text-xs uppercase tracking-widest text-indigo-200/90">
                 <ShieldCheck className="w-3.5 h-3.5" /> Pro-ready UGC Content
               </p>
-              <h1 className="mt-6 text-4xl sm:text-5xl font-bold text-white leading-tight">
+              <h1 className="text-4xl sm:text-5xl font-bold text-white leading-tight">
                 Create hyper-real UGC mockups for your products in minutes.
               </h1>
-              <p className="mt-5 text-lg text-gray-300">
-                Turn any product photo into lifestyle scenes with real people, cinematic lighting, and ad-ready videos—powered by Gemini in one streamlined app.
+              <p className="text-lg text-gray-300">
+                Upload your product, drop an inspiration mood, and let Gemini craft photo + video assets that feel authentically creator-made.
               </p>
-              <div className="mt-8 flex flex-col sm:flex-row gap-4">
-                <Link
-                  to="/app"
-                  className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-8 py-4 font-semibold text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-600 transition"
-                >
-                  Try the Generator
-                </Link>
-                <a
-                  href="#features"
-                  className="inline-flex items-center justify-center rounded-full border border-white/20 px-8 py-4 font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition"
-                >
-                  Explore features
-                </a>
-              </div>
-              <p className="mt-4 text-sm text-gray-400">
-                Access requires a quick email sign-up so we can track plan limits.
-              </p>
-              <div className="mt-10 grid grid-cols-2 gap-6 text-sm text-gray-300">
-                <div>
-                  <p className="text-3xl font-semibold text-white">150+</p>
-                  <p>Mockups generated during private beta</p>
-                </div>
-                <div>
-                  <p className="text-3xl font-semibold text-white">40+</p>
-                  <p>Creative controls for dialing in every shot</p>
-                </div>
-              </div>
             </div>
-            <div className="relative">
-              <div className="absolute inset-0 blur-3xl bg-indigo-600/30 rounded-full -z-10" />
-              <div className="rounded-3xl border border-white/10 bg-gray-900/70 p-6 shadow-2xl">
-                <div className="rounded-2xl bg-gray-800/70 p-4 border border-white/10">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-indigo-500/30 flex items-center justify-center">
-                      <Wand2 className="w-5 h-5 text-indigo-200" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-white">Premium lifestyle scene</p>
-                      <p className="text-sm text-gray-400">DSLR perspective · Golden-hour light</p>
-                    </div>
-                  </div>
-                  <div className="mt-6 rounded-2xl bg-gradient-to-br from-gray-700/60 to-gray-900/80 p-6 border border-white/5">
-                    <p className="text-sm text-indigo-200 uppercase tracking-[0.2em]">Prompt generado</p>
-                    <p className="mt-3 text-white/90 text-sm leading-relaxed">
-                      “Lifestyle photo of organic skincare serum on marble counter, soft window light, warm cinematic tones, latina creator applying product…”
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-6 rounded-2xl bg-gray-900/70 p-4 border border-white/10">
-                  <p className="text-sm text-gray-400 mb-3">Stack IA</p>
-                  <div className="flex flex-wrap gap-3 text-xs">
-                    {['Gemini 2.5', 'Veo 3.1', 'Tailwind', 'React'].map(tag => (
-                      <span key={tag} className="rounded-full bg-white/5 px-4 py-1 text-white/80 border border-white/10">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
+            <div className="flex flex-col sm:flex-row gap-4 animate-fade-up delay-200">
+              <Link
+                to="/app"
+                className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-8 py-4 font-semibold text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-600 transition"
+              >
+                Launch App
+              </Link>
+              <button
+                onClick={handleSmoothScroll('#features')}
+                className="inline-flex items-center justify-center rounded-full border border-white/20 px-8 py-4 font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition"
+              >
+                View Product Tour
+              </button>
             </div>
+            <p className="text-sm text-gray-500 animate-fade-up delay-300">Free plan → 5 generations · No credit card required</p>
           </div>
-        </section>
+        </header>
       </div>
+
+      <section id="steps" className="max-w-6xl mx-auto px-6 py-12 space-y-10">
+        <div className="text-center space-y-3">
+          <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">How it works</p>
+          <h2 className="text-3xl text-white font-semibold">Upload. Mood. Generate.</h2>
+          <p className="text-gray-400">Three simple steps to go from raw product photo to polished UGC or product placement content.</p>
+        </div>
+        <div className="grid md:grid-cols-3 gap-5">
+          {[
+            { title: '1. Choose intent', description: 'Pick UGC Lifestyle or Product Placement to set the tone.' },
+            { title: '2. Upload & inspire', description: 'Drop your product and optional mood image to auto-tune settings.' },
+            { title: '3. Customize & ship', description: 'Refine props, camera, people, then export photo + video.' },
+          ].map((card, index) => (
+            <div
+              key={card.title}
+              className="rounded-2xl border border-white/5 bg-gray-900/60 p-5 text-left transition transform hover:-translate-y-1 hover:border-indigo-400 animate-fade-up"
+              style={{ animationDelay: `${0.1 * (index + 1)}s` }}
+            >
+              <p className="text-xs uppercase tracking-widest text-gray-500">{card.title}</p>
+              <p className="mt-2 text-white text-lg font-semibold">{card.description.split('.')[0]}</p>
+              <p className="text-gray-400 mt-1">{card.description.split('.').slice(1).join('.')}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <section id="gallery" className="max-w-6xl mx-auto px-6 py-14 space-y-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -251,8 +295,8 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      <section className="bg-gray-900/40 border-y border-white/5">
-        <div className="max-w-6xl mx-auto px-6 py-16 grid lg:grid-cols-2 gap-12 items-center">
+      <section id="workflow" className="bg-gray-900/40 border-y border-white/5">
+        <div className="max-w-6xl mx-auto px-6 py-16 grid lg:grid-cols-2 gap-12 items-start">
           <div>
             <p className="text-sm uppercase tracking-widest text-indigo-300 mb-2">Workflow</p>
             <h2 className="text-3xl text-white font-semibold">From raw product shot to polished ads.</h2>
@@ -271,7 +315,7 @@ const LandingPage: React.FC = () => {
               ))}
             </div>
           </div>
-          <div className="rounded-3xl border border-white/5 bg-gray-950/60 p-8">
+          <div className="rounded-3xl border border-white/5 bg-gray-950/60 p-8 space-y-6">
             <div className="flex items-center gap-4">
               <Users className="w-10 h-10 text-indigo-300" />
               <div>
@@ -279,10 +323,13 @@ const LandingPage: React.FC = () => {
                 <p className="text-gray-400 text-sm">No photographers, no studios, no waiting.</p>
               </div>
             </div>
-            <p className="mt-6 text-gray-300">
+            <p className="text-gray-300 text-lg">
               “We launched a skincare line with the app and shipped lifestyle stills plus vertical reels the same afternoon. Perfect for founders who need to move fast.”
             </p>
-            <p className="mt-4 text-sm text-gray-500">— UGC Launch beta testers</p>
+            <div className="flex items-center gap-3 text-gray-400 text-sm">
+              <Users className="w-5 h-5 text-indigo-300" />
+              <span>UGC Launch beta testers</span>
+            </div>
           </div>
         </div>
       </section>
@@ -322,19 +369,42 @@ const LandingPage: React.FC = () => {
                   </li>
                 ))}
               </ul>
-              <Link
-                to="/app"
-                className={`mt-8 inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition ${
-                  plan.featured
-                    ? 'bg-white text-gray-900 hover:bg-indigo-50'
-                    : 'border border-white/20 text-white/90 hover:border-indigo-400'
-                }`}
-              >
-                {plan.cta}
-              </Link>
+              {plan.isFree ? (
+                <Link
+                  to="/app"
+                  className={`mt-8 inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition ${
+                    plan.featured
+                      ? 'bg-white text-gray-900 hover:bg-indigo-50'
+                      : 'border border-white/20 text-white/90 hover:border-indigo-400'
+                  }`}
+                >
+                  {plan.cta}
+                </Link>
+              ) : (
+                <button
+                  onClick={() => handleOpenCheckout(plan)}
+                  className={`mt-8 inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition ${
+                    plan.featured
+                      ? 'bg-white text-gray-900 hover:bg-indigo-50'
+                      : 'border border-white/20 text-white/90 hover:border-indigo-400'
+                  }`}
+                >
+                  {plan.cta}
+                </button>
+              )}
             </div>
           ))}
         </div>
+        {selectedPlan && (
+          <PlanCheckoutModal
+            plan={selectedPlan}
+            email={checkoutEmail}
+            onEmailChange={setCheckoutEmail}
+            onClose={handleCloseCheckout}
+            onConfirm={handleConfirmCheckout}
+            disabledReason={!selectedPlan.checkoutUrl ? 'Stripe payment link missing. Configure VITE_STRIPE_LINK variables.' : checkoutError}
+          />
+        )}
         <div className="flex flex-col items-center gap-3 text-sm text-gray-400">
           <div className="inline-flex items-center gap-2 text-white/80 font-medium">
             <CreditCard className="w-4 h-4 text-indigo-300" />
@@ -350,7 +420,7 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      <section className="max-w-4xl mx-auto px-6 py-16 text-center">
+      <section className="max-w-4xl mx-auto px-6 py-16 text-center border-t border-white/5">
         <p className="text-sm uppercase tracking-[0.3em] text-indigo-200">Ready to promote</p>
         <h2 className="mt-4 text-3xl text-white font-semibold">Launch with authentic-looking visuals today.</h2>
         <p className="mt-3 text-gray-400">
@@ -373,10 +443,22 @@ const LandingPage: React.FC = () => {
       </section>
 
       <footer className="border-t border-white/5 py-10 text-sm text-center text-gray-500">
-        <p>© {new Date().getFullYear()} Universal Mockup Generator · Built in Buenos Aires</p>
-        <p className="mt-2">
-          Questions? <a className="text-indigo-300 hover:text-indigo-200" href="mailto:hola@universalugc.com">hola@universalugc.com</a>
-        </p>
+        <div className="flex flex-col gap-3 items-center">
+          <div className="flex items-center gap-2 text-white">
+            <Camera className="w-5 h-5" />
+            Universal Mockup Generator
+          </div>
+          <div className="flex flex-wrap justify-center gap-4 text-xs uppercase tracking-widest text-gray-400">
+            <button onClick={handleSmoothScroll('#features')} className="hover:text-white transition">Features</button>
+            <button onClick={handleSmoothScroll('#gallery')} className="hover:text-white transition">Gallery</button>
+            <button onClick={handleSmoothScroll('#workflow')} className="hover:text-white transition">Workflow</button>
+            <button onClick={handleSmoothScroll('#pricing')} className="hover:text-white transition">Pricing</button>
+          </div>
+          <p>© {new Date().getFullYear()} Universal Mockup Generator · Built in Buenos Aires</p>
+          <p className="text-xs">
+            Questions? <a className="text-indigo-300 hover:text-indigo-200" href="mailto:hola@universalugc.com">hola@universalugc.com</a>
+          </p>
+        </div>
       </footer>
     </div>
   );

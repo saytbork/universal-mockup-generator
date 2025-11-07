@@ -1,6 +1,27 @@
 
 import { Option } from './types';
 
+export const CONTENT_STYLE_OPTIONS: Option[] = [
+  { label: 'UGC Lifestyle', value: 'ugc' },
+  { label: 'Product Placement', value: 'product' },
+];
+
+export const PLACEMENT_STYLE_OPTIONS: Option[] = [
+  { label: 'Luxury Editorial', value: 'luxury editorial set with high-end props and reflections' },
+  { label: 'On-White Studio', value: 'clean white sweep background with soft gradients' },
+  { label: 'Splash Shot', value: 'dynamic splash of water or liquid around the product' },
+  { label: 'Acrylic Blocks', value: 'stacked acrylic blocks and geometric props' },
+  { label: 'Lifestyle Flatlay', value: 'styled flatlay with curated props and textures' },
+  { label: 'Nature Elements', value: 'organic stones, leaves, and water droplets' },
+];
+
+export const PLACEMENT_CAMERA_OPTIONS: Option[] = [
+  { label: 'Cinema Camera', value: 'shot on a cinema camera with cinematic lighting' },
+  { label: 'Macro Lens', value: 'shot on a macro lens for crisp product detail' },
+  { label: 'Product Tabletop Rig', value: 'captured on a tabletop product rig with perfect symmetry' },
+  { label: 'Overhead Rig', value: 'captured from an overhead rig for flatlay precision' },
+  { label: 'Studio Strobe Setup', value: 'lit with studio strobes and softboxes for glossy highlights' },
+];
 // Simplified 8-option version focused on practical UGC lighting styles.
 export const LIGHTING_OPTIONS: Option[] = [
   { label: 'Natural Light', value: 'soft, natural window light' },
@@ -23,6 +44,14 @@ export const SETTING_OPTIONS: Option[] = [
   { label: 'Café', value: 'a trendy, bustling café' },
   { label: 'Outdoors', value: 'a natural, outdoor park or garden setting' },
   { label: 'In the Car', value: 'the interior of a car, casual and on-the-go' },
+  { label: 'Beach', value: 'a sunny beach with sand, umbrellas, and ocean breeze' },
+  { label: 'Boutique Hotel', value: 'a chic boutique hotel room or lobby' },
+  { label: 'Poolside', value: 'a pool deck with lounge chairs and shimmering water' },
+  { label: 'Garden Party', value: 'a lush backyard or botanical garden set up for entertaining' },
+  { label: 'Rooftop', value: 'an urban rooftop terrace with skyline views' },
+  { label: 'Wellness Spa', value: 'a serene spa setting with steam, plants, and soft towels' },
+  { label: 'Farmer’s Market', value: 'an open-air market with fresh produce and rustic tables' },
+  { label: 'Mountain Cabin', value: 'a woodsy cabin interior with natural textures' },
 ];
 
 // Reduced 5-option version covering only visually distinct materials.
