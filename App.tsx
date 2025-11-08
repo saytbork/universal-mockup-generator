@@ -1,6 +1,6 @@
 
 
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { GoogleGenAI, Modality } from "@google/genai";
 import { MockupOptions, OptionCategory, Option } from './types';
@@ -20,6 +20,7 @@ import Accordion from './components/Accordion';
 import ChipSelectGroup from './components/ChipSelectGroup';
 import ImageEditor from './components/ImageEditor';
 import MoodReferencePanel from './components/MoodReferencePanel';
+import OnboardingOverlay from './components/OnboardingOverlay';
 
 const LOCAL_STORAGE_KEY = 'ugc-product-mockup-generator-api-key';
 const EMAIL_STORAGE_KEY = 'ugc-product-mockup-generator-user-email';
@@ -317,6 +318,9 @@ const App: React.FC = () => {
   const [isMoodProcessing, setIsMoodProcessing] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [onboardingStep, setOnboardingStep] = useState(1);
+  const intentRef = useRef<HTMLDivElement>(null);
+  const uploadRef = useRef<HTMLDivElement>(null);
+  const customizeRef = useRef<HTMLDivElement>(null);
   const isDevBypass = useMemo(() => {
     if (!import.meta.env.DEV) return false;
     const params = new URLSearchParams(location.search);
@@ -361,6 +365,26 @@ const App: React.FC = () => {
       ]),
     []
   );
+  const onboardingStepsMeta = useMemo(
+    () => [
+      {
+        title: 'Choose Content Intent',
+        description: 'Pick between authentic UGC or a polished placement. This unlocks the rest of the builder.',
+        ref: intentRef,
+      },
+      {
+        title: 'Upload your product',
+        description: 'Drop your product photo once—we’ll reuse it for every variation unless you replace it.',
+        ref: uploadRef,
+      },
+      {
+        title: 'Customize the vibe',
+        description: 'Dial in scene, camera, realism, and people details before generating or editing.',
+        ref: customizeRef,
+      },
+    ],
+    []
+  );
   
   // State for video generation
   const [videoPrompt, setVideoPrompt] = useState('');
@@ -386,9 +410,9 @@ const App: React.FC = () => {
     const storedEmail = window.localStorage.getItem(EMAIL_STORAGE_KEY);
     if (storedEmail) {
       setUserEmail(storedEmail);
-      setIsLoggedIn(true);
-      setEmailInput(storedEmail);
-    }
+    setIsLoggedIn(true);
+    setEmailInput(storedEmail);
+  }
 
     const storedCount = window.localStorage.getItem(IMAGE_COUNT_KEY);
     if (storedCount) {
@@ -440,6 +464,14 @@ const App: React.FC = () => {
       setShowOnboarding(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (!showOnboarding) return;
+    const current = onboardingStepsMeta[onboardingStep - 1]?.ref.current;
+    if (current) {
+      current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [showOnboarding, onboardingStep, onboardingStepsMeta]);
 
   const removeStoredApiKey = useCallback(() => {
     if (typeof window !== 'undefined') {
@@ -527,6 +559,9 @@ const App: React.FC = () => {
       setOnboardingStep(step + 1);
     }
   }, [showOnboarding, onboardingStep, skipOnboarding]);
+  const handleOnboardingNext = useCallback(() => {
+    advanceOnboardingFromStep(onboardingStep);
+  }, [advanceOnboardingFromStep, onboardingStep]);
 
   const handleVideoAccessCodeChange = useCallback((value: string) => {
     setVideoAccessInput(value);
@@ -1237,6 +1272,13 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto relative">
         {isTrialLocked && <TrialLimitOverlay />}
+        <OnboardingOverlay
+          visible={showOnboarding}
+          currentStep={onboardingStep}
+          steps={onboardingStepsMeta}
+          onNext={handleOnboardingNext}
+          onSkip={skipOnboarding}
+        />
 
         <header className="text-center mb-8">
           <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500">
@@ -1303,7 +1345,7 @@ const App: React.FC = () => {
 
         <main className="flex flex-col gap-8">
             <div className="grid gap-6 lg:grid-cols-3">
-              <div className="bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-4 h-full">
+                <div ref={intentRef} className="bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-4 h-full">
                 <div className="flex flex-col gap-1">
                   <p className="text-xs uppercase tracking-widest text-indigo-300">Step 1</p>
                   <h2 className="text-2xl font-bold text-gray-200">Choose Content Intent</h2>
@@ -1313,26 +1355,6 @@ const App: React.FC = () => {
                       : 'UGC Lifestyle enables authentic creator vibes, including people interacting with the product.'}
                   </p>
                 </div>
-                {showOnboarding && onboardingStep === 1 && (
-                  <div className="rounded-2xl border border-indigo-400/40 bg-indigo-500/10 p-4 text-left text-sm text-indigo-100 shadow-inner">
-                    <p className="font-semibold text-white mb-1">Start here</p>
-                    <p>Pick whether you want an authentic UGC vibe or a polished product placement. This unlocks the rest of the builder.</p>
-                    <div className="mt-3 flex gap-3">
-                      <button
-                        onClick={() => advanceOnboardingFromStep(1)}
-                        className="rounded-full bg-indigo-500 px-4 py-1.5 text-white text-xs font-semibold hover:bg-indigo-600 transition"
-                      >
-                        Next
-                      </button>
-                      <button
-                        onClick={skipOnboarding}
-                        className="text-xs text-indigo-200 hover:text-white"
-                      >
-                        Skip tutorial
-                      </button>
-                    </div>
-                  </div>
-                )}
                 <ChipSelectGroup
                   label="Content Style"
                   options={CONTENT_STYLE_OPTIONS}
@@ -1340,7 +1362,7 @@ const App: React.FC = () => {
                   onChange={(value) => handleOptionChange('contentStyle', value, 'Content Intent')}
                 />
               </div>
-              <div className="bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-4 h-full">
+              <div ref={uploadRef} className="bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-4 h-full">
                 <div className="flex flex-col gap-1">
                   <p className="text-xs uppercase tracking-widest text-indigo-300">Step 2</p>
                   <h2 className="text-2xl font-bold text-gray-200">
@@ -1352,26 +1374,6 @@ const App: React.FC = () => {
                       : 'Upload a transparent PNG, JPG, or WebP of your product to anchor every scene.'}
                   </p>
                 </div>
-                {showOnboarding && onboardingStep === 2 && (
-                  <div className="rounded-2xl border border-indigo-400/40 bg-indigo-500/10 p-4 text-left text-sm text-indigo-100 shadow-inner">
-                    <p className="font-semibold text-white mb-1">One upload for everything</p>
-                    <p>Drop your product photo once. We’ll reuse it for every UGC or placement variation so you never have to re-upload.</p>
-                    <div className="mt-3 flex gap-3">
-                      <button
-                        onClick={() => advanceOnboardingFromStep(2)}
-                        className="rounded-full bg-indigo-500 px-4 py-1.5 text-white text-xs font-semibold hover:bg-indigo-600 transition"
-                      >
-                        Next
-                      </button>
-                      <button
-                        onClick={skipOnboarding}
-                        className="text-xs text-indigo-200 hover:text-white"
-                      >
-                        Skip tutorial
-                      </button>
-                    </div>
-                  </div>
-                )}
                 <ImageUploader
                   onImageUpload={handleImageUpload}
                   uploadedImagePreview={uploadedImagePreview}
@@ -1393,31 +1395,11 @@ const App: React.FC = () => {
           <fieldset disabled={!hasUploadedProduct || isTrialLocked} className="contents">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Controls Column */}
-              <div className={`lg:col-span-1 bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col max-h-[calc(100vh-12rem)] ${!hasUploadedProduct ? 'opacity-60' : ''}`}>
+              <div ref={customizeRef} className={`lg:col-span-1 bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col max-h-[calc(100vh-12rem)] ${!hasUploadedProduct ? 'opacity-60' : ''}`}>
                 <div className="mb-4 border-b border-gray-600 pb-3 flex-shrink-0">
                   <p className="text-xs uppercase tracking-widest text-indigo-300">Step 3</p>
                   <h2 className="text-2xl font-bold text-gray-200">Customize Your Mockup</h2>
                 </div>
-                {showOnboarding && onboardingStep === 3 && (
-                  <div className="rounded-2xl border border-indigo-400/40 bg-indigo-500/10 p-4 text-left text-sm text-indigo-100 shadow-inner mb-4">
-                    <p className="font-semibold text-white mb-1">Dial in the vibe</p>
-                    <p>Use these chips to tweak scene, camera, and realism. Try a messy setup or a polished placement—then hit “Generate”.</p>
-                    <div className="mt-3 flex gap-3">
-                      <button
-                        onClick={() => advanceOnboardingFromStep(3)}
-                        className="rounded-full bg-indigo-500 px-4 py-1.5 text-white text-xs font-semibold hover:bg-indigo-600 transition"
-                      >
-                        Got it
-                      </button>
-                      <button
-                        onClick={skipOnboarding}
-                        className="text-xs text-indigo-200 hover:text-white"
-                      >
-                        Skip tutorial
-                      </button>
-                    </div>
-                  </div>
-                )}
                 
                 <div className={`flex-grow overflow-y-auto custom-scrollbar -mr-4 pr-4 ${!hasUploadedProduct ? 'pointer-events-none' : ''}`}>
                   <div id={getSectionId('Scene & Product')}>
