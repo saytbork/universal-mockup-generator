@@ -84,6 +84,7 @@ export const PERSON_APPEARANCE_OPTIONS: Option[] = [
   { label: 'Regular', value: 'a regular, everyday appearance' },
   { label: 'Well-Groomed', value: 'a well-groomed, put-together appearance' },
   { label: 'Styled', value: 'a trendy, styled, influencer-like appearance' },
+  { label: 'Messy / Just Woke Up', value: 'a slightly messy, just woke up appearance with authentic flyaways and relaxed wardrobe' },
 ];
 
 // 6-option version focused on realistic user actions.
@@ -103,20 +104,13 @@ export const GENDER_OPTIONS: Option[] = [
 
 // Essential 5-option set representing true UGC shooting styles.
 export const CAMERA_OPTIONS: Option[] = [
-  { label: 'Smartphone', value: 'shot on a modern smartphone' },
-  { label: 'Selfie Cam', value: 'shot on a front-facing selfie camera' },
+  { label: 'Modern Smartphone', value: 'shot on a recent smartphone with computational HDR' },
+  { label: 'Front Selfie Cam', value: 'shot on a front-facing selfie camera with arm’s length framing' },
+  { label: 'Sony Handycam Hi8', value: 'shot on a vintage Sony Handycam Hi8 with interlaced video look and washed colors' },
+  { label: 'Disposable Film Camera', value: 'shot on a disposable 35mm film camera with strong flash and grain' },
+  { label: 'Polaroid OneStep', value: 'shot on an instant Polaroid camera with soft focus and vignette' },
   { label: 'DSLR/Mirrorless', value: 'shot on a professional DSLR/Mirrorless camera with a shallow depth of field' },
-  { label: 'Webcam', value: 'shot on a laptop webcam' },
-  { label: 'Point & Shoot', value: 'shot on a digital point-and-shoot camera, flash aesthetic' },
-];
-
-export const ISO_OPTIONS: Option[] = [
-  { label: '100', value: 'ISO 100, no noise, very clean' },
-  { label: '200', value: 'ISO 200, clean with great detail' },
-  { label: '400', value: 'ISO 400, slight grain, very natural' },
-  { label: '800', value: 'ISO 800, noticeable grain, good for low light' },
-  { label: '1600', value: 'ISO 1600, prominent grain, documentary style' },
-  { label: '3200', value: 'ISO 3200, heavy grain, artistic low light style' },
+  { label: 'Laptop Webcam', value: 'shot on a built-in laptop webcam with low-light noise' },
 ];
 
 // 5-option version representing common human-view compositions.
@@ -161,6 +155,10 @@ export const REALISM_OPTIONS: Option[] = [
   {
     label: 'Balanced Realism',
     value: 'keep the realism moderate with organic grain, minor reflections, and a handheld look while still feeling premium.',
+  },
+  {
+    label: 'Messy Space UGC',
+    value: 'let the environment feel mildly messy with everyday clutter, scuffed surfaces, and imperfect prop placement so it feels lived-in and unscripted.',
   },
   {
     label: 'Polished Production',

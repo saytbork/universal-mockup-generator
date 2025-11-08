@@ -9,7 +9,7 @@ import {
   PLACEMENT_STYLE_OPTIONS,
   PLACEMENT_CAMERA_OPTIONS,
   LIGHTING_OPTIONS, SETTING_OPTIONS, AGE_GROUP_OPTIONS, CAMERA_OPTIONS, 
-  ISO_OPTIONS, PERSPECTIVE_OPTIONS, SELFIE_TYPE_OPTIONS, ETHNICITY_OPTIONS,
+  PERSPECTIVE_OPTIONS, SELFIE_TYPE_OPTIONS, ETHNICITY_OPTIONS,
   GENDER_OPTIONS, ASPECT_RATIO_OPTIONS, ENVIRONMENT_ORDER_OPTIONS, PERSON_APPEARANCE_OPTIONS,
   PRODUCT_MATERIAL_OPTIONS, PRODUCT_INTERACTION_OPTIONS, REALISM_OPTIONS
 } from './constants';
@@ -29,6 +29,7 @@ const TRIAL_BYPASS_KEY = 'ugc-product-mockup-trial-bypass';
 const TRIAL_BYPASS_CODE = '713371';
 const VIDEO_SECRET_CODE = '713371';
 const IMAGE_TRIAL_LIMIT = 5;
+const ONBOARDING_DISMISSED_KEY = 'ugc-onboarding-hidden';
 
 type AiStudioApi = {
   hasSelectedApiKey: () => Promise<boolean>;
@@ -264,6 +265,9 @@ const getOptionValueByLabel = (options: Option[], label: string): string => {
   return match ? match.value : options[0].value;
 };
 
+const getSectionId = (title: string) =>
+  `accordion-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+
 const App: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -277,7 +281,6 @@ const App: React.FC = () => {
     environmentOrder: ENVIRONMENT_ORDER_OPTIONS[0].value,
     ageGroup: AGE_GROUP_OPTIONS[5].value, // Default to 'No Person'
     camera: CAMERA_OPTIONS[0].value,
-    iso: ISO_OPTIONS[0].value,
     perspective: PERSPECTIVE_OPTIONS[0].value,
     aspectRatio: ASPECT_RATIO_OPTIONS[0].value,
     selfieType: SELFIE_TYPE_OPTIONS[0].value,
@@ -312,6 +315,8 @@ const App: React.FC = () => {
   const [moodSummary, setMoodSummary] = useState<string | null>(null);
   const [moodPromptCue, setMoodPromptCue] = useState<string | null>(null);
   const [isMoodProcessing, setIsMoodProcessing] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(true);
+  const [onboardingStep, setOnboardingStep] = useState(1);
   const isDevBypass = useMemo(() => {
     if (!import.meta.env.DEV) return false;
     const params = new URLSearchParams(location.search);
@@ -328,6 +333,34 @@ const App: React.FC = () => {
   const hasUploadedProduct = Boolean(uploadedImagePreview);
   const canUseMood = hasUploadedProduct;
   const contentStyleValue = hasSelectedIntent ? options.contentStyle : CONTENT_STYLE_OPTIONS[0].value;
+  const scrollToSection = useCallback((title: string) => {
+    const element = document.getElementById(getSectionId(title));
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, []);
+  const stepThreeCategories = useMemo<Set<OptionCategory>>(
+    () =>
+      new Set<OptionCategory>([
+        'productMaterial',
+        'setting',
+        'environmentOrder',
+        'placementStyle',
+        'placementCamera',
+        'lighting',
+        'camera',
+        'perspective',
+        'aspectRatio',
+        'realism',
+        'ageGroup',
+        'personAppearance',
+        'productInteraction',
+        'gender',
+        'ethnicity',
+        'selfieType',
+      ]),
+    []
+  );
   
   // State for video generation
   const [videoPrompt, setVideoPrompt] = useState('');
@@ -401,6 +434,13 @@ const App: React.FC = () => {
     };
   }, [moodImagePreview]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.localStorage.getItem(ONBOARDING_DISMISSED_KEY) === 'true') {
+      setShowOnboarding(false);
+    }
+  }, []);
+
   const removeStoredApiKey = useCallback(() => {
     if (typeof window !== 'undefined') {
       window.localStorage.removeItem(LOCAL_STORAGE_KEY);
@@ -471,6 +511,22 @@ const App: React.FC = () => {
       setTrialCodeError('Invalid code. Please try again.');
     }
   }, [trialCodeInput]);
+
+  const skipOnboarding = useCallback(() => {
+    setShowOnboarding(false);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(ONBOARDING_DISMISSED_KEY, 'true');
+    }
+  }, []);
+
+  const advanceOnboardingFromStep = useCallback((step: number) => {
+    if (!showOnboarding || onboardingStep !== step) return;
+    if (step >= 3) {
+      skipOnboarding();
+    } else {
+      setOnboardingStep(step + 1);
+    }
+  }, [showOnboarding, onboardingStep, skipOnboarding]);
 
   const handleVideoAccessCodeChange = useCallback((value: string) => {
     setVideoAccessInput(value);
@@ -565,8 +621,6 @@ const App: React.FC = () => {
     setMoodPalette([]);
     setMoodSummary(null);
     setMoodPromptCue(null);
-    setMoodPromptCue(null);
-    setMoodPromptCue(null);
   }, []);
 
   const handleEmailChange = useCallback((value: string) => {
@@ -632,6 +686,11 @@ const App: React.FC = () => {
         updatedSelectedCategories.add('placementCamera');
       }
     }
+    if (category === 'contentStyle') {
+      advanceOnboardingFromStep(1);
+    } else if (stepThreeCategories.has(category)) {
+      advanceOnboardingFromStep(3);
+    }
 
     setOptions(newOptions);
     setSelectedCategories(updatedSelectedCategories);
@@ -639,7 +698,9 @@ const App: React.FC = () => {
     const advance = () => {
       const currentIndex = accordionOrder.indexOf(accordionTitle);
       if (currentIndex !== -1 && currentIndex < accordionOrder.length - 1) {
-        setOpenAccordion(accordionOrder[currentIndex + 1]);
+        const nextTitle = accordionOrder[currentIndex + 1];
+        setOpenAccordion(nextTitle);
+        setTimeout(() => scrollToSection(nextTitle), 120);
       } else if (currentIndex === accordionOrder.length - 1) {
         setOpenAccordion(null);
       }
@@ -647,7 +708,7 @@ const App: React.FC = () => {
   
     const accordionCategoryMap: Record<string, OptionCategory[]> = {
       'Scene & Product': ['productMaterial', 'setting', 'environmentOrder'],
-      'Photography': ['lighting', 'camera', 'iso', 'perspective', 'aspectRatio'],
+      'Photography': ['lighting', 'camera', 'perspective', 'aspectRatio', 'realism'],
       'Person Details': ['ageGroup', 'personAppearance', 'productInteraction', 'gender', 'ethnicity', 'selfieType'],
     };
     
@@ -671,7 +732,7 @@ const App: React.FC = () => {
     }
   };
   
-  const handleReset = useCallback(() => {
+  const resetOutputs = useCallback(() => {
     setGeneratedImageUrl(null);
     setImageError(null);
     setGeneratedVideoUrl(null);
@@ -679,6 +740,10 @@ const App: React.FC = () => {
     setIsVideoLoading(false);
     setVideoPrompt('');
     setEditPrompt('');
+  }, []);
+
+  const handleReset = useCallback(() => {
+    resetOutputs();
     setSelectedCategories(new Set());
     setOpenAccordion('Scene & Product');
     setMoodPalette([]);
@@ -687,7 +752,12 @@ const App: React.FC = () => {
       if (prev) URL.revokeObjectURL(prev);
       return null;
     });
-  }, []);
+    setUploadedImageFile(null);
+    setUploadedImagePreview(prev => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+  }, [resetOutputs]);
 
   const handleLogout = useCallback(() => {
     if (typeof window !== 'undefined') {
@@ -725,7 +795,8 @@ const App: React.FC = () => {
     setUploadedImageFile(file);
     const previewUrl = URL.createObjectURL(file);
     setUploadedImagePreview(previewUrl);
-  }, [handleReset]);
+    advanceOnboardingFromStep(2);
+  }, [handleReset, advanceOnboardingFromStep]);
   
   const constructPrompt = (): string => {
     const currentStyle = contentStyleValue;
@@ -756,7 +827,7 @@ const App: React.FC = () => {
       ? `The shot should feel candid, emotional, and cinematic, as if taken by a real person with a ${options.camera}. `
       : `The shot should feel refined and advertising-ready, with deliberate staging captured on a ${options.camera}. `;
 
-    prompt += `The scene is a ${options.setting}, illuminated by ${options.lighting}. The overall environment has a ${options.environmentOrder} feel. The photo is shot from a ${options.perspective}. The camera settings should reflect ${options.iso}, creating a natural look. `;
+    prompt += `The scene is a ${options.setting}, illuminated by ${options.lighting}. The overall environment has a ${options.environmentOrder} feel. The photo is shot from a ${options.perspective}, embracing the chosen camera style and its natural characteristics. `;
     
     prompt += `The focus is on the provided product, which has a ${options.productMaterial} finish. Place this exact product into the scene naturally. Ensure its material, reflections, and shadows are rendered realistically according to the environment. Do not alter the product's design or branding. `;
     if (!isUgcStyle) {
@@ -796,7 +867,7 @@ const App: React.FC = () => {
       return;
     }
 
-    handleReset();
+    resetOutputs();
     setIsImageLoading(true);
 
     try {
@@ -1242,6 +1313,26 @@ const App: React.FC = () => {
                       : 'UGC Lifestyle enables authentic creator vibes, including people interacting with the product.'}
                   </p>
                 </div>
+                {showOnboarding && onboardingStep === 1 && (
+                  <div className="rounded-2xl border border-indigo-400/40 bg-indigo-500/10 p-4 text-left text-sm text-indigo-100 shadow-inner">
+                    <p className="font-semibold text-white mb-1">Start here</p>
+                    <p>Pick whether you want an authentic UGC vibe or a polished product placement. This unlocks the rest of the builder.</p>
+                    <div className="mt-3 flex gap-3">
+                      <button
+                        onClick={() => advanceOnboardingFromStep(1)}
+                        className="rounded-full bg-indigo-500 px-4 py-1.5 text-white text-xs font-semibold hover:bg-indigo-600 transition"
+                      >
+                        Next
+                      </button>
+                      <button
+                        onClick={skipOnboarding}
+                        className="text-xs text-indigo-200 hover:text-white"
+                      >
+                        Skip tutorial
+                      </button>
+                    </div>
+                  </div>
+                )}
                 <ChipSelectGroup
                   label="Content Style"
                   options={CONTENT_STYLE_OPTIONS}
@@ -1261,6 +1352,26 @@ const App: React.FC = () => {
                       : 'Upload a transparent PNG, JPG, or WebP of your product to anchor every scene.'}
                   </p>
                 </div>
+                {showOnboarding && onboardingStep === 2 && (
+                  <div className="rounded-2xl border border-indigo-400/40 bg-indigo-500/10 p-4 text-left text-sm text-indigo-100 shadow-inner">
+                    <p className="font-semibold text-white mb-1">One upload for everything</p>
+                    <p>Drop your product photo once. We’ll reuse it for every UGC or placement variation so you never have to re-upload.</p>
+                    <div className="mt-3 flex gap-3">
+                      <button
+                        onClick={() => advanceOnboardingFromStep(2)}
+                        className="rounded-full bg-indigo-500 px-4 py-1.5 text-white text-xs font-semibold hover:bg-indigo-600 transition"
+                      >
+                        Next
+                      </button>
+                      <button
+                        onClick={skipOnboarding}
+                        className="text-xs text-indigo-200 hover:text-white"
+                      >
+                        Skip tutorial
+                      </button>
+                    </div>
+                  </div>
+                )}
                 <ImageUploader
                   onImageUpload={handleImageUpload}
                   uploadedImagePreview={uploadedImagePreview}
@@ -1287,8 +1398,29 @@ const App: React.FC = () => {
                   <p className="text-xs uppercase tracking-widest text-indigo-300">Step 3</p>
                   <h2 className="text-2xl font-bold text-gray-200">Customize Your Mockup</h2>
                 </div>
+                {showOnboarding && onboardingStep === 3 && (
+                  <div className="rounded-2xl border border-indigo-400/40 bg-indigo-500/10 p-4 text-left text-sm text-indigo-100 shadow-inner mb-4">
+                    <p className="font-semibold text-white mb-1">Dial in the vibe</p>
+                    <p>Use these chips to tweak scene, camera, and realism. Try a messy setup or a polished placement—then hit “Generate”.</p>
+                    <div className="mt-3 flex gap-3">
+                      <button
+                        onClick={() => advanceOnboardingFromStep(3)}
+                        className="rounded-full bg-indigo-500 px-4 py-1.5 text-white text-xs font-semibold hover:bg-indigo-600 transition"
+                      >
+                        Got it
+                      </button>
+                      <button
+                        onClick={skipOnboarding}
+                        className="text-xs text-indigo-200 hover:text-white"
+                      >
+                        Skip tutorial
+                      </button>
+                    </div>
+                  </div>
+                )}
                 
                 <div className={`flex-grow overflow-y-auto custom-scrollbar -mr-4 pr-4 ${!hasUploadedProduct ? 'pointer-events-none' : ''}`}>
+                  <div id={getSectionId('Scene & Product')}>
                    <Accordion 
                       title="Scene & Product" 
                       isOpen={openAccordion === 'Scene & Product'} 
@@ -1316,6 +1448,8 @@ const App: React.FC = () => {
                         )}
                       </div>
                     </Accordion>
+                  </div>
+                  <div id={getSectionId('Photography')}>
                     <Accordion 
                       title="Photography" 
                       isOpen={openAccordion === 'Photography'}
@@ -1324,12 +1458,13 @@ const App: React.FC = () => {
                       <div className="space-y-4">
                         <ChipSelectGroup label="Lighting" options={LIGHTING_OPTIONS} selectedValue={options.lighting} onChange={(value) => handleOptionChange('lighting', value, 'Photography')} />
                         <ChipSelectGroup label="Camera Type" options={CAMERA_OPTIONS} selectedValue={options.camera} onChange={(value) => handleOptionChange('camera', value, 'Photography')} />
-                        <ChipSelectGroup label="ISO" options={ISO_OPTIONS} selectedValue={options.iso} onChange={(value) => handleOptionChange('iso', value, 'Photography')} />
                         <ChipSelectGroup label="Perspective" options={PERSPECTIVE_OPTIONS} selectedValue={options.perspective} onChange={(value) => handleOptionChange('perspective', value, 'Photography')} />
                         <ChipSelectGroup label="Aspect Ratio" options={ASPECT_RATIO_OPTIONS} selectedValue={options.aspectRatio} onChange={(value) => handleOptionChange('aspectRatio', value, 'Photography')} />
                         <ChipSelectGroup label="Realism / Imperfections" options={REALISM_OPTIONS} selectedValue={options.realism} onChange={(value) => handleOptionChange('realism', value, 'Photography')} />
                       </div>
                     </Accordion>
+                  </div>
+                  <div id={getSectionId('Person Details')}>
                     <Accordion 
                       title="Person Details"
                       isOpen={openAccordion === 'Person Details'}
@@ -1347,6 +1482,7 @@ const App: React.FC = () => {
                         <ChipSelectGroup label="Selfie Type" options={SELFIE_TYPE_OPTIONS} selectedValue={options.selfieType} onChange={(value) => handleOptionChange('selfieType', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
                       </div>
                     </Accordion>
+                  </div>
                 </div>
 
                 <div className="mt-8 flex-shrink-0">
