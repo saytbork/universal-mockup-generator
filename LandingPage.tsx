@@ -1,20 +1,30 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  Sparkles, Wand2, Camera, ShieldCheck, PlaySquare, Users, CheckCircle2, ArrowRight, Mail, Trophy, Rocket, CreditCard 
+  Sparkles, Wand2, Camera, ShieldCheck, PlaySquare, Users, CheckCircle2, CreditCard 
 } from 'lucide-react';
 import PlanCheckoutModal from './components/PlanCheckoutModal';
 
 type PricingPlan = {
   name: string;
-  price: string;
-  cadence: string;
-  badge: string;
-  icon: typeof Sparkles;
+  monthlyPrice: string;
+  yearlyPrice: string;
+  monthlyCaption: string;
+  yearlyCaption: string;
   highlights: string[];
   cta: string;
+  badge?: string;
   featured?: boolean;
   isFree?: boolean;
+  checkoutUrl?: string;
+  contactEmail?: string;
+};
+
+type CheckoutPlan = {
+  name: string;
+  price: string;
+  cadence: string;
+  highlights: string[];
   checkoutUrl?: string;
 };
 
@@ -66,45 +76,61 @@ const getEnv = (key: string) => import.meta.env[key as keyof ImportMetaEnv] as s
 const pricing: PricingPlan[] = [
   {
     name: 'Free Launch',
-    price: '$0',
-    cadence: 'per month',
-    badge: 'Email required',
-    icon: Mail,
+    monthlyPrice: '$0',
+    yearlyPrice: '$0',
+    monthlyCaption: 'per month',
+    yearlyCaption: 'per month',
     highlights: [
-      '10 image generations/month',
+      '10 image generations / month',
       'Watermarked exports',
       'Community support',
     ],
-    cta: 'Start free',
+    cta: 'Start Free',
     isFree: true,
   },
   {
-    name: 'Growth (Popular)',
-    price: '$39',
-    cadence: 'per month',
-    badge: 'Most teams pick this',
-    icon: Trophy,
+    name: 'Starter',
+    monthlyPrice: '$12',
+    yearlyPrice: '$115',
+    monthlyCaption: 'per month',
+    yearlyCaption: 'per year',
     highlights: [
-      '200 image generations + 10 videos',
+      '80 image generations + 5 videos',
+      'No watermark on exports',
+      'Basic commercial license',
+    ],
+    cta: 'Upgrade to Starter',
+    checkoutUrl: getEnv('VITE_STRIPE_LINK_STARTER'),
+  },
+  {
+    name: 'Growth',
+    monthlyPrice: '$29',
+    yearlyPrice: '$278',
+    monthlyCaption: 'per month',
+    yearlyCaption: 'per year',
+    highlights: [
+      '250 image generations + 10 videos',
       'Priority rendering queue',
-      'Commercial usage license',
+      'Full commercial license',
     ],
     cta: 'Upgrade to Growth',
+    badge: 'Most Popular',
     featured: true,
     checkoutUrl: getEnv('VITE_STRIPE_LINK_GROWTH'),
   },
   {
-    name: 'Premium Studio',
-    price: '$89',
-    cadence: 'per month',
-    badge: 'Full production access',
-    icon: Rocket,
+    name: 'Studio Pro',
+    monthlyPrice: '$59',
+    yearlyPrice: '$566',
+    monthlyCaption: 'per month',
+    yearlyCaption: 'per year',
     highlights: [
-      '600 image generations + 30 videos',
-      'Custom style templates & collaboration',
-      'Dedicated support + roadmap input',
+      '600 image generations + 25 videos',
+      'Custom templates & collaboration',
+      'Dedicated support pod',
     ],
-    cta: 'Talk to sales',
+    cta: 'Talk to Sales',
+    contactEmail: 'hola@universalugc.com',
     checkoutUrl: getEnv('VITE_STRIPE_LINK_PREMIUM'),
   },
 ];
@@ -112,9 +138,10 @@ const pricing: PricingPlan[] = [
 const paymentMethods = ['Visa', 'Mastercard', 'American Express', 'Apple Pay', 'Google Pay'];
 
 const LandingPage: React.FC = () => {
-  const [selectedPlan, setSelectedPlan] = useState<PricingPlan | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<CheckoutPlan | null>(null);
   const [checkoutEmail, setCheckoutEmail] = useState('');
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const handleSmoothScroll = useCallback((selector: string) => {
     return (event: React.MouseEvent) => {
       event.preventDefault();
@@ -126,7 +153,15 @@ const LandingPage: React.FC = () => {
     };
   }, []);
   const handleOpenCheckout = (plan: PricingPlan) => {
-    setSelectedPlan(plan);
+    const cadence = billingCycle === 'monthly' ? plan.monthlyCaption : `${plan.yearlyCaption} (annual)`;
+    const price = billingCycle === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice;
+    setSelectedPlan({
+      name: plan.name,
+      price,
+      cadence,
+      highlights: plan.highlights,
+      checkoutUrl: plan.checkoutUrl,
+    });
     setCheckoutEmail('');
     setCheckoutError(null);
   };
@@ -153,6 +188,10 @@ const LandingPage: React.FC = () => {
       console.error(err);
       setCheckoutError('Invalid Stripe payment link. Please verify the URL.');
     }
+  };
+
+  const handleBillingToggle = () => {
+    setBillingCycle(prev => (prev === 'monthly' ? 'yearly' : 'monthly'));
   };
 
   return (
@@ -334,88 +373,154 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      <section id="pricing" className="max-w-6xl mx-auto px-6 py-16 space-y-10">
-        <div className="text-center max-w-3xl mx-auto">
-          <p className="text-sm uppercase tracking-[0.3em] text-indigo-200 mb-4">Pricing</p>
-          <h2 className="text-3xl text-white font-semibold">Three plans built for testing, scaling, and studios.</h2>
-          <p className="mt-3 text-gray-400">
-            Every workspace must register with a verified email before generating content. Plans are billed securely through Stripe with instant access after checkout.
-          </p>
-        </div>
-        <div className="grid gap-6 md:grid-cols-3">
-          {pricing.map(plan => (
-            <div
-              key={plan.name}
-              className={`rounded-3xl border ${
-                plan.featured ? 'border-indigo-400 bg-gradient-to-b from-indigo-900/40 to-gray-950' : 'border-white/5 bg-gray-900/50'
-              } p-6 flex flex-col shadow-xl shadow-black/40`}
-            >
-              <div className="flex items-center gap-3">
-                <plan.icon className={`w-8 h-8 ${plan.featured ? 'text-indigo-200' : 'text-indigo-300'}`} />
-                <div>
-                  <p className="text-white font-semibold">{plan.name}</p>
-                  <p className="text-xs uppercase tracking-widest text-gray-400">{plan.badge}</p>
-                </div>
+      {/* Universal Mockup Generator – Pricing Section by Juan Amisano */}
+      <section id="pricing" className="relative isolate mt-16 px-4 py-20 sm:px-6 lg:px-8">
+        <div className="absolute inset-0 -z-10 rounded-[2.5rem] bg-gradient-to-b from-[#0A0A0F] to-[#111] opacity-95" />
+        <div className="max-w-6xl mx-auto text-white space-y-12">
+          <div className="text-center space-y-4">
+            <p className="text-sm uppercase tracking-[0.4em] text-indigo-200">Pricing</p>
+            <h2 className="text-3xl sm:text-4xl font-extrabold">Choose the plan that fits your launch velocity</h2>
+            <p className="text-base text-gray-400 max-w-2xl mx-auto">
+              Scale authentic UGC visuals without wrangling freelancers. Flip to annual billing and save 20% for your team.
+            </p>
+            <div className="mt-6 flex justify-center">
+              <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2 shadow-lg shadow-purple-900/30">
+                <span className="text-sm text-gray-300">Billed monthly</span>
+                <label className="relative inline-flex cursor-pointer items-center" aria-label="Toggle between monthly and annual billing">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={billingCycle === 'yearly'}
+                    onChange={handleBillingToggle}
+                  />
+                  <div className="h-6 w-12 rounded-full bg-gray-600 transition peer-checked:bg-indigo-500" />
+                  <span className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow transition peer-checked:translate-x-6" />
+                </label>
+                <span className="text-sm text-gray-300">
+                  Billed yearly <span className="ml-1 rounded-full bg-purple-600/30 px-2 py-0.5 text-xs text-purple-200">Save 20%</span>
+                </span>
               </div>
-              <div className="mt-6">
-                <span className="text-4xl font-bold text-white">{plan.price}</span>
-                <span className="ml-2 text-sm text-gray-400">{plan.cadence}</span>
-              </div>
-              <ul className="mt-6 space-y-3 text-sm text-gray-300">
-                {plan.highlights.map(item => (
-                  <li key={item} className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-indigo-300 mt-0.5 flex-shrink-0" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-              {plan.isFree ? (
-                <Link
-                  to="/app"
-                  className={`mt-8 inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition ${
-                    plan.featured
-                      ? 'bg-white text-gray-900 hover:bg-indigo-50'
-                      : 'border border-white/20 text-white/90 hover:border-indigo-400'
-                  }`}
-                >
-                  {plan.cta}
-                </Link>
-              ) : (
-                <button
-                  onClick={() => handleOpenCheckout(plan)}
-                  className={`mt-8 inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition ${
-                    plan.featured
-                      ? 'bg-white text-gray-900 hover:bg-indigo-50'
-                      : 'border border-white/20 text-white/90 hover:border-indigo-400'
-                  }`}
-                >
-                  {plan.cta}
-                </button>
-              )}
             </div>
-          ))}
-        </div>
-        {selectedPlan && (
-          <PlanCheckoutModal
-            plan={selectedPlan}
-            email={checkoutEmail}
-            onEmailChange={setCheckoutEmail}
-            onClose={handleCloseCheckout}
-            onConfirm={handleConfirmCheckout}
-            disabledReason={!selectedPlan.checkoutUrl ? 'Stripe payment link missing. Configure VITE_STRIPE_LINK variables.' : checkoutError}
-          />
-        )}
-        <div className="flex flex-col items-center gap-3 text-sm text-gray-400">
-          <div className="inline-flex items-center gap-2 text-white/80 font-medium">
-            <CreditCard className="w-4 h-4 text-indigo-300" />
-            Payments processed by Stripe
           </div>
-          <div className="flex flex-wrap justify-center gap-2">
-            {paymentMethods.map(method => (
-              <span key={method} className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-gray-300">
-                {method}
-              </span>
-            ))}
+
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+            {pricing.map(plan => {
+              const isYearly = billingCycle === 'yearly';
+              const priceLabel = isYearly ? plan.yearlyCaption : plan.monthlyCaption;
+              const baseCard =
+                'group relative rounded-3xl border p-6 flex flex-col gap-6 hover:scale-[1.01] transition duration-300';
+              const cardClasses = plan.featured
+                ? `${baseCard} border-[#7E5BEF] bg-gradient-to-b from-[#1A1340] to-[#120A24] shadow-[0_20px_60px_rgba(126,91,239,0.35)]`
+                : `${baseCard} border-white/10 bg-white/5`;
+
+              const ctaBase =
+                'mt-auto w-full rounded-full px-4 py-3 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500';
+              const ctaClasses = plan.featured
+                ? `${ctaBase} bg-white text-[#120A24] hover:bg-gray-100`
+                : plan.isFree
+                ? `${ctaBase} border border-white/30 text-white hover:border-indigo-300`
+                : plan.contactEmail
+                ? `${ctaBase} border border-white/30 text-white hover:bg-white/10`
+                : `${ctaBase} bg-indigo-500 text-white hover:bg-indigo-400`;
+
+              return (
+                <article key={plan.name} className={cardClasses}>
+                  {plan.badge && (
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#7E5BEF] px-3 py-1 text-xs font-semibold text-white">
+                      {plan.badge}
+                    </span>
+                  )}
+                  <header className="space-y-2">
+                    <p className="text-base font-semibold">{plan.name}</p>
+                    <div aria-live="polite" className="relative h-12">
+                      <span
+                        aria-hidden={isYearly}
+                        className={`absolute inset-0 flex items-baseline gap-1 text-4xl font-bold transition-opacity duration-200 ${
+                          isYearly ? 'opacity-0' : 'opacity-100'
+                        }`}
+                      >
+                        {plan.monthlyPrice}
+                        <span className="text-base font-medium text-gray-400">USD</span>
+                      </span>
+                      <span
+                        aria-hidden={!isYearly}
+                        className={`absolute inset-0 flex items-baseline gap-1 text-4xl font-bold transition-opacity duration-200 ${
+                          isYearly ? 'opacity-100' : 'opacity-0'
+                        }`}
+                      >
+                        {plan.yearlyPrice}
+                        <span className="text-base font-medium text-gray-400">USD</span>
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-400">{priceLabel}</p>
+                    <p className="sr-only">
+                      {isYearly ? `${plan.yearlyPrice} ${plan.yearlyCaption}` : `${plan.monthlyPrice} ${plan.monthlyCaption}`}
+                    </p>
+                  </header>
+                  <ul className="space-y-3 text-sm text-gray-200">
+                    {plan.highlights.map(item => (
+                      <li key={item} className="flex items-start gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-300 mt-0.5 flex-shrink-0" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  {plan.isFree && (
+                    <Link
+                      to="/app"
+                      className={ctaClasses}
+                      aria-label={`${plan.cta} plan`}
+                    >
+                      {plan.cta}
+                    </Link>
+                  )}
+                  {!plan.isFree && plan.contactEmail && (
+                    <a
+                      href={`mailto:${plan.contactEmail}`}
+                      className={ctaClasses}
+                      aria-label={`${plan.cta} via email`}
+                    >
+                      {plan.cta}
+                    </a>
+                  )}
+                  {!plan.isFree && !plan.contactEmail && (
+                    <button
+                      type="button"
+                      onClick={() => handleOpenCheckout(plan)}
+                      className={ctaClasses}
+                      aria-label={plan.cta}
+                    >
+                      {plan.cta}
+                    </button>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+
+          {selectedPlan && (
+            <PlanCheckoutModal
+              plan={selectedPlan}
+              email={checkoutEmail}
+              onEmailChange={setCheckoutEmail}
+              onClose={handleCloseCheckout}
+              onConfirm={handleConfirmCheckout}
+              disabledReason={!selectedPlan.checkoutUrl ? 'Stripe payment link missing. Configure VITE_STRIPE_LINK variables.' : checkoutError}
+            />
+          )}
+
+          <div className="flex flex-col items-center gap-3 text-sm text-gray-400">
+            <div className="inline-flex items-center gap-2 text-white/80 font-medium">
+              <CreditCard className="w-4 h-4 text-indigo-300" />
+              Payments processed by Stripe
+            </div>
+            <div className="flex flex-wrap justify-center gap-2">
+              {paymentMethods.map(method => (
+                <span key={method} className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-gray-300">
+                  {method}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       </section>

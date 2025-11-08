@@ -408,9 +408,9 @@ const App: React.FC = () => {
     const storedEmail = window.localStorage.getItem(EMAIL_STORAGE_KEY);
     if (storedEmail) {
       setUserEmail(storedEmail);
-    setIsLoggedIn(true);
-    setEmailInput(storedEmail);
-  }
+      setIsLoggedIn(true);
+      setEmailInput(storedEmail);
+    }
 
     const storedCount = window.localStorage.getItem(IMAGE_COUNT_KEY);
     if (storedCount) {
@@ -423,6 +423,10 @@ const App: React.FC = () => {
     const storedVideoAccess = window.localStorage.getItem(VIDEO_ACCESS_KEY);
     if (storedVideoAccess === 'granted') {
       setHasVideoAccess(true);
+    }
+
+    if (window.localStorage.getItem(TRIAL_BYPASS_KEY) === 'true') {
+      setHasTrialBypass(true);
     }
 
     const storedKey = window.localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -573,6 +577,16 @@ const App: React.FC = () => {
       trialInputRef.current.focus();
     }
   }, [isTrialLocked]);
+
+  useEffect(() => {
+    if (!isTrialLocked) return;
+    const input = trialInputRef.current;
+    if (!input) return;
+    const position = trialCodeInput.length;
+    requestAnimationFrame(() => {
+      input.setSelectionRange(position, position);
+    });
+  }, [trialCodeInput, isTrialLocked]);
 
   const handleVideoAccessCodeChange = useCallback((value: string) => {
     setVideoAccessInput(value);
@@ -1221,41 +1235,6 @@ const App: React.FC = () => {
     </div>
   );
 
-  const TrialLimitOverlay = () => (
-    <div className="fixed inset-0 z-40 flex flex-col justify-center items-center bg-gray-950/90 backdrop-blur-xl px-6 text-center">
-      <h2 className="text-2xl font-bold mb-4 text-white">Access code required</h2>
-      <p className="mb-6 text-gray-300 max-w-lg">
-        We disabled the public credits while we harden the production release. Enter the internal code to unlock the builder.
-      </p>
-      <div className="w-full max-w-md space-y-2 text-left">
-        <p className="text-xs uppercase tracking-widest text-gray-500">Internal access</p>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <input
-            type="text"
-            value={trialCodeInput}
-            onChange={event => handleTrialCodeChange(event.target.value)}
-            placeholder="Enter access code"
-            ref={trialInputRef}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                event.preventDefault();
-                handleTrialCodeSubmit();
-              }
-            }}
-            className="flex-1 rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-          />
-          <button
-            onClick={handleTrialCodeSubmit}
-            className="rounded-lg bg-indigo-500 px-4 py-2 font-semibold text-white hover:bg-indigo-600 transition"
-          >
-            Unlock app
-          </button>
-        </div>
-        {trialCodeError && <p className="text-xs text-red-300">{trialCodeError}</p>}
-      </div>
-      <p className="mt-4 text-xs text-gray-500">Need the code? Ping the product team.</p>
-    </div>
-  );
 
   if (!isLoggedIn) {
     return renderLoginScreen();
@@ -1268,7 +1247,41 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto relative">
-        {isTrialLocked && <TrialLimitOverlay />}
+        {isTrialLocked && (
+          <div className="fixed inset-0 z-40 flex flex-col justify-center items-center bg-gray-950/90 backdrop-blur-xl px-6 text-center">
+            <h2 className="text-2xl font-bold mb-4 text-white">Access code required</h2>
+            <p className="mb-6 text-gray-300 max-w-lg">
+              We disabled the public credits while we harden the production release. Enter the internal code to unlock the builder.
+            </p>
+            <div className="w-full max-w-md space-y-2 text-left">
+              <p className="text-xs uppercase tracking-widest text-gray-500">Internal access</p>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input
+                  type="text"
+                  value={trialCodeInput}
+                  onChange={event => handleTrialCodeChange(event.target.value)}
+                  placeholder="Enter access code"
+                  ref={trialInputRef}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      handleTrialCodeSubmit();
+                    }
+                  }}
+                  className="flex-1 rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                />
+                <button
+                  onClick={handleTrialCodeSubmit}
+                  className="rounded-lg bg-indigo-500 px-4 py-2 font-semibold text-white hover:bg-indigo-600 transition"
+                >
+                  Unlock app
+                </button>
+              </div>
+              {trialCodeError && <p className="text-xs text-red-300">{trialCodeError}</p>}
+            </div>
+            <p className="mt-4 text-xs text-gray-500">Need the code? Ping the product team.</p>
+          </div>
+        )}
         <OnboardingOverlay
           visible={shouldShowOnboarding}
           currentStep={onboardingStep}
