@@ -152,3 +152,18 @@ export const ETHNICITY_OPTIONS: Option[] = [
   { label: 'Middle Eastern', value: 'Middle Eastern' },
   { label: 'Mixed', value: 'of mixed ethnicity' },
 ];
+
+export const REALISM_OPTIONS: Option[] = [
+  {
+    label: 'Natural Imperfections',
+    value: 'introduce authentic flaws: subtle motion blur, slight lens dust, uneven lighting, and a bit of hand shake to mimic real phone footage.',
+  },
+  {
+    label: 'Balanced Realism',
+    value: 'keep the realism moderate with organic grain, minor reflections, and a handheld look while still feeling premium.',
+  },
+  {
+    label: 'Polished Production',
+    value: 'keep everything crisp and polished, as if shot on a stabilized rig in a controlled studio.',
+  },
+];

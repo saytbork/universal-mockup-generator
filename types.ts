@@ -16,6 +16,7 @@ export interface MockupOptions {
   personAppearance: string;
   productMaterial: string;
   productInteraction: string;
+  realism: string;
 }
 
 export type OptionCategory = keyof MockupOptions;
