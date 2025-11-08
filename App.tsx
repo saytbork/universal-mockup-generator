@@ -11,7 +11,7 @@ import {
   LIGHTING_OPTIONS, SETTING_OPTIONS, AGE_GROUP_OPTIONS, CAMERA_OPTIONS, 
   ISO_OPTIONS, PERSPECTIVE_OPTIONS, SELFIE_TYPE_OPTIONS, ETHNICITY_OPTIONS,
   GENDER_OPTIONS, ASPECT_RATIO_OPTIONS, ENVIRONMENT_ORDER_OPTIONS, PERSON_APPEARANCE_OPTIONS,
-  PRODUCT_MATERIAL_OPTIONS, PRODUCT_INTERACTION_OPTIONS
+  PRODUCT_MATERIAL_OPTIONS, PRODUCT_INTERACTION_OPTIONS, REALISM_OPTIONS
 } from './constants';
 import ImageUploader from './components/ImageUploader';
 import GeneratedImage from './components/GeneratedImage';
@@ -25,6 +25,8 @@ const LOCAL_STORAGE_KEY = 'ugc-product-mockup-generator-api-key';
 const EMAIL_STORAGE_KEY = 'ugc-product-mockup-generator-user-email';
 const IMAGE_COUNT_KEY = 'ugc-product-mockup-generator-image-count';
 const VIDEO_ACCESS_KEY = 'ugc-product-mockup-generator-video-access';
+const TRIAL_BYPASS_KEY = 'ugc-product-mockup-trial-bypass';
+const TRIAL_BYPASS_CODE = '713371';
 const VIDEO_SECRET_CODE = '713371';
 const IMAGE_TRIAL_LIMIT = 5;
 
@@ -284,6 +286,7 @@ const App: React.FC = () => {
     personAppearance: PERSON_APPEARANCE_OPTIONS[0].value,
     productMaterial: PRODUCT_MATERIAL_OPTIONS[0].value,
     productInteraction: PRODUCT_INTERACTION_OPTIONS[0].value,
+    realism: REALISM_OPTIONS[1].value,
   });
 
   const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null);
@@ -314,7 +317,12 @@ const App: React.FC = () => {
     const params = new URLSearchParams(location.search);
     return params.has('dev');
   }, [location.search]);
-  const isTrialLocked = !isDevBypass && imageGenerationCount >= IMAGE_TRIAL_LIMIT;
+  const [hasTrialBypass, setHasTrialBypass] = useState(false);
+  const [trialCodeInput, setTrialCodeInput] = useState('');
+  const [trialCodeError, setTrialCodeError] = useState<string | null>(null);
+  const [showTrialCodeField, setShowTrialCodeField] = useState(false);
+  const isTrialBypassActive = hasTrialBypass || isDevBypass;
+  const isTrialLocked = !isTrialBypassActive && imageGenerationCount >= IMAGE_TRIAL_LIMIT;
   const remainingGenerations = Math.max(IMAGE_TRIAL_LIMIT - imageGenerationCount, 0);
   const hasSelectedIntent = Boolean(options.contentStyle);
   const hasUploadedProduct = Boolean(uploadedImagePreview);
@@ -436,6 +444,33 @@ const App: React.FC = () => {
       setApiKeyError(null);
     }
   }, [apiKeyError]);
+
+  const handleTrialCodeChange = useCallback((value: string) => {
+    setTrialCodeInput(value);
+    if (trialCodeError) {
+      setTrialCodeError(null);
+    }
+  }, [trialCodeError]);
+
+  const handleTrialCodeSubmit = useCallback(() => {
+    const trimmed = trialCodeInput.trim();
+    if (!trimmed) {
+      setTrialCodeError('Enter the access code to unlock unlimited generations.');
+      return;
+    }
+
+    if (trimmed === TRIAL_BYPASS_CODE) {
+      setHasTrialBypass(true);
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(TRIAL_BYPASS_KEY, 'true');
+      }
+      setTrialCodeInput('');
+      setTrialCodeError(null);
+      setShowTrialCodeField(false);
+    } else {
+      setTrialCodeError('Invalid code. Please try again.');
+    }
+  }, [trialCodeInput]);
 
   const handleVideoAccessCodeChange = useCallback((value: string) => {
     setVideoAccessInput(value);
@@ -726,6 +761,9 @@ const App: React.FC = () => {
     prompt += `The focus is on the provided product, which has a ${options.productMaterial} finish. Place this exact product into the scene naturally. Ensure its material, reflections, and shadows are rendered realistically according to the environment. Do not alter the product's design or branding. `;
     if (!isUgcStyle) {
       prompt += ` No people should appear in the frame. Style the set like a premium product placement shoot with thoughtful props, surfaces, and depth, highlighting the product as the hero. Use a ${options.placementCamera} approach and style the scene as ${options.placementStyle}. `;
+    }
+    if (options.realism) {
+      prompt += ` ${options.realism}`;
     }
     if (moodPromptCue) {
       prompt += ` ${moodPromptCue}`;
@@ -1090,6 +1128,28 @@ const App: React.FC = () => {
           Talk to sales
         </a>
       </div>
+      {!isTrialBypassActive && (
+        <div className="mt-6 w-full max-w-md space-y-2 text-left">
+          <p className="text-xs uppercase tracking-widest text-gray-500">Have an access code?</p>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="text"
+              value={trialCodeInput}
+              onChange={event => handleTrialCodeChange(event.target.value)}
+              placeholder="Enter code"
+              className="flex-1 rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            />
+            <button
+              onClick={handleTrialCodeSubmit}
+              className="rounded-lg bg-indigo-500 px-4 py-2 font-semibold text-white hover:bg-indigo-600 transition"
+            >
+              Unlock
+            </button>
+          </div>
+          {trialCodeError && <p className="text-xs text-red-300">{trialCodeError}</p>}
+        </div>
+      )}
+      {isTrialBypassActive && <p className="mt-4 text-xs text-emerald-300">Access code activated — unlimited generations unlocked.</p>}
       <p className="mt-4 text-xs text-gray-500">Already upgraded? Contact support to refresh your quota.</p>
     </div>
   );
@@ -1136,6 +1196,36 @@ const App: React.FC = () => {
               <p className="mt-2 text-xs text-gray-400">
                 Free plan usage: {remainingGenerations} of {IMAGE_TRIAL_LIMIT} image generations remaining.
               </p>
+              {!isTrialBypassActive ? (
+                <div className="mt-3 flex flex-col items-center gap-2 text-xs text-gray-500">
+                  <button
+                    onClick={() => setShowTrialCodeField(prev => !prev)}
+                    className="text-indigo-300 hover:text-indigo-200 transition"
+                  >
+                    {showTrialCodeField ? 'Hide access code' : 'Have an access code?'}
+                  </button>
+                  {showTrialCodeField && (
+                    <div className="flex flex-col sm:flex-row gap-2 w-full max-w-sm">
+                      <input
+                        type="text"
+                        value={trialCodeInput}
+                        onChange={event => handleTrialCodeChange(event.target.value)}
+                        placeholder="Enter code"
+                        className="flex-1 rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      />
+                      <button
+                        onClick={handleTrialCodeSubmit}
+                        className="rounded-lg bg-indigo-500 px-4 py-2 font-semibold text-white hover:bg-indigo-600 transition"
+                      >
+                        Unlock
+                      </button>
+                    </div>
+                  )}
+                  {trialCodeError && <p className="text-red-300">{trialCodeError}</p>}
+                </div>
+              ) : (
+                <p className="mt-3 text-xs text-emerald-300">Access code activated — unlimited generations unlocked.</p>
+              )}
             </>
           )}
         </header>
@@ -1162,9 +1252,13 @@ const App: React.FC = () => {
               <div className="bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-4 h-full">
                 <div className="flex flex-col gap-1">
                   <p className="text-xs uppercase tracking-widest text-indigo-300">Step 2</p>
-                  <h2 className="text-2xl font-bold text-gray-200">Add Your Product Photo</h2>
+                  <h2 className="text-2xl font-bold text-gray-200">
+                    {hasUploadedProduct ? 'Product Photo Ready' : 'Add Your Product Photo'}
+                  </h2>
                   <p className="text-sm text-gray-400">
-                    Upload a transparent PNG, JPG, or WebP of your product to anchor every scene.
+                    {hasUploadedProduct
+                      ? 'This product image will be reused for both UGC and Product Placement. Upload again only if you want to replace it.'
+                      : 'Upload a transparent PNG, JPG, or WebP of your product to anchor every scene.'}
                   </p>
                 </div>
                 <ImageUploader
@@ -1233,6 +1327,7 @@ const App: React.FC = () => {
                         <ChipSelectGroup label="ISO" options={ISO_OPTIONS} selectedValue={options.iso} onChange={(value) => handleOptionChange('iso', value, 'Photography')} />
                         <ChipSelectGroup label="Perspective" options={PERSPECTIVE_OPTIONS} selectedValue={options.perspective} onChange={(value) => handleOptionChange('perspective', value, 'Photography')} />
                         <ChipSelectGroup label="Aspect Ratio" options={ASPECT_RATIO_OPTIONS} selectedValue={options.aspectRatio} onChange={(value) => handleOptionChange('aspectRatio', value, 'Photography')} />
+                        <ChipSelectGroup label="Realism / Imperfections" options={REALISM_OPTIONS} selectedValue={options.realism} onChange={(value) => handleOptionChange('realism', value, 'Photography')} />
                       </div>
                     </Accordion>
                     <Accordion 
