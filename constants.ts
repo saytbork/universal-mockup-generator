@@ -79,6 +79,11 @@ export const AGE_GROUP_OPTIONS: Option[] = [
   { label: 'No Person', value: 'no person' },
 ];
 
+export const GENDER_OPTIONS: Option[] = [
+  { label: 'Female', value: 'female' },
+  { label: 'Male', value: 'male' },
+];
+
 // Concise 3-option version (Regular, Well-Groomed, Styled).
 export const PERSON_APPEARANCE_OPTIONS: Option[] = [
   { label: 'Regular', value: 'a regular, everyday appearance' },
@@ -231,11 +236,6 @@ export const CREATOR_PRESETS: CreatorPreset[] = [
       hairStyle: HAIR_STYLE_OPTIONS[2].value,
     },
   },
-];
-
-export const GENDER_OPTIONS: Option[] = [
-  { label: 'Female', value: 'female' },
-  { label: 'Male', value: 'male' },
 ];
 
 // Essential 5-option set representing true UGC shooting styles.
