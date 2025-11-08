@@ -1,7 +1,7 @@
 
 
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { GoogleGenAI, Modality } from "@google/genai";
 import { MockupOptions, OptionCategory, Option } from './types';
 import { 
@@ -29,7 +29,6 @@ const VIDEO_ACCESS_KEY = 'ugc-product-mockup-generator-video-access';
 const TRIAL_BYPASS_KEY = 'ugc-product-mockup-trial-bypass';
 const TRIAL_BYPASS_CODE = '713371';
 const VIDEO_SECRET_CODE = '713371';
-const IMAGE_TRIAL_LIMIT = 5;
 const ONBOARDING_DISMISSED_KEY = 'ugc-onboarding-hidden';
 
 type AiStudioApi = {
@@ -270,7 +269,6 @@ const getSectionId = (title: string) =>
   `accordion-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 
 const App: React.FC = () => {
-  const navigate = useNavigate();
   const location = useLocation();
   const envApiKey = getEnvApiKey();
   const [options, setOptions] = useState<MockupOptions>({
@@ -329,10 +327,8 @@ const App: React.FC = () => {
   const [hasTrialBypass, setHasTrialBypass] = useState(false);
   const [trialCodeInput, setTrialCodeInput] = useState('');
   const [trialCodeError, setTrialCodeError] = useState<string | null>(null);
-  const [showTrialCodeField, setShowTrialCodeField] = useState(false);
   const isTrialBypassActive = hasTrialBypass || isDevBypass;
-  const isTrialLocked = !isTrialBypassActive && imageGenerationCount >= IMAGE_TRIAL_LIMIT;
-  const remainingGenerations = Math.max(IMAGE_TRIAL_LIMIT - imageGenerationCount, 0);
+  const isTrialLocked = !isTrialBypassActive;
   const hasSelectedIntent = Boolean(options.contentStyle);
   const hasUploadedProduct = Boolean(uploadedImagePreview);
   const canUseMood = hasUploadedProduct;
@@ -538,7 +534,6 @@ const App: React.FC = () => {
       }
       setTrialCodeInput('');
       setTrialCodeError(null);
-      setShowTrialCodeField(false);
     } else {
       setTrialCodeError('Invalid code. Please try again.');
     }
@@ -581,10 +576,6 @@ const App: React.FC = () => {
       setVideoAccessError('Invalid access code.');
     }
   }, [videoAccessInput]);
-
-  const handleSeePricing = useCallback(() => {
-    navigate('/#pricing');
-  }, [navigate]);
 
   const applyMoodInspiration = useCallback((palette: string[]) => {
     if (!palette.length) {
@@ -1216,47 +1207,30 @@ const App: React.FC = () => {
 
   const TrialLimitOverlay = () => (
     <div className="absolute inset-0 bg-gray-900/95 flex flex-col justify-center items-center z-30 p-8 text-center rounded-lg">
-      <h2 className="text-2xl font-bold mb-4 text-white">Free plan limit reached</h2>
+      <h2 className="text-2xl font-bold mb-4 text-white">Access code required</h2>
       <p className="mb-6 text-gray-300 max-w-lg">
-        You used all {IMAGE_TRIAL_LIMIT} complimentary generations. Upgrade to Growth or Premium to keep generating unlimited scenes and videos.
+        We disabled the public credits while we harden the production release. Enter the internal code to unlock the builder.
       </p>
-      <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
-        <button
-          onClick={handleSeePricing}
-          className="flex-1 inline-flex items-center justify-center rounded-full bg-indigo-500 px-6 py-3 font-semibold text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-600 transition"
-        >
-          See pricing
-        </button>
-        <a
-          href="mailto:hola@universalugc.com"
-          className="flex-1 inline-flex items-center justify-center rounded-full border border-white/20 px-6 py-3 font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition"
-        >
-          Talk to sales
-        </a>
-      </div>
-      {!isTrialBypassActive && (
-        <div className="mt-6 w-full max-w-md space-y-2 text-left">
-          <p className="text-xs uppercase tracking-widest text-gray-500">Have an access code?</p>
-          <div className="flex flex-col sm:flex-row gap-2">
-            <input
-              type="text"
-              value={trialCodeInput}
-              onChange={event => handleTrialCodeChange(event.target.value)}
-              placeholder="Enter code"
-              className="flex-1 rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            />
-            <button
-              onClick={handleTrialCodeSubmit}
-              className="rounded-lg bg-indigo-500 px-4 py-2 font-semibold text-white hover:bg-indigo-600 transition"
-            >
-              Unlock
-            </button>
-          </div>
-          {trialCodeError && <p className="text-xs text-red-300">{trialCodeError}</p>}
+      <div className="w-full max-w-md space-y-2 text-left">
+        <p className="text-xs uppercase tracking-widest text-gray-500">Internal access</p>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <input
+            type="text"
+            value={trialCodeInput}
+            onChange={event => handleTrialCodeChange(event.target.value)}
+            placeholder="Enter access code"
+            className="flex-1 rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          />
+          <button
+            onClick={handleTrialCodeSubmit}
+            className="rounded-lg bg-indigo-500 px-4 py-2 font-semibold text-white hover:bg-indigo-600 transition"
+          >
+            Unlock app
+          </button>
         </div>
-      )}
-      {isTrialBypassActive && <p className="mt-4 text-xs text-emerald-300">Access code activated — unlimited generations unlocked.</p>}
-      <p className="mt-4 text-xs text-gray-500">Already upgraded? Contact support to refresh your quota.</p>
+        {trialCodeError && <p className="text-xs text-red-300">{trialCodeError}</p>}
+      </div>
+      <p className="mt-4 text-xs text-gray-500">Need the code? Ping the product team.</p>
     </div>
   );
 
@@ -1306,34 +1280,26 @@ const App: React.FC = () => {
                   Switch account
                 </button>
               </div>
-              <p className="mt-2 text-xs text-gray-400">
-                Free plan usage: {remainingGenerations} of {IMAGE_TRIAL_LIMIT} image generations remaining.
-              </p>
               {!isTrialBypassActive ? (
-                <div className="mt-3 flex flex-col items-center gap-2 text-xs text-gray-500">
-                  <button
-                    onClick={() => setShowTrialCodeField(prev => !prev)}
-                    className="text-indigo-300 hover:text-indigo-200 transition"
-                  >
-                    {showTrialCodeField ? 'Hide access code' : 'Have an access code?'}
-                  </button>
-                  {showTrialCodeField && (
-                    <div className="flex flex-col sm:flex-row gap-2 w-full max-w-sm">
-                      <input
-                        type="text"
-                        value={trialCodeInput}
-                        onChange={event => handleTrialCodeChange(event.target.value)}
-                        placeholder="Enter code"
-                        className="flex-1 rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                      />
-                      <button
-                        onClick={handleTrialCodeSubmit}
-                        className="rounded-lg bg-indigo-500 px-4 py-2 font-semibold text-white hover:bg-indigo-600 transition"
-                      >
-                        Unlock
-                      </button>
-                    </div>
-                  )}
+                <div className="mt-4 flex flex-col items-center gap-3 text-xs text-gray-400 max-w-md mx-auto">
+                  <p className="text-center text-sm">
+                    Private beta access is locked. Enter the internal code to unlock unlimited generations.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-2 w-full">
+                    <input
+                      type="text"
+                      value={trialCodeInput}
+                      onChange={event => handleTrialCodeChange(event.target.value)}
+                      placeholder="Enter access code"
+                      className="flex-1 rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    />
+                    <button
+                      onClick={handleTrialCodeSubmit}
+                      className="rounded-lg bg-indigo-500 px-4 py-2 font-semibold text-white hover:bg-indigo-600 transition"
+                    >
+                      Unlock app
+                    </button>
+                  </div>
                   {trialCodeError && <p className="text-red-300">{trialCodeError}</p>}
                 </div>
               ) : (
