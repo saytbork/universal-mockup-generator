@@ -558,6 +558,14 @@ const App: React.FC = () => {
     advanceOnboardingFromStep(onboardingStep);
   }, [advanceOnboardingFromStep, onboardingStep]);
 
+  const handleReplayOnboarding = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(ONBOARDING_DISMISSED_KEY);
+    }
+    setOnboardingStep(1);
+    setShowOnboarding(true);
+  }, []);
+
   const handleVideoAccessCodeChange = useCallback((value: string) => {
     setVideoAccessInput(value);
     if (videoAccessError) {
@@ -1261,14 +1269,22 @@ const App: React.FC = () => {
           <p className="mt-2 text-lg text-gray-400">
             Generate photo-realistic UGC-style images for your products in seconds.
           </p>
-          {isKeySelected && isUsingStoredKey && (
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+            {isKeySelected && isUsingStoredKey && (
+              <button
+                onClick={handleApiKeyInvalid}
+                className="inline-flex items-center justify-center rounded-lg border border-gray-600 px-4 py-2 text-sm font-semibold text-gray-200 hover:bg-gray-800 transition"
+              >
+                Change API Key
+              </button>
+            )}
             <button
-              onClick={handleApiKeyInvalid}
-              className="mt-4 inline-flex items-center justify-center rounded-lg border border-gray-600 px-4 py-2 text-sm font-semibold text-gray-200 hover:bg-gray-800 transition"
+              onClick={handleReplayOnboarding}
+              className="inline-flex items-center justify-center rounded-lg border border-indigo-500/60 text-sm font-semibold text-indigo-200 px-4 py-2 hover:bg-indigo-500/10 transition"
             >
-              Change API Key
+              Replay guided tour
             </button>
-          )}
+          </div>
           {isLoggedIn && (
             <>
               <div className="mt-4 flex flex-col sm:flex-row gap-3 items-center justify-center text-sm text-gray-400">
