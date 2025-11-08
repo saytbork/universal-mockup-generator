@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Sparkles, Wand2, Camera, ShieldCheck, PlaySquare, Users, CheckCircle2, CreditCard 
 } from 'lucide-react';
@@ -140,13 +140,15 @@ const TRIAL_BYPASS_KEY = 'ugc-product-mockup-trial-bypass';
 const TRIAL_BYPASS_CODE = '713371';
 
 const LandingPage: React.FC = () => {
+  const navigate = useNavigate();
   const [selectedPlan, setSelectedPlan] = useState<CheckoutPlan | null>(null);
   const [checkoutEmail, setCheckoutEmail] = useState('');
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [landingTrialInput, setLandingTrialInput] = useState('');
   const [landingTrialStatus, setLandingTrialStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [hasLandingBypass, setHasLandingBypass] = useState(false);
+  const [showAccessGate, setShowAccessGate] = useState(false);
+  const [pendingRoute, setPendingRoute] = useState<string | null>(null);
   const handleSmoothScroll = useCallback((selector: string) => {
     return (event: React.MouseEvent) => {
       event.preventDefault();
@@ -202,10 +204,9 @@ const LandingPage: React.FC = () => {
   const persistTrialBypass = useCallback(() => {
     if (typeof window === 'undefined') return;
     window.localStorage.setItem(TRIAL_BYPASS_KEY, 'true');
-    setHasLandingBypass(true);
   }, []);
 
-  const handleLandingCodeSubmit = () => {
+  const handleLandingCodeSubmit = (navigateOnSuccess = false) => {
     if (!landingTrialInput.trim()) {
       setLandingTrialStatus('error');
       return;
@@ -214,6 +215,12 @@ const LandingPage: React.FC = () => {
       persistTrialBypass();
       setLandingTrialStatus('success');
       setLandingTrialInput('');
+      if (navigateOnSuccess || pendingRoute) {
+        setShowAccessGate(false);
+        const destination = pendingRoute ?? '/app';
+        setPendingRoute(null);
+        navigate(destination);
+      }
     } else {
       setLandingTrialStatus('error');
     }
@@ -222,12 +229,32 @@ const LandingPage: React.FC = () => {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (window.localStorage.getItem(TRIAL_BYPASS_KEY) === 'true') {
-      setHasLandingBypass(true);
       setLandingTrialStatus('success');
     }
   }, []);
 
+  const requireAccessCode = useCallback((event?: React.MouseEvent, route = '/app') => {
+    const hasBypass = typeof window !== 'undefined' && window.localStorage.getItem(TRIAL_BYPASS_KEY) === 'true';
+    if (hasBypass) {
+      navigate(route);
+      return;
+    }
+    event?.preventDefault();
+    setPendingRoute(route);
+    setShowAccessGate(true);
+    setLandingTrialInput('');
+    setLandingTrialStatus('idle');
+  }, [navigate]);
+
+  const handleCloseAccessGate = () => {
+    setShowAccessGate(false);
+    setPendingRoute(null);
+    setLandingTrialInput('');
+    setLandingTrialStatus('idle');
+  };
+
   return (
+    <>
     <div className="min-h-screen bg-gray-950 text-gray-100">
       <div className="bg-gradient-to-br from-indigo-900/40 via-gray-950 to-gray-950">
         <nav className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between text-sm">
@@ -244,12 +271,20 @@ const LandingPage: React.FC = () => {
             <button onClick={handleSmoothScroll('#pricing')} className="hover:text-white transition">Pricing</button>
           </div>
           <div className="flex items-center gap-3">
-            <Link to="/app" className="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 text-sm font-medium hover:border-indigo-400 transition">
+            <button
+              type="button"
+              onClick={requireAccessCode}
+              className="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 text-sm font-medium hover:border-indigo-400 transition"
+            >
               Launch builder
-            </Link>
-            <Link to="/app" className="md:hidden inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 text-sm font-medium hover:border-indigo-400 transition">
+            </button>
+            <button
+              type="button"
+              onClick={requireAccessCode}
+              className="md:hidden inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 text-sm font-medium hover:border-indigo-400 transition"
+            >
               Start
-            </Link>
+            </button>
           </div>
         </nav>
 
@@ -268,12 +303,13 @@ const LandingPage: React.FC = () => {
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 animate-fade-up delay-200">
-              <Link
-                to="/app"
+              <button
+                type="button"
+                onClick={requireAccessCode}
                 className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-8 py-4 font-semibold text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-600 transition"
               >
                 Launch App
-              </Link>
+              </button>
               <button
                 onClick={handleSmoothScroll('#features')}
                 className="inline-flex items-center justify-center rounded-full border border-white/20 px-8 py-4 font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition"
@@ -282,52 +318,6 @@ const LandingPage: React.FC = () => {
               </button>
             </div>
             <p className="text-sm text-gray-500 animate-fade-up delay-300">Free plan → 5 generations · No credit card required</p>
-            <div className="w-full max-w-xl mx-auto sm:mx-0 animate-fade-up delay-500">
-              <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 flex flex-col gap-3">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-                  <label htmlFor="landing-access-code" className="text-xs uppercase tracking-[0.35em] text-indigo-200">
-                    Beta access code
-                  </label>
-                  <div className="flex flex-col sm:flex-row gap-2 flex-1">
-                    <input
-                      id="landing-access-code"
-                      type="text"
-                      value={landingTrialInput}
-                      onChange={(event) => {
-                        setLandingTrialInput(event.target.value);
-                        if (landingTrialStatus !== 'idle') setLandingTrialStatus('idle');
-                      }}
-                      placeholder="Enter 713371 to unlock the app"
-                      className="flex-1 rounded-lg border border-white/20 bg-gray-950/70 px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                      aria-label="Enter beta access code"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleLandingCodeSubmit}
-                      className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400 transition"
-                    >
-                      Unlock
-                    </button>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-400">
-                  Apply the internal code here so the builder skips the limiter and shows the full tutorial.
-                </p>
-                {landingTrialStatus === 'success' && (
-                  <p className="text-xs text-emerald-300">
-                    Access granted. Launch the builder—this browser is now whitelisted.
-                  </p>
-                )}
-                {landingTrialStatus === 'error' && (
-                  <p className="text-xs text-red-300">
-                    Invalid or missing code. Use <span className="font-semibold">713371</span>.
-                  </p>
-                )}
-                {hasLandingBypass && landingTrialStatus === 'idle' && (
-                  <p className="text-xs text-emerald-300">Code already applied on this device.</p>
-                )}
-              </div>
-            </div>
           </div>
         </header>
       </div>
@@ -366,19 +356,21 @@ const LandingPage: React.FC = () => {
               These previews show the output of the free plan. Click any thumbnail to jump straight into the builder and recreate a similar style.
             </p>
           </div>
-          <Link
-            to="/app"
+          <button
+            type="button"
+            onClick={requireAccessCode}
             className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-600 transition"
           >
             Generate your own
-          </Link>
+          </button>
         </div>
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
           {galleryImages.map((item, index) => (
-            <Link
-              to="/app"
+            <button
+              type="button"
               key={item.label}
-              className="group relative block overflow-hidden rounded-3xl border border-white/10 bg-gray-900/40"
+              onClick={requireAccessCode}
+              className="group relative block overflow-hidden rounded-3xl border border-white/10 bg-gray-900/40 text-left"
             >
               <img
                 src={`${item.src}?auto=format&fit=crop&w=900&q=80`}
@@ -389,7 +381,7 @@ const LandingPage: React.FC = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition flex items-end">
                 <p className="p-4 text-sm text-white">{item.label}</p>
               </div>
-            </Link>
+            </button>
           ))}
         </div>
       </section>
@@ -545,13 +537,14 @@ const LandingPage: React.FC = () => {
                     ))}
                   </ul>
                   {plan.isFree && (
-                    <Link
-                      to="/app"
+                    <button
+                      type="button"
+                      onClick={requireAccessCode}
                       className={ctaClasses}
                       aria-label={`${plan.cta} plan`}
                     >
                       {plan.cta}
-                    </Link>
+                    </button>
                   )}
                   {!plan.isFree && plan.contactEmail && (
                     <a
@@ -611,12 +604,13 @@ const LandingPage: React.FC = () => {
           Create an account with your email, connect your Gemini API key, upload your first product, and publish scroll-stopping results in minutes.
         </p>
         <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
-          <Link
-            to="/app"
+          <button
+            type="button"
+            onClick={requireAccessCode}
             className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-8 py-4 font-semibold text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-600 transition"
           >
             Generate Mockups Now
-          </Link>
+          </button>
           <a
             href="mailto:hola@universalugc.com"
             className="inline-flex items-center justify-center rounded-full border border-white/20 px-8 py-4 font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition"
@@ -645,6 +639,63 @@ const LandingPage: React.FC = () => {
         </div>
       </footer>
     </div>
+    {showAccessGate && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+        <div className="w-full max-w-md rounded-3xl border border-white/10 bg-gray-950 p-6 shadow-2xl">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Beta Access</p>
+              <h3 className="text-xl font-semibold text-white mt-1">Enter internal code</h3>
+            </div>
+            <button
+              type="button"
+              onClick={handleCloseAccessGate}
+              className="text-gray-400 hover:text-white text-sm"
+              aria-label="Close access code dialog"
+            >
+              Close
+            </button>
+          </div>
+          <p className="text-sm text-gray-400 mb-4">
+            Enter <span className="text-white font-semibold">713371</span> to unlock the builder and view the guided tutorial.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="text"
+              value={landingTrialInput}
+              onChange={(event) => {
+                setLandingTrialInput(event.target.value);
+                if (landingTrialStatus !== 'idle') setLandingTrialStatus('idle');
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  handleLandingCodeSubmit(true);
+                }
+              }}
+              placeholder="Enter 713371"
+              className="flex-1 rounded-lg border border-white/20 bg-gray-900 px-3 py-2 text-white placeholder:text-gray-500 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+              aria-label="Access code input"
+              autoFocus
+            />
+            <button
+              type="button"
+              onClick={() => handleLandingCodeSubmit(true)}
+              className="rounded-lg bg-indigo-500 px-4 py-2 font-semibold text-white hover:bg-indigo-400 transition"
+            >
+              Unlock &amp; Enter
+            </button>
+          </div>
+          {landingTrialStatus === 'error' && (
+            <p className="mt-3 text-xs text-red-300">Invalid code. Use 713371.</p>
+          )}
+          {landingTrialStatus === 'success' && (
+            <p className="mt-3 text-xs text-emerald-300">Access granted! Redirecting…</p>
+          )}
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 
