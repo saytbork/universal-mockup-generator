@@ -19,6 +19,10 @@ export interface MockupOptions {
   personPose: string;
   wardrobeStyle: string;
   personMood: string;
+  personProps: string;
+  microLocation: string;
+  personExpression: string;
+  hairStyle: string;
 }
 
 export type OptionCategory = keyof MockupOptions;

@@ -156,6 +156,52 @@ export const MICRO_LOCATION_OPTIONS: Option[] = [
   { label: 'Rooftop Lounge', value: 'on a rooftop lounge with string lights and skyline ambience' },
 ];
 
+export type PropBundle = {
+  label: string;
+  description: string;
+  settings: Partial<MockupOptions>;
+};
+
+export const PROP_BUNDLES: PropBundle[] = [
+  {
+    label: 'Coffee Run',
+    description: 'Cafe vibes with a latte prop and warm ambience.',
+    settings: {
+      personProps: PERSON_PROP_OPTIONS[2].value,
+      microLocation: MICRO_LOCATION_OPTIONS[1].value,
+      personMood: PERSON_MOOD_OPTIONS[3].value,
+    },
+  },
+  {
+    label: 'Desk Creator',
+    description: 'Notebook + tech props in a home office.',
+    settings: {
+      personProps: PERSON_PROP_OPTIONS[3].value,
+      microLocation: MICRO_LOCATION_OPTIONS[0].value,
+      setting: SETTING_OPTIONS[4].value,
+    },
+  },
+  {
+    label: 'Beauty Vanity',
+    description: 'Mirror setup with makeup tools nearby.',
+    settings: {
+      personProps: PERSON_PROP_OPTIONS[4].value,
+      microLocation: MICRO_LOCATION_OPTIONS[2].value,
+      wardrobeStyle: WARDROBE_STYLE_OPTIONS[2].value,
+      personMood: PERSON_MOOD_OPTIONS[1].value,
+    },
+  },
+  {
+    label: 'Premium Retail',
+    description: 'Boutique shelf, tote bag, confident mood.',
+    settings: {
+      personProps: PERSON_PROP_OPTIONS[5].value,
+      microLocation: MICRO_LOCATION_OPTIONS[3].value,
+      personMood: PERSON_MOOD_OPTIONS[2].value,
+    },
+  },
+];
+
 export type CreatorPreset = {
   label: string;
   value: string;

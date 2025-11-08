@@ -14,9 +14,9 @@ import {
   PRODUCT_MATERIAL_OPTIONS, PRODUCT_INTERACTION_OPTIONS, REALISM_OPTIONS,
   PERSON_POSE_OPTIONS, WARDROBE_STYLE_OPTIONS, PERSON_MOOD_OPTIONS,
   PERSON_PROP_OPTIONS, MICRO_LOCATION_OPTIONS, PERSON_EXPRESSION_OPTIONS, HAIR_STYLE_OPTIONS,
-  CREATOR_PRESETS
+  CREATOR_PRESETS, PROP_BUNDLES
 } from './constants';
-import type { CreatorPreset } from './constants';
+import type { CreatorPreset, PropBundle } from './constants';
 import ImageUploader from './components/ImageUploader';
 import GeneratedImage from './components/GeneratedImage';
 import VideoGenerator from './components/VideoGenerator';
@@ -35,6 +35,8 @@ const TRIAL_BYPASS_CODE = '713371';
 const VIDEO_SECRET_CODE = '713371';
 const ONBOARDING_DISMISSED_KEY = 'ugc-onboarding-hidden';
 const TALENT_PROFILE_STORAGE_KEY = 'ugc-saved-talent-profile';
+const SIMPLE_MODE_KEY = 'ugc-simple-mode';
+const GOAL_WIZARD_KEY = 'ugc-goal-wizard-dismissed';
 
 const PERSON_FIELD_KEYS: OptionCategory[] = [
   'ageGroup',
@@ -64,6 +66,33 @@ const CREATOR_PRESET_LOOKUP: Record<string, CreatorPreset> = CREATOR_PRESETS.red
   },
   {} as Record<string, CreatorPreset>
 );
+
+const GOAL_VIBE_OPTIONS = [
+  {
+    value: 'warm',
+    label: 'Warm Lifestyle',
+    description: 'Golden hour, cozy home vibes.',
+    setting: SETTING_OPTIONS[0].value,
+    lighting: LIGHTING_OPTIONS[2].value,
+    environmentOrder: ENVIRONMENT_ORDER_OPTIONS[1].value,
+  },
+  {
+    value: 'clean',
+    label: 'Clean Studio',
+    description: 'Minimal, product-first aesthetic.',
+    setting: SETTING_OPTIONS[9].value,
+    lighting: LIGHTING_OPTIONS[0].value,
+    environmentOrder: ENVIRONMENT_ORDER_OPTIONS[0].value,
+  },
+  {
+    value: 'outdoor',
+    label: 'Outdoor Energy',
+    description: 'Sunlit, on-the-go creator feel.',
+    setting: SETTING_OPTIONS[12].value,
+    lighting: LIGHTING_OPTIONS[1].value,
+    environmentOrder: ENVIRONMENT_ORDER_OPTIONS[2].value,
+  },
+];
 
 type AiStudioApi = {
   hasSelectedApiKey: () => Promise<boolean>;
@@ -360,6 +389,14 @@ const App: React.FC = () => {
   const [activeTalentPreset, setActiveTalentPreset] = useState('custom');
   const [savedTalentProfile, setSavedTalentProfile] = useState<Partial<MockupOptions> | null>(null);
   const [talentToast, setTalentToast] = useState<'idle' | 'saved' | 'applied'>('idle');
+  const [isSimpleMode, setIsSimpleMode] = useState(true);
+  const [showGoalWizard, setShowGoalWizard] = useState(false);
+  const [goalWizardStep, setGoalWizardStep] = useState(1);
+  const [goalWizardData, setGoalWizardData] = useState({
+    goal: 'ugc',
+    vibe: 'warm',
+    preset: 'beauty_creator',
+  });
   const intentRef = useRef<HTMLDivElement>(null);
   const uploadRef = useRef<HTMLDivElement>(null);
   const customizeRef = useRef<HTMLDivElement>(null);
@@ -507,6 +544,14 @@ const App: React.FC = () => {
       }
     };
 
+    const storedSimpleMode = window.localStorage.getItem(SIMPLE_MODE_KEY);
+    if (storedSimpleMode !== null) {
+      setIsSimpleMode(storedSimpleMode === 'true');
+    }
+    if (window.localStorage.getItem(GOAL_WIZARD_KEY) !== 'true') {
+      setShowGoalWizard(true);
+    }
+
     checkAiStudioSelection();
   }, [envApiKey]);
 
@@ -597,6 +642,16 @@ const App: React.FC = () => {
     }
   }, [apiKeyError]);
 
+  const toggleSimpleMode = useCallback(() => {
+    setIsSimpleMode(prev => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(SIMPLE_MODE_KEY, String(next));
+      }
+      return next;
+    });
+  }, []);
+
   const getTalentProfileFromOptions = useCallback(() => {
     const profile: Partial<MockupOptions> = {};
     PERSON_FIELD_KEYS.forEach((key) => {
@@ -645,6 +700,59 @@ const App: React.FC = () => {
     setActiveTalentPreset('custom');
     setTalentToast('applied');
   }, [applyTalentProfile, savedTalentProfile]);
+
+  const handlePropBundleSelect = useCallback((bundleValue: PropBundle['settings']) => {
+    setOptions(prev => ({ ...prev, ...bundleValue }));
+    setSelectedCategories(prev => {
+      const next = new Set(prev);
+      Object.keys(bundleValue).forEach(key => next.add(key as OptionCategory));
+      return next;
+    });
+    setActiveTalentPreset('custom');
+  }, []);
+
+  const handleGoalWizardSelect = useCallback((field: 'goal' | 'vibe' | 'preset', value: string) => {
+    setGoalWizardData(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  const handleGoalWizardNext = useCallback(() => {
+    setGoalWizardStep(step => Math.min(step + 1, 3));
+  }, []);
+
+  const handleGoalWizardBack = useCallback(() => {
+    setGoalWizardStep(step => Math.max(step - 1, 1));
+  }, []);
+
+  const handleGoalWizardSkip = useCallback(() => {
+    setShowGoalWizard(false);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(GOAL_WIZARD_KEY, 'true');
+    }
+  }, []);
+
+  const handleGoalWizardComplete = useCallback(() => {
+    const vibe = GOAL_VIBE_OPTIONS.find(option => option.value === goalWizardData.vibe) ?? GOAL_VIBE_OPTIONS[0];
+    const preset = CREATOR_PRESET_LOOKUP[goalWizardData.preset];
+    setOptions(prev => ({
+      ...prev,
+      contentStyle: goalWizardData.goal === 'product' ? 'product' : 'ugc',
+      setting: vibe.setting,
+      lighting: vibe.lighting,
+      environmentOrder: vibe.environmentOrder,
+    }));
+    if (goalWizardData.goal !== 'product' && preset) {
+      setActiveTalentPreset(goalWizardData.preset);
+      applyTalentProfile(preset.settings);
+    } else {
+      setActiveTalentPreset('custom');
+      setOptions(prev => ({
+        ...prev,
+        ageGroup: AGE_GROUP_OPTIONS[0].value,
+        gender: GENDER_OPTIONS[0].value,
+      }));
+    }
+    handleGoalWizardSkip();
+  }, [goalWizardData, applyTalentProfile, handleGoalWizardSkip]);
 
   const handleTrialCodeChange = useCallback((value: string) => {
     setTrialCodeInput(value);
@@ -1453,6 +1561,79 @@ const App: React.FC = () => {
           onNext={handleOnboardingNext}
           onSkip={skipOnboarding}
         />
+        {showGoalWizard && (
+          <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 px-4">
+            <div className="w-full max-w-3xl rounded-3xl border border-white/10 bg-gray-950 p-6 md:p-10 shadow-2xl space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.4em] text-indigo-200">Quick start wizard</p>
+                  <h3 className="text-2xl md:text-3xl font-semibold text-white mt-2">Let’s set up your scene</h3>
+                </div>
+                <button onClick={handleGoalWizardSkip} className="text-sm text-gray-400 hover:text-white">Skip</button>
+              </div>
+              <p className="text-sm text-gray-400">Step {goalWizardStep} / 3</p>
+              {goalWizardStep === 1 && (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {[
+                    { value: 'ugc', title: 'UGC Lifestyle', description: 'Creators interacting with your product in real life.' },
+                    { value: 'product', title: 'Product Placement', description: 'Stylized hero shots without people.' },
+                  ].map(option => (
+                    <button
+                      key={option.value}
+                      onClick={() => handleGoalWizardSelect('goal', option.value)}
+                      className={`rounded-2xl border p-4 text-left transition ${goalWizardData.goal === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
+                    >
+                      <p className="text-lg font-semibold">{option.title}</p>
+                      <p className="text-sm text-gray-400 mt-2">{option.description}</p>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {goalWizardStep === 2 && (
+                <div className="grid gap-3 md:grid-cols-3">
+                  {GOAL_VIBE_OPTIONS.map(option => (
+                    <button
+                      key={option.value}
+                      onClick={() => handleGoalWizardSelect('vibe', option.value)}
+                      className={`rounded-2xl border p-4 text-left transition ${goalWizardData.vibe === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
+                    >
+                      <p className="text-base font-semibold">{option.label}</p>
+                      <p className="text-sm text-gray-400 mt-2">{option.description}</p>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {goalWizardStep === 3 && (
+                <div className="grid gap-3 md:grid-cols-2">
+                  {CREATOR_PRESETS.filter(preset => preset.value !== 'custom').map(preset => (
+                    <button
+                      key={preset.value}
+                      onClick={() => handleGoalWizardSelect('preset', preset.value)}
+                      className={`rounded-2xl border p-4 text-left transition ${goalWizardData.preset === preset.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
+                    >
+                      <p className="text-base font-semibold">{preset.label}</p>
+                      <p className="text-sm text-gray-400 mt-2">{preset.description}</p>
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                <button onClick={goalWizardStep === 1 ? handleGoalWizardSkip : handleGoalWizardBack} className="text-sm text-gray-400 hover:text-white">
+                  {goalWizardStep === 1 ? 'Skip wizard' : 'Back'}
+                </button>
+                {goalWizardStep < 3 ? (
+                  <button onClick={handleGoalWizardNext} className="rounded-full bg-indigo-500 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-400 transition">
+                    Next
+                  </button>
+                ) : (
+                  <button onClick={handleGoalWizardComplete} className="rounded-full bg-emerald-500 px-6 py-2 text-sm font-semibold text-white hover:bg-emerald-400 transition">
+                    Apply &amp; build
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         <header className="text-center mb-8">
           <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500">
@@ -1496,6 +1677,21 @@ const App: React.FC = () => {
               )}
             </>
           )}
+          <div className="mt-6 flex items-center justify-center gap-4 text-xs text-gray-400">
+            <span className={!isSimpleMode ? 'text-white' : ''}>Studio Mode</span>
+            <label className="relative inline-flex cursor-pointer items-center">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={!isSimpleMode}
+                onChange={toggleSimpleMode}
+                aria-label="Toggle studio mode"
+              />
+              <div className="h-6 w-11 rounded-full bg-gray-700 transition peer-checked:bg-indigo-500" />
+              <span className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow transition peer-checked:translate-x-5" />
+            </label>
+            <span className={isSimpleMode ? 'text-white' : ''}>Simple Mode</span>
+          </div>
         </header>
 
         <main className="flex flex-col gap-8">
@@ -1595,9 +1791,13 @@ const App: React.FC = () => {
                       <div className="space-y-4">
                         <ChipSelectGroup label="Lighting" options={LIGHTING_OPTIONS} selectedValue={options.lighting} onChange={(value) => handleOptionChange('lighting', value, 'Photography')} />
                         <ChipSelectGroup label="Camera Type" options={CAMERA_OPTIONS} selectedValue={options.camera} onChange={(value) => handleOptionChange('camera', value, 'Photography')} />
-                        <ChipSelectGroup label="Perspective" options={PERSPECTIVE_OPTIONS} selectedValue={options.perspective} onChange={(value) => handleOptionChange('perspective', value, 'Photography')} />
-                        <ChipSelectGroup label="Aspect Ratio" options={ASPECT_RATIO_OPTIONS} selectedValue={options.aspectRatio} onChange={(value) => handleOptionChange('aspectRatio', value, 'Photography')} />
-                        <ChipSelectGroup label="Realism / Imperfections" options={REALISM_OPTIONS} selectedValue={options.realism} onChange={(value) => handleOptionChange('realism', value, 'Photography')} />
+                        {!isSimpleMode && (
+                          <>
+                            <ChipSelectGroup label="Perspective" options={PERSPECTIVE_OPTIONS} selectedValue={options.perspective} onChange={(value) => handleOptionChange('perspective', value, 'Photography')} />
+                            <ChipSelectGroup label="Aspect Ratio" options={ASPECT_RATIO_OPTIONS} selectedValue={options.aspectRatio} onChange={(value) => handleOptionChange('aspectRatio', value, 'Photography')} />
+                            <ChipSelectGroup label="Realism / Imperfections" options={REALISM_OPTIONS} selectedValue={options.realism} onChange={(value) => handleOptionChange('realism', value, 'Photography')} />
+                          </>
+                        )}
                       </div>
                     </Accordion>
                   </div>
@@ -1644,18 +1844,57 @@ const App: React.FC = () => {
                           {talentToast === 'saved' && <p className="text-xs text-emerald-300">Talent saved for future scenes.</p>}
                           {talentToast === 'applied' && <p className="text-xs text-emerald-300">Saved talent applied.</p>}
                         </div>
-                        <ChipSelectGroup label="Appearance Level" options={PERSON_APPEARANCE_OPTIONS} selectedValue={options.personAppearance} onChange={(value) => handleOptionChange('personAppearance', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
-                        <ChipSelectGroup label="Mood / Energy" options={PERSON_MOOD_OPTIONS} selectedValue={options.personMood} onChange={(value) => handleOptionChange('personMood', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
-                        <ChipSelectGroup label="Facial Expression" options={PERSON_EXPRESSION_OPTIONS} selectedValue={options.personExpression} onChange={(value) => handleOptionChange('personExpression', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
-                        <ChipSelectGroup label="Pose / Gesture" options={PERSON_POSE_OPTIONS} selectedValue={options.personPose} onChange={(value) => handleOptionChange('personPose', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
-                        <ChipSelectGroup label="Wardrobe Styling" options={WARDROBE_STYLE_OPTIONS} selectedValue={options.wardrobeStyle} onChange={(value) => handleOptionChange('wardrobeStyle', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
-                        <ChipSelectGroup label="Hair & Makeup" options={HAIR_STYLE_OPTIONS} selectedValue={options.hairStyle} onChange={(value) => handleOptionChange('hairStyle', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
+                        {!isSimpleMode && (
+                          <>
+                            <ChipSelectGroup label="Appearance Level" options={PERSON_APPEARANCE_OPTIONS} selectedValue={options.personAppearance} onChange={(value) => handleOptionChange('personAppearance', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
+                            <ChipSelectGroup label="Mood / Energy" options={PERSON_MOOD_OPTIONS} selectedValue={options.personMood} onChange={(value) => handleOptionChange('personMood', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
+                            <ChipSelectGroup label="Facial Expression" options={PERSON_EXPRESSION_OPTIONS} selectedValue={options.personExpression} onChange={(value) => handleOptionChange('personExpression', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
+                            <ChipSelectGroup label="Pose / Gesture" options={PERSON_POSE_OPTIONS} selectedValue={options.personPose} onChange={(value) => handleOptionChange('personPose', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
+                            <ChipSelectGroup label="Wardrobe Styling" options={WARDROBE_STYLE_OPTIONS} selectedValue={options.wardrobeStyle} onChange={(value) => handleOptionChange('wardrobeStyle', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
+                            <ChipSelectGroup label="Hair & Makeup" options={HAIR_STYLE_OPTIONS} selectedValue={options.hairStyle} onChange={(value) => handleOptionChange('hairStyle', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
+                          </>
+                        )}
                         <ChipSelectGroup label="Product Interaction" options={PRODUCT_INTERACTION_OPTIONS} selectedValue={options.productInteraction} onChange={(value) => handleOptionChange('productInteraction', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
-                        <ChipSelectGroup label="Props & Accessories" options={PERSON_PROP_OPTIONS} selectedValue={options.personProps} onChange={(value) => handleOptionChange('personProps', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
-                        <ChipSelectGroup label="Micro Location" options={MICRO_LOCATION_OPTIONS} selectedValue={options.microLocation} onChange={(value) => handleOptionChange('microLocation', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
+                        {!isSimpleMode && (
+                          <>
+                            <ChipSelectGroup label="Props & Accessories" options={PERSON_PROP_OPTIONS} selectedValue={options.personProps} onChange={(value) => handleOptionChange('personProps', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
+                            <ChipSelectGroup label="Micro Location" options={MICRO_LOCATION_OPTIONS} selectedValue={options.microLocation} onChange={(value) => handleOptionChange('microLocation', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
+                          </>
+                        )}
                         <ChipSelectGroup label="Gender" options={GENDER_OPTIONS} selectedValue={options.gender} onChange={(value) => handleOptionChange('gender', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
                         <ChipSelectGroup label="Ethnicity" options={ETHNICITY_OPTIONS} selectedValue={options.ethnicity} onChange={(value) => handleOptionChange('ethnicity', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
                         <ChipSelectGroup label="Selfie Type" options={SELFIE_TYPE_OPTIONS} selectedValue={options.selfieType} onChange={(value) => handleOptionChange('selfieType', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
+                        {!personControlsDisabled && (
+                          <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-4">
+                            <p className="text-xs uppercase tracking-[0.3em] text-indigo-200 mb-3">Prop bundles</p>
+                            <div className="flex flex-wrap gap-2">
+                              {PROP_BUNDLES.map(bundle => (
+                                <button
+                                  key={bundle.label}
+                                  type="button"
+                                  onClick={() => handlePropBundleSelect(bundle.settings)}
+                                  className="rounded-full border border-white/20 px-3 py-1 text-xs text-white/80 hover:border-indigo-400 hover:text-white transition"
+                                >
+                                  {bundle.label}
+                                </button>
+                              ))}
+                            </div>
+                            <p className="text-[11px] text-gray-400 mt-2">Tap any bundle to pre-fill props, micro-location, and mood.</p>
+                          </div>
+                        )}
+                        <div className="rounded-2xl border border-white/10 bg-gray-900/50 p-4">
+                          <p className="text-xs uppercase tracking-[0.3em] text-indigo-200 mb-2">Talent preview</p>
+                          <div className="flex flex-wrap gap-2 text-xs text-gray-300">
+                            <span className="rounded-full bg-white/5 px-3 py-1">{options.gender}</span>
+                            <span className="rounded-full bg-white/5 px-3 py-1">{options.ageGroup}</span>
+                            <span className="rounded-full bg-white/5 px-3 py-1">{options.personMood}</span>
+                            <span className="rounded-full bg-white/5 px-3 py-1">{options.personPose}</span>
+                            <span className="rounded-full bg-white/5 px-3 py-1">{options.wardrobeStyle}</span>
+                          </div>
+                          <p className="text-[11px] text-gray-400 mt-2">
+                            {options.personExpression} · {options.hairStyle} · {options.personProps}
+                          </p>
+                        </div>
                       </div>
                     </Accordion>
                   </div>
