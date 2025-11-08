@@ -97,6 +97,29 @@ export const PRODUCT_INTERACTION_OPTIONS: Option[] = [
   { label: 'Placing on Surface', value: 'placing on surface' },
 ];
 
+export const PERSON_POSE_OPTIONS: Option[] = [
+  { label: 'Relaxed Portrait', value: 'a relaxed, natural portrait pose with soft eye contact and casual posture' },
+  { label: 'Dynamic Mid-Action', value: 'a dynamic mid-action pose, body slightly in motion as if caught candidly' },
+  { label: 'Over-the-Shoulder', value: 'an over-the-shoulder glance back toward the camera while engaging with the product' },
+  { label: 'Leaned-In Close', value: 'leaned in toward the camera with the product close to frame for intimacy' },
+  { label: 'Hands-Only Crop', value: 'hands prominently in frame with the body cropped near the torso, emphasizing touch' },
+];
+
+export const WARDROBE_STYLE_OPTIONS: Option[] = [
+  { label: 'Casual Streetwear', value: 'casual streetwear layers in soft neutrals—tees, denim, and relaxed jackets' },
+  { label: 'Athleisure Set', value: 'a coordinated athleisure set in performance fabrics with subtle branding' },
+  { label: 'Minimal Luxe', value: 'a minimal luxe outfit in monochrome tailoring with sleek accessories' },
+  { label: 'Cozy Knitwear', value: 'cozy knitwear with textured sweaters, soft scarves, and relaxed pants' },
+  { label: 'Bold Color Pop', value: 'a bold, color-blocked outfit with playful statement accessories' },
+];
+
+export const PERSON_MOOD_OPTIONS: Option[] = [
+  { label: 'Calm & Serene', value: 'a calm, serene mood with gentle expressions and controlled breathing' },
+  { label: 'Joyful & High-Energy', value: 'a joyful, high-energy vibe with big smiles and expressive gestures' },
+  { label: 'Confident & Editorial', value: 'a confident, editorial attitude with poised expression and strong gaze' },
+  { label: 'Playful & Candid', value: 'a playful, candid mood with spontaneous laughter and informal gestures' },
+];
+
 export const GENDER_OPTIONS: Option[] = [
   { label: 'Female', value: 'female' },
   { label: 'Male', value: 'male' },

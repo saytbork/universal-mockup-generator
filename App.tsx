@@ -11,7 +11,8 @@ import {
   LIGHTING_OPTIONS, SETTING_OPTIONS, AGE_GROUP_OPTIONS, CAMERA_OPTIONS, 
   PERSPECTIVE_OPTIONS, SELFIE_TYPE_OPTIONS, ETHNICITY_OPTIONS,
   GENDER_OPTIONS, ASPECT_RATIO_OPTIONS, ENVIRONMENT_ORDER_OPTIONS, PERSON_APPEARANCE_OPTIONS,
-  PRODUCT_MATERIAL_OPTIONS, PRODUCT_INTERACTION_OPTIONS, REALISM_OPTIONS
+  PRODUCT_MATERIAL_OPTIONS, PRODUCT_INTERACTION_OPTIONS, REALISM_OPTIONS,
+  PERSON_POSE_OPTIONS, WARDROBE_STYLE_OPTIONS, PERSON_MOOD_OPTIONS
 } from './constants';
 import ImageUploader from './components/ImageUploader';
 import GeneratedImage from './components/GeneratedImage';
@@ -289,6 +290,9 @@ const App: React.FC = () => {
     productMaterial: PRODUCT_MATERIAL_OPTIONS[0].value,
     productInteraction: PRODUCT_INTERACTION_OPTIONS[0].value,
     realism: REALISM_OPTIONS[1].value,
+    personPose: PERSON_POSE_OPTIONS[0].value,
+    wardrobeStyle: WARDROBE_STYLE_OPTIONS[0].value,
+    personMood: PERSON_MOOD_OPTIONS[0].value,
   });
 
   const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null);
@@ -356,6 +360,9 @@ const App: React.FC = () => {
         'realism',
         'ageGroup',
         'personAppearance',
+        'personPose',
+        'wardrobeStyle',
+        'personMood',
         'productInteraction',
         'gender',
         'ethnicity',
@@ -740,6 +747,9 @@ const App: React.FC = () => {
         newOptions.placementCamera = PLACEMENT_CAMERA_OPTIONS[0].value;
         updatedSelectedCategories.add('placementStyle');
         updatedSelectedCategories.add('placementCamera');
+        newOptions.personPose = PERSON_POSE_OPTIONS[0].value;
+        newOptions.wardrobeStyle = WARDROBE_STYLE_OPTIONS[0].value;
+        newOptions.personMood = PERSON_MOOD_OPTIONS[0].value;
       }
     }
     if (category === 'contentStyle') {
@@ -897,9 +907,12 @@ const App: React.FC = () => {
     }
 
     if (personIncluded) {
+        const poseEmphasizesHands = options.personPose.toLowerCase().includes('hand');
+        const isHandCloseUp = options.selfieType === 'close-up shot of a hand holding the product' || poseEmphasizesHands;
         prompt += `The photo features a ${options.gender} person, age ${options.ageGroup}, of ${options.ethnicity} ethnicity, who has a ${options.personAppearance}. `;
-        if (options.selfieType === 'close-up shot of a hand holding the product') {
-            prompt += `The shot is a close-up of their hand holding the product naturally. `;
+        prompt += `They are dressed in ${options.wardrobeStyle}, matching the scene's palette. Their pose is ${options.personPose}, projecting ${options.personMood}. `;
+        if (isHandCloseUp) {
+            prompt += `The shot is a tactile close-up of their hands ${getInteractionDescription(options.productInteraction)} Keep the crop near the torso or closer so attention stays on the product and touch. `;
         } else {
             prompt += `The person is ${getInteractionDescription(options.productInteraction)} Their face and upper body are visible, and the interaction looks unposed and authentic. `;
             if (options.selfieType !== 'none') {
@@ -1449,6 +1462,9 @@ const App: React.FC = () => {
                           <p className="text-xs text-gray-500">Person options are disabled for product placement shots.</p>
                         )}
                         <ChipSelectGroup label="Appearance Level" options={PERSON_APPEARANCE_OPTIONS} selectedValue={options.personAppearance} onChange={(value) => handleOptionChange('personAppearance', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
+                        <ChipSelectGroup label="Mood / Energy" options={PERSON_MOOD_OPTIONS} selectedValue={options.personMood} onChange={(value) => handleOptionChange('personMood', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
+                        <ChipSelectGroup label="Pose / Gesture" options={PERSON_POSE_OPTIONS} selectedValue={options.personPose} onChange={(value) => handleOptionChange('personPose', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
+                        <ChipSelectGroup label="Wardrobe Styling" options={WARDROBE_STYLE_OPTIONS} selectedValue={options.wardrobeStyle} onChange={(value) => handleOptionChange('wardrobeStyle', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
                         <ChipSelectGroup label="Product Interaction" options={PRODUCT_INTERACTION_OPTIONS} selectedValue={options.productInteraction} onChange={(value) => handleOptionChange('productInteraction', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
                         <ChipSelectGroup label="Gender" options={GENDER_OPTIONS} selectedValue={options.gender} onChange={(value) => handleOptionChange('gender', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
                         <ChipSelectGroup label="Ethnicity" options={ETHNICITY_OPTIONS} selectedValue={options.ethnicity} onChange={(value) => handleOptionChange('ethnicity', value, 'Person Details')} disabled={isPersonOptionsDisabled} />

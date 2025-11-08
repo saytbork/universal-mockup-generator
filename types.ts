@@ -16,6 +16,9 @@ export interface MockupOptions {
   productMaterial: string;
   productInteraction: string;
   realism: string;
+  personPose: string;
+  wardrobeStyle: string;
+  personMood: string;
 }
 
 export type OptionCategory = keyof MockupOptions;
