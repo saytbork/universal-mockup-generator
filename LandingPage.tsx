@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Sparkles, Wand2, Camera, ShieldCheck, PlaySquare, Users, CheckCircle2, CreditCard 
@@ -136,12 +136,17 @@ const pricing: PricingPlan[] = [
 ];
 
 const paymentMethods = ['Visa', 'Mastercard', 'American Express', 'Apple Pay', 'Google Pay'];
+const TRIAL_BYPASS_KEY = 'ugc-product-mockup-trial-bypass';
+const TRIAL_BYPASS_CODE = '713371';
 
 const LandingPage: React.FC = () => {
   const [selectedPlan, setSelectedPlan] = useState<CheckoutPlan | null>(null);
   const [checkoutEmail, setCheckoutEmail] = useState('');
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [landingTrialInput, setLandingTrialInput] = useState('');
+  const [landingTrialStatus, setLandingTrialStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [hasLandingBypass, setHasLandingBypass] = useState(false);
   const handleSmoothScroll = useCallback((selector: string) => {
     return (event: React.MouseEvent) => {
       event.preventDefault();
@@ -193,6 +198,34 @@ const LandingPage: React.FC = () => {
   const handleBillingToggle = () => {
     setBillingCycle(prev => (prev === 'monthly' ? 'yearly' : 'monthly'));
   };
+
+  const persistTrialBypass = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(TRIAL_BYPASS_KEY, 'true');
+    setHasLandingBypass(true);
+  }, []);
+
+  const handleLandingCodeSubmit = () => {
+    if (!landingTrialInput.trim()) {
+      setLandingTrialStatus('error');
+      return;
+    }
+    if (landingTrialInput.trim() === TRIAL_BYPASS_CODE) {
+      persistTrialBypass();
+      setLandingTrialStatus('success');
+      setLandingTrialInput('');
+    } else {
+      setLandingTrialStatus('error');
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.localStorage.getItem(TRIAL_BYPASS_KEY) === 'true') {
+      setHasLandingBypass(true);
+      setLandingTrialStatus('success');
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
@@ -249,6 +282,52 @@ const LandingPage: React.FC = () => {
               </button>
             </div>
             <p className="text-sm text-gray-500 animate-fade-up delay-300">Free plan → 5 generations · No credit card required</p>
+            <div className="w-full max-w-xl mx-auto sm:mx-0 animate-fade-up delay-500">
+              <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 flex flex-col gap-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                  <label htmlFor="landing-access-code" className="text-xs uppercase tracking-[0.35em] text-indigo-200">
+                    Beta access code
+                  </label>
+                  <div className="flex flex-col sm:flex-row gap-2 flex-1">
+                    <input
+                      id="landing-access-code"
+                      type="text"
+                      value={landingTrialInput}
+                      onChange={(event) => {
+                        setLandingTrialInput(event.target.value);
+                        if (landingTrialStatus !== 'idle') setLandingTrialStatus('idle');
+                      }}
+                      placeholder="Enter 713371 to unlock the app"
+                      className="flex-1 rounded-lg border border-white/20 bg-gray-950/70 px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                      aria-label="Enter beta access code"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleLandingCodeSubmit}
+                      className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400 transition"
+                    >
+                      Unlock
+                    </button>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-400">
+                  Apply the internal code here so the builder skips the limiter and shows the full tutorial.
+                </p>
+                {landingTrialStatus === 'success' && (
+                  <p className="text-xs text-emerald-300">
+                    Access granted. Launch the builder—this browser is now whitelisted.
+                  </p>
+                )}
+                {landingTrialStatus === 'error' && (
+                  <p className="text-xs text-red-300">
+                    Invalid or missing code. Use <span className="font-semibold">713371</span>.
+                  </p>
+                )}
+                {hasLandingBypass && landingTrialStatus === 'idle' && (
+                  <p className="text-xs text-emerald-300">Code already applied on this device.</p>
+                )}
+              </div>
+            </div>
           </div>
         </header>
       </div>
