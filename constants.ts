@@ -1,5 +1,5 @@
 
-import { Option } from './types';
+import { Option, MockupOptions } from './types';
 
 export const CONTENT_STYLE_OPTIONS: Option[] = [
   { label: 'UGC Lifestyle', value: 'ugc' },
@@ -102,7 +102,7 @@ export const PERSON_POSE_OPTIONS: Option[] = [
   { label: 'Dynamic Mid-Action', value: 'a dynamic mid-action pose, body slightly in motion as if caught candidly' },
   { label: 'Over-the-Shoulder', value: 'an over-the-shoulder glance back toward the camera while engaging with the product' },
   { label: 'Leaned-In Close', value: 'leaned in toward the camera with the product close to frame for intimacy' },
-  { label: 'Hands-Only Crop', value: 'hands prominently in frame with the body cropped near the torso, emphasizing touch' },
+  { label: 'Hands-Only Crop', value: 'hands prominently in frame with the body cropped near the torso, emphasizing touch and texture' },
 ];
 
 export const WARDROBE_STYLE_OPTIONS: Option[] = [
@@ -118,6 +118,119 @@ export const PERSON_MOOD_OPTIONS: Option[] = [
   { label: 'Joyful & High-Energy', value: 'a joyful, high-energy vibe with big smiles and expressive gestures' },
   { label: 'Confident & Editorial', value: 'a confident, editorial attitude with poised expression and strong gaze' },
   { label: 'Playful & Candid', value: 'a playful, candid mood with spontaneous laughter and informal gestures' },
+];
+
+export const PERSON_EXPRESSION_OPTIONS: Option[] = [
+  { label: 'Soft Smile', value: 'a soft smile with relaxed eyes' },
+  { label: 'Full Smile', value: 'a full, teeth-showing smile with bright eye contact' },
+  { label: 'Serious Focus', value: 'a serious, focused expression as if concentrating on the product' },
+  { label: 'Excited Surprise', value: 'an excited, slightly surprised expression capturing delight' },
+];
+
+export const HAIR_STYLE_OPTIONS: Option[] = [
+  { label: 'Natural Texture', value: 'natural hair texture with minimal styling and movement' },
+  { label: 'Loose Waves', value: 'loose, polished waves with a glossy finish' },
+  { label: 'Sleek Bun', value: 'a sleek low bun with clean lines and editorial polish' },
+  { label: 'Messy Updo', value: 'a messy updo with playful flyaways for realism' },
+];
+
+export const PERSON_PROP_OPTIONS: Option[] = [
+  { label: 'None', value: 'no extra handheld props; keep focus purely on the product' },
+  { label: 'Smartphone / Tech', value: 'a modern smartphone or small gadget as a supporting prop' },
+  { label: 'Coffee / Beverage', value: 'a ceramic coffee cup or beverage glass adding warmth' },
+  { label: 'Notebook / Journal', value: 'a notebook or open journal on the table for lifestyle context' },
+  { label: 'Makeup Tool', value: 'a makeup brush or beauty applicator reinforcing product usage' },
+  { label: 'Shopping Tote', value: 'a reusable shopping tote or bag for an on-the-go vibe' },
+];
+
+export const MICRO_LOCATION_OPTIONS: Option[] = [
+  { label: 'Sofa Corner', value: 'tucked into a cozy sofa corner with throws and cushions' },
+  { label: 'Kitchen Island', value: 'gathered around a bright kitchen island with everyday clutter' },
+  { label: 'Vanity Mirror', value: 'standing at a vanity mirror with beauty products scattered around' },
+  { label: 'Boutique Shelf', value: 'posed near a boutique retail shelf with curated props' },
+  { label: 'Rooftop Lounge', value: 'on a rooftop lounge with string lights and skyline ambience' },
+];
+
+export type CreatorPreset = {
+  label: string;
+  value: string;
+  description: string;
+  settings: Partial<MockupOptions>;
+};
+
+export const CREATOR_PRESETS: CreatorPreset[] = [
+  {
+    label: 'Custom Build',
+    value: 'custom',
+    description: 'Start from scratch and dial every parameter manually.',
+    settings: {},
+  },
+  {
+    label: 'Beauty Creator',
+    value: 'beauty_creator',
+    description: 'Dewy glow, glam wardrobe, close interaction with skincare or makeup.',
+    settings: {
+      personAppearance: PERSON_APPEARANCE_OPTIONS[2].value,
+      personMood: PERSON_MOOD_OPTIONS[1].value,
+      personPose: PERSON_POSE_OPTIONS[3].value,
+      wardrobeStyle: WARDROBE_STYLE_OPTIONS[2].value,
+      productInteraction: 'applying it',
+      personProps: PERSON_PROP_OPTIONS[4].value,
+      microLocation: MICRO_LOCATION_OPTIONS[2].value,
+      personExpression: PERSON_EXPRESSION_OPTIONS[1].value,
+      hairStyle: HAIR_STYLE_OPTIONS[1].value,
+      gender: GENDER_OPTIONS[0].value,
+    },
+  },
+  {
+    label: 'Wellness Coach',
+    value: 'wellness_coach',
+    description: 'Calm energy, cozy knits, journaling props in a sofa corner.',
+    settings: {
+      personAppearance: PERSON_APPEARANCE_OPTIONS[0].value,
+      personMood: PERSON_MOOD_OPTIONS[0].value,
+      personPose: PERSON_POSE_OPTIONS[0].value,
+      wardrobeStyle: WARDROBE_STYLE_OPTIONS[3].value,
+      productInteraction: 'holding it naturally',
+      personProps: PERSON_PROP_OPTIONS[3].value,
+      microLocation: MICRO_LOCATION_OPTIONS[0].value,
+      personExpression: PERSON_EXPRESSION_OPTIONS[0].value,
+      hairStyle: HAIR_STYLE_OPTIONS[0].value,
+    },
+  },
+  {
+    label: 'Streetwear Reviewer',
+    value: 'streetwear_reviewer',
+    description: 'Bold on-the-go look, tech props, high-energy vibe.',
+    settings: {
+      personAppearance: PERSON_APPEARANCE_OPTIONS[2].value,
+      personMood: PERSON_MOOD_OPTIONS[2].value,
+      personPose: PERSON_POSE_OPTIONS[1].value,
+      wardrobeStyle: WARDROBE_STYLE_OPTIONS[0].value,
+      productInteraction: 'showing to camera',
+      personProps: PERSON_PROP_OPTIONS[1].value,
+      microLocation: MICRO_LOCATION_OPTIONS[4].value,
+      personExpression: PERSON_EXPRESSION_OPTIONS[1].value,
+      hairStyle: HAIR_STYLE_OPTIONS[3].value,
+      gender: GENDER_OPTIONS[1].value,
+    },
+  },
+  {
+    label: 'Fitness Creator',
+    value: 'fitness_creator',
+    description: 'Athleisure set, energized expressions, often mid-action.',
+    settings: {
+      personAppearance: PERSON_APPEARANCE_OPTIONS[1].value,
+      personMood: PERSON_MOOD_OPTIONS[1].value,
+      personPose: PERSON_POSE_OPTIONS[1].value,
+      wardrobeStyle: WARDROBE_STYLE_OPTIONS[1].value,
+      productInteraction: 'using it',
+      personProps: PERSON_PROP_OPTIONS[5].value,
+      microLocation: MICRO_LOCATION_OPTIONS[1].value,
+      personExpression: PERSON_EXPRESSION_OPTIONS[1].value,
+      hairStyle: HAIR_STYLE_OPTIONS[2].value,
+    },
+  },
 ];
 
 export const GENDER_OPTIONS: Option[] = [

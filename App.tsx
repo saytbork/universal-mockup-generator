@@ -12,8 +12,11 @@ import {
   PERSPECTIVE_OPTIONS, SELFIE_TYPE_OPTIONS, ETHNICITY_OPTIONS,
   GENDER_OPTIONS, ASPECT_RATIO_OPTIONS, ENVIRONMENT_ORDER_OPTIONS, PERSON_APPEARANCE_OPTIONS,
   PRODUCT_MATERIAL_OPTIONS, PRODUCT_INTERACTION_OPTIONS, REALISM_OPTIONS,
-  PERSON_POSE_OPTIONS, WARDROBE_STYLE_OPTIONS, PERSON_MOOD_OPTIONS
+  PERSON_POSE_OPTIONS, WARDROBE_STYLE_OPTIONS, PERSON_MOOD_OPTIONS,
+  PERSON_PROP_OPTIONS, MICRO_LOCATION_OPTIONS, PERSON_EXPRESSION_OPTIONS, HAIR_STYLE_OPTIONS,
+  CREATOR_PRESETS
 } from './constants';
+import type { CreatorPreset } from './constants';
 import ImageUploader from './components/ImageUploader';
 import GeneratedImage from './components/GeneratedImage';
 import VideoGenerator from './components/VideoGenerator';
@@ -31,6 +34,36 @@ const TRIAL_BYPASS_KEY = 'ugc-product-mockup-trial-bypass';
 const TRIAL_BYPASS_CODE = '713371';
 const VIDEO_SECRET_CODE = '713371';
 const ONBOARDING_DISMISSED_KEY = 'ugc-onboarding-hidden';
+const TALENT_PROFILE_STORAGE_KEY = 'ugc-saved-talent-profile';
+
+const PERSON_FIELD_KEYS: OptionCategory[] = [
+  'ageGroup',
+  'personAppearance',
+  'personMood',
+  'personPose',
+  'wardrobeStyle',
+  'productInteraction',
+  'gender',
+  'ethnicity',
+  'selfieType',
+  'personProps',
+  'microLocation',
+  'personExpression',
+  'hairStyle',
+] as OptionCategory[];
+
+const CREATOR_PRESET_OPTIONS: Option[] = CREATOR_PRESETS.map(({ label, value }) => ({
+  label,
+  value,
+}));
+
+const CREATOR_PRESET_LOOKUP: Record<string, CreatorPreset> = CREATOR_PRESETS.reduce(
+  (acc, preset) => {
+    acc[preset.value] = preset;
+    return acc;
+  },
+  {} as Record<string, CreatorPreset>
+);
 
 type AiStudioApi = {
   hasSelectedApiKey: () => Promise<boolean>;
@@ -293,6 +326,10 @@ const App: React.FC = () => {
     personPose: PERSON_POSE_OPTIONS[0].value,
     wardrobeStyle: WARDROBE_STYLE_OPTIONS[0].value,
     personMood: PERSON_MOOD_OPTIONS[0].value,
+    personProps: PERSON_PROP_OPTIONS[0].value,
+    microLocation: MICRO_LOCATION_OPTIONS[0].value,
+    personExpression: PERSON_EXPRESSION_OPTIONS[0].value,
+    hairStyle: HAIR_STYLE_OPTIONS[0].value,
   });
 
   const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null);
@@ -320,6 +357,9 @@ const App: React.FC = () => {
   const [isMoodProcessing, setIsMoodProcessing] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [onboardingStep, setOnboardingStep] = useState(1);
+  const [activeTalentPreset, setActiveTalentPreset] = useState('custom');
+  const [savedTalentProfile, setSavedTalentProfile] = useState<Partial<MockupOptions> | null>(null);
+  const [talentToast, setTalentToast] = useState<'idle' | 'saved' | 'applied'>('idle');
   const intentRef = useRef<HTMLDivElement>(null);
   const uploadRef = useRef<HTMLDivElement>(null);
   const customizeRef = useRef<HTMLDivElement>(null);
@@ -338,6 +378,11 @@ const App: React.FC = () => {
   const hasUploadedProduct = Boolean(uploadedImagePreview);
   const canUseMood = hasUploadedProduct;
   const contentStyleValue = hasSelectedIntent ? options.contentStyle : CONTENT_STYLE_OPTIONS[0].value;
+  const isProductPlacement = contentStyleValue === 'product';
+  const isPersonOptionsDisabled = isProductPlacement || options.ageGroup === 'no person';
+  const personControlsDisabled = isPersonOptionsDisabled;
+  const personPropNoneValue = PERSON_PROP_OPTIONS[0].value;
+  const microLocationDefault = MICRO_LOCATION_OPTIONS[0].value;
   const scrollToSection = useCallback((title: string) => {
     const element = document.getElementById(getSectionId(title));
     if (element) {
@@ -363,6 +408,10 @@ const App: React.FC = () => {
         'personPose',
         'wardrobeStyle',
         'personMood',
+        'personProps',
+        'microLocation',
+        'personExpression',
+        'hairStyle',
         'productInteraction',
         'gender',
         'ethnicity',
@@ -403,6 +452,8 @@ const App: React.FC = () => {
   const [openAccordion, setOpenAccordion] = useState<string | null>('Scene & Product');
   const [selectedCategories, setSelectedCategories] = useState<Set<OptionCategory>>(new Set());
   const accordionOrder = ['Scene & Product', 'Photography', 'Person Details'];
+  const activePresetMeta = useMemo(() => CREATOR_PRESET_LOOKUP[activeTalentPreset], [activeTalentPreset]);
+  const hasSavedTalent = Boolean(savedTalentProfile);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -469,6 +520,26 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    const storedTalent = window.localStorage.getItem(TALENT_PROFILE_STORAGE_KEY);
+    if (storedTalent) {
+      try {
+        const parsed = JSON.parse(storedTalent) as Partial<MockupOptions>;
+        setSavedTalentProfile(parsed);
+      } catch {
+        // ignore invalid data
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (talentToast === 'idle') return;
+    const timeout = window.setTimeout(() => setTalentToast('idle'), 2200);
+    return () => window.clearTimeout(timeout);
+  }, [talentToast]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (window.localStorage.getItem(ONBOARDING_DISMISSED_KEY) === 'true') {
       setShowOnboarding(false);
     }
@@ -525,6 +596,55 @@ const App: React.FC = () => {
       setApiKeyError(null);
     }
   }, [apiKeyError]);
+
+  const getTalentProfileFromOptions = useCallback(() => {
+    const profile: Partial<MockupOptions> = {};
+    PERSON_FIELD_KEYS.forEach((key) => {
+      profile[key] = options[key];
+    });
+    return profile;
+  }, [options]);
+
+  const applyTalentProfile = useCallback((profile?: Partial<MockupOptions> | null) => {
+    if (!profile) return;
+    setOptions(prev => ({ ...prev, ...profile }));
+    setSelectedCategories(prev => {
+      const next = new Set(prev);
+      PERSON_FIELD_KEYS.forEach(key => {
+        if (profile[key] !== undefined) {
+          next.add(key);
+        }
+      });
+      return next;
+    });
+  }, [setOptions, setSelectedCategories]);
+
+  const handlePresetSelect = useCallback((value: string) => {
+    setActiveTalentPreset(value);
+    if (value === 'custom') {
+      return;
+    }
+    const preset = CREATOR_PRESET_LOOKUP[value];
+    if (!preset) return;
+    applyTalentProfile(preset.settings);
+  }, [applyTalentProfile]);
+
+  const handleSaveTalentProfile = useCallback(() => {
+    if (isProductPlacement || options.ageGroup === 'no person') return;
+    const profile = getTalentProfileFromOptions();
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(TALENT_PROFILE_STORAGE_KEY, JSON.stringify(profile));
+    }
+    setSavedTalentProfile(profile);
+    setTalentToast('saved');
+  }, [getTalentProfileFromOptions, isProductPlacement, options.ageGroup]);
+
+  const handleApplySavedTalent = useCallback(() => {
+    if (!savedTalentProfile) return;
+    applyTalentProfile(savedTalentProfile);
+    setActiveTalentPreset('custom');
+    setTalentToast('applied');
+  }, [applyTalentProfile, savedTalentProfile]);
 
   const handleTrialCodeChange = useCallback((value: string) => {
     setTrialCodeInput(value);
@@ -750,7 +870,15 @@ const App: React.FC = () => {
         newOptions.personPose = PERSON_POSE_OPTIONS[0].value;
         newOptions.wardrobeStyle = WARDROBE_STYLE_OPTIONS[0].value;
         newOptions.personMood = PERSON_MOOD_OPTIONS[0].value;
+        newOptions.personProps = PERSON_PROP_OPTIONS[0].value;
+        newOptions.microLocation = MICRO_LOCATION_OPTIONS[0].value;
+        newOptions.personExpression = PERSON_EXPRESSION_OPTIONS[0].value;
+        newOptions.hairStyle = HAIR_STYLE_OPTIONS[0].value;
+        setActiveTalentPreset('custom');
       }
+    }
+    if (category === 'ageGroup' && value === 'no person') {
+      setActiveTalentPreset('custom');
     }
     if (category === 'contentStyle') {
       advanceOnboardingFromStep(1);
@@ -775,7 +903,21 @@ const App: React.FC = () => {
     const accordionCategoryMap: Record<string, OptionCategory[]> = {
       'Scene & Product': ['productMaterial', 'setting', 'environmentOrder'],
       'Photography': ['lighting', 'camera', 'perspective', 'aspectRatio', 'realism'],
-      'Person Details': ['ageGroup', 'personAppearance', 'productInteraction', 'gender', 'ethnicity', 'selfieType'],
+      'Person Details': [
+        'ageGroup',
+        'personAppearance',
+        'personMood',
+        'personPose',
+        'wardrobeStyle',
+        'personExpression',
+        'hairStyle',
+        'personProps',
+        'microLocation',
+        'productInteraction',
+        'gender',
+        'ethnicity',
+        'selfieType',
+      ],
     };
     
     let requiredCategories = accordionCategoryMap[accordionTitle];
@@ -796,6 +938,10 @@ const App: React.FC = () => {
     if (allRequiredSelected) {
       advance();
     }
+
+    if (PERSON_FIELD_KEYS.includes(category) && activeTalentPreset !== 'custom') {
+      setActiveTalentPreset('custom');
+    }
   };
   
   const resetOutputs = useCallback(() => {
@@ -812,6 +958,7 @@ const App: React.FC = () => {
     resetOutputs();
     setSelectedCategories(new Set());
     setOpenAccordion('Scene & Product');
+    setActiveTalentPreset('custom');
     setMoodPalette([]);
     setMoodSummary(null);
     setMoodImagePreview(prev => {
@@ -911,6 +1058,13 @@ const App: React.FC = () => {
         const isHandCloseUp = options.selfieType === 'close-up shot of a hand holding the product' || poseEmphasizesHands;
         prompt += `The photo features a ${options.gender} person, age ${options.ageGroup}, of ${options.ethnicity} ethnicity, who has a ${options.personAppearance}. `;
         prompt += `They are dressed in ${options.wardrobeStyle}, matching the scene's palette. Their pose is ${options.personPose}, projecting ${options.personMood}. `;
+        prompt += `Their facial expression shows ${options.personExpression}, and their hair is styled as ${options.hairStyle}. `;
+        if (options.personProps !== personPropNoneValue) {
+            prompt += `Add supporting props such as ${options.personProps} to reinforce the lifestyle context. `;
+        }
+        if (options.microLocation !== microLocationDefault) {
+            prompt += `Place them within ${options.microLocation} to ground the scene. `;
+        }
         if (isHandCloseUp) {
             prompt += `The shot is a tactile close-up of their hands ${getInteractionDescription(options.productInteraction)} Keep the crop near the torso or closer so attention stays on the product and touch. `;
         } else {
@@ -1152,9 +1306,6 @@ const App: React.FC = () => {
     }
 };
  
-
-  const isProductPlacement = contentStyleValue === 'product';
-  const isPersonOptionsDisabled = isProductPlacement || options.ageGroup === 'no person';
 
   const renderLoginScreen = () => (
     <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center px-4">
@@ -1461,11 +1612,47 @@ const App: React.FC = () => {
                         {isProductPlacement && (
                           <p className="text-xs text-gray-500">Person options are disabled for product placement shots.</p>
                         )}
+                        <div className={`rounded-2xl border border-white/10 bg-gray-900/40 p-4 space-y-3 ${personControlsDisabled ? 'opacity-50' : ''}`}>
+                          <ChipSelectGroup
+                            label="Creator Preset"
+                            options={CREATOR_PRESET_OPTIONS}
+                            selectedValue={activeTalentPreset}
+                            onChange={(value) => handlePresetSelect(value)}
+                            disabled={personControlsDisabled}
+                          />
+                          {activePresetMeta?.description && (
+                            <p className="text-xs text-gray-400">{activePresetMeta.description}</p>
+                          )}
+                          <div className="flex flex-wrap gap-2 text-xs">
+                            <button
+                              type="button"
+                              onClick={handleSaveTalentProfile}
+                              disabled={personControlsDisabled}
+                              className="inline-flex items-center rounded-full border border-white/20 px-3 py-1 font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition disabled:opacity-60"
+                            >
+                              Save as My Talent
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleApplySavedTalent}
+                              disabled={personControlsDisabled || !hasSavedTalent}
+                              className="inline-flex items-center rounded-full border border-white/20 px-3 py-1 font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition disabled:opacity-60"
+                            >
+                              Apply saved talent
+                            </button>
+                          </div>
+                          {talentToast === 'saved' && <p className="text-xs text-emerald-300">Talent saved for future scenes.</p>}
+                          {talentToast === 'applied' && <p className="text-xs text-emerald-300">Saved talent applied.</p>}
+                        </div>
                         <ChipSelectGroup label="Appearance Level" options={PERSON_APPEARANCE_OPTIONS} selectedValue={options.personAppearance} onChange={(value) => handleOptionChange('personAppearance', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
                         <ChipSelectGroup label="Mood / Energy" options={PERSON_MOOD_OPTIONS} selectedValue={options.personMood} onChange={(value) => handleOptionChange('personMood', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
+                        <ChipSelectGroup label="Facial Expression" options={PERSON_EXPRESSION_OPTIONS} selectedValue={options.personExpression} onChange={(value) => handleOptionChange('personExpression', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
                         <ChipSelectGroup label="Pose / Gesture" options={PERSON_POSE_OPTIONS} selectedValue={options.personPose} onChange={(value) => handleOptionChange('personPose', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
                         <ChipSelectGroup label="Wardrobe Styling" options={WARDROBE_STYLE_OPTIONS} selectedValue={options.wardrobeStyle} onChange={(value) => handleOptionChange('wardrobeStyle', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
+                        <ChipSelectGroup label="Hair & Makeup" options={HAIR_STYLE_OPTIONS} selectedValue={options.hairStyle} onChange={(value) => handleOptionChange('hairStyle', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
                         <ChipSelectGroup label="Product Interaction" options={PRODUCT_INTERACTION_OPTIONS} selectedValue={options.productInteraction} onChange={(value) => handleOptionChange('productInteraction', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
+                        <ChipSelectGroup label="Props & Accessories" options={PERSON_PROP_OPTIONS} selectedValue={options.personProps} onChange={(value) => handleOptionChange('personProps', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
+                        <ChipSelectGroup label="Micro Location" options={MICRO_LOCATION_OPTIONS} selectedValue={options.microLocation} onChange={(value) => handleOptionChange('microLocation', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
                         <ChipSelectGroup label="Gender" options={GENDER_OPTIONS} selectedValue={options.gender} onChange={(value) => handleOptionChange('gender', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
                         <ChipSelectGroup label="Ethnicity" options={ETHNICITY_OPTIONS} selectedValue={options.ethnicity} onChange={(value) => handleOptionChange('ethnicity', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
                         <ChipSelectGroup label="Selfie Type" options={SELFIE_TYPE_OPTIONS} selectedValue={options.selfieType} onChange={(value) => handleOptionChange('selfieType', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
