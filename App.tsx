@@ -319,6 +319,7 @@ const App: React.FC = () => {
   const intentRef = useRef<HTMLDivElement>(null);
   const uploadRef = useRef<HTMLDivElement>(null);
   const customizeRef = useRef<HTMLDivElement>(null);
+  const trialInputRef = useRef<HTMLInputElement>(null);
   const isDevBypass = useMemo(() => {
     if (!import.meta.env.DEV) return false;
     const params = new URLSearchParams(location.search);
@@ -339,6 +340,7 @@ const App: React.FC = () => {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, []);
+  const shouldShowOnboarding = showOnboarding && !isTrialLocked;
   const stepThreeCategories = useMemo<Set<OptionCategory>>(
     () =>
       new Set<OptionCategory>([
@@ -462,12 +464,12 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!showOnboarding) return;
+    if (!showOnboarding || isTrialLocked) return;
     const current = onboardingStepsMeta[onboardingStep - 1]?.ref.current;
     if (current) {
       current.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-  }, [showOnboarding, onboardingStep, onboardingStepsMeta]);
+  }, [showOnboarding, onboardingStep, onboardingStepsMeta, isTrialLocked]);
 
   const removeStoredApiKey = useCallback(() => {
     if (typeof window !== 'undefined') {
@@ -565,6 +567,12 @@ const App: React.FC = () => {
     setOnboardingStep(1);
     setShowOnboarding(true);
   }, []);
+
+  useEffect(() => {
+    if (isTrialLocked && trialInputRef.current) {
+      trialInputRef.current.focus();
+    }
+  }, [isTrialLocked]);
 
   const handleVideoAccessCodeChange = useCallback((value: string) => {
     setVideoAccessInput(value);
@@ -1214,7 +1222,7 @@ const App: React.FC = () => {
   );
 
   const TrialLimitOverlay = () => (
-    <div className="absolute inset-0 bg-gray-900/95 flex flex-col justify-center items-center z-30 p-8 text-center rounded-lg">
+    <div className="fixed inset-0 z-40 flex flex-col justify-center items-center bg-gray-950/90 backdrop-blur-xl px-6 text-center">
       <h2 className="text-2xl font-bold mb-4 text-white">Access code required</h2>
       <p className="mb-6 text-gray-300 max-w-lg">
         We disabled the public credits while we harden the production release. Enter the internal code to unlock the builder.
@@ -1227,6 +1235,13 @@ const App: React.FC = () => {
             value={trialCodeInput}
             onChange={event => handleTrialCodeChange(event.target.value)}
             placeholder="Enter access code"
+            ref={trialInputRef}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                handleTrialCodeSubmit();
+              }
+            }}
             className="flex-1 rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
           <button
@@ -1255,7 +1270,7 @@ const App: React.FC = () => {
       <div className="max-w-7xl mx-auto relative">
         {isTrialLocked && <TrialLimitOverlay />}
         <OnboardingOverlay
-          visible={showOnboarding}
+          visible={shouldShowOnboarding}
           currentStep={onboardingStep}
           steps={onboardingStepsMeta}
           onNext={handleOnboardingNext}
@@ -1280,7 +1295,8 @@ const App: React.FC = () => {
             )}
             <button
               onClick={handleReplayOnboarding}
-              className="inline-flex items-center justify-center rounded-lg border border-indigo-500/60 text-sm font-semibold text-indigo-200 px-4 py-2 hover:bg-indigo-500/10 transition"
+              disabled={isTrialLocked}
+              className={`inline-flex items-center justify-center rounded-lg border border-indigo-500/60 text-sm font-semibold px-4 py-2 transition ${isTrialLocked ? 'text-indigo-300/30 border-indigo-500/20 cursor-not-allowed' : 'text-indigo-200 hover:bg-indigo-500/10'}`}
             >
               Replay guided tour
             </button>
@@ -1296,28 +1312,8 @@ const App: React.FC = () => {
                   Switch account
                 </button>
               </div>
-              {!isTrialBypassActive ? (
-                <div className="mt-4 flex flex-col items-center gap-3 text-xs text-gray-400 max-w-md mx-auto">
-                  <p className="text-center text-sm">
-                    Private beta access is locked. Enter the internal code to unlock unlimited generations.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-2 w-full">
-                    <input
-                      type="text"
-                      value={trialCodeInput}
-                      onChange={event => handleTrialCodeChange(event.target.value)}
-                      placeholder="Enter access code"
-                      className="flex-1 rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                    />
-                    <button
-                      onClick={handleTrialCodeSubmit}
-                      className="rounded-lg bg-indigo-500 px-4 py-2 font-semibold text-white hover:bg-indigo-600 transition"
-                    >
-                      Unlock app
-                    </button>
-                  </div>
-                  {trialCodeError && <p className="text-red-300">{trialCodeError}</p>}
-                </div>
+              {isTrialLocked ? (
+                <p className="mt-3 text-xs text-rose-300">Enter the internal code in the overlay to unlock the builder.</p>
               ) : (
                 <p className="mt-3 text-xs text-emerald-300">Access code activated — unlimited generations unlocked.</p>
               )}
