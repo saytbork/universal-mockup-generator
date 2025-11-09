@@ -723,6 +723,16 @@ const App: React.FC = () => {
     }
   }, [apiKeyError]);
 
+  const getActiveApiKeyOrNotify = useCallback((notify: (message: string) => void): string | null => {
+    const resolvedKey = apiKey || envApiKey;
+    if (!resolvedKey) {
+      notify('Please configure your Gemini API key to continue.');
+      requireNewApiKey();
+      return null;
+    }
+    return resolvedKey;
+  }, [apiKey, envApiKey, requireNewApiKey]);
+
   const toggleSimpleMode = useCallback(() => {
     setIsSimpleMode(prev => {
       const next = !prev;
@@ -1129,16 +1139,6 @@ const handleMoodChipSelect = useCallback((chipId: string) => {
     await aiStudioInstance.openSelectKey();
     setIsKeySelected(true);
   };
-
-  const getActiveApiKeyOrNotify = useCallback((notify: (message: string) => void): string | null => {
-    const resolvedKey = apiKey || envApiKey;
-    if (!resolvedKey) {
-      notify('Please configure your Gemini API key to continue.');
-      requireNewApiKey();
-      return null;
-    }
-    return resolvedKey;
-  }, [apiKey, envApiKey, requireNewApiKey]);
 
   const handleToggleAccordion = (title: string) => {
     setOpenAccordion(current => (current === title ? null : title));
@@ -1882,6 +1882,7 @@ const handleMoodChipSelect = useCallback((chipId: string) => {
         </header>
 
         <main className="flex flex-col gap-8">
+        {!isSimpleMode && (
             <div className="rounded-3xl border border-white/5 bg-white/5 p-5 space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -1928,6 +1929,7 @@ const handleMoodChipSelect = useCallback((chipId: string) => {
                 ))}
               </div>
             </div>
+        )}
             <div className="grid gap-6 lg:grid-cols-3">
                 <div ref={intentRef} className="bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-4 h-full">
                 <div className="flex flex-col gap-1">
@@ -2097,10 +2099,10 @@ const handleMoodChipSelect = useCallback((chipId: string) => {
                           {talentToast === 'saved' && <p className="text-xs text-emerald-300">Talent saved for future scenes.</p>}
                           {talentToast === 'applied' && <p className="text-xs text-emerald-300">Saved talent applied.</p>}
                         </div>
+                        <ChipSelectGroup label="Appearance Level" options={PERSON_APPEARANCE_OPTIONS} selectedValue={options.personAppearance} onChange={(value) => handleOptionChange('personAppearance', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
+                        <ChipSelectGroup label="Mood / Energy" options={PERSON_MOOD_OPTIONS} selectedValue={options.personMood} onChange={(value) => handleOptionChange('personMood', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
                         {!isSimpleMode && (
                           <>
-                            <ChipSelectGroup label="Appearance Level" options={PERSON_APPEARANCE_OPTIONS} selectedValue={options.personAppearance} onChange={(value) => handleOptionChange('personAppearance', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
-                            <ChipSelectGroup label="Mood / Energy" options={PERSON_MOOD_OPTIONS} selectedValue={options.personMood} onChange={(value) => handleOptionChange('personMood', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
                             <ChipSelectGroup label="Facial Expression" options={PERSON_EXPRESSION_OPTIONS} selectedValue={options.personExpression} onChange={(value) => handleOptionChange('personExpression', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
                             <ChipSelectGroup label="Pose / Gesture" options={PERSON_POSE_OPTIONS} selectedValue={options.personPose} onChange={(value) => handleOptionChange('personPose', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
                             <ChipSelectGroup label="Wardrobe Styling" options={WARDROBE_STYLE_OPTIONS} selectedValue={options.wardrobeStyle} onChange={(value) => handleOptionChange('wardrobeStyle', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
@@ -2108,12 +2110,8 @@ const handleMoodChipSelect = useCallback((chipId: string) => {
                           </>
                         )}
                         <ChipSelectGroup label="Product Interaction" options={PRODUCT_INTERACTION_OPTIONS} selectedValue={options.productInteraction} onChange={(value) => handleOptionChange('productInteraction', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
-                        {!isSimpleMode && (
-                          <>
-                            <ChipSelectGroup label="Props & Accessories" options={PERSON_PROP_OPTIONS} selectedValue={options.personProps} onChange={(value) => handleOptionChange('personProps', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
-                            <ChipSelectGroup label="Micro Location" options={MICRO_LOCATION_OPTIONS} selectedValue={options.microLocation} onChange={(value) => handleOptionChange('microLocation', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
-                          </>
-                        )}
+                        <ChipSelectGroup label="Props & Accessories" options={PERSON_PROP_OPTIONS} selectedValue={options.personProps} onChange={(value) => handleOptionChange('personProps', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
+                        <ChipSelectGroup label="Micro Location" options={MICRO_LOCATION_OPTIONS} selectedValue={options.microLocation} onChange={(value) => handleOptionChange('microLocation', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
                         <ChipSelectGroup label="Gender" options={GENDER_OPTIONS} selectedValue={options.gender} onChange={(value) => handleOptionChange('gender', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
                         <ChipSelectGroup label="Ethnicity" options={ETHNICITY_OPTIONS} selectedValue={options.ethnicity} onChange={(value) => handleOptionChange('ethnicity', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
                         <ChipSelectGroup label="Selfie Type" options={SELFIE_TYPE_OPTIONS} selectedValue={options.selfieType} onChange={(value) => handleOptionChange('selfieType', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
