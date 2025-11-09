@@ -52,6 +52,10 @@ export const SETTING_OPTIONS: Option[] = [
   { label: 'Wellness Spa', value: 'a serene spa setting with steam, plants, and soft towels' },
   { label: 'Farmer’s Market', value: 'an open-air market with fresh produce and rustic tables' },
   { label: 'Mountain Cabin', value: 'a woodsy cabin interior with natural textures' },
+  { label: 'Laundry Room Reality', value: 'a laundry room corner with baskets, detergent, and clothes stacked up' },
+  { label: 'Bursting Entryway', value: 'a busy apartment entry cluttered with shoes, tote bags, and parcels' },
+  { label: 'Subway Platform', value: 'a city subway platform with benches, posters, and commuters' },
+  { label: 'Home Studio Chaos', value: 'a cramped creative studio with canvases, cables, and open notebooks' },
 ];
 
 // Reduced 5-option version covering only visually distinct materials.
@@ -68,6 +72,8 @@ export const ENVIRONMENT_ORDER_OPTIONS: Option[] = [
   { label: 'Clean', value: 'clean, tidy, and organized' },
   { label: 'Natural', value: 'natural and realistically lived-in' },
   { label: 'Casual', value: 'casually messy, spontaneous and authentic' },
+  { label: 'Creative Chaos', value: 'creative chaos with open notebooks, coffee cups, and props scattered everywhere' },
+  { label: 'Post-Launch Mess', value: 'post-launch hustle with packaging, shipping boxes, and marker scribbles left around' },
 ];
 
 export const AGE_GROUP_OPTIONS: Option[] = [
@@ -90,6 +96,7 @@ export const PERSON_APPEARANCE_OPTIONS: Option[] = [
   { label: 'Well-Groomed', value: 'a well-groomed, put-together appearance' },
   { label: 'Styled', value: 'a trendy, styled, influencer-like appearance' },
   { label: 'Messy / Just Woke Up', value: 'a slightly messy, just woke up appearance with authentic flyaways and relaxed wardrobe' },
+  { label: 'Running Late', value: 'a running-late look with imperfect eyeliner, tousled hair, and layered street clothes' },
 ];
 
 // 6-option version focused on realistic user actions.
@@ -116,6 +123,7 @@ export const WARDROBE_STYLE_OPTIONS: Option[] = [
   { label: 'Minimal Luxe', value: 'a minimal luxe outfit in monochrome tailoring with sleek accessories' },
   { label: 'Cozy Knitwear', value: 'cozy knitwear with textured sweaters, soft scarves, and relaxed pants' },
   { label: 'Bold Color Pop', value: 'a bold, color-blocked outfit with playful statement accessories' },
+  { label: 'Errand-Day Layers', value: 'mismatched errand-day layers with hoodies, tote bags, and lived-in denim' },
 ];
 
 export const PERSON_MOOD_OPTIONS: Option[] = [
@@ -123,6 +131,8 @@ export const PERSON_MOOD_OPTIONS: Option[] = [
   { label: 'Joyful & High-Energy', value: 'a joyful, high-energy vibe with big smiles and expressive gestures' },
   { label: 'Confident & Editorial', value: 'a confident, editorial attitude with poised expression and strong gaze' },
   { label: 'Playful & Candid', value: 'a playful, candid mood with spontaneous laughter and informal gestures' },
+  { label: 'Hustle & Juggle', value: 'a hustle-and-juggle energy with multitasking gestures and focused eyes' },
+  { label: 'Stressed but Determined', value: 'a slightly stressed yet determined mood, trying to get everything done' },
 ];
 
 export const PERSON_EXPRESSION_OPTIONS: Option[] = [
