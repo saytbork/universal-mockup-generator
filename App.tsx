@@ -35,7 +35,7 @@ const createDefaultOptions = (): MockupOptions => ({
   placementCamera: PLACEMENT_CAMERA_OPTIONS[0].value,
   lighting: LIGHTING_OPTIONS[0].value,
   setting: SETTING_OPTIONS[0].value,
-  ageGroup: AGE_GROUP_OPTIONS[0].value,
+  ageGroup: AGE_GROUP_OPTIONS[5].value,
   camera: CAMERA_OPTIONS[0].value,
   perspective: PERSPECTIVE_OPTIONS[0].value,
   selfieType: SELFIE_TYPE_OPTIONS[0].value,
@@ -75,6 +75,62 @@ const ONBOARDING_DISMISSED_KEY = 'ugc-onboarding-hidden';
 const TALENT_PROFILE_STORAGE_KEY = 'ugc-saved-talent-profile';
 const SIMPLE_MODE_KEY = 'ugc-simple-mode';
 const GOAL_WIZARD_KEY = 'ugc-goal-wizard-dismissed';
+const PLAN_STORAGE_KEY = 'ugc-plan-tier';
+const VIDEO_COUNT_KEY = 'ugc-video-generation-count';
+
+type PlanTier = 'free' | 'starter' | 'growth' | 'studio';
+
+const PLAN_CONFIG: Record<
+  PlanTier,
+  {
+    label: string;
+    description: string;
+    imageLimit: number;
+    videoLimit: number;
+    allowStudio: boolean;
+    allowCaption: boolean;
+  }
+> = {
+  free: {
+    label: 'Free Launch',
+    description: '5 images, no video, simple builder only.',
+    imageLimit: 5,
+    videoLimit: 0,
+    allowStudio: false,
+    allowCaption: false,
+  },
+  starter: {
+    label: 'Starter',
+    description: '80 images + 5 videos/month, simple builder.',
+    imageLimit: 80,
+    videoLimit: 5,
+    allowStudio: false,
+    allowCaption: true,
+  },
+  growth: {
+    label: 'Growth',
+    description: '250 images + 10 videos/month with studio mode.',
+    imageLimit: 250,
+    videoLimit: 10,
+    allowStudio: true,
+    allowCaption: true,
+  },
+  studio: {
+    label: 'Studio Pro',
+    description: '600 images + 25 videos/month, all features unlocked.',
+    imageLimit: 600,
+    videoLimit: 25,
+    allowStudio: true,
+    allowCaption: true,
+  },
+};
+
+const PLAN_UNLOCK_CODES: Record<string, PlanTier> = {
+  STARTER115: 'starter',
+  GROWTH278: 'growth',
+  STUDIO566: 'studio',
+  '713371': 'studio',
+};
 
 const PERSON_FIELD_KEYS: OptionCategory[] = [
   'ageGroup',
@@ -432,6 +488,7 @@ const App: React.FC = () => {
   const [emailError, setEmailError] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [imageGenerationCount, setImageGenerationCount] = useState(0);
+  const [videoGenerationCount, setVideoGenerationCount] = useState(0);
   const [hasVideoAccess, setHasVideoAccess] = useState(false);
   const [videoAccessInput, setVideoAccessInput] = useState('');
   const [videoAccessError, setVideoAccessError] = useState<string | null>(null);
@@ -449,6 +506,11 @@ const App: React.FC = () => {
   const [generatedCopy, setGeneratedCopy] = useState<string | null>(null);
   const [isCopyLoading, setIsCopyLoading] = useState(false);
   const [copyError, setCopyError] = useState<string | null>(null);
+  const [planTier, setPlanTier] = useState<PlanTier>('free');
+  const [showPlanModal, setShowPlanModal] = useState(false);
+  const [planCodeInput, setPlanCodeInput] = useState('');
+  const [planCodeError, setPlanCodeError] = useState<string | null>(null);
+  const [planNotice, setPlanNotice] = useState<string | null>(null);
   const [isSimpleMode, setIsSimpleMode] = useState(true);
   const [showGoalWizard, setShowGoalWizard] = useState(false);
   const [goalWizardStep, setGoalWizardStep] = useState(1);
@@ -470,7 +532,6 @@ const App: React.FC = () => {
   const [trialCodeInput, setTrialCodeInput] = useState('');
   const [trialCodeError, setTrialCodeError] = useState<string | null>(null);
   const isTrialBypassActive = hasTrialBypass || isDevBypass;
-  const isTrialLocked = !isTrialBypassActive;
   const hasSelectedIntent = Boolean(options.contentStyle);
   const hasUploadedProduct = Boolean(uploadedImagePreview);
   const canUseMood = hasUploadedProduct;
@@ -480,6 +541,17 @@ const App: React.FC = () => {
   const personControlsDisabled = isPersonOptionsDisabled;
   const personPropNoneValue = PERSON_PROP_OPTIONS[0].value;
   const microLocationDefault = MICRO_LOCATION_OPTIONS[0].value;
+  const currentPlan = PLAN_CONFIG[planTier];
+  const planImageLimit = currentPlan.imageLimit;
+  const planVideoLimit = currentPlan.videoLimit;
+  const canUseStudioFeatures = currentPlan.allowStudio || isTrialBypassActive;
+  const canUseCaptionAssistant = currentPlan.allowCaption || isTrialBypassActive;
+  const remainingImages = Math.max(planImageLimit - imageGenerationCount, 0);
+  const remainingVideos = Math.max(planVideoLimit - videoGenerationCount, 0);
+  const isTrialLocked = !isTrialBypassActive && imageGenerationCount >= planImageLimit;
+  const hasPlanVideoAccess = planVideoLimit > 0 || hasVideoAccess || isTrialBypassActive;
+  const isVideoLimitReached = !isTrialBypassActive && planVideoLimit > 0 && videoGenerationCount >= planVideoLimit;
+  const showCaptionAssistant = canUseCaptionAssistant && Boolean(generatedImageUrl);
   const scrollToSection = useCallback((title: string) => {
     const element = document.getElementById(getSectionId(title));
     if (element) {
@@ -580,6 +652,19 @@ const App: React.FC = () => {
       setHasVideoAccess(true);
     }
 
+    const storedVideoCount = window.localStorage.getItem(VIDEO_COUNT_KEY);
+    if (storedVideoCount) {
+      const parsedVideo = Number.parseInt(storedVideoCount, 10);
+      if (!Number.isNaN(parsedVideo)) {
+        setVideoGenerationCount(parsedVideo);
+      }
+    }
+
+    const storedPlan = window.localStorage.getItem(PLAN_STORAGE_KEY) as PlanTier | null;
+    if (storedPlan && PLAN_CONFIG[storedPlan]) {
+      setPlanTier(storedPlan);
+    }
+
     if (window.localStorage.getItem(TRIAL_BYPASS_KEY) === 'true') {
       setHasTrialBypass(true);
     }
@@ -667,6 +752,11 @@ const App: React.FC = () => {
   }, [showOnboarding, onboardingStep, onboardingStepsMeta, isTrialLocked]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(VIDEO_COUNT_KEY, String(videoGenerationCount));
+  }, [videoGenerationCount]);
+
+  useEffect(() => {
     if (!storyboardScenes.find(scene => scene.id === activeSceneId) && storyboardScenes.length) {
       const fallback = storyboardScenes[0];
       setActiveSceneId(fallback.id);
@@ -735,13 +825,18 @@ const App: React.FC = () => {
 
   const toggleSimpleMode = useCallback(() => {
     setIsSimpleMode(prev => {
+      if (prev && !canUseStudioFeatures) {
+        setPlanNotice('Upgrade to Growth or Studio Pro to unlock Studio Mode.');
+        setShowPlanModal(true);
+        return prev;
+      }
       const next = !prev;
       if (typeof window !== 'undefined') {
         window.localStorage.setItem(SIMPLE_MODE_KEY, String(next));
       }
       return next;
     });
-  }, []);
+  }, [canUseStudioFeatures]);
 
   const handleSceneSelect = useCallback((sceneId: string) => {
     const scene = storyboardScenes.find(scene => scene.id === sceneId);
@@ -841,26 +936,62 @@ const App: React.FC = () => {
 
   const handlePropBundleSelect = useCallback((bundleValue: PropBundle['settings']) => {
     setOptions(prev => ({ ...prev, ...bundleValue }));
-  setSelectedCategories(prev => {
-    const next = new Set(prev);
-    Object.keys(bundleValue).forEach(key => next.add(key as OptionCategory));
-    return next;
-  });
-  setActiveTalentPreset('custom');
-}, []);
+    setSelectedCategories(prev => {
+      const next = new Set(prev);
+      Object.keys(bundleValue).forEach(key => next.add(key as OptionCategory));
+      return next;
+    });
+    setActiveTalentPreset('custom');
+  }, []);
 
-const handleMoodChipSelect = useCallback((chipId: string) => {
-  const chip = MOOD_CHIP_PRESETS.find(preset => preset.id === chipId);
-  if (!chip) return;
-  setOptions(prev => ({ ...prev, ...chip.settings }));
-  setSelectedCategories(prev => {
-    const next = new Set(prev);
-    Object.keys(chip.settings).forEach(key => next.add(key as OptionCategory));
-    return next;
-  });
-  setSelectedMoodChip(chipId);
-  setMoodSummary(`${chip.label} mood applied.`);
-}, []);
+  const handleMoodChipSelect = useCallback((chipId: string) => {
+    const chip = MOOD_CHIP_PRESETS.find(preset => preset.id === chipId);
+    if (!chip) return;
+    setOptions(prev => ({ ...prev, ...chip.settings }));
+    setSelectedCategories(prev => {
+      const next = new Set(prev);
+      Object.keys(chip.settings).forEach(key => next.add(key as OptionCategory));
+      return next;
+    });
+    setSelectedMoodChip(chipId);
+    setMoodSummary(`${chip.label} mood applied.`);
+  }, []);
+
+  const handlePlanTierSelect = useCallback(
+    (tier: PlanTier) => {
+      setPlanTier(tier);
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(PLAN_STORAGE_KEY, tier);
+      }
+      if (!PLAN_CONFIG[tier].allowStudio && !isSimpleMode) {
+        setIsSimpleMode(true);
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem(SIMPLE_MODE_KEY, 'true');
+        }
+      }
+      setPlanNotice(null);
+      setPlanCodeInput('');
+      setPlanCodeError(null);
+      setShowPlanModal(false);
+    },
+    [isSimpleMode]
+  );
+
+  const handlePlanCodeSubmit = useCallback(() => {
+    const trimmed = planCodeInput.trim();
+    if (!trimmed) {
+      setPlanCodeError('Enter the access code provided after checkout.');
+      return;
+    }
+    const tier = PLAN_UNLOCK_CODES[trimmed];
+    if (!tier) {
+      setPlanCodeError('Invalid code. Please double-check your email receipt.');
+      return;
+    }
+    handlePlanTierSelect(tier);
+    setPlanCodeInput('');
+    setPlanCodeError(null);
+  }, [planCodeInput, handlePlanTierSelect]);
 
   const buildCopyPrompt = useCallback(
     (sceneOptions: MockupOptions) => {
@@ -1375,7 +1506,7 @@ const handleMoodChipSelect = useCallback((chipId: string) => {
 
   const handleGenerateClick = async () => {
     if (isTrialLocked) {
-      setImageError("Free plan limit reached. Upgrade to a paid plan to continue generating images.");
+      setImageError(`You reached the ${currentPlan.label} limit (${planImageLimit} images). Upgrade your plan to keep generating scenes.`);
       return;
     }
     if (!uploadedImageFile) {
@@ -1513,12 +1644,16 @@ const handleMoodChipSelect = useCallback((chipId: string) => {
   };
 
   const handleGenerateVideo = async () => {
-    if (!hasVideoAccess) {
-        setVideoError("Video generation is locked. Enter your access code to unlock this feature.");
+    if (!hasPlanVideoAccess) {
+        setVideoError("Your current plan does not include video generation. Upgrade to Starter or higher to unlock this feature.");
         return;
     }
     if (!generatedImageUrl) {
         setVideoError("An image must be generated first.");
+        return;
+    }
+    if (!isTrialBypassActive && planVideoLimit > 0 && !hasVideoAccess && isVideoLimitReached) {
+        setVideoError("You reached your video credit limit. Upgrade your plan for more exports.");
         return;
     }
     
@@ -1568,23 +1703,24 @@ const handleMoodChipSelect = useCallback((chipId: string) => {
         const response = await fetch(`${downloadLink}&key=${resolvedApiKey}`);
         const blob = await response.blob();
         setGeneratedVideoUrl(URL.createObjectURL(blob));
+        if (!isTrialBypassActive && planVideoLimit > 0 && !hasVideoAccess) {
+          setVideoGenerationCount(count => count + 1);
+        }
       } else {
         throw new Error("Video generation completed but no download link was provided.");
       }
 
-    // FIX: Refactored the error handling block to simplify logic, remove duplication, and fix a potential type error.
     } catch (err) {
         console.error(err);
         let errorMessage = err instanceof Error ? err.message : String(err);
 
         try {
-            // Attempt to parse the error message as JSON to get a more specific message.
             const errorJson = JSON.parse(errorMessage);
             if (errorJson.error && errorJson.error.message) {
                 errorMessage = String(errorJson.error.message);
             }
         } catch (parseError) {
-            // Not a JSON string, use original message
+            // ignore
         }
         
         if (errorMessage.includes("Requested entity was not found")) {
@@ -1599,7 +1735,7 @@ const handleMoodChipSelect = useCallback((chipId: string) => {
     } finally {
         setIsVideoLoading(false);
     }
-};
+  };
  
 
   const renderLoginScreen = () => (
@@ -1708,12 +1844,26 @@ const handleMoodChipSelect = useCallback((chipId: string) => {
       <div className="max-w-7xl mx-auto relative">
         {isTrialLocked && (
           <div className="fixed inset-0 z-40 flex flex-col justify-center items-center bg-gray-950/90 backdrop-blur-xl px-6 text-center">
-            <h2 className="text-2xl font-bold mb-4 text-white">Access code required</h2>
+            <h2 className="text-2xl font-bold mb-4 text-white">You reached the {currentPlan.label} limit</h2>
             <p className="mb-6 text-gray-300 max-w-lg">
-              We disabled the public credits while we harden the production release. Enter the internal code to unlock the builder.
+              This plan includes {planImageLimit} image generations. Upgrade to unlock more scenes, or use the internal override code if you’re testing.
             </p>
+            <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md mb-4">
+              <button
+                onClick={() => (window.location.href = '/#pricing')}
+                className="flex-1 rounded-full bg-indigo-500 px-6 py-3 font-semibold text-white hover:bg-indigo-400 transition"
+              >
+                View pricing
+              </button>
+              <button
+                onClick={() => setShowPlanModal(true)}
+                className="flex-1 rounded-full border border-white/20 px-6 py-3 font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition"
+              >
+                Change plan
+              </button>
+            </div>
             <div className="w-full max-w-md space-y-2 text-left">
-              <p className="text-xs uppercase tracking-widest text-gray-500">Internal access</p>
+              <p className="text-xs uppercase tracking-widest text-gray-500">Internal override</p>
               <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
@@ -1733,12 +1883,12 @@ const handleMoodChipSelect = useCallback((chipId: string) => {
                   onClick={handleTrialCodeSubmit}
                   className="rounded-lg bg-indigo-500 px-4 py-2 font-semibold text-white hover:bg-indigo-600 transition"
                 >
-                  Unlock app
+                  Unlock
                 </button>
               </div>
               {trialCodeError && <p className="text-xs text-red-300">{trialCodeError}</p>}
             </div>
-            <p className="mt-4 text-xs text-gray-500">Need the code? Ping the product team.</p>
+            <p className="mt-4 text-xs text-gray-500">Need help? Contact the product team.</p>
           </div>
         )}
         <OnboardingOverlay
@@ -1821,6 +1971,59 @@ const handleMoodChipSelect = useCallback((chipId: string) => {
             </div>
           </div>
         )}
+        {showPlanModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+            <div className="w-full max-w-3xl rounded-3xl border border-white/10 bg-gray-950 p-6 md:p-8 shadow-2xl space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.4em] text-indigo-200">Manage plan</p>
+                  <h3 className="text-2xl font-semibold text-white mt-1">Choose what fits your launch</h3>
+                </div>
+                <button onClick={() => { setShowPlanModal(false); setPlanCodeInput(''); setPlanCodeError(null); setPlanNotice(null); }} className="text-sm text-gray-400 hover:text-white">
+                  Close
+                </button>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                {Object.entries(PLAN_CONFIG).map(([tier, config]) => (
+                  <button
+                    key={tier}
+                    onClick={() => handlePlanTierSelect(tier as PlanTier)}
+                    className={`rounded-2xl border p-4 text-left transition ${planTier === tier ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
+                  >
+                    <p className="text-lg font-semibold">{config.label}</p>
+                    <p className="text-sm text-gray-400 mt-1">{config.description}</p>
+                    <p className="text-xs mt-2">
+                      {planTier === tier ? 'Current plan' : 'Select plan'}
+                    </p>
+                  </button>
+                ))}
+              </div>
+              <div className="space-y-2 text-left">
+                <p className="text-xs uppercase tracking-[0.3em] text-gray-500">Have an upgrade code?</p>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="text"
+                    value={planCodeInput}
+                    onChange={(e) => {
+                      setPlanCodeInput(e.target.value);
+                      if (planCodeError) setPlanCodeError(null);
+                    }}
+                    placeholder="Enter the code from your receipt"
+                    className="flex-1 rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-white focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                  />
+                  <button
+                    type="button"
+                    onClick={handlePlanCodeSubmit}
+                    className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400 transition"
+                  >
+                    Apply
+                  </button>
+                </div>
+                {planCodeError && <p className="text-xs text-red-300">{planCodeError}</p>}
+              </div>
+            </div>
+          </div>
+        )}
 
         <header className="text-center mb-8">
           <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500">
@@ -1829,6 +2032,27 @@ const handleMoodChipSelect = useCallback((chipId: string) => {
           <p className="mt-2 text-lg text-gray-400">
             Generate photo-realistic UGC-style images for your products in seconds.
           </p>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs text-gray-400">
+            <span className="rounded-full border border-white/20 px-3 py-1 text-white/90">
+              Plan: {currentPlan.label}
+            </span>
+            {!isTrialBypassActive && (
+              <span>
+                {remainingImages} image credits left
+                {planVideoLimit > 0 ? ` · ${Math.max(remainingVideos, 0)} video credits left` : ''}
+              </span>
+            )}
+            <button
+              onClick={() => {
+                setPlanNotice(null);
+                setShowPlanModal(true);
+              }}
+              className="inline-flex items-center justify-center rounded-full border border-white/20 px-4 py-2 text-white/80 hover:border-indigo-400 hover:text-white transition"
+            >
+              Manage plan
+            </button>
+          </div>
+          {planNotice && <p className="mt-2 text-xs text-rose-300">{planNotice}</p>}
           <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
             {isKeySelected && isUsingStoredKey && (
               <button
@@ -1857,11 +2081,7 @@ const handleMoodChipSelect = useCallback((chipId: string) => {
                   Switch account
                 </button>
               </div>
-              {isTrialLocked ? (
-                <p className="mt-3 text-xs text-rose-300">Enter the internal code in the overlay to unlock the builder.</p>
-              ) : (
-                <p className="mt-3 text-xs text-emerald-300">Access code activated — unlimited generations unlocked.</p>
-              )}
+              <p className="mt-2 text-xs text-gray-400">{currentPlan.description}</p>
             </>
           )}
           <div className="mt-6 flex items-center justify-center gap-4 text-xs text-gray-400">
@@ -1872,9 +2092,10 @@ const handleMoodChipSelect = useCallback((chipId: string) => {
                 className="sr-only peer"
                 checked={!isSimpleMode}
                 onChange={toggleSimpleMode}
+                disabled={!canUseStudioFeatures}
                 aria-label="Toggle studio mode"
               />
-              <div className="h-6 w-11 rounded-full bg-gray-700 transition peer-checked:bg-indigo-500" />
+              <div className={`h-6 w-11 rounded-full bg-gray-700 transition ${!canUseStudioFeatures ? 'opacity-40' : 'peer-checked:bg-indigo-500'}`} />
               <span className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow transition peer-checked:translate-x-5" />
             </label>
             <span className={isSimpleMode ? 'text-white' : ''}>Simple Mode</span>
@@ -1882,7 +2103,7 @@ const handleMoodChipSelect = useCallback((chipId: string) => {
         </header>
 
         <main className="flex flex-col gap-8">
-        {!isSimpleMode && (
+        {(!isSimpleMode && canUseStudioFeatures) && (
             <div className="rounded-3xl border border-white/5 bg-white/5 p-5 space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -2170,7 +2391,7 @@ const handleMoodChipSelect = useCallback((chipId: string) => {
                   imageError={imageError}
                   onReset={handleReset}
                 />
-                {generatedImageUrl && (
+                {showCaptionAssistant && (
                 <div className="rounded-2xl border border-white/10 bg-gray-900/60 p-5 space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
@@ -2207,6 +2428,11 @@ const handleMoodChipSelect = useCallback((chipId: string) => {
                   {copyError && <p className="text-xs text-red-300">{copyError}</p>}
                 </div>
                 )}
+                {!showCaptionAssistant && generatedImageUrl && !canUseCaptionAssistant && (
+                  <div className="rounded-2xl border border-dashed border-white/10 bg-gray-900/40 p-4 text-sm text-gray-400">
+                    Upgrade to Starter or higher to unlock the Caption Assistant.
+                  </div>
+                )}
                 {generatedImageUrl && (
                   <ImageEditor
                     editPrompt={editPrompt}
@@ -2224,7 +2450,11 @@ const handleMoodChipSelect = useCallback((chipId: string) => {
                     videoError={videoError}
                     generatedVideoUrl={generatedVideoUrl}
                     isGenerating={isVideoLoading || isImageLoading}
-                    hasAccess={hasVideoAccess}
+                    hasAccess={hasPlanVideoAccess}
+                    lockMessage={planVideoLimit === 0 ? 'Upgrade to Starter or higher to unlock video generation.' : undefined}
+                    showAccessCodeField={planVideoLimit === 0}
+                    remainingVideos={planVideoLimit > 0 ? remainingVideos : null}
+                    planLabel={currentPlan.label}
                     accessCode={videoAccessInput}
                     onAccessCodeChange={handleVideoAccessCodeChange}
                     onAccessSubmit={handleVideoAccessSubmit}

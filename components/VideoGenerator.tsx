@@ -11,6 +11,10 @@ interface VideoGeneratorProps {
   generatedVideoUrl: string | null;
   isGenerating: boolean;
   hasAccess: boolean;
+  lockMessage?: string;
+  showAccessCodeField?: boolean;
+  remainingVideos?: number | null;
+  planLabel?: string;
   accessCode: string;
   onAccessCodeChange: (value: string) => void;
   onAccessSubmit: () => void;
@@ -26,6 +30,10 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({
   generatedVideoUrl,
   isGenerating,
   hasAccess,
+  lockMessage,
+  showAccessCodeField = true,
+  remainingVideos,
+  planLabel,
   accessCode,
   onAccessCodeChange,
   onAccessSubmit,
@@ -40,25 +48,36 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({
           <div className="rounded-lg border border-yellow-400/40 bg-yellow-500/10 p-4 space-y-2">
             <p className="text-sm text-yellow-100 font-medium">Video access locked</p>
             <p className="text-xs text-yellow-200">
-              Enter the access code provided to your team to unlock video generation.
+              {lockMessage ?? 'Enter the access code provided to your team to unlock video generation.'}
             </p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <input
-                type="password"
-                value={accessCode}
-                onChange={(event) => onAccessCodeChange(event.target.value)}
-                placeholder="Enter access code"
-                className="flex-1 rounded-md border border-gray-600 bg-gray-900/60 px-3 py-2 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-              />
-              <button
-                onClick={onAccessSubmit}
-                className="rounded-md bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-600 transition"
-              >
-                Unlock
-              </button>
-            </div>
-            {accessError && <p className="text-xs text-red-300">{accessError}</p>}
+            {showAccessCodeField ? (
+              <>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <input
+                    type="password"
+                    value={accessCode}
+                    onChange={(event) => onAccessCodeChange(event.target.value)}
+                    placeholder="Enter access code"
+                    className="flex-1 rounded-md border border-gray-600 bg-gray-900/60 px-3 py-2 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  />
+                  <button
+                    onClick={onAccessSubmit}
+                    className="rounded-md bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-600 transition"
+                  >
+                    Unlock
+                  </button>
+                </div>
+                {accessError && <p className="text-xs text-red-300">{accessError}</p>}
+              </>
+            ) : (
+              <p className="text-xs text-yellow-200">Upgrade your plan to unlock video exports.</p>
+            )}
           </div>
+        )}
+        {hasAccess && typeof remainingVideos === 'number' && planLabel && (
+          <p className="text-xs text-gray-400">
+            {remainingVideos} video credits left on {planLabel}
+          </p>
         )}
         <div className="flex flex-col space-y-2">
           <label htmlFor="video-prompt" className="text-sm font-medium text-gray-400">
