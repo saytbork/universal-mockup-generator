@@ -17,6 +17,44 @@ import {
   CREATOR_PRESETS, PROP_BUNDLES
 } from './constants';
 import type { CreatorPreset, PropBundle } from './constants';
+
+type StoryboardScene = {
+  id: string;
+  label: string;
+  options: MockupOptions;
+};
+
+const makeSceneId = () => Math.random().toString(36).slice(2, 9);
+
+const cloneOptions = (source: MockupOptions): MockupOptions =>
+  JSON.parse(JSON.stringify(source));
+
+const createDefaultOptions = (): MockupOptions => ({
+  contentStyle: '',
+  placementStyle: PLACEMENT_STYLE_OPTIONS[0].value,
+  placementCamera: PLACEMENT_CAMERA_OPTIONS[0].value,
+  lighting: LIGHTING_OPTIONS[0].value,
+  setting: SETTING_OPTIONS[0].value,
+  ageGroup: AGE_GROUP_OPTIONS[0].value,
+  camera: CAMERA_OPTIONS[0].value,
+  perspective: PERSPECTIVE_OPTIONS[0].value,
+  selfieType: SELFIE_TYPE_OPTIONS[0].value,
+  ethnicity: ETHNICITY_OPTIONS[0].value,
+  gender: GENDER_OPTIONS[0].value,
+  aspectRatio: ASPECT_RATIO_OPTIONS[0].value,
+  environmentOrder: ENVIRONMENT_ORDER_OPTIONS[0].value,
+  personAppearance: PERSON_APPEARANCE_OPTIONS[0].value,
+  productMaterial: PRODUCT_MATERIAL_OPTIONS[0].value,
+  productInteraction: PRODUCT_INTERACTION_OPTIONS[0].value,
+  realism: REALISM_OPTIONS[1].value,
+  personPose: PERSON_POSE_OPTIONS[0].value,
+  wardrobeStyle: WARDROBE_STYLE_OPTIONS[0].value,
+  personMood: PERSON_MOOD_OPTIONS[0].value,
+  personProps: PERSON_PROP_OPTIONS[0].value,
+  microLocation: MICRO_LOCATION_OPTIONS[0].value,
+  personExpression: PERSON_EXPRESSION_OPTIONS[0].value,
+  hairStyle: HAIR_STYLE_OPTIONS[0].value,
+});
 import ImageUploader from './components/ImageUploader';
 import GeneratedImage from './components/GeneratedImage';
 import VideoGenerator from './components/VideoGenerator';
@@ -91,6 +129,39 @@ const GOAL_VIBE_OPTIONS = [
     setting: SETTING_OPTIONS[12].value,
     lighting: LIGHTING_OPTIONS[1].value,
     environmentOrder: ENVIRONMENT_ORDER_OPTIONS[2].value,
+  },
+];
+
+const MOOD_CHIP_PRESETS = [
+  {
+    id: 'sunset',
+    label: 'Sunset Glow',
+    colors: ['#FDBA74', '#F97316', '#F43F5E'],
+    settings: {
+      lighting: LIGHTING_OPTIONS[2].value,
+      setting: SETTING_OPTIONS[12].value,
+      environmentOrder: ENVIRONMENT_ORDER_OPTIONS[1].value,
+    },
+  },
+  {
+    id: 'studio',
+    label: 'Clean Studio',
+    colors: ['#F8FAFC', '#CBD5F5', '#A5B4FC'],
+    settings: {
+      lighting: LIGHTING_OPTIONS[0].value,
+      setting: SETTING_OPTIONS[9].value,
+      environmentOrder: ENVIRONMENT_ORDER_OPTIONS[0].value,
+    },
+  },
+  {
+    id: 'lush',
+    label: 'Lush Garden',
+    colors: ['#BBF7D0', '#4ADE80', '#15803D'],
+    settings: {
+      lighting: LIGHTING_OPTIONS[3].value,
+      setting: SETTING_OPTIONS[14].value,
+      environmentOrder: ENVIRONMENT_ORDER_OPTIONS[2].value,
+    },
   },
 ];
 
@@ -334,32 +405,17 @@ const getSectionId = (title: string) =>
 const App: React.FC = () => {
   const location = useLocation();
   const envApiKey = getEnvApiKey();
-  const [options, setOptions] = useState<MockupOptions>({
-    contentStyle: '',
-    placementStyle: PLACEMENT_STYLE_OPTIONS[0].value,
-    placementCamera: PLACEMENT_CAMERA_OPTIONS[0].value,
-    lighting: LIGHTING_OPTIONS[0].value,
-    setting: SETTING_OPTIONS[0].value,
-    environmentOrder: ENVIRONMENT_ORDER_OPTIONS[0].value,
-    ageGroup: AGE_GROUP_OPTIONS[5].value, // Default to 'No Person'
-    camera: CAMERA_OPTIONS[0].value,
-    perspective: PERSPECTIVE_OPTIONS[0].value,
-    aspectRatio: ASPECT_RATIO_OPTIONS[0].value,
-    selfieType: SELFIE_TYPE_OPTIONS[0].value,
-    ethnicity: ETHNICITY_OPTIONS[0].value,
-    gender: GENDER_OPTIONS[0].value,
-    personAppearance: PERSON_APPEARANCE_OPTIONS[0].value,
-    productMaterial: PRODUCT_MATERIAL_OPTIONS[0].value,
-    productInteraction: PRODUCT_INTERACTION_OPTIONS[0].value,
-    realism: REALISM_OPTIONS[1].value,
-    personPose: PERSON_POSE_OPTIONS[0].value,
-    wardrobeStyle: WARDROBE_STYLE_OPTIONS[0].value,
-    personMood: PERSON_MOOD_OPTIONS[0].value,
-    personProps: PERSON_PROP_OPTIONS[0].value,
-    microLocation: MICRO_LOCATION_OPTIONS[0].value,
-    personExpression: PERSON_EXPRESSION_OPTIONS[0].value,
-    hairStyle: HAIR_STYLE_OPTIONS[0].value,
-  });
+  const initialSceneRef = useRef<StoryboardScene | null>(null);
+  if (!initialSceneRef.current) {
+    initialSceneRef.current = {
+      id: makeSceneId(),
+      label: 'Scene 1',
+      options: createDefaultOptions(),
+    };
+  }
+  const [options, setOptions] = useState<MockupOptions>(() => cloneOptions(initialSceneRef.current!.options));
+  const [storyboardScenes, setStoryboardScenes] = useState<StoryboardScene[]>(() => [initialSceneRef.current!]);
+  const [activeSceneId, setActiveSceneId] = useState<string>(initialSceneRef.current!.id);
 
   const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null);
   const [uploadedImagePreview, setUploadedImagePreview] = useState<string | null>(null);
@@ -389,6 +445,10 @@ const App: React.FC = () => {
   const [activeTalentPreset, setActiveTalentPreset] = useState('custom');
   const [savedTalentProfile, setSavedTalentProfile] = useState<Partial<MockupOptions> | null>(null);
   const [talentToast, setTalentToast] = useState<'idle' | 'saved' | 'applied'>('idle');
+  const [selectedMoodChip, setSelectedMoodChip] = useState<string | null>(null);
+  const [generatedCopy, setGeneratedCopy] = useState<string | null>(null);
+  const [isCopyLoading, setIsCopyLoading] = useState(false);
+  const [copyError, setCopyError] = useState<string | null>(null);
   const [isSimpleMode, setIsSimpleMode] = useState(true);
   const [showGoalWizard, setShowGoalWizard] = useState(false);
   const [goalWizardStep, setGoalWizardStep] = useState(1);
@@ -591,12 +651,33 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    setStoryboardScenes(prev =>
+      prev.map(scene =>
+        scene.id === activeSceneId ? { ...scene, options: cloneOptions(options) } : scene
+      )
+    );
+  }, [options, activeSceneId]);
+
+  useEffect(() => {
     if (!showOnboarding || isTrialLocked) return;
     const current = onboardingStepsMeta[onboardingStep - 1]?.ref.current;
     if (current) {
       current.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, [showOnboarding, onboardingStep, onboardingStepsMeta, isTrialLocked]);
+
+  useEffect(() => {
+    if (!storyboardScenes.find(scene => scene.id === activeSceneId) && storyboardScenes.length) {
+      const fallback = storyboardScenes[0];
+      setActiveSceneId(fallback.id);
+      setOptions(cloneOptions(fallback.options));
+    }
+  }, [storyboardScenes, activeSceneId]);
+
+  useEffect(() => {
+    setGeneratedCopy(null);
+    setCopyError(null);
+  }, [generatedImageUrl]);
 
   const removeStoredApiKey = useCallback(() => {
     if (typeof window !== 'undefined') {
@@ -652,6 +733,53 @@ const App: React.FC = () => {
     });
   }, []);
 
+  const handleSceneSelect = useCallback((sceneId: string) => {
+    const scene = storyboardScenes.find(scene => scene.id === sceneId);
+    if (!scene) return;
+    setActiveSceneId(sceneId);
+    setOptions(cloneOptions(scene.options));
+    setGeneratedCopy(null);
+    setCopyError(null);
+  }, [storyboardScenes]);
+
+  const handleAddScene = useCallback(() => {
+    if (storyboardScenes.length >= 4) return;
+    const newScene: StoryboardScene = {
+      id: makeSceneId(),
+      label: `Scene ${storyboardScenes.length + 1}`,
+      options: cloneOptions(options),
+    };
+    setStoryboardScenes(prev => [...prev, newScene]);
+    setActiveSceneId(newScene.id);
+  }, [storyboardScenes.length, options]);
+
+  const handleDuplicateScene = useCallback(() => {
+    const scene = storyboardScenes.find(s => s.id === activeSceneId);
+    if (!scene || storyboardScenes.length >= 4) return;
+    const newScene: StoryboardScene = {
+      id: makeSceneId(),
+      label: `${scene.label} copy`,
+      options: cloneOptions(scene.options),
+    };
+    setStoryboardScenes(prev => [...prev, newScene]);
+    setActiveSceneId(newScene.id);
+  }, [storyboardScenes, activeSceneId]);
+
+  const handleDeleteScene = useCallback((sceneId: string) => {
+    if (storyboardScenes.length <= 1) return;
+    const filtered = storyboardScenes.filter(scene => scene.id !== sceneId);
+    let nextActiveId = activeSceneId;
+    if (sceneId === activeSceneId) {
+      nextActiveId = filtered[0]?.id ?? activeSceneId;
+      const nextScene = filtered[0];
+      if (nextScene) {
+        setOptions(cloneOptions(nextScene.options));
+      }
+    }
+    setStoryboardScenes(filtered);
+    setActiveSceneId(nextActiveId);
+  }, [storyboardScenes, activeSceneId]);
+
   const getTalentProfileFromOptions = useCallback(() => {
     const profile: Partial<MockupOptions> = {};
     PERSON_FIELD_KEYS.forEach((key) => {
@@ -703,13 +831,66 @@ const App: React.FC = () => {
 
   const handlePropBundleSelect = useCallback((bundleValue: PropBundle['settings']) => {
     setOptions(prev => ({ ...prev, ...bundleValue }));
-    setSelectedCategories(prev => {
-      const next = new Set(prev);
-      Object.keys(bundleValue).forEach(key => next.add(key as OptionCategory));
-      return next;
-    });
-    setActiveTalentPreset('custom');
-  }, []);
+  setSelectedCategories(prev => {
+    const next = new Set(prev);
+    Object.keys(bundleValue).forEach(key => next.add(key as OptionCategory));
+    return next;
+  });
+  setActiveTalentPreset('custom');
+}, []);
+
+const handleMoodChipSelect = useCallback((chipId: string) => {
+  const chip = MOOD_CHIP_PRESETS.find(preset => preset.id === chipId);
+  if (!chip) return;
+  setOptions(prev => ({ ...prev, ...chip.settings }));
+  setSelectedCategories(prev => {
+    const next = new Set(prev);
+    Object.keys(chip.settings).forEach(key => next.add(key as OptionCategory));
+    return next;
+  });
+  setSelectedMoodChip(chipId);
+  setMoodSummary(`${chip.label} mood applied.`);
+}, []);
+
+  const buildCopyPrompt = useCallback(
+    (sceneOptions: MockupOptions) => {
+      const style = sceneOptions.contentStyle === 'product' ? 'product placement' : 'UGC lifestyle';
+      return `You are a copywriter for a modern DTC brand. Write one short social caption (max 30 words) describing a ${sceneOptions.productMaterial} product captured as ${style} in a ${sceneOptions.setting} with ${sceneOptions.lighting}. Mention the mood "${sceneOptions.personMood}" and end with a friendly CTA.`;
+    },
+    []
+  );
+
+  const handleGenerateCopy = useCallback(async () => {
+    setCopyError(null);
+    setIsCopyLoading(true);
+    try {
+      const resolvedApiKey = getActiveApiKeyOrNotify(message => setCopyError(message));
+      if (!resolvedApiKey) {
+        setIsCopyLoading(false);
+        return;
+      }
+      const ai = new GoogleGenAI({ apiKey: resolvedApiKey });
+      const prompt = buildCopyPrompt(options);
+      const response = await ai.models.generateContent({
+        model: 'gemini-1.5-flash',
+        contents: [{ text: prompt }],
+      });
+      const text =
+        response.candidates?.[0]?.content?.parts
+          ?.map(part => part.text ?? '')
+          .join('')
+          .trim() ?? '';
+      if (text) {
+        setGeneratedCopy(text);
+      } else {
+        setCopyError('Could not craft a caption. Try again.');
+      }
+    } catch (error) {
+      setCopyError(String(error));
+    } finally {
+      setIsCopyLoading(false);
+    }
+  }, [buildCopyPrompt, getActiveApiKeyOrNotify, options]);
 
   const handleGoalWizardSelect = useCallback((field: 'goal' | 'vibe' | 'preset', value: string) => {
     setGoalWizardData(prev => ({ ...prev, [field]: value }));
@@ -1067,6 +1248,9 @@ const App: React.FC = () => {
     setSelectedCategories(new Set());
     setOpenAccordion('Scene & Product');
     setActiveTalentPreset('custom');
+    setGeneratedCopy(null);
+    setCopyError(null);
+    setSelectedMoodChip(null);
     setMoodPalette([]);
     setMoodSummary(null);
     setMoodImagePreview(prev => {
@@ -1117,6 +1301,7 @@ const App: React.FC = () => {
     const previewUrl = URL.createObjectURL(file);
     setUploadedImagePreview(previewUrl);
     advanceOnboardingFromStep(2);
+    setGeneratedCopy(null);
   }, [handleReset, advanceOnboardingFromStep]);
   
   const constructPrompt = (): string => {
@@ -1199,6 +1384,8 @@ const App: React.FC = () => {
     }
 
     resetOutputs();
+    setGeneratedCopy(null);
+    setCopyError(null);
     setIsImageLoading(true);
 
     try {
@@ -1695,6 +1882,52 @@ const App: React.FC = () => {
         </header>
 
         <main className="flex flex-col gap-8">
+            <div className="rounded-3xl border border-white/5 bg-white/5 p-5 space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Storyboard</p>
+                  <p className="text-sm text-gray-400">Queue variations and switch scenes without rebuilding settings.</p>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <button
+                    type="button"
+                    onClick={handleAddScene}
+                    disabled={storyboardScenes.length >= 4}
+                    className="rounded-full border border-white/20 px-3 py-1 text-white/80 hover:border-indigo-400 hover:text-white transition disabled:opacity-40"
+                  >
+                    + Add scene
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDuplicateScene}
+                    disabled={storyboardScenes.length >= 4}
+                    className="rounded-full border border-white/20 px-3 py-1 text-white/80 hover:border-indigo-400 hover:text-white transition disabled:opacity-40"
+                  >
+                    Duplicate
+                  </button>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                {storyboardScenes.map(scene => (
+                  <div
+                    key={scene.id}
+                    className={`rounded-2xl border px-4 py-3 flex items-center gap-3 ${scene.id === activeSceneId ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
+                  >
+                    <button onClick={() => handleSceneSelect(scene.id)} className="font-semibold">
+                      {scene.label}
+                    </button>
+                    {storyboardScenes.length > 1 && (
+                      <button
+                        onClick={() => handleSceneDelete(scene.id)}
+                        className="text-xs text-gray-400 hover:text-red-300"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
             <div className="grid gap-6 lg:grid-cols-3">
                 <div ref={intentRef} className="bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-4 h-full">
                 <div className="flex flex-col gap-1">
@@ -1742,6 +1975,26 @@ const App: React.FC = () => {
                 disabled={!canUseMood}
                 lockedMessage="Upload your product image to activate mood analysis."
               />
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
+                <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Quick mood chips</p>
+                <div className="flex flex-wrap gap-2">
+                  {MOOD_CHIP_PRESETS.map(chip => (
+                    <button
+                      key={chip.id}
+                      type="button"
+                      onClick={() => handleMoodChipSelect(chip.id)}
+                      className={`rounded-2xl border px-3 py-2 text-left text-xs transition ${selectedMoodChip === chip.id ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
+                    >
+                      <span className="flex items-center gap-2">
+                        {chip.colors.map(color => (
+                          <span key={color} className="h-3 w-3 rounded-full border border-white/10" style={{ backgroundColor: color }} />
+                        ))}
+                        {chip.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           <fieldset disabled={!hasUploadedProduct || isTrialLocked} className="contents">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -1919,6 +2172,43 @@ const App: React.FC = () => {
                   imageError={imageError}
                   onReset={handleReset}
                 />
+                {generatedImageUrl && (
+                <div className="rounded-2xl border border-white/10 bg-gray-900/60 p-5 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.4em] text-indigo-200">Caption Assistant</p>
+                      <p className="text-sm text-gray-400">Generate a copy snippet matching this scene.</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleGenerateCopy}
+                        disabled={!generatedImageUrl || isCopyLoading}
+                        className="rounded-full bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400 transition disabled:opacity-50"
+                      >
+                        {isCopyLoading ? 'Thinking…' : 'Generate caption'}
+                      </button>
+                      {generatedCopy && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (generatedCopy) navigator.clipboard?.writeText(generatedCopy);
+                          }}
+                          className="rounded-full border border-white/20 px-3 py-2 text-xs text-white/80 hover:border-indigo-400 hover:text-white transition"
+                        >
+                          Copy
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {generatedCopy ? (
+                    <p className="text-base text-white">{generatedCopy}</p>
+                  ) : (
+                    <p className="text-sm text-gray-500">Hit “Generate caption” to get a social-ready line.</p>
+                  )}
+                  {copyError && <p className="text-xs text-red-300">{copyError}</p>}
+                </div>
+                )}
                 {generatedImageUrl && (
                   <ImageEditor
                     editPrompt={editPrompt}
