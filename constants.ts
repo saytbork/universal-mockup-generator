@@ -1,6 +1,9 @@
 
 import { Option, MockupOptions } from './types';
 
+const getOptionValue = (options: Option[], label: string, fallbackIndex = 0) =>
+  options.find(option => option.label === label)?.value ?? options[fallbackIndex].value;
+
 export const CONTENT_STYLE_OPTIONS: Option[] = [
   { label: 'UGC Lifestyle', value: 'ugc' },
   { label: 'Product Placement', value: 'product' },
@@ -281,17 +284,17 @@ export const CREATOR_PRESETS: CreatorPreset[] = [
     value: 'everyday_hustler',
     description: 'Running-late creator juggling errands with a messy-but-real vibe.',
     settings: {
-      personAppearance: 'a running-late look with imperfect eyeliner, tousled hair, and layered street clothes',
-      personMood: 'a hustle-and-juggle energy with multitasking gestures and focused eyes',
-      personExpression: 'a serious, focused expression as if concentrating on the product',
-      personPose: 'a dynamic mid-action pose, body slightly in motion as if caught candidly',
-      wardrobeStyle: 'mismatched errand-day layers with hoodies, tote bags, and lived-in denim',
+      personAppearance: getOptionValue(PERSON_APPEARANCE_OPTIONS, 'Running Late'),
+      personMood: getOptionValue(PERSON_MOOD_OPTIONS, 'Hustle & Juggle'),
+      personExpression: getOptionValue(PERSON_EXPRESSION_OPTIONS, 'Serious Focus'),
+      personPose: getOptionValue(PERSON_POSE_OPTIONS, 'Dynamic Mid-Action'),
+      wardrobeStyle: getOptionValue(WARDROBE_STYLE_OPTIONS, 'Errand-Day Layers'),
       productInteraction: 'holding it naturally',
       personProps: PERSON_PROP_OPTIONS[5].value,
-      microLocation: 'a busy apartment entry cluttered with shoes, tote bags, and parcels',
-      hairStyle: 'a messy updo with playful flyaways for realism',
-      environmentOrder: 'creative chaos with open notebooks, coffee cups, and props scattered everywhere',
-      setting: 'a busy apartment entry cluttered with shoes, tote bags, and parcels',
+      microLocation: getOptionValue(MICRO_LOCATION_OPTIONS, 'Bursting Entryway'),
+      hairStyle: getOptionValue(HAIR_STYLE_OPTIONS, 'Messy Updo'),
+      environmentOrder: getOptionValue(ENVIRONMENT_ORDER_OPTIONS, 'Creative Chaos'),
+      setting: getOptionValue(SETTING_OPTIONS, 'Bursting Entryway'),
     },
   },
   {
