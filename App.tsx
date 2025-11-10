@@ -2509,7 +2509,18 @@ const App: React.FC = () => {
                         />
                         <ChipSelectGroup label="Gender" options={GENDER_OPTIONS} selectedValue={options.gender} onChange={(value) => handleOptionChange('gender', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
                         <ChipSelectGroup label="Ethnicity" options={ETHNICITY_OPTIONS} selectedValue={options.ethnicity} onChange={(value) => handleOptionChange('ethnicity', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
-                        <ChipSelectGroup label="Selfie Type" options={SELFIE_TYPE_OPTIONS} selectedValue={options.selfieType} onChange={(value) => handleOptionChange('selfieType', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
+                        <ChipSelectGroup
+                          label="Selfie Type"
+                          options={SELFIE_TYPE_OPTIONS}
+                          selectedValue={options.selfieType}
+                          onChange={(value) => handleOptionChange('selfieType', value, 'Person Details')}
+                          disabled={isPersonOptionsDisabled}
+                        />
+                        {!isProductPlacement && (
+                          <p className="text-[11px] text-gray-500">
+                            Tip: selfie styles mimic how the creator is actually holding the phone (mirror, arm-length, low-angle). Choose the angle you want viewers to feel.
+                          </p>
+                        )}
                         {!personControlsDisabled && (
                           <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-4">
                             <p className="text-xs uppercase tracking-[0.3em] text-indigo-200 mb-3">Prop bundles</p>

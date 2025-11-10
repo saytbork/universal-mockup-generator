@@ -414,12 +414,12 @@ export const ASPECT_RATIO_OPTIONS: Option[] = [
 
 export const SELFIE_TYPE_OPTIONS: Option[] = [
   { label: 'None', value: 'none' },
-  { label: 'Frontal Selfie', value: 'frontal selfie' },
-  { label: 'From Below', value: 'selfie taken from below' },
-  { label: 'From Above', value: 'selfie taken from above' },
-  { label: 'Angled ¾', value: 'angled 3/4 selfie' },
-  { label: 'Mirror Reflection', value: 'mirror reflection selfie' },
-  { label: 'Hand-Holding Close-Up', value: 'close-up shot of a hand holding the product' },
+  { label: "Arm's Length Selfie", value: 'arm-length front selfie with the phone held slightly above eye level' },
+  { label: 'Mirror Selfie (phone visible)', value: 'mirror selfie with the phone partially covering the face and product in view' },
+  { label: 'One-hand product selfie', value: 'one-hand selfie where the same hand holds the phone and frames the product near the lens' },
+  { label: 'Overhead in-bed selfie', value: 'overhead selfie taken while lying down, arm extended straight up' },
+  { label: 'Low-angle hero selfie', value: 'low-angle selfie from below the chin pointing upward for dramatic perspective' },
+  { label: 'Back camera POV', value: 'back camera POV close-up of hands interacting with the product, body cropped' },
 ];
 
 export const ETHNICITY_OPTIONS: Option[] = [
