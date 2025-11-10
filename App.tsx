@@ -2237,8 +2237,24 @@ const App: React.FC = () => {
                     >
                       <div className="space-y-4">
                         <ChipSelectGroup label="Product Material" options={PRODUCT_MATERIAL_OPTIONS} selectedValue={options.productMaterial} onChange={(value) => handleOptionChange('productMaterial', value, 'Scene & Product')} />
-                        <ChipSelectGroup label="Location / Setting" options={SETTING_OPTIONS} selectedValue={options.setting} onChange={(value) => handleOptionChange('setting', value, 'Scene & Product')} />
-                        <ChipSelectGroup label="Environment Order" options={ENVIRONMENT_ORDER_OPTIONS} selectedValue={options.environmentOrder} onChange={(value) => handleOptionChange('environmentOrder', value, 'Scene & Product')} />
+                        <ChipSelectGroup
+                          label="Location / Setting"
+                          options={SETTING_OPTIONS}
+                          selectedValue={options.setting}
+                          onChange={(value) => handleOptionChange('setting', value, 'Scene & Product')}
+                          allowCustom
+                          customLabel="Custom setting"
+                          customPlaceholder="Describe the location"
+                        />
+                        <ChipSelectGroup
+                          label="Environment Order"
+                          options={ENVIRONMENT_ORDER_OPTIONS}
+                          selectedValue={options.environmentOrder}
+                          onChange={(value) => handleOptionChange('environmentOrder', value, 'Scene & Product')}
+                          allowCustom
+                          customLabel="Custom environment"
+                          customPlaceholder="Describe the vibe"
+                        />
                         {isProductPlacement && (
                           <div className="space-y-4">
                             <ChipSelectGroup
@@ -2321,7 +2337,16 @@ const App: React.FC = () => {
                           {talentToast === 'applied' && <p className="text-xs text-emerald-300">Saved talent applied.</p>}
                         </div>
                         <ChipSelectGroup label="Appearance Level" options={PERSON_APPEARANCE_OPTIONS} selectedValue={options.personAppearance} onChange={(value) => handleOptionChange('personAppearance', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
-                        <ChipSelectGroup label="Mood / Energy" options={PERSON_MOOD_OPTIONS} selectedValue={options.personMood} onChange={(value) => handleOptionChange('personMood', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
+                        <ChipSelectGroup
+                          label="Mood / Energy"
+                          options={PERSON_MOOD_OPTIONS}
+                          selectedValue={options.personMood}
+                          onChange={(value) => handleOptionChange('personMood', value, 'Person Details')}
+                          disabled={isPersonOptionsDisabled}
+                          allowCustom
+                          customLabel="Custom mood"
+                          customPlaceholder="Describe the mood"
+                        />
                         {!isSimpleMode && (
                           <>
                             <ChipSelectGroup label="Facial Expression" options={PERSON_EXPRESSION_OPTIONS} selectedValue={options.personExpression} onChange={(value) => handleOptionChange('personExpression', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
@@ -2331,8 +2356,26 @@ const App: React.FC = () => {
                           </>
                         )}
                         <ChipSelectGroup label="Product Interaction" options={PRODUCT_INTERACTION_OPTIONS} selectedValue={options.productInteraction} onChange={(value) => handleOptionChange('productInteraction', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
-                        <ChipSelectGroup label="Props & Accessories" options={PERSON_PROP_OPTIONS} selectedValue={options.personProps} onChange={(value) => handleOptionChange('personProps', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
-                        <ChipSelectGroup label="Micro Location" options={MICRO_LOCATION_OPTIONS} selectedValue={options.microLocation} onChange={(value) => handleOptionChange('microLocation', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
+                        <ChipSelectGroup
+                          label="Props & Accessories"
+                          options={PERSON_PROP_OPTIONS}
+                          selectedValue={options.personProps}
+                          onChange={(value) => handleOptionChange('personProps', value, 'Person Details')}
+                          disabled={isPersonOptionsDisabled}
+                          allowCustom
+                          customLabel="Custom prop"
+                          customPlaceholder="Describe a prop"
+                        />
+                        <ChipSelectGroup
+                          label="Micro Location"
+                          options={MICRO_LOCATION_OPTIONS}
+                          selectedValue={options.microLocation}
+                          onChange={(value) => handleOptionChange('microLocation', value, 'Person Details')}
+                          disabled={isPersonOptionsDisabled}
+                          allowCustom
+                          customLabel="Custom micro-location"
+                          customPlaceholder="Describe the exact spot"
+                        />
                         <ChipSelectGroup label="Gender" options={GENDER_OPTIONS} selectedValue={options.gender} onChange={(value) => handleOptionChange('gender', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
                         <ChipSelectGroup label="Ethnicity" options={ETHNICITY_OPTIONS} selectedValue={options.ethnicity} onChange={(value) => handleOptionChange('ethnicity', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
                         <ChipSelectGroup label="Selfie Type" options={SELFIE_TYPE_OPTIONS} selectedValue={options.selfieType} onChange={(value) => handleOptionChange('selfieType', value, 'Person Details')} disabled={isPersonOptionsDisabled} />
