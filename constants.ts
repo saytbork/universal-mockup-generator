@@ -84,7 +84,8 @@ export const AGE_GROUP_OPTIONS: Option[] = [
   { label: '26-35', value: '26-35' },
   { label: '36-45', value: '36-45' },
   { label: '46-60', value: '46-60' },
-  { label: '60+', value: '60+' },
+  { label: '60-75', value: '60-75' },
+  { label: '75+', value: '75+' },
   { label: 'No Person', value: 'no person' },
 ];
 
