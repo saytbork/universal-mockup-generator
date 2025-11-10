@@ -14,14 +14,15 @@ import {
   PRODUCT_MATERIAL_OPTIONS, PRODUCT_INTERACTION_OPTIONS, REALISM_OPTIONS,
   PERSON_POSE_OPTIONS, WARDROBE_STYLE_OPTIONS, PERSON_MOOD_OPTIONS,
   PERSON_PROP_OPTIONS, MICRO_LOCATION_OPTIONS, PERSON_EXPRESSION_OPTIONS, HAIR_STYLE_OPTIONS,
-  CREATOR_PRESETS, PROP_BUNDLES
+  CREATOR_PRESETS, PROP_BUNDLES, PRO_LENS_OPTIONS, PRO_LIGHTING_RIG_OPTIONS, PRO_POST_TREATMENT_OPTIONS, PRO_LOOK_PRESETS
 } from './constants';
-import type { CreatorPreset, PropBundle } from './constants';
+import type { CreatorPreset, PropBundle, ProLookPreset } from './constants';
 
 type StoryboardScene = {
   id: string;
   label: string;
   options: MockupOptions;
+  proMode: boolean;
 };
 
 const makeSceneId = () => Math.random().toString(36).slice(2, 9);
@@ -54,6 +55,9 @@ const createDefaultOptions = (): MockupOptions => ({
   microLocation: MICRO_LOCATION_OPTIONS[0].value,
   personExpression: PERSON_EXPRESSION_OPTIONS[0].value,
   hairStyle: HAIR_STYLE_OPTIONS[0].value,
+  proLens: PRO_LENS_OPTIONS[0].value,
+  proLightingRig: PRO_LIGHTING_RIG_OPTIONS[0].value,
+  proPostTreatment: PRO_POST_TREATMENT_OPTIONS[0].value,
 });
 import ImageUploader from './components/ImageUploader';
 import GeneratedImage from './components/GeneratedImage';
@@ -146,6 +150,12 @@ const PERSON_FIELD_KEYS: OptionCategory[] = [
   'microLocation',
   'personExpression',
   'hairStyle',
+] as OptionCategory[];
+
+const PRO_FIELD_KEYS: OptionCategory[] = [
+  'proLens',
+  'proLightingRig',
+  'proPostTreatment',
 ] as OptionCategory[];
 
 const CREATOR_PRESET_OPTIONS: Option[] = CREATOR_PRESETS.map(({ label, value }) => ({
@@ -467,6 +477,7 @@ const App: React.FC = () => {
       id: makeSceneId(),
       label: 'Scene 1',
       options: createDefaultOptions(),
+      proMode: false,
     };
   }
   const [options, setOptions] = useState<MockupOptions>(() => cloneOptions(initialSceneRef.current!.options));
@@ -500,6 +511,8 @@ const App: React.FC = () => {
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [onboardingStep, setOnboardingStep] = useState(1);
   const [activeTalentPreset, setActiveTalentPreset] = useState('custom');
+  const [isProPhotographer, setIsProPhotographer] = useState(false);
+  const [activeProPreset, setActiveProPreset] = useState<string>('custom');
   const [savedTalentProfile, setSavedTalentProfile] = useState<Partial<MockupOptions> | null>(null);
   const [talentToast, setTalentToast] = useState<'idle' | 'saved' | 'applied'>('idle');
   const [selectedMoodChip, setSelectedMoodChip] = useState<string | null>(null);
@@ -581,6 +594,9 @@ const App: React.FC = () => {
         'microLocation',
         'personExpression',
         'hairStyle',
+        'proLens',
+        'proLightingRig',
+        'proPostTreatment',
         'productInteraction',
         'gender',
         'ethnicity',
@@ -738,10 +754,12 @@ const App: React.FC = () => {
   useEffect(() => {
     setStoryboardScenes(prev =>
       prev.map(scene =>
-        scene.id === activeSceneId ? { ...scene, options: cloneOptions(options) } : scene
+        scene.id === activeSceneId
+          ? { ...scene, options: cloneOptions(options), proMode: isProPhotographer }
+          : scene
       )
     );
-  }, [options, activeSceneId]);
+  }, [options, activeSceneId, isProPhotographer]);
 
   useEffect(() => {
     if (!showOnboarding || isTrialLocked) return;
@@ -768,6 +786,13 @@ const App: React.FC = () => {
     setGeneratedCopy(null);
     setCopyError(null);
   }, [generatedImageUrl]);
+
+  useEffect(() => {
+    if (contentStyleValue !== 'product' && isProPhotographer) {
+      setIsProPhotographer(false);
+      setActiveProPreset('custom');
+    }
+  }, [contentStyleValue, isProPhotographer]);
 
   const removeStoredApiKey = useCallback(() => {
     if (typeof window !== 'undefined') {
@@ -843,6 +868,7 @@ const App: React.FC = () => {
     if (!scene) return;
     setActiveSceneId(sceneId);
     setOptions(cloneOptions(scene.options));
+    setIsProPhotographer(scene.proMode);
     setGeneratedCopy(null);
     setCopyError(null);
   }, [storyboardScenes]);
@@ -853,10 +879,11 @@ const App: React.FC = () => {
       id: makeSceneId(),
       label: `Scene ${storyboardScenes.length + 1}`,
       options: cloneOptions(options),
+      proMode: isProPhotographer,
     };
     setStoryboardScenes(prev => [...prev, newScene]);
     setActiveSceneId(newScene.id);
-  }, [storyboardScenes.length, options]);
+  }, [storyboardScenes.length, options, isProPhotographer]);
 
   const handleDuplicateScene = useCallback(() => {
     const scene = storyboardScenes.find(s => s.id === activeSceneId);
@@ -865,6 +892,7 @@ const App: React.FC = () => {
       id: makeSceneId(),
       label: `${scene.label} copy`,
       options: cloneOptions(scene.options),
+      proMode: scene.proMode,
     };
     setStoryboardScenes(prev => [...prev, newScene]);
     setActiveSceneId(newScene.id);
@@ -879,6 +907,7 @@ const App: React.FC = () => {
       const nextScene = filtered[0];
       if (nextScene) {
         setOptions(cloneOptions(nextScene.options));
+        setIsProPhotographer(nextScene.proMode);
       }
     }
     setStoryboardScenes(filtered);
@@ -992,6 +1021,31 @@ const App: React.FC = () => {
     setPlanCodeInput('');
     setPlanCodeError(null);
   }, [planCodeInput, handlePlanTierSelect]);
+
+  const handleProPhotographerToggle = useCallback(() => {
+    setIsProPhotographer(prev => !prev);
+    if (isProPhotographer) {
+      setActiveProPreset('custom');
+    }
+  }, [isProPhotographer]);
+
+  const applyProPreset = useCallback((presetSettings: ProLookPreset['settings']) => {
+    setOptions(prev => ({ ...prev, ...presetSettings }));
+    setSelectedCategories(prev => {
+      const next = new Set(prev);
+      Object.keys(presetSettings).forEach(key => next.add(key as OptionCategory));
+      return next;
+    });
+  }, []);
+
+  const handleProPresetSelect = useCallback((value: string) => {
+    setActiveProPreset(value);
+    if (value === 'custom') return;
+    const preset = PRO_LOOK_PRESETS.find(item => item.value === value);
+    if (preset) {
+      applyProPreset(preset.settings);
+    }
+  }, [applyProPreset]);
 
   const buildCopyPrompt = useCallback(
     (sceneOptions: MockupOptions) => {
@@ -1296,6 +1350,10 @@ const App: React.FC = () => {
         newOptions.hairStyle = HAIR_STYLE_OPTIONS[0].value;
         setActiveTalentPreset('custom');
       }
+      if (value !== 'product') {
+        setIsProPhotographer(false);
+        setActiveProPreset('custom');
+      }
     }
     if (category === 'ageGroup' && value === 'no person') {
       setActiveTalentPreset('custom');
@@ -1379,6 +1437,8 @@ const App: React.FC = () => {
     setSelectedCategories(new Set());
     setOpenAccordion('Scene & Product');
     setActiveTalentPreset('custom');
+    setIsProPhotographer(false);
+    setActiveProPreset('custom');
     setGeneratedCopy(null);
     setCopyError(null);
     setSelectedMoodChip(null);
@@ -1469,6 +1529,9 @@ const App: React.FC = () => {
     prompt += `The focus is on the provided product, which has a ${options.productMaterial} finish. Place this exact product into the scene naturally. Ensure its material, reflections, and shadows are rendered realistically according to the environment. Do not alter the product's design or branding. `;
     if (!isUgcStyle) {
       prompt += ` No people should appear in the frame. Style the set like a premium product placement shoot with thoughtful props, surfaces, and depth, highlighting the product as the hero. Use a ${options.placementCamera} approach and style the scene as ${options.placementStyle}. `;
+      if (isProPhotographer) {
+        prompt += ` Professional setup details: ${options.proLens ?? PRO_LENS_OPTIONS[0].value}, lighting rig ${options.proLightingRig ?? PRO_LIGHTING_RIG_OPTIONS[0].value}, and finishing treatment ${options.proPostTreatment ?? PRO_POST_TREATMENT_OPTIONS[0].value}. `;
+      }
     }
     if (options.realism) {
       prompt += ` ${options.realism}`;
@@ -2269,6 +2332,74 @@ const App: React.FC = () => {
                               selectedValue={options.placementCamera}
                               onChange={(value) => handleOptionChange('placementCamera', value, 'Scene & Product')}
                             />
+                            <div className="rounded-2xl border border-white/10 bg-gray-900/40 p-4 space-y-4">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Pro photographer mode</p>
+                                  <p className="text-xs text-gray-400">Unlock lens + lighting controls for hero product shoots.</p>
+                                </div>
+                                <label className="relative inline-flex cursor-pointer items-center">
+                                  <input
+                                    type="checkbox"
+                                    className="sr-only"
+                                    checked={isProPhotographer}
+                                    onChange={handleProPhotographerToggle}
+                                  />
+                                  <div className={`h-5 w-10 rounded-full bg-gray-700 transition ${isProPhotographer ? 'bg-indigo-500' : ''}`} />
+                                  <span className={`absolute left-1 top-1 h-3 w-3 rounded-full bg-white shadow transition ${isProPhotographer ? 'translate-x-4' : ''}`} />
+                                </label>
+                              </div>
+                              {isProPhotographer && (
+                                <div className="space-y-3">
+                                  <div className="flex flex-wrap gap-2">
+                                    {PRO_LOOK_PRESETS.map(preset => (
+                                      <button
+                                        key={preset.value}
+                                        type="button"
+                                        onClick={() => handleProPresetSelect(preset.value)}
+                                        className={`rounded-full border px-3 py-1 text-xs transition ${activeProPreset === preset.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+                                      >
+                                        {preset.label}
+                                      </button>
+                                    ))}
+                                    <button
+                                      type="button"
+                                      onClick={() => handleProPresetSelect('custom')}
+                                      className={`rounded-full border px-3 py-1 text-xs transition ${activeProPreset === 'custom' ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+                                    >
+                                      Custom build
+                                    </button>
+                                  </div>
+                                  <ChipSelectGroup
+                                    label="Lens"
+                                    options={PRO_LENS_OPTIONS}
+                                    selectedValue={options.proLens ?? ''}
+                                    onChange={(value) => handleOptionChange('proLens', value, 'Scene & Product')}
+                                    allowCustom
+                                    customLabel="Custom lens"
+                                    customPlaceholder="Describe the lens setup"
+                                  />
+                                  <ChipSelectGroup
+                                    label="Lighting Rig"
+                                    options={PRO_LIGHTING_RIG_OPTIONS}
+                                    selectedValue={options.proLightingRig ?? ''}
+                                    onChange={(value) => handleOptionChange('proLightingRig', value, 'Scene & Product')}
+                                    allowCustom
+                                    customLabel="Custom rig"
+                                    customPlaceholder="Describe the lighting rig"
+                                  />
+                                  <ChipSelectGroup
+                                    label="Finish / Treatment"
+                                    options={PRO_POST_TREATMENT_OPTIONS}
+                                    selectedValue={options.proPostTreatment ?? ''}
+                                    onChange={(value) => handleOptionChange('proPostTreatment', value, 'Scene & Product')}
+                                    allowCustom
+                                    customLabel="Custom finish"
+                                    customPlaceholder="Describe the post treatment"
+                                  />
+                                </div>
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>

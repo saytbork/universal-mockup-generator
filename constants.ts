@@ -216,6 +216,76 @@ export const PROP_BUNDLES: PropBundle[] = [
   },
 ];
 
+export const PRO_LENS_OPTIONS: Option[] = [
+  { label: '100mm Macro Prime', value: 'captured on a 100mm macro prime lens for tack-sharp detail and creamy bokeh' },
+  { label: '50mm Product Prime', value: 'shot on a 50mm prime lens with natural perspective and gentle depth of field' },
+  { label: 'Tilt-Shift Hero', value: 'captured with a tilt-shift lens for perfect verticals and premium catalog polish' },
+  { label: 'Ultra-Wide Stylized', value: 'shot on an ultra-wide 24mm lens for dramatic perspective and sweeping background' },
+  { label: 'Cinema Zoom', value: 'captured on a cinema zoom lens with controlled focus pulls and smooth transitions' },
+];
+
+export const PRO_LIGHTING_RIG_OPTIONS: Option[] = [
+  { label: '3-Point Beauty Dish', value: 'three-point lighting with beauty dish key, fill bounce, and rim kicker for glossy highlights' },
+  { label: 'Softbox Wrap', value: 'giant softbox wrap light with diffusion panels for zero shadows and cosmetic smoothness' },
+  { label: 'Hard Edge Gels', value: 'hard strobes with colored gels hitting the background to create gradients and drama' },
+  { label: 'Backlit Acrylic', value: 'backlit translucent acrylic table for glowing bottles and floating reflections' },
+  { label: 'High-Speed Splash Rig', value: 'strobe rig tuned for high-speed splashes, freezing liquid midair' },
+];
+
+export const PRO_POST_TREATMENT_OPTIONS: Option[] = [
+  { label: 'High-Gloss Retouch', value: 'high-gloss retouch with specular cleanup and crisp contrast' },
+  { label: 'Film Grain Lux', value: 'polished film grain overlay with teal-and-orange color grade' },
+  { label: 'Matte Editorial', value: 'matte, desaturated editorial finish with subtle bloom' },
+  { label: 'Hyperreal CGI Blend', value: 'hyperreal CGI-style treatment with razor-sharp edges and perfect gradients' },
+];
+
+export type ProLookPreset = {
+  label: string;
+  value: string;
+  description: string;
+  settings: Partial<MockupOptions> & {
+    proLens?: string;
+    proLightingRig?: string;
+    proPostTreatment?: string;
+  };
+};
+
+export const PRO_LOOK_PRESETS: ProLookPreset[] = [
+  {
+    label: 'Beauty Skincare Focus',
+    value: 'beauty_pro',
+    description: 'Macro lens + softbox wrap for cosmetics and skincare drop shots.',
+    settings: {
+      proLens: PRO_LENS_OPTIONS[0].value,
+      proLightingRig: PRO_LIGHTING_RIG_OPTIONS[1].value,
+      proPostTreatment: PRO_POST_TREATMENT_OPTIONS[0].value,
+      placementStyle: PLACEMENT_STYLE_OPTIONS[0].value,
+    },
+  },
+  {
+    label: 'Luxury Beverage Splash',
+    value: 'beverage_splash',
+    description: 'High-speed rig with gels for dramatic drink ads.',
+    settings: {
+      proLens: PRO_LENS_OPTIONS[4].value,
+      proLightingRig: PRO_LIGHTING_RIG_OPTIONS[4].value,
+      proPostTreatment: PRO_POST_TREATMENT_OPTIONS[1].value,
+      placementStyle: PLACEMENT_STYLE_OPTIONS[2].value,
+    },
+  },
+  {
+    label: 'Minimal Catalog',
+    value: 'catalog_clean',
+    description: 'Tilt-shift precision with matte editorial finish.',
+    settings: {
+      proLens: PRO_LENS_OPTIONS[2].value,
+      proLightingRig: PRO_LIGHTING_RIG_OPTIONS[0].value,
+      proPostTreatment: PRO_POST_TREATMENT_OPTIONS[2].value,
+      placementStyle: PLACEMENT_STYLE_OPTIONS[1].value,
+    },
+  },
+];
+
 export type CreatorPreset = {
   label: string;
   value: string;
