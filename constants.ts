@@ -34,6 +34,7 @@ export const LIGHTING_OPTIONS: Option[] = [
   { label: 'Cozy Indoors', value: 'warm, ambient indoor lamplight' },
   { label: 'Ring Light', value: 'direct, flattering ring light, vlogger style' },
   { label: 'Mood Lighting', value: 'dim, moody, ambient lighting' },
+  { label: 'Night Mode', value: 'nighttime city glow with neon signage and deep contrasting shadows' },
   { label: 'Flash Photo', value: 'direct on-camera flash, creating a candid, party-like feel' },
 ];
 
@@ -79,7 +80,24 @@ export const ENVIRONMENT_ORDER_OPTIONS: Option[] = [
   { label: 'Post-Launch Mess', value: 'post-launch hustle with packaging, shipping boxes, and marker scribbles left around' },
 ];
 
+export const PRODUCT_PLANE_OPTIONS: Option[] = [
+  {
+    label: 'Hero Close-Up (Primer plano)',
+    value: 'tight foreground hero framing where the product is inches from the lens with creamy falloff behind it',
+  },
+  {
+    label: 'Mid-Ground Focus (Segundo plano)',
+    value: 'balanced mid-ground framing where the product sits slightly back from the lens, keeping both subject and environment in focus',
+  },
+  {
+    label: 'Background Story (Tercer plano)',
+    value: 'deeper background placement where the environment leads and the product sits farther back with cinematic depth of field',
+  },
+];
+
 export const AGE_GROUP_OPTIONS: Option[] = [
+  { label: '6-12', value: '6-12' },
+  { label: '13-17', value: '13-17' },
   { label: '18-25', value: '18-25' },
   { label: '26-35', value: '26-35' },
   { label: '36-45', value: '36-45' },
@@ -103,6 +121,35 @@ export const PERSON_APPEARANCE_OPTIONS: Option[] = [
   { label: 'Running Late', value: 'a running-late look with imperfect eyeliner, tousled hair, and layered street clothes' },
 ];
 
+export const HAIR_COLOR_OPTIONS: Option[] = [
+  { label: 'Deep Brown', value: 'deep chocolate brown hair color' },
+  { label: 'Rich Black', value: 'rich jet black hair color' },
+  { label: 'Warm Auburn', value: 'warm auburn hair with copper undertones' },
+  { label: 'Golden Blonde', value: 'golden blonde hair with sunlit highlights' },
+  { label: 'Platinum Blonde', value: 'cool platinum blonde hair color' },
+  { label: 'Silver / Gray', value: 'natural silver gray hair color' },
+  { label: 'Fantasy Pastel', value: 'soft pastel dyed hair color' },
+];
+
+export const EYE_COLOR_OPTIONS: Option[] = [
+  { label: 'Brown', value: 'warm brown eyes' },
+  { label: 'Hazel', value: 'hazel eyes with amber flecks' },
+  { label: 'Green', value: 'vibrant green eyes' },
+  { label: 'Blue', value: 'bright blue eyes' },
+  { label: 'Gray', value: 'cool gray eyes' },
+  { label: 'Dark Amber', value: 'dark amber eyes' },
+];
+
+export const SKIN_TONE_OPTIONS: Option[] = [
+  { label: 'Fair Cool', value: 'fair cool-toned skin with rosy undertones' },
+  { label: 'Fair Warm', value: 'fair warm-toned skin with peach undertones' },
+  { label: 'Medium Neutral', value: 'medium neutral skin tone' },
+  { label: 'Olive', value: 'olive skin tone with golden undertones' },
+  { label: 'Tan', value: 'tan sun-kissed skin tone' },
+  { label: 'Deep Golden', value: 'deep golden-brown skin tone' },
+  { label: 'Deep Cool', value: 'deep cool espresso skin tone' },
+];
+
 // 6-option version focused on realistic user actions.
 export const PRODUCT_INTERACTION_OPTIONS: Option[] = [
   { label: 'Holding', value: 'holding it naturally' },
@@ -119,6 +166,9 @@ export const PERSON_POSE_OPTIONS: Option[] = [
   { label: 'Over-the-Shoulder', value: 'an over-the-shoulder glance back toward the camera while engaging with the product' },
   { label: 'Leaned-In Close', value: 'leaned in toward the camera with the product close to frame for intimacy' },
   { label: 'Hands-Only Crop', value: 'hands prominently in frame with the body cropped near the torso, emphasizing touch and texture' },
+  { label: 'Face Frame Hero', value: 'framing the product against their cheek while leaning toward the lens for a personable hero crop' },
+  { label: 'Grounded Lounge', value: 'lounging on the floor or picnic blanket with limbs extended while the product rests near their face' },
+  { label: 'Offer-to-Lens Reach', value: 'extending one arm fully toward the camera so the product hovers closest to the lens' },
 ];
 
 export const WARDROBE_STYLE_OPTIONS: Option[] = [
@@ -144,6 +194,10 @@ export const PERSON_EXPRESSION_OPTIONS: Option[] = [
   { label: 'Full Smile', value: 'a full, teeth-showing smile with bright eye contact' },
   { label: 'Serious Focus', value: 'a serious, focused expression as if concentrating on the product' },
   { label: 'Excited Surprise', value: 'an excited, slightly surprised expression capturing delight' },
+  { label: 'Stressed but Hopeful', value: 'slightly furrowed brows with a tired smile, like someone juggling tasks but optimistic' },
+  { label: 'Caffeinated Crash', value: 'subtle eye bags, relaxed jaw, and a low-energy grin that still feels friendly' },
+  { label: 'Real-Life Calm', value: 'neutral face with light under-eye shadows, no contouring, just a normal rested expression' },
+  { label: 'UGC Reality', value: 'messy hair, under-eye bags, slightly chapped lips, relaxed facial muscles, like someone who just woke up or is finishing a long day' },
 ];
 
 export const HAIR_STYLE_OPTIONS: Option[] = [
@@ -163,6 +217,7 @@ export const PERSON_PROP_OPTIONS: Option[] = [
 ];
 
 export const MICRO_LOCATION_OPTIONS: Option[] = [
+  { label: 'None / Natural', value: 'no specific micro-location; keep the placement organic and flexible' },
   { label: 'Sofa Corner', value: 'tucked into a cozy sofa corner with throws and cushions' },
   { label: 'Kitchen Island', value: 'gathered around a bright kitchen island with everyday clutter' },
   { label: 'Vanity Mirror', value: 'standing at a vanity mirror with beauty products scattered around' },
@@ -170,49 +225,164 @@ export const MICRO_LOCATION_OPTIONS: Option[] = [
   { label: 'Rooftop Lounge', value: 'on a rooftop lounge with string lights and skyline ambience' },
 ];
 
+export const MICRO_LOCATION_NONE_VALUE = MICRO_LOCATION_OPTIONS[0].value;
+
 export type PropBundle = {
   label: string;
   description: string;
   settings: Partial<MockupOptions>;
 };
 
+const getOptionValueByLabel = (options: Option[], label: string, fallbackIndex = 0) =>
+  options.find(option => option.label === label)?.value ?? options[fallbackIndex].value;
+
 export const PROP_BUNDLES: PropBundle[] = [
   {
     label: 'Coffee Run',
     description: 'Cafe vibes with a latte prop and warm ambience.',
     settings: {
-      personProps: PERSON_PROP_OPTIONS[2].value,
-      microLocation: MICRO_LOCATION_OPTIONS[1].value,
-      personMood: PERSON_MOOD_OPTIONS[3].value,
+      personProps: getOptionValueByLabel(PERSON_PROP_OPTIONS, 'Coffee / Beverage'),
+      microLocation: getOptionValueByLabel(MICRO_LOCATION_OPTIONS, 'Kitchen Island', 2),
+      personMood: getOptionValueByLabel(PERSON_MOOD_OPTIONS, 'Playful & Candid'),
     },
   },
   {
     label: 'Desk Creator',
     description: 'Notebook + tech props in a home office.',
     settings: {
-      personProps: PERSON_PROP_OPTIONS[3].value,
-      microLocation: MICRO_LOCATION_OPTIONS[0].value,
-      setting: SETTING_OPTIONS[4].value,
+      personProps: getOptionValueByLabel(PERSON_PROP_OPTIONS, 'Notebook / Journal'),
+      microLocation: getOptionValueByLabel(MICRO_LOCATION_OPTIONS, 'Sofa Corner', 1),
+      setting: getOptionValueByLabel(SETTING_OPTIONS, 'Home Office', 4),
     },
   },
   {
     label: 'Beauty Vanity',
     description: 'Mirror setup with makeup tools nearby.',
     settings: {
-      personProps: PERSON_PROP_OPTIONS[4].value,
-      microLocation: MICRO_LOCATION_OPTIONS[2].value,
-      wardrobeStyle: WARDROBE_STYLE_OPTIONS[2].value,
-      personMood: PERSON_MOOD_OPTIONS[1].value,
+      personProps: getOptionValueByLabel(PERSON_PROP_OPTIONS, 'Makeup Tool'),
+      microLocation: getOptionValueByLabel(MICRO_LOCATION_OPTIONS, 'Vanity Mirror', 3),
+      wardrobeStyle: getOptionValueByLabel(WARDROBE_STYLE_OPTIONS, 'Minimal Luxe'),
+      personMood: getOptionValueByLabel(PERSON_MOOD_OPTIONS, 'Joyful & High-Energy'),
     },
   },
   {
     label: 'Premium Retail',
     description: 'Boutique shelf, tote bag, confident mood.',
     settings: {
-      personProps: PERSON_PROP_OPTIONS[5].value,
-      microLocation: MICRO_LOCATION_OPTIONS[3].value,
-      personMood: PERSON_MOOD_OPTIONS[2].value,
+      personProps: getOptionValueByLabel(PERSON_PROP_OPTIONS, 'Shopping Tote'),
+      microLocation: getOptionValueByLabel(MICRO_LOCATION_OPTIONS, 'Boutique Shelf', 4),
+      personMood: getOptionValueByLabel(PERSON_MOOD_OPTIONS, 'Confident & Editorial'),
     },
+  },
+];
+
+export const PERSPECTIVE_OPTIONS: Option[] = [
+  { label: 'Eye-Level', value: 'eye-level shot' },
+  { label: 'POV', value: "point-of-view (POV) from the user's perspective" },
+  { label: 'High Angle', value: 'shot from a high angle, looking down' },
+  { label: 'Low Angle', value: 'shot from a low angle, looking up' },
+  { label: 'Close-Up', value: 'a detailed close-up on the product' },
+];
+
+export type SupplementPhotoPreset = {
+  label: string;
+  value: string;
+  description: string;
+  settings: Partial<MockupOptions>;
+  promptCue: string;
+};
+
+export const SUPPLEMENT_PHOTO_PRESETS: SupplementPhotoPreset[] = [
+  {
+    label: 'Color Pop Hero',
+    value: 'color-pop',
+    description: 'Bold monochrome backdrop with drop shadow and energy.',
+    settings: {
+      setting: getOptionValueByLabel(SETTING_OPTIONS, 'Boutique Hotel', 9),
+      environmentOrder: getOptionValueByLabel(ENVIRONMENT_ORDER_OPTIONS, 'Creative Chaos'),
+      lighting: getOptionValueByLabel(LIGHTING_OPTIONS, 'Sunny Day', 1),
+      productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Hero Close-Up (Primer plano)'),
+      placementStyle: getOptionValueByLabel(PLACEMENT_STYLE_OPTIONS, 'On-White Studio', 1),
+    },
+    promptCue:
+      ' Style this like a modern supplement hero shot with a high-saturation seamless background, clean drop shadows, and premium retouching reminiscent of OLLY product photography.',
+  },
+  {
+    label: 'Ingredient Stack',
+    value: 'ingredient-stack',
+    description: 'Prop the product with fresh fruits & botanicals.',
+    settings: {
+      setting: getOptionValueByLabel(SETTING_OPTIONS, 'Café', 5),
+      environmentOrder: getOptionValueByLabel(ENVIRONMENT_ORDER_OPTIONS, 'Natural'),
+      lighting: getOptionValueByLabel(LIGHTING_OPTIONS, 'Natural Light'),
+      productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Mid-Ground Focus (Segundo plano)'),
+    },
+    promptCue:
+      ' Surround the product with sliced fruit, herbs, and bubbly textures that hint at flavor benefits. Keep everything vibrant, fresh, and ready for DTC supplement landing pages.',
+  },
+  {
+    label: 'Tile & Spa',
+    value: 'tile-spa',
+    description: 'Pink ceramic tiles, bathroom counter, spa props.',
+    settings: {
+      setting: getOptionValueByLabel(SETTING_OPTIONS, 'Bathroom'),
+      environmentOrder: getOptionValueByLabel(ENVIRONMENT_ORDER_OPTIONS, 'Clean'),
+      lighting: getOptionValueByLabel(LIGHTING_OPTIONS, 'Cozy Indoors', 4),
+      placementStyle: getOptionValueByLabel(PLACEMENT_STYLE_OPTIONS, 'Luxury Editorial'),
+    },
+    promptCue:
+      ' Place the product on a glossy tile surface with soft bathroom lighting, subtle suds, and a spa-like palette. Channel premium body-care launches.',
+  },
+  {
+    label: 'Foam & Texture',
+    value: 'foam-texture',
+    description: 'Close-up goop smears and foam art.',
+    settings: {
+      setting: getOptionValueByLabel(SETTING_OPTIONS, 'Boutique Hotel', 9),
+      lighting: getOptionValueByLabel(LIGHTING_OPTIONS, 'Flash Photo', 8),
+      productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Hero Close-Up (Primer plano)'),
+    },
+    promptCue:
+      ' Showcase creamy swatches, foamy textures, and macro droplets next to the product for a high-end cleanser/serum vibe. Use playful gradients inspired by OLLY body wash campaigns.',
+  },
+  {
+    label: 'Routine Carousel',
+    value: 'routine-carousel',
+    description: 'Multiple SKUs lined up on gradient plinths.',
+    settings: {
+      setting: getOptionValueByLabel(SETTING_OPTIONS, 'Home Office', 4),
+      environmentOrder: getOptionValueByLabel(ENVIRONMENT_ORDER_OPTIONS, 'Clean'),
+      lighting: getOptionValueByLabel(LIGHTING_OPTIONS, 'Ring Light', 5),
+      productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Background Story (Tercer plano)'),
+    },
+    promptCue:
+      ' Arrange every product in a neat lineup with gradient back panels, like a DTC carousel slide. Add subtle typography space and glowing edge lights for a premium storefront feel.',
+  },
+  {
+    label: 'Pastel Picnic',
+    value: 'pastel-picnic',
+    description: 'Playful floor flatlay with fruit, nails, and gummy spills.',
+    settings: {
+      setting: getOptionValueByLabel(SETTING_OPTIONS, 'Garden Party', 12),
+      lighting: getOptionValueByLabel(LIGHTING_OPTIONS, 'Golden Hour', 2),
+      environmentOrder: getOptionValueByLabel(ENVIRONMENT_ORDER_OPTIONS, 'Casual', 2),
+      productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Mid-Ground Focus (Segundo plano)', 1),
+    },
+    promptCue:
+      ' Style the supplements on a pastel picnic blanket with sliced fruit, manicured hands arranging gummies, and playful shadows inspired by OLLY lifestyle shoots.',
+  },
+  {
+    label: 'Face Pop Close-Up',
+    value: 'face-pop-close',
+    description: 'Tight crop where the jar floats near a model’s face on a color-pop background.',
+    settings: {
+      setting: getOptionValueByLabel(SETTING_OPTIONS, 'Boutique Hotel', 9),
+      lighting: getOptionValueByLabel(LIGHTING_OPTIONS, 'Ring Light', 5),
+      environmentOrder: getOptionValueByLabel(ENVIRONMENT_ORDER_OPTIONS, 'Clean', 0),
+      productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Hero Close-Up (Primer plano)', 0),
+    },
+    promptCue:
+      ' If a person is present, float the supplement jar near their cheek with seamless blending; otherwise, keep a bold monochrome background with a cropped hand lifting the jar plus floating flavor props.',
   },
 ];
 
@@ -397,15 +567,62 @@ export const CAMERA_OPTIONS: Option[] = [
   { label: 'Laptop Webcam', value: 'shot on a built-in laptop webcam with low-light noise' },
 ];
 
-// 5-option version representing common human-view compositions.
-export const PERSPECTIVE_OPTIONS: Option[] = [
-  { label: 'Eye-Level', value: 'eye-level shot' },
-  { label: 'POV', value: 'point-of-view (POV) from the user\'s perspective' },
-  { label: 'High Angle', value: 'shot from a high angle, looking down' },
-  { label: 'Low Angle', value: 'shot from a low angle, looking up' },
-  { label: 'Close-Up', value: 'a detailed close-up on the product' },
+export type HeroPosePreset = {
+  label: string;
+  value: string;
+  description: string;
+  settings: Partial<MockupOptions>;
+  promptCue: string;
+};
+
+export const HERO_PERSON_PRESETS: HeroPosePreset[] = [
+  {
+    label: 'Face Frame Hero',
+    value: 'face-frame',
+    description: 'Creator cradles the jar next to their cheek with bright, confident eye contact.',
+    settings: {
+      personPose: getOptionValueByLabel(PERSON_POSE_OPTIONS, 'Face Frame Hero', 3),
+      productInteraction: getOptionValueByLabel(PRODUCT_INTERACTION_OPTIONS, 'Showing to Camera', 2),
+      productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Hero Close-Up (Primer plano)', 0),
+      perspective: getOptionValueByLabel(PERSPECTIVE_OPTIONS, 'Close-Up', 4),
+      camera: getOptionValueByLabel(CAMERA_OPTIONS, 'Modern Smartphone', 0),
+    },
+    promptCue:
+      ' Have the creator lean in and gently hug the supplement jar against their cheek while keeping eyes on the camera. Crop tightly so the face and product fill most of the frame with soft hands supporting the label.',
+  },
+  {
+    label: 'Offer-to-Lens',
+    value: 'offer-to-lens',
+    description: 'Arm fully extended toward camera so the product feels within reach.',
+    settings: {
+      personPose: getOptionValueByLabel(PERSON_POSE_OPTIONS, 'Offer-to-Lens Reach', 6),
+      productInteraction: getOptionValueByLabel(PRODUCT_INTERACTION_OPTIONS, 'Showing to Camera', 2),
+      productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Hero Close-Up (Primer plano)', 0),
+      perspective: getOptionValueByLabel(PERSPECTIVE_OPTIONS, 'Eye-Level', 0),
+      camera: getOptionValueByLabel(CAMERA_OPTIONS, 'Front Selfie Cam', 1),
+    },
+    promptCue:
+      ' Pose them with one arm reaching straight toward the lens while the other relaxes at their side so the jar hovers closest to viewers, keeping fingers around the lid without covering the logo.',
+  },
+  {
+    label: 'Grounded Duo',
+    value: 'grounded-duo',
+    description: 'Model lounging on the floor or picnic mat with bottles scattered around.',
+    settings: {
+      personPose: getOptionValueByLabel(PERSON_POSE_OPTIONS, 'Grounded Lounge', 5),
+      productInteraction: getOptionValueByLabel(PRODUCT_INTERACTION_OPTIONS, 'Holding', 0),
+      productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Mid-Ground Focus (Segundo plano)', 1),
+      perspective: getOptionValueByLabel(PERSPECTIVE_OPTIONS, 'High Angle', 2),
+      camera: getOptionValueByLabel(CAMERA_OPTIONS, 'DSLR/Mirrorless', 5),
+      setting: getOptionValueByLabel(SETTING_OPTIONS, 'Garden Party', 12),
+      environmentOrder: getOptionValueByLabel(ENVIRONMENT_ORDER_OPTIONS, 'Casual', 2),
+    },
+    promptCue:
+      ' Place the model reclining on a mat or rug with knees bent, scattering multiple supplement bottles and gummy props around them while they hold one bottle near their face and look up at camera.',
+  },
 ];
 
+// 5-option version representing common human-view compositions.
 export const ASPECT_RATIO_OPTIONS: Option[] = [
     { label: '16:9 (Widescreen)', value: '16:9' },
     { label: '9:16 (Vertical)', value: '9:16' },

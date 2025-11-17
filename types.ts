@@ -12,7 +12,11 @@ export interface MockupOptions {
   gender: string;
   aspectRatio: string;
   environmentOrder: string;
+  productPlane: string;
   personAppearance: string;
+  hairColor: string;
+  eyeColor: string;
+  skinTone: string;
   productMaterial: string;
   productInteraction: string;
   realism: string;
@@ -23,6 +27,9 @@ export interface MockupOptions {
   microLocation: string;
   personExpression: string;
   hairStyle: string;
+  proLens?: string;
+  proLightingRig?: string;
+  proPostTreatment?: string;
 }
 
 export type OptionCategory = keyof MockupOptions;
