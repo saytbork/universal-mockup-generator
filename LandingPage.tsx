@@ -282,13 +282,13 @@ const LandingPage: React.FC = () => {
           <div className="max-w-6xl mx-auto px-6 pt-8 pb-20 flex flex-col items-center text-center gap-12 relative">
             <div className="max-w-3xl space-y-6 animate-fade-up">
               <p className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-1 text-xs uppercase tracking-widest text-indigo-200/90">
-                <ShieldCheck className="w-3.5 h-3.5" /> Pro-ready UGC Content
+                <ShieldCheck className="w-3.5 h-3.5" /> UGC + Product Studio
               </p>
               <h1 className="text-4xl sm:text-5xl font-bold text-white leading-tight">
-                Create hyper-real UGC mockups for your products in minutes.
+                Create UGC and studio-quality product shots in minutes.
               </h1>
               <p className="text-lg text-gray-300">
-                Upload your product, drop an inspiration mood, and let Gemini craft photo + video assets that feel authentically creator-made.
+                Upload your product, pick UGC or Product Placement, and let Gemini generate creator-real photos or polished hero shots ready for launch.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 animate-fade-up delay-200">
@@ -314,14 +314,14 @@ const LandingPage: React.FC = () => {
       <section id="steps" className="max-w-6xl mx-auto px-6 py-12 space-y-10">
         <div className="text-center space-y-3">
           <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">How it works</p>
-          <h2 className="text-3xl text-white font-semibold">Upload. Mood. Generate.</h2>
-          <p className="text-gray-400">Three simple steps to go from raw product photo to polished UGC or product placement content.</p>
+          <h2 className="text-3xl text-white font-semibold">Upload. Choose intent. Generate.</h2>
+          <p className="text-gray-400">Three simple steps to go from raw product photo to UGC lifestyle or product placement content.</p>
         </div>
         <div className="grid md:grid-cols-3 gap-5">
           {[
             { title: '1. Choose intent', description: 'Pick UGC Lifestyle or Product Placement to set the tone.' },
             { title: '2. Upload & inspire', description: 'Drop your product and optional mood image to auto-tune settings.' },
-            { title: '3. Customize & ship', description: 'Refine props, camera, people, then export photo + video.' },
+            { title: '3. Customize & ship', description: 'Refine props, camera, people, or pro lighting—then export photo + video.' },
           ].map((card, index) => (
             <div
               key={card.title}
@@ -340,7 +340,7 @@ const LandingPage: React.FC = () => {
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-sm uppercase tracking-widest text-indigo-300">Live demo</p>
-            <h2 className="text-3xl text-white font-semibold mt-2">Recent UGC mockups generated inside the app.</h2>
+            <h2 className="text-3xl text-white font-semibold mt-2">Recent UGC + product mockups generated inside the app.</h2>
             <p className="text-gray-400 mt-3 max-w-2xl">
               These previews show the output of the free plan. Click any thumbnail to jump straight into the builder and recreate a similar style.
             </p>
@@ -378,9 +378,9 @@ const LandingPage: React.FC = () => {
       <section id="features" className="max-w-6xl mx-auto px-6 py-16 space-y-12">
         <div className="text-center max-w-2xl mx-auto">
           <p className="text-sm uppercase tracking-widest text-indigo-300 mb-2">Built for marketing teams</p>
-          <h2 className="text-3xl text-white font-semibold">Create content that feels like true UGC</h2>
+          <h2 className="text-3xl text-white font-semibold">Create UGC and product shots that sell</h2>
           <p className="mt-4 text-gray-400">
-            A full workflow for founders, marketers, and creators who need launch-quality assets fast.
+            A full workflow for founders, marketers, and creators who need launch-quality assets fast—whether it’s candid creator vibes or polished studio hero shots.
           </p>
         </div>
         <div className="grid md:grid-cols-3 gap-8">
@@ -400,7 +400,7 @@ const LandingPage: React.FC = () => {
             <p className="text-sm uppercase tracking-widest text-indigo-300 mb-2">Workflow</p>
             <h2 className="text-3xl text-white font-semibold">From raw product shot to polished ads.</h2>
             <p className="mt-4 text-gray-400">
-              Every step is optimized for real results—from your first mockup to A/B testing dozens of variations.
+              Every step is optimized for real results—from your first mockup to A/B testing dozens of UGC and product placement variations.
             </p>
             <div className="mt-8 space-y-6">
               {steps.map(step => (
