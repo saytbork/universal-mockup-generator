@@ -9,6 +9,7 @@ interface ImageUploaderProps {
 
 const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, uploadedImagePreview, disabled = false, lockedMessage }) => {
   const [isDragging, setIsDragging] = useState(false);
+  const inputRef = React.useRef<HTMLInputElement | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length && !disabled) {
@@ -42,6 +43,10 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, uploadedIm
     setIsDragging(false);
   }, []);
 
+  const handleAddAnotherClick = () => {
+    inputRef.current?.click();
+  };
+
   return (
     <div className={`relative flex flex-col items-center justify-center w-full p-4 bg-gray-800 rounded-lg border-2 border-dashed border-gray-600 ${disabled ? 'opacity-60' : ''}`}>
       <h3 className="text-lg font-semibold text-gray-300 mb-4">Upload Product Image</h3>
@@ -68,9 +73,19 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, uploadedIm
           disabled={disabled}
           multiple
           onChange={handleFileChange}
+          ref={inputRef}
           accept="image/png, image/jpeg, image/webp"
         />
       </div>
+      <p className="mt-3 text-xs text-gray-400">Tip: Drop multiple files at once. The first becomes the hero; others stay in your library.</p>
+      <button
+        type="button"
+        onClick={handleAddAnotherClick}
+        className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-gray-200 hover:border-indigo-400 hover:text-white transition"
+        disabled={disabled}
+      >
+        + Add another photo
+      </button>
       {disabled && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-900/70 rounded-lg text-sm text-gray-300">
           {lockedMessage || 'Complete the previous step to continue'}

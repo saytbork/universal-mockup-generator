@@ -81,7 +81,7 @@ const pricing: PricingPlan[] = [
     monthlyCaption: 'per month',
     yearlyCaption: 'per month',
     highlights: [
-      '10 image generations / month',
+      '5 image generations / month',
       'Watermarked exports',
       'Community support',
     ],

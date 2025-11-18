@@ -780,6 +780,7 @@ const App: React.FC = () => {
     () => ADMIN_EMAILS.includes(userEmail.trim().toLowerCase()),
     [userEmail]
   );
+  const isFreeUser = !isAdmin && planTier === 'free';
   const [emailInput, setEmailInput] = useState('');
   const [emailError, setEmailError] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -840,7 +841,8 @@ const App: React.FC = () => {
   const canUseMood = hasUploadedProduct;
   const contentStyleValue = hasSelectedIntent ? options.contentStyle : CONTENT_STYLE_OPTIONS[0].value;
   const isProductPlacement = contentStyleValue === 'product';
-  const isPersonOptionsDisabled = isProductPlacement || options.ageGroup === 'no person';
+  const hasModelReference = Boolean(modelReferenceFile);
+  const isPersonOptionsDisabled = isProductPlacement || options.ageGroup === 'no person' || hasModelReference;
   const personControlsDisabled = isPersonOptionsDisabled;
   const personInScene = !isPersonOptionsDisabled;
   const personPropNoneValue = PERSON_PROP_OPTIONS[0].value;
@@ -932,10 +934,15 @@ const App: React.FC = () => {
   const [openAccordion, setOpenAccordion] = useState<string | null>('Scene & Product');
   const [selectedCategories, setSelectedCategories] = useState<Set<OptionCategory>>(new Set());
   const accordionOrder = useMemo(() => {
-    const order = ['Scene & Product', 'Photography'];
-    if (!isProductPlacement) {
+    const order: string[] = [];
+    order.push('Content Intent');
+    order.push('Scene & Product');
+    if (isProductPlacement) {
+      order.push('Product Details');
+    } else {
       order.push('Person Details');
     }
+    order.push('Photography');
     return order;
   }, [isProductPlacement]);
   const activePresetMeta = useMemo(() => CREATOR_PRESET_LOOKUP[activeTalentPreset], [activeTalentPreset]);
@@ -2224,7 +2231,7 @@ const App: React.FC = () => {
       prompt += ` Include supporting ingredients/props inspired by: ${supplementFlavorNotes.trim()}.`;
     }
     if (includeSupplementHand) {
-      prompt += ' Add a cropped human hand interacting with the product in a natural, candid way, with modern nail polish and minimal retouch.';
+      prompt += ' Add a cropped human hand interacting with the product in a natural, candid way, with modern nail polish and minimal retouch. The hand must be real (no 3D or mannequin look).';
     }
     if (supplementCustomPrompt.trim()) {
       prompt += ` ${supplementCustomPrompt.trim()}`;
@@ -2902,7 +2909,7 @@ const App: React.FC = () => {
             </>
           )}
           <div className="mt-6 flex items-center justify-center gap-4 text-xs text-gray-400">
-            <span className={!isSimpleMode ? 'text-white' : ''}>Studio Mode</span>
+            <span className={isSimpleMode ? 'text-white' : ''}>Simple Mode</span>
             <label className="relative inline-flex cursor-pointer items-center">
               <input
                 type="checkbox"
@@ -2915,7 +2922,7 @@ const App: React.FC = () => {
               <div className={`h-6 w-11 rounded-full bg-gray-700 transition ${!canUseStudioFeatures ? 'opacity-40' : 'peer-checked:bg-indigo-500'}`} />
               <span className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow transition peer-checked:translate-x-5" />
             </label>
-            <span className={isSimpleMode ? 'text-white' : ''}>Simple Mode</span>
+            <span className={!isSimpleMode ? 'text-white' : ''}>Studio Mode</span>
           </div>
         </header>
 
@@ -3177,6 +3184,7 @@ const App: React.FC = () => {
                           customLabel="Custom composition"
                           customPlaceholder="Describe the depth placement"
                         />
+                        {isProductPlacement && (
                         <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-2">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div>
@@ -3260,6 +3268,7 @@ const App: React.FC = () => {
                             Include a cropped hand interacting with the product
                           </label>
                         </div>
+                        )}
                         {isProductPlacement && (
                           <div className="space-y-4">
                             <ChipSelectGroup
@@ -3598,6 +3607,7 @@ const App: React.FC = () => {
                   isImageLoading={isImageLoading}
                   imageError={imageError}
                   onReset={handleReset}
+                  isFreeUser={isFreeUser}
                 />
                 {showCaptionAssistant && (
                 <div className="rounded-2xl border border-white/10 bg-gray-900/60 p-5 space-y-3">

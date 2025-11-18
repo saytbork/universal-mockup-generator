@@ -17,6 +17,7 @@ interface GeneratedImageProps {
   isImageLoading: boolean;
   imageError: string | null;
   onReset: () => void;
+  isFreeUser: boolean;
 }
 
 const DOWNLOAD_ASPECT_RATIOS = [
@@ -36,6 +37,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
   isImageLoading,
   imageError, 
   onReset,
+  isFreeUser,
 }) => {
 
   const [downloadAspectRatio, setDownloadAspectRatio] = useState('original');
@@ -51,6 +53,20 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const applyWatermark = (canvas: HTMLCanvasElement) => {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const text = 'Demo · Watermarked';
+    ctx.save();
+    ctx.globalAlpha = 0.25;
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 32px Inter, sans-serif';
+    const metrics = ctx.measureText(text);
+    const padding = 24;
+    ctx.fillText(text, canvas.width - metrics.width - padding, canvas.height - padding);
+    ctx.restore();
   };
 
   const downloadWithAspectRatio = async (ratioValue: string) => {
@@ -104,6 +120,10 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
       canvas.height
     );
 
+    if (isFreeUser) {
+      applyWatermark(canvas);
+    }
+
     return await new Promise<void>((resolve, reject) => {
       canvas.toBlob(blob => {
         if (!blob) {
@@ -123,8 +143,39 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
     setDownloadError(null);
 
     if (downloadAspectRatio === 'original') {
-      triggerDownload(downloadSource, 'ai-mockup.png');
-      return;
+      if (isFreeUser) {
+        // Render to canvas to apply watermark
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = downloadSource;
+        await new Promise<void>((resolve, reject) => {
+          img.onload = () => resolve();
+          img.onerror = () => reject(new Error('Could not load image for download.'));
+        });
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          setDownloadError('Your browser does not support canvas editing.');
+          return;
+        }
+        ctx.drawImage(img, 0, 0);
+        applyWatermark(canvas);
+        canvas.toBlob(blob => {
+          if (!blob) {
+            setDownloadError('Could not prepare download.');
+            return;
+          }
+          const url = URL.createObjectURL(blob);
+          triggerDownload(url, 'ai-mockup.png');
+          URL.revokeObjectURL(url);
+        }, 'image/png');
+        return;
+      } else {
+        triggerDownload(downloadSource, 'ai-mockup.png');
+        return;
+      }
     }
 
     try {
@@ -214,6 +265,9 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
                       </svg>
                       {isProcessingDownload ? 'Preparing…' : 'Download'}
                     </button>
+                  )}
+                  {isFreeUser && (
+                    <span className="px-2 py-1 rounded-full bg-white/10 text-amber-200">Watermark applied on Free plan</span>
                   )}
                   <div className="flex flex-wrap items-center gap-2">
                     <button
