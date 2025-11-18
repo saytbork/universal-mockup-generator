@@ -198,7 +198,6 @@ const PLAN_UNLOCK_CODES: Record<string, PlanTier> = {
   STARTER115: 'starter',
   GROWTH278: 'growth',
   STUDIO566: 'studio',
-  '713371': 'studio',
 };
 
 const PERSON_FIELD_KEYS: OptionCategory[] = [
@@ -1019,6 +1018,15 @@ const App: React.FC = () => {
   }, [envApiKey]);
 
   useEffect(() => {
+    if (!isAdmin && planTier !== 'free') {
+      setPlanTier('free');
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(PLAN_STORAGE_KEY, 'free');
+      }
+    }
+  }, [isAdmin, planTier]);
+
+  useEffect(() => {
     return () => {
       if (moodImagePreview) {
         URL.revokeObjectURL(moodImagePreview);
@@ -1538,6 +1546,10 @@ const App: React.FC = () => {
 
   const handlePlanTierSelect = useCallback(
     (tier: PlanTier) => {
+      if (!isAdmin && tier !== 'free') {
+        setPlanCodeError('Only admins can change plans.');
+        return;
+      }
       setPlanTier(tier);
       if (typeof window !== 'undefined') {
         window.localStorage.setItem(PLAN_STORAGE_KEY, tier);
@@ -1553,10 +1565,14 @@ const App: React.FC = () => {
       setPlanCodeError(null);
       setShowPlanModal(false);
     },
-    [isSimpleMode]
+    [isAdmin, isSimpleMode]
   );
 
   const handlePlanCodeSubmit = useCallback(() => {
+    if (!isAdmin) {
+      setPlanCodeError('Only admins can apply access codes.');
+      return;
+    }
     const trimmed = planCodeInput.trim();
     if (!trimmed) {
       setPlanCodeError('Enter the access code provided after checkout.');
@@ -1570,7 +1586,7 @@ const App: React.FC = () => {
     handlePlanTierSelect(tier);
     setPlanCodeInput('');
     setPlanCodeError(null);
-  }, [planCodeInput, handlePlanTierSelect]);
+  }, [planCodeInput, handlePlanTierSelect, isAdmin]);
 
   const handleProPhotographerToggle = useCallback(() => {
     setIsProPhotographer(prev => !prev);
