@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 
 interface ImageUploaderProps {
-  onImageUpload: (file: File) => void;
+  onImageUpload: (files: File[]) => void;
   uploadedImagePreview: string | null;
   disabled?: boolean;
   lockedMessage?: string;
@@ -11,10 +11,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, uploadedIm
   const [isDragging, setIsDragging] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      if (!disabled) {
-        onImageUpload(e.target.files[0]);
-      }
+    if (e.target.files && e.target.files.length && !disabled) {
+      onImageUpload(Array.from(e.target.files));
     }
   };
 
@@ -22,8 +20,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, uploadedIm
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-    if (!disabled && e.dataTransfer.files && e.dataTransfer.files[0]) {
-      onImageUpload(e.dataTransfer.files[0]);
+    if (!disabled && e.dataTransfer.files && e.dataTransfer.files.length) {
+      onImageUpload(Array.from(e.dataTransfer.files));
     }
   }, [onImageUpload]);
 
@@ -68,6 +66,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, uploadedIm
           type="file" 
           className={`absolute inset-0 w-full h-full opacity-0 ${disabled ? 'cursor-not-allowed pointer-events-none' : 'cursor-pointer'}`}
           disabled={disabled}
+          multiple
           onChange={handleFileChange}
           accept="image/png, image/jpeg, image/webp"
         />

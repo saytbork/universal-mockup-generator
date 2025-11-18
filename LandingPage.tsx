@@ -137,7 +137,10 @@ const pricing: PricingPlan[] = [
 
 const paymentMethods = ['Visa', 'Mastercard', 'American Express', 'Apple Pay', 'Google Pay'];
 const TRIAL_BYPASS_KEY = 'ugc-product-mockup-trial-bypass';
-const TRIAL_BYPASS_CODE = '713371';
+const ADMIN_EMAILS = (import.meta.env.VITE_ADMIN_EMAILS || '')
+  .split(',')
+  .map(email => email.trim().toLowerCase())
+  .filter(Boolean);
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -201,28 +204,13 @@ const LandingPage: React.FC = () => {
     setBillingCycle(prev => (prev === 'monthly' ? 'yearly' : 'monthly'));
   };
 
-  const persistTrialBypass = useCallback(() => {
-    if (typeof window === 'undefined') return;
-    window.localStorage.setItem(TRIAL_BYPASS_KEY, 'true');
-  }, []);
-
   const handleLandingCodeSubmit = (navigateOnSuccess = false) => {
-    if (!landingTrialInput.trim()) {
-      setLandingTrialStatus('error');
-      return;
-    }
-    if (landingTrialInput.trim() === TRIAL_BYPASS_CODE) {
-      persistTrialBypass();
-      setLandingTrialStatus('success');
-      setLandingTrialInput('');
-      if (navigateOnSuccess || pendingRoute) {
-        setShowAccessGate(false);
-        const destination = pendingRoute ?? '/app';
-        setPendingRoute(null);
-        navigate(destination);
-      }
-    } else {
-      setLandingTrialStatus('error');
+    setLandingTrialStatus('error');
+    if (navigateOnSuccess || pendingRoute) {
+      setShowAccessGate(false);
+      const destination = pendingRoute ?? '/app';
+      setPendingRoute(null);
+      navigate(destination);
     }
   };
 
@@ -241,9 +229,10 @@ const LandingPage: React.FC = () => {
     }
     event?.preventDefault();
     setPendingRoute(route);
-    setShowAccessGate(true);
+    setShowAccessGate(false);
     setLandingTrialInput('');
     setLandingTrialStatus('idle');
+    navigate(route);
   }, [navigate]);
 
   const handleCloseAccessGate = () => {
@@ -656,42 +645,9 @@ const LandingPage: React.FC = () => {
               Close
             </button>
           </div>
-          <p className="text-sm text-gray-400 mb-4">
-            Enter <span className="text-white font-semibold">713371</span> to unlock the builder and view the guided tutorial.
+          <p className="text-sm text-gray-300 mb-4">
+            Access is restricted. Sign in with an authorized account or contact the team to continue.
           </p>
-          <div className="flex flex-col sm:flex-row gap-2">
-            <input
-              type="text"
-              value={landingTrialInput}
-              onChange={(event) => {
-                setLandingTrialInput(event.target.value);
-                if (landingTrialStatus !== 'idle') setLandingTrialStatus('idle');
-              }}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                  event.preventDefault();
-                  handleLandingCodeSubmit(true);
-                }
-              }}
-              placeholder="Enter 713371"
-              className="flex-1 rounded-lg border border-white/20 bg-gray-900 px-3 py-2 text-white placeholder:text-gray-500 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-              aria-label="Access code input"
-              autoFocus
-            />
-            <button
-              type="button"
-              onClick={() => handleLandingCodeSubmit(true)}
-              className="rounded-lg bg-indigo-500 px-4 py-2 font-semibold text-white hover:bg-indigo-400 transition"
-            >
-              Unlock &amp; Enter
-            </button>
-          </div>
-          {landingTrialStatus === 'error' && (
-            <p className="mt-3 text-xs text-red-300">Invalid code. Use 713371.</p>
-          )}
-          {landingTrialStatus === 'success' && (
-            <p className="mt-3 text-xs text-emerald-300">Access granted! Redirecting…</p>
-          )}
         </div>
       </div>
     )}

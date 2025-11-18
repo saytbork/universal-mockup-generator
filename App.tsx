@@ -135,7 +135,10 @@ const EMAIL_STORAGE_KEY = 'ugc-product-mockup-generator-user-email';
 const IMAGE_COUNT_KEY = 'ugc-product-mockup-generator-image-count';
 const VIDEO_ACCESS_KEY = 'ugc-product-mockup-generator-video-access';
 const TRIAL_BYPASS_KEY = 'ugc-product-mockup-trial-bypass';
-const TRIAL_BYPASS_CODE = '713371';
+const ADMIN_EMAILS = (import.meta.env.VITE_ADMIN_EMAILS || '')
+  .split(',')
+  .map(email => email.trim().toLowerCase())
+  .filter(Boolean);
 const VIDEO_SECRET_CODE = '713371';
 const ONBOARDING_DISMISSED_KEY = 'ugc-onboarding-hidden';
 const TALENT_PROFILE_STORAGE_KEY = 'ugc-saved-talent-profile';
@@ -774,6 +777,10 @@ const App: React.FC = () => {
   const [apiKeyError, setApiKeyError] = useState<string | null>(null);
   const [isUsingStoredKey, setIsUsingStoredKey] = useState(false);
   const [userEmail, setUserEmail] = useState('');
+  const isAdmin = useMemo(
+    () => ADMIN_EMAILS.includes(userEmail.trim().toLowerCase()),
+    [userEmail]
+  );
   const [emailInput, setEmailInput] = useState('');
   const [emailError, setEmailError] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -1053,6 +1060,14 @@ const App: React.FC = () => {
       setShowOnboarding(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    setHasTrialBypass(true);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(TRIAL_BYPASS_KEY, 'true');
+    }
+  }, [isAdmin]);
 
   useEffect(() => {
     setStoryboardScenes(prev =>
@@ -1673,23 +1688,8 @@ const App: React.FC = () => {
   }, [trialCodeError]);
 
   const handleTrialCodeSubmit = useCallback(() => {
-    const trimmed = trialCodeInput.trim();
-    if (!trimmed) {
-      setTrialCodeError('Enter the access code to unlock unlimited generations.');
-      return;
-    }
-
-    if (trimmed === TRIAL_BYPASS_CODE) {
-      setHasTrialBypass(true);
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(TRIAL_BYPASS_KEY, 'true');
-      }
-      setTrialCodeInput('');
-      setTrialCodeError(null);
-    } else {
-      setTrialCodeError('Invalid code. Please try again.');
-    }
-  }, [trialCodeInput]);
+    setTrialCodeError('Request access from an admin to continue.');
+  }, []);
 
   const skipOnboarding = useCallback(() => {
     setShowOnboarding(false);
@@ -2072,38 +2072,42 @@ const App: React.FC = () => {
     });
   }, [handleReset]);
 
-  const handleImageUpload = useCallback(async (file: File) => {
+  const handleImageUpload = useCallback(async (files: File[]) => {
     const ALLOWED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 
-    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-      setImageError('Unsupported file type. Please upload a PNG, JPEG, or WebP image.');
-      return;
-    }
+    if (!files.length) return;
 
     resetOutputs();
     setImageError(null);
     setGeneratedCopy(null);
     setCopyError(null);
 
-    let finalFile = file;
-    let previewUrl = URL.createObjectURL(file);
-
-    if (removeBackground) {
-      try {
-        const cutout = await stripSolidBackground(file);
-        URL.revokeObjectURL(previewUrl);
-        finalFile = cutout.file;
-        previewUrl = cutout.dataUrl;
-      } catch (error) {
-        console.error(error);
-        setImageError('No pudimos quitar el fondo automáticamente; usando la imagen original.');
+    for (const file of files) {
+      if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+        setImageError('Unsupported file type. Please upload a PNG, JPEG, or WebP image.');
+        continue;
       }
-    }
 
-    const assetId = makeSceneId();
-    const assetLabel = `Product ${productAssets.length + 1}`;
-    setProductAssets(prev => [...prev, { id: assetId, label: assetLabel, file: finalFile, previewUrl, createdAt: Date.now() }]);
-    setActiveProductId(assetId);
+      let finalFile = file;
+      let previewUrl = URL.createObjectURL(file);
+
+      if (removeBackground) {
+        try {
+          const cutout = await stripSolidBackground(file);
+          URL.revokeObjectURL(previewUrl);
+          finalFile = cutout.file;
+          previewUrl = cutout.dataUrl;
+        } catch (error) {
+          console.error(error);
+          setImageError('No pudimos quitar el fondo automáticamente; usando la imagen original.');
+        }
+      }
+
+      const assetId = makeSceneId();
+      const assetLabel = `Product ${productAssets.length + 1}`;
+      setProductAssets(prev => [...prev, { id: assetId, label: assetLabel, file: finalFile, previewUrl, createdAt: Date.now() }]);
+      setActiveProductId(assetId);
+    }
     advanceOnboardingFromStep(2);
   }, [resetOutputs, advanceOnboardingFromStep, productAssets.length, removeBackground]);
 
@@ -2669,7 +2673,7 @@ const App: React.FC = () => {
           <div className="fixed inset-0 z-40 flex flex-col justify-center items-center bg-gray-950/90 backdrop-blur-xl px-6 text-center">
             <h2 className="text-2xl font-bold mb-4 text-white">You reached the {currentPlan.label} limit</h2>
             <p className="mb-6 text-gray-300 max-w-lg">
-              This plan includes {planImageLimit} image generations. Upgrade to unlock more scenes, or use the internal override code if you’re testing.
+              This plan includes {planImageLimit} image generations. Upgrade to unlock more scenes. Admin users are auto-unlocked when signed in.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md mb-4">
               <button
@@ -2684,32 +2688,6 @@ const App: React.FC = () => {
               >
                 Change plan
               </button>
-            </div>
-            <div className="w-full max-w-md space-y-2 text-left">
-              <p className="text-xs uppercase tracking-widest text-gray-500">Internal override</p>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <input
-                  type="text"
-                  value={trialCodeInput}
-                  onChange={event => handleTrialCodeChange(event.target.value)}
-                  placeholder="Enter access code"
-                  ref={trialInputRef}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter') {
-                      event.preventDefault();
-                      handleTrialCodeSubmit();
-                    }
-                  }}
-                  className="flex-1 rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                />
-                <button
-                  onClick={handleTrialCodeSubmit}
-                  className="rounded-lg bg-indigo-500 px-4 py-2 font-semibold text-white hover:bg-indigo-600 transition"
-                >
-                  Unlock
-                </button>
-              </div>
-              {trialCodeError && <p className="text-xs text-red-300">{trialCodeError}</p>}
             </div>
             <p className="mt-4 text-xs text-gray-500">Need help? Contact the product team.</p>
           </div>
