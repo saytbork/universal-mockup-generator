@@ -26,12 +26,16 @@ export default async function handler(
     const response = await ai.models.generateContent({
         model: 'gemini-1.5-flash',
         contents: { parts: [{ inlineData: { data: base64Image, mimeType: 'image/png' } }, { text: prompt }] },
-        config: { responseMimeType: 'image/png' },
+        config: { responseModalities: [Modality.IMAGE] }
     });
 
-    const imagePart = response.response.parts[0];
+    const imagePart =
+      response.candidates?.[0]?.content?.parts?.find(
+        (part) => 'inlineData' in part && !!(part as any).inlineData?.data
+      );
+
     if (imagePart && 'inlineData' in imagePart) {
-        const imageUrl = `data:image/png;base64,${imagePart.inlineData.data}`;
+        const imageUrl = `data:image/png;base64,${(imagePart as any).inlineData.data}`;
         return res.status(200).json({ imageUrl });
     }
 
