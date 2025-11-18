@@ -24,16 +24,19 @@ export default async function handler(
     const ai = new GoogleGenAI({ apiKey });
     
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash', // Using a capable model
+      model: 'gemini-1.5-flash',
       contents: { parts: [{ inlineData: { data: base64, mimeType }}, {text: prompt}] },
       config: {
-        responseMimeType: 'image/png',
+        responseModalities: [Modality.IMAGE],
       },
     });
 
-    const imagePart = response.response.parts[0];
+    const imagePart =
+      response.candidates?.[0]?.content?.parts?.find(
+        (part) => 'inlineData' in part && !!(part as any).inlineData?.data
+      );
     if (imagePart && 'inlineData' in imagePart) {
-        const imageUrl = `data:image/png;base64,${imagePart.inlineData.data}`;
+        const imageUrl = `data:image/png;base64,${(imagePart as any).inlineData.data}`;
         return res.status(200).json({ imageUrl });
     }
 
