@@ -21,7 +21,71 @@ import type { CreatorPreset, DownloadResolution, HeroPosePreset, PropBundle, Pro
 import BundleSelector from './src/bundles/components/BundleSelector';
 import CustomBundleBuilder from './src/bundles/components/CustomBundleBuilder';
 import RecommendedBundle from './src/bundles/components/RecommendedBundle';
-import { ALL_PRODUCT_IDS, PRODUCT_MEDIA_LIBRARY, ProductId } from './src/bundles/bundles.config';
+import { ALL_PRODUCT_IDS, PRODUCT_MEDIA_LIBRARY, ProductId, ProductMediaLibrary } from './src/bundles/bundles.config';
+import UGCRealModePanel from './components/UGCRealModePanel';
+import {
+  UGC_CLOTHING_PRESETS,
+  UGC_REALITY_PRESETS,
+  UGC_HERO_PERSONA_PRESETS,
+  UGC_EXPRESSION_PRESETS,
+  UGC_OFF_CENTER_OPTIONS,
+  UGC_SPONTANEOUS_FRAMING_OPTIONS,
+  UGC_REAL_MODE_BASE_PROMPT,
+} from './src/data/ugcPresets';
+
+type UGCRealModeSettings = {
+  isEnabled: boolean;
+  selectedRealityPresetId: string;
+  selectedHeroPersonaIds: string[];
+  selectedClothingPresetIds: string[];
+  clothingUpload: File | null;
+  clothingPreview: string | null;
+  selectedExpressionId: string | null;
+  blurAmount: number;
+  grainAmount: number;
+  lowResolution: boolean;
+  imperfectLighting: boolean;
+  offFocus: boolean;
+  tiltedPhone: boolean;
+  offCenterId: string;
+  framingId: string;
+};
+
+const createDefaultUGCRealSettings = (): UGCRealModeSettings => ({
+  isEnabled: false,
+  selectedRealityPresetId: UGC_REALITY_PRESETS[0]?.id ?? '',
+  selectedHeroPersonaIds: [],
+  selectedClothingPresetIds: [],
+  clothingUpload: null,
+  clothingPreview: null,
+  selectedExpressionId: null,
+  blurAmount: 20,
+  grainAmount: 25,
+  lowResolution: false,
+  imperfectLighting: true,
+  offFocus: false,
+  tiltedPhone: false,
+  offCenterId: UGC_OFF_CENTER_OPTIONS[2]?.id ?? 'center-loose',
+  framingId: UGC_SPONTANEOUS_FRAMING_OPTIONS[0]?.id ?? 'arm-length',
+});
+
+const cloneUGCRealSettings = (settings?: UGCRealModeSettings): UGCRealModeSettings => ({
+  isEnabled: settings?.isEnabled ?? false,
+  selectedRealityPresetId: settings?.selectedRealityPresetId ?? UGC_REALITY_PRESETS[0]?.id ?? '',
+  selectedHeroPersonaIds: [...(settings?.selectedHeroPersonaIds ?? [])],
+  selectedClothingPresetIds: [...(settings?.selectedClothingPresetIds ?? [])],
+  clothingUpload: settings?.clothingUpload ?? null,
+  clothingPreview: settings?.clothingPreview ?? null,
+  selectedExpressionId: settings?.selectedExpressionId ?? null,
+  blurAmount: settings?.blurAmount ?? 20,
+  grainAmount: settings?.grainAmount ?? 25,
+  lowResolution: settings?.lowResolution ?? false,
+  imperfectLighting: settings?.imperfectLighting ?? true,
+  offFocus: settings?.offFocus ?? false,
+  tiltedPhone: settings?.tiltedPhone ?? false,
+  offCenterId: settings?.offCenterId ?? UGC_OFF_CENTER_OPTIONS[2]?.id ?? 'center-loose',
+  framingId: settings?.framingId ?? UGC_SPONTANEOUS_FRAMING_OPTIONS[0]?.id ?? 'arm-length',
+});
 
 type StoryboardScene = {
   id: string;
@@ -40,6 +104,7 @@ type StoryboardScene = {
   heroProductAlignment: HeroLandingAlignment;
   heroProductScale: number;
   heroShadowStyle: HeroLandingShadowStyle;
+  ugcRealSettings: UGCRealModeSettings;
 };
 
 type ProductAsset = {
@@ -504,6 +569,7 @@ const App: React.FC = () => {
       heroProductAlignment: 'center',
       heroProductScale: 1,
       heroShadowStyle: 'softDrop',
+      ugcRealSettings: createDefaultUGCRealSettings(),
     };
   }
   const [options, setOptions] = useState<MockupOptions>(() => cloneOptions(initialSceneRef.current!.options));
@@ -530,6 +596,7 @@ const App: React.FC = () => {
   const [heroProductAlignment, setHeroProductAlignment] = useState<HeroLandingAlignment>('center');
   const [heroProductScale, setHeroProductScale] = useState(1);
   const [heroShadowStyle, setHeroShadowStyle] = useState<HeroLandingShadowStyle>('softDrop');
+  const [ugcRealSettings, setUgcRealSettings] = useState<UGCRealModeSettings>(() => createDefaultUGCRealSettings());
   const [activeBundleTab, setActiveBundleTab] = useState<'premade' | 'custom' | 'recommended'>('premade');
   const [recommendedBaseProduct, setRecommendedBaseProduct] = useState<ProductId>(ALL_PRODUCT_IDS[0]);
   const [angleRemixInFlight, setAngleRemixInFlight] = useState<string | null>(null);
@@ -537,6 +604,32 @@ const App: React.FC = () => {
   const activeAngleRemix = useMemo(
     () => ANGLE_REMIX_OPTIONS.find(option => option.id === angleRemixInFlight) ?? null,
     [angleRemixInFlight]
+  );
+  const productMediaLibrary = useMemo<ProductMediaLibrary>(() => {
+    const dynamic: ProductMediaLibrary = { ...PRODUCT_MEDIA_LIBRARY };
+    const limit = Math.min(productAssets.length, ALL_PRODUCT_IDS.length);
+    for (let index = 0; index < limit; index += 1) {
+      const asset = productAssets[index];
+      if (!asset) continue;
+      const id = ALL_PRODUCT_IDS[index];
+      dynamic[id] = {
+        label: asset.label || `Product ${index + 1}`,
+        imageUrl: asset.previewUrl,
+      };
+    }
+    return dynamic;
+  }, [productAssets]);
+  const persistUgcRealSettings = useCallback(
+    (updater: (prev: UGCRealModeSettings) => UGCRealModeSettings) => {
+      setUgcRealSettings(prev => {
+        const next = updater(prev);
+        setStoryboardScenes(prevScenes =>
+          prevScenes.map(scene => (scene.id === activeSceneId ? { ...scene, ugcRealSettings: next } : scene))
+        );
+        return next;
+      });
+    },
+    [activeSceneId]
   );
       const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [fourKVariant, setFourKVariant] = useState<ImageVariant | null>(null);
@@ -645,6 +738,11 @@ const App: React.FC = () => {
   const hasPlanVideoAccess = planVideoLimit > 0 || hasVideoAccess || isTrialBypassActive;
   const isVideoLimitReached = !isTrialBypassActive && planVideoLimit > 0 && videoGenerationCount >= planVideoLimit;
   const showCaptionAssistant = false;
+  useEffect(() => {
+    if ((!personInScene || isProductPlacement) && ugcRealSettings.isEnabled) {
+      persistUgcRealSettings(prev => ({ ...prev, isEnabled: false }));
+    }
+  }, [personInScene, isProductPlacement, ugcRealSettings.isEnabled, persistUgcRealSettings]);
   const scrollToSection = useCallback((title: string) => {
     const element = document.getElementById(getSectionId(title));
     if (element) {
@@ -730,6 +828,7 @@ const App: React.FC = () => {
     order.push('Photography');
     if (!isProductPlacement) {
       order.push('Person Details');
+      order.push('UGC Real Mode');
     }
     return order;
   }, [isProductPlacement]);
@@ -737,6 +836,9 @@ const App: React.FC = () => {
   const hasSavedTalent = Boolean(savedTalentProfile);
   useEffect(() => {
     if (isProductPlacement && openAccordion === 'Person Details') {
+      setOpenAccordion('Product Details');
+    }
+    if (isProductPlacement && openAccordion === 'UGC Real Mode') {
       setOpenAccordion('Product Details');
     }
     if (!isProductPlacement && openAccordion === 'Product Details') {
@@ -929,6 +1031,7 @@ const App: React.FC = () => {
     heroProductAlignment,
     heroProductScale,
     heroShadowStyle,
+    ugcRealSettings,
   ]);
 
   useEffect(() => {
@@ -1150,7 +1253,7 @@ const App: React.FC = () => {
                 Tip: selfie styles mimic how the creator is actually holding the phone (mirror, arm-length, low-angle). Choose the angle you want viewers to feel.
               </p>
             )}
-            {!personControlsDisabled && (
+            {!personControlsDisabled && !ugcRealSettings.isEnabled && (
               <div className="rounded-2xl border border-white/15 bg-black/30 p-4 space-y-3">
                 <div className="flex items-center justify-between gap-3">
                   <div>
@@ -1207,6 +1310,55 @@ const App: React.FC = () => {
           </Accordion>
         </div>
       )}
+      {!isProductPlacement && (
+        <div id={getSectionId('UGC Real Mode')}>
+          <Accordion
+            title="UGC Real Mode"
+            isOpen={openAccordion === 'UGC Real Mode'}
+            onToggle={() => handleToggleAccordion('UGC Real Mode')}
+            disabled={personControlsDisabled}
+          >
+            <UGCRealModePanel
+              disabled={personControlsDisabled}
+              enabled={ugcRealSettings.isEnabled}
+              onToggle={handleUGCRealModeToggle}
+              clothingPresets={UGC_CLOTHING_PRESETS}
+              selectedClothingPresetIds={ugcRealSettings.selectedClothingPresetIds}
+              onToggleClothingPreset={handleClothingPresetToggle}
+              onUploadClothing={handleCustomClothesUpload}
+              onClearClothing={handleClearCustomClothes}
+              clothingPreview={ugcRealSettings.clothingPreview}
+              realityPresets={UGC_REALITY_PRESETS}
+              selectedRealityPresetId={ugcRealSettings.selectedRealityPresetId}
+              onSelectRealityPreset={handleSelectRealityPreset}
+              heroPersonaPresets={UGC_HERO_PERSONA_PRESETS}
+              selectedHeroPersonaIds={ugcRealSettings.selectedHeroPersonaIds}
+              onToggleHeroPersona={handleHeroPersonaToggle}
+              expressionPresets={UGC_EXPRESSION_PRESETS}
+              selectedExpressionId={ugcRealSettings.selectedExpressionId}
+              onSelectExpression={handleUGCExpressionSelect}
+              blur={ugcRealSettings.blurAmount}
+              grain={ugcRealSettings.grainAmount}
+              onBlurChange={handleBlurChange}
+              onGrainChange={handleGrainChange}
+              lowResolution={ugcRealSettings.lowResolution}
+              onLowResolutionToggle={handleLowResolutionToggle}
+              imperfectLighting={ugcRealSettings.imperfectLighting}
+              onImperfectLightingToggle={handleImperfectLightingToggle}
+              offFocus={ugcRealSettings.offFocus}
+              onOffFocusToggle={handleOffFocusToggle}
+              tiltedPhone={ugcRealSettings.tiltedPhone}
+              onTiltedPhoneToggle={handleTiltedPhoneToggle}
+              offCenterOptions={UGC_OFF_CENTER_OPTIONS}
+              selectedOffCenterId={ugcRealSettings.offCenterId}
+              onSelectOffCenter={handleOffCenterSelect}
+              framingOptions={UGC_SPONTANEOUS_FRAMING_OPTIONS}
+              selectedFramingId={ugcRealSettings.framingId}
+              onSelectFraming={handleFramingSelect}
+            />
+          </Accordion>
+        </div>
+      )}
     </>
   );
 
@@ -1231,8 +1383,18 @@ const App: React.FC = () => {
             </button>
           ))}
         </div>
-        {activeBundleTab === 'premade' && <BundleSelector onGenerate={generateMockup} />}
-        {activeBundleTab === 'custom' && <CustomBundleBuilder onGenerate={generateMockup} />}
+        {activeBundleTab === 'premade' && (
+          <BundleSelector
+            onGenerate={generateMockup}
+            productMediaLibrary={productMediaLibrary}
+          />
+        )}
+        {activeBundleTab === 'custom' && (
+          <CustomBundleBuilder
+            onGenerate={generateMockup}
+            productMediaLibrary={productMediaLibrary}
+          />
+        )}
         {activeBundleTab === 'recommended' && (
           <div className="space-y-4">
             <div className="flex flex-col gap-2">
@@ -1244,12 +1406,16 @@ const App: React.FC = () => {
               >
                 {ALL_PRODUCT_IDS.map(productId => (
                   <option key={productId} value={productId}>
-                    {PRODUCT_MEDIA_LIBRARY[productId].label}
+                    {productMediaLibrary[productId]?.label || PRODUCT_MEDIA_LIBRARY[productId].label}
                   </option>
                 ))}
               </select>
             </div>
-            <RecommendedBundle productId={recommendedBaseProduct} onGenerate={generateMockup} />
+            <RecommendedBundle
+              productId={recommendedBaseProduct}
+              onGenerate={generateMockup}
+              productMediaLibrary={productMediaLibrary}
+            />
           </div>
         )}
         {lastBundleSelection && lastBundleSelection.length > 0 && (
@@ -1261,7 +1427,7 @@ const App: React.FC = () => {
                   key={`${productId}-last`}
                   className="rounded-full border border-white/20 px-3 py-1 text-gray-100"
                 >
-                  {PRODUCT_MEDIA_LIBRARY[productId].label}
+                  {productMediaLibrary[productId]?.label || PRODUCT_MEDIA_LIBRARY[productId].label}
                 </span>
               ))}
             </div>
@@ -1289,6 +1455,7 @@ const App: React.FC = () => {
     setHeroProductAlignment(scene.heroProductAlignment ?? 'center');
     setHeroProductScale(scene.heroProductScale ?? 1);
     setHeroShadowStyle(scene.heroShadowStyle ?? 'softDrop');
+    setUgcRealSettings(cloneUGCRealSettings(scene.ugcRealSettings));
     setGeneratedCopy(null);
     setCopyError(null);
   }, [storyboardScenes]);
@@ -1316,6 +1483,7 @@ const App: React.FC = () => {
       heroProductAlignment,
       heroProductScale,
       heroShadowStyle,
+      ugcRealSettings: cloneUGCRealSettings(ugcRealSettings),
     };
     setStoryboardScenes(prev => [...prev, newScene]);
     setActiveSceneId(newScene.id);
@@ -1367,6 +1535,7 @@ const App: React.FC = () => {
       heroProductAlignment: scene.heroProductAlignment ?? 'center',
       heroProductScale: scene.heroProductScale ?? 1,
       heroShadowStyle: scene.heroShadowStyle ?? 'softDrop',
+      ugcRealSettings: cloneUGCRealSettings(scene.ugcRealSettings),
     };
     setStoryboardScenes(prev => [...prev, newScene]);
     setActiveSceneId(newScene.id);
@@ -1457,6 +1626,131 @@ const App: React.FC = () => {
     });
     setActiveTalentPreset('custom');
   }, []);
+
+  const handleUGCRealModeToggle = useCallback(
+    (value: boolean) => {
+      persistUgcRealSettings(prev => ({ ...prev, isEnabled: value }));
+    },
+    [persistUgcRealSettings]
+  );
+
+  const handleClothingPresetToggle = useCallback(
+    (id: string) => {
+      persistUgcRealSettings(prev => {
+        const exists = prev.selectedClothingPresetIds.includes(id);
+        const nextPresets = exists
+          ? prev.selectedClothingPresetIds.filter(item => item !== id)
+          : [...prev.selectedClothingPresetIds, id];
+        return { ...prev, selectedClothingPresetIds: nextPresets };
+      });
+    },
+    [persistUgcRealSettings]
+  );
+
+  const handleCustomClothesUpload = useCallback(
+    (file: File) => {
+      const previewUrl = URL.createObjectURL(file);
+      persistUgcRealSettings(prev => {
+        if (prev.clothingPreview && prev.clothingPreview !== previewUrl) {
+          URL.revokeObjectURL(prev.clothingPreview);
+        }
+        return { ...prev, clothingUpload: file, clothingPreview: previewUrl };
+      });
+    },
+    [persistUgcRealSettings]
+  );
+
+  const handleClearCustomClothes = useCallback(() => {
+    persistUgcRealSettings(prev => {
+      if (prev.clothingPreview) {
+        URL.revokeObjectURL(prev.clothingPreview);
+      }
+      return { ...prev, clothingUpload: null, clothingPreview: null };
+    });
+  }, [persistUgcRealSettings]);
+
+  const handleSelectRealityPreset = useCallback(
+    (id: string) => {
+      persistUgcRealSettings(prev => ({ ...prev, selectedRealityPresetId: id }));
+    },
+    [persistUgcRealSettings]
+  );
+
+  const handleHeroPersonaToggle = useCallback(
+    (id: string) => {
+      persistUgcRealSettings(prev => {
+        const exists = prev.selectedHeroPersonaIds.includes(id);
+        const nextIds = exists
+          ? prev.selectedHeroPersonaIds.filter(item => item !== id)
+          : [...prev.selectedHeroPersonaIds, id];
+        return { ...prev, selectedHeroPersonaIds: nextIds };
+      });
+    },
+    [persistUgcRealSettings]
+  );
+
+  const handleUGCExpressionSelect = useCallback(
+    (id: string | null) => {
+      persistUgcRealSettings(prev => ({ ...prev, selectedExpressionId: id }));
+    },
+    [persistUgcRealSettings]
+  );
+
+  const handleBlurChange = useCallback(
+    (value: number) => {
+      persistUgcRealSettings(prev => ({ ...prev, blurAmount: Math.max(0, Math.min(100, value)) }));
+    },
+    [persistUgcRealSettings]
+  );
+
+  const handleGrainChange = useCallback(
+    (value: number) => {
+      persistUgcRealSettings(prev => ({ ...prev, grainAmount: Math.max(0, Math.min(100, value)) }));
+    },
+    [persistUgcRealSettings]
+  );
+
+  const handleLowResolutionToggle = useCallback(
+    (value: boolean) => {
+      persistUgcRealSettings(prev => ({ ...prev, lowResolution: value }));
+    },
+    [persistUgcRealSettings]
+  );
+
+  const handleImperfectLightingToggle = useCallback(
+    (value: boolean) => {
+      persistUgcRealSettings(prev => ({ ...prev, imperfectLighting: value }));
+    },
+    [persistUgcRealSettings]
+  );
+
+  const handleOffFocusToggle = useCallback(
+    (value: boolean) => {
+      persistUgcRealSettings(prev => ({ ...prev, offFocus: value }));
+    },
+    [persistUgcRealSettings]
+  );
+
+  const handleTiltedPhoneToggle = useCallback(
+    (value: boolean) => {
+      persistUgcRealSettings(prev => ({ ...prev, tiltedPhone: value }));
+    },
+    [persistUgcRealSettings]
+  );
+
+  const handleOffCenterSelect = useCallback(
+    (id: string) => {
+      persistUgcRealSettings(prev => ({ ...prev, offCenterId: id }));
+    },
+    [persistUgcRealSettings]
+  );
+
+  const handleFramingSelect = useCallback(
+    (id: string) => {
+      persistUgcRealSettings(prev => ({ ...prev, framingId: id }));
+    },
+    [persistUgcRealSettings]
+  );
 
   const runHiResPipeline = useCallback(async (sourceUrl: string) => {
     if (typeof window === 'undefined') return;
@@ -2420,6 +2714,10 @@ const App: React.FC = () => {
     const hasSmartphoneProp = options.personProps === SMARTPHONE_PROP_VALUE;
     const isFlashLighting = options.lighting === FLASH_LIGHTING_VALUE;
     const isHandsOnlyPose = options.personPose === HANDS_ONLY_POSE_VALUE;
+    const realModeActive = ugcRealSettings.isEnabled && !isProductPlacement && personIncluded;
+    const expressionOverride = realModeActive && ugcRealSettings.selectedExpressionId
+      ? UGC_EXPRESSION_PRESETS.find(item => item.id === ugcRealSettings.selectedExpressionId) ?? null
+      : null;
 
     const getInteractionDescription = (interaction: string): string => {
       switch (interaction) {
@@ -2475,6 +2773,13 @@ const App: React.FC = () => {
     }
     
     prompt += `The focus is on the provided product, which has a ${options.productMaterial} finish. Render only a single instance of this product. Never duplicate or mirror it. Use the uploaded product cutout exactly as provided—keep the entire silhouette, every label, and every edge visible with no cropping or re-interpretation. Integrate the real photo seamlessly into the new environment so it looks composited but untouched. Ensure its material, reflections, and shadows are rendered realistically according to the environment. Do not alter the product's design or branding. `;
+    if (realModeActive) {
+      prompt += ` ${UGC_REAL_MODE_BASE_PROMPT}.`;
+      const realityPreset = UGC_REALITY_PRESETS.find(item => item.id === ugcRealSettings.selectedRealityPresetId);
+      if (realityPreset) {
+        prompt += ` ${realityPreset.prompt}`;
+      }
+    }
     if (productAssets.length > 1) {
       prompt += ' There are multiple distinct product cutouts supplied. Arrange every unique product in the final scene, keeping each one fully visible and recognizable while avoiding any invented packaging. Treat them as a cohesive collection in the same frame.';
     } else if (isMultiProductPackaging) {
@@ -2555,8 +2860,37 @@ const App: React.FC = () => {
           if (options.ageGroup === '75+') {
             prompt += 'Make the subject unmistakably senior with soft wrinkles, age spots on hands, slightly stooped posture, and silver or white hair texture. ';
           }
-          prompt += `They are dressed in ${options.wardrobeStyle}, matching the scene's palette. Their pose is ${options.personPose}, projecting ${options.personMood}. `;
-          prompt += `They have ${options.skinTone}, ${options.eyeColor}, and ${options.hairColor}. Their facial expression shows ${options.personExpression}, and their hair is styled as ${options.hairStyle}. `;
+        prompt += `They are dressed in ${options.wardrobeStyle}, matching the scene's palette. Their pose is ${options.personPose}, projecting ${options.personMood}. `;
+        if (realModeActive) {
+          if (ugcRealSettings.selectedClothingPresetIds.length) {
+            const clothingText = ugcRealSettings.selectedClothingPresetIds
+              .map(id => UGC_CLOTHING_PRESETS.find(item => item.id === id)?.prompt)
+              .filter(Boolean)
+              .join(' ');
+            if (clothingText) {
+              prompt += ` ${clothingText}`;
+            }
+          }
+          if (ugcRealSettings.clothingUpload) {
+            prompt += ' Match the outfit to the uploaded clothing reference image so fabrics, drape, and color story stay true to reality.';
+          }
+        }
+        prompt += `They have ${options.skinTone}, ${options.eyeColor}, and ${options.hairColor}. `;
+        if (expressionOverride) {
+          prompt += ` ${expressionOverride.prompt}`;
+        } else {
+          prompt += `Their facial expression shows ${options.personExpression}. `;
+        }
+        prompt += `Their hair is styled as ${options.hairStyle}. `;
+        }
+        if (realModeActive && ugcRealSettings.selectedHeroPersonaIds.length) {
+          const personaText = ugcRealSettings.selectedHeroPersonaIds
+            .map(id => UGC_HERO_PERSONA_PRESETS.find(item => item.id === id)?.prompt)
+            .filter(Boolean)
+            .join(' ');
+          if (personaText) {
+            prompt += ` ${personaText}`;
+          }
         }
         if (options.personProps !== personPropNoneValue) {
             prompt += `Add supporting props such as ${options.personProps} to reinforce the lifestyle context. `;
@@ -2592,6 +2926,31 @@ const App: React.FC = () => {
         if (heroPosePromptCue) {
           prompt += ` ${heroPosePromptCue}`;
         }
+        if (realModeActive) {
+          if (ugcRealSettings.imperfectLighting) {
+            prompt += ' Let the lighting stay imperfect with hotspots, hard falloff, and visible shadows on the wall.';
+          }
+          if (ugcRealSettings.lowResolution) {
+            prompt += ' Simulate a low-resolution phone capture with pixel softness and slight chroma noise.';
+          }
+          if (ugcRealSettings.offFocus) {
+            prompt += ' Allow focus to breathe and slip, keeping only part of the face/product tack sharp.';
+          }
+          if (ugcRealSettings.tiltedPhone) {
+            prompt += ' Keep the camera horizon slightly tilted as if the phone was captured quickly.';
+          }
+          const offCenterPreset = UGC_OFF_CENTER_OPTIONS.find(option => option.id === ugcRealSettings.offCenterId);
+          if (offCenterPreset) {
+            prompt += ` ${offCenterPreset.prompt}`;
+          }
+          const framingPreset = UGC_SPONTANEOUS_FRAMING_OPTIONS.find(option => option.id === ugcRealSettings.framingId);
+          if (framingPreset) {
+            prompt += ` ${framingPreset.prompt}`;
+          }
+          if (ugcRealSettings.blurAmount > 0 || ugcRealSettings.grainAmount > 0) {
+            prompt += ` Add roughly ${ugcRealSettings.blurAmount}% focus blur and ${ugcRealSettings.grainAmount}% grain to mimic raw smartphone texture.`;
+          }
+        }
     }
     
     prompt += ' Deliver the render at ultra-high fidelity: native 4K resolution (minimum 3840px on the long edge) so it still looks razor sharp when downscaled to 2K for alternate exports.';
@@ -2624,6 +2983,7 @@ const App: React.FC = () => {
       return;
     }
     const personIncluded = !isProductPlacement && options.ageGroup !== 'no person';
+    const realModeActive = ugcRealSettings.isEnabled && !isProductPlacement && personIncluded;
     if (modelReferenceFile && !personIncluded) {
       setImageError('Turn on a person in this scene (UGC Lifestyle + non "No Person" age) before using your model reference.');
       return;
@@ -2661,6 +3021,10 @@ const App: React.FC = () => {
       }
       if (modelReferenceFile && personIncluded) {
         const { base64, mimeType } = await fileToBase64(modelReferenceFile);
+        productInlineParts.push({ inlineData: { data: base64, mimeType } });
+      }
+      if (realModeActive && ugcRealSettings.clothingUpload) {
+        const { base64, mimeType } = await fileToBase64(ugcRealSettings.clothingUpload);
         productInlineParts.push({ inlineData: { data: base64, mimeType } });
       }
       const finalPrompt = constructPrompt(bundleSelectionRef.current);

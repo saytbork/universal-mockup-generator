@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { PRODUCT_MEDIA_LIBRARY, ALL_PRODUCT_IDS, ProductId } from '../bundles.config';
+import { ALL_PRODUCT_IDS, ProductId, ProductMediaLibrary } from '../bundles.config';
 import { useBundles } from '../useBundles';
 
 interface CustomBundleBuilderProps {
   onGenerate: (bundleProducts: ProductId[]) => void;
+  productMediaLibrary: ProductMediaLibrary;
 }
 
 const MIN_SELECTION = 2;
 const MAX_SELECTION = 5;
 
-const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({ onGenerate }) => {
+const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({ onGenerate, productMediaLibrary }) => {
   const { buildCustomBundle } = useBundles();
   const [selected, setSelected] = useState<Record<ProductId, boolean>>(() =>
     ALL_PRODUCT_IDS.reduce((acc, id) => {
@@ -39,7 +40,7 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({ onGenerate })
       </p>
       <div className="grid gap-3 sm:grid-cols-3">
         {ALL_PRODUCT_IDS.map(productId => {
-          const meta = PRODUCT_MEDIA_LIBRARY[productId];
+          const meta = productMediaLibrary[productId];
           const isChecked = selected[productId];
           return (
             <label
@@ -57,13 +58,19 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({ onGenerate })
                   onChange={() => toggleProduct(productId)}
                   className="h-4 w-4 rounded border-gray-400 text-indigo-500 focus:ring-indigo-400"
                 />
-                {meta.label}
+                {meta?.label || productId}
               </div>
-              <img
-                src={meta.imageUrl}
-                alt={meta.label}
-                className="h-28 w-full rounded-xl object-cover"
-              />
+              {meta?.imageUrl ? (
+                <img
+                  src={meta.imageUrl}
+                  alt={meta.label}
+                  className="h-28 w-full rounded-xl object-cover"
+                />
+              ) : (
+                <div className="flex h-28 items-center justify-center rounded-xl bg-gray-900/40 text-sm text-gray-500">
+                  {meta?.label || productId}
+                </div>
+              )}
             </label>
           );
         })}
@@ -79,7 +86,7 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({ onGenerate })
                 key={`summary-${productId}`}
                 className="rounded-full border border-white/20 px-3 py-1 text-gray-100"
               >
-                {PRODUCT_MEDIA_LIBRARY[productId].label}
+                {productMediaLibrary[productId]?.label || productId}
               </span>
             ))}
           </div>

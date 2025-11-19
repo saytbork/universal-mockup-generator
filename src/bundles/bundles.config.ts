@@ -5,7 +5,14 @@ export interface BundleDefinition {
   products: ProductId[];
 }
 
-export const PRODUCT_MEDIA_LIBRARY: Record<ProductId, { label: string; imageUrl: string }> = {
+export interface ProductMediaMeta {
+  label: string;
+  imageUrl: string;
+}
+
+export type ProductMediaLibrary = Record<ProductId, ProductMediaMeta>;
+
+export const PRODUCT_MEDIA_LIBRARY: ProductMediaLibrary = {
   sino_clear: {
     label: 'Sino Clear',
     imageUrl: 'https://placehold.co/200x260?text=Sino+Clear',

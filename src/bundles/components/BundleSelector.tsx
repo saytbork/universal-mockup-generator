@@ -1,12 +1,13 @@
 import React, { useMemo, useState } from 'react';
-import { PREMADE_BUNDLES, PRODUCT_MEDIA_LIBRARY } from '../bundles.config';
-import type { ProductId } from '../bundles.config';
+import { PREMADE_BUNDLES } from '../bundles.config';
+import type { ProductId, ProductMediaLibrary } from '../bundles.config';
 
 interface BundleSelectorProps {
   onGenerate: (bundleProducts: ProductId[]) => void;
+  productMediaLibrary: ProductMediaLibrary;
 }
 
-const BundleSelector: React.FC<BundleSelectorProps> = ({ onGenerate }) => {
+const BundleSelector: React.FC<BundleSelectorProps> = ({ onGenerate, productMediaLibrary }) => {
   const bundleEntries = useMemo(() => Object.entries(PREMADE_BUNDLES), []);
   const [activeKey, setActiveKey] = useState(bundleEntries[0]?.[0] ?? '');
 
@@ -39,17 +40,23 @@ const BundleSelector: React.FC<BundleSelectorProps> = ({ onGenerate }) => {
           <p className="text-sm font-semibold text-white">{activeBundle.name}</p>
           <div className="flex flex-wrap gap-3">
             {activeBundle.products.map(productId => {
-              const meta = PRODUCT_MEDIA_LIBRARY[productId];
+              const meta = productMediaLibrary[productId];
               return (
                 <div key={productId} className="w-28 text-center text-xs text-gray-300">
                   <div className="h-28 w-full overflow-hidden rounded-xl border border-white/10 bg-black/20">
-                    <img
-                      src={meta.imageUrl}
-                      alt={meta.label}
-                      className="h-full w-full object-cover"
-                    />
+                    {meta?.imageUrl ? (
+                      <img
+                        src={meta.imageUrl}
+                        alt={meta.label}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-gray-600">
+                        {meta?.label || productId}
+                      </div>
+                    )}
                   </div>
-                  <p className="mt-1">{meta.label}</p>
+                  <p className="mt-1">{meta?.label || productId}</p>
                 </div>
               );
             })}
