@@ -1,6 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import LoadingSpinner from './LoadingSpinner';
+import { HIGH_RES_UNAVAILABLE_MESSAGE } from '../constants';
+import type { DownloadCreditConfig, DownloadResolution } from '../constants';
 
 interface ImageVariantMeta {
   url: string;
@@ -18,15 +20,22 @@ interface GeneratedImageProps {
   imageError: string | null;
   onReset: () => void;
   isFreeUser: boolean;
+  downloadCreditConfig: DownloadCreditConfig;
+  onChargeDownloadCredits: (
+    resolution: DownloadResolution
+  ) => Promise<{ ok: boolean; message?: string }> | { ok: boolean; message?: string };
 }
 
-const DOWNLOAD_ASPECT_RATIOS = [
+const DOWNLOAD_RESOLUTION_OPTIONS: { label: string; value: DownloadResolution }[] = [
   { label: 'Original', value: 'original' },
-  { label: '1:1 Square', value: '1:1' },
-  { label: '4:5 Portrait', value: '4:5' },
-  { label: '3:4 Portrait', value: '3:4' },
-  { label: '16:9 Landscape', value: '16:9' },
+  { label: '2K', value: '2k' },
+  { label: '4K', value: '4k' },
 ];
+const RESOLUTION_TARGETS: Record<DownloadResolution, number | null> = {
+  original: null,
+  '2k': 2048,
+  '4k': 3840,
+};
 
 const GeneratedImage: React.FC<GeneratedImageProps> = ({ 
   imageUrl,
@@ -38,13 +47,18 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
   imageError, 
   onReset,
   isFreeUser,
+  downloadCreditConfig,
+  onChargeDownloadCredits,
 }) => {
 
-  const [downloadAspectRatio, setDownloadAspectRatio] = useState('original');
+  const [downloadResolution, setDownloadResolution] = useState<DownloadResolution>('original');
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [isProcessingDownload, setIsProcessingDownload] = useState(false);
 
-  const downloadSource = fourKVariant?.url ?? imageUrl;
+  useEffect(() => {
+    setDownloadResolution('original');
+    setDownloadError(null);
+  }, [imageUrl]);
 
   const triggerDownload = (url: string, filename: string) => {
     const link = document.createElement('a');
@@ -69,116 +83,108 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
     ctx.restore();
   };
 
-  const downloadWithAspectRatio = async (ratioValue: string) => {
-    if (!downloadSource) return;
-
+  const loadImageElement = async (sourceUrl: string) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    img.src = downloadSource;
+    img.src = sourceUrl;
     await new Promise<void>((resolve, reject) => {
       img.onload = () => resolve();
-      img.onerror = () => reject(new Error('Could not load image for cropping.'));
+      img.onerror = () => reject(new Error('Could not load the source image for download.'));
+    });
+    return img;
+  };
+
+  const canvasToBlob = async (canvas: HTMLCanvasElement) =>
+    new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(blob => {
+        if (!blob) {
+          reject(new Error('Could not create the requested download.'));
+          return;
+        }
+        resolve(blob);
+      }, 'image/png');
     });
 
-    const [ratioWidth, ratioHeight] = ratioValue.split(':').map(Number);
-    if (!ratioWidth || !ratioHeight) {
-      throw new Error('Invalid aspect ratio selection.');
+  const getResolutionSource = (resolution: DownloadResolution) => {
+    if (resolution === '4k') {
+      return fourKVariant?.url ?? null;
     }
-
-    const targetRatio = ratioWidth / ratioHeight;
-    const currentRatio = img.naturalWidth / img.naturalHeight;
-
-    let cropWidth = img.naturalWidth;
-    let cropHeight = img.naturalHeight;
-
-    if (currentRatio > targetRatio) {
-      cropWidth = img.naturalHeight * targetRatio;
-    } else {
-      cropHeight = img.naturalWidth / targetRatio;
+    if (resolution === '2k') {
+      return twoKVariant?.url ?? null;
     }
+    return imageUrl;
+  };
 
-    const offsetX = (img.naturalWidth - cropWidth) / 2;
-    const offsetY = (img.naturalHeight - cropHeight) / 2;
+  const getResolutionCost = (resolution: DownloadResolution) => {
+    if (resolution === '4k') return downloadCreditConfig.downloadCost4K;
+    if (resolution === '2k') return downloadCreditConfig.downloadCost2K;
+    return downloadCreditConfig.original;
+  };
 
+  const formatCreditLabel = (cost: number) => `${cost} ${cost === 1 ? 'credit' : 'credits'}`;
+
+  const exportResolutionBlob = async (resolution: DownloadResolution) => {
+    const preferredSource = getResolutionSource(resolution);
+    const sourceUrl = preferredSource ?? imageUrl;
+    if (!sourceUrl) {
+      if (resolution === 'original') {
+        throw new Error('Original export is unavailable. Generate the scene again.');
+      }
+      throw new Error(HIGH_RES_UNAVAILABLE_MESSAGE);
+    }
+    const img = await loadImageElement(sourceUrl);
     const canvas = document.createElement('canvas');
-    canvas.width = Math.round(cropWidth);
-    canvas.height = Math.round(cropHeight);
+    const targetLongEdge = RESOLUTION_TARGETS[resolution];
+    let targetWidth = img.naturalWidth;
+    let targetHeight = img.naturalHeight;
+    if (targetLongEdge) {
+      const longEdge = Math.max(img.naturalWidth, img.naturalHeight);
+      const scale = targetLongEdge / longEdge;
+      targetWidth = Math.max(1, Math.round(img.naturalWidth * scale));
+      targetHeight = Math.max(1, Math.round(img.naturalHeight * scale));
+    }
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
     const ctx = canvas.getContext('2d');
     if (!ctx) {
       throw new Error('Your browser does not support canvas editing.');
     }
-
-    ctx.drawImage(
-      img,
-      offsetX,
-      offsetY,
-      cropWidth,
-      cropHeight,
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
-
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
     if (isFreeUser) {
       applyWatermark(canvas);
     }
-
-    return await new Promise<void>((resolve, reject) => {
-      canvas.toBlob(blob => {
-        if (!blob) {
-          reject(new Error('Could not create cropped image.'));
-          return;
-        }
-        const url = URL.createObjectURL(blob);
-        triggerDownload(url, `ai-mockup-${ratioValue.replace(':', '-')}.png`);
-        URL.revokeObjectURL(url);
-        resolve();
-      }, 'image/png');
-    });
+    return canvasToBlob(canvas);
   };
 
+  const buildFilename = () => `ai-mockup-${downloadResolution}.png`;
+
+  const showHiResStatus = isHiResProcessing || Boolean(fourKVariant || twoKVariant || hiResError);
+
   const handleDownload = async () => {
-    if (!downloadSource) return;
+    if (!imageUrl) return;
     setDownloadError(null);
 
-    if (downloadAspectRatio === 'original') {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.src = downloadSource;
-      await new Promise<void>((resolve, reject) => {
-        img.onload = () => resolve();
-        img.onerror = () => reject(new Error('Could not load image for download.'));
-      });
-      const canvas = document.createElement('canvas');
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        setDownloadError('Your browser does not support canvas editing.');
+    setIsProcessingDownload(true);
+    try {
+      const blob = await exportResolutionBlob(downloadResolution);
+
+      const chargeResult = await Promise.resolve(onChargeDownloadCredits(downloadResolution));
+      if (!chargeResult.ok) {
+        setDownloadError(
+          chargeResult.message ?? 'Not enough credits available for this download.'
+        );
         return;
       }
-      ctx.drawImage(img, 0, 0);
-      if (isFreeUser) {
-        applyWatermark(canvas);
-      }
-      canvas.toBlob(blob => {
-        if (!blob) {
-          setDownloadError('Could not prepare download.');
-          return;
-        }
-        const url = URL.createObjectURL(blob);
-        triggerDownload(url, 'ai-mockup.png');
-        URL.revokeObjectURL(url);
-      }, 'image/png');
-      return;
-    }
 
-    try {
-      setIsProcessingDownload(true);
-      await downloadWithAspectRatio(downloadAspectRatio);
+      const url = URL.createObjectURL(blob);
+      triggerDownload(url, buildFilename());
+      URL.revokeObjectURL(url);
     } catch (error) {
-      setDownloadError(error instanceof Error ? error.message : 'Could not create the requested crop. Try downloading the original image.');
+      setDownloadError(
+        error instanceof Error ? error.message : HIGH_RES_UNAVAILABLE_MESSAGE
+      );
     } finally {
       setIsProcessingDownload(false);
     }
@@ -211,31 +217,44 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
           </div>
         )}
 
-        {(imageUrl || imageError) && !isImageLoading && (
-            <div className="absolute bottom-2 left-2 right-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-gray-900/70 rounded-2xl px-4 py-3 border border-white/10">
+      </div>
+
+      {(imageUrl || imageError) && !isImageLoading && (
+        <div className="mt-4 w-full flex flex-col gap-3 bg-gray-900/70 rounded-2xl px-4 py-3 border border-white/10">
               <div className="flex flex-col gap-3 w-full">
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs text-gray-400 uppercase tracking-[0.3em]">Download aspect ratio</label>
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={downloadAspectRatio}
-                      onChange={event => {
-                        setDownloadAspectRatio(event.target.value);
-                        setDownloadError(null);
-                      }}
-                      className="rounded-lg bg-gray-800 border border-gray-600 text-sm text-white px-3 py-2 focus:border-indigo-400 focus:outline-none"
-                      disabled={!downloadSource}
-                    >
-                      {DOWNLOAD_ASPECT_RATIOS.map(option => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                    {downloadError && (
-                      <span className="text-xs text-red-300">{downloadError}</span>
-                    )}
+                  <label className="text-xs text-gray-400 uppercase tracking-[0.3em]">Download resolution</label>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {DOWNLOAD_RESOLUTION_OPTIONS.map(option => {
+                      const isActive = downloadResolution === option.value;
+                      const cost = getResolutionCost(option.value);
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => {
+                            setDownloadResolution(option.value);
+                            setDownloadError(null);
+                          }}
+                          disabled={!imageUrl}
+                          className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
+                            isActive
+                              ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                              : 'border-white/20 text-white/80 hover:border-indigo-400 hover:text-white'
+                          } disabled:cursor-not-allowed disabled:opacity-50`}
+                        >
+                          {option.label} · {formatCreditLabel(cost)}
+                        </button>
+                      );
+                    })}
                   </div>
+                  {showHiResStatus && (
+                    <span className="text-[11px] text-gray-400">
+                      {isHiResProcessing
+                        ? 'Preparing 4K / 2K masters…'
+                        : hiResError ?? 'High-resolution exports ready.'}
+                    </span>
+                  )}
                 </div>
                 <div className="flex flex-wrap items-center gap-2 text-xs text-gray-300">
                   <button
@@ -252,7 +271,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
                   {imageUrl && (
                     <button
                       onClick={handleDownload}
-                      disabled={isProcessingDownload || !downloadSource}
+                      disabled={isProcessingDownload || !imageUrl}
                       className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-900/40 disabled:cursor-not-allowed text-white font-semibold px-3 py-1.5 rounded-lg transition flex items-center gap-1"
                       aria-label="Download Image"
                     >
@@ -265,86 +284,13 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
                   {isFreeUser && (
                     <span className="px-2 py-1 rounded-full bg-white/10 text-amber-200">Watermark applied on Free plan</span>
                   )}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      onClick={async () => {
-                        if (!fourKVariant) return;
-                        try {
-                          const img = new Image();
-                          img.crossOrigin = 'anonymous';
-                          img.src = fourKVariant.url;
-                          await new Promise<void>((resolve, reject) => {
-                            img.onload = () => resolve();
-                            img.onerror = () => reject(new Error('Could not load image.'));
-                          });
-                          const canvas = document.createElement('canvas');
-                          canvas.width = img.naturalWidth;
-                          canvas.height = img.naturalHeight;
-                          const ctx = canvas.getContext('2d');
-                          if (!ctx) return;
-                          ctx.drawImage(img, 0, 0);
-                          if (isFreeUser) applyWatermark(canvas);
-                          canvas.toBlob(blob => {
-                            if (!blob) return;
-                            const url = URL.createObjectURL(blob);
-                            triggerDownload(url, `ai-mockup-4k-${fourKVariant.width}x${fourKVariant.height}.png`);
-                            URL.revokeObjectURL(url);
-                          }, 'image/png');
-                        } catch (err) {
-                          console.error(err);
-                          setDownloadError('Could not download 4K version.');
-                        }
-                      }}
-                      disabled={!fourKVariant || isHiResProcessing}
-                      className="border border-white/20 px-3 py-1.5 rounded-lg text-xs font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition disabled:opacity-60"
-                    >
-                      4K {fourKVariant ? `(${fourKVariant.width}×${fourKVariant.height})` : ''}
-                    </button>
-                    <button
-                      onClick={async () => {
-                        if (!twoKVariant) return;
-                        try {
-                          const img = new Image();
-                          img.crossOrigin = 'anonymous';
-                          img.src = twoKVariant.url;
-                          await new Promise<void>((resolve, reject) => {
-                            img.onload = () => resolve();
-                            img.onerror = () => reject(new Error('Could not load image.'));
-                          });
-                          const canvas = document.createElement('canvas');
-                          canvas.width = img.naturalWidth;
-                          canvas.height = img.naturalHeight;
-                          const ctx = canvas.getContext('2d');
-                          if (!ctx) return;
-                          ctx.drawImage(img, 0, 0);
-                          if (isFreeUser) applyWatermark(canvas);
-                          canvas.toBlob(blob => {
-                            if (!blob) return;
-                            const url = URL.createObjectURL(blob);
-                            triggerDownload(url, `ai-mockup-2k-${twoKVariant.width}x${twoKVariant.height}.png`);
-                            URL.revokeObjectURL(url);
-                          }, 'image/png');
-                        } catch (err) {
-                          console.error(err);
-                          setDownloadError('Could not download 2K version.');
-                        }
-                      }}
-                      disabled={!twoKVariant || isHiResProcessing}
-                      className="border border-white/20 px-3 py-1.5 rounded-lg text-xs font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition disabled:opacity-60"
-                    >
-                      2K {twoKVariant ? `(${twoKVariant.width}×${twoKVariant.height})` : ''}
-                    </button>
-                  </div>
-                  <span className="text-[11px] text-gray-400">
-                    {isHiResProcessing && 'Preparing 4K / 2K masters…'}
-                    {!isHiResProcessing && hiResError && hiResError}
-                    {!isHiResProcessing && !hiResError && fourKVariant && twoKVariant && '4K + 2K exports ready.'}
-                  </span>
                 </div>
+                {downloadError && (
+                  <span className="text-xs text-red-300">{downloadError}</span>
+                )}
               </div>
             </div>
-        )}
-      </div>
+      )}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useImperativeHandle } from 'react';
 
 interface ImageUploaderProps {
   onImageUpload: (files: File[]) => void;
@@ -7,9 +7,25 @@ interface ImageUploaderProps {
   lockedMessage?: string;
 }
 
-const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, uploadedImagePreview, disabled = false, lockedMessage }) => {
+export interface ImageUploaderHandle {
+  openFileDialog: () => void;
+}
+
+const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(({
+  onImageUpload,
+  uploadedImagePreview,
+  disabled = false,
+  lockedMessage,
+}, ref) => {
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = React.useRef<HTMLInputElement | null>(null);
+
+  useImperativeHandle(ref, () => ({
+    openFileDialog: () => {
+      if (disabled) return;
+      inputRef.current?.click();
+    },
+  }), [disabled]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length && !disabled) {
@@ -44,6 +60,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, uploadedIm
   }, []);
 
   const handleAddAnotherClick = () => {
+    if (disabled) return;
     inputRef.current?.click();
   };
 
@@ -93,6 +110,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, uploadedIm
       )}
     </div>
   );
-};
+});
+
+ImageUploader.displayName = 'ImageUploader';
 
 export default ImageUploader;

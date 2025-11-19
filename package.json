@@ -12,14 +12,16 @@
     "@google/genai": "^1.27.0",
     "canvas": "^3.2.0",
     "lucide-react": "^0.552.0",
+    "nodemailer": "^6.9.15",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.9.5"
   },
   "devDependencies": {
+    "@rollup/rollup-darwin-x64": "^4.53.3",
+    "@types/node": "^22.9.0",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
-    "@types/node": "^22.9.0",
     "@vercel/node": "^3.1.0",
     "@vitejs/plugin-react": "^4.2.1",
     "playwright": "^1.56.1",

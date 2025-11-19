@@ -70,7 +70,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({
                 {accessError && <p className="text-xs text-red-300">{accessError}</p>}
               </>
             ) : (
-              <p className="text-xs text-yellow-200">Upgrade your plan to unlock video exports.</p>
+              <p className="text-xs text-yellow-200">Upgrade to Creator or Studio to unlock video exports.</p>
             )}
           </div>
         )}

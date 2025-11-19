@@ -5,6 +5,11 @@ import {
 } from 'lucide-react';
 import PlanCheckoutModal from './components/PlanCheckoutModal';
 
+type PlanMetadata = {
+  plan: 'creator' | 'studio';
+  credits: number;
+};
+
 type PricingPlan = {
   name: string;
   monthlyPrice: string;
@@ -18,6 +23,7 @@ type PricingPlan = {
   isFree?: boolean;
   checkoutUrl?: string;
   contactEmail?: string;
+  metadata?: PlanMetadata;
 };
 
 type CheckoutPlan = {
@@ -26,6 +32,7 @@ type CheckoutPlan = {
   cadence: string;
   highlights: string[];
   checkoutUrl?: string;
+  metadata?: PlanMetadata;
 };
 
 const features = [
@@ -72,6 +79,10 @@ const galleryImages = [
 ];
 
 const getEnv = (key: string) => import.meta.env[key as keyof ImportMetaEnv] as string | undefined;
+const DEFAULT_CREATOR_LINK = 'https://buy.stripe.com/test_8x2cN4ei61DxgsO5jUbV603';
+const DEFAULT_STUDIO_LINK = 'https://buy.stripe.com/test_7sY5kCgqe6XR1xUbIibV602';
+const creatorCheckoutUrl = getEnv('VITE_STRIPE_LINK_CREATOR') ?? DEFAULT_CREATOR_LINK;
+const studioCheckoutUrl = getEnv('VITE_STRIPE_LINK_STUDIO') ?? DEFAULT_STUDIO_LINK;
 
 const pricing: PricingPlan[] = [
   {
@@ -100,9 +111,10 @@ const pricing: PricingPlan[] = [
       'Basic commercial license',
     ],
     cta: 'Upgrade to Creator',
-    checkoutUrl: getEnv('VITE_STRIPE_LINK_CREATOR'),
+    checkoutUrl: creatorCheckoutUrl,
     badge: 'Most Popular',
     featured: true,
+    metadata: { plan: 'creator', credits: 200 },
   },
   {
     name: 'Studio',
@@ -111,13 +123,13 @@ const pricing: PricingPlan[] = [
     monthlyCaption: 'per month',
     yearlyCaption: 'per year (save 20%)',
     highlights: [
-      '500 credits',
+      '400 credits',
       'Priority rendering queue',
       'Full commercial license',
     ],
     cta: 'Upgrade to Studio',
-    contactEmail: 'hola@universalugc.com',
-    checkoutUrl: getEnv('VITE_STRIPE_LINK_PREMIUM'),
+    checkoutUrl: studioCheckoutUrl,
+    metadata: { plan: 'studio', credits: 400 },
   },
 ];
 
@@ -157,6 +169,7 @@ const LandingPage: React.FC = () => {
       cadence,
       highlights: plan.highlights,
       checkoutUrl: plan.checkoutUrl,
+      metadata: plan.metadata,
     });
     setCheckoutEmail('');
     setCheckoutError(null);
@@ -170,13 +183,19 @@ const LandingPage: React.FC = () => {
   const handleConfirmCheckout = () => {
     if (!selectedPlan) return;
     if (!selectedPlan.checkoutUrl) {
-      setCheckoutError('Stripe payment link is not configured for this plan. Add VITE_STRIPE_LINK variables.');
+      setCheckoutError('Stripe payment link is not configured for this plan. Add VITE_STRIPE_LINK_CREATOR / VITE_STRIPE_LINK_STUDIO variables.');
       return;
     }
     try {
       const targetUrl = new URL(selectedPlan.checkoutUrl);
       if (checkoutEmail) {
         targetUrl.searchParams.set('prefilled_email', checkoutEmail);
+      }
+      if (selectedPlan.metadata) {
+        targetUrl.searchParams.set(
+          'client_reference_id',
+          `${selectedPlan.metadata.plan}-${selectedPlan.metadata.credits}`
+        );
       }
       window.open(targetUrl.toString(), '_blank', 'noopener,noreferrer');
       handleCloseCheckout();
@@ -292,7 +311,7 @@ const LandingPage: React.FC = () => {
                 View Product Tour
               </button>
             </div>
-            <p className="text-sm text-gray-500 animate-fade-up delay-300">Free plan → 5 generations · No credit card required</p>
+            <p className="text-sm text-gray-500 animate-fade-up delay-300">Free plan → 10 credits · No credit card required</p>
           </div>
         </header>
       </div>
@@ -416,9 +435,6 @@ const LandingPage: React.FC = () => {
               <span>UGC Launch beta testers</span>
             </div>
           </div>
-          <p className="text-center text-sm text-gray-400 max-w-2xl mx-auto">
-            1 credit = 1 standard image. UGC images require 2–4 credits. Video requires 15 credits.
-          </p>
         </div>
       </section>
 
@@ -452,10 +468,11 @@ const LandingPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {pricing.map(plan => {
               const isYearly = billingCycle === 'yearly';
-              const priceLabel = isYearly ? plan.yearlyCaption : plan.monthlyCaption;
+              const cadenceLabel = isYearly ? plan.yearlyCaption : plan.monthlyCaption;
+              const displayedPrice = isYearly ? plan.yearlyPrice : plan.monthlyPrice;
               const baseCard =
                 'group relative rounded-3xl border p-6 flex flex-col gap-6 hover:scale-[1.01] transition duration-300';
               const cardClasses = plan.featured
@@ -481,29 +498,13 @@ const LandingPage: React.FC = () => {
                   )}
                   <header className="space-y-2">
                     <p className="text-base font-semibold">{plan.name}</p>
-                    <div aria-live="polite" className="relative h-12">
-                      <span
-                        aria-hidden={isYearly}
-                        className={`absolute inset-0 flex items-baseline gap-1 text-4xl font-bold transition-opacity duration-200 ${
-                          isYearly ? 'opacity-0' : 'opacity-100'
-                        }`}
-                      >
-                        {plan.monthlyPrice}
-                        <span className="text-base font-medium text-gray-400">USD</span>
-                      </span>
-                      <span
-                        aria-hidden={!isYearly}
-                        className={`absolute inset-0 flex items-baseline gap-1 text-4xl font-bold transition-opacity duration-200 ${
-                          isYearly ? 'opacity-100' : 'opacity-0'
-                        }`}
-                      >
-                        {plan.yearlyPrice}
-                        <span className="text-base font-medium text-gray-400">USD</span>
-                      </span>
+                    <div aria-live="polite" className="flex items-baseline gap-1 text-4xl font-bold text-white">
+                      {displayedPrice}
+                      <span className="text-base font-medium text-gray-400">USD</span>
                     </div>
-                    <p className="text-sm text-gray-400">{priceLabel}</p>
+                    <p className="text-sm text-gray-400">{cadenceLabel}</p>
                     <p className="sr-only">
-                      {isYearly ? `${plan.yearlyPrice} ${plan.yearlyCaption}` : `${plan.monthlyPrice} ${plan.monthlyCaption}`}
+                      {displayedPrice} {cadenceLabel}
                     </p>
                   </header>
                   <ul className="space-y-3 text-sm text-gray-200">
@@ -547,6 +548,9 @@ const LandingPage: React.FC = () => {
               );
             })}
           </div>
+          <p className="text-center text-sm text-gray-400">
+            1 credit equals 1 standard image. UGC images require 2–4 credits. Video requires 15 credits.
+          </p>
 
           {selectedPlan && (
             <PlanCheckoutModal

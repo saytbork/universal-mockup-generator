@@ -4,6 +4,18 @@ import { Option, MockupOptions } from './types';
 const getOptionValue = (options: Option[], label: string, fallbackIndex = 0) =>
   options.find(option => option.label === label)?.value ?? options[fallbackIndex].value;
 
+export const DOWNLOAD_CREDIT_CONFIG = {
+  original: 1,
+  downloadCost2K: 2,
+  downloadCost4K: 4,
+} as const;
+
+export type DownloadCreditConfig = typeof DOWNLOAD_CREDIT_CONFIG;
+export type DownloadResolution = 'original' | '2k' | '4k';
+
+export const HIGH_RES_UNAVAILABLE_MESSAGE =
+  'High resolution export is not available at the moment. Credits were not charged.';
+
 export const CONTENT_STYLE_OPTIONS: Option[] = [
   { label: 'UGC Lifestyle', value: 'ugc' },
   { label: 'Product Placement', value: 'product' },
@@ -284,12 +296,27 @@ export const PERSPECTIVE_OPTIONS: Option[] = [
   { label: 'Close-Up', value: 'a detailed close-up on the product' },
 ];
 
+export type HeroLandingAlignment = 'left' | 'center' | 'right';
+export type HeroLandingShadowStyle = 'softDrop' | 'hardDrop' | 'floating';
+
+export type HeroLandingConfigDefaults = {
+  backgroundColor: string;
+  accentColor: string | null;
+  productAlignment: HeroLandingAlignment;
+  productScale: number;
+  shadowStyle: HeroLandingShadowStyle;
+  forcedLighting: string;
+  forcedAngle: string;
+  noEnvironment: boolean;
+};
+
 export type SupplementPhotoPreset = {
   label: string;
   value: string;
   description: string;
   settings: Partial<MockupOptions>;
   promptCue: string;
+  heroLandingConfig?: HeroLandingConfigDefaults;
 };
 
 export const SUPPLEMENT_PHOTO_PRESETS: SupplementPhotoPreset[] = [
@@ -384,6 +411,108 @@ export const SUPPLEMENT_PHOTO_PRESETS: SupplementPhotoPreset[] = [
     promptCue:
       ' If a person is present, float the supplement jar near their cheek with seamless blending; otherwise, keep a bold monochrome background with a cropped hand lifting the jar plus floating flavor props.',
   },
+  {
+    label: 'AG1 Counter Ritual',
+    value: 'ag1-counter',
+    description: 'Sunrise kitchen bar with frosted glass, shaker, and leafy greens.',
+    settings: {
+      setting: getOptionValueByLabel(SETTING_OPTIONS, 'Kitchen'),
+      environmentOrder: getOptionValueByLabel(ENVIRONMENT_ORDER_OPTIONS, 'Clean'),
+      lighting: getOptionValueByLabel(LIGHTING_OPTIONS, 'Natural Light'),
+      productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Hero Close-Up (Primer plano)'),
+    },
+    promptCue:
+      ' Style the product like an Athletic Greens ritual: place it beside a clear glass of frothy drink, fresh citrus, and a chrome scoop on stone counters with sharp morning sun beams.',
+  },
+  {
+    label: 'Seed Lab Counter',
+    value: 'seed-lab',
+    description: 'Clinical marble countertop with glass beakers and botanicals.',
+    settings: {
+      setting: getOptionValueByLabel(SETTING_OPTIONS, 'Home Office', 4),
+      environmentOrder: getOptionValueByLabel(ENVIRONMENT_ORDER_OPTIONS, 'Clean'),
+      lighting: getOptionValueByLabel(LIGHTING_OPTIONS, 'Overcast'),
+      productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Mid-Ground Focus (Segundo plano)'),
+      placementStyle: getOptionValueByLabel(PLACEMENT_STYLE_OPTIONS, 'Acrylic Blocks'),
+    },
+    promptCue:
+      ' Emulate Seed.com imagery: chrome lab tools, floating capsules in glass tubes, muted green palette, and soft volumetric light that feels like a microbiome lab.',
+  },
+  {
+    label: 'Armra Golden Mist',
+    value: 'armra-gold',
+    description: 'Molten gold gradients, glass pedestals, and swirling dust motes.',
+    settings: {
+      setting: getOptionValueByLabel(SETTING_OPTIONS, 'Boutique Hotel', 9),
+      environmentOrder: getOptionValueByLabel(ENVIRONMENT_ORDER_OPTIONS, 'Creative Chaos'),
+      lighting: getOptionValueByLabel(LIGHTING_OPTIONS, 'Mood Lighting', 6),
+      productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Hero Close-Up (Primer plano)'),
+    },
+    promptCue:
+      ' Surround the hero jar with metallic arches, velvet plinths, and gold mist like Armra campaigns. Add tiny sparks or cosmic dust swirling behind the product.',
+  },
+  {
+    label: 'Outdoor Mojo Boost',
+    value: 'mojo-outdoor',
+    description: 'Vivid outdoor fitness deck with kettlebells, mats, and sweat towel.',
+    settings: {
+      setting: getOptionValueByLabel(SETTING_OPTIONS, 'Outdoors', 6),
+      environmentOrder: getOptionValueByLabel(ENVIRONMENT_ORDER_OPTIONS, 'Natural'),
+      lighting: getOptionValueByLabel(LIGHTING_OPTIONS, 'Sunny Day', 1),
+      productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Mid-Ground Focus (Segundo plano)'),
+    },
+    promptCue:
+      ' Stage the bottle on a workout mat with kettlebells, citrus slices, and water spray, echoing Mojo and OPositiv energy. Include sun flares and lens haze to feel like an IRL workout break.',
+  },
+  {
+    label: 'Nutrafol Crown Ritual',
+    value: 'nutrafol-crown',
+    description: 'Marble vanity, chrome combs, and hair wellness cues with lush greenery.',
+    settings: {
+      setting: getOptionValueByLabel(SETTING_OPTIONS, 'Bedroom', 2),
+      environmentOrder: getOptionValueByLabel(ENVIRONMENT_ORDER_OPTIONS, 'Clean'),
+      lighting: getOptionValueByLabel(LIGHTING_OPTIONS, 'Golden Hour', 2),
+      placementStyle: getOptionValueByLabel(PLACEMENT_STYLE_OPTIONS, 'Luxury Editorial'),
+    },
+    promptCue:
+      ' Render the hero supplements beside a jade comb, glass water dropper, and gentle steam ribbons on a white marble counter with foliage bokeh—just like Nutrafol and OPositiv rituals.',
+  },
+  {
+    label: 'Lemme Candy Lab',
+    value: 'lemme-lab',
+    description: 'Candy-coated gradient lab with gummy spills and chrome labware.',
+    settings: {
+      setting: getOptionValueByLabel(SETTING_OPTIONS, 'Home Office', 4),
+      environmentOrder: getOptionValueByLabel(ENVIRONMENT_ORDER_OPTIONS, 'Creative Chaos'),
+      lighting: getOptionValueByLabel(LIGHTING_OPTIONS, 'Ring Light', 5),
+      productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Background Story (Tercer plano)'),
+    },
+    promptCue:
+      ' Style like a Lemme launch: translucent gummy jars on mirrored pedestals, holographic gradients, chrome droppers, and floating gummy trails that feel whimsical yet premium.',
+  },
+  {
+    label: 'Hero Landing Page',
+    value: 'hero-landing',
+    description: 'Pure white seamless hero module with adjustable alignment for ecommerce landings.',
+    settings: {
+      placementStyle: getOptionValueByLabel(PLACEMENT_STYLE_OPTIONS, 'On-White Studio', 1),
+      productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Hero Close-Up (Primer plano)'),
+      environmentOrder: getOptionValueByLabel(ENVIRONMENT_ORDER_OPTIONS, 'Clean'),
+      lighting: getOptionValueByLabel(LIGHTING_OPTIONS, 'Ring Light', 5),
+    },
+    promptCue:
+      ' Build a high-contrast landing hero on a seamless white set. Keep everything minimal, with typography-safe negative space and crisp retouching.',
+    heroLandingConfig: {
+      backgroundColor: '#FFFFFF',
+      accentColor: null,
+      productAlignment: 'center',
+      productScale: 1,
+      shadowStyle: 'softDrop',
+      forcedLighting: 'studio',
+      forcedAngle: 'front',
+      noEnvironment: true,
+    },
+  },
 ];
 
 export const PRO_LENS_OPTIONS: Option[] = [
@@ -392,6 +521,8 @@ export const PRO_LENS_OPTIONS: Option[] = [
   { label: 'Tilt-Shift Hero', value: 'captured with a tilt-shift lens for perfect verticals and premium catalog polish' },
   { label: 'Ultra-Wide Stylized', value: 'shot on an ultra-wide 24mm lens for dramatic perspective and sweeping background' },
   { label: 'Cinema Zoom', value: 'captured on a cinema zoom lens with controlled focus pulls and smooth transitions' },
+  { label: '70-200mm Compression', value: 'captured on a 70-200mm telephoto zoom to compress background elements like Nutrafol billboard campaigns' },
+  { label: '35mm Anamorphic Glow', value: 'shot on a 35mm anamorphic lens with cinematic oval bokeh and subtle barrel warp for high-end hero shots' },
 ];
 
 export const PRO_LIGHTING_RIG_OPTIONS: Option[] = [
@@ -400,6 +531,8 @@ export const PRO_LIGHTING_RIG_OPTIONS: Option[] = [
   { label: 'Hard Edge Gels', value: 'hard strobes with colored gels hitting the background to create gradients and drama' },
   { label: 'Backlit Acrylic', value: 'backlit translucent acrylic table for glowing bottles and floating reflections' },
   { label: 'High-Speed Splash Rig', value: 'strobe rig tuned for high-speed splashes, freezing liquid midair' },
+  { label: 'Gradient Cyclorama', value: 'giant cyclorama wash with dual RGB gradients for Seed/AG1 inspired backdrops' },
+  { label: 'Prism Spotlight Duo', value: 'two specular spotlights firing through prisms to create rainbow streaks and glossy kickers' },
 ];
 
 export const PRO_POST_TREATMENT_OPTIONS: Option[] = [
@@ -407,6 +540,8 @@ export const PRO_POST_TREATMENT_OPTIONS: Option[] = [
   { label: 'Film Grain Lux', value: 'polished film grain overlay with teal-and-orange color grade' },
   { label: 'Matte Editorial', value: 'matte, desaturated editorial finish with subtle bloom' },
   { label: 'Hyperreal CGI Blend', value: 'hyperreal CGI-style treatment with razor-sharp edges and perfect gradients' },
+  { label: 'Clinical Lab Polish', value: 'clean-room clarity with cool whites, chrome accents, and zero color cast like Seed or Nutrafol product pages' },
+  { label: 'Vibrant Lifestyle Pop', value: 'punchy saturation, lifted whites, and candy-colored highlights for Olly/Lemme style ecommerce banners' },
 ];
 
 export type ProLookPreset = {
@@ -452,6 +587,50 @@ export const PRO_LOOK_PRESETS: ProLookPreset[] = [
       proLightingRig: PRO_LIGHTING_RIG_OPTIONS[0].value,
       proPostTreatment: PRO_POST_TREATMENT_OPTIONS[2].value,
       placementStyle: PLACEMENT_STYLE_OPTIONS[1].value,
+    },
+  },
+  {
+    label: 'Olly Carousel Glow',
+    value: 'olly_carousel',
+    description: 'Candy-colored acrylic plinths with gummy spills and rim lights.',
+    settings: {
+      proLens: PRO_LENS_OPTIONS[1].value,
+      proLightingRig: PRO_LIGHTING_RIG_OPTIONS[3].value,
+      proPostTreatment: PRO_POST_TREATMENT_OPTIONS[0].value,
+      placementStyle: getOptionValueByLabel(PLACEMENT_STYLE_OPTIONS, 'Lifestyle Flatlay'),
+    },
+  },
+  {
+    label: 'Seed Clinical Chrome',
+    value: 'seed_chrome',
+    description: 'Sterile macro shot with chrome lab props and teal gradients.',
+    settings: {
+      proLens: PRO_LENS_OPTIONS[2].value,
+      proLightingRig: PRO_LIGHTING_RIG_OPTIONS[1].value,
+      proPostTreatment: PRO_POST_TREATMENT_OPTIONS[2].value,
+      placementStyle: getOptionValueByLabel(PLACEMENT_STYLE_OPTIONS, 'Acrylic Blocks'),
+    },
+  },
+  {
+    label: 'Outdoor Fitness Burst',
+    value: 'outdoor_fitness_pro',
+    description: 'Ultra-wide hero on a track with sharp sun flare and motion blur.',
+    settings: {
+      proLens: PRO_LENS_OPTIONS[3].value,
+      proLightingRig: PRO_LIGHTING_RIG_OPTIONS[4].value,
+      proPostTreatment: PRO_POST_TREATMENT_OPTIONS[1].value,
+      placementStyle: getOptionValueByLabel(PLACEMENT_STYLE_OPTIONS, 'Nature Elements'),
+    },
+  },
+  {
+    label: 'AG1 Morning Ritual',
+    value: 'ag1_morning',
+    description: 'Telephoto compression with gradient cyclorama wash inspired by AG1 countertop hero shots.',
+    settings: {
+      proLens: PRO_LENS_OPTIONS[5].value,
+      proLightingRig: PRO_LIGHTING_RIG_OPTIONS[5].value,
+      proPostTreatment: PRO_POST_TREATMENT_OPTIONS[4].value,
+      placementStyle: getOptionValueByLabel(PLACEMENT_STYLE_OPTIONS, 'Nature Elements'),
     },
   },
 ];
