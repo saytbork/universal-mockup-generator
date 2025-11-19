@@ -147,7 +147,7 @@ const GOAL_WIZARD_KEY = 'ugc-goal-wizard-dismissed';
 const PLAN_STORAGE_KEY = 'ugc-plan-tier';
 const VIDEO_COUNT_KEY = 'ugc-video-generation-count';
 
-type PlanTier = 'free' | 'studio' | 'agency';
+type PlanTier = 'free' | 'creator' | 'studio';
 
 const PLAN_CONFIG: Record<
   PlanTier,
@@ -166,25 +166,25 @@ const PLAN_CONFIG: Record<
     allowStudio: false,
     allowCaption: false,
   },
-  studio: {
-    label: 'Studio',
-    description: '700 credits · fast queue · collaboration for 1 project',
-    creditLimit: 700,
+  creator: {
+    label: 'Creator',
+    description: '200 credits · no watermark · basic commercial license',
+    creditLimit: 200,
     allowStudio: true,
     allowCaption: true,
   },
-  agency: {
-    label: 'Agency',
-    description: '1600 credits · priority rendering · dedicated support',
-    creditLimit: 1600,
+  studio: {
+    label: 'Studio',
+    description: '500 credits · priority rendering queue · full commercial license',
+    creditLimit: 500,
     allowStudio: true,
     allowCaption: true,
   },
 };
 
 const PLAN_UNLOCK_CODES: Record<string, PlanTier> = {
-  STUDIO566: 'studio',
-  AGENCY890: 'agency',
+  CREATOR150: 'creator',
+  STUDIO290: 'studio',
 };
 
 const PERSON_FIELD_KEYS: OptionCategory[] = [
@@ -980,7 +980,12 @@ const App: React.FC = () => {
 
     const storedPlan = window.localStorage.getItem(PLAN_STORAGE_KEY) as PlanTier | null;
     if (storedPlan) {
-      const legacyMap: Record<string, PlanTier> = { growth: 'studio', enterprise: 'agency', starter: 'free', creator: 'studio' };
+      const legacyMap: Record<string, PlanTier> = {
+        growth: 'studio',
+        enterprise: 'studio',
+        starter: 'free',
+        agency: 'studio',
+      };
       const normalized = (legacyMap[storedPlan] ?? storedPlan) as PlanTier;
       if (PLAN_CONFIG[normalized]) {
         setPlanTier(normalized);
