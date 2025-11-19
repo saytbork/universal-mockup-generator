@@ -143,39 +143,35 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
     setDownloadError(null);
 
     if (downloadAspectRatio === 'original') {
-      if (isFreeUser) {
-        // Render to canvas to apply watermark
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.src = downloadSource;
-        await new Promise<void>((resolve, reject) => {
-          img.onload = () => resolve();
-          img.onerror = () => reject(new Error('Could not load image for download.'));
-        });
-        const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          setDownloadError('Your browser does not support canvas editing.');
-          return;
-        }
-        ctx.drawImage(img, 0, 0);
-        applyWatermark(canvas);
-        canvas.toBlob(blob => {
-          if (!blob) {
-            setDownloadError('Could not prepare download.');
-            return;
-          }
-          const url = URL.createObjectURL(blob);
-          triggerDownload(url, 'ai-mockup.png');
-          URL.revokeObjectURL(url);
-        }, 'image/png');
-        return;
-      } else {
-        triggerDownload(downloadSource, 'ai-mockup.png');
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.src = downloadSource;
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error('Could not load image for download.'));
+      });
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        setDownloadError('Your browser does not support canvas editing.');
         return;
       }
+      ctx.drawImage(img, 0, 0);
+      if (isFreeUser) {
+        applyWatermark(canvas);
+      }
+      canvas.toBlob(blob => {
+        if (!blob) {
+          setDownloadError('Could not prepare download.');
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        triggerDownload(url, 'ai-mockup.png');
+        URL.revokeObjectURL(url);
+      }, 'image/png');
+      return;
     }
 
     try {
@@ -271,14 +267,68 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
                   )}
                   <div className="flex flex-wrap items-center gap-2">
                     <button
-                      onClick={() => fourKVariant && triggerDownload(fourKVariant.url, `ai-mockup-4k-${fourKVariant.width}x${fourKVariant.height}.png`)}
+                      onClick={async () => {
+                        if (!fourKVariant) return;
+                        try {
+                          const img = new Image();
+                          img.crossOrigin = 'anonymous';
+                          img.src = fourKVariant.url;
+                          await new Promise<void>((resolve, reject) => {
+                            img.onload = () => resolve();
+                            img.onerror = () => reject(new Error('Could not load image.'));
+                          });
+                          const canvas = document.createElement('canvas');
+                          canvas.width = img.naturalWidth;
+                          canvas.height = img.naturalHeight;
+                          const ctx = canvas.getContext('2d');
+                          if (!ctx) return;
+                          ctx.drawImage(img, 0, 0);
+                          if (isFreeUser) applyWatermark(canvas);
+                          canvas.toBlob(blob => {
+                            if (!blob) return;
+                            const url = URL.createObjectURL(blob);
+                            triggerDownload(url, `ai-mockup-4k-${fourKVariant.width}x${fourKVariant.height}.png`);
+                            URL.revokeObjectURL(url);
+                          }, 'image/png');
+                        } catch (err) {
+                          console.error(err);
+                          setDownloadError('Could not download 4K version.');
+                        }
+                      }}
                       disabled={!fourKVariant || isHiResProcessing}
                       className="border border-white/20 px-3 py-1.5 rounded-lg text-xs font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition disabled:opacity-60"
                     >
                       4K {fourKVariant ? `(${fourKVariant.width}×${fourKVariant.height})` : ''}
                     </button>
                     <button
-                      onClick={() => twoKVariant && triggerDownload(twoKVariant.url, `ai-mockup-2k-${twoKVariant.width}x${twoKVariant.height}.png`)}
+                      onClick={async () => {
+                        if (!twoKVariant) return;
+                        try {
+                          const img = new Image();
+                          img.crossOrigin = 'anonymous';
+                          img.src = twoKVariant.url;
+                          await new Promise<void>((resolve, reject) => {
+                            img.onload = () => resolve();
+                            img.onerror = () => reject(new Error('Could not load image.'));
+                          });
+                          const canvas = document.createElement('canvas');
+                          canvas.width = img.naturalWidth;
+                          canvas.height = img.naturalHeight;
+                          const ctx = canvas.getContext('2d');
+                          if (!ctx) return;
+                          ctx.drawImage(img, 0, 0);
+                          if (isFreeUser) applyWatermark(canvas);
+                          canvas.toBlob(blob => {
+                            if (!blob) return;
+                            const url = URL.createObjectURL(blob);
+                            triggerDownload(url, `ai-mockup-2k-${twoKVariant.width}x${twoKVariant.height}.png`);
+                            URL.revokeObjectURL(url);
+                          }, 'image/png');
+                        } catch (err) {
+                          console.error(err);
+                          setDownloadError('Could not download 2K version.');
+                        }
+                      }}
                       disabled={!twoKVariant || isHiResProcessing}
                       className="border border-white/20 px-3 py-1.5 rounded-lg text-xs font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition disabled:opacity-60"
                     >

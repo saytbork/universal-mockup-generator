@@ -147,7 +147,7 @@ const GOAL_WIZARD_KEY = 'ugc-goal-wizard-dismissed';
 const PLAN_STORAGE_KEY = 'ugc-plan-tier';
 const VIDEO_COUNT_KEY = 'ugc-video-generation-count';
 
-type PlanTier = 'free' | 'starter' | 'creator' | 'studio' | 'agency';
+type PlanTier = 'free' | 'studio' | 'agency';
 
 const PLAN_CONFIG: Record<
   PlanTier,
@@ -166,20 +166,6 @@ const PLAN_CONFIG: Record<
     allowStudio: false,
     allowCaption: false,
   },
-  starter: {
-    label: 'Starter',
-    description: '120 credits · no watermark · basic commercial license',
-    creditLimit: 120,
-    allowStudio: false,
-    allowCaption: true,
-  },
-  creator: {
-    label: 'Creator',
-    description: '300 credits · priority queue · full commercial license',
-    creditLimit: 300,
-    allowStudio: true,
-    allowCaption: true,
-  },
   studio: {
     label: 'Studio',
     description: '700 credits · fast queue · collaboration for 1 project',
@@ -197,8 +183,6 @@ const PLAN_CONFIG: Record<
 };
 
 const PLAN_UNLOCK_CODES: Record<string, PlanTier> = {
-  STARTER115: 'starter',
-  CREATOR190: 'creator',
   STUDIO566: 'studio',
   AGENCY890: 'agency',
 };
@@ -779,11 +763,6 @@ const App: React.FC = () => {
   const [apiKeyError, setApiKeyError] = useState<string | null>(null);
   const [isUsingStoredKey, setIsUsingStoredKey] = useState(false);
   const [userEmail, setUserEmail] = useState('');
-  const isAdmin = useMemo(
-    () => ADMIN_EMAILS.includes(userEmail.trim().toLowerCase()),
-    [userEmail]
-  );
-  const isFreeUser = !isAdmin && planTier === 'free';
   const [emailInput, setEmailInput] = useState('');
   const [emailError, setEmailError] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -947,9 +926,8 @@ const App: React.FC = () => {
     order.push('Scene & Product');
     if (isProductPlacement) {
       order.push('Product Details');
-    } else {
-      order.push('Person Details');
     }
+    order.push('Person Details');
     order.push('Photography');
     return order;
   }, [isProductPlacement]);
@@ -1002,10 +980,10 @@ const App: React.FC = () => {
 
     const storedPlan = window.localStorage.getItem(PLAN_STORAGE_KEY) as PlanTier | null;
     if (storedPlan) {
-      const legacyMap: Record<string, PlanTier> = { growth: 'creator', enterprise: 'agency' };
-      const normalized = legacyMap[storedPlan] ?? storedPlan;
-      if (PLAN_CONFIG[normalized as PlanTier]) {
-        setPlanTier(normalized as PlanTier);
+      const legacyMap: Record<string, PlanTier> = { growth: 'studio', enterprise: 'agency', starter: 'free', creator: 'studio' };
+      const normalized = (legacyMap[storedPlan] ?? storedPlan) as PlanTier;
+      if (PLAN_CONFIG[normalized]) {
+        setPlanTier(normalized);
       }
     }
 
