@@ -75,13 +75,13 @@ const getEnv = (key: string) => import.meta.env[key as keyof ImportMetaEnv] as s
 
 const pricing: PricingPlan[] = [
   {
-    name: 'Free Launch',
+    name: 'Free',
     monthlyPrice: '$0',
     yearlyPrice: '$0',
     monthlyCaption: 'per month',
-    yearlyCaption: 'per month',
+    yearlyCaption: 'per year',
     highlights: [
-      '5 image generations / month',
+      '10 credits',
       'Watermarked exports',
       'Community support',
     ],
@@ -89,49 +89,34 @@ const pricing: PricingPlan[] = [
     isFree: true,
   },
   {
-    name: 'Starter',
-    monthlyPrice: '$12',
-    yearlyPrice: '$115',
+    name: 'Studio',
+    monthlyPrice: '$39',
+    yearlyPrice: '$374',
     monthlyCaption: 'per month',
-    yearlyCaption: 'per year',
+    yearlyCaption: 'per year (save 20%)',
     highlights: [
-      '80 image generations + 5 videos',
-      'No watermark on exports',
-      'Basic commercial license',
+      '700 credits',
+      'Fast rendering queue',
+      'Collaboration for 1 project',
     ],
-    cta: 'Upgrade to Starter',
-    checkoutUrl: getEnv('VITE_STRIPE_LINK_STARTER'),
+    cta: 'Upgrade to Studio',
+    contactEmail: 'hola@universalugc.com',
+    checkoutUrl: getEnv('VITE_STRIPE_LINK_PREMIUM'),
   },
   {
-    name: 'Growth',
-    monthlyPrice: '$29',
-    yearlyPrice: '$278',
+    name: 'Agency',
+    monthlyPrice: '$79',
+    yearlyPrice: '$758',
     monthlyCaption: 'per month',
-    yearlyCaption: 'per year',
+    yearlyCaption: 'per year (save 20%)',
     highlights: [
-      '250 image generations + 10 videos',
-      'Priority rendering queue',
-      'Full commercial license',
-    ],
-    cta: 'Upgrade to Growth',
-    badge: 'Most Popular',
-    featured: true,
-    checkoutUrl: getEnv('VITE_STRIPE_LINK_GROWTH'),
-  },
-  {
-    name: 'Studio Pro',
-    monthlyPrice: '$59',
-    yearlyPrice: '$566',
-    monthlyCaption: 'per month',
-    yearlyCaption: 'per year',
-    highlights: [
-      '600 image generations + 25 videos',
-      'Custom templates & collaboration',
-      'Dedicated support pod',
+      '1600 credits',
+      'Priority rendering',
+      'Dedicated support',
     ],
     cta: 'Talk to Sales',
     contactEmail: 'hola@universalugc.com',
-    checkoutUrl: getEnv('VITE_STRIPE_LINK_PREMIUM'),
+    checkoutUrl: getEnv('VITE_STRIPE_LINK_ENTERPRISE'),
   },
 ];
 
@@ -430,6 +415,9 @@ const LandingPage: React.FC = () => {
               <span>UGC Launch beta testers</span>
             </div>
           </div>
+          <p className="text-center text-sm text-gray-400 max-w-2xl mx-auto">
+            1 credit = 1 standard image. UGC images require 2–4 credits. Video requires 15 credits.
+          </p>
         </div>
       </section>
 

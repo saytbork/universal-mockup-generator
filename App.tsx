@@ -132,7 +132,7 @@ const describeAgeGroup = (ageGroup: string, gender: string) => {
 
 const LOCAL_STORAGE_KEY = 'ugc-product-mockup-generator-api-key';
 const EMAIL_STORAGE_KEY = 'ugc-product-mockup-generator-user-email';
-const IMAGE_COUNT_KEY = 'ugc-product-mockup-generator-image-count';
+const IMAGE_COUNT_KEY = 'ugc-product-mockup-generator-credit-count';
 const VIDEO_ACCESS_KEY = 'ugc-product-mockup-generator-video-access';
 const TRIAL_BYPASS_KEY = 'ugc-product-mockup-trial-bypass';
 const ADMIN_EMAILS = (import.meta.env.VITE_ADMIN_EMAILS || '')
@@ -147,48 +147,50 @@ const GOAL_WIZARD_KEY = 'ugc-goal-wizard-dismissed';
 const PLAN_STORAGE_KEY = 'ugc-plan-tier';
 const VIDEO_COUNT_KEY = 'ugc-video-generation-count';
 
-type PlanTier = 'free' | 'starter' | 'growth' | 'studio';
+type PlanTier = 'free' | 'starter' | 'creator' | 'studio' | 'agency';
 
 const PLAN_CONFIG: Record<
   PlanTier,
   {
     label: string;
     description: string;
-    imageLimit: number;
-    videoLimit: number;
+    creditLimit: number;
     allowStudio: boolean;
     allowCaption: boolean;
   }
 > = {
   free: {
-    label: 'Free Launch',
-    description: '5 images, no video, simple builder only.',
-    imageLimit: 5,
-    videoLimit: 0,
+    label: 'Free',
+    description: '10 credits · watermarked exports · community support',
+    creditLimit: 10,
     allowStudio: false,
     allowCaption: false,
   },
   starter: {
     label: 'Starter',
-    description: '80 images + 5 videos/month, simple builder.',
-    imageLimit: 80,
-    videoLimit: 5,
+    description: '120 credits · no watermark · basic commercial license',
+    creditLimit: 120,
     allowStudio: false,
     allowCaption: true,
   },
-  growth: {
-    label: 'Growth',
-    description: '250 images + 10 videos/month with studio mode.',
-    imageLimit: 250,
-    videoLimit: 10,
+  creator: {
+    label: 'Creator',
+    description: '300 credits · priority queue · full commercial license',
+    creditLimit: 300,
     allowStudio: true,
     allowCaption: true,
   },
   studio: {
-    label: 'Studio Pro',
-    description: '600 images + 25 videos/month, all features unlocked.',
-    imageLimit: 600,
-    videoLimit: 25,
+    label: 'Studio',
+    description: '700 credits · fast queue · collaboration for 1 project',
+    creditLimit: 700,
+    allowStudio: true,
+    allowCaption: true,
+  },
+  agency: {
+    label: 'Agency',
+    description: '1600 credits · priority rendering · dedicated support',
+    creditLimit: 1600,
     allowStudio: true,
     allowCaption: true,
   },
@@ -196,8 +198,9 @@ const PLAN_CONFIG: Record<
 
 const PLAN_UNLOCK_CODES: Record<string, PlanTier> = {
   STARTER115: 'starter',
-  GROWTH278: 'growth',
+  CREATOR190: 'creator',
   STUDIO566: 'studio',
+  AGENCY890: 'agency',
 };
 
 const PERSON_FIELD_KEYS: OptionCategory[] = [
@@ -784,7 +787,7 @@ const App: React.FC = () => {
   const [emailInput, setEmailInput] = useState('');
   const [emailError, setEmailError] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [imageGenerationCount, setImageGenerationCount] = useState(0);
+  const [creditUsage, setCreditUsage] = useState(0); // tracks credits spent
   const [videoGenerationCount, setVideoGenerationCount] = useState(0);
   const [hasVideoAccess, setHasVideoAccess] = useState(false);
   const [videoAccessInput, setVideoAccessInput] = useState('');
@@ -848,13 +851,13 @@ const App: React.FC = () => {
   const personPropNoneValue = PERSON_PROP_OPTIONS[0].value;
   const microLocationDefault = MICRO_LOCATION_NONE_VALUE;
   const currentPlan = PLAN_CONFIG[planTier];
-  const planImageLimit = currentPlan.imageLimit;
-  const planVideoLimit = currentPlan.videoLimit;
+  const planCreditLimit = currentPlan.creditLimit;
+  const planVideoLimit = Math.floor(planCreditLimit / 15);
   const canUseStudioFeatures = currentPlan.allowStudio || isTrialBypassActive;
   const canUseCaptionAssistant = currentPlan.allowCaption || isTrialBypassActive;
-  const remainingImages = Math.max(planImageLimit - imageGenerationCount, 0);
+  const remainingCredits = Math.max(planCreditLimit - creditUsage, 0);
   const remainingVideos = Math.max(planVideoLimit - videoGenerationCount, 0);
-  const isTrialLocked = !isTrialBypassActive && imageGenerationCount >= planImageLimit;
+  const isTrialLocked = !isTrialBypassActive && creditUsage >= planCreditLimit;
   const hasPlanVideoAccess = planVideoLimit > 0 || hasVideoAccess || isTrialBypassActive;
   const isVideoLimitReached = !isTrialBypassActive && planVideoLimit > 0 && videoGenerationCount >= planVideoLimit;
   const showCaptionAssistant = canUseCaptionAssistant && Boolean(generatedImageUrl);
@@ -947,6 +950,14 @@ const App: React.FC = () => {
   }, [isProductPlacement]);
   const activePresetMeta = useMemo(() => CREATOR_PRESET_LOOKUP[activeTalentPreset], [activeTalentPreset]);
   const hasSavedTalent = Boolean(savedTalentProfile);
+  useEffect(() => {
+    if (isProductPlacement && openAccordion === 'Person Details') {
+      setOpenAccordion('Product Details');
+    }
+    if (!isProductPlacement && openAccordion === 'Product Details') {
+      setOpenAccordion('Person Details');
+    }
+  }, [isProductPlacement, openAccordion]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -967,7 +978,7 @@ const App: React.FC = () => {
     if (storedCount) {
       const parsed = Number.parseInt(storedCount, 10);
       if (!Number.isNaN(parsed)) {
-        setImageGenerationCount(parsed);
+        setCreditUsage(parsed);
       }
     }
 
@@ -985,8 +996,12 @@ const App: React.FC = () => {
     }
 
     const storedPlan = window.localStorage.getItem(PLAN_STORAGE_KEY) as PlanTier | null;
-    if (storedPlan && PLAN_CONFIG[storedPlan]) {
-      setPlanTier(storedPlan);
+    if (storedPlan) {
+      const legacyMap: Record<string, PlanTier> = { growth: 'creator', enterprise: 'agency' };
+      const normalized = legacyMap[storedPlan] ?? storedPlan;
+      if (PLAN_CONFIG[normalized as PlanTier]) {
+        setPlanTier(normalized as PlanTier);
+      }
     }
 
     if (window.localStorage.getItem(TRIAL_BYPASS_KEY) === 'true') {
@@ -2307,9 +2322,22 @@ const App: React.FC = () => {
     return prompt;
   }
 
+  const getImageCreditCost = useCallback(
+    (opts: MockupOptions) => {
+      if (contentStyleValue === 'product') {
+        return 1;
+      }
+      let cost = 2;
+      if (opts.ageGroup !== 'no person') cost += 1;
+      if (includeSupplementHand) cost += 1;
+      return Math.min(cost, 4);
+    },
+    [contentStyleValue, includeSupplementHand]
+  );
+
   const handleGenerateClick = async () => {
     if (isTrialLocked) {
-      setImageError(`You reached the ${currentPlan.label} limit (${planImageLimit} images). Upgrade your plan to keep generating scenes.`);
+      setImageError(`You reached the ${currentPlan.label} limit (${planCreditLimit} credits). Upgrade your plan to keep generating scenes.`);
       return;
     }
     if (!productAssets.length) {
@@ -2319,6 +2347,12 @@ const App: React.FC = () => {
     const personIncluded = !isProductPlacement && options.ageGroup !== 'no person';
     if (modelReferenceFile && !personIncluded) {
       setImageError('Turn on a person in this scene (UGC Lifestyle + non "No Person" age) before using your model reference.');
+      return;
+    }
+
+    const creditCost = getImageCreditCost(options);
+    if (!isTrialBypassActive && creditCost > remainingCredits) {
+      setImageError('Not enough credits for this generation. Upgrade your plan.');
       return;
     }
 
@@ -2368,8 +2402,8 @@ const App: React.FC = () => {
           const finalUrl = `data:image/png;base64,${part.inlineData.data}`;
           setGeneratedImageUrl(finalUrl);
           runHiResPipeline(finalUrl);
-          const newCount = imageGenerationCount + 1;
-          setImageGenerationCount(newCount);
+          const newCount = creditUsage + creditCost;
+          setCreditUsage(newCount);
           if (typeof window !== 'undefined') {
             window.localStorage.setItem(IMAGE_COUNT_KEY, String(newCount));
           }
@@ -2507,6 +2541,12 @@ const App: React.FC = () => {
         return;
     }
     
+    const videoCost = 15;
+    if (!isTrialBypassActive && videoCost > remainingCredits) {
+      setVideoError("Not enough credits for video generation.");
+      return;
+    }
+
     setIsVideoLoading(true);
     setVideoError(null);
     setGeneratedVideoUrl(null);
@@ -2553,6 +2593,15 @@ const App: React.FC = () => {
         const response = await fetch(`${downloadLink}&key=${resolvedApiKey}`);
         const blob = await response.blob();
         setGeneratedVideoUrl(URL.createObjectURL(blob));
+        if (!isTrialBypassActive) {
+          setCreditUsage(count => {
+            const next = count + videoCost;
+            if (typeof window !== 'undefined') {
+              window.localStorage.setItem(IMAGE_COUNT_KEY, String(next));
+            }
+            return next;
+          });
+        }
         if (!isTrialBypassActive && planVideoLimit > 0 && !hasVideoAccess) {
           setVideoGenerationCount(count => count + 1);
         }
@@ -2862,7 +2911,7 @@ const App: React.FC = () => {
             </span>
             {!isTrialBypassActive && (
               <span>
-                {remainingImages} image credits left
+                {remainingCredits} credits left
                 {planVideoLimit > 0 ? ` · ${Math.max(remainingVideos, 0)} video credits left` : ''}
               </span>
             )}
