@@ -835,6 +835,11 @@ const App: React.FC = () => {
     const params = new URLSearchParams(location.search);
     return params.has('dev');
   }, [location.search]);
+  const isAdmin = useMemo(
+    () => ADMIN_EMAILS.includes(userEmail.trim().toLowerCase()),
+    [userEmail]
+  );
+  const isFreeUser = !isAdmin && planTier === 'free';
   const [hasTrialBypass, setHasTrialBypass] = useState(false);
   const [trialCodeInput, setTrialCodeInput] = useState('');
   const [trialCodeError, setTrialCodeError] = useState<string | null>(null);
