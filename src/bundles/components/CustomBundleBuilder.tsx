@@ -8,15 +8,12 @@ interface CustomBundleBuilderProps {
   visibleProductIds: ProductId[];
 }
 
-const MIN_SELECTION = 2;
-const MAX_SELECTION = 5;
-
 const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
   onGenerate,
   productMediaLibrary,
   visibleProductIds,
 }) => {
-  const { buildCustomBundle } = useBundles();
+  const { buildCustomBundle } = useBundles(visibleProductIds);
   const [selectedIds, setSelectedIds] = useState<ProductId[]>([]);
 
   React.useEffect(() => {
@@ -33,8 +30,8 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
   };
 
   const filteredSelection = selectedIds.filter(id => visibleProductIds.includes(id));
-  const minSelection = Math.min(MIN_SELECTION, Math.max(1, visibleProductIds.length));
-  const maxSelection = Math.min(MAX_SELECTION, Math.max(minSelection, visibleProductIds.length));
+  const minSelection = Math.min(2, Math.max(1, visibleProductIds.length));
+  const maxSelection = Math.max(minSelection, visibleProductIds.length || minSelection);
   const isValidSelection =
     filteredSelection.length >= minSelection && filteredSelection.length <= maxSelection;
 

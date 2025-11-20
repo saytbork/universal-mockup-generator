@@ -15,7 +15,7 @@ const RecommendedBundle: React.FC<RecommendedBundleProps> = ({
   productMediaLibrary,
   visibleProductIds,
 }) => {
-  const { getRecommendedBundle } = useBundles();
+  const { getRecommendedBundle } = useBundles(visibleProductIds);
   const visibleSet = useMemo(() => new Set(visibleProductIds), [visibleProductIds]);
   const recommendedProducts = useMemo(
     () => getRecommendedBundle(productId).filter(id => visibleSet.has(id)),

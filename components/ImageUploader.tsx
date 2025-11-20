@@ -33,27 +33,27 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
     }
   };
 
-  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = useCallback((e: React.DragEvent<HTMLElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
     if (!disabled && e.dataTransfer.files && e.dataTransfer.files.length) {
       onImageUpload(Array.from(e.dataTransfer.files));
     }
-  }, [onImageUpload]);
+  }, [disabled, onImageUpload]);
 
-  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLElement>) => {
     e.preventDefault();
     e.stopPropagation();
   }, []);
 
-  const handleDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragEnter = useCallback((e: React.DragEvent<HTMLElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
   }, []);
 
-  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragLeave = useCallback((e: React.DragEvent<HTMLElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
@@ -92,6 +92,10 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
           onChange={handleFileChange}
           ref={inputRef}
           accept="image/png, image/jpeg, image/webp"
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
         />
       </div>
       <p className="mt-3 text-xs text-gray-400">Tip: Drop multiple files at once. The first becomes the hero; others stay in your library.</p>

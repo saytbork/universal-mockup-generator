@@ -23,18 +23,28 @@ const OnboardingOverlay: React.FC<OnboardingOverlayProps> = ({
 }) => {
   const [highlightRect, setHighlightRect] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
 
+  const fallbackRect = () => ({
+    top: window.scrollY + window.innerHeight / 2 - 80,
+    left: window.scrollX + window.innerWidth / 2 - 160,
+    width: 320,
+    height: 160,
+  });
+
   const updateRect = () => {
     const step = steps[currentStep - 1];
     const element = step?.ref.current;
-    if (element) {
-      const rect = element.getBoundingClientRect();
-      setHighlightRect({
-        top: rect.top + window.scrollY - 12,
-        left: rect.left + window.scrollX - 12,
-        width: rect.width + 24,
-        height: rect.height + 24,
-      });
+    if (!element) {
+      setHighlightRect(fallbackRect());
+      return;
     }
+    const rect = element.getBoundingClientRect();
+    setHighlightRect({
+      top: rect.top + window.scrollY - 12,
+      left: rect.left + window.scrollX - 12,
+      width: rect.width + 24,
+      height: rect.height + 24,
+    });
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
   useLayoutEffect(() => {
@@ -51,18 +61,19 @@ const OnboardingOverlay: React.FC<OnboardingOverlayProps> = ({
     return () => clearTimeout(timeout);
   }, [visible, currentStep]);
 
-  if (!visible || !highlightRect) {
+  if (!visible) {
     return null;
   }
 
   const step = steps[currentStep - 1];
+  const rect = highlightRect ?? fallbackRect();
   const cardWidth = 320;
   const cardHeight = 160;
-  let cardTop = highlightRect.top + highlightRect.height + 16;
-  let cardLeft = highlightRect.left;
+  let cardTop = rect.top + rect.height + 16;
+  let cardLeft = rect.left;
 
   if (cardTop + cardHeight > window.innerHeight + window.scrollY) {
-    cardTop = highlightRect.top - cardHeight - 16;
+    cardTop = rect.top - cardHeight - 16;
   }
 
   if (cardLeft + cardWidth > window.innerWidth + window.scrollX) {
@@ -75,10 +86,10 @@ const OnboardingOverlay: React.FC<OnboardingOverlayProps> = ({
       <div
         className="absolute border border-indigo-400 shadow-[0_0_0_9999px_rgba(15,23,42,0.65)] rounded-3xl transition-all duration-300"
         style={{
-          top: highlightRect.top,
-          left: highlightRect.left,
-          width: highlightRect.width,
-          height: highlightRect.height,
+          top: rect.top,
+          left: rect.left,
+          width: rect.width,
+          height: rect.height,
         }}
       />
       <div

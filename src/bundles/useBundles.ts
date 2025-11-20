@@ -9,8 +9,8 @@ export interface BundlesHook {
   getRecommendedBundle: (productId: string) => ProductId[];
 }
 
-const sanitizeProducts = (selectedProducts: string[]): ProductId[] => {
-  const allowed = new Set<ProductId>(ALL_PRODUCT_IDS);
+const sanitizeProducts = (selectedProducts: string[], allowedProducts: ProductId[]): ProductId[] => {
+  const allowed = new Set<ProductId>(allowedProducts.length ? allowedProducts : ALL_PRODUCT_IDS);
   const unique: ProductId[] = [];
   selectedProducts.forEach(product => {
     const normalized = product as ProductId;
@@ -21,12 +21,12 @@ const sanitizeProducts = (selectedProducts: string[]): ProductId[] => {
   return unique;
 };
 
-export function useBundles(): BundlesHook {
+export function useBundles(availableProducts: ProductId[] = []): BundlesHook {
   const preMadeBundles = useMemo(() => PREMADE_BUNDLES, []);
-  const allProducts = useMemo(() => ALL_PRODUCT_IDS, []);
+  const allProducts = useMemo(() => (availableProducts.length ? availableProducts : ALL_PRODUCT_IDS), [availableProducts]);
 
-  const buildCustomBundle = (selectedProducts: string[]) => sanitizeProducts(selectedProducts);
-  const getRecommendedBundle = (productId: string) => recommend(productId);
+  const buildCustomBundle = (selectedProducts: string[]) => sanitizeProducts(selectedProducts, allProducts);
+  const getRecommendedBundle = (productId: string) => recommend(productId as ProductId, allProducts);
 
   return {
     preMadeBundles,

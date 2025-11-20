@@ -1,4 +1,4 @@
-export type ProductId = 'sino_clear' | 'mullein_tea' | 'breathe';
+export type ProductId = string;
 
 export interface BundleDefinition {
   name: string;
@@ -12,34 +12,36 @@ export interface ProductMediaMeta {
 
 export type ProductMediaLibrary = Record<ProductId, ProductMediaMeta>;
 
-export const PRODUCT_MEDIA_LIBRARY: ProductMediaLibrary = {
-  sino_clear: {
-    label: 'Product Slot A',
-    imageUrl: 'https://placehold.co/200x260?text=Product+A',
+const DEFAULT_PRODUCT_SLOTS = ['product_1', 'product_2', 'product_3', 'product_4', 'product_5', 'product_6'] as const;
+
+export const PRODUCT_MEDIA_LIBRARY: ProductMediaLibrary = DEFAULT_PRODUCT_SLOTS.reduce<ProductMediaLibrary>(
+  (acc, slot, index) => {
+    acc[slot] = {
+      label: `Product Slot ${index + 1}`,
+      imageUrl: `https://placehold.co/200x260?text=Slot+${index + 1}`,
+    };
+    return acc;
   },
-  mullein_tea: {
-    label: 'Product Slot B',
-    imageUrl: 'https://placehold.co/200x260?text=Product+B',
-  },
-  breathe: {
-    label: 'Product Slot C',
-    imageUrl: 'https://placehold.co/200x260?text=Product+C',
-  },
-};
+  {} as ProductMediaLibrary
+);
 
 export const PREMADE_BUNDLES: Record<string, BundleDefinition> = {
-  respiratory_support: {
-    name: 'Respiratory Support Pack',
-    products: ['sino_clear', 'mullein_tea', 'breathe'],
+  essentials_trio: {
+    name: 'Core Essentials Trio',
+    products: ['product_1', 'product_2', 'product_3'],
   },
-  detox_relief: {
-    name: 'Detox + Clear Pack',
-    products: ['mullein_tea', 'breathe'],
+  daily_duo: {
+    name: 'Daily Duo Stack',
+    products: ['product_1', 'product_2'],
   },
-  full_clearing_kit: {
-    name: 'Full Clearing Kit',
-    products: ['sino_clear', 'breathe', 'mullein_tea'],
+  launch_showcase: {
+    name: 'Launch Showcase Set',
+    products: ['product_1', 'product_2', 'product_3', 'product_4'],
+  },
+  hero_lineup: {
+    name: 'Complete Hero Lineup',
+    products: ['product_1', 'product_2', 'product_3', 'product_4', 'product_5'],
   },
 };
 
-export const ALL_PRODUCT_IDS: ProductId[] = Object.keys(PRODUCT_MEDIA_LIBRARY) as ProductId[];
+export const ALL_PRODUCT_IDS: ProductId[] = [...DEFAULT_PRODUCT_SLOTS];

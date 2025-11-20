@@ -332,7 +332,7 @@ export const SUPPLEMENT_PHOTO_PRESETS: SupplementPhotoPreset[] = [
       placementStyle: getOptionValueByLabel(PLACEMENT_STYLE_OPTIONS, 'On-White Studio', 1),
     },
     promptCue:
-      ' Style this like a modern supplement hero shot with a high-saturation seamless background, clean drop shadows, and premium retouching reminiscent of OLLY product photography.',
+      ' Style this like a modern supplement hero shot with a high-saturation seamless background, clean drop shadows, and premium retouching inspired by upbeat gummy launches.',
   },
   {
     label: 'Ingredient Stack',
@@ -370,7 +370,7 @@ export const SUPPLEMENT_PHOTO_PRESETS: SupplementPhotoPreset[] = [
       productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Hero Close-Up (Primer plano)'),
     },
     promptCue:
-      ' Showcase creamy swatches, foamy textures, and macro droplets next to the product for a high-end cleanser/serum vibe. Use playful gradients inspired by OLLY body wash campaigns.',
+      ' Showcase creamy swatches, foamy textures, and macro droplets next to the product for a high-end cleanser/serum vibe. Use playful gradients similar to colorful body-care editorials.',
   },
   {
     label: 'Routine Carousel',
@@ -396,7 +396,7 @@ export const SUPPLEMENT_PHOTO_PRESETS: SupplementPhotoPreset[] = [
       productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Mid-Ground Focus (Segundo plano)', 1),
     },
     promptCue:
-      ' Style the supplements on a pastel picnic blanket with sliced fruit, manicured hands arranging gummies, and playful shadows inspired by OLLY lifestyle shoots.',
+      ' Style the supplements on a pastel picnic blanket with sliced fruit, manicured hands arranging gummies, and playful shadows reminiscent of upbeat lifestyle shoots.',
   },
   {
     label: 'Face Pop Close-Up',
@@ -412,8 +412,8 @@ export const SUPPLEMENT_PHOTO_PRESETS: SupplementPhotoPreset[] = [
       ' If a person is present, float the supplement jar near their cheek with seamless blending; otherwise, keep a bold monochrome background with a cropped hand lifting the jar plus floating flavor props.',
   },
   {
-    label: 'AG1 Counter Ritual',
-    value: 'ag1-counter',
+    label: 'Sunrise Ritual Counter',
+    value: 'sunrise-counter',
     description: 'Sunrise kitchen bar with frosted glass, shaker, and leafy greens.',
     settings: {
       setting: getOptionValueByLabel(SETTING_OPTIONS, 'Kitchen'),
@@ -422,11 +422,11 @@ export const SUPPLEMENT_PHOTO_PRESETS: SupplementPhotoPreset[] = [
       productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Hero Close-Up (Primer plano)'),
     },
     promptCue:
-      ' Style the product like an Athletic Greens ritual: place it beside a clear glass of frothy drink, fresh citrus, and a chrome scoop on stone counters with sharp morning sun beams.',
+      ' Style the product like a functional wellness ritual: place it beside a clear glass of frothy drink, fresh citrus, and a chrome scoop on stone counters with sharp morning sun beams.',
   },
   {
-    label: 'Seed Lab Counter',
-    value: 'seed-lab',
+    label: 'Clinical Lab Counter',
+    value: 'clinical-lab',
     description: 'Clinical marble countertop with glass beakers and botanicals.',
     settings: {
       setting: getOptionValueByLabel(SETTING_OPTIONS, 'Home Office', 4),
@@ -436,11 +436,11 @@ export const SUPPLEMENT_PHOTO_PRESETS: SupplementPhotoPreset[] = [
       placementStyle: getOptionValueByLabel(PLACEMENT_STYLE_OPTIONS, 'Acrylic Blocks'),
     },
     promptCue:
-      ' Emulate Seed.com imagery: chrome lab tools, floating capsules in glass tubes, muted green palette, and soft volumetric light that feels like a microbiome lab.',
+      ' Emulate science-forward imagery: chrome lab tools, floating capsules in glass tubes, muted green palette, and soft volumetric light that feels like a microbiome lab.',
   },
   {
-    label: 'Armra Golden Mist',
-    value: 'armra-gold',
+    label: 'Golden Mist Aura',
+    value: 'golden-mist',
     description: 'Molten gold gradients, glass pedestals, and swirling dust motes.',
     settings: {
       setting: getOptionValueByLabel(SETTING_OPTIONS, 'Boutique Hotel', 9),
@@ -449,11 +449,11 @@ export const SUPPLEMENT_PHOTO_PRESETS: SupplementPhotoPreset[] = [
       productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Hero Close-Up (Primer plano)'),
     },
     promptCue:
-      ' Surround the hero jar with metallic arches, velvet plinths, and gold mist like Armra campaigns. Add tiny sparks or cosmic dust swirling behind the product.',
+      ' Surround the hero jar with metallic arches, velvet plinths, and gold mist. Add tiny sparks or cosmic dust swirling behind the product for an ethereal, premium feel.',
   },
   {
-    label: 'Outdoor Mojo Boost',
-    value: 'mojo-outdoor',
+    label: 'Outdoor Energy Boost',
+    value: 'outdoor-energy',
     description: 'Vivid outdoor fitness deck with kettlebells, mats, and sweat towel.',
     settings: {
       setting: getOptionValueByLabel(SETTING_OPTIONS, 'Outdoors', 6),
@@ -462,11 +462,11 @@ export const SUPPLEMENT_PHOTO_PRESETS: SupplementPhotoPreset[] = [
       productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Mid-Ground Focus (Segundo plano)'),
     },
     promptCue:
-      ' Stage the bottle on a workout mat with kettlebells, citrus slices, and water spray, echoing Mojo and OPositiv energy. Include sun flares and lens haze to feel like an IRL workout break.',
+      ' Stage the bottle on a workout mat with kettlebells, citrus slices, and water spray to capture high-energy motion. Include sun flares and lens haze to feel like an IRL workout break.',
   },
   {
-    label: 'Nutrafol Crown Ritual',
-    value: 'nutrafol-crown',
+    label: 'Crown Ritual Vanity',
+    value: 'crown-ritual',
     description: 'Marble vanity, chrome combs, and hair wellness cues with lush greenery.',
     settings: {
       setting: getOptionValueByLabel(SETTING_OPTIONS, 'Bedroom', 2),
@@ -475,11 +475,11 @@ export const SUPPLEMENT_PHOTO_PRESETS: SupplementPhotoPreset[] = [
       placementStyle: getOptionValueByLabel(PLACEMENT_STYLE_OPTIONS, 'Luxury Editorial'),
     },
     promptCue:
-      ' Render the hero supplements beside a jade comb, glass water dropper, and gentle steam ribbons on a white marble counter with foliage bokeh—just like Nutrafol and OPositiv rituals.',
+      ' Render the hero supplements beside a jade comb, glass water dropper, and gentle steam ribbons on a white marble counter with foliage bokeh—perfect for hair and skin wellness storytelling.',
   },
   {
-    label: 'Lemme Candy Lab',
-    value: 'lemme-lab',
+    label: 'Candy Gradient Lab',
+    value: 'candy-lab',
     description: 'Candy-coated gradient lab with gummy spills and chrome labware.',
     settings: {
       setting: getOptionValueByLabel(SETTING_OPTIONS, 'Home Office', 4),
@@ -488,7 +488,7 @@ export const SUPPLEMENT_PHOTO_PRESETS: SupplementPhotoPreset[] = [
       productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Background Story (Tercer plano)'),
     },
     promptCue:
-      ' Style like a Lemme launch: translucent gummy jars on mirrored pedestals, holographic gradients, chrome droppers, and floating gummy trails that feel whimsical yet premium.',
+      ' Style like a playful gummy launch: translucent jars on mirrored pedestals, holographic gradients, chrome droppers, and floating gummy trails that feel whimsical yet premium.',
   },
   {
     label: 'Hero Landing Page',
@@ -521,7 +521,7 @@ export const PRO_LENS_OPTIONS: Option[] = [
   { label: 'Tilt-Shift Hero', value: 'captured with a tilt-shift lens for perfect verticals and premium catalog polish' },
   { label: 'Ultra-Wide Stylized', value: 'shot on an ultra-wide 24mm lens for dramatic perspective and sweeping background' },
   { label: 'Cinema Zoom', value: 'captured on a cinema zoom lens with controlled focus pulls and smooth transitions' },
-  { label: '70-200mm Compression', value: 'captured on a 70-200mm telephoto zoom to compress background elements like Nutrafol billboard campaigns' },
+  { label: '70-200mm Compression', value: 'captured on a 70-200mm telephoto zoom to compress background elements like large-format wellness billboards' },
   { label: '35mm Anamorphic Glow', value: 'shot on a 35mm anamorphic lens with cinematic oval bokeh and subtle barrel warp for high-end hero shots' },
 ];
 
@@ -531,7 +531,7 @@ export const PRO_LIGHTING_RIG_OPTIONS: Option[] = [
   { label: 'Hard Edge Gels', value: 'hard strobes with colored gels hitting the background to create gradients and drama' },
   { label: 'Backlit Acrylic', value: 'backlit translucent acrylic table for glowing bottles and floating reflections' },
   { label: 'High-Speed Splash Rig', value: 'strobe rig tuned for high-speed splashes, freezing liquid midair' },
-  { label: 'Gradient Cyclorama', value: 'giant cyclorama wash with dual RGB gradients for Seed/AG1 inspired backdrops' },
+  { label: 'Gradient Cyclorama', value: 'giant cyclorama wash with dual RGB gradients inspired by premium hero backdrops' },
   { label: 'Prism Spotlight Duo', value: 'two specular spotlights firing through prisms to create rainbow streaks and glossy kickers' },
 ];
 
@@ -540,8 +540,8 @@ export const PRO_POST_TREATMENT_OPTIONS: Option[] = [
   { label: 'Film Grain Lux', value: 'polished film grain overlay with teal-and-orange color grade' },
   { label: 'Matte Editorial', value: 'matte, desaturated editorial finish with subtle bloom' },
   { label: 'Hyperreal CGI Blend', value: 'hyperreal CGI-style treatment with razor-sharp edges and perfect gradients' },
-  { label: 'Clinical Lab Polish', value: 'clean-room clarity with cool whites, chrome accents, and zero color cast like Seed or Nutrafol product pages' },
-  { label: 'Vibrant Lifestyle Pop', value: 'punchy saturation, lifted whites, and candy-colored highlights for Olly/Lemme style ecommerce banners' },
+  { label: 'Clinical Lab Polish', value: 'clean-room clarity with cool whites, chrome accents, and zero color cast like science-backed product pages' },
+  { label: 'Vibrant Lifestyle Pop', value: 'punchy saturation, lifted whites, and candy-colored highlights inspired by playful ecommerce banners' },
 ];
 
 export type ProLookPreset = {
@@ -590,8 +590,8 @@ export const PRO_LOOK_PRESETS: ProLookPreset[] = [
     },
   },
   {
-    label: 'Olly Carousel Glow',
-    value: 'olly_carousel',
+    label: 'Carousel Glow',
+    value: 'carousel_glow',
     description: 'Candy-colored acrylic plinths with gummy spills and rim lights.',
     settings: {
       proLens: PRO_LENS_OPTIONS[1].value,
@@ -601,8 +601,8 @@ export const PRO_LOOK_PRESETS: ProLookPreset[] = [
     },
   },
   {
-    label: 'Seed Clinical Chrome',
-    value: 'seed_chrome',
+    label: 'Clinical Chrome',
+    value: 'clinical_chrome',
     description: 'Sterile macro shot with chrome lab props and teal gradients.',
     settings: {
       proLens: PRO_LENS_OPTIONS[2].value,
@@ -623,9 +623,9 @@ export const PRO_LOOK_PRESETS: ProLookPreset[] = [
     },
   },
   {
-    label: 'AG1 Morning Ritual',
-    value: 'ag1_morning',
-    description: 'Telephoto compression with gradient cyclorama wash inspired by AG1 countertop hero shots.',
+    label: 'Dawn Ritual Compression',
+    value: 'dawn_ritual',
+    description: 'Telephoto compression with gradient cyclorama wash inspired by modern countertop hero shots.',
     settings: {
       proLens: PRO_LENS_OPTIONS[5].value,
       proLightingRig: PRO_LIGHTING_RIG_OPTIONS[5].value,

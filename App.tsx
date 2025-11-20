@@ -638,25 +638,26 @@ const App: React.FC = () => {
   const [formulationLabStyle, setFormulationLabStyle] = useState(FORMULATION_LAB_OPTIONS[0].value);
   const [formulationExpertProfession, setFormulationExpertProfession] = useState('custom');
   const [activeBundleTab, setActiveBundleTab] = useState<'premade' | 'custom' | 'recommended'>('premade');
-  const [recommendedBaseProduct, setRecommendedBaseProduct] = useState<ProductId>(ALL_PRODUCT_IDS[0]);
+  const [recommendedBaseProduct, setRecommendedBaseProduct] = useState<ProductId>(ALL_PRODUCT_IDS[0] || 'product_1');
   const [lastBundleSelection, setLastBundleSelection] = useState<ProductId[] | null>(null);
   const availableProductIds = useMemo<ProductId[]>(
-    () => ALL_PRODUCT_IDS.slice(0, Math.min(productAssets.length, ALL_PRODUCT_IDS.length)),
-    [productAssets.length]
+    () => productAssets.map((_, index) => `product_${index + 1}` as ProductId),
+    [productAssets]
   );
   const availableProductIdSet = useMemo(() => new Set<ProductId>(availableProductIds), [availableProductIds]);
   const productMediaLibrary = useMemo<ProductMediaLibrary>(() => {
-    const dynamic: ProductMediaLibrary = { ...PRODUCT_MEDIA_LIBRARY };
-    availableProductIds.forEach((productId, index) => {
-      const asset = productAssets[index];
-      if (!asset) return;
-      dynamic[productId] = {
+    if (!productAssets.length) {
+      return PRODUCT_MEDIA_LIBRARY;
+    }
+    return productAssets.reduce<ProductMediaLibrary>((acc, asset, index) => {
+      const productId = `product_${index + 1}` as ProductId;
+      acc[productId] = {
         label: asset.label || `Product ${index + 1}`,
         imageUrl: asset.previewUrl,
       };
-    });
-    return dynamic;
-  }, [availableProductIds, productAssets]);
+      return acc;
+    }, {});
+  }, [productAssets]);
   useEffect(() => {
     if (!availableProductIds.length) return;
     if (!availableProductIds.includes(recommendedBaseProduct)) {
@@ -709,7 +710,7 @@ const App: React.FC = () => {
   const [moodSummary, setMoodSummary] = useState<string | null>(null);
   const [moodPromptCue, setMoodPromptCue] = useState<string | null>(null);
   const [isMoodProcessing, setIsMoodProcessing] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(1);
   const [activeTalentPreset, setActiveTalentPreset] = useState('custom');
   const [isProPhotographer, setIsProPhotographer] = useState(false);
@@ -1493,7 +1494,7 @@ const App: React.FC = () => {
                   >
                     {availableProductIds.map(productId => (
                       <option key={productId} value={productId}>
-                        {productMediaLibrary[productId]?.label || PRODUCT_MEDIA_LIBRARY[productId].label}
+                        {productMediaLibrary[productId]?.label || PRODUCT_MEDIA_LIBRARY[productId]?.label || productId}
                       </option>
                     ))}
                   </select>
@@ -1519,7 +1520,7 @@ const App: React.FC = () => {
                     key={`${productId}-last`}
                     className="rounded-full border border-white/20 px-3 py-1 text-gray-100"
                   >
-                    {productMediaLibrary[productId]?.label || PRODUCT_MEDIA_LIBRARY[productId].label}
+                    {productMediaLibrary[productId]?.label || PRODUCT_MEDIA_LIBRARY[productId]?.label || productId}
                   </span>
                 ))}
             </div>
@@ -3952,13 +3953,7 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
                 Change API Key
               </button>
             )}
-            <button
-              onClick={handleReplayOnboarding}
-              disabled={isTrialLocked}
-              className={`inline-flex items-center justify-center rounded-lg border border-indigo-500/60 text-sm font-semibold px-4 py-2 transition ${isTrialLocked ? 'text-indigo-300/30 border-indigo-500/20 cursor-not-allowed' : 'text-indigo-200 hover:bg-indigo-500/10'}`}
-            >
-              Replay guided tour
-            </button>
+            {/* Hide Replay guided tour until onboarding flow is revamped */}
           </div>
           {isLoggedIn && (
             <>
@@ -4333,7 +4328,7 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
                             <div className="flex flex-wrap items-center justify-between gap-2">
                               <div>
                                 <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Supplement photo modes</p>
-                                <p className="text-[11px] text-gray-400">Preset palettes inspired by Olly, AG1, Seed, Armra, and more.</p>
+                                <p className="text-[11px] text-gray-400">Preset palettes inspired by top supplement launches.</p>
                               </div>
                               <button
                                 type="button"
