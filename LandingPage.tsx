@@ -312,6 +312,30 @@ const LandingPage: React.FC = () => {
               </button>
             </div>
             <p className="text-sm text-gray-500 animate-fade-up delay-300">Free plan → 10 credits · No credit card required</p>
+            <div className="w-full max-w-4xl animate-fade-up delay-400">
+              <div className="rounded-2xl border border-white/10 bg-gray-900/70 p-5 text-left shadow-lg shadow-indigo-500/10">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-indigo-200">Access instructions</p>
+                    <h3 className="text-lg font-semibold text-white mt-1">Cómo entrar al builder</h3>
+                  </div>
+                  <div className="rounded-full bg-indigo-500/20 px-3 py-1 text-xs font-medium text-indigo-100">
+                    Envíos desde: amisaodesign@gmail.com
+                  </div>
+                </div>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-xl border border-white/5 bg-gray-800/60 p-4">
+                    <p className="text-sm font-semibold text-white">Opción 1: Google</p>
+                    <p className="text-sm text-gray-300 mt-1">Haz clic en “Launch App” y elige “Continuar con Google” para entrar de inmediato.</p>
+                  </div>
+                  <div className="rounded-xl border border-white/5 bg-gray-800/60 p-4">
+                    <p className="text-sm font-semibold text-white">Opción 2: Email con código</p>
+                    <p className="text-sm text-gray-300 mt-1">Ingresa tu correo, te enviamos un código de 6 dígitos desde <span className="font-semibold text-indigo-100">amisaodesign@gmail.com</span>. Revisa spam/promociones.</p>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">Si no ves el email en 1-2 minutos, reenvía el código o prueba con Google. Los admins definidos en VITE_ADMIN_EMAILS saltan los límites de prueba.</p>
+              </div>
+            </div>
           </div>
         </header>
       </div>
