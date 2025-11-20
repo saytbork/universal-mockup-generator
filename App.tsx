@@ -775,7 +775,7 @@ const App: React.FC = () => {
   const microLocationDefault = MICRO_LOCATION_NONE_VALUE;
   const isHeroLandingMode = activeSupplementPreset === HERO_LANDING_PRESET_VALUE;
   const currentPlan = PLAN_CONFIG[planTier];
-  const shouldRequireLogin = planTier !== 'free';
+  const shouldRequireLogin = !isLoggedIn;
   const loginGateActive = shouldRequireLogin || loginRequested;
   const planCreditLimit = currentPlan.creditLimit;
   const planVideoLimit = Math.floor(planCreditLimit / VIDEO_CREDIT_COST);
@@ -1024,6 +1024,14 @@ const App: React.FC = () => {
       }
     }
   }, [isAdmin, planTier]);
+
+  useEffect(() => {
+    if (isAdmin) return;
+    setHasTrialBypass(false);
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(TRIAL_BYPASS_KEY);
+    }
+  }, [isAdmin]);
 
   useEffect(() => {
     return () => {
@@ -3309,6 +3317,7 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
     const creditCost = getImageCreditCost(options);
     if (!isTrialBypassActive && creditCost > remainingCredits) {
       setImageError('Not enough credits for this generation. Upgrade your plan.');
+      setShowPlanModal(true);
       return;
     }
 
