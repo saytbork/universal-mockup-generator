@@ -113,6 +113,8 @@ type ProductAsset = {
   file: File;
   previewUrl: string;
   createdAt: number;
+  heightValue: number | null;
+  heightUnit: 'cm' | 'in';
 };
 
 type ImageVariant = {
@@ -383,34 +385,6 @@ const PERSON_FIELD_KEYS: OptionCategory[] = [
   'skinTone',
 ] as OptionCategory[];
 
-const ANGLE_REMIX_OPTIONS = [
-  {
-    id: 'top-down',
-    label: 'Top Down',
-    description: 'a top-down flatlay perspective as if the camera is directly above the scene',
-  },
-  {
-    id: '45-left',
-    label: '45° Left',
-    description: 'a 45-degree left-side angle showing more depth and context around the subject',
-  },
-  {
-    id: '45-right',
-    label: '45° Right',
-    description: 'a 45-degree right-side angle creating asymmetry and natural parallax',
-  },
-  {
-    id: 'low-angle',
-    label: 'Low Angle',
-    description: 'a slightly low, up-close handheld angle like a friend holding the phone near chest level',
-  },
-  {
-    id: 'over-shoulder',
-    label: 'Over Shoulder',
-    description: 'an over-the-shoulder viewpoint focusing on what the subject is handling',
-  },
-];
-
 const applyPersonProfileToOptions = (
   base: MockupOptions,
   profile: Partial<MockupOptions>
@@ -599,26 +573,30 @@ const App: React.FC = () => {
   const [ugcRealSettings, setUgcRealSettings] = useState<UGCRealModeSettings>(() => createDefaultUGCRealSettings());
   const [activeBundleTab, setActiveBundleTab] = useState<'premade' | 'custom' | 'recommended'>('premade');
   const [recommendedBaseProduct, setRecommendedBaseProduct] = useState<ProductId>(ALL_PRODUCT_IDS[0]);
-  const [angleRemixInFlight, setAngleRemixInFlight] = useState<string | null>(null);
   const [lastBundleSelection, setLastBundleSelection] = useState<ProductId[] | null>(null);
-  const activeAngleRemix = useMemo(
-    () => ANGLE_REMIX_OPTIONS.find(option => option.id === angleRemixInFlight) ?? null,
-    [angleRemixInFlight]
+  const availableProductIds = useMemo<ProductId[]>(
+    () => ALL_PRODUCT_IDS.slice(0, Math.min(productAssets.length, ALL_PRODUCT_IDS.length)),
+    [productAssets.length]
   );
+  const availableProductIdSet = useMemo(() => new Set<ProductId>(availableProductIds), [availableProductIds]);
   const productMediaLibrary = useMemo<ProductMediaLibrary>(() => {
     const dynamic: ProductMediaLibrary = { ...PRODUCT_MEDIA_LIBRARY };
-    const limit = Math.min(productAssets.length, ALL_PRODUCT_IDS.length);
-    for (let index = 0; index < limit; index += 1) {
+    availableProductIds.forEach((productId, index) => {
       const asset = productAssets[index];
-      if (!asset) continue;
-      const id = ALL_PRODUCT_IDS[index];
-      dynamic[id] = {
+      if (!asset) return;
+      dynamic[productId] = {
         label: asset.label || `Product ${index + 1}`,
         imageUrl: asset.previewUrl,
       };
-    }
+    });
     return dynamic;
-  }, [productAssets]);
+  }, [availableProductIds, productAssets]);
+  useEffect(() => {
+    if (!availableProductIds.length) return;
+    if (!availableProductIds.includes(recommendedBaseProduct)) {
+      setRecommendedBaseProduct(availableProductIds[0]);
+    }
+  }, [availableProductIds, recommendedBaseProduct]);
   const persistUgcRealSettings = useCallback(
     (updater: (prev: UGCRealModeSettings) => UGCRealModeSettings) => {
       setUgcRealSettings(prev => {
@@ -1387,49 +1365,60 @@ const App: React.FC = () => {
           <BundleSelector
             onGenerate={generateMockup}
             productMediaLibrary={productMediaLibrary}
+            visibleProductIds={availableProductIds}
           />
         )}
         {activeBundleTab === 'custom' && (
           <CustomBundleBuilder
             onGenerate={generateMockup}
             productMediaLibrary={productMediaLibrary}
+            visibleProductIds={availableProductIds}
           />
         )}
         {activeBundleTab === 'recommended' && (
           <div className="space-y-4">
-            <div className="flex flex-col gap-2">
-              <label className="text-xs uppercase tracking-[0.3ем] text-gray-400">Anchor product</label>
-              <select
-                value={recommendedBaseProduct}
-                onChange={event => setRecommendedBaseProduct(event.target.value as ProductId)}
-                className="rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-              >
-                {ALL_PRODUCT_IDS.map(productId => (
-                  <option key={productId} value={productId}>
-                    {productMediaLibrary[productId]?.label || PRODUCT_MEDIA_LIBRARY[productId].label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <RecommendedBundle
-              productId={recommendedBaseProduct}
-              onGenerate={generateMockup}
-              productMediaLibrary={productMediaLibrary}
-            />
+            {availableProductIds.length === 0 ? (
+              <p className="text-xs text-amber-200">Upload at least one product photo to view recommendations.</p>
+            ) : (
+              <>
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs uppercase tracking-[0.3em] text-gray-400">Anchor product</label>
+                  <select
+                    value={recommendedBaseProduct}
+                    onChange={event => setRecommendedBaseProduct(event.target.value as ProductId)}
+                    className="rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                  >
+                    {availableProductIds.map(productId => (
+                      <option key={productId} value={productId}>
+                        {productMediaLibrary[productId]?.label || PRODUCT_MEDIA_LIBRARY[productId].label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <RecommendedBundle
+                  productId={recommendedBaseProduct}
+                  onGenerate={generateMockup}
+                  productMediaLibrary={productMediaLibrary}
+                  visibleProductIds={availableProductIds}
+                />
+              </>
+            )}
           </div>
         )}
-        {lastBundleSelection && lastBundleSelection.length > 0 && (
+        {lastBundleSelection && lastBundleSelection.some(id => availableProductIdSet.has(id)) && (
           <div className="rounded-2xl border border-white/10 bg-gray-900/40 p-3 space-y-2">
             <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Last bundle sent</p>
             <div className="flex flex-wrap gap-2 text-xs">
-              {lastBundleSelection.map(productId => (
-                <span
-                  key={`${productId}-last`}
-                  className="rounded-full border border-white/20 px-3 py-1 text-gray-100"
-                >
-                  {productMediaLibrary[productId]?.label || PRODUCT_MEDIA_LIBRARY[productId].label}
-                </span>
-              ))}
+              {lastBundleSelection
+                .filter(productId => availableProductIdSet.has(productId))
+                .map(productId => (
+                  <span
+                    key={`${productId}-last`}
+                    className="rounded-full border border-white/20 px-3 py-1 text-gray-100"
+                  >
+                    {productMediaLibrary[productId]?.label || PRODUCT_MEDIA_LIBRARY[productId].label}
+                  </span>
+                ))}
             </div>
           </div>
         )}
@@ -2656,7 +2645,18 @@ const App: React.FC = () => {
 
       const assetId = makeSceneId();
       const assetLabel = `Product ${productAssets.length + 1}`;
-      setProductAssets(prev => [...prev, { id: assetId, label: assetLabel, file: finalFile, previewUrl, createdAt: Date.now() }]);
+      setProductAssets(prev => [
+        ...prev,
+        {
+          id: assetId,
+          label: assetLabel,
+          file: finalFile,
+          previewUrl,
+          createdAt: Date.now(),
+          heightValue: null,
+          heightUnit: 'cm',
+        },
+      ]);
       setActiveProductId(assetId);
     }
     advanceOnboardingFromStep(2);
@@ -2676,6 +2676,25 @@ const App: React.FC = () => {
   const handleProductAssetLabelChange = useCallback((assetId: string, label: string) => {
     setProductAssets(prev =>
       prev.map(asset => (asset.id === assetId ? { ...asset, label: label || asset.label } : asset))
+    );
+  }, []);
+
+  const handleProductHeightChange = useCallback((assetId: string, rawValue: string) => {
+    setProductAssets(prev =>
+      prev.map(asset => {
+        if (asset.id !== assetId) return asset;
+        const parsed = Number.parseFloat(rawValue);
+        return {
+          ...asset,
+          heightValue: Number.isNaN(parsed) ? null : Math.max(0, parsed),
+        };
+      })
+    );
+  }, []);
+
+  const handleProductHeightUnitChange = useCallback((assetId: string, unit: 'cm' | 'in') => {
+    setProductAssets(prev =>
+      prev.map(asset => (asset.id === assetId ? { ...asset, heightUnit: unit } : asset))
     );
   }, []);
 
@@ -2772,7 +2791,23 @@ const App: React.FC = () => {
       prompt += `The scene is a ${options.setting}, illuminated by ${options.lighting}. The overall environment has a ${options.environmentOrder} feel. The photo is shot from a ${options.perspective}, embracing the chosen camera style and its natural characteristics. Frame the composition so the product lives in ${options.productPlane}. `;
     }
     
+    const formatHeightNumber = (num: number) => (Number.isInteger(num) ? num.toString() : num.toFixed(1));
+    const describeHeight = (value: number, unit: 'cm' | 'in') => {
+      if (unit === 'cm') {
+        const inches = (value / 2.54).toFixed(1);
+        return `${formatHeightNumber(value)} cm tall (about ${inches} in)`;
+      }
+      const centimeters = (value * 2.54).toFixed(1);
+      return `${formatHeightNumber(value)} in tall (about ${centimeters} cm)`;
+    };
+    const heightNotes = productAssets
+      .filter(asset => asset.heightValue)
+      .map(asset => `${asset.label || 'product'} ${describeHeight(asset.heightValue!, asset.heightUnit)}`)
+      .join('. ');
     prompt += `The focus is on the provided product, which has a ${options.productMaterial} finish. Render only a single instance of this product. Never duplicate or mirror it. Use the uploaded product cutout exactly as provided—keep the entire silhouette, every label, and every edge visible with no cropping or re-interpretation. Integrate the real photo seamlessly into the new environment so it looks composited but untouched. Ensure its material, reflections, and shadows are rendered realistically according to the environment. Do not alter the product's design or branding. `;
+    if (heightNotes) {
+      prompt += `Respect real-world scale: ${heightNotes}. Adjust hands, props, and camera distance so the item visibly matches that measurement.`;
+    }
     if (realModeActive) {
       prompt += ` ${UGC_REAL_MODE_BASE_PROMPT}.`;
       const realityPreset = UGC_REALITY_PRESETS.find(item => item.id === ugcRealSettings.selectedRealityPresetId);
@@ -2787,7 +2822,7 @@ const App: React.FC = () => {
     }
     if (bundleProductsForPrompt?.length) {
       const bundleLabels = bundleProductsForPrompt
-        .map(id => PRODUCT_MEDIA_LIBRARY[id]?.label)
+        .map(id => productMediaLibrary[id]?.label || PRODUCT_MEDIA_LIBRARY[id]?.label)
         .filter(Boolean);
       if (bundleLabels.length) {
         prompt += ` Treat this as a curated bundle featuring ${bundleLabels.join(', ')}. Arrange every uploaded product cutout to mimic that assortment so shoppers immediately read it as a kit. `;
@@ -3029,13 +3064,14 @@ const App: React.FC = () => {
       }
       const finalPrompt = constructPrompt(bundleSelectionRef.current);
       
+      const aspectRatio = options?.aspectRatio || '1:1';
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
         contents: { parts: [...productInlineParts, {text: finalPrompt}] },
         config: {
           responseModalities: [Modality.IMAGE],
           imageConfig: {
-            aspectRatio: options.aspectRatio,
+            aspectRatio,
           },
         },
       });
@@ -3086,19 +3122,20 @@ const App: React.FC = () => {
   const generateMockup = useCallback(
     (bundleProducts: string[]) => {
       const sanitized = bundleProducts.filter((product): product is ProductId =>
-        ALL_PRODUCT_IDS.includes(product as ProductId)
+        availableProductIdSet.has(product as ProductId)
       );
       if (sanitized.length) {
         setLastBundleSelection(sanitized);
         handleGenerateClick(sanitized);
         return;
       }
+      setPlanNotice('Upload matching product photos for this bundle.');
       handleGenerateClick();
     },
-    [handleGenerateClick]
+    [handleGenerateClick, availableProductIdSet]
   );
 
-  const applyImageEdit = useCallback(async (prompt: string, options?: { clearManual?: boolean }) => {
+  const applyImageEdit = useCallback(async (prompt: string, editOptions?: { clearManual?: boolean }) => {
     if (!generatedImageUrl) {
       setImageError("Generate an image first.");
       return;
@@ -3120,6 +3157,7 @@ const App: React.FC = () => {
       const ai = new GoogleGenAI({ apiKey: resolvedApiKey });
       const base64Image = generatedImageUrl.split(',')[1];
 
+      const aspectRatio = options?.aspectRatio || '1:1';
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
         contents: {
@@ -3131,7 +3169,7 @@ const App: React.FC = () => {
         config: {
           responseModalities: [Modality.IMAGE],
           imageConfig: {
-            aspectRatio: options.aspectRatio,
+            aspectRatio,
           },
         },
       });
@@ -3141,7 +3179,7 @@ const App: React.FC = () => {
           const editedUrl = `data:image/png;base64,${part.inlineData.data}`;
           setGeneratedImageUrl(editedUrl);
           runHiResPipeline(editedUrl);
-          if (options?.clearManual) {
+          if (editOptions?.clearManual) {
             setEditPrompt('');
           }
           return;
@@ -3178,25 +3216,6 @@ const App: React.FC = () => {
   const handleEditImage = useCallback(async () => {
     await applyImageEdit(editPrompt, { clearManual: true });
   }, [applyImageEdit, editPrompt]);
-
-  const handleAngleRemix = useCallback(
-    async (angleId: string) => {
-      if (!generatedImageUrl) {
-        setImageError('Generate an image before changing the camera angle.');
-        return;
-      }
-      const option = ANGLE_REMIX_OPTIONS.find(item => item.id === angleId);
-      if (!option) return;
-      const anglePrompt = `Re-render this exact scene from ${option.description}. Keep the same person (expression ${options.personExpression}), wardrobe, props, and the hero product arrangement perfectly identical. Maintain lighting (${options.lighting}) and environment (${options.setting}) but reposition the camera only—do not change styling, labels, or packaging.`;
-      setAngleRemixInFlight(option.id);
-      try {
-        await applyImageEdit(anglePrompt);
-      } finally {
-        setAngleRemixInFlight(null);
-      }
-    },
-    [applyImageEdit, generatedImageUrl, options.personExpression, options.lighting, options.setting]
-  );
 
   const handleGenerateVideo = async () => {
     if (!hasPlanVideoAccess) {
@@ -3882,7 +3901,16 @@ const App: React.FC = () => {
                               <span>{asset.label || 'Untitled product'}</span>
                               <span className="text-[10px] text-gray-400">{Math.round(asset.file.size / 1024)} KB</span>
                             </button>
-                            <img src={asset.previewUrl} alt={asset.label} className="h-12 w-12 rounded-md object-cover border border-white/10" />
+                            <div className="relative">
+                              <img src={asset.previewUrl} alt={asset.label} className="h-20 w-20 rounded-md object-cover border border-white/10" />
+                              <button
+                                type="button"
+                                onClick={() => handleProductAssetDelete(asset.id)}
+                                className="absolute -right-2 -top-2 rounded-full bg-black/80 p-1 text-[10px] uppercase tracking-widest text-rose-300 hover:bg-rose-500/40"
+                              >
+                                Remove
+                              </button>
+                            </div>
                           </div>
                           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                             <input
@@ -3892,22 +3920,32 @@ const App: React.FC = () => {
                               className="flex-1 rounded-md border border-white/10 bg-black/20 px-2 py-1 text-xs text-white focus:border-indigo-400 focus:outline-none"
                               placeholder="Name this product"
                             />
-                            <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                onClick={() => handleProductAssetSelect(asset.id)}
-                                className={`rounded-full border px-3 py-1 text-[11px] ${asset.id === activeProductId ? 'border-indigo-400 text-white' : 'border-white/20 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+                            <div className="flex flex-col gap-1 text-xs text-gray-300">
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.1"
+                                value={asset.heightValue ?? ''}
+                                onChange={event => handleProductHeightChange(asset.id, event.target.value)}
+                                className="w-full rounded-md border border-white/10 bg-black/20 px-2 py-1 text-white focus:border-indigo-400 focus:outline-none"
+                                placeholder="Height"
+                              />
+                              <select
+                                value={asset.heightUnit}
+                                onChange={event => handleProductHeightUnitChange(asset.id, event.target.value as 'cm' | 'in')}
+                                className="rounded-md border border-white/10 bg-black/20 px-2 py-1 text-white focus:border-indigo-400 focus:outline-none"
                               >
-                                Use
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleProductAssetDelete(asset.id)}
-                                className="rounded-full border border-red-400/50 px-3 py-1 text-[11px] text-red-200 hover:bg-red-500/10"
-                              >
-                                Remove
-                              </button>
+                                <option value="cm">cm</option>
+                                <option value="in">in</option>
+                              </select>
                             </div>
+                            <button
+                              type="button"
+                              onClick={() => handleProductAssetSelect(asset.id)}
+                              className={`rounded-full border px-3 py-1 text-[11px] ${asset.id === activeProductId ? 'border-indigo-400 text-white' : 'border-white/20 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+                            >
+                              Use
+                            </button>
                           </div>
                         </div>
                       ))}
@@ -4325,38 +4363,6 @@ const App: React.FC = () => {
                     onEditImage={handleEditImage}
                     isEditing={isImageLoading}
                   />
-                )}
-                {generatedImageUrl && (
-                  <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                      <div>
-                        <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Change camera angle</p>
-                        <p className="text-sm text-gray-400">Reframe the exact same scene from a new vantage without changing the subject.</p>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {ANGLE_REMIX_OPTIONS.map(option => (
-                        <button
-                          key={option.id}
-                          type="button"
-                          onClick={() => handleAngleRemix(option.id)}
-                          disabled={isImageLoading || Boolean(angleRemixInFlight)}
-                          className={`rounded-full border px-3 py-1 text-xs transition ${
-                            angleRemixInFlight === option.id
-                              ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                              : 'border-white/20 text-white/80 hover:border-indigo-400 hover:text-white'
-                          } disabled:opacity-40`}
-                        >
-                          {angleRemixInFlight === option.id ? 'Remixing…' : option.label}
-                        </button>
-                      ))}
-                    </div>
-                    {activeAngleRemix && (
-                      <p className="text-xs text-indigo-200">
-                        Camera is reframing to <span className="font-semibold">{activeAngleRemix.label}</span>. Please wait…
-                      </p>
-                    )}
-                  </div>
                 )}
                 {generatedImageUrl && (
                   <VideoGenerator

@@ -5,17 +5,25 @@ import type { ProductId, ProductMediaLibrary } from '../bundles.config';
 interface BundleSelectorProps {
   onGenerate: (bundleProducts: ProductId[]) => void;
   productMediaLibrary: ProductMediaLibrary;
+  visibleProductIds: ProductId[];
 }
 
-const BundleSelector: React.FC<BundleSelectorProps> = ({ onGenerate, productMediaLibrary }) => {
+const BundleSelector: React.FC<BundleSelectorProps> = ({
+  onGenerate,
+  productMediaLibrary,
+  visibleProductIds,
+}) => {
   const bundleEntries = useMemo(() => Object.entries(PREMADE_BUNDLES), []);
   const [activeKey, setActiveKey] = useState(bundleEntries[0]?.[0] ?? '');
 
   const activeBundle = activeKey ? PREMADE_BUNDLES[activeKey] : null;
+  const visibleSet = useMemo(() => new Set(visibleProductIds), [visibleProductIds]);
+  const visibleProducts = activeBundle?.products.filter(id => visibleSet.has(id)) ?? [];
+  const bundleDisabled = !visibleProducts.length;
 
   const handleGenerate = () => {
-    if (!activeBundle) return;
-    onGenerate(activeBundle.products);
+    if (!activeBundle || bundleDisabled) return;
+    onGenerate(visibleProducts);
   };
 
   return (
@@ -38,8 +46,13 @@ const BundleSelector: React.FC<BundleSelectorProps> = ({ onGenerate, productMedi
       {activeBundle && (
         <div className="rounded-2xl border border-white/10 bg-gray-900/60 p-4 space-y-3">
           <p className="text-sm font-semibold text-white">{activeBundle.name}</p>
+          {bundleDisabled && (
+            <p className="text-xs text-amber-200">
+              Upload matching product photos to use this bundle.
+            </p>
+          )}
           <div className="flex flex-wrap gap-3">
-            {activeBundle.products.map(productId => {
+            {visibleProducts.map(productId => {
               const meta = productMediaLibrary[productId];
               return (
                 <div key={productId} className="w-28 text-center text-xs text-gray-300">
@@ -67,7 +80,7 @@ const BundleSelector: React.FC<BundleSelectorProps> = ({ onGenerate, productMedi
       <button
         type="button"
         onClick={handleGenerate}
-        disabled={!activeBundle}
+        disabled={!activeBundle || bundleDisabled}
         className="w-full rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-indigo-900/50"
       >
         Generate Bundle Mockup

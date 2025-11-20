@@ -1,52 +1,68 @@
 import React, { useState } from 'react';
-import { ALL_PRODUCT_IDS, ProductId, ProductMediaLibrary } from '../bundles.config';
+import { ProductId, ProductMediaLibrary } from '../bundles.config';
 import { useBundles } from '../useBundles';
 
 interface CustomBundleBuilderProps {
   onGenerate: (bundleProducts: ProductId[]) => void;
   productMediaLibrary: ProductMediaLibrary;
+  visibleProductIds: ProductId[];
 }
 
 const MIN_SELECTION = 2;
 const MAX_SELECTION = 5;
 
-const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({ onGenerate, productMediaLibrary }) => {
+const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
+  onGenerate,
+  productMediaLibrary,
+  visibleProductIds,
+}) => {
   const { buildCustomBundle } = useBundles();
-  const [selected, setSelected] = useState<Record<ProductId, boolean>>(() =>
-    ALL_PRODUCT_IDS.reduce((acc, id) => {
-      acc[id] = false;
-      return acc;
-    }, {} as Record<ProductId, boolean>)
-  );
+  const [selectedIds, setSelectedIds] = useState<ProductId[]>([]);
+
+  React.useEffect(() => {
+    setSelectedIds(prev => prev.filter(id => visibleProductIds.includes(id)));
+  }, [visibleProductIds]);
 
   const toggleProduct = (productId: ProductId) => {
-    setSelected(prev => ({ ...prev, [productId]: !prev[productId] }));
+    setSelectedIds(prev => {
+      if (prev.includes(productId)) {
+        return prev.filter(id => id !== productId);
+      }
+      return [...prev, productId];
+    });
   };
 
-  const selectedIds = ALL_PRODUCT_IDS.filter(id => selected[id]);
+  const filteredSelection = selectedIds.filter(id => visibleProductIds.includes(id));
+  const minSelection = Math.min(MIN_SELECTION, Math.max(1, visibleProductIds.length));
+  const maxSelection = Math.min(MAX_SELECTION, Math.max(minSelection, visibleProductIds.length));
   const isValidSelection =
-    selectedIds.length >= MIN_SELECTION && selectedIds.length <= MAX_SELECTION;
+    filteredSelection.length >= minSelection && filteredSelection.length <= maxSelection;
 
   const handleGenerate = () => {
     if (!isValidSelection) return;
-    const bundle = buildCustomBundle(selectedIds);
+    const bundle = buildCustomBundle(filteredSelection);
     onGenerate(bundle);
   };
 
   return (
     <div className="space-y-4">
       <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
-        Choose {MIN_SELECTION} to {MAX_SELECTION} products
+        Choose {minSelection} to {maxSelection} products
       </p>
-      <div className="grid gap-3 sm:grid-cols-3">
-        {ALL_PRODUCT_IDS.map(productId => {
-          const meta = productMediaLibrary[productId];
-          const isChecked = selected[productId];
-          return (
-            <label
-              key={productId}
-              className={`flex flex-col gap-2 rounded-2xl border px-3 py-3 ${
-                isChecked
+      {visibleProductIds.length === 0 ? (
+        <p className="text-xs text-amber-200">
+          Upload product photos to build your own bundle.
+        </p>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-3">
+          {visibleProductIds.map(productId => {
+            const meta = productMediaLibrary[productId];
+            const isChecked = filteredSelection.includes(productId);
+            return (
+              <label
+                key={productId}
+                className={`flex flex-col gap-2 rounded-2xl border px-3 py-3 ${
+                  isChecked
                   ? 'border-indigo-400 bg-indigo-500/10 text-white'
                   : 'border-white/10 bg-gray-900/40 text-gray-300'
               }`}
@@ -74,14 +90,15 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({ onGenerate, p
             </label>
           );
         })}
-      </div>
-      {selectedIds.length > 0 && (
+        </div>
+      )}
+      {filteredSelection.length > 0 && (
         <div className="rounded-2xl border border-white/10 bg-gray-900/40 p-3 space-y-2">
           <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">
-            Selected bundle ({selectedIds.length})
+            Selected bundle ({filteredSelection.length})
           </p>
           <div className="flex flex-wrap gap-2 text-xs">
-            {selectedIds.map(productId => (
+            {filteredSelection.map(productId => (
               <span
                 key={`summary-${productId}`}
                 className="rounded-full border border-white/20 px-3 py-1 text-gray-100"
@@ -92,9 +109,9 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({ onGenerate, p
           </div>
         </div>
       )}
-      {!isValidSelection && (
+      {!isValidSelection && visibleProductIds.length > 0 && (
         <p className="text-xs text-amber-200">
-          Select between {MIN_SELECTION} and {MAX_SELECTION} products to continue.
+          Select between {minSelection} and {maxSelection} products to continue.
         </p>
       )}
       <button

@@ -14,16 +14,16 @@ export type ProductMediaLibrary = Record<ProductId, ProductMediaMeta>;
 
 export const PRODUCT_MEDIA_LIBRARY: ProductMediaLibrary = {
   sino_clear: {
-    label: 'Sino Clear',
-    imageUrl: 'https://placehold.co/200x260?text=Sino+Clear',
+    label: 'Product Slot A',
+    imageUrl: 'https://placehold.co/200x260?text=Product+A',
   },
   mullein_tea: {
-    label: 'Mullein Tea',
-    imageUrl: 'https://placehold.co/200x260?text=Mullein+Tea',
+    label: 'Product Slot B',
+    imageUrl: 'https://placehold.co/200x260?text=Product+B',
   },
   breathe: {
-    label: 'Breathe Tincture',
-    imageUrl: 'https://placehold.co/200x260?text=Breathe',
+    label: 'Product Slot C',
+    imageUrl: 'https://placehold.co/200x260?text=Product+C',
   },
 };
 
