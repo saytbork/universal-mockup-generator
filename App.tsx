@@ -694,6 +694,7 @@ const App: React.FC = () => {
   const [isGoogleScriptLoaded, setIsGoogleScriptLoaded] = useState(false);
   const [googleAuthError, setGoogleAuthError] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loginRequested, setLoginRequested] = useState(false);
   const [loginStep, setLoginStep] = useState<'email' | 'code'>('email');
   const [verificationCode, setVerificationCode] = useState('');
   const [verificationError, setVerificationError] = useState<string | null>(null);
@@ -773,6 +774,8 @@ const App: React.FC = () => {
   const microLocationDefault = MICRO_LOCATION_NONE_VALUE;
   const isHeroLandingMode = activeSupplementPreset === HERO_LANDING_PRESET_VALUE;
   const currentPlan = PLAN_CONFIG[planTier];
+  const shouldRequireLogin = planTier !== 'free';
+  const loginGateActive = shouldRequireLogin || loginRequested;
   const planCreditLimit = currentPlan.creditLimit;
   const planVideoLimit = Math.floor(planCreditLimit / VIDEO_CREDIT_COST);
   const canUseStudioFeatures = currentPlan.allowStudio || isTrialBypassActive;
@@ -1063,6 +1066,12 @@ const App: React.FC = () => {
       setShowOnboarding(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      setLoginRequested(false);
+    }
+  }, [isLoggedIn]);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -2631,6 +2640,14 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
     setVerificationError(null);
   }, []);
 
+  const promptLogin = useCallback(() => {
+    setLoginRequested(true);
+    setLoginStep('email');
+    setVerificationCode('');
+    setVerificationError(null);
+    setEmailError(null);
+  }, []);
+
   useEffect(() => {
     if (!GOOGLE_CLIENT_ID || typeof window === 'undefined') return;
     const scriptId = 'google-identity-services';
@@ -3744,12 +3761,21 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
             Gemini API billing
           </a>.
         </p>
+        {!shouldRequireLogin && (
+          <button
+            type="button"
+            onClick={() => setLoginRequested(false)}
+            className="w-full rounded-full border border-white/20 px-4 py-2 text-sm text-gray-300 hover:border-indigo-400 hover:text-white transition"
+          >
+            Continue without signing in
+          </button>
+        )}
       </div>
     </div>
   );
 
 
-  if (!isLoggedIn) {
+  if (loginGateActive && !isLoggedIn) {
     return renderLoginScreen();
   }
 
@@ -3951,6 +3977,14 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
                 className="inline-flex items-center justify-center rounded-lg border border-gray-600 px-4 py-2 text-sm font-semibold text-gray-200 hover:bg-gray-800 transition"
               >
                 Change API Key
+              </button>
+            )}
+            {!shouldRequireLogin && !isLoggedIn && (
+              <button
+                onClick={promptLogin}
+                className="inline-flex items-center justify-center rounded-lg border border-indigo-500/60 px-4 py-2 text-sm font-semibold text-indigo-200 hover:bg-indigo-500/10 transition"
+              >
+                Sign in
               </button>
             )}
             {/* Hide Replay guided tour until onboarding flow is revamped */}

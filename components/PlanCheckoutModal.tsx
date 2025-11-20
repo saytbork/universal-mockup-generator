@@ -19,8 +19,9 @@ interface PlanCheckoutModalProps {
 const PlanCheckoutModal: React.FC<PlanCheckoutModalProps> = ({ plan, email, onEmailChange, onClose, onConfirm, disabledReason }) => {
   const [company, setCompany] = useState('');
 
-  const isEmailValid = /^\S+@\S+\.\S+$/.test(email);
-  const isDisabled = !isEmailValid || Boolean(disabledReason);
+  const hasEmail = email.trim().length > 0;
+  const isEmailValid = !hasEmail || /^\S+@\S+\.\S+$/.test(email);
+  const isDisabled = Boolean(disabledReason);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
@@ -41,9 +42,14 @@ const PlanCheckoutModal: React.FC<PlanCheckoutModalProps> = ({ plan, email, onEm
               value={email}
               onChange={(e) => onEmailChange(e.target.value)}
               placeholder="you@brand.com"
-              className="rounded-lg border border-gray-700 bg-gray-900 px-4 py-2 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className={`rounded-lg border ${isEmailValid ? 'border-gray-700' : 'border-rose-500'} bg-gray-900 px-4 py-2 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500`}
             />
           </label>
+          {!isEmailValid && (
+            <p className="text-xs text-rose-300">
+              Optional, but use a valid email if you want Stripe to pre-fill it.
+            </p>
+          )}
           <label className="flex flex-col gap-1">
             <span className="text-xs uppercase tracking-widest text-gray-500">Company / brand</span>
             <input
