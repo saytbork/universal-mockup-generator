@@ -744,6 +744,9 @@ export const CAMERA_OPTIONS: Option[] = [
   { label: 'Polaroid OneStep', value: 'shot on an instant Polaroid camera with soft focus and vignette' },
   { label: 'DSLR/Mirrorless', value: 'shot on a professional DSLR/Mirrorless camera with a shallow depth of field' },
   { label: 'Laptop Webcam', value: 'shot on a built-in laptop webcam with low-light noise' },
+  { label: 'Cinema Camera Rig', value: 'captured on a cinema camera rig with PL glass, 6K sensors, and stabilized movement' },
+  { label: 'Medium Format Studio Camera', value: 'shot on a medium format studio camera tethered to Capture One for razor-sharp product detail' },
+  { label: 'Sony FX3', value: 'captured on a Sony FX3 cinema camera with S-Cinetone color science' },
 ];
 
 export type HeroPosePreset = {

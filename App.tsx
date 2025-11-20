@@ -105,6 +105,12 @@ type StoryboardScene = {
   heroProductScale: number;
   heroShadowStyle: HeroLandingShadowStyle;
   ugcRealSettings: UGCRealModeSettings;
+  formulationExpertEnabled: boolean;
+  formulationExpertPreset: string;
+  formulationExpertName: string;
+  formulationExpertRole: string;
+  formulationLabStyle: string;
+  formulationExpertProfession: string;
 };
 
 type ProductAsset = {
@@ -201,6 +207,54 @@ const getSelfieLabel = (value: string) =>
   SELFIE_TYPE_OPTIONS.find(option => option.value === value)?.label ?? SELFIE_TYPE_OPTIONS[0].label;
 
 const HERO_LANDING_PRESET_VALUE = 'hero-landing';
+const FORMULATION_EXPERT_PRESETS = [
+  {
+    value: 'respiratory-doctor',
+    label: 'Respiratory Doctor',
+    role: 'pulmonologist and lead formulator',
+    suggestedName: 'Dr. Sofia Reyes',
+    prompt:
+      'Dress the doctor in a crisp lab coat with a name badge, reviewing charts beside the product with compassionate authority.',
+  },
+  {
+    value: 'clinical-researcher',
+    label: 'Clinical Researcher',
+    role: 'clinical researcher overseeing trials',
+    suggestedName: 'Dr. Malik Herrera',
+    prompt:
+      'Show the researcher surrounded by clipboards, microscopes, and annotated results to emphasize rigorous testing.',
+  },
+  {
+    value: 'herbal-formulator',
+    label: 'Herbal Formulator',
+    role: 'master herbalist behind the blend',
+    suggestedName: 'Dr. Aria Park',
+    prompt:
+      'Portray them with botanical samples, mortar and pestle, and a calm confidence that sells holistic science.',
+  },
+];
+const FORMULATION_LAB_OPTIONS: Option[] = [
+  { label: 'Modern Clinical Lab', value: 'a modern clinical lab bench with glassware and stainless surfaces' },
+  { label: 'R&D Studio', value: 'a warm R&D studio with sketches, ingredient jars, and soft daylight' },
+  { label: 'Apothecary Lab', value: 'an apothecary-inspired lab with botanicals, droppers, and amber bottles' },
+];
+const FORMULATION_PROFESSIONS = [
+  { value: 'pulmonologist', label: 'Pulmonologist' },
+  { value: 'nutritionist', label: 'Nutritionist' },
+  { value: 'dermatologist', label: 'Dermatologist' },
+  { value: 'pharmacist', label: 'Pharmacist' },
+  { value: 'clinical-researcher', label: 'Clinical Researcher' },
+  { value: 'herbalist', label: 'Herbalist' },
+  { value: 'custom', label: 'Custom' },
+];
+const FORMULATION_PRESET_LOOKUP = FORMULATION_EXPERT_PRESETS.reduce(
+  (acc, preset) => ({ ...acc, [preset.value]: preset }),
+  {} as Record<string, (typeof FORMULATION_EXPERT_PRESETS)[number]>
+);
+const FORMULATION_PROFESSION_LOOKUP = FORMULATION_PROFESSIONS.reduce(
+  (acc, profession) => ({ ...acc, [profession.value]: profession }),
+  {} as Record<string, (typeof FORMULATION_PROFESSIONS)[number]>
+);
 const HERO_LANDING_META = SUPPLEMENT_PHOTO_PRESETS.find(option => option.value === HERO_LANDING_PRESET_VALUE);
 const HERO_ALIGNMENT_OPTIONS: { label: string; value: HeroLandingAlignment }[] = [
   { label: 'Left', value: 'left' },
@@ -544,6 +598,12 @@ const App: React.FC = () => {
       heroProductScale: 1,
       heroShadowStyle: 'softDrop',
       ugcRealSettings: createDefaultUGCRealSettings(),
+      formulationExpertEnabled: false,
+      formulationExpertPreset: FORMULATION_EXPERT_PRESETS[0].value,
+      formulationExpertName: '',
+      formulationExpertRole: FORMULATION_EXPERT_PRESETS[0].role,
+      formulationLabStyle: FORMULATION_LAB_OPTIONS[0].value,
+      formulationExpertProfession: 'custom',
     };
   }
   const [options, setOptions] = useState<MockupOptions>(() => cloneOptions(initialSceneRef.current!.options));
@@ -571,6 +631,12 @@ const App: React.FC = () => {
   const [heroProductScale, setHeroProductScale] = useState(1);
   const [heroShadowStyle, setHeroShadowStyle] = useState<HeroLandingShadowStyle>('softDrop');
   const [ugcRealSettings, setUgcRealSettings] = useState<UGCRealModeSettings>(() => createDefaultUGCRealSettings());
+  const [formulationExpertEnabled, setFormulationExpertEnabled] = useState(false);
+  const [formulationExpertPreset, setFormulationExpertPreset] = useState(FORMULATION_EXPERT_PRESETS[0].value);
+  const [formulationExpertName, setFormulationExpertName] = useState('');
+  const [formulationExpertRole, setFormulationExpertRole] = useState(FORMULATION_EXPERT_PRESETS[0].role);
+  const [formulationLabStyle, setFormulationLabStyle] = useState(FORMULATION_LAB_OPTIONS[0].value);
+  const [formulationExpertProfession, setFormulationExpertProfession] = useState('custom');
   const [activeBundleTab, setActiveBundleTab] = useState<'premade' | 'custom' | 'recommended'>('premade');
   const [recommendedBaseProduct, setRecommendedBaseProduct] = useState<ProductId>(ALL_PRODUCT_IDS[0]);
   const [lastBundleSelection, setLastBundleSelection] = useState<ProductId[] | null>(null);
@@ -721,6 +787,42 @@ const App: React.FC = () => {
       persistUgcRealSettings(prev => ({ ...prev, isEnabled: false }));
     }
   }, [personInScene, isProductPlacement, ugcRealSettings.isEnabled, persistUgcRealSettings]);
+
+  useEffect(() => {
+    setStoryboardScenes(prev => {
+      let updated = false;
+      const next = prev.map(scene => {
+        if (scene.id !== activeSceneId) return scene;
+        const shouldUpdate =
+          scene.formulationExpertEnabled !== formulationExpertEnabled ||
+          scene.formulationExpertPreset !== formulationExpertPreset ||
+          scene.formulationExpertName !== formulationExpertName ||
+          scene.formulationExpertRole !== formulationExpertRole ||
+          scene.formulationLabStyle !== formulationLabStyle ||
+          scene.formulationExpertProfession !== formulationExpertProfession;
+        if (!shouldUpdate) return scene;
+        updated = true;
+        return {
+          ...scene,
+          formulationExpertEnabled,
+          formulationExpertPreset,
+          formulationExpertName,
+          formulationExpertRole,
+          formulationLabStyle,
+          formulationExpertProfession,
+        };
+      });
+      return updated ? next : prev;
+    });
+  }, [
+    activeSceneId,
+    formulationExpertEnabled,
+    formulationExpertPreset,
+    formulationExpertName,
+    formulationExpertRole,
+    formulationLabStyle,
+    formulationExpertProfession,
+  ]);
   const scrollToSection = useCallback((title: string) => {
     const element = document.getElementById(getSectionId(title));
     if (element) {
@@ -1255,6 +1357,7 @@ const App: React.FC = () => {
                 )}
               </div>
             )}
+            {!personControlsDisabled && renderFormulationStoryPanel('ugc')}
             {!personControlsDisabled && (
               <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-4">
                 <p className="text-xs uppercase tracking-[0.3em] text-indigo-200 mb-3">Prop bundles</p>
@@ -1445,6 +1548,12 @@ const App: React.FC = () => {
     setHeroProductScale(scene.heroProductScale ?? 1);
     setHeroShadowStyle(scene.heroShadowStyle ?? 'softDrop');
     setUgcRealSettings(cloneUGCRealSettings(scene.ugcRealSettings));
+    setFormulationExpertEnabled(scene.formulationExpertEnabled ?? false);
+    setFormulationExpertPreset(scene.formulationExpertPreset ?? FORMULATION_EXPERT_PRESETS[0].value);
+    setFormulationExpertName(scene.formulationExpertName ?? '');
+    setFormulationExpertRole(scene.formulationExpertRole ?? FORMULATION_EXPERT_PRESETS[0].role);
+    setFormulationLabStyle(scene.formulationLabStyle ?? FORMULATION_LAB_OPTIONS[0].value);
+    setFormulationExpertProfession(scene.formulationExpertProfession ?? 'custom');
     setGeneratedCopy(null);
     setCopyError(null);
   }, [storyboardScenes]);
@@ -1473,6 +1582,12 @@ const App: React.FC = () => {
       heroProductScale,
       heroShadowStyle,
       ugcRealSettings: cloneUGCRealSettings(ugcRealSettings),
+      formulationExpertEnabled,
+      formulationExpertPreset,
+      formulationExpertName,
+      formulationExpertRole,
+      formulationLabStyle,
+      formulationExpertProfession,
     };
     setStoryboardScenes(prev => [...prev, newScene]);
     setActiveSceneId(newScene.id);
@@ -1525,6 +1640,12 @@ const App: React.FC = () => {
       heroProductScale: scene.heroProductScale ?? 1,
       heroShadowStyle: scene.heroShadowStyle ?? 'softDrop',
       ugcRealSettings: cloneUGCRealSettings(scene.ugcRealSettings),
+      formulationExpertEnabled: scene.formulationExpertEnabled,
+      formulationExpertPreset: scene.formulationExpertPreset,
+      formulationExpertName: scene.formulationExpertName,
+      formulationExpertRole: scene.formulationExpertRole,
+      formulationLabStyle: scene.formulationLabStyle,
+      formulationExpertProfession: scene.formulationExpertProfession,
     };
     setStoryboardScenes(prev => [...prev, newScene]);
     setActiveSceneId(newScene.id);
@@ -1616,6 +1737,93 @@ const App: React.FC = () => {
     setActiveTalentPreset('custom');
   }, []);
 
+  const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
+    <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Formulation story</p>
+          <p className="text-xs text-gray-400">
+            {context === 'product'
+              ? 'Highlight the doctor or researcher behind the formula to build trust.'
+              : 'Let your UGC creator double as the doctor/scientist formulating the blend.'}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setFormulationExpertEnabled(prev => !prev)}
+          className={`relative h-5 w-10 rounded-full transition ${formulationExpertEnabled ? 'bg-indigo-500' : 'bg-gray-700'}`}
+        >
+          <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${formulationExpertEnabled ? 'translate-x-5' : ''}`} />
+        </button>
+      </div>
+      {formulationExpertEnabled && (
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            {FORMULATION_EXPERT_PRESETS.map(preset => (
+              <button
+                key={preset.value}
+                type="button"
+                onClick={() => handleFormulationPresetSelect(preset.value)}
+                className={`rounded-full border px-3 py-1 text-xs transition ${
+                  formulationExpertPreset === preset.value
+                    ? 'border-amber-300 bg-amber-500/10 text-white'
+                    : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
+                }`}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {FORMULATION_PROFESSIONS.map(option => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => handleFormulationProfessionSelect(option.value)}
+                className={`rounded-full border px-3 py-1 text-xs transition ${
+                  formulationExpertProfession === option.value
+                    ? 'border-amber-300 bg-amber-500/10 text-white'
+                    : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div className="flex flex-col gap-1">
+              <label className="text-xs uppercase tracking-widest text-gray-500">Expert name</label>
+              <input
+                type="text"
+                value={formulationExpertName}
+                onChange={event => setFormulationExpertName(event.target.value)}
+                placeholder="e.g., Dr. Sofia Reyes"
+                className="rounded-md border border-white/10 bg-black/20 px-2 py-1 text-sm text-white focus:border-indigo-400 focus:outline-none"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs uppercase tracking-widest text-gray-500">Role / credentials</label>
+              <input
+                type="text"
+                value={formulationExpertRole}
+                onChange={event => setFormulationExpertRole(event.target.value)}
+                placeholder="e.g., pulmonologist & lead formulator"
+                className="rounded-md border border-white/10 bg-black/20 px-2 py-1 text-sm text-white focus:border-indigo-400 focus:outline-none"
+              />
+            </div>
+          </div>
+          <ChipSelectGroup
+            label="Lab vibe"
+            options={FORMULATION_LAB_OPTIONS}
+            selectedValue={formulationLabStyle}
+            onChange={value => setFormulationLabStyle(value)}
+          />
+          <p className="text-[11px] text-gray-400">We’ll mention their research, lab setup, and why the formula feels trustworthy.</p>
+        </div>
+      )}
+    </div>
+  );
+
   const handleUGCRealModeToggle = useCallback(
     (value: boolean) => {
       persistUgcRealSettings(prev => ({ ...prev, isEnabled: value }));
@@ -1683,6 +1891,32 @@ const App: React.FC = () => {
       persistUgcRealSettings(prev => ({ ...prev, selectedExpressionId: id }));
     },
     [persistUgcRealSettings]
+  );
+
+  const handleFormulationPresetSelect = useCallback(
+    (value: string) => {
+      setFormulationExpertPreset(value);
+      const preset = FORMULATION_PRESET_LOOKUP[value];
+      if (preset) {
+        setFormulationExpertRole(preset.role);
+        if (!formulationExpertName.trim()) {
+          setFormulationExpertName(preset.suggestedName ?? '');
+        }
+      }
+    },
+    [formulationExpertName]
+  );
+
+  const handleFormulationProfessionSelect = useCallback(
+    (value: string) => {
+      setFormulationExpertProfession(value);
+      if (value === 'custom') return;
+      const profession = FORMULATION_PROFESSION_LOOKUP[value];
+      if (profession) {
+        setFormulationExpertRole(profession.label);
+      }
+    },
+    []
   );
 
   const handleBlurChange = useCallback(
@@ -2807,6 +3041,16 @@ const App: React.FC = () => {
     prompt += `The focus is on the provided product, which has a ${options.productMaterial} finish. Render only a single instance of this product. Never duplicate or mirror it. Use the uploaded product cutout exactly as provided—keep the entire silhouette, every label, and every edge visible with no cropping or re-interpretation. Integrate the real photo seamlessly into the new environment so it looks composited but untouched. Ensure its material, reflections, and shadows are rendered realistically according to the environment. Do not alter the product's design or branding. `;
     if (heightNotes) {
       prompt += `Respect real-world scale: ${heightNotes}. Adjust hands, props, and camera distance so the item visibly matches that measurement.`;
+    }
+    if (formulationExpertEnabled) {
+      const preset = FORMULATION_PRESET_LOOKUP[formulationExpertPreset];
+      const expertName = (formulationExpertName || preset?.suggestedName || 'Dr. Ana Ruiz').trim();
+      const expertRole = (formulationExpertRole || preset?.role || 'lead formulator').trim();
+      prompt += ` Feature ${expertName}, ${expertRole}, present in ${formulationLabStyle} beside the hero product.`;
+      if (preset?.prompt) {
+        prompt += ` ${preset.prompt}`;
+      }
+      prompt += ' Make it obvious they created the formula based on cited clinical research—include subtle clipboard notes, lab coat details, and a respectful nod to science-backed development.';
     }
     if (realModeActive) {
       prompt += ` ${UGC_REAL_MODE_BASE_PROMPT}.`;
@@ -4181,6 +4425,7 @@ const App: React.FC = () => {
                               </div>
                             </div>
                           )}
+                          {renderFormulationStoryPanel('product')}
                           <div className="flex flex-col gap-2">
                             <label className="text-xs uppercase tracking-widest text-gray-500">Flavor / ingredient props</label>
                               <textarea
