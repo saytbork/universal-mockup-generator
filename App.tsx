@@ -375,6 +375,7 @@ const GOAL_WIZARD_KEY = 'ugc-goal-wizard-dismissed';
 const PLAN_STORAGE_KEY = 'ugc-plan-tier';
 const VIDEO_COUNT_KEY = 'ugc-video-generation-count';
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '';
+const EMAIL_VERIFICATION_ENABLED = import.meta.env.VITE_EMAIL_VERIFICATION === 'true';
 
 type PlanTier = 'free' | 'creator' | 'studio';
 
@@ -2538,6 +2539,11 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
       return;
     }
     setEmailInput(trimmed);
+    if (!EMAIL_VERIFICATION_ENABLED) {
+      completeLogin(trimmed);
+      setLoginRequested(false);
+      return;
+    }
     setIsRequestingCode(true);
     setVerificationError(null);
     try {
@@ -2565,6 +2571,10 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
     if (!trimmed) {
       setLoginStep('email');
       setVerificationError('Re-enter your email to get a verification code.');
+      return;
+    }
+    if (!EMAIL_VERIFICATION_ENABLED) {
+      completeLogin(trimmed);
       return;
     }
     if (!verificationCode.trim()) {
@@ -2673,22 +2683,33 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
 
   useEffect(() => {
     if (!GOOGLE_CLIENT_ID || !isGoogleScriptLoaded || googleInitRef.current) return;
-    const googleId = window.google?.accounts?.id;
-    if (!googleId) return;
-    googleId.initialize({
-      client_id: GOOGLE_CLIENT_ID,
-      callback: (response: GoogleCredentialResponse) => handleGoogleCredential(response.credential),
-    });
-    if (googleButtonRef.current) {
-      googleButtonRef.current.innerHTML = '';
-      googleId.renderButton(googleButtonRef.current, {
-        theme: 'outline',
-        size: 'large',
-        width: 320,
-        shape: 'pill',
+    let cancelled = false;
+    const tryInitialize = () => {
+      if (cancelled || googleInitRef.current) return;
+      const googleId = window.google?.accounts?.id;
+      if (!googleId) {
+        window.setTimeout(tryInitialize, 200);
+        return;
+      }
+      googleId.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: (response: GoogleCredentialResponse) => handleGoogleCredential(response.credential),
       });
-    }
-    googleInitRef.current = true;
+      if (googleButtonRef.current) {
+        googleButtonRef.current.innerHTML = '';
+        googleId.renderButton(googleButtonRef.current, {
+          theme: 'outline',
+          size: 'large',
+          width: 320,
+          shape: 'pill',
+        });
+      }
+      googleInitRef.current = true;
+    };
+    tryInitialize();
+    return () => {
+      cancelled = true;
+    };
   }, [GOOGLE_CLIENT_ID, handleGoogleCredential, isGoogleScriptLoaded]);
 
 
@@ -3652,7 +3673,9 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
                 disabled={isRequestingCode}
                 className="w-full bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-900/60 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out shadow-lg"
               >
-                {isRequestingCode ? 'Sending code…' : 'Send verification code'}
+                {EMAIL_VERIFICATION_ENABLED
+                  ? isRequestingCode ? 'Sending code…' : 'Send verification code'
+                  : isRequestingCode ? 'Processing…' : 'Continue'}
               </button>
             </>
           ) : (
