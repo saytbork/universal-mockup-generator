@@ -2163,10 +2163,6 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
 
   const handlePlanTierSelect = useCallback(
     (tier: PlanTier) => {
-      if (!isAdmin && tier !== 'free') {
-        setPlanCodeError('Only admins can change plans.');
-        return;
-      }
       setPlanTier(tier);
       if (typeof window !== 'undefined') {
         window.localStorage.setItem(PLAN_STORAGE_KEY, tier);
@@ -2182,14 +2178,10 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
       setPlanCodeError(null);
       setShowPlanModal(false);
     },
-    [isAdmin, isSimpleMode]
+    [isSimpleMode]
   );
 
   const handlePlanCodeSubmit = useCallback(() => {
-    if (!isAdmin) {
-      setPlanCodeError('Only admins can apply access codes.');
-      return;
-    }
     const trimmed = planCodeInput.trim();
     if (!trimmed) {
       setPlanCodeError('Enter the access code provided after checkout.');
@@ -2203,7 +2195,7 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
     handlePlanTierSelect(tier);
     setPlanCodeInput('');
     setPlanCodeError(null);
-  }, [planCodeInput, handlePlanTierSelect, isAdmin]);
+  }, [planCodeInput, handlePlanTierSelect]);
 
   const handleProPhotographerToggle = useCallback(() => {
     setIsProPhotographer(prev => !prev);
@@ -3356,7 +3348,7 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
       
       const aspectRatio = options?.aspectRatio || '1:1';
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
+        model: 'gemini-1.5-flash',
         contents: { parts: [...productInlineParts, {text: finalPrompt}] },
         config: {
           responseModalities: [Modality.IMAGE],
@@ -3449,7 +3441,7 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
 
       const aspectRatio = options?.aspectRatio || '1:1';
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
+        model: 'gemini-1.5-flash',
         contents: {
           parts: [
             { inlineData: { data: base64Image, mimeType: 'image/png' } },
