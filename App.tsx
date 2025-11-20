@@ -1737,7 +1737,7 @@ const App: React.FC = () => {
     setActiveTalentPreset('custom');
   }, []);
 
-  const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
+const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
     <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
       <div className="flex items-center justify-between">
         <div>
@@ -1748,13 +1748,16 @@ const App: React.FC = () => {
               : 'Let your UGC creator double as the doctor/scientist formulating the blend.'}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setFormulationExpertEnabled(prev => !prev)}
-          className={`relative h-5 w-10 rounded-full transition ${formulationExpertEnabled ? 'bg-indigo-500' : 'bg-gray-700'}`}
-        >
-          <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${formulationExpertEnabled ? 'translate-x-5' : ''}`} />
-        </button>
+        <label className="flex items-center gap-2 text-xs text-gray-400">
+          <span>{formulationExpertEnabled ? 'Active' : 'Off'}</span>
+          <button
+            type="button"
+            onClick={() => setFormulationExpertEnabled(prev => !prev)}
+            className={`relative h-5 w-10 rounded-full transition ${formulationExpertEnabled ? 'bg-indigo-500' : 'bg-gray-700'}`}
+          >
+            <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${formulationExpertEnabled ? 'translate-x-5' : ''}`} />
+          </button>
+        </label>
       </div>
       {formulationExpertEnabled && (
         <div className="space-y-3">
@@ -1818,7 +1821,7 @@ const App: React.FC = () => {
             selectedValue={formulationLabStyle}
             onChange={value => setFormulationLabStyle(value)}
           />
-          <p className="text-[11px] text-gray-400">We’ll mention their research, lab setup, and why the formula feels trustworthy.</p>
+          <p className="text-[11px] text-gray-400">We’ll mention their research, lab setup, and why the formula feels trustworthy. Ensure this expert looks like a real human, photographed with natural imperfections.</p>
         </div>
       )}
     </div>
@@ -3046,10 +3049,14 @@ const App: React.FC = () => {
       const preset = FORMULATION_PRESET_LOOKUP[formulationExpertPreset];
       const expertName = (formulationExpertName || preset?.suggestedName || 'Dr. Ana Ruiz').trim();
       const expertRole = (formulationExpertRole || preset?.role || 'lead formulator').trim();
-      prompt += ` Feature ${expertName}, ${expertRole}, present in ${formulationLabStyle} beside the hero product.`;
+      const professionLabel = formulationExpertProfession === 'custom'
+        ? expertRole
+        : (FORMULATION_PROFESSION_LOOKUP[formulationExpertProfession]?.label ?? expertRole);
+      prompt += ` Feature ${expertName}, a ${professionLabel}, present in ${formulationLabStyle} beside the hero product.`;
       if (preset?.prompt) {
         prompt += ` ${preset.prompt}`;
       }
+      prompt += ' Their face must look photorealistic and human—no CGI, animation, or plastic skin. Keep real pores, imperfect lighting, and shallow depth of field like an editorial portrait.';
       prompt += ' Make it obvious they created the formula based on cited clinical research—include subtle clipboard notes, lab coat details, and a respectful nod to science-backed development.';
     }
     if (realModeActive) {
