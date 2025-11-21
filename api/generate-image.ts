@@ -14,7 +14,7 @@ export default async function handler(
     return res.status(500).json({ error: "API key is not configured on the server." });
   }
 
-  const MODEL_CANDIDATES = Array.from(
+  const MODEL_CANDIDATES: string[] = Array.from(
     new Set(
       [
         process.env.GEMINI_MODEL_ID,
@@ -22,7 +22,7 @@ export default async function handler(
         'gemini-1.5-flash-002',
         'gemini-1.5-flash',
         'gemini-1.5-flash-latest',
-      ].filter(Boolean)
+      ].filter((model): model is string => Boolean(model))
     )
   );
 
@@ -39,9 +39,9 @@ export default async function handler(
     for (const model of MODEL_CANDIDATES) {
       try {
         const response = await ai.models.generateContent({
-          model: model as string,
+          model,
           contents: { parts: [{ inlineData: { data: base64, mimeType } }, { text: prompt }] },
-          config: {
+          generationConfig: {
             responseMimeType: 'image/png',
           },
         });
