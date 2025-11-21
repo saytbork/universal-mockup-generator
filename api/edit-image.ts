@@ -37,8 +37,10 @@ export default async function handler(
     const ai = new GoogleGenAI({ apiKey });
 
     let lastError: any = null;
+    let lastModel: string | null = null;
     for (const model of MODEL_CANDIDATES) {
       try {
+        lastModel = model;
         const response = await ai.models.generateContent({
           model,
           contents: { parts: [{ inlineData: { data: base64Image, mimeType: 'image/png' } }, { text: prompt }] },
@@ -65,7 +67,10 @@ export default async function handler(
       }
     }
 
-    if (lastError) throw lastError;
+    if (lastError) {
+      console.error('edit-image: all models failed. Last model:', lastModel, 'error:', lastError);
+      throw lastError;
+    }
     throw new Error("Image edit failed or returned no image data.");
   } catch (error) {
     console.error("Error in /api/edit-image:", error);

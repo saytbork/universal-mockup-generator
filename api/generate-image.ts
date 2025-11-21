@@ -37,8 +37,10 @@ export default async function handler(
     const ai = new GoogleGenAI({ apiKey });
 
     let lastError: any = null;
+    let lastModel: string | null = null;
     for (const model of MODEL_CANDIDATES) {
       try {
+        lastModel = model;
         const response = await ai.models.generateContent({
           model,
           contents: { parts: [{ inlineData: { data: base64, mimeType } }, { text: prompt }] },
@@ -66,7 +68,10 @@ export default async function handler(
       }
     }
 
-    if (lastError) throw lastError;
+    if (lastError) {
+      console.error('generate-image: all models failed. Last model:', lastModel, 'error:', lastError);
+      throw lastError;
+    }
     throw new Error("Image generation failed or returned no image data.");
   } catch (error) {
     console.error("Error in /api/generate-image:", error);
