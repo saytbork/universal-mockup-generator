@@ -3431,11 +3431,10 @@ const App: React.FC = () => {
       } else {
         setImageError(errorMessage);
       }
-    } finally {
-      setIsImageLoading(false);
-      bundleSelectionRef.current = null;
-    }
-  };
+  } finally {
+    setIsImageLoading(false);
+    bundleSelectionRef.current = null;
+  }
 };
 
 const generateMockup = useCallback(
