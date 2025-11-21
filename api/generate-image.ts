@@ -14,14 +14,14 @@ export default async function handler(
     return res.status(500).json({ error: "API key is not configured on the server." });
   }
 
-  const MODEL_CANDIDATES = Array.from(
+  const MODEL_CANDIDATES: string[] = Array.from(
     new Set(
       [
         process.env.GEMINI_MODEL_ID,
         'gemini-1.5-flash-002',
         'gemini-1.5-flash',
         'gemini-1.5-flash-latest',
-      ].filter(Boolean)
+      ].filter((m): m is string => Boolean(m))
     )
   );
 
