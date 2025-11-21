@@ -38,25 +38,25 @@ type CheckoutPlan = {
 const features = [
   {
     title: 'Mockups in seconds',
-    description: 'Upload your product and spin up on-brand UGC scenes that are ready to publish.',
+    description: 'Upload your product and get real UGC scenes ready to publish.',
     icon: Sparkles,
   },
   {
     title: 'Full creative control',
-    description: 'Dial in camera, lighting, materials, talent, and 40+ pro-level parameters.',
+    description: 'Adjust poses, expressions, materials, backgrounds, and fine tune style parameters.',
     icon: Wand2,
   },
   {
     title: 'Campaign-ready output',
-    description: 'Export stills or generate vertical and horizontal video cuts for ads.',
+    description: 'Export in high resolution for ads, social media, landing pages, and stores.',
     icon: PlaySquare,
   },
 ];
 
 const steps = [
-  { title: '1. Upload your product', detail: 'Drag any PNG/JPG/WebP and the app preps it automatically.' },
-  { title: '2. Pick the environment', detail: 'Select locations, camera types, people, interactions, and styles.' },
-  { title: '3. Generate & refine', detail: 'Produce mockups, tweak with edit prompts, and spin up video clips.' },
+  { title: '1. Upload your product', detail: 'AI detects shape, scale, proportions, and materials.' },
+  { title: '2. Pick the environment', detail: 'Choose kitchen, bathroom, gym, desk, car, bags, nature, studio, or clean commercial backdrops.' },
+  { title: '3. Generate and refine', detail: 'Fine tune lighting, props, shadows, interaction, and UGC imperfections.' },
 ];
 
 type GalleryItem = { src: string; label: string };
@@ -106,7 +106,7 @@ const pricing: PricingPlan[] = [
     monthlyCaption: 'per month',
     yearlyCaption: 'per year',
     highlights: [
-      '10 credits',
+      '3 credits',
       'Watermarked exports',
       'Community support',
     ],
@@ -115,35 +115,35 @@ const pricing: PricingPlan[] = [
   },
   {
     name: 'Creator',
-    monthlyPrice: '$15',
-    yearlyPrice: '$144',
+    monthlyPrice: '$19',
+    yearlyPrice: '$171',
     monthlyCaption: 'per month',
-    yearlyCaption: 'per year (save 20%)',
+    yearlyCaption: 'per year (save 25%)',
     highlights: [
-      '200 credits',
+      '10 credits',
       'No watermark on exports',
-      'Basic commercial license',
+      'Standard support',
     ],
     cta: 'Upgrade to Creator',
     checkoutUrl: creatorCheckoutUrl,
     badge: 'Most Popular',
     featured: true,
-    metadata: { plan: 'creator', credits: 200 },
+    metadata: { plan: 'creator', credits: 10 },
   },
   {
     name: 'Studio',
-    monthlyPrice: '$29',
-    yearlyPrice: '$278',
+    monthlyPrice: '$49',
+    yearlyPrice: '$441',
     monthlyCaption: 'per month',
-    yearlyCaption: 'per year (save 20%)',
+    yearlyCaption: 'per year (save 25%)',
     highlights: [
-      '400 credits',
+      '30 credits',
       'Priority rendering queue',
-      'Full commercial license',
+      'Full feature access',
     ],
     cta: 'Upgrade to Studio',
     checkoutUrl: studioCheckoutUrl,
-    metadata: { plan: 'studio', credits: 400 },
+    metadata: { plan: 'studio', credits: 30 },
   },
 ];
 
@@ -270,7 +270,7 @@ const LandingPage: React.FC = () => {
             <div className="p-2 rounded-xl bg-indigo-600/80 shadow-lg shadow-indigo-500/50">
               <Camera className="w-6 h-6" />
             </div>
-            Universal Mockup Generator
+            BoostUGC
           </div>
           <div className="hidden md:flex items-center gap-6 text-gray-300">
             <button onClick={handleSmoothScroll('#features')} className="hover:text-white transition">Features</button>
@@ -304,10 +304,10 @@ const LandingPage: React.FC = () => {
                 <ShieldCheck className="w-3.5 h-3.5" /> UGC + Product Studio
               </p>
               <h1 className="text-4xl sm:text-5xl font-bold text-white leading-tight">
-                Create mockups and UGC content with AI in minutes.
+                Create UGC and studio quality product shots in minutes
               </h1>
               <p className="text-lg text-gray-300">
-                Personalize your models, pick characters and moods, and generate campaign-ready images with just a few clicks. Swap scenes, talent, and lighting without the studio time.
+                Upload your product, choose UGC or Product Mode, and let AI generate creator real photos or polished hero shots ready for your launch.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 animate-fade-up delay-200">
@@ -322,32 +322,32 @@ const LandingPage: React.FC = () => {
                 onClick={handleSmoothScroll('#features')}
                 className="inline-flex items-center justify-center rounded-full border border-white/20 px-8 py-4 font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition"
               >
-                View Product Tour
+                Watch Product Tour
               </button>
             </div>
-            <p className="text-sm text-gray-500 animate-fade-up delay-300">Free plan → 10 credits · No credit card required</p>
+            <p className="text-sm text-gray-500 animate-fade-up delay-300">Free plan. No credit card required.</p>
             <div className="w-full max-w-4xl animate-fade-up delay-400">
               <div className="rounded-2xl border border-white/10 bg-gray-900/70 p-5 text-left shadow-lg shadow-indigo-500/10">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-indigo-200">Access instructions</p>
-                    <h3 className="text-lg font-semibold text-white mt-1">Cómo entrar al builder</h3>
+                    <p className="text-xs uppercase tracking-[0.2em] text-indigo-200">Getting started</p>
+                    <h3 className="text-lg font-semibold text-white mt-1">Launch BoostUGC</h3>
                   </div>
                   <div className="rounded-full bg-indigo-500/20 px-3 py-1 text-xs font-medium text-indigo-100">
-                    Envíos desde: amisaodesign@gmail.com
+                    Free plan · No credit card required.
                   </div>
                 </div>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-xl border border-white/5 bg-gray-800/60 p-4">
-                    <p className="text-sm font-semibold text-white">Opción 1: Google</p>
-                    <p className="text-sm text-gray-300 mt-1">Haz clic en “Launch App” y elige “Continuar con Google” para entrar de inmediato.</p>
+                    <p className="text-sm font-semibold text-white">Option 1: Launch App</p>
+                    <p className="text-sm text-gray-300 mt-1">Open the builder to start generating UGC or Product Mode scenes.</p>
                   </div>
                   <div className="rounded-xl border border-white/5 bg-gray-800/60 p-4">
-                    <p className="text-sm font-semibold text-white">Opción 2: Email con código</p>
-                    <p className="text-sm text-gray-300 mt-1">Ingresa tu correo, te enviamos un código de 6 dígitos desde <span className="font-semibold text-indigo-100">amisaodesign@gmail.com</span>. Revisa spam/promociones.</p>
+                    <p className="text-sm font-semibold text-white">Option 2: Watch Product Tour</p>
+                    <p className="text-sm text-gray-300 mt-1">See a quick walkthrough before you create your first scene.</p>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">Si no ves el email en 1-2 minutos, reenvía el código o prueba con Google. Los admins definidos en VITE_ADMIN_EMAILS saltan los límites de prueba.</p>
+                <p className="text-xs text-gray-500 mt-2">Upload your product, pick UGC or Product Mode, and generate creator-quality visuals in minutes.</p>
               </div>
             </div>
           </div>
@@ -358,13 +358,13 @@ const LandingPage: React.FC = () => {
         <div className="text-center space-y-3">
           <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">How it works</p>
           <h2 className="text-3xl text-white font-semibold">Upload. Choose intent. Generate.</h2>
-          <p className="text-gray-400">Three simple steps to go from raw product photo to UGC lifestyle or product placement content.</p>
+          <p className="text-gray-400">Select UGC Lifestyle or Product Placement to define the creative direction.</p>
         </div>
         <div className="grid md:grid-cols-3 gap-5">
           {[
-            { title: '1. Choose intent', description: 'Pick UGC Lifestyle or Product Placement to set the tone.' },
-            { title: '2. Upload & inspire', description: 'Drop your product and optional mood image to auto-tune settings.' },
-            { title: '3. Customize & ship', description: 'Refine props, camera, people, or pro lighting—then export photo + video.' },
+            { title: '1. Choose Intent', description: 'Select UGC Lifestyle or Product Placement to define the creative direction.' },
+            { title: '2. Upload Your Product', description: 'Drop your product and optional reference images to auto tune style, colors, and lighting.' },
+            { title: '3. Customize and Export', description: 'Refine props, camera, poses, lighting, and vibe. Export as high resolution photo or video.' },
           ].map((card, index) => (
             <div
               key={card.title}
@@ -383,9 +383,9 @@ const LandingPage: React.FC = () => {
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-sm uppercase tracking-widest text-indigo-300">Live demo</p>
-            <h2 className="text-3xl text-white font-semibold mt-2">Recent UGC + product mockups generated inside the app.</h2>
+            <h2 className="text-3xl text-white font-semibold mt-2">Recent UGC and product mockups generated inside the app</h2>
             <p className="text-gray-400 mt-3 max-w-2xl">
-              Fresh, real mockups generated in the app—auto-rotated every few days so you always see what’s possible right now.
+              These previews were created inside the builder. Click any thumbnail to recreate a similar style.
             </p>
           </div>
           <button
@@ -423,7 +423,7 @@ const LandingPage: React.FC = () => {
           <p className="text-sm uppercase tracking-widest text-indigo-300 mb-2">Built for marketing teams</p>
           <h2 className="text-3xl text-white font-semibold">Create UGC and product shots that sell</h2>
           <p className="mt-4 text-gray-400">
-            A full workflow for founders, marketers, and creators who need launch-quality assets fast—whether it’s candid creator vibes or polished studio hero shots.
+            Create UGC and product shots that sell without studio overhead. Export assets that are ready for ads, social, landing pages, and stores.
           </p>
         </div>
         <div className="grid md:grid-cols-3 gap-8">
@@ -441,9 +441,9 @@ const LandingPage: React.FC = () => {
         <div className="max-w-6xl mx-auto px-6 py-16 grid lg:grid-cols-2 gap-12 items-start">
           <div>
             <p className="text-sm uppercase tracking-widest text-indigo-300 mb-2">Workflow</p>
-            <h2 className="text-3xl text-white font-semibold">From raw product shot to polished ads.</h2>
+            <h2 className="text-3xl text-white font-semibold">From raw product shot to polished ads</h2>
             <p className="mt-4 text-gray-400">
-              Every step is optimized for real results—from your first mockup to A/B testing dozens of UGC and product placement variations.
+              Go from raw product shots to polished ads with full control over environment, camera, and natural UGC imperfections.
             </p>
             <div className="mt-8 space-y-6">
               {steps.map(step => (
@@ -466,7 +466,7 @@ const LandingPage: React.FC = () => {
               </div>
             </div>
             <p className="text-gray-300 text-lg">
-              “We launched a skincare line with the app and shipped lifestyle stills plus vertical reels the same afternoon. Perfect for founders who need to move fast.”
+              “We launched a skincare site with BoostUGC and shipped 15 ads with the same product. Perfect for founders who need to move fast.”
             </p>
             <div className="flex items-center gap-3 text-gray-400 text-sm">
               <Users className="w-5 h-5 text-indigo-300" />
@@ -476,7 +476,7 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Universal Mockup Generator – Pricing Section by Juan Amisano */}
+      {/* BoostUGC – Pricing Section */}
       <section id="pricing" className="relative isolate mt-16 px-4 py-20 sm:px-6 lg:px-8">
         <div className="absolute inset-0 -z-10 rounded-[2.5rem] bg-gradient-to-b from-[#0A0A0F] to-[#111] opacity-95" />
         <div className="max-w-6xl mx-auto text-white space-y-12">
@@ -484,7 +484,7 @@ const LandingPage: React.FC = () => {
             <p className="text-sm uppercase tracking-[0.4em] text-indigo-200">Pricing</p>
             <h2 className="text-3xl sm:text-4xl font-extrabold">Choose the plan that fits your launch velocity</h2>
             <p className="text-base text-gray-400 max-w-2xl mx-auto">
-              Scale authentic UGC visuals without wrangling freelancers. Flip to annual billing and save 20% for your team.
+              Create authentic UGC visuals without workflow friction. Switch between monthly or yearly and save 25 percent.
             </p>
             <div className="mt-6 flex justify-center">
               <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2 shadow-lg shadow-purple-900/30">
@@ -500,7 +500,7 @@ const LandingPage: React.FC = () => {
                   <span className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow transition peer-checked:translate-x-6" />
                 </label>
                 <span className="text-sm text-gray-300">
-                  Billed yearly <span className="ml-1 rounded-full bg-purple-600/30 px-2 py-0.5 text-xs text-purple-200">Save 20%</span>
+                  Billed yearly <span className="ml-1 rounded-full bg-purple-600/30 px-2 py-0.5 text-xs text-purple-200">Save 25%</span>
                 </span>
               </div>
             </div>
@@ -587,7 +587,7 @@ const LandingPage: React.FC = () => {
             })}
           </div>
           <p className="text-center text-sm text-gray-400">
-            1 credit equals 1 standard image. UGC images require 2–4 credits. Video requires 15 credits.
+            1 credit equals 1 standard image. UGC still images require 1 credit. Video outputs require 10 credits.
           </p>
 
           {selectedPlan && (
@@ -619,9 +619,9 @@ const LandingPage: React.FC = () => {
 
       <section className="max-w-4xl mx-auto px-6 py-16 text-center border-t border-white/5">
         <p className="text-sm uppercase tracking-[0.3em] text-indigo-200">Ready to promote</p>
-        <h2 className="mt-4 text-3xl text-white font-semibold">Launch with authentic-looking visuals today.</h2>
+        <h2 className="mt-4 text-3xl text-white font-semibold">Launch with authentic looking visuals today</h2>
         <p className="mt-3 text-gray-400">
-          Create an account with your email, connect your Gemini API key, upload your first product, and publish scroll-stopping results in minutes.
+          Create an account with your email, connect your Gemini API key, upload your first product, and publish real looking visuals in minutes.
         </p>
         <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
           <button
@@ -632,7 +632,7 @@ const LandingPage: React.FC = () => {
             Generate Mockups Now
           </button>
           <a
-            href="mailto:hola@universalugc.com"
+            href="mailto:hello@boostugc.app"
             className="inline-flex items-center justify-center rounded-full border border-white/20 px-8 py-4 font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition"
           >
             Request a guided demo
@@ -644,7 +644,7 @@ const LandingPage: React.FC = () => {
         <div className="flex flex-col gap-3 items-center">
           <div className="flex items-center gap-2 text-white">
             <Camera className="w-5 h-5" />
-            Universal Mockup Generator
+            BoostUGC
           </div>
           <div className="flex flex-wrap justify-center gap-4 text-xs uppercase tracking-widest text-gray-400">
             <button onClick={handleSmoothScroll('#features')} className="hover:text-white transition">Features</button>
@@ -652,9 +652,9 @@ const LandingPage: React.FC = () => {
             <button onClick={handleSmoothScroll('#workflow')} className="hover:text-white transition">Workflow</button>
             <button onClick={handleSmoothScroll('#pricing')} className="hover:text-white transition">Pricing</button>
           </div>
-          <p>© {new Date().getFullYear()} Universal Mockup Generator · Built in Buenos Aires</p>
+          <p>© 2025 boostugc.app. All rights reserved.</p>
           <p className="text-xs">
-            Questions? <a className="text-indigo-300 hover:text-indigo-200" href="mailto:hola@universalugc.com">hola@universalugc.com</a>
+            Questions? <a className="text-indigo-300 hover:text-indigo-200" href="mailto:hello@boostugc.app">hello@boostugc.app</a>
           </p>
         </div>
       </footer>
