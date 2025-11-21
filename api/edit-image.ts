@@ -19,10 +19,8 @@ export default async function handler(
     new Set(
       [
         process.env.GEMINI_MODEL_ID,
-        'imagen-3.0-generate-001',
         'gemini-1.5-flash-002',
         'gemini-1.5-flash',
-        'gemini-1.5-flash-latest',
       ].filter((model): model is string => Boolean(model))
     )
   );
@@ -34,7 +32,7 @@ export default async function handler(
       return res.status(400).json({ error: 'Missing required parameters: base64Image or prompt.' });
     }
 
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = new GoogleGenAI({ apiKey, apiVersion });
 
     let lastError: any = null;
     let lastModel: string | null = null;
@@ -69,7 +67,8 @@ export default async function handler(
 
     if (lastError) {
       console.error('edit-image: all models failed. Last model:', lastModel, 'error:', lastError);
-      throw lastError;
+      const message = lastError instanceof Error ? lastError.message : String(lastError);
+      return res.status(500).json({ error: `Model failed: ${lastModel || 'unknown'} · ${message}` });
     }
     throw new Error("Image edit failed or returned no image data.");
   } catch (error) {
