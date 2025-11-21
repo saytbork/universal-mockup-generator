@@ -21,7 +21,6 @@ export default async function handler(
         process.env.GEMINI_MODEL_ID,
         'gemini-1.5-flash-002',
         'gemini-1.5-flash',
-        'gemini-1.5-flash-latest',
       ].filter((m): m is string => Boolean(m))
     )
   );
