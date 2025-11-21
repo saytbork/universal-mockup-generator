@@ -14,6 +14,7 @@ export default async function handler(
     return res.status(500).json({ error: "API key is not configured on the server." });
   }
 
+  const apiVersion = process.env.GEMINI_API_VERSION || 'v1';
   const MODEL_CANDIDATES: string[] = Array.from(
     new Set(
       [
@@ -32,7 +33,7 @@ export default async function handler(
       return res.status(400).json({ error: 'Missing required parameters: base64, mimeType, or prompt.' });
     }
 
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = new GoogleGenAI({ apiKey, apiVersion });
 
     let lastError: any = null;
     for (const model of MODEL_CANDIDATES) {

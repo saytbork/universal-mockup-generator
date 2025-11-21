@@ -13,6 +13,7 @@ export default async function handler(
   if (!apiKey) {
     return res.status(500).json({ error: "API key is not configured on the server." });
   }
+  const apiVersion = process.env.GEMINI_API_VERSION || 'v1';
 
   try {
     const { base64Image, prompt, aspectRatio } = req.body;
@@ -21,7 +22,7 @@ export default async function handler(
       return res.status(400).json({ error: 'Missing required parameters: base64Image, prompt, or aspectRatio.' });
     }
 
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = new GoogleGenAI({ apiKey, apiVersion });
 
     let operation = await ai.models.generateVideos({
       model: 'veo-1.0', // Using the VEO model
