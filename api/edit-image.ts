@@ -14,7 +14,16 @@ export default async function handler(
     return res.status(500).json({ error: "API key is not configured on the server." });
   }
 
-  const MODEL_ID = process.env.GEMINI_MODEL_ID || 'gemini-1.5-flash-002';
+  const MODEL_CANDIDATES = Array.from(
+    new Set(
+      [
+        process.env.GEMINI_MODEL_ID,
+        'gemini-1.5-flash-002',
+        'gemini-1.5-flash',
+        'gemini-1.5-flash-latest',
+      ].filter(Boolean)
+    )
+  );
 
   try {
     const { base64Image, prompt } = req.body;
@@ -24,23 +33,37 @@ export default async function handler(
     }
 
     const ai = new GoogleGenAI({ apiKey });
-    
-    const response = await ai.models.generateContent({
-        model: MODEL_ID,
-        contents: { parts: [{ inlineData: { data: base64Image, mimeType: 'image/png' } }, { text: prompt }] },
-        config: { responseModalities: [Modality.IMAGE] }
-    });
 
-    const imagePart =
-      response.candidates?.[0]?.content?.parts?.find(
-        (part) => 'inlineData' in part && !!(part as any).inlineData?.data
-      );
+    let lastError: any = null;
+    for (const model of MODEL_CANDIDATES) {
+      try {
+        const response = await ai.models.generateContent({
+          model,
+          contents: { parts: [{ inlineData: { data: base64Image, mimeType: 'image/png' } }, { text: prompt }] },
+          config: { responseModalities: [Modality.IMAGE] }
+        });
 
-    if (imagePart && 'inlineData' in imagePart) {
-        const imageUrl = `data:image/png;base64,${(imagePart as any).inlineData.data}`;
-        return res.status(200).json({ imageUrl });
+        const imagePart =
+          response.candidates?.[0]?.content?.parts?.find(
+            (part) => 'inlineData' in part && !!(part as any).inlineData?.data
+          );
+
+        if (imagePart && 'inlineData' in imagePart) {
+          const imageUrl = `data:image/png;base64,${(imagePart as any).inlineData.data}`;
+          return res.status(200).json({ imageUrl, modelUsed: model });
+        }
+        throw new Error("Image edit failed or returned no image data.");
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        if (message.includes('NOT_FOUND') || message.toLowerCase().includes('not found')) {
+          lastError = err;
+          continue;
+        }
+        throw err;
+      }
     }
 
+    if (lastError) throw lastError;
     throw new Error("Image edit failed or returned no image data.");
   } catch (error) {
     console.error("Error in /api/edit-image:", error);
