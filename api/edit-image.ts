@@ -1,4 +1,4 @@
-import { GoogleGenAI, Modality } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 export default async function handler(
@@ -18,6 +18,7 @@ export default async function handler(
     new Set(
       [
         process.env.GEMINI_MODEL_ID,
+        'imagen-3.0-generate-001',
         'gemini-1.5-flash-002',
         'gemini-1.5-flash',
         'gemini-1.5-flash-latest',
@@ -38,9 +39,9 @@ export default async function handler(
     for (const model of MODEL_CANDIDATES) {
       try {
         const response = await ai.models.generateContent({
-          model,
+          model: model as string,
           contents: { parts: [{ inlineData: { data: base64Image, mimeType: 'image/png' } }, { text: prompt }] },
-          config: { responseModalities: [Modality.IMAGE] }
+          config: { responseMimeType: 'image/png' }
         });
 
         const imagePart =
