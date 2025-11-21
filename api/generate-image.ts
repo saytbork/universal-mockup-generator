@@ -13,6 +13,7 @@ export default async function handler(
   if (!apiKey) {
     return res.status(500).json({ error: "API key is not configured on the server." });
   }
+  const apiVersion = process.env.GEMINI_API_VERSION || 'v1';
 
   const MODEL_CANDIDATES: string[] = Array.from(
     new Set(
@@ -44,7 +45,7 @@ export default async function handler(
           generationConfig: {
             responseMimeType: 'image/png',
           },
-        });
+        }, { apiVersion });
 
         const imagePart =
           response.candidates?.[0]?.content?.parts?.find(
