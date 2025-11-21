@@ -16,15 +16,17 @@ export default async function handler(
 
   try {
     const { base64Image, prompt } = req.body;
+    const apiVersion = process.env.GEMINI_API_VERSION || 'v1';
+    const modelId = (process.env.GEMINI_MODEL_ID || 'gemini-1.5-flash').replace(/^models\//, '');
 
     if (!base64Image || !prompt) {
       return res.status(400).json({ error: 'Missing required parameters: base64Image or prompt.' });
     }
 
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = new GoogleGenAI({ apiKey, apiVersion });
     
     const response = await ai.models.generateContent({
-        model: 'gemini-1.5-flash',
+        model: modelId,
         contents: { parts: [{ inlineData: { data: base64Image, mimeType: 'image/png' } }, { text: prompt }] },
         config: { responseModalities: [Modality.IMAGE] }
     });

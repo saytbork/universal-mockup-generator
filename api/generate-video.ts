@@ -16,12 +16,13 @@ export default async function handler(
 
   try {
     const { base64Image, prompt, aspectRatio } = req.body;
+    const apiVersion = process.env.GEMINI_API_VERSION || 'v1';
 
     if (!base64Image || !prompt || !aspectRatio) {
       return res.status(400).json({ error: 'Missing required parameters: base64Image, prompt, or aspectRatio.' });
     }
 
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = new GoogleGenAI({ apiKey, apiVersion });
 
     let operation = await ai.models.generateVideos({
       model: 'veo-1.0', // Using the VEO model
