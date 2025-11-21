@@ -39,13 +39,13 @@ export default async function handler(
     for (const model of MODEL_CANDIDATES) {
       try {
         lastModel = model;
-        const response = await ai.models.generateContent({
-          model,
-          contents: { parts: [{ inlineData: { data: base64, mimeType } }, { text: prompt }] },
-          generationConfig: {
-            responseMimeType: 'image/png',
-          },
-        });
+      const response = await ai.models.generateContent({
+        model,
+        contents: { parts: [{ inlineData: { data: base64, mimeType } }, { text: prompt }] },
+        generationConfig: {
+          responseMimeType: 'image/png',
+        },
+      });
 
         const imagePart =
           response.candidates?.[0]?.content?.parts?.find(
