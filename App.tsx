@@ -3360,12 +3360,9 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
       const aspectRatio = options?.aspectRatio || '1:1';
       const response = await ai.models.generateContent({
         model: GEMINI_IMAGE_MODEL,
-        contents: { parts: [...productInlineParts, {text: finalPrompt}] },
-        config: {
-          responseModalities: [Modality.IMAGE],
-          imageConfig: {
-            aspectRatio,
-          },
+        contents: { parts: [...productInlineParts, { text: finalPrompt }] },
+        generationConfig: {
+          responseMimeType: 'image/png',
         },
       });
 
@@ -3459,11 +3456,8 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
             { text: prompt.trim() },
           ],
         },
-        config: {
-          responseModalities: [Modality.IMAGE],
-          imageConfig: {
-            aspectRatio,
-          },
+        generationConfig: {
+          responseMimeType: 'image/png',
         },
       });
 
