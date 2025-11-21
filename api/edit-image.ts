@@ -24,7 +24,7 @@ export default async function handler(
     const ai = new GoogleGenAI({ apiKey });
     
     const response = await ai.models.generateContent({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-1.5-flash-latest',
         contents: { parts: [{ inlineData: { data: base64Image, mimeType: 'image/png' } }, { text: prompt }] },
         config: { responseModalities: [Modality.IMAGE] }
     });

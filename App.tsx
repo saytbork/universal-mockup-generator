@@ -2250,7 +2250,7 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
       const ai = new GoogleGenAI({ apiKey: resolvedApiKey });
       const prompt = buildCopyPrompt(options);
       const response = await ai.models.generateContent({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-1.5-flash-latest',
         contents: [{ text: prompt }],
       });
       const text =
@@ -3357,7 +3357,7 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
       
       const aspectRatio = options?.aspectRatio || '1:1';
       const response = await ai.models.generateContent({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-1.5-flash-latest',
         contents: { parts: [...productInlineParts, {text: finalPrompt}] },
         config: {
           responseModalities: [Modality.IMAGE],
@@ -3450,7 +3450,7 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
 
       const aspectRatio = options?.aspectRatio || '1:1';
       const response = await ai.models.generateContent({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-1.5-flash-latest',
         contents: {
           parts: [
             { inlineData: { data: base64Image, mimeType: 'image/png' } },
