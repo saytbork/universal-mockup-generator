@@ -40,11 +40,7 @@ export default async function handler(
     // Poll for the result
     while (!operation.done) {
       await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
-      const opName = typeof operation === 'string' ? operation : operation?.name || '';
-      if (!opName) {
-        throw new Error('Video operation name missing.');
-      }
-      operation = await ai.operations.getVideosOperation({ name: opName });
+      operation = await ai.operations.getVideosOperation({ operation });
     }
 
     if (operation.error) {
