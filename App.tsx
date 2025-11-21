@@ -357,7 +357,6 @@ const LOCAL_STORAGE_KEY = 'ugc-product-mockup-generator-api-key';
 const EMAIL_STORAGE_KEY = 'ugc-product-mockup-generator-user-email';
 const IMAGE_COUNT_KEY = 'ugc-product-mockup-generator-credit-count';
 const VIDEO_ACCESS_KEY = 'ugc-product-mockup-generator-video-access';
-const GALLERY_STORAGE_KEY = 'ugc-generated-gallery';
 const TRIAL_BYPASS_KEY = 'ugc-product-mockup-trial-bypass';
 const DEFAULT_ADMIN_EMAILS = ['juanamisano@gmail.com'];
 const ADMIN_EMAILS = Array.from(
@@ -526,18 +525,6 @@ const getEnvApiKey = (): string | undefined => {
   }
   const fromProcess = process.env.API_KEY;
   return fromProcess ? fromProcess.trim() : undefined;
-};
-
-const persistGeneratedImageForGallery = (url: string) => {
-  try {
-    if (typeof window === 'undefined') return;
-    const existing = window.localStorage.getItem(GALLERY_STORAGE_KEY);
-    const parsed: { url: string; createdAt: number }[] = existing ? JSON.parse(existing) : [];
-    const next = [{ url, createdAt: Date.now() }, ...parsed.filter(item => item.url !== url)].slice(0, 20);
-    window.localStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(next));
-  } catch {
-    // ignore storage issues
-  }
 };
 
 const fileToBase64 = (file: File): Promise<{base64: string, mimeType: string}> => {
@@ -3385,7 +3372,6 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
           const finalUrl = `data:image/png;base64,${part.inlineData.data}`;
           setGeneratedImageUrl(finalUrl);
           runHiResPipeline(finalUrl);
-          persistGeneratedImageForGallery(finalUrl);
           const newCount = creditUsage + creditCost;
           setCreditUsage(newCount);
           if (typeof window !== 'undefined') {

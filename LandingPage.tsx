@@ -85,32 +85,18 @@ const baseGallery: GalleryItem[] = [
 ];
 
 // Rotate gallery every few days so the homepage feels fresh without manual updates.
-const buildGalleryFromStorage = (): GalleryItem[] => {
-  try {
-    if (typeof window === 'undefined') return baseGallery;
-    const storedRaw = window.localStorage.getItem(GALLERY_STORAGE_KEY);
-    const stored = storedRaw ? (JSON.parse(storedRaw) as { url: string; createdAt?: number }[]) : [];
-    const mapped = stored.map((item, idx) => ({
-      src: item.url,
-      label: `Generated ${new Date(item.createdAt || Date.now() - idx * 1000).toLocaleString()}`,
-      createdAt: item.createdAt || Date.now() - idx * 1000,
-    }));
-    const combined = [...mapped, ...baseGallery];
-    const unique = combined.filter(
-      (item, idx, arr) => arr.findIndex(other => other.src === item.src) === idx
-    );
-    return unique.slice(0, 24);
-  } catch {
-    return baseGallery;
-  }
-};
+const rotationPeriodDays = 3;
+const rotationIndex = Math.floor(Date.now() / (rotationPeriodDays * 24 * 60 * 60 * 1000)) % baseGallery.length;
+const galleryImages: GalleryItem[] = [
+  ...baseGallery.slice(rotationIndex),
+  ...baseGallery.slice(0, rotationIndex),
+];
 
 const getEnv = (key: string) => import.meta.env[key as keyof ImportMetaEnv] as string | undefined;
 const DEFAULT_CREATOR_LINK = 'https://buy.stripe.com/test_8x2cN4ei61DxgsO5jUbV603';
 const DEFAULT_STUDIO_LINK = 'https://buy.stripe.com/test_7sY5kCgqe6XR1xUbIibV602';
 const creatorCheckoutUrl = getEnv('VITE_STRIPE_LINK_CREATOR') ?? DEFAULT_CREATOR_LINK;
 const studioCheckoutUrl = getEnv('VITE_STRIPE_LINK_STUDIO') ?? DEFAULT_STUDIO_LINK;
-const GALLERY_STORAGE_KEY = 'ugc-generated-gallery';
 
 const pricing: PricingPlan[] = [
   {
@@ -178,9 +164,6 @@ const LandingPage: React.FC = () => {
   const [landingTrialStatus, setLandingTrialStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [showAccessGate, setShowAccessGate] = useState(false);
   const [pendingRoute, setPendingRoute] = useState<string | null>(null);
-  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>(baseGallery);
-  const [carouselIndex, setCarouselIndex] = useState(0);
-  const [showGalleryModal, setShowGalleryModal] = useState(false);
   const handleSmoothScroll = useCallback((selector: string) => {
     return (event: React.MouseEvent) => {
       event.preventDefault();
@@ -236,25 +219,6 @@ const LandingPage: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    setGalleryItems(buildGalleryFromStorage());
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === GALLERY_STORAGE_KEY) {
-        setGalleryItems(buildGalleryFromStorage());
-      }
-    };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  }, []);
-
-  useEffect(() => {
-    if (galleryItems.length <= 8) return;
-    const id = window.setInterval(() => {
-      setCarouselIndex(prev => (prev + 4) % galleryItems.length);
-    }, 7000);
-    return () => window.clearInterval(id);
-  }, [galleryItems.length]);
-
   const handleBillingToggle = () => {
     setBillingCycle(prev => (prev === 'monthly' ? 'yearly' : 'monthly'));
   };
@@ -268,18 +232,6 @@ const LandingPage: React.FC = () => {
       navigate(destination);
     }
   };
-
-  const MAX_GALLERY_VISIBLE = 8;
-  const resolvedGallery = useMemo(
-    () => (galleryItems.length ? galleryItems : baseGallery),
-    [galleryItems]
-  );
-  const visibleGallery = useMemo(() => {
-    if (resolvedGallery.length <= MAX_GALLERY_VISIBLE) return resolvedGallery;
-    const start = carouselIndex % resolvedGallery.length;
-    const doubled = [...resolvedGallery, ...resolvedGallery];
-    return doubled.slice(start, start + MAX_GALLERY_VISIBLE);
-  }, [resolvedGallery, carouselIndex]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -444,20 +396,8 @@ const LandingPage: React.FC = () => {
             Generate your own
           </button>
         </div>
-        <div className="flex items-center justify-between text-xs text-gray-500">
-          <span>{resolvedGallery.length} in rotation · showing up to {MAX_GALLERY_VISIBLE}</span>
-          {resolvedGallery.length > MAX_GALLERY_VISIBLE && (
-            <button
-              type="button"
-              onClick={() => setShowGalleryModal(true)}
-              className="rounded-full border border-white/15 px-3 py-1 text-white/80 hover:border-indigo-400 hover:text-white transition"
-            >
-              View all
-            </button>
-          )}
-        </div>
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-          {visibleGallery.map((item, index) => (
+          {galleryImages.map((item, index) => (
             <button
               type="button"
               key={item.label}
@@ -465,7 +405,7 @@ const LandingPage: React.FC = () => {
               className="group relative block overflow-hidden rounded-3xl border border-white/10 bg-gray-900/40 text-left"
             >
               <img
-                src={item.src}
+                src={`${item.src}?auto=format&fit=crop&w=900&q=80`}
                 alt={item.label}
                 className="h-64 w-full object-cover transition duration-500 group-hover:scale-105 group-hover:opacity-90"
                 loading={index < 2 ? 'eager' : 'lazy'}
@@ -477,41 +417,6 @@ const LandingPage: React.FC = () => {
           ))}
         </div>
       </section>
-
-      {showGalleryModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm px-4 py-10 overflow-y-auto">
-          <div className="max-w-6xl mx-auto bg-gray-950 border border-white/10 rounded-3xl p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Gallery</p>
-                <h3 className="text-lg text-white font-semibold">All recent mockups (local)</h3>
-                <p className="text-xs text-gray-400">Stored locally from your recent generations. Click any to open the app.</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowGalleryModal(false)}
-                className="rounded-full border border-white/20 px-3 py-1 text-sm text-gray-200 hover:border-indigo-400 hover:text-white transition"
-              >
-                Close
-              </button>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {resolvedGallery.map(item => (
-                <button
-                  key={item.src}
-                  onClick={requireAccessCode}
-                  className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gray-900/30 text-left"
-                >
-                  <img src={item.src} alt={item.label} className="h-40 w-full object-cover group-hover:scale-105 transition" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition flex items-end">
-                    <p className="p-3 text-xs text-white">{item.label}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       <section id="features" className="max-w-6xl mx-auto px-6 py-16 space-y-12">
         <div className="text-center max-w-2xl mx-auto">
