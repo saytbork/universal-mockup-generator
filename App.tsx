@@ -3392,12 +3392,21 @@ const App: React.FC = () => {
         }),
       });
 
+      const rawText = await response.text();
+      const parsed = (() => {
+        try {
+          return rawText ? JSON.parse(rawText) : null;
+        } catch {
+          return null;
+        }
+      })();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Image generation failed');
+        const message = parsed?.error || rawText || 'Image generation failed';
+        throw new Error(message);
       }
 
-      const data = await response.json();
+      const data = parsed || {};
       const { imageUrl, modelUsed } = data;
 
       if (imageUrl) {
