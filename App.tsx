@@ -376,6 +376,7 @@ const PLAN_STORAGE_KEY = 'ugc-plan-tier';
 const VIDEO_COUNT_KEY = 'ugc-video-generation-count';
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '';
 const EMAIL_VERIFICATION_ENABLED = import.meta.env.VITE_EMAIL_VERIFICATION === 'true';
+const GEMINI_IMAGE_MODEL = import.meta.env.VITE_GEMINI_MODEL || 'gemini-1.5-flash-002';
 
 type PlanTier = 'free' | 'creator' | 'studio';
 
@@ -2250,7 +2251,7 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
       const ai = new GoogleGenAI({ apiKey: resolvedApiKey });
       const prompt = buildCopyPrompt(options);
       const response = await ai.models.generateContent({
-        model: 'gemini-1.5-flash-latest',
+        model: GEMINI_IMAGE_MODEL,
         contents: [{ text: prompt }],
       });
       const text =
@@ -3357,7 +3358,7 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
       
       const aspectRatio = options?.aspectRatio || '1:1';
       const response = await ai.models.generateContent({
-        model: 'gemini-1.5-flash-latest',
+        model: GEMINI_IMAGE_MODEL,
         contents: { parts: [...productInlineParts, {text: finalPrompt}] },
         config: {
           responseModalities: [Modality.IMAGE],
@@ -3450,7 +3451,7 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
 
       const aspectRatio = options?.aspectRatio || '1:1';
       const response = await ai.models.generateContent({
-        model: 'gemini-1.5-flash-latest',
+        model: GEMINI_IMAGE_MODEL,
         contents: {
           parts: [
             { inlineData: { data: base64Image, mimeType: 'image/png' } },

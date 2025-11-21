@@ -14,6 +14,8 @@ export default async function handler(
     return res.status(500).json({ error: "API key is not configured on the server." });
   }
 
+  const MODEL_ID = process.env.GEMINI_MODEL_ID || 'gemini-1.5-flash-002';
+
   try {
     const { base64Image, prompt } = req.body;
 
@@ -24,7 +26,7 @@ export default async function handler(
     const ai = new GoogleGenAI({ apiKey });
     
     const response = await ai.models.generateContent({
-        model: 'gemini-1.5-flash-latest',
+        model: MODEL_ID,
         contents: { parts: [{ inlineData: { data: base64Image, mimeType: 'image/png' } }, { text: prompt }] },
         config: { responseModalities: [Modality.IMAGE] }
     });
