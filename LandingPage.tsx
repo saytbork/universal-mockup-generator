@@ -59,23 +59,37 @@ const steps = [
   { title: '3. Generate & refine', detail: 'Produce mockups, tweak with edit prompts, and spin up video clips.' },
 ];
 
-const galleryImages = [
+type GalleryItem = { src: string; label: string };
+
+const baseGallery: GalleryItem[] = [
   {
-    src: 'https://images.unsplash.com/photo-1519681393784-d120267933ba',
-    label: 'Lifestyle skincare flatlay · Golden hour',
+    src: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80',
+    label: 'Beauty supplement hero · Soft studio light',
   },
   {
-    src: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e',
-    label: 'Creator selfie with beverage product',
+    src: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80',
+    label: 'Creator selfie with healthy snack · Warm indoor',
   },
   {
-    src: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab',
-    label: 'Home office setup · Minimal tech mockup',
+    src: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=1200&q=80',
+    label: 'Tabletop tech flatlay · Clean daylight',
   },
   {
-    src: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e',
-    label: 'Headphones hero shot · Studio lighting',
+    src: 'https://images.unsplash.com/photo-1512499385554-079eba9be8e9?auto=format&fit=crop&w=1200&q=80',
+    label: 'Luxury skincare duo · Editorial shadows',
   },
+  {
+    src: 'https://images.unsplash.com/photo-1581338834647-b0fb40704e21?auto=format&fit=crop&w=1200&q=80',
+    label: 'Fitness drink on-the-go · Outdoor lifestyle',
+  },
+];
+
+// Rotate gallery every few days so the homepage feels fresh without manual updates.
+const rotationPeriodDays = 3;
+const rotationIndex = Math.floor(Date.now() / (rotationPeriodDays * 24 * 60 * 60 * 1000)) % baseGallery.length;
+const galleryImages: GalleryItem[] = [
+  ...baseGallery.slice(rotationIndex),
+  ...baseGallery.slice(0, rotationIndex),
 ];
 
 const getEnv = (key: string) => import.meta.env[key as keyof ImportMetaEnv] as string | undefined;
@@ -290,10 +304,10 @@ const LandingPage: React.FC = () => {
                 <ShieldCheck className="w-3.5 h-3.5" /> UGC + Product Studio
               </p>
               <h1 className="text-4xl sm:text-5xl font-bold text-white leading-tight">
-                Create UGC and studio-quality product shots in minutes.
+                Create mockups and UGC content with AI in minutes.
               </h1>
               <p className="text-lg text-gray-300">
-                Upload your product, pick UGC or Product Placement, and let Gemini generate creator-real photos or polished hero shots ready for launch.
+                Personalize your models, pick characters and moods, and generate campaign-ready images with just a few clicks. Swap scenes, talent, and lighting without the studio time.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 animate-fade-up delay-200">
@@ -371,7 +385,7 @@ const LandingPage: React.FC = () => {
             <p className="text-sm uppercase tracking-widest text-indigo-300">Live demo</p>
             <h2 className="text-3xl text-white font-semibold mt-2">Recent UGC + product mockups generated inside the app.</h2>
             <p className="text-gray-400 mt-3 max-w-2xl">
-              These previews show the output of the free plan. Click any thumbnail to jump straight into the builder and recreate a similar style.
+              Fresh, real mockups generated in the app—auto-rotated every few days so you always see what’s possible right now.
             </p>
           </div>
           <button
