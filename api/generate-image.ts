@@ -14,14 +14,14 @@ export default async function handler(
     return res.status(500).json({ error: "API key is not configured on the server." });
   }
 
-  const apiVersion = process.env.GEMINI_API_VERSION || 'v1';
-  const MODEL_CANDIDATES: string[] = Array.from(
+  const MODEL_CANDIDATES = Array.from(
     new Set(
       [
         process.env.GEMINI_MODEL_ID,
         'gemini-1.5-flash-002',
         'gemini-1.5-flash',
-      ].filter((m): m is string => Boolean(m))
+        'gemini-1.5-flash-latest',
+      ].filter(Boolean)
     )
   );
 
@@ -32,7 +32,7 @@ export default async function handler(
       return res.status(400).json({ error: 'Missing required parameters: base64, mimeType, or prompt.' });
     }
 
-    const ai = new GoogleGenAI({ apiKey, apiVersion });
+    const ai = new GoogleGenAI({ apiKey });
 
     let lastError: any = null;
     for (const model of MODEL_CANDIDATES) {
@@ -40,8 +40,8 @@ export default async function handler(
         const response = await ai.models.generateContent({
           model,
           contents: { parts: [{ inlineData: { data: base64, mimeType } }, { text: prompt }] },
-          generationConfig: {
-            responseMimeType: 'image/png',
+          config: {
+            responseModalities: [Modality.IMAGE],
           },
         });
 

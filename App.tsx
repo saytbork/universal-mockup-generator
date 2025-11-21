@@ -376,8 +376,7 @@ const PLAN_STORAGE_KEY = 'ugc-plan-tier';
 const VIDEO_COUNT_KEY = 'ugc-video-generation-count';
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '';
 const EMAIL_VERIFICATION_ENABLED = import.meta.env.VITE_EMAIL_VERIFICATION === 'true';
-const GEMINI_IMAGE_MODEL = import.meta.env.VITE_GEMINI_MODEL || 'gemini-1.5-flash-002';
-const GEMINI_API_VERSION = import.meta.env.VITE_GEMINI_API_VERSION || 'v1';
+const GEMINI_IMAGE_MODEL = import.meta.env.VITE_GEMINI_MODEL || 'gemini-1.5-flash';
 
 type PlanTier = 'free' | 'creator' | 'studio';
 
@@ -2249,7 +2248,7 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
         setIsCopyLoading(false);
         return;
       }
-      const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: GEMINI_API_VERSION });
+      const ai = new GoogleGenAI({ apiKey: resolvedApiKey });
       const prompt = buildCopyPrompt(options);
       const response = await ai.models.generateContent({
         model: GEMINI_IMAGE_MODEL,
@@ -3334,7 +3333,7 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
         setIsImageLoading(false);
         return;
       }
-      const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: GEMINI_API_VERSION });
+      const ai = new GoogleGenAI({ apiKey: resolvedApiKey });
       const orderedAssets = productAssets
         .slice()
         .sort((a, b) => {
@@ -3360,9 +3359,12 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
       const aspectRatio = options?.aspectRatio || '1:1';
       const response = await ai.models.generateContent({
         model: GEMINI_IMAGE_MODEL,
-        contents: { parts: [...productInlineParts, { text: finalPrompt }] },
-        generationConfig: {
-          responseMimeType: 'image/png',
+        contents: { parts: [...productInlineParts, {text: finalPrompt}] },
+        config: {
+          responseModalities: [Modality.IMAGE],
+          imageConfig: {
+            aspectRatio,
+          },
         },
       });
 
@@ -3444,7 +3446,7 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
         setIsImageLoading(false);
         return;
       }
-      const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: GEMINI_API_VERSION });
+      const ai = new GoogleGenAI({ apiKey: resolvedApiKey });
       const base64Image = generatedImageUrl.split(',')[1];
 
       const aspectRatio = options?.aspectRatio || '1:1';
@@ -3456,8 +3458,11 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
             { text: prompt.trim() },
           ],
         },
-        generationConfig: {
-          responseMimeType: 'image/png',
+        config: {
+          responseModalities: [Modality.IMAGE],
+          imageConfig: {
+            aspectRatio,
+          },
         },
       });
 
@@ -3534,7 +3539,7 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
         setIsVideoLoading(false);
         return;
       }
-      const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: GEMINI_API_VERSION });
+      const ai = new GoogleGenAI({ apiKey: resolvedApiKey });
       const base64Image = generatedImageUrl.split(',')[1];
 
       const getVideoAspectRatio = (): '16:9' | '9:16' => {
