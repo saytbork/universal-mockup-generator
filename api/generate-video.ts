@@ -13,7 +13,6 @@ export default async function handler(
   if (!apiKey) {
     return res.status(500).json({ error: "API key is not configured on the server." });
   }
-  const apiVersion = process.env.GEMINI_API_VERSION || 'v1';
 
   try {
     const { base64Image, prompt, aspectRatio } = req.body;
@@ -22,7 +21,7 @@ export default async function handler(
       return res.status(400).json({ error: 'Missing required parameters: base64Image, prompt, or aspectRatio.' });
     }
 
-    const ai = new GoogleGenAI({ apiKey, apiVersion });
+    const ai = new GoogleGenAI({ apiKey });
 
     let operation = await ai.models.generateVideos({
       model: 'veo-1.0', // Using the VEO model
@@ -41,11 +40,11 @@ export default async function handler(
     // Poll for the result
     while (!operation.done) {
       await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
-      const opName = (operation as any)?.name || (operation as any)?.operation || '';
+      const opName = typeof operation === 'string' ? operation : operation?.name || '';
       if (!opName) {
         throw new Error('Video operation name missing.');
       }
-      operation = await ai.operations.getVideosOperation({ operation: opName });
+      operation = await ai.operations.getVideosOperation({ name: opName });
     }
 
     if (operation.error) {
