@@ -26,52 +26,55 @@ export default async function handler(
 
     // First choice: Replicate (Flux)
     if (replicateToken) {
-      const model = replicateModel;
-      const version = replicateVersion;
-      const start = await fetch('https://api.replicate.com/v1/predictions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${replicateToken}`,
-        },
-        body: JSON.stringify({
-          version,
-          input: {
-            prompt,
-            // If you want to force 1:1 or custom sizes, adjust here
-            width: 1024,
-            height: 1024,
-            guidance_scale: 3,
+      try {
+        const model = replicateModel;
+        const version = replicateVersion;
+        const start = await fetch('https://api.replicate.com/v1/predictions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${replicateToken}`,
           },
-        }),
-      });
-      const startData = await start.json().catch(() => ({}));
-      if (!start.ok) {
-        throw new Error(startData?.error?.message || 'Replicate request failed');
-      }
-      const predictionId = startData.id;
-      let status = startData.status;
-      let output: any = startData.output;
-
-      // Poll until completed
-      while (!['succeeded', 'failed', 'canceled'].includes(status)) {
-        await new Promise(r => setTimeout(r, 3000));
-        const poll = await fetch(`https://api.replicate.com/v1/predictions/${predictionId}`, {
-          headers: { Authorization: `Bearer ${replicateToken}` },
+          body: JSON.stringify({
+            version,
+            input: {
+              prompt,
+              width: 1024,
+              height: 1024,
+              guidance_scale: 3,
+            },
+          }),
         });
-        const pollData = await poll.json().catch(() => ({}));
-        status = pollData.status;
-        output = pollData.output;
-        if (status === 'failed' || status === 'canceled') {
-          throw new Error(pollData?.error || 'Replicate generation failed');
+        const startData = await start.json().catch(() => ({}));
+        if (!start.ok) {
+          throw new Error(startData?.error?.message || 'Replicate request failed');
         }
-      }
+        const predictionId = startData.id;
+        let status = startData.status;
+        let output: any = startData.output;
 
-      const imageUrl = Array.isArray(output) ? output[0] : null;
-      if (!imageUrl) {
-        throw new Error('Replicate returned no image URL.');
+        // Poll until completed
+        while (!['succeeded', 'failed', 'canceled'].includes(status)) {
+          await new Promise(r => setTimeout(r, 3000));
+          const poll = await fetch(`https://api.replicate.com/v1/predictions/${predictionId}`, {
+            headers: { Authorization: `Bearer ${replicateToken}` },
+          });
+          const pollData = await poll.json().catch(() => ({}));
+          status = pollData.status;
+          output = pollData.output;
+          if (status === 'failed' || status === 'canceled') {
+            throw new Error(pollData?.error || 'Replicate generation failed');
+          }
+        }
+
+        const imageUrl = Array.isArray(output) ? output[0] : null;
+        if (!imageUrl) {
+          throw new Error('Replicate returned no image URL.');
+        }
+        return res.status(200).json({ imageUrl, promptUsed: prompt });
+      } catch (err) {
+        console.warn('Replicate failed, trying Vertex:', err);
       }
-      return res.status(200).json({ imageUrl, promptUsed: prompt });
     }
 
     // Fallback: Vertex Imagen 3 using service account
