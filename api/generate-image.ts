@@ -13,11 +13,11 @@ export default async function handler(
   const project = process.env.GCP_PROJECT_ID || process.env.VERTEX_PROJECT_ID;
   const location = process.env.GCP_LOCATION || process.env.VERTEX_LOCATION || 'us-central1';
   const saJson = process.env.GCP_SERVICE_ACCOUNT_KEY;
-  const replicateToken = process.env.REPLICATE_API_TOKEN;
+  // const replicateToken = process.env.REPLICATE_API_TOKEN;
   // const replicateModel = process.env.REPLICATE_MODEL || 'black-forest-labs/flux-pro-1.1';
-  const replicateVersion =
-    process.env.REPLICATE_MODEL_VERSION ||
-    'c470cc1a2232c8f8997c7a1e3a07c5c612200a60c9a0127b0c5e4a94fc35693f';
+  // const replicateVersion =
+  //   process.env.REPLICATE_MODEL_VERSION ||
+  //   'c470cc1a2232c8f8997c7a1e3a07c5c612200a60c9a0127b0c5e4a94fc35693f';
   const vertexImageModel = process.env.GCP_IMAGE_MODEL || 'imagen-3.0-generate-002';
   const geminiApiKey = process.env.GEMINI_API_KEY;
   const negativePrompt =
@@ -86,7 +86,8 @@ export default async function handler(
 
     const safePrompt = `Safe, fully clothed, professional lifestyle/editorial product photo. ${enhancedPrompt}`;
 
-    // First choice: Replicate (Flux)
+    // First choice: Replicate (Flux) - DISABLED per user request
+    /*
     if (replicateToken) {
       try {
         const version = replicateVersion;
@@ -138,6 +139,7 @@ export default async function handler(
         console.warn('Replicate failed, trying Vertex:', err);
       }
     }
+    */
 
     // Fallback: Vertex Imagen 3 using service account
     if (!project || !saJson) {
