@@ -19,13 +19,27 @@ export default async function handler(
     'c470cc1a2232c8f8997c7a1e3a07c5c612200a60c9a0127b0c5e4a94fc35693f';
   const vertexImageModel = process.env.GCP_IMAGE_MODEL || 'imagen-3.0-generate-002';
   const negativePrompt =
-    'nudity, sexual content, pornography, gore, violence, weapons, blood, minors, explicit content, suggestive poses, regulated content, drugs, self-harm, brutality, hate, offensive';
+    'nudity, sexual content, pornography, gore, violence, weapons, blood, minors, explicit content, suggestive poses, regulated content, drugs, smoking, vape, alcohol, self-harm, brutality, hate, offensive, bikini, lingerie';
+  const sanitizePrompt = (raw: string): string => {
+    const banned = [
+      'nude', 'naked', 'lingerie', 'bikini', 'swimsuit', 'sexy', 'explicit', 'erotic',
+      'blood', 'gore', 'weapon', 'gun', 'knife', 'violence', 'drugs', 'smoking', 'vape',
+      'alcohol', 'minor', 'child', 'kid', 'teen'
+    ];
+    let safe = raw || '';
+    banned.forEach(word => {
+      const re = new RegExp(word, 'gi');
+      safe = safe.replace(re, '');
+    });
+    return safe.trim();
+  };
 
   try {
     const { prompt = '', base64Image, mimeType } = req.body || {};
     if (!prompt) {
       return res.status(400).json({ error: 'Missing required parameter: prompt.' });
     }
+    const safePrompt = `Safe, fully clothed, professional lifestyle/editorial product photo. ${sanitizePrompt(prompt)}`;
 
     // First choice: Replicate
     if (replicateToken) {
@@ -40,13 +54,13 @@ export default async function handler(
           },
           body: JSON.stringify({
             version,
-          input: {
-            prompt,
-            width: 1024,
-            height: 1024,
-            guidance_scale: 3,
-            negative_prompt: negativePrompt,
-          },
+            input: {
+              prompt: safePrompt,
+              width: 1024,
+              height: 1024,
+              guidance_scale: 3,
+              negative_prompt: negativePrompt,
+            },
         }),
       });
         const startData = await start.json().catch(() => ({}));
@@ -85,7 +99,7 @@ export default async function handler(
     const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${project}/locations/${location}/publishers/google/models/${vertexImageModel}:predict`;
 
     const instance: Record<string, any> = {
-      prompt: `${prompt}\nNo sexual content, no violence, no weapons, no blood, no minors. Keep it safe lifestyle/editorial.`,
+      prompt: `${safePrompt}\nNo sexual content, no violence, no weapons, no blood, no minors. Keep it safe lifestyle/editorial.`,
       negativePrompt,
     };
     if (base64Image) {
