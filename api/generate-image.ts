@@ -13,6 +13,15 @@ export default async function handler(
   const project = process.env.GCP_PROJECT_ID || process.env.VERTEX_PROJECT_ID;
   const location = process.env.GCP_LOCATION || process.env.VERTEX_LOCATION || 'us-central1';
   const saJson = process.env.GCP_SERVICE_ACCOUNT_KEY;
+
+  if (!project) {
+    console.error('Missing GCP_PROJECT_ID or VERTEX_PROJECT_ID');
+    return res.status(500).json({ error: 'Server configuration error: Missing Project ID' });
+  }
+  if (!saJson) {
+    console.error('Missing GCP_SERVICE_ACCOUNT_KEY');
+    return res.status(500).json({ error: 'Server configuration error: Missing Service Account Key' });
+  }
   // const replicateToken = process.env.REPLICATE_API_TOKEN;
   // const replicateModel = process.env.REPLICATE_MODEL || 'black-forest-labs/flux-pro-1.1';
   // const replicateVersion =
@@ -82,7 +91,7 @@ export default async function handler(
         console.warn('Gemini prompt enhancement failed, using original:', err);
       }
     }
-    */
+
 
     const safePrompt = enhancedPrompt;
 
@@ -186,14 +195,17 @@ export default async function handler(
       body: JSON.stringify(body),
     });
 
-    const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-      throw new Error(data?.error?.message || 'Vertex Imagen generation failed');
+      const errorText = await response.text();
+      console.error('Vertex AI Error Response:', errorText);
+      throw new Error(`Vertex AI Error: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
+    const data = await response.json();
     const prediction = data?.predictions?.[0];
     const imageBase64 = prediction?.bytesBase64Encoded;
     if (!imageBase64) {
+      console.error('Vertex AI Response Data:', JSON.stringify(data, null, 2));
       throw new Error('No image returned from Vertex Imagen.');
     }
 

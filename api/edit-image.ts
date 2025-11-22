@@ -137,19 +137,24 @@ export default async function handler(
       },
       body: JSON.stringify(body),
     });
-    const data = await response.json().catch(() => ({}));
+
     if (!response.ok) {
-      throw new Error(data?.error?.message || 'Vertex Imagen edit failed');
+      const errorText = await response.text();
+      console.error('Vertex AI Edit Error Response:', errorText);
+      throw new Error(`Vertex AI Edit Error: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
+    const data = await response.json();
     const prediction = data?.predictions?.[0];
     const imageBase64 = prediction?.bytesBase64Encoded;
+
     if (!imageBase64) {
+      console.error('Vertex AI Edit Response Data:', JSON.stringify(data, null, 2));
       throw new Error('No image returned from Vertex Imagen.');
     }
 
     const imageUrl = `data:image/png;base64,${imageBase64}`;
-    return res.status(200).json({ imageUrl, promptUsed: prompt });
+    return res.status(200).json({ imageUrl, promptUsed: safePrompt });
   } catch (error) {
     console.error("Error in /api/edit-image:", error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
