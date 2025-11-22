@@ -160,7 +160,7 @@ export default async function handler(
       instances: [instance],
       parameters: {
         sampleCount: 1,
-        personGeneration: 'allow_adult', // Required for generating people
+        // personGeneration: 'allow_adult', // Not required/supported for Imagen 2
         safetySettings: [
           { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH' },
           { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' },
