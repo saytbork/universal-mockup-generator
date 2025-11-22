@@ -17,7 +17,7 @@ export default async function handler(
   // const replicateVersion =
   //   process.env.REPLICATE_MODEL_VERSION ||
   //   'c470cc1a2232c8f8997c7a1e3a07c5c612200a60c9a0127b0c5e4a94fc35693f';
-  const vertexImageModel = process.env.GCP_IMAGE_MODEL || 'imagen-3.0-generate-002';
+  const vertexImageModel = process.env.GCP_IMAGE_MODEL || 'imagegeneration@006';
   const negativePrompt =
     'nudity, sexual content, pornography, gore, violence, weapons, blood, minors, explicit content, suggestive poses, regulated content, drugs, smoking, vape, alcohol, self-harm, brutality, hate, offensive, bikini, lingerie';
   const sanitizePrompt = (raw: string): string => {
@@ -39,7 +39,7 @@ export default async function handler(
     if (!prompt) {
       return res.status(400).json({ error: 'Missing required parameter: prompt.' });
     }
-    const safePrompt = `Safe, fully clothed, professional lifestyle/editorial product photo. ${sanitizePrompt(prompt)}`;
+    const safePrompt = sanitizePrompt(prompt);
 
     // First choice: Replicate
     // First choice: Replicate - DISABLED per user request

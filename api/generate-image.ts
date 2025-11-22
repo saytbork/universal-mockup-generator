@@ -18,7 +18,7 @@ export default async function handler(
   // const replicateVersion =
   //   process.env.REPLICATE_MODEL_VERSION ||
   //   'c470cc1a2232c8f8997c7a1e3a07c5c612200a60c9a0127b0c5e4a94fc35693f';
-  const vertexImageModel = process.env.GCP_IMAGE_MODEL || 'imagen-3.0-generate-002';
+  const vertexImageModel = process.env.GCP_IMAGE_MODEL || 'imagegeneration@006';
   const geminiApiKey = process.env.GEMINI_API_KEY;
   const negativePrompt =
     'nudity, sexual content, pornography, gore, violence, weapons, blood, minors, explicit content, suggestive poses, regulated content, drugs, smoking, vape, alcohol, self-harm, brutality, hate, offensive, bikini, lingerie';
@@ -84,7 +84,7 @@ export default async function handler(
     }
     */
 
-    const safePrompt = `Safe, fully clothed, professional lifestyle/editorial product photo. ${enhancedPrompt}`;
+    const safePrompt = enhancedPrompt;
 
     // First choice: Replicate (Flux) - DISABLED per user request
     /*
