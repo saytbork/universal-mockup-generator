@@ -28,9 +28,6 @@ export default async function handler(
     const response = await ai.models.generateContent({
       model: modelId,
       contents: { parts: [{ inlineData: { data: base64, mimeType }}, {text: prompt}] },
-      config: {
-        responseModalities: [Modality.IMAGE],
-      },
     });
 
     const imagePart =
