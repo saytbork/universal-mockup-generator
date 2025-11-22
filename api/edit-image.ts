@@ -18,6 +18,8 @@ export default async function handler(
     process.env.REPLICATE_MODEL_VERSION ||
     'c470cc1a2232c8f8997c7a1e3a07c5c612200a60c9a0127b0c5e4a94fc35693f';
   const vertexImageModel = process.env.GCP_IMAGE_MODEL || 'imagen-3.0-generate-002';
+  const negativePrompt =
+    'desnudo, sexual, pornográfico, gore, violencia, armas, sangre, menores de edad, contenido explícito, pose sugerente, contenido regulado, drogas, autolesiones, brutalidad, odio';
 
   try {
     const { prompt = '', base64Image, mimeType } = req.body || {};
@@ -38,14 +40,15 @@ export default async function handler(
           },
           body: JSON.stringify({
             version,
-            input: {
-              prompt,
-              width: 1024,
-              height: 1024,
-              guidance_scale: 3,
-            },
-          }),
-        });
+          input: {
+            prompt,
+            width: 1024,
+            height: 1024,
+            guidance_scale: 3,
+            negative_prompt: negativePrompt,
+          },
+        }),
+      });
         const startData = await start.json().catch(() => ({}));
         if (!start.ok) {
           throw new Error(startData?.error?.message || 'Replicate request failed');
@@ -81,7 +84,10 @@ export default async function handler(
     }
     const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${project}/locations/${location}/publishers/google/models/${vertexImageModel}:predict`;
 
-    const instance: Record<string, any> = { prompt };
+    const instance: Record<string, any> = {
+      prompt: `${prompt}\nNo contenido sexual, no violencia, no armas, no sangre, no menores. Estilo lifestyle/editorial seguro.`,
+      negativePrompt,
+    };
     if (base64Image) {
       instance.image = { bytesBase64Encoded: base64Image, mimeType: mimeType || 'image/png' };
     }
