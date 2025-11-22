@@ -13,6 +13,10 @@ export default async function handler(
   const location = process.env.GCP_LOCATION || process.env.VERTEX_LOCATION || 'us-central1';
   const saJson = process.env.GCP_SERVICE_ACCOUNT_KEY;
   const replicateToken = process.env.REPLICATE_API_TOKEN;
+  const replicateModel = process.env.REPLICATE_MODEL || 'black-forest-labs/flux-pro-1.1';
+  const replicateVersion =
+    process.env.REPLICATE_MODEL_VERSION ||
+    'c470cc1a2232c8f8997c7a1e3a07c5c612200a60c9a0127b0c5e4a94fc35693f';
 
   try {
     const { prompt = '', base64Image, mimeType } = req.body || {};
@@ -22,8 +26,8 @@ export default async function handler(
 
     // First choice: Replicate
     if (replicateToken) {
-      const model = 'black-forest-labs/flux-pro-1.1';
-      const version = 'c470cc1a2232c8f8997c7a1e3a07c5c612200a60c9a0127b0c5e4a94fc35693f';
+      const model = replicateModel;
+      const version = replicateVersion;
       const start = await fetch('https://api.replicate.com/v1/predictions', {
         method: 'POST',
         headers: {
