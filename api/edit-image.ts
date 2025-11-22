@@ -12,9 +12,7 @@ export default async function handler(
   const project = process.env.GCP_PROJECT_ID || process.env.VERTEX_PROJECT_ID;
   const location = process.env.GCP_LOCATION || process.env.VERTEX_LOCATION || 'us-central1';
   const saJson = process.env.GCP_SERVICE_ACCOUNT_KEY;
-  if (!project || !saJson) {
-    return res.status(500).json({ error: "GCP_PROJECT_ID and GCP_SERVICE_ACCOUNT_KEY must be configured on the server." });
-  }
+  const replicateToken = process.env.REPLICATE_API_TOKEN;
 
   try {
     const { prompt = '', base64Image, mimeType } = req.body || {};
@@ -22,6 +20,57 @@ export default async function handler(
       return res.status(400).json({ error: 'Missing required parameter: prompt.' });
     }
 
+    // First choice: Replicate
+    if (replicateToken) {
+      const model = 'black-forest-labs/flux-pro-1.1';
+      const version = 'c470cc1a2232c8f8997c7a1e3a07c5c612200a60c9a0127b0c5e4a94fc35693f';
+      const start = await fetch('https://api.replicate.com/v1/predictions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${replicateToken}`,
+        },
+        body: JSON.stringify({
+          version,
+          input: {
+            prompt,
+            width: 1024,
+            height: 1024,
+            guidance_scale: 3,
+            // If base64 provided, you could send it via control image in models that support it; Flux 1.1 doesn't take image input directly
+          },
+        }),
+      });
+      const startData = await start.json().catch(() => ({}));
+      if (!start.ok) {
+        throw new Error(startData?.error?.message || 'Replicate request failed');
+      }
+      const predictionId = startData.id;
+      let status = startData.status;
+      let output: any = startData.output;
+      while (!['succeeded', 'failed', 'canceled'].includes(status)) {
+        await new Promise(r => setTimeout(r, 3000));
+        const poll = await fetch(`https://api.replicate.com/v1/predictions/${predictionId}`, {
+          headers: { Authorization: `Bearer ${replicateToken}` },
+        });
+        const pollData = await poll.json().catch(() => ({}));
+        status = pollData.status;
+        output = pollData.output;
+        if (status === 'failed' || status === 'canceled') {
+          throw new Error(pollData?.error || 'Replicate generation failed');
+        }
+      }
+      const imageUrl = Array.isArray(output) ? output[0] : null;
+      if (!imageUrl) {
+        throw new Error('Replicate returned no image URL.');
+      }
+      return res.status(200).json({ imageUrl, promptUsed: prompt });
+    }
+
+    // Fallback: Vertex Imagen
+    if (!project || !saJson) {
+      throw new Error('Missing GCP_PROJECT_ID or GCP_SERVICE_ACCOUNT_KEY for Vertex fallback.');
+    }
     const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${project}/locations/${location}/publishers/google/models/imagen-3.0:predict`;
 
     const instance: Record<string, any> = { prompt };
