@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleAuth } from 'google-auth-library';
+import { GoogleGenAI } from "@google/genai";
 
 export default async function handler(
   req: VercelRequest,
@@ -18,6 +19,7 @@ export default async function handler(
     process.env.REPLICATE_MODEL_VERSION ||
     'c470cc1a2232c8f8997c7a1e3a07c5c612200a60c9a0127b0c5e4a94fc35693f';
   const vertexImageModel = process.env.GCP_IMAGE_MODEL || 'imagen-3.0-generate-002';
+  const geminiApiKey = process.env.GEMINI_API_KEY;
   const negativePrompt =
     'nudity, sexual content, pornography, gore, violence, weapons, blood, minors, explicit content, suggestive poses, regulated content, drugs, smoking, vape, alcohol, self-harm, brutality, hate, offensive, bikini, lingerie';
 
@@ -40,7 +42,46 @@ export default async function handler(
     if (!prompt) {
       return res.status(400).json({ error: 'Missing required parameter: prompt.' });
     }
-    const safePrompt = `Safe, fully clothed, professional lifestyle/editorial product photo. ${sanitizePrompt(prompt)}`;
+
+    let enhancedPrompt = sanitizePrompt(prompt);
+
+    // Enhance prompt with Gemini if available
+    if (geminiApiKey) {
+      try {
+        // Fix: GoogleGenAI SDK usage might differ based on version. 
+        // Assuming @google/genai v0.x or similar where it might be different.
+        // Checking package.json, it is ^1.27.0.
+        // In 1.x, it is usually `const genAI = new GoogleGenerativeAI(apiKey); const model = genAI.getGenerativeModel(...)`
+        // But the import is `import { GoogleGenAI } from "@google/genai";` which suggests the new SDK.
+        // Let's check the import in `api/generate-video.ts` which was working.
+        // It used `import { GoogleGenAI } from "@google/genai";` and `new GoogleGenAI({ apiKey, apiVersion })`.
+        // Then `ai.models.generateVideos`.
+        // For text, it should be `ai.models.generateContent`.
+
+        const ai = new GoogleGenAI({ apiKey: geminiApiKey });
+        const result = await ai.models.generateContent({
+          model: 'gemini-1.5-flash',
+          contents: [{
+            role: 'user',
+            parts: [{
+              text: `
+          Enhance this image generation prompt to be more descriptive, photorealistic, and high quality for a UGC lifestyle product shot. 
+          Keep it under 100 words. Focus on lighting, texture, and realism.
+          Original prompt: "${enhancedPrompt}"
+        ` }]
+          }]
+        });
+
+        const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) {
+          enhancedPrompt = text.trim();
+        }
+      } catch (err) {
+        console.warn('Gemini prompt enhancement failed, using original:', err);
+      }
+    }
+
+    const safePrompt = `Safe, fully clothed, professional lifestyle/editorial product photo. ${enhancedPrompt}`;
 
     // First choice: Replicate (Flux)
     if (replicateToken) {
@@ -90,7 +131,7 @@ export default async function handler(
         if (!imageUrl) {
           throw new Error('Replicate returned no image URL.');
         }
-        return res.status(200).json({ imageUrl, promptUsed: prompt });
+        return res.status(200).json({ imageUrl, promptUsed: safePrompt });
       } catch (err) {
         console.warn('Replicate failed, trying Vertex:', err);
       }
@@ -146,7 +187,7 @@ export default async function handler(
     }
 
     const imageUrl = `data:image/png;base64,${imageBase64}`;
-    return res.status(200).json({ imageUrl, promptUsed: prompt });
+    return res.status(200).json({ imageUrl, promptUsed: safePrompt });
 
   } catch (error) {
     console.error("Error in /api/generate-image:", error);
