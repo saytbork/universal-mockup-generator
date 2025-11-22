@@ -130,8 +130,13 @@ export default async function handler(
         };
       } catch (maskError) {
         console.error('Failed to generate mask:', maskError);
-        // Proceed without mask, though it will likely fail for Imagen 2
+        const msg = maskError instanceof Error ? maskError.message : String(maskError);
+        throw new Error(`Mask generation failed: ${msg}`);
       }
+    }
+
+    if (!instance.mask) {
+      throw new Error('Internal Error: Mask could not be generated for editing.');
     }
 
     const body = {
