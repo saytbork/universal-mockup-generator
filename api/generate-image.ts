@@ -67,6 +67,7 @@ export default async function handler(
               text: `
           Enhance this image generation prompt to be more descriptive, photorealistic, and high quality for a UGC lifestyle product shot. 
           Keep it under 100 words. Focus on lighting, texture, and realism.
+          IMPORTANT: Ensure the output is completely safe, family-friendly, and free of any violence, sexual content, or prohibited items.
           Original prompt: "${enhancedPrompt}"
         ` }]
           }]
@@ -86,7 +87,6 @@ export default async function handler(
     // First choice: Replicate (Flux)
     if (replicateToken) {
       try {
-        const model = replicateModel;
         const version = replicateVersion;
         const start = await fetch('https://api.replicate.com/v1/predictions', {
           method: 'POST',
@@ -156,7 +156,16 @@ export default async function handler(
       instances: [instance],
       parameters: {
         sampleCount: 1,
+        safetySetting: 'block_only_high', // For some Imagen versions
+        // For newer Imagen versions, it might be safetySettings list
       },
+      // Explicit safety settings for Vertex AI
+      safetySettings: [
+        { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH' },
+        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' },
+        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_ONLY_HIGH' },
+        { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_ONLY_HIGH' },
+      ],
     };
 
     const auth = new GoogleAuth({

@@ -44,7 +44,6 @@ export default async function handler(
     // First choice: Replicate
     if (replicateToken) {
       try {
-        const model = replicateModel;
         const version = replicateVersion;
         const start = await fetch('https://api.replicate.com/v1/predictions', {
           method: 'POST',
@@ -61,8 +60,8 @@ export default async function handler(
               guidance_scale: 3,
               negative_prompt: negativePrompt,
             },
-        }),
-      });
+          }),
+        });
         const startData = await start.json().catch(() => ({}));
         if (!start.ok) {
           throw new Error(startData?.error?.message || 'Replicate request failed');
@@ -111,6 +110,12 @@ export default async function handler(
       parameters: {
         sampleCount: 1,
       },
+      safetySettings: [
+        { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH' },
+        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' },
+        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_ONLY_HIGH' },
+        { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_ONLY_HIGH' },
+      ],
     };
 
     const auth = new GoogleAuth({
