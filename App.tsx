@@ -1774,8 +1774,8 @@ const App: React.FC = () => {
                 type="button"
                 onClick={() => handleFormulationPresetSelect(preset.value)}
                 className={`rounded-full border px-3 py-1 text-xs transition ${formulationExpertPreset === preset.value
-                    ? 'border-amber-300 bg-amber-500/10 text-white'
-                    : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
+                  ? 'border-amber-300 bg-amber-500/10 text-white'
+                  : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
                   }`}
               >
                 {preset.label}
@@ -1789,8 +1789,8 @@ const App: React.FC = () => {
                 type="button"
                 onClick={() => handleFormulationProfessionSelect(option.value)}
                 className={`rounded-full border px-3 py-1 text-xs transition ${formulationExpertProfession === option.value
-                    ? 'border-amber-300 bg-amber-500/10 text-white'
-                    : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
+                  ? 'border-amber-300 bg-amber-500/10 text-white'
+                  : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
                   }`}
               >
                 {option.label}
@@ -3363,10 +3363,32 @@ const App: React.FC = () => {
 
     try {
       const base64Image = generatedImageUrl.split(',')[1];
+
+      // Generate mask on client side to avoid server-side canvas issues
+      let maskBase64 = '';
+      try {
+        const img = new Image();
+        img.src = generatedImageUrl;
+        await new Promise((resolve) => { img.onload = resolve; });
+
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          // Fill with white for full image variation/editing
+          ctx.fillStyle = 'white';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          maskBase64 = canvas.toDataURL('image/png').split(',')[1];
+        }
+      } catch (e) {
+        console.error('Client-side mask generation failed:', e);
+      }
+
       const response = await fetch('/api/edit-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ base64Image, prompt: prompt.trim() }),
+        body: JSON.stringify({ base64Image, maskBase64, prompt: prompt.trim() }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data?.imageUrl) {
@@ -4250,8 +4272,8 @@ const App: React.FC = () => {
                                   type="button"
                                   onClick={() => handleSupplementPresetSelect(preset.value)}
                                   className={`rounded-full border px-3 py-1 text-xs transition ${activeSupplementPreset === preset.value
-                                      ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                                      : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
+                                    ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                                    : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
                                     }`}
                                 >
                                   {preset.label}

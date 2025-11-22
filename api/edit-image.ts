@@ -38,13 +38,12 @@ export default async function handler(
   };
 
   try {
-    const { prompt = '', base64Image, mimeType } = req.body || {};
+    const { prompt = '', base64Image, maskBase64, mimeType } = req.body || {};
     if (!prompt) {
       return res.status(400).json({ error: 'Missing required parameter: prompt.' });
     }
     const safePrompt = sanitizePrompt(prompt);
 
-    // First choice: Replicate
     // First choice: Replicate - DISABLED per user request
     /*
     if (replicateToken) {
@@ -110,28 +109,33 @@ export default async function handler(
     if (base64Image) {
       instance.image = { bytesBase64Encoded: base64Image, mimeType: mimeType || 'image/png' };
 
-      // Fix: Imagen 2 requires a mask for editing. 
-      // Since we don't have a user-provided mask, we'll generate a full-image mask 
-      // to allow the model to edit the entire image (variation/refinement).
-      try {
-        const imgBuffer = Buffer.from(base64Image, 'base64');
-        const img = await loadImage(imgBuffer);
-        const canvas = createCanvas(img.width, img.height);
-        const ctx = canvas.getContext('2d');
-
-        // Fill with white (white = edit this area, black = keep)
-        // For full variation, we mask everything.
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, img.width, img.height);
-
-        const maskBase64 = canvas.toBuffer('image/png').toString('base64');
+      // Use client-provided mask if available, otherwise try server-side generation
+      if (maskBase64) {
         instance.mask = {
           image: { bytesBase64Encoded: maskBase64, mimeType: 'image/png' }
         };
-      } catch (maskError) {
-        console.error('Failed to generate mask:', maskError);
-        const msg = maskError instanceof Error ? maskError.message : String(maskError);
-        throw new Error(`Mask generation failed: ${msg}`);
+      } else {
+        // Fallback: Server-side mask generation (may fail on Vercel)
+        try {
+          const imgBuffer = Buffer.from(base64Image, 'base64');
+          const img = await loadImage(imgBuffer);
+          const canvas = createCanvas(img.width, img.height);
+          const ctx = canvas.getContext('2d');
+
+          // Fill with white (white = edit this area, black = keep)
+          // For full variation, we mask everything.
+          ctx.fillStyle = 'white';
+          ctx.fillRect(0, 0, img.width, img.height);
+
+          const serverMaskBase64 = canvas.toBuffer('image/png').toString('base64');
+          instance.mask = {
+            image: { bytesBase64Encoded: serverMaskBase64, mimeType: 'image/png' }
+          };
+        } catch (maskError) {
+          console.error('Failed to generate mask:', maskError);
+          const msg = maskError instanceof Error ? maskError.message : String(maskError);
+          // Don't throw yet, check if we have a mask
+        }
       }
     }
 
