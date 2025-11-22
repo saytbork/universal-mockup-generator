@@ -1,4 +1,4 @@
-import { GoogleGenAI, Modality } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 export default async function handler(
@@ -15,32 +15,40 @@ export default async function handler(
   }
 
   try {
-    const { base64Image, prompt } = req.body;
-    const apiVersion = process.env.GEMINI_API_VERSION || 'v1';
+    const { prompt } = req.body || {};
+    const apiVersion = process.env.GEMINI_API_VERSION || 'v1beta';
     const modelId = (process.env.GEMINI_MODEL_ID || 'gemini-1.5-flash').replace(/^models\//, '');
 
-    if (!base64Image || !prompt) {
-      return res.status(400).json({ error: 'Missing required parameters: base64Image or prompt.' });
+    if (!prompt) {
+      return res.status(400).json({ error: 'Missing required parameter: prompt.' });
     }
 
     const ai = new GoogleGenAI({ apiKey, apiVersion });
-    
-    const response = await ai.models.generateContent({
+
+    let masterPrompt = prompt;
+    try {
+      const response = await ai.models.generateContent({
         model: modelId,
-        contents: { parts: [{ inlineData: { data: base64Image, mimeType: 'image/png' } }, { text: prompt }] },
-    });
-
-    const imagePart =
-      response.candidates?.[0]?.content?.parts?.find(
-        (part) => 'inlineData' in part && !!(part as any).inlineData?.data
-      );
-
-    if (imagePart && 'inlineData' in imagePart) {
-        const imageUrl = `data:image/png;base64,${(imagePart as any).inlineData.data}`;
-        return res.status(200).json({ imageUrl });
+        contents: [{ text: `You are an image editing prompt designer. Refine this edit request with concise, realistic guidance: ${prompt}` }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 256,
+        },
+      });
+      const text =
+        response.candidates?.[0]?.content?.parts
+          ?.map(part => (part as any).text ?? '')
+          .join('')
+          .trim() || '';
+      if (text) {
+        masterPrompt = text;
+      }
+    } catch (err) {
+      console.warn('Gemini edit prompt expansion failed, returning base prompt:', err);
     }
 
-    throw new Error("Image edit failed or returned no image data.");
+    const mockImageUrl = 'https://via.placeholder.com/900x900/43A047/FFFFFF?text=BOOSTUGC+EDIT+MOCK';
+    return res.status(200).json({ imageUrl: mockImageUrl, masterPrompt });
   } catch (error) {
     console.error("Error in /api/edit-image:", error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";

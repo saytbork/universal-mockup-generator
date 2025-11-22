@@ -376,7 +376,7 @@ const VIDEO_COUNT_KEY = 'ugc-video-generation-count';
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '';
 const EMAIL_VERIFICATION_ENABLED = import.meta.env.VITE_EMAIL_VERIFICATION === 'true';
 const GEMINI_MODEL_ID = (import.meta.env.VITE_GEMINI_MODEL || 'gemini-1.5-flash').replace(/^models\//, '');
-const GEMINI_API_VERSION = import.meta.env.VITE_GEMINI_API_VERSION || 'v1';
+const GEMINI_API_VERSION = import.meta.env.VITE_GEMINI_API_VERSION || 'v1beta';
 
 type PlanTier = 'free' | 'creator' | 'studio';
 
