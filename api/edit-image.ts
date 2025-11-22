@@ -13,7 +13,7 @@ export default async function handler(
   const location = process.env.GCP_LOCATION || process.env.VERTEX_LOCATION || 'us-central1';
   const saJson = process.env.GCP_SERVICE_ACCOUNT_KEY;
   const replicateToken = process.env.REPLICATE_API_TOKEN;
-  const replicateModel = process.env.REPLICATE_MODEL || 'black-forest-labs/flux-pro-1.1';
+  // const replicateModel = process.env.REPLICATE_MODEL || 'black-forest-labs/flux-pro-1.1';
   const replicateVersion =
     process.env.REPLICATE_MODEL_VERSION ||
     'c470cc1a2232c8f8997c7a1e3a07c5c612200a60c9a0127b0c5e4a94fc35693f';
@@ -109,13 +109,13 @@ export default async function handler(
       instances: [instance],
       parameters: {
         sampleCount: 1,
+        safetySettings: [
+          { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH' },
+          { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' },
+          { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_ONLY_HIGH' },
+          { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_ONLY_HIGH' },
+        ],
       },
-      safetySettings: [
-        { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH' },
-        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' },
-        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_ONLY_HIGH' },
-        { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_ONLY_HIGH' },
-      ],
     };
 
     const auth = new GoogleAuth({
