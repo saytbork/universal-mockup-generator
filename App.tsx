@@ -2,7 +2,6 @@
 
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import { GoogleGenAI, Modality } from "@google/genai";
 import { MockupOptions, OptionCategory, Option } from './types';
 import { 
   CONTENT_STYLE_OPTIONS,
@@ -520,14 +519,7 @@ type AiStudioApi = {
   openSelectKey: () => Promise<void>;
 };
 
-const getEnvApiKey = (): string | undefined => {
-  const fromVite = import.meta.env.VITE_GEMINI_API_KEY;
-  if (fromVite) {
-    return fromVite.trim();
-  }
-  const fromProcess = process.env.API_KEY;
-  return fromProcess ? fromProcess.trim() : undefined;
-};
+const getEnvApiKey = (): string | undefined => undefined;
 
 const fileToBase64 = (file: File): Promise<{base64: string, mimeType: string}> => {
   return new Promise((resolve, reject) => {
@@ -900,7 +892,7 @@ const App: React.FC = () => {
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null);
   const [videoError, setVideoError] = useState<string | null>(null);
   const [isAiStudioAvailable, setIsAiStudioAvailable] = useState(false);
-  const [isKeySelected, setIsKeySelected] = useState(Boolean(envApiKey));
+  const [isKeySelected, setIsKeySelected] = useState(true);
 
   // State to manage which accordion is currently open
   const [openAccordion, setOpenAccordion] = useState<string | null>('Scene & Environment');
@@ -1243,15 +1235,9 @@ const App: React.FC = () => {
     }
   }, [apiKeyError]);
 
-  const getActiveApiKeyOrNotify = useCallback((notify: (message: string) => void): string | null => {
-    const resolvedKey = apiKey || envApiKey;
-    if (!resolvedKey) {
-      notify('Please configure your Gemini API key to continue.');
-      requireNewApiKey();
-      return null;
-    }
-    return resolvedKey;
-  }, [apiKey, envApiKey, requireNewApiKey]);
+  const getActiveApiKeyOrNotify = useCallback((_notify: (message: string) => void): string | null => {
+    return 'server';
+  }, []);
 
   const toggleSimpleMode = useCallback(() => {
     setIsSimpleMode(prev => {
@@ -2244,27 +2230,7 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
     setCopyError(null);
     setIsCopyLoading(true);
     try {
-      const resolvedApiKey = getActiveApiKeyOrNotify(message => setCopyError(message));
-      if (!resolvedApiKey) {
-        setIsCopyLoading(false);
-        return;
-      }
-      const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: GEMINI_API_VERSION });
-      const prompt = buildCopyPrompt(options);
-      const response = await ai.models.generateContent({
-        model: GEMINI_MODEL_ID,
-        contents: [{ text: prompt }],
-      });
-      const text =
-        response.candidates?.[0]?.content?.parts
-          ?.map(part => part.text ?? '')
-          .join('')
-          .trim() ?? '';
-      if (text) {
-        setGeneratedCopy(text);
-      } else {
-        setCopyError('Could not craft a caption. Try again.');
-      }
+      setCopyError('Caption assistant is disabled in this build.');
     } catch (error) {
       setCopyError(String(error));
     } finally {
@@ -3329,12 +3295,6 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
     setIsImageLoading(true);
 
     try {
-      const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
-      if (!resolvedApiKey) {
-        setIsImageLoading(false);
-        return;
-      }
-      const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: GEMINI_API_VERSION });
       const orderedAssets = productAssets
         .slice()
         .sort((a, b) => {
@@ -3342,70 +3302,33 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
           if (b.id === activeProductId) return 1;
           return a.createdAt - b.createdAt;
         });
-      const productInlineParts = [];
-      for (const asset of orderedAssets) {
-        const { base64, mimeType } = await fileToBase64(asset.file);
-        productInlineParts.push({ inlineData: { data: base64, mimeType } });
+      const [primary] = orderedAssets;
+      if (!primary) {
+        throw new Error('No product image found.');
       }
-      if (modelReferenceFile && personIncluded) {
-        const { base64, mimeType } = await fileToBase64(modelReferenceFile);
-        productInlineParts.push({ inlineData: { data: base64, mimeType } });
-      }
-      if (realModeActive && ugcRealSettings.clothingUpload) {
-        const { base64, mimeType } = await fileToBase64(ugcRealSettings.clothingUpload);
-        productInlineParts.push({ inlineData: { data: base64, mimeType } });
-      }
+      const { base64, mimeType } = await fileToBase64(primary.file);
       const finalPrompt = constructPrompt(bundleSelectionRef.current);
-      
-      const aspectRatio = options?.aspectRatio || '1:1';
-      const response = await ai.models.generateContent({
-        model: GEMINI_MODEL_ID,
-        contents: { parts: [...productInlineParts, {text: finalPrompt}] },
-        config: {
-          responseModalities: [Modality.IMAGE],
-          imageConfig: {
-            aspectRatio,
-          },
-        },
+      const response = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ base64, mimeType, prompt: finalPrompt }),
       });
-
-      for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-          const finalUrl = `data:image/png;base64,${part.inlineData.data}`;
-          setGeneratedImageUrl(finalUrl);
-          runHiResPipeline(finalUrl);
-          const newCount = creditUsage + creditCost;
-          setCreditUsage(newCount);
-          if (typeof window !== 'undefined') {
-            window.localStorage.setItem(IMAGE_COUNT_KEY, String(newCount));
-          }
-          return; // Exit after finding the image
-        }
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data?.imageUrl) {
+        throw new Error(data?.error || 'Image generation failed');
       }
-
-      throw new Error("Image generation failed or returned no images.");
+      const finalUrl = data.imageUrl as string;
+      setGeneratedImageUrl(finalUrl);
+      runHiResPipeline(finalUrl);
+      const newCount = creditUsage + creditCost;
+      setCreditUsage(newCount);
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(IMAGE_COUNT_KEY, String(newCount));
+      }
     } catch (err) {
       console.error(err);
-      // Fix: Safely convert unknown error type to string.
-      let errorMessage = String(err);
-      try {
-        const errorJson = JSON.parse(errorMessage);
-        if (errorJson.error && errorJson.error.message) {
-            errorMessage = String(errorJson.error.message);
-        }
-      } catch (parseError) {
-        // Not a JSON string, use original message
-      }
-      
-      if (errorMessage.includes("Requested entity was not found")) {
-        setImageError("Your API Key is invalid. Please select a valid key to continue.");
-        handleApiKeyInvalid();
-      } else if (errorMessage.toLowerCase().includes("quota")) {
-        setImageError("API quota exceeded. Please select a different API key, or check your current key's plan and billing details.");
-        handleApiKeyInvalid();
-      } else {
-        setImageError(errorMessage);
-      }
+      let errorMessage = err instanceof Error ? err.message : String(err);
+      setImageError(errorMessage);
     } finally {
       setIsImageLoading(false);
       bundleSelectionRef.current = null;
@@ -3442,65 +3365,25 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
     setImageError(null);
 
     try {
-      const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
-      if (!resolvedApiKey) {
-        setIsImageLoading(false);
-        return;
-      }
-      const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: GEMINI_API_VERSION });
       const base64Image = generatedImageUrl.split(',')[1];
-
-      const aspectRatio = options?.aspectRatio || '1:1';
-      const response = await ai.models.generateContent({
-        model: GEMINI_MODEL_ID,
-        contents: {
-          parts: [
-            { inlineData: { data: base64Image, mimeType: 'image/png' } },
-            { text: prompt.trim() },
-          ],
-        },
-        config: {
-          responseModalities: [Modality.IMAGE],
-          imageConfig: {
-            aspectRatio,
-          },
-        },
+      const response = await fetch('/api/edit-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ base64Image, prompt: prompt.trim() }),
       });
-
-      for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-          const editedUrl = `data:image/png;base64,${part.inlineData.data}`;
-          setGeneratedImageUrl(editedUrl);
-          runHiResPipeline(editedUrl);
-          if (editOptions?.clearManual) {
-            setEditPrompt('');
-          }
-          return;
-        }
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data?.imageUrl) {
+        throw new Error(data?.error || 'Image edit failed');
       }
-
-      throw new Error("Image edit failed or returned no images.");
+      const editedUrl = data.imageUrl as string;
+      setGeneratedImageUrl(editedUrl);
+      runHiResPipeline(editedUrl);
+      if (editOptions?.clearManual) {
+        setEditPrompt('');
+      }
     } catch (err) {
       console.error(err);
-      let errorMessage = String(err);
-      try {
-        const errorJson = JSON.parse(errorMessage);
-        if (errorJson.error && errorJson.error.message) {
-          errorMessage = String(errorJson.error.message);
-        }
-      } catch {
-        // not JSON
-      }
-
-      if (errorMessage.includes("Requested entity was not found")) {
-        setImageError("Your API Key is invalid. Please select a valid key to continue.");
-        handleApiKeyInvalid();
-      } else if (errorMessage.toLowerCase().includes("quota")) {
-        setImageError("API quota exceeded. Please select a different API key, or check your current key's plan and billing details.");
-        handleApiKeyInvalid();
-      } else {
-        setImageError(errorMessage);
-      }
+      setImageError(err instanceof Error ? err.message : String(err));
     } finally {
       setIsImageLoading(false);
     }
@@ -3535,85 +3418,35 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
     setGeneratedVideoUrl(null);
 
     try {
-      const resolvedApiKey = getActiveApiKeyOrNotify(message => setVideoError(message));
-      if (!resolvedApiKey) {
-        setIsVideoLoading(false);
-        return;
-      }
-      const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: GEMINI_API_VERSION });
       const base64Image = generatedImageUrl.split(',')[1];
-
-      const getVideoAspectRatio = (): '16:9' | '9:16' => {
-        if (options.aspectRatio === '1:1') return '9:16'; // VEO doesn't support 1:1, default to vertical
-        return options.aspectRatio as '16:9' | '9:16';
-      };
-
-      let operation = await ai.models.generateVideos({
-        model: 'veo-3.1-fast-generate-preview',
-        prompt: videoPrompt,
-        image: {
-          imageBytes: base64Image,
-          mimeType: 'image/png',
-        },
-        config: {
-          numberOfVideos: 1,
-          resolution: '720p',
-          aspectRatio: getVideoAspectRatio(),
-        }
+      const aspectRatio = options.aspectRatio === '1:1' ? '9:16' : options.aspectRatio;
+      const response = await fetch('/api/generate-video', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ base64Image, prompt: videoPrompt, aspectRatio }),
       });
-      
-      while (!operation.done) {
-        await new Promise(resolve => setTimeout(resolve, 10000));
-        operation = await ai.operations.getVideosOperation({operation: operation});
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data?.videoUrl) {
+        throw new Error(data?.error || 'Video generation failed');
       }
-
-      if (operation.error) {
-        throw new Error(operation.error.message || 'Video generation failed with an unknown error.');
+      setGeneratedVideoUrl(data.videoUrl as string);
+      if (!isTrialBypassActive) {
+        setCreditUsage(count => {
+          const next = count + videoCost;
+          if (typeof window !== 'undefined') {
+            window.localStorage.setItem(IMAGE_COUNT_KEY, String(next));
+          }
+          return next;
+        });
       }
-
-      const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
-      if (downloadLink) {
-        const response = await fetch(`${downloadLink}&key=${resolvedApiKey}`);
-        const blob = await response.blob();
-        setGeneratedVideoUrl(URL.createObjectURL(blob));
-        if (!isTrialBypassActive) {
-          setCreditUsage(count => {
-            const next = count + videoCost;
-            if (typeof window !== 'undefined') {
-              window.localStorage.setItem(IMAGE_COUNT_KEY, String(next));
-            }
-            return next;
-          });
-        }
-        if (!isTrialBypassActive && planVideoLimit > 0 && !hasVideoAccess) {
-          setVideoGenerationCount(count => count + 1);
-        }
-      } else {
-        throw new Error("Video generation completed but no download link was provided.");
+      if (!isTrialBypassActive && planVideoLimit > 0 && !hasVideoAccess) {
+        setVideoGenerationCount(count => count + 1);
       }
 
     } catch (err) {
         console.error(err);
-        let errorMessage = err instanceof Error ? err.message : String(err);
-
-        try {
-            const errorJson = JSON.parse(errorMessage);
-            if (errorJson.error && errorJson.error.message) {
-                errorMessage = String(errorJson.error.message);
-            }
-        } catch (parseError) {
-            // ignore
-        }
-        
-        if (errorMessage.includes("Requested entity was not found")) {
-            setVideoError("Your API Key is invalid. Please select a valid key to continue.");
-            handleApiKeyInvalid();
-        } else if (errorMessage.toLowerCase().includes("quota")) {
-            setVideoError("API quota exceeded. Please select a different API key, or check your current key's plan and billing details.");
-            handleApiKeyInvalid();
-        } else {
-            setVideoError(errorMessage);
-        }
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        setVideoError(errorMessage);
     } finally {
         setIsVideoLoading(false);
     }
@@ -3805,9 +3638,7 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
     return renderLoginScreen();
   }
 
-  if (!isKeySelected) {
-    return renderApiKeyScreen();
-  }
+  // API key overlay is disabled; backend handles the key.
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 lg:p-8">
