@@ -147,7 +147,7 @@ export default async function handler(
     const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${project}/locations/${location}/publishers/google/models/${vertexImageModel}:predict`;
 
     const instance: Record<string, any> = {
-      prompt: `${safePrompt}\nNo sexual content, no violence, no weapons, no blood, no minors. Keep it safe lifestyle/editorial.`,
+      prompt: safePrompt,
       negativePrompt,
     };
     if (base64) {
@@ -158,7 +158,6 @@ export default async function handler(
       instances: [instance],
       parameters: {
         sampleCount: 1,
-        safetySetting: 'block_only_high',
         safetySettings: [
           { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH' },
           { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' },
