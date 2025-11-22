@@ -19,7 +19,7 @@ export default async function handler(
     'c470cc1a2232c8f8997c7a1e3a07c5c612200a60c9a0127b0c5e4a94fc35693f';
   const vertexImageModel = process.env.GCP_IMAGE_MODEL || 'imagen-3.0-generate-002';
   const negativePrompt =
-    'desnudo, sexual, pornográfico, gore, violencia, armas, sangre, menores de edad, contenido explícito, pose sugerente, contenido regulado, drogas, autolesiones, brutalidad, odio';
+    'nudity, sexual content, pornography, gore, violence, weapons, blood, minors, explicit content, suggestive poses, regulated content, drugs, self-harm, brutality, hate, offensive';
 
   try {
     const { base64, mimeType, prompt = '' } = req.body || {};
@@ -89,7 +89,7 @@ export default async function handler(
     const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${project}/locations/${location}/publishers/google/models/${vertexImageModel}:predict`;
 
     const instance: Record<string, any> = {
-      prompt: `${prompt}\nNo contenido sexual, no violencia, no armas, no sangre, no menores. Estilo lifestyle/editorial seguro.`,
+      prompt: `${prompt}\nNo sexual content, no violence, no weapons, no blood, no minors. Keep it safe lifestyle/editorial.`,
       negativePrompt,
     };
     if (base64) {
