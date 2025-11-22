@@ -17,6 +17,7 @@ export default async function handler(
   const replicateVersion =
     process.env.REPLICATE_MODEL_VERSION ||
     'c470cc1a2232c8f8997c7a1e3a07c5c612200a60c9a0127b0c5e4a94fc35693f';
+  const vertexImageModel = process.env.GCP_IMAGE_MODEL || 'imagen-3.0-generate-002';
 
   try {
     const { base64, mimeType, prompt = '' } = req.body || {};
@@ -82,7 +83,7 @@ export default async function handler(
       throw new Error('Missing GCP_PROJECT_ID or GCP_SERVICE_ACCOUNT_KEY for Vertex fallback.');
     }
 
-    const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${project}/locations/${location}/publishers/google/models/imagen-3.0:predict`;
+    const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${project}/locations/${location}/publishers/google/models/${vertexImageModel}:predict`;
 
     const instance: Record<string, any> = {
       prompt,
