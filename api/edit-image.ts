@@ -133,7 +133,6 @@ export default async function handler(
           };
         } catch (maskError) {
           console.error('Failed to generate mask:', maskError);
-          const msg = maskError instanceof Error ? maskError.message : String(maskError);
           // Don't throw yet, check if we have a mask
         }
       }
