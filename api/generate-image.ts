@@ -56,7 +56,6 @@ export default async function handler(
         // Let's check the import in `api/generate-video.ts` which was working.
         // It used `import { GoogleGenAI } from "@google/genai";` and `new GoogleGenAI({ apiKey, apiVersion })`.
         // Then `ai.models.generateVideos`.
-        // For text, it should be `ai.models.generateContent`.
 
         // Fix: Explicitly set apiVersion to 'v1beta' to ensure compatibility.
         // The error "Unknown name 'responseModalities'" suggests the SDK is sending fields not supported by the default API version (likely v1).
@@ -83,6 +82,7 @@ export default async function handler(
         console.warn('Gemini prompt enhancement failed, using original:', err);
       }
     }
+    */
 
     const safePrompt = `Safe, fully clothed, professional lifestyle/editorial product photo. ${enhancedPrompt}`;
 
@@ -160,6 +160,7 @@ export default async function handler(
       instances: [instance],
       parameters: {
         sampleCount: 1,
+        personGeneration: 'allow_adult', // Required for generating people
         safetySettings: [
           { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH' },
           { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' },
