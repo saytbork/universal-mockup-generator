@@ -100,12 +100,39 @@ export default async function handler(
     }
     const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${project}/locations/${location}/publishers/google/models/${vertexImageModel}:predict`;
 
+    import { createCanvas, loadImage } from 'canvas';
+
+    // ... imports
+
     const instance: Record<string, any> = {
       prompt: safePrompt,
       negativePrompt,
     };
     if (base64Image) {
       instance.image = { bytesBase64Encoded: base64Image, mimeType: mimeType || 'image/png' };
+
+      // Fix: Imagen 2 requires a mask for editing. 
+      // Since we don't have a user-provided mask, we'll generate a full-image mask 
+      // to allow the model to edit the entire image (variation/refinement).
+      try {
+        const imgBuffer = Buffer.from(base64Image, 'base64');
+        const img = await loadImage(imgBuffer);
+        const canvas = createCanvas(img.width, img.height);
+        const ctx = canvas.getContext('2d');
+
+        // Fill with white (white = edit this area, black = keep)
+        // For full variation, we mask everything.
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, img.width, img.height);
+
+        const maskBase64 = canvas.toBuffer('image/png').toString('base64');
+        instance.mask = {
+          image: { bytesBase64Encoded: maskBase64, mimeType: 'image/png' }
+        };
+      } catch (maskError) {
+        console.error('Failed to generate mask:', maskError);
+        // Proceed without mask, though it will likely fail for Imagen 2
+      }
     }
 
     const body = {
