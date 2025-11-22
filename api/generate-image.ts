@@ -58,7 +58,9 @@ export default async function handler(
         // Then `ai.models.generateVideos`.
         // For text, it should be `ai.models.generateContent`.
 
-        const ai = new GoogleGenAI({ apiKey: geminiApiKey });
+        // Fix: Explicitly set apiVersion to 'v1beta' to ensure compatibility.
+        // The error "Unknown name 'responseModalities'" suggests the SDK is sending fields not supported by the default API version (likely v1).
+        const ai = new GoogleGenAI({ apiKey: geminiApiKey, apiVersion: 'v1beta' });
         const result = await ai.models.generateContent({
           model: 'gemini-1.5-flash',
           contents: [{
