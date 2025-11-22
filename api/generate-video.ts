@@ -16,7 +16,7 @@ export default async function handler(
 
   try {
     const { base64Image, prompt, aspectRatio } = req.body;
-    const apiVersion = process.env.GEMINI_API_VERSION || 'v1';
+    const apiVersion = process.env.GEMINI_API_VERSION || 'v1beta';
 
     if (!base64Image || !prompt || !aspectRatio) {
       return res.status(400).json({ error: 'Missing required parameters: base64Image, prompt, or aspectRatio.' });
@@ -37,7 +37,7 @@ export default async function handler(
         aspectRatio: aspectRatio,
       }
     });
-    
+
     // Poll for the result
     while (!operation.done) {
       await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
@@ -45,11 +45,11 @@ export default async function handler(
       if (!opName) {
         throw new Error('Video operation name missing.');
       }
-      operation = await ai.operations.getVideosOperation({ name: opName });
+      operation = await ai.operations.getVideosOperation({ name: opName } as any);
     }
 
     if (operation.error) {
-      throw new Error(operation.error.message || 'Video generation failed with an unknown error.');
+      throw new Error((operation.error as any).message || 'Video generation failed with an unknown error.');
     }
 
     const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
