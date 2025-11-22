@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { GoogleAuth } from 'google-auth-library';
 
 export default async function handler(
   req: VercelRequest,
@@ -8,12 +9,12 @@ export default async function handler(
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const apiKey = process.env.VERTEX_API_KEY || process.env.GEMINI_API_KEY;
-  const project = process.env.VERTEX_PROJECT_ID;
-  const location = process.env.VERTEX_LOCATION || 'us-central1';
+  const project = process.env.GCP_PROJECT_ID || process.env.VERTEX_PROJECT_ID;
+  const location = process.env.GCP_LOCATION || process.env.VERTEX_LOCATION || 'us-central1';
+  const saJson = process.env.GCP_SERVICE_ACCOUNT_KEY;
 
-  if (!apiKey || !project) {
-    return res.status(500).json({ error: "VERTEX_API_KEY and VERTEX_PROJECT_ID must be configured on the server." });
+  if (!project || !saJson) {
+    return res.status(500).json({ error: "GCP_PROJECT_ID and GCP_SERVICE_ACCOUNT_KEY must be configured on the server." });
   }
 
   try {
@@ -22,7 +23,7 @@ export default async function handler(
       return res.status(400).json({ error: 'Missing required parameter: prompt.' });
     }
 
-    const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${project}/locations/${location}/publishers/google/models/imagen-3.0:predict?key=${apiKey}`;
+    const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${project}/locations/${location}/publishers/google/models/imagen-3.0:predict`;
 
     const instance: Record<string, any> = {
       prompt,
@@ -38,10 +39,18 @@ export default async function handler(
       },
     };
 
+    const auth = new GoogleAuth({
+      credentials: JSON.parse(saJson),
+      scopes: ['https://www.googleapis.com/auth/cloud-platform'],
+    });
+    const client = await auth.getClient();
+    const token = await client.getAccessToken();
+
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token.token}`,
       },
       body: JSON.stringify(body),
     });
