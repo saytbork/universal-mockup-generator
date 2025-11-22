@@ -1,3 +1,6 @@
+// @ts-ignore
+import { createCanvas, loadImage } from 'canvas';
+
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleAuth } from 'google-auth-library';
 
@@ -99,10 +102,6 @@ export default async function handler(
       throw new Error('Missing GCP_PROJECT_ID or GCP_SERVICE_ACCOUNT_KEY for Vertex fallback.');
     }
     const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${project}/locations/${location}/publishers/google/models/${vertexImageModel}:predict`;
-
-    import { createCanvas, loadImage } from 'canvas';
-
-    // ... imports
 
     const instance: Record<string, any> = {
       prompt: safePrompt,
