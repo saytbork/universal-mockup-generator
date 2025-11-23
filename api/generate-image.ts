@@ -22,15 +22,13 @@ export default async function handler(
     console.error('Missing GCP_SERVICE_ACCOUNT_KEY');
     return res.status(500).json({ error: 'Server configuration error: Missing Service Account Key' });
   }
-  // const replicateToken = process.env.REPLICATE_API_TOKEN;
-  // const replicateModel = process.env.REPLICATE_MODEL || 'black-forest-labs/flux-pro-1.1';
-  // const replicateVersion =
-  //   process.env.REPLICATE_MODEL_VERSION ||
-  //   'c470cc1a2232c8f8997c7a1e3a07c5c612200a60c9a0127b0c5e4a94fc35693f';
-  const vertexImageModel = process.env.GCP_IMAGE_MODEL || 'imagegeneration@006';
+
+  // Use Imagen 3 as requested
+  const vertexImageModel = 'imagen-3.0-generate-002';
   const geminiApiKey = process.env.GEMINI_API_KEY;
-  const negativePrompt =
-    'nudity, sexual content, pornography, gore, violence, weapons, blood, minors, explicit content, suggestive poses, regulated content, drugs, smoking, vape, alcohol, self-harm, brutality, hate, offensive, bikini, lingerie';
+
+  // Specific negative prompt requested by user to avoid policy violations
+  const negativePrompt = "desnudo, cuerpo, ropa, sexy, sexual, sangre, violencia, closeup de cara, modelo, persona, menor de edad, render 3D, ilustración";
 
   const sanitizePrompt = (raw: string): string => {
     const banned = [
@@ -57,17 +55,6 @@ export default async function handler(
     // Enhance prompt with Gemini if available
     if (geminiApiKey) {
       try {
-        // Fix: GoogleGenAI SDK usage might differ based on version. 
-        // Assuming @google/genai v0.x or similar where it might be different.
-        // Checking package.json, it is ^1.27.0.
-        // In 1.x, it is usually `const genAI = new GoogleGenerativeAI(apiKey); const model = genAI.getGenerativeModel(...)`
-        // But the import is `import { GoogleGenAI } from "@google/genai";` which suggests the new SDK.
-        // Let's check the import in `api/generate-video.ts` which was working.
-        // It used `import { GoogleGenAI } from "@google/genai";` and `new GoogleGenAI({ apiKey, apiVersion })`.
-        // Then `ai.models.generateVideos`.
-
-        // Fix: Explicitly set apiVersion to 'v1beta' to ensure compatibility.
-        // The error "Unknown name 'responseModalities'" suggests the SDK is sending fields not supported by the default API version (likely v1).
         const ai = new GoogleGenAI({ apiKey: geminiApiKey, apiVersion: 'v1beta' });
         const result = await ai.models.generateContent({
           model: 'gemini-1.5-flash',
@@ -78,6 +65,7 @@ export default async function handler(
           Enhance this image generation prompt to be more descriptive, photorealistic, and high quality for a UGC lifestyle product shot. 
           Keep it under 100 words. Focus on lighting, texture, and realism.
           IMPORTANT: Ensure the output is completely safe, family-friendly, and free of any violence, sexual content, or prohibited items.
+          Avoid describing people or models in detail to prevent safety filter triggers. Focus on the product and environment.
           Original prompt: "${enhancedPrompt}"
         ` }]
           }]
@@ -92,75 +80,20 @@ export default async function handler(
       }
     }
 
-
     const safePrompt = enhancedPrompt;
 
-    // First choice: Replicate (Flux) - DISABLED per user request
-    /*
-    if (replicateToken) {
-      try {
-        const version = replicateVersion;
-        const start = await fetch('https://api.replicate.com/v1/predictions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${replicateToken}`,
-          },
-          body: JSON.stringify({
-            version,
-            input: {
-              prompt: safePrompt,
-              width: 1024,
-              height: 1024,
-              guidance_scale: 3,
-              negative_prompt: negativePrompt,
-            },
-          }),
-        });
-        const startData = await start.json().catch(() => ({}));
-        if (!start.ok) {
-          throw new Error(startData?.error?.message || 'Replicate request failed');
-        }
-        const predictionId = startData.id;
-        let status = startData.status;
-        let output: any = startData.output;
-
-        // Poll until completed
-        while (!['succeeded', 'failed', 'canceled'].includes(status)) {
-          await new Promise(r => setTimeout(r, 3000));
-          const poll = await fetch(`https://api.replicate.com/v1/predictions/${predictionId}`, {
-            headers: { Authorization: `Bearer ${replicateToken}` },
-          });
-          const pollData = await poll.json().catch(() => ({}));
-          status = pollData.status;
-          output = pollData.output;
-          if (status === 'failed' || status === 'canceled') {
-            throw new Error(pollData?.error || 'Replicate generation failed');
-          }
-        }
-
-        const imageUrl = Array.isArray(output) ? output[0] : null;
-        if (!imageUrl) {
-          throw new Error('Replicate returned no image URL.');
-        }
-        return res.status(200).json({ imageUrl, promptUsed: safePrompt });
-      } catch (err) {
-        console.warn('Replicate failed, trying Vertex:', err);
-      }
-    }
-    */
-
-    // Fallback: Vertex Imagen 3 using service account
-    if (!project || !saJson) {
-      throw new Error('Missing GCP_PROJECT_ID or GCP_SERVICE_ACCOUNT_KEY for Vertex fallback.');
-    }
-
+    // Vertex Imagen 3 using service account
     const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${project}/locations/${location}/publishers/google/models/${vertexImageModel}:predict`;
 
     const instance: Record<string, any> = {
       prompt: safePrompt,
-      negativePrompt,
+      // Imagen 3 specific parameters structure might vary, but usually prompt is top level in instance
     };
+
+    // Note: Imagen 3 might not support 'image' input for editing in the same way as generation.
+    // This endpoint is for generation. If base64 is present, it might be for editing/variation.
+    // However, the user instructions for "generateImageWithImagen3" did not include image input.
+    // We will keep it if present but be aware it might not be used by the model if not configured.
     if (base64) {
       instance.image = { bytesBase64Encoded: base64, mimeType: mimeType || 'image/png' };
     }
@@ -169,13 +102,10 @@ export default async function handler(
       instances: [instance],
       parameters: {
         sampleCount: 1,
-        // personGeneration: 'allow_adult', // Not required/supported for Imagen 2
-        safetySettings: [
-          { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH' },
-          { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' },
-          { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_ONLY_HIGH' },
-          { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_ONLY_HIGH' },
-        ],
+        aspectRatio: "1:1", // Added as per user snippet
+        negativePrompt: negativePrompt, // Moved to parameters as per user snippet/Imagen 3 specs
+        // personGeneration: 'allow_adult', // Removed as per previous instructions, but check if needed for Imagen 3
+        // User snippet didn't include personGeneration, but included negative prompt in parameters.
       },
     };
 
@@ -203,7 +133,17 @@ export default async function handler(
 
     const data = await response.json();
     const prediction = data?.predictions?.[0];
-    const imageBase64 = prediction?.bytesBase64Encoded;
+
+    // Imagen 3 response structure check
+    // User snippet: response.predictions[0].structValue.fields.image.stringValue
+    // REST API usually returns predictions as objects directly.
+    // Let's try standard bytesBase64Encoded first, if not check structValue.
+    let imageBase64 = prediction?.bytesBase64Encoded;
+
+    if (!imageBase64 && prediction?.structValue?.fields?.image?.stringValue) {
+      imageBase64 = prediction.structValue.fields.image.stringValue;
+    }
+
     if (!imageBase64) {
       console.error('Vertex AI Response Data:', JSON.stringify(data, null, 2));
       throw new Error('No image returned from Vertex Imagen.');
