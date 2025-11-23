@@ -1,6 +1,6 @@
 
-
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { SignInButton, UserButton, SignedIn, SignedOut, useUser } from '@clerk/clerk-react';
 import { useLocation } from 'react-router-dom';
 import { MockupOptions, OptionCategory, Option } from './types';
 import {
@@ -332,35 +332,32 @@ const describeAgeGroup = (ageGroup: string, gender: string) => {
 
   switch (ageGroup) {
     case '18-25':
-      return `a Gen-Z ${genderNoun} aged 18-25 with smooth skin and youthful energy`;
+      return `a Gen - Z ${genderNoun} aged 18 - 25 with smooth skin and youthful energy`;
     case '13-17':
-      return `a teenage ${genderNoun} aged 13-17 with expressive eyes and youthful posture`;
+      return `a teenage ${genderNoun} aged 13 - 17 with expressive eyes and youthful posture`;
     case '6-12':
-      return `a kid ${genderNoun} aged 6-12 with playful energy and smaller proportions`;
+      return `a kid ${genderNoun} aged 6 - 12 with playful energy and smaller proportions`;
     case '26-35':
-      return `a Millennial ${genderNoun} aged 26-35 with subtle laugh lines and confident posture`;
+      return `a Millennial ${genderNoun} aged 26 - 35 with subtle laugh lines and confident posture`;
     case '36-45':
-      return `a mature ${genderNoun} aged 36-45 with gentle signs of aging and poised energy`;
+      return `a mature ${genderNoun} aged 36 - 45 with gentle signs of aging and poised energy`;
     case '46-60':
-      return `an experienced ${genderNoun} aged 46-60 with visible fine lines and seasoned presence`;
+      return `an experienced ${genderNoun} aged 46 - 60 with visible fine lines and seasoned presence`;
     case '60-75':
-      return `an older ${genderNoun} aged 60-75 with softened skin texture and silver hair details`;
+      return `an older ${genderNoun} aged 60 - 75 with softened skin texture and silver hair details`;
     case '75+':
-      return `an elderly ${genderNoun}, 75+, with pronounced wrinkles, age spots on the hands, and white or silver hair`;
+      return `an elderly ${genderNoun}, 75 +, with pronounced wrinkles, age spots on the hands, and white or silver hair`;
     default:
-      return `a ${genderNoun} aged ${ageGroup}`;
+      return `a ${genderNoun} aged ${ageGroup} `;
   }
 };
 
-const LOCAL_STORAGE_KEY = 'ugc-product-mockup-generator-api-key';
-const EMAIL_STORAGE_KEY = 'ugc-product-mockup-generator-user-email';
-const IMAGE_COUNT_KEY = 'ugc-product-mockup-generator-credit-count';
 const VIDEO_ACCESS_KEY = 'ugc-product-mockup-generator-video-access';
 const TRIAL_BYPASS_KEY = 'ugc-product-mockup-trial-bypass';
 const DEFAULT_ADMIN_EMAILS = ['juanamisano@gmail.com'];
 const ADMIN_EMAILS = Array.from(
   new Set(
-    `${import.meta.env.VITE_ADMIN_EMAILS || ''},${DEFAULT_ADMIN_EMAILS.join(',')}`
+    `${import.meta.env.VITE_ADMIN_EMAILS || ''},${DEFAULT_ADMIN_EMAILS.join(',')} `
       .split(',')
       .map(email => email.trim().toLowerCase())
       .filter(Boolean)
@@ -373,8 +370,6 @@ const SIMPLE_MODE_KEY = 'ugc-simple-mode';
 const GOAL_WIZARD_KEY = 'ugc-goal-wizard-dismissed';
 const PLAN_STORAGE_KEY = 'ugc-plan-tier';
 const VIDEO_COUNT_KEY = 'ugc-video-generation-count';
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '';
-const EMAIL_VERIFICATION_ENABLED = import.meta.env.VITE_EMAIL_VERIFICATION === 'true';
 const GEMINI_MODEL_ID = (import.meta.env.VITE_GEMINI_MODEL || 'gemini-1.5-flash').replace(/^models\//, '');
 const GEMINI_API_VERSION = import.meta.env.VITE_GEMINI_API_VERSION || 'v1beta';
 
@@ -636,7 +631,7 @@ const App: React.FC = () => {
   const [recommendedBaseProduct, setRecommendedBaseProduct] = useState<ProductId>(ALL_PRODUCT_IDS[0] || 'product_1');
   const [lastBundleSelection, setLastBundleSelection] = useState<ProductId[] | null>(null);
   const availableProductIds = useMemo<ProductId[]>(
-    () => productAssets.map((_, index) => `product_${index + 1}` as ProductId),
+    () => productAssets.map((_, index) => `product_${index + 1} ` as ProductId),
     [productAssets]
   );
   const availableProductIdSet = useMemo(() => new Set<ProductId>(availableProductIds), [availableProductIds]);
@@ -645,9 +640,9 @@ const App: React.FC = () => {
       return PRODUCT_MEDIA_LIBRARY;
     }
     return productAssets.reduce<ProductMediaLibrary>((acc, asset, index) => {
-      const productId = `product_${index + 1}` as ProductId;
+      const productId = `product_${index + 1} ` as ProductId;
       acc[productId] = {
-        label: asset.label || `Product ${index + 1}`,
+        label: asset.label || `Product ${index + 1} `,
         imageUrl: asset.previewUrl,
       };
       return acc;
@@ -679,23 +674,17 @@ const App: React.FC = () => {
   const [isImageLoading, setIsImageLoading] = useState(false);
   const [imageError, setImageError] = useState<string | null>(null);
   const [editPrompt, setEditPrompt] = useState('');
-  const [apiKey, setApiKey] = useState<string>(envApiKey ?? '');
-  const [manualApiKey, setManualApiKey] = useState('');
-  const [apiKeyError, setApiKeyError] = useState<string | null>(null);
-  const [isUsingStoredKey, setIsUsingStoredKey] = useState(false);
-  const [userEmail, setUserEmail] = useState('');
-  const [emailInput, setEmailInput] = useState('');
-  const [emailError, setEmailError] = useState<string | null>(null);
-  const [isGoogleScriptLoaded, setIsGoogleScriptLoaded] = useState(false);
-  const [googleAuthError, setGoogleAuthError] = useState<string | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [loginRequested, setLoginRequested] = useState(false);
-  const [loginStep, setLoginStep] = useState<'email' | 'code'>('email');
-  const [verificationCode, setVerificationCode] = useState('');
-  const [verificationError, setVerificationError] = useState<string | null>(null);
-  const [isRequestingCode, setIsRequestingCode] = useState(false);
-  const [isVerifyingCode, setIsVerifyingCode] = useState(false);
-  const [codeSentTimestamp, setCodeSentTimestamp] = useState<number | null>(null);
+  // const [apiKey, setApiKey] = useState<string>(envApiKey ?? ''); // Removed in favor of Clerk
+  // const [manualApiKey, setManualApiKey] = useState(''); // Removed in favor of Clerk
+  // const [apiKeyError, setApiKeyError] = useState<string | null>(null); // Removed in favor of Clerk
+  // const [isUsingStoredKey, setIsUsingStoredKey] = useState(false); // Removed in favor of Clerk
+
+  // Clerk Integration
+  const { user, isLoaded, isSignedIn } = useUser();
+  const isLoggedIn = !!isSignedIn;
+  const userEmail = user?.primaryEmailAddress?.emailAddress || '';
+
+
   const [creditUsage, setCreditUsage] = useState(0); // tracks credits spent
   const [videoGenerationCount, setVideoGenerationCount] = useState(0);
   const [hasVideoAccess, setHasVideoAccess] = useState(false);
@@ -706,6 +695,7 @@ const App: React.FC = () => {
   const [moodSummary, setMoodSummary] = useState<string | null>(null);
   const [moodPromptCue, setMoodPromptCue] = useState<string | null>(null);
   const [isMoodProcessing, setIsMoodProcessing] = useState(false);
+
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(1);
   const [activeTalentPreset, setActiveTalentPreset] = useState('custom');
@@ -716,6 +706,7 @@ const App: React.FC = () => {
   const [generatedCopy, setGeneratedCopy] = useState<string | null>(null);
   const [isCopyLoading, setIsCopyLoading] = useState(false);
   const [copyError, setCopyError] = useState<string | null>(null);
+  useEffect(() => { if (copyError) console.error('Copy generation error:', copyError); }, [copyError]);
   const [planTier, setPlanTier] = useState<PlanTier>('free');
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [planCodeInput, setPlanCodeInput] = useState('');
@@ -738,9 +729,7 @@ const App: React.FC = () => {
   const intentRef = useRef<HTMLDivElement>(null);
   const uploadRef = useRef<HTMLDivElement>(null);
   const customizeRef = useRef<HTMLDivElement>(null);
-  const trialInputRef = useRef<HTMLInputElement>(null);
-  const googleButtonRef = useRef<HTMLDivElement>(null);
-  const googleInitRef = useRef(false);
+
   const uploaderRef = useRef<ImageUploaderHandle | null>(null);
   const isDevBypass = useMemo(() => {
     if (!import.meta.env.DEV) return false;
@@ -753,8 +742,8 @@ const App: React.FC = () => {
   );
   const isFreeUser = !isAdmin && planTier === 'free';
   const [hasTrialBypass, setHasTrialBypass] = useState(false);
-  const [trialCodeInput, setTrialCodeInput] = useState('');
-  const [trialCodeError, setTrialCodeError] = useState<string | null>(null);
+  // const [trialCodeInput, setTrialCodeInput] = useState('');
+  // const [trialCodeError, setTrialCodeError] = useState<string | null>(null);
   const isTrialBypassActive = hasTrialBypass || isDevBypass;
   const hasSelectedIntent = Boolean(options.contentStyle);
   const hasUploadedProduct = Boolean(activeProductAsset);
@@ -770,17 +759,15 @@ const App: React.FC = () => {
   const isHeroLandingMode = activeSupplementPreset === HERO_LANDING_PRESET_VALUE;
   const currentPlan = PLAN_CONFIG[planTier];
   const shouldRequireLogin = !isLoggedIn;
-  const loginGateActive = shouldRequireLogin || loginRequested;
+  const loginGateActive = shouldRequireLogin;
   const planCreditLimit = currentPlan.creditLimit;
   const planVideoLimit = Math.floor(planCreditLimit / VIDEO_CREDIT_COST);
-  const canUseStudioFeatures = currentPlan.allowStudio || isTrialBypassActive;
-  const canUseCaptionAssistant = false;
   const remainingCredits = Math.max(planCreditLimit - creditUsage, 0);
   const remainingVideos = Math.max(planVideoLimit - videoGenerationCount, 0);
   const isTrialLocked = !isTrialBypassActive && creditUsage >= planCreditLimit;
   const hasPlanVideoAccess = planVideoLimit > 0 || hasVideoAccess || isTrialBypassActive;
+  const canUseStudioFeatures = currentPlan.allowStudio || isTrialBypassActive;
   const isVideoLimitReached = !isTrialBypassActive && planVideoLimit > 0 && videoGenerationCount >= planVideoLimit;
-  const showCaptionAssistant = false;
   useEffect(() => {
     if ((!personInScene || isProductPlacement) && ugcRealSettings.isEnabled) {
       persistUgcRealSettings(prev => ({ ...prev, isEnabled: false }));
@@ -822,13 +809,7 @@ const App: React.FC = () => {
     formulationLabStyle,
     formulationExpertProfession,
   ]);
-  const scrollToSection = useCallback((title: string) => {
-    const element = document.getElementById(getSectionId(title));
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, [GOOGLE_CLIENT_ID]);
-  const shouldShowOnboarding = showOnboarding && !isTrialLocked;
+  const shouldShowOnboarding = showOnboarding && !(!isTrialBypassActive && creditUsage >= planCreditLimit);
   const stepThreeCategories = useMemo<Set<OptionCategory>>(
     () =>
       new Set<OptionCategory>([
@@ -892,25 +873,10 @@ const App: React.FC = () => {
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null);
   const [videoError, setVideoError] = useState<string | null>(null);
   const [isAiStudioAvailable, setIsAiStudioAvailable] = useState(false);
-  const [isKeySelected, setIsKeySelected] = useState(true);
 
   // State to manage which accordion is currently open
   const [openAccordion, setOpenAccordion] = useState<string | null>('Scene & Environment');
   const [selectedCategories, setSelectedCategories] = useState<Set<OptionCategory>>(new Set());
-  const accordionOrder = useMemo(() => {
-    const order: string[] = [];
-    order.push('Content Intent');
-    order.push('Scene & Environment');
-    if (isProductPlacement) {
-      order.push('Product Details');
-    }
-    order.push('Photography');
-    if (!isProductPlacement) {
-      order.push('Person Details');
-      order.push('UGC Real Mode');
-    }
-    return order;
-  }, [isProductPlacement]);
   const activePresetMeta = useMemo(() => CREATOR_PRESET_LOOKUP[activeTalentPreset], [activeTalentPreset]);
   const hasSavedTalent = Boolean(savedTalentProfile);
   useEffect(() => {
@@ -933,20 +899,7 @@ const App: React.FC = () => {
     const aiStudioInstance = (window as typeof window & { aistudio?: AiStudioApi }).aistudio;
     setIsAiStudioAvailable(Boolean(aiStudioInstance));
 
-    const storedEmail = window.localStorage.getItem(EMAIL_STORAGE_KEY);
-    if (storedEmail) {
-      setUserEmail(storedEmail);
-      setIsLoggedIn(true);
-      setEmailInput(storedEmail);
-    }
-
-    const storedCount = window.localStorage.getItem(IMAGE_COUNT_KEY);
-    if (storedCount) {
-      const parsed = Number.parseInt(storedCount, 10);
-      if (!Number.isNaN(parsed)) {
-        setCreditUsage(parsed);
-      }
-    }
+    // Legacy credit storage removed
 
     const storedVideoAccess = window.localStorage.getItem(VIDEO_ACCESS_KEY);
     if (storedVideoAccess === 'granted') {
@@ -979,26 +932,6 @@ const App: React.FC = () => {
       setHasTrialBypass(true);
     }
 
-    const storedKey = window.localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (storedKey) {
-      setApiKey(storedKey);
-      setManualApiKey(storedKey);
-      setIsKeySelected(true);
-      setIsUsingStoredKey(true);
-      return;
-    }
-
-    if (envApiKey) {
-      setIsKeySelected(true);
-      return;
-    }
-
-    const checkAiStudioSelection = async () => {
-      if (aiStudioInstance && await aiStudioInstance.hasSelectedApiKey()) {
-        setIsKeySelected(true);
-      }
-    };
-
     const storedSimpleMode = window.localStorage.getItem(SIMPLE_MODE_KEY);
     if (storedSimpleMode !== null) {
       setIsSimpleMode(storedSimpleMode === 'true');
@@ -1006,9 +939,7 @@ const App: React.FC = () => {
     if (window.localStorage.getItem(GOAL_WIZARD_KEY) !== 'true') {
       setShowGoalWizard(true);
     }
-
-    checkAiStudioSelection();
-  }, [envApiKey]);
+  }, []);
 
   useEffect(() => {
     if (!isAdmin && planTier !== 'free') {
@@ -1028,11 +959,9 @@ const App: React.FC = () => {
   }, [isAdmin]);
 
   useEffect(() => {
-    return () => {
-      if (moodImagePreview) {
-        URL.revokeObjectURL(moodImagePreview);
-      }
-    };
+    if (moodImagePreview) {
+      URL.revokeObjectURL(moodImagePreview);
+    }
   }, [moodImagePreview]);
 
   useEffect(() => {
@@ -1070,11 +999,11 @@ const App: React.FC = () => {
     }
   }, []);
 
-  useEffect(() => {
-    if (isLoggedIn) {
-      setLoginRequested(false);
-    }
-  }, [isLoggedIn]);
+  // useEffect(() => {
+  //   if (isLoggedIn) {
+  //     setLoginRequested(false);
+  //   }
+  // }, [isLoggedIn]);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -1191,53 +1120,7 @@ const App: React.FC = () => {
     }
   }, [contentStyleValue, isProPhotographer]);
 
-  const removeStoredApiKey = useCallback(() => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.removeItem(LOCAL_STORAGE_KEY);
-    }
-    setIsUsingStoredKey(false);
-  }, []);
-
-  const requireNewApiKey = useCallback(() => {
-    setApiKey('');
-    setManualApiKey('');
-    setIsKeySelected(false);
-  }, []);
-
-  const handleApiKeyInvalid = useCallback(() => {
-    if (isUsingStoredKey) {
-      removeStoredApiKey();
-    }
-    requireNewApiKey();
-  }, [isUsingStoredKey, removeStoredApiKey, requireNewApiKey]);
-
-  const handleManualApiKeySubmit = useCallback(() => {
-    const trimmed = manualApiKey.trim();
-    if (!trimmed) {
-      setApiKeyError('Please enter a valid Gemini API key.');
-      return;
-    }
-
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(LOCAL_STORAGE_KEY, trimmed);
-    }
-
-    setApiKey(trimmed);
-    setIsKeySelected(true);
-    setApiKeyError(null);
-    setIsUsingStoredKey(true);
-  }, [manualApiKey]);
-
-  const handleManualApiKeyChange = useCallback((value: string) => {
-    setManualApiKey(value);
-    if (apiKeyError) {
-      setApiKeyError(null);
-    }
-  }, [apiKeyError]);
-
-  const getActiveApiKeyOrNotify = useCallback((_notify: (message: string) => void): string | null => {
-    return 'server';
-  }, []);
+  // Deprecated API key functions removed
 
   const toggleSimpleMode = useCallback(() => {
     setIsSimpleMode(prev => {
@@ -1283,7 +1166,7 @@ const App: React.FC = () => {
             <div className="space-y-4">
               <ChipSelectGroup label="Age Group" options={AGE_GROUP_OPTIONS} selectedValue={options.ageGroup} onChange={(value) => handleOptionChange('ageGroup', value, 'Person Details')} disabled={isProductPlacement} />
               {isProductPlacement && <p className="text-xs text-gray-500">Person options are disabled for product placement shots.</p>}
-              <div className={`rounded-2xl border border-white/10 bg-gray-900/40 p-4 space-y-3 ${personControlsDisabled ? 'opacity-50' : ''}`}>
+              <div className={`rounded - 2xl border border - white / 10 bg - gray - 900 / 40 p - 4 space - y - 3 ${personControlsDisabled ? 'opacity-50' : ''} `}>
                 <ChipSelectGroup label="Creator Preset" options={CREATOR_PRESET_OPTIONS} selectedValue={activeTalentPreset} onChange={(value) => handlePresetSelect(value)} disabled={personControlsDisabled} />
                 {activePresetMeta?.description && <p className="text-xs text-gray-400">{activePresetMeta.description}</p>}
                 <div className="flex flex-wrap gap-2 text-xs">
@@ -1304,10 +1187,10 @@ const App: React.FC = () => {
                     </div>
                     <label className="relative inline-flex cursor-pointer items-center gap-2">
                       <input type="checkbox" className="sr-only" checked={isTalentLinkedAcrossScenes} onChange={handleTalentLinkToggle} disabled={personControlsDisabled} />
-                      <div className={`relative h-5 w-10 rounded-full transition ${isTalentLinkedAcrossScenes ? 'bg-indigo-500' : 'bg-gray-700'} ${personControlsDisabled ? 'opacity-50' : ''}`}>
-                        <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${isTalentLinkedAcrossScenes ? 'translate-x-4' : ''}`} />
+                      <div className={`relative h - 5 w - 10 rounded - full transition ${isTalentLinkedAcrossScenes ? 'bg-indigo-500' : 'bg-gray-700'} ${personControlsDisabled ? 'opacity-50' : ''} `}>
+                        <span className={`absolute left - 1 top - 1 block h - 3 w - 3 rounded - full bg - white shadow transition ${isTalentLinkedAcrossScenes ? 'translate-x-4' : ''} `} />
                       </div>
-                      <span className={`text-xs font-semibold ${isTalentLinkedAcrossScenes ? 'text-indigo-200' : 'text-gray-500'}`}>
+                      <span className={`text - xs font - semibold ${isTalentLinkedAcrossScenes ? 'text-indigo-200' : 'text-gray-500'} `}>
                         {isTalentLinkedAcrossScenes ? 'Active' : 'Off'}
                       </span>
                     </label>
@@ -1347,13 +1230,13 @@ const App: React.FC = () => {
                       <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Hero person presets</p>
                       <p className="text-[11px] text-gray-400">Quickly stage face-frame, offer-to-lens, or grounded lounge poses inspired by modern supplement shoots.</p>
                     </div>
-                    <button type="button" onClick={() => handleHeroPosePresetSelect('none')} className={`rounded-full border px-3 py-1 text-[11px] ${activeHeroPosePreset === 'none' ? 'border-white/30 text-gray-200' : 'border-white/15 text-gray-400 hover:border-indigo-400 hover:text-white'}`}>
+                    <button type="button" onClick={() => handleHeroPosePresetSelect('none')} className={`rounded - full border px - 3 py - 1 text - [11px] ${activeHeroPosePreset === 'none' ? 'border-white/30 text-gray-200' : 'border-white/15 text-gray-400 hover:border-indigo-400 hover:text-white'} `}>
                       Custom
                     </button>
                   </div>
                   <div className="space-y-2">
                     {HERO_PERSON_PRESETS.map(preset => (
-                      <button key={preset.value} type="button" onClick={() => handleHeroPosePresetSelect(preset.value)} className={`w-full rounded-xl border px-3 py-2 text-left transition ${activeHeroPosePreset === preset.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-200 hover-border-indigo-400 hover:text-white'}`}>
+                      <button key={preset.value} type="button" onClick={() => handleHeroPosePresetSelect(preset.value)} className={`w - full rounded - xl border px - 3 py - 2 text - left transition ${activeHeroPosePreset === preset.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-200 hover-border-indigo-400 hover:text-white'} `}>
                         <p className="text-sm font-semibold">{preset.label}</p>
                         <p className="text-[11px] text-gray-400 mt-1">{preset.description}</p>
                       </button>
@@ -1404,11 +1287,11 @@ const App: React.FC = () => {
             title="UGC Real Mode"
             isOpen={openAccordion === 'UGC Real Mode'}
             onToggle={() => handleToggleAccordion('UGC Real Mode')}
-            disabled={personControlsDisabled}
+
           >
             <UGCRealModePanel
-              disabled={personControlsDisabled}
               enabled={ugcRealSettings.isEnabled}
+              disabled={!ugcRealSettings.isEnabled}
               onToggle={handleUGCRealModeToggle}
               clothingPresets={UGC_CLOTHING_PRESETS}
               selectedClothingPresetIds={ugcRealSettings.selectedClothingPresetIds}
@@ -1463,8 +1346,8 @@ const App: React.FC = () => {
               key={tab.id}
               type="button"
               onClick={() => setActiveBundleTab(tab.id)}
-              className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${activeBundleTab === tab.id ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
-                }`}
+              className={`rounded - full border px - 3 py - 1 text - xs font - semibold transition ${activeBundleTab === tab.id ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
+                } `}
             >
               {tab.label}
             </button>
@@ -1472,14 +1355,14 @@ const App: React.FC = () => {
         </div>
         {activeBundleTab === 'premade' && (
           <BundleSelector
-            onGenerate={generateMockup}
+            onGenerate={handleGenerateImage}
             productMediaLibrary={productMediaLibrary}
             visibleProductIds={availableProductIds}
           />
         )}
         {activeBundleTab === 'custom' && (
           <CustomBundleBuilder
-            onGenerate={generateMockup}
+            onGenerate={handleGenerateImage}
             productMediaLibrary={productMediaLibrary}
             visibleProductIds={availableProductIds}
           />
@@ -1506,7 +1389,7 @@ const App: React.FC = () => {
                 </div>
                 <RecommendedBundle
                   productId={recommendedBaseProduct}
-                  onGenerate={generateMockup}
+                  onGenerate={handleGenerateImage}
                   productMediaLibrary={productMediaLibrary}
                   visibleProductIds={availableProductIds}
                 />
@@ -1522,7 +1405,7 @@ const App: React.FC = () => {
                 .filter(productId => availableProductIdSet.has(productId))
                 .map(productId => (
                   <span
-                    key={`${productId}-last`}
+                    key={`${productId} -last`}
                     className="rounded-full border border-white/20 px-3 py-1 text-gray-100"
                   >
                     {productMediaLibrary[productId]?.label || PRODUCT_MEDIA_LIBRARY[productId]?.label || productId}
@@ -1572,7 +1455,7 @@ const App: React.FC = () => {
     }
     const newScene: StoryboardScene = {
       id: makeSceneId(),
-      label: `Scene ${storyboardScenes.length + 1}`,
+      label: `Scene ${storyboardScenes.length + 1} `,
       options: sceneOptions,
       proMode: isProPhotographer,
       supplementPreset: activeSupplementPreset,
@@ -1666,23 +1549,20 @@ const App: React.FC = () => {
     syncTalentAcrossScenes,
   ]);
 
-  const handleDeleteScene = useCallback((sceneId: string) => {
+  const handleSceneDelete = useCallback((sceneId: string) => {
     if (storyboardScenes.length <= 1) return;
-    const filtered = storyboardScenes.filter(scene => scene.id !== sceneId);
-    let nextActiveId = activeSceneId;
-    if (sceneId === activeSceneId) {
-      nextActiveId = filtered[0]?.id ?? activeSceneId;
-      const nextScene = filtered[0];
-      if (nextScene) {
-        setOptions(cloneOptions(nextScene.options));
-        setIsProPhotographer(nextScene.proMode);
-        setActiveSupplementPreset(nextScene.supplementPreset ?? 'none');
-        setSupplementPresetCue(nextScene.supplementPromptCue ?? null);
+    setStoryboardScenes(prev => {
+      const next = prev.filter(s => s.id !== sceneId);
+      if (activeSceneId === sceneId) {
+        setActiveSceneId(next[0].id);
       }
-    }
-    setStoryboardScenes(filtered);
-    setActiveSceneId(nextActiveId);
-  }, [storyboardScenes, activeSceneId]);
+      return next;
+    });
+  }, [storyboardScenes.length, activeSceneId]);
+
+  const handleToggleAccordion = (title: string) => {
+    setOpenAccordion(current => (current === title ? null : title));
+  };
 
   const getTalentProfileFromOptions = useCallback((sourceOptions: MockupOptions = options) => {
     const profile: Partial<MockupOptions> = {};
@@ -1759,9 +1639,9 @@ const App: React.FC = () => {
           <button
             type="button"
             onClick={() => setFormulationExpertEnabled(prev => !prev)}
-            className={`relative h-5 w-10 rounded-full transition ${formulationExpertEnabled ? 'bg-indigo-500' : 'bg-gray-700'}`}
+            className={`relative h - 5 w - 10 rounded - full transition ${formulationExpertEnabled ? 'bg-indigo-500' : 'bg-gray-700'} `}
           >
-            <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${formulationExpertEnabled ? 'translate-x-5' : ''}`} />
+            <span className={`absolute left - 1 top - 1 block h - 3 w - 3 rounded - full bg - white shadow transition ${formulationExpertEnabled ? 'translate-x-5' : ''} `} />
           </button>
         </label>
       </div>
@@ -1773,10 +1653,10 @@ const App: React.FC = () => {
                 key={preset.value}
                 type="button"
                 onClick={() => handleFormulationPresetSelect(preset.value)}
-                className={`rounded-full border px-3 py-1 text-xs transition ${formulationExpertPreset === preset.value
-                  ? 'border-amber-300 bg-amber-500/10 text-white'
-                  : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
-                  }`}
+                className={`rounded - full border px - 3 py - 1 text - xs transition ${formulationExpertPreset === preset.value
+                    ? 'border-amber-300 bg-amber-500/10 text-white'
+                    : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
+                  } `}
               >
                 {preset.label}
               </button>
@@ -1788,10 +1668,10 @@ const App: React.FC = () => {
                 key={option.value}
                 type="button"
                 onClick={() => handleFormulationProfessionSelect(option.value)}
-                className={`rounded-full border px-3 py-1 text-xs transition ${formulationExpertProfession === option.value
-                  ? 'border-amber-300 bg-amber-500/10 text-white'
-                  : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
-                  }`}
+                className={`rounded - full border px - 3 py - 1 text - xs transition ${formulationExpertProfession === option.value
+                    ? 'border-amber-300 bg-amber-500/10 text-white'
+                    : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
+                  } `}
               >
                 {option.label}
               </button>
@@ -2001,7 +1881,7 @@ const App: React.FC = () => {
       if (!response.ok || !data?.imageBase64) {
         throw new Error(data?.error || 'Could not reach the super-resolution service.');
       }
-      const upscaleUrl = `data:${data.mimeType || 'image/png'};base64,${data.imageBase64}`;
+      const upscaleUrl = `data:${data.mimeType || 'image/png'}; base64, ${data.imageBase64} `;
       const fourKImage = await loadImageFromUrl(upscaleUrl);
       setFourKVariant({
         url: upscaleUrl,
@@ -2047,7 +1927,7 @@ const App: React.FC = () => {
       setCreditUsage(prev => {
         const next = prev + cost;
         if (typeof window !== 'undefined') {
-          window.localStorage.setItem(IMAGE_COUNT_KEY, String(next));
+          // window.localStorage.setItem(IMAGE_COUNT_KEY, String(next));
         }
         return next;
       });
@@ -2176,10 +2056,8 @@ const App: React.FC = () => {
 
   const handlePlanCodeSubmit = useCallback(() => {
     const trimmed = planCodeInput.trim();
-    if (!trimmed) {
-      setPlanCodeError('Enter the access code provided after checkout.');
-      return;
-    }
+    if (!trimmed) return;
+
     const tier = PLAN_UNLOCK_CODES[trimmed];
     if (!tier) {
       setPlanCodeError('Invalid code. Please double-check your email receipt.');
@@ -2218,7 +2096,7 @@ const App: React.FC = () => {
   const buildCopyPrompt = useCallback(
     (sceneOptions: MockupOptions) => {
       const style = sceneOptions.contentStyle === 'product' ? 'product placement' : 'UGC lifestyle';
-      return `You are a copywriter for a modern DTC brand. Write one short social caption (max 30 words) describing a ${sceneOptions.productMaterial} product captured as ${style} in a ${sceneOptions.setting} with ${sceneOptions.lighting}. Mention the mood "${sceneOptions.personMood}" and end with a friendly CTA.`;
+      return `You are a copywriter for a modern DTC brand.Write one short social caption(max 30 words) describing a ${sceneOptions.productMaterial} product captured as ${style} in a ${sceneOptions.setting} with ${sceneOptions.lighting}. Mention the mood "${sceneOptions.personMood}" and end with a friendly CTA.`;
     },
     []
   );
@@ -2233,7 +2111,7 @@ const App: React.FC = () => {
     } finally {
       setIsCopyLoading(false);
     }
-  }, [buildCopyPrompt, getActiveApiKeyOrNotify, options]);
+  }, [buildCopyPrompt, options]);
 
   const handleGoalWizardSelect = useCallback((field: 'goal' | 'vibe' | 'preset', value: string) => {
     setGoalWizardData(prev => ({ ...prev, [field]: value }));
@@ -2278,16 +2156,9 @@ const App: React.FC = () => {
     handleGoalWizardSkip();
   }, [goalWizardData, applyTalentProfile, handleGoalWizardSkip]);
 
-  const handleTrialCodeChange = useCallback((value: string) => {
-    setTrialCodeInput(value);
-    if (trialCodeError) {
-      setTrialCodeError(null);
-    }
-  }, [trialCodeError]);
+  // handleTrialCodeChange removed
 
-  const handleTrialCodeSubmit = useCallback(() => {
-    setTrialCodeError('Request access from an admin to continue.');
-  }, []);
+
 
   const skipOnboarding = useCallback(() => {
     setShowOnboarding(false);
@@ -2308,29 +2179,7 @@ const App: React.FC = () => {
     advanceOnboardingFromStep(onboardingStep);
   }, [advanceOnboardingFromStep, onboardingStep]);
 
-  const handleReplayOnboarding = useCallback(() => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.removeItem(ONBOARDING_DISMISSED_KEY);
-    }
-    setOnboardingStep(1);
-    setShowOnboarding(true);
-  }, []);
-
-  useEffect(() => {
-    if (isTrialLocked && trialInputRef.current) {
-      trialInputRef.current.focus();
-    }
-  }, [isTrialLocked]);
-
-  useEffect(() => {
-    if (!isTrialLocked) return;
-    const input = trialInputRef.current;
-    if (!input) return;
-    const position = trialCodeInput.length;
-    requestAnimationFrame(() => {
-      input.setSelectionRange(position, position);
-    });
-  }, [trialCodeInput, isTrialLocked]);
+  // trialCodeInput usage removed
 
   const handleVideoAccessCodeChange = useCallback((value: string) => {
     setVideoAccessInput(value);
@@ -2358,6 +2207,7 @@ const App: React.FC = () => {
   const applyMoodInspiration = useCallback((palette: string[]) => {
     if (!palette.length) {
       setMoodSummary('Could not detect enough color data from the reference.');
+      setMoodPromptCue(null);
       return;
     }
     const suggestion = deriveMoodSuggestions(palette);
@@ -2381,51 +2231,7 @@ const App: React.FC = () => {
       }
       return next;
     });
-    setMoodSummary(`Mood hint: ${suggestion.moodLabel}. Tuned lighting to ${suggestion.lightingLabel} and scene to ${suggestion.settingLabel}.`);
-    setMoodPromptCue(`Match the atmosphere of a ${suggestion.moodLabel} palette with ${suggestion.lightingLabel} lighting and details reminiscent of ${suggestion.settingLabel}.`);
   }, [options.contentStyle]);
-
-  const handleMoodImageUpload = useCallback(async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      setMoodSummary('Please upload an image file.');
-      setMoodPromptCue(null);
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setMoodSummary('Please keep inspiration images under 5MB.');
-      setMoodPromptCue(null);
-      return;
-    }
-    setIsMoodProcessing(true);
-    setMoodSummary(null);
-    setMoodPromptCue(null);
-    setMoodPalette([]);
-    setMoodImagePreview(prev => {
-      if (prev) URL.revokeObjectURL(prev);
-      return URL.createObjectURL(file);
-    });
-    try {
-      const palette = await extractPaletteFromImage(file);
-      setMoodPalette(palette);
-      applyMoodInspiration(palette);
-    } catch (err) {
-      console.error(err);
-      setMoodSummary('We could not analyze that reference. Try another image.');
-      setMoodPromptCue(null);
-    } finally {
-      setIsMoodProcessing(false);
-    }
-  }, [applyMoodInspiration]);
-
-  const handleClearMood = useCallback(() => {
-    setMoodImagePreview(prev => {
-      if (prev) URL.revokeObjectURL(prev);
-      return null;
-    });
-    setMoodPalette([]);
-    setMoodSummary(null);
-    setMoodPromptCue(null);
-  }, []);
 
   const handleModelReferenceUpload = useCallback((file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -2452,247 +2258,14 @@ const App: React.FC = () => {
     });
   }, []);
 
-  const resetVerificationFlow = useCallback(() => {
-    setLoginStep('email');
-    setVerificationCode('');
-    setVerificationError(null);
-    setIsRequestingCode(false);
-    setIsVerifyingCode(false);
-    setCodeSentTimestamp(null);
-  }, []);
+  // resetVerificationFlow removed
 
-  const completeLogin = useCallback((rawEmail: string) => {
-    const trimmed = rawEmail.trim();
-    if (!trimmed) return;
-    resetVerificationFlow();
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(EMAIL_STORAGE_KEY, trimmed);
-    }
-    setUserEmail(trimmed);
-    setEmailInput(trimmed);
-    setIsLoggedIn(true);
-    setEmailError(null);
-  }, [resetVerificationFlow]);
-
-  const handleEmailChange = useCallback((value: string) => {
-    setEmailInput(value);
-    if (emailError) {
-      setEmailError(null);
-    }
-    if (loginStep !== 'email') {
-      setLoginStep('email');
-      setVerificationCode('');
-      setVerificationError(null);
-    }
-  }, [emailError, loginStep]);
-
-  const handleSendVerificationCode = useCallback(async () => {
-    const trimmed = emailInput.trim();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(trimmed)) {
-      setEmailError('Enter a valid email address to continue.');
-      setLoginStep('email');
-      return;
-    }
-    const normalized = trimmed.toLowerCase();
-    if (ADMIN_EMAILS.includes(normalized)) {
-      completeLogin(trimmed);
-      setHasTrialBypass(true);
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(TRIAL_BYPASS_KEY, 'true');
-      }
-      return;
-    }
-    setEmailInput(trimmed);
-    if (!EMAIL_VERIFICATION_ENABLED) {
-      completeLogin(trimmed);
-      setLoginRequested(false);
-      return;
-    }
-    setIsRequestingCode(true);
-    setVerificationError(null);
-    try {
-      const response = await fetch('/api/request-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: trimmed }),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(data?.error || 'Could not send verification email.');
-      }
-      setLoginStep('code');
-      setCodeSentTimestamp(Date.now());
-      setVerificationCode('');
-    } catch (error) {
-      setVerificationError(error instanceof Error ? error.message : 'Could not send verification email.');
-    } finally {
-      setIsRequestingCode(false);
-    }
-  }, [completeLogin, emailInput]);
-
-  const handleVerificationSubmit = useCallback(async () => {
-    const trimmed = emailInput.trim();
-    if (!trimmed) {
-      setLoginStep('email');
-      setVerificationError('Re-enter your email to get a verification code.');
-      return;
-    }
-    if (!EMAIL_VERIFICATION_ENABLED) {
-      completeLogin(trimmed);
-      return;
-    }
-    if (!verificationCode.trim()) {
-      setVerificationError('Enter the verification code we sent to your email.');
-      return;
-    }
-    setIsVerifyingCode(true);
-    setVerificationError(null);
-    try {
-      const response = await fetch('/api/verify-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: trimmed, code: verificationCode.trim() }),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data?.verified) {
-        throw new Error(data?.error || 'Invalid code. Try again.');
-      }
-      completeLogin(trimmed);
-    } catch (error) {
-      setVerificationError(error instanceof Error ? error.message : 'Could not verify the code.');
-    } finally {
-      setIsVerifyingCode(false);
-    }
-  }, [completeLogin, emailInput, verificationCode]);
-
-  const handleVerificationCodeChange = useCallback((value: string) => {
-    const digitsOnly = value.replace(/[^0-9]/g, '').slice(0, 6);
-    setVerificationCode(digitsOnly);
-    if (verificationError) {
-      setVerificationError(null);
-    }
-  }, [verificationError]);
-
-  const handleEmailSubmit = useCallback(() => {
-    if (loginStep === 'code') {
-      handleVerificationSubmit();
-      return;
-    }
-    handleSendVerificationCode();
-  }, [handleSendVerificationCode, handleVerificationSubmit, loginStep]);
-
-  const handleGoogleCredential = useCallback((credential?: string) => {
-    if (!credential) {
-      setGoogleAuthError('Google sign-in failed. Please try again.');
-      return;
-    }
-    try {
-      const payload = JSON.parse(
-        atob(
-          credential
-            .split('.')[1]
-            .replace(/-/g, '+')
-            .replace(/_/g, '/')
-        )
-      );
-      const email = typeof payload.email === 'string' ? payload.email : null;
-      if (!email) {
-        setGoogleAuthError('Google account is missing a public email.');
-        return;
-      }
-      setGoogleAuthError(null);
-      completeLogin(email);
-    } catch (error) {
-      console.error(error);
-      setGoogleAuthError('Could not verify Google response. Please try again.');
-    }
-  }, [completeLogin]);
-
-  const handleBackToEmailLogin = useCallback(() => {
-    setLoginStep('email');
-    setVerificationCode('');
-    setVerificationError(null);
-  }, []);
-
-  const promptLogin = useCallback(() => {
-    setLoginRequested(true);
-    setLoginStep('email');
-    setVerificationCode('');
-    setVerificationError(null);
-    setEmailError(null);
-  }, []);
-
-  useEffect(() => {
-    if (!GOOGLE_CLIENT_ID || typeof window === 'undefined') return;
-    const scriptId = 'google-identity-services';
-    const existing = document.getElementById(scriptId);
-    if (existing) {
-      setIsGoogleScriptLoaded(true);
-      return;
-    }
-    const script = document.createElement('script');
-    script.id = scriptId;
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    script.onload = () => setIsGoogleScriptLoaded(true);
-    script.onerror = () =>
-      setGoogleAuthError('Google Sign-In failed to load. Check your network connection or ad blockers.');
-    document.head.appendChild(script);
-    return () => {
-      script.onload = null;
-      script.onerror = null;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!GOOGLE_CLIENT_ID || !isGoogleScriptLoaded || googleInitRef.current) return;
-    let cancelled = false;
-    const tryInitialize = () => {
-      if (cancelled || googleInitRef.current) return;
-      const googleId = window.google?.accounts?.id;
-      if (!googleId) {
-        window.setTimeout(tryInitialize, 200);
-        return;
-      }
-      googleId.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: (response: GoogleCredentialResponse) => handleGoogleCredential(response.credential),
-      });
-      if (googleButtonRef.current) {
-        googleButtonRef.current.innerHTML = '';
-        googleId.renderButton(googleButtonRef.current, {
-          theme: 'outline',
-          size: 'large',
-          width: 320,
-          shape: 'pill',
-        });
-      }
-      googleInitRef.current = true;
-    };
-    tryInitialize();
-    return () => {
-      cancelled = true;
-    };
-  }, [GOOGLE_CLIENT_ID, handleGoogleCredential, isGoogleScriptLoaded]);
+  // const handleEmailChange = useCallback((value: string) => { ... }); // Removed
+  // const handleSendVerificationCode = useCallback(async () => { ... }); // Removed
+  // Deprecated auth functions and effects removed
 
 
-  const handleSelectKey = async () => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-    const aiStudioInstance = (window as typeof window & { aistudio?: AiStudioApi }).aistudio;
-    if (!aiStudioInstance) {
-      return;
-    }
-    await aiStudioInstance.openSelectKey();
-    setIsKeySelected(true);
-  };
-
-  const handleToggleAccordion = (title: string) => {
-    setOpenAccordion(current => (current === title ? null : title));
-  };
+  // handleSelectKey removed
 
   const handleOptionChange = (category: OptionCategory, value: string, accordionTitle: string) => {
     const newOptions = { ...options, [category]: value };
@@ -2765,28 +2338,33 @@ const App: React.FC = () => {
         'personProps',
         'microLocation',
         'productInteraction',
-        'gender',
-        'ethnicity',
-        'selfieType',
-        'hairColor',
-        'eyeColor',
-        'skinTone',
       ],
     };
 
-    let requiredCategories = accordionCategoryMap[accordionTitle];
-    if (!requiredCategories) return;
-
-    // If 'Person Details' is the current accordion and 'no person' is selected,
-    // then only 'ageGroup' is required to advance.
-    if (accordionTitle === 'Person Details' && newOptions.ageGroup === 'no person') {
-      requiredCategories = ['ageGroup'];
-    }
-
-    if (PERSON_FIELD_KEYS.includes(category) && activeTalentPreset !== 'custom') {
-      setActiveTalentPreset('custom');
+    const categoriesInAccordion = accordionCategoryMap[accordionTitle];
+    if (categoriesInAccordion) {
+      const allSelected = categoriesInAccordion.every(cat => updatedSelectedCategories.has(cat));
+      if (allSelected) {
+        // Logic to auto-advance accordion could go here
+      }
     }
   };
+
+  const getOptionValueByLabel = (options: { value: string; label: string }[], label: string) => {
+    return options.find(o => o.label === label)?.value || options[0].value;
+  };
+
+  const deriveMoodSuggestions = (palette: string[]) => {
+    const isWarm = palette.some(c => c.includes('f') || c.includes('e'));
+    return {
+      moodLabel: isWarm ? 'Warm' : 'Cool',
+      lightingLabel: isWarm ? 'Golden Hour' : 'Studio',
+      settingLabel: isWarm ? 'Cafe' : 'Studio',
+      placementStyleLabel: 'Flat Lay',
+      placementCameraLabel: 'Overhead',
+    };
+  };
+
 
   const resetOutputs = useCallback(() => {
     setGeneratedImageUrl(null);
@@ -2844,26 +2422,7 @@ const App: React.FC = () => {
     setHeroShadowStyle('softDrop');
   }, [resetOutputs, activeProductAsset]);
 
-  const handleLogout = useCallback(() => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.removeItem(EMAIL_STORAGE_KEY);
-      window.localStorage.removeItem(VIDEO_ACCESS_KEY);
-    }
-    handleReset();
-    resetVerificationFlow();
-    setUserEmail('');
-    setEmailInput('');
-    setIsLoggedIn(false);
-    setHasVideoAccess(false);
-    setVideoAccessInput('');
-    setVideoAccessError(null);
-    setMoodPalette([]);
-    setMoodSummary(null);
-    setMoodImagePreview(prev => {
-      if (prev) URL.revokeObjectURL(prev);
-      return null;
-    });
-  }, [handleReset, resetVerificationFlow]);
+  // handleLogout removed (handled by Clerk)
 
   const handleImageUpload = useCallback(async (files: File[]) => {
     const ALLOWED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
@@ -2885,7 +2444,7 @@ const App: React.FC = () => {
       const previewUrl = URL.createObjectURL(file);
 
       const assetId = makeSceneId();
-      const assetLabel = `Product ${productAssets.length + 1}`;
+      const assetLabel = `Product ${productAssets.length + 1} `;
       setProductAssets(prev => [
         ...prev,
         {
@@ -2999,17 +2558,17 @@ const App: React.FC = () => {
     };
 
     const bundleProductsForPrompt = bundleProductsOverride ?? bundleSelectionRef.current;
-    let prompt = `Create an ultra-realistic, authentic ${isUgcStyle ? 'UGC lifestyle' : 'product placement'} photo with a ${options.aspectRatio} aspect ratio. `;
+    let prompt = `Create an ultra - realistic, authentic ${isUgcStyle ? 'UGC lifestyle' : 'product placement'} photo with a ${options.aspectRatio} aspect ratio. `;
     prompt += isUgcStyle
-      ? `The shot should feel candid, emotional, and cinematic, as if taken by a real person with a ${options.camera}. Embrace believable imperfections—slight motion blur, a little lens smudge, off-center framing, uneven window light—so it reads as everyday life rather than a polished model shoot. `
-      : `The shot should feel refined and advertising-ready, with deliberate staging captured on a ${options.camera}. `;
+      ? `The shot should feel candid, emotional, and cinematic, as if taken by a real person with a ${options.camera}. Embrace believable imperfections—slight motion blur, a little lens smudge, off - center framing, uneven window light—so it reads as everyday life rather than a polished model shoot. `
+      : `The shot should feel refined and advertising - ready, with deliberate staging captured on a ${options.camera}.`;
 
     if (isHeroLandingMode) {
       const heroBackground =
         supplementBackgroundColor.trim() ||
         HERO_LANDING_META?.heroLandingConfig?.backgroundColor ||
         '#FFFFFF';
-      prompt += `Design this as a seamless ecommerce hero module on a ${heroBackground} backdrop. Keep the set ultra minimal—no room environment, just a clean base plane and negative space perfect for landing pages. `;
+      prompt += `Design this as a seamless ecommerce hero module on a ${heroBackground} backdrop.Keep the set ultra minimal—no room environment, just a clean base plane and negative space perfect for landing pages. `;
       const heroAlignmentCopy = HERO_ALIGNMENT_TEXT[heroProductAlignment];
       prompt += `${heroAlignmentCopy} `;
       const scalePercent = Math.round(heroProductScale * 100);
@@ -3029,23 +2588,23 @@ const App: React.FC = () => {
         prompt += `Use ${supplementAccentColor.trim()} only for minimal accent bars or glass prisms—not full scenes—to keep the hero ultra clean. `;
       }
     } else {
-      prompt += `The scene is a ${options.setting}, illuminated by ${options.lighting}. The overall environment has a ${options.environmentOrder} feel. The photo is shot from a ${options.perspective}, embracing the chosen camera style and its natural characteristics. Frame the composition so the product lives in ${options.productPlane}. `;
+      prompt += `The scene is a ${options.setting}, illuminated by ${options.lighting}. The overall environment has a ${options.environmentOrder} feel.The photo is shot from a ${options.perspective}, embracing the chosen camera style and its natural characteristics.Frame the composition so the product lives in ${options.productPlane}.`;
     }
 
     const formatHeightNumber = (num: number) => (Number.isInteger(num) ? num.toString() : num.toFixed(1));
     const describeHeight = (value: number, unit: 'cm' | 'in') => {
       if (unit === 'cm') {
         const inches = (value / 2.54).toFixed(1);
-        return `${formatHeightNumber(value)} cm tall (about ${inches} in)`;
+        return `${formatHeightNumber(value)} cm tall(about ${inches} in)`;
       }
       const centimeters = (value * 2.54).toFixed(1);
-      return `${formatHeightNumber(value)} in tall (about ${centimeters} cm)`;
+      return `${formatHeightNumber(value)} in tall(about ${centimeters} cm)`;
     };
     const heightNotes = productAssets
       .filter(asset => asset.heightValue)
-      .map(asset => `${asset.label || 'product'} ${describeHeight(asset.heightValue!, asset.heightUnit)}`)
+      .map(asset => `${asset.label || 'product'} ${describeHeight(asset.heightValue!, asset.heightUnit)} `)
       .join('. ');
-    prompt += `The focus is on the provided product, which has a ${options.productMaterial} finish. Render only a single instance of this product. Never duplicate or mirror it. Use the uploaded product cutout exactly as provided—keep the entire silhouette, every label, and every edge visible with no cropping or re-interpretation. Integrate the real photo seamlessly into the new environment so it looks composited but untouched. Ensure its material, reflections, and shadows are rendered realistically according to the environment. Do not alter the product's design or branding. `;
+    prompt += `The focus is on the provided product, which has a ${options.productMaterial} finish.Render only a single instance of this product.Never duplicate or mirror it.Use the uploaded product cutout exactly as provided—keep the entire silhouette, every label, and every edge visible with no cropping or re - interpretation.Integrate the real photo seamlessly into the new environment so it looks composited but untouched.Ensure its material, reflections, and shadows are rendered realistically according to the environment.Do not alter the product's design or branding. `;
     if (heightNotes) {
       prompt += `Respect real-world scale: ${heightNotes}. Adjust hands, props, and camera distance so the item visibly matches that measurement.`;
     }
@@ -3207,9 +2766,6 @@ const App: React.FC = () => {
       } else if (hasSmartphoneProp) {
         prompt += 'Include a modern smartphone prop in their free hand so it complements but never hides the product. ';
       }
-      if (selfieMeta?.hidePhone) {
-        prompt += 'Do not render a smartphone anywhere in frame—imply the selfie by the arm extension and body posture only.';
-      }
       if (isFlashLighting && !selfieMeta?.hidePhone) {
         prompt += 'Use a bright on-camera flash that reflects on their face (or hands if the face is cropped out) and bounces off the phone, casting crisp, short shadows for that candid flash look. ';
       }
@@ -3262,10 +2818,10 @@ const App: React.FC = () => {
     [contentStyleValue, isSimpleMode]
   );
 
-  const handleGenerateClick = async (bundleProducts?: ProductId[]) => {
+  const handleGenerateImage = async (bundleProducts?: ProductId[]) => {
     bundleSelectionRef.current = bundleProducts ?? null;
     if (isTrialLocked) {
-      setImageError(`You reached the ${currentPlan.label} limit (${planCreditLimit} credits). Upgrade your plan to keep generating scenes.`);
+      setImageError(`You reached the ${currentPlan.label} limit (${planCreditLimit} credits). Upgrade your plan to unlock more scenes.`);
       return;
     }
     if (!productAssets.length) {
@@ -3273,7 +2829,6 @@ const App: React.FC = () => {
       return;
     }
     const personIncluded = !isProductPlacement && options.ageGroup !== 'no person';
-    const realModeActive = ugcRealSettings.isEnabled && !isProductPlacement && personIncluded;
     if (modelReferenceFile && !personIncluded) {
       setImageError('Turn on a person in this scene (UGC Lifestyle + non "No Person" age) before using your model reference.');
       return;
@@ -3320,7 +2875,7 @@ const App: React.FC = () => {
       const newCount = creditUsage + creditCost;
       setCreditUsage(newCount);
       if (typeof window !== 'undefined') {
-        window.localStorage.setItem(IMAGE_COUNT_KEY, String(newCount));
+        // window.localStorage.setItem(IMAGE_COUNT_KEY, String(newCount));
       }
     } catch (err) {
       console.error(err);
@@ -3339,13 +2894,13 @@ const App: React.FC = () => {
       );
       if (sanitized.length) {
         setLastBundleSelection(sanitized);
-        handleGenerateClick(sanitized);
+        handleGenerateImage(sanitized);
         return;
       }
       setPlanNotice('Upload matching product photos for this bundle.');
-      handleGenerateClick();
+      handleGenerateImage();
     },
-    [handleGenerateClick, availableProductIdSet]
+    [handleGenerateImage, availableProductIdSet]
   );
 
   const applyImageEdit = useCallback(async (prompt: string, editOptions?: { clearManual?: boolean }) => {
@@ -3406,7 +2961,7 @@ const App: React.FC = () => {
     } finally {
       setIsImageLoading(false);
     }
-  }, [generatedImageUrl, getActiveApiKeyOrNotify, handleApiKeyInvalid, runHiResPipeline, options.aspectRatio]);
+  }, [generatedImageUrl, runHiResPipeline, options.aspectRatio]);
 
   const handleEditImage = useCallback(async () => {
     await applyImageEdit(editPrompt, { clearManual: true });
@@ -3453,7 +3008,7 @@ const App: React.FC = () => {
         setCreditUsage(count => {
           const next = count + videoCost;
           if (typeof window !== 'undefined') {
-            window.localStorage.setItem(IMAGE_COUNT_KEY, String(next));
+            // window.localStorage.setItem(IMAGE_COUNT_KEY, String(newUsage));
           }
           return next;
         });
@@ -3472,1095 +3027,941 @@ const App: React.FC = () => {
   };
 
 
-  const renderLoginScreen = () => (
-    <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-gray-900/70 border border-gray-800 rounded-2xl p-8 text-center shadow-2xl space-y-6">
-        <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-indigo-300 mb-2">Access Required</p>
-          <h1 className="text-3xl font-bold">Log in to continue</h1>
-          <p className="mt-3 text-sm text-gray-400">
-            Enter your work email so we can enforce plan limits and send occasional product updates.
-          </p>
-        </div>
-        {GOOGLE_CLIENT_ID ? (
-          <>
-            <div className="space-y-3">
-              <p className="text-xs uppercase tracking-widest text-gray-500">Sign in with Google</p>
-              <div className="flex justify-center">
-                <div ref={googleButtonRef} className="inline-flex justify-center" />
-              </div>
-              {!isGoogleScriptLoaded && (
-                <p className="text-xs text-gray-500 text-center">Loading Google Sign-In…</p>
-              )}
-            </div>
-            <div className="flex items-center gap-2 text-gray-600 text-xs">
-              <span className="flex-1 border-t border-white/10" />
-              <span>or continue with email</span>
-              <span className="flex-1 border-t border-white/10" />
-            </div>
-          </>
-        ) : (
-          <p className="text-xs text-gray-500">
-            Add <code className="text-[11px] bg-black/30 px-1 rounded">VITE_GOOGLE_CLIENT_ID</code> to enable Google sign-in.
-          </p>
-        )}
-        <div className="space-y-4 text-left w-full">
-          {loginStep === 'email' ? (
-            <>
-              <label className="text-xs uppercase tracking-widest text-gray-500">Work email</label>
-              <input
-                type="email"
-                placeholder="you@company.com"
-                value={emailInput}
-                onChange={(event) => handleEmailChange(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    event.preventDefault();
-                    handleEmailSubmit();
-                  }
-                }}
-                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              />
-              {emailError && <p className="text-sm text-red-400">{emailError}</p>}
-              {googleAuthError && <p className="text-sm text-red-400">{googleAuthError}</p>}
-              <button
-                onClick={handleEmailSubmit}
-                disabled={isRequestingCode}
-                className="w-full bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-900/60 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out shadow-lg"
-              >
-                {EMAIL_VERIFICATION_ENABLED
-                  ? isRequestingCode ? 'Sending code…' : 'Send verification code'
-                  : isRequestingCode ? 'Processing…' : 'Continue'}
-              </button>
-            </>
-          ) : (
-            <>
-              <div className="text-sm text-gray-400 space-y-1">
-                <p>We sent a 6-digit code to <span className="text-white">{emailInput}</span>.</p>
-                <button
-                  type="button"
-                  onClick={handleBackToEmailLogin}
-                  className="text-xs text-indigo-300 hover:text-indigo-200 underline"
-                >
-                  Change email
-                </button>
-              </div>
-              <label className="text-xs uppercase tracking-widest text-gray-500">Verification code</label>
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="123456"
-                value={verificationCode}
-                onChange={(event) => handleVerificationCodeChange(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    event.preventDefault();
-                    handleEmailSubmit();
-                  }
-                }}
-                className="w-full tracking-[0.5em] text-center text-2xl rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              />
-              {verificationError && <p className="text-sm text-red-400">{verificationError}</p>}
-              {!verificationError && codeSentTimestamp && (
-                <p className="text-xs text-gray-500">
-                  Code sent {new Date(codeSentTimestamp).toLocaleTimeString()}. Check your inbox (and spam) for the email.
-                </p>
-              )}
-              <button
-                onClick={handleEmailSubmit}
-                disabled={isVerifyingCode || verificationCode.length < 4}
-                className="w-full bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-900/60 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out shadow-lg"
-              >
-                {isVerifyingCode ? 'Verifying…' : 'Verify code'}
-              </button>
-              <button
-                type="button"
-                onClick={handleSendVerificationCode}
-                disabled={isRequestingCode}
-                className="w-full rounded-full border border-white/20 px-4 py-2 text-sm text-gray-200 hover:border-indigo-400 hover:text-white transition disabled:opacity-50"
-              >
-                {isRequestingCode ? 'Sending…' : 'Resend code'}
-              </button>
-            </>
-          )}
-        </div>
-        <p className="text-xs text-gray-500 text-center">
-          By logging in you agree to receive product emails. Unsubscribe anytime.
-        </p>
-      </div>
-    </div>
-  );
+  // renderLoginScreen removed
 
-  const renderApiKeyScreen = () => (
-    <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-gray-900/70 border border-gray-800 rounded-2xl p-8 text-center shadow-2xl space-y-6">
-        <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-indigo-300 mb-2">Connect Gemini API</p>
-          <h1 className="text-3xl font-bold">Bring your API key</h1>
-          <p className="mt-3 text-sm text-gray-400">
-            Paste a Gemini API key to run generations locally. You can also select one from AI Studio if available.
-          </p>
-        </div>
-        {isAiStudioAvailable && (
-          <button
-            onClick={handleSelectKey}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
-          >
-            Select API Key from AI Studio
-          </button>
-        )}
-        <div className="space-y-3 text-left">
-          <label className="text-xs uppercase tracking-widest text-gray-500">Gemini API key</label>
-          <input
-            type="password"
-            placeholder="AI... or ya29..."
-            value={manualApiKey}
-            onChange={(event) => handleManualApiKeyChange(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                event.preventDefault();
-                handleManualApiKeySubmit();
-              }
-            }}
-            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-          />
-          {apiKeyError && <p className="text-sm text-red-400">{apiKeyError}</p>}
-        </div>
-        <button
-          onClick={handleManualApiKeySubmit}
-          disabled={!manualApiKey.trim()}
-          className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-900/40 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out shadow-lg"
-        >
-          Save API Key
-        </button>
-        <p className="text-xs text-gray-500">
-          Keys are stored locally in this browser only. Review{' '}
-          <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noreferrer" className="text-indigo-300 underline">
-            Gemini API billing
-          </a>.
-        </p>
-        {!shouldRequireLogin && (
-          <button
-            type="button"
-            onClick={() => setLoginRequested(false)}
-            className="w-full rounded-full border border-white/20 px-4 py-2 text-sm text-gray-300 hover:border-indigo-400 hover:text-white transition"
-          >
-            Continue without signing in
-          </button>
-        )}
-      </div>
-    </div>
-  );
+  // renderApiKeyScreen removed
 
 
-  if (loginGateActive && !isLoggedIn) {
-    return renderLoginScreen();
-  }
+  // Legacy login check removed
 
   // API key overlay is disabled; backend handles the key.
 
+  // Add Clerk's isLoaded check
+  if (!isLoaded) {
+    return <div className="flex items-center justify-center h-screen bg-gray-900 text-white">Loading...</div>;
+  }
+
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto relative">
-        {isTrialLocked && (
-          <div className="fixed inset-0 z-40 flex flex-col justify-center items-center bg-gray-950/90 backdrop-blur-xl px-6 text-center">
-            <h2 className="text-2xl font-bold mb-4 text-white">You reached the {currentPlan.label} limit</h2>
-            <p className="mb-6 text-gray-300 max-w-lg">
-              This plan includes {planCreditLimit} credits. Upgrade to unlock more scenes. Admin users are auto-unlocked when signed in.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md mb-4">
-              <button
-                onClick={() => (window.location.href = '/#pricing')}
-                className="flex-1 rounded-full bg-indigo-500 px-6 py-3 font-semibold text-white hover:bg-indigo-400 transition"
-              >
-                View pricing
-              </button>
-              <button
-                onClick={() => setShowPlanModal(true)}
-                className="flex-1 rounded-full border border-white/20 px-6 py-3 font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition"
-              >
-                Change plan
-              </button>
-            </div>
-            <p className="mt-4 text-xs text-gray-500">Need help? Contact the product team.</p>
-          </div>
-        )}
-        <OnboardingOverlay
-          visible={shouldShowOnboarding}
-          currentStep={onboardingStep}
-          steps={onboardingStepsMeta}
-          onNext={handleOnboardingNext}
-          onSkip={skipOnboarding}
-        />
-        {showGoalWizard && (
-          <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 px-4">
-            <div className="w-full max-w-3xl rounded-3xl border border-white/10 bg-gray-950 p-6 md:p-10 shadow-2xl space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.4em] text-indigo-200">Quick start wizard</p>
-                  <h3 className="text-2xl md:text-3xl font-semibold text-white mt-2">Let’s set up your scene</h3>
-                </div>
-                <button onClick={handleGoalWizardSkip} className="text-sm text-gray-400 hover:text-white">Skip</button>
-              </div>
-              <p className="text-sm text-gray-400">Step {goalWizardStep} / 3</p>
-              {goalWizardStep === 1 && (
-                <div className="grid gap-4 md:grid-cols-2">
-                  {[
-                    { value: 'ugc', title: 'UGC Lifestyle', description: 'Creators interacting with your product in real life.' },
-                    { value: 'product', title: 'Product Placement', description: 'Stylized hero shots without people.' },
-                  ].map(option => (
-                    <button
-                      key={option.value}
-                      onClick={() => handleGoalWizardSelect('goal', option.value)}
-                      className={`rounded-2xl border p-4 text-left transition ${goalWizardData.goal === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
-                    >
-                      <p className="text-lg font-semibold">{option.title}</p>
-                      <p className="text-sm text-gray-400 mt-2">{option.description}</p>
-                    </button>
-                  ))}
-                </div>
-              )}
-              {goalWizardStep === 2 && (
-                <div className="grid gap-3 md:grid-cols-3">
-                  {GOAL_VIBE_OPTIONS.map(option => (
-                    <button
-                      key={option.value}
-                      onClick={() => handleGoalWizardSelect('vibe', option.value)}
-                      className={`rounded-2xl border p-4 text-left transition ${goalWizardData.vibe === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
-                    >
-                      <p className="text-base font-semibold">{option.label}</p>
-                      <p className="text-sm text-gray-400 mt-2">{option.description}</p>
-                    </button>
-                  ))}
-                </div>
-              )}
-              {goalWizardStep === 3 && (
-                <div className="grid gap-3 md:grid-cols-2">
-                  {CREATOR_PRESETS.filter(preset => preset.value !== 'custom').map(preset => (
-                    <button
-                      key={preset.value}
-                      onClick={() => handleGoalWizardSelect('preset', preset.value)}
-                      className={`rounded-2xl border p-4 text-left transition ${goalWizardData.preset === preset.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
-                    >
-                      <p className="text-base font-semibold">{preset.label}</p>
-                      <p className="text-sm text-gray-400 mt-2">{preset.description}</p>
-                    </button>
-                  ))}
-                </div>
-              )}
-              <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                <button onClick={goalWizardStep === 1 ? handleGoalWizardSkip : handleGoalWizardBack} className="text-sm text-gray-400 hover:text-white">
-                  {goalWizardStep === 1 ? 'Skip wizard' : 'Back'}
-                </button>
-                {goalWizardStep < 3 ? (
-                  <button onClick={handleGoalWizardNext} className="rounded-full bg-indigo-500 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-400 transition">
-                    Next
-                  </button>
-                ) : (
-                  <button onClick={handleGoalWizardComplete} className="rounded-full bg-emerald-500 px-6 py-2 text-sm font-semibold text-white hover:bg-emerald-400 transition">
-                    Apply &amp; build
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-        {showPlanModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-            <div className="w-full max-w-3xl rounded-3xl border border-white/10 bg-gray-950 p-6 md:p-8 shadow-2xl space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.4em] text-indigo-200">Manage plan</p>
-                  <h3 className="text-2xl font-semibold text-white mt-1">Choose what fits your launch</h3>
-                </div>
-                <button onClick={() => { setShowPlanModal(false); setPlanCodeInput(''); setPlanCodeError(null); setPlanNotice(null); }} className="text-sm text-gray-400 hover:text-white">
-                  Close
-                </button>
-              </div>
-              <div className="grid gap-3 md:grid-cols-2">
-                {Object.entries(PLAN_CONFIG).map(([tier, config]) => (
-                  <button
-                    key={tier}
-                    onClick={async () => {
-                      if (tier === 'free') {
-                        setPlanTier('free');
-                        setShowPlanModal(false);
-                        return;
-                      }
-                      // Call Stripe Checkout
-                      try {
-                        const res = await fetch('/api/create-checkout-session', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ plan: tier, email: userEmail }),
-                        });
-                        const data = await res.json();
-                        if (data.url) {
-                          window.location.href = data.url;
-                        } else {
-                          setPlanNotice('Failed to start checkout.');
-                        }
-                      } catch (err) {
-                        console.error(err);
-                        setPlanNotice('Error connecting to payment provider.');
-                      }
-                    }}
-                    className={`rounded-2xl border p-4 text-left transition ${planTier === tier ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
-                  >
-                    <p className="text-lg font-semibold">{config.label}</p>
-                    <p className="text-sm text-gray-400 mt-1">{config.description}</p>
-                    <p className="text-xs mt-2">
-                      {planTier === tier ? 'Current plan' : (tier === 'free' ? 'Select Free' : 'Upgrade')}
-                    </p>
-                  </button>
-                ))}
-              </div>
-              <div className="space-y-2 text-left">
-                <p className="text-xs uppercase tracking-[0.3em] text-gray-500">Have an upgrade code?</p>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <input
-                    type="text"
-                    value={planCodeInput}
-                    onChange={(e) => {
-                      setPlanCodeInput(e.target.value);
-                      if (planCodeError) setPlanCodeError(null);
-                    }}
-                    placeholder="Enter the code from your receipt"
-                    className="flex-1 rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-white focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                  />
-                  <button
-                    type="button"
-                    onClick={handlePlanCodeSubmit}
-                    className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400 transition"
-                  >
-                    Apply
-                  </button>
-                </div>
-                {planCodeError && <p className="text-xs text-red-300">{planCodeError}</p>}
-              </div>
-            </div>
-          </div>
-        )}
-
-        <header className="text-center mb-8">
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500">
-            Universal AI Mockup Generator
-          </h1>
-          <p className="mt-2 text-lg text-gray-400">
-            Generate photo-realistic UGC-style images for your products in seconds.
-          </p>
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs text-gray-400">
-            <span className="rounded-full border border-white/20 px-3 py-1 text-white/90">
-              Plan: {currentPlan.label}
-            </span>
-            <span>
-              {remainingCredits} credits left
-              {planVideoLimit > 0 ? ` · ${Math.max(remainingVideos, 0)} video credits left` : ''}
-              {isTrialBypassActive ? ' · Admin bypass active' : ''}
-            </span>
-            <button
-              onClick={() => {
-                setPlanNotice(null);
-                setShowPlanModal(true);
-              }}
-              className="inline-flex items-center justify-center rounded-full border border-white/20 px-4 py-2 text-white/80 hover:border-indigo-400 hover:text-white transition"
-            >
-              Manage plan
+    <>
+      <SignedOut>
+        <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-white">
+          <h1 className="text-4xl font-bold mb-8">Welcome to BoostUGC</h1>
+          <p className="mb-8 text-gray-400">Please sign in to continue</p>
+          <SignInButton mode="modal">
+            <button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition-colors">
+              Sign In
             </button>
-          </div>
-          {planNotice && <p className="mt-2 text-xs text-rose-300">{planNotice}</p>}
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
-            {isKeySelected && isUsingStoredKey && (
-              <button
-                onClick={handleApiKeyInvalid}
-                className="inline-flex items-center justify-center rounded-lg border border-gray-600 px-4 py-2 text-sm font-semibold text-gray-200 hover:bg-gray-800 transition"
-              >
-                Change API Key
-              </button>
-            )}
-            {!shouldRequireLogin && !isLoggedIn && (
-              <button
-                onClick={promptLogin}
-                className="inline-flex items-center justify-center rounded-lg border border-indigo-500/60 px-4 py-2 text-sm font-semibold text-indigo-200 hover:bg-indigo-500/10 transition"
-              >
-                Sign in
-              </button>
-            )}
-            {/* Hide Replay guided tour until onboarding flow is revamped */}
-          </div>
-          {isLoggedIn && (
-            <>
-              <div className="mt-4 flex flex-col sm:flex-row gap-3 items-center justify-center text-sm text-gray-400">
-                <span>Signed in as {userEmail}</span>
-                <button
-                  onClick={handleLogout}
-                  className="inline-flex items-center justify-center rounded-full border border-gray-600 px-3 py-1 font-semibold text-gray-200 hover:bg-gray-800 transition"
-                >
-                  Switch account
-                </button>
+          </SignInButton>
+        </div>
+      </SignedOut>
+      <SignedIn>
+        <div className="min-h-screen bg-gray-900 text-white font-sans selection:bg-blue-500/30">
+          {/* Header with UserButton */}
+          <header className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-xl sticky top-0 z-50">
+            <div className="max-w-[1600px] mx-auto px-4 h-16 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center font-bold text-white">
+                  B
+                </div>
+                <span className="font-bold text-lg tracking-tight">BoostUGC</span>
+                <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 text-xs font-medium border border-blue-500/20">
+                  Beta
+                </span>
               </div>
-              <p className="mt-2 text-xs text-gray-400">{currentPlan.description}</p>
-            </>
-          )}
-          <div className="mt-6 flex items-center justify-center gap-4 text-xs text-gray-400">
-            <span className={isSimpleMode ? 'text-white' : ''}>Simple Mode</span>
-            <label
-              className={`relative inline-flex cursor-pointer items-center ${!canUseStudioFeatures ? 'opacity-40 cursor-not-allowed' : ''}`}
-            >
-              <input
-                type="checkbox"
-                className="sr-only"
-                checked={!isSimpleMode}
-                onChange={toggleSimpleMode}
-                disabled={!canUseStudioFeatures}
-                aria-label="Toggle studio mode"
-              />
-              <div
-                className={`relative h-6 w-11 rounded-full transition ${!isSimpleMode ? 'bg-indigo-500' : 'bg-gray-700'
-                  }`}
-              >
-                <span
-                  className={`absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow transition ${!isSimpleMode ? 'translate-x-5' : ''
-                    }`}
-                />
+              <div className="flex items-center gap-4">
+                <UserButton afterSignOutUrl="/" />
               </div>
-            </label>
-            <span className={!isSimpleMode ? 'text-white' : ''}>Studio Mode</span>
-          </div>
-        </header>
+            </div>
+          </header>
 
-        <main className="flex flex-col gap-8">
-          {(!isSimpleMode && canUseStudioFeatures) && (
-            <div className="rounded-3xl border border-white/5 bg-white/5 p-5 space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Storyboard</p>
-                  <p className="text-sm text-gray-400">Queue variations and switch scenes without rebuilding settings.</p>
-                </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <button
-                    type="button"
-                    onClick={handleAddScene}
-                    disabled={storyboardScenes.length >= 4}
-                    className="rounded-full border border-white/20 px-3 py-1 text-white/80 hover:border-indigo-400 hover:text-white transition disabled:opacity-40"
-                  >
-                    + Add scene
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDuplicateScene}
-                    disabled={storyboardScenes.length >= 4}
-                    className="rounded-full border border-white/20 px-3 py-1 text-white/80 hover:border-indigo-400 hover:text-white transition disabled:opacity-40"
-                  >
-                    Duplicate
-                  </button>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                {storyboardScenes.map(scene => (
-                  <div
-                    key={scene.id}
-                    className={`rounded-2xl border px-4 py-3 flex items-center gap-3 ${scene.id === activeSceneId ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
-                  >
-                    <button onClick={() => handleSceneSelect(scene.id)} className="font-semibold">
-                      {scene.label}
+          {/* Main Content */}
+          <div className="max-w-[1600px] mx-auto p-6">
+            <div className="max-w-7xl mx-auto relative">
+              {isTrialLocked && (
+                <div className="fixed inset-0 z-40 flex flex-col justify-center items-center bg-gray-950/90 backdrop-blur-xl px-6 text-center">
+                  <h2 className="text-2xl font-bold mb-4 text-white">You reached the {currentPlan.label} limit</h2>
+                  <p className="mb-6 text-gray-300 max-w-lg">
+                    This plan includes {planCreditLimit} credits. Upgrade to unlock more scenes. Admin users are auto-unlocked when signed in.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md mb-4">
+                    <button
+                      onClick={() => (window.location.href = '/#pricing')}
+                      className="flex-1 rounded-full bg-indigo-500 px-6 py-3 font-semibold text-white hover:bg-indigo-400 transition"
+                    >
+                      View pricing
                     </button>
-                    {storyboardScenes.length > 1 && (
-                      <button
-                        onClick={() => handleSceneDelete(scene.id)}
-                        className="text-xs text-gray-400 hover:text-red-300"
-                      >
-                        Remove
-                      </button>
-                    )}
+                    <button
+                      onClick={() => setShowPlanModal(true)}
+                      className="flex-1 rounded-full border border-white/20 px-6 py-3 font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition"
+                    >
+                      Change plan
+                    </button>
                   </div>
-                ))}
-              </div>
-              <div className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-black/20 p-4 text-xs text-gray-300">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="uppercase tracking-[0.3em] text-indigo-200">Same person</p>
-                    <p className="text-gray-400 mt-1">Keep a single creator across every scene automatically.</p>
+                  <p className="mt-4 text-xs text-gray-500">Need help? Contact the product team.</p>
+                </div >
+              )}
+              <OnboardingOverlay
+                visible={shouldShowOnboarding}
+                currentStep={onboardingStep}
+                steps={onboardingStepsMeta}
+                onNext={handleOnboardingNext}
+                onSkip={skipOnboarding}
+              />
+              {
+                showGoalWizard && (
+                  <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 px-4">
+                    <div className="w-full max-w-3xl rounded-3xl border border-white/10 bg-gray-950 p-6 md:p-10 shadow-2xl space-y-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.4em] text-indigo-200">Quick start wizard</p>
+                          <h3 className="text-2xl md:text-3xl font-semibold text-white mt-2">Let’s set up your scene</h3>
+                        </div>
+                        <button onClick={handleGoalWizardSkip} className="text-sm text-gray-400 hover:text-white">Skip</button>
+                      </div>
+                      <p className="text-sm text-gray-400">Step {goalWizardStep} / 3</p>
+                      {goalWizardStep === 1 && (
+                        <div className="grid gap-4 md:grid-cols-2">
+                          {[
+                            { value: 'ugc', title: 'UGC Lifestyle', description: 'Creators interacting with your product in real life.' },
+                            { value: 'product', title: 'Product Placement', description: 'Stylized hero shots without people.' },
+                          ].map(option => (
+                            <button
+                              key={option.value}
+                              onClick={() => handleGoalWizardSelect('goal', option.value)}
+                              className={`rounded-2xl border p-4 text-left transition ${goalWizardData.goal === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
+                            >
+                              <p className="text-lg font-semibold">{option.title}</p>
+                              <p className="text-sm text-gray-400 mt-2">{option.description}</p>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {goalWizardStep === 2 && (
+                        <div className="grid gap-3 md:grid-cols-3">
+                          {GOAL_VIBE_OPTIONS.map(option => (
+                            <button
+                              key={option.value}
+                              onClick={() => handleGoalWizardSelect('vibe', option.value)}
+                              className={`rounded-2xl border p-4 text-left transition ${goalWizardData.vibe === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
+                            >
+                              <p className="text-base font-semibold">{option.label}</p>
+                              <p className="text-sm text-gray-400 mt-2">{option.description}</p>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {goalWizardStep === 3 && (
+                        <div className="grid gap-3 md:grid-cols-2">
+                          {CREATOR_PRESETS.filter(preset => preset.value !== 'custom').map(preset => (
+                            <button
+                              key={preset.value}
+                              onClick={() => handleGoalWizardSelect('preset', preset.value)}
+                              className={`rounded-2xl border p-4 text-left transition ${goalWizardData.preset === preset.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
+                            >
+                              <p className="text-base font-semibold">{preset.label}</p>
+                              <p className="text-sm text-gray-400 mt-2">{preset.description}</p>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                        <button onClick={goalWizardStep === 1 ? handleGoalWizardSkip : handleGoalWizardBack} className="text-sm text-gray-400 hover:text-white">
+                          {goalWizardStep === 1 ? 'Skip wizard' : 'Back'}
+                        </button>
+                        {goalWizardStep < 3 ? (
+                          <button onClick={handleGoalWizardNext} className="rounded-full bg-indigo-500 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-400 transition">
+                            Next
+                          </button>
+                        ) : (
+                          <button onClick={handleGoalWizardComplete} className="rounded-full bg-emerald-500 px-6 py-2 text-sm font-semibold text-white hover:bg-emerald-400 transition">
+                            Apply &amp; build
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <label className={`relative inline-flex cursor-pointer items-center ${isTalentLinkedAcrossScenes ? 'text-white' : ''}`}>
+                )
+              }
+              {
+                showPlanModal && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+                    <div className="w-full max-w-3xl rounded-3xl border border-white/10 bg-gray-950 p-6 md:p-8 shadow-2xl space-y-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.4em] text-indigo-200">Manage plan</p>
+                          <h3 className="text-2xl font-semibold text-white mt-1">Choose what fits your launch</h3>
+                        </div>
+                        <button onClick={() => { setShowPlanModal(false); setPlanCodeInput(''); setPlanCodeError(null); setPlanNotice(null); }} className="text-sm text-gray-400 hover:text-white">
+                          Close
+                        </button>
+                      </div>
+                      <div className="grid gap-3 md:grid-cols-2">
+                        {Object.entries(PLAN_CONFIG).map(([tier, config]) => (
+                          <button
+                            key={tier}
+                            onClick={async () => {
+                              if (tier === 'free') {
+                                setPlanTier('free');
+                                setShowPlanModal(false);
+                                return;
+                              }
+                              // Call Stripe Checkout
+                              try {
+                                const res = await fetch('/api/create-checkout-session', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ plan: tier, email: userEmail }),
+                                });
+                                const data = await res.json();
+                                if (data.url) {
+                                  window.location.href = data.url;
+                                } else {
+                                  setPlanNotice('Failed to start checkout.');
+                                }
+                              } catch (err) {
+                                console.error(err);
+                                setPlanNotice('Error connecting to payment provider.');
+                              }
+                            }}
+                            className={`rounded-2xl border p-4 text-left transition ${planTier === tier ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
+                          >
+                            <p className="text-lg font-semibold">{config.label}</p>
+                            <p className="text-sm text-gray-400 mt-1">{config.description}</p>
+                            <p className="text-xs mt-2">
+                              {planTier === tier ? 'Current plan' : (tier === 'free' ? 'Select Free' : 'Upgrade')}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
+                      <div className="space-y-2 text-left">
+                        <p className="text-xs uppercase tracking-[0.3em] text-gray-500">Have an upgrade code?</p>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <input
+                            type="text"
+                            value={planCodeInput}
+                            onChange={(e) => {
+                              setPlanCodeInput(e.target.value);
+                              if (planCodeError) setPlanCodeError(null);
+                            }}
+                            placeholder="Enter the code from your receipt"
+                            className="flex-1 rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-white focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                          />
+                          <button
+                            type="button"
+                            onClick={handlePlanCodeSubmit}
+                            className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400 transition"
+                          >
+                            Apply
+                          </button>
+                        </div>
+                        {planCodeError && <p className="text-xs text-red-300">{planCodeError}</p>}
+                      </div>
+                    </div>
+                  </div>
+                )
+              }
+
+              <header className="text-center mb-8">
+                <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500">
+                  Universal AI Mockup Generator
+                </h1>
+                <p className="mt-2 text-lg text-gray-400">
+                  Generate photo-realistic UGC-style images for your products in seconds.
+                </p>
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs text-gray-400">
+                  <span className="rounded-full border border-white/20 px-3 py-1 text-white/90">
+                    Plan: {currentPlan.label}
+                  </span>
+                  <span>
+                    {remainingCredits} credits left
+                    {planVideoLimit > 0 ? ` · ${Math.max(remainingVideos, 0)} video credits left` : ''}
+                    {isTrialBypassActive ? ' · Admin bypass active' : ''}
+                  </span>
+                  <button
+                    onClick={() => {
+                      setPlanNotice(null);
+                      setShowPlanModal(true);
+                    }}
+                    className="inline-flex items-center justify-center rounded-full border border-white/20 px-4 py-2 text-white/80 hover:border-indigo-400 hover:text-white transition"
+                  >
+                    Manage plan
+                  </button>
+                </div>
+                {planNotice && <p className="mt-2 text-xs text-rose-300">{planNotice}</p>}
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+                  {/* Legacy buttons removed */}
+                  {/* Hide Replay guided tour until onboarding flow is revamped */}
+                </div>
+                {isLoggedIn && (
+                  <>
+                    <div className="mt-4 flex flex-col sm:flex-row gap-3 items-center justify-center text-sm text-gray-400">
+                      <span>Signed in as {userEmail}</span>
+                      {/* Logout handled by UserButton */}
+                    </div>
+                    <p className="mt-2 text-xs text-gray-400">{currentPlan.description}</p>
+                  </>
+                )}
+                <div className="mt-6 flex items-center justify-center gap-4 text-xs text-gray-400">
+                  <span className={isSimpleMode ? 'text-white' : ''}>Simple Mode</span>
+                  <label
+                    className={`relative inline-flex cursor-pointer items-center ${!canUseStudioFeatures ? 'opacity-40 cursor-not-allowed' : ''}`}
+                  >
                     <input
                       type="checkbox"
                       className="sr-only"
-                      checked={isTalentLinkedAcrossScenes}
-                      onChange={handleTalentLinkToggle}
-                      aria-label="Use the same person in all storyboard scenes"
+                      checked={!isSimpleMode}
+                      onChange={toggleSimpleMode}
+                      disabled={!canUseStudioFeatures}
+                      aria-label="Toggle studio mode"
                     />
                     <div
-                      className={`relative h-5 w-10 rounded-full transition ${isTalentLinkedAcrossScenes ? 'bg-indigo-500' : 'bg-gray-700'
+                      className={`relative h-6 w-11 rounded-full transition ${!isSimpleMode ? 'bg-indigo-500' : 'bg-gray-700'
                         }`}
                     >
                       <span
-                        className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${isTalentLinkedAcrossScenes ? 'translate-x-4' : ''
+                        className={`absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow transition ${!isSimpleMode ? 'translate-x-5' : ''
                           }`}
                       />
                     </div>
                   </label>
+                  <span className={!isSimpleMode ? 'text-white' : ''}>Studio Mode</span>
                 </div>
-                <p className="text-[11px] text-gray-500">
-                  Toggle once and any update to this scene’s person instantly syncs to the rest.
-                </p>
-              </div>
-            </div>
-          )}
-          <div className="grid gap-6 lg:grid-cols-3">
-            <div ref={intentRef} className="bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-4 h-full">
-              <div className="flex flex-col gap-1">
-                <p className="text-xs uppercase tracking-widest text-indigo-300">Step 1</p>
-                <h2 className="text-2xl font-bold text-gray-200">Choose Content Intent</h2>
-                <p className="text-sm text-gray-400">
-                  {isProductPlacement
-                    ? 'Product Placement focuses on stylized scenes with zero people so the product stays hero.'
-                    : 'UGC Lifestyle enables authentic creator vibes, including people interacting with the product.'}
-                </p>
-              </div>
-              <ChipSelectGroup
-                label="Content Style"
-                options={CONTENT_STYLE_OPTIONS}
-                selectedValue={options.contentStyle}
-                onChange={(value) => handleOptionChange('contentStyle', value, 'Content Intent')}
-              />
-            </div>
-            <div ref={uploadRef} className="bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-4 h-full">
-              <div className="flex flex-col gap-1">
-                <p className="text-xs uppercase tracking-widest text-indigo-300">Step 2</p>
-                <h2 className="text-2xl font-bold text-gray-200">
-                  {hasUploadedProduct ? 'Product Photo Ready' : 'Add Your Product Photo'}
-                </h2>
-                <p className="text-sm text-gray-400">
-                  {hasUploadedProduct
-                    ? 'This product image will be reused for both UGC and Product Placement. Upload again only if you want to replace it.'
-                    : 'Upload a transparent PNG, JPG, or WebP of your product to anchor every scene.'}
-                </p>
-              </div>
-              <ImageUploader
-                ref={uploaderRef}
-                onImageUpload={handleImageUpload}
-                uploadedImagePreview={uploadedImagePreview}
-                disabled={!hasSelectedIntent}
-                lockedMessage="Select Step 1 first to unlock uploads."
-              />
-              {productAssets.length > 0 && (
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Product library</p>
-                      <span className="rounded-full border border-white/20 px-2 py-0.5 text-[11px] text-white/80">
-                        {productAssets.length}
-                      </span>
+              </header>
+
+              <main className="flex flex-col gap-8">
+                {(!isSimpleMode && canUseStudioFeatures) && (
+                  <div className="rounded-3xl border border-white/5 bg-white/5 p-5 space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Storyboard</p>
+                        <p className="text-sm text-gray-400">Queue variations and switch scenes without rebuilding settings.</p>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs">
+                        <button
+                          type="button"
+                          onClick={handleAddScene}
+                          disabled={storyboardScenes.length >= 4}
+                          className="rounded-full border border-white/20 px-3 py-1 text-white/80 hover:border-indigo-400 hover:text-white transition disabled:opacity-40"
+                        >
+                          + Add scene
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleDuplicateScene}
+                          disabled={storyboardScenes.length >= 4}
+                          className="rounded-full border border-white/20 px-3 py-1 text-white/80 hover:border-indigo-400 hover:text-white transition disabled:opacity-40"
+                        >
+                          Duplicate
+                        </button>
+                      </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={handleLibraryAddClick}
-                      className="inline-flex items-center gap-2 rounded-full border border-white/20 px-3 py-1 text-[11px] text-gray-200 hover:border-indigo-400 hover:text-white transition"
-                    >
-                      + Add photo
-                    </button>
-                  </div>
-                  <div className="space-y-3 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
-                    {productAssets.map(asset => (
-                      <div
-                        key={asset.id}
-                        className={`rounded-xl border px-3 py-3 space-y-3 ${asset.id === activeProductId ? 'border-indigo-400 bg-indigo-500/5' : 'border-white/10 bg-black/20'}`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <button
-                            type="button"
-                            onClick={() => handleProductAssetSelect(asset.id)}
-                            className={`flex flex-col text-left text-xs font-semibold ${asset.id === activeProductId ? 'text-white' : 'text-gray-300'}`}
-                          >
-                            <span>{asset.label || 'Untitled product'}</span>
-                            <span className="text-[10px] text-gray-400">{Math.round(asset.file.size / 1024)} KB</span>
+                    <div className="flex flex-wrap gap-3">
+                      {storyboardScenes.map(scene => (
+                        <div
+                          key={scene.id}
+                          className={`rounded-2xl border px-4 py-3 flex items-center gap-3 ${scene.id === activeSceneId ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
+                        >
+                          <button onClick={() => handleSceneSelect(scene.id)} className="font-semibold">
+                            {scene.label}
                           </button>
-                          <div className="relative">
-                            <img src={asset.previewUrl} alt={asset.label} className="h-20 w-20 rounded-md object-cover border border-white/10" />
+                          {storyboardScenes.length > 1 && (
                             <button
-                              type="button"
-                              onClick={() => handleProductAssetDelete(asset.id)}
-                              className="absolute -right-2 -top-2 rounded-full bg-black/80 p-1 text-[10px] uppercase tracking-widest text-rose-300 hover:bg-rose-500/40"
+                              onClick={() => handleSceneDelete(scene.id)}
+                              className="text-xs text-gray-400 hover:text-red-300"
                             >
                               Remove
                             </button>
-                          </div>
+                          )}
                         </div>
-                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                      ))}
+                    </div>
+                    <div className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-black/20 p-4 text-xs text-gray-300">
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className="uppercase tracking-[0.3em] text-indigo-200">Same person</p>
+                          <p className="text-gray-400 mt-1">Keep a single creator across every scene automatically.</p>
+                        </div>
+                        <label className={`relative inline-flex cursor-pointer items-center ${isTalentLinkedAcrossScenes ? 'text-white' : ''}`}>
                           <input
-                            type="text"
-                            value={asset.label}
-                            onChange={event => handleProductAssetLabelChange(asset.id, event.target.value)}
-                            className="flex-1 rounded-md border border-white/10 bg-black/20 px-2 py-1 text-xs text-white focus:border-indigo-400 focus:outline-none"
-                            placeholder="Name this product"
+                            type="checkbox"
+                            className="sr-only"
+                            checked={isTalentLinkedAcrossScenes}
+                            onChange={handleTalentLinkToggle}
+                            aria-label="Use the same person in all storyboard scenes"
                           />
-                          <div className="flex flex-col gap-1 text-xs text-gray-300">
-                            <input
-                              type="number"
-                              min="0"
-                              step="0.1"
-                              value={asset.heightValue ?? ''}
-                              onChange={event => handleProductHeightChange(asset.id, event.target.value)}
-                              className="w-full rounded-md border border-white/10 bg-black/20 px-2 py-1 text-white focus:border-indigo-400 focus:outline-none"
-                              placeholder="Height"
+                          <div
+                            className={`relative h-5 w-10 rounded-full transition ${isTalentLinkedAcrossScenes ? 'bg-indigo-500' : 'bg-gray-700'
+                              }`}
+                          >
+                            <span
+                              className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${isTalentLinkedAcrossScenes ? 'translate-x-4' : ''
+                                }`}
                             />
-                            <select
-                              value={asset.heightUnit}
-                              onChange={event => handleProductHeightUnitChange(asset.id, event.target.value as 'cm' | 'in')}
-                              className="rounded-md border border-white/10 bg-black/20 px-2 py-1 text-white focus:border-indigo-400 focus:outline-none"
-                            >
-                              <option value="cm">cm</option>
-                              <option value="in">in</option>
-                            </select>
+                          </div>
+                        </label>
+                      </div>
+                      <p className="text-[11px] text-gray-500">
+                        Toggle once and any update to this scene’s person instantly syncs to the rest.
+                      </p>
+                    </div>
+                  </div>
+                )}
+                <div className="grid gap-6 lg:grid-cols-3">
+                  <div ref={intentRef} className="bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-4 h-full">
+                    <div className="flex flex-col gap-1">
+                      <p className="text-xs uppercase tracking-widest text-indigo-300">Step 1</p>
+                      <h2 className="text-2xl font-bold text-gray-200">Choose Content Intent</h2>
+                      <p className="text-sm text-gray-400">
+                        {isProductPlacement
+                          ? 'Product Placement focuses on stylized scenes with zero people so the product stays hero.'
+                          : 'UGC Lifestyle enables authentic creator vibes, including people interacting with the product.'}
+                      </p>
+                    </div>
+                    <ChipSelectGroup
+                      label="Content Style"
+                      options={CONTENT_STYLE_OPTIONS}
+                      selectedValue={options.contentStyle}
+                      onChange={(value) => handleOptionChange('contentStyle', value, 'Content Intent')}
+                    />
+                  </div>
+                  <div ref={uploadRef} className="bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-4 h-full">
+                    <div className="flex flex-col gap-1">
+                      <p className="text-xs uppercase tracking-widest text-indigo-300">Step 2</p>
+                      <h2 className="text-2xl font-bold text-gray-200">
+                        {hasUploadedProduct ? 'Product Photo Ready' : 'Add Your Product Photo'}
+                      </h2>
+                      <p className="text-sm text-gray-400">
+                        {hasUploadedProduct
+                          ? 'This product image will be reused for both UGC and Product Placement. Upload again only if you want to replace it.'
+                          : 'Upload a transparent PNG, JPG, or WebP of your product to anchor every scene.'}
+                      </p>
+                    </div>
+                    <ImageUploader
+                      ref={uploaderRef}
+                      onImageUpload={handleImageUpload}
+                      uploadedImagePreview={uploadedImagePreview}
+                      disabled={!hasSelectedIntent}
+                      lockedMessage="Select Step 1 first to unlock uploads."
+                    />
+                    {productAssets.length > 0 && (
+                      <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div className="flex items-center gap-2">
+                            <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Product library</p>
+                            <span className="rounded-full border border-white/20 px-2 py-0.5 text-[11px] text-white/80">
+                              {productAssets.length}
+                            </span>
                           </div>
                           <button
                             type="button"
-                            onClick={() => handleProductAssetSelect(asset.id)}
-                            className={`rounded-full border px-3 py-1 text-[11px] ${asset.id === activeProductId ? 'border-indigo-400 text-white' : 'border-white/20 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+                            onClick={handleLibraryAddClick}
+                            className="inline-flex items-center gap-2 rounded-full border border-white/20 px-3 py-1 text-[11px] text-gray-200 hover:border-indigo-400 hover:text-white transition"
                           >
-                            Use
+                            + Add photo
+                          </button>
+                        </div>
+                        <div className="space-y-3 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
+                          {productAssets.map(asset => (
+                            <div
+                              key={asset.id}
+                              className={`rounded-xl border px-3 py-3 space-y-3 ${asset.id === activeProductId ? 'border-indigo-400 bg-indigo-500/5' : 'border-white/10 bg-black/20'}`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <button
+                                  type="button"
+                                  onClick={() => handleProductAssetSelect(asset.id)}
+                                  className={`flex flex-col text-left text-xs font-semibold ${asset.id === activeProductId ? 'text-white' : 'text-gray-300'}`}
+                                >
+                                  <span>{asset.label || 'Untitled product'}</span>
+                                  <span className="text-[10px] text-gray-400">{Math.round(asset.file.size / 1024)} KB</span>
+                                </button>
+                                <div className="relative">
+                                  <img src={asset.previewUrl} alt={asset.label} className="h-20 w-20 rounded-md object-cover border border-white/10" />
+                                  <button
+                                    type="button"
+                                    onClick={() => handleProductAssetDelete(asset.id)}
+                                    className="absolute -right-2 -top-2 rounded-full bg-black/80 p-1 text-[10px] uppercase tracking-widest text-rose-300 hover:bg-rose-500/40"
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                                <input
+                                  type="text"
+                                  value={asset.label}
+                                  onChange={event => handleProductAssetLabelChange(asset.id, event.target.value)}
+                                  className="flex-1 rounded-md border border-white/10 bg-black/20 px-2 py-1 text-xs text-white focus:border-indigo-400 focus:outline-none"
+                                  placeholder="Name this product"
+                                />
+                                <div className="flex flex-col gap-1 text-xs text-gray-300">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.1"
+                                    value={asset.heightValue ?? ''}
+                                    onChange={event => handleProductHeightChange(asset.id, event.target.value)}
+                                    className="w-full rounded-md border border-white/10 bg-black/20 px-2 py-1 text-white focus:border-indigo-400 focus:outline-none"
+                                    placeholder="Height"
+                                  />
+                                  <select
+                                    value={asset.heightUnit}
+                                    onChange={event => handleProductHeightUnitChange(asset.id, event.target.value as 'cm' | 'in')}
+                                    className="rounded-md border border-white/10 bg-black/20 px-2 py-1 text-white focus:border-indigo-400 focus:outline-none"
+                                  >
+                                    <option value="cm">cm</option>
+                                    <option value="in">in</option>
+                                  </select>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => handleProductAssetSelect(asset.id)}
+                                  className={`rounded-full border px-3 py-1 text-[11px] ${asset.id === activeProductId ? 'border-indigo-400 text-white' : 'border-white/20 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+                                >
+                                  Use
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={handleLibraryAddClick}
+                            className="w-full rounded-xl border border-dashed border-white/20 bg-black/10 px-3 py-3 text-left text-xs text-gray-400 hover:border-indigo-400 hover:text-white transition"
+                          >
+                            <p className="text-sm font-semibold text-white">+ Add another photo</p>
+                            <p className="text-[11px] text-gray-500">Drop a batch of files or tap to keep building your library.</p>
                           </button>
                         </div>
                       </div>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={handleLibraryAddClick}
-                      className="w-full rounded-xl border border-dashed border-white/20 bg-black/10 px-3 py-3 text-left text-xs text-gray-400 hover:border-indigo-400 hover:text-white transition"
-                    >
-                      <p className="text-sm font-semibold text-white">+ Add another photo</p>
-                      <p className="text-[11px] text-gray-500">Drop a batch of files or tap to keep building your library.</p>
-                    </button>
+                    )}
+                  </div>
+                  {/* MoodReferencePanel temporarily hidden per request */}
+                  <div className="flex flex-col gap-3">
+                    <ModelReferencePanel
+                      onFileSelect={handleModelReferenceUpload}
+                      previewUrl={modelReferencePreview}
+                      notes={modelReferenceNotes}
+                      onNotesChange={setModelReferenceNotes}
+                      onClear={handleClearModelReference}
+                      disabled={!hasUploadedProduct || isProductPlacement}
+                      lockedMessage={
+                        !hasUploadedProduct
+                          ? "Upload your product image first to attach a model."
+                          : 'Model references are only available in UGC Lifestyle scenes with a person enabled. Switch out of Product Placement and pick an age group to unlock this.'
+                      }
+                    />
+                    {hasUploadedProduct && !personInScene && !isProductPlacement && (
+                      <p className="text-xs text-amber-300">
+                        Model references only apply when this scene uses UGC Lifestyle with a person selected. Switch off Product Placement and choose an age so the same talent can carry across your morning/afternoon/night shots.
+                      </p>
+                    )}
                   </div>
                 </div>
-              )}
-            </div>
-            {/* MoodReferencePanel temporarily hidden per request */}
-            <div className="flex flex-col gap-3">
-              <ModelReferencePanel
-                onFileSelect={handleModelReferenceUpload}
-                previewUrl={modelReferencePreview}
-                notes={modelReferenceNotes}
-                onNotesChange={setModelReferenceNotes}
-                onClear={handleClearModelReference}
-                disabled={!hasUploadedProduct || isProductPlacement}
-                lockedMessage={
-                  !hasUploadedProduct
-                    ? "Upload your product image first to attach a model."
-                    : 'Model references are only available in UGC Lifestyle scenes with a person enabled. Switch out of Product Placement and pick an age group to unlock this.'
-                }
-              />
-              {hasUploadedProduct && !personInScene && !isProductPlacement && (
-                <p className="text-xs text-amber-300">
-                  Model references only apply when this scene uses UGC Lifestyle with a person selected. Switch off Product Placement and choose an age so the same talent can carry across your morning/afternoon/night shots.
-                </p>
-              )}
+                <fieldset disabled={!hasUploadedProduct || isTrialLocked} className="contents">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Controls Column */}
+                    <div ref={customizeRef} className={`lg:col-span-1 bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col max-h-[calc(100vh-12rem)] ${!hasUploadedProduct ? 'opacity-60' : ''}`}>
+                      <div className="mb-4 border-b border-gray-600 pb-3 flex-shrink-0">
+                        <p className="text-xs uppercase tracking-widest text-indigo-300">Step 3</p>
+                        <h2 className="text-2xl font-bold text-gray-200">Customize Your Mockup</h2>
+                      </div>
+
+                      <div className={`flex-grow overflow-y-auto custom-scrollbar -mr-4 pr-4 ${!hasUploadedProduct ? 'pointer-events-none' : ''}`}>
+                        <div id={getSectionId('Scene & Environment')}>
+                          <Accordion
+                            title="Scene & Environment"
+                            isOpen={openAccordion === 'Scene & Environment'}
+                            onToggle={() => handleToggleAccordion('Scene & Environment')}
+                          >  <div className="space-y-4">
+                              <ChipSelectGroup
+                                label="Location / Setting"
+                                options={SETTING_OPTIONS}
+                                selectedValue={options.setting}
+                                onChange={(value) => handleOptionChange('setting', value, 'Scene & Environment')}
+                                allowCustom
+                                customLabel="Custom setting"
+                                customPlaceholder="Describe the location"
+                              />
+                              <ChipSelectGroup
+                                label="Environment Order"
+                                options={ENVIRONMENT_ORDER_OPTIONS}
+                                selectedValue={options.environmentOrder}
+                                onChange={(value) => handleOptionChange('environmentOrder', value, 'Scene & Environment')}
+                                allowCustom
+                                customLabel="Custom environment"
+                                customPlaceholder="Describe the vibe"
+                              />
+                            </div>
+                          </Accordion>
+                        </div>
+                        {isProductPlacement && (
+                          <div id={getSectionId('Product Details')}>
+                            <Accordion
+                              title="Product Details"
+                              isOpen={openAccordion === 'Product Details'}
+                              onToggle={() => handleToggleAccordion('Product Details')}
+                            >
+                              <div className="space-y-4">
+                                <ChipSelectGroup
+                                  label="Product Material"
+                                  options={PRODUCT_MATERIAL_OPTIONS}
+                                  selectedValue={options.productMaterial}
+                                  onChange={(value) => handleOptionChange('productMaterial', value, 'Product Details')}
+                                  allowCustom
+                                  customLabel="Custom material"
+                                  customPlaceholder="Describe the finish"
+                                />
+                                <ChipSelectGroup
+                                  label="Product Plane"
+                                  options={PRODUCT_PLANE_OPTIONS}
+                                  selectedValue={options.productPlane}
+                                  onChange={(value) => handleOptionChange('productPlane', value, 'Product Details')}
+                                  allowCustom
+                                  customLabel="Custom composition"
+                                  customPlaceholder="Describe the depth placement"
+                                />
+                                <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3 text-xs text-gray-300">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <div>
+                                      <p className="uppercase tracking-[0.3em] text-indigo-200">Packaging kit</p>
+                                      <p className="text-gray-400 mt-1">Keep the entire box and inserts visible in every render.</p>
+                                    </div>
+                                    <label className="relative inline-flex cursor-pointer items-center gap-2">
+                                      <input
+                                        type="checkbox"
+                                        className="sr-only"
+                                        checked={isMultiProductPackaging}
+                                        onChange={event => setIsMultiProductPackaging(event.target.checked)}
+                                        aria-label="Packaging contains multiple products"
+                                      />
+                                      <div
+                                        className={`relative h-5 w-10 rounded-full transition ${isMultiProductPackaging ? 'bg-indigo-500' : 'bg-gray-700'
+                                          }`}
+                                      >
+                                        <span
+                                          className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${isMultiProductPackaging ? 'translate-x-4' : ''
+                                            }`}
+                                        />
+                                      </div>
+                                      <span className={`text-xs font-semibold ${isMultiProductPackaging ? 'text-indigo-200' : 'text-gray-500'}`}>
+                                        {isMultiProductPackaging ? 'Active' : 'Off'}
+                                      </span>
+                                    </label>
+                                  </div>
+                                </div>
+                                <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-2">
+                                  <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <div>
+                                      <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Supplement photo modes</p>
+                                      <p className="text-[11px] text-gray-400">Preset palettes inspired by top supplement launches.</p>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleSupplementPresetSelect('none')}
+                                      className="rounded-full border border-white/15 px-3 py-1 text-xs text-gray-300 hover:border-indigo-400 hover:text-white"
+                                    >
+                                      Clear
+                                    </button>
+                                  </div>
+                                  <div className="flex flex-wrap gap-2">
+                                    {SUPPLEMENT_PHOTO_PRESETS.map(preset => (
+                                      <button
+                                        key={preset.value}
+                                        type="button"
+                                        onClick={() => handleSupplementPresetSelect(preset.value)}
+                                        className={`rounded-full border px-3 py-1 text-xs transition ${activeSupplementPreset === preset.value
+                                          ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                                          : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
+                                          }`}
+                                      >
+                                        {preset.label}
+                                      </button>
+                                    ))}
+                                  </div>
+                                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                    <div className="flex flex-col gap-1">
+                                      <label className="text-xs uppercase tracking-widest text-gray-500">Background color</label>
+                                      <input
+                                        type="text"
+                                        value={supplementBackgroundColor}
+                                        onChange={event => setSupplementBackgroundColor(event.target.value)}
+                                        placeholder="e.g., #FFB347 or pastel peach"
+                                        className="rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                                      />
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                      <label className="text-xs uppercase tracking-widest text-gray-500">Accent color / props</label>
+                                      <input
+                                        type="text"
+                                        value={supplementAccentColor}
+                                        onChange={event => setSupplementAccentColor(event.target.value)}
+                                        placeholder="e.g., teal acrylic cube"
+                                        className="rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                                      />
+                                    </div>
+                                  </div>
+                                  {isHeroLandingMode && (
+                                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                      <div className="flex flex-col gap-1">
+                                        <label className="text-xs uppercase tracking-widest text-gray-500">Product alignment</label>
+                                        <div className="flex flex-wrap gap-2">
+                                          {HERO_ALIGNMENT_OPTIONS.map(option => (
+                                            <button
+                                              key={option.value}
+                                              type="button"
+                                              onClick={() => setHeroProductAlignment(option.value)}
+                                              className={`rounded-full border px-3 py-1 text-xs transition ${heroProductAlignment === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+                                            >
+                                              {option.label}
+                                            </button>
+                                          ))}
+                                        </div>
+                                      </div>
+                                      <div className="flex flex-col gap-1">
+                                        <label className="text-xs uppercase tracking-widest text-gray-500">Product scale</label>
+                                        <input
+                                          type="number"
+                                          min="0.5"
+                                          max="2"
+                                          step="0.05"
+                                          value={heroProductScale}
+                                          onChange={event => {
+                                            const value = Number.parseFloat(event.target.value);
+                                            if (Number.isNaN(value)) return;
+                                            setHeroProductScale(Math.max(0.3, Math.min(3, value)));
+                                          }}
+                                          className="rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                                        />
+                                        <p className="text-[11px] text-gray-500">1 = original sizing. Increase for bolder hero presence.</p>
+                                      </div>
+                                      <div className="flex flex-col gap-1 sm:col-span-2">
+                                        <label className="text-xs uppercase tracking-widest text-gray-500">Shadow style</label>
+                                        <div className="flex flex-wrap gap-2">
+                                          {HERO_SHADOW_OPTIONS.map(option => (
+                                            <button
+                                              key={option.value}
+                                              type="button"
+                                              onClick={() => setHeroShadowStyle(option.value)}
+                                              className={`rounded-full border px-3 py-1 text-xs transition ${heroShadowStyle === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+                                            >
+                                              {option.label}
+                                            </button>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                  {renderFormulationStoryPanel('product')}
+                                  <div className="flex flex-col gap-2">
+                                    <label className="text-xs uppercase tracking-widest text-gray-500">Flavor / ingredient props</label>
+                                    <textarea
+                                      value={supplementFlavorNotes}
+                                      onChange={event => setSupplementFlavorNotes(event.target.value)}
+                                      placeholder="e.g., pineapple, lavender sprigs, gummy vitamins"
+                                      className="rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                                      rows={2}
+                                    />
+                                  </div>
+                                  <div className="flex flex-col gap-2">
+                                    <label className="text-xs uppercase tracking-widest text-gray-500">Custom hero cue</label>
+                                    <textarea
+                                      value={supplementCustomPrompt}
+                                      onChange={event => setSupplementCustomPrompt(event.target.value)}
+                                      placeholder="e.g., have a manicured hand toss gummies mid-air beside the bottle"
+                                      className="rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                                      rows={2}
+                                    />
+                                    <p className="text-[11px] text-gray-500">We append this line directly to the prompt so you can call out extra beats (hands, props, typography, etc.).</p>
+                                  </div>
+                                  <label className="flex items-center gap-2 text-xs text-gray-300">
+                                    <input
+                                      type="checkbox"
+                                      className="h-4 w-4 rounded border-gray-600 bg-gray-900 text-indigo-500 focus:ring-indigo-400"
+                                      checked={includeSupplementHand}
+                                      onChange={event => setIncludeSupplementHand(event.target.checked)}
+                                    />
+                                    Include a cropped hand interacting with the product
+                                  </label>
+                                </div>
+                                <ChipSelectGroup
+                                  label="Studio Setup"
+                                  options={PLACEMENT_STYLE_OPTIONS}
+                                  selectedValue={options.placementStyle}
+                                  onChange={(value) => handleOptionChange('placementStyle', value, 'Product Details')}
+                                />
+                                <ChipSelectGroup
+                                  label="Hero Camera Rig"
+                                  options={PLACEMENT_CAMERA_OPTIONS}
+                                  selectedValue={options.placementCamera}
+                                  onChange={(value) => handleOptionChange('placementCamera', value, 'Product Details')}
+                                />
+                                <div className="rounded-2xl border border-white/10 bg-gray-900/40 p-4 space-y-4">
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Pro photographer mode</p>
+                                      <p className="text-xs text-gray-400">Unlock lens + lighting controls for hero product shoots.</p>
+                                    </div>
+                                    <label className="relative inline-flex cursor-pointer items-center gap-2">
+                                      <input
+                                        type="checkbox"
+                                        className="sr-only"
+                                        checked={isProPhotographer}
+                                        onChange={handleProPhotographerToggle}
+                                      />
+                                      <div
+                                        className={`relative h-5 w-10 rounded-full transition ${isProPhotographer ? 'bg-indigo-500' : 'bg-gray-700'
+                                          }`}
+                                      >
+                                        <span
+                                          className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${isProPhotographer ? 'translate-x-4' : ''
+                                            }`}
+                                        />
+                                      </div>
+                                      <span className={`text-xs font-semibold ${isProPhotographer ? 'text-indigo-200' : 'text-gray-500'}`}>
+                                        {isProPhotographer ? 'Active' : 'Off'}
+                                      </span>
+                                    </label>
+                                  </div>
+                                  {isProPhotographer && (
+                                    <div className="space-y-3">
+                                      <div className="flex flex-wrap gap-2">
+                                        {PRO_LOOK_PRESETS.map(preset => (
+                                          <button
+                                            key={preset.value}
+                                            type="button"
+                                            onClick={() => handleProPresetSelect(preset.value)}
+                                            className={`rounded-full border px-3 py-1 text-xs transition ${activeProPreset === preset.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+                                          >
+                                            {preset.label}
+                                          </button>
+                                        ))}
+                                        <button
+                                          type="button"
+                                          onClick={() => handleProPresetSelect('custom')}
+                                          className={`rounded-full border px-3 py-1 text-xs transition ${activeProPreset === 'custom' ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+                                        >
+                                          Custom build
+                                        </button>
+                                      </div>
+                                      <ChipSelectGroup
+                                        label="Lens"
+                                        options={PRO_LENS_OPTIONS}
+                                        selectedValue={options.proLens ?? ''}
+                                        onChange={(value) => handleOptionChange('proLens', value, 'Product Details')}
+                                        allowCustom
+                                        customLabel="Custom lens"
+                                        customPlaceholder="Describe the lens setup"
+                                      />
+                                      <ChipSelectGroup
+                                        label="Lighting Rig"
+                                        options={PRO_LIGHTING_RIG_OPTIONS}
+                                        selectedValue={options.proLightingRig ?? ''}
+                                        onChange={(value) => handleOptionChange('proLightingRig', value, 'Product Details')}
+                                        allowCustom
+                                        customLabel="Custom rig"
+                                        customPlaceholder="Describe the lighting rig"
+                                      />
+                                      <ChipSelectGroup
+                                        label="Finish / Treatment"
+                                        options={PRO_POST_TREATMENT_OPTIONS}
+                                        selectedValue={options.proPostTreatment ?? ''}
+                                        onChange={(value) => handleOptionChange('proPostTreatment', value, 'Product Details')}
+                                        allowCustom
+                                        customLabel="Custom finish"
+                                        customPlaceholder="Describe the post treatment"
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </Accordion>
+                          </div>
+                        )}
+                        <div id={getSectionId('Photography')}>
+                          <Accordion
+                            title="Photography"
+                            isOpen={openAccordion === 'Photography'}
+                            onToggle={() => handleToggleAccordion('Photography')}
+                          >
+                            <div className="space-y-4">
+                              <ChipSelectGroup label="Lighting" options={LIGHTING_OPTIONS} selectedValue={options.lighting} onChange={(value) => handleOptionChange('lighting', value, 'Photography')} />
+                              <ChipSelectGroup label="Camera Type" options={CAMERA_OPTIONS} selectedValue={options.camera} onChange={(value) => handleOptionChange('camera', value, 'Photography')} />
+                              <ChipSelectGroup label="Aspect Ratio" options={ASPECT_RATIO_OPTIONS} selectedValue={options.aspectRatio} onChange={(value) => handleOptionChange('aspectRatio', value, 'Photography')} />
+                              {!isSimpleMode && (
+                                <>
+                                  <ChipSelectGroup label="Perspective" options={PERSPECTIVE_OPTIONS} selectedValue={options.perspective} onChange={(value) => handleOptionChange('perspective', value, 'Photography')} />
+                                  <ChipSelectGroup label="Realism / Imperfections" options={REALISM_OPTIONS} selectedValue={options.realism} onChange={(value) => handleOptionChange('realism', value, 'Photography')} />
+                                </>
+                              )}
+                            </div>
+                          </Accordion>
+                        </div>
+                        {renderPersonDetailsSection()}
+                        {renderBundlesSection()}
+                      </div>
+                      <div className="mt-8 flex-shrink-0">
+                        <button
+                          onClick={() => handleGenerateImage()}
+                          disabled={isImageLoading || !uploadedImageFile}
+                          className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-900/50 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+                        >
+                          {isImageLoading ? 'Generating...' : 'Generate Mockup'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Visuals Column */}
+                    <div className="lg:col-span-2 flex flex-col gap-8">
+                      <GeneratedImage
+                        imageUrl={generatedImageUrl}
+                        fourKVariant={fourKVariant}
+                        twoKVariant={twoKVariant}
+                        isHiResProcessing={isPreparingHiRes}
+                        hiResError={hiResError}
+                        isImageLoading={isImageLoading}
+                        imageError={imageError}
+                        onReset={handleReset}
+                        isFreeUser={isFreeUser}
+                        downloadCreditConfig={DOWNLOAD_CREDIT_CONFIG}
+                        onChargeDownloadCredits={handleDownloadCreditCharge}
+                      />
+                      {generatedImageUrl && (
+                        <ImageEditor
+                          editPrompt={editPrompt}
+                          onPromptChange={e => setEditPrompt(e.target.value)}
+                          onEditImage={handleEditImage}
+                          isEditing={isImageLoading}
+                        />
+                      )}
+                      {generatedImageUrl && (
+                        <VideoGenerator
+                          videoPrompt={videoPrompt}
+                          onPromptChange={e => setVideoPrompt(e.target.value)}
+                          onGenerateVideo={handleGenerateVideo}
+                          isVideoLoading={isVideoLoading}
+                          videoError={videoError}
+                          generatedVideoUrl={generatedVideoUrl}
+                          isGenerating={isVideoLoading || isImageLoading}
+                          hasAccess={hasPlanVideoAccess}
+                          lockMessage={planVideoLimit === 0 ? 'Upgrade to Creator or Studio to unlock video generation.' : undefined}
+                          showAccessCodeField={planVideoLimit === 0}
+                          remainingVideos={planVideoLimit > 0 ? remainingVideos : null}
+                          planLabel={currentPlan.label}
+                          accessCode={videoAccessInput}
+                          onAccessCodeChange={handleVideoAccessCodeChange}
+                          onAccessSubmit={handleVideoAccessSubmit}
+                          accessError={videoAccessError}
+                        />
+                      )}
+                    </div>
+                  </div>
+                </fieldset>
+              </main>
             </div>
           </div>
-          <fieldset disabled={!hasUploadedProduct || isTrialLocked} className="contents">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Controls Column */}
-              <div ref={customizeRef} className={`lg:col-span-1 bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col max-h-[calc(100vh-12rem)] ${!hasUploadedProduct ? 'opacity-60' : ''}`}>
-                <div className="mb-4 border-b border-gray-600 pb-3 flex-shrink-0">
-                  <p className="text-xs uppercase tracking-widest text-indigo-300">Step 3</p>
-                  <h2 className="text-2xl font-bold text-gray-200">Customize Your Mockup</h2>
-                </div>
-
-                <div className={`flex-grow overflow-y-auto custom-scrollbar -mr-4 pr-4 ${!hasUploadedProduct ? 'pointer-events-none' : ''}`}>
-                  <div id={getSectionId('Scene & Environment')}>
-                    <Accordion
-                      title="Scene & Environment"
-                      isOpen={openAccordion === 'Scene & Environment'}
-                      onToggle={() => handleToggleAccordion('Scene & Environment')}
-                    >
-                      <div className="space-y-4">
-                        <ChipSelectGroup
-                          label="Location / Setting"
-                          options={SETTING_OPTIONS}
-                          selectedValue={options.setting}
-                          onChange={(value) => handleOptionChange('setting', value, 'Scene & Environment')}
-                          allowCustom
-                          customLabel="Custom setting"
-                          customPlaceholder="Describe the location"
-                        />
-                        <ChipSelectGroup
-                          label="Environment Order"
-                          options={ENVIRONMENT_ORDER_OPTIONS}
-                          selectedValue={options.environmentOrder}
-                          onChange={(value) => handleOptionChange('environmentOrder', value, 'Scene & Environment')}
-                          allowCustom
-                          customLabel="Custom environment"
-                          customPlaceholder="Describe the vibe"
-                        />
-                      </div>
-                    </Accordion>
-                  </div>
-                  {isProductPlacement && (
-                    <div id={getSectionId('Product Details')}>
-                      <Accordion
-                        title="Product Details"
-                        isOpen={openAccordion === 'Product Details'}
-                        onToggle={() => handleToggleAccordion('Product Details')}
-                      >
-                        <div className="space-y-4">
-                          <ChipSelectGroup
-                            label="Product Material"
-                            options={PRODUCT_MATERIAL_OPTIONS}
-                            selectedValue={options.productMaterial}
-                            onChange={(value) => handleOptionChange('productMaterial', value, 'Product Details')}
-                            allowCustom
-                            customLabel="Custom material"
-                            customPlaceholder="Describe the finish"
-                          />
-                          <ChipSelectGroup
-                            label="Product Plane"
-                            options={PRODUCT_PLANE_OPTIONS}
-                            selectedValue={options.productPlane}
-                            onChange={(value) => handleOptionChange('productPlane', value, 'Product Details')}
-                            allowCustom
-                            customLabel="Custom composition"
-                            customPlaceholder="Describe the depth placement"
-                          />
-                          <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3 text-xs text-gray-300">
-                            <div className="flex items-center justify-between gap-2">
-                              <div>
-                                <p className="uppercase tracking-[0.3em] text-indigo-200">Packaging kit</p>
-                                <p className="text-gray-400 mt-1">Keep the entire box and inserts visible in every render.</p>
-                              </div>
-                              <label className="relative inline-flex cursor-pointer items-center gap-2">
-                                <input
-                                  type="checkbox"
-                                  className="sr-only"
-                                  checked={isMultiProductPackaging}
-                                  onChange={event => setIsMultiProductPackaging(event.target.checked)}
-                                  aria-label="Packaging contains multiple products"
-                                />
-                                <div
-                                  className={`relative h-5 w-10 rounded-full transition ${isMultiProductPackaging ? 'bg-indigo-500' : 'bg-gray-700'
-                                    }`}
-                                >
-                                  <span
-                                    className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${isMultiProductPackaging ? 'translate-x-4' : ''
-                                      }`}
-                                  />
-                                </div>
-                                <span className={`text-xs font-semibold ${isMultiProductPackaging ? 'text-indigo-200' : 'text-gray-500'}`}>
-                                  {isMultiProductPackaging ? 'Active' : 'Off'}
-                                </span>
-                              </label>
-                            </div>
-                          </div>
-                          <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-2">
-                            <div className="flex flex-wrap items-center justify-between gap-2">
-                              <div>
-                                <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Supplement photo modes</p>
-                                <p className="text-[11px] text-gray-400">Preset palettes inspired by top supplement launches.</p>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => handleSupplementPresetSelect('none')}
-                                className="rounded-full border border-white/15 px-3 py-1 text-xs text-gray-300 hover:border-indigo-400 hover:text-white"
-                              >
-                                Clear
-                              </button>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              {SUPPLEMENT_PHOTO_PRESETS.map(preset => (
-                                <button
-                                  key={preset.value}
-                                  type="button"
-                                  onClick={() => handleSupplementPresetSelect(preset.value)}
-                                  className={`rounded-full border px-3 py-1 text-xs transition ${activeSupplementPreset === preset.value
-                                    ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                                    : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
-                                    }`}
-                                >
-                                  {preset.label}
-                                </button>
-                              ))}
-                            </div>
-                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                              <div className="flex flex-col gap-1">
-                                <label className="text-xs uppercase tracking-widest text-gray-500">Background color</label>
-                                <input
-                                  type="text"
-                                  value={supplementBackgroundColor}
-                                  onChange={event => setSupplementBackgroundColor(event.target.value)}
-                                  placeholder="e.g., #FFB347 or pastel peach"
-                                  className="rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                                />
-                              </div>
-                              <div className="flex flex-col gap-1">
-                                <label className="text-xs uppercase tracking-widest text-gray-500">Accent color / props</label>
-                                <input
-                                  type="text"
-                                  value={supplementAccentColor}
-                                  onChange={event => setSupplementAccentColor(event.target.value)}
-                                  placeholder="e.g., teal acrylic cube"
-                                  className="rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                                />
-                              </div>
-                            </div>
-                            {isHeroLandingMode && (
-                              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                <div className="flex flex-col gap-1">
-                                  <label className="text-xs uppercase tracking-widest text-gray-500">Product alignment</label>
-                                  <div className="flex flex-wrap gap-2">
-                                    {HERO_ALIGNMENT_OPTIONS.map(option => (
-                                      <button
-                                        key={option.value}
-                                        type="button"
-                                        onClick={() => setHeroProductAlignment(option.value)}
-                                        className={`rounded-full border px-3 py-1 text-xs transition ${heroProductAlignment === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
-                                      >
-                                        {option.label}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
-                                <div className="flex flex-col gap-1">
-                                  <label className="text-xs uppercase tracking-widest text-gray-500">Product scale</label>
-                                  <input
-                                    type="number"
-                                    min="0.5"
-                                    max="2"
-                                    step="0.05"
-                                    value={heroProductScale}
-                                    onChange={event => {
-                                      const value = Number.parseFloat(event.target.value);
-                                      if (Number.isNaN(value)) return;
-                                      setHeroProductScale(Math.max(0.3, Math.min(3, value)));
-                                    }}
-                                    className="rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                                  />
-                                  <p className="text-[11px] text-gray-500">1 = original sizing. Increase for bolder hero presence.</p>
-                                </div>
-                                <div className="flex flex-col gap-1 sm:col-span-2">
-                                  <label className="text-xs uppercase tracking-widest text-gray-500">Shadow style</label>
-                                  <div className="flex flex-wrap gap-2">
-                                    {HERO_SHADOW_OPTIONS.map(option => (
-                                      <button
-                                        key={option.value}
-                                        type="button"
-                                        onClick={() => setHeroShadowStyle(option.value)}
-                                        className={`rounded-full border px-3 py-1 text-xs transition ${heroShadowStyle === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
-                                      >
-                                        {option.label}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                            {renderFormulationStoryPanel('product')}
-                            <div className="flex flex-col gap-2">
-                              <label className="text-xs uppercase tracking-widest text-gray-500">Flavor / ingredient props</label>
-                              <textarea
-                                value={supplementFlavorNotes}
-                                onChange={event => setSupplementFlavorNotes(event.target.value)}
-                                placeholder="e.g., pineapple, lavender sprigs, gummy vitamins"
-                                className="rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                                rows={2}
-                              />
-                            </div>
-                            <div className="flex flex-col gap-2">
-                              <label className="text-xs uppercase tracking-widest text-gray-500">Custom hero cue</label>
-                              <textarea
-                                value={supplementCustomPrompt}
-                                onChange={event => setSupplementCustomPrompt(event.target.value)}
-                                placeholder="e.g., have a manicured hand toss gummies mid-air beside the bottle"
-                                className="rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                                rows={2}
-                              />
-                              <p className="text-[11px] text-gray-500">We append this line directly to the prompt so you can call out extra beats (hands, props, typography, etc.).</p>
-                            </div>
-                            <label className="flex items-center gap-2 text-xs text-gray-300">
-                              <input
-                                type="checkbox"
-                                className="h-4 w-4 rounded border-gray-600 bg-gray-900 text-indigo-500 focus:ring-indigo-400"
-                                checked={includeSupplementHand}
-                                onChange={event => setIncludeSupplementHand(event.target.checked)}
-                              />
-                              Include a cropped hand interacting with the product
-                            </label>
-                          </div>
-                          <ChipSelectGroup
-                            label="Studio Setup"
-                            options={PLACEMENT_STYLE_OPTIONS}
-                            selectedValue={options.placementStyle}
-                            onChange={(value) => handleOptionChange('placementStyle', value, 'Product Details')}
-                          />
-                          <ChipSelectGroup
-                            label="Hero Camera Rig"
-                            options={PLACEMENT_CAMERA_OPTIONS}
-                            selectedValue={options.placementCamera}
-                            onChange={(value) => handleOptionChange('placementCamera', value, 'Product Details')}
-                          />
-                          <div className="rounded-2xl border border-white/10 bg-gray-900/40 p-4 space-y-4">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Pro photographer mode</p>
-                                <p className="text-xs text-gray-400">Unlock lens + lighting controls for hero product shoots.</p>
-                              </div>
-                              <label className="relative inline-flex cursor-pointer items-center gap-2">
-                                <input
-                                  type="checkbox"
-                                  className="sr-only"
-                                  checked={isProPhotographer}
-                                  onChange={handleProPhotographerToggle}
-                                />
-                                <div
-                                  className={`relative h-5 w-10 rounded-full transition ${isProPhotographer ? 'bg-indigo-500' : 'bg-gray-700'
-                                    }`}
-                                >
-                                  <span
-                                    className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${isProPhotographer ? 'translate-x-4' : ''
-                                      }`}
-                                  />
-                                </div>
-                                <span className={`text-xs font-semibold ${isProPhotographer ? 'text-indigo-200' : 'text-gray-500'}`}>
-                                  {isProPhotographer ? 'Active' : 'Off'}
-                                </span>
-                              </label>
-                            </div>
-                            {isProPhotographer && (
-                              <div className="space-y-3">
-                                <div className="flex flex-wrap gap-2">
-                                  {PRO_LOOK_PRESETS.map(preset => (
-                                    <button
-                                      key={preset.value}
-                                      type="button"
-                                      onClick={() => handleProPresetSelect(preset.value)}
-                                      className={`rounded-full border px-3 py-1 text-xs transition ${activeProPreset === preset.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
-                                    >
-                                      {preset.label}
-                                    </button>
-                                  ))}
-                                  <button
-                                    type="button"
-                                    onClick={() => handleProPresetSelect('custom')}
-                                    className={`rounded-full border px-3 py-1 text-xs transition ${activeProPreset === 'custom' ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
-                                  >
-                                    Custom build
-                                  </button>
-                                </div>
-                                <ChipSelectGroup
-                                  label="Lens"
-                                  options={PRO_LENS_OPTIONS}
-                                  selectedValue={options.proLens ?? ''}
-                                  onChange={(value) => handleOptionChange('proLens', value, 'Product Details')}
-                                  allowCustom
-                                  customLabel="Custom lens"
-                                  customPlaceholder="Describe the lens setup"
-                                />
-                                <ChipSelectGroup
-                                  label="Lighting Rig"
-                                  options={PRO_LIGHTING_RIG_OPTIONS}
-                                  selectedValue={options.proLightingRig ?? ''}
-                                  onChange={(value) => handleOptionChange('proLightingRig', value, 'Product Details')}
-                                  allowCustom
-                                  customLabel="Custom rig"
-                                  customPlaceholder="Describe the lighting rig"
-                                />
-                                <ChipSelectGroup
-                                  label="Finish / Treatment"
-                                  options={PRO_POST_TREATMENT_OPTIONS}
-                                  selectedValue={options.proPostTreatment ?? ''}
-                                  onChange={(value) => handleOptionChange('proPostTreatment', value, 'Product Details')}
-                                  allowCustom
-                                  customLabel="Custom finish"
-                                  customPlaceholder="Describe the post treatment"
-                                />
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </Accordion>
-                    </div>
-                  )}
-                  <div id={getSectionId('Photography')}>
-                    <Accordion
-                      title="Photography"
-                      isOpen={openAccordion === 'Photography'}
-                      onToggle={() => handleToggleAccordion('Photography')}
-                    >
-                      <div className="space-y-4">
-                        <ChipSelectGroup label="Lighting" options={LIGHTING_OPTIONS} selectedValue={options.lighting} onChange={(value) => handleOptionChange('lighting', value, 'Photography')} />
-                        <ChipSelectGroup label="Camera Type" options={CAMERA_OPTIONS} selectedValue={options.camera} onChange={(value) => handleOptionChange('camera', value, 'Photography')} />
-                        <ChipSelectGroup label="Aspect Ratio" options={ASPECT_RATIO_OPTIONS} selectedValue={options.aspectRatio} onChange={(value) => handleOptionChange('aspectRatio', value, 'Photography')} />
-                        {!isSimpleMode && (
-                          <>
-                            <ChipSelectGroup label="Perspective" options={PERSPECTIVE_OPTIONS} selectedValue={options.perspective} onChange={(value) => handleOptionChange('perspective', value, 'Photography')} />
-                            <ChipSelectGroup label="Realism / Imperfections" options={REALISM_OPTIONS} selectedValue={options.realism} onChange={(value) => handleOptionChange('realism', value, 'Photography')} />
-                          </>
-                        )}
-                      </div>
-                    </Accordion>
-                  </div>
-                  {renderPersonDetailsSection()}
-                  {renderBundlesSection()}
-                </div>
-                <div className="mt-8 flex-shrink-0">
-                  <button
-                    onClick={() => handleGenerateClick()}
-                    disabled={isImageLoading || !uploadedImageFile}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-900/50 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
-                  >
-                    {isImageLoading ? 'Generating...' : 'Generate Mockup'}
-                  </button>
-                </div>
-              </div>
-
-              {/* Visuals Column */}
-              <div className="lg:col-span-2 flex flex-col gap-8">
-                <GeneratedImage
-                  imageUrl={generatedImageUrl}
-                  fourKVariant={fourKVariant}
-                  twoKVariant={twoKVariant}
-                  isHiResProcessing={isPreparingHiRes}
-                  hiResError={hiResError}
-                  isImageLoading={isImageLoading}
-                  imageError={imageError}
-                  onReset={handleReset}
-                  isFreeUser={isFreeUser}
-                  downloadCreditConfig={DOWNLOAD_CREDIT_CONFIG}
-                  onChargeDownloadCredits={handleDownloadCreditCharge}
-                />
-                {generatedImageUrl && (
-                  <ImageEditor
-                    editPrompt={editPrompt}
-                    onPromptChange={e => setEditPrompt(e.target.value)}
-                    onEditImage={handleEditImage}
-                    isEditing={isImageLoading}
-                  />
-                )}
-                {generatedImageUrl && (
-                  <VideoGenerator
-                    videoPrompt={videoPrompt}
-                    onPromptChange={e => setVideoPrompt(e.target.value)}
-                    onGenerateVideo={handleGenerateVideo}
-                    isVideoLoading={isVideoLoading}
-                    videoError={videoError}
-                    generatedVideoUrl={generatedVideoUrl}
-                    isGenerating={isVideoLoading || isImageLoading}
-                    hasAccess={hasPlanVideoAccess}
-                    lockMessage={planVideoLimit === 0 ? 'Upgrade to Creator or Studio to unlock video generation.' : undefined}
-                    showAccessCodeField={planVideoLimit === 0}
-                    remainingVideos={planVideoLimit > 0 ? remainingVideos : null}
-                    planLabel={currentPlan.label}
-                    accessCode={videoAccessInput}
-                    onAccessCodeChange={handleVideoAccessCodeChange}
-                    onAccessSubmit={handleVideoAccessSubmit}
-                    accessError={videoAccessError}
-                  />
-                )}
-              </div>
-            </div>
-          </fieldset>
-        </main>
-      </div>
-    </div>
+        </div>
+      </SignedIn >
+    </>
   );
 };
 

@@ -4,6 +4,7 @@ import { createCanvas, loadImage } from 'canvas';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleAuth } from 'google-auth-library';
 import { checkAndConsumeCredit } from './utils/credits';
+import { getAuth } from '@clerk/backend';
 
 export default async function handler(
   req: VercelRequest,

@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleAuth } from 'google-auth-library';
 import { GoogleGenAI } from "@google/genai";
 import { checkAndConsumeCredit } from './utils/credits';
+import { getAuth } from '@clerk/backend';
 
 export default async function handler(
   req: VercelRequest,
@@ -62,7 +63,7 @@ export default async function handler(
 
     // 🛑 B. Barrera de Créditos (Protección de Costos)
     // Usaremos el ID de Clerk (ej: user_2a9p9...) como el user_id para Neon
-    const remainingCredits = await checkAndConsumeCredit(userId);
+    await checkAndConsumeCredit(userId);
 
     // Note: checkAndConsumeCredit throws if insufficient, so we don't need to check return value explicitly for false, 
     // but we can catch the specific error if we want custom 403 message, or let the general catch handle it.
