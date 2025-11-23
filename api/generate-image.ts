@@ -44,10 +44,21 @@ export default async function handler(
     return safe.trim();
   };
 
+  import { checkAndConsumeCredit } from './utils/credits.js';
+
+  // ... imports
+
   try {
-    const { base64, mimeType, prompt = '' } = req.body || {};
+    const { base64, mimeType, prompt = '', userId } = req.body || {};
+
     if (!prompt) {
       return res.status(400).json({ error: 'Missing required parameter: prompt.' });
+    }
+
+    // 🛑 Credit Check 🛑
+    const hasCredit = await checkAndConsumeCredit(userId);
+    if (!hasCredit) {
+      return res.status(403).json({ error: 'Insufficient credits. Please upgrade your plan.' });
     }
 
     let enhancedPrompt = sanitizePrompt(prompt);

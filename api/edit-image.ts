@@ -37,11 +37,23 @@ export default async function handler(
     return safe.trim();
   };
 
+  import { checkAndConsumeCredit } from './utils/credits.js';
+
+  // ... imports
+
   try {
-    const { prompt = '', base64Image, maskBase64, mimeType } = req.body || {};
+    const { prompt = '', base64Image, maskBase64, mimeType, userId } = req.body || {};
+
     if (!prompt) {
       return res.status(400).json({ error: 'Missing required parameter: prompt.' });
     }
+
+    // 🛑 Credit Check 🛑
+    const hasCredit = await checkAndConsumeCredit(userId);
+    if (!hasCredit) {
+      return res.status(403).json({ error: 'Insufficient credits. Please upgrade your plan.' });
+    }
+
     const safePrompt = sanitizePrompt(prompt);
 
     // First choice: Replicate - DISABLED per user request

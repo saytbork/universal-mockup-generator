@@ -3308,7 +3308,7 @@ const App: React.FC = () => {
       const response = await fetch('/api/generate-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ base64, mimeType, prompt: finalPrompt }),
+        body: JSON.stringify({ base64, mimeType, prompt: finalPrompt, userId: userEmail }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data?.imageUrl) {
@@ -3388,7 +3388,7 @@ const App: React.FC = () => {
       const response = await fetch('/api/edit-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ base64Image, maskBase64, prompt: prompt.trim() }),
+        body: JSON.stringify({ base64Image, maskBase64, prompt: prompt.trim(), userId: userEmail }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data?.imageUrl) {
