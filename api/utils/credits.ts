@@ -1,31 +1,35 @@
-export async function checkAndConsumeCredit(userId: string): Promise<boolean> {
+import { sql } from '@vercel/postgres';
+
+export async function checkAndConsumeCredit(userId: string): Promise<number> {
     if (!userId) {
-        console.warn('Credit check skipped: No userId provided.');
-        return true; // Allow for now, or return false to enforce login
+        throw new Error("ID de usuario no proporcionado. Debes iniciar sesión.");
     }
 
     console.log(`Checking credits for user: ${userId}`);
 
-    // TODO: Connect to real database (e.g., Supabase, Firebase, MongoDB)
-    // Example logic:
-    // const user = await db.users.find({ email: userId });
-    // if (user.credits > 0) {
-    //   await db.users.update({ email: userId }, { credits: user.credits - 1 });
-    //   return true;
-    // }
-    // return false;
+    try {
+        // A. Verificar Créditos
+        const result = await sql`
+        SELECT credits FROM users WHERE user_id = ${userId};
+    `;
 
-    // MOCK IMPLEMENTATION:
-    // Allow everything for now to prevent breakage until DB is connected.
-    // You can add a hardcoded list of "blocked" users here if needed.
+        const currentCredits = result.rows.length > 0 ? result.rows[0].credits : 0;
 
-    const isAllowed = true;
+        if (currentCredits < 1) {
+            console.warn(`Insufficient credits for ${userId}`);
+            throw new Error("Créditos insuficientes. Por favor, compra un plan.");
+        }
 
-    if (isAllowed) {
-        console.log(`Credit consumed for ${userId} (MOCK)`);
-        return true;
-    } else {
-        console.log(`Insufficient credits for ${userId}`);
-        return false;
+        // B. Consumir Crédito (Solo si tiene créditos)
+        await sql`
+        UPDATE users SET credits = credits - 1 WHERE user_id = ${userId};
+    `;
+
+        console.log(`Credit consumed for ${userId}. Remaining: ${currentCredits - 1}`);
+        // Devolver el saldo restante
+        return currentCredits - 1;
+    } catch (error) {
+        console.error('Database error in checkAndConsumeCredit:', error);
+        throw error; // Re-throw to be handled by the caller
     }
 }

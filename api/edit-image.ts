@@ -38,20 +38,22 @@ export default async function handler(
     return safe.trim();
   };
 
-  // ... imports
-
   try {
-    const { prompt = '', base64Image, maskBase64, mimeType, userId } = req.body || {};
+    const { prompt = '', base64Image, maskBase64, mimeType } = req.body || {};
 
     if (!prompt) {
       return res.status(400).json({ error: 'Missing required parameter: prompt.' });
     }
 
-    // 🛑 Credit Check 🛑
-    const hasCredit = await checkAndConsumeCredit(userId);
-    if (!hasCredit) {
-      return res.status(403).json({ error: 'Insufficient credits. Please upgrade your plan.' });
+    // 🛑 A. Obtener el User ID de Clerk (El Gatekeeper principal)
+    const { userId } = getAuth(req);
+
+    if (!userId) {
+      return res.status(401).json({ message: "No autorizado. Debes iniciar sesión." });
     }
+
+    // 🛑 B. Barrera de Créditos
+    await checkAndConsumeCredit(userId);
 
     const safePrompt = sanitizePrompt(prompt);
 

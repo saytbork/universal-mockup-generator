@@ -45,20 +45,28 @@ export default async function handler(
     return safe.trim();
   };
 
-  // ... imports
-
   try {
-    const { base64, mimeType, prompt = '', userId } = req.body || {};
+    const { base64, mimeType, prompt = '' } = req.body || {};
 
     if (!prompt) {
       return res.status(400).json({ error: 'Missing required parameter: prompt.' });
     }
 
-    // 🛑 Credit Check 🛑
-    const hasCredit = await checkAndConsumeCredit(userId);
-    if (!hasCredit) {
-      return res.status(403).json({ error: 'Insufficient credits. Please upgrade your plan.' });
+    // 🛑 A. Obtener el User ID de Clerk (El Gatekeeper principal)
+    const { userId } = getAuth(req);
+
+    if (!userId) {
+      // Bloquea cualquier solicitud anónima antes de consumir recursos
+      return res.status(401).json({ message: "No autorizado. Debes iniciar sesión." });
     }
+
+    // 🛑 B. Barrera de Créditos (Protección de Costos)
+    // Usaremos el ID de Clerk (ej: user_2a9p9...) como el user_id para Neon
+    const remainingCredits = await checkAndConsumeCredit(userId);
+
+    // Note: checkAndConsumeCredit throws if insufficient, so we don't need to check return value explicitly for false, 
+    // but we can catch the specific error if we want custom 403 message, or let the general catch handle it.
+    // The utility throws "Créditos insuficientes..." which will be caught below.
 
     let enhancedPrompt = sanitizePrompt(prompt);
 
