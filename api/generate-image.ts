@@ -3,6 +3,7 @@ import { GoogleAuth } from 'google-auth-library';
 import { GoogleGenAI } from "@google/genai";
 import { checkAndConsumeCredit } from './utils/credits';
 import { getAuth } from '@clerk/backend';
+import fetch from 'node-fetch';
 
 export default async function handler(
   req: VercelRequest,
@@ -15,6 +16,11 @@ export default async function handler(
   const project = process.env.GCP_PROJECT_ID || process.env.VERTEX_PROJECT_ID;
   const location = process.env.GCP_LOCATION || process.env.VERTEX_LOCATION || 'us-central1';
   const saJson = process.env.GCP_SERVICE_ACCOUNT_KEY;
+  const replicateToken = process.env.REPLICATE_API_TOKEN;
+  const replicateModel = process.env.REPLICATE_MODEL || 'black-forest-labs/flux-schnell';
+  const replicateVersion =
+    process.env.REPLICATE_MODEL_VERSION ||
+    'de67bb1367180e6c8c5b8e3a1391c72a7c8caa0c1b6b5be825e062e10bb126d9';
 
   if (!project) {
     console.error('Missing GCP_PROJECT_ID or VERTEX_PROJECT_ID');
@@ -25,12 +31,13 @@ export default async function handler(
     return res.status(500).json({ error: 'Server configuration error: Missing Service Account Key' });
   }
 
-  // Use Imagen 3 as requested
+  // Use Imagen 3 as fallback; Replicate is primary when token exists
   const vertexImageModel = 'imagen-3.0-generate-002';
   const geminiApiKey = process.env.GEMINI_API_KEY;
 
-  // Specific negative prompt requested by user to avoid policy violations
-  const negativePrompt = "desnudo, cuerpo, ropa, sexy, sexual, sangre, violencia, closeup de cara, modelo, persona, menor de edad, render 3D, ilustración";
+  // Safety prompt/negative prompt in English
+  const negativePrompt =
+    'nudity, sexual content, pornography, gore, violence, weapons, blood, minors, explicit content, suggestive poses, regulated content, drugs, smoking, vape, alcohol, self-harm, brutality, hate, offensive, bikini, lingerie';
 
   const sanitizePrompt = (raw: string): string => {
     const banned = [
@@ -99,42 +106,80 @@ export default async function handler(
       }
     }
 
-    const safePrompt = enhancedPrompt;
+    const safePrompt = `Safe, fully clothed, professional lifestyle/editorial product photo. ${enhancedPrompt}`;
 
-    // Vertex Imagen 3 using service account
+    // 1) Try Replicate (Flux) if token present
+    if (replicateToken) {
+      try {
+        const start = await fetch('https://api.replicate.com/v1/predictions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${replicateToken}`,
+          },
+          body: JSON.stringify({
+            version: replicateVersion,
+            input: {
+              prompt: safePrompt,
+              width: 1024,
+              height: 1024,
+              guidance_scale: 3,
+              negative_prompt: negativePrompt,
+            },
+          }),
+        });
+        const startData = await start.json().catch(() => ({}));
+        if (!start.ok) {
+          throw new Error(startData?.error?.message || 'Replicate request failed');
+        }
+        const predictionId = startData.id;
+        let status = startData.status;
+        let output: any = startData.output;
+        while (!['succeeded', 'failed', 'canceled'].includes(status)) {
+          await new Promise(r => setTimeout(r, 3000));
+          const poll = await fetch(`https://api.replicate.com/v1/predictions/${predictionId}`, {
+            headers: { Authorization: `Bearer ${replicateToken}` },
+          });
+          const pollData = await poll.json().catch(() => ({}));
+          status = pollData.status;
+          output = pollData.output;
+          if (status === 'failed' || status === 'canceled') {
+            throw new Error(pollData?.error || 'Replicate generation failed');
+          }
+        }
+        const imageUrl = Array.isArray(output) ? output[0] : null;
+        if (imageUrl) {
+          return res.status(200).json({ imageUrl, promptUsed: safePrompt });
+        }
+        console.warn('Replicate returned no image, falling back to Vertex');
+      } catch (err) {
+        console.warn('Replicate failed, falling back to Vertex:', err);
+      }
+    }
+
+    // 2) Fallback: Vertex Imagen 3 using service account
     const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${project}/locations/${location}/publishers/google/models/${vertexImageModel}:predict`;
-
     const instance: Record<string, any> = {
-      prompt: safePrompt,
-      // Imagen 3 specific parameters structure might vary, but usually prompt is top level in instance
+      prompt: `${safePrompt}\nNo sexual content, no violence, no weapons, no blood, no minors. Keep it safe lifestyle/editorial.`,
+      negativePrompt,
     };
-
-    // Note: Imagen 3 might not support 'image' input for editing in the same way as generation.
-    // This endpoint is for generation. If base64 is present, it might be for editing/variation.
-    // However, the user instructions for "generateImageWithImagen3" did not include image input.
-    // We will keep it if present but be aware it might not be used by the model if not configured.
     if (base64) {
       instance.image = { bytesBase64Encoded: base64, mimeType: mimeType || 'image/png' };
     }
-
     const body = {
       instances: [instance],
       parameters: {
         sampleCount: 1,
-        aspectRatio: "1:1", // Added as per user snippet
-        negativePrompt: negativePrompt, // Moved to parameters as per user snippet/Imagen 3 specs
-        // personGeneration: 'allow_adult', // Removed as per previous instructions, but check if needed for Imagen 3
-        // User snippet didn't include personGeneration, but included negative prompt in parameters.
+        aspectRatio: '1:1',
+        negativePrompt,
       },
     };
-
     const auth = new GoogleAuth({
       credentials: JSON.parse(saJson),
       scopes: ['https://www.googleapis.com/auth/cloud-platform'],
     });
     const client = await auth.getClient();
     const token = await client.getAccessToken();
-
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
@@ -143,31 +188,21 @@ export default async function handler(
       },
       body: JSON.stringify(body),
     });
-
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Vertex AI Error Response:', errorText);
       throw new Error(`Vertex AI Error: ${response.status} ${response.statusText} - ${errorText}`);
     }
-
     const data = await response.json();
     const prediction = data?.predictions?.[0];
-
-    // Imagen 3 response structure check
-    // User snippet: response.predictions[0].structValue.fields.image.stringValue
-    // REST API usually returns predictions as objects directly.
-    // Let's try standard bytesBase64Encoded first, if not check structValue.
     let imageBase64 = prediction?.bytesBase64Encoded;
-
     if (!imageBase64 && prediction?.structValue?.fields?.image?.stringValue) {
       imageBase64 = prediction.structValue.fields.image.stringValue;
     }
-
     if (!imageBase64) {
       console.error('Vertex AI Response Data:', JSON.stringify(data, null, 2));
       throw new Error('No image returned from Vertex Imagen.');
     }
-
     const imageUrl = `data:image/png;base64,${imageBase64}`;
     return res.status(200).json({ imageUrl, promptUsed: safePrompt });
 
