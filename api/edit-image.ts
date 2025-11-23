@@ -3,6 +3,7 @@ import { createCanvas, loadImage } from 'canvas';
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleAuth } from 'google-auth-library';
+import { checkAndConsumeCredit } from './utils/credits';
 
 export default async function handler(
   req: VercelRequest,
@@ -36,8 +37,6 @@ export default async function handler(
     });
     return safe.trim();
   };
-
-  import { checkAndConsumeCredit } from './utils/credits.js';
 
   // ... imports
 
