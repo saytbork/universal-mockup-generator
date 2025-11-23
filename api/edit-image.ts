@@ -23,6 +23,7 @@ export default async function handler(
   const replicateVersion =
     process.env.REPLICATE_MODEL_VERSION ||
     'de67bb1367180e6c8c5b8e3a1391c72a7c8caa0c1b6b5be825e062e10bb126d9';
+  const imageEngine = (process.env.IMAGE_ENGINE || 'auto').toLowerCase(); // replicate | vertex | auto
   const vertexImageModel = process.env.GCP_IMAGE_MODEL || 'imagen-3.0-generate-002';
   const negativePrompt =
     'nudity, sexual content, pornography, gore, violence, weapons, blood, minors, explicit content, suggestive poses, regulated content, drugs, smoking, vape, alcohol, self-harm, brutality, hate, offensive, bikini, lingerie';
@@ -59,8 +60,11 @@ export default async function handler(
 
     const safePrompt = `Safe, fully clothed, professional lifestyle/editorial product photo. ${sanitizePrompt(prompt)}`;
 
+    const allowReplicate = imageEngine !== 'vertex';
+    const allowVertex = imageEngine !== 'replicate';
+
     // First choice: Replicate
-    if (replicateToken) {
+    if (allowReplicate && replicateToken) {
       try {
         const start = await fetch('https://api.replicate.com/v1/predictions', {
           method: 'POST',
@@ -110,6 +114,9 @@ export default async function handler(
     // Fallback: Vertex Imagen
     if (!project || !saJson) {
       throw new Error('Missing GCP_PROJECT_ID or GCP_SERVICE_ACCOUNT_KEY for Vertex fallback.');
+    }
+    if (!allowVertex) {
+      throw new Error('Vertex generation disabled by IMAGE_ENGINE=replicate and Replicate failed.');
     }
     const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${project}/locations/${location}/publishers/google/models/${vertexImageModel}:predict`;
 

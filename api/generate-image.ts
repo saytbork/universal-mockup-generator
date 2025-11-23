@@ -21,6 +21,7 @@ export default async function handler(
   const replicateVersion =
     process.env.REPLICATE_MODEL_VERSION ||
     'de67bb1367180e6c8c5b8e3a1391c72a7c8caa0c1b6b5be825e062e10bb126d9';
+  const imageEngine = (process.env.IMAGE_ENGINE || 'auto').toLowerCase(); // replicate | vertex | auto
 
   if (!project) {
     console.error('Missing GCP_PROJECT_ID or VERTEX_PROJECT_ID');
@@ -108,8 +109,11 @@ export default async function handler(
 
     const safePrompt = `Safe, fully clothed, professional lifestyle/editorial product photo. ${enhancedPrompt}`;
 
-    // 1) Try Replicate (Flux) if token present
-    if (replicateToken) {
+    const allowReplicate = imageEngine !== 'vertex';
+    const allowVertex = imageEngine !== 'replicate';
+
+    // 1) Try Replicate (Flux) if allowed and token present
+    if (allowReplicate && replicateToken) {
       try {
         const start = await fetch('https://api.replicate.com/v1/predictions', {
           method: 'POST',
@@ -158,6 +162,9 @@ export default async function handler(
     }
 
     // 2) Fallback: Vertex Imagen 3 using service account
+    if (!allowVertex) {
+      throw new Error('Vertex generation disabled by IMAGE_ENGINE=replicate and Replicate failed.');
+    }
     const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${project}/locations/${location}/publishers/google/models/${vertexImageModel}:predict`;
     const instance: Record<string, any> = {
       prompt: `${safePrompt}\nNo sexual content, no violence, no weapons, no blood, no minors. Keep it safe lifestyle/editorial.`,
