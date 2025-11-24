@@ -2,7 +2,6 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleAuth } from 'google-auth-library';
 import { GoogleGenAI } from "@google/genai";
 import { checkAndConsumeCredit } from './utils/credits.js';
-import { getAuth } from '@clerk/backend';
 import fetch from 'node-fetch';
 
 export default async function handler(
@@ -62,10 +61,21 @@ export default async function handler(
     }
 
     // 🛑 A. Obtener el User ID de Clerk (El Gatekeeper principal)
-    const { userId } = getAuth(req);
+    const isAuthDisabled = process.env.DISABLE_AUTH === '1';
+    let userId: string | null = null;
+    if (!isAuthDisabled) {
+      try {
+        const mod = await import('@clerk/nextjs/server');
+        const auth = mod.getAuth?.(req as any);
+        userId = auth?.userId ?? null;
+      } catch (err) {
+        console.warn('Clerk getAuth not available, falling back to unauthenticated', err);
+      }
+    } else {
+      userId = 'preview-user';
+    }
 
     if (!userId) {
-      // Bloquea cualquier solicitud anónima antes de consumir recursos
       return res.status(401).json({ message: "No autorizado. Debes iniciar sesión." });
     }
 
