@@ -206,6 +206,7 @@ const getSelfieLabel = (value: string) =>
   SELFIE_TYPE_OPTIONS.find(option => option.value === value)?.label ?? SELFIE_TYPE_OPTIONS[0].label;
 
 const HERO_LANDING_PRESET_VALUE = 'hero-landing';
+const VERTEX_SAFE_MODE = import.meta.env.VITE_VERTEX_SAFE_MODE === '1';
 const FORMULATION_EXPERT_PRESETS = [
   {
     value: 'respiratory-doctor',
@@ -2524,9 +2525,14 @@ const App: React.FC = () => {
   }, []);
 
   const constructPrompt = (bundleProductsOverride?: ProductId[] | null): string => {
-    const currentStyle = contentStyleValue;
+    let currentStyle = contentStyleValue;
+    let forceNoPerson = false;
+    if (VERTEX_SAFE_MODE) {
+      currentStyle = 'product';
+      forceNoPerson = true;
+    }
     const isUgcStyle = currentStyle !== 'product';
-    const personIncluded = isUgcStyle && options.ageGroup !== 'no person';
+    const personIncluded = !forceNoPerson && isUgcStyle && options.ageGroup !== 'no person';
     const selfieLabel = getSelfieLabel(options.selfieType);
     const selfieMeta = SELFIE_DIRECTIONS[selfieLabel];
     const requiresSplitHands = Boolean(selfieMeta?.enforceSplitHands);
@@ -2671,6 +2677,9 @@ const App: React.FC = () => {
     }
     if (moodPromptCue) {
       prompt += ` ${moodPromptCue}`;
+    }
+    if (forceNoPerson) {
+      prompt += ' Do not include any people, faces, hands, or bodies. Keep the scene strictly product-only and compliant with safety policies.';
     }
 
     if (personIncluded) {
