@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleAuth } from 'google-auth-library';
 import { GoogleGenAI, Modality } from '@google/genai';
-import { checkAndConsumeCredit } from './utils/credits';
+import { checkAndConsumeCredit } from './utils/credits.js';
 import fetch from 'node-fetch';
 import { getAuth } from '@clerk/backend';
 
