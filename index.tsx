@@ -14,10 +14,23 @@ import { ClerkProvider } from '@clerk/clerk-react';
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || "pk_test_Y2xvc2luZy1tYWxsYXJkLTU2LmNsZXJrLmFjY291bnRzLmRldiQ";
 const INVITE_CODE = (import.meta.env.VITE_INVITE_CODE || '713371').trim();
 const INVITE_LOCAL_KEY = 'boostugc_invite_code_ok';
+const INVITE_COOKIE = 'boostugc_invite_code';
 
 if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Publishable Key")
 }
+
+const getCookie = (name: string) => {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith(`${name}=`));
+  return match ? match.split('=')[1] : null;
+};
+
+const setCookie = (name: string, value: string, days = 7) => {
+  if (typeof document === 'undefined') return;
+  const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
+  document.cookie = `${name}=${value}; Expires=${expires}; Path=/; SameSite=Lax; Secure`;
+};
 
 const PreAccessGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [hasAccess, setHasAccess] = useState(false);
@@ -26,7 +39,10 @@ const PreAccessGate: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const stored = window.localStorage.getItem(INVITE_LOCAL_KEY);
+    const stored =
+      window.localStorage.getItem(INVITE_LOCAL_KEY) ||
+      window.sessionStorage.getItem(INVITE_LOCAL_KEY) ||
+      getCookie(INVITE_COOKIE);
     if (stored === 'true') {
       setHasAccess(true);
     }
@@ -37,7 +53,9 @@ const PreAccessGate: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     if (codeInput.trim() === INVITE_CODE) {
       if (typeof window !== 'undefined') {
         window.localStorage.setItem(INVITE_LOCAL_KEY, 'true');
+        window.sessionStorage.setItem(INVITE_LOCAL_KEY, 'true');
       }
+      setCookie(INVITE_COOKIE, 'true');
       setHasAccess(true);
       setError(null);
     } else {
