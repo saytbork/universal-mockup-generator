@@ -98,14 +98,19 @@ const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-      <PreAccessGate>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/app" element={<App />} />
-          </Routes>
-        </BrowserRouter>
-      </PreAccessGate>
+      <BrowserRouter>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <PreAccessGate>
+                <LandingPage />
+              </PreAccessGate>
+            }
+          />
+          <Route path="/app" element={<App />} />
+        </Routes>
+      </BrowserRouter>
     </ClerkProvider>
   </React.StrictMode>
 );
