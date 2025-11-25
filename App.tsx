@@ -710,9 +710,6 @@ const App: React.FC = () => {
   const [copyError, setCopyError] = useState<string | null>(null);
   useEffect(() => { if (copyError) console.error('Copy generation error:', copyError); }, [copyError]);
   const [planTier, setPlanTier] = useState<PlanTier>('free');
-  const [preaccessInput, setPreaccessInput] = useState('');
-  const [preaccessError, setPreaccessError] = useState<string | null>(null);
-  const [preaccessGranted, setPreaccessGranted] = useState(false);
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [planCodeInput, setPlanCodeInput] = useState('');
   const [planCodeError, setPlanCodeError] = useState<string | null>(null);
@@ -899,11 +896,6 @@ const App: React.FC = () => {
   useEffect(() => {
     if (typeof window === 'undefined') {
       return;
-    }
-
-    const storedPreaccess = window.localStorage.getItem('preaccess_code_verified');
-    if (storedPreaccess === 'true') {
-      setPreaccessGranted(true);
     }
 
     const aiStudioInstance = (window as typeof window & { aistudio?: AiStudioApi }).aistudio;
@@ -2166,19 +2158,6 @@ const App: React.FC = () => {
     handleGoalWizardSkip();
   }, [goalWizardData, applyTalentProfile, handleGoalWizardSkip]);
 
-  const handlePreaccessSubmit = useCallback(() => {
-    const code = preaccessInput.trim();
-    if (code === '713371') {
-      setPreaccessGranted(true);
-      setPreaccessError(null);
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem('preaccess_code_verified', 'true');
-      }
-    } else {
-      setPreaccessError('Invalid code. Please enter the pre-access code to continue.');
-    }
-  }, [preaccessInput]);
-
   // handleTrialCodeChange removed
 
 
@@ -3062,45 +3041,6 @@ const App: React.FC = () => {
   // Add Clerk's isLoaded check
   if (!isLoaded) {
     return <div className="flex items-center justify-center h-screen bg-gray-900 text-white">Loading...</div>;
-  }
-
-  if (!preaccessGranted) {
-    return (
-      <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center px-4">
-        <div className="max-w-md w-full bg-gray-900/70 border border-gray-800 rounded-2xl p-8 text-center shadow-2xl space-y-6">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-300 mb-2">Pre-access</p>
-            <h1 className="text-3xl font-bold">We’re working on it</h1>
-            <p className="mt-3 text-sm text-gray-400">
-              Enter the pre-access code to continue while we polish the experience.
-            </p>
-          </div>
-          <div className="space-y-3 text-left">
-            <label className="text-xs uppercase tracking-widest text-gray-500">Access code</label>
-            <input
-              type="text"
-              value={preaccessInput}
-              onChange={(e) => { setPreaccessInput(e.target.value); setPreaccessError(null); }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handlePreaccessSubmit();
-                }
-              }}
-              placeholder="713371"
-              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            />
-            {preaccessError && <p className="text-sm text-red-400">{preaccessError}</p>}
-          </div>
-          <button
-            onClick={handlePreaccessSubmit}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
-          >
-            Continue
-          </button>
-        </div>
-      </div>
-    );
   }
 
   return (
