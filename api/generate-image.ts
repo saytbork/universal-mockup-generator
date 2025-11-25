@@ -1,14 +1,11 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleAuth } from 'google-auth-library';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Modality } from '@google/genai';
 import { checkAndConsumeCredit } from './utils/credits';
-import { getAuth } from '@clerk/backend';
 import fetch from 'node-fetch';
+import { getAuth } from '@clerk/backend';
 
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse,
-) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
@@ -16,26 +13,18 @@ export default async function handler(
   const project = process.env.GCP_PROJECT_ID || process.env.VERTEX_PROJECT_ID;
   const location = process.env.GCP_LOCATION || process.env.VERTEX_LOCATION || 'us-central1';
   const saJson = process.env.GCP_SERVICE_ACCOUNT_KEY;
+
   const replicateToken = process.env.REPLICATE_API_TOKEN;
   const replicateModel = process.env.REPLICATE_MODEL || 'black-forest-labs/flux-schnell';
   const replicateVersion =
     process.env.REPLICATE_MODEL_VERSION ||
     'de67bb1367180e6c8c5b8e3a1391c72a7c8caa0c1b6b5be825e062e10bb126d9';
 
-  if (!project) {
-    console.error('Missing GCP_PROJECT_ID or VERTEX_PROJECT_ID');
-    return res.status(500).json({ error: 'Server configuration error: Missing Project ID' });
-  }
-  if (!saJson) {
-    console.error('Missing GCP_SERVICE_ACCOUNT_KEY');
-    return res.status(500).json({ error: 'Server configuration error: Missing Service Account Key' });
-  }
+  const imageEngine = (process.env.IMAGE_ENGINE || 'gemini').toLowerCase(); // gemini | replicate | vertex | auto
+  const geminiApiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+  const geminiImageModel = process.env.GEMINI_IMAGE_MODEL || 'gemini-2.5-flash-image';
+  const vertexImageModel = process.env.GCP_IMAGE_MODEL || 'imagen-3.0-generate-001';
 
-  // Use Imagen 3 as fallback; Replicate is primary when token exists
-  const vertexImageModel = 'imagen-3.0-generate-002';
-  const geminiApiKey = process.env.GEMINI_API_KEY;
-
-  // Safety prompt/negative prompt in English
   const negativePrompt =
     'nudity, sexual content, pornography, gore, violence, weapons, blood, minors, explicit content, suggestive poses, regulated content, drugs, smoking, vape, alcohol, self-harm, brutality, hate, offensive, bikini, lingerie';
 
@@ -43,7 +32,7 @@ export default async function handler(
     const banned = [
       'nude', 'naked', 'lingerie', 'bikini', 'swimsuit', 'sexy', 'explicit', 'erotic',
       'blood', 'gore', 'weapon', 'gun', 'knife', 'violence', 'drugs', 'smoking', 'vape',
-      'alcohol', 'minor', 'child', 'kid', 'teen'
+      'alcohol', 'minor', 'child', 'kid', 'teen',
     ];
     let safe = raw || '';
     banned.forEach(word => {
@@ -60,56 +49,53 @@ export default async function handler(
       return res.status(400).json({ error: 'Missing required parameter: prompt.' });
     }
 
-    // 🛑 A. Obtener el User ID de Clerk (El Gatekeeper principal)
     const { userId } = getAuth(req);
-
     if (!userId) {
-      // Bloquea cualquier solicitud anónima antes de consumir recursos
-      return res.status(401).json({ message: "No autorizado. Debes iniciar sesión." });
+      return res.status(401).json({ message: 'No autorizado. Debes iniciar sesión.' });
     }
 
-    // 🛑 B. Barrera de Créditos (Protección de Costos)
-    // Usaremos el ID de Clerk (ej: user_2a9p9...) como el user_id para Neon
     await checkAndConsumeCredit(userId);
 
-    // Note: checkAndConsumeCredit throws if insufficient, so we don't need to check return value explicitly for false, 
-    // but we can catch the specific error if we want custom 403 message, or let the general catch handle it.
-    // The utility throws "Créditos insuficientes..." which will be caught below.
+    const safePrompt = `Safe, fully clothed, professional lifestyle/editorial product photo. ${sanitizePrompt(prompt)}`;
 
-    let enhancedPrompt = sanitizePrompt(prompt);
+    const allowGemini = imageEngine === 'gemini' || imageEngine === 'auto';
+    const allowReplicate = imageEngine === 'replicate' && Boolean(replicateToken);
+    const allowVertex = imageEngine === 'vertex' && Boolean(project) && Boolean(saJson);
 
-    // Enhance prompt with Gemini if available
-    if (geminiApiKey) {
+    // 0) Gemini first
+    if (allowGemini) {
+      if (!geminiApiKey) {
+        throw new Error('Missing GEMINI_API_KEY for Gemini image generation.');
+      }
       try {
         const ai = new GoogleGenAI({ apiKey: geminiApiKey, apiVersion: 'v1beta' });
-        const result = await ai.models.generateContent({
-          model: 'gemini-1.5-flash',
-          contents: [{
-            role: 'user',
-            parts: [{
-              text: `
-          Enhance this image generation prompt to be more descriptive, photorealistic, and high quality for a UGC lifestyle product shot. 
-          Keep it under 100 words. Focus on lighting, texture, and realism.
-          IMPORTANT: Ensure the output is completely safe, family-friendly, and free of any violence, sexual content, or prohibited items.
-          Avoid describing people or models in detail to prevent safety filter triggers. Focus on the product and environment.
-          Original prompt: "${enhancedPrompt}"
-        ` }]
-          }]
+        const response = await ai.models.generateContent({
+          model: geminiImageModel,
+          contents: {
+            parts: [
+              { inlineData: { data: base64, mimeType: mimeType || 'image/png' } },
+              { text: safePrompt },
+            ],
+          },
+          config: {
+            responseModalities: [Modality.IMAGE],
+          },
         });
 
-        const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) {
-          enhancedPrompt = text.trim();
+        const imagePart = response.candidates?.[0]?.content?.parts?.find(p => (p as any).inlineData);
+        const imageData = (imagePart as any)?.inlineData?.data;
+        if (imageData) {
+          const imageUrl = `data:image/png;base64,${imageData}`;
+          return res.status(200).json({ imageUrl, promptUsed: safePrompt });
         }
+        console.warn('Gemini returned no image, falling back to other engines');
       } catch (err) {
-        console.warn('Gemini prompt enhancement failed, using original:', err);
+        console.warn('Gemini image generation failed, falling back:', err);
       }
     }
 
-    const safePrompt = `Safe, fully clothed, professional lifestyle/editorial product photo. ${enhancedPrompt}`;
-
-    // 1) Try Replicate (Flux) if token present
-    if (replicateToken) {
+    // 1) Replicate (Flux) if chosen
+    if (allowReplicate && replicateToken) {
       try {
         const start = await fetch('https://api.replicate.com/v1/predictions', {
           method: 'POST',
@@ -153,11 +139,18 @@ export default async function handler(
         }
         console.warn('Replicate returned no image, falling back to Vertex');
       } catch (err) {
-        console.warn('Replicate failed, falling back to Vertex:', err);
+        console.warn('Replicate failed, falling back:', err);
       }
     }
 
-    // 2) Fallback: Vertex Imagen 3 using service account
+    // 2) Vertex fallback if explicitly enabled
+    if (!allowVertex) {
+      throw new Error('Image generation failed for Gemini/Replicate and Vertex is disabled.');
+    }
+    if (!project || !saJson) {
+      throw new Error('Missing GCP_PROJECT_ID or GCP_SERVICE_ACCOUNT_KEY for Vertex fallback.');
+    }
+
     const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${project}/locations/${location}/publishers/google/models/${vertexImageModel}:predict`;
     const instance: Record<string, any> = {
       prompt: `${safePrompt}\nNo sexual content, no violence, no weapons, no blood, no minors. Keep it safe lifestyle/editorial.`,
@@ -207,8 +200,8 @@ export default async function handler(
     return res.status(200).json({ imageUrl, promptUsed: safePrompt });
 
   } catch (error) {
-    console.error("Error in /api/generate-image:", error);
-    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    console.error('Error in /api/generate-image:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
     return res.status(500).json({ error: errorMessage });
   }
 }

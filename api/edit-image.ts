@@ -1,16 +1,13 @@
 // @ts-ignore
 import { createCanvas, loadImage } from 'canvas';
-
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleAuth } from 'google-auth-library';
+import { GoogleGenAI, Modality } from '@google/genai';
 import { checkAndConsumeCredit } from './utils/credits';
-import { getAuth } from '@clerk/backend';
 import fetch from 'node-fetch';
+import { getAuth } from '@clerk/backend';
 
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse,
-) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
@@ -18,19 +15,25 @@ export default async function handler(
   const project = process.env.GCP_PROJECT_ID || process.env.VERTEX_PROJECT_ID;
   const location = process.env.GCP_LOCATION || process.env.VERTEX_LOCATION || 'us-central1';
   const saJson = process.env.GCP_SERVICE_ACCOUNT_KEY;
+
   const replicateToken = process.env.REPLICATE_API_TOKEN;
-  const replicateModel = process.env.REPLICATE_MODEL || 'black-forest-labs/flux-schnell';
   const replicateVersion =
     process.env.REPLICATE_MODEL_VERSION ||
     'de67bb1367180e6c8c5b8e3a1391c72a7c8caa0c1b6b5be825e062e10bb126d9';
+
+  const imageEngine = (process.env.IMAGE_ENGINE || 'gemini').toLowerCase(); // gemini | replicate | vertex | auto
+  const geminiApiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+  const geminiImageModel = process.env.GEMINI_IMAGE_MODEL || 'gemini-2.5-flash-image';
   const vertexImageModel = process.env.GCP_IMAGE_MODEL || 'imagen-3.0-generate-002';
+
   const negativePrompt =
     'nudity, sexual content, pornography, gore, violence, weapons, blood, minors, explicit content, suggestive poses, regulated content, drugs, smoking, vape, alcohol, self-harm, brutality, hate, offensive, bikini, lingerie';
+
   const sanitizePrompt = (raw: string): string => {
     const banned = [
       'nude', 'naked', 'lingerie', 'bikini', 'swimsuit', 'sexy', 'explicit', 'erotic',
       'blood', 'gore', 'weapon', 'gun', 'knife', 'violence', 'drugs', 'smoking', 'vape',
-      'alcohol', 'minor', 'child', 'kid', 'teen'
+      'alcohol', 'minor', 'child', 'kid', 'teen',
     ];
     let safe = raw || '';
     banned.forEach(word => {
@@ -41,26 +44,59 @@ export default async function handler(
   };
 
   try {
-    const { prompt = '', base64Image, maskBase64, mimeType } = req.body || {};
+    const { prompt = '', base64Image, mimeType } = req.body || {};
 
     if (!prompt) {
       return res.status(400).json({ error: 'Missing required parameter: prompt.' });
     }
 
-    // 🛑 A. Obtener el User ID de Clerk (El Gatekeeper principal)
     const { userId } = getAuth(req);
-
     if (!userId) {
-      return res.status(401).json({ message: "No autorizado. Debes iniciar sesión." });
+      return res.status(401).json({ message: 'No autorizado. Debes iniciar sesión.' });
     }
 
-    // 🛑 B. Barrera de Créditos
     await checkAndConsumeCredit(userId);
 
     const safePrompt = `Safe, fully clothed, professional lifestyle/editorial product photo. ${sanitizePrompt(prompt)}`;
 
-    // First choice: Replicate
-    if (replicateToken) {
+    const allowGemini = imageEngine === 'gemini' || imageEngine === 'auto';
+    const allowReplicate = imageEngine === 'replicate' && Boolean(replicateToken);
+    const allowVertex = imageEngine === 'vertex' && Boolean(project) && Boolean(saJson);
+
+    // Gemini first
+    if (allowGemini) {
+      if (!geminiApiKey) {
+        throw new Error('Missing GEMINI_API_KEY for Gemini image editing.');
+      }
+      try {
+        const ai = new GoogleGenAI({ apiKey: geminiApiKey, apiVersion: 'v1beta' });
+        const response = await ai.models.generateContent({
+          model: geminiImageModel,
+          contents: {
+            parts: [
+              { inlineData: { data: base64Image, mimeType: mimeType || 'image/png' } },
+              { text: safePrompt },
+            ],
+          },
+          config: {
+            responseModalities: [Modality.IMAGE],
+          },
+        });
+
+        const imagePart = response.candidates?.[0]?.content?.parts?.find(p => (p as any).inlineData);
+        const imageData = (imagePart as any)?.inlineData?.data;
+        if (imageData) {
+          const imageUrl = `data:image/png;base64,${imageData}`;
+          return res.status(200).json({ imageUrl, promptUsed: safePrompt });
+        }
+        console.warn('Gemini edit returned no image, falling back');
+      } catch (err) {
+        console.warn('Gemini edit failed, falling back:', err);
+      }
+    }
+
+    // Replicate next
+    if (allowReplicate && replicateToken) {
       try {
         const start = await fetch('https://api.replicate.com/v1/predictions', {
           method: 'POST',
@@ -107,17 +143,20 @@ export default async function handler(
       }
     }
 
-    // Fallback: Vertex Imagen
+    // Vertex fallback if enabled
+    if (!allowVertex) {
+      throw new Error('Image edit failed for Gemini/Replicate and Vertex is disabled.');
+    }
     if (!project || !saJson) {
       throw new Error('Missing GCP_PROJECT_ID or GCP_SERVICE_ACCOUNT_KEY for Vertex fallback.');
     }
+
     const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${project}/locations/${location}/publishers/google/models/${vertexImageModel}:predict`;
 
     const instance: Record<string, any> = {
       prompt: `${safePrompt}\nNo sexual content, no violence, no weapons, no blood, no minors. Keep it safe lifestyle/editorial.`,
       negativePrompt,
     };
-    // If an image was provided, send it; otherwise pure prompt
     if (base64Image) {
       instance.image = { bytesBase64Encoded: base64Image, mimeType: mimeType || 'image/png' };
     }
@@ -164,8 +203,8 @@ export default async function handler(
     const imageUrl = `data:image/png;base64,${imageBase64}`;
     return res.status(200).json({ imageUrl, promptUsed: safePrompt });
   } catch (error) {
-    console.error("Error in /api/edit-image:", error);
-    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    console.error('Error in /api/edit-image:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
     return res.status(500).json({ error: errorMessage });
   }
 }
