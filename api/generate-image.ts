@@ -87,10 +87,7 @@ export default async function handler(
 
     let enhancedPrompt = sanitizePrompt(prompt);
 
-    const forcedPrompt = process.env.VERTEX_FORCE_PROMPT?.trim();
-    const safePrompt = forcedPrompt
-      ? forcedPrompt
-      : `Safe, fully clothed, professional lifestyle/editorial product photo. ${enhancedPrompt}`;
+    const safePrompt = `Safe, fully clothed, professional lifestyle/editorial product photo. ${enhancedPrompt}`;
 
     const allowReplicate = imageEngine === 'auto' && Boolean(replicateToken);
     const allowVertex = imageEngine !== 'replicate' && process.env.DISABLE_VERTEX !== '1';

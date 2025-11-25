@@ -206,10 +206,6 @@ const getSelfieLabel = (value: string) =>
   SELFIE_TYPE_OPTIONS.find(option => option.value === value)?.label ?? SELFIE_TYPE_OPTIONS[0].label;
 
 const HERO_LANDING_PRESET_VALUE = 'hero-landing';
-const VERTEX_SAFE_MODE = import.meta.env.VITE_VERTEX_SAFE_MODE === '1';
-const VERTEX_SAFE_PROMPT =
-  import.meta.env.VITE_VERTEX_SAFE_PROMPT ||
-  'Photorealistic product shot of a single bottle on a neutral studio background. No people, no hands, no text, no logos. Soft, even lighting, clean shadows, high-resolution.';
 const FORMULATION_EXPERT_PRESETS = [
   {
     value: 'respiratory-doctor',
@@ -750,8 +746,7 @@ const App: React.FC = () => {
   // const [trialCodeError, setTrialCodeError] = useState<string | null>(null);
   const isTrialBypassActive = hasTrialBypass || isDevBypass;
   const hasSelectedIntent = Boolean(options.contentStyle);
-  const allowNoUpload = import.meta.env.VITE_ALLOW_NO_UPLOAD === '1';
-  const hasUploadedProduct = allowNoUpload || Boolean(activeProductAsset);
+  const hasUploadedProduct = Boolean(activeProductAsset);
   const canUseMood = hasUploadedProduct;
   const contentStyleValue = hasSelectedIntent ? options.contentStyle : CONTENT_STYLE_OPTIONS[0].value;
   const isProductPlacement = contentStyleValue === 'product';
@@ -2529,15 +2524,9 @@ const App: React.FC = () => {
   }, []);
 
   const constructPrompt = (bundleProductsOverride?: ProductId[] | null): string => {
-    if (VERTEX_SAFE_MODE) {
-      // Hard override for safety: product-only, neutral studio setup.
-      return VERTEX_SAFE_PROMPT;
-    }
-
     let currentStyle = contentStyleValue;
-    let forceNoPerson = false;
     const isUgcStyle = currentStyle !== 'product';
-    const personIncluded = !forceNoPerson && isUgcStyle && options.ageGroup !== 'no person';
+    const personIncluded = isUgcStyle && options.ageGroup !== 'no person';
     const selfieLabel = getSelfieLabel(options.selfieType);
     const selfieMeta = SELFIE_DIRECTIONS[selfieLabel];
     const requiresSplitHands = Boolean(selfieMeta?.enforceSplitHands);
