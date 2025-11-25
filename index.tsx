@@ -70,7 +70,7 @@ const PreAccessGate: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       <div className="w-full max-w-md bg-gray-900/80 border border-gray-800 rounded-2xl p-8 shadow-2xl backdrop-blur">
         <p className="text-sm uppercase tracking-[0.25em] text-blue-300/80 mb-2">Pre-access</p>
         <h1 className="text-2xl font-semibold mb-3">We’re working on it</h1>
-        <p className="text-gray-300 mb-6">Ingresa el código de invitación para continuar mientras terminamos detalles.</p>
+        <p className="text-gray-300 mb-6">Enter the invite code to continue while we finish polishing the experience.</p>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label className="text-sm text-gray-400 block mb-2">Access code</label>
