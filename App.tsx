@@ -747,7 +747,8 @@ const App: React.FC = () => {
   // const [trialCodeError, setTrialCodeError] = useState<string | null>(null);
   const isTrialBypassActive = hasTrialBypass || isDevBypass;
   const hasSelectedIntent = Boolean(options.contentStyle);
-  const hasUploadedProduct = Boolean(activeProductAsset);
+  const allowNoUpload = import.meta.env.VITE_ALLOW_NO_UPLOAD === '1';
+  const hasUploadedProduct = allowNoUpload || Boolean(activeProductAsset);
   const canUseMood = hasUploadedProduct;
   const contentStyleValue = hasSelectedIntent ? options.contentStyle : CONTENT_STYLE_OPTIONS[0].value;
   const isProductPlacement = contentStyleValue === 'product';
