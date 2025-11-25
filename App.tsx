@@ -207,6 +207,9 @@ const getSelfieLabel = (value: string) =>
 
 const HERO_LANDING_PRESET_VALUE = 'hero-landing';
 const VERTEX_SAFE_MODE = import.meta.env.VITE_VERTEX_SAFE_MODE === '1';
+const VERTEX_SAFE_PROMPT =
+  import.meta.env.VITE_VERTEX_SAFE_PROMPT ||
+  'Photorealistic product shot of a single bottle on a neutral studio background. No people, no hands, no text, no logos. Soft, even lighting, clean shadows, high-resolution.';
 const FORMULATION_EXPERT_PRESETS = [
   {
     value: 'respiratory-doctor',
@@ -2526,12 +2529,13 @@ const App: React.FC = () => {
   }, []);
 
   const constructPrompt = (bundleProductsOverride?: ProductId[] | null): string => {
+    if (VERTEX_SAFE_MODE) {
+      // Hard override for safety: product-only, neutral studio setup.
+      return VERTEX_SAFE_PROMPT;
+    }
+
     let currentStyle = contentStyleValue;
     let forceNoPerson = false;
-    if (VERTEX_SAFE_MODE) {
-      currentStyle = 'product';
-      forceNoPerson = true;
-    }
     const isUgcStyle = currentStyle !== 'product';
     const personIncluded = !forceNoPerson && isUgcStyle && options.ageGroup !== 'no person';
     const selfieLabel = getSelfieLabel(options.selfieType);
