@@ -3,7 +3,6 @@ import { GoogleAuth } from 'google-auth-library';
 import { GoogleGenAI, Modality } from '@google/genai';
 import { checkAndConsumeCredit } from './utils/credits.js';
 import fetch from 'node-fetch';
-import { getAuth } from '@clerk/backend';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
@@ -49,7 +48,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Missing required parameter: prompt.' });
     }
 
-    const { userId } = getAuth(req);
+    let userId: string | null = null;
+    try {
+      const mod = await import('@clerk/nextjs/server');
+      const auth = mod.getAuth?.(req as any);
+      userId = auth?.userId ?? null;
+    } catch (err) {
+      console.warn('Clerk getAuth not available, falling back to unauthenticated', err);
+    }
     if (!userId) {
       return res.status(401).json({ message: 'No autorizado. Debes iniciar sesión.' });
     }
