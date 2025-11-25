@@ -4,7 +4,6 @@ import { createCanvas, loadImage } from 'canvas';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleAuth } from 'google-auth-library';
 import { checkAndConsumeCredit } from './utils/credits.js';
-import { getAuth } from '@clerk/backend';
 import fetch from 'node-fetch';
 
 export default async function handler(
@@ -19,7 +18,6 @@ export default async function handler(
   const location = process.env.GCP_LOCATION || process.env.VERTEX_LOCATION || 'us-central1';
   const saJson = process.env.GCP_SERVICE_ACCOUNT_KEY;
   const replicateToken = process.env.REPLICATE_API_TOKEN;
-  const replicateModel = process.env.REPLICATE_MODEL || 'black-forest-labs/flux-schnell';
   const replicateVersion =
     process.env.REPLICATE_MODEL_VERSION ||
     'de67bb1367180e6c8c5b8e3a1391c72a7c8caa0c1b6b5be825e062e10bb126d9';
@@ -42,7 +40,7 @@ export default async function handler(
   };
 
   try {
-    const { prompt = '', base64Image, maskBase64, mimeType } = req.body || {};
+    const { prompt = '', base64Image, mimeType } = req.body || {};
 
     if (!prompt) {
       return res.status(400).json({ error: 'Missing required parameter: prompt.' });
@@ -72,8 +70,8 @@ export default async function handler(
 
     const safePrompt = `Safe, fully clothed, professional lifestyle/editorial product photo. ${sanitizePrompt(prompt)}`;
 
-    const allowReplicate = imageEngine !== 'vertex';
-    const allowVertex = imageEngine !== 'replicate';
+    const allowReplicate = imageEngine !== 'vertex' && Boolean(replicateToken);
+    const allowVertex = imageEngine !== 'replicate' && process.env.DISABLE_VERTEX !== '1';
 
     // First choice: Replicate
     if (allowReplicate && replicateToken) {
