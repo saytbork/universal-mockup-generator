@@ -1,6 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleAuth } from 'google-auth-library';
-import { GoogleGenAI } from "@google/genai";
 import { checkAndConsumeCredit } from './utils/credits.js';
 import fetch from 'node-fetch';
 
@@ -20,7 +19,7 @@ export default async function handler(
   const replicateVersion =
     process.env.REPLICATE_MODEL_VERSION ||
     'de67bb1367180e6c8c5b8e3a1391c72a7c8caa0c1b6b5be825e062e10bb126d9';
-  const imageEngine = (process.env.IMAGE_ENGINE || 'gemini').toLowerCase(); // gemini | replicate | vertex | auto
+  const imageEngine = (process.env.IMAGE_ENGINE || 'vertex').toLowerCase(); // vertex | replicate | auto
 
   if (!project) {
     console.error('Missing GCP_PROJECT_ID or VERTEX_PROJECT_ID');
@@ -31,11 +30,8 @@ export default async function handler(
     return res.status(500).json({ error: 'Server configuration error: Missing Service Account Key' });
   }
 
-  // Use Imagen 3 as primary when IMAGE_ENGINE=gemini; Replicate/Vertex are fallbacks
+  // Use Imagen 3 as primary (Vertex)
   const vertexImageModel = 'imagen-3.0-generate-001';
-  const geminiApiKey = process.env.GEMINI_API_KEY;
-  const geminiModelId = process.env.GEMINI_MODEL || 'imagen-3.0-generate-001';
-  const geminiApiVersion = process.env.GEMINI_API_VERSION || 'v1';
 
   // Safety prompt/negative prompt in English
   const negativePrompt =
@@ -91,60 +87,10 @@ export default async function handler(
 
     let enhancedPrompt = sanitizePrompt(prompt);
 
-    // Enhance prompt with Gemini text model if available
-    if (geminiApiKey) {
-      try {
-        const ai = new GoogleGenAI({ apiKey: geminiApiKey, apiVersion: geminiApiVersion });
-        const result = await ai.models.generateContent({
-          model: process.env.GEMINI_TEXT_MODEL || 'gemini-1.5-flash-001',
-          contents: [{
-            role: 'user',
-            parts: [{
-              text: `
-          Enhance this image generation prompt to be more descriptive, photorealistic, and high quality for a UGC lifestyle product shot. 
-          Keep it under 100 words. Focus on lighting, texture, and realism.
-          IMPORTANT: Ensure the output is completely safe, family-friendly, and free of any violence, sexual content, or prohibited items.
-          Avoid describing people or models in detail to prevent safety filter triggers. Focus on the product and environment.
-          Original prompt: "${enhancedPrompt}"
-        ` }]
-          }]
-        });
-
-        const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) {
-          enhancedPrompt = text.trim();
-        }
-      } catch (err) {
-        console.warn('Gemini prompt enhancement failed, using original:', err);
-      }
-    }
-
     const safePrompt = `Safe, fully clothed, professional lifestyle/editorial product photo. ${enhancedPrompt}`;
 
-    // 0) Primary: Gemini Imagen if selected
-    if (imageEngine === 'gemini' && geminiApiKey) {
-      try {
-        const ai = new GoogleGenAI({ apiKey: geminiApiKey, apiVersion: geminiApiVersion });
-        const model = ai.getGenerativeModel({ model: geminiModelId });
-        const result = await model.generateImages({
-          prompt: `${safePrompt}\nNo sexual content, no violence, no weapons, no blood, no minors. Keep it safe lifestyle/editorial.`,
-          negativePrompt,
-        });
-        const base64Image = result.response?.candidates?.[0]?.image?.base64;
-        if (base64Image) {
-          return res.status(200).json({ imageUrl: `data:image/png;base64,${base64Image}`, promptUsed: safePrompt });
-        }
-        throw new Error('Gemini Imagen returned no image.');
-      } catch (err) {
-        console.warn('Gemini Imagen failed, falling back to other engines:', err);
-      }
-    }
-
-    const allowReplicate = imageEngine !== 'vertex';
-    const allowVertex =
-      imageEngine !== 'replicate' &&
-      imageEngine !== 'gemini' &&
-      process.env.DISABLE_VERTEX !== '1';
+    const allowReplicate = imageEngine === 'auto' && Boolean(replicateToken);
+    const allowVertex = imageEngine !== 'replicate' && process.env.DISABLE_VERTEX !== '1';
 
     // 1) Try Replicate (Flux) if allowed and token present
     if (allowReplicate && replicateToken) {
@@ -197,7 +143,7 @@ export default async function handler(
 
     // 2) Fallback: Vertex Imagen 3 using service account
     if (!allowVertex) {
-      throw new Error('Vertex generation disabled by IMAGE_ENGINE=replicate and Replicate failed.');
+      throw new Error('Vertex generation disabled and Replicate failed.');
     }
     const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${project}/locations/${location}/publishers/google/models/${vertexImageModel}:predict`;
     const instance: Record<string, any> = {
