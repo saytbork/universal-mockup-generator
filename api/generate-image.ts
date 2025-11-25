@@ -141,7 +141,10 @@ export default async function handler(
     }
 
     const allowReplicate = imageEngine !== 'vertex';
-    const allowVertex = imageEngine !== 'replicate';
+    const allowVertex =
+      imageEngine !== 'replicate' &&
+      imageEngine !== 'gemini' &&
+      process.env.DISABLE_VERTEX !== '1';
 
     // 1) Try Replicate (Flux) if allowed and token present
     if (allowReplicate && replicateToken) {
