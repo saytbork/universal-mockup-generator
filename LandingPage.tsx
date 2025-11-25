@@ -37,18 +37,18 @@ type CheckoutPlan = {
 
 const features = [
   {
-    title: 'Mockups in seconds',
-    description: 'Upload your product and get real UGC scenes ready to publish.',
+    title: 'No photo shoot needed',
+    description: 'Genera mockups con tu recorte de producto en minutos, sin cámaras ni modelos.',
     icon: Sparkles,
   },
   {
-    title: 'Full creative control',
-    description: 'Adjust poses, expressions, materials, backgrounds, and fine tune style parameters.',
+    title: 'Listo para UGC',
+    description: 'Presets de estilo realista para TikTok, Instagram y e-commerce, sin looks falsos.',
     icon: Wand2,
   },
   {
-    title: 'Campaign-ready output',
-    description: 'Export in high resolution for ads, social media, landing pages, and stores.',
+    title: 'Exporta y publica',
+    description: 'Descarga en alta calidad y lanza campañas sin pasar por estudios ni ediciones largas.',
     icon: PlaySquare,
   },
 ];
