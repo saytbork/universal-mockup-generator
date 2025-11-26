@@ -73,16 +73,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ imageUrl });
     }
 
-    // Log and return diagnostics to help debug
-    console.error('Gemini response (no image):', JSON.stringify(response, null, 2));
-    const summary = {
-      candidates: response?.candidates?.length ?? 0,
-      finishReason: response?.candidates?.[0]?.finishReason,
-      safetyRatings: response?.candidates?.[0]?.safetyRatings,
-      text: response?.candidates?.[0]?.content?.parts
+    // If no image, try textual output and return it to avoid crashing.
+    const candidate = response?.candidates?.[0];
+    const textOutput =
+      candidate?.content?.parts
         ?.map((p: any) => p.text || '')
         .join('')
-        .slice(0, 500) ?? null,
+        .trim() ||
+      (response as any)?.text ||
+      '';
+
+    if (textOutput) {
+      return res.status(200).json({ description: textOutput, note: 'No image generated.' });
+    }
+
+    // Log and return diagnostics to help debug empty responses
+    console.error('Gemini response (no image/text):', JSON.stringify(response, null, 2));
+    const summary = {
+      candidates: response?.candidates?.length ?? 0,
+      finishReason: candidate?.finishReason,
+      safetyRatings: candidate?.safetyRatings,
+      text: textOutput || null,
     };
     return res.status(500).json({ error: "Gemini returned no image data.", response: summary });
   } catch (error) {
