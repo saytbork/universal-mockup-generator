@@ -755,8 +755,10 @@ const App: React.FC = () => {
     [userEmail]
   );
   const isFreeUser = !isAdmin && planTier === 'free';
-  const hasTrialBypass = false; // monetization: disable bypass
-  const isTrialBypassActive = false;
+  const [hasTrialBypass, setHasTrialBypass] = useState(false);
+  const [trialCodeInput, setTrialCodeInput] = useState('');
+  const [trialCodeError, setTrialCodeError] = useState<string | null>(null);
+  const isTrialBypassActive = hasTrialBypass || isDevBypass;
   const hasSelectedIntent = Boolean(options.contentStyle);
   const hasUploadedProduct = Boolean(activeProductAsset);
   const canUseMood = hasUploadedProduct;
