@@ -3372,9 +3372,10 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
         generationConfig: { responseMimeType: 'image/png', aspectRatio },
       });
 
-      for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-          const finalUrl = `data:image/png;base64,${part.inlineData.data}`;
+      const parts = response?.candidates?.[0]?.content?.parts ?? [];
+      for (const part of parts) {
+        if ('inlineData' in part && (part as any).inlineData?.data) {
+          const finalUrl = `data:image/png;base64,${(part as any).inlineData.data}`;
           setGeneratedImageUrl(finalUrl);
           runHiResPipeline(finalUrl);
           const newCount = creditUsage + creditCost;
@@ -3465,9 +3466,10 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
         generationConfig: { responseMimeType: 'image/png', aspectRatio },
       });
 
-      for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-          const editedUrl = `data:image/png;base64,${part.inlineData.data}`;
+      const parts = response?.candidates?.[0]?.content?.parts ?? [];
+      for (const part of parts) {
+        if ('inlineData' in part && (part as any).inlineData?.data) {
+          const editedUrl = `data:image/png;base64,${(part as any).inlineData.data}`;
           setGeneratedImageUrl(editedUrl);
           runHiResPipeline(editedUrl);
           if (editOptions?.clearManual) {
