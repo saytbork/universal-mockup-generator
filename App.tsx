@@ -399,21 +399,21 @@ const PLAN_CONFIG: Record<
 > = {
   free: {
     label: 'Free',
-    description: '2 credits · watermarked exports · community support',
-    creditLimit: 2,
+    description: '10 credits · watermarked exports · community support',
+    creditLimit: 10,
     allowStudio: false,
     allowCaption: false,
   },
   creator: {
     label: 'Creator',
-    description: '200 credits · no watermark · basic commercial license',
+    description: '200 credits · no watermark · basic commercial license (SD 1.5)',
     creditLimit: 200,
     allowStudio: true,
     allowCaption: true,
   },
   studio: {
     label: 'Studio',
-    description: '400 credits · priority rendering queue · full commercial license',
+    description: '400 credits · photorealism PRO (SDXL) · priority rendering · full commercial license',
     creditLimit: 400,
     allowStudio: true,
     allowCaption: true,
