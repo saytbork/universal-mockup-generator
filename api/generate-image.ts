@@ -73,10 +73,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ imageUrl });
     }
 
-    // Log full response for diagnostics
+    // Log and return diagnostics to help debug
     console.error('Gemini response (no image):', JSON.stringify(response, null, 2));
-
-    throw new Error("Image generation failed or returned no image data (Gemini).");
+    const summary = {
+      candidates: response?.candidates?.length ?? 0,
+      finishReason: response?.candidates?.[0]?.finishReason,
+      safetyRatings: response?.candidates?.[0]?.safetyRatings,
+      text: response?.candidates?.[0]?.content?.parts
+        ?.map((p: any) => p.text || '')
+        .join('')
+        .slice(0, 500) ?? null,
+    };
+    return res.status(500).json({ error: "Gemini returned no image data.", response: summary });
   } catch (error) {
     console.error("Error in /api/generate-image:", error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
