@@ -3,6 +3,7 @@ import { GoogleAuth } from 'google-auth-library';
 import { GoogleGenAI, Modality } from '@google/genai';
 import { checkAndConsumeCredit } from './utils/credits.js';
 import fetch from 'node-fetch';
+import { supabaseServer } from '../supabaseServer.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
@@ -48,17 +49,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Missing required parameter: prompt.' });
     }
 
-    let userId: string | null = null;
-    try {
-      const mod = await import('@clerk/nextjs/server');
-      const auth = mod.getAuth?.(req as any);
-      userId = auth?.userId ?? null;
-    } catch (err) {
-      console.warn('Clerk getAuth not available, falling back to unauthenticated', err);
-    }
-    if (!userId) {
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    if (!token) {
       return res.status(401).json({ message: 'No autorizado. Debes iniciar sesión.' });
     }
+    const { data: userData, error: userError } = await supabaseServer.auth.getUser(token);
+    if (userError || !userData?.user) {
+      return res.status(401).json({ message: 'No autorizado. Token inválido.' });
+    }
+    const userId = userData.user.id;
 
     await checkAndConsumeCredit(userId);
 
@@ -75,18 +75,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       try {
         const ai = new GoogleGenAI({ apiKey: geminiApiKey, apiVersion: 'v1beta' });
-        const response = await ai.models.generateContent({
-          model: geminiImageModel,
-          contents: {
-            parts: [
-              { inlineData: { data: base64, mimeType: mimeType || 'image/png' } },
-              { text: safePrompt },
-            ],
-          },
-          config: {
-            responseModalities: [Modality.IMAGE],
-          },
-        });
+    const response = await ai.models.generateContent({
+      model: geminiImageModel,
+      contents: {
+        parts: [
+          { inlineData: { data: base64, mimeType: mimeType || 'image/png' } },
+          { text: safePrompt },
+        ],
+      },
+      config: {
+        responseModalities: [Modality.IMAGE],
+      },
+    });
 
         const imagePart = response.candidates?.[0]?.content?.parts?.find(p => (p as any).inlineData);
         const imageData = (imagePart as any)?.inlineData?.data;
