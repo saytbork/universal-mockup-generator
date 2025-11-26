@@ -376,7 +376,14 @@ const PLAN_STORAGE_KEY = 'ugc-plan-tier';
 const VIDEO_COUNT_KEY = 'ugc-video-generation-count';
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '';
 const EMAIL_VERIFICATION_ENABLED = import.meta.env.VITE_EMAIL_VERIFICATION === 'true';
-const GEMINI_IMAGE_MODEL = import.meta.env.VITE_GEMINI_MODEL || 'gemini-1.5-flash-002';
+const normalizeGeminiModel = (raw?: string, fallback = 'gemini-1.5-flash') => {
+  const model = (raw || fallback).replace(/^models\//, '');
+  if (model.endsWith('-latest')) return model.replace(/-latest$/, '-001');
+  if (model.endsWith('-002')) return model.replace(/-002$/, '-001');
+  return model;
+};
+
+const GEMINI_IMAGE_MODEL = normalizeGeminiModel(import.meta.env.VITE_GEMINI_MODEL, 'gemini-1.5-flash');
 
 type PlanTier = 'free' | 'creator' | 'studio';
 
