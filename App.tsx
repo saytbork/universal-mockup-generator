@@ -392,8 +392,8 @@ const PLAN_CONFIG: Record<
 > = {
   free: {
     label: 'Free',
-    description: '10 credits · watermarked exports · community support',
-    creditLimit: 10,
+    description: '2 credits · watermarked exports · community support',
+    creditLimit: 2,
     allowStudio: false,
     allowCaption: false,
   },
@@ -759,10 +759,8 @@ const App: React.FC = () => {
     [userEmail]
   );
   const isFreeUser = !isAdmin && planTier === 'free';
-  const [hasTrialBypass, setHasTrialBypass] = useState(false);
-  const [trialCodeInput, setTrialCodeInput] = useState('');
-  const [trialCodeError, setTrialCodeError] = useState<string | null>(null);
-  const isTrialBypassActive = hasTrialBypass || isDevBypass;
+  const hasTrialBypass = false; // monetization: disable bypass
+  const isTrialBypassActive = false;
   const hasSelectedIntent = Boolean(options.contentStyle);
   const hasUploadedProduct = Boolean(activeProductAsset);
   const canUseMood = hasUploadedProduct;
