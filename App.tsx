@@ -515,7 +515,7 @@ const GOAL_VIBE_OPTIONS = [
   },
 ];
 
-const API_BASE = import.meta.env.VITE_API_BASE || '';
+const API_BASE = (import.meta.env.VITE_API_BASE || '').trim();
 
 const BUNDLE_TABS = [
   { id: 'premade', label: 'Pre-made Bundles' },
@@ -3354,7 +3354,8 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
       const finalPrompt = constructPrompt(bundleSelectionRef.current);
       const aspectRatio = options?.aspectRatio || '1:1';
 
-      const resp = await fetch(`${API_BASE}/api/generate-image`, {
+      const base = API_BASE || '';
+      const resp = await fetch(`${base}/api/generate-image`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -3366,7 +3367,8 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
       });
       const data = await resp.json().catch(() => ({}));
       if (!resp.ok || !data?.imageUrl) {
-        throw new Error(data?.error || 'Image generation failed');
+        const detail = data?.error || `HTTP ${resp.status}`;
+        throw new Error(`Image generation failed: ${detail}`);
       }
 
       const finalUrl = data.imageUrl as string;
