@@ -376,7 +376,7 @@ const PLAN_STORAGE_KEY = 'ugc-plan-tier';
 const VIDEO_COUNT_KEY = 'ugc-video-generation-count';
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '';
 const EMAIL_VERIFICATION_ENABLED = import.meta.env.VITE_EMAIL_VERIFICATION === 'true';
-const normalizeGeminiModel = (raw?: string, fallback = 'gemini-2.5-flash-image-preview') => {
+const normalizeGeminiModel = (raw?: string, fallback = 'gemini-2.5-flash') => {
   const model = (raw || fallback).replace(/^models\//, '');
   if (model.endsWith('-latest')) return model.replace(/-latest$/, '-001');
   if (model.endsWith('-002')) return model.replace(/-002$/, '-001');

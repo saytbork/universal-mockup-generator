@@ -14,7 +14,7 @@ export default async function handler(
     return res.status(500).json({ error: "API key is not configured on the server." });
   }
 
-  const normalizeModel = (raw?: string, fallback = 'gemini-2.5-flash-image-preview') => {
+  const normalizeModel = (raw?: string, fallback = 'gemini-2.5-flash') => {
     const model = (raw || fallback).replace(/^models\//, '');
     if (model.endsWith('-latest')) return model.replace(/-latest$/, '-001');
     if (model.endsWith('-002')) return model.replace(/-002$/, '-001');
