@@ -36,7 +36,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const response = await ai.models.generateContent({
       model: MODEL_ID,
-      contents: { parts: [{ inlineData: { data: base64, mimeType } }, { text: prompt }] },
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { inlineData: { data: base64, mimeType } },
+            { text: prompt },
+          ],
+        },
+      ],
       generationConfig: { responseMimeType: 'image/png' },
     } as any);
 
