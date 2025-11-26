@@ -24,7 +24,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Missing required parameters: base64, mimeType, or prompt.' });
     }
 
-    // OpenAI path
+    // --- OpenAI path ---
     if (imageEngine === 'openai') {
       const openaiKey = process.env.OPENAI_API_KEY;
       if (!openaiKey) {
@@ -55,7 +55,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ imageUrl });
     }
 
-    // Gemini default
+    // --- Gemini path (default) ---
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return res.status(500).json({ error: "GEMINI_API_KEY is not configured on the server." });
@@ -74,11 +74,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         (part) => 'inlineData' in part && !!(part as any).inlineData?.data
       );
     if (imagePart && 'inlineData' in imagePart) {
-        const imageUrl = `data:image/png;base64,${(imagePart as any).inlineData.data}`;
-        return res.status(200).json({ imageUrl });
+      const imageUrl = `data:image/png;base64,${(imagePart as any).inlineData.data}`;
+      return res.status(200).json({ imageUrl });
     }
 
-    throw new Error("Image generation failed or returned no image data.");
+    // If Gemini returned no image, fallback to OpenAI if available.
+    const openaiKey = process.env.OPENAI_API_KEY;
+    if (openaiKey) {
+      const client = new OpenAI({ apiKey: openaiKey });
+      const sizeMap: Record<string, OpenAI.Images.ImageGenerateParams['size']> = {
+        '1:1': '1024x1024',
+        '16:9': '1792x1024',
+        '9:16': '1024x1792',
+        '4:5': '1024x1280',
+        '3:4': '1024x1365',
+      };
+      const size = sizeMap[aspectRatio] || '1024x1024';
+      const oaResponse = await client.images.generate({
+        model: 'dall-e-3',
+        prompt,
+        size,
+        quality: 'standard',
+        n: 1,
+      });
+      const b64 = oaResponse.data?.[0]?.b64_json;
+      if (b64) {
+        const imageUrl = `data:image/png;base64,${b64}`;
+        return res.status(200).json({ imageUrl, fallback: 'openai' });
+      }
+    }
+
+    throw new Error("Image generation failed or returned no image data (Gemini and fallback).");
   } catch (error) {
     console.error("Error in /api/generate-image:", error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
