@@ -60,9 +60,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       height: wh.height,
     };
 
-    const modelId = replicateModelVersion ? `${replicateModel}:${replicateModelVersion}` : replicateModel;
-    const output = await replicate.run(modelId, { input });
-    const url = Array.isArray(output) ? output[0] : typeof output === 'string' ? output : null;
+    const primaryModelId = replicateModelVersion ? `${replicateModel}:${replicateModelVersion}` : replicateModel;
+    const fallbackModelId = 'black-forest-labs/flux-schnell';
+
+    const runReplicate = async (modelId: string) => {
+      const output = await replicate.run(modelId, { input });
+      const url = Array.isArray(output) ? output[0] : typeof output === 'string' ? output : null;
+      return url ?? null;
+    };
+
+    let url: string | null = null;
+    try {
+      url = await runReplicate(primaryModelId);
+    } catch (err) {
+      console.error(`Replicate primary model failed (${primaryModelId}):`, err);
+    }
+
+    if (!url && primaryModelId !== fallbackModelId) {
+      try {
+        url = await runReplicate(fallbackModelId);
+      } catch (err) {
+        console.error(`Replicate fallback model failed (${fallbackModelId}):`, err);
+      }
+    }
+
     if (url) {
       return res.status(200).json({ imageUrl: url, engine: 'replicate' });
     }
