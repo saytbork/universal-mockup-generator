@@ -15,7 +15,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   };
 
   const MODEL_ID = normalizeModel(process.env.GEMINI_MODEL_ID);
-  const imageEngine = (process.env.IMAGE_ENGINE || 'gemini').toLowerCase();
+  const defaultEngine = process.env.OPENAI_API_KEY ? 'openai' : 'gemini';
+  const imageEngine = (process.env.IMAGE_ENGINE || defaultEngine).toLowerCase();
 
   try {
     const { base64, mimeType, prompt, aspectRatio = '1:1' } = req.body;
