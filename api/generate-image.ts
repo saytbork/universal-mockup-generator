@@ -28,7 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const replicateToken = process.env.REPLICATE_API_TOKEN;
   const replicateModel = process.env.REPLICATE_MODEL || 'stability-ai/sdxl';
-  const allowPollinations = process.env.ENABLE_POLLINATIONS === 'true';
+  const allowPollinations = false; // Pollinations disabled (does not respect input image)
   const imageEngine = (process.env.IMAGE_ENGINE || 'replicate').toLowerCase();
 
   try {
