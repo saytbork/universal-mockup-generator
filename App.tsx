@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import { GoogleGenAI, Modality } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import { MockupOptions, OptionCategory, Option } from './types';
 import { 
   CONTENT_STYLE_OPTIONS,
@@ -3368,13 +3368,8 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
       const aspectRatio = options?.aspectRatio || '1:1';
       const response = await ai.models.generateContent({
         model: GEMINI_IMAGE_MODEL,
-        contents: { parts: [...productInlineParts, {text: finalPrompt}] },
-        config: {
-          responseModalities: [Modality.IMAGE],
-          imageConfig: {
-            aspectRatio,
-          },
-        },
+        contents: { parts: [...productInlineParts, { text: finalPrompt }] },
+        generationConfig: { responseMimeType: 'image/png', aspectRatio },
       });
 
       for (const part of response.candidates[0].content.parts) {
@@ -3467,12 +3462,7 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
             { text: prompt.trim() },
           ],
         },
-        config: {
-          responseModalities: [Modality.IMAGE],
-          imageConfig: {
-            aspectRatio,
-          },
-        },
+        generationConfig: { responseMimeType: 'image/png', aspectRatio },
       });
 
       for (const part of response.candidates[0].content.parts) {
