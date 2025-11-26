@@ -3337,12 +3337,6 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
     setIsImageLoading(true);
 
     try {
-      const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
-      if (!resolvedApiKey) {
-        setIsImageLoading(false);
-        return;
-      }
-      const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: 'v1' });
       const orderedAssets = productAssets
         .slice()
         .sort((a, b) => {
@@ -3350,44 +3344,37 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
           if (b.id === activeProductId) return 1;
           return a.createdAt - b.createdAt;
         });
-      const productInlineParts = [];
-      for (const asset of orderedAssets) {
-        const { base64, mimeType } = await fileToBase64(asset.file);
-        productInlineParts.push({ inlineData: { data: base64, mimeType } });
+      const [primary] = orderedAssets;
+      if (!primary) {
+        throw new Error('No product image found.');
       }
-      if (modelReferenceFile && personIncluded) {
-        const { base64, mimeType } = await fileToBase64(modelReferenceFile);
-        productInlineParts.push({ inlineData: { data: base64, mimeType } });
-      }
-      if (realModeActive && ugcRealSettings.clothingUpload) {
-        const { base64, mimeType } = await fileToBase64(ugcRealSettings.clothingUpload);
-        productInlineParts.push({ inlineData: { data: base64, mimeType } });
-      }
+      const { base64, mimeType } = await fileToBase64(primary.file);
       const finalPrompt = constructPrompt(bundleSelectionRef.current);
-      
       const aspectRatio = options?.aspectRatio || '1:1';
-      const response = await ai.models.generateContent({
-        model: GEMINI_IMAGE_MODEL,
-        contents: { parts: [...productInlineParts, { text: finalPrompt }] },
-        generationConfig: { responseMimeType: 'image/png', aspectRatio },
-      });
 
-      const parts = response?.candidates?.[0]?.content?.parts ?? [];
-      for (const part of parts) {
-        if ('inlineData' in part && (part as any).inlineData?.data) {
-          const finalUrl = `data:image/png;base64,${(part as any).inlineData.data}`;
-          setGeneratedImageUrl(finalUrl);
-          runHiResPipeline(finalUrl);
-          const newCount = creditUsage + creditCost;
-          setCreditUsage(newCount);
-          if (typeof window !== 'undefined') {
-            window.localStorage.setItem(IMAGE_COUNT_KEY, String(newCount));
-          }
-          return; // Exit after finding the image
-        }
+      const resp = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          base64,
+          mimeType,
+          prompt: finalPrompt,
+          aspectRatio,
+        }),
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok || !data?.imageUrl) {
+        throw new Error(data?.error || 'Image generation failed');
       }
 
-      throw new Error("Image generation failed or returned no images.");
+      const finalUrl = data.imageUrl as string;
+      setGeneratedImageUrl(finalUrl);
+      runHiResPipeline(finalUrl);
+      const newCount = creditUsage + creditCost;
+      setCreditUsage(newCount);
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(IMAGE_COUNT_KEY, String(newCount));
+      }
     } catch (err) {
       console.error(err);
       // Fix: Safely convert unknown error type to string.
