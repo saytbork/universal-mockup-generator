@@ -15,8 +15,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   };
 
   const MODEL_ID = normalizeModel(process.env.GEMINI_MODEL_ID);
-  const defaultEngine = process.env.OPENAI_API_KEY ? 'openai' : 'gemini';
-  const imageEngine = (process.env.IMAGE_ENGINE || defaultEngine).toLowerCase();
+  const imageEngine = (process.env.IMAGE_ENGINE || 'gemini').toLowerCase();
 
   try {
     const { base64, mimeType, prompt, aspectRatio = '1:1' } = req.body;
@@ -59,6 +58,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // --- Gemini path (default) ---
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
+      // If Gemini key is missing but OpenAI is available, attempt OpenAI instead of failing silently.
+      const openaiKey = process.env.OPENAI_API_KEY;
+      if (openaiKey) {
+        const client = new OpenAI({ apiKey: openaiKey });
+        const sizeMap: Record<string, OpenAI.Images.ImageGenerateParams['size']> = {
+          '1:1': '1024x1024',
+          '16:9': '1792x1024',
+          '9:16': '1024x1792',
+          '4:5': '1024x1280',
+          '3:4': '1024x1365',
+        };
+        const size = sizeMap[aspectRatio] || '1024x1024';
+        const oaResponse = await client.images.generate({
+          model: 'dall-e-3',
+          prompt,
+          size,
+          quality: 'standard',
+          n: 1,
+        });
+        const b64 = oaResponse.data?.[0]?.b64_json;
+        if (b64) {
+          const imageUrl = `data:image/png;base64,${b64}`;
+          return res.status(200).json({ imageUrl, engine: 'openai' });
+        }
+      }
       return res.status(500).json({ error: "GEMINI_API_KEY is not configured on the server." });
     }
 
