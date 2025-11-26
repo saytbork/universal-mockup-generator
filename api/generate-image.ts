@@ -28,11 +28,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const replicateToken = process.env.REPLICATE_API_TOKEN;
   const envModel = process.env.REPLICATE_MODEL;
-  const safeModel =
+  // Default to flux-schnell; guard against invalid SD1.5 slug
+  const replicateModel =
     envModel && !envModel.startsWith('runwayml/stable-diffusion-v1-5')
       ? envModel
-      : 'black-forest-labs/flux-1-pro';
-  const replicateModel = safeModel;
+      : 'black-forest-labs/flux-schnell';
   const replicateModelVersion = process.env.REPLICATE_MODEL_VERSION;
   const allowPollinations = false; // Pollinations disabled (does not respect input image)
   const imageEngine = (process.env.IMAGE_ENGINE || 'replicate').toLowerCase();
@@ -66,7 +66,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     };
 
     const primaryModelId = replicateModelVersion ? `${replicateModel}:${replicateModelVersion}` : replicateModel;
-    const fallbackModelId = 'black-forest-labs/flux-1-schnell';
+    const fallbackModelId = 'black-forest-labs/flux-schnell';
 
     const runReplicate = async (modelId: string) => {
       const output = await replicate.run(modelId, { input });
