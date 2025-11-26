@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import { SignInButton, UserButton, SignedIn, SignedOut, useUser } from '@clerk/clerk-react';
+import type { Session } from '@supabase/supabase-js';
 import { useLocation } from 'react-router-dom';
 import { MockupOptions, OptionCategory, Option } from './types';
 import {
@@ -31,6 +31,7 @@ import {
   UGC_SPONTANEOUS_FRAMING_OPTIONS,
   UGC_REAL_MODE_BASE_PROMPT,
 } from './src/data/ugcPresets';
+import { supabase } from './supabaseClient';
 
 type UGCRealModeSettings = {
   isEnabled: boolean;
@@ -681,10 +682,15 @@ const App: React.FC = () => {
   // const [apiKeyError, setApiKeyError] = useState<string | null>(null); // Removed in favor of Clerk
   // const [isUsingStoredKey, setIsUsingStoredKey] = useState(false); // Removed in favor of Clerk
 
-  // Clerk Integration
-  const { user, isLoaded, isSignedIn } = useUser();
-  const isLoggedIn = !!isSignedIn;
-  const userEmail = user?.primaryEmailAddress?.emailAddress || '';
+  const [session, setSession] = useState<Session | null>(null);
+  const [sessionLoading, setSessionLoading] = useState(true);
+  const [userEmail, setUserEmail] = useState('');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [authLoading, setAuthLoading] = useState(false);
+  const isLoggedIn = Boolean(session);
 
 
   const [creditUsage, setCreditUsage] = useState(0); // tracks credits spent
@@ -760,8 +766,6 @@ const App: React.FC = () => {
   const microLocationDefault = MICRO_LOCATION_NONE_VALUE;
   const isHeroLandingMode = activeSupplementPreset === HERO_LANDING_PRESET_VALUE;
   const currentPlan = PLAN_CONFIG[planTier];
-  const shouldRequireLogin = !isLoggedIn;
-  const loginGateActive = shouldRequireLogin;
   const planCreditLimit = currentPlan.creditLimit;
   const planVideoLimit = Math.floor(planCreditLimit / VIDEO_CREDIT_COST);
   const remainingCredits = Math.max(planCreditLimit - creditUsage, 0);
@@ -965,6 +969,50 @@ const App: React.FC = () => {
       URL.revokeObjectURL(moodImagePreview);
     }
   }, [moodImagePreview]);
+
+  // Supabase auth
+  useEffect(() => {
+    const init = async () => {
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session ?? null);
+      setUserEmail(data.session?.user?.email ?? '');
+      setSessionLoading(false);
+    };
+    init();
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, sess) => {
+      setSession(sess);
+      setUserEmail(sess?.user?.email ?? '');
+      setSessionLoading(false);
+    });
+    return () => {
+      listener?.subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleAuthSubmit = useCallback(async () => {
+    setAuthError(null);
+    setAuthLoading(true);
+    try {
+      if (authMode === 'signin') {
+        const { error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.auth.signUp({ email: authEmail, password: authPassword });
+        if (error) throw error;
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setAuthError(msg);
+    } finally {
+      setAuthLoading(false);
+    }
+  }, [authMode, authEmail, authPassword]);
+
+  const handleLogout = useCallback(async () => {
+    await supabase.auth.signOut();
+    setSession(null);
+    setUserEmail('');
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -2849,6 +2897,7 @@ const App: React.FC = () => {
     setIsImageLoading(true);
 
     try {
+      const token = session?.access_token;
       const orderedAssets = productAssets
         .slice()
         .sort((a, b) => {
@@ -2864,7 +2913,10 @@ const App: React.FC = () => {
       const finalPrompt = constructPrompt(bundleSelectionRef.current);
       const response = await fetch('/api/generate-image', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ base64, mimeType, prompt: finalPrompt, userId: userEmail }),
       });
       const data = await response.json().catch(() => ({}));
@@ -2942,9 +2994,13 @@ const App: React.FC = () => {
         console.error('Client-side mask generation failed:', e);
       }
 
+      const token = session?.access_token;
       const response = await fetch('/api/edit-image', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ base64Image, maskBase64, prompt: prompt.trim(), userId: userEmail }),
       });
       const data = await response.json().catch(() => ({}));
@@ -2996,9 +3052,13 @@ const App: React.FC = () => {
     try {
       const base64Image = generatedImageUrl.split(',')[1];
       const aspectRatio = options.aspectRatio === '1:1' ? '9:16' : options.aspectRatio;
+      const token = session?.access_token;
       const response = await fetch('/api/generate-video', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ base64Image, prompt: videoPrompt, aspectRatio }),
       });
       const data = await response.json().catch(() => ({}));
@@ -3038,47 +3098,86 @@ const App: React.FC = () => {
 
   // API key overlay is disabled; backend handles the key.
 
-  // Add Clerk's isLoaded check
-  if (!isLoaded) {
+  if (sessionLoading) {
     return <div className="flex items-center justify-center h-screen bg-gray-900 text-white">Loading...</div>;
   }
 
-  return (
-    <>
-      <SignedOut>
-        <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-white">
-          <h1 className="text-4xl font-bold mb-8">Welcome to BoostUGC</h1>
-          <p className="mb-8 text-gray-400">Please sign in to continue</p>
-          <SignInButton mode="modal">
-            <button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition-colors">
-              Sign In
+  if (!session) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center px-4">
+        <div className="w-full max-w-md rounded-2xl border border-gray-800 bg-gray-950 p-6 shadow-2xl space-y-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-indigo-300 mb-2">BoostUGC</p>
+            <h1 className="text-2xl font-bold">Sign {authMode === 'signin' ? 'in' : 'up'} to continue</h1>
+            <p className="text-sm text-gray-400 mt-1">Use your email and password to access the app.</p>
+          </div>
+          {authError && <p className="text-sm text-red-400">{authError}</p>}
+          <div className="space-y-3">
+            <input
+              type="email"
+              value={authEmail}
+              onChange={e => setAuthEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="w-full rounded-lg border border-gray-700 bg-gray-850 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+            />
+            <input
+              type="password"
+              value={authPassword}
+              onChange={e => setAuthPassword(e.target.value)}
+              placeholder="••••••••"
+              className="w-full rounded-lg border border-gray-700 bg-gray-850 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+            />
+            <button
+              onClick={handleAuthSubmit}
+              disabled={authLoading}
+              className="w-full rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-900/50 disabled:cursor-not-allowed px-4 py-2 font-semibold text-white transition"
+            >
+              {authLoading ? 'Please wait…' : authMode === 'signin' ? 'Sign in' : 'Create account'}
             </button>
-          </SignInButton>
+            <button
+              type="button"
+              onClick={() => {
+                setAuthMode(authMode === 'signin' ? 'signup' : 'signin');
+                setAuthError(null);
+              }}
+              className="w-full text-sm text-indigo-300 hover:text-indigo-200"
+            >
+              {authMode === 'signin' ? 'Need an account? Sign up' : 'Already have an account? Sign in'}
+            </button>
+          </div>
         </div>
-      </SignedOut>
-      <SignedIn>
-        <div className="min-h-screen bg-gray-900 text-white font-sans selection:bg-blue-500/30">
-          {/* Header with UserButton */}
-          <header className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-xl sticky top-0 z-50">
-            <div className="max-w-[1600px] mx-auto px-4 h-16 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center font-bold text-white">
-                  B
-                </div>
-                <span className="font-bold text-lg tracking-tight">BoostUGC</span>
-                <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 text-xs font-medium border border-blue-500/20">
-                  Beta
-                </span>
-              </div>
-              <div className="flex items-center gap-4">
-                <UserButton afterSignOutUrl="/" />
-              </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-900 text-white font-sans selection:bg-blue-500/30">
+      <header className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-xl sticky top-0 z-50">
+        <div className="max-w-[1600px] mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center font-bold text-white">
+              B
             </div>
-          </header>
+            <span className="font-bold text-lg tracking-tight">BoostUGC</span>
+            <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 text-xs font-medium border border-blue-500/20">
+              Beta
+            </span>
+          </div>
+          <div className="flex items-center gap-3 text-sm text-gray-200">
+            <span className="text-gray-400">{userEmail}</span>
+            <button
+              onClick={handleLogout}
+              className="rounded-full border border-gray-600 px-3 py-1 font-semibold hover:bg-gray-800 transition"
+            >
+              Sign out
+            </button>
+          </div>
+        </div>
+      </header>
 
           {/* Main Content */}
-          <div className="max-w-[1600px] mx-auto p-6">
-            <div className="max-w-7xl mx-auto relative">
+      <div className="max-w-[1600px] mx-auto p-6">
+        <div className="max-w-7xl mx-auto relative">
               {isTrialLocked && (
                 <div className="fixed inset-0 z-40 flex flex-col justify-center items-center bg-gray-950/90 backdrop-blur-xl px-6 text-center">
                   <h2 className="text-2xl font-bold mb-4 text-white">You reached the {currentPlan.label} limit</h2>
@@ -3962,8 +4061,6 @@ const App: React.FC = () => {
             </div>
           </div>
         </div>
-      </SignedIn >
-    </>
   );
 };
 

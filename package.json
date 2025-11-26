@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@google/genai": "^1.27.0",
+    "@supabase/supabase-js": "^2.84.0",
     "@vercel/postgres": "^0.10.0",
     "canvas": "^3.2.0",
     "lucide-react": "^0.552.0",
@@ -17,8 +18,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.9.5",
-    "stripe": "^20.0.0",
-    "@supabase/supabase-js": "^2.45.4"
+    "stripe": "^20.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.9.0",
