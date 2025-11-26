@@ -44,7 +44,7 @@ export default async function handler(
       if (!opName) {
         throw new Error('Video operation name missing.');
       }
-      operation = await ai.operations.getVideosOperation({ name: opName });
+      operation = await ai.operations.getVideosOperation(opName as any);
     }
 
     if (operation.error) {

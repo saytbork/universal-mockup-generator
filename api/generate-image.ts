@@ -36,8 +36,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         '1:1': '1024x1024',
         '16:9': '1792x1024',
         '9:16': '1024x1792',
-        '4:5': '1024x1280',
-        '3:4': '1024x1365',
+        '4:5': '1024x1536',
+        '3:4': '1024x1536',
       };
       const size = sizeMap[aspectRatio] || '1024x1024';
       const response = await client.images.generate({
@@ -66,8 +66,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           '1:1': '1024x1024',
           '16:9': '1792x1024',
           '9:16': '1024x1792',
-          '4:5': '1024x1280',
-          '3:4': '1024x1365',
+          '4:5': '1024x1536',
+          '3:4': '1024x1536',
         };
         const size = sizeMap[aspectRatio] || '1024x1024';
         const oaResponse = await client.images.generate({
@@ -92,7 +92,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       model: MODEL_ID,
       contents: { parts: [{ inlineData: { data: base64, mimeType } }, { text: prompt }] },
       generationConfig: { responseMimeType: 'image/png' },
-    });
+    } as any);
 
     const imagePart =
       response.candidates?.[0]?.content?.parts?.find(
@@ -111,8 +111,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         '1:1': '1024x1024',
         '16:9': '1792x1024',
         '9:16': '1024x1792',
-        '4:5': '1024x1280',
-        '3:4': '1024x1365',
+        '4:5': '1024x1536',
+        '3:4': '1024x1536',
       };
       const size = sizeMap[aspectRatio] || '1024x1024';
       const oaResponse = await client.images.generate({
