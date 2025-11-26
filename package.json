@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@google/genai": "^1.27.0",
+    "openai": "^4.77.4",
     "canvas": "^3.2.0",
     "lucide-react": "^0.552.0",
     "nodemailer": "^6.9.15",
