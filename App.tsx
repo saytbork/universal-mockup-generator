@@ -515,6 +515,8 @@ const GOAL_VIBE_OPTIONS = [
   },
 ];
 
+const API_BASE = import.meta.env.VITE_API_BASE || '';
+
 const BUNDLE_TABS = [
   { id: 'premade', label: 'Pre-made Bundles' },
   { id: 'custom', label: 'Custom Bundle Builder' },
@@ -3352,7 +3354,7 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
       const finalPrompt = constructPrompt(bundleSelectionRef.current);
       const aspectRatio = options?.aspectRatio || '1:1';
 
-      const resp = await fetch('/api/generate-image', {
+      const resp = await fetch(`${API_BASE}/api/generate-image`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
