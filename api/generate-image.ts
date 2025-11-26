@@ -27,7 +27,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const replicateToken = process.env.REPLICATE_API_TOKEN;
-  const replicateModel = process.env.REPLICATE_MODEL || 'stability-ai/sdxl';
+  const replicateModel = process.env.REPLICATE_MODEL || 'black-forest-labs/flux-schnell';
+  const replicateModelVersion = process.env.REPLICATE_MODEL_VERSION;
   const allowPollinations = false; // Pollinations disabled (does not respect input image)
   const imageEngine = (process.env.IMAGE_ENGINE || 'replicate').toLowerCase();
 
@@ -59,7 +60,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       height: wh.height,
     };
 
-    const output = await replicate.run(replicateModel, { input });
+    const modelId = replicateModelVersion ? `${replicateModel}:${replicateModelVersion}` : replicateModel;
+    const output = await replicate.run(modelId, { input });
     const url = Array.isArray(output) ? output[0] : typeof output === 'string' ? output : null;
     if (url) {
       return res.status(200).json({ imageUrl: url, engine: 'replicate' });
