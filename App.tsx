@@ -787,6 +787,12 @@ const App: React.FC = () => {
   const isVideoLimitReached = !isTrialBypassActive && planVideoLimit > 0 && videoGenerationCount >= planVideoLimit;
   const showCaptionAssistant = false;
   useEffect(() => {
+    if (!isTrialBypassActive && !isAdmin && remainingCredits <= 0) {
+      setShowPlanModal(true);
+      setPlanNotice('Se agotaron los créditos del plan Free. Actualiza para seguir generando.');
+    }
+  }, [isTrialBypassActive, isAdmin, remainingCredits]);
+  useEffect(() => {
     if ((!personInScene || isProductPlacement) && ugcRealSettings.isEnabled) {
       persistUgcRealSettings(prev => ({ ...prev, isEnabled: false }));
     }
