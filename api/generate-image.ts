@@ -17,7 +17,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return { data, mimeType: mt };
   };
 
-  const normalizeModel = (raw?: string, fallback = 'gemini-2.0-flash-exp') => {
+  const normalizeModel = (raw?: string, fallback = 'gemini-2.5-flash') => {
     const model = (raw || fallback).replace(/^models\//, '');
     if (model.endsWith('-latest')) return model.replace(/-latest$/, '-001');
     if (model.endsWith('-002')) return model.replace(/-002$/, '-001');
