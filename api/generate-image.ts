@@ -6,6 +6,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
+  const normalizeImageInput = (input: string, mimeType?: string) => {
+    let data = input;
+    let mt = mimeType || 'image/png';
+    const dataUrlMatch = input.match(/^data:(.+);base64,(.*)$/);
+    if (dataUrlMatch) {
+      mt = dataUrlMatch[1] || mt;
+      data = dataUrlMatch[2] || '';
+    }
+    return { data, mimeType: mt };
+  };
+
   const normalizeModel = (raw?: string, fallback = 'gemini-2.5-flash') => {
     const model = (raw || fallback).replace(/^models\//, '');
     if (model.endsWith('-latest')) return model.replace(/-latest$/, '-001');
@@ -21,6 +32,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (!base64 || !mimeType || !prompt) {
       return res.status(400).json({ error: 'Missing required parameters: base64, mimeType, or prompt.' });
+    }
+    const { data: safeBase64, mimeType: safeMime } = normalizeImageInput(base64, mimeType);
+    if (!safeBase64) {
+      return res.status(400).json({ error: 'Invalid image payload (empty base64).' });
     }
 
     if (imageEngine !== 'gemini') {
@@ -40,7 +55,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         {
           role: 'user',
           parts: [
-            { inlineData: { data: base64, mimeType } },
+            { inlineData: { data: safeBase64, mimeType: safeMime } },
             { text: prompt },
           ],
         },
