@@ -10,14 +10,15 @@
   },
   "dependencies": {
     "@google/genai": "^1.27.0",
-    "node-fetch": "^3.3.2",
-    "openai": "^4.77.4",
     "canvas": "^3.2.0",
     "lucide-react": "^0.552.0",
+    "node-fetch": "^3.3.2",
     "nodemailer": "^6.9.15",
+    "openai": "^4.77.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^7.9.5"
+    "react-router-dom": "^7.9.5",
+    "replicate": "^1.4.0"
   },
   "devDependencies": {
     "@types/node": "^22.9.0",

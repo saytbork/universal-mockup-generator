@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import fetch from 'node-fetch';
+import Replicate from "replicate";
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -28,6 +29,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const MODEL_ID = normalizeModel(process.env.GEMINI_MODEL_ID);
   const imageEngine = (process.env.IMAGE_ENGINE || 'gemini').toLowerCase();
   const allowPollinations = process.env.ENABLE_POLLINATIONS === 'true' || !process.env.GEMINI_API_KEY;
+  const replicateToken = process.env.REPLICATE_API_TOKEN;
+  const replicateModel = process.env.REPLICATE_MODEL || 'black-forest-labs/flux-schnell';
 
   try {
     const { base64, mimeType, prompt, aspectRatio = '1:1' } = req.body;
@@ -84,6 +87,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (imagePart && 'inlineData' in imagePart) {
       const imageUrl = `data:image/png;base64,${(imagePart as any).inlineData.data}`;
       return res.status(200).json({ imageUrl });
+    }
+
+    // Fallback to Replicate if configured
+    if (replicateToken) {
+      const replicate = new Replicate({ auth: replicateToken });
+      const input: Record<string, unknown> = {
+        prompt,
+      };
+      // Some models accept "aspect_ratio"; flux-schnell supports "width"/"height" in newer versions.
+      // Keep minimal input for compatibility.
+      const output = await replicate.run(replicateModel, { input });
+      // output could be string or array of URLs
+      const url = Array.isArray(output) ? output[0] : typeof output === 'string' ? output : null;
+      if (url) {
+        return res.status(200).json({ imageUrl: url, engine: 'replicate' });
+      }
     }
 
     // If no image, try textual output and return it to avoid crashing.
