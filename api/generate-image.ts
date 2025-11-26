@@ -48,19 +48,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const ai = new GoogleGenAI({ apiKey, apiVersion: 'v1' });
+    const modelName = MODEL_ID.startsWith('models/') ? MODEL_ID : `models/${MODEL_ID}`;
 
     const response = await ai.models.generateContent({
-      model: MODEL_ID,
+      model: modelName,
       contents: [
         {
           role: 'user',
           parts: [
-            { inlineData: { data: safeBase64, mimeType: safeMime } },
+            { inlineData: { data: safeBase64, mimeType: safeMime || 'image/png' } },
             { text: prompt },
           ],
         },
       ],
-      generationConfig: { responseMimeType: 'image/png' },
+      generationConfig: { responseMimeType: 'image/png', aspectRatio },
     } as any);
 
     const imagePart =
