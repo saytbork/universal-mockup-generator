@@ -14,7 +14,14 @@ export default async function handler(
     return res.status(500).json({ error: "API key is not configured on the server." });
   }
 
-  const MODEL_ID = process.env.GEMINI_MODEL_ID || 'gemini-1.5-flash-002';
+  const normalizeModel = (raw?: string, fallback = 'gemini-2.5-flash-image-preview') => {
+    const model = (raw || fallback).replace(/^models\//, '');
+    if (model.endsWith('-latest')) return model.replace(/-latest$/, '-001');
+    if (model.endsWith('-002')) return model.replace(/-002$/, '-001');
+    return model;
+  };
+
+  const MODEL_ID = normalizeModel(process.env.GEMINI_MODEL_ID);
 
   try {
     const { base64, mimeType, prompt } = req.body;
@@ -23,7 +30,7 @@ export default async function handler(
       return res.status(400).json({ error: 'Missing required parameters: base64, mimeType, or prompt.' });
     }
 
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = new GoogleGenAI({ apiKey, apiVersion: 'v1' });
     
     const response = await ai.models.generateContent({
       model: MODEL_ID,
