@@ -515,7 +515,10 @@ const GOAL_VIBE_OPTIONS = [
   },
 ];
 
-const API_BASE = (import.meta.env.VITE_API_BASE || '').trim();
+const API_BASE = (
+  import.meta.env.VITE_API_BASE ||
+  (typeof window !== 'undefined' ? window.location.origin : '')
+).replace(/\/$/, '');
 
 const BUNDLE_TABS = [
   { id: 'premade', label: 'Pre-made Bundles' },
