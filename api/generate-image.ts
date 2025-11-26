@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import fetch from 'node-fetch';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -26,6 +27,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const MODEL_ID = normalizeModel(process.env.GEMINI_MODEL_ID);
   const imageEngine = (process.env.IMAGE_ENGINE || 'gemini').toLowerCase();
+  const allowPollinations = process.env.ENABLE_POLLINATIONS === 'true' || !process.env.GEMINI_API_KEY;
 
   try {
     const { base64, mimeType, prompt, aspectRatio = '1:1' } = req.body;
@@ -44,6 +46,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
+      // Try pollinations if allowed as a free fallback
+      if (allowPollinations) {
+        const pollUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&model=flux`;
+        const pollRes = await fetch(pollUrl);
+        if (pollRes.ok) {
+          const buf = await pollRes.arrayBuffer();
+          const b64 = Buffer.from(buf).toString('base64');
+          const imageUrl = `data:image/jpeg;base64,${b64}`;
+          return res.status(200).json({ imageUrl, engine: 'pollinations' });
+        }
+      }
       return res.status(500).json({ error: "GEMINI_API_KEY is not configured on the server." });
     }
 
@@ -95,6 +108,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       safetyRatings: candidate?.safetyRatings,
       text: textOutput || null,
     };
+
+    // Try pollinations as last resort if enabled
+    if (allowPollinations) {
+      const pollUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&model=flux`;
+      const pollRes = await fetch(pollUrl);
+      if (pollRes.ok) {
+        const buf = await pollRes.arrayBuffer();
+        const b64 = Buffer.from(buf).toString('base64');
+        const imageUrl = `data:image/jpeg;base64,${b64}`;
+        return res.status(200).json({ imageUrl, engine: 'pollinations', note: 'Gemini returned no image/text' });
+      }
+    }
+
     return res.status(500).json({ error: "Gemini returned no image data.", response: summary });
   } catch (error) {
     console.error("Error in /api/generate-image:", error);

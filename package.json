@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@google/genai": "^1.27.0",
+    "node-fetch": "^3.3.2",
     "openai": "^4.77.4",
     "canvas": "^3.2.0",
     "lucide-react": "^0.552.0",
