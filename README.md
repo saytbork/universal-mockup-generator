@@ -15,7 +15,7 @@ View your app in AI Studio: https://ai.studio/apps/drive/1nCgjRcjb-rdBNvRyhB2EXh
 
 1. Install dependencies:
    `npm install`
-2. Copy `.env.example` to `.env.local` and set `VITE_GEMINI_API_KEY` to your Gemini API key (or start the dev server and paste a key into the in-app prompt). You can also add `VITE_GOOGLE_CLIENT_ID` (from Google Identity Services) to enable one-click Google login, plus comma-separated `VITE_ADMIN_EMAILS` for accounts that should bypass plan limits.
+2. Copy `.env.example` to `.env.local` and set `GEMINI_API_KEY` to your Gemini API key (or start the dev server and paste a key into the in-app prompt). You can also add `VITE_GOOGLE_CLIENT_ID` (from Google Identity Services) to enable one-click Google login, plus comma-separated `VITE_ADMIN_EMAILS` for accounts that should bypass plan limits.
 3. Run the app:
    `npm run dev`
 
@@ -63,7 +63,7 @@ Leave them unset to fall back to the in-browser scaler (lower fidelity but no ex
 
 1. Create a new Vercel project and import this repository (or link the local folder with `vercel link`).
 2. Set the project environment variables:
-   - `VITE_GEMINI_API_KEY`: Gemini API key that has both image and VEO video access.
+  - `GEMINI_API_KEY`: Gemini API key that has both image and VEO video access.
 3. Keep the default build settings:
    - Framework Preset: **Vite**
    - Build Command: `npm run build`

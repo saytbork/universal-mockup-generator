@@ -15,7 +15,6 @@ const getSecret = () =>
   process.env.EMAIL_VERIFICATION_SECRET ||
   process.env.GENERATIVE_API_KEY ||
   process.env.GEMINI_API_KEY ||
-  process.env.VITE_GEMINI_API_KEY ||
   'fallback-secret';
 
 const signPayload = (payload: string) =>
