@@ -87,11 +87,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return url ?? null;
     };
 
+    let lastError: string | null = null;
+
     let url: string | null = null;
     try {
       url = await runReplicate(primaryModelId);
     } catch (err) {
       console.error(`Replicate primary model failed (${primaryModelId}):`, err);
+      lastError = err instanceof Error ? err.message : String(err);
     }
 
     if (!url && primaryModelId !== fallbackModelId) {
@@ -99,6 +102,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         url = await runReplicate(fallbackModelId);
       } catch (err) {
         console.error(`Replicate fallback model failed (${fallbackModelId}):`, err);
+        lastError = err instanceof Error ? err.message : String(err);
       }
     }
 
@@ -117,7 +121,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    return res.status(500).json({ error: 'Image generation failed (no output from Replicate).' });
+    return res.status(500).json({ error: 'Image generation failed (no output from Replicate).', detail: lastError });
   } catch (error) {
     console.error('Error in /api/generate-image:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
