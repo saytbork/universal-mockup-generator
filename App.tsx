@@ -376,14 +376,14 @@ const PLAN_STORAGE_KEY = 'ugc-plan-tier';
 const VIDEO_COUNT_KEY = 'ugc-video-generation-count';
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '';
 const EMAIL_VERIFICATION_ENABLED = import.meta.env.VITE_EMAIL_VERIFICATION === 'true';
-const normalizeGeminiModel = (raw?: string, fallback = 'gemini-1.5-flash') => {
+const normalizeGeminiModel = (raw?: string, fallback = 'gemini-2.5-flash-image-preview') => {
   const model = (raw || fallback).replace(/^models\//, '');
   if (model.endsWith('-latest')) return model.replace(/-latest$/, '-001');
   if (model.endsWith('-002')) return model.replace(/-002$/, '-001');
   return model;
 };
 
-const GEMINI_IMAGE_MODEL = normalizeGeminiModel(import.meta.env.VITE_GEMINI_MODEL, 'gemini-1.5-flash');
+const GEMINI_IMAGE_MODEL = normalizeGeminiModel(import.meta.env.VITE_GEMINI_MODEL);
 
 type PlanTier = 'free' | 'creator' | 'studio';
 
@@ -2257,7 +2257,7 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
         setIsCopyLoading(false);
         return;
       }
-      const ai = new GoogleGenAI({ apiKey: resolvedApiKey });
+      const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: 'v1' });
       const prompt = buildCopyPrompt(options);
       const response = await ai.models.generateContent({
         model: GEMINI_IMAGE_MODEL,
@@ -3342,7 +3342,7 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
         setIsImageLoading(false);
         return;
       }
-      const ai = new GoogleGenAI({ apiKey: resolvedApiKey });
+      const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: 'v1' });
       const orderedAssets = productAssets
         .slice()
         .sort((a, b) => {
@@ -3455,7 +3455,7 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
         setIsImageLoading(false);
         return;
       }
-      const ai = new GoogleGenAI({ apiKey: resolvedApiKey });
+      const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: 'v1' });
       const base64Image = generatedImageUrl.split(',')[1];
 
       const aspectRatio = options?.aspectRatio || '1:1';
@@ -3548,7 +3548,7 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
         setIsVideoLoading(false);
         return;
       }
-      const ai = new GoogleGenAI({ apiKey: resolvedApiKey });
+      const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: 'v1' });
       const base64Image = generatedImageUrl.split(',')[1];
 
       const getVideoAspectRatio = (): '16:9' | '9:16' => {
