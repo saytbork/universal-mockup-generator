@@ -677,10 +677,6 @@ const App: React.FC = () => {
   const [isImageLoading, setIsImageLoading] = useState(false);
   const [imageError, setImageError] = useState<string | null>(null);
   const [editPrompt, setEditPrompt] = useState('');
-  // const [apiKey, setApiKey] = useState<string>(envApiKey ?? ''); // Removed in favor of Clerk
-  // const [manualApiKey, setManualApiKey] = useState(''); // Removed in favor of Clerk
-  // const [apiKeyError, setApiKeyError] = useState<string | null>(null); // Removed in favor of Clerk
-  // const [isUsingStoredKey, setIsUsingStoredKey] = useState(false); // Removed in favor of Clerk
 
   const [session, setSession] = useState<Session | null>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
@@ -2471,8 +2467,6 @@ const App: React.FC = () => {
     setHeroProductScale(1);
     setHeroShadowStyle('softDrop');
   }, [resetOutputs, activeProductAsset]);
-
-  // handleLogout removed (handled by Clerk)
 
   const handleImageUpload = useCallback(async (files: File[]) => {
     const ALLOWED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
