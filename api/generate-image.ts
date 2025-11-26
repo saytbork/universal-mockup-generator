@@ -70,7 +70,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const runReplicate = async (modelId: string) => {
       const output = await replicate.run(modelId, { input });
-      const url = Array.isArray(output) ? output[0] : typeof output === 'string' ? output : null;
+      // Output can be string URL, array of URLs, or array of objects depending on the model
+      let url: string | null = null;
+      if (typeof output === 'string') {
+        url = output;
+      } else if (Array.isArray(output)) {
+        if (typeof output[0] === 'string') {
+          url = output[0] as string;
+        } else if (output[0] && typeof output[0] === 'object' && 'url' in (output[0] as any)) {
+          url = (output[0] as any).url as string;
+        }
+      }
+      if (!url) {
+        console.error('Replicate output without URL:', JSON.stringify(output, null, 2));
+      }
       return url ?? null;
     };
 
