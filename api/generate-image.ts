@@ -15,6 +15,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   };
 
   const MODEL_ID = normalizeModel(process.env.GEMINI_MODEL_ID);
+  const OPENAI_MODEL = process.env.OPENAI_MODEL_NAME || 'dall-e-3';
   const imageEngine = (process.env.IMAGE_ENGINE || 'gemini').toLowerCase();
 
   try {
@@ -41,7 +42,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       };
       const size = sizeMap[aspectRatio] || '1024x1024';
       const response = await client.images.generate({
-        model: 'dall-e-3',
+        model: OPENAI_MODEL,
         prompt,
         size,
         quality: 'standard',
@@ -71,7 +72,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         };
         const size = sizeMap[aspectRatio] || '1024x1024';
         const oaResponse = await client.images.generate({
-          model: 'dall-e-3',
+          model: OPENAI_MODEL,
           prompt,
           size,
           quality: 'standard',
@@ -116,7 +117,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       };
       const size = sizeMap[aspectRatio] || '1024x1024';
       const oaResponse = await client.images.generate({
-        model: 'dall-e-3',
+        model: OPENAI_MODEL,
         prompt,
         size,
         quality: 'standard',
