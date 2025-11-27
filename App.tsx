@@ -3358,12 +3358,20 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
         throw new Error(`Image generation failed: received non-JSON (check API_BASE and that vercel dev is running). Status ${resp.status}. ${text?.slice(0, 120) || ''}`);
       }
       if (!resp.ok || !data?.imageUrl) {
-        const detail =
+        const detailObj =
           data?.error ||
           data?.detail ||
           data?.detailString ||
           data?.message ||
           (resp.ok ? 'No imageUrl returned' : `HTTP ${resp.status}`);
+        const detail =
+          typeof detailObj === 'string'
+            ? detailObj
+            : detailObj
+            ? JSON.stringify(detailObj)
+            : resp.ok
+            ? 'No imageUrl returned'
+            : `HTTP ${resp.status}`;
         const extra = data?.rawOutput ? ` | raw=${JSON.stringify(data.rawOutput).slice(0, 200)}` : '';
         throw new Error(`Image generation failed: ${detail}${extra}`);
       }
