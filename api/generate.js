@@ -22,13 +22,14 @@ export default async function handler(req, res) {
 
   try {
     // Payload for imagen-3.0 generateImage endpoint
+    // Nota: quitar safetyFilterLevel para usar el valor por defecto (bloqueo estándar)
+    //       ya que "block_none" puede ser rechazado por políticas.
     const payload = JSON.stringify({
       prompt: { text: finalPrompt },
       imageGenerationConfig: {
         numberOfImages: 1,
         aspectRatio,
         quality: 'high',
-        safetyFilterLevel: 'block_none',
       },
     });
 
