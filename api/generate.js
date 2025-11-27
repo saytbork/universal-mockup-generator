@@ -37,7 +37,7 @@ export default async function handler(req, res) {
     console.log('MODEL:', modelName, 'API KEY last4:', apiKey.slice(-4));
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateImage?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateImage?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
