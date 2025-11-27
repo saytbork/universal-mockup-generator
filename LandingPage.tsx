@@ -304,10 +304,10 @@ const LandingPage: React.FC = () => {
           <div className="max-w-6xl mx-auto px-6 pt-8 pb-20 flex flex-col items-center text-center gap-12 relative">
             <div className="max-w-3xl space-y-6 animate-fade-up">
               <p className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-1 text-xs uppercase tracking-widest text-indigo-200/90">
-                <ShieldCheck className="w-3.5 h-3.5" /> UGC + Product Studio
+                <ShieldCheck className="w-3.5 h-3.5" /> BoostUGC · AI Product Studio
               </p>
               <h1 className="text-4xl sm:text-5xl font-bold text-white leading-tight">
-                Create mockups and UGC content with AI in minutes.
+                BoostUGC: product mockups in minutes, no photo shoot needed.
               </h1>
               <p className="text-lg text-gray-300">
                 Personalize your models, pick characters and moods, and generate campaign-ready images with just a few clicks. Swap scenes, talent, and lighting without the studio time.
