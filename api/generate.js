@@ -13,7 +13,7 @@ export default async function handler(req, res) {
   const body = req.body || {};
   const settings = body.settings || {};
   const aspectRatio = settings.aspectRatio || '1:1';
-  const modelName = process.env.IMAGEN_MODEL_NAME || 'imagen-3.0';
+  const modelName = process.env.IMAGEN_MODEL_NAME || 'imagen-3.0-generate-02';
   const finalPrompt = body.promptText || buildPrompt(settings);
 
   if (!finalPrompt || !String(finalPrompt).trim()) {
@@ -21,14 +21,17 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Payload for imagen-3.0 generateImage endpoint
+    // Vertex-style payload for Imagen 3 (predict)
     const payload = JSON.stringify({
-      prompt: { text: finalPrompt },
-      imageGenerationConfig: {
-        numberOfImages: 1,
+      instances: [
+        {
+          prompt: finalPrompt,
+        },
+      ],
+      parameters: {
+        sampleCount: 1,
         aspectRatio,
-        quality: 'high',
-        safetyFilterLevel: 'block_none',
+        outputMimeType: 'image/png',
       },
     });
 
@@ -37,7 +40,7 @@ export default async function handler(req, res) {
     console.log('MODEL:', modelName, 'API KEY last4:', apiKey.slice(-4));
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateImage?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/${modelName}:predict?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -48,6 +51,9 @@ export default async function handler(req, res) {
     // Tolerant parsing: try JSON, if it fails capture raw text
     let data;
     const rawText = await response.text();
+    console.log('GOOGLE STATUS:', response.status);
+    console.log('GOOGLE HEADERS:', Object.fromEntries(response.headers));
+    console.log('GOOGLE RAW:', rawText?.slice(0, 500) || '<empty>');
     try {
       data = rawText ? JSON.parse(rawText) : {};
     } catch (parseErr) {
@@ -69,10 +75,12 @@ export default async function handler(req, res) {
           detail: data?.detail || data?.message || null,
           raw: rawText || data,
           status: response.status,
+          headers: Object.fromEntries(response.headers),
         });
     }
 
     const base64 =
+      data?.predictions?.[0]?.bytesBase64Encoded ||
       data?.images?.[0]?.data ||
       data?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data ||
       null;
@@ -80,7 +88,12 @@ export default async function handler(req, res) {
     if (!base64) {
       return res
         .status(500)
-        .json({ error: 'Image generation returned no image data', raw: rawText || data, status: 500 });
+        .json({
+          error: 'Image generation returned no image data',
+          raw: rawText || data,
+          status: 500,
+          headers: Object.fromEntries(response.headers),
+        });
     }
 
     const imageUrl = `data:image/png;base64,${base64}`;
