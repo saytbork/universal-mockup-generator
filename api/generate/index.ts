@@ -23,11 +23,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const payload = JSON.stringify({
-      prompt: { text: finalPrompt },
-      imageGenerationConfig: {
-        numberOfImages: 1,
+      instances: [{ prompt: finalPrompt }],
+      parameters: {
+        sampleCount: 1,
         aspectRatio,
-        quality: 'high',
       },
     });
 
@@ -35,10 +34,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.log('MODEL:', modelName, 'API KEY last4:', apiKey.slice(-4));
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateImage?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:predict`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
+        },
         body: payload,
       }
     );
@@ -72,8 +74,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const base64 =
-      data?.images?.[0]?.data ||
-      data?.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData)?.inlineData?.data ||
+      data?.predictions?.[0]?.bytesBase64Encoded ||
+      data?.predictions?.[0]?.mimeType ||
       null;
 
     if (!base64) {
