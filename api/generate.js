@@ -21,6 +21,7 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Payload for imagen-3.0 generateImage endpoint
     const payload = JSON.stringify({
       prompt: { text: finalPrompt },
       imageGenerationConfig: {
@@ -61,7 +62,14 @@ export default async function handler(req, res) {
     }
 
     if (!response.ok) {
-      return res.status(response.status).json({ error: data?.error || data || 'Generation failed', raw: rawText });
+      return res
+        .status(response.status)
+        .json({
+          error: data?.error || 'Generation failed',
+          detail: data?.detail || data?.message || null,
+          raw: rawText || data,
+          status: response.status,
+        });
     }
 
     const base64 =
@@ -70,7 +78,9 @@ export default async function handler(req, res) {
       null;
 
     if (!base64) {
-      return res.status(500).json({ error: 'Image generation returned no image data', raw: data });
+      return res
+        .status(500)
+        .json({ error: 'Image generation returned no image data', raw: rawText || data, status: 500 });
     }
 
     const imageUrl = `data:image/png;base64,${base64}`;

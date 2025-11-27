@@ -3372,7 +3372,9 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
             : resp.ok
             ? 'No imageUrl returned'
             : `HTTP ${resp.status}`;
-        const extra = data?.rawOutput ? ` | raw=${JSON.stringify(data.rawOutput).slice(0, 200)}` : '';
+        const extraRaw =
+          data?.rawOutput || data?.raw || data || null;
+        const extra = extraRaw ? ` | raw=${JSON.stringify(extraRaw).slice(0, 300)}` : '';
         throw new Error(`Image generation failed: ${detail}${extra}`);
       }
 
