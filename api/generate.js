@@ -16,21 +16,31 @@ export default async function handler(req, res) {
   const modelName = process.env.IMAGEN_MODEL_NAME || 'imagen-3.0';
   const finalPrompt = body.promptText || buildPrompt(settings);
 
+  if (!finalPrompt || !String(finalPrompt).trim()) {
+    return res.status(400).json({ error: 'Missing prompt text' });
+  }
+
   try {
+    const payload = JSON.stringify({
+      prompt: { text: finalPrompt },
+      imageGenerationConfig: {
+        numberOfImages: 1,
+        aspectRatio,
+        quality: 'high',
+        safetyFilterLevel: 'block_none',
+      },
+    });
+
+    // Debug logs to diagnose payload issues (keep key truncated)
+    console.log('PAYLOAD SENT TO GOOGLE:', payload);
+    console.log('MODEL:', modelName, 'API KEY last4:', apiKey.slice(-4));
+
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateImage?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: { text: finalPrompt },
-          imageGenerationConfig: {
-            numberOfImages: 1,
-            aspectRatio,
-            quality: 'high',
-            safetyFilterLevel: 'block_none',
-          },
-        }),
+        body: payload,
       }
     );
 
