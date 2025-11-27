@@ -22,8 +22,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    const image = body.image;
+    const instance: any = { prompt: finalPrompt };
+
+    if (image && image.base64) {
+      instance.image = {
+        bytesBase64Encoded: image.base64
+      };
+    }
+
     const payload = JSON.stringify({
-      instances: [{ prompt: finalPrompt }],
+      instances: [instance],
       parameters: {
         sampleCount: 1,
         aspectRatio,
