@@ -399,21 +399,21 @@ const PLAN_CONFIG: Record<
 > = {
   free: {
     label: 'Free',
-    description: '10 credits · watermarked exports · community support',
+    description: '10 credits · Fast (SD 1.5) · watermark · comunidad',
     creditLimit: 10,
     allowStudio: false,
     allowCaption: false,
   },
   creator: {
     label: 'Creator',
-    description: '200 credits · no watermark · basic commercial license (SD 1.5)',
+    description: '200 credits · Fast (SD 1.5) sin marca · licencia básica',
     creditLimit: 200,
     allowStudio: true,
     allowCaption: true,
   },
   studio: {
     label: 'Studio',
-    description: '400 credits · photorealism PRO (SDXL) · priority rendering · full commercial license',
+    description: '400 credits · PRO (SDXL, 3 cr) · cola prioritaria · licencia full',
     creditLimit: 400,
     allowStudio: true,
     allowCaption: true,
@@ -585,6 +585,7 @@ const scaleImageToLongEdge = async (sourceUrl: string, targetLongEdge: number): 
 };
 
 const App: React.FC = () => {
+  const GEMINI_DISABLED = true; // Disable Gemini key gate/features while using Replicate
   const location = useLocation();
   const envApiKey = getEnvApiKey();
   const initialSceneRef = useRef<StoryboardScene | null>(null);
@@ -913,7 +914,7 @@ const App: React.FC = () => {
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null);
   const [videoError, setVideoError] = useState<string | null>(null);
   const [isAiStudioAvailable, setIsAiStudioAvailable] = useState(false);
-  const [isKeySelected, setIsKeySelected] = useState(Boolean(envApiKey));
+  const [isKeySelected, setIsKeySelected] = useState(true); // Always bypass Gemini key gate
 
   // State to manage which accordion is currently open
   const [openAccordion, setOpenAccordion] = useState<string | null>('Scene & Environment');
@@ -1257,6 +1258,9 @@ const App: React.FC = () => {
   }, [apiKeyError]);
 
   const getActiveApiKeyOrNotify = useCallback((notify: (message: string) => void): string | null => {
+    if (GEMINI_DISABLED) {
+      return null;
+    }
     const resolvedKey = apiKey || envApiKey;
     if (!resolvedKey) {
       notify('Please configure your Gemini API key to continue.');
@@ -1264,7 +1268,7 @@ const App: React.FC = () => {
       return null;
     }
     return resolvedKey;
-  }, [apiKey, envApiKey, requireNewApiKey]);
+  }, [apiKey, envApiKey, requireNewApiKey, GEMINI_DISABLED]);
 
   const toggleSimpleMode = useCallback(() => {
     setIsSimpleMode(prev => {
@@ -2018,40 +2022,14 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
     setHiResError(null);
     setFourKVariant(null);
     setTwoKVariant(null);
-    const [, base64Data = ''] = sourceUrl.split(',');
-    const mimeMatch = sourceUrl.match(/^data:(.*?);base64,/);
-    const mimeType = mimeMatch?.[1] ?? 'image/png';
     try {
-      const response = await fetch('/api/upscale-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: base64Data, mimeType }),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data?.imageBase64) {
-        throw new Error(data?.error || 'Could not reach the super-resolution service.');
-      }
-      const upscaleUrl = `data:${data.mimeType || 'image/png'};base64,${data.imageBase64}`;
-      const fourKImage = await loadImageFromUrl(upscaleUrl);
-      setFourKVariant({
-        url: upscaleUrl,
-        width: fourKImage.naturalWidth,
-        height: fourKImage.naturalHeight,
-      });
-      const twoK = await scaleImageToLongEdge(upscaleUrl, 2048);
+      const fourK = await scaleImageToLongEdge(sourceUrl, 3840);
+      setFourKVariant(fourK);
+      const twoK = await scaleImageToLongEdge(fourK.url, 2048);
       setTwoKVariant(twoK);
     } catch (error) {
-      console.error('Super-resolution failed, falling back to local scaling.', error);
-      try {
-        const fallbackFourK = await scaleImageToLongEdge(sourceUrl, 3840);
-        setFourKVariant(fallbackFourK);
-        const fallbackTwoK = await scaleImageToLongEdge(fallbackFourK.url, 2048);
-        setTwoKVariant(fallbackTwoK);
-        setHiResError('Super-resolution service unavailable. Using local upscale.');
-      } catch (fallbackError) {
-        console.error('Local upscale fallback failed.', fallbackError);
-        setHiResError(HIGH_RES_UNAVAILABLE_MESSAGE);
-      }
+      console.error('Local upscale failed.', error);
+      setHiResError(HIGH_RES_UNAVAILABLE_MESSAGE);
     } finally {
       setIsPreparingHiRes(false);
     }
@@ -2257,6 +2235,10 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
     setCopyError(null);
     setIsCopyLoading(true);
     try {
+      if (GEMINI_DISABLED) {
+        setCopyError('Caption generation is disabled while Gemini is off.');
+        return;
+      }
       const resolvedApiKey = getActiveApiKeyOrNotify(message => setCopyError(message));
       if (!resolvedApiKey) {
         setIsCopyLoading(false);
@@ -3358,20 +3340,32 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
       const aspectRatio = options?.aspectRatio || '1:1';
 
       const base = API_BASE || '';
-      const resp = await fetch(`${base}/api/generate-image`, {
+      const resp = await fetch(`${base}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          base64,
-          mimeType,
-          prompt: finalPrompt,
-          aspectRatio,
+          settings: { aspectRatio },
+          promptText: finalPrompt,
         }),
       });
-      const data = await resp.json().catch(() => ({}));
+      const contentType = resp.headers.get('content-type') || '';
+      let data: any = {};
+      if (contentType.includes('application/json')) {
+        data = await resp.json().catch(() => ({}));
+      } else {
+        // HTML or something else usually means API_BASE is wrong and we hit the SPA HTML.
+        const text = await resp.text().catch(() => '');
+        throw new Error(`Image generation failed: received non-JSON (check API_BASE and that vercel dev is running). Status ${resp.status}. ${text?.slice(0, 120) || ''}`);
+      }
       if (!resp.ok || !data?.imageUrl) {
-        const detail = data?.error || `HTTP ${resp.status}`;
-        throw new Error(`Image generation failed: ${detail}`);
+        const detail =
+          data?.error ||
+          data?.detail ||
+          data?.detailString ||
+          data?.message ||
+          (resp.ok ? 'No imageUrl returned' : `HTTP ${resp.status}`);
+        const extra = data?.rawOutput ? ` | raw=${JSON.stringify(data.rawOutput).slice(0, 200)}` : '';
+        throw new Error(`Image generation failed: ${detail}${extra}`);
       }
 
       const finalUrl = data.imageUrl as string;
@@ -3440,6 +3434,10 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
     setImageError(null);
 
     try {
+      if (GEMINI_DISABLED) {
+        setImageError('Image editing is disabled while Gemini is off.');
+        return;
+      }
       const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
       if (!resolvedApiKey) {
         setIsImageLoading(false);
@@ -3529,6 +3527,10 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
     setGeneratedVideoUrl(null);
 
     try {
+      if (GEMINI_DISABLED) {
+        setVideoError("Video generation is disabled while Gemini is off.");
+        return;
+      }
       const resolvedApiKey = getActiveApiKeyOrNotify(message => setVideoError(message));
       if (!resolvedApiKey) {
         setIsVideoLoading(false);
@@ -3799,7 +3801,7 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
     return renderLoginScreen();
   }
 
-  if (!isKeySelected) {
+  if (!isKeySelected && !GEMINI_DISABLED) {
     return renderApiKeyScreen();
   }
 

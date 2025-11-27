@@ -106,9 +106,10 @@ const pricing: PricingPlan[] = [
     monthlyCaption: 'per month',
     yearlyCaption: 'per year',
     highlights: [
-      '10 credits (one-time)',
-      'Watermarked exports',
-      'Community support',
+      '10 starter credits to test the platform.',
+      'Fast Generation engine (SD 1.5). Consumption: 1 credit.',
+      'Watermarked exports (non-commercial use).',
+      'Basic support via community and docs.',
     ],
     cta: 'Start Free',
     isFree: true,
@@ -120,10 +121,10 @@ const pricing: PricingPlan[] = [
     monthlyCaption: 'per month',
     yearlyCaption: 'per year (save 25%)',
     highlights: [
-      '200 credits · ~$0.075/credit',
-      '2 videos/mes (10 créditos c/u)',
-      'Sin marca de agua',
-      'Licencia comercial básica · SD 1.5',
+      '200 monthly credits for light production.',
+      'Fast Generation engine (SD 1.5). Consumption: 1 credit.',
+      'No watermark + basic commercial license.',
+      'No access to Photorealism PRO (SDXL).',
     ],
     cta: 'Upgrade to Creator',
     checkoutUrl: creatorCheckoutUrl,
@@ -138,10 +139,10 @@ const pricing: PricingPlan[] = [
     monthlyCaption: 'per month',
     yearlyCaption: 'per year (save 25%)',
     highlights: [
-      '400 credits · ~$0.072/credit',
-      '4 videos/mes (10 créditos c/u)',
-      'Sin marca de agua',
-      'Cola prioritaria · Licencia full · SDXL',
+      '400 monthly credits (best value).',
+      'Photorealism PRO (SDXL). Consumption: 3 credits.',
+      'Priority render queue for faster results.',
+      'Full commercial license with no restrictions.',
     ],
     cta: 'Upgrade to Studio',
     checkoutUrl: studioCheckoutUrl,
@@ -333,23 +334,23 @@ const LandingPage: React.FC = () => {
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-xs uppercase tracking-[0.2em] text-indigo-200">Access instructions</p>
-                    <h3 className="text-lg font-semibold text-white mt-1">Cómo entrar al builder</h3>
+                    <h3 className="text-lg font-semibold text-white mt-1">How to access the builder</h3>
                   </div>
                   <div className="rounded-full bg-indigo-500/20 px-3 py-1 text-xs font-medium text-indigo-100">
-                    Envíos desde: amisaodesign@gmail.com
+                    Emails come from: amisaodesign@gmail.com
                   </div>
                 </div>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-xl border border-white/5 bg-gray-800/60 p-4">
-                    <p className="text-sm font-semibold text-white">Opción 1: Google</p>
-                    <p className="text-sm text-gray-300 mt-1">Haz clic en “Launch App” y elige “Continuar con Google” para entrar de inmediato.</p>
+                    <p className="text-sm font-semibold text-white">Option 1: Google</p>
+                    <p className="text-sm text-gray-300 mt-1">Click “Launch App” and choose “Continue with Google” to enter instantly.</p>
                   </div>
                   <div className="rounded-xl border border-white/5 bg-gray-800/60 p-4">
-                    <p className="text-sm font-semibold text-white">Opción 2: Email con código</p>
-                    <p className="text-sm text-gray-300 mt-1">Ingresa tu correo, te enviamos un código de 6 dígitos desde <span className="font-semibold text-indigo-100">amisaodesign@gmail.com</span>. Revisa spam/promociones.</p>
+                    <p className="text-sm font-semibold text-white">Option 2: Email with code</p>
+                    <p className="text-sm text-gray-300 mt-1">Enter your email, we’ll send a 6-digit code from <span className="font-semibold text-indigo-100">amisaodesign@gmail.com</span>. Check spam/promotions.</p>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">Si no ves el email en 1-2 minutos, reenvía el código o prueba con Google. Los admins definidos en VITE_ADMIN_EMAILS saltan los límites de prueba.</p>
+                <p className="text-xs text-gray-500 mt-2">If you don’t see the email in 1–2 minutes, resend the code or try Google. Admins defined in VITE_ADMIN_EMAILS bypass trial limits.</p>
               </div>
             </div>
           </div>
@@ -589,7 +590,7 @@ const LandingPage: React.FC = () => {
             })}
           </div>
           <p className="text-center text-sm text-gray-400">
-            1 credit equals 1 standard image. UGC images require 2–4 credits. Video requires 15 credits.
+            REMINDER: 1 credit equals 1 image generated in Fast Mode (SD 1.5). Images generated in Photorealism PRO Mode (SDXL) consume 3 credits per execution.
           </p>
 
           {selectedPlan && (

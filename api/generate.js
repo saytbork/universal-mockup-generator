@@ -1,0 +1,72 @@
+import { buildPrompt } from '../utils/promptBuilder.js';
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  const apiKey = process.env.GOOGLE_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ error: 'GOOGLE_API_KEY is missing' });
+  }
+
+  const body = req.body || {};
+  const settings = body.settings || {};
+  const aspectRatio = settings.aspectRatio || '1:1';
+  const modelName = process.env.IMAGEN_MODEL_NAME || 'imagen-3.0';
+  const finalPrompt = body.promptText || buildPrompt(settings);
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateImage?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: { text: finalPrompt },
+          imageGenerationConfig: {
+            numberOfImages: 1,
+            aspectRatio,
+            quality: 'high',
+            safetyFilterLevel: 'block_none',
+          },
+        }),
+      }
+    );
+
+    // Tolerant parsing: try JSON, if it fails capture raw text
+    let data;
+    const rawText = await response.text();
+    try {
+      data = rawText ? JSON.parse(rawText) : {};
+    } catch (parseErr) {
+      data = { error: rawText || 'Non-JSON response from Imagen' };
+    }
+
+    if (data?.error?.message && String(data.error.message).toLowerCase().includes('safety')) {
+      return res.status(403).json({
+        error: 'Google blocked this generation due to safety filters. Try a safer prompt or remove sensitive content.',
+        detail: data.error.message,
+      });
+    }
+
+    if (!response.ok) {
+      return res.status(response.status).json({ error: data?.error || data || 'Generation failed', raw: rawText });
+    }
+
+    const base64 =
+      data?.images?.[0]?.data ||
+      data?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data ||
+      null;
+
+    if (!base64) {
+      return res.status(500).json({ error: 'Image generation returned no image data', raw: data });
+    }
+
+    const imageUrl = `data:image/png;base64,${base64}`;
+    return res.status(200).json({ imageUrl, raw: data });
+  } catch (error) {
+    console.error('Error generating with Imagen:', error);
+    return res.status(500).json({ error: 'Image generation failed', detail: String(error) });
+  }
+}
