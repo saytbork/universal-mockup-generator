@@ -3386,21 +3386,23 @@ const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
       }
     } catch (err) {
       console.error(err);
-      // Fix: Safely convert unknown error type to string.
-      let errorMessage = String(err);
-      try {
-        const errorJson = JSON.parse(errorMessage);
-        if (errorJson.error && errorJson.error.message) {
-            errorMessage = String(errorJson.error.message);
+      let errorMessage = '';
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      } else {
+        try {
+          errorMessage = JSON.stringify(err);
+        } catch {
+          errorMessage = String(err);
         }
-      } catch (parseError) {
-        // Not a JSON string, use original message
       }
-      
-      if (errorMessage.includes("Requested entity was not found")) {
-        setImageError("Your API Key is invalid. Please select a valid key to continue.");
+
+      if (errorMessage.includes('Requested entity was not found')) {
+        setImageError('Your API Key is invalid. Please select a valid key to continue.');
         handleApiKeyInvalid();
-      } else if (errorMessage.toLowerCase().includes("quota")) {
+      } else if (errorMessage.toLowerCase().includes('quota')) {
         setImageError("API quota exceeded. Please select a different API key, or check your current key's plan and billing details.");
         handleApiKeyInvalid();
       } else {
