@@ -13,7 +13,7 @@ export default async function handler(req, res) {
   const body = req.body || {};
   const settings = body.settings || {};
   const aspectRatio = settings.aspectRatio || '1:1';
-  const modelName = process.env.IMAGEN_MODEL_NAME || 'imagen-3.0-generate-02';
+  const modelName = process.env.IMAGEN_MODEL_NAME || 'imagen-3.0';
   const finalPrompt = body.promptText || buildPrompt(settings);
 
   if (!finalPrompt || !String(finalPrompt).trim()) {
@@ -21,17 +21,14 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Vertex-style payload for Imagen 3 (predict)
+    // Payload for imagen-3.0 generateImage endpoint
     const payload = JSON.stringify({
-      instances: [
-        {
-          prompt: finalPrompt,
-        },
-      ],
-      parameters: {
-        sampleCount: 1,
+      prompt: { text: finalPrompt },
+      imageGenerationConfig: {
+        numberOfImages: 1,
         aspectRatio,
-        outputMimeType: 'image/png',
+        quality: 'high',
+        safetyFilterLevel: 'block_none',
       },
     });
 
@@ -40,7 +37,7 @@ export default async function handler(req, res) {
     console.log('MODEL:', modelName, 'API KEY last4:', apiKey.slice(-4));
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/${modelName}:predict?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateImage?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -80,7 +77,6 @@ export default async function handler(req, res) {
     }
 
     const base64 =
-      data?.predictions?.[0]?.bytesBase64Encoded ||
       data?.images?.[0]?.data ||
       data?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data ||
       null;
