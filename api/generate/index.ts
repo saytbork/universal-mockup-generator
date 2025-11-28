@@ -37,10 +37,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const payload = JSON.stringify({
-      contents: [{ parts }],
-      generationConfig: {
-        responseMimeType: "image/jpeg"
-      }
+      contents: [{ parts }]
     });
 
     console.log('PAYLOAD SENT TO GOOGLE (Gemini):', JSON.stringify({ ...JSON.parse(payload), contents: '[HIDDEN]' })); // Hide huge base64 in logs
