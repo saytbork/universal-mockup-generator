@@ -14,7 +14,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const body = req.body || {};
   const settings = body.settings || {};
   const aspectRatio = settings.aspectRatio || '1:1';
-  const modelName = process.env.IMAGEN_MODEL_NAME || 'gemini-2.5-flash-image';
+  const modelName = process.env.IMAGEN_MODEL_NAME || 'gemini-2.5-flash-image-preview';
   const finalPrompt = body.promptText || buildPrompt(settings);
 
   if (!finalPrompt || !String(finalPrompt).trim()) {
@@ -77,9 +77,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Gemini returns image in candidates[0].content.parts[0].inlineData
 
     const candidate = data?.candidates?.[0];
-    const part = candidate?.content?.parts?.[0];
-    const base64 = part?.inlineData?.data;
-    const mimeType = part?.inlineData?.mimeType || 'image/jpeg';
+    const parts = candidate?.content?.parts || [];
+
+    // Find the part with inlineData (image)
+    const imagePart = parts.find((p: any) => p.inlineData);
+
+    const base64 = imagePart?.inlineData?.data;
+    const mimeType = imagePart?.inlineData?.mimeType || 'image/jpeg';
 
     if (!base64) {
       console.error('No image data in Gemini response:', JSON.stringify(data).slice(0, 500));
