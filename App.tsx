@@ -322,6 +322,7 @@ import ImageEditor from './components/ImageEditor';
 import ModelReferencePanel from './components/ModelReferencePanel';
 import MoodReferencePanel from './components/MoodReferencePanel';
 import OnboardingOverlay from './components/OnboardingOverlay';
+import { FirebaseAuthGate } from './components/FirebaseAuthGate';
 
 const describeAgeGroup = (ageGroup: string, gender: string) => {
   const genderNoun =
@@ -3816,15 +3817,6 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto relative">
-        {isTrialLocked && (
-          <div className="fixed inset-0 z-40 flex flex-col justify-center items-center bg-gray-950/90 backdrop-blur-xl px-6 text-center">
-            <h2 className="text-2xl font-bold mb-4 text-white">You reached the {currentPlan.label} limit</h2>
-            <p className="mb-6 text-gray-300 max-w-lg">
-              This plan includes {planCreditLimit} credits. Upgrade to unlock more scenes. Admin users are auto-unlocked when signed in.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md mb-4">
               <button
                 onClick={() => (window.location.href = '/#pricing')}
                 className="flex-1 rounded-full bg-indigo-500 px-6 py-3 font-semibold text-white hover:bg-indigo-400 transition"
@@ -3837,143 +3829,147 @@ const App: React.FC = () => {
               >
                 Change plan
               </button>
-            </div>
-            <p className="mt-4 text-xs text-gray-500">Need help? Contact the product team.</p>
+            </div >
+  <p className="mt-4 text-xs text-gray-500">Need help? Contact the product team.</p>
+          </div >
+        )}
+<OnboardingOverlay
+  visible={shouldShowOnboarding}
+  currentStep={onboardingStep}
+  steps={onboardingStepsMeta}
+  onNext={handleOnboardingNext}
+  onSkip={skipOnboarding}
+/>
+{
+  showGoalWizard && (
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 px-4">
+      <div className="w-full max-w-3xl rounded-3xl border border-white/10 bg-gray-950 p-6 md:p-10 shadow-2xl space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.4em] text-indigo-200">Quick start wizard</p>
+            <h3 className="text-2xl md:text-3xl font-semibold text-white mt-2">Let’s set up your scene</h3>
+          </div>
+          <button onClick={handleGoalWizardSkip} className="text-sm text-gray-400 hover:text-white">Skip</button>
+        </div>
+        <p className="text-sm text-gray-400">Step {goalWizardStep} / 3</p>
+        {goalWizardStep === 1 && (
+          <div className="grid gap-4 md:grid-cols-2">
+            {[
+              { value: 'ugc', title: 'UGC Lifestyle', description: 'Creators interacting with your product in real life.' },
+              { value: 'product', title: 'Product Placement', description: 'Stylized hero shots without people.' },
+            ].map(option => (
+              <button
+                key={option.value}
+                onClick={() => handleGoalWizardSelect('goal', option.value)}
+                className={`rounded-2xl border p-4 text-left transition ${goalWizardData.goal === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
+              >
+                <p className="text-lg font-semibold">{option.title}</p>
+                <p className="text-sm text-gray-400 mt-2">{option.description}</p>
+              </button>
+            ))}
           </div>
         )}
-        <OnboardingOverlay
-          visible={shouldShowOnboarding}
-          currentStep={onboardingStep}
-          steps={onboardingStepsMeta}
-          onNext={handleOnboardingNext}
-          onSkip={skipOnboarding}
-        />
-        {showGoalWizard && (
-          <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 px-4">
-            <div className="w-full max-w-3xl rounded-3xl border border-white/10 bg-gray-950 p-6 md:p-10 shadow-2xl space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.4em] text-indigo-200">Quick start wizard</p>
-                  <h3 className="text-2xl md:text-3xl font-semibold text-white mt-2">Let’s set up your scene</h3>
-                </div>
-                <button onClick={handleGoalWizardSkip} className="text-sm text-gray-400 hover:text-white">Skip</button>
-              </div>
-              <p className="text-sm text-gray-400">Step {goalWizardStep} / 3</p>
-              {goalWizardStep === 1 && (
-                <div className="grid gap-4 md:grid-cols-2">
-                  {[
-                    { value: 'ugc', title: 'UGC Lifestyle', description: 'Creators interacting with your product in real life.' },
-                    { value: 'product', title: 'Product Placement', description: 'Stylized hero shots without people.' },
-                  ].map(option => (
-                    <button
-                      key={option.value}
-                      onClick={() => handleGoalWizardSelect('goal', option.value)}
-                      className={`rounded-2xl border p-4 text-left transition ${goalWizardData.goal === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
-                    >
-                      <p className="text-lg font-semibold">{option.title}</p>
-                      <p className="text-sm text-gray-400 mt-2">{option.description}</p>
-                    </button>
-                  ))}
-                </div>
-              )}
-              {goalWizardStep === 2 && (
-                <div className="grid gap-3 md:grid-cols-3">
-                  {GOAL_VIBE_OPTIONS.map(option => (
-                    <button
-                      key={option.value}
-                      onClick={() => handleGoalWizardSelect('vibe', option.value)}
-                      className={`rounded-2xl border p-4 text-left transition ${goalWizardData.vibe === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
-                    >
-                      <p className="text-base font-semibold">{option.label}</p>
-                      <p className="text-sm text-gray-400 mt-2">{option.description}</p>
-                    </button>
-                  ))}
-                </div>
-              )}
-              {goalWizardStep === 3 && (
-                <div className="grid gap-3 md:grid-cols-2">
-                  {CREATOR_PRESETS.filter(preset => preset.value !== 'custom').map(preset => (
-                    <button
-                      key={preset.value}
-                      onClick={() => handleGoalWizardSelect('preset', preset.value)}
-                      className={`rounded-2xl border p-4 text-left transition ${goalWizardData.preset === preset.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
-                    >
-                      <p className="text-base font-semibold">{preset.label}</p>
-                      <p className="text-sm text-gray-400 mt-2">{preset.description}</p>
-                    </button>
-                  ))}
-                </div>
-              )}
-              <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                <button onClick={goalWizardStep === 1 ? handleGoalWizardSkip : handleGoalWizardBack} className="text-sm text-gray-400 hover:text-white">
-                  {goalWizardStep === 1 ? 'Skip wizard' : 'Back'}
-                </button>
-                {goalWizardStep < 3 ? (
-                  <button onClick={handleGoalWizardNext} className="rounded-full bg-indigo-500 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-400 transition">
-                    Next
-                  </button>
-                ) : (
-                  <button onClick={handleGoalWizardComplete} className="rounded-full bg-emerald-500 px-6 py-2 text-sm font-semibold text-white hover:bg-emerald-400 transition">
-                    Apply &amp; build
-                  </button>
-                )}
-              </div>
-            </div>
+        {goalWizardStep === 2 && (
+          <div className="grid gap-3 md:grid-cols-3">
+            {GOAL_VIBE_OPTIONS.map(option => (
+              <button
+                key={option.value}
+                onClick={() => handleGoalWizardSelect('vibe', option.value)}
+                className={`rounded-2xl border p-4 text-left transition ${goalWizardData.vibe === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
+              >
+                <p className="text-base font-semibold">{option.label}</p>
+                <p className="text-sm text-gray-400 mt-2">{option.description}</p>
+              </button>
+            ))}
           </div>
         )}
-        {showPlanModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-            <div className="w-full max-w-3xl rounded-3xl border border-white/10 bg-gray-950 p-6 md:p-8 shadow-2xl space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.4em] text-indigo-200">Manage plan</p>
-                  <h3 className="text-2xl font-semibold text-white mt-1">Choose what fits your launch</h3>
-                </div>
-                <button onClick={() => { setShowPlanModal(false); setPlanCodeInput(''); setPlanCodeError(null); setPlanNotice(null); }} className="text-sm text-gray-400 hover:text-white">
-                  Close
-                </button>
-              </div>
-              <div className="grid gap-3 md:grid-cols-2">
-                {Object.entries(PLAN_CONFIG).map(([tier, config]) => (
-                  <button
-                    key={tier}
-                    onClick={() => handlePlanTierSelect(tier as PlanTier)}
-                    className={`rounded-2xl border p-4 text-left transition ${planTier === tier ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
-                  >
-                    <p className="text-lg font-semibold">{config.label}</p>
-                    <p className="text-sm text-gray-400 mt-1">{config.description}</p>
-                    <p className="text-xs mt-2">
-                      {planTier === tier ? 'Current plan' : 'Select plan'}
-                    </p>
-                  </button>
-                ))}
-              </div>
-              <div className="space-y-2 text-left">
-                <p className="text-xs uppercase tracking-[0.3em] text-gray-500">Have an upgrade code?</p>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <input
-                    type="text"
-                    value={planCodeInput}
-                    onChange={(e) => {
-                      setPlanCodeInput(e.target.value);
-                      if (planCodeError) setPlanCodeError(null);
-                    }}
-                    placeholder="Enter the code from your receipt"
-                    className="flex-1 rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-white focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                  />
-                  <button
-                    type="button"
-                    onClick={handlePlanCodeSubmit}
-                    className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400 transition"
-                  >
-                    Apply
-                  </button>
-                </div>
-                {planCodeError && <p className="text-xs text-red-300">{planCodeError}</p>}
-              </div>
-            </div>
+        {goalWizardStep === 3 && (
+          <div className="grid gap-3 md:grid-cols-2">
+            {CREATOR_PRESETS.filter(preset => preset.value !== 'custom').map(preset => (
+              <button
+                key={preset.value}
+                onClick={() => handleGoalWizardSelect('preset', preset.value)}
+                className={`rounded-2xl border p-4 text-left transition ${goalWizardData.preset === preset.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
+              >
+                <p className="text-base font-semibold">{preset.label}</p>
+                <p className="text-sm text-gray-400 mt-2">{preset.description}</p>
+              </button>
+            ))}
           </div>
         )}
+        <div className="flex items-center justify-between pt-4 border-t border-white/5">
+          <button onClick={goalWizardStep === 1 ? handleGoalWizardSkip : handleGoalWizardBack} className="text-sm text-gray-400 hover:text-white">
+            {goalWizardStep === 1 ? 'Skip wizard' : 'Back'}
+          </button>
+          {goalWizardStep < 3 ? (
+            <button onClick={handleGoalWizardNext} className="rounded-full bg-indigo-500 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-400 transition">
+              Next
+            </button>
+          ) : (
+            <button onClick={handleGoalWizardComplete} className="rounded-full bg-emerald-500 px-6 py-2 text-sm font-semibold text-white hover:bg-emerald-400 transition">
+              Apply &amp; build
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+{
+  showPlanModal && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+      <div className="w-full max-w-3xl rounded-3xl border border-white/10 bg-gray-950 p-6 md:p-8 shadow-2xl space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.4em] text-indigo-200">Manage plan</p>
+            <h3 className="text-2xl font-semibold text-white mt-1">Choose what fits your launch</h3>
+          </div>
+          <button onClick={() => { setShowPlanModal(false); setPlanCodeInput(''); setPlanCodeError(null); setPlanNotice(null); }} className="text-sm text-gray-400 hover:text-white">
+            Close
+          </button>
+        </div>
+        <div className="grid gap-3 md:grid-cols-2">
+          {Object.entries(PLAN_CONFIG).map(([tier, config]) => (
+            <button
+              key={tier}
+              onClick={() => handlePlanTierSelect(tier as PlanTier)}
+              className={`rounded-2xl border p-4 text-left transition ${planTier === tier ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
+            >
+              <p className="text-lg font-semibold">{config.label}</p>
+              <p className="text-sm text-gray-400 mt-1">{config.description}</p>
+              <p className="text-xs mt-2">
+                {planTier === tier ? 'Current plan' : 'Select plan'}
+              </p>
+            </button>
+          ))}
+        </div>
+        <div className="space-y-2 text-left">
+          <p className="text-xs uppercase tracking-[0.3em] text-gray-500">Have an upgrade code?</p>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="text"
+              value={planCodeInput}
+              onChange={(e) => {
+                setPlanCodeInput(e.target.value);
+                if (planCodeError) setPlanCodeError(null);
+              }}
+              placeholder="Enter the code from your receipt"
+              className="flex-1 rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-white focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+            />
+            <button
+              type="button"
+              onClick={handlePlanCodeSubmit}
+              className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400 transition"
+            >
+              Apply
+            </button>
+          </div>
+          {planCodeError && <p className="text-xs text-red-300">{planCodeError}</p>}
+        </div>
+      </div>
+    </div>
+  )
+}
 
         <header className="text-center mb-8">
           <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500">
@@ -4692,8 +4688,8 @@ const App: React.FC = () => {
             </div>
           </fieldset>
         </main>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 
