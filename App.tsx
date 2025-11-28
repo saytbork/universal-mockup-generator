@@ -403,8 +403,8 @@ const PLAN_CONFIG: Record<
 > = {
   free: {
     label: 'Free',
-    description: '10 credits · Fast engine · watermark · comunidad',
-    creditLimit: 10,
+    description: '2 credits · Fast engine · watermark · comunidad',
+    creditLimit: 2,
     allowStudio: false,
     allowCaption: false,
     priceLabel: '$0',
@@ -748,7 +748,13 @@ const App: React.FC = () => {
   const [generatedCopy, setGeneratedCopy] = useState<string | null>(null);
   const [isCopyLoading, setIsCopyLoading] = useState(false);
   const [copyError, setCopyError] = useState<string | null>(null);
-  const [planTier, setPlanTier] = useState<PlanTier>('free');
+  const [planTier, setPlanTier] = useState<PlanTier>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = window.localStorage.getItem(PLAN_STORAGE_KEY) as PlanTier | null;
+      if (saved === 'creator' || saved === 'studio' || saved === 'free') return saved;
+    }
+    return 'free';
+  });
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [planCodeInput, setPlanCodeInput] = useState('');
   const [planCodeError, setPlanCodeError] = useState<string | null>(null);

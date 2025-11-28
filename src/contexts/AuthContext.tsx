@@ -16,7 +16,7 @@ interface AuthContextType {
     loading: boolean;
     isGuest: boolean;
     signInWithGoogle: () => Promise<void>;
-    sendMagicLink: (email: string) => Promise<void>;
+    sendMagicLink: (email: string, plan?: string, redirectPath?: string) => Promise<void>;
     finishMagicLinkSignIn: (email: string, href: string) => Promise<void>;
     logout: () => Promise<void>;
     loginAsGuest: () => void;
@@ -52,13 +52,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    const sendMagicLink = async (email: string) => {
+    const sendMagicLink = async (email: string, plan?: string, redirectPath?: string) => {
         const normalizedEmail = email.trim();
         if (!normalizedEmail) {
             throw new Error('Ingresa un email válido.');
         }
         const actionCodeSettings = {
-            url: window.location.origin + '/app',
+            url: window.location.origin + (redirectPath || (plan ? `/payment?plan=${plan}` : '/app')),
             handleCodeInApp: true,
         };
         try {

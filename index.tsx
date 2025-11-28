@@ -10,6 +10,16 @@ import Comparisons from './Comparisons';
 import BlogPage from './BlogPage';
 import GuidesPage from './GuidesPage';
 import FAQPage from './FAQPage';
+import SiteNav from './src/components/SiteNav';
+import SiteFooter from './src/components/SiteFooter';
+
+const MarketingLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div className="bg-gray-950 text-white min-h-screen flex flex-col">
+    <SiteNav />
+    <main className="flex-1">{children}</main>
+    <SiteFooter />
+  </div>
+);
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -22,12 +32,12 @@ root.render(
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/use-cases" element={<UseCases />} />
-          <Route path="/comparisons" element={<Comparisons />} />
-          <Route path="/blog" element={<BlogPage />} />
-          <Route path="/guides" element={<GuidesPage />} />
-          <Route path="/faq" element={<FAQPage />} />
+          <Route path="/" element={<MarketingLayout><LandingPage /></MarketingLayout>} />
+          <Route path="/use-cases" element={<MarketingLayout><UseCases /></MarketingLayout>} />
+          <Route path="/comparisons" element={<MarketingLayout><Comparisons /></MarketingLayout>} />
+          <Route path="/blog" element={<MarketingLayout><BlogPage /></MarketingLayout>} />
+          <Route path="/guides" element={<MarketingLayout><GuidesPage /></MarketingLayout>} />
+          <Route path="/faq" element={<MarketingLayout><FAQPage /></MarketingLayout>} />
           <Route
             path="/app"
             element={
