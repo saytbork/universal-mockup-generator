@@ -401,21 +401,21 @@ const PLAN_CONFIG: Record<
 > = {
   free: {
     label: 'Free',
-    description: '10 credits · Fast (SD 1.5) · watermark · comunidad',
+    description: '10 credits · Fast engine · watermark · comunidad',
     creditLimit: 10,
     allowStudio: false,
     allowCaption: false,
   },
   creator: {
     label: 'Creator',
-    description: '200 credits · Fast (SD 1.5) sin marca · licencia básica',
+    description: '200 credits · Fast engine sin marca · licencia básica',
     creditLimit: 200,
     allowStudio: true,
     allowCaption: true,
   },
   studio: {
     label: 'Studio',
-    description: '400 credits · PRO (SDXL, 3 cr) · cola prioritaria · licencia full',
+    description: '400 credits · PRO (3 cr) · cola prioritaria · licencia full',
     creditLimit: 400,
     allowStudio: true,
     allowCaption: true,
