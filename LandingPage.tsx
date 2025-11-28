@@ -21,7 +21,9 @@ type PricingPlan = {
   badge?: string;
   featured?: boolean;
   isFree?: boolean;
-  checkoutUrl?: string;
+  checkoutUrl?: string; // legacy fallback
+  monthlyUrl?: string;
+  yearlyUrl?: string;
   contactEmail?: string;
   metadata?: PlanMetadata;
 };
@@ -95,8 +97,20 @@ const galleryImages: GalleryItem[] = [
 const getEnv = (key: string) => import.meta.env[key as keyof ImportMetaEnv] as string | undefined;
 const DEFAULT_CREATOR_LINK = 'https://buy.stripe.com/test_8x2cN4ei61DxgsO5jUbV603';
 const DEFAULT_STUDIO_LINK = 'https://buy.stripe.com/test_7sY5kCgqe6XR1xUbIibV602';
-const creatorCheckoutUrl = getEnv('VITE_STRIPE_LINK_CREATOR') ?? DEFAULT_CREATOR_LINK;
-const studioCheckoutUrl = getEnv('VITE_STRIPE_LINK_STUDIO') ?? DEFAULT_STUDIO_LINK;
+const creatorMonthlyUrl =
+  getEnv('VITE_STRIPE_LINK_CREATOR_MONTHLY') ??
+  getEnv('VITE_STRIPE_LINK_CREATOR') ??
+  DEFAULT_CREATOR_LINK;
+const creatorYearlyUrl =
+  getEnv('VITE_STRIPE_LINK_CREATOR_YEARLY') ??
+  creatorMonthlyUrl;
+const studioMonthlyUrl =
+  getEnv('VITE_STRIPE_LINK_STUDIO_MONTHLY') ??
+  getEnv('VITE_STRIPE_LINK_STUDIO') ??
+  DEFAULT_STUDIO_LINK;
+const studioYearlyUrl =
+  getEnv('VITE_STRIPE_LINK_STUDIO_YEARLY') ??
+  studioMonthlyUrl;
 
 const pricing: PricingPlan[] = [
   {
@@ -127,7 +141,9 @@ const pricing: PricingPlan[] = [
       'No access to Photorealism PRO.',
     ],
     cta: 'Upgrade to Creator',
-    checkoutUrl: creatorCheckoutUrl,
+    checkoutUrl: creatorMonthlyUrl, // fallback
+    monthlyUrl: creatorMonthlyUrl,
+    yearlyUrl: creatorYearlyUrl,
     badge: 'Most Popular',
     featured: true,
     metadata: { plan: 'creator', credits: 200 },
@@ -145,7 +161,9 @@ const pricing: PricingPlan[] = [
       'Full commercial license with no restrictions.',
     ],
     cta: 'Upgrade to Studio',
-    checkoutUrl: studioCheckoutUrl,
+    checkoutUrl: studioMonthlyUrl, // fallback
+    monthlyUrl: studioMonthlyUrl,
+    yearlyUrl: studioYearlyUrl,
     metadata: { plan: 'studio', credits: 400 },
   },
 ];
@@ -180,12 +198,16 @@ const LandingPage: React.FC = () => {
   const handleOpenCheckout = (plan: PricingPlan) => {
     const cadence = billingCycle === 'monthly' ? plan.monthlyCaption : `${plan.yearlyCaption} (annual)`;
     const price = billingCycle === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice;
+    const checkoutUrl =
+      billingCycle === 'monthly'
+        ? plan.monthlyUrl ?? plan.checkoutUrl
+        : plan.yearlyUrl ?? plan.checkoutUrl;
     setSelectedPlan({
       name: plan.name,
       price,
       cadence,
       highlights: plan.highlights,
-      checkoutUrl: plan.checkoutUrl,
+      checkoutUrl,
       metadata: plan.metadata,
     });
     setCheckoutEmail('');

@@ -8,13 +8,26 @@ import {
   normalizeEmail,
 } from '../services/emailVerification';
 
+const getRequestBody = (req: VercelRequest): Record<string, any> => {
+  try {
+    if (!req.body) return {};
+    if (typeof req.body === 'string') {
+      return JSON.parse(req.body || '{}');
+    }
+    return req.body as Record<string, any>;
+  } catch {
+    return {};
+  }
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   try {
-    const rawEmail = (req.body?.email ?? '').trim();
+    const body = getRequestBody(req);
+    const rawEmail = (body.email ?? '').trim();
     const normalizedEmail = normalizeEmail(rawEmail);
     if (!EMAIL_REGEX.test(rawEmail)) {
       return res.status(400).json({ error: 'Enter a valid email address.' });

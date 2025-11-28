@@ -39,14 +39,16 @@ If SMTP variables are missing, the server will log each verification code to the
 
 ### Optional: Stripe Payment Links
 
-The landing page’s paid plans use Stripe Payment Links. Add these env vars to `.env.local` (and Vercel):
+La landing soporta links mensuales y anuales para cada plan. Añade estas vars (local y Vercel):
 
 ```
-VITE_STRIPE_LINK_CREATOR=https://buy.stripe.com/...
-VITE_STRIPE_LINK_STUDIO=https://buy.stripe.com/...
+VITE_STRIPE_LINK_CREATOR_MONTHLY=https://buy.stripe.com/...
+VITE_STRIPE_LINK_CREATOR_YEARLY=https://buy.stripe.com/...
+VITE_STRIPE_LINK_STUDIO_MONTHLY=https://buy.stripe.com/...
+VITE_STRIPE_LINK_STUDIO_YEARLY=https://buy.stripe.com/...
 ```
 
-They can be standard Payment Links or Checkout URLs. If not provided, the Creator/Studio buttons in the modal stay disabled with a helpful message.
+Compat: si solo defines `VITE_STRIPE_LINK_CREATOR` / `VITE_STRIPE_LINK_STUDIO`, se usan para mensual y anual. Si falta algún link, el botón muestra un mensaje explicativo.
 
 ### Optional: Real-ESRGAN Upscaling
 

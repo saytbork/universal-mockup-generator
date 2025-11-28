@@ -6,13 +6,26 @@ import {
   parseVerificationCookie,
 } from '../services/emailVerification';
 
+const getRequestBody = (req: VercelRequest): Record<string, any> => {
+  try {
+    if (!req.body) return {};
+    if (typeof req.body === 'string') {
+      return JSON.parse(req.body || '{}');
+    }
+    return req.body as Record<string, any>;
+  } catch {
+    return {};
+  }
+};
+
 export default function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const rawEmail = (req.body?.email ?? '').trim();
-  const submittedCode = String(req.body?.code ?? '').trim();
+  const body = getRequestBody(req);
+  const rawEmail = (body.email ?? '').trim();
+  const submittedCode = String(body.code ?? '').trim();
   const normalizedEmail = normalizeEmail(rawEmail);
 
   if (!EMAIL_REGEX.test(rawEmail)) {

@@ -83,8 +83,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             body: JSON.stringify({ email: normalizedEmail }),
         });
         if (!res.ok) {
-            const data = await res.json().catch(() => ({}));
-            throw new Error(data.error || 'No se pudo enviar el código. Intenta de nuevo.');
+            let errorMessage = 'No se pudo enviar el código. Intenta de nuevo.';
+            try {
+                const data = await res.json();
+                if (data?.error) errorMessage = data.error;
+            } catch {
+                try {
+                    const text = await res.text();
+                    if (text) errorMessage = text;
+                } catch {
+                    // ignore
+                }
+            }
+            throw new Error(errorMessage);
         }
         setPendingEmail(normalizedEmail);
     };
