@@ -1,12 +1,34 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Mail, Loader2, LogOut } from 'lucide-react';
 
 export const FirebaseAuthGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { user, loading, isGuest, signInWithGoogle, sendMagicLink, loginAsGuest, logout } = useAuth();
-    const [email, setEmail] = useState('');
-    const [magicLinkSent, setMagicLinkSent] = useState(false);
+    const {
+        user,
+        emailUser,
+        pendingEmail,
+        loading,
+        isGuest,
+        signInWithGoogle,
+        requestEmailCode,
+        verifyEmailCode,
+        loginAsGuest,
+        logout,
+    } = useAuth();
+    const [email, setEmail] = useState(pendingEmail || '');
+    const [code, setCode] = useState('');
+    const [step, setStep] = useState<'email' | 'code'>(pendingEmail ? 'code' : 'email');
+    const [isSending, setIsSending] = useState(false);
+    const [isVerifying, setIsVerifying] = useState(false);
     const [authError, setAuthError] = useState<string | null>(null);
+    const isLoggedIn = Boolean(user || emailUser || isGuest);
+
+    useEffect(() => {
+        if (pendingEmail) {
+            setEmail(pendingEmail);
+            setStep('code');
+        }
+    }, [pendingEmail]);
 
     if (loading) {
         return (
@@ -16,7 +38,7 @@ export const FirebaseAuthGate: React.FC<{ children: React.ReactNode }> = ({ chil
         );
     }
 
-    if (!user && !isGuest) {
+    if (!isLoggedIn) {
         return (
             <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center px-4">
                 <div className="max-w-md w-full bg-gray-900/70 border border-gray-800 rounded-2xl p-8 text-center shadow-2xl space-y-6">
@@ -30,7 +52,7 @@ export const FirebaseAuthGate: React.FC<{ children: React.ReactNode }> = ({ chil
 
                     <div className="space-y-4">
                         <button
-                            onClick={() => signInWithGoogle().catch(e => setAuthError(e.message))}
+                            onClick={() => signInWithGoogle().catch((e: any) => setAuthError(e.message))}
                             className="w-full flex items-center justify-center gap-3 bg-white text-gray-900 py-3 rounded-xl font-medium hover:bg-gray-100 transition-all"
                         >
                             <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -59,50 +81,101 @@ export const FirebaseAuthGate: React.FC<{ children: React.ReactNode }> = ({ chil
                                 <div className="w-full border-t border-gray-800"></div>
                             </div>
                             <div className="relative flex justify-center text-sm">
-                                <span className="px-2 bg-gray-900/70 text-gray-500">Or continue with email</span>
+                                <span className="px-2 bg-gray-900/70 text-gray-500">Or continue with email code</span>
                             </div>
                         </div>
 
-                        {!magicLinkSent ? (
-                            <div className="space-y-3">
-                                <input
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="name@company.com"
-                                    className="w-full bg-black/30 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
-                                />
-                                <button
-                                    onClick={() => {
-                                        if (email) {
-                                            sendMagicLink(email)
-                                                .then(() => setMagicLinkSent(true))
-                                                .catch(e => setAuthError(e.message));
-                                        }
-                                    }}
-                                    className="w-full bg-gray-800 text-white py-3 rounded-xl font-medium hover:bg-gray-700 transition-all flex items-center justify-center gap-2"
-                                >
-                                    <Mail className="w-4 h-4" />
-                                    Send Login Link
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 text-center">
-                                <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                                    <Mail className="w-6 h-6 text-green-400" />
+                        <div className="space-y-3">
+                            {step === 'email' && (
+                                <>
+                                    <input
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        placeholder="name@company.com"
+                                        className="w-full bg-black/30 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                                    />
+                                    <button
+                                        onClick={async () => {
+                                            setAuthError(null);
+                                            try {
+                                                setIsSending(true);
+                                                await requestEmailCode(email);
+                                                setStep('code');
+                                            } catch (e: any) {
+                                                setAuthError(e.message || 'No se pudo enviar el código.');
+                                            } finally {
+                                                setIsSending(false);
+                                            }
+                                        }}
+                                        disabled={isSending}
+                                        className="w-full bg-gray-800 text-white py-3 rounded-xl font-medium hover:bg-gray-700 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+                                    >
+                                        {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+                                        {isSending ? 'Sending...' : 'Send 6-digit code'}
+                                    </button>
+                                </>
+                            )}
+                            {step === 'code' && (
+                                <div className="space-y-3">
+                                    <div className="text-sm text-gray-400">
+                                        We emailed a 6-digit code to <span className="text-white">{email || pendingEmail}</span>. Check spam/promotions.
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={code}
+                                        onChange={(e) => setCode(e.target.value)}
+                                        placeholder="Enter code"
+                                        className="w-full bg-black/30 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all tracking-[0.3em] text-center"
+                                    />
+                                    <button
+                                        onClick={async () => {
+                                            setAuthError(null);
+                                            try {
+                                                setIsVerifying(true);
+                                                await verifyEmailCode(code);
+                                            } catch (e: any) {
+                                                setAuthError(e.message || 'Código incorrecto. Intenta de nuevo.');
+                                            } finally {
+                                                setIsVerifying(false);
+                                            }
+                                        }}
+                                        disabled={isVerifying}
+                                        className="w-full bg-indigo-600 text-white py-3 rounded-xl font-medium hover:bg-indigo-500 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+                                    >
+                                        {isVerifying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+                                        {isVerifying ? 'Verifying...' : 'Verify code'}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            setAuthError(null);
+                                            try {
+                                                setIsSending(true);
+                                                await requestEmailCode(email || pendingEmail || '');
+                                            } catch (e: any) {
+                                                setAuthError(e.message || 'No se pudo reenviar el código.');
+                                            } finally {
+                                                setIsSending(false);
+                                            }
+                                        }}
+                                        className="text-xs text-gray-400 hover:text-white underline"
+                                    >
+                                        Resend code
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setStep('email');
+                                            setCode('');
+                                        }}
+                                        className="text-xs text-gray-400 hover:text-white underline"
+                                    >
+                                        Use a different email
+                                    </button>
                                 </div>
-                                <h3 className="text-white font-medium mb-1">Check your email</h3>
-                                <p className="text-sm text-gray-400 mb-3">
-                                    We sent a login link to <span className="text-white">{email}</span>
-                                </p>
-                                <button
-                                    onClick={() => setMagicLinkSent(false)}
-                                    className="text-xs text-gray-500 hover:text-white underline"
-                                >
-                                    Use a different email
-                                </button>
-                            </div>
-                        )}
+                            )}
+                        </div>
 
                         <div className="relative">
                             <div className="absolute inset-0 flex items-center">
@@ -137,7 +210,7 @@ export const FirebaseAuthGate: React.FC<{ children: React.ReactNode }> = ({ chil
             {/* Logout button overlay */}
             <div className="fixed top-4 right-4 z-[60]">
                 <button
-                    onClick={() => logout()}
+                    onClick={() => logout().catch((e: any) => console.warn('Logout warning', e))}
                     className="flex items-center gap-2 rounded-full border border-white/10 bg-black/50 backdrop-blur-xl px-4 py-2 text-sm font-medium text-gray-300 transition hover:bg-white/10 hover:text-white shadow-lg"
                 >
                     <LogOut className="h-4 w-4" />

@@ -589,8 +589,8 @@ const scaleImageToLongEdge = async (sourceUrl: string, targetLongEdge: number): 
 const App: React.FC = () => {
   const GEMINI_DISABLED = true; // Disable Gemini key gate/features while using Replicate
   const location = useLocation();
-  const { user, isGuest, signInWithGoogle, logout } = useAuth();
-  const isLoggedIn = !!user || isGuest;
+  const { user, emailUser, isGuest, signInWithGoogle, logout } = useAuth();
+  const isLoggedIn = !!user || !!emailUser || isGuest;
   const envApiKey = getEnvApiKey();
   const initialSceneRef = useRef<StoryboardScene | null>(null);
   const bundleSelectionRef = useRef<ProductId[] | null>(null);
@@ -704,6 +704,10 @@ const App: React.FC = () => {
   const [apiKeyError, setApiKeyError] = useState<string | null>(null);
   const [isUsingStoredKey, setIsUsingStoredKey] = useState(false);
   const [userEmail, setUserEmail] = useState('');
+  useEffect(() => {
+    const nextEmail = user?.email || emailUser || '';
+    setUserEmail(nextEmail);
+  }, [user?.email, emailUser]);
 
   const [creditUsage, setCreditUsage] = useState(() => {
     if (typeof window !== 'undefined' && localStorage.getItem('guest_credit_usage')) {
