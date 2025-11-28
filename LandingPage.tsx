@@ -385,7 +385,7 @@ const LandingPage: React.FC = () => {
               </div>
               <div className="flex flex-col sm:flex-row gap-4 animate-fade-up delay-200">
                 <Link
-                  to="/signup?plan=free"
+                  to="/app"
                   className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-8 py-4 font-semibold text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-600 transition"
                 >
                   Launch App
@@ -467,7 +467,7 @@ const LandingPage: React.FC = () => {
                 </p>
               </div>
               <Link
-                to="/signup?plan=free"
+                to="/app"
                 className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-600 transition"
               >
                 Generate Yours
