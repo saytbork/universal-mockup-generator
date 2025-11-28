@@ -14,7 +14,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const body = req.body || {};
   const settings = body.settings || {};
   const aspectRatio = settings.aspectRatio || '1:1';
-  const modelName = process.env.IMAGEN_MODEL_NAME || 'imagen-3.0-generate-001';
+  const modelName = process.env.IMAGEN_MODEL_NAME || 'gemini-2.5-flash-image';
   const finalPrompt = body.promptText || buildPrompt(settings);
 
   if (!finalPrompt || !String(finalPrompt).trim()) {
@@ -23,33 +23,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const image = body.image;
-    const instance: any = { prompt: finalPrompt };
+
+    // Construct Gemini generateContent payload
+    const parts: any[] = [{ text: finalPrompt }];
 
     if (image && image.base64) {
-      instance.image = {
-        bytesBase64Encoded: image.base64
-      };
+      parts.push({
+        inlineData: {
+          mimeType: image.mimeType || 'image/png',
+          data: image.base64
+        }
+      });
     }
 
     const payload = JSON.stringify({
-      instances: [instance],
-      parameters: {
-        sampleCount: 1,
-        aspectRatio,
-        includeRaiReasoning: true
-      },
+      contents: [{ parts }]
     });
 
-    console.log('PAYLOAD SENT TO GOOGLE (Imagen):', JSON.stringify({ ...JSON.parse(payload), instances: [{ ...instance, image: '[HIDDEN]' }] }));
+    console.log('PAYLOAD SENT TO GOOGLE (Gemini):', JSON.stringify({ ...JSON.parse(payload), contents: '[HIDDEN]' }));
     console.log('MODEL:', modelName, 'API KEY last4:', apiKey.slice(-4));
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:predict`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-goog-api-key': apiKey,
         },
         body: payload,
       }
@@ -62,18 +61,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
       data = rawText ? JSON.parse(rawText) : {};
     } catch {
-      data = { error: rawText || 'Non-JSON response from Imagen' };
-    }
-
-    if (data?.error?.message && String(data.error.message).toLowerCase().includes('safety')) {
-      return res.status(403).json({
-        error: 'Google blocked this generation due to safety filters. Try a safer prompt or remove sensitive content.',
-        detail: data.error.message,
-      });
+      data = { error: rawText || 'Non-JSON response from Gemini' };
     }
 
     if (!response.ok) {
-      console.error('Imagen Error:', data);
+      console.error('Gemini Error:', data);
       return res.status(response.status).json({
         error: data?.error?.message || 'Generation failed',
         detail: data,
@@ -81,25 +73,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    const base64 =
-      data?.predictions?.[0]?.bytesBase64Encoded ||
-      data?.predictions?.[0]?.mimeType ||
-      null;
+    // Parse Gemini Response for Image
+    // Gemini returns image in candidates[0].content.parts[0].inlineData
+
+    const candidate = data?.candidates?.[0];
+    const part = candidate?.content?.parts?.[0];
+    const base64 = part?.inlineData?.data;
+    const mimeType = part?.inlineData?.mimeType || 'image/jpeg';
 
     if (!base64) {
-      console.error('No image data in Imagen response:', JSON.stringify(data).slice(0, 500));
+      console.error('No image data in Gemini response:', JSON.stringify(data).slice(0, 500));
       return res.status(500).json({
-        error: 'Image generation returned no image data',
-        raw: data,
-        status: 500
+        error: 'No image generated',
+        detail: 'The model returned a response but no image data was found.',
+        raw: data
       });
     }
 
-    const imageUrl = `data:image/png;base64,${base64}`;
+    const imageUrl = `data:${mimeType};base64,${base64}`;
     return res.status(200).json({ imageUrl, raw: data });
 
   } catch (error) {
-    console.error('Error generating with Imagen:', error);
+    console.error('Error generating with Gemini:', error);
     return res.status(500).json({ error: 'Image generation failed', detail: String(error) });
   }
 }
