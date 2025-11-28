@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Sparkles, Gauge, ShieldCheck, Star, ArrowRight } from 'lucide-react';
 
 const rows = [
   {
@@ -55,54 +56,68 @@ const rows = [
 const Comparisons: React.FC = () => {
   return (
     <div className="bg-gray-950 text-white min-h-screen">
-      <div className="max-w-5xl mx-auto px-4 py-20 space-y-12">
-        <div className="space-y-3">
+      <div className="relative max-w-5xl mx-auto px-4 py-20 space-y-12">
+        <div className="absolute inset-0 blur-3xl opacity-40 pointer-events-none" style={{ background: 'radial-gradient(circle at 20% 20%, rgba(99,102,241,0.35), transparent 40%)' }} />
+        <div className="relative space-y-4">
+          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-400/40 bg-indigo-500/10 px-4 py-1 text-xs uppercase tracking-[0.2em] text-indigo-100">
+            <Sparkles className="w-4 h-4" /> Head-to-head
+          </div>
           <h1 className="text-4xl font-bold">BoostUGC vs Competitors</h1>
           <p className="text-gray-300">Why brands choose BoostUGC for photorealistic UGC.</p>
         </div>
 
-        <div className="overflow-x-auto bg-white text-gray-900 rounded-2xl shadow">
-          <table className="w-full border-collapse text-sm">
-            <thead className="bg-gray-100 text-gray-700">
-              <tr>
-                <th className="px-4 py-3 text-left">Tool</th>
-                <th className="px-4 py-3 text-left">Photorealism</th>
-                <th className="px-4 py-3 text-left">UGC Quality</th>
-                <th className="px-4 py-3 text-left">Product Mockups</th>
-                <th className="px-4 py-3 text-left">eCommerce Focus</th>
-                <th className="px-4 py-3 text-left">Price</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {rows.map(row => (
-                <tr key={row.tool} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-semibold text-gray-900">{row.tool}</td>
-                  <td className="px-4 py-3">{row.photorealism}</td>
-                  <td className="px-4 py-3">{row.quality}</td>
-                  <td className="px-4 py-3">{row.mockups}</td>
-                  <td className="px-4 py-3">{row.focus}</td>
-                  <td className="px-4 py-3">{row.price}</td>
+        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-[0_20px_70px_rgba(0,0,0,0.35)]">
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-transparent to-purple-500/5 pointer-events-none" />
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-sm text-gray-100">
+              <thead className="bg-white/5 text-gray-200">
+                <tr>
+                  <th className="px-5 py-4 text-left">Tool</th>
+                  <th className="px-5 py-4 text-left">Photorealism</th>
+                  <th className="px-5 py-4 text-left">UGC Quality</th>
+                  <th className="px-5 py-4 text-left">Product Mockups</th>
+                  <th className="px-5 py-4 text-left">eCommerce Focus</th>
+                  <th className="px-5 py-4 text-left">Price</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {rows.map(row => (
+                  <tr key={row.tool} className="hover:bg-white/5 transition">
+                    <td className="px-5 py-4 font-semibold text-white">{row.tool}</td>
+                    <td className="px-5 py-4 text-gray-200">{row.photorealism}</td>
+                    <td className="px-5 py-4 text-gray-200">{row.quality}</td>
+                    <td className="px-5 py-4 text-gray-200">{row.mockups}</td>
+                    <td className="px-5 py-4 text-gray-200">{row.focus}</td>
+                    <td className="px-5 py-4 text-gray-200">{row.price}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        <div className="space-y-4 text-gray-300">
-          <h2 className="text-2xl font-semibold text-white">Why BoostUGC wins</h2>
-          <ul className="list-disc pl-6 space-y-2 text-gray-300">
-            <li>More realistic thanks to Gemini 2.5 Flash Image.</li>
-            <li>Built for eCommerce with mockups, UGC, and product photography defaults.</li>
-            <li>Replaces manual content creation with fast, consistent AI visuals.</li>
-          </ul>
+        <div className="relative grid gap-4 md:grid-cols-3">
+          {[
+            { title: 'Photorealistic engine', desc: 'Gemini 2.5 Flash Image for lifelike lighting and materials.', icon: <ShieldCheck className="w-5 h-5" /> },
+            { title: 'eCommerce-first', desc: 'Defaults for mockups, UGC, and product photography that convert.', icon: <Gauge className="w-5 h-5" /> },
+            { title: 'Consistency at scale', desc: 'Replace manual content with fast, repeatable AI visuals.', icon: <Star className="w-5 h-5" /> },
+          ].map(card => (
+            <div key={card.title} className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-2">
+              <div className="inline-flex items-center gap-2 text-indigo-200">
+                {card.icon}
+                <span className="text-sm">{card.title}</span>
+              </div>
+              <p className="text-gray-300 text-sm leading-relaxed">{card.desc}</p>
+            </div>
+          ))}
         </div>
 
-        <div>
+        <div className="relative">
           <Link
             to="/app"
-            className="inline-block bg-black text-white px-6 py-3 rounded-md hover:bg-black/80"
+            className="inline-flex items-center gap-2 rounded-full bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-600 transition"
           >
-            Start Free Trial
+            Start Free Trial <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </div>
