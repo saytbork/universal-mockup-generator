@@ -77,10 +77,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Gemini returns image in candidates[0].content.parts[0].inlineData
 
     const candidate = data?.candidates?.[0];
-    const parts = candidate?.content?.parts || [];
+    const responseParts = candidate?.content?.parts || [];
 
     // Find the part with inlineData (image)
-    const imagePart = parts.find((p: any) => p.inlineData);
+    const imagePart = responseParts.find((p: any) => p.inlineData);
 
     const base64 = imagePart?.inlineData?.data;
     const mimeType = imagePart?.inlineData?.mimeType || 'image/jpeg';
