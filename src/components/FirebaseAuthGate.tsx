@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from './contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { Mail, Loader2, LogOut } from 'lucide-react';
 
 export const FirebaseAuthGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {

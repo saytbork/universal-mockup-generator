@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App';
 import LandingPage from './LandingPage';
+import { AuthProvider } from './src/contexts/AuthContext';
+import { FirebaseAuthGate } from './src/components/FirebaseAuthGate';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -12,11 +14,20 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/app" element={<App />} />
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route
+            path="/app"
+            element={
+              <FirebaseAuthGate>
+                <App />
+              </FirebaseAuthGate>
+            }
+          />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   </React.StrictMode>
 );
