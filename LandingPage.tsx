@@ -267,6 +267,39 @@ const LandingPage: React.FC = () => {
     }
   }, []);
 
+  useEffect(() => {
+    const fetchGallery = async () => {
+      try {
+        const res = await fetch('/api/gallery', { method: 'GET' });
+        if (!res.ok) throw new Error('bad status');
+        const data = await res.json();
+        if (Array.isArray(data?.items)) {
+          setGalleryItems(data.items);
+        }
+      } catch {
+        // fallback to static examples
+        setGalleryItems([
+          {
+            id: 'static-1',
+            imageUrl: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80',
+            title: 'Community lifestyle demo',
+          },
+          {
+            id: 'static-2',
+            imageUrl: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=1200&q=80',
+            title: 'Product tabletop demo',
+          },
+          {
+            id: 'static-3',
+            imageUrl: 'https://images.unsplash.com/photo-1512499385554-079eba9be8e9?auto=format&fit=crop&w=1200&q=80',
+            title: 'UGC creator demo',
+          },
+        ]);
+      }
+    };
+    fetchGallery();
+  }, []);
+
   const requireAccessCode = useCallback((event?: React.MouseEvent, route = '/app') => {
     const hasBypass = typeof window !== 'undefined' && window.localStorage.getItem(TRIAL_BYPASS_KEY) === 'true';
     if (hasBypass) {
@@ -287,6 +320,36 @@ const LandingPage: React.FC = () => {
     setLandingTrialInput('');
     setLandingTrialStatus('idle');
   };
+
+  const [activeMode, setActiveMode] = useState('lifestyle');
+  const modeSlides = [
+    {
+      id: 'lifestyle',
+      title: 'Lifestyle UGC',
+      desc: 'Real people + product in natural environments.',
+      image: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80',
+    },
+    {
+      id: 'studio',
+      title: 'Studio Hero',
+      desc: 'Clean, bold hero shots for homepages.',
+      image: 'https://images.unsplash.com/photo-1512499617640-c2f999098c01?auto=format&fit=crop&w=1200&q=80',
+    },
+    {
+      id: 'aesthetic',
+      title: 'Aesthetic Builder',
+      desc: 'Curated props, palettes, and lighting for brand vibes.',
+      image: 'https://images.unsplash.com/photo-1506617420156-8e4536971650?auto=format&fit=crop&w=1200&q=80',
+    },
+    {
+      id: 'background',
+      title: 'Background Replace',
+      desc: 'Swap backgrounds while preserving product fidelity.',
+      image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1200&q=80',
+    },
+  ];
+
+  const [galleryItems, setGalleryItems] = useState<{ id: string; imageUrl: string; title: string }[]>([]);
 
   return (
     <>
@@ -394,83 +457,84 @@ const LandingPage: React.FC = () => {
           </div>
         </section>
 
-        <section id="gallery" className="max-w-6xl mx-auto px-6 py-14 space-y-8">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="text-sm uppercase tracking-widest text-indigo-300">Live demo</p>
-              <h2 className="text-3xl text-white font-semibold mt-2">Recent UGC + product mockups generated inside the app.</h2>
-              <p className="text-gray-400 mt-3 max-w-2xl">
-                Images generated in the Free Plan appear here automatically—fresh examples of what’s possible.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={requireAccessCode}
-              className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-600 transition"
-            >
-              Generate Yours
-            </button>
-          </div>
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-            {galleryImages.map((item, index) => (
-              <button
-                type="button"
-                key={item.label}
-                onClick={requireAccessCode}
-                className="group relative block overflow-hidden rounded-3xl border border-white/10 bg-gray-900/40 text-left"
+          <section id="gallery" className="max-w-6xl mx-auto px-6 py-14 space-y-8">
+            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <div>
+                <p className="text-sm uppercase tracking-widest text-indigo-300">Community Gallery</p>
+                <h2 className="text-3xl text-white font-semibold mt-2">Latest Creations From the Community</h2>
+                <p className="text-gray-400 mt-3 max-w-2xl">
+                  Images generated with the Free Plan appear here automatically.
+                </p>
+              </div>
+              <Link
+                to="/signup?plan=free"
+                className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-600 transition"
               >
-                <img
-                  src={`${item.src}?auto=format&fit=crop&w=900&q=80`}
-                  alt={item.label}
-                  className="h-64 w-full object-cover transition duration-500 group-hover:scale-105 group-hover:opacity-90"
-                  loading={index < 2 ? 'eager' : 'lazy'}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition flex items-end">
-                  <p className="p-4 text-sm text-white">{item.label}</p>
+                Generate Yours
+              </Link>
+            </div>
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+              {galleryItems.map((item, index) => (
+                <div
+                  key={item.id}
+                  className="group relative block overflow-hidden rounded-3xl border border-white/10 bg-gray-900/40 text-left"
+                >
+                  <img
+                    src={`${item.imageUrl}?auto=format&fit=crop&w=900&q=80`}
+                    alt={item.title}
+                    className="h-64 w-full object-cover transition duration-500 group-hover:scale-105 group-hover:opacity-90"
+                    loading={index < 2 ? 'eager' : 'lazy'}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition flex items-end">
+                    <p className="p-4 text-sm text-white">{item.title}</p>
+                  </div>
                 </div>
-              </button>
-            ))}
-          </div>
-        </section>
+              ))}
+              {galleryItems.length === 0 && (
+                <div className="col-span-full rounded-3xl border border-white/10 bg-gray-900/40 p-6 text-gray-300 text-sm">
+                  Gallery will update automatically when Free plan images are generated.
+                </div>
+              )}
+            </div>
+          </section>
 
         <section id="workflow" className="bg-gray-900/40 border-y border-white/5">
-          <div className="max-w-6xl mx-auto px-6 py-16 grid lg:grid-cols-2 gap-12 items-start">
-            <div>
-              <p className="text-sm uppercase tracking-widest text-indigo-300 mb-2">Creation Modes</p>
+          <div className="max-w-6xl mx-auto px-6 py-16 space-y-10">
+            <div className="text-center space-y-3">
+              <p className="text-sm uppercase tracking-widest text-indigo-300">Creation Modes</p>
               <h2 className="text-3xl text-white font-semibold">Four powerful creation modes</h2>
-              <div className="mt-6 grid md:grid-cols-2 gap-4">
-                {[
-                  { title: 'Lifestyle UGC', desc: 'People + product in real-world scenes.' },
-                  { title: 'Studio Hero', desc: 'High-polish hero images for homepages.' },
-                  { title: 'Aesthetic Builder', desc: 'Curated vibes with props, colors, and lighting.' },
-                  { title: 'Background Replace', desc: 'Swap backgrounds while preserving product fidelity.' },
-                ].map(item => (
-                  <div key={item.title} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <p className="text-white font-semibold">{item.title}</p>
-                    <p className="text-gray-300 text-sm mt-1">{item.desc}</p>
-                  </div>
+            </div>
+            <div className="grid gap-6 lg:grid-cols-[320px,1fr] items-center">
+              <div className="space-y-3">
+                {modeSlides.map(mode => (
+                  <button
+                    key={mode.id}
+                    onClick={() => setActiveMode(mode.id)}
+                    className={`w-full text-left rounded-2xl border p-4 transition ${
+                      activeMode === mode.id ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'
+                    }`}
+                  >
+                    <p className="font-semibold">{mode.title}</p>
+                    <p className="text-sm text-gray-400 mt-1">{mode.desc}</p>
+                  </button>
                 ))}
               </div>
-            </div>
-            <div className="rounded-3xl border border-white/5 bg-gray-950/60 p-8 space-y-6">
-              <div className="flex items-center gap-4">
-                <Users className="w-10 h-10 text-indigo-300" />
-                <div>
-                  <p className="text-white font-semibold">Built for speed</p>
-                  <p className="text-gray-400 text-sm">Generate in seconds, not days.</p>
-                </div>
-              </div>
-              <div className="space-y-4">
-                {[
-                  { title: 'Step 1: Upload your product', desc: 'Jar, box, bottle, or any product. We extract shape and materials.' },
-                  { title: 'Step 2: Choose your style', desc: 'Lifestyle, studio, cinematic, minimal, aesthetic, or clean white.' },
-                  { title: 'Step 3: Generate & download', desc: '4K-ready images for Shopify, Amazon, funnels, and ads.' },
-                ].map(step => (
-                  <div key={step.title} className="flex gap-3">
-                    <CheckCircle2 className="w-5 h-5 text-indigo-300 flex-shrink-0" />
-                    <div>
-                      <p className="text-white font-medium">{step.title}</p>
-                      <p className="text-gray-400 text-sm">{step.desc}</p>
+              <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gray-900/60 p-4 min-h-[260px]">
+                {modeSlides.map(mode => (
+                  <div
+                    key={mode.id}
+                    className={`absolute inset-0 transition-all duration-500 ${
+                      activeMode === mode.id ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
+                    }`}
+                  >
+                    <img
+                      src={`${mode.image}&auto=format&fit=crop&w=1200&q=80`}
+                      alt={mode.title}
+                      className="h-full w-full object-cover rounded-2xl"
+                    />
+                    <div className="absolute bottom-4 left-4 right-4 rounded-2xl bg-black/60 backdrop-blur px-4 py-3 text-sm">
+                      <p className="text-white font-semibold">{mode.title}</p>
+                      <p className="text-gray-200">{mode.desc}</p>
                     </div>
                   </div>
                 ))}
