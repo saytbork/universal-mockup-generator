@@ -14,7 +14,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const body = req.body || {};
   const settings = body.settings || {};
   const aspectRatio = settings.aspectRatio || '1:1';
-  const modelName = process.env.IMAGEN_MODEL_NAME || 'gemini-2.0-flash-exp-image-generation';
+  const modelName = process.env.IMAGEN_MODEL_NAME || 'gemini-2.5-flash';
   const finalPrompt = body.promptText || buildPrompt(settings);
 
   if (!finalPrompt || !String(finalPrompt).trim()) {
