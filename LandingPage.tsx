@@ -187,8 +187,6 @@ const LandingPage: React.FC = () => {
   const [landingTrialStatus, setLandingTrialStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [showAccessGate, setShowAccessGate] = useState(false);
   const [pendingRoute, setPendingRoute] = useState<string | null>(null);
-  const [showResources, setShowResources] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const handleSmoothScroll = useCallback((selector: string) => {
     return (event: React.MouseEvent) => {
       event.preventDefault();
@@ -294,76 +292,6 @@ const LandingPage: React.FC = () => {
     <>
       <div className="min-h-screen bg-gray-950 text-gray-100">
         <div className="bg-gradient-to-br from-indigo-900/40 via-gray-950 to-gray-950">
-          <nav className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between text-sm">
-            <div className="flex items-center gap-3 text-white text-xl font-semibold">
-              <div className="p-2 rounded-xl bg-indigo-600/80 shadow-lg shadow-indigo-500/50">
-                <Camera className="w-6 h-6" />
-              </div>
-              Universal Mockup Generator
-            </div>
-              <div className="hidden md:flex items-center gap-6 text-gray-300">
-                <button onClick={handleSmoothScroll('#features')} className="hover:text-white transition">Features</button>
-                <button onClick={handleSmoothScroll('#gallery')} className="hover:text-white transition">Gallery</button>
-                <button onClick={handleSmoothScroll('#workflow')} className="hover:text-white transition">Workflow</button>
-                <Link to="/use-cases" className="hover:text-white transition">Use Cases</Link>
-                <Link to="/comparisons" className="hover:text-white transition">Comparisons</Link>
-                <div className="relative group">
-                  <button
-                  onClick={() => setShowResources(prev => !prev)}
-                  className="hover:text-white transition flex items-center gap-1"
-                  >
-                  Resources <span className="text-xs">▾</span>
-                  </button>
-                  {showResources && (
-                  <div
-                    className="md:flex absolute top-full right-0 mt-2 bg-white text-gray-900 shadow-xl rounded-lg p-4 flex-col gap-2 min-w-[180px]"
-                  >
-                    <Link to="/blog" className="hover:text-black" onClick={() => setShowResources(false)}>Blog</Link>
-                    <Link to="/guides" className="hover:text-black" onClick={() => setShowResources(false)}>Guides</Link>
-                    <Link to="/faq" className="hover:text-black" onClick={() => setShowResources(false)}>FAQ</Link>
-                  </div>
-                  )}
-                </div>
-              </div>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={requireAccessCode}
-                className="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 text-sm font-medium hover:border-indigo-400 transition"
-              >
-                Launch builder
-              </button>
-              <button
-                type="button"
-                onClick={() => setMobileMenuOpen(prev => !prev)}
-                className="md:hidden inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 text-sm font-medium hover:border-indigo-400 transition"
-              >
-                Menu
-              </button>
-            </div>
-          </nav>
-          {mobileMenuOpen && (
-            <div className="md:hidden mx-6 mb-4 rounded-2xl border border-white/10 bg-gray-900/80 p-4 text-sm text-gray-200 space-y-3">
-              <button onClick={handleSmoothScroll('#features')} className="block w-full text-left hover:text-white transition">Features</button>
-              <button onClick={handleSmoothScroll('#gallery')} className="block w-full text-left hover:text-white transition">Gallery</button>
-              <button onClick={handleSmoothScroll('#workflow')} className="block w-full text-left hover:text-white transition">Workflow</button>
-              <Link to="/use-cases" className="block hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>Use Cases</Link>
-              <Link to="/comparisons" className="block hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>Comparisons</Link>
-              <div className="space-y-1">
-                <p className="text-gray-400 text-xs uppercase tracking-wide">Resources</p>
-                <Link to="/blog" className="block hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>Blog</Link>
-                <Link to="/guides" className="block hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>Guides</Link>
-                <Link to="/faq" className="block hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>FAQ</Link>
-              </div>
-              <button
-                type="button"
-                onClick={requireAccessCode}
-                className="block w-full text-left rounded-full border border-white/20 px-4 py-2 font-medium hover:border-indigo-400 transition"
-              >
-                Launch builder
-              </button>
-            </div>
-          )}
 
           <header className="relative overflow-hidden py-12">
             <div className="absolute inset-0 opacity-30 pointer-events-none" style={{ background: 'radial-gradient(circle at 20% 20%, rgba(79,70,229,0.35), transparent 55%)' }} />
@@ -393,13 +321,12 @@ const LandingPage: React.FC = () => {
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-4 animate-fade-up delay-200">
-                <button
-                  type="button"
-                  onClick={requireAccessCode}
+                <Link
+                  to="/signup?plan=free"
                   className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-8 py-4 font-semibold text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-600 transition"
                 >
                   Launch App
-                </button>
+                </Link>
                 <button
                   onClick={handleSmoothScroll('#pricing')}
                   className="inline-flex items-center justify-center rounded-full border border-white/20 px-8 py-4 font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition"
@@ -407,7 +334,7 @@ const LandingPage: React.FC = () => {
                   View Pricing
                 </button>
               </div>
-              <p className="text-sm text-gray-500 animate-fade-up delay-300">Free plan → 10 credits · No credit card required</p>
+              <p className="text-sm text-gray-500 animate-fade-up delay-300">Free plan → 2 credits · No credit card required</p>
             </div>
           </header>
         </div>
@@ -808,24 +735,6 @@ const LandingPage: React.FC = () => {
           </div>
         </section>
 
-        <footer className="border-t border-white/5 py-10 text-sm text-center text-gray-500">
-          <div className="flex flex-col gap-3 items-center">
-            <div className="flex items-center gap-2 text-white">
-              <Camera className="w-5 h-5" />
-              Universal Mockup Generator
-            </div>
-            <div className="flex flex-wrap justify-center gap-4 text-xs uppercase tracking-widest text-gray-400">
-              <button onClick={handleSmoothScroll('#features')} className="hover:text-white transition">Features</button>
-              <button onClick={handleSmoothScroll('#gallery')} className="hover:text-white transition">Gallery</button>
-              <button onClick={handleSmoothScroll('#workflow')} className="hover:text-white transition">Workflow</button>
-              <button onClick={handleSmoothScroll('#pricing')} className="hover:text-white transition">Pricing</button>
-            </div>
-            <p>© {new Date().getFullYear()} Universal Mockup Generator · Built in Buenos Aires</p>
-            <p className="text-xs">
-              Questions? <a className="text-indigo-300 hover:text-indigo-200" href="mailto:hola@universalugc.com">hola@universalugc.com</a>
-            </p>
-          </div>
-        </footer>
       </div>
       {showAccessGate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
