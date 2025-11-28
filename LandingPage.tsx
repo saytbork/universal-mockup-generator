@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  Sparkles, Wand2, Camera, ShieldCheck, PlaySquare, Users, CheckCircle2, CreditCard
+  Sparkles, Wand2, Camera, ShieldCheck, PlaySquare, Users, CheckCircle2, CreditCard, Zap, Layers, Image as ImageIcon, Gauge, ShoppingBag, Package, Users2, Building2, Instagram, Twitter, Youtube, Linkedin, ArrowRight
 } from 'lucide-react';
 import PlanCheckoutModal from './components/PlanCheckoutModal';
 import { Link } from 'react-router-dom';
@@ -301,33 +301,30 @@ const LandingPage: React.FC = () => {
               </div>
               Universal Mockup Generator
             </div>
-            <div className="hidden md:flex items-center gap-6 text-gray-300">
-              <button onClick={handleSmoothScroll('#features')} className="hover:text-white transition">Features</button>
-              <button onClick={handleSmoothScroll('#gallery')} className="hover:text-white transition">Gallery</button>
-              <button onClick={handleSmoothScroll('#workflow')} className="hover:text-white transition">Workflow</button>
-              <Link to="/use-cases" className="hover:text-white transition">Use Cases</Link>
-              <Link to="/comparisons" className="hover:text-white transition">Comparisons</Link>
-              <div className="relative group">
-                <button
-                  onMouseEnter={() => setShowResources(true)}
-                  onMouseLeave={() => setShowResources(false)}
+              <div className="hidden md:flex items-center gap-6 text-gray-300">
+                <button onClick={handleSmoothScroll('#features')} className="hover:text-white transition">Features</button>
+                <button onClick={handleSmoothScroll('#gallery')} className="hover:text-white transition">Gallery</button>
+                <button onClick={handleSmoothScroll('#workflow')} className="hover:text-white transition">Workflow</button>
+                <Link to="/use-cases" className="hover:text-white transition">Use Cases</Link>
+                <Link to="/comparisons" className="hover:text-white transition">Comparisons</Link>
+                <div className="relative group">
+                  <button
+                  onClick={() => setShowResources(prev => !prev)}
                   className="hover:text-white transition flex items-center gap-1"
-                >
-                  Resources <span className="text-xs">▾</span>
-                </button>
-                {showResources && (
-                  <div
-                    onMouseEnter={() => setShowResources(true)}
-                    onMouseLeave={() => setShowResources(false)}
-                    className="hidden md:flex absolute top-full right-0 mt-2 bg-white text-gray-900 shadow-xl rounded-lg p-4 flex-col gap-2 min-w-[180px]"
                   >
-                    <Link to="/blog" className="hover:text-black">Blog</Link>
-                    <Link to="/guides" className="hover:text-black">Guides</Link>
-                    <Link to="/faq" className="hover:text-black">FAQ</Link>
+                  Resources <span className="text-xs">▾</span>
+                  </button>
+                  {showResources && (
+                  <div
+                    className="md:flex absolute top-full right-0 mt-2 bg-white text-gray-900 shadow-xl rounded-lg p-4 flex-col gap-2 min-w-[180px]"
+                  >
+                    <Link to="/blog" className="hover:text-black" onClick={() => setShowResources(false)}>Blog</Link>
+                    <Link to="/guides" className="hover:text-black" onClick={() => setShowResources(false)}>Guides</Link>
+                    <Link to="/faq" className="hover:text-black" onClick={() => setShowResources(false)}>FAQ</Link>
                   </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
             <div className="flex items-center gap-3">
               <button
                 type="button"
@@ -373,14 +370,27 @@ const LandingPage: React.FC = () => {
             <div className="max-w-6xl mx-auto px-6 pt-8 pb-20 flex flex-col items-center text-center gap-12 relative">
               <div className="max-w-3xl space-y-6 animate-fade-up">
                 <p className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-1 text-xs uppercase tracking-widest text-indigo-200/90">
-                  <ShieldCheck className="w-3.5 h-3.5" /> BoostUGC · AI Product Studio
+                  <ShieldCheck className="w-3.5 h-3.5" /> BoostUGC · AI UGC Generator
                 </p>
                 <h1 className="text-4xl sm:text-5xl font-bold text-white leading-tight">
-                  BoostUGC: product mockups in minutes, no photo shoot needed.
+                  The Fastest AI Generator for UGC & Product Mockups
                 </h1>
                 <p className="text-lg text-gray-300">
-                  Personalize your models, pick characters and moods, and generate campaign-ready images with just a few clicks. Swap scenes, talent, and lighting without the studio time.
+                  Create high-quality lifestyle images and product-focused UGC in seconds. No photoshoots. No freelancers. Just upload your product and generate unlimited scenes.
                 </p>
+                <div className="flex flex-wrap justify-center gap-3 text-sm text-gray-300">
+                  {[
+                    { icon: <Sparkles className="w-4 h-4" />, label: 'Photorealistic AI Models' },
+                    { icon: <ImageIcon className="w-4 h-4" />, label: 'Upload Any Product' },
+                    { icon: <Layers className="w-4 h-4" />, label: 'Multiple Angles & Styles' },
+                    { icon: <Gauge className="w-4 h-4" />, label: 'Generated in Seconds' },
+                  ].map(item => (
+                    <span key={item.label} className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1">
+                      {item.icon}
+                      {item.label}
+                    </span>
+                  ))}
+                </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-4 animate-fade-up delay-200">
                 <button
@@ -391,52 +401,58 @@ const LandingPage: React.FC = () => {
                   Launch App
                 </button>
                 <button
-                  onClick={handleSmoothScroll('#features')}
+                  onClick={handleSmoothScroll('#pricing')}
                   className="inline-flex items-center justify-center rounded-full border border-white/20 px-8 py-4 font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition"
                 >
-                  View Product Tour
+                  View Pricing
                 </button>
               </div>
               <p className="text-sm text-gray-500 animate-fade-up delay-300">Free plan → 10 credits · No credit card required</p>
-              <div className="w-full max-w-4xl animate-fade-up delay-400">
-                <div className="rounded-2xl border border-white/10 bg-gray-900/70 p-5 text-left shadow-lg shadow-indigo-500/10">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.2em] text-indigo-200">Access instructions</p>
-                      <h3 className="text-lg font-semibold text-white mt-1">How to access the builder</h3>
-                    </div>
-                    <div className="rounded-full bg-indigo-500/20 px-3 py-1 text-xs font-medium text-indigo-100">
-                      Emails come from: amisaodesign@gmail.com
-                    </div>
-                  </div>
-                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-xl border border-white/5 bg-gray-800/60 p-4">
-                      <p className="text-sm font-semibold text-white">Option 1: Google</p>
-                      <p className="text-sm text-gray-300 mt-1">Click “Launch App” and choose “Continue with Google” to enter instantly.</p>
-                    </div>
-                    <div className="rounded-xl border border-white/5 bg-gray-800/60 p-4">
-                      <p className="text-sm font-semibold text-white">Option 2: Email with code</p>
-                      <p className="text-sm text-gray-300 mt-1">Enter your email, we’ll send a 6-digit code from <span className="font-semibold text-indigo-100">amisaodesign@gmail.com</span>. Check spam/promotions.</p>
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">If you don’t see the email in 1–2 minutes, resend the code or try Google. Admins defined in VITE_ADMIN_EMAILS bypass trial limits.</p>
-                </div>
-              </div>
             </div>
           </header>
         </div>
 
-        <section id="steps" className="max-w-6xl mx-auto px-6 py-12 space-y-10">
+        <section id="features" className="max-w-6xl mx-auto px-6 py-12 space-y-12">
           <div className="text-center space-y-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">How it works</p>
-            <h2 className="text-3xl text-white font-semibold">Upload. Choose intent. Generate.</h2>
-            <p className="text-gray-400">Three simple steps to go from raw product photo to UGC lifestyle or product placement content.</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Why BoostUGC</p>
+            <h2 className="text-3xl text-white font-semibold">Why creators, brands and agencies choose BoostUGC</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-5">
             {[
-              { title: '1. Choose intent', description: 'Pick UGC Lifestyle or Product Placement to set the tone.' },
-              { title: '2. Upload & inspire', description: 'Drop your product and optional mood image to auto-tune settings.' },
-              { title: '3. Customize & ship', description: 'Refine props, camera, people, or pro lighting—then export photo + video.' },
+              {
+                title: 'Realistic product rendering',
+                desc: 'Understands shape, texture and materials for natural, high-quality results.',
+                icon: <Package className="w-6 h-6 text-indigo-300" />,
+              },
+              {
+                title: 'Unlimited lifestyle scenarios',
+                desc: 'Generate scenes with people, kitchens, bedrooms, gyms, studios and more.',
+                icon: <Users2 className="w-6 h-6 text-indigo-300" />,
+              },
+              {
+                title: 'Works with any product',
+                desc: 'Bottles, jars, boxes, cosmetics, supplements, tech, apparel, food and more.',
+                icon: <ShoppingBag className="w-6 h-6 text-indigo-300" />,
+              },
+            ].map(card => (
+              <div key={card.title} className="rounded-2xl border border-white/10 bg-gray-900/60 p-5 text-left space-y-2">
+                <div className="flex items-center gap-2 text-sm text-indigo-200">{card.icon}<span>{card.title}</span></div>
+                <p className="text-gray-300 text-sm leading-relaxed">{card.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section id="steps" className="max-w-6xl mx-auto px-6 py-12 space-y-10">
+          <div className="text-center space-y-3">
+            <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">How it works</p>
+            <h2 className="text-3xl text-white font-semibold">Create stunning UGC in 3 steps</h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-5">
+            {[
+              { title: '1. Upload your product', description: 'Jar, box, bottle or any product. We extract shape and materials.' },
+              { title: '2. Choose your style', description: 'Lifestyle, studio, cinematic, minimal, aesthetic, or clean white hero background.' },
+              { title: '3. Generate & download', description: 'Get 4K-quality images for Shopify, Amazon, funnels and ads.' },
             ].map((card, index) => (
               <div
                 key={card.title}
@@ -457,7 +473,7 @@ const LandingPage: React.FC = () => {
               <p className="text-sm uppercase tracking-widest text-indigo-300">Live demo</p>
               <h2 className="text-3xl text-white font-semibold mt-2">Recent UGC + product mockups generated inside the app.</h2>
               <p className="text-gray-400 mt-3 max-w-2xl">
-                Fresh, real mockups generated in the app—auto-rotated every few days so you always see what’s possible right now.
+                Images generated in the Free Plan appear here automatically—fresh examples of what’s possible.
               </p>
             </div>
             <button
@@ -465,7 +481,7 @@ const LandingPage: React.FC = () => {
               onClick={requireAccessCode}
               className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-600 transition"
             >
-              Generate your own
+              Generate Yours
             </button>
           </div>
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
@@ -490,41 +506,21 @@ const LandingPage: React.FC = () => {
           </div>
         </section>
 
-        <section id="features" className="max-w-6xl mx-auto px-6 py-16 space-y-12">
-          <div className="text-center max-w-2xl mx-auto">
-            <p className="text-sm uppercase tracking-widest text-indigo-300 mb-2">Built for marketing teams</p>
-            <h2 className="text-3xl text-white font-semibold">Create UGC and product shots that sell</h2>
-            <p className="mt-4 text-gray-400">
-              A full workflow for founders, marketers, and creators who need launch-quality assets fast—whether it’s candid creator vibes or polished studio hero shots.
-            </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {features.map(feature => (
-              <div key={feature.title} className="rounded-3xl border border-white/5 bg-gray-900/60 p-6 shadow-xl shadow-black/30">
-                <feature.icon className="w-10 h-10 text-indigo-300" />
-                <h3 className="mt-4 text-xl text-white font-semibold">{feature.title}</h3>
-                <p className="mt-2 text-gray-400">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
         <section id="workflow" className="bg-gray-900/40 border-y border-white/5">
           <div className="max-w-6xl mx-auto px-6 py-16 grid lg:grid-cols-2 gap-12 items-start">
             <div>
-              <p className="text-sm uppercase tracking-widest text-indigo-300 mb-2">Workflow</p>
-              <h2 className="text-3xl text-white font-semibold">From raw product shot to polished ads.</h2>
-              <p className="mt-4 text-gray-400">
-                Every step is optimized for real results—from your first mockup to A/B testing dozens of UGC and product placement variations.
-              </p>
-              <div className="mt-8 space-y-6">
-                {steps.map(step => (
-                  <div key={step.title} className="flex gap-4">
-                    <CheckCircle2 className="w-6 h-6 text-indigo-300 flex-shrink-0" />
-                    <div>
-                      <p className="text-white font-medium">{step.title}</p>
-                      <p className="text-gray-400 text-sm">{step.detail}</p>
-                    </div>
+              <p className="text-sm uppercase tracking-widest text-indigo-300 mb-2">Creation Modes</p>
+              <h2 className="text-3xl text-white font-semibold">Four powerful creation modes</h2>
+              <div className="mt-6 grid md:grid-cols-2 gap-4">
+                {[
+                  { title: 'Lifestyle UGC', desc: 'People + product in real-world scenes.' },
+                  { title: 'Studio Hero', desc: 'High-polish hero images for homepages.' },
+                  { title: 'Aesthetic Builder', desc: 'Curated vibes with props, colors, and lighting.' },
+                  { title: 'Background Replace', desc: 'Swap backgrounds while preserving product fidelity.' },
+                ].map(item => (
+                  <div key={item.title} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <p className="text-white font-semibold">{item.title}</p>
+                    <p className="text-gray-300 text-sm mt-1">{item.desc}</p>
                   </div>
                 ))}
               </div>
@@ -533,124 +529,115 @@ const LandingPage: React.FC = () => {
               <div className="flex items-center gap-4">
                 <Users className="w-10 h-10 text-indigo-300" />
                 <div>
-                  <p className="text-white font-semibold">Built for lean teams</p>
-                  <p className="text-gray-400 text-sm">No photographers, no studios, no waiting.</p>
+                  <p className="text-white font-semibold">Built for speed</p>
+                  <p className="text-gray-400 text-sm">Generate in seconds, not days.</p>
                 </div>
               </div>
-              <p className="text-gray-300 text-lg">
-                “We launched a skincare line with the app and shipped lifestyle stills plus vertical reels the same afternoon. Perfect for founders who need to move fast.”
-              </p>
-              <div className="flex items-center gap-3 text-gray-400 text-sm">
-                <Users className="w-5 h-5 text-indigo-300" />
-                <span>UGC Launch beta testers</span>
+              <div className="space-y-4">
+                {[
+                  { title: 'Step 1: Upload your product', desc: 'Jar, box, bottle, or any product. We extract shape and materials.' },
+                  { title: 'Step 2: Choose your style', desc: 'Lifestyle, studio, cinematic, minimal, aesthetic, or clean white.' },
+                  { title: 'Step 3: Generate & download', desc: '4K-ready images for Shopify, Amazon, funnels, and ads.' },
+                ].map(step => (
+                  <div key={step.title} className="flex gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-indigo-300 flex-shrink-0" />
+                    <div>
+                      <p className="text-white font-medium">{step.title}</p>
+                      <p className="text-gray-400 text-sm">{step.desc}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </section>
 
         {/* AI UGC explainer */}
-        <section className="w-full bg-white py-24 border-t border-gray-100">
-          <div className="max-w-5xl mx-auto px-4 space-y-12 text-gray-900">
-            <h2 className="text-4xl font-bold">
-              What Is AI UGC and Why It’s Changing eCommerce Forever?
-            </h2>
+        <section className="w-full bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950 py-24 border-t border-white/5">
+          <div className="max-w-5xl mx-auto px-4 space-y-12 text-white">
+            <div className="space-y-3">
+              <h2 className="text-4xl font-bold">
+                What Is AI UGC and Why It’s Changing eCommerce Forever?
+              </h2>
+              <p className="text-gray-300 leading-relaxed">
+                AI-generated User Generated Content lets you skip photoshoots and creators while keeping visuals human and on-brand. With Gemini 2.5 Flash Image, you get realistic lighting, materials, and reflections tailored for commerce.
+              </p>
+            </div>
 
-            <p className="text-gray-600 leading-relaxed">
-              AI UGC, or AI-generated User Generated Content, is content created using artificial intelligence instead of real creators or photographers. With advanced visual models like Google’s Gemini 2.5 Flash Image, brands can now generate realistic lifestyle photos, product mockups and hero landing images without the cost, time or logistics behind traditional photoshoots.
-            </p>
+            <div className="grid gap-6 md:grid-cols-3">
+              {[
+                {
+                  title: 'Speed & cost',
+                  desc: 'Ship lifestyle shots and hero images in minutes, not days.',
+                  icon: <Zap className="w-5 h-5 text-indigo-300" />,
+                },
+                {
+                  title: 'Consistency',
+                  desc: 'Keep every asset on-brand without depending on creators or studios.',
+                  icon: <ShieldCheck className="w-5 h-5 text-indigo-300" />,
+                },
+                {
+                  title: 'Unlimited tests',
+                  desc: 'Generate variations for A/B tests—backgrounds, angles, props, and lighting.',
+                  icon: <Sparkles className="w-5 h-5 text-indigo-300" />,
+                },
+              ].map(card => (
+                <div key={card.title} className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-2">
+                  <div className="flex items-center gap-2 text-sm text-indigo-200">{card.icon}<span>{card.title}</span></div>
+                  <p className="text-gray-200 text-sm leading-relaxed">{card.desc}</p>
+                </div>
+              ))}
+            </div>
 
-            <p className="text-gray-600 leading-relaxed">
-              AI UGC has exploded in adoption because it solves the biggest pain point in eCommerce: the constant need for fresh, branded content that looks natural and human. Whether for Shopify stores, Amazon listings, social media ads or DTC funnels, brands need realistic visuals that convert. BoostUGC delivers this instantly.
-            </p>
-
-            <h3 className="text-2xl font-semibold">
-              Why AI UGC Works Better Than Traditional Content
-            </h3>
-
-            <ul className="list-disc pl-6 space-y-3 text-gray-700">
-              <li>It’s faster and cheaper than photoshoots and UGC creators.</li>
-              <li>It produces consistent brand visuals without depending on creators.</li>
-              <li>You can generate unlimited variations for A/B testing.</li>
-              <li>No coordination, shipping, scheduling or retakes.</li>
-              <li>Perfect for small teams and large brands alike.</li>
-              <li>Ideal for DTC, Shopify, Amazon, TikTok Ads and Instagram content.</li>
-            </ul>
-
-            <h3 className="text-2xl font-semibold">
-              How eCommerce Brands Use AI UGC
-            </h3>
-
-            <p className="text-gray-600 leading-relaxed">
-              Brands use AI UGC to replace or supplement traditional content. The most common use cases include lifestyle scenes, in-context product images, creator-style photos, hero shots for landing pages and product page secondary images.
-            </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-3">
-                <h4 className="font-semibold text-lg">Shopify Stores</h4>
-                <p className="text-gray-600">
-                  Create lifestyle images for product pages and clean visuals for hero sections without hiring models or photographers.
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <h4 className="font-semibold text-lg">Amazon Sellers</h4>
-                <p className="text-gray-600">
-                  Generate A+ content images, packshots and lifestyle scenes that boost conversion.
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <h4 className="font-semibold text-lg">Social Media Creators</h4>
-                <p className="text-gray-600">
-                  Build UGC-style photos for TikTok, Instagram, Reels and YouTube thumbnails instantly.
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <h4 className="font-semibold text-lg">Agencies & Marketing Teams</h4>
-                <p className="text-gray-600">
-                  Create unlimited branded assets at scale for clients, campaigns and ads.
-                </p>
+            <div className="space-y-6">
+              <h3 className="text-2xl font-semibold">How eCommerce Brands Use AI UGC</h3>
+              <p className="text-gray-300 leading-relaxed">
+                Replace or supplement traditional content with lifestyle scenes, in-context product images, creator-style photos, hero shots, and secondary product images.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[
+                  { title: 'Shopify Stores', desc: 'Lifestyle + hero visuals without models or photographers.' },
+                  { title: 'Amazon Sellers', desc: 'A+ content, packshots, and lifestyle scenes that boost conversion.' },
+                  { title: 'Social Media Creators', desc: 'UGC-style shots for TikTok, Instagram, Reels, and thumbnails.' },
+                  { title: 'Agencies & Marketing Teams', desc: 'Produce unlimited branded assets for clients and campaigns.' },
+                ].map(item => (
+                  <div key={item.title} className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-2">
+                    <p className="font-semibold text-white">{item.title}</p>
+                    <p className="text-gray-300 text-sm">{item.desc}</p>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <h3 className="text-2xl font-semibold">
-              Why BoostUGC Is Different From Other AI Tools
-            </h3>
+            <div className="space-y-4">
+              <h3 className="text-2xl font-semibold">Why BoostUGC is different</h3>
+              <ul className="list-disc pl-6 space-y-3 text-gray-300">
+                <li>Photorealistic by default—no AI art artifacts.</li>
+                <li>Realistic shadows, reflections, and product geometry tuned for eCommerce.</li>
+                <li>Optimized for ads, landing pages, and product pages.</li>
+              </ul>
+            </div>
 
-            <p className="text-gray-600 leading-relaxed">
-              Unlike generic AI art tools, BoostUGC is built specifically for eCommerce. Every output is designed to look real, human and natural so that customers trust what they see. Models like Gemini 2.5 Flash Image produce photorealistic lighting, textures and product reflections that outperform generic AI platforms.
-            </p>
+            <div className="space-y-4">
+              <h3 className="text-2xl font-semibold">Does AI UGC convert better?</h3>
+              <p className="text-gray-300 leading-relaxed">
+                Brands report higher add-to-cart, CTR, and ad performance with native, human-feeling visuals—and faster testing to find winning angles.
+              </p>
+            </div>
 
-            <ul className="list-disc pl-6 space-y-3 text-gray-700">
-              <li>Every output is photorealistic by default.</li>
-              <li>No AI “art-style” artifacts.</li>
-              <li>Realistic shadows, reflections and product geometry.</li>
-              <li>Optimized for eCommerce conversion rates.</li>
-              <li>Perfect for ads, landing pages and product pages.</li>
-            </ul>
+            <div className="space-y-4">
+              <h3 className="text-2xl font-semibold">The future is AI-powered</h3>
+              <p className="text-gray-300 leading-relaxed">
+                As models improve, production shifts fully to AI-driven workflows. Stay ahead with studio-quality and lifestyle content at scale—no traditional shoots required.
+              </p>
+            </div>
 
-            <h3 className="text-2xl font-semibold">
-              Does AI UGC Convert Better Than Traditional Content?
-            </h3>
-
-            <p className="text-gray-600 leading-relaxed">
-              Yes. Brands report an increase in add-to-cart rates, landing page CTR and ad performance when using lifestyle content that feels native and human. Because AI UGC allows unlimited experimentation, brands find the best-performing angles, colors, backgrounds and compositions in a fraction of the time.
-            </p>
-
-            <h3 className="text-2xl font-semibold">
-              The Future of eCommerce Content Is AI-Powered
-            </h3>
-
-            <p className="text-gray-600 leading-relaxed">
-              As AI models continue to improve, UGC creation will shift completely toward AI-driven workflows. BoostUGC allows you to stay ahead by producing studio-quality and lifestyle content at scale, removing the need for traditional photoshoots entirely.
-            </p>
-
-            <div className="pt-6">
+            <div className="pt-2">
               <a
                 href="/signup"
-                className="inline-block bg-black text-white px-6 py-3 rounded-md hover:bg-black/90 text-lg font-medium"
+                className="inline-flex items-center gap-2 bg-indigo-500 text-white px-6 py-3 rounded-md hover:bg-indigo-600 text-lg font-medium"
               >
+                <Sparkles className="w-5 h-5" />
                 Start Free Trial
               </a>
             </div>
