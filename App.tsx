@@ -320,9 +320,10 @@ import Accordion from './components/Accordion';
 import ChipSelectGroup from './components/ChipSelectGroup';
 import ImageEditor from './components/ImageEditor';
 import ModelReferencePanel from './components/ModelReferencePanel';
-import MoodReferencePanel from './components/MoodReferencePanel';
+
 import OnboardingOverlay from './components/OnboardingOverlay';
-import { FirebaseAuthGate } from './src/components/FirebaseAuthGate';
+
+import { useAuth } from './src/contexts/AuthContext';
 
 const describeAgeGroup = (ageGroup: string, gender: string) => {
   const genderNoun =
@@ -588,6 +589,8 @@ const scaleImageToLongEdge = async (sourceUrl: string, targetLongEdge: number): 
 const App: React.FC = () => {
   const GEMINI_DISABLED = true; // Disable Gemini key gate/features while using Replicate
   const location = useLocation();
+  const { user, isGuest, signInWithGoogle, logout } = useAuth();
+  const isLoggedIn = !!user || isGuest;
   const envApiKey = getEnvApiKey();
   const initialSceneRef = useRef<StoryboardScene | null>(null);
   const bundleSelectionRef = useRef<ProductId[] | null>(null);
@@ -702,7 +705,18 @@ const App: React.FC = () => {
   const [isUsingStoredKey, setIsUsingStoredKey] = useState(false);
   const [userEmail, setUserEmail] = useState('');
 
-  const [creditUsage, setCreditUsage] = useState(0); // tracks credits spent
+  const [creditUsage, setCreditUsage] = useState(() => {
+    if (typeof window !== 'undefined' && localStorage.getItem('guest_credit_usage')) {
+      return parseInt(localStorage.getItem('guest_credit_usage') || '0', 10);
+    }
+    return 0;
+  }); // tracks credits spent
+
+  useEffect(() => {
+    if (isGuest) {
+      localStorage.setItem('guest_credit_usage', creditUsage.toString());
+    }
+  }, [creditUsage, isGuest]);
   const [videoGenerationCount, setVideoGenerationCount] = useState(0);
   const [hasVideoAccess, setHasVideoAccess] = useState(false);
   const [videoAccessInput, setVideoAccessInput] = useState('');
@@ -776,8 +790,8 @@ const App: React.FC = () => {
   const isHeroLandingMode = activeSupplementPreset === HERO_LANDING_PRESET_VALUE;
   const currentPlan = PLAN_CONFIG[planTier];
   const shouldRequireLogin = !isLoggedIn;
-  const loginGateActive = shouldRequireLogin || loginRequested;
-  const planCreditLimit = currentPlan.creditLimit;
+  const loginGateActive = shouldRequireLogin;
+  const planCreditLimit = isGuest ? 2 : currentPlan.creditLimit;
   const planVideoLimit = Math.floor(planCreditLimit / VIDEO_CREDIT_COST);
   const canUseStudioFeatures = currentPlan.allowStudio || isTrialBypassActive;
   const canUseCaptionAssistant = false;
@@ -790,9 +804,9 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!isTrialBypassActive && !isAdmin && remainingCredits <= 0) {
       setShowPlanModal(true);
-      setPlanNotice('Se agotaron los créditos del plan Free. Actualiza para seguir generando.');
+      setPlanNotice(isGuest ? 'Has usado tus 2 créditos gratuitos. Regístrate para obtener más.' : 'Se agotaron los créditos del plan Free. Actualiza para seguir generando.');
     }
-  }, [isTrialBypassActive, isAdmin, remainingCredits]);
+  }, [isTrialBypassActive, isAdmin, remainingCredits, isGuest]);
   useEffect(() => {
     if ((!personInScene || isProductPlacement) && ugcRealSettings.isEnabled) {
       persistUgcRealSettings(prev => ({ ...prev, isEnabled: false }));
@@ -945,12 +959,7 @@ const App: React.FC = () => {
     const aiStudioInstance = (window as typeof window & { aistudio?: AiStudioApi }).aistudio;
     setIsAiStudioAvailable(Boolean(aiStudioInstance));
 
-    const storedEmail = window.localStorage.getItem(EMAIL_STORAGE_KEY);
-    if (storedEmail) {
-      setUserEmail(storedEmail);
-      setIsLoggedIn(true);
-      setEmailInput(storedEmail);
-    }
+
 
     const storedCount = window.localStorage.getItem(IMAGE_COUNT_KEY);
     if (storedCount) {
@@ -1082,11 +1091,7 @@ const App: React.FC = () => {
     }
   }, []);
 
-  useEffect(() => {
-    if (isLoggedIn) {
-      setLoginRequested(false);
-    }
-  }, [isLoggedIn]);
+
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -2471,243 +2476,6 @@ const App: React.FC = () => {
     });
   }, []);
 
-  const resetVerificationFlow = useCallback(() => {
-    setLoginStep('email');
-    setVerificationCode('');
-    setVerificationError(null);
-    setIsRequestingCode(false);
-    setIsVerifyingCode(false);
-    setCodeSentTimestamp(null);
-  }, []);
-
-  const completeLogin = useCallback((rawEmail: string) => {
-    const trimmed = rawEmail.trim();
-    if (!trimmed) return;
-    resetVerificationFlow();
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(EMAIL_STORAGE_KEY, trimmed);
-    }
-    setUserEmail(trimmed);
-    setEmailInput(trimmed);
-    setIsLoggedIn(true);
-    setEmailError(null);
-  }, [resetVerificationFlow]);
-
-  const handleEmailChange = useCallback((value: string) => {
-    setEmailInput(value);
-    if (emailError) {
-      setEmailError(null);
-    }
-    if (loginStep !== 'email') {
-      setLoginStep('email');
-      setVerificationCode('');
-      setVerificationError(null);
-    }
-  }, [emailError, loginStep]);
-
-  const handleSendVerificationCode = useCallback(async () => {
-    const trimmed = emailInput.trim();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(trimmed)) {
-      setEmailError('Enter a valid email address to continue.');
-      setLoginStep('email');
-      return;
-    }
-    const normalized = trimmed.toLowerCase();
-    if (ADMIN_EMAILS.includes(normalized)) {
-      completeLogin(trimmed);
-      setHasTrialBypass(true);
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(TRIAL_BYPASS_KEY, 'true');
-      }
-      return;
-    }
-    setEmailInput(trimmed);
-    if (!EMAIL_VERIFICATION_ENABLED) {
-      completeLogin(trimmed);
-      setLoginRequested(false);
-      return;
-    }
-    setIsRequestingCode(true);
-    setVerificationError(null);
-    try {
-      const response = await fetch('/api/request-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: trimmed }),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(data?.error || 'Could not send verification email.');
-      }
-      setLoginStep('code');
-      setCodeSentTimestamp(Date.now());
-      setVerificationCode('');
-    } catch (error) {
-      setVerificationError(error instanceof Error ? error.message : 'Could not send verification email.');
-    } finally {
-      setIsRequestingCode(false);
-    }
-  }, [completeLogin, emailInput]);
-
-  const handleVerificationSubmit = useCallback(async () => {
-    const trimmed = emailInput.trim();
-    if (!trimmed) {
-      setLoginStep('email');
-      setVerificationError('Re-enter your email to get a verification code.');
-      return;
-    }
-    if (!EMAIL_VERIFICATION_ENABLED) {
-      completeLogin(trimmed);
-      return;
-    }
-    if (!verificationCode.trim()) {
-      setVerificationError('Enter the verification code we sent to your email.');
-      return;
-    }
-    setIsVerifyingCode(true);
-    setVerificationError(null);
-    try {
-      const response = await fetch('/api/verify-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: trimmed, code: verificationCode.trim() }),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data?.verified) {
-        throw new Error(data?.error || 'Invalid code. Try again.');
-      }
-      completeLogin(trimmed);
-    } catch (error) {
-      setVerificationError(error instanceof Error ? error.message : 'Could not verify the code.');
-    } finally {
-      setIsVerifyingCode(false);
-    }
-  }, [completeLogin, emailInput, verificationCode]);
-
-  const handleVerificationCodeChange = useCallback((value: string) => {
-    const digitsOnly = value.replace(/[^0-9]/g, '').slice(0, 6);
-    setVerificationCode(digitsOnly);
-    if (verificationError) {
-      setVerificationError(null);
-    }
-  }, [verificationError]);
-
-  const handleEmailSubmit = useCallback(() => {
-    if (loginStep === 'code') {
-      handleVerificationSubmit();
-      return;
-    }
-    handleSendVerificationCode();
-  }, [handleSendVerificationCode, handleVerificationSubmit, loginStep]);
-
-  const handleGoogleCredential = useCallback((credential?: string) => {
-    if (!credential) {
-      setGoogleAuthError('Google sign-in failed. Please try again.');
-      return;
-    }
-    try {
-      const payload = JSON.parse(
-        atob(
-          credential
-            .split('.')[1]
-            .replace(/-/g, '+')
-            .replace(/_/g, '/')
-        )
-      );
-      const email = typeof payload.email === 'string' ? payload.email : null;
-      if (!email) {
-        setGoogleAuthError('Google account is missing a public email.');
-        return;
-      }
-      setGoogleAuthError(null);
-      completeLogin(email);
-    } catch (error) {
-      console.error(error);
-      setGoogleAuthError('Could not verify Google response. Please try again.');
-    }
-  }, [completeLogin]);
-
-  const handleBackToEmailLogin = useCallback(() => {
-    setLoginStep('email');
-    setVerificationCode('');
-    setVerificationError(null);
-  }, []);
-
-  const promptLogin = useCallback(() => {
-    setLoginRequested(true);
-    setLoginStep('email');
-    setVerificationCode('');
-    setVerificationError(null);
-    setEmailError(null);
-  }, []);
-
-  useEffect(() => {
-    if (!GOOGLE_CLIENT_ID || typeof window === 'undefined') return;
-    const scriptId = 'google-identity-services';
-    const existing = document.getElementById(scriptId);
-    if (existing) {
-      setIsGoogleScriptLoaded(true);
-      return;
-    }
-    const script = document.createElement('script');
-    script.id = scriptId;
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    script.onload = () => setIsGoogleScriptLoaded(true);
-    script.onerror = () =>
-      setGoogleAuthError('Google Sign-In failed to load. Check your network connection or ad blockers.');
-    document.head.appendChild(script);
-    return () => {
-      script.onload = null;
-      script.onerror = null;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!GOOGLE_CLIENT_ID || !isGoogleScriptLoaded || googleInitRef.current) return;
-    let cancelled = false;
-    const tryInitialize = () => {
-      if (cancelled || googleInitRef.current) return;
-      const googleId = window.google?.accounts?.id;
-      if (!googleId) {
-        window.setTimeout(tryInitialize, 200);
-        return;
-      }
-      googleId.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: (response: GoogleCredentialResponse) => handleGoogleCredential(response.credential),
-      });
-      if (googleButtonRef.current) {
-        googleButtonRef.current.innerHTML = '';
-        googleId.renderButton(googleButtonRef.current, {
-          theme: 'outline',
-          size: 'large',
-          width: 320,
-          shape: 'pill',
-        });
-      }
-      googleInitRef.current = true;
-    };
-    tryInitialize();
-    return () => {
-      cancelled = true;
-    };
-  }, [GOOGLE_CLIENT_ID, handleGoogleCredential, isGoogleScriptLoaded]);
-
-
-  const handleSelectKey = async () => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-    const aiStudioInstance = (window as typeof window & { aistudio?: AiStudioApi }).aistudio;
-    if (!aiStudioInstance) {
-      return;
-    }
-    await aiStudioInstance.openSelectKey();
-    setIsKeySelected(true);
-  };
 
   const handleToggleAccordion = (title: string) => {
     setOpenAccordion(current => (current === title ? null : title));
@@ -2863,26 +2631,11 @@ const App: React.FC = () => {
     setHeroShadowStyle('softDrop');
   }, [resetOutputs, activeProductAsset]);
 
-  const handleLogout = useCallback(() => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.removeItem(EMAIL_STORAGE_KEY);
-      window.localStorage.removeItem(VIDEO_ACCESS_KEY);
-    }
+  const handleLogout = useCallback(async () => {
+    await logout();
     handleReset();
-    resetVerificationFlow();
-    setUserEmail('');
-    setEmailInput('');
-    setIsLoggedIn(false);
-    setHasVideoAccess(false);
-    setVideoAccessInput('');
-    setVideoAccessError(null);
-    setMoodPalette([]);
-    setMoodSummary(null);
-    setMoodImagePreview(prev => {
-      if (prev) URL.revokeObjectURL(prev);
-      return null;
-    });
-  }, [handleReset, resetVerificationFlow]);
+  }, [logout, handleReset]);
+
 
   const handleImageUpload = useCallback(async (files: File[]) => {
     const ALLOWED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
@@ -3794,7 +3547,7 @@ const App: React.FC = () => {
               )}
               {!shouldRequireLogin && !isLoggedIn && (
                 <button
-                  onClick={promptLogin}
+                  onClick={() => signInWithGoogle()}
                   className="inline-flex items-center justify-center rounded-lg border border-indigo-500/60 px-4 py-2 text-sm font-semibold text-indigo-200 hover:bg-indigo-500/10 transition"
                 >
                   Sign in
@@ -3881,7 +3634,7 @@ const App: React.FC = () => {
                       </button>
                       {storyboardScenes.length > 1 && (
                         <button
-                          onClick={() => handleSceneDelete(scene.id)}
+                          onClick={() => handleDeleteScene(scene.id)}
                           className="text-xs text-gray-400 hover:text-red-300"
                         >
                           Remove

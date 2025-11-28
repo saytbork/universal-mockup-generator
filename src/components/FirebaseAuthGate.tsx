@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Mail, Loader2, LogOut } from 'lucide-react';
 
 export const FirebaseAuthGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { user, loading, signInWithGoogle, sendMagicLink, logout } = useAuth();
+    const { user, loading, isGuest, signInWithGoogle, sendMagicLink, loginAsGuest, logout } = useAuth();
     const [email, setEmail] = useState('');
     const [magicLinkSent, setMagicLinkSent] = useState(false);
     const [authError, setAuthError] = useState<string | null>(null);
@@ -16,7 +16,7 @@ export const FirebaseAuthGate: React.FC<{ children: React.ReactNode }> = ({ chil
         );
     }
 
-    if (!user) {
+    if (!user && !isGuest) {
         return (
             <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center px-4">
                 <div className="max-w-md w-full bg-gray-900/70 border border-gray-800 rounded-2xl p-8 text-center shadow-2xl space-y-6">
@@ -103,6 +103,22 @@ export const FirebaseAuthGate: React.FC<{ children: React.ReactNode }> = ({ chil
                                 </button>
                             </div>
                         )}
+
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-gray-800"></div>
+                            </div>
+                            <div className="relative flex justify-center text-sm">
+                                <span className="px-2 bg-gray-900/70 text-gray-500">Or try it out</span>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => loginAsGuest()}
+                            className="w-full bg-transparent border border-gray-700 text-gray-300 py-3 rounded-xl font-medium hover:bg-gray-800 hover:text-white transition-all"
+                        >
+                            Continue as Guest (2 Free Credits)
+                        </button>
 
                         {authError && (
                             <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 p-3 rounded-lg">

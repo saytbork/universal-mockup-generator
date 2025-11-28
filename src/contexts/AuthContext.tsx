@@ -14,10 +14,12 @@ import { auth, googleProvider } from '../firebase';
 interface AuthContextType {
     user: User | null;
     loading: boolean;
+    isGuest: boolean;
     signInWithGoogle: () => Promise<void>;
     sendMagicLink: (email: string) => Promise<void>;
     finishMagicLinkSignIn: (email: string, href: string) => Promise<void>;
     logout: () => Promise<void>;
+    loginAsGuest: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -31,6 +33,8 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+
+    const [isGuest, setIsGuest] = useState(false);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -77,10 +81,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const logout = async () => {
         await signOut(auth);
+        setIsGuest(false);
+    };
+
+    const loginAsGuest = () => {
+        setIsGuest(true);
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, signInWithGoogle, sendMagicLink, finishMagicLinkSignIn, logout }}>
+        <AuthContext.Provider value={{ user, loading, isGuest, signInWithGoogle, sendMagicLink, finishMagicLinkSignIn, logout, loginAsGuest }}>
             {children}
         </AuthContext.Provider>
     );
