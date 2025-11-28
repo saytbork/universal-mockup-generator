@@ -397,6 +397,8 @@ const PLAN_CONFIG: Record<
     creditLimit: number;
     allowStudio: boolean;
     allowCaption: boolean;
+    priceLabel: string;
+    stripeUrl?: string;
   }
 > = {
   free: {
@@ -405,20 +407,25 @@ const PLAN_CONFIG: Record<
     creditLimit: 10,
     allowStudio: false,
     allowCaption: false,
+    priceLabel: '$0',
   },
   creator: {
     label: 'Creator',
-    description: '200 credits · Fast engine sin marca · licencia básica',
-    creditLimit: 200,
+    description: '20 credits · Fast engine sin marca · licencia básica',
+    creditLimit: 20,
     allowStudio: true,
     allowCaption: true,
+    priceLabel: '$19/mo',
+    stripeUrl: 'https://buy.stripe.com/test_cNi7sK2zogyrccy5jUbV609',
   },
   studio: {
     label: 'Studio',
-    description: '400 credits · PRO (3 cr) · cola prioritaria · licencia full',
-    creditLimit: 400,
+    description: '60 credits · PRO (3 cr) · cola prioritaria · licencia full',
+    creditLimit: 60,
     allowStudio: true,
     allowCaption: true,
+    priceLabel: '$29/mo',
+    stripeUrl: 'https://buy.stripe.com/test_7sY5kCgqe6XR1xUbIibV602',
   },
 };
 
@@ -430,6 +437,7 @@ const PLAN_UNLOCK_CODES: Record<string, PlanTier> = {
   STUDIO29: 'studio',
   STUDIO290: 'studio',
 };
+const TESTER_UPGRADE_CODE = import.meta.env.VITE_TESTER_CODE || '713371';
 
 const PERSON_FIELD_KEYS: OptionCategory[] = [
   'ageGroup',
@@ -2160,31 +2168,60 @@ const App: React.FC = () => {
 
   const handlePlanTierSelect = useCallback(
     (tier: PlanTier) => {
-      setPlanTier(tier);
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(PLAN_STORAGE_KEY, tier);
-      }
-      if (!PLAN_CONFIG[tier].allowStudio && !isSimpleMode) {
-        setIsSimpleMode(true);
+      if (tier === 'free') {
+        setPlanTier(tier);
         if (typeof window !== 'undefined') {
+          window.localStorage.setItem(PLAN_STORAGE_KEY, tier);
           window.localStorage.setItem(SIMPLE_MODE_KEY, 'true');
         }
+        if (!PLAN_CONFIG[tier].allowStudio && !isSimpleMode) {
+          setIsSimpleMode(true);
+        }
+        setPlanNotice(null);
+        setPlanCodeInput('');
+        setPlanCodeError(null);
+        setShowPlanModal(false);
+        return;
       }
-      setPlanNotice(null);
-      setPlanCodeInput('');
-      setPlanCodeError(null);
-      setShowPlanModal(false);
+      const targetUrl = PLAN_CONFIG[tier].stripeUrl;
+      if (!targetUrl) return;
+      if (!userEmail) {
+        setPlanNotice('Inicia sesión para completar el pago.');
+        return;
+      }
+      try {
+        const url = new URL(targetUrl);
+        url.searchParams.set('prefilled_email', userEmail);
+        window.open(url.toString(), '_blank', 'noopener,noreferrer');
+      } catch (err) {
+        console.error(err);
+        setPlanNotice('No se pudo abrir el checkout. Intenta de nuevo.');
+      }
     },
-    [isSimpleMode]
+    [isSimpleMode, userEmail]
   );
 
   const handlePlanCodeSubmit = useCallback(() => {
     const trimmed = planCodeInput.trim();
+    const normalized = trimmed.toUpperCase();
     if (!trimmed) {
       setPlanCodeError('Enter the access code provided after checkout.');
       return;
     }
-    const tier = PLAN_UNLOCK_CODES[trimmed];
+    if (normalized === TESTER_UPGRADE_CODE.toUpperCase()) {
+      setPlanTier('creator');
+      setCreditUsage(0);
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(PLAN_STORAGE_KEY, 'creator');
+        window.localStorage.setItem(IMAGE_COUNT_KEY, '0');
+      }
+      setPlanCodeInput('');
+      setPlanCodeError(null);
+      setPlanNotice('Tester code applied: 20 credits.');
+      setShowPlanModal(false);
+      return;
+    }
+    const tier = PLAN_UNLOCK_CODES[normalized];
     if (!tier) {
       setPlanCodeError('Invalid code. Please double-check your email receipt.');
       return;
@@ -3476,10 +3513,13 @@ const App: React.FC = () => {
                   onClick={() => handlePlanTierSelect(tier as PlanTier)}
                   className={`rounded-2xl border p-4 text-left transition ${planTier === tier ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
                 >
-                  <p className="text-lg font-semibold">{config.label}</p>
+                  <p className="text-lg font-semibold flex items-center justify-between">
+                    <span>{config.label}</span>
+                    <span className="text-sm text-indigo-200">{config.priceLabel}</span>
+                  </p>
                   <p className="text-sm text-gray-400 mt-1">{config.description}</p>
                   <p className="text-xs mt-2">
-                    {planTier === tier ? 'Current plan' : 'Select plan'}
+                    {planTier === tier ? 'Current plan' : 'Go to checkout'}
                   </p>
                 </button>
               ))}
@@ -3522,7 +3562,7 @@ const App: React.FC = () => {
             </p>
             <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs text-gray-400">
               <span className="rounded-full border border-white/20 px-3 py-1 text-white/90">
-                Plan: {currentPlan.label}
+                Plan: {currentPlan.label} {currentPlan.priceLabel ? `· ${currentPlan.priceLabel}` : ''}
               </span>
               <span>
                 {remainingCredits} credits left
