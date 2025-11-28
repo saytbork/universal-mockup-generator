@@ -122,51 +122,48 @@ const pricing: PricingPlan[] = [
     monthlyCaption: 'per month',
     yearlyCaption: 'per year',
     highlights: [
-      '10 starter credits to test the platform.',
-      'Fast Generation engine. Consumption: 1 credit.',
-      'Watermarked exports (non-commercial use).',
-      'Basic support via community and docs.',
+      '10 free images',
+      'Watermark',
+      'Community support',
     ],
-    cta: 'Start Free',
+    cta: 'Get Started Free',
     isFree: true,
   },
   {
-    name: 'Creator',
-    monthlyPrice: '$15',
-    yearlyPrice: '$135',
+    name: 'Creator – Monthly',
+    monthlyPrice: '$19',
+    yearlyPrice: '$137',
     monthlyCaption: 'per month',
-    yearlyCaption: 'per year (save 25%)',
+    yearlyCaption: 'per year (save 40%)',
     highlights: [
-      '200 monthly credits for light production.',
-      'Fast Generation engine. Consumption: 1 credit.',
-      'No watermark + basic commercial license.',
-      'No access to Photorealism PRO.',
+      '60 images',
+      'No watermark',
+      'Commercial license',
     ],
-    cta: 'Upgrade to Creator',
-    checkoutUrl: creatorMonthlyUrl, // fallback
+    cta: 'Continue to Registration',
+    checkoutUrl: creatorMonthlyUrl,
     monthlyUrl: creatorMonthlyUrl,
     yearlyUrl: creatorYearlyUrl,
     badge: 'Most Popular',
     featured: true,
-    metadata: { plan: 'creator', credits: 200 },
+    metadata: { plan: 'creator', credits: 60 },
   },
   {
-    name: 'Studio',
+    name: 'Studio – Monthly',
     monthlyPrice: '$29',
-    yearlyPrice: '$261',
+    yearlyPrice: '$244',
     monthlyCaption: 'per month',
-    yearlyCaption: 'per year (save 25%)',
+    yearlyCaption: 'per year (save 30%)',
     highlights: [
-      '400 monthly credits (best value).',
-      'Photorealism PRO. Consumption: 3 credits.',
-      'Priority render queue for faster results.',
-      'Full commercial license with no restrictions.',
+      '100 images',
+      'Priority processing',
+      'Full commercial license',
     ],
-    cta: 'Upgrade to Studio',
+    cta: 'Continue to Registration',
     checkoutUrl: studioMonthlyUrl, // fallback
     monthlyUrl: studioMonthlyUrl,
     yearlyUrl: studioYearlyUrl,
-    metadata: { plan: 'studio', credits: 400 },
+    metadata: { plan: 'studio', credits: 100 },
   },
 ];
 
@@ -677,16 +674,6 @@ const LandingPage: React.FC = () => {
                   ? `${baseCard} border-[#7E5BEF] bg-gradient-to-b from-[#1A1340] to-[#120A24] shadow-[0_20px_60px_rgba(126,91,239,0.35)]`
                   : `${baseCard} border-white/10 bg-white/5`;
 
-                const ctaBase =
-                  'mt-auto w-full rounded-full px-4 py-3 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500';
-                const ctaClasses = plan.featured
-                  ? `${ctaBase} bg-white text-[#120A24] hover:bg-gray-100`
-                  : plan.isFree
-                    ? `${ctaBase} border border-white/30 text-white hover:border-indigo-300`
-                    : plan.contactEmail
-                      ? `${ctaBase} border border-white/30 text-white hover:bg-white/10`
-                      : `${ctaBase} bg-indigo-500 text-white hover:bg-indigo-400`;
-
                 return (
                   <article key={plan.name} className={cardClasses}>
                     {plan.badge && (
@@ -713,34 +700,24 @@ const LandingPage: React.FC = () => {
                         </li>
                       ))}
                     </ul>
-                    {plan.isFree && (
-                      <button
-                        type="button"
-                        onClick={requireAccessCode}
-                        className={ctaClasses}
-                        aria-label={`${plan.cta} plan`}
+                    {plan.isFree ? (
+                      <Link
+                        to="/app"
+                        className="mt-auto w-full rounded-full border border-white/30 px-4 py-3 text-sm font-semibold text-white hover:border-indigo-300 text-center"
                       >
                         {plan.cta}
-                      </button>
-                    )}
-                    {!plan.isFree && plan.contactEmail && (
-                      <a
-                        href={`mailto:${plan.contactEmail}`}
-                        className={ctaClasses}
-                        aria-label={`${plan.cta} via email`}
+                      </Link>
+                    ) : (
+                      <Link
+                        to={`/app?plan=${plan.metadata?.plan ?? 'creator'}`}
+                        className={`mt-auto w-full rounded-full px-4 py-3 text-sm font-semibold transition text-center ${
+                          plan.featured
+                            ? 'bg-white text-[#120A24] hover:bg-gray-100'
+                            : 'bg-indigo-500 text-white hover:bg-indigo-400'
+                        }`}
                       >
                         {plan.cta}
-                      </a>
-                    )}
-                    {!plan.isFree && !plan.contactEmail && (
-                      <button
-                        type="button"
-                        onClick={() => handleOpenCheckout(plan)}
-                        className={ctaClasses}
-                        aria-label={plan.cta}
-                      >
-                        {plan.cta}
-                      </button>
+                      </Link>
                     )}
                   </article>
                 );
