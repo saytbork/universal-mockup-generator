@@ -501,6 +501,115 @@ const LandingPage: React.FC = () => {
           </div>
         </section>
 
+        {/* AI UGC explainer */}
+        <section className="w-full bg-white py-24 border-t border-gray-100">
+          <div className="max-w-5xl mx-auto px-4 space-y-12 text-gray-900">
+            <h2 className="text-4xl font-bold">
+              What Is AI UGC and Why It’s Changing eCommerce Forever?
+            </h2>
+
+            <p className="text-gray-600 leading-relaxed">
+              AI UGC, or AI-generated User Generated Content, is content created using artificial intelligence instead of real creators or photographers. With advanced visual models like Google’s Gemini 2.5 Flash Image, brands can now generate realistic lifestyle photos, product mockups and hero landing images without the cost, time or logistics behind traditional photoshoots.
+            </p>
+
+            <p className="text-gray-600 leading-relaxed">
+              AI UGC has exploded in adoption because it solves the biggest pain point in eCommerce: the constant need for fresh, branded content that looks natural and human. Whether for Shopify stores, Amazon listings, social media ads or DTC funnels, brands need realistic visuals that convert. BoostUGC delivers this instantly.
+            </p>
+
+            <h3 className="text-2xl font-semibold">
+              Why AI UGC Works Better Than Traditional Content
+            </h3>
+
+            <ul className="list-disc pl-6 space-y-3 text-gray-700">
+              <li>It’s faster and cheaper than photoshoots and UGC creators.</li>
+              <li>It produces consistent brand visuals without depending on creators.</li>
+              <li>You can generate unlimited variations for A/B testing.</li>
+              <li>No coordination, shipping, scheduling or retakes.</li>
+              <li>Perfect for small teams and large brands alike.</li>
+              <li>Ideal for DTC, Shopify, Amazon, TikTok Ads and Instagram content.</li>
+            </ul>
+
+            <h3 className="text-2xl font-semibold">
+              How eCommerce Brands Use AI UGC
+            </h3>
+
+            <p className="text-gray-600 leading-relaxed">
+              Brands use AI UGC to replace or supplement traditional content. The most common use cases include lifestyle scenes, in-context product images, creator-style photos, hero shots for landing pages and product page secondary images.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-3">
+                <h4 className="font-semibold text-lg">Shopify Stores</h4>
+                <p className="text-gray-600">
+                  Create lifestyle images for product pages and clean visuals for hero sections without hiring models or photographers.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="font-semibold text-lg">Amazon Sellers</h4>
+                <p className="text-gray-600">
+                  Generate A+ content images, packshots and lifestyle scenes that boost conversion.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="font-semibold text-lg">Social Media Creators</h4>
+                <p className="text-gray-600">
+                  Build UGC-style photos for TikTok, Instagram, Reels and YouTube thumbnails instantly.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="font-semibold text-lg">Agencies & Marketing Teams</h4>
+                <p className="text-gray-600">
+                  Create unlimited branded assets at scale for clients, campaigns and ads.
+                </p>
+              </div>
+            </div>
+
+            <h3 className="text-2xl font-semibold">
+              Why BoostUGC Is Different From Other AI Tools
+            </h3>
+
+            <p className="text-gray-600 leading-relaxed">
+              Unlike generic AI art tools, BoostUGC is built specifically for eCommerce. Every output is designed to look real, human and natural so that customers trust what they see. Models like Gemini 2.5 Flash Image produce photorealistic lighting, textures and product reflections that outperform generic AI platforms.
+            </p>
+
+            <ul className="list-disc pl-6 space-y-3 text-gray-700">
+              <li>Every output is photorealistic by default.</li>
+              <li>No AI “art-style” artifacts.</li>
+              <li>Realistic shadows, reflections and product geometry.</li>
+              <li>Optimized for eCommerce conversion rates.</li>
+              <li>Perfect for ads, landing pages and product pages.</li>
+            </ul>
+
+            <h3 className="text-2xl font-semibold">
+              Does AI UGC Convert Better Than Traditional Content?
+            </h3>
+
+            <p className="text-gray-600 leading-relaxed">
+              Yes. Brands report an increase in add-to-cart rates, landing page CTR and ad performance when using lifestyle content that feels native and human. Because AI UGC allows unlimited experimentation, brands find the best-performing angles, colors, backgrounds and compositions in a fraction of the time.
+            </p>
+
+            <h3 className="text-2xl font-semibold">
+              The Future of eCommerce Content Is AI-Powered
+            </h3>
+
+            <p className="text-gray-600 leading-relaxed">
+              As AI models continue to improve, UGC creation will shift completely toward AI-driven workflows. BoostUGC allows you to stay ahead by producing studio-quality and lifestyle content at scale, removing the need for traditional photoshoots entirely.
+            </p>
+
+            <div className="pt-6">
+              <a
+                href="/signup"
+                className="inline-block bg-black text-white px-6 py-3 rounded-md hover:bg-black/90 text-lg font-medium"
+              >
+                Start Free Trial
+              </a>
+            </div>
+          </div>
+        </section>
+
         {/* Universal Mockup Generator – Pricing Section by Juan Amisano */}
         <section id="pricing" className="relative isolate mt-16 px-4 py-20 sm:px-6 lg:px-8">
           <div className="absolute inset-0 -z-10 rounded-[2.5rem] bg-gradient-to-b from-[#0A0A0F] to-[#111] opacity-95" />
