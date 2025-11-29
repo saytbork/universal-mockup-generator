@@ -3026,6 +3026,7 @@ const App: React.FC = () => {
       } else if (hasSmartphoneProp) {
         prompt += 'Include a modern smartphone prop in their free hand so it complements but never hides the product. ';
       }
+      prompt += 'Hands must look fully human and photorealistic (no 3D artifacts). Skin texture, knuckles, and nails should be natural.';
       if (selfieMeta?.hidePhone) {
         prompt += 'Do not render a smartphone anywhere in frame—imply the selfie by the arm extension and body posture only.';
       }
@@ -3137,13 +3138,26 @@ const App: React.FC = () => {
     setIsImageLoading(true);
 
     try {
-      const orderedAssets = productAssets
-        .slice()
-        .sort((a, b) => {
-          if (a.id === activeProductId) return -1;
-          if (b.id === activeProductId) return 1;
-          return a.createdAt - b.createdAt;
+      // Prioritize assets based on bundle selection if provided, then activeProductId, then recency.
+      const bundlePriorities: string[] = [];
+      if (bundleProducts?.length) {
+        bundleProducts.forEach(bp => {
+          const idx = availableProductIds.findIndex(id => id === bp);
+          if (idx >= 0 && productAssets[idx]) {
+            bundlePriorities.push(productAssets[idx].id);
+          }
         });
+      }
+      const orderedAssets = productAssets.slice().sort((a, b) => {
+        const aIdx = bundlePriorities.indexOf(a.id);
+        const bIdx = bundlePriorities.indexOf(b.id);
+        if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+        if (aIdx !== -1) return -1;
+        if (bIdx !== -1) return 1;
+        if (a.id === activeProductId) return -1;
+        if (b.id === activeProductId) return 1;
+        return a.createdAt - b.createdAt;
+      });
       const [primary] = orderedAssets;
       if (!primary) {
         throw new Error('No product image found.');
