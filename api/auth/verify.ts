@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { tokenStore } from "../_lib/tokenStore";
+import { tokenStore } from "../lib/tokenStore";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { token } = req.query;
