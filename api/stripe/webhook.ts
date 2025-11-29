@@ -17,6 +17,11 @@ const buffer = async (req: VercelRequest) => {
   return Buffer.concat(chunks);
 };
 
+const secrets = [
+  process.env.STRIPE_WEBHOOK_SECRET as string | undefined,
+  process.env.STRIPE_WEBHOOK_SECRET_TEST as string | undefined,
+].filter(Boolean) as string[];
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
     res.status(405).send("Method not allowed");
@@ -29,13 +34,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const rawBody = await buffer(req);
     let event: Stripe.Event;
 
-    try {
-      event = stripe.webhooks.constructEvent(rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET as string);
-    } catch (err: any) {
-      console.error("Webhook signature verification failed", err?.message);
+    let constructed: Stripe.Event | null = null;
+    for (const secret of secrets) {
+      try {
+        constructed = stripe.webhooks.constructEvent(rawBody, sig, secret);
+        break;
+      } catch (err: any) {
+        // try next secret
+      }
+    }
+    if (!constructed) {
+      console.error("Webhook signature verification failed for all configured secrets.");
       res.status(400).send("Webhook Error");
       return;
     }
+    event = constructed;
 
     switch (event.type) {
       case "checkout.session.completed": {
