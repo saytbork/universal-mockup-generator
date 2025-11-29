@@ -3093,6 +3093,15 @@ const App: React.FC = () => {
           plan: 'free',
         }),
       });
+      if (typeof window !== 'undefined') {
+        const key = 'ugc-free-gallery';
+        const current = JSON.parse(window.localStorage.getItem(key) || '[]') as { imageUrl: string; title: string; createdAt: number }[];
+        const next = [
+          { imageUrl, title: 'Free plan generation', createdAt: Date.now() },
+          ...current,
+        ].slice(0, 20);
+        window.localStorage.setItem(key, JSON.stringify(next));
+      }
     } catch (err) {
       console.warn('Failed to publish to gallery', err);
     }

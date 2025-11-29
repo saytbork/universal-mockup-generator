@@ -275,32 +275,43 @@ const LandingPage: React.FC = () => {
 
   useEffect(() => {
     const fetchGallery = async () => {
+      const localKey = 'ugc-free-gallery';
+      const localItems = (() => {
+        try {
+          return JSON.parse(window.localStorage.getItem(localKey) || '[]') as { imageUrl: string; title: string; createdAt: number }[];
+        } catch {
+          return [];
+        }
+      })();
       try {
         const res = await fetch('/api/gallery', { method: 'GET' });
         if (!res.ok) throw new Error('bad status');
         const data = await res.json();
-        if (Array.isArray(data?.items)) {
-          setGalleryItems(data.items);
-        }
+        const remoteItems = Array.isArray(data?.items) ? data.items : [];
+        const merged = [...localItems.map((item, idx) => ({ id: `local-${idx}`, ...item })), ...remoteItems].slice(0, 30);
+        setGalleryItems(merged);
       } catch {
-        // fallback to static examples
-        setGalleryItems([
-          {
-            id: 'static-1',
-            imageUrl: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80',
-            title: 'Community lifestyle demo',
-          },
-          {
-            id: 'static-2',
-            imageUrl: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=1200&q=80',
-            title: 'Product tabletop demo',
-          },
-          {
-            id: 'static-3',
-            imageUrl: 'https://images.unsplash.com/photo-1512499385554-079eba9be8e9?auto=format&fit=crop&w=1200&q=80',
-            title: 'UGC creator demo',
-          },
-        ]);
+        setGalleryItems(
+          localItems.length
+            ? localItems.map((item, idx) => ({ id: `local-${idx}`, ...item }))
+            : [
+                {
+                  id: 'static-1',
+                  imageUrl: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80',
+                  title: 'Community lifestyle demo',
+                },
+                {
+                  id: 'static-2',
+                  imageUrl: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=1200&q=80',
+                  title: 'Product tabletop demo',
+                },
+                {
+                  id: 'static-3',
+                  imageUrl: 'https://images.unsplash.com/photo-1512499385554-079eba9be8e9?auto=format&fit=crop&w=1200&q=80',
+                  title: 'UGC creator demo',
+                },
+              ]
+        );
       }
     };
     fetchGallery();
