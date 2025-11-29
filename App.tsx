@@ -360,7 +360,7 @@ const EMAIL_STORAGE_KEY = 'ugc-product-mockup-generator-user-email';
 const IMAGE_COUNT_KEY = 'ugc-product-mockup-generator-credit-count';
 const VIDEO_ACCESS_KEY = 'ugc-product-mockup-generator-video-access';
 const TRIAL_BYPASS_KEY = 'ugc-product-mockup-trial-bypass';
-const DEFAULT_ADMIN_EMAILS = ['juanamisano@gmail.com'];
+const DEFAULT_ADMIN_EMAILS = ['juanamisano@gmail.com', 'boostugc@gmail.com'];
 const ADMIN_EMAILS = Array.from(
   new Set(
     `${import.meta.env.VITE_ADMIN_EMAILS || ''},${DEFAULT_ADMIN_EMAILS.join(',')}`
@@ -759,6 +759,9 @@ const App: React.FC = () => {
   const [planCodeInput, setPlanCodeInput] = useState('');
   const [planCodeError, setPlanCodeError] = useState<string | null>(null);
   const [planNotice, setPlanNotice] = useState<string | null>(null);
+  const [adminDevMessage, setAdminDevMessage] = useState<string | null>(null);
+  const [adminDevError, setAdminDevError] = useState<string | null>(null);
+  const [adminDevLoading, setAdminDevLoading] = useState(false);
   const [isSimpleMode, setIsSimpleMode] = useState(true);
   const [showGoalWizard, setShowGoalWizard] = useState(false);
   const [goalWizardStep, setGoalWizardStep] = useState(1);
@@ -785,9 +788,17 @@ const App: React.FC = () => {
     const params = new URLSearchParams(location.search);
     return params.has('dev');
   }, [location.search]);
-  const isAdmin = useMemo(
-    () => ADMIN_EMAILS.includes(userEmail.trim().toLowerCase()),
-    [userEmail]
+  const isAdmin = useMemo(() => {
+    const normalized = userEmail.trim().toLowerCase();
+    return (
+      ADMIN_EMAILS.includes(normalized) ||
+      normalized === 'boostugc@gmail.com' ||
+      normalized.endsWith('@amisano-design.com')
+    );
+  }, [userEmail]);
+  const showAdminDevButtons = useMemo(
+    () => !import.meta.env.DEV && isAdmin,
+    [isAdmin]
   );
   const isFreeUser = !isAdmin && planTier === 'free';
   const [hasTrialBypass, setHasTrialBypass] = useState(false);
@@ -2227,6 +2238,68 @@ const App: React.FC = () => {
     setPlanCodeInput('');
     setPlanCodeError(null);
   }, [planCodeInput, handlePlanTierSelect]);
+
+  const handleAddTestCredits = useCallback(async () => {
+    if (!isAdmin) return;
+    if (!userEmail) {
+      setAdminDevError('Sign in to attach credits.');
+      return;
+    }
+    setAdminDevLoading(true);
+    setAdminDevError(null);
+    setAdminDevMessage(null);
+    try {
+      const response = await fetch('/api/credits/consume', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          uid: userEmail,
+          email: userEmail,
+          amount: -100,
+          test: true,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to add credits');
+      }
+      setAdminDevMessage('Added 100 test credits');
+    } catch (error: any) {
+      setAdminDevError(error?.message || 'Unable to add credits');
+    } finally {
+      setAdminDevLoading(false);
+    }
+  }, [isAdmin, userEmail]);
+
+  const handleResetAccount = useCallback(async () => {
+    if (!isAdmin) return;
+    if (!userEmail) {
+      setAdminDevError('Sign in to reset.');
+      return;
+    }
+    setAdminDevLoading(true);
+    setAdminDevError(null);
+    setAdminDevMessage(null);
+    try {
+      const response = await fetch('/api/dev/reset-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          uid: userEmail,
+          email: userEmail,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to reset account');
+      }
+      setAdminDevMessage('Account reset to Free');
+    } catch (error: any) {
+      setAdminDevError(error?.message || 'Unable to reset account');
+    } finally {
+      setAdminDevLoading(false);
+    }
+  }, [isAdmin, userEmail]);
 
   const handleProPhotographerToggle = useCallback(() => {
     setIsProPhotographer(prev => !prev);
@@ -4311,6 +4384,30 @@ const App: React.FC = () => {
           </main>
         </div >
       </div >
+      {showAdminDevButtons && (
+        <div className="fixed bottom-6 left-6 z-[999999] hidden md:flex flex-col gap-2 opacity-60 hover:opacity-100 transition">
+          <button
+            onClick={handleAddTestCredits}
+            disabled={adminDevLoading}
+            className="rounded-full border border-white/30 bg-white/10 px-4 py-2 text-xs font-semibold text-white/80 shadow-lg backdrop-blur hover:bg-white/20 disabled:opacity-50"
+          >
+            Add 100 Test Credits
+          </button>
+          <button
+            onClick={handleResetAccount}
+            disabled={adminDevLoading}
+            className="rounded-full border border-white/30 bg-white/10 px-4 py-2 text-xs font-semibold text-white/80 shadow-lg backdrop-blur hover:bg-white/20 disabled:opacity-50"
+          >
+            Reset My Account
+          </button>
+          {(adminDevMessage || adminDevError) && (
+            <div className="text-[11px] leading-tight">
+              {adminDevMessage && <div className="text-emerald-300">{adminDevMessage}</div>}
+              {adminDevError && <div className="text-rose-300">{adminDevError}</div>}
+            </div>
+          )}
+        </div>
+      )}
     </>
   );
 };
