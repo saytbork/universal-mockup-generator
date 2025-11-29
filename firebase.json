@@ -1,0 +1,16 @@
+{
+  "hosting": {
+    "public": "dist",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      { "source": "/api/stripe/create-checkout-session", "function": "createCheckout" },
+      { "source": "/api/stripe/create-portal-session", "function": "createPortal" },
+      { "source": "/api/stripe/webhook", "function": "webhook" },
+      { "source": "/api/credits/consume", "function": "consumeCredit" },
+      { "source": "/api/auth/send-magic-link", "function": "sendMagicLink" }
+    ]
+  },
+  "functions": {
+    "source": "functions"
+  }
+}
