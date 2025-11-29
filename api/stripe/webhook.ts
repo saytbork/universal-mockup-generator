@@ -17,15 +17,31 @@ const stripe = stripeSecret
 
 type PlanId =
   | 'creator-monthly'
+  | 'creator-annual'
   | 'creator-yearly'
   | 'studio-monthly'
+  | 'studio-annual'
   | 'studio-yearly';
 
 const PRICE_PLAN_LOOKUP: Record<string, { plan: PlanId; credits: number }> = {
   [process.env.STRIPE_PRICE_CREATOR_MONTHLY || '']: { plan: 'creator-monthly', credits: 20 },
-  [process.env.STRIPE_PRICE_CREATOR_YEARLY || '']: { plan: 'creator-yearly', credits: 240 },
+  [process.env.STRIPE_PRICE_CREATOR_ANNUAL || process.env.STRIPE_PRICE_CREATOR_YEARLY || '']: {
+    plan: 'creator-annual',
+    credits: 250,
+  },
+  [process.env.STRIPE_PRICE_CREATOR_YEARLY || process.env.STRIPE_PRICE_CREATOR_ANNUAL || '']: {
+    plan: 'creator-yearly',
+    credits: 250,
+  },
   [process.env.STRIPE_PRICE_STUDIO_MONTHLY || '']: { plan: 'studio-monthly', credits: 60 },
-  [process.env.STRIPE_PRICE_STUDIO_YEARLY || '']: { plan: 'studio-yearly', credits: 720 },
+  [process.env.STRIPE_PRICE_STUDIO_ANNUAL || process.env.STRIPE_PRICE_STUDIO_YEARLY || '']: {
+    plan: 'studio-annual',
+    credits: 720,
+  },
+  [process.env.STRIPE_PRICE_STUDIO_YEARLY || process.env.STRIPE_PRICE_STUDIO_ANNUAL || '']: {
+    plan: 'studio-yearly',
+    credits: 720,
+  },
 };
 
 const getRawBody = (req: VercelRequest) =>
@@ -77,9 +93,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             stripeCustomerId: session.customer as string,
             subscriptionId: session.subscription as string,
             plan: planInfo?.plan ?? (session.metadata as any)?.plan ?? 'creator-monthly',
-            status: 'active',
+            subscriptionStatus: 'active',
             credits: planInfo?.credits ?? 0,
-            renewalDate: session.expires_at ? session.expires_at * 1000 : null,
+            currentPeriodEnd: session.expires_at ? session.expires_at * 1000 : null,
             updatedAt: Date.now(),
           },
           { merge: true }
@@ -99,9 +115,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             stripeCustomerId: subscription.customer as string,
             subscriptionId: subscription.id,
             plan: planInfo?.plan ?? 'creator-monthly',
-            status: subscription.status,
+            subscriptionStatus: subscription.status,
             credits: planInfo?.credits ?? 0,
-            renewalDate: subscription.current_period_end * 1000,
+            currentPeriodEnd: subscription.current_period_end * 1000,
             updatedAt: Date.now(),
           },
           { merge: true }
@@ -119,15 +135,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .collection('users')
           .doc(uid)
           .set(
-            {
-              credits: planInfo.credits,
-              plan: planInfo.plan,
-              status: 'active',
-              renewalDate: invoice.period_end * 1000,
-              updatedAt: Date.now(),
-            },
-            { merge: true }
-          );
+          {
+            credits: planInfo.credits,
+            plan: planInfo.plan,
+            subscriptionStatus: 'active',
+            currentPeriodEnd: invoice.period_end * 1000,
+            updatedAt: Date.now(),
+          },
+          { merge: true }
+        );
         break;
       }
 
@@ -137,10 +153,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!uid) break;
         await db.collection('users').doc(uid).set(
           {
-            status: 'canceled',
+            subscriptionStatus: 'canceled',
             plan: 'free',
             credits: 2,
-            renewalDate: null,
+            currentPeriodEnd: null,
             updatedAt: Date.now(),
           },
           { merge: true }

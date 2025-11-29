@@ -14,21 +14,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const db = getFirestore();
     const userRef = db.collection('users').doc(uid);
-    const snap = await userRef.get();
-    const data = snap.data() || {};
-    const currentCredits = data.credits ?? 0;
 
-    if (currentCredits < cost) {
-      return res.status(400).json({ error: 'Not enough credits' });
-    }
+    await db.runTransaction(async tx => {
+      const snap = await tx.get(userRef);
+      const data = snap.data() || {};
+      const currentCredits = data.credits ?? 0;
 
-    await userRef.update({
-      credits: currentCredits - cost,
-      updatedAt: Date.now(),
+      if (currentCredits < cost) {
+        throw new Error('NOT_ENOUGH_CREDITS');
+      }
+
+      tx.update(userRef, {
+        credits: currentCredits - cost,
+        updatedAt: Date.now(),
+      });
     });
 
-    return res.status(200).json({ ok: true, remaining: currentCredits - cost });
-  } catch (error) {
+    return res.status(200).json({ ok: true });
+  } catch (error: any) {
+    if (error?.message === 'NOT_ENOUGH_CREDITS') {
+      return res.status(400).json({ error: 'Not enough credits' });
+    }
     console.error('Error consuming credits', error);
     return res.status(500).json({ error: 'Unable to consume credits' });
   }

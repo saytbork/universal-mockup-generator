@@ -12,17 +12,13 @@ const stripe = stripeSecret
   ? new Stripe(stripeSecret, { apiVersion: '2023-10-16' })
   : null;
 
-type PlanId =
-  | 'creator-monthly'
-  | 'creator-yearly'
-  | 'studio-monthly'
-  | 'studio-yearly';
-
-const PLAN_PRICE_IDS: Record<PlanId, string | undefined> = {
+const PLAN_PRICE_IDS: Record<string, string | undefined> = {
   'creator-monthly': process.env.STRIPE_PRICE_CREATOR_MONTHLY,
-  'creator-yearly': process.env.STRIPE_PRICE_CREATOR_YEARLY,
+  'creator-annual': process.env.STRIPE_PRICE_CREATOR_ANNUAL || process.env.STRIPE_PRICE_CREATOR_YEARLY,
+  'creator-yearly': process.env.STRIPE_PRICE_CREATOR_YEARLY || process.env.STRIPE_PRICE_CREATOR_ANNUAL,
   'studio-monthly': process.env.STRIPE_PRICE_STUDIO_MONTHLY,
-  'studio-yearly': process.env.STRIPE_PRICE_STUDIO_YEARLY,
+  'studio-annual': process.env.STRIPE_PRICE_STUDIO_ANNUAL || process.env.STRIPE_PRICE_STUDIO_YEARLY,
+  'studio-yearly': process.env.STRIPE_PRICE_STUDIO_YEARLY || process.env.STRIPE_PRICE_STUDIO_ANNUAL,
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -34,15 +30,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: 'Stripe secret key is not configured' });
   }
 
-  const { uid, email, plan }: { uid?: string; email?: string; plan?: PlanId } = req.body || {};
+  const { uid, email, plan, priceId: incomingPriceId }: { uid?: string; email?: string; plan?: string; priceId?: string } = req.body || {};
 
-  if (!uid || !email || !plan) {
-    return res.status(400).json({ error: 'Missing uid, email or plan' });
+  if (!uid || !email) {
+    return res.status(400).json({ error: 'Missing uid or email' });
   }
 
-  const priceId = PLAN_PRICE_IDS[plan];
+  const priceId =
+    incomingPriceId ||
+    (plan ? PLAN_PRICE_IDS[plan] : undefined);
+
   if (!priceId) {
-    return res.status(400).json({ error: `Price ID not configured for plan ${plan}` });
+    return res.status(400).json({ error: 'Missing priceId or unsupported plan' });
   }
 
   try {

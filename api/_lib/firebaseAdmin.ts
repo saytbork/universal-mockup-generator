@@ -20,3 +20,4 @@ export const getAdminApp = () => {
 };
 
 export const getFirestore = () => getAdminApp().firestore();
+export default admin;
