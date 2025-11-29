@@ -3082,7 +3082,7 @@ const App: React.FC = () => {
   );
 
   const publishFreeGallery = useCallback(async (imageUrl: string) => {
-    if (planTier !== 'free' || isTrialBypassActive) return;
+    if (planTier !== 'free') return;
     try {
       await fetch('/api/gallery', {
         method: 'POST',
@@ -3105,7 +3105,7 @@ const App: React.FC = () => {
     } catch (err) {
       console.warn('Failed to publish to gallery', err);
     }
-  }, [planTier, isTrialBypassActive]);
+  }, [planTier]);
 
   const handleGenerateClick = async (bundleProducts?: ProductId[]) => {
     bundleSelectionRef.current = bundleProducts ?? null;
