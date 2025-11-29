@@ -19,7 +19,7 @@ const SiteNav: React.FC = () => {
           <Link to="/" className="hover:text-white transition">Home</Link>
           <Link to="/use-cases" className="hover:text-white transition">Use Cases</Link>
           <Link to="/comparisons" className="hover:text-white transition">Comparisons</Link>
-          <Link to="/pricing" className="hover:text-white transition">Pricing</Link>
+          <a href="/#pricing" className="hover:text-white transition">Pricing</a>
           <div className="relative">
             <button
               onClick={() => setShowResources(prev => !prev)}
@@ -36,8 +36,14 @@ const SiteNav: React.FC = () => {
             )}
           </div>
           <Link
-            to="/signup?plan=free"
+            to="/login"
             className="rounded-full bg-indigo-500 px-4 py-2 font-semibold text-white hover:bg-indigo-600 transition"
+          >
+            Login
+          </Link>
+          <Link
+            to="/app"
+            className="rounded-full border border-white/20 px-4 py-2 font-semibold text-white hover:border-indigo-300 transition"
           >
             Launch App
           </Link>

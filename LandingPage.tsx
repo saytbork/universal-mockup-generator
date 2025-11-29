@@ -4,8 +4,6 @@ import {
   Sparkles, Wand2, Camera, ShieldCheck, PlaySquare, Users, CheckCircle2, CreditCard, Zap, Layers, Image as ImageIcon, Gauge, ShoppingBag, Package, Users2, Building2, Instagram, Twitter, Youtube, Linkedin, ArrowRight
 } from 'lucide-react';
 import PlanCheckoutModal from './components/PlanCheckoutModal';
-import { Link } from 'react-router-dom';
-import { useState } from 'react';
 
 type PlanMetadata = {
   plan: 'creator' | 'studio';
@@ -193,6 +191,9 @@ const LandingPage: React.FC = () => {
   const [pendingRoute, setPendingRoute] = useState<string | null>(null);
   const [inviteCode, setInviteCode] = useState('');
   const [inviteError, setInviteError] = useState<string | null>(null);
+  const [heroEmail, setHeroEmail] = useState('');
+  const [heroStatus, setHeroStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [heroMessage, setHeroMessage] = useState<string | null>(null);
   const handleSmoothScroll = useCallback((selector: string) => {
     return (event: React.MouseEvent) => {
       event.preventDefault();
@@ -225,6 +226,29 @@ const LandingPage: React.FC = () => {
   const handleCloseCheckout = () => {
     setSelectedPlan(null);
     setCheckoutEmail('');
+  };
+
+  const handleHeroMagicLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!heroEmail.trim()) return;
+    setHeroStatus('loading');
+    setHeroMessage(null);
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: heroEmail.trim() }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Unable to send magic link');
+      }
+      setHeroStatus('success');
+      setHeroMessage('Check your email for your magic link.');
+    } catch (err: any) {
+      setHeroStatus('error');
+      setHeroMessage(err?.message || 'Could not send link.');
+    }
   };
 
   const handleConfirmCheckout = () => {
@@ -382,10 +406,10 @@ const LandingPage: React.FC = () => {
               </div>
               <div className="flex flex-col sm:flex-row gap-4 animate-fade-up delay-200">
                 <Link
-                  to="/app"
+                  to="/login"
                   className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-8 py-4 font-semibold text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-600 transition"
                 >
-                  Launch App
+                  Start Now
                 </Link>
                 <button
                   onClick={handleSmoothScroll('#pricing')}
@@ -394,7 +418,35 @@ const LandingPage: React.FC = () => {
                   View Pricing
                 </button>
               </div>
-              <p className="text-sm text-gray-500 animate-fade-up delay-300">Free plan → 2 credits · No credit card required</p>
+              <div className="w-full max-w-xl animate-fade-up delay-300">
+                <form onSubmit={handleHeroMagicLink} className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 flex flex-col sm:flex-row gap-3 items-center shadow-lg shadow-indigo-900/30">
+                  <input
+                    type="email"
+                    value={heroEmail}
+                    onChange={(e) => setHeroEmail(e.target.value)}
+                    placeholder="Enter your email for a magic link"
+                    className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    disabled={heroStatus === 'loading'}
+                    className="w-full sm:w-auto whitespace-nowrap rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-5 py-3 text-sm font-semibold text-white shadow-lg hover:from-indigo-400 hover:to-purple-400 transition disabled:opacity-60"
+                  >
+                    {heroStatus === 'loading' ? 'Sending...' : 'Send Magic Link'}
+                  </button>
+                </form>
+                {heroMessage && (
+                  <p
+                    className={`mt-2 text-sm ${
+                      heroStatus === 'success' ? 'text-green-300' : 'text-rose-300'
+                    }`}
+                  >
+                    {heroMessage}
+                  </p>
+                )}
+              </div>
+              <p className="text-sm text-gray-500 animate-fade-up delay-400">Free plan → 2 credits · No credit card required</p>
             </div>
           </header>
         </div>
@@ -622,7 +674,7 @@ const LandingPage: React.FC = () => {
 
             <div className="pt-2">
               <a
-                href="/signup"
+                href="/login"
                 className="inline-flex items-center gap-2 bg-indigo-500 text-white px-6 py-3 rounded-md hover:bg-indigo-600 text-lg font-medium"
               >
                 <Sparkles className="w-5 h-5" />
@@ -699,25 +751,34 @@ const LandingPage: React.FC = () => {
                         </li>
                       ))}
                     </ul>
-                    {plan.isFree ? (
-                      <Link
-                        to="/app"
-                        className="mt-auto w-full rounded-full border border-white/30 px-4 py-3 text-sm font-semibold text-white hover:border-indigo-300 text-center"
-                      >
-                        {plan.cta}
-                      </Link>
-                    ) : (
-                      <Link
-                        to={`/app?plan=${plan.metadata?.plan ?? 'creator'}`}
-                        className={`mt-auto w-full rounded-full px-4 py-3 text-sm font-semibold transition text-center ${
-                          plan.featured
-                            ? 'bg-white text-[#120A24] hover:bg-gray-100'
-                            : 'bg-indigo-500 text-white hover:bg-indigo-400'
-                        }`}
-                      >
-                        {plan.cta}
-                      </Link>
-                    )}
+                    {(() => {
+                      if (plan.isFree) {
+                        return (
+                          <Link
+                            to="/login"
+                            className="mt-auto w-full rounded-full border border-white/30 px-4 py-3 text-sm font-semibold text-white hover:border-indigo-300 text-center"
+                          >
+                            {plan.cta}
+                          </Link>
+                        );
+                      }
+                      const isYearly = billingCycle === 'yearly';
+                      const targetUrl = isYearly
+                        ? plan.yearlyUrl || plan.monthlyUrl || plan.checkoutUrl
+                        : plan.monthlyUrl || plan.checkoutUrl || plan.yearlyUrl;
+                      return (
+                        <a
+                          href={targetUrl || '#'}
+                          className={`mt-auto w-full rounded-full px-4 py-3 text-sm font-semibold transition text-center ${
+                            plan.featured
+                              ? 'bg-white text-[#120A24] hover:bg-gray-100'
+                              : 'bg-indigo-500 text-white hover:bg-indigo-400'
+                          }`}
+                        >
+                          {plan.cta}
+                        </a>
+                      );
+                    })()}
                   </article>
                 );
               })}
