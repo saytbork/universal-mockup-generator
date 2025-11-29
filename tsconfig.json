@@ -11,8 +11,8 @@
     "isolatedModules": true,
     "noEmit": true,
     "paths": {
-      "@/*": ["boostugc-app/src/*"]
+      "@/*": ["src/*"]
     }
   },
-  "include": ["boostugc-app/src"]
+  "include": ["src"]
 }
