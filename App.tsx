@@ -1050,15 +1050,6 @@ const App: React.FC = () => {
   }, [envApiKey]);
 
   useEffect(() => {
-    if (!isAdmin && planTier !== 'free') {
-      setPlanTier('free');
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(PLAN_STORAGE_KEY, 'free');
-      }
-    }
-  }, [isAdmin, planTier]);
-
-  useEffect(() => {
     if (isAdmin) return;
     setHasTrialBypass(false);
     if (typeof window !== 'undefined') {
