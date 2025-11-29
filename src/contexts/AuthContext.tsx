@@ -58,7 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             throw new Error('Ingresa un email válido.');
         }
         const actionCodeSettings = {
-            url: window.location.origin + (redirectPath || (plan ? `/payment?plan=${plan}` : '/app')),
+            url: window.location.origin + (redirectPath || (plan ? `/payment?plan=${plan}` : '/')),
             handleCodeInApp: true,
         };
         try {
