@@ -1,7 +1,7 @@
 import Stripe from "stripe";
-import { db } from "../../_lib/firebaseAdmin";
+import { db } from "../../_lib/firebaseAdmin.js";
 
-export default async function handler(req: any, res: any) {
+export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -11,7 +11,7 @@ export default async function handler(req: any, res: any) {
     return res.status(400).json({ error: "Missing priceId" });
   }
 
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
@@ -21,6 +21,7 @@ export default async function handler(req: any, res: any) {
     cancel_url: "https://boostugc.app/pricing?cancel=true",
   });
 
+  // store intent in Firestore for reference
   if (userId) {
     await db.collection("checkout_intents").doc(session.id).set({
       userId,
