@@ -97,22 +97,24 @@ const galleryImages: GalleryItem[] = [
 ];
 
 const getEnv = (key: string) => import.meta.env[key as keyof ImportMetaEnv] as string | undefined;
-const DEFAULT_CREATOR_LINK = 'https://buy.stripe.com/test_8x2cN4ei61DxgsO5jUbV603';
-const DEFAULT_STUDIO_LINK = 'https://buy.stripe.com/test_7sY5kCgqe6XR1xUbIibV602';
+const DEFAULT_CREATOR_LINK = 'https://buy.stripe.com/14A28tb1Sgr0b2Y5HBeIw02';
+const DEFAULT_CREATOR_YEARLY_LINK = 'https://buy.stripe.com/fZu5kF3zq1w62wsc5ZeIw00';
+const DEFAULT_STUDIO_LINK = 'https://buy.stripe.com/7sYfZj1ricaKdb6da3eIw01';
+const DEFAULT_STUDIO_YEARLY_LINK = 'https://buy.stripe.com/5kQfZjb1Sa2C6MI8TNeIw03';
 const creatorMonthlyUrl =
   getEnv('VITE_STRIPE_LINK_CREATOR_MONTHLY') ??
   getEnv('VITE_STRIPE_LINK_CREATOR') ??
   DEFAULT_CREATOR_LINK;
 const creatorYearlyUrl =
   getEnv('VITE_STRIPE_LINK_CREATOR_YEARLY') ??
-  creatorMonthlyUrl;
+  DEFAULT_CREATOR_YEARLY_LINK;
 const studioMonthlyUrl =
   getEnv('VITE_STRIPE_LINK_STUDIO_MONTHLY') ??
   getEnv('VITE_STRIPE_LINK_STUDIO') ??
   DEFAULT_STUDIO_LINK;
 const studioYearlyUrl =
   getEnv('VITE_STRIPE_LINK_STUDIO_YEARLY') ??
-  studioMonthlyUrl;
+  DEFAULT_STUDIO_YEARLY_LINK;
 
 const pricing: PricingPlan[] = [
   {
@@ -132,7 +134,7 @@ const pricing: PricingPlan[] = [
   {
     name: 'Creator – Monthly',
     monthlyPrice: '$19',
-    yearlyPrice: '$190',
+    yearlyPrice: '$137',
     monthlyCaption: 'per month',
     yearlyCaption: 'per year',
     highlights: [
@@ -151,8 +153,8 @@ const pricing: PricingPlan[] = [
   },
   {
     name: 'Studio – Monthly',
-    monthlyPrice: '$49',
-    yearlyPrice: '$490',
+    monthlyPrice: '$29',
+    yearlyPrice: '$244',
     monthlyCaption: 'per month',
     yearlyCaption: 'per year',
     highlights: [

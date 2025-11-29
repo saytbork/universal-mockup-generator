@@ -416,7 +416,7 @@ const PLAN_CONFIG: Record<
     allowStudio: true,
     allowCaption: true,
     priceLabel: '$19/mo',
-    stripeUrl: 'https://buy.stripe.com/test_cNi7sK2zogyrccy5jUbV609',
+    stripeUrl: 'https://buy.stripe.com/14A28tb1Sgr0b2Y5HBeIw02',
   },
   studio: {
     label: 'Studio',
@@ -424,8 +424,8 @@ const PLAN_CONFIG: Record<
     creditLimit: 60,
     allowStudio: true,
     allowCaption: true,
-    priceLabel: '$49/mo',
-    stripeUrl: 'https://buy.stripe.com/test_7sY5kCgqe6XR1xUbIibV602',
+    priceLabel: '$29/mo',
+    stripeUrl: 'https://buy.stripe.com/7sYfZj1ricaKdb6da3eIw01',
   },
 };
 
