@@ -9,32 +9,7 @@ type GalleryItem = {
   public: boolean;
 };
 
-const galleryStore: GalleryItem[] = [
-  {
-    id: 'static-1',
-    imageUrl: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80',
-    title: 'Community lifestyle demo',
-    createdAt: Date.now() - 1000 * 60 * 60 * 6,
-    plan: 'free',
-    public: true,
-  },
-  {
-    id: 'static-2',
-    imageUrl: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=1200&q=80',
-    title: 'Product tabletop demo',
-    createdAt: Date.now() - 1000 * 60 * 60 * 12,
-    plan: 'free',
-    public: true,
-  },
-  {
-    id: 'static-3',
-    imageUrl: 'https://images.unsplash.com/photo-1512499385554-079eba9be8e9?auto=format&fit=crop&w=1200&q=80',
-    title: 'UGC creator demo',
-    createdAt: Date.now() - 1000 * 60 * 60 * 24,
-    plan: 'free',
-    public: true,
-  },
-];
+const galleryStore: GalleryItem[] = [];
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'GET') {
