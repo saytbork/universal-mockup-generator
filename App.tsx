@@ -3081,6 +3081,23 @@ const App: React.FC = () => {
     [contentStyleValue, isSimpleMode]
   );
 
+  const publishFreeGallery = useCallback(async (imageUrl: string) => {
+    if (planTier !== 'free' || isTrialBypassActive) return;
+    try {
+      await fetch('/api/gallery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageUrl,
+          title: 'Free plan generation',
+          plan: 'free',
+        }),
+      });
+    } catch (err) {
+      console.warn('Failed to publish to gallery', err);
+    }
+  }, [planTier, isTrialBypassActive]);
+
   const handleGenerateClick = async (bundleProducts?: ProductId[]) => {
     bundleSelectionRef.current = bundleProducts ?? null;
     if (isTrialLocked) {
@@ -3174,6 +3191,7 @@ const App: React.FC = () => {
       if (typeof window !== 'undefined') {
         window.localStorage.setItem(IMAGE_COUNT_KEY, String(newCount));
       }
+      publishFreeGallery(finalUrl);
     } catch (err) {
       console.error(err);
       let errorMessage = '';
