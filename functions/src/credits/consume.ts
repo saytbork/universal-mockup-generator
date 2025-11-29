@@ -3,12 +3,14 @@ import { db } from "../firebase/firestore.js";
 
 export const consumeCredit = functions.onRequest(async (req, res) => {
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+    res.status(405).json({ error: "Method not allowed" });
+    return;
   }
 
   const { email } = req.body || {};
   if (!email) {
-    return res.status(400).json({ error: "Missing email" });
+    res.status(400).json({ error: "Missing email" });
+    return;
   }
 
   const ref = db.collection("users").doc(email);
@@ -20,5 +22,5 @@ export const consumeCredit = functions.onRequest(async (req, res) => {
     t.update(ref, { credits: credits - 1 });
   });
 
-  return res.json({ ok: true });
+  res.json({ ok: true });
 });

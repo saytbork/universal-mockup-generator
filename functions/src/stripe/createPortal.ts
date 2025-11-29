@@ -5,12 +5,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
 export const createPortal = functions.onRequest(async (req, res) => {
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+    res.status(405).json({ error: "Method not allowed" });
+    return;
   }
 
   const { customerId } = req.body || {};
   if (!customerId) {
-    return res.status(400).json({ error: "Missing customerId" });
+    res.status(400).json({ error: "Missing customerId" });
+    return;
   }
 
   const session = await stripe.billingPortal.sessions.create({
@@ -18,5 +20,5 @@ export const createPortal = functions.onRequest(async (req, res) => {
     return_url: "https://boostugc.app/dashboard",
   });
 
-  return res.status(200).json({ url: session.url });
+  res.status(200).json({ url: session.url });
 });

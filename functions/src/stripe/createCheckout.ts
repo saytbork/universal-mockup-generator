@@ -6,12 +6,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
 export const createCheckout = functions.onRequest(async (req, res) => {
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+    res.status(405).json({ error: "Method not allowed" });
+    return;
   }
 
   const { userId, priceId } = req.body || {};
   if (!priceId) {
-    return res.status(400).json({ error: "Missing priceId" });
+    res.status(400).json({ error: "Missing priceId" });
+    return;
   }
 
   const session = await stripe.checkout.sessions.create({
@@ -30,5 +32,5 @@ export const createCheckout = functions.onRequest(async (req, res) => {
     });
   }
 
-  return res.status(200).json({ url: session.url });
+  res.status(200).json({ url: session.url });
 });

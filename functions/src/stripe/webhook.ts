@@ -8,7 +8,8 @@ export const webhook = functions.onRequest(
   { secrets: ["STRIPE_WEBHOOK_SECRET"], maxInstances: 1 },
   async (req, res) => {
     if (req.method !== "POST") {
-      return res.status(405).send("Method not allowed");
+      res.status(405).send("Method not allowed");
+      return;
     }
 
     const sig = req.headers["stripe-signature"] as string;
@@ -22,7 +23,8 @@ export const webhook = functions.onRequest(
       );
     } catch (err) {
       console.error("Webhook signature verification failed", err);
-      return res.status(400).send("Webhook Error");
+      res.status(400).send("Webhook Error");
+      return;
     }
 
     try {
@@ -83,10 +85,12 @@ export const webhook = functions.onRequest(
         default:
           console.log(`Unhandled event type ${event.type}`);
       }
-      return res.status(200).json({ received: true });
+      res.status(200).json({ received: true });
+      return;
     } catch (error) {
       console.error("Webhook handler error", error);
-      return res.status(500).json({ error: "Webhook processing failed" });
+      res.status(500).json({ error: "Webhook processing failed" });
+      return;
     }
   }
 );
