@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const SiteNav: React.FC = () => {
   const [showResources, setShowResources] = useState(false);
   const [isSticky, setIsSticky] = useState(true);
+  const { user, emailUser, isGuest } = useAuth();
+  const isAuthed = Boolean(user || emailUser || isGuest);
 
   useEffect(() => {
     setIsSticky(true);
@@ -35,18 +38,37 @@ const SiteNav: React.FC = () => {
               </div>
             )}
           </div>
-          <Link
-            to="/login"
-            className="rounded-full bg-indigo-500 px-4 py-2 font-semibold text-white hover:bg-indigo-600 transition"
-          >
-            Login
-          </Link>
-          <Link
-            to="/app"
-            className="rounded-full border border-white/20 px-4 py-2 font-semibold text-white hover:border-indigo-300 transition"
-          >
-            Launch App
-          </Link>
+          {isAuthed ? (
+            <>
+              <Link
+                to="/dashboard"
+                className="rounded-full bg-indigo-500 px-4 py-2 font-semibold text-white hover:bg-indigo-600 transition"
+              >
+                Dashboard
+              </Link>
+              <Link
+                to="/app"
+                className="rounded-full border border-white/20 px-4 py-2 font-semibold text-white hover:border-indigo-300 transition"
+              >
+                Go to App
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="rounded-full bg-indigo-500 px-4 py-2 font-semibold text-white hover:bg-indigo-600 transition"
+              >
+                Login
+              </Link>
+              <Link
+                to="/login"
+                className="rounded-full border border-white/20 px-4 py-2 font-semibold text-white hover:border-indigo-300 transition"
+              >
+                Start Now
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </div>
