@@ -1,4 +1,4 @@
-import { getFirestore } from '../_lib/firebaseAdmin.js';
+import { getFirestore } from '../_lib/firebaseAdmin';
 
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || process.env.VITE_ADMIN_EMAILS || '')
   .split(',')
