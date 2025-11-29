@@ -1,5 +1,5 @@
 import Stripe from 'stripe';
-import { getFirestore } from '../_lib/firebaseAdmin';
+import { getFirestore } from '../../_lib/firebaseAdmin';
 
 const stripeSecret = process.env.STRIPE_SECRET_KEY;
 const stripe = stripeSecret ? new Stripe(stripeSecret) : null;
