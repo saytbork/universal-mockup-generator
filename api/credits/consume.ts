@@ -1,6 +1,6 @@
-import { db } from "../_lib/firebaseAdmin.js";
+import { db } from "../_lib/firebaseAdmin";
 
-export default async function handler(req, res) {
+export default async function handler(req: any, res: any) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -15,9 +15,7 @@ export default async function handler(req, res) {
   await db.runTransaction(async (t) => {
     const snap = await t.get(ref);
     const credits = (snap.data()?.credits || 0);
-
     if (credits <= 0) throw new Error("No credits");
-
     t.update(ref, { credits: credits - 1 });
   });
 
