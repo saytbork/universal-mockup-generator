@@ -60,6 +60,23 @@ REAL_ESRGAN_VERSION=42fed1c4974146d4d2414e2be2c5277c7fcf05fcc3a73abf41610695738c
 
 Leave them unset to fall back to the in-browser scaler (lower fidelity but no external dependency).
 
+### Optional: Stripe + Firebase billing backend
+
+Serverless endpoints under `api/stripe` and `api/credits` expect these envs when you want checkout + webhooks writing to Firestore:
+
+```
+STRIPE_SECRET_KEY=sk_live_or_test
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PRICE_CREATOR_MONTHLY=price_...
+STRIPE_PRICE_CREATOR_YEARLY=price_...
+STRIPE_PRICE_STUDIO_MONTHLY=price_...
+STRIPE_PRICE_STUDIO_YEARLY=price_...
+FIREBASE_SERVICE_ACCOUNT={"type":"service_account",...}
+NEXT_PUBLIC_APP_URL=https://boostugc.app
+```
+
+The webhook attaches the Firebase `uid` from `metadata.firebase_uid`, sets plan/status/credits, and refreshes credits on recurring invoices. `create-checkout-session` builds a Stripe Checkout link per plan and reuses/creates a customer with the user email. `create-portal-session` opens Stripe Billing Portal, and `api/credits/consume` decrements credits atomically.
+
 ## Deploy to Vercel
 
 1. Create a new Vercel project and import this repository (or link the local folder with `vercel link`).
