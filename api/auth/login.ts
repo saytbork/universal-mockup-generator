@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { randomUUID } from "crypto";
-import { sendEmail } from "../lib/sendEmail";
-import { tokenStore } from "../lib/tokenStore";
+import { sendEmail } from "../lib/sendEmail.js";
+import { tokenStore } from "../lib/tokenStore.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
