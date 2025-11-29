@@ -12,7 +12,7 @@ const stripeSecret = process.env.STRIPE_SECRET_KEY;
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 const stripe = stripeSecret
-  ? new Stripe(stripeSecret, { apiVersion: '2023-10-16' })
+  ? new Stripe(stripeSecret)
   : null;
 
 type PlanId =
@@ -115,9 +115,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             stripeCustomerId: subscription.customer as string,
             subscriptionId: subscription.id,
             plan: planInfo?.plan ?? 'creator-monthly',
-            subscriptionStatus: subscription.status,
+            subscriptionStatus: (subscription as any).status,
             credits: planInfo?.credits ?? 0,
-            currentPeriodEnd: subscription.current_period_end * 1000,
+            currentPeriodEnd: (subscription as any).current_period_end ? (subscription as any).current_period_end * 1000 : null,
             updatedAt: Date.now(),
           },
           { merge: true }
@@ -127,7 +127,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice;
-        const priceId = invoice.lines.data[0]?.price?.id;
+        const firstLine: any = invoice.lines.data[0] as any;
+        const priceId = firstLine?.price?.id;
         const uid = (invoice.metadata as any)?.firebase_uid;
         const planInfo = mapPriceToPlan(priceId || '');
         if (!uid || !planInfo) break;
@@ -135,15 +136,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .collection('users')
           .doc(uid)
           .set(
-          {
-            credits: planInfo.credits,
-            plan: planInfo.plan,
-            subscriptionStatus: 'active',
-            currentPeriodEnd: invoice.period_end * 1000,
-            updatedAt: Date.now(),
-          },
-          { merge: true }
-        );
+            {
+              credits: planInfo.credits,
+              plan: planInfo.plan,
+              subscriptionStatus: 'active',
+              currentPeriodEnd: (invoice as any).period_end ? (invoice as any).period_end * 1000 : null,
+              updatedAt: Date.now(),
+            },
+            { merge: true }
+          );
         break;
       }
 

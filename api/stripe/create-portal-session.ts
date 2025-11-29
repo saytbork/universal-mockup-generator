@@ -9,7 +9,7 @@ const appUrl =
   process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:5173';
 
 const stripe = stripeSecret
-  ? new Stripe(stripeSecret, { apiVersion: '2023-10-16' })
+  ? new Stripe(stripeSecret)
   : null;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

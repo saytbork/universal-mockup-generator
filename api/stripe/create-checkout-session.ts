@@ -9,7 +9,7 @@ const appUrl =
   process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:5173';
 
 const stripe = stripeSecret
-  ? new Stripe(stripeSecret, { apiVersion: '2023-10-16' })
+  ? new Stripe(stripeSecret)
   : null;
 
 const PLAN_PRICE_IDS: Record<string, string | undefined> = {
@@ -43,6 +43,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!priceId) {
     return res.status(400).json({ error: 'Missing priceId or unsupported plan' });
   }
+  const checkoutPriceId = priceId as string;
 
   try {
     const db = getFirestore();
@@ -70,7 +71,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: customerId,
-      line_items: [{ price: priceId, quantity: 1 }],
+      line_items: [{ price: checkoutPriceId, quantity: 1 }],
       success_url: `${appUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/cancel`,
       metadata: {

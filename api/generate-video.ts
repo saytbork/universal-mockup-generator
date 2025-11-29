@@ -38,17 +38,21 @@ export default async function handler(
     });
     
     // Poll for the result
-    while (!operation.done) {
+    while (!(operation as any).done) {
       await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
-      const opName = typeof operation === 'string' ? operation : operation?.name || '';
+      const opName =
+        typeof operation === 'string'
+          ? operation
+          : (operation as any)?.name || (operation as any)?.response?.name || '';
       if (!opName) {
         throw new Error('Video operation name missing.');
       }
-      operation = await ai.operations.getVideosOperation(opName as any);
+      operation = await ai.operations.getVideosOperation(opName as string);
     }
 
-    if (operation.error) {
-      throw new Error(operation.error.message || 'Video generation failed with an unknown error.');
+    if ((operation as any).error) {
+      const err = (operation as any).error;
+      throw new Error(err.message || 'Video generation failed with an unknown error.');
     }
 
     const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
