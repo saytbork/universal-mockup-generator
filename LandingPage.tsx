@@ -493,7 +493,7 @@ const LandingPage: React.FC = () => {
                   className="group relative block overflow-hidden rounded-3xl border border-white/10 bg-gray-900/40 text-left"
                 >
                   <img
-                    src={`${item.imageUrl}?auto=format&fit=crop&w=900&q=80`}
+                    src={item.imageUrl}
                     alt={item.title}
                     className="h-64 w-full object-cover transition duration-500 group-hover:scale-105 group-hover:opacity-90"
                     loading={index < 2 ? 'eager' : 'lazy'}
