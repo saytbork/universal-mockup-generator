@@ -1,6 +1,9 @@
 {
   "version": 2,
-  "framework": "nextjs",
-  "installCommand": "cd boostugc-next && npm install",
-  "buildCommand": "cd boostugc-next && npm run build"
+  "builds": [
+    {
+      "src": "boostugc-next/package.json",
+      "use": "@vercel/next"
+    }
+  ]
 }
