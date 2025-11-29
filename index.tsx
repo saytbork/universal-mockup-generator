@@ -12,6 +12,8 @@ import GuidesPage from './GuidesPage';
 import FAQPage from './FAQPage';
 import SiteNav from './src/components/SiteNav';
 import SiteFooter from './src/components/SiteFooter';
+import PrivacyPage from './PrivacyPage';
+import TermsPage from './TermsPage';
 
 const MarketingLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div className="bg-gray-950 text-white min-h-screen flex flex-col">
@@ -38,6 +40,8 @@ root.render(
           <Route path="/blog" element={<MarketingLayout><BlogPage /></MarketingLayout>} />
           <Route path="/guides" element={<MarketingLayout><GuidesPage /></MarketingLayout>} />
           <Route path="/faq" element={<MarketingLayout><FAQPage /></MarketingLayout>} />
+          <Route path="/privacy" element={<MarketingLayout><PrivacyPage /></MarketingLayout>} />
+          <Route path="/terms" element={<MarketingLayout><TermsPage /></MarketingLayout>} />
           <Route
             path="/app"
             element={

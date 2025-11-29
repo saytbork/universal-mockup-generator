@@ -35,8 +35,8 @@ const SiteFooter: React.FC = () => {
             <ul className="space-y-1">
               <li><a className="hover:text-white" href="#">About</a></li>
               <li><a className="hover:text-white" href="#">Affiliates</a></li>
-              <li><a className="hover:text-white" href="#">Terms</a></li>
-              <li><a className="hover:text-white" href="#">Privacy Policy</a></li>
+              <li><Link to="/terms" className="hover:text-white">Terms</Link></li>
+              <li><Link to="/privacy" className="hover:text-white">Privacy Policy</Link></li>
               <li><a className="hover:text-white" href="mailto:support@boostugc.app">support@boostugc.app</a></li>
             </ul>
           </div>
