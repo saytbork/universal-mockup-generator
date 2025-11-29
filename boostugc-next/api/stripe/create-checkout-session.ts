@@ -1,12 +1,12 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Stripe from 'stripe';
 import { getFirestore } from '../_lib/firebaseAdmin.js';
 
 const stripeSecret = process.env.STRIPE_SECRET_KEY;
 const appUrl =
   process.env.NEXT_PUBLIC_APP_URL ||
-  process.env.APP_URL ||
-  process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:5173';
+  (process.env.APP_URL ? `https://${process.env.APP_URL}` : undefined) ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined) ||
+  'http://localhost:3000';
 
 const stripe = stripeSecret
   ? new Stripe(stripeSecret)
@@ -21,19 +21,21 @@ const PLAN_PRICE_IDS: Record<string, string | undefined> = {
   'studio-yearly': process.env.STRIPE_PRICE_STUDIO_YEARLY || process.env.STRIPE_PRICE_STUDIO_ANNUAL,
 };
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
+export async function POST(req: Request) {
   if (!stripe) {
-    return res.status(500).json({ error: 'Stripe secret key is not configured' });
+    return new Response(JSON.stringify({ error: 'Stripe secret key is not configured' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
-  const { uid, email, plan, priceId: incomingPriceId }: { uid?: string; email?: string; plan?: string; priceId?: string } = req.body || {};
+  const { uid, email, plan, priceId: incomingPriceId }: { uid?: string; email?: string; plan?: string; priceId?: string } = await req.json();
 
   if (!uid || !email) {
-    return res.status(400).json({ error: 'Missing uid or email' });
+    return new Response(JSON.stringify({ error: 'Missing uid or email' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   const priceId =
@@ -41,7 +43,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     (plan ? PLAN_PRICE_IDS[plan] : undefined);
 
   if (!priceId) {
-    return res.status(400).json({ error: 'Missing priceId or unsupported plan' });
+    return new Response(JSON.stringify({ error: 'Missing priceId or unsupported plan' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
   const checkoutPriceId = priceId as string;
 
@@ -81,9 +86,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
     });
 
-    return res.status(200).json({ url: session.url });
+    return new Response(JSON.stringify({ url: session.url }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (error) {
     console.error('Error creating checkout session', error);
-    return res.status(500).json({ error: 'Unable to create checkout session' });
+    return new Response(JSON.stringify({ error: 'Unable to create checkout session' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }

@@ -1,4 +1,3 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getFirestore } from '../_lib/firebaseAdmin.js';
 
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || process.env.VITE_ADMIN_EMAILS || '')
@@ -17,12 +16,8 @@ const isAdminEmail = (email?: string) => {
   );
 };
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  const { uid, cost, amount, test, email } = req.body || {};
+export async function POST(req: Request) {
+  const { uid, cost, amount, test, email } = await req.json();
   const resolvedUid = uid || email;
   const isTest = Boolean(test);
   const delta = typeof amount === 'number'
@@ -32,11 +27,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       : null;
 
   if (!resolvedUid || delta === null) {
-    return res.status(400).json({ error: 'Missing uid or amount' });
+    return new Response(JSON.stringify({ error: 'Missing uid or amount' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   if (isTest && !isAdminEmail(email)) {
-    return res.status(403).json({ error: 'Admin only' });
+    return new Response(JSON.stringify({ error: 'Admin only' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   try {
@@ -60,12 +61,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }, { merge: true });
     });
 
-    return res.status(200).json({ ok: true, added: delta });
+    return new Response(JSON.stringify({ ok: true, added: delta }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (error: any) {
     if (error?.message === 'NOT_ENOUGH_CREDITS') {
-      return res.status(400).json({ error: 'Not enough credits' });
+      return new Response(JSON.stringify({ error: 'Not enough credits' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
     console.error('Error consuming credits', error);
-    return res.status(500).json({ error: 'Unable to consume credits' });
+    return new Response(JSON.stringify({ error: 'Unable to consume credits' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }

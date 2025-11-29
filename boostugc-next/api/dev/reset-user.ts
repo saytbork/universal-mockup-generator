@@ -1,4 +1,3 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Stripe from 'stripe';
 import { getFirestore } from '../_lib/firebaseAdmin.js';
 
@@ -21,17 +20,19 @@ const isAdminEmail = (email?: string) => {
   );
 };
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  const { uid, email } = req.body || {};
+export async function POST(req: Request) {
+  const { uid, email } = await req.json();
   if (!uid || !email) {
-    return res.status(400).json({ error: 'Missing uid or email' });
+    return new Response(JSON.stringify({ error: 'Missing uid or email' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
   if (!isAdminEmail(email)) {
-    return res.status(403).json({ error: 'Admin only' });
+    return new Response(JSON.stringify({ error: 'Admin only' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   try {
@@ -61,9 +62,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       { merge: true }
     );
 
-    return res.status(200).json({ success: true, reset: true });
+    return new Response(JSON.stringify({ success: true, reset: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (error) {
     console.error('Reset user failed', error);
-    return res.status(500).json({ error: 'Unable to reset user' });
+    return new Response(JSON.stringify({ error: 'Unable to reset user' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }

@@ -1,12 +1,5 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Stripe from 'stripe';
 import { getFirestore } from '../_lib/firebaseAdmin.js';
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
 
 const stripeSecret = process.env.STRIPE_SECRET_KEY;
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -44,14 +37,6 @@ const PRICE_PLAN_LOOKUP: Record<string, { plan: PlanId; credits: number }> = {
   },
 };
 
-const getRawBody = (req: VercelRequest) =>
-  new Promise<Buffer>((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    req.on('data', chunk => chunks.push(Buffer.from(chunk)));
-    req.on('end', () => resolve(Buffer.concat(chunks)));
-    req.on('error', reject);
-  });
-
 const mapPriceToPlan = (priceId?: string) => {
   if (!priceId) return null;
   const match = PRICE_PLAN_LOOKUP[priceId];
@@ -59,23 +44,22 @@ const mapPriceToPlan = (priceId?: string) => {
   return null;
 };
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
+export async function POST(req: Request) {
   if (!stripe || !webhookSecret) {
-    return res.status(500).json({ error: 'Stripe webhook not configured' });
+    return new Response(JSON.stringify({ error: 'Stripe webhook not configured' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   let event: Stripe.Event;
   try {
-    const rawBody = await getRawBody(req);
-    const signature = req.headers['stripe-signature'];
-    event = stripe.webhooks.constructEvent(rawBody, signature as string, webhookSecret);
+    const rawBody = Buffer.from(await req.arrayBuffer());
+    const signature = req.headers.get('stripe-signature') || '';
+    event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
   } catch (error: any) {
     console.error('Webhook signature verification failed', error?.message || error);
-    return res.status(400).send(`Webhook Error: ${error?.message}`);
+    return new Response(`Webhook Error: ${error?.message}`, { status: 400 });
   }
 
   try {
@@ -169,9 +153,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         console.log(`Unhandled event type ${event.type}`);
     }
 
-    res.status(200).json({ received: true });
+    return new Response(JSON.stringify({ received: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (error) {
     console.error('Webhook handler error', error);
-    res.status(500).json({ error: 'Webhook processing failed' });
+    return new Response(JSON.stringify({ error: 'Webhook processing failed' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }
