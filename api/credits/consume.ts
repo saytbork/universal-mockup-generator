@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getFirestore } from '../../services/firebaseAdmin.js';
+import { getFirestore } from '../_lib/firebaseAdmin.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {

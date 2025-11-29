@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Stripe from 'stripe';
-import { getFirestore } from '../../services/firebaseAdmin.js';
+import { getFirestore } from '../_lib/firebaseAdmin.js';
 
 export const config = {
   api: {

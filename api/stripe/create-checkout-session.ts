@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Stripe from 'stripe';
-import { getFirestore } from '../../services/firebaseAdmin.js';
+import { getFirestore } from '../_lib/firebaseAdmin.js';
 
 const stripeSecret = process.env.STRIPE_SECRET_KEY;
 const appUrl =
