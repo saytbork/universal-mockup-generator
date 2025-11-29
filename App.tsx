@@ -403,7 +403,7 @@ const PLAN_CONFIG: Record<
 > = {
   free: {
     label: 'Free',
-    description: '2 credits · Fast engine · watermark · comunidad',
+    description: '2 credits · watermark · comunidad · sin videos',
     creditLimit: 2,
     allowStudio: false,
     allowCaption: false,
@@ -411,7 +411,7 @@ const PLAN_CONFIG: Record<
   },
   creator: {
     label: 'Creator',
-    description: '20 credits · Fast engine sin marca · licencia básica',
+    description: '20 credits + 2 videos/mes · sin marca · soporte standard',
     creditLimit: 20,
     allowStudio: true,
     allowCaption: true,
@@ -420,11 +420,11 @@ const PLAN_CONFIG: Record<
   },
   studio: {
     label: 'Studio',
-    description: '60 credits · PRO (3 cr) · cola prioritaria · licencia full',
+    description: '60 credits + 6 videos/mes · sin marca · soporte priority',
     creditLimit: 60,
     allowStudio: true,
     allowCaption: true,
-    priceLabel: '$29/mo',
+    priceLabel: '$49/mo',
     stripeUrl: 'https://buy.stripe.com/test_7sY5kCgqe6XR1xUbIibV602',
   },
 };
