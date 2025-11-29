@@ -17,7 +17,7 @@ interface AuthContextType {
     isGuest: boolean;
     signInWithGoogle: () => Promise<void>;
     sendMagicLink: (email: string, plan?: string, redirectPath?: string) => Promise<void>;
-    finishMagicLinkSignIn: (email: string, href: string) => Promise<void>;
+    finishMagicLinkSignIn: (email: string | null, href: string) => Promise<void>;
     logout: () => Promise<void>;
     loginAsGuest: () => void;
 }
@@ -70,15 +70,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    const finishMagicLinkSignIn = async (email: string, href: string) => {
-        if (isSignInWithEmailLink(auth, href)) {
-            try {
-                await signInWithEmailLink(auth, email, href);
-                window.localStorage.removeItem('emailForSignIn');
-            } catch (error) {
-                console.error("Error finishing magic link sign in", error);
-                throw error;
-            }
+    const finishMagicLinkSignIn = async (email: string | null, href: string) => {
+        const isLink = isSignInWithEmailLink(auth, href);
+        if (!isLink) return;
+        let finalEmail = email || window.localStorage.getItem('emailForSignIn') || '';
+        if (!finalEmail) {
+            finalEmail = window.prompt('Enter your email to complete sign-in') || '';
+        }
+        if (!finalEmail) return;
+        try {
+            await signInWithEmailLink(auth, finalEmail, href);
+            window.localStorage.removeItem('emailForSignIn');
+            window.location.replace('/dashboard');
+        } catch (error) {
+            console.error("Error finishing magic link sign in", error);
+            throw error;
         }
     };
 

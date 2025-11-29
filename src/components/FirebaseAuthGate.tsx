@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { isSignInWithEmailLink } from 'firebase/auth';
 import { useAuth } from '../contexts/AuthContext';
 import { Mail, Loader2, LogOut } from 'lucide-react';
 
@@ -16,12 +15,7 @@ export const FirebaseAuthGate: React.FC<{ children: React.ReactNode }> = ({ chil
     useEffect(() => {
         if (typeof window === 'undefined' || user) return;
         try {
-            if (isSignInWithEmailLink(window.location.href)) {
-                const storedEmail = window.localStorage.getItem('emailForSignIn') || '';
-                if (storedEmail) {
-                    finishMagicLinkSignIn(storedEmail, window.location.href).catch(console.error);
-                }
-            }
+            finishMagicLinkSignIn(null, window.location.href).catch(console.error);
         } catch (err) {
             console.warn('Magic link parse error', err);
         }
