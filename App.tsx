@@ -939,7 +939,7 @@ const App: React.FC = () => {
   const [isKeySelected, setIsKeySelected] = useState(true); // Always bypass Gemini key gate
 
   // State to manage which accordion is currently open
-  const [openAccordion, setOpenAccordion] = useState<string | null>('Scene & Environment');
+  const [openAccordion, setOpenAccordion] = useState<string | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<Set<OptionCategory>>(new Set());
   const accordionOrder = useMemo(() => {
     const order: string[] = [];
@@ -4010,6 +4010,7 @@ const App: React.FC = () => {
                                       ? 'border-indigo-400 bg-indigo-500/10 text-white'
                                       : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
                                       }`}
+                                    title={preset.description}
                                   >
                                     {preset.label}
                                   </button>
