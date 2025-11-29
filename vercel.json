@@ -1,7 +1,6 @@
 {
   "version": 2,
-  "root": "boostugc-next",
   "framework": "nextjs",
-  "buildCommand": "npm run build",
-  "outputDirectory": ".next"
+  "buildCommand": "cd boostugc-next && npm run build",
+  "outputDirectory": "boostugc-next/.next"
 }
