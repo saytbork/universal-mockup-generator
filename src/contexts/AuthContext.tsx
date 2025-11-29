@@ -1,120 +1,103 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import {
-    User,
-    signInWithPopup,
-    signOut,
-    onAuthStateChanged,
-    sendSignInLinkToEmail,
-    isSignInWithEmailLink,
-    signInWithEmailLink,
-} from 'firebase/auth';
-import { auth, googleProvider } from '../firebase';
+
+type AuthUser = { email: string };
 
 interface AuthContextType {
-    user: User | null;
-    loading: boolean;
-    isGuest: boolean;
-    signInWithGoogle: () => Promise<void>;
-    sendMagicLink: (email: string, plan?: string, redirectPath?: string) => Promise<void>;
-    finishMagicLinkSignIn: (email: string | null, href: string) => Promise<void>;
-    logout: () => Promise<void>;
-    loginAsGuest: () => void;
+  user: AuthUser | null;
+  emailUser: string | null;
+  loading: boolean;
+  isGuest: boolean;
+  signInWithGoogle: () => Promise<void>;
+  sendMagicLink: (email: string) => Promise<void>;
+  logout: () => Promise<void>;
+  loginAsGuest: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) throw new Error('useAuth must be used within an AuthProvider');
-    return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within an AuthProvider');
+  return ctx;
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [isGuest, setIsGuest] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [emailUser, setEmailUser] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isGuest, setIsGuest] = useState(false);
 
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-            setUser(currentUser);
-            setLoading(false);
-        });
-        return unsubscribe;
-    }, []);
-
-    const signInWithGoogle = async () => {
-        try {
-            await signInWithPopup(auth, googleProvider);
-        } catch (error) {
-            console.error("Error signing in with Google", error);
-            throw error;
+  useEffect(() => {
+    const fetchMe = async () => {
+      try {
+        const res = await fetch('/api/user/me');
+        if (res.ok) {
+          const data = await res.json();
+          const email = data.email as string;
+          setUser({ email });
+          setEmailUser(email);
+        } else {
+          setUser(null);
+          setEmailUser(null);
         }
+      } catch {
+        setUser(null);
+        setEmailUser(null);
+      } finally {
+        setLoading(false);
+      }
     };
+    fetchMe();
+  }, []);
 
-    const sendMagicLink = async (email: string, plan?: string, redirectPath?: string) => {
-        const normalizedEmail = email.trim();
-        if (!normalizedEmail) {
-            throw new Error('Ingresa un email válido.');
-        }
-        const actionCodeSettings = {
-            url: window.location.origin + (redirectPath || (plan ? `/payment?plan=${plan}` : '/')),
-            handleCodeInApp: true,
-        };
-        try {
-            await sendSignInLinkToEmail(auth, normalizedEmail, actionCodeSettings);
-            window.localStorage.setItem('emailForSignIn', normalizedEmail);
-        } catch (error: any) {
-            console.error("Error sending magic link", error);
-            throw new Error(error?.message || 'No se pudo enviar el enlace. Intenta de nuevo.');
-        }
-    };
+  const signInWithGoogle = async () => {
+    throw new Error('Google sign-in is not available in this auth mode.');
+  };
 
-    const finishMagicLinkSignIn = async (email: string | null, href: string) => {
-        const isLink = isSignInWithEmailLink(auth, href);
-        if (!isLink) return;
-        let finalEmail = email || window.localStorage.getItem('emailForSignIn') || '';
-        if (!finalEmail) {
-            finalEmail = window.prompt('Enter your email to complete sign-in') || '';
-        }
-        if (!finalEmail) return;
-        try {
-            await signInWithEmailLink(auth, finalEmail, href);
-            window.localStorage.removeItem('emailForSignIn');
-            window.location.replace('/dashboard');
-        } catch (error) {
-            console.error("Error finishing magic link sign in", error);
-            throw error;
-        }
-    };
+  const sendMagicLink = async (email: string) => {
+    const normalized = email.trim();
+    if (!normalized) throw new Error('Email required');
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: normalized }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Unable to send magic link');
+    }
+  };
 
-    const logout = async () => {
-        try {
-            await signOut(auth);
-        } catch (error) {
-            console.warn('Logout warning:', error);
-        }
-        setIsGuest(false);
-    };
+  const logout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (err) {
+      console.warn('Logout warning', err);
+    }
+    setUser(null);
+    setEmailUser(null);
+    setIsGuest(false);
+    window.location.href = '/login';
+  };
 
-    const loginAsGuest = () => {
-        setIsGuest(true);
-    };
+  const loginAsGuest = () => {
+    setIsGuest(true);
+  };
 
-    return (
-        <AuthContext.Provider
-            value={{
-                user,
-                loading,
-                isGuest,
-                signInWithGoogle,
-                sendMagicLink,
-                finishMagicLinkSignIn,
-                logout,
-                loginAsGuest,
-            }}
-        >
-            {children}
-        </AuthContext.Provider>
-    );
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        emailUser,
+        loading,
+        isGuest,
+        signInWithGoogle,
+        sendMagicLink,
+        logout,
+        loginAsGuest,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };

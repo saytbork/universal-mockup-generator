@@ -4,7 +4,6 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App';
 import LandingPage from './LandingPage';
 import { AuthProvider } from './src/contexts/AuthContext';
-import { FirebaseAuthGate } from './src/components/FirebaseAuthGate';
 import UseCases from './UseCases';
 import Comparisons from './Comparisons';
 import BlogPage from './BlogPage';
@@ -14,6 +13,8 @@ import SiteNav from './src/components/SiteNav';
 import SiteFooter from './src/components/SiteFooter';
 import PrivacyPage from './PrivacyPage';
 import TermsPage from './TermsPage';
+import Login from './src/pages/Login';
+import Dashboard from './src/pages/Dashboard';
 
 const MarketingLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div className="bg-gray-950 text-white min-h-screen flex flex-col">
@@ -42,14 +43,9 @@ root.render(
           <Route path="/faq" element={<MarketingLayout><FAQPage /></MarketingLayout>} />
           <Route path="/privacy" element={<MarketingLayout><PrivacyPage /></MarketingLayout>} />
           <Route path="/terms" element={<MarketingLayout><TermsPage /></MarketingLayout>} />
-          <Route
-            path="/app"
-            element={
-              <FirebaseAuthGate>
-                <App />
-              </FirebaseAuthGate>
-            }
-          />
+          <Route path="/app" element={<App />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
