@@ -19,6 +19,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     `session_email=${encodeURIComponent(parsed.email)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`,
   ]);
 
-  res.writeHead(302, { Location: "/app" });
+  res.writeHead(302, { Location: "/dashboard" });
   res.end();
 }
