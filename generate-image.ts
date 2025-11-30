@@ -1,14 +1,11 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-// Normalizador crítico que evita errores del modelo.
 const normalizeGeminiModel = (
   raw?: string,
-  fallback = "gemini-1.5-flash"
+  fallback = "models/gemini-1.5-flash-latest"
 ) => {
-  const model = raw || fallback;
-  // Remove 'models/' prefix if present
-  return model.replace(/^models\//, "");
+  return raw || fallback;
 };
 
 export default async function handler(
@@ -67,7 +64,7 @@ export default async function handler(
         (p: any) => p.inlineData?.data
       );
 
-    if (!imagePart || !imagePart.inlineData) {
+    if (!imagePart) {
       throw new Error("No image returned by Gemini.");
     }
 
