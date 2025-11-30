@@ -15,15 +15,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const requiredCode = process.env.INVITATION_CODE;
-  if (requiredCode) {
-    if (!invitationCode || invitationCode !== requiredCode) {
-      res.status(400).json({ error: "Invalid invitation code" });
-      return;
-    }
-  }
-
-  const token = createMagicToken(email);
+  const token = createMagicToken(email, invitationCode);
   const magicLink = `${process.env.BASE_URL ?? "https://boostugc.app"}/api/auth/verify?token=${token}`;
 
   await sendEmail({

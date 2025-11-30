@@ -75,13 +75,15 @@ export default function Login() {
             />
             <Mail className="absolute right-3 top-3 h-5 w-5 text-gray-500" />
           </div>
-          <label className="block text-sm text-gray-300">Invitation Code</label>
+          <label className="block text-sm text-gray-300">
+            Invitation Code
+            <div className="text-xs text-neutral-400 mt-1">Optional — unlock 20 credits</div>
+          </label>
           <div className="relative">
             <input
               type="text"
               value={invitationCode}
               onChange={(e) => setInvitationCode(e.target.value)}
-              required
               className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
               placeholder="Enter your code"
             />
