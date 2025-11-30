@@ -1,66 +1,69 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
+// Usamos exclusivamente la API v1
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "");
+
+// ID correcto del modelo Imagen 3
 const MODEL_ID = "imagen-3.0-generate-001";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method Not Allowed" });
-  }
-
-  const apiKey = process.env.GOOGLE_API_KEY;
-
-  if (!apiKey) {
-    return res.status(500).json({
-      error: "GOOGLE_API_KEY is not configured on the server.",
-    });
-  }
-
   try {
-    const { promptText, image } = req.body;
-    // Note: 'image' (base64) is received but Imagen 3 API via @google/genai 
-    // primarily supports text-to-image. If editing is needed, we might need 
-    // a different endpoint or model capability. 
-    // For now, we proceed with text-to-image using the prompt.
+    // Solo aceptamos POST
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Method Not Allowed" });
+    }
 
-    if (!promptText) {
+    const { prompt } = typeof req.body === "string"
+      ? JSON.parse(req.body || "{}")
+      : req.body || {};
+
+    if (!prompt || typeof prompt !== "string") {
       return res.status(400).json({
-        error: "Missing required parameter: promptText.",
+        error: "Missing or invalid 'prompt'. Expected a non-empty string."
       });
     }
-    
-    const client = new GoogleGenAI({ apiKey });
 
-    // Using the 'generateImages' method for Imagen 3
-    const response = await client.models.generateImages({
-      model: MODEL_ID,
-      prompt: promptText,
-      config: {
-        numberOfImages: 1,
-        aspectRatio: "1:1", // Default, can be adjusted if passed in body
-        // safetySettings: ...
-      }
+    // Crear cliente del modelo
+    const model = genAI.getGenerativeModel({ model: MODEL_ID });
+
+    // Llamar al modelo (solo prompt)
+    const result = await model.generateContent({
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: prompt }]
+        }
+      ]
     });
 
-    if (!response || !response.generatedImages || response.generatedImages.length === 0) {
-      throw new Error("No image returned by Imagen.");
+    // Buscar resultado en Base64
+    const imgPart =
+      result?.response?.candidates?.[0]?.content?.parts?.find(
+        (p: any) => p.inlineData?.data
+      );
+
+    if (!imgPart) {
+      return res.status(500).json({
+        error: "No image returned by Google Generative AI."
+      });
     }
 
-    // The SDK returns the image bytes (base64) in the response
-    const imageBase64 = response.generatedImages[0].image.imageBytes;
+    const base64 = imgPart.inlineData.data;
+    const mimeType = imgPart.inlineData.mimeType || "image/jpeg";
 
-    if (!imageBase64) {
-      throw new Error("No image data in response.");
-    }
+    const dataURL = `data:${mimeType};base64,${base64}`;
 
-    // Return as data URL
-    const imageUrl = `data:image/png;base64,${imageBase64}`;
-    return res.status(200).json({ imageUrl });
+    return res.status(200).json({
+      ok: true,
+      imageUrl: dataURL
+    });
 
   } catch (error: any) {
     console.error("Error in /api/generate-image:", error);
+
     return res.status(500).json({
-      error: error?.message || "Unknown server error",
+      error: error?.message || "Unknown server error"
     });
   }
 }
