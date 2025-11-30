@@ -46,13 +46,14 @@ export default async function handler(
 
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    const modelName = normalizeGeminiModel("gemini-2.5-flash");
+    // Use Imagen 3 for image generation (Gemini 2.5 Flash cannot generate images)
+    const modelName = "imagen-3.0-generate-001";
 
     const model = genAI.getGenerativeModel({
       model: modelName
     });
 
-    // Llamada correcta a Gemini 2.5 Flash
+    // Call Imagen 3 to generate image from product + prompt
     const result = await model.generateContent([
       {
         inlineData: {
