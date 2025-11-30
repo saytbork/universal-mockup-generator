@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { verifyMagicToken } from "../../server/lib/magicToken.js";
 import { getStripe } from "../../server/lib/stripeClient.js";
 import { getUser, setUser } from "../../server/lib/store.js";
+import { addActivity } from "../../server/lib/activity.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { token } = req.query;
@@ -55,14 +56,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           metadata: { ...metadata, invite_bonus_claimed: "true" },
         });
         // Grant 20 credits in our store
-        const user = getUser(email);
-        setUser(email, { credits: (user.credits || 0) + 20 });
+        const user = await getUser(email);
+        await setUser(email, { credits: (user.credits || 0) + 20, inviteUsed: true });
+        await addActivity(email, "invite", { bonus: 20 });
       }
     }
   } catch (err) {
     console.error("Invitation bonus error", err);
     // Do not block login on bonus error
   }
+
+  await addActivity(email, "login", {});
 
   res.writeHead(302, { Location: "/dashboard" });
   res.end();

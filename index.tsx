@@ -44,6 +44,7 @@ root.render(
           <Route path="/privacy" element={<MarketingLayout><PrivacyPage /></MarketingLayout>} />
           <Route path="/terms" element={<MarketingLayout><TermsPage /></MarketingLayout>} />
           <Route path="/app" element={<App />} />
+          <Route path="/app/generator" element={<App />} />
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
         </Routes>

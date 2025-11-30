@@ -1,7 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import Stripe from "stripe";
 import { getStripe } from "../../server/lib/stripeClient.js";
-import { setUser } from "../../server/lib/store.js";
+import { setUser, getUser } from "../../server/lib/store.js";
+import { addActivity } from "../../server/lib/activity.js";
 
 export const config = {
   api: {
@@ -55,7 +56,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const session = event.data.object as Stripe.Checkout.Session;
         const email = session.customer_email || "";
         if (email) {
-          setUser(email, { plan: session.subscription as string, credits: 20 });
+          await setUser(email, { plan: session.subscription as string, credits: 20 });
+          if (session.customer) {
+            await stripe.customers.update(session.customer as string, {
+              metadata: { ...(session.metadata || {}), credits: "20" },
+            });
+          }
+          await addActivity(email, "upgrade", { source: "checkout.session.completed" });
         }
         break;
       }
@@ -63,7 +70,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const invoice = event.data.object as Stripe.Invoice;
         const email = invoice.customer_email || (invoice.customer as string);
         if (email) {
-          setUser(email, { credits: 20 });
+          const user = await getUser(email);
+          const nextCredits = (user.credits || 0) + 20;
+          await setUser(email, { credits: nextCredits });
+          if (invoice.customer) {
+            await stripe.customers.update(invoice.customer as string, {
+              metadata: { ...(invoice.metadata || {}), credits: String(nextCredits) },
+            });
+          }
+          await addActivity(email, "upgrade", { source: "invoice.payment_succeeded", credits: nextCredits });
         }
         break;
       }
@@ -71,7 +86,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const subscription = event.data.object as Stripe.Subscription;
         const email = subscription.metadata?.email;
         if (email) {
-          setUser(email, { plan: "free", credits: 0 });
+          await setUser(email, { plan: "free", credits: 0 });
+          await addActivity(email, "upgrade", { source: "customer.subscription.deleted" });
         }
         break;
       }
