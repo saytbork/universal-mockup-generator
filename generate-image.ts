@@ -4,10 +4,11 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 // Normalizador crítico que evita errores del modelo.
 const normalizeGeminiModel = (
   raw?: string,
-  fallback = "models/gemini-1.5-flash"
+  fallback = "gemini-1.5-flash"
 ) => {
   const model = raw || fallback;
-  return model.replace(/^models\//, "models/");
+  // Remove 'models/' prefix if present
+  return model.replace(/^models\//, "");
 };
 
 export default async function handler(
