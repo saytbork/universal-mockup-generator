@@ -16,6 +16,7 @@ export default async function handler(
     return res.status(500).json({ error: "API key is not configured on the server." });
   }
 
+
   try {
     // Adapt to the current frontend payload structure
     // Frontend sends: { promptText, image: { base64, mimeType } }
