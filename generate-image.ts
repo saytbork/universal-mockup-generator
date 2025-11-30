@@ -31,7 +31,12 @@ export default async function handler(
   }
 
   try {
-    const { base64, mimeType, prompt } = req.body;
+    // Frontend sends: { settings: { aspectRatio }, promptText, image: { base64, mimeType } }
+    const { settings, promptText, image } = req.body;
+    const base64 = image?.base64;
+    const mimeType = image?.mimeType;
+    const prompt = promptText;
+    const aspectRatio = settings?.aspectRatio || "1:1";
 
     if (!base64 || !mimeType || !prompt) {
       return res.status(400).json({
