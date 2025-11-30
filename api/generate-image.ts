@@ -28,7 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         error: "Missing required parameter: promptText.",
       });
     }
-
+    
     const client = new GoogleGenAI({ apiKey });
 
     // Using the 'generateImages' method for Imagen 3
