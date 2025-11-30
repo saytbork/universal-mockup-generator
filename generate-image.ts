@@ -44,6 +44,8 @@ export default async function handler(
 
     // Load the updated v1 Google GenAI SDK
     const genAI = new GoogleGenerativeAI(apiKey);
+    // Temporary logging to verify SDK/endpoint version in Vercel logs
+    console.log("GenAI SDK Instance:", genAI);
 
     // Use the stable model name (no env var needed)
     const modelName = normalizeGeminiModel();
