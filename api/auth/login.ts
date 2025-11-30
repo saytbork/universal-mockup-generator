@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { randomUUID } from "crypto";
-import { sendEmail } from "../lib/sendEmail.js";
-import { tokenStore } from "../lib/tokenStore.js";
+import { sendEmail } from "../../server/lib/sendEmail.js";
+import { tokenStore } from "../../server/lib/tokenStore.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -22,14 +22,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const magicLink = `https://boostugc.app/auth/verify?token=${token}`;
 
-  await sendEmail({
-    to: email,
-    subject: "Your BoostUGC login link",
-    html: `
+  await sendEmail(
+    email,
+    "Your BoostUGC login link",
+    `
       <p>Click to sign in:</p>
       <a href="${magicLink}">${magicLink}</a>
-    `,
-  });
+    `
+  );
 
   res.status(200).json({ ok: true });
 }

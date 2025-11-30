@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { checkAuth } from "../lib/checkAuth.js";
+import { checkAuth } from "../../server/lib/checkAuth.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const email = checkAuth(req);

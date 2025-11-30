@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import Stripe from "stripe";
-import { getStripe } from "../lib/stripeClient";
-import { setUser } from "../lib/store";
+import { getStripe } from "../../server/lib/stripeClient.js";
+import { setUser } from "../../server/lib/store.js";
 
 export const config = {
   api: {
