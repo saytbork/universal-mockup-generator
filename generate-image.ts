@@ -30,7 +30,7 @@ export default async function handler(
     // Default to v1beta as it was working in the referenced commit, but allow override
     const apiVersion = process.env.GEMINI_API_VERSION || 'v1beta';
     // Default to flash model as in the referenced commit
-    const modelId = (process.env.GEMINI_MODEL_ID || 'gemini-1.5-flash').replace(/^models\//, '');
+    const modelId = (process.env.GEMINI_MODEL_ID || process.env.GEMINI_MODEL || 'gemini-1.5-flash-002').replace(/^models\//, '');
 
     if (!finalBase64 || !finalMimeType || !finalPrompt) {
       return res.status(400).json({ error: 'Missing required parameters: base64, mimeType, or prompt.' });
