@@ -2,15 +2,12 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 // Normalizador crítico que evita errores del modelo.
-// ¡ESTO NO SE PUEDE BORRAR NUNCA!
 const normalizeGeminiModel = (
   raw?: string,
-  fallback = "gemini-2.5-flash"
+  fallback = "models/gemini-1.5-flash"
 ) => {
-  const model = (raw || fallback).replace(/^models\//, "");
-  if (model.endsWith("-latest")) return model.replace(/-latest$/, "-001");
-  if (model.endsWith("-002")) return model.replace(/-002$/, "-001");
-  return model;
+  const model = raw || fallback;
+  return model.replace(/^models\//, "models/");
 };
 
 export default async function handler(
@@ -21,7 +18,6 @@ export default async function handler(
     return res.status(405).json({ error: "Method Not Allowed" });
   }
 
-  // ESTA es tu variable real. NO se debe cambiar.
   const apiKey = process.env.GOOGLE_API_KEY;
 
   if (!apiKey) {
@@ -31,12 +27,10 @@ export default async function handler(
   }
 
   try {
-    // Frontend sends: { settings: { aspectRatio }, promptText, image: { base64, mimeType } }
     const { settings, promptText, image } = req.body;
     const base64 = image?.base64;
     const mimeType = image?.mimeType;
     const prompt = promptText;
-    const aspectRatio = settings?.aspectRatio || "1:1";
 
     if (!base64 || !mimeType || !prompt) {
       return res.status(400).json({
@@ -46,37 +40,37 @@ export default async function handler(
 
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    // Use Imagen 3 for image generation (Gemini 2.5 Flash cannot generate images)
-    const modelName = "imagen-3.0-generate-001";
-
     const model = genAI.getGenerativeModel({
-      model: modelName
+      model: normalizeGeminiModel(process.env.GEMINI_MODEL)
     });
 
-    // Call Imagen 3 to generate image from product + prompt
-    const result = await model.generateContent([
-      {
-        inlineData: {
-          data: base64,
-          mimeType
+    const result = await model.generateContent({
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: prompt },
+            {
+              inlineData: {
+                data: base64,
+                mimeType
+              }
+            }
+          ]
         }
-      },
-      {
-        text: prompt
-      }
-    ]);
+      ]
+    });
 
-    // Extracción correcta del resultado
-    const part =
+    const imagePart =
       result?.response?.candidates?.[0]?.content?.parts?.find(
-        (p: any) => p.inlineData
+        (p: any) => p.inlineData?.data
       );
 
-    if (!part || !part.inlineData?.data) {
-      throw new Error("Gemini did not return image inlineData.");
+    if (!imagePart || !imagePart.inlineData) {
+      throw new Error("No image returned by Gemini.");
     }
 
-    const imageUrl = `data:image/png;base64,${part.inlineData.data}`;
+    const imageUrl = `data:${mimeType};base64,${imagePart.inlineData.data}`;
 
     return res.status(200).json({ imageUrl });
 
