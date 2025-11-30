@@ -2,7 +2,8 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 // Stable model target (v1) to avoid v1beta endpoints.
-const DEFAULT_MODEL = "models/imagen-3.0-generate-001";
+const MODEL_ID = "imagen-3.0";
+const DEFAULT_MODEL = `models/${MODEL_ID}`;
 
 const normalizeGeminiModel = (raw?: string, fallback = DEFAULT_MODEL) => {
   let model = raw || fallback;
