@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { randomUUID } from "crypto";
 import { sendEmail } from "../../server/lib/sendEmail.js";
-import { tokenStore } from "../../server/lib/tokenStore.js";
+import { createMagicToken } from "../../server/lib/magicToken.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -15,11 +15,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const token = randomUUID();
-  const expires = Date.now() + 1000 * 60 * 15; // 15 minutes
-
-  tokenStore[token] = { email, expires };
-
+  const token = createMagicToken(email);
   const magicLink = `${process.env.BASE_URL ?? "https://boostugc.app"}/api/auth/verify?token=${token}`;
 
   await sendEmail({
