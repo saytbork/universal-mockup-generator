@@ -1,19 +1,23 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-// Modelo recomendado por Google para generar imágenes
-const MODEL_ID = "imagen-3.0-generate-001";
+// Stable model target (v1) to avoid v1beta endpoints.
+const DEFAULT_MODEL = "models/imagen-3.0-generate-001";
 
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse,
-) {
+const normalizeGeminiModel = (raw?: string, fallback = DEFAULT_MODEL) => {
+  let model = raw || fallback;
+  model = model.replace(/^models\//, "models/");
+  model = model.replace(/-latest$/, "-001");
+  model = model.replace(/-002$/, "-001");
+  return model;
+};
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method Not Allowed" });
   }
 
-  // Solo usamos esta variable. Nada más.
-  const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GOOGLE_API_KEY;
 
   if (!apiKey) {
     return res.status(500).json({
@@ -22,57 +26,52 @@ export default async function handler(
   }
 
   try {
-    // Adaptación para compatibilidad con el frontend actual
-    const { promptText, image, base64: directBase64, mimeType: directMimeType, prompt: directPrompt } = req.body;
+    const { promptText, image } = req.body;
+    const base64 = image?.base64;
+    const mimeType = image?.mimeType;
 
-    const base64 = image?.base64 || directBase64;
-    const mimeType = image?.mimeType || directMimeType;
-    const prompt = promptText || directPrompt;
-
-    if (!base64 || !mimeType || !prompt) {
+    if (!base64 || !mimeType || !promptText) {
       return res.status(400).json({
         error: "Missing required parameters: base64, mimeType, or prompt.",
       });
     }
 
-    // Nuevo cliente del SDK v1 estable
     const genAI = new GoogleGenerativeAI(apiKey);
+    const modelName = normalizeGeminiModel();
+    const model = genAI.getGenerativeModel({ model: modelName });
 
-    const model = genAI.getGenerativeModel({
-      model: MODEL_ID,
-    });
-
-    // Llamada a Imagen 3 para generar mockups a partir de imagen + texto
     const result = await model.generateContent({
       contents: [
         {
           role: "user",
           parts: [
-            { inlineData: { data: base64, mimeType } },
-            { text: prompt },
+            { text: promptText },
+            {
+              inlineData: {
+                data: base64,
+                mimeType,
+              },
+            },
           ],
         },
       ],
     });
 
-    // Extraer la imagen generada
-    const part =
+    const imagePart =
       result?.response?.candidates?.[0]?.content?.parts?.find(
-        (p: any) => p.inlineData && p.inlineData.data
+        (p: any) => p.inlineData?.data
       );
 
-    if (!part) {
-      throw new Error("The model did not return any image data.");
+    if (!imagePart) {
+      throw new Error("No image returned by Gemini.");
     }
 
-    const imageUrl = `data:image/png;base64,${part.inlineData.data}`;
-
+    const imageUrl = `data:${mimeType};base64,${imagePart.inlineData.data}`;
     return res.status(200).json({ imageUrl });
-
   } catch (error: any) {
     console.error("Error in /api/generate-image:", error);
     return res.status(500).json({
-      error: error.message || "Unknown server error",
+      error: error?.message || "Unknown server error",
     });
   }
 }
