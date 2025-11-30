@@ -4,8 +4,9 @@ import { Mail, Loader2, CheckCircle2 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function Login() {
-  const { sendMagicLink } = useAuth();
+  const { sendMagicLink, user, loading } = useAuth();
   const [email, setEmail] = useState("");
+  const [invitationCode, setInvitationCode] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
 
@@ -14,7 +15,7 @@ export default function Login() {
     setStatus("loading");
     setMessage(null);
     try {
-      await sendMagicLink(email);
+      await sendMagicLink(email, invitationCode);
       setStatus("success");
       setMessage("You will receive your login link shortly.");
     } catch (err: any) {
@@ -22,6 +23,31 @@ export default function Login() {
       setMessage(err?.message || "Unable to send magic link.");
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white flex items-center justify-center px-4">
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-400" />
+      </div>
+    );
+  }
+
+  if (user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white flex items-center justify-center px-4">
+        <div className="w-full max-w-lg rounded-3xl bg-white/5 border border-white/10 shadow-2xl backdrop-blur-lg p-10 space-y-4 text-center">
+          <h1 className="text-2xl font-semibold">You’re already signed in</h1>
+          <p className="text-gray-400">Continue to your workspace.</p>
+          <a
+            href="/app"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-500 px-6 py-3 text-lg font-semibold shadow-lg hover:from-indigo-400 hover:to-purple-400 transition"
+          >
+            Go to App
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white flex items-center justify-center px-4">
@@ -48,6 +74,17 @@ export default function Login() {
               placeholder="you@company.com"
             />
             <Mail className="absolute right-3 top-3 h-5 w-5 text-gray-500" />
+          </div>
+          <label className="block text-sm text-gray-300">Invitation Code</label>
+          <div className="relative">
+            <input
+              type="text"
+              value={invitationCode}
+              onChange={(e) => setInvitationCode(e.target.value)}
+              required
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+              placeholder="Enter your code"
+            />
           </div>
           <button
             type="submit"

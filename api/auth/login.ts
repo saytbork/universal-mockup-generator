@@ -9,10 +9,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const { email } = req.body || {};
+  const { email, invitationCode } = req.body || {};
   if (!email) {
     res.status(400).json({ error: "Email required" });
     return;
+  }
+
+  const requiredCode = process.env.INVITATION_CODE;
+  if (requiredCode) {
+    if (!invitationCode || invitationCode !== requiredCode) {
+      res.status(400).json({ error: "Invalid invitation code" });
+      return;
+    }
   }
 
   const token = createMagicToken(email);

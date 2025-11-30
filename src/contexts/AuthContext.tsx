@@ -8,7 +8,7 @@ interface AuthContextType {
   loading: boolean;
   isGuest: boolean;
   signInWithGoogle: () => Promise<void>;
-  sendMagicLink: (email: string) => Promise<void>;
+  sendMagicLink: (email: string, invitationCode?: string) => Promise<void>;
   logout: () => Promise<void>;
   loginAsGuest: () => void;
 }
@@ -54,13 +54,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     throw new Error('Google sign-in is not available in this auth mode.');
   };
 
-  const sendMagicLink = async (email: string) => {
+  const sendMagicLink = async (email: string, invitationCode?: string) => {
     const normalized = email.trim();
     if (!normalized) throw new Error('Email required');
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: normalized }),
+      body: JSON.stringify({ email: normalized, invitationCode }),
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
