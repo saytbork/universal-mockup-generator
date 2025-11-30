@@ -1,8 +1,8 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-// The model normalizer you recovered from your working version.
-// THIS IS REQUIRED or Gemini will break.
+// Normalizador crítico que evita errores del modelo.
+// ¡ESTO NO SE PUEDE BORRAR NUNCA!
 const normalizeGeminiModel = (
   raw?: string,
   fallback = "gemini-2.5-flash"
@@ -21,7 +21,7 @@ export default async function handler(
     return res.status(405).json({ error: "Method Not Allowed" });
   }
 
-  // Your real variable. Do NOT change this.
+  // ESTA es tu variable real. NO se debe cambiar.
   const apiKey = process.env.GOOGLE_API_KEY;
 
   if (!apiKey) {
@@ -39,7 +39,7 @@ export default async function handler(
       });
     }
 
-    const genAI = new GoogleGenAI({ apiKey });
+    const genAI = new GoogleGenerativeAI(apiKey);
 
     const modelName = normalizeGeminiModel("gemini-2.5-flash");
 
@@ -47,7 +47,7 @@ export default async function handler(
       model: modelName
     });
 
-    // The correct API call for Gemini 2.5 Flash
+    // Llamada correcta a Gemini 2.5 Flash
     const result = await model.generateContent([
       {
         inlineData: {
@@ -60,7 +60,7 @@ export default async function handler(
       }
     ]);
 
-    // Correct extraction of image response
+    // Extracción correcta del resultado
     const part =
       result?.response?.candidates?.[0]?.content?.parts?.find(
         (p: any) => p.inlineData
@@ -73,6 +73,7 @@ export default async function handler(
     const imageUrl = `data:image/png;base64,${part.inlineData.data}`;
 
     return res.status(200).json({ imageUrl });
+
   } catch (error: any) {
     console.error("Error in /api/generate:", error);
     return res.status(500).json({
