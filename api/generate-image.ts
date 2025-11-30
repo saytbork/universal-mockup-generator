@@ -1,17 +1,7 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { GoogleGenAI } from "@google/genai";
 
-// Stable model target (v1) to avoid v1beta endpoints.
-const MODEL_ID = "imagen-3.0";
-const DEFAULT_MODEL = `models/${MODEL_ID}`;
-
-const normalizeGeminiModel = (raw?: string, fallback = DEFAULT_MODEL) => {
-  let model = raw || fallback;
-  model = model.replace(/^models\//, "models/");
-  model = model.replace(/-latest$/, "-001");
-  model = model.replace(/-002$/, "-001");
-  return model;
-};
+const MODEL_ID = "imagen-3.0-generate-001";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -28,47 +18,45 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const { promptText, image } = req.body;
-    const base64 = image?.base64;
-    const mimeType = image?.mimeType;
+    // Note: 'image' (base64) is received but Imagen 3 API via @google/genai 
+    // primarily supports text-to-image. If editing is needed, we might need 
+    // a different endpoint or model capability. 
+    // For now, we proceed with text-to-image using the prompt.
 
-    if (!base64 || !mimeType || !promptText) {
+    if (!promptText) {
       return res.status(400).json({
-        error: "Missing required parameters: base64, mimeType, or prompt.",
+        error: "Missing required parameter: promptText.",
       });
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const modelName = normalizeGeminiModel();
-    const model = genAI.getGenerativeModel({ model: modelName });
+    const client = new GoogleGenAI({ apiKey });
 
-    const result = await model.generateContent({
-      contents: [
-        {
-          role: "user",
-          parts: [
-            { text: promptText },
-            {
-              inlineData: {
-                data: base64,
-                mimeType,
-              },
-            },
-          ],
-        },
-      ],
+    // Using the 'generateImage' method for Imagen 3
+    const response = await client.models.generateImage({
+      model: MODEL_ID,
+      prompt: promptText,
+      config: {
+        numberOfImages: 1,
+        aspectRatio: "1:1", // Default, can be adjusted if passed in body
+        // safetySettings: ...
+      }
     });
 
-    const imagePart =
-      result?.response?.candidates?.[0]?.content?.parts?.find(
-        (p: any) => p.inlineData?.data
-      );
-
-    if (!imagePart) {
-      throw new Error("No image returned by Gemini.");
+    if (!response || !response.image) {
+      throw new Error("No image returned by Imagen.");
     }
 
-    const imageUrl = `data:${mimeType};base64,${imagePart.inlineData.data}`;
+    // The SDK returns the image bytes (base64) in the response
+    const imageBase64 = response.image.imageBytes;
+
+    if (!imageBase64) {
+      throw new Error("No image data in response.");
+    }
+
+    // Return as data URL
+    const imageUrl = `data:image/png;base64,${imageBase64}`;
     return res.status(200).json({ imageUrl });
+
   } catch (error: any) {
     console.error("Error in /api/generate-image:", error);
     return res.status(500).json({
