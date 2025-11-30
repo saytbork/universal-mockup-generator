@@ -68,6 +68,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   await addActivity(email, "login", {});
 
-  res.writeHead(302, { Location: "/dashboard" });
+  res.writeHead(302, { Location: "https://boostugc.app/dashboard" });
   res.end();
 }
