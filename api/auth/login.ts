@@ -20,7 +20,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   tokenStore[token] = { email, expires };
 
-  const magicLink = `https://boostugc.app/auth/verify?token=${token}`;
+  const magicLink = `${process.env.BASE_URL ?? "https://boostugc.app"}/api/auth/verify?token=${token}`;
 
   await sendEmail({
     to: email,
