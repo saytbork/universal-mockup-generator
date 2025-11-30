@@ -31,8 +31,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const client = new GoogleGenAI({ apiKey });
 
-    // Using the 'generateImage' method for Imagen 3
-    const response = await client.models.generateImage({
+    // Using the 'generateImages' method for Imagen 3
+    const response = await client.models.generateImages({
       model: MODEL_ID,
       prompt: promptText,
       config: {
@@ -42,12 +42,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     });
 
-    if (!response || !response.image) {
+    if (!response || !response.generatedImages || response.generatedImages.length === 0) {
       throw new Error("No image returned by Imagen.");
     }
 
     // The SDK returns the image bytes (base64) in the response
-    const imageBase64 = response.image.imageBytes;
+    const imageBase64 = response.generatedImages[0].image.imageBytes;
 
     if (!imageBase64) {
       throw new Error("No image data in response.");
