@@ -378,14 +378,10 @@ const PLAN_STORAGE_KEY = 'ugc-plan-tier';
 const VIDEO_COUNT_KEY = 'ugc-video-generation-count';
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '';
 const EMAIL_VERIFICATION_ENABLED = import.meta.env.VITE_EMAIL_VERIFICATION === 'true';
-const normalizeGeminiModel = (raw?: string, fallback = 'gemini-2.5-flash') => {
-  const model = (raw || fallback).replace(/^models\//, '');
-  if (model.endsWith('-latest')) return model.replace(/-latest$/, '-001');
-  if (model.endsWith('-002')) return model.replace(/-002$/, '-001');
-  return model;
-};
+// Model normalization removed. Image models must be passed exactly as written.
+const normalizeGeminiModel = (raw?: string) => raw || '';
 
-const GEMINI_IMAGE_MODEL = normalizeGeminiModel(import.meta.env.VITE_GEMINI_MODEL);
+const GEMINI_IMAGE_MODEL = normalizeGeminiModel('gemini-2.5-flash-image') || 'gemini-2.5-flash-image';
 
 type PlanTier = 'free' | 'creator' | 'studio';
 
@@ -525,11 +521,6 @@ const GOAL_VIBE_OPTIONS = [
   },
 ];
 
-const API_BASE = (
-  import.meta.env.VITE_API_BASE ||
-  (typeof window !== 'undefined' ? window.location.origin : '')
-).replace(/\/$/, '');
-
 const BUNDLE_TABS = [
   { id: 'premade', label: 'Pre-made Bundles' },
   { id: 'custom', label: 'Custom Bundle Builder' },
@@ -542,7 +533,7 @@ type AiStudioApi = {
 };
 
 const getEnvApiKey = (): string | undefined => {
-  const fromProcess = process.env.GEMINI_API_KEY || process.env.API_KEY;
+  const fromProcess = process.env.API_KEY;
   return fromProcess ? fromProcess.trim() : undefined;
 };
 
@@ -595,7 +586,7 @@ const scaleImageToLongEdge = async (sourceUrl: string, targetLongEdge: number): 
 };
 
 const App: React.FC = () => {
-  const GEMINI_DISABLED = true; // Disable Gemini key gate/features while using Replicate
+  const GEMINI_DISABLED = false; // Gemini must stay enabled for direct image generation
   const location = useLocation();
   const { user, emailUser, isGuest, signInWithGoogle, logout } = useAuth();
   const isLoggedIn = !!user || !!emailUser || isGuest;
@@ -2239,7 +2230,7 @@ const App: React.FC = () => {
     setPlanCodeError(null);
   }, [planCodeInput, handlePlanTierSelect]);
 
-  const handleAddTestCredits = useCallback(async () => {
+  const handleAddTestCredits = useCallback(() => {
     if (!isAdmin) return;
     if (!userEmail) {
       setAdminDevError('Sign in to attach credits.');
@@ -2249,21 +2240,14 @@ const App: React.FC = () => {
     setAdminDevError(null);
     setAdminDevMessage(null);
     try {
-      const response = await fetch('/api/credits/consume', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          uid: userEmail,
-          email: userEmail,
-          amount: -100,
-          test: true,
-        }),
+      setCreditUsage(prev => {
+        const next = Math.max(0, prev - 100);
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem(IMAGE_COUNT_KEY, String(next));
+        }
+        return next;
       });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to add credits');
-      }
-      setAdminDevMessage('Added 100 test credits');
+      setAdminDevMessage('Added 100 test credits locally');
     } catch (error: any) {
       setAdminDevError(error?.message || 'Unable to add credits');
     } finally {
@@ -2271,7 +2255,7 @@ const App: React.FC = () => {
     }
   }, [isAdmin, userEmail]);
 
-  const handleResetAccount = useCallback(async () => {
+  const handleResetAccount = useCallback(() => {
     if (!isAdmin) return;
     if (!userEmail) {
       setAdminDevError('Sign in to reset.');
@@ -2281,19 +2265,20 @@ const App: React.FC = () => {
     setAdminDevError(null);
     setAdminDevMessage(null);
     try {
-      const response = await fetch('/api/dev/reset-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          uid: userEmail,
-          email: userEmail,
-        }),
+      setPlanTier('free');
+      setCreditUsage(() => {
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem(IMAGE_COUNT_KEY, '0');
+        }
+        return 0;
       });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to reset account');
+      setVideoGenerationCount(0);
+      setHasVideoAccess(false);
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(PLAN_STORAGE_KEY, 'free');
+        window.localStorage.removeItem(VIDEO_ACCESS_KEY);
       }
-      setAdminDevMessage('Account reset to Free');
+      setAdminDevMessage('Account reset to Free locally');
     } catch (error: any) {
       setAdminDevError(error?.message || 'Unable to reset account');
     } finally {
@@ -3146,18 +3131,9 @@ const App: React.FC = () => {
     [contentStyleValue, isSimpleMode]
   );
 
-  const publishFreeGallery = useCallback(async (imageUrl: string) => {
+  const publishFreeGallery = useCallback((imageUrl: string) => {
     if (planTier !== 'free') return;
     try {
-      await fetch('/api/gallery', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imageUrl,
-          title: 'Free plan generation',
-          plan: 'free',
-        }),
-      });
       if (typeof window !== 'undefined') {
         const key = 'ugc-free-gallery';
         const current = JSON.parse(window.localStorage.getItem(key) || '[]') as { imageUrl: string; title: string; createdAt: number }[];
@@ -3230,47 +3206,30 @@ const App: React.FC = () => {
       const finalPrompt = constructPrompt(bundleSelectionRef.current);
       const aspectRatio = options?.aspectRatio || '1:1';
 
-      const base = API_BASE || '';
-      const resp = await fetch(`${base}/api/generate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          settings: { aspectRatio },
-          promptText: finalPrompt,
-          image: { base64, mimeType },
-        }),
-      });
-      const contentType = resp.headers.get('content-type') || '';
-      let data: any = {};
-      if (contentType.includes('application/json')) {
-        data = await resp.json().catch(() => ({}));
-      } else {
-        // HTML or something else usually means API_BASE is wrong and we hit the SPA HTML.
-        const text = await resp.text().catch(() => '');
-        throw new Error(`Image generation failed: received non-JSON (check API_BASE and that vercel dev is running). Status ${resp.status}. ${text?.slice(0, 120) || ''}`);
+      const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
+      if (!resolvedApiKey) {
+        return;
       }
-      if (!resp.ok || !data?.imageUrl) {
-        const detailObj =
-          data?.error ||
-          data?.detail ||
-          data?.detailString ||
-          data?.message ||
-          (resp.ok ? 'No imageUrl returned' : `HTTP ${resp.status}`);
-        const detail =
-          typeof detailObj === 'string'
-            ? detailObj
-            : detailObj
-              ? JSON.stringify(detailObj)
-              : resp.ok
-                ? 'No imageUrl returned'
-                : `HTTP ${resp.status}`;
-        const extraRaw =
-          data?.rawOutput || data?.raw || data || null;
-        const extra = extraRaw ? ` | raw=${JSON.stringify(extraRaw).slice(0, 300)}` : '';
-        throw new Error(`Image generation failed: ${detail}${extra}`);
+      const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: 'v1' });
+      const response = await ai.models.generateContent({
+        model: GEMINI_IMAGE_MODEL,
+        contents: {
+          parts: [
+            { inlineData: { data: base64, mimeType } },
+            { text: finalPrompt },
+          ],
+        },
+        generationConfig: { responseMimeType: 'image/png', aspectRatio },
+      });
+
+      const parts = response?.candidates?.[0]?.content?.parts ?? [];
+      const inlineImage = parts.find(part => (part as any)?.inlineData?.data) as { inlineData?: { data?: string } } | undefined;
+      const encodedImage = inlineImage?.inlineData?.data;
+      if (!encodedImage) {
+        throw new Error('Image generation failed or returned no images.');
       }
 
-      const finalUrl = data.imageUrl as string;
+      const finalUrl = `data:image/png;base64,${encodedImage}`;
       setGeneratedImageUrl(finalUrl);
       runHiResPipeline(finalUrl);
       const newCount = creditUsage + creditCost;
