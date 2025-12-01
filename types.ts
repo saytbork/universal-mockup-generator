@@ -31,6 +31,17 @@ export interface MockupOptions {
   proLightingRig?: string;
   proPostTreatment?: string;
   skinRealism: string;
+  creatorPreset?: string;
+  appearanceLevel?: string;
+  mood?: string;
+  pose?: string;
+  interaction2?: string;
+  wardrobe?: string;
+  props?: string;
+  customProp?: string;
+  customMicroLocation?: string;
+  expression?: string;
+  hairstyle?: string;
 }
 
 export type OptionCategory = keyof MockupOptions;

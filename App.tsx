@@ -158,6 +158,32 @@ const cloneOptions = (source: MockupOptions): MockupOptions => {
   return cloned;
 };
 
+const syncCharacterFields = (options: MockupOptions): MockupOptions => {
+  const next = { ...options };
+  next.creatorPreset = next.creatorPreset ?? '';
+  next.appearanceLevel = next.appearanceLevel || next.personAppearance || '';
+  next.mood = next.mood || next.personMood || '';
+  next.pose = next.pose || next.personPose || '';
+  next.interaction2 = next.interaction2 || next.productInteraction || '';
+  next.wardrobe = next.wardrobe || next.wardrobeStyle || '';
+  const propValue = next.props || next.personProps;
+  const isCustomProp =
+    propValue && !PERSON_PROP_OPTIONS.some(option => option.value === propValue);
+  next.props = propValue || '';
+  next.customProp = isCustomProp ? propValue : '';
+  const microValue = next.microLocation;
+  const isCustomMicroLocation =
+    microValue && !MICRO_LOCATION_OPTIONS.some(option => option.value === microValue);
+  next.customMicroLocation = isCustomMicroLocation ? microValue : '';
+  next.expression = next.expression || next.personExpression || '';
+  next.hairstyle = next.hairstyle || next.hairStyle || '';
+  next.hairColor = next.hairColor || '';
+  next.skinTone = next.skinTone || '';
+  next.eyeColor = next.eyeColor || '';
+  next.skinRealism = next.skinRealism || '';
+  return next;
+};
+
 const getSectionId = (title: string) =>
   title
     .toLowerCase()
@@ -319,6 +345,17 @@ const createDefaultOptions = (): MockupOptions => ({
   proLightingRig: PRO_LIGHTING_RIG_OPTIONS[0].value,
   proPostTreatment: PRO_POST_TREATMENT_OPTIONS[0].value,
   skinRealism: SKIN_REALISM_OPTIONS[0].value,
+  creatorPreset: CREATOR_PRESETS[0].value,
+  appearanceLevel: PERSON_APPEARANCE_OPTIONS[0].value,
+  mood: PERSON_MOOD_OPTIONS[0].value,
+  pose: PERSON_POSE_OPTIONS[0].value,
+  interaction2: PRODUCT_INTERACTION_OPTIONS[0].value,
+  wardrobe: WARDROBE_STYLE_OPTIONS[0].value,
+  props: PERSON_PROP_OPTIONS[0].value,
+  customProp: '',
+  customMicroLocation: '',
+  expression: PERSON_EXPRESSION_OPTIONS[0].value,
+  hairstyle: HAIR_STYLE_OPTIONS[0].value,
 });
 import ImageUploader, { ImageUploaderHandle } from './components/ImageUploader';
 import GeneratedImage from './components/GeneratedImage';
@@ -460,6 +497,17 @@ const PERSON_FIELD_KEYS: OptionCategory[] = [
   'eyeColor',
   'skinTone',
   'skinRealism',
+  'creatorPreset',
+  'appearanceLevel',
+  'mood',
+  'pose',
+  'interaction2',
+  'wardrobe',
+  'props',
+  'customProp',
+  'customMicroLocation',
+  'expression',
+  'hairstyle',
 ] as OptionCategory[];
 
 const applyPersonProfileToOptions = (
@@ -480,11 +528,6 @@ const PRO_FIELD_KEYS: OptionCategory[] = [
   'proLightingRig',
   'proPostTreatment',
 ] as OptionCategory[];
-
-const CREATOR_PRESET_OPTIONS: Option[] = CREATOR_PRESETS.map(({ label, value }) => ({
-  label,
-  value,
-}));
 
 const CREATOR_PRESET_LOOKUP: Record<string, CreatorPreset> = CREATOR_PRESETS.reduce(
   (acc, preset) => {
@@ -628,7 +671,16 @@ const App: React.FC = () => {
       formulationExpertProfession: 'custom',
     };
   }
-  const [options, setOptions] = useState<MockupOptions>(() => cloneOptions(initialSceneRef.current!.options));
+  const [options, setOptions] = useState<MockupOptions>(() => syncCharacterFields(cloneOptions(initialSceneRef.current!.options)));
+  const applyOptionsUpdate = useCallback(
+    (updater: React.SetStateAction<MockupOptions>) => {
+      setOptions(prev => {
+        const next = typeof updater === 'function' ? (updater as (prev: MockupOptions) => MockupOptions)(prev) : updater;
+        return syncCharacterFields(next);
+      });
+    },
+    []
+  );
   const [storyboardScenes, setStoryboardScenes] = useState<StoryboardScene[]>(() => [initialSceneRef.current!]);
   const [activeSceneId, setActiveSceneId] = useState<string>(initialSceneRef.current!.id);
 
@@ -665,6 +717,17 @@ const App: React.FC = () => {
   const availableProductIds = useMemo<ProductId[]>(
     () => productAssets.map((_, index) => `product_${index + 1}` as ProductId),
     [productAssets]
+  );
+  const normalizedCreatorPresetOptions = useMemo(
+    () =>
+      normalizeOptions(
+        CREATOR_PRESETS.map(preset => ({
+          label: preset.label,
+          value: preset.value,
+          tooltip: preset.description,
+        }))
+      ),
+    []
   );
   const normalizedSupplementPresets = useMemo(() => normalizeOptions(SUPPLEMENT_PHOTO_PRESETS), []);
   const normalizedHeroPersonPresets = useMemo(() => normalizeOptions(HERO_PERSON_PRESETS), []);
@@ -1129,7 +1192,7 @@ const App: React.FC = () => {
         scene.id === activeSceneId
           ? {
             ...scene,
-            options: cloneOptions(options),
+            options: syncCharacterFields(cloneOptions(options)),
             proMode: isProPhotographer,
             supplementPreset: activeSupplementPreset,
             supplementPromptCue: supplementPresetCue,
@@ -1183,7 +1246,7 @@ const App: React.FC = () => {
     if (!storyboardScenes.find(scene => scene.id === activeSceneId) && storyboardScenes.length) {
       const fallback = storyboardScenes[0];
       setActiveSceneId(fallback.id);
-      setOptions(cloneOptions(fallback.options));
+      applyOptionsUpdate(() => cloneOptions(fallback.options));
       setIsProPhotographer(fallback.proMode);
       setActiveSupplementPreset(fallback.supplementPreset ?? 'none');
       setSupplementPresetCue(fallback.supplementPromptCue ?? null);
@@ -1198,7 +1261,7 @@ const App: React.FC = () => {
       setHeroProductScale(fallback.heroProductScale ?? 1);
       setHeroShadowStyle(fallback.heroShadowStyle ?? 'softDrop');
     }
-  }, [storyboardScenes, activeSceneId]);
+  }, [activeSceneId, applyOptionsUpdate, storyboardScenes]);
 
   useEffect(() => {
     setGeneratedCopy(null);
@@ -1332,7 +1395,7 @@ const App: React.FC = () => {
               <ChipSelectGroup label="Age Group" options={AGE_GROUP_OPTIONS} selectedValue={options.ageGroup} onChange={(value) => handleOptionChange('ageGroup', value, 'Person Details')} disabled={isProductPlacement} />
               {isProductPlacement && <p className="text-xs text-gray-500">Person options are disabled for product placement shots.</p>}
               <div className={`rounded-2xl border border-white/10 bg-gray-900/40 p-4 space-y-3 ${personControlsDisabled ? 'opacity-50' : ''}`}>
-                <ChipSelectGroup label="Creator Preset" options={CREATOR_PRESET_OPTIONS} selectedValue={activeTalentPreset} onChange={(value) => handlePresetSelect(value)} disabled={personControlsDisabled} />
+                <ChipSelectGroup label="Creator Preset" options={normalizedCreatorPresetOptions} selectedValue={activeTalentPreset} onChange={(value) => handlePresetSelect(value)} disabled={personControlsDisabled} />
                 {activePresetMeta?.description && <p className="text-xs text-gray-400">{activePresetMeta.description}</p>}
                 <div className="flex flex-wrap gap-2 text-xs">
                   <button type="button" onClick={handleSaveTalentProfile} disabled={personControlsDisabled} className="inline-flex items-center rounded-full border border-white/20 px-3 py-1 font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition disabled:opacity-60">
@@ -1598,7 +1661,7 @@ const App: React.FC = () => {
     const scene = storyboardScenes.find(scene => scene.id === sceneId);
     if (!scene) return;
     setActiveSceneId(sceneId);
-    setOptions(cloneOptions(scene.options));
+    applyOptionsUpdate(() => cloneOptions(scene.options));
     setIsProPhotographer(scene.proMode);
     setActiveSupplementPreset(scene.supplementPreset ?? 'none');
     setSupplementPresetCue(scene.supplementPromptCue ?? null);
@@ -1621,11 +1684,11 @@ const App: React.FC = () => {
     setFormulationExpertProfession(scene.formulationExpertProfession ?? 'custom');
     setGeneratedCopy(null);
     setCopyError(null);
-  }, [storyboardScenes]);
+  }, [applyOptionsUpdate, storyboardScenes]);
 
   const handleAddScene = useCallback(() => {
     if (storyboardScenes.length >= 4) return;
-    let sceneOptions = cloneOptions(options);
+    let sceneOptions = syncCharacterFields(cloneOptions(options));
     if (isTalentLinkedAcrossScenes && linkedTalentProfile) {
       sceneOptions = applyPersonProfileToOptions(sceneOptions, linkedTalentProfile);
     }
@@ -1683,7 +1746,7 @@ const App: React.FC = () => {
   const handleDuplicateScene = useCallback(() => {
     const scene = storyboardScenes.find(s => s.id === activeSceneId);
     if (!scene || storyboardScenes.length >= 4) return;
-    let duplicatedOptions = cloneOptions(scene.options);
+    let duplicatedOptions = syncCharacterFields(cloneOptions(scene.options));
     if (isTalentLinkedAcrossScenes && linkedTalentProfile) {
       duplicatedOptions = applyPersonProfileToOptions(duplicatedOptions, linkedTalentProfile);
     }
@@ -1733,7 +1796,7 @@ const App: React.FC = () => {
       nextActiveId = filtered[0]?.id ?? activeSceneId;
       const nextScene = filtered[0];
       if (nextScene) {
-        setOptions(cloneOptions(nextScene.options));
+        applyOptionsUpdate(() => cloneOptions(nextScene.options));
         setIsProPhotographer(nextScene.proMode);
         setActiveSupplementPreset(nextScene.supplementPreset ?? 'none');
         setSupplementPresetCue(nextScene.supplementPromptCue ?? null);
@@ -1753,7 +1816,7 @@ const App: React.FC = () => {
 
   const applyTalentProfile = useCallback((profile?: Partial<MockupOptions> | null) => {
     if (!profile) return;
-    setOptions(prev => ({ ...prev, ...profile }));
+    applyOptionsUpdate(prev => ({ ...prev, ...profile }));
     setSelectedCategories(prev => {
       const next = new Set(prev);
       PERSON_FIELD_KEYS.forEach(key => {
@@ -1763,17 +1826,18 @@ const App: React.FC = () => {
       });
       return next;
     });
-  }, [setOptions, setSelectedCategories]);
+  }, [applyOptionsUpdate, setSelectedCategories]);
 
   const handlePresetSelect = useCallback((value: string) => {
     setActiveTalentPreset(value);
+    applyOptionsUpdate(prev => ({ ...prev, creatorPreset: value }));
     if (value === 'custom') {
       return;
     }
     const preset = CREATOR_PRESET_LOOKUP[value];
     if (!preset) return;
     applyTalentProfile(preset.settings);
-  }, [applyTalentProfile]);
+  }, [applyOptionsUpdate, applyTalentProfile]);
 
   const handleSaveTalentProfile = useCallback(() => {
     if (isProductPlacement || options.ageGroup === 'no person') return;
@@ -1793,14 +1857,14 @@ const App: React.FC = () => {
   }, [applyTalentProfile, savedTalentProfile]);
 
   const handlePropBundleSelect = useCallback((bundleValue: PropBundle['settings']) => {
-    setOptions(prev => ({ ...prev, ...bundleValue }));
+    applyOptionsUpdate(prev => ({ ...prev, ...bundleValue }));
     setSelectedCategories(prev => {
       const next = new Set(prev);
       Object.keys(bundleValue).forEach(key => next.add(key as OptionCategory));
       return next;
     });
     setActiveTalentPreset('custom');
-  }, []);
+  }, [applyOptionsUpdate]);
 
   const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
     <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
@@ -1955,8 +2019,9 @@ const App: React.FC = () => {
   const handleUGCExpressionSelect = useCallback(
     (id: string | null) => {
       persistUgcRealSettings(prev => ({ ...prev, selectedExpressionId: id }));
+      applyOptionsUpdate(prev => ({ ...prev, expression: id ?? '' }));
     },
-    [persistUgcRealSettings]
+    [applyOptionsUpdate, persistUgcRealSettings]
   );
 
   const handleFormulationPresetSelect = useCallback(
@@ -2099,14 +2164,14 @@ const App: React.FC = () => {
     if (!preset) return;
     setActiveHeroPosePreset(value);
     setHeroPosePromptCue(preset.promptCue);
-    setOptions(prev => ({ ...prev, ...preset.settings }));
+    applyOptionsUpdate(prev => ({ ...prev, ...preset.settings }));
     setSelectedCategories(prev => {
       const next = new Set(prev);
       Object.keys(preset.settings).forEach(key => next.add(key as OptionCategory));
       return next;
     });
     setActiveTalentPreset('custom');
-  }, []);
+  }, [applyOptionsUpdate]);
   const handleTalentLinkToggle = useCallback(() => {
     if (isTalentLinkedAcrossScenes) {
       setIsTalentLinkedAcrossScenes(false);
@@ -2162,7 +2227,7 @@ const App: React.FC = () => {
     }
     const preset = SUPPLEMENT_PHOTO_PRESETS.find(option => option.value === value);
     if (!preset) return;
-    setOptions(prev => ({ ...prev, ...preset.settings }));
+    applyOptionsUpdate(prev => ({ ...prev, ...preset.settings }));
     setSelectedCategories(prev => {
       const next = new Set(prev);
       Object.keys(preset.settings).forEach(key => next.add(key as OptionCategory));
@@ -2185,7 +2250,7 @@ const App: React.FC = () => {
           : scene
       )
     );
-  }, [activeSceneId, setOptions, setSelectedCategories]);
+  }, [activeSceneId, applyOptionsUpdate, setSelectedCategories]);
 
   const handlePlanTierSelect = useCallback(
     (tier: PlanTier) => {
@@ -2316,13 +2381,13 @@ const App: React.FC = () => {
   }, [isProPhotographer]);
 
   const applyProPreset = useCallback((presetSettings: ProLookPreset['settings']) => {
-    setOptions(prev => ({ ...prev, ...presetSettings }));
+    applyOptionsUpdate(prev => ({ ...prev, ...presetSettings }));
     setSelectedCategories(prev => {
       const next = new Set(prev);
       Object.keys(presetSettings).forEach(key => next.add(key as OptionCategory));
       return next;
     });
-  }, []);
+  }, [applyOptionsUpdate]);
 
   const handleProPresetSelect = useCallback((value: string) => {
     setActiveProPreset(value);
@@ -2399,7 +2464,7 @@ const App: React.FC = () => {
   const handleGoalWizardComplete = useCallback(() => {
     const vibe = GOAL_VIBE_OPTIONS.find(option => option.value === goalWizardData.vibe) ?? GOAL_VIBE_OPTIONS[0];
     const preset = CREATOR_PRESET_LOOKUP[goalWizardData.preset];
-    setOptions(prev => ({
+    applyOptionsUpdate(prev => ({
       ...prev,
       contentStyle: goalWizardData.goal === 'product' ? 'product' : 'ugc',
       setting: vibe.setting,
@@ -2408,17 +2473,18 @@ const App: React.FC = () => {
     }));
     if (goalWizardData.goal !== 'product' && preset) {
       setActiveTalentPreset(goalWizardData.preset);
+      applyOptionsUpdate(prev => ({ ...prev, creatorPreset: goalWizardData.preset }));
       applyTalentProfile(preset.settings);
     } else {
       setActiveTalentPreset('custom');
-      setOptions(prev => ({
+      applyOptionsUpdate(prev => ({
         ...prev,
         ageGroup: AGE_GROUP_OPTIONS[0].value,
         gender: GENDER_OPTIONS[0].value,
       }));
     }
     handleGoalWizardSkip();
-  }, [goalWizardData, applyTalentProfile, handleGoalWizardSkip]);
+  }, [applyOptionsUpdate, applyTalentProfile, goalWizardData, handleGoalWizardSkip]);
 
   const handleTrialCodeChange = useCallback((value: string) => {
     setTrialCodeInput(value);
@@ -2503,7 +2569,7 @@ const App: React.FC = () => {
       return;
     }
     const suggestion = deriveMoodSuggestions(palette);
-    setOptions(prev => {
+    applyOptionsUpdate(prev => {
       const updated = { ...prev };
       updated.lighting = getOptionValueByLabel(LIGHTING_OPTIONS, suggestion.lightingLabel);
       updated.setting = getOptionValueByLabel(SETTING_OPTIONS, suggestion.settingLabel);
@@ -2511,6 +2577,7 @@ const App: React.FC = () => {
         updated.placementStyle = getOptionValueByLabel(PLACEMENT_STYLE_OPTIONS, suggestion.placementStyleLabel);
         updated.placementCamera = getOptionValueByLabel(PLACEMENT_CAMERA_OPTIONS, suggestion.placementCameraLabel);
       }
+      updated.mood = suggestion.moodLabel;
       return updated;
     });
     setSelectedCategories(prev => {
@@ -2525,7 +2592,7 @@ const App: React.FC = () => {
     });
     setMoodSummary(`Mood hint: ${suggestion.moodLabel}. Tuned lighting to ${suggestion.lightingLabel} and scene to ${suggestion.settingLabel}.`);
     setMoodPromptCue(`Match the atmosphere of a ${suggestion.moodLabel} palette with ${suggestion.lightingLabel} lighting and details reminiscent of ${suggestion.settingLabel}.`);
-  }, [options.contentStyle]);
+  }, [applyOptionsUpdate, options.contentStyle]);
 
   const handleMoodImageUpload = useCallback(async (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -2643,6 +2710,44 @@ const App: React.FC = () => {
         updatedSelectedCategories.add('environmentOrder');
       }
     }
+    if (category === 'personAppearance') {
+      newOptions.appearanceLevel = value;
+    }
+    if (category === 'personMood') {
+      newOptions.mood = value;
+    }
+    if (category === 'personPose') {
+      newOptions.pose = value;
+    }
+    if (category === 'wardrobeStyle') {
+      newOptions.wardrobe = value;
+    }
+    if (category === 'productInteraction') {
+      newOptions.interaction2 = value;
+    }
+    if (category === 'personProps') {
+      newOptions.props = value;
+      const isCustomProp = !PERSON_PROP_OPTIONS.some(option => option.value === value);
+      newOptions.customProp = isCustomProp ? value : '';
+    }
+    if (category === 'microLocation') {
+      newOptions.customMicroLocation = MICRO_LOCATION_OPTIONS.some(option => option.value === value) ? '' : value;
+    }
+    if (category === 'personExpression') {
+      newOptions.expression = value;
+    }
+    if (category === 'hairStyle') {
+      newOptions.hairstyle = value;
+    }
+    if (category === 'hairColor') {
+      newOptions.hairColor = value;
+    }
+    if (category === 'skinTone') {
+      newOptions.skinTone = value;
+    }
+    if (category === 'eyeColor') {
+      newOptions.eyeColor = value;
+    }
     if (category === 'ageGroup' && value === 'no person') {
       setActiveTalentPreset('custom');
     }
@@ -2652,7 +2757,7 @@ const App: React.FC = () => {
       advanceOnboardingFromStep(3);
     }
 
-    setOptions(newOptions);
+    applyOptionsUpdate(() => newOptions);
     setSelectedCategories(updatedSelectedCategories);
 
     const accordionCategoryMap: Record<string, OptionCategory[]> = {
@@ -2711,7 +2816,7 @@ const App: React.FC = () => {
   const handleReset = useCallback(() => {
     resetOutputs();
     const defaultOptions = createDefaultOptions();
-    setOptions(defaultOptions);
+    applyOptionsUpdate(() => defaultOptions);
     setSelectedCategories(new Set());
     setOpenAccordion('Scene & Environment');
     setActiveTalentPreset('custom');
@@ -2748,7 +2853,7 @@ const App: React.FC = () => {
     setHeroProductAlignment('center');
     setHeroProductScale(1);
     setHeroShadowStyle('softDrop');
-  }, [resetOutputs, activeProductAsset]);
+  }, [activeProductAsset, applyOptionsUpdate, resetOutputs]);
 
   const handleLogout = useCallback(async () => {
     await logout();
@@ -3043,6 +3148,33 @@ const App: React.FC = () => {
     }
 
     if (personIncluded) {
+      if (options.mood) {
+        prompt += `The mood is ${clean(options.mood)}, expressed naturally and realistically. `;
+      }
+      if (options.pose) {
+        prompt += `The pose is ${clean(options.pose)}. `;
+      }
+      if (options.expression) {
+        prompt += `Their expression is ${clean(options.expression)}. `;
+      }
+      if (options.wardrobe) {
+        prompt += `Their wardrobe style is ${clean(options.wardrobe)}. `;
+      }
+      if (options.hairstyle) {
+        prompt += `Their hairstyle is ${clean(options.hairstyle)}. `;
+      }
+      if (options.hairColor) {
+        prompt += `Their hair color is ${clean(options.hairColor)}. `;
+      }
+      if (options.skinTone) {
+        prompt += `Their skin tone is ${clean(options.skinTone)}. `;
+      }
+      if (options.eyeColor) {
+        prompt += `Their eye color is ${clean(options.eyeColor)}. `;
+      }
+      if (options.microLocation) {
+        prompt += `The micro-location is ${clean(options.microLocation)}. `;
+      }
       const ageNarrative = describeAgeGroup(options.ageGroup, options.gender);
       const poseEmphasizesHands = options.personPose.toLowerCase().includes('hand');
       const isHandCloseUp = options.selfieType === 'close-up shot of a hand holding the product' || poseEmphasizesHands;
