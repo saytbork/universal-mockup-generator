@@ -2332,7 +2332,7 @@ const App: React.FC = () => {
         setIsCopyLoading(false);
         return;
       }
-      const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: 'v1' });
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string, apiVersion: 'v1beta' });
       const prompt = buildCopyPrompt(options);
       const response = await ai.models.generateContent({
         model: GEMINI_IMAGE_MODEL,
@@ -3210,7 +3210,7 @@ const App: React.FC = () => {
       if (!resolvedApiKey) {
         return;
       }
-      const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: 'v1' });
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string, apiVersion: 'v1beta' });
       const response = await ai.models.generateContent({
         model: GEMINI_IMAGE_MODEL,
         contents: {
@@ -3307,7 +3307,7 @@ const App: React.FC = () => {
         setIsImageLoading(false);
         return;
       }
-      const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: 'v1' });
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string, apiVersion: 'v1beta' });
       const base64Image = generatedImageUrl.split(',')[1];
 
       const aspectRatio = options?.aspectRatio || '1:1';
@@ -3400,7 +3400,7 @@ const App: React.FC = () => {
         setIsVideoLoading(false);
         return;
       }
-      const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: 'v1' });
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string, apiVersion: 'v1beta' });
       const base64Image = generatedImageUrl.split(',')[1];
 
       const getVideoAspectRatio = (): '16:9' | '9:16' => {
