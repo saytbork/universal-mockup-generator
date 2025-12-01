@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Modality } from "@google/genai";
 import { MockupOptions, OptionCategory, Option } from './types';
 import {
   CONTENT_STYLE_OPTIONS,
@@ -189,6 +189,14 @@ const getSectionId = (title: string) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
+
+const cleanDescription = (text = '') =>
+  String(text)
+    .replace(/messy|ugly|bad|wrong|imperfect|grainy|blurry|raw iphone/gi, '')
+    .replace(/reference|see above|see image|inspired by/gi, '')
+    .replace(/pinterest|tiktok|instagram/gi, '')
+    .replace(/url\([^)]*\)/gi, '')
+    .trim();
 
 const SMARTPHONE_PROP_VALUE =
   PERSON_PROP_OPTIONS.find(option => option.label.toLowerCase().includes('smartphone'))?.value ??
@@ -572,6 +580,19 @@ const GOAL_VIBE_OPTIONS = [
   },
 ];
 
+const GOAL_WIZARD_GOAL_OPTIONS = [
+  {
+    value: 'ugc',
+    label: 'UGC Lifestyle',
+    description: 'Creators interacting with your product in real life.',
+  },
+  {
+    value: 'product',
+    label: 'Product Placement',
+    description: 'Stylized hero shots without people.',
+  },
+];
+
 const BUNDLE_TABS = [
   { id: 'premade', label: 'Pre-made Bundles' },
   { id: 'custom', label: 'Custom Bundle Builder' },
@@ -729,6 +750,9 @@ const App: React.FC = () => {
       ),
     []
   );
+  const normalizedGoalWizardGoals = useMemo(() => normalizeOptions(GOAL_WIZARD_GOAL_OPTIONS), []);
+  const normalizedGoalVibeOptions = useMemo(() => normalizeOptions(GOAL_VIBE_OPTIONS), []);
+  const normalizedCreatorWizardPresets = useMemo(() => normalizeOptions(CREATOR_PRESETS), []);
   const normalizedSupplementPresets = useMemo(() => normalizeOptions(SUPPLEMENT_PHOTO_PRESETS), []);
   const normalizedHeroPersonPresets = useMemo(() => normalizeOptions(HERO_PERSON_PRESETS), []);
   const availableProductIdSet = useMemo(() => new Set<ProductId>(availableProductIds), [availableProductIds]);
@@ -3031,6 +3055,12 @@ const App: React.FC = () => {
 
     const bundleProductsForPrompt = bundleProductsOverride ?? bundleSelectionRef.current;
     let prompt = `Create an ultra-realistic, authentic ${isUgcStyle ? 'UGC lifestyle' : 'product placement'} photo with a ${cleanAspectRatio} aspect ratio. `;
+    prompt = prompt
+      .replace(/label design/gi, 'existing label preserved exactly')
+      .replace(/redesign/gi, '')
+      .replace(/re-imagine/gi, '')
+      .replace(/new label/gi, '')
+      .trim();
     prompt += isUgcStyle
       ? `The shot should feel candid, emotional, and cinematic, as if taken by a real person with a ${cleanCamera}. Embrace believable imperfections—slight motion blur, a little lens smudge, off-center framing, uneven window light—so it reads as everyday life rather than a polished model shoot. `
       : `The shot should feel refined and advertising-ready, with deliberate staging captured on a ${cleanCamera}. `;
@@ -3076,7 +3106,29 @@ const App: React.FC = () => {
       .filter(asset => asset.heightValue)
       .map(asset => `${asset.label || 'product'} ${describeHeight(asset.heightValue!, asset.heightUnit)}`)
       .join('. ');
-    prompt += `The focus is on the provided product, which has a ${cleanProductMaterial} finish. Render only a single instance of this product. Never duplicate or mirror it. Use the provided product without altering its shape, proportions, label, cap or material. Preserve original product shape, edges, colors, label, cap and texture exactly. The product must never be reconstructed—only shadows and reflections may be adjusted. Use the uploaded product cutout exactly as provided—keep the entire silhouette, every label, and every edge visible with no cropping or re-interpretation. Integrate the real photo seamlessly into the new environment so it looks composited but untouched. Integrate the product naturally into the scene with realistic lighting, reflections, ambient occlusion, and physically accurate shadows. Ensure its material, reflections, and shadows are rendered realistically according to the environment. Do not alter the product's design or branding. `;
+    prompt += `
+Use the uploaded product image as the exact product to place in the scene.
+Preserve:
+- exact colors,
+- exact label design,
+- exact typography,
+- exact cap shape,
+- exact material,
+- exact geometry,
+- exact proportions.
+
+Do not redesign, replace, or reinterpret the product.
+
+Integrate it physically into the environment using "Active Insert Mode":
+- match lighting to the room,
+- adjust reflections on glass/plastic,
+- add realistic soft shadows on surfaces,
+- maintain physically correct highlights,
+- preserve all printed elements clearly and accurately,
+- keep edges and silhouette identical to the uploaded object.
+
+The product must look naturally photographed inside this environment, not pasted or floating.
+`;
     if (heightNotes) {
       prompt += `Respect real-world scale: ${clean(heightNotes)}. Adjust hands, props, and camera distance so the item visibly matches that measurement.`;
     }
@@ -3148,6 +3200,12 @@ const App: React.FC = () => {
     }
 
     if (personIncluded) {
+      if (options.creatorPreset) {
+        prompt += `The overall creative persona is ${clean(options.creatorPreset)}. `;
+      }
+      if (options.appearanceLevel) {
+        prompt += `Their grooming level is ${clean(options.appearanceLevel)}. `;
+      }
       if (options.mood) {
         prompt += `The mood is ${clean(options.mood)}, expressed naturally and realistically. `;
       }
@@ -3165,7 +3223,9 @@ const App: React.FC = () => {
       }
       if (options.hairColor) {
         prompt += `Their hair color is ${clean(options.hairColor)}. `;
+        prompt += `Hair color: ${clean(options.hairColor)}. Do not override with age-based defaults. `;
       }
+      prompt += 'Age-based defaults must NOT override hair color or appearance selections. Hair must always match the selected color, even for seniors. ';
       if (options.skinTone) {
         prompt += `Their skin tone is ${clean(options.skinTone)}. `;
       }
@@ -3174,6 +3234,12 @@ const App: React.FC = () => {
       }
       if (options.microLocation) {
         prompt += `The micro-location is ${clean(options.microLocation)}. `;
+      }
+      if (options.customMicroLocation) {
+        prompt += `Additional micro-location detail: ${clean(options.customMicroLocation)}. `;
+      }
+      if (options.interaction2) {
+        prompt += `Interaction detail: ${clean(options.interaction2)}. `;
       }
       const ageNarrative = describeAgeGroup(options.ageGroup, options.gender);
       const poseEmphasizesHands = options.personPose.toLowerCase().includes('hand');
@@ -3234,14 +3300,10 @@ const App: React.FC = () => {
         prompt += `Their hair is styled as ${cleanHairStyle}. `;
       }
       prompt += ' Faces and hands must be fully realistic with natural skin texture, no distortions or 3D plastic look. Zero warped fingers, zero asymmetry, zero AI artifacts. ';
-      if (options.skinRealism === 'raw') {
-        prompt += 'Skin realism mode: Real Raw Photo. Preserve pores, microtexture, tiny imperfections, and natural oil without plastic smoothing.';
-      } else if (options.skinRealism === 'clean') {
-        prompt += 'Skin realism mode: Natural Clean Retouch. Keep pores and microtexture while applying a gentle, realistic clean retouch with no blur or plastic shine.';
-      } else if (options.skinRealism === 'beauty') {
-        prompt += 'Skin realism mode: Beauty Editorial Soft Skin. Keep pores visible with a subtle, even glow—no plastic skin, no airbrush blur.';
+      if (options.skinRealism) {
+        prompt += `Skin realism mode: ${clean(options.skinRealism)}. Render pores, micro shadows, and natural texture accordingly. `;
       }
-      prompt += ' Pores, microtexture, and natural imperfections must be preserved according to the selected skin realism mode.';
+      prompt += 'Pores, microtexture, and natural imperfections must be preserved according to the selected skin realism mode. ';
       if (realModeActive && ugcRealSettings.selectedHeroPersonaIds.length) {
         const personaText = ugcRealSettings.selectedHeroPersonaIds
           .map(id => UGC_HERO_PERSONA_PRESETS.find(item => item.id === id)?.prompt)
@@ -3250,6 +3312,12 @@ const App: React.FC = () => {
         if (personaText) {
           prompt += ` ${clean(personaText)}`;
         }
+      }
+      if (options.props) {
+        prompt += `Props present include ${clean(options.props)}. `;
+      }
+      if (options.customProp) {
+        prompt += `Additional prop: ${clean(options.customProp)}. `;
       }
       if (options.personProps !== personPropNoneValue) {
         prompt += `Add supporting props such as ${cleanPersonProps} to reinforce the lifestyle context. `;
@@ -3308,8 +3376,9 @@ const App: React.FC = () => {
           prompt += ` ${clean(framingPreset.prompt)}`;
         }
         if (ugcRealSettings.blurAmount > 0 || ugcRealSettings.grainAmount > 0) {
-          prompt += ` Add roughly ${ugcRealSettings.blurAmount}% focus blur and ${ugcRealSettings.grainAmount}% grain to mimic raw smartphone texture.`;
-        }
+         prompt += ` Add roughly ${ugcRealSettings.blurAmount}% focus blur and ${ugcRealSettings.grainAmount}% grain to mimic raw smartphone texture.`;
+       }
+        prompt += ' UGC Real Mode may add grain, lighting imperfections and organic feel to the scene, but must not degrade product clarity, readability or branding. ';
       }
     }
 
@@ -3413,14 +3482,23 @@ const App: React.FC = () => {
       }
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string, apiVersion: 'v1beta' });
       const response = await ai.models.generateContent({
-        model: GEMINI_IMAGE_MODEL,
+        model: GEMINI_IMAGE_MODEL, // maintain this but enforce insert behavior through the prompt and config above
         contents: {
           parts: [
             { inlineData: { data: base64, mimeType } },
             { text: finalPrompt },
           ],
         },
-        generationConfig: { responseMimeType: 'image/png', aspectRatio },
+        config: {
+          responseModalities: [Modality.IMAGE],
+          safetySettings: [],
+          generationConfig: {
+            responseMimeType: 'image/png',
+            aspectRatio,
+            preserveReferenceImage: true,
+            temperature: 0.4,
+          },
+        },
       });
 
       const parts = response?.candidates?.[0]?.content?.parts ?? [];
@@ -3513,14 +3591,23 @@ const App: React.FC = () => {
 
       const aspectRatio = options?.aspectRatio || '1:1';
       const response = await ai.models.generateContent({
-        model: GEMINI_IMAGE_MODEL,
+        model: GEMINI_IMAGE_MODEL, // maintain this but enforce insert behavior through the prompt and config above
         contents: {
           parts: [
             { inlineData: { data: base64Image, mimeType: 'image/png' } },
             { text: prompt.trim() },
           ],
         },
-        generationConfig: { responseMimeType: 'image/png', aspectRatio },
+        config: {
+          responseModalities: [Modality.IMAGE],
+          safetySettings: [],
+          generationConfig: {
+            responseMimeType: 'image/png',
+            aspectRatio,
+            preserveReferenceImage: true,
+            temperature: 0.4,
+          },
+        },
       });
 
       const parts = response?.candidates?.[0]?.content?.parts ?? [];
@@ -3704,45 +3791,74 @@ const App: React.FC = () => {
             <p className="text-sm text-gray-400">Step {goalWizardStep} / 3</p>
             {goalWizardStep === 1 && (
               <div className="grid gap-4 md:grid-cols-2">
-                {[
-                  { value: 'ugc', title: 'UGC Lifestyle', description: 'Creators interacting with your product in real life.' },
-                  { value: 'product', title: 'Product Placement', description: 'Stylized hero shots without people.' },
-                ].map(option => (
+                {normalizedGoalWizardGoals.map(option => (
                   <button
                     key={option.value}
                     onClick={() => handleGoalWizardSelect('goal', option.value)}
                     className={`rounded-2xl border p-4 text-left transition ${goalWizardData.goal === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
                   >
-                    <p className="text-lg font-semibold">{option.title}</p>
-                    <p className="text-sm text-gray-400 mt-2">{option.description}</p>
+                    <div className="flex items-center gap-1 relative group">
+                      <span className="text-lg font-semibold">{option.label}</span>
+                      {option.tooltip && (
+                        <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
+                          ⓘ
+                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                            {option.tooltip}
+                          </div>
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-400 mt-2">{cleanDescription(option.description)}</p>
                   </button>
                 ))}
               </div>
             )}
             {goalWizardStep === 2 && (
               <div className="grid gap-3 md:grid-cols-3">
-                {GOAL_VIBE_OPTIONS.map(option => (
+                {normalizedGoalVibeOptions.map(option => (
                   <button
                     key={option.value}
                     onClick={() => handleGoalWizardSelect('vibe', option.value)}
                     className={`rounded-2xl border p-4 text-left transition ${goalWizardData.vibe === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
                   >
-                    <p className="text-base font-semibold">{option.label}</p>
-                    <p className="text-sm text-gray-400 mt-2">{option.description}</p>
+                    <div className="flex items-center gap-1 relative group">
+                      <span className="text-base font-semibold">{option.label}</span>
+                      {option.tooltip && (
+                        <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
+                          ⓘ
+                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                            {option.tooltip}
+                          </div>
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-400 mt-2">{cleanDescription(option.description)}</p>
                   </button>
                 ))}
               </div>
             )}
             {goalWizardStep === 3 && (
               <div className="grid gap-3 md:grid-cols-2">
-                {CREATOR_PRESETS.filter(preset => preset.value !== 'custom').map(preset => (
+                {normalizedCreatorWizardPresets
+                  .filter(preset => preset.value !== 'custom')
+                  .map(preset => (
                   <button
                     key={preset.value}
                     onClick={() => handleGoalWizardSelect('preset', preset.value)}
                     className={`rounded-2xl border p-4 text-left transition ${goalWizardData.preset === preset.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
                   >
-                    <p className="text-base font-semibold">{preset.label}</p>
-                    <p className="text-sm text-gray-400 mt-2">{preset.description}</p>
+                    <div className="flex items-center gap-1 relative group">
+                      <span className="text-base font-semibold">{preset.label}</span>
+                      {preset.tooltip && (
+                        <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
+                          ⓘ
+                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                            {preset.tooltip}
+                          </div>
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-400 mt-2">{cleanDescription(preset.description)}</p>
                   </button>
                 ))}
               </div>
