@@ -1,4 +1,5 @@
 import React from 'react';
+import { normalizeOptions } from '../src/system/normalizeOptions';
 import type { UGCCustomClothingPreset } from '../src/data/ugcPresets';
 
 interface CustomClothesSelectorProps {
@@ -21,6 +22,7 @@ const CustomClothesSelector: React.FC<CustomClothesSelectorProps> = ({
   disabled = false,
 }) => {
   const inputId = 'custom-clothes-upload-input';
+  const normalizedPresets = normalizeOptions(presets.map(preset => ({ ...preset, value: preset.id })));
 
   return (
     <div className={`space-y-3 ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
@@ -70,7 +72,7 @@ const CustomClothesSelector: React.FC<CustomClothesSelectorProps> = ({
       <div>
         <p className="mb-2 text-[11px] uppercase tracking-[0.3em] text-indigo-200">Quick presets</p>
         <div className="flex flex-wrap gap-2">
-          {presets.map(preset => {
+          {normalizedPresets.map(preset => {
             const isActive = selectedPresetIds.includes(preset.id);
             return (
               <button
@@ -83,7 +85,17 @@ const CustomClothesSelector: React.FC<CustomClothesSelectorProps> = ({
                     : 'border-white/20 text-gray-300 hover:border-indigo-400 hover:text-white'
                 }`}
               >
-                {preset.label}
+                <div className="flex items-center gap-1 relative group">
+                  <span>{preset.label}</span>
+                  {preset.tooltip && (
+                    <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
+                      ⓘ
+                      <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                        {preset.tooltip}
+                      </div>
+                    </span>
+                  )}
+                </div>
               </button>
             );
           })}

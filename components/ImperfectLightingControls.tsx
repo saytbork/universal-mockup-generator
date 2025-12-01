@@ -1,4 +1,5 @@
 import React from 'react';
+import { normalizeOptions } from '../src/system/normalizeOptions';
 import type { UGCCameraFramingOption } from '../src/data/ugcPresets';
 
 interface ImperfectLightingControlsProps {
@@ -66,6 +67,13 @@ const ImperfectLightingControls: React.FC<ImperfectLightingControlsProps> = ({
   onSelectFraming,
   disabled = false,
 }) => {
+  const normalizedOffCenterOptions = normalizeOptions(
+    offCenterOptions.map(option => ({ ...option, value: option.id }))
+  );
+  const normalizedFramingOptions = normalizeOptions(
+    framingOptions.map(option => ({ ...option, value: option.id }))
+  );
+
   return (
     <div className={`space-y-4 ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
       <ToggleRow
@@ -95,7 +103,7 @@ const ImperfectLightingControls: React.FC<ImperfectLightingControlsProps> = ({
       <div>
         <p className="text-xs uppercase tracking-[0.3em] text-indigo-200 mb-2">Off-center composition</p>
         <div className="flex flex-wrap gap-2">
-          {offCenterOptions.map(option => (
+          {normalizedOffCenterOptions.map(option => (
             <button
               key={option.id}
               type="button"
@@ -106,7 +114,17 @@ const ImperfectLightingControls: React.FC<ImperfectLightingControlsProps> = ({
                   : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
               }`}
             >
-              {option.label}
+              <div className="flex items-center gap-1 relative group">
+                <span>{option.label}</span>
+                {option.tooltip && (
+                  <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
+                    ⓘ
+                    <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                      {option.tooltip}
+                    </div>
+                  </span>
+                )}
+              </div>
             </button>
           ))}
         </div>
@@ -114,7 +132,7 @@ const ImperfectLightingControls: React.FC<ImperfectLightingControlsProps> = ({
       <div>
         <p className="text-xs uppercase tracking-[0.3em] text-indigo-200 mb-2">Spontaneous framing</p>
         <div className="flex flex-wrap gap-2">
-          {framingOptions.map(option => (
+          {normalizedFramingOptions.map(option => (
             <button
               key={option.id}
               type="button"
@@ -125,7 +143,17 @@ const ImperfectLightingControls: React.FC<ImperfectLightingControlsProps> = ({
                   : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
               }`}
             >
-              {option.label}
+              <div className="flex items-center gap-1 relative group">
+                <span>{option.label}</span>
+                {option.tooltip && (
+                  <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
+                    ⓘ
+                    <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                      {option.tooltip}
+                    </div>
+                  </span>
+                )}
+              </div>
             </button>
           ))}
         </div>

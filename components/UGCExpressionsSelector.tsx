@@ -1,4 +1,5 @@
 import React from 'react';
+import { normalizeOptions } from '../src/system/normalizeOptions';
 import type { UGCExpressionPreset } from '../src/data/ugcPresets';
 
 interface UGCExpressionsSelectorProps {
@@ -14,6 +15,8 @@ const UGCExpressionsSelector: React.FC<UGCExpressionsSelectorProps> = ({
   onSelect,
   disabled = false,
 }) => {
+  const normalizedPresets = normalizeOptions(presets.map(preset => ({ ...preset, value: preset.id })));
+
   return (
     <div className={`space-y-3 ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
       <div className="flex items-center justify-between">
@@ -32,7 +35,7 @@ const UGCExpressionsSelector: React.FC<UGCExpressionsSelectorProps> = ({
         )}
       </div>
       <div className="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
-        {presets.map(preset => {
+        {normalizedPresets.map(preset => {
           const isActive = preset.id === selectedId;
           return (
             <button
@@ -43,7 +46,17 @@ const UGCExpressionsSelector: React.FC<UGCExpressionsSelectorProps> = ({
                 isActive ? 'border-amber-300 bg-amber-500/10 text-white' : 'border-white/15 text-gray-200 hover:border-indigo-400 hover:text-white'
               }`}
             >
-              {preset.label}
+              <div className="flex items-center gap-1 relative group">
+                <span>{preset.label}</span>
+                {preset.tooltip && (
+                  <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
+                    ⓘ
+                    <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                      {preset.tooltip}
+                    </div>
+                  </span>
+                )}
+              </div>
             </button>
           );
         })}

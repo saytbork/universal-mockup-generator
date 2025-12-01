@@ -3,6 +3,7 @@ import CustomClothesSelector from './CustomClothesSelector';
 import UGCExpressionsSelector from './UGCExpressionsSelector';
 import ImperfectLightingControls from './ImperfectLightingControls';
 import BlurGrainControls from './BlurGrainControls';
+import { normalizeOptions } from '../src/system/normalizeOptions';
 import type {
   UGCCustomClothingPreset,
   UGCRealityPreset,
@@ -10,6 +11,18 @@ import type {
   UGCExpressionPreset,
   UGCCameraFramingOption,
 } from '../src/data/ugcPresets';
+
+function cleanDescription(text = "") {
+  return text
+    .replace(/raw iphone/gi, "natural mobile style")
+    .replace(/ugly|bad|wrong|messy|awful/gi, "")
+    .replace(/pinterest|tiktok|instagram/gi, "")
+    .replace(/moodboard|inspiration ref/gi, "")
+    .replace(/reference/gi, "")
+    .replace(/inspired by/gi, "")
+    .replace(/hyper/gi, "high")
+    .trim();
+}
 
 interface UGCRealModePanelProps {
   disabled: boolean;
@@ -89,6 +102,24 @@ const UGCRealModePanel: React.FC<UGCRealModePanelProps> = ({
   onSelectFraming,
 }) => {
   const panelDisabled = disabled && !enabled;
+  const normalizedRealityPresets = normalizeOptions(
+    realityPresets.map(preset => ({ ...preset, value: preset.id }))
+  );
+  const normalizedHeroPersonaPresets = normalizeOptions(
+    heroPersonaPresets.map(preset => ({ ...preset, value: preset.id }))
+  );
+  const normalizedExpressions = normalizeOptions(
+    expressionPresets.map(preset => ({ ...preset, value: preset.id }))
+  );
+  const normalizedClothing = normalizeOptions(
+    clothingPresets.map(preset => ({ ...preset, value: preset.id }))
+  );
+  const normalizedFraming = normalizeOptions(
+    framingOptions.map(option => ({ ...option, value: option.id }))
+  );
+  const normalizedOffCenter = normalizeOptions(
+    offCenterOptions.map(option => ({ ...option, value: option.id }))
+  );
 
   return (
     <div className="space-y-4">
@@ -122,7 +153,7 @@ const UGCRealModePanel: React.FC<UGCRealModePanelProps> = ({
           <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">UGC reality presets</p>
             <div className="flex flex-col gap-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
-              {realityPresets.map(preset => {
+              {normalizedRealityPresets.map(preset => {
                 const isActive = preset.id === selectedRealityPresetId;
                 return (
                   <button
@@ -133,15 +164,25 @@ const UGCRealModePanel: React.FC<UGCRealModePanelProps> = ({
                       isActive ? 'border-amber-300 bg-amber-500/10 text-white' : 'border-white/15 text-gray-200 hover:border-indigo-400 hover:text-white'
                     }`}
                   >
-                    <p className="text-sm font-semibold">{preset.label}</p>
-                    <p className="text-[11px] text-gray-400">{preset.description}</p>
+                    <div className="flex items-center gap-1 relative group">
+                      <span className="text-sm font-semibold">{preset.label}</span>
+                      {preset.tooltip && (
+                        <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
+                          ⓘ
+                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/80 text-white text-xs p-2 rounded shadow-lg w-48">
+                            {preset.tooltip}
+                          </div>
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-gray-400">{cleanDescription(preset.description)}</p>
                   </button>
                 );
               })}
             </div>
           </div>
           <CustomClothesSelector
-            presets={clothingPresets}
+            presets={normalizedClothing}
             selectedPresetIds={selectedClothingPresetIds}
             onTogglePreset={onToggleClothingPreset}
             onUpload={onUploadClothing}
@@ -151,7 +192,7 @@ const UGCRealModePanel: React.FC<UGCRealModePanelProps> = ({
           <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Hero personas</p>
             <div className="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
-              {heroPersonaPresets.map(preset => {
+              {normalizedHeroPersonaPresets.map(preset => {
                 const isActive = selectedHeroPersonaIds.includes(preset.id);
                 return (
                   <button
@@ -162,15 +203,25 @@ const UGCRealModePanel: React.FC<UGCRealModePanelProps> = ({
                       isActive ? 'border-amber-300 bg-amber-500/10 text-white' : 'border-white/15 text-gray-200 hover:border-indigo-400 hover:text-white'
                     }`}
                   >
-                    <p className="text-sm font-semibold">{preset.label}</p>
-                    <p className="text-[11px] text-gray-400">{preset.description}</p>
+                    <div className="flex items-center gap-1 relative group">
+                      <span className="text-sm font-semibold">{preset.label}</span>
+                      {preset.tooltip && (
+                        <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
+                          ⓘ
+                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/80 text-white text-xs p-2 rounded shadow-lg w-48">
+                            {preset.tooltip}
+                          </div>
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-gray-400">{cleanDescription(preset.description)}</p>
                   </button>
                 );
               })}
             </div>
           </div>
           <UGCExpressionsSelector
-            presets={expressionPresets}
+            presets={normalizedExpressions}
             selectedId={selectedExpressionId}
             onSelect={onSelectExpression}
           />
@@ -183,10 +234,10 @@ const UGCRealModePanel: React.FC<UGCRealModePanelProps> = ({
             onOffFocusToggle={onOffFocusToggle}
             tiltedPhone={tiltedPhone}
             onTiltedPhoneToggle={onTiltedPhoneToggle}
-            offCenterOptions={offCenterOptions}
+            offCenterOptions={normalizedOffCenter}
             selectedOffCenterId={selectedOffCenterId}
             onSelectOffCenter={onSelectOffCenter}
-            framingOptions={framingOptions}
+            framingOptions={normalizedFraming}
             selectedFramingId={selectedFramingId}
             onSelectFraming={onSelectFraming}
           />

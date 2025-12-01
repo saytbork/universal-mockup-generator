@@ -1403,7 +1403,17 @@ const App: React.FC = () => {
                   <div className="space-y-2">
                     {normalizedHeroPersonPresets.map(preset => (
                       <button key={preset.value} type="button" onClick={() => handleHeroPosePresetSelect(preset.value)} className={`w-full rounded-xl border px-3 py-2 text-left transition ${activeHeroPosePreset === preset.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-200 hover-border-indigo-400 hover:text-white'}`}>
-                        <p className="text-sm font-semibold">{preset.label}</p>
+                        <div className="flex items-center gap-1 relative group text-sm font-semibold">
+                          <span>{preset.label}</span>
+                          {preset.tooltip && (
+                            <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
+                              ⓘ
+                              <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                                {preset.tooltip}
+                              </div>
+                            </span>
+                          )}
+                        </div>
                         <p className="text-[11px] text-gray-400 mt-1">{preset.description}</p>
                       </button>
                     ))}
@@ -2846,6 +2856,13 @@ const App: React.FC = () => {
   }, []);
 
   const constructPrompt = (bundleProductsOverride?: ProductId[] | null): string => {
+    const clean = (text: string = '') =>
+      String(text)
+        .replace(/http[^ ]+/g, '')
+        .replace(/www\.[^ ]+/g, '')
+        .replace(/reference/gi, '')
+        .replace(/see/gi, '')
+        .trim();
     const currentStyle = contentStyleValue;
     const isUgcStyle = currentStyle !== 'product';
     const personIncluded = isUgcStyle && options.ageGroup !== 'no person';
@@ -2859,31 +2876,59 @@ const App: React.FC = () => {
     const expressionOverride = realModeActive && ugcRealSettings.selectedExpressionId
       ? UGC_EXPRESSION_PRESETS.find(item => item.id === ugcRealSettings.selectedExpressionId) ?? null
       : null;
+    const cleanSetting = clean(options.setting);
+    const cleanLighting = clean(options.lighting);
+    const cleanEnvironmentOrder = clean(options.environmentOrder);
+    const cleanProductPlane = clean(options.productPlane);
+    const cleanProductMaterial = clean(options.productMaterial);
+    const cleanCamera = clean(options.camera);
+    const cleanPerspective = clean(options.perspective);
+    const cleanProductInteraction = clean(options.productInteraction);
+    const cleanPersonAppearance = clean(options.personAppearance);
+    const cleanWardrobeStyle = clean(options.wardrobeStyle);
+    const cleanPersonPose = clean(options.personPose);
+    const cleanPersonMood = clean(options.personMood);
+    const cleanPersonProps = clean(options.personProps);
+    const cleanMicroLocation = clean(options.microLocation);
+    const cleanPersonExpression = clean(options.personExpression);
+    const cleanHairStyle = clean(options.hairStyle);
+    const cleanHairColor = clean(options.hairColor);
+    const cleanSkinTone = clean(options.skinTone);
+    const cleanEyeColor = clean(options.eyeColor);
+    const cleanSelfieType = clean(options.selfieType);
+    const cleanRealism = clean(options.realism);
+    const cleanSkinRealism = clean(options.skinRealism);
+    const cleanPlacementStyle = clean(options.placementStyle);
+    const cleanPlacementCamera = clean(options.placementCamera);
+    const cleanProLens = clean(options.proLens ?? '');
+    const cleanProLightingRig = clean(options.proLightingRig ?? '');
+    const cleanProPostTreatment = clean(options.proPostTreatment ?? '');
+    const cleanAspectRatio = clean(options.aspectRatio);
 
     const getInteractionDescription = (interaction: string): string => {
       switch (interaction) {
         case 'holding it naturally':
-          return 'holding the product naturally and comfortably.';
+          return clean('holding the product naturally and comfortably.');
         case 'using it':
-          return 'using the product naturally as intended.';
+          return clean('using the product naturally as intended.');
         case 'showing to camera':
-          return 'showing the product close to the camera.';
+          return clean('showing the product close to the camera.');
         case 'unboxing it':
-          return 'unboxing the product with excitement.';
+          return clean('unboxing the product with excitement.');
         case 'applying it':
-          return 'applying the product to their skin or body.';
+          return clean('applying the product to their skin or body.');
         case 'placing on surface':
-          return 'placing the product carefully on a nearby surface.';
+          return clean('placing the product carefully on a nearby surface.');
         default:
-          return `interacting with the product in a way that is ${interaction}.`;
+          return clean(`interacting with the product in a way that is ${interaction}.`);
       }
     };
 
     const bundleProductsForPrompt = bundleProductsOverride ?? bundleSelectionRef.current;
-    let prompt = `Create an ultra-realistic, authentic ${isUgcStyle ? 'UGC lifestyle' : 'product placement'} photo with a ${options.aspectRatio} aspect ratio. `;
+    let prompt = `Create an ultra-realistic, authentic ${isUgcStyle ? 'UGC lifestyle' : 'product placement'} photo with a ${cleanAspectRatio} aspect ratio. `;
     prompt += isUgcStyle
-      ? `The shot should feel candid, emotional, and cinematic, as if taken by a real person with a ${options.camera}. Embrace believable imperfections—slight motion blur, a little lens smudge, off-center framing, uneven window light—so it reads as everyday life rather than a polished model shoot. `
-      : `The shot should feel refined and advertising-ready, with deliberate staging captured on a ${options.camera}. `;
+      ? `The shot should feel candid, emotional, and cinematic, as if taken by a real person with a ${cleanCamera}. Embrace believable imperfections—slight motion blur, a little lens smudge, off-center framing, uneven window light—so it reads as everyday life rather than a polished model shoot. `
+      : `The shot should feel refined and advertising-ready, with deliberate staging captured on a ${cleanCamera}. `;
 
     if (isHeroLandingMode) {
       const heroBackground =
@@ -2910,7 +2955,7 @@ const App: React.FC = () => {
         prompt += `Use ${supplementAccentColor.trim()} only for minimal accent bars or glass prisms—not full scenes—to keep the hero ultra clean. `;
       }
     } else {
-      prompt += `The scene is a ${options.setting}, illuminated by ${options.lighting}. The overall environment has a ${options.environmentOrder} feel. The photo is shot from a ${options.perspective}, embracing the chosen camera style and its natural characteristics. Frame the composition so the product lives in ${options.productPlane}. `;
+      prompt += `The scene is a ${cleanSetting}, illuminated by ${cleanLighting}. The overall environment has a ${cleanEnvironmentOrder} feel. The photo is shot from a ${cleanPerspective}, embracing the chosen camera style and its natural characteristics. Frame the composition so the product lives in ${cleanProductPlane}. `;
     }
 
     const formatHeightNumber = (num: number) => (Number.isInteger(num) ? num.toString() : num.toFixed(1));
@@ -2926,9 +2971,9 @@ const App: React.FC = () => {
       .filter(asset => asset.heightValue)
       .map(asset => `${asset.label || 'product'} ${describeHeight(asset.heightValue!, asset.heightUnit)}`)
       .join('. ');
-    prompt += `The focus is on the provided product, which has a ${options.productMaterial} finish. Render only a single instance of this product. Never duplicate or mirror it. Use the provided product without altering its shape, proportions, label, cap or material. Preserve original product shape, edges, colors, label, cap and texture exactly. The product must never be reconstructed—only shadows and reflections may be adjusted. Use the uploaded product cutout exactly as provided—keep the entire silhouette, every label, and every edge visible with no cropping or re-interpretation. Integrate the real photo seamlessly into the new environment so it looks composited but untouched. Integrate the product naturally into the scene with realistic lighting, reflections, ambient occlusion, and physically accurate shadows. Ensure its material, reflections, and shadows are rendered realistically according to the environment. Do not alter the product's design or branding. `;
+    prompt += `The focus is on the provided product, which has a ${cleanProductMaterial} finish. Render only a single instance of this product. Never duplicate or mirror it. Use the provided product without altering its shape, proportions, label, cap or material. Preserve original product shape, edges, colors, label, cap and texture exactly. The product must never be reconstructed—only shadows and reflections may be adjusted. Use the uploaded product cutout exactly as provided—keep the entire silhouette, every label, and every edge visible with no cropping or re-interpretation. Integrate the real photo seamlessly into the new environment so it looks composited but untouched. Integrate the product naturally into the scene with realistic lighting, reflections, ambient occlusion, and physically accurate shadows. Ensure its material, reflections, and shadows are rendered realistically according to the environment. Do not alter the product's design or branding. `;
     if (heightNotes) {
-      prompt += `Respect real-world scale: ${heightNotes}. Adjust hands, props, and camera distance so the item visibly matches that measurement.`;
+      prompt += `Respect real-world scale: ${clean(heightNotes)}. Adjust hands, props, and camera distance so the item visibly matches that measurement.`;
     }
     if (formulationExpertEnabled) {
       const preset = FORMULATION_PRESET_LOOKUP[formulationExpertPreset];
@@ -2937,9 +2982,11 @@ const App: React.FC = () => {
       const professionLabel = formulationExpertProfession === 'custom'
         ? expertRole
         : (FORMULATION_PROFESSION_LOOKUP[formulationExpertProfession]?.label ?? expertRole);
-      prompt += ` Feature ${expertName}, a ${professionLabel}, present in ${formulationLabStyle} beside the hero product.`;
+      const safeExpertName = clean(expertName);
+      const safeExpertRole = clean(professionLabel);
+      prompt += ` Feature ${safeExpertName}, a ${safeExpertRole}, present in ${clean(formulationLabStyle)} beside the hero product.`;
       if (preset?.prompt) {
-        prompt += ` ${preset.prompt}`;
+        prompt += ` ${clean(preset.prompt)}`;
       }
       prompt += ' Their face must look photorealistic and human—no CGI, animation, or plastic skin. Keep real pores, imperfect lighting, and shallow depth of field like an editorial portrait.';
       prompt += ' Make it obvious they created the formula based on cited clinical research—include subtle clipboard notes, lab coat details, and a respectful nod to science-backed development.';
@@ -2948,7 +2995,7 @@ const App: React.FC = () => {
       prompt += ` ${UGC_REAL_MODE_BASE_PROMPT}.`;
       const realityPreset = UGC_REALITY_PRESETS.find(item => item.id === ugcRealSettings.selectedRealityPresetId);
       if (realityPreset) {
-        prompt += ` ${realityPreset.prompt}`;
+        prompt += ` ${clean(realityPreset.prompt)}`;
       }
     }
     if (productAssets.length > 1) {
@@ -2965,7 +3012,7 @@ const App: React.FC = () => {
       }
     }
     if (supplementPresetCue) {
-      prompt += ` ${supplementPresetCue}`;
+      prompt += ` ${clean(supplementPresetCue)}`;
     }
     if (supplementBackgroundColor.trim()) {
       prompt += ` Set the hero backdrop color to ${supplementBackgroundColor}, matching the brand palette.`;
@@ -2974,25 +3021,25 @@ const App: React.FC = () => {
       prompt += ` Add secondary accents or props in ${supplementAccentColor} to create contrast.`;
     }
     if (supplementFlavorNotes.trim()) {
-      prompt += ` Include supporting ingredients/props inspired by: ${supplementFlavorNotes.trim()}.`;
+      prompt += ` Include supporting ingredients/props inspired by: ${clean(supplementFlavorNotes.trim())}.`;
     }
     if (includeSupplementHand) {
       prompt += ' Add a cropped human hand interacting with the product in a natural, candid way, with modern nail polish and minimal retouch. The hand must be real (no 3D or mannequin look).';
     }
     if (supplementCustomPrompt.trim()) {
-      prompt += ` ${supplementCustomPrompt.trim()}`;
+      prompt += ` ${clean(supplementCustomPrompt.trim())}`;
     }
     if (!isUgcStyle) {
-      prompt += ` No people should appear in the frame. Style the set like a premium product placement shoot with thoughtful props, surfaces, and depth, highlighting the product as the hero. Use a ${options.placementCamera} approach and style the scene as ${options.placementStyle}. `;
+      prompt += ` No people should appear in the frame. Style the set like a premium product placement shoot with thoughtful props, surfaces, and depth, highlighting the product as the hero. Use a ${cleanPlacementCamera} approach and style the scene as ${cleanPlacementStyle}. `;
       if (isProPhotographer) {
-        prompt += ` Professional setup details: ${options.proLens ?? PRO_LENS_OPTIONS[0].value}, lighting rig ${options.proLightingRig ?? PRO_LIGHTING_RIG_OPTIONS[0].value}, and finishing treatment ${options.proPostTreatment ?? PRO_POST_TREATMENT_OPTIONS[0].value}. `;
+        prompt += ` Professional setup details: ${cleanProLens || PRO_LENS_OPTIONS[0].value}, lighting rig ${cleanProLightingRig || PRO_LIGHTING_RIG_OPTIONS[0].value}, and finishing treatment ${cleanProPostTreatment || PRO_POST_TREATMENT_OPTIONS[0].value}. `;
       }
     }
     if (options.realism) {
-      prompt += ` ${options.realism}`;
+      prompt += ` ${cleanRealism}`;
     }
     if (moodPromptCue) {
-      prompt += ` ${moodPromptCue}`;
+      prompt += ` ${clean(moodPromptCue)}`;
     }
 
     if (personIncluded) {
@@ -3002,11 +3049,11 @@ const App: React.FC = () => {
       if (hasModelReference) {
         prompt += 'Use the uploaded model reference image as the only on-camera talent. Reproduce their face, hair, skin tone, outfit, and proportions exactly—no replacements, no face swaps, and no invented hairstyles or accessories.';
         if (modelReferenceNotes.trim()) {
-          prompt += ` Follow this direction for the model: ${modelReferenceNotes.trim()}.`;
+          prompt += ` Follow this direction for the model: ${clean(modelReferenceNotes.trim())}.`;
         }
         prompt += ' Keep them as the sole person in frame and do not alter their look beyond the provided note.';
       } else {
-        prompt += `The photo features ${ageNarrative}, of ${options.ethnicity} ethnicity, showcasing ${options.personAppearance}. `;
+        prompt += `The photo features ${clean(ageNarrative)}, of ${clean(options.ethnicity)} ethnicity, showcasing ${cleanPersonAppearance}. `;
         if (options.ageGroup === '13-17') {
           prompt += 'Capture a playful, teenage energy—youthful accessories, braces, or freckled details are welcome but keep it tasteful. ';
         }
@@ -3031,7 +3078,7 @@ const App: React.FC = () => {
         if (options.ageGroup === '75+') {
           prompt += 'Make the subject unmistakably senior with soft wrinkles, age spots on hands, slightly stooped posture, and silver or white hair texture. ';
         }
-        prompt += `They are dressed in ${options.wardrobeStyle}, matching the scene's palette. Their pose is ${options.personPose}, projecting ${options.personMood}. `;
+        prompt += `They are dressed in ${cleanWardrobeStyle}, matching the scene's palette. Their pose is ${cleanPersonPose}, projecting ${cleanPersonMood}. `;
         if (realModeActive) {
           if (ugcRealSettings.selectedClothingPresetIds.length) {
             const clothingText = ugcRealSettings.selectedClothingPresetIds
@@ -3039,20 +3086,20 @@ const App: React.FC = () => {
               .filter(Boolean)
               .join(' ');
             if (clothingText) {
-              prompt += ` ${clothingText}`;
+              prompt += ` ${clean(clothingText)}`;
             }
           }
           if (ugcRealSettings.clothingUpload) {
             prompt += ' Match the outfit to the uploaded clothing reference image so fabrics, drape, and color story stay true to reality.';
           }
         }
-        prompt += `They have ${options.skinTone}, ${options.eyeColor}, and ${options.hairColor}. `;
+        prompt += `They have ${cleanSkinTone}, ${cleanEyeColor}, and ${cleanHairColor}. `;
         if (expressionOverride) {
-          prompt += ` ${expressionOverride.prompt}`;
+          prompt += ` ${clean(expressionOverride.prompt)}`;
         } else {
-          prompt += `Their facial expression shows ${options.personExpression}. `;
+          prompt += `Their facial expression shows ${cleanPersonExpression}. `;
         }
-        prompt += `Their hair is styled as ${options.hairStyle}. `;
+        prompt += `Their hair is styled as ${cleanHairStyle}. `;
       }
       prompt += ' Faces and hands must be fully realistic with natural skin texture, no distortions or 3D plastic look. Zero warped fingers, zero asymmetry, zero AI artifacts. ';
       if (options.skinRealism === 'raw') {
@@ -3069,28 +3116,28 @@ const App: React.FC = () => {
           .filter(Boolean)
           .join(' ');
         if (personaText) {
-          prompt += ` ${personaText}`;
+          prompt += ` ${clean(personaText)}`;
         }
       }
       if (options.personProps !== personPropNoneValue) {
-        prompt += `Add supporting props such as ${options.personProps} to reinforce the lifestyle context. `;
+        prompt += `Add supporting props such as ${cleanPersonProps} to reinforce the lifestyle context. `;
       }
       if (options.microLocation !== microLocationDefault) {
-        prompt += `Place them within ${options.microLocation} to ground the scene. `;
+        prompt += `Place them within ${cleanMicroLocation} to ground the scene. `;
       }
       if (isHandCloseUp || selfieMeta?.hideFace || isHandsOnlyPose) {
-        prompt += `The shot is a tactile close-up of their hands ${getInteractionDescription(options.productInteraction)} Keep the crop near the torso or closer so attention stays on the product and touch. `;
+        prompt += `The shot is a tactile close-up of their hands ${getInteractionDescription(cleanProductInteraction)} Keep the crop near the torso or closer so attention stays on the product and touch. `;
         if (selfieMeta?.hideFace) {
           prompt += 'Do not show their face—only forearms, hands, and the product should be visible, mimicking a back-camera POV. ';
         }
       } else {
-        prompt += `The person is ${getInteractionDescription(options.productInteraction)} Their face and upper body are visible, and the interaction looks unposed and authentic. `;
+        prompt += `The person is ${getInteractionDescription(cleanProductInteraction)} Their face and upper body are visible, and the interaction looks unposed and authentic. `;
         if (options.selfieType !== 'none') {
-          prompt += `The style is a ${options.selfieType}. `;
+          prompt += `The style is a ${cleanSelfieType}. `;
         }
       }
       if (selfieMeta) {
-        prompt += ` ${selfieMeta.narrative} `;
+        prompt += ` ${clean(selfieMeta.narrative)} `;
         if (requiresSplitHands) {
           prompt += 'Keep the smartphone in one hand and the product in the opposite hand so both hero objects stay visible simultaneously, with the phone-holding arm fully extended into frame like a true selfie. ';
         }
@@ -3105,7 +3152,7 @@ const App: React.FC = () => {
         prompt += 'Use a bright on-camera flash that reflects on their face (or hands if the face is cropped out) and bounces off the phone, casting crisp, short shadows for that candid flash look. ';
       }
       if (heroPosePromptCue) {
-        prompt += ` ${heroPosePromptCue}`;
+        prompt += ` ${clean(heroPosePromptCue)}`;
       }
       if (realModeActive) {
         if (ugcRealSettings.imperfectLighting) {
@@ -3122,11 +3169,11 @@ const App: React.FC = () => {
         }
         const offCenterPreset = UGC_OFF_CENTER_OPTIONS.find(option => option.id === ugcRealSettings.offCenterId);
         if (offCenterPreset) {
-          prompt += ` ${offCenterPreset.prompt}`;
+          prompt += ` ${clean(offCenterPreset.prompt)}`;
         }
         const framingPreset = UGC_SPONTANEOUS_FRAMING_OPTIONS.find(option => option.id === ugcRealSettings.framingId);
         if (framingPreset) {
-          prompt += ` ${framingPreset.prompt}`;
+          prompt += ` ${clean(framingPreset.prompt)}`;
         }
         if (ugcRealSettings.blurAmount > 0 || ugcRealSettings.grainAmount > 0) {
           prompt += ` Add roughly ${ugcRealSettings.blurAmount}% focus blur and ${ugcRealSettings.grainAmount}% grain to mimic raw smartphone texture.`;
@@ -4077,10 +4124,20 @@ const App: React.FC = () => {
                                     className={`rounded-full border px-3 py-1 text-xs transition ${activeSupplementPreset === preset.value
                                       ? 'border-indigo-400 bg-indigo-500/10 text-white'
                                       : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
-                                      }`}
+                                    }`}
                                     title={preset.description}
                                   >
-                                    {preset.label}
+                                    <div className="flex items-center gap-1 relative group">
+                                      <span>{preset.label}</span>
+                                      {preset.tooltip && (
+                                        <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
+                                          ⓘ
+                                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                                            {preset.tooltip}
+                                          </div>
+                                        </span>
+                                      )}
+                                    </div>
                                   </button>
                                 ))}
                               </div>

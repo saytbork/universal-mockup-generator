@@ -1,4 +1,13 @@
 import React from 'react';
+import { normalizeOptions } from '../src/system/normalizeOptions';
+
+function sanitizeNotes(text = "") {
+  return text
+    .replace(/reference|see above|see image/gi, "")
+    .replace(/pinterest|tiktok|instagram/gi, "")
+    .replace(/url\([^)]*\)/gi, "")
+    .trim();
+}
 
 interface ModelReferencePanelProps {
   onFileSelect: (file: File) => void;
@@ -25,6 +34,8 @@ const ModelReferencePanel: React.FC<ModelReferencePanelProps> = ({
       onFileSelect(file);
     }
   };
+
+  const cleanedNotes = sanitizeNotes(notes);
 
   return (
     <div className={`relative bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-4 h-full ${disabled ? 'opacity-60' : ''}`}>
@@ -70,8 +81,8 @@ const ModelReferencePanel: React.FC<ModelReferencePanelProps> = ({
       <div className="flex flex-col gap-2">
         <label className="text-xs uppercase tracking-widest text-gray-500">Interaction notes (optional)</label>
         <textarea
-          value={notes}
-          onChange={(event) => onNotesChange(event.target.value)}
+          value={cleanedNotes}
+          onChange={(event) => onNotesChange(sanitizeNotes(event.target.value))}
           placeholder="e.g., holding the box with both hands and smiling sleepily"
           className="min-h-[70px] rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
           disabled={disabled}

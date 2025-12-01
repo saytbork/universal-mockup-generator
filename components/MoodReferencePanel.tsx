@@ -1,4 +1,13 @@
 import React from 'react';
+import { normalizeOptions } from '../src/system/normalizeOptions';
+
+function sanitizeNotes(text = "") {
+  return text
+    .replace(/reference|see above|see image/gi, "")
+    .replace(/pinterest|tiktok|instagram/gi, "")
+    .replace(/url\([^)]*\)/gi, "")
+    .trim();
+}
 
 interface MoodReferencePanelProps {
   onFileSelect: (file: File) => void;
@@ -90,7 +99,7 @@ const MoodReferencePanel: React.FC<MoodReferencePanelProps> = ({
       )}
       {summary && (
         <p className="text-sm text-indigo-200 bg-indigo-500/10 border border-indigo-500/30 rounded-lg p-3">
-          {summary}
+          {sanitizeNotes(summary)}
         </p>
       )}
       {disabled && (
