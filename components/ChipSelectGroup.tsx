@@ -1,4 +1,5 @@
 import React from 'react';
+import { normalizeOptions } from '../src/system/normalizeOptions';
 import { Option } from '../types';
 
 interface ChipSelectGroupProps {
@@ -26,6 +27,7 @@ const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
   const isCustomValue = allowCustom && selectedValue && !optionValues.includes(selectedValue);
   const [customDraft, setCustomDraft] = React.useState(isCustomValue ? selectedValue : '');
   const [customActive, setCustomActive] = React.useState(isCustomValue);
+  const normalizedOptions = normalizeOptions(options);
 
   React.useEffect(() => {
     if (isCustomValue) {
@@ -46,7 +48,7 @@ const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
       <label className="text-sm font-medium text-gray-400">{label}</label>
       <div>
         <div className="flex flex-nowrap lg:flex-wrap gap-2 py-2 overflow-x-auto lg:overflow-visible custom-scrollbar">
-          {options.map((option) => (
+          {normalizedOptions.map((option) => (
             <button
               key={option.value}
               onClick={() => !disabled && onChange(option.value)}
@@ -62,7 +64,17 @@ const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
               `}
               aria-pressed={selectedValue === option.value}
             >
-              {option.label}
+              <div className="flex items-center gap-1 relative group">
+                <span>{option.label}</span>
+                {option.tooltip && (
+                  <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
+                    ⓘ
+                    <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                      {option.tooltip}
+                    </div>
+                  </span>
+                )}
+              </div>
             </button>
           ))}
           {allowCustom && (

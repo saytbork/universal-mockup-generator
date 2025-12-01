@@ -219,6 +219,12 @@ export const HAIR_STYLE_OPTIONS: Option[] = [
   { label: 'Messy Updo', value: 'a messy updo with playful flyaways for realism' },
 ];
 
+export const SKIN_REALISM_OPTIONS: Option[] = [
+  { label: 'Real Raw Photo', value: 'raw' },
+  { label: 'Natural Clean Retouch', value: 'clean' },
+  { label: 'Beauty Editorial Soft Skin', value: 'beauty' },
+];
+
 export const PERSON_PROP_OPTIONS: Option[] = [
   { label: 'None', value: 'no extra handheld props; keep focus purely on the product' },
   { label: 'Smartphone / Tech', value: 'a modern smartphone or small gadget as a supporting prop' },

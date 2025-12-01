@@ -30,6 +30,7 @@ export interface MockupOptions {
   proLens?: string;
   proLightingRig?: string;
   proPostTreatment?: string;
+  skinRealism: string;
 }
 
 export type OptionCategory = keyof MockupOptions;
@@ -37,6 +38,7 @@ export type OptionCategory = keyof MockupOptions;
 export interface Option {
   label: string;
   value: string;
+  tooltip?: string;
 }
 
 export interface GroundingChunk {

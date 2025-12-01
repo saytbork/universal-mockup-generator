@@ -1,0 +1,15 @@
+export const LABEL_MAP: Record<string, string> = {
+  'ag1-look': 'Clean Natural Wellness Look',
+  'hims-style': 'Soft Natural Wellness Look',
+  'ikea-minimal': 'Minimal Modern Interior',
+  'beauty-skin': 'Beauty Editorial Soft Skin',
+  'studio-pro': 'Soft Studio Light',
+  'beauty-style': 'Beauty Editorial Look',
+  'ag1-style': 'Clean Natural Wellness Look',
+  'sunrise-ritual': 'Sunrise Wellness Counter',
+  'Sunrise Ritual Counter': 'Sunrise Wellness Counter',
+  'crown-ritual': 'Crown Wellness Vanity',
+  'Crown Ritual Vanity': 'Crown Wellness Vanity',
+  'dawn_ritual': 'Dawn Wellness Scene',
+  'Dawn Ritual Compression': 'Dawn Wellness Scene',
+};

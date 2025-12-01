@@ -15,7 +15,7 @@ import {
   PERSON_POSE_OPTIONS, WARDROBE_STYLE_OPTIONS, PERSON_MOOD_OPTIONS,
   PERSON_PROP_OPTIONS, MICRO_LOCATION_OPTIONS, MICRO_LOCATION_NONE_VALUE, PERSON_EXPRESSION_OPTIONS, HAIR_STYLE_OPTIONS,
   CREATOR_PRESETS, PROP_BUNDLES, PRO_LENS_OPTIONS, PRO_LIGHTING_RIG_OPTIONS, PRO_POST_TREATMENT_OPTIONS, PRO_LOOK_PRESETS, PRODUCT_PLANE_OPTIONS, SUPPLEMENT_PHOTO_PRESETS, HERO_PERSON_PRESETS,
-  HAIR_COLOR_OPTIONS, EYE_COLOR_OPTIONS, SKIN_TONE_OPTIONS, HeroLandingAlignment, HeroLandingShadowStyle, DOWNLOAD_CREDIT_CONFIG, HIGH_RES_UNAVAILABLE_MESSAGE
+  HAIR_COLOR_OPTIONS, EYE_COLOR_OPTIONS, SKIN_TONE_OPTIONS, HeroLandingAlignment, HeroLandingShadowStyle, DOWNLOAD_CREDIT_CONFIG, HIGH_RES_UNAVAILABLE_MESSAGE, SKIN_REALISM_OPTIONS
 } from './constants';
 import type { CreatorPreset, DownloadResolution, HeroPosePreset, PropBundle, ProLookPreset, SupplementPhotoPreset } from './constants';
 import BundleSelector from './src/bundles/components/BundleSelector';
@@ -32,6 +32,7 @@ import {
   UGC_SPONTANEOUS_FRAMING_OPTIONS,
   UGC_REAL_MODE_BASE_PROMPT,
 } from './src/data/ugcPresets';
+import { normalizeOptions } from './src/system/normalizeOptions';
 
 type UGCRealModeSettings = {
   isEnabled: boolean;
@@ -149,8 +150,13 @@ declare global {
 
 const makeSceneId = () => Math.random().toString(36).slice(2, 9);
 
-const cloneOptions = (source: MockupOptions): MockupOptions =>
-  JSON.parse(JSON.stringify(source));
+const cloneOptions = (source: MockupOptions): MockupOptions => {
+  const cloned = JSON.parse(JSON.stringify(source)) as MockupOptions;
+  if (!cloned.skinRealism) {
+    cloned.skinRealism = SKIN_REALISM_OPTIONS[0].value;
+  }
+  return cloned;
+};
 
 const getSectionId = (title: string) =>
   title
@@ -312,6 +318,7 @@ const createDefaultOptions = (): MockupOptions => ({
   proLens: PRO_LENS_OPTIONS[0].value,
   proLightingRig: PRO_LIGHTING_RIG_OPTIONS[0].value,
   proPostTreatment: PRO_POST_TREATMENT_OPTIONS[0].value,
+  skinRealism: SKIN_REALISM_OPTIONS[0].value,
 });
 import ImageUploader, { ImageUploaderHandle } from './components/ImageUploader';
 import GeneratedImage from './components/GeneratedImage';
@@ -452,6 +459,7 @@ const PERSON_FIELD_KEYS: OptionCategory[] = [
   'hairColor',
   'eyeColor',
   'skinTone',
+  'skinRealism',
 ] as OptionCategory[];
 
 const applyPersonProfileToOptions = (
@@ -658,6 +666,8 @@ const App: React.FC = () => {
     () => productAssets.map((_, index) => `product_${index + 1}` as ProductId),
     [productAssets]
   );
+  const normalizedSupplementPresets = useMemo(() => normalizeOptions(SUPPLEMENT_PHOTO_PRESETS), []);
+  const normalizedHeroPersonPresets = useMemo(() => normalizeOptions(HERO_PERSON_PRESETS), []);
   const availableProductIdSet = useMemo(() => new Set<ProductId>(availableProductIds), [availableProductIds]);
   const productMediaLibrary = useMemo<ProductMediaLibrary>(() => {
     if (!productAssets.length) {
@@ -901,6 +911,7 @@ const App: React.FC = () => {
         'hairColor',
         'eyeColor',
         'skinTone',
+        'skinRealism',
         'proLens',
         'proLightingRig',
         'proPostTreatment',
@@ -1370,6 +1381,7 @@ const App: React.FC = () => {
               <ChipSelectGroup label="Hair Style" options={HAIR_STYLE_OPTIONS} selectedValue={options.hairStyle} onChange={(value) => handleOptionChange('hairStyle', value, 'Person Details')} disabled={personControlsDisabled} />
               <ChipSelectGroup label="Hair Color" options={HAIR_COLOR_OPTIONS} selectedValue={options.hairColor} onChange={(value) => handleOptionChange('hairColor', value, 'Person Details')} disabled={personControlsDisabled} />
               <ChipSelectGroup label="Skin Tone" options={SKIN_TONE_OPTIONS} selectedValue={options.skinTone} onChange={(value) => handleOptionChange('skinTone', value, 'Person Details')} disabled={personControlsDisabled} />
+              <ChipSelectGroup label="Skin Realism" options={SKIN_REALISM_OPTIONS} selectedValue={options.skinRealism} onChange={(value) => handleOptionChange('skinRealism', value, 'Person Details')} disabled={personControlsDisabled} />
               <ChipSelectGroup label="Eye Color" options={EYE_COLOR_OPTIONS} selectedValue={options.eyeColor} onChange={(value) => handleOptionChange('eyeColor', value, 'Person Details')} disabled={personControlsDisabled} />
               <ChipSelectGroup label="Selfie Type" options={SELFIE_TYPE_OPTIONS} selectedValue={options.selfieType} onChange={(value) => handleOptionChange('selfieType', value, 'Person Details')} disabled={personControlsDisabled} />
               {!personControlsDisabled && (
@@ -1389,7 +1401,7 @@ const App: React.FC = () => {
                     </button>
                   </div>
                   <div className="space-y-2">
-                    {HERO_PERSON_PRESETS.map(preset => (
+                    {normalizedHeroPersonPresets.map(preset => (
                       <button key={preset.value} type="button" onClick={() => handleHeroPosePresetSelect(preset.value)} className={`w-full rounded-xl border px-3 py-2 text-left transition ${activeHeroPosePreset === preset.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-200 hover-border-indigo-400 hover:text-white'}`}>
                         <p className="text-sm font-semibold">{preset.label}</p>
                         <p className="text-[11px] text-gray-400 mt-1">{preset.description}</p>
@@ -2654,6 +2666,7 @@ const App: React.FC = () => {
         'hairColor',
         'eyeColor',
         'skinTone',
+        'skinRealism',
       ],
     };
 
@@ -2913,7 +2926,7 @@ const App: React.FC = () => {
       .filter(asset => asset.heightValue)
       .map(asset => `${asset.label || 'product'} ${describeHeight(asset.heightValue!, asset.heightUnit)}`)
       .join('. ');
-    prompt += `The focus is on the provided product, which has a ${options.productMaterial} finish. Render only a single instance of this product. Never duplicate or mirror it. Use the uploaded product cutout exactly as provided—keep the entire silhouette, every label, and every edge visible with no cropping or re-interpretation. Integrate the real photo seamlessly into the new environment so it looks composited but untouched. Ensure its material, reflections, and shadows are rendered realistically according to the environment. Do not alter the product's design or branding. `;
+    prompt += `The focus is on the provided product, which has a ${options.productMaterial} finish. Render only a single instance of this product. Never duplicate or mirror it. Use the provided product without altering its shape, proportions, label, cap or material. Preserve original product shape, edges, colors, label, cap and texture exactly. The product must never be reconstructed—only shadows and reflections may be adjusted. Use the uploaded product cutout exactly as provided—keep the entire silhouette, every label, and every edge visible with no cropping or re-interpretation. Integrate the real photo seamlessly into the new environment so it looks composited but untouched. Integrate the product naturally into the scene with realistic lighting, reflections, ambient occlusion, and physically accurate shadows. Ensure its material, reflections, and shadows are rendered realistically according to the environment. Do not alter the product's design or branding. `;
     if (heightNotes) {
       prompt += `Respect real-world scale: ${heightNotes}. Adjust hands, props, and camera distance so the item visibly matches that measurement.`;
     }
@@ -3041,6 +3054,15 @@ const App: React.FC = () => {
         }
         prompt += `Their hair is styled as ${options.hairStyle}. `;
       }
+      prompt += ' Faces and hands must be fully realistic with natural skin texture, no distortions or 3D plastic look. Zero warped fingers, zero asymmetry, zero AI artifacts. ';
+      if (options.skinRealism === 'raw') {
+        prompt += 'Skin realism mode: Real Raw Photo. Preserve pores, microtexture, tiny imperfections, and natural oil without plastic smoothing.';
+      } else if (options.skinRealism === 'clean') {
+        prompt += 'Skin realism mode: Natural Clean Retouch. Keep pores and microtexture while applying a gentle, realistic clean retouch with no blur or plastic shine.';
+      } else if (options.skinRealism === 'beauty') {
+        prompt += 'Skin realism mode: Beauty Editorial Soft Skin. Keep pores visible with a subtle, even glow—no plastic skin, no airbrush blur.';
+      }
+      prompt += ' Pores, microtexture, and natural imperfections must be preserved according to the selected skin realism mode.';
       if (realModeActive && ugcRealSettings.selectedHeroPersonaIds.length) {
         const personaText = ugcRealSettings.selectedHeroPersonaIds
           .map(id => UGC_HERO_PERSONA_PRESETS.find(item => item.id === id)?.prompt)
@@ -4047,7 +4069,7 @@ const App: React.FC = () => {
                                 </button>
                               </div>
                               <div className="flex flex-wrap gap-2">
-                                {SUPPLEMENT_PHOTO_PRESETS.map(preset => (
+                                {normalizedSupplementPresets.map(preset => (
                                   <button
                                     key={preset.value}
                                     type="button"
