@@ -15,6 +15,7 @@ import PrivacyPage from './PrivacyPage';
 import TermsPage from './TermsPage';
 import Login from './src/pages/Login';
 import Dashboard from './src/pages/Dashboard';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 const MarketingLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div className="bg-gray-950 text-white min-h-screen flex flex-col">
@@ -28,6 +29,12 @@ const rootElement = document.getElementById('root');
 if (!rootElement) {
   throw new Error("Could not find root element to mount to");
 }
+
+const AppWithTooltips = () => (
+  <TooltipProvider delayDuration={150}>
+    <App />
+  </TooltipProvider>
+);
 
 const root = ReactDOM.createRoot(rootElement);
 root.render(
@@ -43,8 +50,8 @@ root.render(
           <Route path="/faq" element={<MarketingLayout><FAQPage /></MarketingLayout>} />
           <Route path="/privacy" element={<MarketingLayout><PrivacyPage /></MarketingLayout>} />
           <Route path="/terms" element={<MarketingLayout><TermsPage /></MarketingLayout>} />
-          <Route path="/app" element={<App />} />
-          <Route path="/app/generator" element={<App />} />
+          <Route path="/app" element={<AppWithTooltips />} />
+          <Route path="/app/generator" element={<AppWithTooltips />} />
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
         </Routes>

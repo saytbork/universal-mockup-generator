@@ -37,3 +37,28 @@ body {
   backdrop-filter: blur(18px);
   box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.8);
 }
+.chip {
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(55, 65, 81, 0.6);
+  color: #f8fafc;
+  padding: 0.35rem 0.95rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chip:hover:not(:disabled) {
+  background: rgba(79, 70, 229, 0.5);
+  border-color: rgba(129, 140, 248, 1);
+}
+.chip-active {
+  background: rgba(99, 102, 241, 0.95);
+  border-color: rgba(129, 140, 248, 1);
+  box-shadow: 0 8px 20px -10px rgba(79, 70, 229, 0.9);
+}
+.chip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

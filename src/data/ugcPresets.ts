@@ -108,25 +108,25 @@ export const UGC_HERO_PERSONA_PRESETS: UGCHeroPersonaPreset[] = [
   {
     id: 'calm-confident-wellness-woman',
     label: 'calm confident wellness woman age 40',
-    description: 'Inspired by IN•HALE / EX•HALE calm rituals.',
+    description: 'Inspired by serene ritual moments with steady breathing and softness.',
     prompt: 'Persona notes: calm confident wellness woman around 40, mindful breathing energy, soft spa robe cues.',
   },
   {
     id: 'energetic-senior-lungs',
     label: 'energetic senior male for lung support',
-    description: 'Reflects SinoClear + respiratory collections.',
+    description: 'Reflects premium respiratory care storytelling.',
     prompt: 'Persona notes: energetic senior male seeking lung support, silver hair buzz cut, gentle smile, activewear, resilient posture.',
   },
   {
     id: 'tired-sinus-pressure',
     label: 'tired adult with sinus pressure expression (before look)',
-    description: 'Before-look persona referencing SinoClear relief stories.',
+    description: 'Before-look persona referencing gentle relief narratives.',
     prompt: 'Persona notes: adult with noticeable sinus pressure expression, red nose tip, tired watery eyes, seeking relief.',
   },
   {
     id: 'exhausted-before-relief',
     label: 'exhausted stressed adult before relief',
-    description: 'Matches Breathe™ and HelloNutra stories.',
+    description: 'Matches everyday vitality and wellness stories.',
     prompt: 'Persona notes: exhausted stressed adult before relief, slumped shoulders, visible tension lines, cardigan slipping off.',
   },
   {
@@ -138,7 +138,7 @@ export const UGC_HERO_PERSONA_PRESETS: UGCHeroPersonaPreset[] = [
   {
     id: 'busy-parent-low-energy',
     label: 'busy parent with low energy',
-    description: 'Links to HelloNutra + habit stacks.',
+    description: 'Links to well-balanced habit stacks and grounded routines.',
     prompt: 'Persona notes: busy parent running on low energy, messy bun, hoodie layered over pajamas, kids toys blurred around.',
   },
   {
@@ -150,7 +150,7 @@ export const UGC_HERO_PERSONA_PRESETS: UGCHeroPersonaPreset[] = [
   {
     id: 'relief-moment',
     label: 'relief moment person after supplement',
-    description: 'Captures after-look moment for Breathe™ and SinoClear.',
+    description: 'Captures an after-look moment with refreshed breathing and calm confidence.',
     prompt: 'Persona notes: relief moment after supplement, relaxed shoulders, serene expression, exhaling softly.',
   },
   {

@@ -42,6 +42,9 @@ export interface MockupOptions {
   customMicroLocation?: string;
   expression?: string;
   hairstyle?: string;
+  compositionMode?: string;
+  sidePlacement?: string;
+  bgColor?: string;
 }
 
 export type OptionCategory = keyof MockupOptions;

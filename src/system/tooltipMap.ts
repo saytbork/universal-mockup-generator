@@ -8,4 +8,7 @@ export const TOOLTIP_MAP: Record<string, string> = {
   'Sunrise Wellness Counter': 'Early morning countertop light with clean wellness styling and glass details.',
   'Crown Wellness Vanity': 'Luxe vanity styling with marble, chrome, and botanicals for a premium feel.',
   'Dawn Wellness Scene': 'Warm dawn light with soft shadows and calm wellness atmosphere.',
+  'Ecommerce Blank Space': 'Creates a clean marketing layout with solid background color, product + creator on one side and empty space for text or badges.',
 };
+
+export const tooltipMap = TOOLTIP_MAP;

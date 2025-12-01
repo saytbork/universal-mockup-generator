@@ -15,7 +15,8 @@ import {
   PERSON_POSE_OPTIONS, WARDROBE_STYLE_OPTIONS, PERSON_MOOD_OPTIONS,
   PERSON_PROP_OPTIONS, MICRO_LOCATION_OPTIONS, MICRO_LOCATION_NONE_VALUE, PERSON_EXPRESSION_OPTIONS, HAIR_STYLE_OPTIONS,
   CREATOR_PRESETS, PROP_BUNDLES, PRO_LENS_OPTIONS, PRO_LIGHTING_RIG_OPTIONS, PRO_POST_TREATMENT_OPTIONS, PRO_LOOK_PRESETS, PRODUCT_PLANE_OPTIONS, SUPPLEMENT_PHOTO_PRESETS, HERO_PERSON_PRESETS,
-  HAIR_COLOR_OPTIONS, EYE_COLOR_OPTIONS, SKIN_TONE_OPTIONS, HeroLandingAlignment, HeroLandingShadowStyle, DOWNLOAD_CREDIT_CONFIG, HIGH_RES_UNAVAILABLE_MESSAGE, SKIN_REALISM_OPTIONS
+  HAIR_COLOR_OPTIONS, EYE_COLOR_OPTIONS, SKIN_TONE_OPTIONS, HeroLandingAlignment, HeroLandingShadowStyle, DOWNLOAD_CREDIT_CONFIG, HIGH_RES_UNAVAILABLE_MESSAGE, SKIN_REALISM_OPTIONS,
+  COMPOSITION_MODE_OPTIONS, SIDE_PLACEMENT_OPTIONS
 } from './constants';
 import type { CreatorPreset, DownloadResolution, HeroPosePreset, PropBundle, ProLookPreset, SupplementPhotoPreset } from './constants';
 import BundleSelector from './src/bundles/components/BundleSelector';
@@ -364,6 +365,9 @@ const createDefaultOptions = (): MockupOptions => ({
   customMicroLocation: '',
   expression: PERSON_EXPRESSION_OPTIONS[0].value,
   hairstyle: HAIR_STYLE_OPTIONS[0].value,
+  compositionMode: COMPOSITION_MODE_OPTIONS[0].value,
+  sidePlacement: SIDE_PLACEMENT_OPTIONS[1].value,
+  bgColor: '#FFFFFF',
 });
 import ImageUploader, { ImageUploaderHandle } from './components/ImageUploader';
 import GeneratedImage from './components/GeneratedImage';
@@ -3129,6 +3133,15 @@ Integrate it physically into the environment using "Active Insert Mode":
 
 The product must look naturally photographed inside this environment, not pasted or floating.
 `;
+    prompt += `
+Integrate the product physically into the environment:
+- match real lighting direction,
+- match color temperature and contrast,
+- generate accurate shadow casting under the jar/bottle,
+- apply micro-occlusion where the hand touches the product,
+- generate correct reflections on glass, plastic, or metal,
+- preserve the exact design, size, colors, and branding of the uploaded product.
+`;
     if (heightNotes) {
       prompt += `Respect real-world scale: ${clean(heightNotes)}. Adjust hands, props, and camera distance so the item visibly matches that measurement.`;
     }
@@ -3250,6 +3263,20 @@ The product must look naturally photographed inside this environment, not pasted
           prompt += ` Follow this direction for the model: ${clean(modelReferenceNotes.trim())}.`;
         }
         prompt += ' Keep them as the sole person in frame and do not alter their look beyond the provided note.';
+        if (modelReferenceFile) {
+          prompt += `
+Use the model reference ONLY for:
+- approximate age
+- skin tone
+- hair color and general style
+- facial shape and vibe
+- energy and personality
+
+Do NOT copy exact identity.
+Do NOT recreate the exact face.
+Preserve the creator’s overall vibe and characteristics only.
+`;
+        }
       } else {
         prompt += `The photo features ${clean(ageNarrative)}, of ${clean(options.ethnicity)} ethnicity, showcasing ${cleanPersonAppearance}. `;
         if (options.ageGroup === '13-17') {
@@ -3345,6 +3372,18 @@ The product must look naturally photographed inside this environment, not pasted
         prompt += 'Include a modern smartphone prop in their free hand so it complements but never hides the product. ';
       }
       prompt += 'Hands must look fully human and photorealistic (no 3D artifacts). Skin texture, knuckles, and nails should be natural.';
+      prompt += `
+Ensure anatomically correct human arms and hands with:
+- proper bone proportions,
+- natural wrist rotation,
+- realistic muscle tension,
+- visible knuckles and joints,
+- correct finger lengths,
+- realistic grip around the product,
+- correct connection to the body even if the shoulder is off-frame.
+Hands must be photorealistic with subtle veins, micro-shadows, and true skin texture.
+No warped, melted, or floating limbs.
+`;
       if (selfieMeta?.hidePhone) {
         prompt += 'Do not render a smartphone anywhere in frame—imply the selfie by the arm extension and body posture only.';
       }
@@ -3382,6 +3421,39 @@ The product must look naturally photographed inside this environment, not pasted
       }
     }
 
+    prompt += `
+Apply creator personality attributes selected by the user, including:
+- Appearance Level
+- Mood & Expression
+- Pose Type
+- Interaction Type
+- Wardrobe Style
+- Props
+- Micro-location
+- Skin Realism
+- Eye Color
+- Hair Style, Hair Color
+- Selfie Type
+
+Respect all these settings consistently.
+`;
+
+    if (options.compositionMode === 'ecom-blank') {
+      prompt += `
+Create an ecommerce-style lifestyle image optimized for Amazon, Shopify and paid ads.
+
+Follow these layout rules:
+- Background must be a clean solid color: ${options.bgColor}
+- Place the product and person on the ${options.sidePlacement} side of the frame.
+- Leave large clean negative space on the opposite side for text overlays.
+- Use soft, commercial studio lighting with minimal shadows.
+- Keep the scene simple, minimal and premium.
+- Do NOT add text, logos, graphics, icons or overlays.
+- Maintain perfect product preservation: exact colors, label, shape and cap.
+- Ensure perfect human anatomy: realistic hands, finger proportions, wrist angle and arm connection.
+- Render in a photorealistic modern ecommerce style suitable for A+ content.
+`;
+    }
     prompt += ' Deliver the render at ultra-high fidelity: native 4K resolution (minimum 3840px on the long edge) so it still looks razor sharp when downscaled to 2K for alternate exports.';
     prompt += ` Final image must be high-resolution and free of any watermarks, text, or artificial elements. It should feel like a captured moment, not a staged ad.`;
 
@@ -4273,27 +4345,54 @@ The product must look naturally photographed inside this environment, not pasted
                         onToggle={() => handleToggleAccordion('Scene & Environment')}
                       >
                         <div className="space-y-4">
-                          <ChipSelectGroup
-                            label="Location / Setting"
-                            options={SETTING_OPTIONS}
-                            selectedValue={options.setting}
-                            onChange={(value) => handleOptionChange('setting', value, 'Scene & Environment')}
-                            allowCustom
-                            customLabel="Custom setting"
-                            customPlaceholder="Describe the location"
-                          />
-                          <ChipSelectGroup
-                            label="Environment Order"
-                            options={ENVIRONMENT_ORDER_OPTIONS}
-                            selectedValue={options.environmentOrder}
-                            onChange={(value) => handleOptionChange('environmentOrder', value, 'Scene & Environment')}
-                            allowCustom
-                            customLabel="Custom environment"
-                            customPlaceholder="Describe the vibe"
+                    <ChipSelectGroup
+                      label="Location / Setting"
+                      options={SETTING_OPTIONS}
+                      selectedValue={options.setting}
+                      onChange={(value) => handleOptionChange('setting', value, 'Scene & Environment')}
+                      allowCustom
+                      customLabel="Custom setting"
+                      customPlaceholder="Describe the location"
+                    />
+                    <ChipSelectGroup
+                      label="Environment Order"
+                      options={ENVIRONMENT_ORDER_OPTIONS}
+                      selectedValue={options.environmentOrder}
+                      onChange={(value) => handleOptionChange('environmentOrder', value, 'Scene & Environment')}
+                      allowCustom
+                      customLabel="Custom environment"
+                      customPlaceholder="Describe the vibe"
+                    />
+                    <ChipSelectGroup
+                      label="Composition Mode"
+                      options={COMPOSITION_MODE_OPTIONS}
+                      selectedValue={options.compositionMode}
+                      onChange={(value) => handleOptionChange('compositionMode', value, 'Scene & Environment')}
+                    />
+                    {options.compositionMode === 'ecom-blank' && (
+                      <>
+                        <ChipSelectGroup
+                          label="Side Placement"
+                          options={SIDE_PLACEMENT_OPTIONS}
+                          selectedValue={options.sidePlacement}
+                          onChange={(value) => handleOptionChange('sidePlacement', value, 'Scene & Environment')}
+                        />
+                        <div className="flex flex-col gap-2 mt-4">
+                          <label className="text-sm font-medium">Background Color</label>
+                          <input
+                            type="color"
+                            value={options.bgColor}
+                            onChange={event =>
+                              applyOptionsUpdate(prev => ({ ...prev, bgColor: event.target.value }))
+                            }
+                            className="h-10 w-16 rounded cursor-pointer border border-gray-600"
                           />
                         </div>
-                      </Accordion>
-                    </div>
+                      </>
+                    )}
+                  </div>
+                </Accordion>
+              </div>
                     {isProductPlacement && (
                       <div id={getSectionId('Product Details')}>
                         <Accordion

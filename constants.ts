@@ -854,3 +854,14 @@ export const REALISM_OPTIONS: Option[] = [
     value: 'keep everything crisp and polished, as if shot on a stabilized rig in a controlled studio.',
   },
 ];
+
+export const COMPOSITION_MODE_OPTIONS: Option[] = [
+  { label: 'Standard UGC', value: 'standard' },
+  { label: 'Cinematic UGC', value: 'cinematic' },
+  { label: 'Ecommerce Blank Space', value: 'ecom-blank' },
+];
+
+export const SIDE_PLACEMENT_OPTIONS: Option[] = [
+  { label: 'Left Side', value: 'left' },
+  { label: 'Right Side', value: 'right' },
+];
