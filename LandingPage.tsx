@@ -1,9 +1,11 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Sparkles, Wand2, Camera, ShieldCheck, PlaySquare, Users, CheckCircle2, CreditCard, Zap, Layers, Image as ImageIcon, Gauge, ShoppingBag, Package, Users2, Building2, Instagram, Twitter, Youtube, Linkedin, ArrowRight
 } from 'lucide-react';
 import PlanCheckoutModal from './components/PlanCheckoutModal';
+import { collection, limit, onSnapshot, orderBy, query, where } from 'firebase/firestore';
+import { getClientFirestore } from './src/firebase/client';
 
 type PlanMetadata = {
   plan: 'creator' | 'studio';
@@ -61,38 +63,7 @@ const steps = [
   { title: '3. Generate & refine', detail: 'Produce mockups, tweak with edit prompts, and spin up video clips.' },
 ];
 
-type GalleryItem = { src: string; label: string };
-
-const baseGallery: GalleryItem[] = [
-  {
-    src: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80',
-    label: 'Beauty supplement hero · Soft studio light',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80',
-    label: 'Creator selfie with healthy snack · Warm indoor',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=1200&q=80',
-    label: 'Tabletop tech flatlay · Clean daylight',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1512499385554-079eba9be8e9?auto=format&fit=crop&w=1200&q=80',
-    label: 'Luxury skincare duo · Editorial shadows',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1581338834647-b0fb40704e21?auto=format&fit=crop&w=1200&q=80',
-    label: 'Fitness drink on-the-go · Outdoor lifestyle',
-  },
-];
-
-// Rotate gallery every few days so the homepage feels fresh without manual updates.
-const rotationPeriodDays = 3;
-const rotationIndex = Math.floor(Date.now() / (rotationPeriodDays * 24 * 60 * 60 * 1000)) % baseGallery.length;
-const galleryImages: GalleryItem[] = [
-  ...baseGallery.slice(rotationIndex),
-  ...baseGallery.slice(0, rotationIndex),
-];
+type GalleryItem = { id: string; imageUrl: string; title: string };
 
 const getEnv = (key: string) => import.meta.env[key as keyof ImportMetaEnv] as string | undefined;
 const DEFAULT_CREATOR_LINK = 'https://buy.stripe.com/14A28tb1Sgr0b2Y5HBeIw02';
@@ -298,31 +269,44 @@ const LandingPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const localKey = 'ugc-free-gallery';
-    const localItems = (() => {
-      try {
-        return JSON.parse(window.localStorage.getItem(localKey) || '[]') as { imageUrl: string; title: string; createdAt: number }[];
-      } catch {
-        return [];
+    const db = getClientFirestore();
+    if (!db) {
+      setGalleryLoading(false);
+      return;
+    }
+    const galleryQuery = query(
+      collection(db, 'community_gallery'),
+      where('planType', 'in', ['free', 'invitation']),
+      orderBy('createdAt', 'desc'),
+      limit(40)
+    );
+    const unsubscribe = onSnapshot(
+      galleryQuery,
+      snapshot => {
+        const items = snapshot.docs.map(doc => {
+          const data = doc.data() as {
+            imageUrl?: string;
+            aspectRatio?: string;
+            productMaterial?: string;
+          };
+          const segments = [data.productMaterial?.trim(), data.aspectRatio?.trim()].filter(
+            (segment): segment is string => Boolean(segment)
+          );
+          return {
+            id: doc.id,
+            imageUrl: data.imageUrl ?? '',
+            title: segments.length ? segments.join(' · ') : 'Community creation',
+          };
+        });
+        setCommunityGalleryItems(items);
+        setGalleryLoading(false);
+      },
+      error => {
+        console.error('Community gallery snapshot failed', error);
+        setGalleryLoading(false);
       }
-    })();
-    setLocalGalleryItems(localItems.length ? localItems.map((item, idx) => ({ id: `local-${idx}`, ...item })) : []);
-    setRemoteDisplayed([]);
-    setRemoteIndex(0);
-
-    const fetchGallery = async () => {
-      try {
-        const res = await fetch('/api/gallery', { method: 'GET' });
-        if (!res.ok) throw new Error('bad status');
-        const data = await res.json();
-        const remoteItems = Array.isArray(data?.items) ? data.items : [];
-        setRemoteGalleryItems(remoteItems);
-      } catch {
-        setRemoteGalleryItems([]);
-      }
-    };
-    fetchGallery();
+    );
+    return () => unsubscribe();
   }, []);
 
   const requireAccessCode = useCallback((event?: React.MouseEvent, route = '/login') => {
@@ -367,37 +351,8 @@ const LandingPage: React.FC = () => {
     },
   ];
 
-  const [localGalleryItems, setLocalGalleryItems] = useState<{ id: string; imageUrl: string; title: string }[]>([]);
-  const [remoteGalleryItems, setRemoteGalleryItems] = useState<{ id: string; imageUrl: string; title: string }[]>([]);
-  const [remoteDisplayed, setRemoteDisplayed] = useState<{ id: string; imageUrl: string; title: string }[]>([]);
-  const [remoteIndex, setRemoteIndex] = useState(0);
-  const galleryItems = useMemo(
-    () => [...localGalleryItems, ...remoteDisplayed],
-    [localGalleryItems, remoteDisplayed]
-  );
-  const REMOTE_BATCH_SIZE = 4;
-
-  const handleLoadMore = useCallback(() => {
-    const capacity = Math.max(0, 20 - localGalleryItems.length);
-    if (capacity <= 0 || remoteIndex >= remoteGalleryItems.length) {
-      return;
-    }
-    const itemsToAdd: { id: string; imageUrl: string; title: string }[] = [];
-    let nextIndex = remoteIndex;
-    while (nextIndex < remoteGalleryItems.length && itemsToAdd.length < REMOTE_BATCH_SIZE) {
-      itemsToAdd.push(remoteGalleryItems[nextIndex]);
-      nextIndex += 1;
-    }
-    if (!itemsToAdd.length) return;
-    setRemoteIndex(nextIndex);
-    setRemoteDisplayed(prev => {
-      const next = [...prev, ...itemsToAdd];
-      while (next.length > capacity) {
-        next.shift();
-      }
-      return next;
-    });
-  }, [localGalleryItems.length, remoteGalleryItems, remoteIndex]);
+  const [communityGalleryItems, setCommunityGalleryItems] = useState<GalleryItem[]>([]);
+  const [galleryLoading, setGalleryLoading] = useState(true);
 
   return (
     <>
@@ -550,38 +505,33 @@ const LandingPage: React.FC = () => {
               </Link>
             </div>
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-              {galleryItems.map((item, index) => (
-                <div
-                  key={item.id}
-                  className="group relative block overflow-hidden rounded-3xl border border-white/10 bg-gray-900/40 text-left"
-                >
-                  <img
-                    src={item.imageUrl}
-                    alt={item.title}
-                    className="h-64 w-full object-cover transition duration-500 group-hover:scale-105 group-hover:opacity-90"
-                    loading={index < 2 ? 'eager' : 'lazy'}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition flex items-end">
-                    <p className="p-4 text-sm text-white">{item.title}</p>
-                  </div>
-                </div>
-              ))}
-              {galleryItems.length === 0 && (
+              {galleryLoading && (
                 <div className="col-span-full rounded-3xl border border-white/10 bg-gray-900/40 p-6 text-gray-300 text-sm">
-                  Gallery will update automatically when Free plan images are generated.
+                  Loading community gallery...
                 </div>
               )}
-            </div>
-            <div className="mt-6 flex justify-center">
-              <button
-                onClick={handleLoadMore}
-                disabled={
-                  remoteIndex >= remoteGalleryItems.length || Math.max(0, 20 - localGalleryItems.length) === 0
-                }
-                className="rounded-full border border-white/20 bg-gray-900/60 px-6 py-2 text-sm font-semibold text-white transition disabled:opacity-40 disabled:cursor-not-allowed hover:border-indigo-400 hover:text-white"
-              >
-                Load more...
-              </button>
+              {!galleryLoading && communityGalleryItems.length === 0 && (
+                <div className="col-span-full rounded-3xl border border-white/10 bg-gray-900/40 p-6 text-gray-300 text-sm">
+                  No community images yet. Generate yours!
+                </div>
+              )}
+              {!galleryLoading &&
+                communityGalleryItems.map(item => (
+                  <div
+                    key={item.id}
+                    className="group relative block overflow-hidden rounded-3xl border border-white/10 bg-gray-900/40 text-left"
+                  >
+                    <img
+                      src={item.imageUrl}
+                      alt={item.title}
+                      className="h-64 w-full object-cover transition duration-500 group-hover:scale-105 group-hover:opacity-90"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition flex items-end">
+                      <p className="p-4 text-sm text-white">{item.title}</p>
+                    </div>
+                  </div>
+                ))}
             </div>
           </section>
 

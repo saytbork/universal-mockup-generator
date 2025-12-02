@@ -806,10 +806,37 @@ const App: React.FC = () => {
   const [apiKeyError, setApiKeyError] = useState<string | null>(null);
   const [isUsingStoredKey, setIsUsingStoredKey] = useState(false);
   const [userEmail, setUserEmail] = useState('');
+  const [inviteUsed, setInviteUsed] = useState(false);
   useEffect(() => {
     const nextEmail = user?.email || emailUser || '';
     setUserEmail(nextEmail);
   }, [user?.email, emailUser]);
+
+  useEffect(() => {
+    let active = true;
+    if (!userEmail) {
+      setInviteUsed(false);
+      return () => {
+        active = false;
+      };
+    }
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch('/api/user/me');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (active) {
+          setInviteUsed(Boolean(data.inviteUsed));
+        }
+      } catch (error) {
+        console.error('Unable to fetch user profile for gallery', error);
+      }
+    };
+    fetchProfile();
+    return () => {
+      active = false;
+    };
+  }, [userEmail]);
 
   const [creditUsage, setCreditUsage] = useState(() => {
     if (typeof window !== 'undefined' && localStorage.getItem('guest_credit_usage')) {
@@ -3574,6 +3601,29 @@ If the model attempts to create a scene or environment, override it and force a 
     }
   }, [planTier]);
 
+  const submitCommunityGalleryEntry = useCallback(
+    async (imageUrl: string, opts: MockupOptions) => {
+      if (planTier !== 'free' || !userEmail) return;
+      const planType = inviteUsed ? 'invitation' : 'free';
+      const payload = {
+        imageUrl,
+        planType,
+        aspectRatio: opts.aspectRatio,
+        productMaterial: opts.productMaterial,
+      };
+      try {
+        await fetch('/api/gallery/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      } catch (err) {
+        console.warn('Failed to submit community gallery entry', err);
+      }
+    },
+    [inviteUsed, planTier, userEmail]
+  );
+
   const handleGenerateClick = async (bundleProducts?: ProductId[]) => {
     bundleSelectionRef.current = bundleProducts ?? null;
     if (isTrialLocked) {
@@ -3670,6 +3720,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
       const finalUrl = `data:image/png;base64,${encodedImage}`;
       setGeneratedImageUrl(finalUrl);
+      void submitCommunityGalleryEntry(finalUrl, options);
       runHiResPipeline(finalUrl);
       const newCount = creditUsage + creditCost;
       setCreditUsage(newCount);
