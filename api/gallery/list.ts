@@ -1,29 +1,14 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getFirestore } from '../../services/firebaseAdmin.js';
+import { kv } from '@vercel/kv';
 
-type GalleryDoc = {
-  imageUrl?: string;
-  planType?: string;
-  createdAt?: { toMillis?: () => number; toDate?: () => Date } | number | null;
-};
-
-type GalleryImageResponse = {
+type GalleryImage = {
   id: string;
   url: string;
-  plan: string;
-  createdAt: number | null;
-};
-
-const toMillis = (value: GalleryDoc['createdAt']): number | null => {
-  if (!value) return null;
-  if (typeof value === 'number') return value;
-  if (typeof value.toMillis === 'function') {
-    return value.toMillis();
-  }
-  if (typeof value.toDate === 'function') {
-    return value.toDate().getTime();
-  }
-  return null;
+  plan?: string;
+  createdAt?: number;
+  userId?: string;
+  aspectRatio?: string;
+  productMaterial?: string;
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -34,28 +19,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const db = getFirestore();
-    const snapshot = await db
-      .collection('community_gallery')
-      .orderBy('createdAt', 'desc')
-      .limit(40)
-      .get();
-    const images = snapshot.docs
-      .map(doc => {
-        const data = doc.data() as GalleryDoc;
-        const url = typeof data.imageUrl === 'string' ? data.imageUrl.trim() : '';
-        if (!url) return null;
-        return {
-          id: doc.id,
-          url,
-          plan: data.planType ?? 'free',
-          createdAt: toMillis(data.createdAt),
-        } as GalleryImageResponse;
+    const raw = await kv.lrange('community_gallery', 0, -1);
+    const images: GalleryImage[] = raw
+      .map(item => {
+        try {
+          return JSON.parse(item) as GalleryImage;
+        } catch {
+          return null;
+        }
       })
-      .filter((image): image is GalleryImageResponse => Boolean(image));
+      .filter((item): item is GalleryImage => Boolean(item?.url));
     res.status(200).json({ images });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to fetch gallery list', error);
-    res.status(500).json({ error: 'Unable to fetch gallery images' });
+    res.status(500).json({ error: error?.message ?? 'Unable to fetch gallery images' });
   }
 }

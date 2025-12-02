@@ -1,16 +1,16 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getFirestore } from '../../services/firebaseAdmin.js';
+import { kv } from '@vercel/kv';
+import { randomUUID } from 'crypto';
 import { checkAuth } from '../../server/lib/checkAuth.js';
-import { FieldValue } from 'firebase-admin/firestore';
 
 type GalleryPayload = {
   imageUrl: string;
   aspectRatio?: string;
   productMaterial?: string;
-  planType: 'free' | 'invitation';
+  planType: 'free' | 'invitation' | 'creator' | 'studio';
 };
 
-const ALLOWED_PLAN_TYPES = new Set(['free', 'invitation']);
+const ALLOWED_PLAN_TYPES = new Set(['free', 'invitation', 'creator', 'studio']);
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
@@ -35,16 +35,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
+  const entry = {
+    id: randomUUID(),
+    url: imageUrl.trim(),
+    plan: planType,
+    createdAt: Date.now(),
+    userId: email,
+    aspectRatio: typeof aspectRatio === 'string' ? aspectRatio : '',
+    productMaterial: typeof productMaterial === 'string' ? productMaterial : '',
+  };
+
   try {
-    const db = getFirestore();
-    await db.collection('community_gallery').add({
-      imageUrl,
-      createdAt: FieldValue.serverTimestamp(),
-      userId: email ?? null,
-      planType,
-      aspectRatio: typeof aspectRatio === 'string' ? aspectRatio : '',
-      productMaterial: typeof productMaterial === 'string' ? productMaterial : '',
-    });
+    await kv.rpush('community_gallery', JSON.stringify(entry));
     res.status(201).json({ success: true });
   } catch (error: any) {
     console.error('Failed to save community gallery image', error);
