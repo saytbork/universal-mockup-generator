@@ -298,32 +298,32 @@ const LandingPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const localKey = 'ugc-free-gallery';
+    const localItems = (() => {
+      try {
+        return JSON.parse(window.localStorage.getItem(localKey) || '[]') as { imageUrl: string; title: string; createdAt: number }[];
+      } catch {
+        return [];
+      }
+    })();
+    setLocalGalleryItems(localItems.length ? localItems.map((item, idx) => ({ id: `local-${idx}`, ...item })) : []);
+    setRemoteDisplayed([]);
+    setRemoteIndex(0);
+
     const fetchGallery = async () => {
-      const localKey = 'ugc-free-gallery';
-      const localItems = (() => {
-        try {
-          return JSON.parse(window.localStorage.getItem(localKey) || '[]') as { imageUrl: string; title: string; createdAt: number }[];
-        } catch {
-          return [];
-        }
-      })();
       try {
         const res = await fetch('/api/gallery', { method: 'GET' });
         if (!res.ok) throw new Error('bad status');
         const data = await res.json();
         const remoteItems = Array.isArray(data?.items) ? data.items : [];
-          const merged = [...localItems.map((item, idx) => ({ id: `local-${idx}`, ...item })), ...remoteItems].slice(0, 30);
-          setGalleryItems(merged);
-        } catch {
-        setGalleryItems(
-          localItems.length
-            ? localItems.map((item, idx) => ({ id: `local-${idx}`, ...item }))
-            : []
-        );
-        }
-      };
-      fetchGallery();
-    }, []);
+        setRemoteGalleryItems(remoteItems);
+      } catch {
+        setRemoteGalleryItems([]);
+      }
+    };
+    fetchGallery();
+  }, []);
 
   const requireAccessCode = useCallback((event?: React.MouseEvent, route = '/login') => {
     event?.preventDefault();
@@ -367,7 +367,37 @@ const LandingPage: React.FC = () => {
     },
   ];
 
-  const [galleryItems, setGalleryItems] = useState<{ id: string; imageUrl: string; title: string }[]>([]);
+  const [localGalleryItems, setLocalGalleryItems] = useState<{ id: string; imageUrl: string; title: string }[]>([]);
+  const [remoteGalleryItems, setRemoteGalleryItems] = useState<{ id: string; imageUrl: string; title: string }[]>([]);
+  const [remoteDisplayed, setRemoteDisplayed] = useState<{ id: string; imageUrl: string; title: string }[]>([]);
+  const [remoteIndex, setRemoteIndex] = useState(0);
+  const galleryItems = useMemo(
+    () => [...localGalleryItems, ...remoteDisplayed],
+    [localGalleryItems, remoteDisplayed]
+  );
+  const REMOTE_BATCH_SIZE = 4;
+
+  const handleLoadMore = useCallback(() => {
+    const capacity = Math.max(0, 20 - localGalleryItems.length);
+    if (capacity <= 0 || remoteIndex >= remoteGalleryItems.length) {
+      return;
+    }
+    const itemsToAdd: { id: string; imageUrl: string; title: string }[] = [];
+    let nextIndex = remoteIndex;
+    while (nextIndex < remoteGalleryItems.length && itemsToAdd.length < REMOTE_BATCH_SIZE) {
+      itemsToAdd.push(remoteGalleryItems[nextIndex]);
+      nextIndex += 1;
+    }
+    if (!itemsToAdd.length) return;
+    setRemoteIndex(nextIndex);
+    setRemoteDisplayed(prev => {
+      const next = [...prev, ...itemsToAdd];
+      while (next.length > capacity) {
+        next.shift();
+      }
+      return next;
+    });
+  }, [localGalleryItems.length, remoteGalleryItems, remoteIndex]);
 
   return (
     <>
@@ -541,6 +571,17 @@ const LandingPage: React.FC = () => {
                   Gallery will update automatically when Free plan images are generated.
                 </div>
               )}
+            </div>
+            <div className="mt-6 flex justify-center">
+              <button
+                onClick={handleLoadMore}
+                disabled={
+                  remoteIndex >= remoteGalleryItems.length || Math.max(0, 20 - localGalleryItems.length) === 0
+                }
+                className="rounded-full border border-white/20 bg-gray-900/60 px-6 py-2 text-sm font-semibold text-white transition disabled:opacity-40 disabled:cursor-not-allowed hover:border-indigo-400 hover:text-white"
+              >
+                Load more...
+              </button>
             </div>
           </section>
 
