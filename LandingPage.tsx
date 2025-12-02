@@ -283,7 +283,7 @@ const LandingPage: React.FC = () => {
     let mounted = true;
     const fetchGallery = async () => {
       try {
-        const response = await fetch('/api/gallery?action=list');
+        const response = await fetch('/api/galleryHandler?action=list');
         if (!response.ok) {
           throw new Error(`Gallery fetch failed with ${response.status}`);
         }

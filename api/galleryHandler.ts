@@ -67,12 +67,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         res.status(400).json({ error: 'Missing imageUrl' });
         return;
       }
-      if (!plan || typeof plan !== 'string') {
-        res.status(400).json({ error: 'Missing plan' });
-        return;
-      }
       try {
-        await saveGeneratedImageToGallery(imageUrl.trim(), plan);
+        await saveGeneratedImageToGallery(finalUrl.trim(), plan);
         res.status(201).json({ success: true });
       } catch (error: any) {
         console.error('Failed to save community gallery image', error);

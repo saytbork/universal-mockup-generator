@@ -3758,7 +3758,7 @@ If the model attempts to create a scene or environment, override it and force a 
       if (galleryPlan) {
         console.log('Sending gallery POST', { finalUrl, galleryPlan });
         try {
-          const response = await fetch('/api/gallery?action=add', {
+          const response = await fetch('/api/galleryHandler?action=add', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
