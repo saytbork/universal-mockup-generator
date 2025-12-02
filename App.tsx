@@ -3425,6 +3425,9 @@ Preserve the creator’s overall vibe and characteristics only.
       if (options.personProps !== personPropNoneValue) {
         prompt += `Add supporting props such as ${cleanPersonProps} to reinforce the lifestyle context. `;
       }
+      if (options.productInteraction === 'showing to camera') {
+        prompt += `Ensure the product is held close to the camera lens in the foreground, occupying the main focal plane with crisp sharpness. The person stays behind the product, slightly defocused or secondary in the frame. The product must NOT appear in the background and must always remain in the front-most visual layer. `;
+      }
       if (options.microLocation !== microLocationDefault) {
         prompt += `Place them within ${cleanMicroLocation} to ground the scene. `;
       }
