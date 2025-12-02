@@ -52,6 +52,7 @@ const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
           {normalizedOptions.map((option) => {
             const tooltip = option.tooltip || null;
             const isActive = selectedValue === option.value;
+            const normalizedLabel = option.label;
 
             return (
               <Tooltip key={option.value}>
