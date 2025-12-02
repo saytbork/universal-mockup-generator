@@ -2494,6 +2494,93 @@ const App: React.FC = () => {
     }
   }, [applyProPreset]);
 
+  type ImagePromptFields = {
+    headline1?: string;
+    icon1?: string;
+    usp1?: string;
+    benefit1?: string;
+    benefit2?: string;
+    benefit3?: string;
+    icon2a?: string;
+    icon2b?: string;
+    icon2c?: string;
+    step1?: string;
+    step2?: string;
+    step3?: string;
+    icon3a?: string;
+    icon3b?: string;
+    icon3c?: string;
+    testimonial1?: string;
+    customerName?: string;
+    icon4?: string;
+    diff1?: string;
+    diff2?: string;
+    diff3?: string;
+    icon5a?: string;
+    icon5b?: string;
+    icon5c?: string;
+    guaranteeText?: string;
+    socialProofNumber?: string;
+    icon6?: string;
+  };
+
+  const buildImagePrompt = (fields: ImagePromptFields) => {
+    const line = (label?: string) => (label ? label : '');
+    return `
+Generate 6 premium ecommerce product images.
+Always match the uploaded product’s real colors, shape, and proportions.
+Use a clean, modern, conversion-focused aesthetic.
+Use Lucide line-icons selected by the user.
+Use only user-provided text.
+Do not invent claims, benefits, or results.
+
+IMAGE 1 – What Is Your Product?
+${line(fields.headline1)}
+${line(fields.icon1)}
+${line(fields.usp1)}
+
+IMAGE 2 – What Does It Do?
+${line(fields.benefit1)}
+${line(fields.benefit2)}
+${line(fields.benefit3)}
+${line(fields.icon2a)}
+${line(fields.icon2b)}
+${line(fields.icon2c)}
+
+IMAGE 3 – How Does It Work?
+${line(fields.step1)}
+${line(fields.step2)}
+${line(fields.step3)}
+${line(fields.icon3a)}
+${line(fields.icon3b)}
+${line(fields.icon3c)}
+
+IMAGE 4 – Results
+${line(fields.testimonial1)}
+${line(fields.customerName)}
+${line(fields.icon4)}
+
+IMAGE 5 – Differentiators
+${line(fields.diff1)}
+${line(fields.diff2)}
+${line(fields.diff3)}
+${line(fields.icon5a)}
+${line(fields.icon5b)}
+${line(fields.icon5c)}
+
+IMAGE 6 – Guarantee and Trust
+${line(fields.guaranteeText)}
+${line(fields.socialProofNumber)}
+${line(fields.icon6)}
+
+GLOBAL STYLE RULES
+Use product color extraction.
+Use only user-provided text.
+Keep minimal, premium, soft shadows, centered compositions.
+Lucide icons must be line-icons with consistent stroke.
+`.trim();
+  };
+
   const buildCopyPrompt = useCallback(
     (sceneOptions: MockupOptions) => {
       const style = sceneOptions.contentStyle === 'product' ? 'product placement' : 'UGC lifestyle';
@@ -3061,566 +3148,8 @@ const App: React.FC = () => {
   }, []);
 
   const constructPrompt = (bundleProductsOverride?: ProductId[] | null): string => {
-    const clean = (text: string = '') =>
-      String(text)
-        .replace(/http[^ ]+/g, '')
-        .replace(/www\.[^ ]+/g, '')
-        .replace(/reference/gi, '')
-        .replace(/see/gi, '')
-        .trim();
-    const currentStyle = contentStyleValue;
-    const isUgcStyle = currentStyle !== 'product';
-    const personIncluded = isUgcStyle && options.ageGroup !== 'no person';
-    const selfieLabel = getSelfieLabel(options.selfieType);
-    const selfieMeta = SELFIE_DIRECTIONS[selfieLabel];
-    const requiresSplitHands = Boolean(selfieMeta?.enforceSplitHands);
-    const hasSmartphoneProp = options.personProps === SMARTPHONE_PROP_VALUE;
-    const isFlashLighting = options.lighting === FLASH_LIGHTING_VALUE;
-    const isHandsOnlyPose = options.personPose === HANDS_ONLY_POSE_VALUE;
-    const realModeActive = ugcRealSettings.isEnabled && !isProductPlacement && personIncluded;
-    const expressionOverride = realModeActive && ugcRealSettings.selectedExpressionId
-      ? UGC_EXPRESSION_PRESETS.find(item => item.id === ugcRealSettings.selectedExpressionId) ?? null
-      : null;
-    const cleanSetting = clean(options.setting);
-    const cleanLighting = clean(options.lighting);
-    const cleanEnvironmentOrder = clean(options.environmentOrder);
-    const cleanProductPlane = clean(options.productPlane);
-    const cleanProductMaterial = clean(options.productMaterial);
-    const cleanCamera = clean(options.camera);
-    const cleanPerspective = clean(options.perspective);
-    const cleanProductInteraction = clean(options.productInteraction);
-    const cleanPersonAppearance = clean(options.personAppearance);
-    const cleanWardrobeStyle = clean(options.wardrobeStyle);
-    const cleanPersonPose = clean(options.personPose);
-    const cleanPersonMood = clean(options.personMood);
-    const cleanPersonProps = clean(options.personProps);
-    const cleanMicroLocation = clean(options.microLocation);
-    const cleanPersonExpression = clean(options.personExpression);
-    const cleanHairStyle = clean(options.hairStyle);
-    const cleanHairColor = clean(options.hairColor);
-    const cleanSkinTone = clean(options.skinTone);
-    const cleanEyeColor = clean(options.eyeColor);
-    const cleanSelfieType = clean(options.selfieType);
-    const cleanRealism = clean(options.realism);
-    const cleanSkinRealism = clean(options.skinRealism);
-    const cleanPlacementStyle = clean(options.placementStyle);
-    const cleanPlacementCamera = clean(options.placementCamera);
-    const cleanProLens = clean(options.proLens ?? '');
-    const cleanProLightingRig = clean(options.proLightingRig ?? '');
-    const cleanProPostTreatment = clean(options.proPostTreatment ?? '');
-    const cleanAspectRatio = clean(options.aspectRatio);
-    const heroDescriptionPreset = HERO_PERSON_DESCRIPTION_PRESETS.find(
-      preset => preset.id === selectedHeroPreset
-    );
-    const heroDescriptionSource =
-      selectedHeroPreset === 'custom'
-        ? customHeroDescription
-        : heroDescriptionPreset?.description ?? '';
-    const heroDescriptionText = clean(heroDescriptionSource);
-
-    const getInteractionDescription = (interaction: string): string => {
-      switch (interaction) {
-        case 'holding it naturally':
-          return clean('holding the product naturally and comfortably.');
-        case 'using it':
-          return clean('using the product naturally as intended.');
-        case 'showing to camera':
-          return clean('showing the product close to the camera.');
-        case 'unboxing it':
-          return clean('unboxing the product with excitement.');
-        case 'applying it':
-          return clean('applying the product to their skin or body.');
-        case 'placing on surface':
-          return clean('placing the product carefully on a nearby surface.');
-        default:
-          return clean(`interacting with the product in a way that is ${interaction}.`);
-      }
-    };
-
-    const bundleProductsForPrompt = bundleProductsOverride ?? bundleSelectionRef.current;
-    let prompt = `Create an ultra-realistic, authentic ${isUgcStyle ? 'UGC lifestyle' : 'product placement'} photo with a ${cleanAspectRatio} aspect ratio. `;
-    prompt = prompt
-      .replace(/label design/gi, 'existing label preserved exactly')
-      .replace(/redesign/gi, '')
-      .replace(/re-imagine/gi, '')
-      .replace(/new label/gi, '')
-      .trim();
-    prompt += isUgcStyle
-      ? `The shot should feel candid, emotional, and cinematic, as if taken by a real person with a ${cleanCamera}. Embrace believable imperfections—slight motion blur, a little lens smudge, off-center framing, uneven window light—so it reads as everyday life rather than a polished model shoot. `
-      : `The shot should feel refined and advertising-ready, with deliberate staging captured on a ${cleanCamera}. `;
-
-    if (isHeroLandingMode) {
-      const heroBackground =
-        supplementBackgroundColor.trim() ||
-        HERO_LANDING_META?.heroLandingConfig?.backgroundColor ||
-        '#FFFFFF';
-      prompt += `Design this as a seamless ecommerce hero module on a ${heroBackground} backdrop. Keep the set ultra minimal—no room environment, just a clean base plane and negative space perfect for landing pages. `;
-      const heroAlignmentCopy = HERO_ALIGNMENT_TEXT[heroProductAlignment];
-      prompt += `${heroAlignmentCopy} `;
-      const scalePercent = Math.round(heroProductScale * 100);
-      prompt += `Scale the product so it fills roughly ${scalePercent}% of the frame height without cropping labels. `;
-      prompt += `${HERO_SHADOW_TEXT[heroShadowStyle]} `;
-      const heroDefaults = HERO_LANDING_META?.heroLandingConfig;
-      if (heroDefaults?.forcedLighting) {
-        prompt += `Lighting must feel like ${heroDefaults.forcedLighting} studio conditions for consistent highlights. `;
-      }
-      if (heroDefaults?.forcedAngle) {
-        prompt += `Frame it from a ${heroDefaults.forcedAngle} camera angle so packaging reads clearly. `;
-      }
-      if (heroDefaults?.noEnvironment) {
-        prompt += 'Do not introduce furniture, backgrounds, or lifestyle props—just use subtle geometry or gradients to support the hero. ';
-      }
-      if (supplementAccentColor.trim()) {
-        prompt += `Use ${supplementAccentColor.trim()} only for minimal accent bars or glass prisms—not full scenes—to keep the hero ultra clean. `;
-      }
-    } else {
-      prompt += `The scene is a ${cleanSetting}, illuminated by ${cleanLighting}. The overall environment has a ${cleanEnvironmentOrder} feel. The photo is shot from a ${cleanPerspective}, embracing the chosen camera style and its natural characteristics. Frame the composition so the product lives in ${cleanProductPlane}. `;
-    }
-
-    if (options.creationMode === 'lifestyle') {
-      prompt += `
-Photorealistic lifestyle UGC with real people and natural environments.
-Natural lighting, candid mood, real skin texture and shadows.
-Avoid perfect studio look.
-`;
-    }
-
-    if (options.creationMode === 'studio') {
-      prompt += `
-Clean, high-end studio hero shot.
-Soft gradient background, commercial lighting, crisp reflections.
-Preserve exact product shape, label and colors.
-No props or environments.
-`;
-    }
-
-    if (options.creationMode === 'aesthetic') {
-      prompt += `
-Aesthetic styled scene with curated props.
-Matching color palette, soft lighting and premium brand vibe.
-Balanced, artistic composition.
-`;
-    }
-
-    if (options.creationMode === 'bg-replace') {
-      prompt += `
-Replace the background while preserving exact product fidelity.
-Clean edges, accurate colors, soft realistic shadow.
-No product modifications.
-`;
-    }
-
-    if (options.creationMode === 'ecom-blank') {
-      prompt += `
-Ecommerce layout with solid background color: ${options.bgColor}.
-Product and person on the ${options.sidePlacement} side.
-Large clean negative space on the opposite side.
-Studio lighting, minimal shadows, no props or environments.
-Preserve exact product fidelity.
-`;
-    }
-
-    const formatHeightNumber = (num: number) => (Number.isInteger(num) ? num.toString() : num.toFixed(1));
-    const describeHeight = (value: number, unit: 'cm' | 'in') => {
-      if (unit === 'cm') {
-        const inches = (value / 2.54).toFixed(1);
-        return `${formatHeightNumber(value)} cm tall (about ${inches} in)`;
-      }
-      const centimeters = (value * 2.54).toFixed(1);
-      return `${formatHeightNumber(value)} in tall (about ${centimeters} cm)`;
-    };
-    const heightNotes = productAssets
-      .filter(asset => asset.heightValue)
-      .map(asset => `${asset.label || 'product'} ${describeHeight(asset.heightValue!, asset.heightUnit)}`)
-      .join('. ');
-    prompt += `
-Use the uploaded product image as the exact product to place in the scene.
-Preserve:
-- exact colors,
-- exact label design,
-- exact typography,
-- exact cap shape,
-- exact material,
-- exact geometry,
-- exact proportions.
-
-Do not redesign, replace, or reinterpret the product.
-
-Integrate it physically into the environment using "Active Insert Mode":
-- match lighting to the room,
-- adjust reflections on glass/plastic,
-- add realistic soft shadows on surfaces,
-- maintain physically correct highlights,
-- preserve all printed elements clearly and accurately,
-- keep edges and silhouette identical to the uploaded object.
-
-The product must look naturally photographed inside this environment, not pasted or floating.
-`;
-    prompt += `
-Integrate the product physically into the environment:
-- match real lighting direction,
-- match color temperature and contrast,
-- generate accurate shadow casting under the jar/bottle,
-- apply micro-occlusion where the hand touches the product,
-- generate correct reflections on glass, plastic, or metal,
-- preserve the exact design, size, colors, and branding of the uploaded product.
-`;
-    if (options.compositionMode === 'ecom-blank') {
-      prompt += `
-This image must use a pure solid background with the exact color: ${options.bgColor}.
-Do NOT generate rooms, environments, furniture, props or scenery.
-Keep the background perfectly uniform and flat.
-
-Place the product and the person exclusively on the ${options.sidePlacement} side of the frame.
-Leave large, clean negative space on the ${
-        options.sidePlacement === 'left' ? 'right' : 'left'
-      } side for text overlays.
-
-Use soft studio lighting suitable for Amazon, Shopify and paid ads.
-Do NOT add text, logos, watermarks or graphics.
-
-Insert the uploaded product cleanly into the scene with:
-- perfect edges,
-- precise shape preservation,
-- correct reflections,
-- realistic soft shadows on the flat background,
-- exact label, exact colors and exact proportions.
-
-Maintain correct human anatomy at all times:
-- natural hands,
-- correct finger shape,
-- proper wrist rotation,
-- realistic arm connection to the body.
-`;
-    }
-    if (heightNotes) {
-      prompt += `Respect real-world scale: ${clean(heightNotes)}. Adjust hands, props, and camera distance so the item visibly matches that measurement.`;
-    }
-    if (formulationExpertEnabled) {
-      const preset = FORMULATION_PRESET_LOOKUP[formulationExpertPreset];
-      const expertName = (formulationExpertName || preset?.suggestedName || 'Dr. Ana Ruiz').trim();
-      const expertRole = (formulationExpertRole || preset?.role || 'lead formulator').trim();
-      const professionLabel = formulationExpertProfession === 'custom'
-        ? expertRole
-        : (FORMULATION_PROFESSION_LOOKUP[formulationExpertProfession]?.label ?? expertRole);
-      const safeExpertName = clean(expertName);
-      const safeExpertRole = clean(professionLabel);
-      prompt += ` Feature ${safeExpertName}, a ${safeExpertRole}, present in ${clean(formulationLabStyle)} beside the hero product.`;
-      if (preset?.prompt) {
-        prompt += ` ${clean(preset.prompt)}`;
-      }
-      prompt += ' Their face must look photorealistic and human—no CGI, animation, or plastic skin. Keep real pores, imperfect lighting, and shallow depth of field like an editorial portrait.';
-      prompt += ' Make it obvious they created the formula based on cited clinical research—include subtle clipboard notes, lab coat details, and a respectful nod to science-backed development.';
-    }
-    if (realModeActive) {
-      prompt += ` ${UGC_REAL_MODE_BASE_PROMPT}.`;
-      const realityPreset = UGC_REALITY_PRESETS.find(item => item.id === ugcRealSettings.selectedRealityPresetId);
-      if (realityPreset) {
-        prompt += ` ${clean(realityPreset.prompt)}`;
-      }
-    }
-    if (productAssets.length > 1) {
-      prompt += ' There are multiple distinct product cutouts supplied. Arrange every unique product in the final scene, keeping each one fully visible and recognizable while avoiding any invented packaging. Treat them as a cohesive collection in the same frame.';
-    } else if (isMultiProductPackaging) {
-      prompt += ' This product photo shows a packaging kit that contains several items. Keep the box, lid, and every interior product fully visible—never crop away the inserts or swap them for a single bottle. Preserve the real-world packaging layout exactly as photographed.';
-    }
-    if (bundleProductsForPrompt?.length) {
-      const bundleLabels = bundleProductsForPrompt
-        .map(id => productMediaLibrary[id]?.label || PRODUCT_MEDIA_LIBRARY[id]?.label)
-        .filter(Boolean);
-      if (bundleLabels.length) {
-        prompt += ` Treat this as a curated bundle featuring ${bundleLabels.join(', ')}. Arrange every uploaded product cutout to mimic that assortment so shoppers immediately read it as a kit. `;
-      }
-    }
-    if (supplementPresetCue) {
-      prompt += ` ${clean(supplementPresetCue)}`;
-    }
-    if (supplementBackgroundColor.trim()) {
-      prompt += ` Set the hero backdrop color to ${supplementBackgroundColor}, matching the brand palette.`;
-    }
-    if (supplementAccentColor.trim()) {
-      prompt += ` Add secondary accents or props in ${supplementAccentColor} to create contrast.`;
-    }
-    if (supplementFlavorNotes.trim()) {
-      prompt += ` Include supporting ingredients/props inspired by: ${clean(supplementFlavorNotes.trim())}.`;
-    }
-    if (includeSupplementHand) {
-      prompt += ' Add a cropped human hand interacting with the product in a natural, candid way, with modern nail polish and minimal retouch. The hand must be real (no 3D or mannequin look).';
-    }
-    if (supplementCustomPrompt.trim()) {
-      prompt += ` ${clean(supplementCustomPrompt.trim())}`;
-    }
-    if (!isUgcStyle) {
-      prompt += ` No people should appear in the frame. Style the set like a premium product placement shoot with thoughtful props, surfaces, and depth, highlighting the product as the hero. Use a ${cleanPlacementCamera} approach and style the scene as ${cleanPlacementStyle}. `;
-      if (isProPhotographer) {
-        prompt += ` Professional setup details: ${cleanProLens || PRO_LENS_OPTIONS[0].value}, lighting rig ${cleanProLightingRig || PRO_LIGHTING_RIG_OPTIONS[0].value}, and finishing treatment ${cleanProPostTreatment || PRO_POST_TREATMENT_OPTIONS[0].value}. `;
-      }
-    }
-    if (options.realism) {
-      prompt += ` ${cleanRealism}`;
-    }
-    if (moodPromptCue) {
-      prompt += ` ${clean(moodPromptCue)}`;
-    }
-
-    if (personIncluded) {
-      if (options.creatorPreset) {
-        prompt += `The overall creative persona is ${clean(options.creatorPreset)}. `;
-      }
-      if (options.appearanceLevel) {
-        prompt += `Their grooming level is ${clean(options.appearanceLevel)}. `;
-      }
-      if (options.mood) {
-        prompt += `The mood is ${clean(options.mood)}, expressed naturally and realistically. `;
-      }
-      if (options.pose) {
-        prompt += `The pose is ${clean(options.pose)}. `;
-      }
-      if (options.expression) {
-        prompt += `Their expression is ${clean(options.expression)}. `;
-      }
-      if (options.wardrobe) {
-        prompt += `Their wardrobe style is ${clean(options.wardrobe)}. `;
-      }
-      if (options.hairstyle) {
-        prompt += `Their hairstyle is ${clean(options.hairstyle)}. `;
-      }
-      if (options.hairColor) {
-        prompt += `Their hair color is ${clean(options.hairColor)}. `;
-        prompt += `Hair color: ${clean(options.hairColor)}. Do not override with age-based defaults. `;
-      }
-      prompt += 'Age-based defaults must NOT override hair color or appearance selections. Hair must always match the selected color, even for seniors. ';
-      if (options.skinTone) {
-        prompt += `Their skin tone is ${clean(options.skinTone)}. `;
-      }
-      if (options.eyeColor) {
-        prompt += `Their eye color is ${clean(options.eyeColor)}. `;
-      }
-      if (options.microLocation) {
-        prompt += `The micro-location is ${clean(options.microLocation)}. `;
-      }
-      if (options.customMicroLocation) {
-        prompt += `Additional micro-location detail: ${clean(options.customMicroLocation)}. `;
-      }
-      if (options.interaction2) {
-        prompt += `Interaction detail: ${clean(options.interaction2)}. `;
-      }
-      const ageNarrative = describeAgeGroup(options.ageGroup, options.gender);
-      const poseEmphasizesHands = options.personPose.toLowerCase().includes('hand');
-      const isHandCloseUp = options.selfieType === 'close-up shot of a hand holding the product' || poseEmphasizesHands;
-      if (hasModelReference) {
-        prompt += 'Use the uploaded model reference image as the only on-camera talent. Reproduce their face, hair, skin tone, outfit, and proportions exactly—no replacements, no face swaps, and no invented hairstyles or accessories.';
-        if (modelReferenceNotes.trim()) {
-          prompt += ` Follow this direction for the model: ${clean(modelReferenceNotes.trim())}.`;
-        }
-        prompt += ' Keep them as the sole person in frame and do not alter their look beyond the provided note.';
-        if (modelReferenceFile) {
-          prompt += `
-Use the model reference ONLY for:
-- approximate age
-- skin tone
-- hair color and general style
-- facial shape and vibe
-- energy and personality
-
-Do NOT copy exact identity.
-Do NOT recreate the exact face.
-Preserve the creator’s overall vibe and characteristics only.
-`;
-        }
-      } else {
-        prompt += `The photo features ${clean(ageNarrative)}, of ${clean(options.ethnicity)} ethnicity, showcasing ${cleanPersonAppearance}. `;
-        if (options.ageGroup === '13-17') {
-          prompt += 'Capture a playful, teenage energy—youthful accessories, braces, or freckled details are welcome but keep it tasteful. ';
-        }
-        if (options.ageGroup === '6-12') {
-          prompt += 'Ensure the child proportions, clothing, and demeanor read as pre-teen (no teens or adults). ';
-        }
-        if (options.ageGroup === '18-25') {
-          prompt += 'Lean into a Gen-Z vibe with casual accessories, modern streetwear, and expressive gestures. ';
-        }
-        if (options.ageGroup === '26-35') {
-          prompt += 'Make sure they read as a late-20s/early-30s creator with subtle sophistication and confidence. ';
-        }
-        if (options.ageGroup === '36-45') {
-          prompt += 'Include hints of a mid-career adult (gentle laugh lines, poised posture, purposeful styling). ';
-        }
-        if (options.ageGroup === '46-60') {
-          prompt += 'Show visible signs of maturity—defined laugh lines, sun freckles, or silver strands—while keeping them vibrant. ';
-        }
-        if (options.ageGroup === '60-75') {
-          prompt += 'Represent an older adult with softened skin texture, salt-and-pepper hair, and calm confidence. ';
-        }
-        if (options.ageGroup === '75+') {
-          prompt += 'Make the subject unmistakably senior with soft wrinkles, age spots on hands, slightly stooped posture, and silver or white hair texture. ';
-        }
-        prompt += `They are dressed in ${cleanWardrobeStyle}, matching the scene's palette. Their pose is ${cleanPersonPose}, projecting ${cleanPersonMood}. `;
-        if (realModeActive) {
-          if (ugcRealSettings.selectedClothingPresetIds.length) {
-            const clothingText = ugcRealSettings.selectedClothingPresetIds
-              .map(id => UGC_CLOTHING_PRESETS.find(item => item.id === id)?.prompt)
-              .filter(Boolean)
-              .join(' ');
-            if (clothingText) {
-              prompt += ` ${clean(clothingText)}`;
-            }
-          }
-          if (ugcRealSettings.clothingUpload) {
-            prompt += ' Match the outfit to the uploaded clothing reference image so fabrics, drape, and color story stay true to reality.';
-          }
-        }
-        prompt += `They have ${cleanSkinTone}, ${cleanEyeColor}, and ${cleanHairColor}. `;
-        if (expressionOverride) {
-          prompt += ` ${clean(expressionOverride.prompt)}`;
-        } else {
-          prompt += `Their facial expression shows ${cleanPersonExpression}. `;
-        }
-        prompt += `Their hair is styled as ${cleanHairStyle}. `;
-      }
-      prompt += ' Faces and hands must be fully realistic with natural skin texture, no distortions or 3D plastic look. Zero warped fingers, zero asymmetry, zero AI artifacts. ';
-      if (options.skinRealism) {
-        prompt += `Skin realism mode: ${clean(options.skinRealism)}. Render pores, micro shadows, and natural texture accordingly. `;
-      }
-      prompt += 'Pores, microtexture, and natural imperfections must be preserved according to the selected skin realism mode. ';
-      if (realModeActive && ugcRealSettings.selectedHeroPersonaIds.length) {
-        const personaText = ugcRealSettings.selectedHeroPersonaIds
-          .map(id => UGC_HERO_PERSONA_PRESETS.find(item => item.id === id)?.prompt)
-          .filter(Boolean)
-          .join(' ');
-        if (personaText) {
-          prompt += ` ${clean(personaText)}`;
-        }
-      }
-      if (options.props) {
-        prompt += `Props present include ${clean(options.props)}. `;
-      }
-      if (options.customProp) {
-        prompt += `Additional prop: ${clean(options.customProp)}. `;
-      }
-      if (options.personProps !== personPropNoneValue) {
-        prompt += `Add supporting props such as ${cleanPersonProps} to reinforce the lifestyle context. `;
-      }
-      if (options.productInteraction === 'showing to camera') {
-        prompt += `Ensure the product is held close to the camera lens in the foreground, occupying the main focal plane with crisp sharpness. The person stays behind the product, slightly defocused or secondary in the frame. The product must NOT appear in the background and must always remain in the front-most visual layer. `;
-      }
-      if (options.microLocation !== microLocationDefault) {
-        prompt += `Place them within ${cleanMicroLocation} to ground the scene. `;
-      }
-      if (isHandCloseUp || selfieMeta?.hideFace || isHandsOnlyPose) {
-        prompt += `The shot is a tactile close-up of their hands ${getInteractionDescription(cleanProductInteraction)} Keep the crop near the torso or closer so attention stays on the product and touch. `;
-        if (selfieMeta?.hideFace) {
-          prompt += 'Do not show their face—only forearms, hands, and the product should be visible, mimicking a back-camera POV. ';
-        }
-      } else {
-        prompt += `The person is ${getInteractionDescription(cleanProductInteraction)} Their face and upper body are visible, and the interaction looks unposed and authentic. `;
-        if (options.selfieType !== 'none') {
-          prompt += `The style is a ${cleanSelfieType}. `;
-        }
-      }
-      if (selfieMeta) {
-        prompt += ` ${clean(selfieMeta.narrative)} `;
-        if (requiresSplitHands) {
-          prompt += 'Keep the smartphone in one hand and the product in the opposite hand so both hero objects stay visible simultaneously, with the phone-holding arm fully extended into frame like a true selfie. ';
-        }
-      } else if (hasSmartphoneProp) {
-        prompt += 'Include a modern smartphone prop in their free hand so it complements but never hides the product. ';
-      }
-      prompt += 'Hands must look fully human and photorealistic (no 3D artifacts). Skin texture, knuckles, and nails should be natural.';
-      prompt += `
-Ensure anatomically correct human arms and hands with:
-- proper bone proportions,
-- natural wrist rotation,
-- realistic muscle tension,
-- visible knuckles and joints,
-- correct finger lengths,
-- realistic grip around the product,
-- correct connection to the body even if the shoulder is off-frame.
-Hands must be photorealistic with subtle veins, micro-shadows, and true skin texture.
-No warped, melted, or floating limbs.
-`;
-      if (selfieMeta?.hidePhone) {
-        prompt += 'Do not render a smartphone anywhere in frame—imply the selfie by the arm extension and body posture only.';
-      }
-      if (isFlashLighting && !selfieMeta?.hidePhone) {
-        prompt += 'Use a bright on-camera flash that reflects on their face (or hands if the face is cropped out) and bounces off the phone, casting crisp, short shadows for that candid flash look. ';
-      }
-      if (heroDescriptionText) {
-        prompt += ` ${heroDescriptionText}`;
-      }
-      if (heroPosePromptCue) {
-        prompt += ` ${clean(heroPosePromptCue)}`;
-      }
-      if (realModeActive) {
-        if (ugcRealSettings.imperfectLighting) {
-          prompt += ' Let the lighting stay imperfect with hotspots, hard falloff, and visible shadows on the wall.';
-        }
-        if (ugcRealSettings.lowResolution) {
-          prompt += ' Simulate a low-resolution phone capture with pixel softness and slight chroma noise.';
-        }
-        if (ugcRealSettings.offFocus) {
-          prompt += ' Allow focus to breathe and slip, keeping only part of the face/product tack sharp.';
-        }
-        if (ugcRealSettings.tiltedPhone) {
-          prompt += ' Keep the camera horizon slightly tilted as if the phone was captured quickly.';
-        }
-        const offCenterPreset = UGC_OFF_CENTER_OPTIONS.find(option => option.id === ugcRealSettings.offCenterId);
-        if (offCenterPreset) {
-          prompt += ` ${clean(offCenterPreset.prompt)}`;
-        }
-        const framingPreset = UGC_SPONTANEOUS_FRAMING_OPTIONS.find(option => option.id === ugcRealSettings.framingId);
-        if (framingPreset) {
-          prompt += ` ${clean(framingPreset.prompt)}`;
-        }
-        if (ugcRealSettings.blurAmount > 0 || ugcRealSettings.grainAmount > 0) {
-         prompt += ` Add roughly ${ugcRealSettings.blurAmount}% focus blur and ${ugcRealSettings.grainAmount}% grain to mimic raw smartphone texture.`;
-       }
-        prompt += ' UGC Real Mode may add grain, lighting imperfections and organic feel to the scene, but must not degrade product clarity, readability or branding. ';
-      }
-    }
-
-    prompt += `
-Apply creator personality attributes selected by the user, including:
-- Appearance Level
-- Mood & Expression
-- Pose Type
-- Interaction Type
-- Wardrobe Style
-- Props
-- Micro-location
-- Skin Realism
-- Eye Color
-- Hair Style, Hair Color
-- Selfie Type
-
-Respect all these settings consistently.
-`;
-
-    if (options.compositionMode === 'ecom-blank') {
-      prompt += `
-Create an ecommerce-style lifestyle image optimized for Amazon, Shopify and paid ads.
-
-Follow these layout rules:
-- Background must be a clean solid color: ${options.bgColor}
-- Place the product and person on the ${options.sidePlacement} side of the frame.
-- Leave large clean negative space on the opposite side for text overlays.
-- Use soft, commercial studio lighting with minimal shadows.
-- Keep the scene simple, minimal and premium.
-- Do NOT add text, logos, graphics, icons or overlays.
-- Maintain perfect product preservation: exact colors, label, shape and cap.
-- Ensure perfect human anatomy: realistic hands, finger proportions, wrist angle and arm connection.
-- Render in a photorealistic modern ecommerce style suitable for A+ content.
-`;
-    }
-    if (options.compositionMode === 'ecom-blank') {
-      prompt += `
-If the model attempts to create a scene or environment, override it and force a solid background with the exact color ${options.bgColor}.
-`;
-    }
-    prompt += ' Deliver the render at ultra-high fidelity: native 4K resolution (minimum 3840px on the long edge) so it still looks razor sharp when downscaled to 2K for alternate exports.';
-    prompt += ` Final image must be high-resolution and free of any watermarks, text, or artificial elements. It should feel like a captured moment, not a staged ad.`;
-
-    return prompt;
-  }
+    return buildImagePrompt(options as ImagePromptFields);
+  };
 
   const getImageCreditCost = useCallback(
     (opts: MockupOptions) => {
