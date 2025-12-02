@@ -24,6 +24,7 @@ const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
   allowCustom = false,
   customLabel = 'Custom',
   customPlaceholder = 'Describe your own option',
+  labelTooltip,
 }) => {
   const optionValues = options.map(option => option.value);
   const isCustomValue = allowCustom && selectedValue && !optionValues.includes(selectedValue);
