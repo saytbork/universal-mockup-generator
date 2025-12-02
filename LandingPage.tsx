@@ -216,7 +216,7 @@ const LandingPage: React.FC = () => {
     setHeroStatus('loading');
     setHeroMessage(null);
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch('/api/auth?action=login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: heroEmail.trim() }),
@@ -283,7 +283,7 @@ const LandingPage: React.FC = () => {
     let mounted = true;
     const fetchGallery = async () => {
       try {
-        const response = await fetch('/api/gallery/list');
+        const response = await fetch('/api/gallery?action=list');
         if (!response.ok) {
           throw new Error(`Gallery fetch failed with ${response.status}`);
         }

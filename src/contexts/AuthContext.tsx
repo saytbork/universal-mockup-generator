@@ -30,7 +30,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const fetchMe = async () => {
       try {
-        const res = await fetch('/api/user/me');
+        const res = await fetch('/api/user?action=me');
         if (res.ok) {
           const data = await res.json();
           const email = data.email as string;
@@ -57,7 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const sendMagicLink = async (email: string, invitationCode?: string) => {
     const normalized = email.trim();
     if (!normalized) throw new Error('Email required');
-    const res = await fetch('/api/auth/login', {
+    const res = await fetch('/api/auth?action=login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: normalized, invitationCode }),
@@ -70,7 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await fetch('/api/auth?action=logout', { method: 'POST' });
     } catch (err) {
       console.warn('Logout warning', err);
     }

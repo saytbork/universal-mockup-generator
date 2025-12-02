@@ -71,7 +71,7 @@ export default function Dashboard() {
     let mounted = true;
     const load = async () => {
       try {
-        const res = await fetch("/api/user/me");
+        const res = await fetch("/api/user?action=me");
         if (!res.ok) {
           navigate("/login", { replace: true });
           return;

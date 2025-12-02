@@ -15,7 +15,7 @@ export function useSession(redirectOnFail = true): SessionState {
     let mounted = true;
     const fetchSession = async () => {
       try {
-        const res = await fetch('/api/user/me');
+        const res = await fetch('/api/user?action=me');
         if (res.ok) {
           const data = await res.json();
           if (mounted) setEmail(data.email);
