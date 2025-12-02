@@ -3756,6 +3756,7 @@ If the model attempts to create a scene or environment, override it and force a 
       setGeneratedImageUrl(finalUrl);
       const galleryPlan = determineGalleryPlan();
       if (galleryPlan) {
+        console.log('Sending gallery POST', { finalUrl, galleryPlan });
         try {
           const response = await fetch('/api/gallery?action=add', {
             method: 'POST',
@@ -3765,6 +3766,10 @@ If the model attempts to create a scene or environment, override it and force a 
               plan: galleryPlan,
             }),
           });
+          console.log('Gallery add status:', response.status);
+          if (!response.ok) {
+            console.log('Gallery add response:', await response.text());
+          }
           if (!response.ok) {
             const errorText = await response.text().catch(() => 'unknown error');
             console.warn('Failed to save community gallery image', errorText);
