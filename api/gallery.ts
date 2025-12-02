@@ -1,6 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { kv } from '@vercel/kv';
-import { saveGeneratedImageToGallery, clearGalleryImages } from '../services/gallery.js';
+import {
+  saveGeneratedImageToGallery,
+  clearGalleryImages,
+  shouldAddToGallery,
+} from '../services/gallery.js';
 
 type GalleryEntry = {
   id: string;
@@ -52,8 +56,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         res.status(405).json({ error: 'Method not allowed' });
         return;
       }
-      const { url, imageUrl, plan } = req.body || {};
+      const body = req.body || {};
+      console.log('GALLERY ADD BODY:', body);
+      const { url, imageUrl, plan } = body;
+      console.log('GALLERY PLAN:', plan);
       const finalUrl = typeof url === 'string' ? url : imageUrl;
+      console.log('ALLOW?', shouldAddToGallery(plan));
+      console.log('URL LENGTH:', finalUrl?.length);
       if (!finalUrl || typeof finalUrl !== 'string') {
         res.status(400).json({ error: 'Missing imageUrl' });
         return;
