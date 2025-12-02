@@ -6,6 +6,7 @@ import { GoogleGenAI, Modality } from "@google/genai";
 import { MockupOptions, OptionCategory, Option } from './types';
 import {
   CONTENT_STYLE_OPTIONS,
+  CREATION_MODE_OPTIONS,
   PLACEMENT_STYLE_OPTIONS,
   PLACEMENT_CAMERA_OPTIONS,
   LIGHTING_OPTIONS, SETTING_OPTIONS, AGE_GROUP_OPTIONS, CAMERA_OPTIONS,
@@ -366,7 +367,8 @@ const createDefaultOptions = (): MockupOptions => ({
   expression: PERSON_EXPRESSION_OPTIONS[0].value,
   hairstyle: HAIR_STYLE_OPTIONS[0].value,
   compositionMode: COMPOSITION_MODE_OPTIONS[0].value,
-  sidePlacement: SIDE_PLACEMENT_OPTIONS[1].value,
+  creationMode: 'lifestyle',
+  sidePlacement: 'right',
   bgColor: '#FFFFFF',
 });
 import ImageUploader, { ImageUploaderHandle } from './components/ImageUploader';
@@ -2408,24 +2410,6 @@ const App: React.FC = () => {
     }
   }, [isProPhotographer]);
 
-  const getPartsForGeneration = (
-    finalPrompt: string,
-    base64: string,
-    mimeType: string,
-    options: MockupOptions
-  ) => {
-    if (options.compositionMode === 'ecom-blank') {
-      return [
-        { text: finalPrompt },
-        { inlineData: { data: base64, mimeType } },
-      ];
-    }
-    return [
-      { inlineData: { data: base64, mimeType } },
-      { text: finalPrompt },
-    ];
-  };
-
   const applyProPreset = useCallback((presetSettings: ProLookPreset['settings']) => {
     applyOptionsUpdate(prev => ({ ...prev, ...presetSettings }));
     setSelectedCategories(prev => {
@@ -3115,6 +3099,49 @@ const App: React.FC = () => {
       prompt += `The scene is a ${cleanSetting}, illuminated by ${cleanLighting}. The overall environment has a ${cleanEnvironmentOrder} feel. The photo is shot from a ${cleanPerspective}, embracing the chosen camera style and its natural characteristics. Frame the composition so the product lives in ${cleanProductPlane}. `;
     }
 
+    if (options.creationMode === 'lifestyle') {
+      prompt += `
+Photorealistic lifestyle UGC with real people and natural environments.
+Natural lighting, candid mood, real skin texture and shadows.
+Avoid perfect studio look.
+`;
+    }
+
+    if (options.creationMode === 'studio') {
+      prompt += `
+Clean, high-end studio hero shot.
+Soft gradient background, commercial lighting, crisp reflections.
+Preserve exact product shape, label and colors.
+No props or environments.
+`;
+    }
+
+    if (options.creationMode === 'aesthetic') {
+      prompt += `
+Aesthetic styled scene with curated props.
+Matching color palette, soft lighting and premium brand vibe.
+Balanced, artistic composition.
+`;
+    }
+
+    if (options.creationMode === 'bg-replace') {
+      prompt += `
+Replace the background while preserving exact product fidelity.
+Clean edges, accurate colors, soft realistic shadow.
+No product modifications.
+`;
+    }
+
+    if (options.creationMode === 'ecom-blank') {
+      prompt += `
+Ecommerce layout with solid background color: ${options.bgColor}.
+Product and person on the ${options.sidePlacement} side.
+Large clean negative space on the opposite side.
+Studio lighting, minimal shadows, no props or environments.
+Preserve exact product fidelity.
+`;
+    }
+
     const formatHeightNumber = (num: number) => (Number.isInteger(num) ? num.toString() : num.toFixed(1));
     const describeHeight = (value: number, unit: 'cm' | 'in') => {
       if (unit === 'cm') {
@@ -3540,6 +3567,24 @@ If the model attempts to create a scene or environment, override it and force a 
       console.warn('Failed to publish to gallery', err);
     }
   }, [planTier]);
+
+  const getPartsForGeneration = (
+    finalPrompt: string,
+    base64: string,
+    mimeType: string,
+    opts: MockupOptions
+  ) => {
+    if (opts.creationMode === 'ecom-blank' || opts.creationMode === 'bg-replace') {
+      return [
+        { text: finalPrompt },
+        { inlineData: { data: base64, mimeType } },
+      ];
+    }
+    return [
+      { inlineData: { data: base64, mimeType } },
+      { text: finalPrompt },
+    ];
+  };
 
   const handleGenerateClick = async (bundleProducts?: ProductId[]) => {
     bundleSelectionRef.current = bundleProducts ?? null;
@@ -4418,6 +4463,12 @@ If the model attempts to create a scene or environment, override it and force a 
                       options={COMPOSITION_MODE_OPTIONS}
                       selectedValue={options.compositionMode}
                       onChange={(value) => handleOptionChange('compositionMode', value, 'Scene & Environment')}
+                    />
+                    <ChipSelectGroup
+                      label="Creation Mode"
+                      options={CREATION_MODE_OPTIONS}
+                      selectedValue={options.creationMode}
+                      onChange={(value) => handleOptionChange('creationMode', value, 'Scene & Product')}
                     />
                     {options.compositionMode === 'ecom-blank' && (
                       <>

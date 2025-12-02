@@ -21,6 +21,14 @@ export const CONTENT_STYLE_OPTIONS: Option[] = [
   { label: 'Product Placement', value: 'product' },
 ];
 
+export const CREATION_MODE_OPTIONS: Option[] = [
+  { label: 'Lifestyle UGC', value: 'lifestyle' },
+  { label: 'Studio Hero', value: 'studio' },
+  { label: 'Aesthetic Builder', value: 'aesthetic' },
+  { label: 'Background Replace', value: 'bg-replace' },
+  { label: 'Ecommerce Blank Space', value: 'ecom-blank' },
+];
+
 export const PLACEMENT_STYLE_OPTIONS: Option[] = [
   { label: 'Luxury Editorial', value: 'luxury editorial set with high-end props and reflections' },
   { label: 'On-White Studio', value: 'clean white sweep background with soft gradients' },

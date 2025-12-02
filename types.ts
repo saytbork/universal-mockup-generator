@@ -43,6 +43,7 @@ export interface MockupOptions {
   expression?: string;
   hairstyle?: string;
   compositionMode?: string;
+  creationMode?: string;
   sidePlacement?: string;
   bgColor?: string;
 }
