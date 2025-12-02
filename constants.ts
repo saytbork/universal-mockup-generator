@@ -771,10 +771,104 @@ export type HeroPosePreset = {
   promptCue: string;
 };
 
+export type HeroPersonDescriptionPreset = {
+  id: string;
+  label: string;
+  description: string;
+};
+
+export const HERO_PERSON_DESCRIPTION_PRESETS: HeroPersonDescriptionPreset[] = [
+  {
+    id: 'face-frame-hero',
+    label: 'Face Frame Hero',
+    description: 'Creator cradles the jar next to their cheek with bright, confident eye contact.',
+  },
+  {
+    id: 'offer-to-lens',
+    label: 'Offer-to-Lens',
+    description: 'Arm fully extended toward camera so the product feels within reach.',
+  },
+  {
+    id: 'grounded-duo',
+    label: 'Grounded Duo',
+    description: 'Model lounging on the floor or picnic mat with bottles scattered around.',
+  },
+  {
+    id: 'custom',
+    label: 'Custom',
+    description: 'Write your own hero pose or interaction',
+  },
+  {
+    id: 'soft-studio-hold',
+    label: 'Soft Studio Hold',
+    description:
+      'Creator lifts the uploaded product at chest height with relaxed posture and calm, natural eye contact.',
+  },
+  {
+    id: 'side-gaze-lift',
+    label: 'Side-Gaze Lift',
+    description:
+      'Model raises the product near the cheek while looking slightly off-camera for a clean, editorial feel.',
+  },
+  {
+    id: 'clean-two-hand-present',
+    label: 'Clean Two-Hand Present',
+    description:
+      'Creator presents the product with both hands centered in frame for a balanced, premium studio look.',
+  },
+  {
+    id: 'mirror-routine',
+    label: 'Mirror Routine',
+    description: 'Model holds the product near their face in front of a mirror with soft morning light.',
+  },
+  {
+    id: 'outdoor-glow-hold',
+    label: 'Outdoor Glow Hold',
+    description: 'Creator shows the product at arm’s length outdoors with warm, natural sunlight.',
+  },
+  {
+    id: 'desk-wellness',
+    label: 'Desk Wellness',
+    description: 'Model sits at a clean desk holding the product beside a laptop for a calm productivity vibe.',
+  },
+  {
+    id: 'casual-seated-lean',
+    label: 'Casual Seated Lean',
+    description: 'Creator seated on a sofa or chair, gently tilting the product toward the lens.',
+  },
+  {
+    id: 'kitchen-daily-ritual',
+    label: 'Kitchen Daily Ritual',
+    description: 'Model holds the product over a kitchen counter with bright, simple morning atmosphere.',
+  },
+  {
+    id: 'profile-offer',
+    label: 'Profile Offer',
+    description: 'Creator turns their body sideways and extends only their arm toward the lens with the product.',
+  },
+  {
+    id: 'hands-only-closeup',
+    label: 'Hands-Only Close-Up',
+    description:
+      'Tight shot of hands presenting the uploaded product with a softly blurred background.',
+  },
+  {
+    id: 'warm-lounge-moment',
+    label: 'Warm Lounge Moment',
+    description: 'Model sitting on a rug or cushion, product resting lightly between both hands.',
+  },
+  {
+    id: 'motion-reach',
+    label: 'Motion Reach',
+    description:
+      'Creator takes a slight step forward while offering the product toward the lens for an active feel.',
+  },
+];
+
 export const HERO_PERSON_PRESETS: HeroPosePreset[] = [
   {
     label: 'Face Frame Hero',
-    value: 'face-frame',
+    value: 'face-frame-hero',
     description: 'Creator cradles the jar next to their cheek with bright, confident eye contact.',
     settings: {
       personPose: getOptionValueByLabel(PERSON_POSE_OPTIONS, 'Face Frame Hero', 3),
@@ -813,7 +907,7 @@ export const HERO_PERSON_PRESETS: HeroPosePreset[] = [
       setting: getOptionValueByLabel(SETTING_OPTIONS, 'Garden Party', 12),
       environmentOrder: getOptionValueByLabel(ENVIRONMENT_ORDER_OPTIONS, 'Casual', 2),
     },
-    promptCue:
+   promptCue:
       ' Place the model reclining on a mat or rug with knees bent, scattering multiple supplement bottles and gummy props around them while they hold one bottle near their face and look up at camera.',
   },
 ];

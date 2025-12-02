@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { PREMADE_BUNDLES } from '../bundles.config';
+import { PREMADE_BUNDLES, PRODUCT_MEDIA_LIBRARY } from '../bundles.config';
 import type { ProductId, ProductMediaLibrary } from '../bundles.config';
 
 interface BundleSelectorProps {
@@ -20,6 +20,14 @@ const BundleSelector: React.FC<BundleSelectorProps> = ({
   const visibleSet = useMemo(() => new Set(visibleProductIds), [visibleProductIds]);
   const visibleProducts = activeBundle?.products.filter(id => visibleSet.has(id)) ?? [];
   const bundleDisabled = !visibleProducts.length;
+  const slotProducts = useMemo(() => {
+    if (!activeBundle) return [];
+    return activeBundle.products.map(productId => ({
+      id: productId,
+      meta: productMediaLibrary[productId] ?? PRODUCT_MEDIA_LIBRARY[productId],
+      filled: visibleSet.has(productId),
+    }));
+  }, [activeBundle, productMediaLibrary, visibleSet]);
 
   const handleGenerate = () => {
     if (!activeBundle || bundleDisabled) return;
@@ -52,27 +60,31 @@ const BundleSelector: React.FC<BundleSelectorProps> = ({
             </p>
           )}
           <div className="flex flex-wrap gap-3">
-            {visibleProducts.map(productId => {
-              const meta = productMediaLibrary[productId];
-              return (
-                <div key={productId} className="w-28 text-center text-xs text-gray-300">
-                  <div className="h-28 w-full overflow-hidden rounded-xl border border-white/10 bg-black/20">
-                    {meta?.imageUrl ? (
-                      <img
-                        src={meta.imageUrl}
-                        alt={meta.label}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-gray-600">
-                        {meta?.label || productId}
-                      </div>
-                    )}
-                  </div>
-                  <p className="mt-1">{meta?.label || productId}</p>
+            {slotProducts.map(slot => (
+              <div key={slot.id} className="w-28 text-center text-xs text-gray-300">
+                <div className="relative h-28 w-full overflow-hidden rounded-xl border border-white/10 bg-black/20">
+                  {slot.meta?.imageUrl ? (
+                    <img
+                      src={slot.meta.imageUrl}
+                      alt={slot.meta.label}
+                      className={`h-full w-full object-cover transition ${
+                        slot.filled ? '' : 'opacity-60'
+                      }`}
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-gray-600">
+                      {slot.meta?.label || slot.id}
+                    </div>
+                  )}
+                  {!slot.filled && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-[10px] font-semibold text-amber-200">
+                      Upload to fill
+                    </div>
+                  )}
                 </div>
-              );
-            })}
+                <p className="mt-1 text-[11px]">{slot.meta?.label || slot.id}</p>
+              </div>
+            ))}
           </div>
         </div>
       )}

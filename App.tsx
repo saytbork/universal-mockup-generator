@@ -15,7 +15,7 @@ import {
   PRODUCT_MATERIAL_OPTIONS, PRODUCT_INTERACTION_OPTIONS, REALISM_OPTIONS,
   PERSON_POSE_OPTIONS, WARDROBE_STYLE_OPTIONS, PERSON_MOOD_OPTIONS,
   PERSON_PROP_OPTIONS, MICRO_LOCATION_OPTIONS, MICRO_LOCATION_NONE_VALUE, PERSON_EXPRESSION_OPTIONS, HAIR_STYLE_OPTIONS,
-  CREATOR_PRESETS, PROP_BUNDLES, PRO_LENS_OPTIONS, PRO_LIGHTING_RIG_OPTIONS, PRO_POST_TREATMENT_OPTIONS, PRO_LOOK_PRESETS, PRODUCT_PLANE_OPTIONS, SUPPLEMENT_PHOTO_PRESETS, HERO_PERSON_PRESETS,
+  CREATOR_PRESETS, PROP_BUNDLES, PRO_LENS_OPTIONS, PRO_LIGHTING_RIG_OPTIONS, PRO_POST_TREATMENT_OPTIONS, PRO_LOOK_PRESETS, PRODUCT_PLANE_OPTIONS, SUPPLEMENT_PHOTO_PRESETS, HERO_PERSON_PRESETS, HERO_PERSON_DESCRIPTION_PRESETS,
   HAIR_COLOR_OPTIONS, EYE_COLOR_OPTIONS, SKIN_TONE_OPTIONS, HeroLandingAlignment, HeroLandingShadowStyle, DOWNLOAD_CREDIT_CONFIG, HIGH_RES_UNAVAILABLE_MESSAGE, SKIN_REALISM_OPTIONS,
   COMPOSITION_MODE_OPTIONS, SIDE_PLACEMENT_OPTIONS
 } from './constants';
@@ -726,7 +726,8 @@ const App: React.FC = () => {
   const [supplementFlavorNotes, setSupplementFlavorNotes] = useState('');
   const [supplementCustomPrompt, setSupplementCustomPrompt] = useState('');
   const [includeSupplementHand, setIncludeSupplementHand] = useState(false);
-  const [activeHeroPosePreset, setActiveHeroPosePreset] = useState('none');
+  const [selectedHeroPreset, setSelectedHeroPreset] = useState('face-frame-hero');
+  const [customHeroDescription, setCustomHeroDescription] = useState('');
   const [heroPosePromptCue, setHeroPosePromptCue] = useState<string | null>(null);
   const [heroProductAlignment, setHeroProductAlignment] = useState<HeroLandingAlignment>('center');
   const [heroProductScale, setHeroProductScale] = useState(1);
@@ -760,7 +761,17 @@ const App: React.FC = () => {
   const normalizedGoalVibeOptions = useMemo(() => normalizeOptions(GOAL_VIBE_OPTIONS), []);
   const normalizedCreatorWizardPresets = useMemo(() => normalizeOptions(CREATOR_PRESETS), []);
   const normalizedSupplementPresets = useMemo(() => normalizeOptions(SUPPLEMENT_PHOTO_PRESETS), []);
-  const normalizedHeroPersonPresets = useMemo(() => normalizeOptions(HERO_PERSON_PRESETS), []);
+  const normalizedHeroPersonPresets = useMemo(
+    () =>
+      normalizeOptions(
+        HERO_PERSON_DESCRIPTION_PRESETS.map(preset => ({
+          label: preset.label,
+          value: preset.id,
+          description: preset.description,
+        }))
+      ),
+    []
+  );
   const availableProductIdSet = useMemo(() => new Set<ProductId>(availableProductIds), [availableProductIds]);
   const productMediaLibrary = useMemo<ProductMediaLibrary>(() => {
     if (!productAssets.length) {
@@ -1219,12 +1230,12 @@ const App: React.FC = () => {
   }, [talentToast]);
 
   useEffect(() => {
-    if (!isPersonOptionsDisabled || activeHeroPosePreset === 'none') {
+    if (!isPersonOptionsDisabled || selectedHeroPreset === 'custom') {
       return;
     }
-    setActiveHeroPosePreset('none');
+    setSelectedHeroPreset('custom');
     setHeroPosePromptCue(null);
-  }, [isPersonOptionsDisabled, activeHeroPosePreset]);
+  }, [isPersonOptionsDisabled, selectedHeroPreset]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -1257,7 +1268,7 @@ const App: React.FC = () => {
             supplementAccentColor,
             supplementFlavorNotes,
             includeSupplementHand,
-            heroPosePreset: activeHeroPosePreset,
+            heroPosePreset: selectedHeroPreset,
             heroPosePromptCue,
             supplementCustomPrompt,
             heroProductAlignment,
@@ -1277,7 +1288,7 @@ const App: React.FC = () => {
     supplementAccentColor,
     supplementFlavorNotes,
     includeSupplementHand,
-    activeHeroPosePreset,
+    selectedHeroPreset,
     heroPosePromptCue,
     supplementCustomPrompt,
     heroProductAlignment,
@@ -1312,7 +1323,11 @@ const App: React.FC = () => {
       setSupplementFlavorNotes(fallback.supplementFlavorNotes ?? '');
       setIncludeSupplementHand(fallback.includeSupplementHand ?? false);
       setSupplementCustomPrompt(fallback.supplementCustomPrompt ?? '');
-      setActiveHeroPosePreset(fallback.heroPosePreset ?? 'none');
+      const nextHeroPreset =
+        fallback.heroPosePreset && fallback.heroPosePreset !== 'none'
+          ? fallback.heroPosePreset
+          : 'custom';
+      setSelectedHeroPreset(nextHeroPreset);
       setHeroPosePromptCue(fallback.heroPosePromptCue ?? null);
       setHeroProductAlignment(fallback.heroProductAlignment ?? 'center');
       setHeroProductScale(fallback.heroProductScale ?? 1);
@@ -1514,32 +1529,54 @@ const App: React.FC = () => {
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Hero person presets</p>
-                      <p className="text-[11px] text-gray-400">Quickly stage face-frame, offer-to-lens, or grounded lounge poses inspired by modern supplement shoots.</p>
+                      <p className="text-[11px] text-gray-400">
+                        Quickly stage face-frame, offer-to-lens, or grounded lounge poses inspired by modern supplement shoots.
+                      </p>
                     </div>
-                    <button type="button" onClick={() => handleHeroPosePresetSelect('none')} className={`rounded-full border px-3 py-1 text-[11px] ${activeHeroPosePreset === 'none' ? 'border-white/30 text-gray-200' : 'border-white/15 text-gray-400 hover:border-indigo-400 hover:text-white'}`}>
-                      Custom
-                    </button>
                   </div>
                   <div className="space-y-2">
-                    {normalizedHeroPersonPresets.map(preset => (
-                      <button key={preset.value} type="button" onClick={() => handleHeroPosePresetSelect(preset.value)} className={`w-full rounded-xl border px-3 py-2 text-left transition ${activeHeroPosePreset === preset.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-200 hover-border-indigo-400 hover:text-white'}`}>
-                        <div className="flex items-center gap-1 relative group text-sm font-semibold">
-                          <span>{preset.label}</span>
-                          {preset.tooltip && (
-                            <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
-                              ⓘ
-                              <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/90 text-white text-xs p-2 rounded shadow-lg w-44">
-                                {preset.tooltip}
-                              </div>
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[11px] text-gray-400 mt-1">{preset.description}</p>
-                      </button>
-                    ))}
+                    {normalizedHeroPersonPresets.map(preset => {
+                      const isActive = selectedHeroPreset === preset.value;
+                      return (
+                        <button
+                          key={preset.value}
+                          type="button"
+                          onClick={() => handleHeroPosePresetSelect(preset.value)}
+                          className={`w-full rounded-xl border px-3 py-2 text-left transition ${
+                            isActive
+                              ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                              : 'border-white/15 text-gray-200 hover-border-indigo-400 hover:text-white'
+                          }`}
+                        >
+                          <div className="flex items-center gap-1 relative group text-sm font-semibold">
+                            <span>{preset.label}</span>
+                            {preset.tooltip && (
+                              <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
+                                ⓘ
+                                <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                                  {preset.tooltip}
+                                </div>
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-gray-400 mt-1">{preset.description}</p>
+                        </button>
+                      );
+                    })}
                   </div>
-                  {activeHeroPosePreset !== 'none' && (
-                    <p className="text-[11px] text-indigo-200">Pose + camera notes are baked into the prompt. You can still tweak any field above.</p>
+                  {selectedHeroPreset === 'custom' && (
+                    <textarea
+                      className="mt-3 w-full rounded-lg border border-white/15 bg-gray-900/40 px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:border-indigo-400 focus:outline-none"
+                      placeholder="Describe your own hero pose or product interaction..."
+                      value={customHeroDescription}
+                      onChange={(event) => setCustomHeroDescription(event.target.value)}
+                      rows={3}
+                    />
+                  )}
+                  {selectedHeroPreset !== 'custom' && (
+                    <p className="text-[11px] text-indigo-200">
+                      Pose + camera notes are baked into the prompt. You can still tweak any field above.
+                    </p>
                   )}
                 </div>
               )}
@@ -1727,7 +1764,9 @@ const App: React.FC = () => {
     setSupplementFlavorNotes(scene.supplementFlavorNotes ?? '');
     setIncludeSupplementHand(scene.includeSupplementHand ?? false);
     setSupplementCustomPrompt(scene.supplementCustomPrompt ?? '');
-    setActiveHeroPosePreset(scene.heroPosePreset ?? 'none');
+    const sceneHeroPreset =
+      scene.heroPosePreset && scene.heroPosePreset !== 'none' ? scene.heroPosePreset : 'custom';
+    setSelectedHeroPreset(sceneHeroPreset);
     setHeroPosePromptCue(scene.heroPosePromptCue ?? null);
     setHeroProductAlignment(scene.heroProductAlignment ?? 'center');
     setHeroProductScale(scene.heroProductScale ?? 1);
@@ -1760,7 +1799,7 @@ const App: React.FC = () => {
       supplementAccentColor,
       supplementFlavorNotes,
       includeSupplementHand,
-      heroPosePreset: activeHeroPosePreset,
+      heroPosePreset: selectedHeroPreset,
       heroPosePromptCue,
       supplementCustomPrompt,
       heroProductAlignment,
@@ -1792,7 +1831,7 @@ const App: React.FC = () => {
     supplementAccentColor,
     supplementFlavorNotes,
     includeSupplementHand,
-    activeHeroPosePreset,
+    selectedHeroPreset,
     heroPosePromptCue,
     supplementCustomPrompt,
     heroProductAlignment,
@@ -2212,14 +2251,14 @@ const App: React.FC = () => {
   );
 
   const handleHeroPosePresetSelect = useCallback((value: string) => {
-    if (value === 'none') {
-      setActiveHeroPosePreset('none');
+    if (value === 'none' || value === 'custom') {
+      setSelectedHeroPreset('custom');
       setHeroPosePromptCue(null);
       return;
     }
     const preset = HERO_PERSON_PRESET_LOOKUP[value];
     if (!preset) return;
-    setActiveHeroPosePreset(value);
+    setSelectedHeroPreset(value);
     setHeroPosePromptCue(preset.promptCue);
     applyOptionsUpdate(prev => ({ ...prev, ...preset.settings }));
     setSelectedCategories(prev => {
@@ -2905,7 +2944,8 @@ const App: React.FC = () => {
     setSupplementFlavorNotes('');
     setIncludeSupplementHand(false);
     setSupplementCustomPrompt('');
-    setActiveHeroPosePreset('none');
+    setSelectedHeroPreset('custom');
+    setCustomHeroDescription('');
     setHeroPosePromptCue(null);
     setHeroProductAlignment('center');
     setHeroProductScale(1);
@@ -3069,6 +3109,14 @@ const App: React.FC = () => {
     const cleanProLightingRig = clean(options.proLightingRig ?? '');
     const cleanProPostTreatment = clean(options.proPostTreatment ?? '');
     const cleanAspectRatio = clean(options.aspectRatio);
+    const heroDescriptionPreset = HERO_PERSON_DESCRIPTION_PRESETS.find(
+      preset => preset.id === selectedHeroPreset
+    );
+    const heroDescriptionSource =
+      selectedHeroPreset === 'custom'
+        ? customHeroDescription
+        : heroDescriptionPreset?.description ?? '';
+    const heroDescriptionText = clean(heroDescriptionSource);
 
     const getInteractionDescription = (interaction: string): string => {
       switch (interaction) {
@@ -3495,6 +3543,9 @@ No warped, melted, or floating limbs.
       }
       if (isFlashLighting && !selfieMeta?.hidePhone) {
         prompt += 'Use a bright on-camera flash that reflects on their face (or hands if the face is cropped out) and bounces off the phone, casting crisp, short shadows for that candid flash look. ';
+      }
+      if (heroDescriptionText) {
+        prompt += ` ${heroDescriptionText}`;
       }
       if (heroPosePromptCue) {
         prompt += ` ${clean(heroPosePromptCue)}`;

@@ -4,8 +4,6 @@ import {
   Sparkles, Wand2, Camera, ShieldCheck, PlaySquare, Users, CheckCircle2, CreditCard, Zap, Layers, Image as ImageIcon, Gauge, ShoppingBag, Package, Users2, Building2, Instagram, Twitter, Youtube, Linkedin, ArrowRight
 } from 'lucide-react';
 import PlanCheckoutModal from './components/PlanCheckoutModal';
-import { collection, limit, onSnapshot, orderBy, query, where } from 'firebase/firestore';
-import { getClientFirestore } from './src/firebase/client';
 
 type PlanMetadata = {
   plan: 'creator' | 'studio';
@@ -63,30 +61,17 @@ const steps = [
   { title: '3. Generate & refine', detail: 'Produce mockups, tweak with edit prompts, and spin up video clips.' },
 ];
 
-type GalleryItem = { id: string; imageUrl: string; title: string };
+type GalleryImage = { id: string; url: string; plan?: string; createdAt?: number };
 
-const FALLBACK_COMMUNITY_GALLERY_ITEMS: GalleryItem[] = [
-  {
-    id: 'fallback-1',
-    imageUrl: 'https://images.unsplash.com/photo-1488580846396-4d2daf70aa6c?auto=format&fit=crop&w=1200&q=80',
-    title: 'Sunlit skincare line in a bright studio',
-  },
-  {
-    id: 'fallback-2',
-    imageUrl: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80',
-    title: 'Minimalist tech mockup with ambient light',
-  },
-  {
-    id: 'fallback-3',
-    imageUrl: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=1200&q=80',
-    title: 'Cozy coffee moment for lifestyle ads',
-  },
-  {
-    id: 'fallback-4',
-    imageUrl: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=1200&q=80',
-    title: 'Bold hero product shot on a colored background',
-  },
-];
+const getGalleryPlanLabel = (plan?: string) => {
+  if (!plan) return 'Community creation';
+  const normalized = plan.toLowerCase();
+  if (normalized === 'free') return 'Free plan';
+  if (normalized === 'invitation') return 'Invitation plan';
+  if (normalized === 'creator') return 'Creator plan';
+  if (normalized === 'studio') return 'Studio plan';
+  return plan;
+};
 
 const getEnv = (key: string) => import.meta.env[key as keyof ImportMetaEnv] as string | undefined;
 const DEFAULT_CREATOR_LINK = 'https://buy.stripe.com/14A28tb1Sgr0b2Y5HBeIw02';
@@ -188,9 +173,7 @@ const LandingPage: React.FC = () => {
   const [heroEmail, setHeroEmail] = useState('');
   const [heroStatus, setHeroStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [heroMessage, setHeroMessage] = useState<string | null>(null);
-  const [communityGalleryItems, setCommunityGalleryItems] = useState<GalleryItem[]>(
-    FALLBACK_COMMUNITY_GALLERY_ITEMS
-  );
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [galleryLoading, setGalleryLoading] = useState(true);
   const [activeMode, setActiveMode] = useState('lifestyle');
   const handleSmoothScroll = useCallback((selector: string) => {
@@ -297,50 +280,34 @@ const LandingPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const db = getClientFirestore();
-    if (!db) {
-      setCommunityGalleryItems(FALLBACK_COMMUNITY_GALLERY_ITEMS);
-      setGalleryLoading(false);
-      return;
-    }
-    const galleryQuery = query(
-      collection(db, 'community_gallery'),
-      where('planType', 'in', ['free', 'invitation']),
-      orderBy('createdAt', 'desc'),
-      limit(40)
-    );
-    const unsubscribe = onSnapshot(
-      galleryQuery,
-      snapshot => {
-        const items = snapshot.docs.map(doc => {
-          const data = doc.data() as {
-            imageUrl?: string;
-            aspectRatio?: string;
-            productMaterial?: string;
-          };
-          const segments = [data.productMaterial?.trim(), data.aspectRatio?.trim()].filter(
-            (segment): segment is string => Boolean(segment)
-          );
-          return {
-            id: doc.id,
-            imageUrl: data.imageUrl ?? '',
-            title: segments.length ? segments.join(' · ') : 'Community creation',
-          };
-        });
-        if (items.length === 0) {
-          setCommunityGalleryItems(FALLBACK_COMMUNITY_GALLERY_ITEMS);
-        } else {
-          setCommunityGalleryItems(items);
+    let mounted = true;
+    const fetchGallery = async () => {
+      try {
+        const response = await fetch('/api/gallery/list');
+        if (!response.ok) {
+          throw new Error(`Gallery fetch failed with ${response.status}`);
         }
-        setGalleryLoading(false);
-      },
-      error => {
-        console.error('Community gallery snapshot failed', error);
-        setCommunityGalleryItems(FALLBACK_COMMUNITY_GALLERY_ITEMS);
-        setGalleryLoading(false);
+        const data = (await response.json()) as { images?: GalleryImage[] };
+        if (!mounted) return;
+        const images = Array.isArray(data?.images)
+          ? data.images.filter(image => Boolean(image?.url))
+          : [];
+        setGalleryImages(images);
+      } catch (error) {
+        console.error('Community gallery fetch failed', error);
+        if (mounted) {
+          setGalleryImages([]);
+        }
+      } finally {
+        if (mounted) {
+          setGalleryLoading(false);
+        }
       }
-    );
-    return () => unsubscribe();
+    };
+    fetchGallery();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const requireAccessCode = useCallback((event?: React.MouseEvent, route = '/login') => {
@@ -540,25 +507,25 @@ const LandingPage: React.FC = () => {
                   Loading community gallery...
                 </div>
               )}
-              {!galleryLoading && communityGalleryItems.length === 0 && (
+              {!galleryLoading && galleryImages.length === 0 && (
                 <div className="col-span-full rounded-3xl border border-white/10 bg-gray-900/40 p-6 text-gray-300 text-sm">
                   No community images yet. Generate yours!
                 </div>
               )}
               {!galleryLoading &&
-                communityGalleryItems.map(item => (
+                galleryImages.map(image => (
                   <div
-                    key={item.id}
+                    key={image.id}
                     className="group relative block overflow-hidden rounded-3xl border border-white/10 bg-gray-900/40 text-left"
                   >
                     <img
-                      src={item.imageUrl}
-                      alt={item.title}
+                      src={image.url}
+                      alt={getGalleryPlanLabel(image.plan)}
                       className="h-64 w-full object-cover transition duration-500 group-hover:scale-105 group-hover:opacity-90"
                       loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition flex items-end">
-                      <p className="p-4 text-sm text-white">{item.title}</p>
+                      <p className="p-4 text-sm text-white">{getGalleryPlanLabel(image.plan)}</p>
                     </div>
                   </div>
                 ))}
