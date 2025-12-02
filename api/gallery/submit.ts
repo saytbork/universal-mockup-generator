@@ -1,16 +1,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { kv } from '@vercel/kv';
-import { randomUUID } from 'crypto';
 import { checkAuth } from '../../server/lib/checkAuth.js';
+import { saveGeneratedImageToGallery } from '../../services/gallery.js';
 
 type GalleryPayload = {
   imageUrl: string;
   aspectRatio?: string;
   productMaterial?: string;
-  planType: 'free' | 'invitation' | 'creator' | 'studio';
+  plan: string;
 };
-
-const ALLOWED_PLAN_TYPES = new Set(['free', 'invitation', 'creator', 'studio']);
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
@@ -25,28 +22,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const { imageUrl, aspectRatio, productMaterial, planType } = req.body as GalleryPayload;
+  const { imageUrl, plan } = req.body as GalleryPayload;
   if (!imageUrl || typeof imageUrl !== 'string') {
     res.status(400).json({ error: 'Missing imageUrl' });
     return;
   }
-  if (!planType || !ALLOWED_PLAN_TYPES.has(planType)) {
-    res.status(400).json({ error: 'Invalid planType' });
-    return;
-  }
-
-  const entry = {
-    id: randomUUID(),
-    url: imageUrl.trim(),
-    plan: planType,
-    createdAt: Date.now(),
-    userId: email,
-    aspectRatio: typeof aspectRatio === 'string' ? aspectRatio : '',
-    productMaterial: typeof productMaterial === 'string' ? productMaterial : '',
-  };
 
   try {
-    await kv.rpush('community_gallery', JSON.stringify(entry));
+    await saveGeneratedImageToGallery(imageUrl.trim(), plan);
     res.status(201).json({ success: true });
   } catch (error: any) {
     console.error('Failed to save community gallery image', error);
