@@ -52,8 +52,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         res.status(405).json({ error: 'Method not allowed' });
         return;
       }
-      const { imageUrl, plan } = req.body || {};
-      if (!imageUrl || typeof imageUrl !== 'string') {
+      const { url, imageUrl, plan } = req.body || {};
+      const finalUrl = typeof url === 'string' ? url : imageUrl;
+      if (!finalUrl || typeof finalUrl !== 'string') {
         res.status(400).json({ error: 'Missing imageUrl' });
         return;
       }
