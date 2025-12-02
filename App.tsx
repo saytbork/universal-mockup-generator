@@ -3654,7 +3654,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
   const determineGalleryPlan = useCallback(() => {
     if (inviteUsed) return 'access';
-    if (planTier === 'free') return 'trial';
+    if (planTier === 'free') return 'free';
     return null;
   }, [inviteUsed, planTier]);
 

@@ -5,7 +5,7 @@ export type GalleryPlan = 'trial' | 'access' | string;
 
 export const shouldAddToGallery = (plan: string) => {
   const normalized = plan?.toLowerCase();
-  return normalized === 'trial' || normalized === 'access';
+  return normalized === 'free' || normalized === 'access';
 };
 
 export const saveGeneratedImageToGallery = async (finalUrl: string, plan: string) => {
