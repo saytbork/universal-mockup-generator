@@ -3571,24 +3571,6 @@ If the model attempts to create a scene or environment, override it and force a 
     }
   }, [planTier]);
 
-  const getPartsForGeneration = (
-    finalPrompt: string,
-    base64: string,
-    mimeType: string,
-    opts: MockupOptions
-  ) => {
-    if (opts.creationMode === 'ecom-blank' || opts.creationMode === 'bg-replace') {
-      return [
-        { text: finalPrompt },
-        { inlineData: { data: base64, mimeType } },
-      ];
-    }
-    return [
-      { inlineData: { data: base64, mimeType } },
-      { text: finalPrompt },
-    ];
-  };
-
   const handleGenerateClick = async (bundleProducts?: ProductId[]) => {
     bundleSelectionRef.current = bundleProducts ?? null;
     if (isTrialLocked) {
@@ -3655,7 +3637,13 @@ If the model attempts to create a scene or environment, override it and force a 
       const response = await ai.models.generateContent({
         model: GEMINI_IMAGE_MODEL, // maintain this but enforce insert behavior through the prompt and config above
         contents: {
-          parts: getPartsForGeneration(finalPrompt, base64, mimeType, options),
+          parts: [
+            {
+              inlineData: { data: base64, mimeType },
+              reference: true,
+            },
+            { text: finalPrompt },
+          ],
         },
         config: {
           responseModalities: [Modality.IMAGE],
