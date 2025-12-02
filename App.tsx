@@ -2900,7 +2900,7 @@ const App: React.FC = () => {
     setImageError(null);
     setGeneratedCopy(null);
     setCopyError(null);
-    let heroAssigned = false;
+    const newAssetIds: string[] = [];
 
     for (const file of files) {
       if (!ALLOWED_MIME_TYPES.includes(file.type)) {
@@ -2912,12 +2912,11 @@ const App: React.FC = () => {
       const previewUrl = URL.createObjectURL(file);
 
       const assetId = makeSceneId();
-      const assetLabel = `Product ${productAssets.length + 1}`;
       setProductAssets(prev => [
         ...prev,
         {
           id: assetId,
-          label: assetLabel,
+          label: `Product ${prev.length + 1}`,
           file: finalFile,
           previewUrl,
           createdAt: Date.now(),
@@ -2925,13 +2924,13 @@ const App: React.FC = () => {
           heightUnit: 'cm',
         },
       ]);
-      if (!heroAssigned) {
-        setActiveProductId(assetId);
-        heroAssigned = true;
-      }
+      newAssetIds.push(assetId);
+    }
+    if (newAssetIds.length) {
+      setActiveProductId(newAssetIds[0]);
     }
     advanceOnboardingFromStep(2);
-  }, [resetOutputs, advanceOnboardingFromStep, productAssets.length]);
+  }, [resetOutputs, advanceOnboardingFromStep]);
 
   const handleProductAssetSelect = useCallback(
     (assetId: string) => {

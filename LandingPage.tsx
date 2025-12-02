@@ -538,9 +538,8 @@ const LandingPage: React.FC = () => {
               <div>
                 <p className="text-sm uppercase tracking-widest text-indigo-300">Community Gallery</p>
                 <h2 className="text-3xl text-white font-semibold mt-2">Latest Creations From the Community</h2>
-                <p className="text-gray-400 mt-3 max-w-2xl space-y-2">
-                  <span>Images generated with the Free Plan appear here automatically.</span>
-                  <span>Images created using the invitation code <strong>713371</strong> (the complimentary 20-credit grant) are also highlighted in this gallery.</span>
+                <p className="text-gray-400 mt-3 max-w-2xl">
+                  Images generated with the Free Plan (including invitation credit generations) appear here automatically.
                 </p>
               </div>
               <Link
