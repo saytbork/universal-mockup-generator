@@ -2408,6 +2408,24 @@ const App: React.FC = () => {
     }
   }, [isProPhotographer]);
 
+  const getPartsForGeneration = (
+    finalPrompt: string,
+    base64: string,
+    mimeType: string,
+    options: MockupOptions
+  ) => {
+    if (options.compositionMode === 'ecom-blank') {
+      return [
+        { text: finalPrompt },
+        { inlineData: { data: base64, mimeType } },
+      ];
+    }
+    return [
+      { inlineData: { data: base64, mimeType } },
+      { text: finalPrompt },
+    ];
+  };
+
   const applyProPreset = useCallback((presetSettings: ProLookPreset['settings']) => {
     applyOptionsUpdate(prev => ({ ...prev, ...presetSettings }));
     setSelectedCategories(prev => {
@@ -3142,6 +3160,34 @@ Integrate the product physically into the environment:
 - generate correct reflections on glass, plastic, or metal,
 - preserve the exact design, size, colors, and branding of the uploaded product.
 `;
+    if (options.compositionMode === 'ecom-blank') {
+      prompt += `
+This image must use a pure solid background with the exact color: ${options.bgColor}.
+Do NOT generate rooms, environments, furniture, props or scenery.
+Keep the background perfectly uniform and flat.
+
+Place the product and the person exclusively on the ${options.sidePlacement} side of the frame.
+Leave large, clean negative space on the ${
+        options.sidePlacement === 'left' ? 'right' : 'left'
+      } side for text overlays.
+
+Use soft studio lighting suitable for Amazon, Shopify and paid ads.
+Do NOT add text, logos, watermarks or graphics.
+
+Insert the uploaded product cleanly into the scene with:
+- perfect edges,
+- precise shape preservation,
+- correct reflections,
+- realistic soft shadows on the flat background,
+- exact label, exact colors and exact proportions.
+
+Maintain correct human anatomy at all times:
+- natural hands,
+- correct finger shape,
+- proper wrist rotation,
+- realistic arm connection to the body.
+`;
+    }
     if (heightNotes) {
       prompt += `Respect real-world scale: ${clean(heightNotes)}. Adjust hands, props, and camera distance so the item visibly matches that measurement.`;
     }
@@ -3454,6 +3500,11 @@ Follow these layout rules:
 - Render in a photorealistic modern ecommerce style suitable for A+ content.
 `;
     }
+    if (options.compositionMode === 'ecom-blank') {
+      prompt += `
+If the model attempts to create a scene or environment, override it and force a solid background with the exact color ${options.bgColor}.
+`;
+    }
     prompt += ' Deliver the render at ultra-high fidelity: native 4K resolution (minimum 3840px on the long edge) so it still looks razor sharp when downscaled to 2K for alternate exports.';
     prompt += ` Final image must be high-resolution and free of any watermarks, text, or artificial elements. It should feel like a captured moment, not a staged ad.`;
 
@@ -3556,10 +3607,7 @@ Follow these layout rules:
       const response = await ai.models.generateContent({
         model: GEMINI_IMAGE_MODEL, // maintain this but enforce insert behavior through the prompt and config above
         contents: {
-          parts: [
-            { inlineData: { data: base64, mimeType } },
-            { text: finalPrompt },
-          ],
+          parts: getPartsForGeneration(finalPrompt, base64, mimeType, options),
         },
         config: {
           responseModalities: [Modality.IMAGE],
@@ -3568,7 +3616,8 @@ Follow these layout rules:
             responseMimeType: 'image/png',
             aspectRatio,
             preserveReferenceImage: true,
-            temperature: 0.4,
+            temperature: 0.25,
+            topP: 0.9,
           },
         },
       });
@@ -3677,7 +3726,8 @@ Follow these layout rules:
             responseMimeType: 'image/png',
             aspectRatio,
             preserveReferenceImage: true,
-            temperature: 0.4,
+            temperature: 0.25,
+            topP: 0.9,
           },
         },
       });
