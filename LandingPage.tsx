@@ -65,6 +65,29 @@ const steps = [
 
 type GalleryItem = { id: string; imageUrl: string; title: string };
 
+const FALLBACK_COMMUNITY_GALLERY_ITEMS: GalleryItem[] = [
+  {
+    id: 'fallback-1',
+    imageUrl: 'https://images.unsplash.com/photo-1488580846396-4d2daf70aa6c?auto=format&fit=crop&w=1200&q=80',
+    title: 'Sunlit skincare line in a bright studio',
+  },
+  {
+    id: 'fallback-2',
+    imageUrl: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80',
+    title: 'Minimalist tech mockup with ambient light',
+  },
+  {
+    id: 'fallback-3',
+    imageUrl: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=1200&q=80',
+    title: 'Cozy coffee moment for lifestyle ads',
+  },
+  {
+    id: 'fallback-4',
+    imageUrl: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=1200&q=80',
+    title: 'Bold hero product shot on a colored background',
+  },
+];
+
 const getEnv = (key: string) => import.meta.env[key as keyof ImportMetaEnv] as string | undefined;
 const DEFAULT_CREATOR_LINK = 'https://buy.stripe.com/14A28tb1Sgr0b2Y5HBeIw02';
 const DEFAULT_CREATOR_YEARLY_LINK = 'https://buy.stripe.com/fZu5kF3zq1w62wsc5ZeIw00';
@@ -165,6 +188,11 @@ const LandingPage: React.FC = () => {
   const [heroEmail, setHeroEmail] = useState('');
   const [heroStatus, setHeroStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [heroMessage, setHeroMessage] = useState<string | null>(null);
+  const [communityGalleryItems, setCommunityGalleryItems] = useState<GalleryItem[]>(
+    FALLBACK_COMMUNITY_GALLERY_ITEMS
+  );
+  const [galleryLoading, setGalleryLoading] = useState(true);
+  const [activeMode, setActiveMode] = useState('lifestyle');
   const handleSmoothScroll = useCallback((selector: string) => {
     return (event: React.MouseEvent) => {
       event.preventDefault();
@@ -271,6 +299,7 @@ const LandingPage: React.FC = () => {
   useEffect(() => {
     const db = getClientFirestore();
     if (!db) {
+      setCommunityGalleryItems(FALLBACK_COMMUNITY_GALLERY_ITEMS);
       setGalleryLoading(false);
       return;
     }
@@ -298,11 +327,16 @@ const LandingPage: React.FC = () => {
             title: segments.length ? segments.join(' · ') : 'Community creation',
           };
         });
-        setCommunityGalleryItems(items);
+        if (items.length === 0) {
+          setCommunityGalleryItems(FALLBACK_COMMUNITY_GALLERY_ITEMS);
+        } else {
+          setCommunityGalleryItems(items);
+        }
         setGalleryLoading(false);
       },
       error => {
         console.error('Community gallery snapshot failed', error);
+        setCommunityGalleryItems(FALLBACK_COMMUNITY_GALLERY_ITEMS);
         setGalleryLoading(false);
       }
     );
@@ -323,7 +357,6 @@ const LandingPage: React.FC = () => {
     setInviteError(null);
   };
 
-  const [activeMode, setActiveMode] = useState('lifestyle');
   const modeSlides = [
     {
       id: 'lifestyle',
@@ -350,9 +383,6 @@ const LandingPage: React.FC = () => {
       image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1200&q=80',
     },
   ];
-
-  const [communityGalleryItems, setCommunityGalleryItems] = useState<GalleryItem[]>([]);
-  const [galleryLoading, setGalleryLoading] = useState(true);
 
   return (
     <>
