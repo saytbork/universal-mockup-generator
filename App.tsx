@@ -2900,6 +2900,7 @@ const App: React.FC = () => {
     setImageError(null);
     setGeneratedCopy(null);
     setCopyError(null);
+    let heroAssigned = false;
 
     for (const file of files) {
       if (!ALLOWED_MIME_TYPES.includes(file.type)) {
@@ -2924,7 +2925,10 @@ const App: React.FC = () => {
           heightUnit: 'cm',
         },
       ]);
-      setActiveProductId(assetId);
+      if (!heroAssigned) {
+        setActiveProductId(assetId);
+        heroAssigned = true;
+      }
     }
     advanceOnboardingFromStep(2);
   }, [resetOutputs, advanceOnboardingFromStep, productAssets.length]);
@@ -4759,6 +4763,7 @@ If the model attempts to create a scene or environment, override it and force a 
                                     options={PRO_LENS_OPTIONS}
                                     selectedValue={options.proLens ?? ''}
                                     onChange={(value) => handleOptionChange('proLens', value, 'Product Details')}
+                                    labelTooltip="Pick a lens profile (focal length/optics) to define depth of field and hero perspective."
                                     allowCustom
                                     customLabel="Custom lens"
                                     customPlaceholder="Describe the lens setup"
@@ -4768,6 +4773,7 @@ If the model attempts to create a scene or environment, override it and force a 
                                     options={PRO_LIGHTING_RIG_OPTIONS}
                                     selectedValue={options.proLightingRig ?? ''}
                                     onChange={(value) => handleOptionChange('proLightingRig', value, 'Product Details')}
+                                    labelTooltip="Select your lighting kit to craft reflections, gradients, and the overall mood."
                                     allowCustom
                                     customLabel="Custom rig"
                                     customPlaceholder="Describe the lighting rig"
@@ -4777,6 +4783,7 @@ If the model attempts to create a scene or environment, override it and force a 
                                     options={PRO_POST_TREATMENT_OPTIONS}
                                     selectedValue={options.proPostTreatment ?? ''}
                                     onChange={(value) => handleOptionChange('proPostTreatment', value, 'Product Details')}
+                                    labelTooltip="Choose the finishing treatment that sets the final polish—glossy, matte, grainy, etc."
                                     allowCustom
                                     customLabel="Custom finish"
                                     customPlaceholder="Describe the post treatment"

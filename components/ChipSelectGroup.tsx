@@ -12,6 +12,7 @@ interface ChipSelectGroupProps {
   allowCustom?: boolean;
   customLabel?: string;
   customPlaceholder?: string;
+  labelTooltip?: string;
 }
 
 const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
@@ -46,7 +47,25 @@ const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
 
   return (
     <div className="flex flex-col space-y-3">
-      <label className="text-sm font-medium text-gray-400">{label}</label>
+      <div className="flex items-center gap-2">
+        <label className="text-sm font-medium text-gray-400">{label}</label>
+        {labelTooltip && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                className="h-6 w-6 rounded-full border border-white/20 bg-gray-700 text-xs font-semibold text-white transition hover:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                aria-label={`${label} info`}
+              >
+                ?
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-xs text-sm opacity-90">
+              {labelTooltip}
+            </TooltipContent>
+          </Tooltip>
+        )}
+      </div>
       <div>
         <div className="flex flex-nowrap lg:flex-wrap gap-2 py-2 overflow-x-auto lg:overflow-visible custom-scrollbar">
           {normalizedOptions.map((option) => {
