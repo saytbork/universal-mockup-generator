@@ -2,7 +2,6 @@ import React from 'react';
 import { normalizeOptions } from '../src/system/normalizeOptions';
 import { Option } from '../types';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { tooltipMap } from '@/system/tooltipMap';
 
 interface ChipSelectGroupProps {
   label: string;
@@ -51,8 +50,7 @@ const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
       <div>
         <div className="flex flex-nowrap lg:flex-wrap gap-2 py-2 overflow-x-auto lg:overflow-visible custom-scrollbar">
           {normalizedOptions.map((option) => {
-            const normalizedLabel = option.label;
-            const tooltip = tooltipMap?.[normalizedLabel] || null;
+            const tooltip = option.tooltip || null;
             const isActive = selectedValue === option.value;
 
             return (
