@@ -3875,8 +3875,8 @@ If the model attempts to create a scene or environment, override it and force a 
         },
       });
 
-      const parts = response?.candidates?.[0]?.content?.parts ?? [];
-      for (const part of parts) {
+      const responseParts = response?.candidates?.[0]?.content?.parts ?? [];
+      for (const part of responseParts) {
         if ('inlineData' in part && (part as any).inlineData?.data) {
           const editedUrl = `data:image/png;base64,${(part as any).inlineData.data}`;
           setGeneratedImageUrl(editedUrl);
