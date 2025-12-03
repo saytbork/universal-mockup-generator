@@ -789,7 +789,7 @@ const App: React.FC = () => {
     | 'results'
     | 'differentiators'
     | 'trust';
-  type ConversionStylePreset = 'warm' | 'minimal' | 'vibrant';
+  type ConversionStylePreset = 'none' | 'warm' | 'minimal' | 'vibrant';
   type ConversionTextLine = { text: string; icon?: string };
   type ConversionTestimonial = { quote: string; name: string; icon?: string };
   type ConversionTemplates = {
@@ -847,7 +847,7 @@ const App: React.FC = () => {
     fontFamily: 'Inter',
     fontSize: 18,
     backgroundColor: '#FFFFFF',
-    stylePreset: 'warm',
+    stylePreset: 'none',
     activeTemplate: 'valueProp',
     templates: createDefaultConversionTemplates(),
   });
@@ -1930,7 +1930,7 @@ const App: React.FC = () => {
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-semibold text-white">Preset Style Filter</label>
                 <div className="flex gap-2">
-                  {(['warm', 'minimal', 'vibrant'] as const).map(preset => (
+                  {(['none', 'warm', 'minimal', 'vibrant'] as const).map(preset => (
                     <button
                       key={preset}
                       type="button"
@@ -1938,7 +1938,7 @@ const App: React.FC = () => {
                       className={`flex-1 rounded-lg border px-3 py-2 text-sm font-semibold capitalize transition ${conversionBuilderState.stylePreset === preset ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
                       disabled={!useConversionBuilder}
                     >
-                      {preset}
+                      {preset === 'none' ? 'None' : preset}
                     </button>
                   ))}
                 </div>
@@ -3243,261 +3243,54 @@ const App: React.FC = () => {
     }
   }, [applyProPreset]);
 
-  type TemplateBaseInput = {
-    alignment: string;
-    backgroundColor: string;
-    fontFamily: string;
-    fontSize: number;
-    presetStyle: string;
-  };
-
-  const formatLine = (label: string, text?: string, icon?: string) => {
-    const cleanText = text?.trim();
-    const cleanIcon = icon?.trim();
-    if (!cleanText) return '';
-    return `${label}: ${cleanText}${cleanIcon ? ` ${cleanIcon}` : ''}`;
-  };
-
-  const buildTemplate1 = (base: TemplateBaseInput, data: ConversionTemplates['valueProp']) => {
-    const content = [
-      formatLine('Headline', data.headline),
-      formatLine('Benefit 1', data.benefits[0]?.text, data.benefits[0]?.icon),
-      formatLine('Benefit 2', data.benefits[1]?.text, data.benefits[1]?.icon),
-      formatLine('Benefit 3', data.benefits[2]?.text, data.benefits[2]?.icon),
-    ].filter(Boolean);
-
-    return [
-      'Generate one single ecommerce image.',
-      '',
-      'Template: Value Proposition Image.',
-      '',
-      `Show the product clearly using the selected alignment: ${base.alignment}.`,
-      `Use the background color: ${base.backgroundColor}.`,
-      `Use font family: ${base.fontFamily} at size ${base.fontSize}.`,
-      `Use the selected preset style: ${base.presetStyle}.`,
-      '',
-      'Content:',
-      ...content,
-      '',
-      'Layout:',
-      'Product visible and dominant.',
-      'Benefits placed near the product with clean spacing.',
-      '',
-      'Do not invent or assume anything.',
-      'Use only the provided text.',
-    ].filter(Boolean).join('\n');
-  };
-
-  const buildTemplate2 = (base: TemplateBaseInput, data: ConversionTemplates['whatDoesItDo']) => {
-    const content = [
-      formatLine('Headline', data.headline),
-      formatLine('Benefit 1', data.benefits[0]?.text, data.benefits[0]?.icon),
-      formatLine('Benefit 2', data.benefits[1]?.text, data.benefits[1]?.icon),
-      formatLine('Benefit 3', data.benefits[2]?.text, data.benefits[2]?.icon),
-      formatLine('Benefit 4', data.benefits[3]?.text, data.benefits[3]?.icon),
-    ].filter(Boolean);
+  const buildConversionImagePrompt = (state: ConversionBuilderState, sceneOptions: MockupOptions) => {
+    const safeZone =
+      state.alignment === 'left'
+        ? 'Leave a clean negative space on the left for overlays; keep the product slightly right of center.'
+        : state.alignment === 'right'
+          ? 'Leave a clean negative space on the right for overlays; keep the product slightly left of center.'
+          : 'Keep the product centered with subtle negative space around it for overlays.';
+    const modeLabel = sceneOptions.contentStyle === 'product' ? 'Product / Studio mode' : 'Lifestyle / UGC mode';
+    const sceneNotes = [
+      `Scene: ${sceneOptions.setting}`,
+      `Environment: ${sceneOptions.environmentOrder}`,
+      `Lighting: ${sceneOptions.lighting}`,
+      `Camera: ${sceneOptions.camera}`,
+      `Perspective: ${sceneOptions.perspective}`,
+      `Composition: ${sceneOptions.compositionMode}`,
+      `Aspect ratio: ${sceneOptions.aspectRatio}`,
+      `Placement: ${sceneOptions.placementStyle} with ${sceneOptions.placementCamera}`,
+      `Product plane: ${sceneOptions.productPlane}`,
+    ].join(' · ');
+    const personNotes =
+      sceneOptions.ageGroup === 'no person'
+        ? 'No person in frame; product-forward composition.'
+        : `Include a real person consistent with: ${describeAgeGroup(sceneOptions.ageGroup, sceneOptions.gender)}, ethnicity ${sceneOptions.ethnicity}, mood ${sceneOptions.personMood}, pose ${sceneOptions.personPose}, wardrobe ${sceneOptions.wardrobeStyle}, expression ${sceneOptions.personExpression}, props ${sceneOptions.personProps}.`;
+    const stylePresetNote =
+      state.stylePreset === 'warm'
+        ? 'Mood: warm and inviting while keeping product colors accurate.'
+        : state.stylePreset === 'minimal'
+          ? 'Mood: minimal and clean.'
+          : state.stylePreset === 'vibrant'
+            ? 'Mood: vibrant and energetic without altering product colors.'
+            : 'Mood: neutral styling.';
+    const backgroundNote = state.backgroundColor ? `Background color target: ${state.backgroundColor}.` : '';
+    const fontNote = `Typography preference for later overlays: ${state.fontFamily} at ${state.fontSize}px (do not render text).`;
 
     return [
-      'Generate one single ecommerce image.',
-      '',
-      'Template: What Does It Do.',
-      '',
-      `Use alignment: ${base.alignment}.`,
-      `Background: ${base.backgroundColor}.`,
-      `Typography: ${base.fontFamily}, size ${base.fontSize}.`,
-      `Preset: ${base.presetStyle}.`,
-      '',
-      'Content:',
-      ...content,
-      'Product image required.',
-      '',
-      'Layout:',
-      'If alignment left, product left and benefits right.',
-      'If center, product center and benefits below.',
-      'If right, product right and benefits left.',
-      '',
-      'Do not include steps or instructions.',
-      'Do not invent anything.',
-    ].filter(Boolean).join('\n');
-  };
-
-  const buildTemplate3 = (base: TemplateBaseInput, data: ConversionTemplates['howItWorks']) => {
-    const content = [
-      formatLine('Headline', data.headline),
-      formatLine('Step 1', data.steps[0]?.text, data.steps[0]?.icon),
-      formatLine('Step 2', data.steps[1]?.text, data.steps[1]?.icon),
-      formatLine('Step 3', data.steps[2]?.text, data.steps[2]?.icon),
-      data.footer?.trim() ? `Optional footer: ${data.footer.trim()}` : '',
-    ].filter(Boolean);
-
-    return [
-      'Generate one single ecommerce image.',
-      '',
-      'Template: How It Works (Steps 1–3).',
-      '',
-      `Alignment: ${base.alignment}`,
-      `Background: ${base.backgroundColor}`,
-      `Font: ${base.fontFamily} ${base.fontSize}`,
-      `Preset: ${base.presetStyle}`,
-      '',
-      'Content:',
-      ...content,
-      '',
-      'Layout:',
-      'Three numbered steps.',
-      'Product visible.',
-      'Follow alignment rules.',
-      '',
-      'Do not include benefits or testimonials.',
-      'Do not invent anything.',
-    ].filter(Boolean).join('\n');
-  };
-
-  const buildTemplate4 = (base: TemplateBaseInput, data: ConversionTemplates['results']) => {
-    const header = [
-      'Generate one single ecommerce image.',
-      '',
-      data.variant === 'beforeAfter'
-        ? 'Template: Results — Before and After.'
-        : 'Template: Results — Testimonials.',
-      '',
-      `Alignment: ${base.alignment}`,
-      `Background: ${base.backgroundColor}`,
-      `Font: ${base.fontFamily} ${base.fontSize}`,
-      `Preset: ${base.presetStyle}`,
-      '',
-      'Content:',
-      formatLine('Headline', data.headline),
-    ].filter(Boolean);
-
-    if (data.variant === 'beforeAfter') {
-      header.push(
-        formatLine('Before', data.before.text, data.before.icon),
-        formatLine('After', data.after.text, data.after.icon),
-        'Optional product.',
-        '',
-        'Layout:',
-        'Side-by-side before and after.',
-        '',
-        'Do not invent results or benefits.'
-      );
-    } else {
-      const testimonials = data.testimonials
-        .map((item, index) => {
-          if (!item.quote.trim() && !item.name.trim()) return '';
-          const name = item.name.trim();
-          const icon = item.icon?.trim();
-          return `Testimonial ${index + 1}: ${item.quote.trim()}${name ? ` — ${name}` : ''}${icon ? ` ${icon}` : ''}`;
-        })
-        .filter(Boolean);
-      header.push(
-        ...testimonials,
-        'Optional product.',
-        '',
-        'Do not invent testimonials or results.'
-      );
-    }
-
-    return header.filter(Boolean).join('\n');
-  };
-
-  const buildTemplate5 = (base: TemplateBaseInput, data: ConversionTemplates['differentiators']) => {
-    const content = [
-      formatLine('Headline', data.headline),
-      formatLine('Differentiator 1', data.points[0]?.text, data.points[0]?.icon),
-      formatLine('Differentiator 2', data.points[1]?.text, data.points[1]?.icon),
-      formatLine('Differentiator 3', data.points[2]?.text, data.points[2]?.icon),
-      formatLine('Differentiator 4', data.points[3]?.text, data.points[3]?.icon),
-    ].filter(Boolean);
-
-    return [
-      'Generate one single ecommerce image.',
-      '',
-      'Template: How Is It Different.',
-      '',
-      `Alignment: ${base.alignment}`,
-      `Background: ${base.backgroundColor}`,
-      `Font: ${base.fontFamily} ${base.fontSize}`,
-      `Preset: ${base.presetStyle}`,
-      '',
-      'Content:',
-      ...content,
-      'Include product or usage image.',
-      '',
-      'Layout:',
-      'Follow the selected alignment.',
-      '',
-      'Do not include steps, results or testimonials.',
-      'Do not invent anything.',
-    ].filter(Boolean).join('\n');
-  };
-
-  const buildTemplate6 = (base: TemplateBaseInput, data: ConversionTemplates['trust']) => {
-    const content = [
-      formatLine('Headline', data.headline),
-      formatLine('Trust point 1', data.trustPoints[0]?.text, data.trustPoints[0]?.icon),
-      formatLine('Trust point 2', data.trustPoints[1]?.text, data.trustPoints[1]?.icon),
-      formatLine('Trust point 3', data.trustPoints[2]?.text, data.trustPoints[2]?.icon),
-      formatLine('Trust point 4', data.trustPoints[3]?.text, data.trustPoints[3]?.icon),
-      data.badge?.trim() ? `Optional guarantee badge: ${data.badge.trim()}` : '',
-      data.socialProof?.trim() ? `Optional social proof: ${data.socialProof.trim()}` : '',
-    ].filter(Boolean);
-
-    return [
-      'Generate one single ecommerce image.',
-      '',
-      'Template: Guarantee & Trust.',
-      '',
-      `Alignment: ${base.alignment}`,
-      `Background: ${base.backgroundColor}`,
-      `Font: ${base.fontFamily} ${base.fontSize}`,
-      `Preset: ${base.presetStyle}`,
-      '',
-      'Content:',
-      ...content,
-      'Product required.',
-      '',
-      'Layout:',
-      'Product left/center/right.',
-      'Trust list on opposite side.',
-      '',
-      'Do not invent trust badges or claims.',
-    ].filter(Boolean).join('\n');
-  };
-
-  const buildConversionImagePrompt = (state: ConversionBuilderState) => {
-    const selectedTemplate: Record<ConversionTemplateId, number> = {
-      valueProp: 1,
-      whatDoesItDo: 2,
-      howItWorks: 3,
-      results: 4,
-      differentiators: 5,
-      trust: 6,
-    };
-    const base: TemplateBaseInput = {
-      alignment: state.alignment,
-      backgroundColor: state.backgroundColor,
-      fontFamily: state.fontFamily,
-      fontSize: state.fontSize,
-      presetStyle: state.stylePreset,
-    };
-
-    switch (selectedTemplate[state.activeTemplate]) {
-      case 1:
-        return buildTemplate1(base, state.templates.valueProp);
-      case 2:
-        return buildTemplate2(base, state.templates.whatDoesItDo);
-      case 3:
-        return buildTemplate3(base, state.templates.howItWorks);
-      case 4:
-        return buildTemplate4(base, state.templates.results);
-      case 5:
-        return buildTemplate5(base, state.templates.differentiators);
-      case 6:
-        return buildTemplate6(base, state.templates.trust);
-      default:
-        return '';
-    }
+      'Generate only the base conversion image.',
+      'Do not add any text, icons, symbols, diagrams, bullets, banners, or logos. Leave space for overlays.',
+      `Respect all current ${modeLabel} settings and product realism: ${sceneNotes}.`,
+      personNotes,
+      'Keep the product accurate to the uploaded reference image in color, shape, and proportion.',
+      backgroundNote,
+      stylePresetNote,
+      fontNote,
+      safeZone,
+      'Leave clean negative space as instructed for overlays. No typography or icons should appear inside the AI-rendered image.',
+    ]
+      .filter(Boolean)
+      .join('\n');
   };
 
   const buildCopyPrompt = useCallback(
@@ -3523,7 +3316,7 @@ const App: React.FC = () => {
       }
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string, apiVersion: 'v1beta' });
       const prompt = useConversionBuilder
-        ? buildConversionImagePrompt(conversionBuilderState)
+        ? buildConversionImagePrompt(conversionBuilderState, options)
         : buildCopyPrompt(options);
       const response = await ai.models.generateContent({
         model: GEMINI_IMAGE_MODEL,
@@ -4072,7 +3865,7 @@ const App: React.FC = () => {
 
   const constructPrompt = (_bundleProductsOverride?: ProductId[] | null): string => {
     if (useConversionBuilder) {
-      return buildConversionImagePrompt(conversionBuilderState);
+      return buildConversionImagePrompt(conversionBuilderState, options);
     }
     return buildCopyPrompt(options);
   };
