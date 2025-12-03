@@ -248,6 +248,32 @@ const SELFIE_DIRECTIONS: Record<string, SelfieMeta> = {
 const getSelfieLabel = (value: string) =>
   SELFIE_TYPE_OPTIONS.find(option => option.value === value)?.label ?? SELFIE_TYPE_OPTIONS[0].label;
 
+type CompositionMode = 'balanced' | 'product-first' | 'model-first' | 'fifty-fifty';
+const COMPOSITION_BLOCKS: Record<CompositionMode, string> = {
+  balanced: `
+Place the person and the product in the same visual plane.
+Keep both naturally in focus with medium distance.
+Avoid pushing the person into deep background.
+Avoid oversized or floating product overlays.
+`,
+  'product-first': `
+Product slightly closer to the camera but still physically integrated in the hand.
+Keep the person in mid-ground, not heavily blurred.
+Maintain natural depth of field without aggressive background separation.
+`,
+  'model-first': `
+Keep the person in the foreground with clear focus and prominence.
+Product held naturally in hand, slightly behind the person but still readable.
+Avoid exaggerated product enlargement or foreground dominance.
+`,
+  'fifty-fifty': `
+Place the person’s face and the product both in the foreground.
+Tight framing where both elements share prominence equally.
+No superimposition or unrealistic scale differences.
+Natural lighting consistency on both elements.
+`,
+};
+
 const HERO_LANDING_PRESET_VALUE = 'hero-landing';
 const FORMULATION_EXPERT_PRESETS = [
   {
@@ -719,6 +745,7 @@ const App: React.FC = () => {
   const [modelReferenceFile, setModelReferenceFile] = useState<File | null>(null);
   const [modelReferencePreview, setModelReferencePreview] = useState<string | null>(null);
   const [modelReferenceNotes, setModelReferenceNotes] = useState('');
+  const [compositionMode, setCompositionMode] = useState<CompositionMode>('balanced');
   const [activeSupplementPreset, setActiveSupplementPreset] = useState('none');
   const [supplementPresetCue, setSupplementPresetCue] = useState<string | null>(null);
   const [supplementBackgroundColor, setSupplementBackgroundColor] = useState('');
@@ -943,6 +970,11 @@ const App: React.FC = () => {
   const contentStyleValue = hasSelectedIntent ? options.contentStyle : CONTENT_STYLE_OPTIONS[0].value;
   const isProductPlacement = contentStyleValue === 'product';
   const hasModelReference = Boolean(modelReferenceFile);
+  useEffect(() => {
+    if (!hasModelReference) {
+      setCompositionMode('balanced');
+    }
+  }, [hasModelReference]);
   const isPersonOptionsDisabled = isProductPlacement || options.ageGroup === 'no person' || hasModelReference;
   const personControlsDisabled = isPersonOptionsDisabled;
   const personInScene = !isPersonOptionsDisabled;
@@ -3117,15 +3149,7 @@ const App: React.FC = () => {
         ? customHeroDescription
         : heroDescriptionPreset?.description ?? '';
     const heroDescriptionText = clean(heroDescriptionSource);
-    const compositionOverride = hasModelReference
-      ? `
-Use a natural camera composition.
-Keep the person visible at mid-distance with face and expression recognizable.
-Avoid extreme foreground product dominance.
-Avoid artificial product overlay.
-Match shadows, reflections, and contact points between hand and product.
-`
-      : '';
+    const compositionBlock = hasModelReference ? COMPOSITION_BLOCKS[compositionMode] : '';
 
     const getInteractionDescription = (interaction: string): string => {
       switch (interaction) {
@@ -3374,6 +3398,9 @@ Maintain correct human anatomy at all times:
 
     if (personIncluded) {
       if (hasModelReference) {
+        if (compositionBlock) {
+          prompt += compositionBlock;
+        }
         prompt += 'Use the uploaded model reference image as the only on-camera talent. Match their face, hair, skin tone, outfit, and proportions exactly—do not replace or alter their appearance.';
         if (modelReferenceNotes.trim()) {
           prompt += ` Follow this direction for the model: ${clean(modelReferenceNotes.trim())}.`;
@@ -3383,7 +3410,24 @@ Maintain correct human anatomy at all times:
         if (modelReferenceFile) {
           prompt += ' Treat the reference photo as ground truth for identity and styling.';
         }
-        prompt += ' Make the product and the person exist in the same physical space with natural scale and depth. Do not superimpose or float the product in front of the scene. Ensure the hand is holding the product naturally with realistic size and perspective. Place the person in mid-ground, not deep background, with soft but recognizable focus and subtle bokeh that does not aggressively blur their face. Integrate the product naturally in the person\'s hand with correct scale and lighting. Do not enlarge the product beyond realistic proportions. Do not push the person into deep background.';
+        prompt += `
+Use the uploaded model reference as the exact identity.
+Do not modify face, age, hair, skin tone, or physical attributes.
+Preserve identity completely.
+Integrate the product naturally in the person's hand with correct scale and perspective.
+Match lighting and shadows between person and product.
+Do not superimpose or float the product.
+
+Scene:
+${cleanSetting}
+${cleanLighting}
+${cleanCamera}
+
+Product:
+${cleanProductMaterial}
+${cleanProductPlane}
+${cleanPlacementStyle}
+`;
       } else {
         if (options.creatorPreset) {
           prompt += `The overall creative persona is ${clean(options.creatorPreset)}. `;
@@ -3499,7 +3543,7 @@ Maintain correct human anatomy at all times:
         if (options.personProps !== personPropNoneValue) {
           prompt += `Add supporting props such as ${cleanPersonProps} to reinforce the lifestyle context. `;
         }
-        if (options.productInteraction === 'showing to camera') {
+        if (!hasModelReference && options.productInteraction === 'showing to camera') {
           prompt += `Ensure the product is held close to the camera lens in the foreground, occupying the main focal plane with crisp sharpness. The person stays behind the product, slightly defocused or secondary in the frame. The product must NOT appear in the background and must always remain in the front-most visual layer. `;
         }
         if (options.microLocation !== microLocationDefault) {
@@ -3620,9 +3664,6 @@ If the model attempts to create a scene or environment, override it and force a 
     }
     prompt += ' Deliver the render at ultra-high fidelity: native 4K resolution (minimum 3840px on the long edge) so it still looks razor sharp when downscaled to 2K for alternate exports.';
     prompt += ` Final image must be high-resolution and free of any watermarks, text, or artificial elements. It should feel like a captured moment, not a staged ad.`;
-    if (compositionOverride) {
-      prompt += compositionOverride;
-    }
 
     return prompt;
   }
@@ -3764,15 +3805,16 @@ If the model attempts to create a scene or environment, override it and force a 
       setGeneratedImageUrl(finalUrl);
       const galleryPlan = determineGalleryPlan();
       if (galleryPlan) {
-        console.log('Sending gallery POST', { finalUrl, galleryPlan });
+        const galleryPayload: Record<string, string> = { url: finalUrl, plan: galleryPlan };
+        if (hasModelReference) {
+          galleryPayload.compositionMode = compositionMode;
+        }
+        console.log('Sending gallery POST', galleryPayload);
         try {
           const response = await fetch('/api/galleryHandler?action=add', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              url: finalUrl,
-              plan: galleryPlan,
-            }),
+            body: JSON.stringify(galleryPayload),
           });
           console.log('Gallery add status:', response.status);
           if (!response.ok) {
@@ -4513,19 +4555,37 @@ If the model attempts to create a scene or environment, override it and force a 
               </div>
               {/* MoodReferencePanel temporarily hidden per request */}
               <div className="flex flex-col gap-3">
-                <ModelReferencePanel
-                  onFileSelect={handleModelReferenceUpload}
-                  previewUrl={modelReferencePreview}
-                  notes={modelReferenceNotes}
-                  onNotesChange={setModelReferenceNotes}
-                  onClear={handleClearModelReference}
-                  disabled={!hasUploadedProduct || isProductPlacement}
-                  lockedMessage={
-                    !hasUploadedProduct
-                      ? "Upload your product image first to attach a model."
-                      : 'Model references are only available in UGC Lifestyle scenes with a person enabled. Switch out of Product Placement and pick an age group to unlock this.'
+              <ModelReferencePanel
+                onFileSelect={handleModelReferenceUpload}
+                previewUrl={modelReferencePreview}
+                notes={modelReferenceNotes}
+                onNotesChange={setModelReferenceNotes}
+                onClear={handleClearModelReference}
+                disabled={!hasUploadedProduct || isProductPlacement}
+                lockedMessage={
+                  !hasUploadedProduct
+                    ? "Upload your product image first to attach a model."
+                    : 'Model references are only available in UGC Lifestyle scenes with a person enabled. Switch out of Product Placement and pick an age group to unlock this.'
                   }
                 />
+                {hasModelReference && (
+                  <div className="rounded-2xl border border-white/10 bg-black/30 p-4 space-y-2 text-sm">
+                    <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Composition Mode</p>
+                    <select
+                      value={compositionMode}
+                      onChange={event => setCompositionMode(event.target.value as CompositionMode)}
+                      className="w-full rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                    >
+                      <option value="balanced">Balanced</option>
+                      <option value="product-first">Product First</option>
+                      <option value="model-first">Model First</option>
+                      <option value="fifty-fifty">Fifty / Fifty</option>
+                    </select>
+                    <p className="text-[11px] text-gray-400">
+                      Control which subject leads the frame while keeping both elements physically integrated.
+                    </p>
+                  </div>
+                )}
                 {hasUploadedProduct && !personInScene && !isProductPlacement && !hasModelReference && (
                   <p className="text-xs text-amber-300">
                     Model references only apply when this scene uses UGC Lifestyle with a person selected. Switch off Product Placement and choose an age so the same talent can carry across your morning/afternoon/night shots.
