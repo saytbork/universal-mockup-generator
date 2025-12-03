@@ -2284,14 +2284,22 @@ const App: React.FC = () => {
   );
 
   const handleHeroPosePresetSelect = useCallback((value: string) => {
-    if (value === 'none' || value === 'custom') {
+    if (value === 'none') {
       setSelectedHeroPreset('custom');
       setHeroPosePromptCue(null);
       return;
     }
-    const preset = HERO_PERSON_PRESET_LOOKUP[value];
-    if (!preset) return;
     setSelectedHeroPreset(value);
+    setActiveTalentPreset('custom');
+    if (value === 'custom') {
+      setHeroPosePromptCue(null);
+      return;
+    }
+    const preset = HERO_PERSON_PRESET_LOOKUP[value];
+    if (!preset) {
+      setHeroPosePromptCue(null);
+      return;
+    }
     setHeroPosePromptCue(preset.promptCue);
     applyOptionsUpdate(prev => ({ ...prev, ...preset.settings }));
     setSelectedCategories(prev => {
@@ -2299,7 +2307,6 @@ const App: React.FC = () => {
       Object.keys(preset.settings).forEach(key => next.add(key as OptionCategory));
       return next;
     });
-    setActiveTalentPreset('custom');
   }, [applyOptionsUpdate]);
   const handleTalentLinkToggle = useCallback(() => {
     if (isTalentLinkedAcrossScenes) {

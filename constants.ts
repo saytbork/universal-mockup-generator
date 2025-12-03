@@ -794,11 +794,6 @@ export const HERO_PERSON_DESCRIPTION_PRESETS: HeroPersonDescriptionPreset[] = [
     description: 'Model lounging on the floor or picnic mat with bottles scattered around.',
   },
   {
-    id: 'custom',
-    label: 'Custom',
-    description: 'Write your own hero pose or interaction',
-  },
-  {
     id: 'soft-studio-hold',
     label: 'Soft Studio Hold',
     description:
@@ -862,6 +857,11 @@ export const HERO_PERSON_DESCRIPTION_PRESETS: HeroPersonDescriptionPreset[] = [
     label: 'Motion Reach',
     description:
       'Creator takes a slight step forward while offering the product toward the lens for an active feel.',
+  },
+  {
+    id: 'custom',
+    label: 'Custom',
+    description: 'Write your own hero pose or interaction',
   },
 ];
 
