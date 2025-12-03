@@ -3117,6 +3117,15 @@ const App: React.FC = () => {
         ? customHeroDescription
         : heroDescriptionPreset?.description ?? '';
     const heroDescriptionText = clean(heroDescriptionSource);
+    const compositionOverride = hasModelReference
+      ? `
+Use a natural camera composition.
+Keep the person visible at mid-distance with face and expression recognizable.
+Avoid extreme foreground product dominance.
+Avoid artificial product overlay.
+Match shadows, reflections, and contact points between hand and product.
+`
+      : '';
 
     const getInteractionDescription = (interaction: string): string => {
       switch (interaction) {
@@ -3149,7 +3158,7 @@ const App: React.FC = () => {
       ? `The shot should feel candid, emotional, and cinematic, as if taken by a real person with a ${cleanCamera}. Embrace believable imperfections—slight motion blur, a little lens smudge, off-center framing, uneven window light—so it reads as everyday life rather than a polished model shoot. `
       : `The shot should feel refined and advertising-ready, with deliberate staging captured on a ${cleanCamera}. `;
 
-    if (isHeroLandingMode) {
+    if (isHeroLandingMode && !hasModelReference) {
       const heroBackground =
         supplementBackgroundColor.trim() ||
         HERO_LANDING_META?.heroLandingConfig?.backgroundColor ||
@@ -3374,6 +3383,7 @@ Maintain correct human anatomy at all times:
         if (modelReferenceFile) {
           prompt += ' Treat the reference photo as ground truth for identity and styling.';
         }
+        prompt += ' Make the product and the person exist in the same physical space with natural scale and depth. Do not superimpose or float the product in front of the scene. Ensure the hand is holding the product naturally with realistic size and perspective. Place the person in mid-ground, not deep background, with soft but recognizable focus and subtle bokeh that does not aggressively blur their face. Integrate the product naturally in the person\'s hand with correct scale and lighting. Do not enlarge the product beyond realistic proportions. Do not push the person into deep background.';
       } else {
         if (options.creatorPreset) {
           prompt += `The overall creative persona is ${clean(options.creatorPreset)}. `;
@@ -3610,6 +3620,9 @@ If the model attempts to create a scene or environment, override it and force a 
     }
     prompt += ' Deliver the render at ultra-high fidelity: native 4K resolution (minimum 3840px on the long edge) so it still looks razor sharp when downscaled to 2K for alternate exports.';
     prompt += ` Final image must be high-resolution and free of any watermarks, text, or artificial elements. It should feel like a captured moment, not a staged ad.`;
+    if (compositionOverride) {
+      prompt += compositionOverride;
+    }
 
     return prompt;
   }
