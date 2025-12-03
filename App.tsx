@@ -3709,7 +3709,7 @@ If the model attempts to create a scene or environment, override it and force a 
         return;
       }
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string, apiVersion: 'v1beta' });
-      const parts: any[] = [
+      const requestParts: any[] = [
         {
           inlineData: { data: base64, mimeType },
           reference: true,
@@ -3719,7 +3719,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
       if (modelReferenceFile) {
         const { base64: modelBase64, mimeType: modelMimeType } = await fileToBase64(modelReferenceFile);
-        parts.unshift({
+        requestParts.unshift({
           inlineData: { data: modelBase64, mimeType: modelMimeType },
           reference: true,
         });
@@ -3727,7 +3727,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
       const response = await ai.models.generateContent({
         model: GEMINI_IMAGE_MODEL, // maintain this but enforce insert behavior through the prompt and config above
-        contents: { parts },
+        contents: { parts: requestParts },
         config: {
           responseModalities: [Modality.IMAGE],
           safetySettings: [],
@@ -3741,8 +3741,8 @@ If the model attempts to create a scene or environment, override it and force a 
         },
       });
 
-      const parts = response?.candidates?.[0]?.content?.parts ?? [];
-      const inlineImage = parts.find(part => (part as any)?.inlineData?.data) as { inlineData?: { data?: string } } | undefined;
+      const responseParts = response?.candidates?.[0]?.content?.parts ?? [];
+      const inlineImage = responseParts.find(part => (part as any)?.inlineData?.data) as { inlineData?: { data?: string } } | undefined;
       const encodedImage = inlineImage?.inlineData?.data;
       if (!encodedImage) {
         throw new Error('Image generation failed or returned no images.');
