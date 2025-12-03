@@ -1464,7 +1464,7 @@ const App: React.FC = () => {
             onToggle={() => handleToggleAccordion('Person Details')}
           >
             <div className="space-y-4">
-              <ChipSelectGroup label="Age Group" options={AGE_GROUP_OPTIONS} selectedValue={options.ageGroup} onChange={(value) => handleOptionChange('ageGroup', value, 'Person Details')} disabled={isProductPlacement} />
+              <ChipSelectGroup label="Age Group" options={AGE_GROUP_OPTIONS} selectedValue={options.ageGroup} onChange={(value) => handleOptionChange('ageGroup', value, 'Person Details')} disabled={personControlsDisabled} />
               {isProductPlacement && <p className="text-xs text-gray-500">Person options are disabled for product placement shots.</p>}
               <div className={`rounded-2xl border border-white/10 bg-gray-900/40 p-4 space-y-3 ${personControlsDisabled ? 'opacity-50' : ''}`}>
                 <ChipSelectGroup label="Creator Preset" options={normalizedCreatorPresetOptions} selectedValue={activeTalentPreset} onChange={(value) => handlePresetSelect(value)} disabled={personControlsDisabled} />
@@ -3070,7 +3070,7 @@ const App: React.FC = () => {
         .trim();
     const currentStyle = contentStyleValue;
     const isUgcStyle = currentStyle !== 'product';
-    const personIncluded = isUgcStyle && options.ageGroup !== 'no person';
+    const personIncluded = isUgcStyle && (options.ageGroup !== 'no person' || hasModelReference);
     const selfieLabel = getSelfieLabel(options.selfieType);
     const selfieMeta = SELFIE_DIRECTIONS[selfieLabel];
     const requiresSplitHands = Boolean(selfieMeta?.enforceSplitHands);
@@ -3364,71 +3364,61 @@ Maintain correct human anatomy at all times:
     }
 
     if (personIncluded) {
-      if (options.creatorPreset) {
-        prompt += `The overall creative persona is ${clean(options.creatorPreset)}. `;
-      }
-      if (options.appearanceLevel) {
-        prompt += `Their grooming level is ${clean(options.appearanceLevel)}. `;
-      }
-      if (options.mood) {
-        prompt += `The mood is ${clean(options.mood)}, expressed naturally and realistically. `;
-      }
-      if (options.pose) {
-        prompt += `The pose is ${clean(options.pose)}. `;
-      }
-      if (options.expression) {
-        prompt += `Their expression is ${clean(options.expression)}. `;
-      }
-      if (options.wardrobe) {
-        prompt += `Their wardrobe style is ${clean(options.wardrobe)}. `;
-      }
-      if (options.hairstyle) {
-        prompt += `Their hairstyle is ${clean(options.hairstyle)}. `;
-      }
-      if (options.hairColor) {
-        prompt += `Their hair color is ${clean(options.hairColor)}. `;
-        prompt += `Hair color: ${clean(options.hairColor)}. Do not override with age-based defaults. `;
-      }
-      prompt += 'Age-based defaults must NOT override hair color or appearance selections. Hair must always match the selected color, even for seniors. ';
-      if (options.skinTone) {
-        prompt += `Their skin tone is ${clean(options.skinTone)}. `;
-      }
-      if (options.eyeColor) {
-        prompt += `Their eye color is ${clean(options.eyeColor)}. `;
-      }
-      if (options.microLocation) {
-        prompt += `The micro-location is ${clean(options.microLocation)}. `;
-      }
-      if (options.customMicroLocation) {
-        prompt += `Additional micro-location detail: ${clean(options.customMicroLocation)}. `;
-      }
-      if (options.interaction2) {
-        prompt += `Interaction detail: ${clean(options.interaction2)}. `;
-      }
-      const ageNarrative = describeAgeGroup(options.ageGroup, options.gender);
-      const poseEmphasizesHands = options.personPose.toLowerCase().includes('hand');
-      const isHandCloseUp = options.selfieType === 'close-up shot of a hand holding the product' || poseEmphasizesHands;
       if (hasModelReference) {
-        prompt += 'Use the uploaded model reference image as the only on-camera talent. Reproduce their face, hair, skin tone, outfit, and proportions exactly—no replacements, no face swaps, and no invented hairstyles or accessories.';
+        prompt += 'Use the uploaded model reference image as the only on-camera talent. Match their face, hair, skin tone, outfit, and proportions exactly—do not replace or alter their appearance.';
         if (modelReferenceNotes.trim()) {
           prompt += ` Follow this direction for the model: ${clean(modelReferenceNotes.trim())}.`;
         }
-        prompt += ' Keep them as the sole person in frame and do not alter their look beyond the provided note.';
+        prompt += ' Ignore all age, gender, pose, wardrobe, props, mood, expression, hair, and other Person Details settings; rely solely on the reference for appearance.';
+        prompt += ' Keep them as the sole person in frame and respect the exact look of the reference image without adding accessories or changing hairstyle.';
         if (modelReferenceFile) {
-          prompt += `
-Use the model reference ONLY for:
-- approximate age
-- skin tone
-- hair color and general style
-- facial shape and vibe
-- energy and personality
-
-Do NOT copy exact identity.
-Do NOT recreate the exact face.
-Preserve the creator’s overall vibe and characteristics only.
-`;
+          prompt += ' Treat the reference photo as ground truth for identity and styling.';
         }
       } else {
+        if (options.creatorPreset) {
+          prompt += `The overall creative persona is ${clean(options.creatorPreset)}. `;
+        }
+        if (options.appearanceLevel) {
+          prompt += `Their grooming level is ${clean(options.appearanceLevel)}. `;
+        }
+        if (options.mood) {
+          prompt += `The mood is ${clean(options.mood)}, expressed naturally and realistically. `;
+        }
+        if (options.pose) {
+          prompt += `The pose is ${clean(options.pose)}. `;
+        }
+        if (options.expression) {
+          prompt += `Their expression is ${clean(options.expression)}. `;
+        }
+        if (options.wardrobe) {
+          prompt += `Their wardrobe style is ${clean(options.wardrobe)}. `;
+        }
+        if (options.hairstyle) {
+          prompt += `Their hairstyle is ${clean(options.hairstyle)}. `;
+        }
+        if (options.hairColor) {
+          prompt += `Their hair color is ${clean(options.hairColor)}. `;
+          prompt += `Hair color: ${clean(options.hairColor)}. Do not override with age-based defaults. `;
+        }
+        prompt += 'Age-based defaults must NOT override hair color or appearance selections. Hair must always match the selected color, even for seniors. ';
+        if (options.skinTone) {
+          prompt += `Their skin tone is ${clean(options.skinTone)}. `;
+        }
+        if (options.eyeColor) {
+          prompt += `Their eye color is ${clean(options.eyeColor)}. `;
+        }
+        if (options.microLocation) {
+          prompt += `The micro-location is ${clean(options.microLocation)}. `;
+        }
+        if (options.customMicroLocation) {
+          prompt += `Additional micro-location detail: ${clean(options.customMicroLocation)}. `;
+        }
+        if (options.interaction2) {
+          prompt += `Interaction detail: ${clean(options.interaction2)}. `;
+        }
+        const ageNarrative = describeAgeGroup(options.ageGroup, options.gender);
+        const poseEmphasizesHands = options.personPose.toLowerCase().includes('hand');
+        const isHandCloseUp = options.selfieType === 'close-up shot of a hand holding the product' || poseEmphasizesHands;
         prompt += `The photo features ${clean(ageNarrative)}, of ${clean(options.ethnicity)} ethnicity, showcasing ${cleanPersonAppearance}. `;
         if (options.ageGroup === '13-17') {
           prompt += 'Capture a playful, teenage energy—youthful accessories, braces, or freckled details are welcome but keep it tasteful. ';
@@ -3476,57 +3466,56 @@ Preserve the creator’s overall vibe and characteristics only.
           prompt += `Their facial expression shows ${cleanPersonExpression}. `;
         }
         prompt += `Their hair is styled as ${cleanHairStyle}. `;
-      }
-      prompt += ' Faces and hands must be fully realistic with natural skin texture, no distortions or 3D plastic look. Zero warped fingers, zero asymmetry, zero AI artifacts. ';
-      if (options.skinRealism) {
-        prompt += `Skin realism mode: ${clean(options.skinRealism)}. Render pores, micro shadows, and natural texture accordingly. `;
-      }
-      prompt += 'Pores, microtexture, and natural imperfections must be preserved according to the selected skin realism mode. ';
-      if (realModeActive && ugcRealSettings.selectedHeroPersonaIds.length) {
-        const personaText = ugcRealSettings.selectedHeroPersonaIds
-          .map(id => UGC_HERO_PERSONA_PRESETS.find(item => item.id === id)?.prompt)
-          .filter(Boolean)
-          .join(' ');
-        if (personaText) {
-          prompt += ` ${clean(personaText)}`;
+        prompt += ' Faces and hands must be fully realistic with natural skin texture, no distortions or 3D plastic look. Zero warped fingers, zero asymmetry, zero AI artifacts. ';
+        if (options.skinRealism) {
+          prompt += `Skin realism mode: ${clean(options.skinRealism)}. Render pores, micro shadows, and natural texture accordingly. `;
         }
-      }
-      if (options.props) {
-        prompt += `Props present include ${clean(options.props)}. `;
-      }
-      if (options.customProp) {
-        prompt += `Additional prop: ${clean(options.customProp)}. `;
-      }
-      if (options.personProps !== personPropNoneValue) {
-        prompt += `Add supporting props such as ${cleanPersonProps} to reinforce the lifestyle context. `;
-      }
-      if (options.productInteraction === 'showing to camera') {
-        prompt += `Ensure the product is held close to the camera lens in the foreground, occupying the main focal plane with crisp sharpness. The person stays behind the product, slightly defocused or secondary in the frame. The product must NOT appear in the background and must always remain in the front-most visual layer. `;
-      }
-      if (options.microLocation !== microLocationDefault) {
-        prompt += `Place them within ${cleanMicroLocation} to ground the scene. `;
-      }
-      if (isHandCloseUp || selfieMeta?.hideFace || isHandsOnlyPose) {
-        prompt += `The shot is a tactile close-up of their hands ${getInteractionDescription(cleanProductInteraction)} Keep the crop near the torso or closer so attention stays on the product and touch. `;
-        if (selfieMeta?.hideFace) {
-          prompt += 'Do not show their face—only forearms, hands, and the product should be visible, mimicking a back-camera POV. ';
+        prompt += 'Pores, microtexture, and natural imperfections must be preserved according to the selected skin realism mode. ';
+        if (realModeActive && ugcRealSettings.selectedHeroPersonaIds.length) {
+          const personaText = ugcRealSettings.selectedHeroPersonaIds
+            .map(id => UGC_HERO_PERSONA_PRESETS.find(item => item.id === id)?.prompt)
+            .filter(Boolean)
+            .join(' ');
+          if (personaText) {
+            prompt += ` ${clean(personaText)}`;
+          }
         }
-      } else {
-        prompt += `The person is ${getInteractionDescription(cleanProductInteraction)} Their face and upper body are visible, and the interaction looks unposed and authentic. `;
-        if (options.selfieType !== 'none') {
-          prompt += `The style is a ${cleanSelfieType}. `;
+        if (options.props) {
+          prompt += `Props present include ${clean(options.props)}. `;
         }
-      }
-      if (selfieMeta) {
-        prompt += ` ${clean(selfieMeta.narrative)} `;
-        if (requiresSplitHands) {
-          prompt += 'Keep the smartphone in one hand and the product in the opposite hand so both hero objects stay visible simultaneously, with the phone-holding arm fully extended into frame like a true selfie. ';
+        if (options.customProp) {
+          prompt += `Additional prop: ${clean(options.customProp)}. `;
         }
-      } else if (hasSmartphoneProp) {
-        prompt += 'Include a modern smartphone prop in their free hand so it complements but never hides the product. ';
-      }
-      prompt += 'Hands must look fully human and photorealistic (no 3D artifacts). Skin texture, knuckles, and nails should be natural.';
-      prompt += `
+        if (options.personProps !== personPropNoneValue) {
+          prompt += `Add supporting props such as ${cleanPersonProps} to reinforce the lifestyle context. `;
+        }
+        if (options.productInteraction === 'showing to camera') {
+          prompt += `Ensure the product is held close to the camera lens in the foreground, occupying the main focal plane with crisp sharpness. The person stays behind the product, slightly defocused or secondary in the frame. The product must NOT appear in the background and must always remain in the front-most visual layer. `;
+        }
+        if (options.microLocation !== microLocationDefault) {
+          prompt += `Place them within ${cleanMicroLocation} to ground the scene. `;
+        }
+        if (isHandCloseUp || selfieMeta?.hideFace || isHandsOnlyPose) {
+          prompt += `The shot is a tactile close-up of their hands ${getInteractionDescription(cleanProductInteraction)} Keep the crop near the torso or closer so attention stays on the product and touch. `;
+          if (selfieMeta?.hideFace) {
+            prompt += 'Do not show their face—only forearms, hands, and the product should be visible, mimicking a back-camera POV. ';
+          }
+        } else {
+          prompt += `The person is ${getInteractionDescription(cleanProductInteraction)} Their face and upper body are visible, and the interaction looks unposed and authentic. `;
+          if (options.selfieType !== 'none') {
+            prompt += `The style is a ${cleanSelfieType}. `;
+          }
+        }
+        if (selfieMeta) {
+          prompt += ` ${clean(selfieMeta.narrative)} `;
+          if (requiresSplitHands) {
+            prompt += 'Keep the smartphone in one hand and the product in the opposite hand so both hero objects stay visible simultaneously, with the phone-holding arm fully extended into frame like a true selfie. ';
+          }
+        } else if (hasSmartphoneProp) {
+          prompt += 'Include a modern smartphone prop in their free hand so it complements but never hides the product. ';
+        }
+        prompt += 'Hands must look fully human and photorealistic (no 3D artifacts). Skin texture, knuckles, and nails should be natural.';
+        prompt += `
 Ensure anatomically correct human arms and hands with:
 - proper bone proportions,
 - natural wrist rotation,
@@ -3538,43 +3527,44 @@ Ensure anatomically correct human arms and hands with:
 Hands must be photorealistic with subtle veins, micro-shadows, and true skin texture.
 No warped, melted, or floating limbs.
 `;
-      if (selfieMeta?.hidePhone) {
-        prompt += 'Do not render a smartphone anywhere in frame—imply the selfie by the arm extension and body posture only.';
-      }
-      if (isFlashLighting && !selfieMeta?.hidePhone) {
-        prompt += 'Use a bright on-camera flash that reflects on their face (or hands if the face is cropped out) and bounces off the phone, casting crisp, short shadows for that candid flash look. ';
-      }
-      if (heroDescriptionText) {
-        prompt += ` ${heroDescriptionText}`;
-      }
-      if (heroPosePromptCue) {
-        prompt += ` ${clean(heroPosePromptCue)}`;
-      }
-      if (realModeActive) {
-        if (ugcRealSettings.imperfectLighting) {
-          prompt += ' Let the lighting stay imperfect with hotspots, hard falloff, and visible shadows on the wall.';
+        if (selfieMeta?.hidePhone) {
+          prompt += 'Do not render a smartphone anywhere in frame—imply the selfie by the arm extension and body posture only.';
         }
-        if (ugcRealSettings.lowResolution) {
-          prompt += ' Simulate a low-resolution phone capture with pixel softness and slight chroma noise.';
+        if (isFlashLighting && !selfieMeta?.hidePhone) {
+          prompt += 'Use a bright on-camera flash that reflects on their face (or hands if the face is cropped out) and bounces off the phone, casting crisp, short shadows for that candid flash look. ';
         }
-        if (ugcRealSettings.offFocus) {
-          prompt += ' Allow focus to breathe and slip, keeping only part of the face/product tack sharp.';
+        if (heroDescriptionText) {
+          prompt += ` ${heroDescriptionText}`;
         }
-        if (ugcRealSettings.tiltedPhone) {
-          prompt += ' Keep the camera horizon slightly tilted as if the phone was captured quickly.';
+        if (heroPosePromptCue) {
+          prompt += ` ${clean(heroPosePromptCue)}`;
         }
-        const offCenterPreset = UGC_OFF_CENTER_OPTIONS.find(option => option.id === ugcRealSettings.offCenterId);
-        if (offCenterPreset) {
-          prompt += ` ${clean(offCenterPreset.prompt)}`;
+        if (realModeActive) {
+          if (ugcRealSettings.imperfectLighting) {
+            prompt += ' Let the lighting stay imperfect with hotspots, hard falloff, and visible shadows on the wall.';
+          }
+          if (ugcRealSettings.lowResolution) {
+            prompt += ' Simulate a low-resolution phone capture with pixel softness and slight chroma noise.';
+          }
+          if (ugcRealSettings.offFocus) {
+            prompt += ' Allow focus to breathe and slip, keeping only part of the face/product tack sharp.';
+          }
+          if (ugcRealSettings.tiltedPhone) {
+            prompt += ' Keep the camera horizon slightly tilted as if the phone was captured quickly.';
+          }
+          const offCenterPreset = UGC_OFF_CENTER_OPTIONS.find(option => option.id === ugcRealSettings.offCenterId);
+          if (offCenterPreset) {
+            prompt += ` ${clean(offCenterPreset.prompt)}`;
+          }
+          const framingPreset = UGC_SPONTANEOUS_FRAMING_OPTIONS.find(option => option.id === ugcRealSettings.framingId);
+          if (framingPreset) {
+            prompt += ` ${clean(framingPreset.prompt)}`;
+          }
+          if (ugcRealSettings.blurAmount > 0 || ugcRealSettings.grainAmount > 0) {
+           prompt += ` Add roughly ${ugcRealSettings.blurAmount}% focus blur and ${ugcRealSettings.grainAmount}% grain to mimic raw smartphone texture.`;
+         }
+          prompt += ' UGC Real Mode may add grain, lighting imperfections and organic feel to the scene, but must not degrade product clarity, readability or branding. ';
         }
-        const framingPreset = UGC_SPONTANEOUS_FRAMING_OPTIONS.find(option => option.id === ugcRealSettings.framingId);
-        if (framingPreset) {
-          prompt += ` ${clean(framingPreset.prompt)}`;
-        }
-        if (ugcRealSettings.blurAmount > 0 || ugcRealSettings.grainAmount > 0) {
-         prompt += ` Add roughly ${ugcRealSettings.blurAmount}% focus blur and ${ugcRealSettings.grainAmount}% grain to mimic raw smartphone texture.`;
-       }
-        prompt += ' UGC Real Mode may add grain, lighting imperfections and organic feel to the scene, but must not degrade product clarity, readability or branding. ';
       }
     }
 
