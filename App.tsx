@@ -444,6 +444,7 @@ const EMAIL_STORAGE_KEY = 'ugc-product-mockup-generator-user-email';
 const IMAGE_COUNT_KEY = 'ugc-product-mockup-generator-credit-count';
 const VIDEO_ACCESS_KEY = 'ugc-product-mockup-generator-video-access';
 const TRIAL_BYPASS_KEY = 'ugc-product-mockup-trial-bypass';
+const LOCAL_GALLERY_CACHE_KEY = 'ugc-free-gallery';
 const DEFAULT_ADMIN_EMAILS = ['juanamisano@gmail.com', 'boostugc@gmail.com'];
 const ADMIN_EMAILS = Array.from(
   new Set(
@@ -3681,22 +3682,35 @@ If the model attempts to create a scene or environment, override it and force a 
     [contentStyleValue, isSimpleMode, modelReferenceFile]
   );
 
-  const publishFreeGallery = useCallback((imageUrl: string) => {
-    if (planTier !== 'free') return;
+const publishFreeGallery = useCallback(
+  (imageUrl: string, plan?: string, compositionMode?: string) => {
+    if (typeof window === 'undefined') return;
     try {
-      if (typeof window !== 'undefined') {
-        const key = 'ugc-free-gallery';
-        const current = JSON.parse(window.localStorage.getItem(key) || '[]') as { imageUrl: string; title: string; createdAt: number }[];
-        const next = [
-          { imageUrl, title: 'Free plan generation', createdAt: Date.now() },
-          ...current,
-        ].slice(0, 20);
-        window.localStorage.setItem(key, JSON.stringify(next));
-      }
+      const key = LOCAL_GALLERY_CACHE_KEY;
+      const stored = window.localStorage.getItem(key);
+      const parsed = stored ? JSON.parse(stored) : [];
+      const existing = Array.isArray(parsed) ? parsed : [];
+      const generateId = () => {
+        if (window.crypto?.randomUUID) {
+          return window.crypto.randomUUID();
+        }
+        return `local-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
+      };
+      const entry = {
+        id: generateId(),
+        imageUrl,
+        plan: plan ? plan.toLowerCase() : 'free',
+        compositionMode,
+        createdAt: Date.now(),
+      };
+      const next = [entry, ...existing].slice(0, 20);
+      window.localStorage.setItem(key, JSON.stringify(next));
     } catch (err) {
       console.warn('Failed to publish to gallery', err);
     }
-  }, [planTier]);
+  },
+  []
+);
 
   const determineGalleryPlan = useCallback(() => {
     if (inviteUsed) return 'access';
@@ -3834,7 +3848,7 @@ If the model attempts to create a scene or environment, override it and force a 
       if (typeof window !== 'undefined') {
         window.localStorage.setItem(IMAGE_COUNT_KEY, String(newCount));
       }
-      publishFreeGallery(finalUrl);
+      publishFreeGallery(finalUrl, galleryPlan, compositionMode);
     } catch (err) {
       console.error(err);
       let errorMessage = '';

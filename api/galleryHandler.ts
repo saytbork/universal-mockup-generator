@@ -12,6 +12,7 @@ type GalleryEntry = {
   plan?: string;
   public?: boolean;
   timestamp?: number;
+  compositionMode?: string;
 };
 
 const parseAction = (req: VercelRequest) => {
@@ -58,7 +59,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       const body = req.body || {};
       console.log('GALLERY ADD BODY:', body);
-      const { url, imageUrl, plan } = body;
+      const { url, imageUrl, plan, compositionMode } = body;
       console.log('GALLERY PLAN:', plan);
       const finalUrl = typeof url === 'string' ? url : imageUrl;
       console.log('ALLOW?', shouldAddToGallery(plan));
@@ -68,7 +69,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return;
       }
       try {
-        await saveGeneratedImageToGallery(finalUrl.trim(), plan);
+        await saveGeneratedImageToGallery(finalUrl.trim(), plan, compositionMode);
         res.status(201).json({ success: true });
       } catch (error: any) {
         console.error('Failed to save community gallery image', error);

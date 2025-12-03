@@ -63,6 +63,42 @@ const steps = [
 
 type GalleryImage = { id: string; url: string; plan?: string; createdAt?: number };
 
+const LOCAL_GALLERY_CACHE_KEY = 'ugc-free-gallery';
+
+type CachedGalleryEntry = {
+  id?: string;
+  imageUrl?: string;
+  plan?: string;
+  compositionMode?: string;
+  createdAt?: number;
+  title?: string;
+};
+
+const readCachedGalleryImages = (): GalleryImage[] => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = window.localStorage.getItem(LOCAL_GALLERY_CACHE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((entry: CachedGalleryEntry, index: number) => {
+        if (!entry?.imageUrl) return null;
+        const id = entry.id || `local-${entry.createdAt ?? Date.now()}-${index}`;
+        return {
+          id,
+          url: entry.imageUrl,
+          plan: (entry.plan ?? 'free').toLowerCase(),
+          createdAt: entry.createdAt,
+        };
+      })
+      .filter((entry): entry is GalleryImage => Boolean(entry));
+  } catch (error) {
+    console.warn('Failed to load cached gallery images', error);
+    return [];
+  }
+};
+
 const getGalleryPlanLabel = (plan?: string) => {
   if (!plan) return 'Community creation';
   const normalized = plan.toLowerCase();
@@ -292,11 +328,12 @@ const LandingPage: React.FC = () => {
         const images = Array.isArray(data?.images)
           ? data.images.filter(image => Boolean(image?.url))
           : [];
-        setGalleryImages(images);
+        const fallbackImages = readCachedGalleryImages();
+        setGalleryImages(images.length ? images : fallbackImages);
       } catch (error) {
         console.error('Community gallery fetch failed', error);
         if (mounted) {
-          setGalleryImages([]);
+          setGalleryImages(readCachedGalleryImages());
         }
       } finally {
         if (mounted) {

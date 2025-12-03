@@ -1,19 +1,23 @@
 import { kv } from '@vercel/kv';
 import { randomUUID } from 'crypto';
 
-export type GalleryPlan = 'trial' | 'access' | string;
+export type GalleryPlan = string;
 
-export const shouldAddToGallery = (plan: string) => {
-  const normalized = plan?.toLowerCase();
-  return normalized === 'free' || normalized === 'access';
+export const shouldAddToGallery = (plan: string | undefined) => {
+  return Boolean(plan);
 };
 
-export const saveGeneratedImageToGallery = async (finalUrl: string, plan: string) => {
+export const saveGeneratedImageToGallery = async (
+  finalUrl: string,
+  plan: string,
+  compositionMode?: string
+) => {
   if (!shouldAddToGallery(plan)) return;
   const entry = {
     id: randomUUID(),
     url: finalUrl,
     plan: plan.toLowerCase(),
+    compositionMode,
     public: true,
     timestamp: Date.now(),
   };
