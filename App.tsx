@@ -746,6 +746,83 @@ const App: React.FC = () => {
     () => productAssets.map((_, index) => `product_${index + 1}` as ProductId),
     [productAssets]
   );
+  const lucideIconOptions = useMemo(
+    () => [
+      'check',
+      'check-circle',
+      'sparkles',
+      'star',
+      'sun',
+      'droplet',
+      'flame',
+      'zap',
+      'leaf',
+      'hand',
+      'touch',
+      'spray-can',
+      'clock',
+      'repeat',
+      'wand',
+      'brush',
+      'badge-check',
+      'smile',
+      'heart',
+      'shield',
+      'dumbbell',
+      'globe',
+      'sun-medium',
+      'shield-check',
+      'medal',
+      'certificate',
+      'thumbs-up',
+      'arrow-up',
+      'arrow-right',
+      'scale',
+      'trophy',
+    ],
+    []
+  );
+  const [useConversionBuilder, setUseConversionBuilder] = useState(true);
+  const [conversionBuilderFields, setConversionBuilderFields] = useState<ConversionBuilderState>({
+    alignment: 'center',
+    fontFamily: 'Inter',
+    fontSize: 16,
+    backgroundColor: '#FFFFFF',
+    stylePreset: 'none',
+    headline1: '',
+    icon1: '',
+    usp1: '',
+    benefit1: '',
+    benefit2: '',
+    benefit3: '',
+    icon2a: '',
+    icon2b: '',
+    icon2c: '',
+    step1: '',
+    step2: '',
+    step3: '',
+    icon3a: '',
+    icon3b: '',
+    icon3c: '',
+    testimonial1: '',
+    customerName: '',
+    icon4: '',
+    diff1: '',
+    diff2: '',
+    diff3: '',
+    icon5a: '',
+    icon5b: '',
+    icon5c: '',
+    guaranteeText: '',
+    socialProofNumber: '',
+    icon6: '',
+  });
+  const updateConversionField = useCallback(
+    <K extends keyof ConversionBuilderState>(key: K, value: ConversionBuilderState[K]) => {
+      setConversionBuilderFields(prev => ({ ...prev, [key]: value }));
+    },
+    []
+  );
   const normalizedCreatorPresetOptions = useMemo(
     () =>
       normalizeOptions(
@@ -1097,6 +1174,7 @@ const App: React.FC = () => {
       order.push('Person Details');
       order.push('UGC Real Mode');
     }
+    order.push('Conversion Image Builder');
     return order;
   }, [isProductPlacement]);
   const activePresetMeta = useMemo(() => CREATOR_PRESET_LOOKUP[activeTalentPreset], [activeTalentPreset]);
@@ -1663,6 +1741,246 @@ const App: React.FC = () => {
           </Accordion>
         </div>
       )}
+      <div id={getSectionId('Conversion Image Builder')}>
+        <Accordion
+          title="Conversion Image Builder"
+          isOpen={openAccordion === 'Conversion Image Builder'}
+          onToggle={() => handleToggleAccordion('Conversion Image Builder')}
+        >
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-white">Use Conversion Image Builder</p>
+                <p className="text-xs text-gray-400">Switch prompt to the 6-image ecommerce layout.</p>
+              </div>
+              <label className="relative inline-flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="sr-only"
+                  checked={useConversionBuilder}
+                  onChange={event => setUseConversionBuilder(event.target.checked)}
+                />
+                <div className={`relative h-5 w-10 rounded-full transition ${useConversionBuilder ? 'bg-indigo-500' : 'bg-gray-700'}`}>
+                  <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${useConversionBuilder ? 'translate-x-4' : ''}`} />
+                </div>
+                <span className="text-xs font-semibold text-gray-300">{useConversionBuilder ? 'On' : 'Off'}</span>
+              </label>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 rounded-2xl border border-white/10 bg-black/30 p-4">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-white">Image Alignment</label>
+                <div className="flex gap-2">
+                  {(['left', 'center', 'right'] as const).map(option => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => updateConversionField('alignment', option)}
+                      className={`flex-1 rounded-lg border px-3 py-2 text-sm font-semibold capitalize transition ${conversionBuilderFields.alignment === option ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-white">Font Family</label>
+                <select
+                  value={conversionBuilderFields.fontFamily}
+                  onChange={event => updateConversionField('fontFamily', event.target.value)}
+                  className="rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                >
+                  {['Inter', 'Helvetica Neue', 'Roboto', 'Montserrat', 'Playfair Display'].map(font => (
+                    <option key={font} value={font}>
+                      {font}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-white">Font Size</label>
+                <input
+                  type="number"
+                  min={10}
+                  max={64}
+                  value={conversionBuilderFields.fontSize}
+                  onChange={event => updateConversionField('fontSize', Number(event.target.value))}
+                  className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-white">Background Color</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={conversionBuilderFields.backgroundColor}
+                    onChange={event => updateConversionField('backgroundColor', event.target.value)}
+                    className="h-10 w-16 rounded cursor-pointer border border-gray-600"
+                  />
+                  <input
+                    type="text"
+                    value={conversionBuilderFields.backgroundColor}
+                    onChange={event => updateConversionField('backgroundColor', event.target.value)}
+                    className="flex-1 rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-white">Style Preset</label>
+                <div className="flex gap-2">
+                  {(['none', 'warm', 'minimal', 'vibrant'] as const).map(preset => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => updateConversionField('stylePreset', preset)}
+                      className={`flex-1 rounded-lg border px-3 py-2 text-sm font-semibold capitalize transition ${conversionBuilderFields.stylePreset === preset ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+              <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Image 1: What Is Your Product?</p>
+              <div className="space-y-2">
+                <label className="text-sm text-gray-200">Headline</label>
+                <input type="text" value={conversionBuilderFields.headline1} onChange={event => updateConversionField('headline1', event.target.value)} className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none" />
+                <label className="text-sm text-gray-200">Lucide Icon</label>
+                <select value={conversionBuilderFields.icon1} onChange={event => updateConversionField('icon1', event.target.value)} className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none">
+                  <option value="">Select icon</option>
+                  {lucideIconOptions.map(icon => (
+                    <option key={icon} value={icon}>
+                      {icon}
+                    </option>
+                  ))}
+                </select>
+                <label className="text-sm text-gray-200">USP</label>
+                <input type="text" value={conversionBuilderFields.usp1} onChange={event => updateConversionField('usp1', event.target.value)} className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none" />
+              </div>
+            </div>
+
+            <div className="space-y-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+              <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Image 2: What Does It Do?</p>
+              {[1, 2, 3].map(index => (
+                <div key={index} className="grid grid-cols-1 gap-2">
+                  <label className="text-sm text-gray-200">{`Benefit ${index}`}</label>
+                  <input
+                    type="text"
+                    value={conversionBuilderFields[`benefit${index}` as keyof ImagePromptFields] as string}
+                    onChange={event => updateConversionField(`benefit${index}` as keyof ConversionBuilderState, event.target.value)}
+                    className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                  />
+                  <label className="text-sm text-gray-200">Icon</label>
+                  <select
+                    value={conversionBuilderFields[`icon2${String.fromCharCode(96 + index)}` as keyof ImagePromptFields] as string}
+                    onChange={event => updateConversionField(`icon2${String.fromCharCode(96 + index)}` as keyof ConversionBuilderState, event.target.value)}
+                    className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                  >
+                    <option value="">Select icon</option>
+                    {lucideIconOptions.map(icon => (
+                      <option key={icon} value={icon}>
+                        {icon}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+              <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Image 3: How Does It Work?</p>
+              {[1, 2, 3].map(index => (
+                <div key={index} className="grid grid-cols-1 gap-2">
+                  <label className="text-sm text-gray-200">{`Step ${index}`}</label>
+                  <input
+                    type="text"
+                    value={conversionBuilderFields[`step${index}` as keyof ImagePromptFields] as string}
+                    onChange={event => updateConversionField(`step${index}` as keyof ConversionBuilderState, event.target.value)}
+                    className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                  />
+                  <label className="text-sm text-gray-200">Icon</label>
+                  <select
+                    value={conversionBuilderFields[`icon3${String.fromCharCode(96 + index)}` as keyof ImagePromptFields] as string}
+                    onChange={event => updateConversionField(`icon3${String.fromCharCode(96 + index)}` as keyof ConversionBuilderState, event.target.value)}
+                    className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                  >
+                    <option value="">Select icon</option>
+                    {lucideIconOptions.map(icon => (
+                      <option key={icon} value={icon}>
+                        {icon}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
+              <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Image 4: Results</p>
+              <label className="text-sm text-gray-200">Testimonial</label>
+              <input type="text" value={conversionBuilderFields.testimonial1} onChange={event => updateConversionField('testimonial1', event.target.value)} className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none" />
+              <label className="text-sm text-gray-200">Customer Name</label>
+              <input type="text" value={conversionBuilderFields.customerName} onChange={event => updateConversionField('customerName', event.target.value)} className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none" />
+              <label className="text-sm text-gray-200">Icon</label>
+              <select value={conversionBuilderFields.icon4} onChange={event => updateConversionField('icon4', event.target.value)} className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none">
+                <option value="">Select icon</option>
+                {lucideIconOptions.map(icon => (
+                  <option key={icon} value={icon}>
+                    {icon}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+              <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Image 5: Differentiators</p>
+              {[1, 2, 3].map(index => (
+                <div key={index} className="grid grid-cols-1 gap-2">
+                  <label className="text-sm text-gray-200">{`Diff ${index}`}</label>
+                  <input
+                    type="text"
+                    value={conversionBuilderFields[`diff${index}` as keyof ImagePromptFields] as string}
+                    onChange={event => updateConversionField(`diff${index}` as keyof ConversionBuilderState, event.target.value)}
+                    className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                  />
+                  <label className="text-sm text-gray-200">Icon</label>
+                  <select
+                    value={conversionBuilderFields[`icon5${String.fromCharCode(96 + index)}` as keyof ImagePromptFields] as string}
+                    onChange={event => updateConversionField(`icon5${String.fromCharCode(96 + index)}` as keyof ConversionBuilderState, event.target.value)}
+                    className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                  >
+                    <option value="">Select icon</option>
+                    {lucideIconOptions.map(icon => (
+                      <option key={icon} value={icon}>
+                        {icon}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
+              <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Image 6: Guarantee and Trust</p>
+              <label className="text-sm text-gray-200">Guarantee Text</label>
+              <input type="text" value={conversionBuilderFields.guaranteeText} onChange={event => updateConversionField('guaranteeText', event.target.value)} className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none" />
+              <label className="text-sm text-gray-200">Social Proof Number</label>
+              <input type="text" value={conversionBuilderFields.socialProofNumber} onChange={event => updateConversionField('socialProofNumber', event.target.value)} className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none" />
+              <label className="text-sm text-gray-200">Icon</label>
+              <select value={conversionBuilderFields.icon6} onChange={event => updateConversionField('icon6', event.target.value)} className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none">
+                <option value="">Select icon</option>
+                {lucideIconOptions.map(icon => (
+                  <option key={icon} value={icon}>
+                    {icon}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </Accordion>
+      </div>
     </>
   );
 
@@ -2495,6 +2813,11 @@ const App: React.FC = () => {
   }, [applyProPreset]);
 
   type ImagePromptFields = {
+    alignment?: 'left' | 'center' | 'right';
+    fontFamily?: string;
+    fontSize?: number;
+    backgroundColor?: string;
+    stylePreset?: 'none' | 'warm' | 'minimal' | 'vibrant';
     headline1?: string;
     icon1?: string;
     usp1?: string;
@@ -2523,9 +2846,16 @@ const App: React.FC = () => {
     socialProofNumber?: string;
     icon6?: string;
   };
+  type ConversionBuilderState = ImagePromptFields & {
+    alignment: 'left' | 'center' | 'right';
+    fontFamily: string;
+    fontSize: number;
+    backgroundColor: string;
+    stylePreset: 'none' | 'warm' | 'minimal' | 'vibrant';
+  };
 
   const buildImagePrompt = (fields: ImagePromptFields) => {
-    const line = (label?: string) => (label ? label : '');
+    const line = (label?: string | number) => (label || label === 0 ? String(label) : '');
     return `
 Generate 6 premium ecommerce product images.
 Always match the uploaded product’s real colors, shape, and proportions.
@@ -2533,6 +2863,13 @@ Use a clean, modern, conversion-focused aesthetic.
 Use Lucide line-icons selected by the user.
 Use only user-provided text.
 Do not invent claims, benefits, or results.
+Do not include any logos or extra branding marks.
+
+LAYOUT & STYLE
+Alignment: ${line(fields.alignment)}
+Font: ${line(fields.fontFamily)} size ${line(fields.fontSize ? `${fields.fontSize}px` : '')}
+Background: ${line(fields.backgroundColor)}
+Style Preset: ${line(fields.stylePreset)}
 
 IMAGE 1 – What Is Your Product?
 ${line(fields.headline1)}
@@ -3148,6 +3485,9 @@ Lucide icons must be line-icons with consistent stroke.
   }, []);
 
   const constructPrompt = (bundleProductsOverride?: ProductId[] | null): string => {
+    if (useConversionBuilder) {
+      return buildImagePrompt(conversionBuilderFields);
+    }
     return buildImagePrompt(options as ImagePromptFields);
   };
 
