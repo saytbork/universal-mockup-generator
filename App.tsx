@@ -746,140 +746,6 @@ const App: React.FC = () => {
     () => productAssets.map((_, index) => `product_${index + 1}` as ProductId),
     [productAssets]
   );
-  const lucideIconOptions = useMemo(
-    () => [
-      'check',
-      'check-circle',
-      'sparkles',
-      'star',
-      'sun',
-      'droplet',
-      'flame',
-      'zap',
-      'leaf',
-      'hand',
-      'touch',
-      'spray-can',
-      'clock',
-      'repeat',
-      'wand',
-      'brush',
-      'badge-check',
-      'smile',
-      'heart',
-      'shield',
-      'dumbbell',
-      'globe',
-      'sun-medium',
-      'shield-check',
-      'medal',
-      'certificate',
-      'thumbs-up',
-      'arrow-up',
-      'arrow-right',
-      'scale',
-      'trophy',
-    ],
-    []
-  );
-  type ConversionTemplateId =
-    | 'valueProp'
-    | 'whatDoesItDo'
-    | 'howItWorks'
-    | 'results'
-    | 'differentiators'
-    | 'trust';
-  type ConversionStylePreset = 'none' | 'warm' | 'minimal' | 'vibrant';
-  type ConversionTextLine = { text: string; icon?: string };
-  type ConversionTestimonial = { quote: string; name: string; icon?: string };
-  type ConversionTemplates = {
-    valueProp: { headline: string; benefits: ConversionTextLine[] };
-    whatDoesItDo: { headline: string; benefits: ConversionTextLine[] };
-    howItWorks: { headline: string; steps: ConversionTextLine[]; footer: string };
-    results: {
-      variant: 'beforeAfter' | 'testimonials';
-      headline: string;
-      before: ConversionTextLine;
-      after: ConversionTextLine;
-      testimonials: ConversionTestimonial[];
-    };
-    differentiators: { headline: string; points: ConversionTextLine[] };
-    trust: { headline: string; trustPoints: ConversionTextLine[]; badge: string; socialProof: string };
-  };
-  type ConversionBuilderState = {
-    alignment: 'left' | 'center' | 'right';
-    fontFamily: 'Inter' | 'Helvetica Neue' | 'Roboto' | 'Montserrat' | 'Playfair';
-    fontSize: number;
-    backgroundColor: string;
-    stylePreset: ConversionStylePreset;
-    activeTemplate: ConversionTemplateId;
-    templates: ConversionTemplates;
-  };
-  const createEmptyLine = (): ConversionTextLine => ({ text: '', icon: '' });
-  const createEmptyTestimonial = (): ConversionTestimonial => ({ quote: '', name: '', icon: '' });
-  const createDefaultConversionTemplates = (): ConversionTemplates => ({
-    valueProp: { headline: '', benefits: [createEmptyLine(), createEmptyLine(), createEmptyLine()] },
-    whatDoesItDo: {
-      headline: '',
-      benefits: [createEmptyLine(), createEmptyLine(), createEmptyLine(), createEmptyLine()],
-    },
-    howItWorks: { headline: '', steps: [createEmptyLine(), createEmptyLine(), createEmptyLine()], footer: '' },
-    results: {
-      variant: 'beforeAfter',
-      headline: '',
-      before: createEmptyLine(),
-      after: createEmptyLine(),
-      testimonials: [createEmptyTestimonial(), createEmptyTestimonial(), createEmptyTestimonial()],
-    },
-    differentiators: {
-      headline: '',
-      points: [createEmptyLine(), createEmptyLine(), createEmptyLine(), createEmptyLine()],
-    },
-    trust: {
-      headline: '',
-      trustPoints: [createEmptyLine(), createEmptyLine(), createEmptyLine(), createEmptyLine()],
-      badge: '',
-      socialProof: '',
-    },
-  });
-  const createDefaultConversionState = (): ConversionBuilderState => ({
-    alignment: 'center',
-    fontFamily: 'Inter',
-    fontSize: 18,
-    backgroundColor: '#FFFFFF',
-    stylePreset: 'none',
-    activeTemplate: 'valueProp',
-    templates: createDefaultConversionTemplates(),
-  });
-  const [useConversionBuilder, setUseConversionBuilder] = useState(true);
-  const [conversionBuilderState, setConversionBuilderState] = useState<ConversionBuilderState>(() => createDefaultConversionState());
-  const handleConversionBaseChange = useCallback(
-    <K extends keyof ConversionBuilderState>(key: K, value: ConversionBuilderState[K]) => {
-      if (key === 'templates' || key === 'activeTemplate') return;
-      setConversionBuilderState(prev => ({ ...prev, [key]: value }));
-    },
-    []
-  );
-  const handleTemplateSwitch = useCallback((templateId: ConversionTemplateId) => {
-    setConversionBuilderState(prev => {
-      if (prev.activeTemplate === templateId) return prev;
-      const defaults = createDefaultConversionTemplates();
-      return {
-        ...prev,
-        activeTemplate: templateId,
-        templates: { ...prev.templates, [templateId]: defaults[templateId] },
-      };
-    });
-  }, []);
-  const updateTemplateById = useCallback(
-    <T extends ConversionTemplateId>(templateId: T, updater: (template: ConversionTemplates[T]) => ConversionTemplates[T]) => {
-      setConversionBuilderState(prev => {
-        const nextTemplate = updater(prev.templates[templateId]);
-        return { ...prev, templates: { ...prev.templates, [templateId]: nextTemplate } };
-      });
-    },
-    []
-  );
   const normalizedCreatorPresetOptions = useMemo(
     () =>
       normalizeOptions(
@@ -1231,7 +1097,6 @@ const App: React.FC = () => {
       order.push('Person Details');
       order.push('UGC Real Mode');
     }
-    order.push('Conversion Image Builder');
     return order;
   }, [isProductPlacement]);
   const activePresetMeta = useMemo(() => CREATOR_PRESET_LOOKUP[activeTalentPreset], [activeTalentPreset]);
@@ -1798,160 +1663,6 @@ const App: React.FC = () => {
           </Accordion>
         </div>
       )}
-      <div id={getSectionId('Conversion Image Builder')}>
-        <Accordion
-          title="Conversion Image Builder"
-          isOpen={openAccordion === 'Conversion Image Builder'}
-          onToggle={() => handleToggleAccordion('Conversion Image Builder')}
-        >
-          <div className="space-y-5">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-white">Use Conversion Image Builder</p>
-                <p className="text-xs text-gray-400">Generates one conversion image at a time from the selected template.</p>
-              </div>
-              <label className="relative inline-flex cursor-pointer items-center gap-2">
-                <input
-                  type="checkbox"
-                  className="sr-only"
-                  checked={useConversionBuilder}
-                  onChange={event => setUseConversionBuilder(event.target.checked)}
-                />
-                <div className={`relative h-5 w-10 rounded-full transition ${useConversionBuilder ? 'bg-indigo-500' : 'bg-gray-700'}`}>
-                  <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${useConversionBuilder ? 'translate-x-4' : ''}`} />
-                </div>
-                <span className="text-xs font-semibold text-gray-300">{useConversionBuilder ? 'On' : 'Off'}</span>
-              </label>
-            </div>
-
-            <div className={`space-y-3 rounded-2xl border border-white/10 bg-black/25 p-4 ${useConversionBuilder ? '' : 'opacity-60'}`}>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { id: 'valueProp', label: 'Value Proposition Image' },
-                  { id: 'whatDoesItDo', label: 'What Does It Do' },
-                  { id: 'howItWorks', label: 'How Does It Work' },
-                  { id: 'results', label: 'What Results Can I Get' },
-                  { id: 'differentiators', label: 'How Is It Different' },
-                  { id: 'trust', label: 'Can You Back It Up' },
-                ].map(option => (
-                  <button
-                    key={option.id}
-                    type="button"
-                    onClick={() => handleTemplateSwitch(option.id as ConversionTemplateId)}
-                    className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${conversionBuilderState.activeTemplate === option.id
-                      ? 'border-emerald-300 bg-emerald-500/10 text-white'
-                      : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
-                      }`}
-                    disabled={!useConversionBuilder}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-              <p className="text-[11px] text-gray-400">
-                Only one template is active. Switching clears that template’s inputs to prevent mixing. One generation = one image.
-              </p>
-            </div>
-
-            <div className={`grid grid-cols-1 gap-3 rounded-2xl border border-white/10 bg-black/30 p-4 ${useConversionBuilder ? '' : 'opacity-60'}`}>
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-white">Image Alignment</label>
-                <div className="flex gap-2">
-                  {(['left', 'center', 'right'] as const).map(option => (
-                    <button
-                      key={option}
-                      type="button"
-                      onClick={() => handleConversionBaseChange('alignment', option)}
-                      className={`flex-1 rounded-lg border px-3 py-2 text-sm font-semibold capitalize transition ${conversionBuilderState.alignment === option ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
-                      disabled={!useConversionBuilder}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-white">Font Family</label>
-                <select
-                  value={conversionBuilderState.fontFamily}
-                  onChange={event => handleConversionBaseChange('fontFamily', event.target.value as ConversionBuilderState['fontFamily'])}
-                  className="rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                  disabled={!useConversionBuilder}
-                >
-                  {['Inter', 'Helvetica Neue', 'Roboto', 'Montserrat', 'Playfair'].map(font => (
-                    <option key={font} value={font}>
-                      {font}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-white">Font Size</label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="range"
-                    min={12}
-                    max={64}
-                    value={conversionBuilderState.fontSize}
-                    onChange={event => handleConversionBaseChange('fontSize', Number(event.target.value))}
-                    className="flex-1"
-                    disabled={!useConversionBuilder}
-                  />
-                  <input
-                    type="number"
-                    min={12}
-                    max={64}
-                    value={conversionBuilderState.fontSize}
-                    onChange={event => handleConversionBaseChange('fontSize', Number(event.target.value))}
-                    className="w-20 rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                    disabled={!useConversionBuilder}
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-white">Background Color</label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="color"
-                    value={conversionBuilderState.backgroundColor}
-                    onChange={event => handleConversionBaseChange('backgroundColor', event.target.value)}
-                    className="h-10 w-16 rounded cursor-pointer border border-gray-600"
-                    disabled={!useConversionBuilder}
-                  />
-                  <input
-                    type="text"
-                    value={conversionBuilderState.backgroundColor}
-                    onChange={event => handleConversionBaseChange('backgroundColor', event.target.value)}
-                    className="flex-1 rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                    disabled={!useConversionBuilder}
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-white">Preset Style Filter</label>
-                <div className="flex gap-2">
-                  {(['none', 'warm', 'minimal', 'vibrant'] as const).map(preset => (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => handleConversionBaseChange('stylePreset', preset)}
-                      className={`flex-1 rounded-lg border px-3 py-2 text-sm font-semibold capitalize transition ${conversionBuilderState.stylePreset === preset ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
-                      disabled={!useConversionBuilder}
-                    >
-                      {preset === 'none' ? 'None' : preset}
-                    </button>
-                  ))}
-                </div>
-                <p className="text-[11px] text-gray-500">Affects mood only—never change content.</p>
-              </div>
-            </div>
-
-            <div className={useConversionBuilder ? 'space-y-4' : 'pointer-events-none opacity-60'}>
-              {renderConversionTemplateFields()}
-            </div>
-          </div>
-        </Accordion>
-      </div>
     </>
   );
 
@@ -2338,466 +2049,6 @@ const App: React.FC = () => {
       )}
     </div>
   );
-
-  const renderConversionTemplateFields = () => {
-    const { activeTemplate, templates } = conversionBuilderState;
-    const template = templates[activeTemplate];
-    const alignmentHint: Record<ConversionBuilderState['alignment'], string> = {
-      left: 'Product anchored on the left with messaging on the right.',
-      center: 'Product centered with symmetrical whitespace around the copy.',
-      right: 'Product anchored on the right with messaging on the left.',
-    };
-    const renderIconSelect = (value: string, onChange: (next: string) => void, id?: string) => (
-      <select
-        id={id}
-        value={value}
-        onChange={event => onChange(event.target.value)}
-        className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-        disabled={!useConversionBuilder}
-      >
-        <option value="">No icon</option>
-        {lucideIconOptions.map(icon => (
-          <option key={icon} value={icon}>
-            {icon}
-          </option>
-        ))}
-      </select>
-    );
-
-    if (activeTemplate === 'valueProp') {
-      const current = template as ConversionTemplates['valueProp'];
-      return (
-        <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
-          <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Value Proposition Image</p>
-          <p className="text-xs text-gray-400">Explain in 3 seconds what the product is and why it matters. Keep benefits tight around the product without clutter.</p>
-          <label className="text-sm text-gray-200">Headline</label>
-          <input
-            type="text"
-            value={current.headline}
-            onChange={event =>
-              updateTemplateById('valueProp', prev => ({ ...prev, headline: event.target.value }))
-            }
-            className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-            disabled={!useConversionBuilder}
-          />
-          <p className="text-[11px] text-gray-500">{alignmentHint[conversionBuilderState.alignment]}</p>
-          <div className="grid gap-3 md:grid-cols-2">
-            {current.benefits.map((benefit, index) => (
-              <div key={`vp-benefit-${index}`} className="space-y-1 rounded-lg border border-white/10 bg-white/5 p-3">
-                <label className="text-sm text-gray-200">{`Key benefit ${index + 1}`}</label>
-                <input
-                  type="text"
-                  value={benefit.text}
-                  onChange={event =>
-                    updateTemplateById('valueProp', prev => ({
-                      ...prev,
-                      benefits: prev.benefits.map((item, idx) =>
-                        idx === index ? { ...item, text: event.target.value } : item
-                      ),
-                    }))
-                  }
-                  className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                  disabled={!useConversionBuilder}
-                />
-                <label className="text-[11px] text-gray-400">Lucide icon (optional)</label>
-                {renderIconSelect(benefit.icon ?? '', next =>
-                  updateTemplateById('valueProp', prev => ({
-                    ...prev,
-                    benefits: prev.benefits.map((item, idx) =>
-                      idx === index ? { ...item, icon: next } : item
-                    ),
-                  }))
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-
-    if (activeTemplate === 'whatDoesItDo') {
-      const current = template as ConversionTemplates['whatDoesItDo'];
-      return (
-        <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
-          <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">What Does It Do?</p>
-          <p className="text-xs text-gray-400">Show functional outcomes. Keep 2–4 short benefits with optional icons.</p>
-          <label className="text-sm text-gray-200">Headline</label>
-          <input
-            type="text"
-            value={current.headline}
-            onChange={event =>
-              updateTemplateById('whatDoesItDo', prev => ({ ...prev, headline: event.target.value }))
-            }
-            className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-            disabled={!useConversionBuilder}
-          />
-          <p className="text-[11px] text-gray-500">{alignmentHint[conversionBuilderState.alignment]}</p>
-          <div className="grid gap-3 md:grid-cols-2">
-            {current.benefits.map((benefit, index) => (
-              <div key={`do-benefit-${index}`} className="space-y-1 rounded-lg border border-white/10 bg-white/5 p-3">
-                <label className="text-sm text-gray-200">{`Benefit ${index + 1}`}</label>
-                <input
-                  type="text"
-                  value={benefit.text}
-                  onChange={event =>
-                    updateTemplateById('whatDoesItDo', prev => ({
-                      ...prev,
-                      benefits: prev.benefits.map((item, idx) =>
-                        idx === index ? { ...item, text: event.target.value } : item
-                      ),
-                    }))
-                  }
-                  className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                  disabled={!useConversionBuilder}
-                />
-                <label className="text-[11px] text-gray-400">Lucide icon (optional)</label>
-                {renderIconSelect(benefit.icon ?? '', next =>
-                  updateTemplateById('whatDoesItDo', prev => ({
-                    ...prev,
-                    benefits: prev.benefits.map((item, idx) =>
-                      idx === index ? { ...item, icon: next } : item
-                    ),
-                  }))
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-
-    if (activeTemplate === 'howItWorks') {
-      const current = template as ConversionTemplates['howItWorks'];
-      return (
-        <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
-          <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">How Does It Work?</p>
-          <p className="text-xs text-gray-400">Use up to 3 short steps. Keep copy concise and paired with the product.</p>
-          <label className="text-sm text-gray-200">Headline</label>
-          <input
-            type="text"
-            value={current.headline}
-            onChange={event =>
-              updateTemplateById('howItWorks', prev => ({ ...prev, headline: event.target.value }))
-            }
-            className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-            disabled={!useConversionBuilder}
-          />
-          <p className="text-[11px] text-gray-500">{alignmentHint[conversionBuilderState.alignment]}</p>
-          <div className="grid gap-3 md:grid-cols-3">
-            {current.steps.map((step, index) => (
-              <div key={`how-step-${index}`} className="space-y-1 rounded-lg border border-white/10 bg-white/5 p-3">
-                <label className="text-sm text-gray-200">{`Step ${index + 1}`}</label>
-                <input
-                  type="text"
-                  value={step.text}
-                  onChange={event =>
-                    updateTemplateById('howItWorks', prev => ({
-                      ...prev,
-                      steps: prev.steps.map((item, idx) =>
-                        idx === index ? { ...item, text: event.target.value } : item
-                      ),
-                    }))
-                  }
-                  className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                  disabled={!useConversionBuilder}
-                />
-                <label className="text-[11px] text-gray-400">Lucide icon (optional)</label>
-                {renderIconSelect(step.icon ?? '', next =>
-                  updateTemplateById('howItWorks', prev => ({
-                    ...prev,
-                    steps: prev.steps.map((item, idx) =>
-                      idx === index ? { ...item, icon: next } : item
-                    ),
-                  }))
-                )}
-              </div>
-            ))}
-          </div>
-          <label className="text-sm text-gray-200">Footer summary (optional)</label>
-          <input
-            type="text"
-            value={current.footer}
-            onChange={event =>
-              updateTemplateById('howItWorks', prev => ({ ...prev, footer: event.target.value }))
-            }
-            className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-            disabled={!useConversionBuilder}
-          />
-        </div>
-      );
-    }
-
-    if (activeTemplate === 'results') {
-      const current = template as ConversionTemplates['results'];
-      const defaultResults = createDefaultConversionTemplates().results;
-      return (
-        <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
-          <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">What Results Can I Get?</p>
-          <p className="text-xs text-gray-400">Pick one variant only. Never mix before/after with testimonials.</p>
-          <label className="text-sm text-gray-200">Headline</label>
-          <input
-            type="text"
-            value={current.headline}
-            onChange={event =>
-              updateTemplateById('results', prev => ({ ...prev, headline: event.target.value }))
-            }
-            className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-            disabled={!useConversionBuilder}
-          />
-          <div className="flex flex-wrap gap-2">
-            {[
-              { id: 'beforeAfter', label: 'Before / After' },
-              { id: 'testimonials', label: 'Testimonials' },
-            ].map(option => (
-              <button
-                key={option.id}
-                type="button"
-                onClick={() =>
-                  updateTemplateById('results', prev => ({
-                    ...prev,
-                    variant: option.id as 'beforeAfter' | 'testimonials',
-                    before: defaultResults.before,
-                    after: defaultResults.after,
-                    testimonials: defaultResults.testimonials,
-                  }))
-                }
-                className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
-                  current.variant === option.id
-                    ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                    : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
-                }`}
-                disabled={!useConversionBuilder}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-          {current.variant === 'beforeAfter' ? (
-            <div className="grid gap-3 md:grid-cols-2">
-              <div className="space-y-1 rounded-lg border border-white/10 bg-white/5 p-3">
-                <label className="text-sm text-gray-200">Before text</label>
-                <input
-                  type="text"
-                  value={current.before.text}
-                  onChange={event =>
-                    updateTemplateById('results', prev => ({
-                      ...prev,
-                      before: { ...prev.before, text: event.target.value },
-                    }))
-                  }
-                  className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                  disabled={!useConversionBuilder}
-                />
-                <label className="text-[11px] text-gray-400">Lucide icon (optional)</label>
-                {renderIconSelect(current.before.icon ?? '', next =>
-                  updateTemplateById('results', prev => ({
-                    ...prev,
-                    before: { ...prev.before, icon: next },
-                  }))
-                )}
-              </div>
-              <div className="space-y-1 rounded-lg border border-white/10 bg-white/5 p-3">
-                <label className="text-sm text-gray-200">After text</label>
-                <input
-                  type="text"
-                  value={current.after.text}
-                  onChange={event =>
-                    updateTemplateById('results', prev => ({
-                      ...prev,
-                      after: { ...prev.after, text: event.target.value },
-                    }))
-                  }
-                  className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                  disabled={!useConversionBuilder}
-                />
-                <label className="text-[11px] text-gray-400">Lucide icon (optional)</label>
-                {renderIconSelect(current.after.icon ?? '', next =>
-                  updateTemplateById('results', prev => ({
-                    ...prev,
-                    after: { ...prev.after, icon: next },
-                  }))
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="grid gap-3 md:grid-cols-3">
-              {current.testimonials.map((testimonial, index) => (
-                <div key={`testimonial-${index}`} className="space-y-1 rounded-lg border border-white/10 bg-white/5 p-3">
-                  <label className="text-sm text-gray-200">{`Testimonial ${index + 1}`}</label>
-                  <textarea
-                    value={testimonial.quote}
-                    onChange={event =>
-                      updateTemplateById('results', prev => ({
-                        ...prev,
-                        testimonials: prev.testimonials.map((item, idx) =>
-                          idx === index ? { ...item, quote: event.target.value } : item
-                        ),
-                      }))
-                    }
-                    rows={3}
-                    className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                    disabled={!useConversionBuilder}
-                  />
-                  <label className="text-sm text-gray-200">Name (optional)</label>
-                  <input
-                    type="text"
-                    value={testimonial.name}
-                    onChange={event =>
-                      updateTemplateById('results', prev => ({
-                        ...prev,
-                        testimonials: prev.testimonials.map((item, idx) =>
-                          idx === index ? { ...item, name: event.target.value } : item
-                        ),
-                      }))
-                    }
-                    className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                    disabled={!useConversionBuilder}
-                  />
-                  <label className="text-[11px] text-gray-400">Lucide icon (optional)</label>
-                  {renderIconSelect(testimonial.icon ?? '', next =>
-                    updateTemplateById('results', prev => ({
-                      ...prev,
-                      testimonials: prev.testimonials.map((item, idx) =>
-                        idx === index ? { ...item, icon: next } : item
-                      ),
-                    }))
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    if (activeTemplate === 'differentiators') {
-      const current = template as ConversionTemplates['differentiators'];
-      return (
-        <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
-          <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">How Is It Different?</p>
-          <p className="text-xs text-gray-400">Highlight 2–4 differentiators without naming competitors.</p>
-          <label className="text-sm text-gray-200">Headline</label>
-          <input
-            type="text"
-            value={current.headline}
-            onChange={event =>
-              updateTemplateById('differentiators', prev => ({ ...prev, headline: event.target.value }))
-            }
-            className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-            disabled={!useConversionBuilder}
-          />
-          <div className="grid gap-3 md:grid-cols-2">
-            {current.points.map((point, index) => (
-              <div key={`diff-${index}`} className="space-y-1 rounded-lg border border-white/10 bg-white/5 p-3">
-                <label className="text-sm text-gray-200">{`Differentiator ${index + 1}`}</label>
-                <input
-                  type="text"
-                  value={point.text}
-                  onChange={event =>
-                    updateTemplateById('differentiators', prev => ({
-                      ...prev,
-                      points: prev.points.map((item, idx) =>
-                        idx === index ? { ...item, text: event.target.value } : item
-                      ),
-                    }))
-                  }
-                  className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                  disabled={!useConversionBuilder}
-                />
-                <label className="text-[11px] text-gray-400">Lucide icon (optional)</label>
-                {renderIconSelect(point.icon ?? '', next =>
-                  updateTemplateById('differentiators', prev => ({
-                    ...prev,
-                    points: prev.points.map((item, idx) =>
-                      idx === index ? { ...item, icon: next } : item
-                    ),
-                  }))
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-
-    if (activeTemplate === 'trust') {
-      const current = template as ConversionTemplates['trust'];
-      return (
-        <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
-          <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Can You Back It Up?</p>
-          <p className="text-xs text-gray-400">Use a guarantee/trust headline plus 2–4 trust messages. Only use provided badge or numbers.</p>
-          <label className="text-sm text-gray-200">Guarantee / trust headline</label>
-          <input
-            type="text"
-            value={current.headline}
-            onChange={event =>
-              updateTemplateById('trust', prev => ({ ...prev, headline: event.target.value }))
-            }
-            className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-            disabled={!useConversionBuilder}
-          />
-          <div className="grid gap-3 md:grid-cols-2">
-            {current.trustPoints.map((point, index) => (
-              <div key={`trust-${index}`} className="space-y-1 rounded-lg border border-white/10 bg-white/5 p-3">
-                <label className="text-sm text-gray-200">{`Trust message ${index + 1}`}</label>
-                <input
-                  type="text"
-                  value={point.text}
-                  onChange={event =>
-                    updateTemplateById('trust', prev => ({
-                      ...prev,
-                      trustPoints: prev.trustPoints.map((item, idx) =>
-                        idx === index ? { ...item, text: event.target.value } : item
-                      ),
-                    }))
-                  }
-                  className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                  disabled={!useConversionBuilder}
-                />
-                <label className="text-[11px] text-gray-400">Lucide icon (optional)</label>
-                {renderIconSelect(point.icon ?? '', next =>
-                  updateTemplateById('trust', prev => ({
-                    ...prev,
-                    trustPoints: prev.trustPoints.map((item, idx) =>
-                      idx === index ? { ...item, icon: next } : item
-                    ),
-                  }))
-                )}
-              </div>
-            ))}
-          </div>
-          <div className="grid gap-3 md:grid-cols-2">
-            <div className="space-y-1">
-              <label className="text-sm text-gray-200">Badge text (optional)</label>
-              <input
-                type="text"
-                value={current.badge}
-                onChange={event =>
-                  updateTemplateById('trust', prev => ({ ...prev, badge: event.target.value }))
-                }
-                className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                disabled={!useConversionBuilder}
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm text-gray-200">Social proof number (optional)</label>
-              <input
-                type="text"
-                value={current.socialProof}
-                onChange={event =>
-                  updateTemplateById('trust', prev => ({ ...prev, socialProof: event.target.value }))
-                }
-                className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                disabled={!useConversionBuilder}
-              />
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    return null;
-  };
 
   const handleUGCRealModeToggle = useCallback(
     (value: boolean) => {
@@ -3243,56 +2494,6 @@ const App: React.FC = () => {
     }
   }, [applyProPreset]);
 
-  const buildConversionImagePrompt = (state: ConversionBuilderState, sceneOptions: MockupOptions) => {
-    const safeZone =
-      state.alignment === 'left'
-        ? 'Leave a clean negative space on the left for overlays; keep the product slightly right of center.'
-        : state.alignment === 'right'
-          ? 'Leave a clean negative space on the right for overlays; keep the product slightly left of center.'
-          : 'Keep the product centered with subtle negative space around it for overlays.';
-    const modeLabel = sceneOptions.contentStyle === 'product' ? 'Product / Studio mode' : 'Lifestyle / UGC mode';
-    const sceneNotes = [
-      `Scene: ${sceneOptions.setting}`,
-      `Environment: ${sceneOptions.environmentOrder}`,
-      `Lighting: ${sceneOptions.lighting}`,
-      `Camera: ${sceneOptions.camera}`,
-      `Perspective: ${sceneOptions.perspective}`,
-      `Composition: ${sceneOptions.compositionMode}`,
-      `Aspect ratio: ${sceneOptions.aspectRatio}`,
-      `Placement: ${sceneOptions.placementStyle} with ${sceneOptions.placementCamera}`,
-      `Product plane: ${sceneOptions.productPlane}`,
-    ].join(' · ');
-    const personNotes =
-      sceneOptions.ageGroup === 'no person'
-        ? 'No person in frame; product-forward composition.'
-        : `Include a real person consistent with: ${describeAgeGroup(sceneOptions.ageGroup, sceneOptions.gender)}, ethnicity ${sceneOptions.ethnicity}, mood ${sceneOptions.personMood}, pose ${sceneOptions.personPose}, wardrobe ${sceneOptions.wardrobeStyle}, expression ${sceneOptions.personExpression}, props ${sceneOptions.personProps}.`;
-    const stylePresetNote =
-      state.stylePreset === 'warm'
-        ? 'Mood: warm and inviting while keeping product colors accurate.'
-        : state.stylePreset === 'minimal'
-          ? 'Mood: minimal and clean.'
-          : state.stylePreset === 'vibrant'
-            ? 'Mood: vibrant and energetic without altering product colors.'
-            : 'Mood: neutral styling.';
-    const backgroundNote = state.backgroundColor ? `Background color target: ${state.backgroundColor}.` : '';
-    const fontNote = `Typography preference for later overlays: ${state.fontFamily} at ${state.fontSize}px (do not render text).`;
-
-    return [
-      'Generate only the base conversion image.',
-      'Do not add any text, icons, symbols, diagrams, bullets, banners, or logos. Leave space for overlays.',
-      `Respect all current ${modeLabel} settings and product realism: ${sceneNotes}.`,
-      personNotes,
-      'Keep the product accurate to the uploaded reference image in color, shape, and proportion.',
-      backgroundNote,
-      stylePresetNote,
-      fontNote,
-      safeZone,
-      'Leave clean negative space as instructed for overlays. No typography or icons should appear inside the AI-rendered image.',
-    ]
-      .filter(Boolean)
-      .join('\n');
-  };
-
   const buildCopyPrompt = useCallback(
     (sceneOptions: MockupOptions) => {
       const style = sceneOptions.contentStyle === 'product' ? 'product placement' : 'UGC lifestyle';
@@ -3315,9 +2516,7 @@ const App: React.FC = () => {
         return;
       }
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string, apiVersion: 'v1beta' });
-      const prompt = useConversionBuilder
-        ? buildConversionImagePrompt(conversionBuilderState, options)
-        : buildCopyPrompt(options);
+      const prompt = buildCopyPrompt(options);
       const response = await ai.models.generateContent({
         model: GEMINI_IMAGE_MODEL,
         contents: [{ text: prompt }],
@@ -3751,8 +2950,6 @@ const App: React.FC = () => {
     setHeroProductAlignment('center');
     setHeroProductScale(1);
     setHeroShadowStyle('softDrop');
-    setConversionBuilderState(createDefaultConversionState());
-    setUseConversionBuilder(true);
   }, [activeProductAsset, applyOptionsUpdate, resetOutputs]);
 
   const handleLogout = useCallback(async () => {
@@ -3863,12 +3060,567 @@ const App: React.FC = () => {
     uploaderRef.current?.openFileDialog();
   }, []);
 
-  const constructPrompt = (_bundleProductsOverride?: ProductId[] | null): string => {
-    if (useConversionBuilder) {
-      return buildConversionImagePrompt(conversionBuilderState, options);
+  const constructPrompt = (bundleProductsOverride?: ProductId[] | null): string => {
+    const clean = (text: string = '') =>
+      String(text)
+        .replace(/http[^ ]+/g, '')
+        .replace(/www\.[^ ]+/g, '')
+        .replace(/reference/gi, '')
+        .replace(/see/gi, '')
+        .trim();
+    const currentStyle = contentStyleValue;
+    const isUgcStyle = currentStyle !== 'product';
+    const personIncluded = isUgcStyle && options.ageGroup !== 'no person';
+    const selfieLabel = getSelfieLabel(options.selfieType);
+    const selfieMeta = SELFIE_DIRECTIONS[selfieLabel];
+    const requiresSplitHands = Boolean(selfieMeta?.enforceSplitHands);
+    const hasSmartphoneProp = options.personProps === SMARTPHONE_PROP_VALUE;
+    const isFlashLighting = options.lighting === FLASH_LIGHTING_VALUE;
+    const isHandsOnlyPose = options.personPose === HANDS_ONLY_POSE_VALUE;
+    const realModeActive = ugcRealSettings.isEnabled && !isProductPlacement && personIncluded;
+    const expressionOverride = realModeActive && ugcRealSettings.selectedExpressionId
+      ? UGC_EXPRESSION_PRESETS.find(item => item.id === ugcRealSettings.selectedExpressionId) ?? null
+      : null;
+    const cleanSetting = clean(options.setting);
+    const cleanLighting = clean(options.lighting);
+    const cleanEnvironmentOrder = clean(options.environmentOrder);
+    const cleanProductPlane = clean(options.productPlane);
+    const cleanProductMaterial = clean(options.productMaterial);
+    const cleanCamera = clean(options.camera);
+    const cleanPerspective = clean(options.perspective);
+    const cleanProductInteraction = clean(options.productInteraction);
+    const cleanPersonAppearance = clean(options.personAppearance);
+    const cleanWardrobeStyle = clean(options.wardrobeStyle);
+    const cleanPersonPose = clean(options.personPose);
+    const cleanPersonMood = clean(options.personMood);
+    const cleanPersonProps = clean(options.personProps);
+    const cleanMicroLocation = clean(options.microLocation);
+    const cleanPersonExpression = clean(options.personExpression);
+    const cleanHairStyle = clean(options.hairStyle);
+    const cleanHairColor = clean(options.hairColor);
+    const cleanSkinTone = clean(options.skinTone);
+    const cleanEyeColor = clean(options.eyeColor);
+    const cleanSelfieType = clean(options.selfieType);
+    const cleanRealism = clean(options.realism);
+    const cleanSkinRealism = clean(options.skinRealism);
+    const cleanPlacementStyle = clean(options.placementStyle);
+    const cleanPlacementCamera = clean(options.placementCamera);
+    const cleanProLens = clean(options.proLens ?? '');
+    const cleanProLightingRig = clean(options.proLightingRig ?? '');
+    const cleanProPostTreatment = clean(options.proPostTreatment ?? '');
+    const cleanAspectRatio = clean(options.aspectRatio);
+    const heroDescriptionPreset = HERO_PERSON_DESCRIPTION_PRESETS.find(
+      preset => preset.id === selectedHeroPreset
+    );
+    const heroDescriptionSource =
+      selectedHeroPreset === 'custom'
+        ? customHeroDescription
+        : heroDescriptionPreset?.description ?? '';
+    const heroDescriptionText = clean(heroDescriptionSource);
+
+    const getInteractionDescription = (interaction: string): string => {
+      switch (interaction) {
+        case 'holding it naturally':
+          return clean('holding the product naturally and comfortably.');
+        case 'using it':
+          return clean('using the product naturally as intended.');
+        case 'showing to camera':
+          return clean('showing the product close to the camera.');
+        case 'unboxing it':
+          return clean('unboxing the product with excitement.');
+        case 'applying it':
+          return clean('applying the product to their skin or body.');
+        case 'placing on surface':
+          return clean('placing the product carefully on a nearby surface.');
+        default:
+          return clean(`interacting with the product in a way that is ${interaction}.`);
+      }
+    };
+
+    const bundleProductsForPrompt = bundleProductsOverride ?? bundleSelectionRef.current;
+    let prompt = `Create an ultra-realistic, authentic ${isUgcStyle ? 'UGC lifestyle' : 'product placement'} photo with a ${cleanAspectRatio} aspect ratio. `;
+    prompt = prompt
+      .replace(/label design/gi, 'existing label preserved exactly')
+      .replace(/redesign/gi, '')
+      .replace(/re-imagine/gi, '')
+      .replace(/new label/gi, '')
+      .trim();
+    prompt += isUgcStyle
+      ? `The shot should feel candid, emotional, and cinematic, as if taken by a real person with a ${cleanCamera}. Embrace believable imperfections—slight motion blur, a little lens smudge, off-center framing, uneven window light—so it reads as everyday life rather than a polished model shoot. `
+      : `The shot should feel refined and advertising-ready, with deliberate staging captured on a ${cleanCamera}. `;
+
+    if (isHeroLandingMode) {
+      const heroBackground =
+        supplementBackgroundColor.trim() ||
+        HERO_LANDING_META?.heroLandingConfig?.backgroundColor ||
+        '#FFFFFF';
+      prompt += `Design this as a seamless ecommerce hero module on a ${heroBackground} backdrop. Keep the set ultra minimal—no room environment, just a clean base plane and negative space perfect for landing pages. `;
+      const heroAlignmentCopy = HERO_ALIGNMENT_TEXT[heroProductAlignment];
+      prompt += `${heroAlignmentCopy} `;
+      const scalePercent = Math.round(heroProductScale * 100);
+      prompt += `Scale the product so it fills roughly ${scalePercent}% of the frame height without cropping labels. `;
+      prompt += `${HERO_SHADOW_TEXT[heroShadowStyle]} `;
+      const heroDefaults = HERO_LANDING_META?.heroLandingConfig;
+      if (heroDefaults?.forcedLighting) {
+        prompt += `Lighting must feel like ${heroDefaults.forcedLighting} studio conditions for consistent highlights. `;
+      }
+      if (heroDefaults?.forcedAngle) {
+        prompt += `Frame it from a ${heroDefaults.forcedAngle} camera angle so packaging reads clearly. `;
+      }
+      if (heroDefaults?.noEnvironment) {
+        prompt += 'Do not introduce furniture, backgrounds, or lifestyle props—just use subtle geometry or gradients to support the hero. ';
+      }
+      if (supplementAccentColor.trim()) {
+        prompt += `Use ${supplementAccentColor.trim()} only for minimal accent bars or glass prisms—not full scenes—to keep the hero ultra clean. `;
+      }
+    } else {
+      prompt += `The scene is a ${cleanSetting}, illuminated by ${cleanLighting}. The overall environment has a ${cleanEnvironmentOrder} feel. The photo is shot from a ${cleanPerspective}, embracing the chosen camera style and its natural characteristics. Frame the composition so the product lives in ${cleanProductPlane}. `;
     }
-    return buildCopyPrompt(options);
-  };
+
+    if (options.creationMode === 'lifestyle') {
+      prompt += `
+Photorealistic lifestyle UGC with real people and natural environments.
+Natural lighting, candid mood, real skin texture and shadows.
+Avoid perfect studio look.
+`;
+    }
+
+    if (options.creationMode === 'studio') {
+      prompt += `
+Clean, high-end studio hero shot.
+Soft gradient background, commercial lighting, crisp reflections.
+Preserve exact product shape, label and colors.
+No props or environments.
+`;
+    }
+
+    if (options.creationMode === 'aesthetic') {
+      prompt += `
+Aesthetic styled scene with curated props.
+Matching color palette, soft lighting and premium brand vibe.
+Balanced, artistic composition.
+`;
+    }
+
+    if (options.creationMode === 'bg-replace') {
+      prompt += `
+Replace the background while preserving exact product fidelity.
+Clean edges, accurate colors, soft realistic shadow.
+No product modifications.
+`;
+    }
+
+    if (options.creationMode === 'ecom-blank') {
+      prompt += `
+Ecommerce layout with solid background color: ${options.bgColor}.
+Product and person on the ${options.sidePlacement} side.
+Large clean negative space on the opposite side.
+Studio lighting, minimal shadows, no props or environments.
+Preserve exact product fidelity.
+`;
+    }
+
+    const formatHeightNumber = (num: number) => (Number.isInteger(num) ? num.toString() : num.toFixed(1));
+    const describeHeight = (value: number, unit: 'cm' | 'in') => {
+      if (unit === 'cm') {
+        const inches = (value / 2.54).toFixed(1);
+        return `${formatHeightNumber(value)} cm tall (about ${inches} in)`;
+      }
+      const centimeters = (value * 2.54).toFixed(1);
+      return `${formatHeightNumber(value)} in tall (about ${centimeters} cm)`;
+    };
+    const heightNotes = productAssets
+      .filter(asset => asset.heightValue)
+      .map(asset => `${asset.label || 'product'} ${describeHeight(asset.heightValue!, asset.heightUnit)}`)
+      .join('. ');
+    prompt += `
+Use the uploaded product image as the exact product to place in the scene.
+Preserve:
+- exact colors,
+- exact label design,
+- exact typography,
+- exact cap shape,
+- exact material,
+- exact geometry,
+- exact proportions.
+
+Do not redesign, replace, or reinterpret the product.
+
+Integrate it physically into the environment using "Active Insert Mode":
+- match lighting to the room,
+- adjust reflections on glass/plastic,
+- add realistic soft shadows on surfaces,
+- maintain physically correct highlights,
+- preserve all printed elements clearly and accurately,
+- keep edges and silhouette identical to the uploaded object.
+
+The product must look naturally photographed inside this environment, not pasted or floating.
+`;
+    prompt += `
+Integrate the product physically into the environment:
+- match real lighting direction,
+- match color temperature and contrast,
+- generate accurate shadow casting under the jar/bottle,
+- apply micro-occlusion where the hand touches the product,
+- generate correct reflections on glass, plastic, or metal,
+- preserve the exact design, size, colors, and branding of the uploaded product.
+`;
+    if (options.compositionMode === 'ecom-blank') {
+      prompt += `
+This image must use a pure solid background with the exact color: ${options.bgColor}.
+Do NOT generate rooms, environments, furniture, props or scenery.
+Keep the background perfectly uniform and flat.
+
+Place the product and the person exclusively on the ${options.sidePlacement} side of the frame.
+Leave large, clean negative space on the ${
+        options.sidePlacement === 'left' ? 'right' : 'left'
+      } side for text overlays.
+
+Use soft studio lighting suitable for Amazon, Shopify and paid ads.
+Do NOT add text, logos, watermarks or graphics.
+
+Insert the uploaded product cleanly into the scene with:
+- perfect edges,
+- precise shape preservation,
+- correct reflections,
+- realistic soft shadows on the flat background,
+- exact label, exact colors and exact proportions.
+
+Maintain correct human anatomy at all times:
+- natural hands,
+- correct finger shape,
+- proper wrist rotation,
+- realistic arm connection to the body.
+`;
+    }
+    if (heightNotes) {
+      prompt += `Respect real-world scale: ${clean(heightNotes)}. Adjust hands, props, and camera distance so the item visibly matches that measurement.`;
+    }
+    if (formulationExpertEnabled) {
+      const preset = FORMULATION_PRESET_LOOKUP[formulationExpertPreset];
+      const expertName = (formulationExpertName || preset?.suggestedName || 'Dr. Ana Ruiz').trim();
+      const expertRole = (formulationExpertRole || preset?.role || 'lead formulator').trim();
+      const professionLabel = formulationExpertProfession === 'custom'
+        ? expertRole
+        : (FORMULATION_PROFESSION_LOOKUP[formulationExpertProfession]?.label ?? expertRole);
+      const safeExpertName = clean(expertName);
+      const safeExpertRole = clean(professionLabel);
+      prompt += ` Feature ${safeExpertName}, a ${safeExpertRole}, present in ${clean(formulationLabStyle)} beside the hero product.`;
+      if (preset?.prompt) {
+        prompt += ` ${clean(preset.prompt)}`;
+      }
+      prompt += ' Their face must look photorealistic and human—no CGI, animation, or plastic skin. Keep real pores, imperfect lighting, and shallow depth of field like an editorial portrait.';
+      prompt += ' Make it obvious they created the formula based on cited clinical research—include subtle clipboard notes, lab coat details, and a respectful nod to science-backed development.';
+    }
+    if (realModeActive) {
+      prompt += ` ${UGC_REAL_MODE_BASE_PROMPT}.`;
+      const realityPreset = UGC_REALITY_PRESETS.find(item => item.id === ugcRealSettings.selectedRealityPresetId);
+      if (realityPreset) {
+        prompt += ` ${clean(realityPreset.prompt)}`;
+      }
+    }
+    if (productAssets.length > 1) {
+      prompt += ' There are multiple distinct product cutouts supplied. Arrange every unique product in the final scene, keeping each one fully visible and recognizable while avoiding any invented packaging. Treat them as a cohesive collection in the same frame.';
+    } else if (isMultiProductPackaging) {
+      prompt += ' This product photo shows a packaging kit that contains several items. Keep the box, lid, and every interior product fully visible—never crop away the inserts or swap them for a single bottle. Preserve the real-world packaging layout exactly as photographed.';
+    }
+    if (bundleProductsForPrompt?.length) {
+      const bundleLabels = bundleProductsForPrompt
+        .map(id => productMediaLibrary[id]?.label || PRODUCT_MEDIA_LIBRARY[id]?.label)
+        .filter(Boolean);
+      if (bundleLabels.length) {
+        prompt += ` Treat this as a curated bundle featuring ${bundleLabels.join(', ')}. Arrange every uploaded product cutout to mimic that assortment so shoppers immediately read it as a kit. `;
+      }
+    }
+    if (supplementPresetCue) {
+      prompt += ` ${clean(supplementPresetCue)}`;
+    }
+    if (supplementBackgroundColor.trim()) {
+      prompt += ` Set the hero backdrop color to ${supplementBackgroundColor}, matching the brand palette.`;
+    }
+    if (supplementAccentColor.trim()) {
+      prompt += ` Add secondary accents or props in ${supplementAccentColor} to create contrast.`;
+    }
+    if (supplementFlavorNotes.trim()) {
+      prompt += ` Include supporting ingredients/props inspired by: ${clean(supplementFlavorNotes.trim())}.`;
+    }
+    if (includeSupplementHand) {
+      prompt += ' Add a cropped human hand interacting with the product in a natural, candid way, with modern nail polish and minimal retouch. The hand must be real (no 3D or mannequin look).';
+    }
+    if (supplementCustomPrompt.trim()) {
+      prompt += ` ${clean(supplementCustomPrompt.trim())}`;
+    }
+    if (!isUgcStyle) {
+      prompt += ` No people should appear in the frame. Style the set like a premium product placement shoot with thoughtful props, surfaces, and depth, highlighting the product as the hero. Use a ${cleanPlacementCamera} approach and style the scene as ${cleanPlacementStyle}. `;
+      if (isProPhotographer) {
+        prompt += ` Professional setup details: ${cleanProLens || PRO_LENS_OPTIONS[0].value}, lighting rig ${cleanProLightingRig || PRO_LIGHTING_RIG_OPTIONS[0].value}, and finishing treatment ${cleanProPostTreatment || PRO_POST_TREATMENT_OPTIONS[0].value}. `;
+      }
+    }
+    if (options.realism) {
+      prompt += ` ${cleanRealism}`;
+    }
+    if (moodPromptCue) {
+      prompt += ` ${clean(moodPromptCue)}`;
+    }
+
+    if (personIncluded) {
+      if (options.creatorPreset) {
+        prompt += `The overall creative persona is ${clean(options.creatorPreset)}. `;
+      }
+      if (options.appearanceLevel) {
+        prompt += `Their grooming level is ${clean(options.appearanceLevel)}. `;
+      }
+      if (options.mood) {
+        prompt += `The mood is ${clean(options.mood)}, expressed naturally and realistically. `;
+      }
+      if (options.pose) {
+        prompt += `The pose is ${clean(options.pose)}. `;
+      }
+      if (options.expression) {
+        prompt += `Their expression is ${clean(options.expression)}. `;
+      }
+      if (options.wardrobe) {
+        prompt += `Their wardrobe style is ${clean(options.wardrobe)}. `;
+      }
+      if (options.hairstyle) {
+        prompt += `Their hairstyle is ${clean(options.hairstyle)}. `;
+      }
+      if (options.hairColor) {
+        prompt += `Their hair color is ${clean(options.hairColor)}. `;
+        prompt += `Hair color: ${clean(options.hairColor)}. Do not override with age-based defaults. `;
+      }
+      prompt += 'Age-based defaults must NOT override hair color or appearance selections. Hair must always match the selected color, even for seniors. ';
+      if (options.skinTone) {
+        prompt += `Their skin tone is ${clean(options.skinTone)}. `;
+      }
+      if (options.eyeColor) {
+        prompt += `Their eye color is ${clean(options.eyeColor)}. `;
+      }
+      if (options.microLocation) {
+        prompt += `The micro-location is ${clean(options.microLocation)}. `;
+      }
+      if (options.customMicroLocation) {
+        prompt += `Additional micro-location detail: ${clean(options.customMicroLocation)}. `;
+      }
+      if (options.interaction2) {
+        prompt += `Interaction detail: ${clean(options.interaction2)}. `;
+      }
+      const ageNarrative = describeAgeGroup(options.ageGroup, options.gender);
+      const poseEmphasizesHands = options.personPose.toLowerCase().includes('hand');
+      const isHandCloseUp = options.selfieType === 'close-up shot of a hand holding the product' || poseEmphasizesHands;
+      if (hasModelReference) {
+        prompt += 'Use the uploaded model reference image as the only on-camera talent. Reproduce their face, hair, skin tone, outfit, and proportions exactly—no replacements, no face swaps, and no invented hairstyles or accessories.';
+        if (modelReferenceNotes.trim()) {
+          prompt += ` Follow this direction for the model: ${clean(modelReferenceNotes.trim())}.`;
+        }
+        prompt += ' Keep them as the sole person in frame and do not alter their look beyond the provided note.';
+        if (modelReferenceFile) {
+          prompt += `
+Use the model reference ONLY for:
+- approximate age
+- skin tone
+- hair color and general style
+- facial shape and vibe
+- energy and personality
+
+Do NOT copy exact identity.
+Do NOT recreate the exact face.
+Preserve the creator’s overall vibe and characteristics only.
+`;
+        }
+      } else {
+        prompt += `The photo features ${clean(ageNarrative)}, of ${clean(options.ethnicity)} ethnicity, showcasing ${cleanPersonAppearance}. `;
+        if (options.ageGroup === '13-17') {
+          prompt += 'Capture a playful, teenage energy—youthful accessories, braces, or freckled details are welcome but keep it tasteful. ';
+        }
+        if (options.ageGroup === '6-12') {
+          prompt += 'Ensure the child proportions, clothing, and demeanor read as pre-teen (no teens or adults). ';
+        }
+        if (options.ageGroup === '18-25') {
+          prompt += 'Lean into a Gen-Z vibe with casual accessories, modern streetwear, and expressive gestures. ';
+        }
+        if (options.ageGroup === '26-35') {
+          prompt += 'Make sure they read as a late-20s/early-30s creator with subtle sophistication and confidence. ';
+        }
+        if (options.ageGroup === '36-45') {
+          prompt += 'Include hints of a mid-career adult (gentle laugh lines, poised posture, purposeful styling). ';
+        }
+        if (options.ageGroup === '46-60') {
+          prompt += 'Show visible signs of maturity—defined laugh lines, sun freckles, or silver strands—while keeping them vibrant. ';
+        }
+        if (options.ageGroup === '60-75') {
+          prompt += 'Represent an older adult with softened skin texture, salt-and-pepper hair, and calm confidence. ';
+        }
+        if (options.ageGroup === '75+') {
+          prompt += 'Make the subject unmistakably senior with soft wrinkles, age spots on hands, slightly stooped posture, and silver or white hair texture. ';
+        }
+        prompt += `They are dressed in ${cleanWardrobeStyle}, matching the scene's palette. Their pose is ${cleanPersonPose}, projecting ${cleanPersonMood}. `;
+        if (realModeActive) {
+          if (ugcRealSettings.selectedClothingPresetIds.length) {
+            const clothingText = ugcRealSettings.selectedClothingPresetIds
+              .map(id => UGC_CLOTHING_PRESETS.find(item => item.id === id)?.prompt)
+              .filter(Boolean)
+              .join(' ');
+            if (clothingText) {
+              prompt += ` ${clean(clothingText)}`;
+            }
+          }
+          if (ugcRealSettings.clothingUpload) {
+            prompt += ' Match the outfit to the uploaded clothing reference image so fabrics, drape, and color story stay true to reality.';
+          }
+        }
+        prompt += `They have ${cleanSkinTone}, ${cleanEyeColor}, and ${cleanHairColor}. `;
+        if (expressionOverride) {
+          prompt += ` ${clean(expressionOverride.prompt)}`;
+        } else {
+          prompt += `Their facial expression shows ${cleanPersonExpression}. `;
+        }
+        prompt += `Their hair is styled as ${cleanHairStyle}. `;
+      }
+      prompt += ' Faces and hands must be fully realistic with natural skin texture, no distortions or 3D plastic look. Zero warped fingers, zero asymmetry, zero AI artifacts. ';
+      if (options.skinRealism) {
+        prompt += `Skin realism mode: ${clean(options.skinRealism)}. Render pores, micro shadows, and natural texture accordingly. `;
+      }
+      prompt += 'Pores, microtexture, and natural imperfections must be preserved according to the selected skin realism mode. ';
+      if (realModeActive && ugcRealSettings.selectedHeroPersonaIds.length) {
+        const personaText = ugcRealSettings.selectedHeroPersonaIds
+          .map(id => UGC_HERO_PERSONA_PRESETS.find(item => item.id === id)?.prompt)
+          .filter(Boolean)
+          .join(' ');
+        if (personaText) {
+          prompt += ` ${clean(personaText)}`;
+        }
+      }
+      if (options.props) {
+        prompt += `Props present include ${clean(options.props)}. `;
+      }
+      if (options.customProp) {
+        prompt += `Additional prop: ${clean(options.customProp)}. `;
+      }
+      if (options.personProps !== personPropNoneValue) {
+        prompt += `Add supporting props such as ${cleanPersonProps} to reinforce the lifestyle context. `;
+      }
+      if (options.productInteraction === 'showing to camera') {
+        prompt += `Ensure the product is held close to the camera lens in the foreground, occupying the main focal plane with crisp sharpness. The person stays behind the product, slightly defocused or secondary in the frame. The product must NOT appear in the background and must always remain in the front-most visual layer. `;
+      }
+      if (options.microLocation !== microLocationDefault) {
+        prompt += `Place them within ${cleanMicroLocation} to ground the scene. `;
+      }
+      if (isHandCloseUp || selfieMeta?.hideFace || isHandsOnlyPose) {
+        prompt += `The shot is a tactile close-up of their hands ${getInteractionDescription(cleanProductInteraction)} Keep the crop near the torso or closer so attention stays on the product and touch. `;
+        if (selfieMeta?.hideFace) {
+          prompt += 'Do not show their face—only forearms, hands, and the product should be visible, mimicking a back-camera POV. ';
+        }
+      } else {
+        prompt += `The person is ${getInteractionDescription(cleanProductInteraction)} Their face and upper body are visible, and the interaction looks unposed and authentic. `;
+        if (options.selfieType !== 'none') {
+          prompt += `The style is a ${cleanSelfieType}. `;
+        }
+      }
+      if (selfieMeta) {
+        prompt += ` ${clean(selfieMeta.narrative)} `;
+        if (requiresSplitHands) {
+          prompt += 'Keep the smartphone in one hand and the product in the opposite hand so both hero objects stay visible simultaneously, with the phone-holding arm fully extended into frame like a true selfie. ';
+        }
+      } else if (hasSmartphoneProp) {
+        prompt += 'Include a modern smartphone prop in their free hand so it complements but never hides the product. ';
+      }
+      prompt += 'Hands must look fully human and photorealistic (no 3D artifacts). Skin texture, knuckles, and nails should be natural.';
+      prompt += `
+Ensure anatomically correct human arms and hands with:
+- proper bone proportions,
+- natural wrist rotation,
+- realistic muscle tension,
+- visible knuckles and joints,
+- correct finger lengths,
+- realistic grip around the product,
+- correct connection to the body even if the shoulder is off-frame.
+Hands must be photorealistic with subtle veins, micro-shadows, and true skin texture.
+No warped, melted, or floating limbs.
+`;
+      if (selfieMeta?.hidePhone) {
+        prompt += 'Do not render a smartphone anywhere in frame—imply the selfie by the arm extension and body posture only.';
+      }
+      if (isFlashLighting && !selfieMeta?.hidePhone) {
+        prompt += 'Use a bright on-camera flash that reflects on their face (or hands if the face is cropped out) and bounces off the phone, casting crisp, short shadows for that candid flash look. ';
+      }
+      if (heroDescriptionText) {
+        prompt += ` ${heroDescriptionText}`;
+      }
+      if (heroPosePromptCue) {
+        prompt += ` ${clean(heroPosePromptCue)}`;
+      }
+      if (realModeActive) {
+        if (ugcRealSettings.imperfectLighting) {
+          prompt += ' Let the lighting stay imperfect with hotspots, hard falloff, and visible shadows on the wall.';
+        }
+        if (ugcRealSettings.lowResolution) {
+          prompt += ' Simulate a low-resolution phone capture with pixel softness and slight chroma noise.';
+        }
+        if (ugcRealSettings.offFocus) {
+          prompt += ' Allow focus to breathe and slip, keeping only part of the face/product tack sharp.';
+        }
+        if (ugcRealSettings.tiltedPhone) {
+          prompt += ' Keep the camera horizon slightly tilted as if the phone was captured quickly.';
+        }
+        const offCenterPreset = UGC_OFF_CENTER_OPTIONS.find(option => option.id === ugcRealSettings.offCenterId);
+        if (offCenterPreset) {
+          prompt += ` ${clean(offCenterPreset.prompt)}`;
+        }
+        const framingPreset = UGC_SPONTANEOUS_FRAMING_OPTIONS.find(option => option.id === ugcRealSettings.framingId);
+        if (framingPreset) {
+          prompt += ` ${clean(framingPreset.prompt)}`;
+        }
+        if (ugcRealSettings.blurAmount > 0 || ugcRealSettings.grainAmount > 0) {
+         prompt += ` Add roughly ${ugcRealSettings.blurAmount}% focus blur and ${ugcRealSettings.grainAmount}% grain to mimic raw smartphone texture.`;
+       }
+        prompt += ' UGC Real Mode may add grain, lighting imperfections and organic feel to the scene, but must not degrade product clarity, readability or branding. ';
+      }
+    }
+
+    prompt += `
+Apply creator personality attributes selected by the user, including:
+- Appearance Level
+- Mood & Expression
+- Pose Type
+- Interaction Type
+- Wardrobe Style
+- Props
+- Micro-location
+- Skin Realism
+- Eye Color
+- Hair Style, Hair Color
+- Selfie Type
+
+Respect all these settings consistently.
+`;
+
+    if (options.compositionMode === 'ecom-blank') {
+      prompt += `
+Create an ecommerce-style lifestyle image optimized for Amazon, Shopify and paid ads.
+
+Follow these layout rules:
+- Background must be a clean solid color: ${options.bgColor}
+- Place the product and person on the ${options.sidePlacement} side of the frame.
+- Leave large clean negative space on the opposite side for text overlays.
+- Use soft, commercial studio lighting with minimal shadows.
+- Keep the scene simple, minimal and premium.
+- Do NOT add text, logos, graphics, icons or overlays.
+- Maintain perfect product preservation: exact colors, label, shape and cap.
+- Ensure perfect human anatomy: realistic hands, finger proportions, wrist angle and arm connection.
+- Render in a photorealistic modern ecommerce style suitable for A+ content.
+`;
+    }
+    if (options.compositionMode === 'ecom-blank') {
+      prompt += `
+If the model attempts to create a scene or environment, override it and force a solid background with the exact color ${options.bgColor}.
+`;
+    }
+    prompt += ' Deliver the render at ultra-high fidelity: native 4K resolution (minimum 3840px on the long edge) so it still looks razor sharp when downscaled to 2K for alternate exports.';
+    prompt += ` Final image must be high-resolution and free of any watermarks, text, or artificial elements. It should feel like a captured moment, not a staged ad.`;
+
+    return prompt;
+  }
 
   const getImageCreditCost = useCallback(
     (opts: MockupOptions) => {
