@@ -3568,7 +3568,8 @@ No warped, melted, or floating limbs.
       }
     }
 
-    prompt += `
+    if (!hasModelReference) {
+      prompt += `
 Apply creator personality attributes selected by the user, including:
 - Appearance Level
 - Mood & Expression
@@ -3584,6 +3585,7 @@ Apply creator personality attributes selected by the user, including:
 
 Respect all these settings consistently.
 `;
+    }
 
     if (options.compositionMode === 'ecom-blank') {
       prompt += `
@@ -3617,12 +3619,12 @@ If the model attempts to create a scene or environment, override it and force a 
       if (contentStyleValue === 'product') {
         return 1;
       }
-      if (opts.ageGroup === 'no person') {
+      if (opts.ageGroup === 'no person' && !modelReferenceFile) {
         return 2;
       }
       return isSimpleMode ? 3 : 4;
     },
-    [contentStyleValue, isSimpleMode]
+    [contentStyleValue, isSimpleMode, modelReferenceFile]
   );
 
   const publishFreeGallery = useCallback((imageUrl: string) => {
@@ -3658,12 +3660,8 @@ If the model attempts to create a scene or environment, override it and force a 
       setImageError("Please upload a product image first.");
       return;
     }
-    const personIncluded = !isProductPlacement && options.ageGroup !== 'no person';
+    const personIncluded = !isProductPlacement && (options.ageGroup !== 'no person' || !!modelReferenceFile);
     const realModeActive = ugcRealSettings.isEnabled && !isProductPlacement && personIncluded;
-    if (modelReferenceFile && !personIncluded) {
-      setImageError('Turn on a person in this scene (UGC Lifestyle + non "No Person" age) before using your model reference.');
-      return;
-    }
 
     const creditCost = getImageCreditCost(options);
     if (!isTrialBypassActive && creditCost > remainingCredits) {
@@ -3711,17 +3709,25 @@ If the model attempts to create a scene or environment, override it and force a 
         return;
       }
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string, apiVersion: 'v1beta' });
+      const parts: any[] = [
+        {
+          inlineData: { data: base64, mimeType },
+          reference: true,
+        },
+        { text: finalPrompt },
+      ];
+
+      if (modelReferenceFile) {
+        const { base64: modelBase64, mimeType: modelMimeType } = await fileToBase64(modelReferenceFile);
+        parts.unshift({
+          inlineData: { data: modelBase64, mimeType: modelMimeType },
+          reference: true,
+        });
+      }
+
       const response = await ai.models.generateContent({
         model: GEMINI_IMAGE_MODEL, // maintain this but enforce insert behavior through the prompt and config above
-        contents: {
-          parts: [
-            {
-              inlineData: { data: base64, mimeType },
-              reference: true,
-            },
-            { text: finalPrompt },
-          ],
-        },
+        contents: { parts },
         config: {
           responseModalities: [Modality.IMAGE],
           safetySettings: [],
@@ -4508,7 +4514,7 @@ If the model attempts to create a scene or environment, override it and force a 
                       : 'Model references are only available in UGC Lifestyle scenes with a person enabled. Switch out of Product Placement and pick an age group to unlock this.'
                   }
                 />
-                {hasUploadedProduct && !personInScene && !isProductPlacement && (
+                {hasUploadedProduct && !personInScene && !isProductPlacement && !hasModelReference && (
                   <p className="text-xs text-amber-300">
                     Model references only apply when this scene uses UGC Lifestyle with a person selected. Switch off Product Placement and choose an age so the same talent can carry across your morning/afternoon/night shots.
                   </p>
