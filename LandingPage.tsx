@@ -428,6 +428,52 @@ const LandingPage: React.FC = () => {
               <p className="text-sm text-gray-500 animate-fade-up delay-400">Free plan → 2 credits · No credit card required</p>
             </div>
           </header>
+          <section id="gallery" className="max-w-6xl mx-auto px-6 py-14 space-y-8">
+            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <div>
+                <p className="text-sm uppercase tracking-widest text-indigo-300">Community Gallery</p>
+                <h2 className="text-3xl text-white font-semibold mt-2">Latest Creations From the Community</h2>
+                <p className="text-gray-400 mt-3 max-w-2xl">
+                  Images generated with any plan (including Free Plan and invitation credit generations) appear here automatically.
+                </p>
+              </div>
+              <Link
+                to="/app"
+                className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-600 transition"
+              >
+                Generate Yours
+              </Link>
+            </div>
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+              {galleryLoading && (
+                <div className="col-span-full rounded-3xl border border-white/10 bg-gray-900/40 p-6 text-gray-300 text-sm">
+                  Loading community gallery...
+                </div>
+              )}
+              {!galleryLoading && galleryImages.length === 0 && (
+                <div className="col-span-full rounded-3xl border border-white/10 bg-gray-900/40 p-6 text-gray-300 text-sm">
+                  No community images yet. Generate yours!
+                </div>
+              )}
+              {!galleryLoading &&
+                galleryImages.map(image => (
+                  <div
+                    key={image.id}
+                    className="group relative block overflow-hidden rounded-3xl border border-white/10 bg-gray-900/40 text-left"
+                  >
+                    <img
+                      src={image.url}
+                      alt={getGalleryPlanLabel(image.plan)}
+                      className="h-64 w-full object-cover transition duration-500 group-hover:scale-105 group-hover:opacity-90"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition flex items-end">
+                      <p className="p-4 text-sm text-white">{getGalleryPlanLabel(image.plan)}</p>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </section>
         </div>
 
         <section id="features" className="max-w-6xl mx-auto px-6 py-12 space-y-12">
@@ -484,53 +530,6 @@ const LandingPage: React.FC = () => {
             ))}
           </div>
         </section>
-
-          <section id="gallery" className="max-w-6xl mx-auto px-6 py-14 space-y-8">
-            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="text-sm uppercase tracking-widest text-indigo-300">Community Gallery</p>
-                <h2 className="text-3xl text-white font-semibold mt-2">Latest Creations From the Community</h2>
-                <p className="text-gray-400 mt-3 max-w-2xl">
-                  Images generated with the Free Plan (including invitation credit generations) appear here automatically.
-                </p>
-              </div>
-              <Link
-                to="/app"
-                className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-600 transition"
-              >
-                Generate Yours
-              </Link>
-            </div>
-            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-              {galleryLoading && (
-                <div className="col-span-full rounded-3xl border border-white/10 bg-gray-900/40 p-6 text-gray-300 text-sm">
-                  Loading community gallery...
-                </div>
-              )}
-              {!galleryLoading && galleryImages.length === 0 && (
-                <div className="col-span-full rounded-3xl border border-white/10 bg-gray-900/40 p-6 text-gray-300 text-sm">
-                  No community images yet. Generate yours!
-                </div>
-              )}
-              {!galleryLoading &&
-                galleryImages.map(image => (
-                  <div
-                    key={image.id}
-                    className="group relative block overflow-hidden rounded-3xl border border-white/10 bg-gray-900/40 text-left"
-                  >
-                    <img
-                      src={image.url}
-                      alt={getGalleryPlanLabel(image.plan)}
-                      className="h-64 w-full object-cover transition duration-500 group-hover:scale-105 group-hover:opacity-90"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition flex items-end">
-                      <p className="p-4 text-sm text-white">{getGalleryPlanLabel(image.plan)}</p>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </section>
 
         <section id="workflow" className="bg-gray-900/40 border-y border-white/5">
           <div className="max-w-6xl mx-auto px-6 py-16 space-y-10">
