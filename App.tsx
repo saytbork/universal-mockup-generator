@@ -114,7 +114,63 @@ type StoryboardScene = {
   formulationExpertRole: string;
   formulationLabStyle: string;
   formulationExpertProfession: string;
+  personIdentityPackage: PersonIdentityPackage;
+  modelReferenceNotes: string;
 };
+
+type ModelReferenceData = {
+  base64: string;
+  mimeType: string;
+};
+
+type PersonDetails = {
+  ageGroup?: string;
+  gender?: string;
+  ethnicity?: string;
+  skinTone?: string;
+  hairType?: string;
+  hairLength?: string;
+  hairColor?: string;
+  facialHair?: string;
+  bodyType?: string;
+  wardrobe?: string;
+  pose?: string;
+};
+
+type PersonIdentityPackage = {
+  modelReferenceBase64?: string;
+  modelReferenceMime?: string;
+  identityLock: boolean;
+  personDetails?: PersonDetails;
+};
+
+const DEFAULT_PERSON_DETAILS: PersonDetails = {
+  hairType: '',
+  hairLength: '',
+  facialHair: '',
+  bodyType: '',
+};
+
+const pickPersonDetails = (options: MockupOptions): PersonDetails => ({
+  ageGroup: options.ageGroup,
+  gender: options.gender,
+  ethnicity: options.ethnicity,
+  skinTone: options.skinTone,
+  hairType: (options as any).hairType ?? '',
+  hairLength: (options as any).hairLength ?? '',
+  hairColor: options.hairColor,
+  facialHair: (options as any).facialHair ?? '',
+  bodyType: (options as any).bodyType ?? '',
+  wardrobe: options.wardrobeStyle ?? options.wardrobe,
+  pose: options.personPose ?? options.pose,
+});
+
+const createPersonIdentityPackage = (options: MockupOptions, overrides?: Partial<PersonIdentityPackage>): PersonIdentityPackage => ({
+  identityLock: overrides?.identityLock ?? false,
+  modelReferenceBase64: overrides?.modelReferenceBase64,
+  modelReferenceMime: overrides?.modelReferenceMime,
+  personDetails: overrides?.personDetails ?? pickPersonDetails(options),
+});
 
 type ProductAsset = {
   id: string;
@@ -723,6 +779,8 @@ const App: React.FC = () => {
       formulationExpertRole: FORMULATION_EXPERT_PRESETS[0].role,
       formulationLabStyle: FORMULATION_LAB_OPTIONS[0].value,
       formulationExpertProfession: 'custom',
+      personIdentityPackage: createPersonIdentityPackage(createDefaultOptions()),
+      modelReferenceNotes: '',
     };
   }
   const [options, setOptions] = useState<MockupOptions>(() => syncCharacterFields(cloneOptions(initialSceneRef.current!.options)));
@@ -746,6 +804,9 @@ const App: React.FC = () => {
   const [modelReferenceFile, setModelReferenceFile] = useState<File | null>(null);
   const [modelReferencePreview, setModelReferencePreview] = useState<string | null>(null);
   const [modelReferenceNotes, setModelReferenceNotes] = useState('');
+  const [personIdentityPackage, setPersonIdentityPackage] = useState<PersonIdentityPackage>(() =>
+    createPersonIdentityPackage(createDefaultOptions())
+  );
   const [compositionMode, setCompositionMode] = useState<CompositionMode>('balanced');
   const [activeSupplementPreset, setActiveSupplementPreset] = useState('none');
   const [supplementPresetCue, setSupplementPresetCue] = useState<string | null>(null);
@@ -1277,6 +1338,13 @@ const App: React.FC = () => {
     }
   }, []);
 
+  useEffect(() => {
+    setPersonIdentityPackage(prev => ({
+      ...prev,
+      personDetails: pickPersonDetails(options),
+    }));
+  }, [options]);
+
 
 
   useEffect(() => {
@@ -1307,6 +1375,8 @@ const App: React.FC = () => {
             heroProductAlignment,
             heroProductScale,
             heroShadowStyle,
+            personIdentityPackage,
+            modelReferenceNotes,
           }
           : scene
       )
@@ -1328,6 +1398,8 @@ const App: React.FC = () => {
     heroProductScale,
     heroShadowStyle,
     ugcRealSettings,
+    personIdentityPackage,
+    modelReferenceNotes,
   ]);
 
   useEffect(() => {
@@ -1813,6 +1885,8 @@ const App: React.FC = () => {
     setFormulationExpertProfession(scene.formulationExpertProfession ?? 'custom');
     setGeneratedCopy(null);
     setCopyError(null);
+    setPersonIdentityPackage(scene.personIdentityPackage);
+    setModelReferenceNotes(scene.modelReferenceNotes ?? '');
   }, [applyOptionsUpdate, storyboardScenes]);
 
   const handleAddScene = useCallback(() => {
@@ -1845,6 +1919,8 @@ const App: React.FC = () => {
       formulationExpertRole,
       formulationLabStyle,
       formulationExpertProfession,
+      personIdentityPackage,
+      modelReferenceNotes,
     };
     setStoryboardScenes(prev => [...prev, newScene]);
     setActiveSceneId(newScene.id);
@@ -1903,6 +1979,8 @@ const App: React.FC = () => {
       formulationExpertRole: scene.formulationExpertRole,
       formulationLabStyle: scene.formulationLabStyle,
       formulationExpertProfession: scene.formulationExpertProfession,
+      personIdentityPackage: scene.personIdentityPackage,
+      modelReferenceNotes: scene.modelReferenceNotes,
     };
     setStoryboardScenes(prev => [...prev, newScene]);
     setActiveSceneId(newScene.id);
@@ -2772,7 +2850,7 @@ const App: React.FC = () => {
     setMoodPromptCue(null);
   }, []);
 
-  const handleModelReferenceUpload = useCallback((file: File) => {
+  const handleModelReferenceUpload = useCallback(async (file: File) => {
     if (!file.type.startsWith('image/')) {
       setImageError('Model reference must be an image file.');
       return;
@@ -2786,6 +2864,17 @@ const App: React.FC = () => {
       if (prev) URL.revokeObjectURL(prev);
       return URL.createObjectURL(file);
     });
+    try {
+      const { base64, mimeType } = await fileToBase64(file);
+      setPersonIdentityPackage(prev => ({
+        ...prev,
+        modelReferenceBase64: base64,
+        modelReferenceMime: mimeType,
+        identityLock: true,
+      }));
+    } catch (error) {
+      console.error('Unable to encode model reference', error);
+    }
   }, []);
 
   const handleClearModelReference = useCallback(() => {
@@ -2795,6 +2884,12 @@ const App: React.FC = () => {
       if (prev) URL.revokeObjectURL(prev);
       return null;
     });
+    setPersonIdentityPackage(prev => ({
+      ...prev,
+      modelReferenceBase64: undefined,
+      modelReferenceMime: undefined,
+      identityLock: false,
+    }));
   }, []);
 
 
