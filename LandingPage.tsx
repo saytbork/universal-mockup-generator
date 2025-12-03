@@ -194,8 +194,16 @@ const INVITE_CODE = import.meta.env.VITE_INVITE_CODE || '713371';
 const PLAN_STORAGE_KEY = 'ugc-plan-tier';
 const IMAGE_COUNT_KEY = 'ugc-product-mockup-generator-credit-count';
 
+const NAV_LINKS = [
+  { label: 'Features', target: '#features' },
+  { label: 'Steps', target: '#steps' },
+  { label: 'Pricing', target: '#pricing' },
+  { label: 'Gallery', target: '#gallery' },
+];
+
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<CheckoutPlan | null>(null);
   const [checkoutEmail, setCheckoutEmail] = useState('');
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
@@ -392,6 +400,63 @@ const LandingPage: React.FC = () => {
     <>
       <div className="min-h-screen bg-gray-950 text-gray-100">
         <div className="bg-gradient-to-br from-indigo-900/40 via-gray-950 to-gray-950">
+          <div className="relative">
+            <nav className="relative z-10 max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+              <div className="text-sm font-semibold uppercase tracking-[0.3em] text-white">BoostUGC</div>
+              <div className="hidden items-center gap-6 text-xs uppercase tracking-[0.3em] text-white/80 md:flex">
+                {NAV_LINKS.map(link => (
+                  <button
+                    key={link.target}
+                    type="button"
+                    onClick={handleSmoothScroll(link.target)}
+                    className="hover:text-white focus:outline-none focus:text-white"
+                  >
+                    {link.label}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                aria-label="Toggle menu"
+                aria-expanded={isMobileMenuOpen}
+                aria-controls="mobile-menu"
+                onClick={() => setIsMobileMenuOpen(prev => !prev)}
+                className="relative z-20 flex h-10 w-10 flex-col items-center justify-center gap-1 rounded-full border border-white/20 bg-black/20 text-white transition hover:border-white/40 focus:outline-none md:hidden"
+              >
+                <span
+                  className={`block h-[2px] w-6 bg-current transition-transform duration-300 ${isMobileMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`}
+                />
+                <span
+                  className={`block h-[2px] w-6 bg-current transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-0' : 'opacity-100'}`}
+                />
+                <span
+                  className={`block h-[2px] w-6 bg-current transition-transform duration-300 ${isMobileMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}
+                />
+              </button>
+            </nav>
+            {isMobileMenuOpen && (
+              <div
+                id="mobile-menu"
+                className="md:hidden absolute inset-x-6 top-full mt-3 rounded-3xl border border-white/10 bg-gray-950/95 p-4 shadow-2xl backdrop-blur"
+              >
+                <div className="flex flex-col gap-3 text-sm uppercase tracking-[0.3em] text-white/90">
+                  {NAV_LINKS.map(link => (
+                    <button
+                      key={link.target}
+                      type="button"
+                      onClick={event => {
+                        handleSmoothScroll(link.target)(event);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="rounded-2xl px-4 py-2 text-left hover:bg-white/10 focus:outline-none"
+                    >
+                      {link.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           <header className="relative overflow-hidden py-12">
             <div className="absolute inset-0 opacity-30 pointer-events-none" style={{ background: 'radial-gradient(circle at 20% 20%, rgba(79,70,229,0.35), transparent 55%)' }} />
