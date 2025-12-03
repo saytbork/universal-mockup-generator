@@ -782,44 +782,101 @@ const App: React.FC = () => {
     ],
     []
   );
-  const [useConversionBuilder, setUseConversionBuilder] = useState(true);
-  const [conversionBuilderFields, setConversionBuilderFields] = useState<ConversionBuilderState>({
+  type ConversionTemplateId =
+    | 'valueProp'
+    | 'whatDoesItDo'
+    | 'howItWorks'
+    | 'results'
+    | 'differentiators'
+    | 'trust';
+  type ConversionStylePreset = 'warm' | 'minimal' | 'vibrant';
+  type ConversionTextLine = { text: string; icon?: string };
+  type ConversionTestimonial = { quote: string; name: string; icon?: string };
+  type ConversionTemplates = {
+    valueProp: { headline: string; benefits: ConversionTextLine[] };
+    whatDoesItDo: { headline: string; benefits: ConversionTextLine[] };
+    howItWorks: { headline: string; steps: ConversionTextLine[]; footer: string };
+    results: {
+      variant: 'beforeAfter' | 'testimonials';
+      headline: string;
+      before: ConversionTextLine;
+      after: ConversionTextLine;
+      testimonials: ConversionTestimonial[];
+    };
+    differentiators: { headline: string; points: ConversionTextLine[] };
+    trust: { headline: string; trustPoints: ConversionTextLine[]; badge: string; socialProof: string };
+  };
+  type ConversionBuilderState = {
+    alignment: 'left' | 'center' | 'right';
+    fontFamily: 'Inter' | 'Helvetica Neue' | 'Roboto' | 'Montserrat' | 'Playfair';
+    fontSize: number;
+    backgroundColor: string;
+    stylePreset: ConversionStylePreset;
+    activeTemplate: ConversionTemplateId;
+    templates: ConversionTemplates;
+  };
+  const createEmptyLine = (): ConversionTextLine => ({ text: '', icon: '' });
+  const createEmptyTestimonial = (): ConversionTestimonial => ({ quote: '', name: '', icon: '' });
+  const createDefaultConversionTemplates = (): ConversionTemplates => ({
+    valueProp: { headline: '', benefits: [createEmptyLine(), createEmptyLine(), createEmptyLine()] },
+    whatDoesItDo: {
+      headline: '',
+      benefits: [createEmptyLine(), createEmptyLine(), createEmptyLine(), createEmptyLine()],
+    },
+    howItWorks: { headline: '', steps: [createEmptyLine(), createEmptyLine(), createEmptyLine()], footer: '' },
+    results: {
+      variant: 'beforeAfter',
+      headline: '',
+      before: createEmptyLine(),
+      after: createEmptyLine(),
+      testimonials: [createEmptyTestimonial(), createEmptyTestimonial(), createEmptyTestimonial()],
+    },
+    differentiators: {
+      headline: '',
+      points: [createEmptyLine(), createEmptyLine(), createEmptyLine(), createEmptyLine()],
+    },
+    trust: {
+      headline: '',
+      trustPoints: [createEmptyLine(), createEmptyLine(), createEmptyLine(), createEmptyLine()],
+      badge: '',
+      socialProof: '',
+    },
+  });
+  const createDefaultConversionState = (): ConversionBuilderState => ({
     alignment: 'center',
     fontFamily: 'Inter',
-    fontSize: 16,
+    fontSize: 18,
     backgroundColor: '#FFFFFF',
-    stylePreset: 'none',
-    headline1: '',
-    icon1: '',
-    usp1: '',
-    benefit1: '',
-    benefit2: '',
-    benefit3: '',
-    icon2a: '',
-    icon2b: '',
-    icon2c: '',
-    step1: '',
-    step2: '',
-    step3: '',
-    icon3a: '',
-    icon3b: '',
-    icon3c: '',
-    testimonial1: '',
-    customerName: '',
-    icon4: '',
-    diff1: '',
-    diff2: '',
-    diff3: '',
-    icon5a: '',
-    icon5b: '',
-    icon5c: '',
-    guaranteeText: '',
-    socialProofNumber: '',
-    icon6: '',
+    stylePreset: 'warm',
+    activeTemplate: 'valueProp',
+    templates: createDefaultConversionTemplates(),
   });
-  const updateConversionField = useCallback(
+  const [useConversionBuilder, setUseConversionBuilder] = useState(true);
+  const [conversionBuilderState, setConversionBuilderState] = useState<ConversionBuilderState>(() => createDefaultConversionState());
+  const handleConversionBaseChange = useCallback(
     <K extends keyof ConversionBuilderState>(key: K, value: ConversionBuilderState[K]) => {
-      setConversionBuilderFields(prev => ({ ...prev, [key]: value }));
+      if (key === 'templates' || key === 'activeTemplate') return;
+      setConversionBuilderState(prev => ({ ...prev, [key]: value }));
+    },
+    []
+  );
+  const handleTemplateSwitch = useCallback((templateId: ConversionTemplateId) => {
+    setConversionBuilderState(prev => {
+      if (prev.activeTemplate === templateId) return prev;
+      const defaults = createDefaultConversionTemplates();
+      return {
+        ...prev,
+        activeTemplate: templateId,
+        templates: { ...prev.templates, [templateId]: defaults[templateId] },
+      };
+    });
+  }, []);
+  const updateTemplateById = useCallback(
+    <T extends ConversionTemplateId>(templateId: T, updater: (template: ConversionTemplates[T]) => ConversionTemplates[T]) => {
+      setConversionBuilderState(prev => {
+        const nextTemplate = updater(prev.templates[templateId]);
+        return { ...prev, templates: { ...prev.templates, [templateId]: nextTemplate } };
+      });
     },
     []
   );
@@ -1747,11 +1804,11 @@ const App: React.FC = () => {
           isOpen={openAccordion === 'Conversion Image Builder'}
           onToggle={() => handleToggleAccordion('Conversion Image Builder')}
         >
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold text-white">Use Conversion Image Builder</p>
-                <p className="text-xs text-gray-400">Switch prompt to the 6-image ecommerce layout.</p>
+                <p className="text-xs text-gray-400">Generates one conversion image at a time from the selected template.</p>
               </div>
               <label className="relative inline-flex cursor-pointer items-center gap-2">
                 <input
@@ -1767,7 +1824,36 @@ const App: React.FC = () => {
               </label>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 rounded-2xl border border-white/10 bg-black/30 p-4">
+            <div className={`space-y-3 rounded-2xl border border-white/10 bg-black/25 p-4 ${useConversionBuilder ? '' : 'opacity-60'}`}>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { id: 'valueProp', label: 'Value Proposition Image' },
+                  { id: 'whatDoesItDo', label: 'What Does It Do' },
+                  { id: 'howItWorks', label: 'How Does It Work' },
+                  { id: 'results', label: 'What Results Can I Get' },
+                  { id: 'differentiators', label: 'How Is It Different' },
+                  { id: 'trust', label: 'Can You Back It Up' },
+                ].map(option => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => handleTemplateSwitch(option.id as ConversionTemplateId)}
+                    className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${conversionBuilderState.activeTemplate === option.id
+                      ? 'border-emerald-300 bg-emerald-500/10 text-white'
+                      : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
+                      }`}
+                    disabled={!useConversionBuilder}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[11px] text-gray-400">
+                Only one template is active. Switching clears that template’s inputs to prevent mixing. One generation = one image.
+              </p>
+            </div>
+
+            <div className={`grid grid-cols-1 gap-3 rounded-2xl border border-white/10 bg-black/30 p-4 ${useConversionBuilder ? '' : 'opacity-60'}`}>
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-semibold text-white">Image Alignment</label>
                 <div className="flex gap-2">
@@ -1775,8 +1861,9 @@ const App: React.FC = () => {
                     <button
                       key={option}
                       type="button"
-                      onClick={() => updateConversionField('alignment', option)}
-                      className={`flex-1 rounded-lg border px-3 py-2 text-sm font-semibold capitalize transition ${conversionBuilderFields.alignment === option ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+                      onClick={() => handleConversionBaseChange('alignment', option)}
+                      className={`flex-1 rounded-lg border px-3 py-2 text-sm font-semibold capitalize transition ${conversionBuilderState.alignment === option ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+                      disabled={!useConversionBuilder}
                     >
                       {option}
                     </button>
@@ -1786,11 +1873,12 @@ const App: React.FC = () => {
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-semibold text-white">Font Family</label>
                 <select
-                  value={conversionBuilderFields.fontFamily}
-                  onChange={event => updateConversionField('fontFamily', event.target.value)}
+                  value={conversionBuilderState.fontFamily}
+                  onChange={event => handleConversionBaseChange('fontFamily', event.target.value as ConversionBuilderState['fontFamily'])}
                   className="rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                  disabled={!useConversionBuilder}
                 >
-                  {['Inter', 'Helvetica Neue', 'Roboto', 'Montserrat', 'Playfair Display'].map(font => (
+                  {['Inter', 'Helvetica Neue', 'Roboto', 'Montserrat', 'Playfair'].map(font => (
                     <option key={font} value={font}>
                       {font}
                     </option>
@@ -1799,184 +1887,67 @@ const App: React.FC = () => {
               </div>
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-semibold text-white">Font Size</label>
-                <input
-                  type="number"
-                  min={10}
-                  max={64}
-                  value={conversionBuilderFields.fontSize}
-                  onChange={event => updateConversionField('fontSize', Number(event.target.value))}
-                  className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                />
+                <div className="flex items-center gap-3">
+                  <input
+                    type="range"
+                    min={12}
+                    max={64}
+                    value={conversionBuilderState.fontSize}
+                    onChange={event => handleConversionBaseChange('fontSize', Number(event.target.value))}
+                    className="flex-1"
+                    disabled={!useConversionBuilder}
+                  />
+                  <input
+                    type="number"
+                    min={12}
+                    max={64}
+                    value={conversionBuilderState.fontSize}
+                    onChange={event => handleConversionBaseChange('fontSize', Number(event.target.value))}
+                    className="w-20 rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                    disabled={!useConversionBuilder}
+                  />
+                </div>
               </div>
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-semibold text-white">Background Color</label>
                 <div className="flex items-center gap-3">
                   <input
                     type="color"
-                    value={conversionBuilderFields.backgroundColor}
-                    onChange={event => updateConversionField('backgroundColor', event.target.value)}
+                    value={conversionBuilderState.backgroundColor}
+                    onChange={event => handleConversionBaseChange('backgroundColor', event.target.value)}
                     className="h-10 w-16 rounded cursor-pointer border border-gray-600"
+                    disabled={!useConversionBuilder}
                   />
                   <input
                     type="text"
-                    value={conversionBuilderFields.backgroundColor}
-                    onChange={event => updateConversionField('backgroundColor', event.target.value)}
+                    value={conversionBuilderState.backgroundColor}
+                    onChange={event => handleConversionBaseChange('backgroundColor', event.target.value)}
                     className="flex-1 rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                    disabled={!useConversionBuilder}
                   />
                 </div>
               </div>
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-white">Style Preset</label>
+                <label className="text-sm font-semibold text-white">Preset Style Filter</label>
                 <div className="flex gap-2">
-                  {(['none', 'warm', 'minimal', 'vibrant'] as const).map(preset => (
+                  {(['warm', 'minimal', 'vibrant'] as const).map(preset => (
                     <button
                       key={preset}
                       type="button"
-                      onClick={() => updateConversionField('stylePreset', preset)}
-                      className={`flex-1 rounded-lg border px-3 py-2 text-sm font-semibold capitalize transition ${conversionBuilderFields.stylePreset === preset ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+                      onClick={() => handleConversionBaseChange('stylePreset', preset)}
+                      className={`flex-1 rounded-lg border px-3 py-2 text-sm font-semibold capitalize transition ${conversionBuilderState.stylePreset === preset ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+                      disabled={!useConversionBuilder}
                     >
                       {preset}
                     </button>
                   ))}
                 </div>
+                <p className="text-[11px] text-gray-500">Affects mood only—never change content.</p>
               </div>
             </div>
 
-            <div className="space-y-4 rounded-2xl border border-white/10 bg-black/20 p-4">
-              <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Image 1: What Is Your Product?</p>
-              <div className="space-y-2">
-                <label className="text-sm text-gray-200">Headline</label>
-                <input type="text" value={conversionBuilderFields.headline1} onChange={event => updateConversionField('headline1', event.target.value)} className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none" />
-                <label className="text-sm text-gray-200">Lucide Icon</label>
-                <select value={conversionBuilderFields.icon1} onChange={event => updateConversionField('icon1', event.target.value)} className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none">
-                  <option value="">Select icon</option>
-                  {lucideIconOptions.map(icon => (
-                    <option key={icon} value={icon}>
-                      {icon}
-                    </option>
-                  ))}
-                </select>
-                <label className="text-sm text-gray-200">USP</label>
-                <input type="text" value={conversionBuilderFields.usp1} onChange={event => updateConversionField('usp1', event.target.value)} className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none" />
-              </div>
-            </div>
-
-            <div className="space-y-4 rounded-2xl border border-white/10 bg-black/20 p-4">
-              <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Image 2: What Does It Do?</p>
-              {[1, 2, 3].map(index => (
-                <div key={index} className="grid grid-cols-1 gap-2">
-                  <label className="text-sm text-gray-200">{`Benefit ${index}`}</label>
-                  <input
-                    type="text"
-                    value={conversionBuilderFields[`benefit${index}` as keyof ImagePromptFields] as string}
-                    onChange={event => updateConversionField(`benefit${index}` as keyof ConversionBuilderState, event.target.value)}
-                    className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                  />
-                  <label className="text-sm text-gray-200">Icon</label>
-                  <select
-                    value={conversionBuilderFields[`icon2${String.fromCharCode(96 + index)}` as keyof ImagePromptFields] as string}
-                    onChange={event => updateConversionField(`icon2${String.fromCharCode(96 + index)}` as keyof ConversionBuilderState, event.target.value)}
-                    className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                  >
-                    <option value="">Select icon</option>
-                    {lucideIconOptions.map(icon => (
-                      <option key={icon} value={icon}>
-                        {icon}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ))}
-            </div>
-
-            <div className="space-y-4 rounded-2xl border border-white/10 bg-black/20 p-4">
-              <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Image 3: How Does It Work?</p>
-              {[1, 2, 3].map(index => (
-                <div key={index} className="grid grid-cols-1 gap-2">
-                  <label className="text-sm text-gray-200">{`Step ${index}`}</label>
-                  <input
-                    type="text"
-                    value={conversionBuilderFields[`step${index}` as keyof ImagePromptFields] as string}
-                    onChange={event => updateConversionField(`step${index}` as keyof ConversionBuilderState, event.target.value)}
-                    className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                  />
-                  <label className="text-sm text-gray-200">Icon</label>
-                  <select
-                    value={conversionBuilderFields[`icon3${String.fromCharCode(96 + index)}` as keyof ImagePromptFields] as string}
-                    onChange={event => updateConversionField(`icon3${String.fromCharCode(96 + index)}` as keyof ConversionBuilderState, event.target.value)}
-                    className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                  >
-                    <option value="">Select icon</option>
-                    {lucideIconOptions.map(icon => (
-                      <option key={icon} value={icon}>
-                        {icon}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ))}
-            </div>
-
-            <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
-              <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Image 4: Results</p>
-              <label className="text-sm text-gray-200">Testimonial</label>
-              <input type="text" value={conversionBuilderFields.testimonial1} onChange={event => updateConversionField('testimonial1', event.target.value)} className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none" />
-              <label className="text-sm text-gray-200">Customer Name</label>
-              <input type="text" value={conversionBuilderFields.customerName} onChange={event => updateConversionField('customerName', event.target.value)} className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none" />
-              <label className="text-sm text-gray-200">Icon</label>
-              <select value={conversionBuilderFields.icon4} onChange={event => updateConversionField('icon4', event.target.value)} className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none">
-                <option value="">Select icon</option>
-                {lucideIconOptions.map(icon => (
-                  <option key={icon} value={icon}>
-                    {icon}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-4 rounded-2xl border border-white/10 bg-black/20 p-4">
-              <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Image 5: Differentiators</p>
-              {[1, 2, 3].map(index => (
-                <div key={index} className="grid grid-cols-1 gap-2">
-                  <label className="text-sm text-gray-200">{`Diff ${index}`}</label>
-                  <input
-                    type="text"
-                    value={conversionBuilderFields[`diff${index}` as keyof ImagePromptFields] as string}
-                    onChange={event => updateConversionField(`diff${index}` as keyof ConversionBuilderState, event.target.value)}
-                    className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                  />
-                  <label className="text-sm text-gray-200">Icon</label>
-                  <select
-                    value={conversionBuilderFields[`icon5${String.fromCharCode(96 + index)}` as keyof ImagePromptFields] as string}
-                    onChange={event => updateConversionField(`icon5${String.fromCharCode(96 + index)}` as keyof ConversionBuilderState, event.target.value)}
-                    className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                  >
-                    <option value="">Select icon</option>
-                    {lucideIconOptions.map(icon => (
-                      <option key={icon} value={icon}>
-                        {icon}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ))}
-            </div>
-
-            <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
-              <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Image 6: Guarantee and Trust</p>
-              <label className="text-sm text-gray-200">Guarantee Text</label>
-              <input type="text" value={conversionBuilderFields.guaranteeText} onChange={event => updateConversionField('guaranteeText', event.target.value)} className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none" />
-              <label className="text-sm text-gray-200">Social Proof Number</label>
-              <input type="text" value={conversionBuilderFields.socialProofNumber} onChange={event => updateConversionField('socialProofNumber', event.target.value)} className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none" />
-              <label className="text-sm text-gray-200">Icon</label>
-              <select value={conversionBuilderFields.icon6} onChange={event => updateConversionField('icon6', event.target.value)} className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none">
-                <option value="">Select icon</option>
-                {lucideIconOptions.map(icon => (
-                  <option key={icon} value={icon}>
-                    {icon}
-                  </option>
-                ))}
-              </select>
+            <div className={useConversionBuilder ? 'space-y-4' : 'pointer-events-none opacity-60'}>
+              {renderConversionTemplateFields()}
             </div>
           </div>
         </Accordion>
@@ -2367,6 +2338,466 @@ const App: React.FC = () => {
       )}
     </div>
   );
+
+  const renderConversionTemplateFields = () => {
+    const { activeTemplate, templates } = conversionBuilderState;
+    const template = templates[activeTemplate];
+    const alignmentHint: Record<ConversionBuilderState['alignment'], string> = {
+      left: 'Product anchored on the left with messaging on the right.',
+      center: 'Product centered with symmetrical whitespace around the copy.',
+      right: 'Product anchored on the right with messaging on the left.',
+    };
+    const renderIconSelect = (value: string, onChange: (next: string) => void, id?: string) => (
+      <select
+        id={id}
+        value={value}
+        onChange={event => onChange(event.target.value)}
+        className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+        disabled={!useConversionBuilder}
+      >
+        <option value="">No icon</option>
+        {lucideIconOptions.map(icon => (
+          <option key={icon} value={icon}>
+            {icon}
+          </option>
+        ))}
+      </select>
+    );
+
+    if (activeTemplate === 'valueProp') {
+      const current = template as ConversionTemplates['valueProp'];
+      return (
+        <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
+          <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Value Proposition Image</p>
+          <p className="text-xs text-gray-400">Explain in 3 seconds what the product is and why it matters. Keep benefits tight around the product without clutter.</p>
+          <label className="text-sm text-gray-200">Headline</label>
+          <input
+            type="text"
+            value={current.headline}
+            onChange={event =>
+              updateTemplateById('valueProp', prev => ({ ...prev, headline: event.target.value }))
+            }
+            className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+            disabled={!useConversionBuilder}
+          />
+          <p className="text-[11px] text-gray-500">{alignmentHint[conversionBuilderState.alignment]}</p>
+          <div className="grid gap-3 md:grid-cols-2">
+            {current.benefits.map((benefit, index) => (
+              <div key={`vp-benefit-${index}`} className="space-y-1 rounded-lg border border-white/10 bg-white/5 p-3">
+                <label className="text-sm text-gray-200">{`Key benefit ${index + 1}`}</label>
+                <input
+                  type="text"
+                  value={benefit.text}
+                  onChange={event =>
+                    updateTemplateById('valueProp', prev => ({
+                      ...prev,
+                      benefits: prev.benefits.map((item, idx) =>
+                        idx === index ? { ...item, text: event.target.value } : item
+                      ),
+                    }))
+                  }
+                  className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                  disabled={!useConversionBuilder}
+                />
+                <label className="text-[11px] text-gray-400">Lucide icon (optional)</label>
+                {renderIconSelect(benefit.icon ?? '', next =>
+                  updateTemplateById('valueProp', prev => ({
+                    ...prev,
+                    benefits: prev.benefits.map((item, idx) =>
+                      idx === index ? { ...item, icon: next } : item
+                    ),
+                  }))
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (activeTemplate === 'whatDoesItDo') {
+      const current = template as ConversionTemplates['whatDoesItDo'];
+      return (
+        <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
+          <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">What Does It Do?</p>
+          <p className="text-xs text-gray-400">Show functional outcomes. Keep 2–4 short benefits with optional icons.</p>
+          <label className="text-sm text-gray-200">Headline</label>
+          <input
+            type="text"
+            value={current.headline}
+            onChange={event =>
+              updateTemplateById('whatDoesItDo', prev => ({ ...prev, headline: event.target.value }))
+            }
+            className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+            disabled={!useConversionBuilder}
+          />
+          <p className="text-[11px] text-gray-500">{alignmentHint[conversionBuilderState.alignment]}</p>
+          <div className="grid gap-3 md:grid-cols-2">
+            {current.benefits.map((benefit, index) => (
+              <div key={`do-benefit-${index}`} className="space-y-1 rounded-lg border border-white/10 bg-white/5 p-3">
+                <label className="text-sm text-gray-200">{`Benefit ${index + 1}`}</label>
+                <input
+                  type="text"
+                  value={benefit.text}
+                  onChange={event =>
+                    updateTemplateById('whatDoesItDo', prev => ({
+                      ...prev,
+                      benefits: prev.benefits.map((item, idx) =>
+                        idx === index ? { ...item, text: event.target.value } : item
+                      ),
+                    }))
+                  }
+                  className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                  disabled={!useConversionBuilder}
+                />
+                <label className="text-[11px] text-gray-400">Lucide icon (optional)</label>
+                {renderIconSelect(benefit.icon ?? '', next =>
+                  updateTemplateById('whatDoesItDo', prev => ({
+                    ...prev,
+                    benefits: prev.benefits.map((item, idx) =>
+                      idx === index ? { ...item, icon: next } : item
+                    ),
+                  }))
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (activeTemplate === 'howItWorks') {
+      const current = template as ConversionTemplates['howItWorks'];
+      return (
+        <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
+          <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">How Does It Work?</p>
+          <p className="text-xs text-gray-400">Use up to 3 short steps. Keep copy concise and paired with the product.</p>
+          <label className="text-sm text-gray-200">Headline</label>
+          <input
+            type="text"
+            value={current.headline}
+            onChange={event =>
+              updateTemplateById('howItWorks', prev => ({ ...prev, headline: event.target.value }))
+            }
+            className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+            disabled={!useConversionBuilder}
+          />
+          <p className="text-[11px] text-gray-500">{alignmentHint[conversionBuilderState.alignment]}</p>
+          <div className="grid gap-3 md:grid-cols-3">
+            {current.steps.map((step, index) => (
+              <div key={`how-step-${index}`} className="space-y-1 rounded-lg border border-white/10 bg-white/5 p-3">
+                <label className="text-sm text-gray-200">{`Step ${index + 1}`}</label>
+                <input
+                  type="text"
+                  value={step.text}
+                  onChange={event =>
+                    updateTemplateById('howItWorks', prev => ({
+                      ...prev,
+                      steps: prev.steps.map((item, idx) =>
+                        idx === index ? { ...item, text: event.target.value } : item
+                      ),
+                    }))
+                  }
+                  className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                  disabled={!useConversionBuilder}
+                />
+                <label className="text-[11px] text-gray-400">Lucide icon (optional)</label>
+                {renderIconSelect(step.icon ?? '', next =>
+                  updateTemplateById('howItWorks', prev => ({
+                    ...prev,
+                    steps: prev.steps.map((item, idx) =>
+                      idx === index ? { ...item, icon: next } : item
+                    ),
+                  }))
+                )}
+              </div>
+            ))}
+          </div>
+          <label className="text-sm text-gray-200">Footer summary (optional)</label>
+          <input
+            type="text"
+            value={current.footer}
+            onChange={event =>
+              updateTemplateById('howItWorks', prev => ({ ...prev, footer: event.target.value }))
+            }
+            className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+            disabled={!useConversionBuilder}
+          />
+        </div>
+      );
+    }
+
+    if (activeTemplate === 'results') {
+      const current = template as ConversionTemplates['results'];
+      const defaultResults = createDefaultConversionTemplates().results;
+      return (
+        <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
+          <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">What Results Can I Get?</p>
+          <p className="text-xs text-gray-400">Pick one variant only. Never mix before/after with testimonials.</p>
+          <label className="text-sm text-gray-200">Headline</label>
+          <input
+            type="text"
+            value={current.headline}
+            onChange={event =>
+              updateTemplateById('results', prev => ({ ...prev, headline: event.target.value }))
+            }
+            className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+            disabled={!useConversionBuilder}
+          />
+          <div className="flex flex-wrap gap-2">
+            {[
+              { id: 'beforeAfter', label: 'Before / After' },
+              { id: 'testimonials', label: 'Testimonials' },
+            ].map(option => (
+              <button
+                key={option.id}
+                type="button"
+                onClick={() =>
+                  updateTemplateById('results', prev => ({
+                    ...prev,
+                    variant: option.id as 'beforeAfter' | 'testimonials',
+                    before: defaultResults.before,
+                    after: defaultResults.after,
+                    testimonials: defaultResults.testimonials,
+                  }))
+                }
+                className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
+                  current.variant === option.id
+                    ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                    : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
+                }`}
+                disabled={!useConversionBuilder}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          {current.variant === 'beforeAfter' ? (
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="space-y-1 rounded-lg border border-white/10 bg-white/5 p-3">
+                <label className="text-sm text-gray-200">Before text</label>
+                <input
+                  type="text"
+                  value={current.before.text}
+                  onChange={event =>
+                    updateTemplateById('results', prev => ({
+                      ...prev,
+                      before: { ...prev.before, text: event.target.value },
+                    }))
+                  }
+                  className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                  disabled={!useConversionBuilder}
+                />
+                <label className="text-[11px] text-gray-400">Lucide icon (optional)</label>
+                {renderIconSelect(current.before.icon ?? '', next =>
+                  updateTemplateById('results', prev => ({
+                    ...prev,
+                    before: { ...prev.before, icon: next },
+                  }))
+                )}
+              </div>
+              <div className="space-y-1 rounded-lg border border-white/10 bg-white/5 p-3">
+                <label className="text-sm text-gray-200">After text</label>
+                <input
+                  type="text"
+                  value={current.after.text}
+                  onChange={event =>
+                    updateTemplateById('results', prev => ({
+                      ...prev,
+                      after: { ...prev.after, text: event.target.value },
+                    }))
+                  }
+                  className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                  disabled={!useConversionBuilder}
+                />
+                <label className="text-[11px] text-gray-400">Lucide icon (optional)</label>
+                {renderIconSelect(current.after.icon ?? '', next =>
+                  updateTemplateById('results', prev => ({
+                    ...prev,
+                    after: { ...prev.after, icon: next },
+                  }))
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="grid gap-3 md:grid-cols-3">
+              {current.testimonials.map((testimonial, index) => (
+                <div key={`testimonial-${index}`} className="space-y-1 rounded-lg border border-white/10 bg-white/5 p-3">
+                  <label className="text-sm text-gray-200">{`Testimonial ${index + 1}`}</label>
+                  <textarea
+                    value={testimonial.quote}
+                    onChange={event =>
+                      updateTemplateById('results', prev => ({
+                        ...prev,
+                        testimonials: prev.testimonials.map((item, idx) =>
+                          idx === index ? { ...item, quote: event.target.value } : item
+                        ),
+                      }))
+                    }
+                    rows={3}
+                    className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                    disabled={!useConversionBuilder}
+                  />
+                  <label className="text-sm text-gray-200">Name (optional)</label>
+                  <input
+                    type="text"
+                    value={testimonial.name}
+                    onChange={event =>
+                      updateTemplateById('results', prev => ({
+                        ...prev,
+                        testimonials: prev.testimonials.map((item, idx) =>
+                          idx === index ? { ...item, name: event.target.value } : item
+                        ),
+                      }))
+                    }
+                    className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                    disabled={!useConversionBuilder}
+                  />
+                  <label className="text-[11px] text-gray-400">Lucide icon (optional)</label>
+                  {renderIconSelect(testimonial.icon ?? '', next =>
+                    updateTemplateById('results', prev => ({
+                      ...prev,
+                      testimonials: prev.testimonials.map((item, idx) =>
+                        idx === index ? { ...item, icon: next } : item
+                      ),
+                    }))
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (activeTemplate === 'differentiators') {
+      const current = template as ConversionTemplates['differentiators'];
+      return (
+        <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
+          <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">How Is It Different?</p>
+          <p className="text-xs text-gray-400">Highlight 2–4 differentiators without naming competitors.</p>
+          <label className="text-sm text-gray-200">Headline</label>
+          <input
+            type="text"
+            value={current.headline}
+            onChange={event =>
+              updateTemplateById('differentiators', prev => ({ ...prev, headline: event.target.value }))
+            }
+            className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+            disabled={!useConversionBuilder}
+          />
+          <div className="grid gap-3 md:grid-cols-2">
+            {current.points.map((point, index) => (
+              <div key={`diff-${index}`} className="space-y-1 rounded-lg border border-white/10 bg-white/5 p-3">
+                <label className="text-sm text-gray-200">{`Differentiator ${index + 1}`}</label>
+                <input
+                  type="text"
+                  value={point.text}
+                  onChange={event =>
+                    updateTemplateById('differentiators', prev => ({
+                      ...prev,
+                      points: prev.points.map((item, idx) =>
+                        idx === index ? { ...item, text: event.target.value } : item
+                      ),
+                    }))
+                  }
+                  className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                  disabled={!useConversionBuilder}
+                />
+                <label className="text-[11px] text-gray-400">Lucide icon (optional)</label>
+                {renderIconSelect(point.icon ?? '', next =>
+                  updateTemplateById('differentiators', prev => ({
+                    ...prev,
+                    points: prev.points.map((item, idx) =>
+                      idx === index ? { ...item, icon: next } : item
+                    ),
+                  }))
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (activeTemplate === 'trust') {
+      const current = template as ConversionTemplates['trust'];
+      return (
+        <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
+          <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Can You Back It Up?</p>
+          <p className="text-xs text-gray-400">Use a guarantee/trust headline plus 2–4 trust messages. Only use provided badge or numbers.</p>
+          <label className="text-sm text-gray-200">Guarantee / trust headline</label>
+          <input
+            type="text"
+            value={current.headline}
+            onChange={event =>
+              updateTemplateById('trust', prev => ({ ...prev, headline: event.target.value }))
+            }
+            className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+            disabled={!useConversionBuilder}
+          />
+          <div className="grid gap-3 md:grid-cols-2">
+            {current.trustPoints.map((point, index) => (
+              <div key={`trust-${index}`} className="space-y-1 rounded-lg border border-white/10 bg-white/5 p-3">
+                <label className="text-sm text-gray-200">{`Trust message ${index + 1}`}</label>
+                <input
+                  type="text"
+                  value={point.text}
+                  onChange={event =>
+                    updateTemplateById('trust', prev => ({
+                      ...prev,
+                      trustPoints: prev.trustPoints.map((item, idx) =>
+                        idx === index ? { ...item, text: event.target.value } : item
+                      ),
+                    }))
+                  }
+                  className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                  disabled={!useConversionBuilder}
+                />
+                <label className="text-[11px] text-gray-400">Lucide icon (optional)</label>
+                {renderIconSelect(point.icon ?? '', next =>
+                  updateTemplateById('trust', prev => ({
+                    ...prev,
+                    trustPoints: prev.trustPoints.map((item, idx) =>
+                      idx === index ? { ...item, icon: next } : item
+                    ),
+                  }))
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="space-y-1">
+              <label className="text-sm text-gray-200">Badge text (optional)</label>
+              <input
+                type="text"
+                value={current.badge}
+                onChange={event =>
+                  updateTemplateById('trust', prev => ({ ...prev, badge: event.target.value }))
+                }
+                className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                disabled={!useConversionBuilder}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm text-gray-200">Social proof number (optional)</label>
+              <input
+                type="text"
+                value={current.socialProof}
+                onChange={event =>
+                  updateTemplateById('trust', prev => ({ ...prev, socialProof: event.target.value }))
+                }
+                className="w-full rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                disabled={!useConversionBuilder}
+              />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  };
 
   const handleUGCRealModeToggle = useCallback(
     (value: boolean) => {
@@ -2812,110 +3243,261 @@ const App: React.FC = () => {
     }
   }, [applyProPreset]);
 
-  type ImagePromptFields = {
-    alignment?: 'left' | 'center' | 'right';
-    fontFamily?: string;
-    fontSize?: number;
-    backgroundColor?: string;
-    stylePreset?: 'none' | 'warm' | 'minimal' | 'vibrant';
-    headline1?: string;
-    icon1?: string;
-    usp1?: string;
-    benefit1?: string;
-    benefit2?: string;
-    benefit3?: string;
-    icon2a?: string;
-    icon2b?: string;
-    icon2c?: string;
-    step1?: string;
-    step2?: string;
-    step3?: string;
-    icon3a?: string;
-    icon3b?: string;
-    icon3c?: string;
-    testimonial1?: string;
-    customerName?: string;
-    icon4?: string;
-    diff1?: string;
-    diff2?: string;
-    diff3?: string;
-    icon5a?: string;
-    icon5b?: string;
-    icon5c?: string;
-    guaranteeText?: string;
-    socialProofNumber?: string;
-    icon6?: string;
-  };
-  type ConversionBuilderState = ImagePromptFields & {
-    alignment: 'left' | 'center' | 'right';
+  type TemplateBaseInput = {
+    alignment: string;
+    backgroundColor: string;
     fontFamily: string;
     fontSize: number;
-    backgroundColor: string;
-    stylePreset: 'none' | 'warm' | 'minimal' | 'vibrant';
+    presetStyle: string;
   };
 
-  const buildImagePrompt = (fields: ImagePromptFields) => {
-    const line = (label?: string | number) => (label || label === 0 ? String(label) : '');
-    return `
-Generate 6 premium ecommerce product images.
-Always match the uploaded product’s real colors, shape, and proportions.
-Use a clean, modern, conversion-focused aesthetic.
-Use Lucide line-icons selected by the user.
-Use only user-provided text.
-Do not invent claims, benefits, or results.
-Do not include any logos or extra branding marks.
+  const formatLine = (label: string, text?: string, icon?: string) => {
+    const cleanText = text?.trim();
+    const cleanIcon = icon?.trim();
+    if (!cleanText) return '';
+    return `${label}: ${cleanText}${cleanIcon ? ` ${cleanIcon}` : ''}`;
+  };
 
-LAYOUT & STYLE
-Alignment: ${line(fields.alignment)}
-Font: ${line(fields.fontFamily)} size ${line(fields.fontSize ? `${fields.fontSize}px` : '')}
-Background: ${line(fields.backgroundColor)}
-Style Preset: ${line(fields.stylePreset)}
+  const buildTemplate1 = (base: TemplateBaseInput, data: ConversionTemplates['valueProp']) => {
+    const content = [
+      formatLine('Headline', data.headline),
+      formatLine('Benefit 1', data.benefits[0]?.text, data.benefits[0]?.icon),
+      formatLine('Benefit 2', data.benefits[1]?.text, data.benefits[1]?.icon),
+      formatLine('Benefit 3', data.benefits[2]?.text, data.benefits[2]?.icon),
+    ].filter(Boolean);
 
-IMAGE 1 – What Is Your Product?
-${line(fields.headline1)}
-${line(fields.icon1)}
-${line(fields.usp1)}
+    return [
+      'Generate one single ecommerce image.',
+      '',
+      'Template: Value Proposition Image.',
+      '',
+      `Show the product clearly using the selected alignment: ${base.alignment}.`,
+      `Use the background color: ${base.backgroundColor}.`,
+      `Use font family: ${base.fontFamily} at size ${base.fontSize}.`,
+      `Use the selected preset style: ${base.presetStyle}.`,
+      '',
+      'Content:',
+      ...content,
+      '',
+      'Layout:',
+      'Product visible and dominant.',
+      'Benefits placed near the product with clean spacing.',
+      '',
+      'Do not invent or assume anything.',
+      'Use only the provided text.',
+    ].filter(Boolean).join('\n');
+  };
 
-IMAGE 2 – What Does It Do?
-${line(fields.benefit1)}
-${line(fields.benefit2)}
-${line(fields.benefit3)}
-${line(fields.icon2a)}
-${line(fields.icon2b)}
-${line(fields.icon2c)}
+  const buildTemplate2 = (base: TemplateBaseInput, data: ConversionTemplates['whatDoesItDo']) => {
+    const content = [
+      formatLine('Headline', data.headline),
+      formatLine('Benefit 1', data.benefits[0]?.text, data.benefits[0]?.icon),
+      formatLine('Benefit 2', data.benefits[1]?.text, data.benefits[1]?.icon),
+      formatLine('Benefit 3', data.benefits[2]?.text, data.benefits[2]?.icon),
+      formatLine('Benefit 4', data.benefits[3]?.text, data.benefits[3]?.icon),
+    ].filter(Boolean);
 
-IMAGE 3 – How Does It Work?
-${line(fields.step1)}
-${line(fields.step2)}
-${line(fields.step3)}
-${line(fields.icon3a)}
-${line(fields.icon3b)}
-${line(fields.icon3c)}
+    return [
+      'Generate one single ecommerce image.',
+      '',
+      'Template: What Does It Do.',
+      '',
+      `Use alignment: ${base.alignment}.`,
+      `Background: ${base.backgroundColor}.`,
+      `Typography: ${base.fontFamily}, size ${base.fontSize}.`,
+      `Preset: ${base.presetStyle}.`,
+      '',
+      'Content:',
+      ...content,
+      'Product image required.',
+      '',
+      'Layout:',
+      'If alignment left, product left and benefits right.',
+      'If center, product center and benefits below.',
+      'If right, product right and benefits left.',
+      '',
+      'Do not include steps or instructions.',
+      'Do not invent anything.',
+    ].filter(Boolean).join('\n');
+  };
 
-IMAGE 4 – Results
-${line(fields.testimonial1)}
-${line(fields.customerName)}
-${line(fields.icon4)}
+  const buildTemplate3 = (base: TemplateBaseInput, data: ConversionTemplates['howItWorks']) => {
+    const content = [
+      formatLine('Headline', data.headline),
+      formatLine('Step 1', data.steps[0]?.text, data.steps[0]?.icon),
+      formatLine('Step 2', data.steps[1]?.text, data.steps[1]?.icon),
+      formatLine('Step 3', data.steps[2]?.text, data.steps[2]?.icon),
+      data.footer?.trim() ? `Optional footer: ${data.footer.trim()}` : '',
+    ].filter(Boolean);
 
-IMAGE 5 – Differentiators
-${line(fields.diff1)}
-${line(fields.diff2)}
-${line(fields.diff3)}
-${line(fields.icon5a)}
-${line(fields.icon5b)}
-${line(fields.icon5c)}
+    return [
+      'Generate one single ecommerce image.',
+      '',
+      'Template: How It Works (Steps 1–3).',
+      '',
+      `Alignment: ${base.alignment}`,
+      `Background: ${base.backgroundColor}`,
+      `Font: ${base.fontFamily} ${base.fontSize}`,
+      `Preset: ${base.presetStyle}`,
+      '',
+      'Content:',
+      ...content,
+      '',
+      'Layout:',
+      'Three numbered steps.',
+      'Product visible.',
+      'Follow alignment rules.',
+      '',
+      'Do not include benefits or testimonials.',
+      'Do not invent anything.',
+    ].filter(Boolean).join('\n');
+  };
 
-IMAGE 6 – Guarantee and Trust
-${line(fields.guaranteeText)}
-${line(fields.socialProofNumber)}
-${line(fields.icon6)}
+  const buildTemplate4 = (base: TemplateBaseInput, data: ConversionTemplates['results']) => {
+    const header = [
+      'Generate one single ecommerce image.',
+      '',
+      data.variant === 'beforeAfter'
+        ? 'Template: Results — Before and After.'
+        : 'Template: Results — Testimonials.',
+      '',
+      `Alignment: ${base.alignment}`,
+      `Background: ${base.backgroundColor}`,
+      `Font: ${base.fontFamily} ${base.fontSize}`,
+      `Preset: ${base.presetStyle}`,
+      '',
+      'Content:',
+      formatLine('Headline', data.headline),
+    ].filter(Boolean);
 
-GLOBAL STYLE RULES
-Use product color extraction.
-Use only user-provided text.
-Keep minimal, premium, soft shadows, centered compositions.
-Lucide icons must be line-icons with consistent stroke.
-`.trim();
+    if (data.variant === 'beforeAfter') {
+      header.push(
+        formatLine('Before', data.before.text, data.before.icon),
+        formatLine('After', data.after.text, data.after.icon),
+        'Optional product.',
+        '',
+        'Layout:',
+        'Side-by-side before and after.',
+        '',
+        'Do not invent results or benefits.'
+      );
+    } else {
+      const testimonials = data.testimonials
+        .map((item, index) => {
+          if (!item.quote.trim() && !item.name.trim()) return '';
+          const name = item.name.trim();
+          const icon = item.icon?.trim();
+          return `Testimonial ${index + 1}: ${item.quote.trim()}${name ? ` — ${name}` : ''}${icon ? ` ${icon}` : ''}`;
+        })
+        .filter(Boolean);
+      header.push(
+        ...testimonials,
+        'Optional product.',
+        '',
+        'Do not invent testimonials or results.'
+      );
+    }
+
+    return header.filter(Boolean).join('\n');
+  };
+
+  const buildTemplate5 = (base: TemplateBaseInput, data: ConversionTemplates['differentiators']) => {
+    const content = [
+      formatLine('Headline', data.headline),
+      formatLine('Differentiator 1', data.points[0]?.text, data.points[0]?.icon),
+      formatLine('Differentiator 2', data.points[1]?.text, data.points[1]?.icon),
+      formatLine('Differentiator 3', data.points[2]?.text, data.points[2]?.icon),
+      formatLine('Differentiator 4', data.points[3]?.text, data.points[3]?.icon),
+    ].filter(Boolean);
+
+    return [
+      'Generate one single ecommerce image.',
+      '',
+      'Template: How Is It Different.',
+      '',
+      `Alignment: ${base.alignment}`,
+      `Background: ${base.backgroundColor}`,
+      `Font: ${base.fontFamily} ${base.fontSize}`,
+      `Preset: ${base.presetStyle}`,
+      '',
+      'Content:',
+      ...content,
+      'Include product or usage image.',
+      '',
+      'Layout:',
+      'Follow the selected alignment.',
+      '',
+      'Do not include steps, results or testimonials.',
+      'Do not invent anything.',
+    ].filter(Boolean).join('\n');
+  };
+
+  const buildTemplate6 = (base: TemplateBaseInput, data: ConversionTemplates['trust']) => {
+    const content = [
+      formatLine('Headline', data.headline),
+      formatLine('Trust point 1', data.trustPoints[0]?.text, data.trustPoints[0]?.icon),
+      formatLine('Trust point 2', data.trustPoints[1]?.text, data.trustPoints[1]?.icon),
+      formatLine('Trust point 3', data.trustPoints[2]?.text, data.trustPoints[2]?.icon),
+      formatLine('Trust point 4', data.trustPoints[3]?.text, data.trustPoints[3]?.icon),
+      data.badge?.trim() ? `Optional guarantee badge: ${data.badge.trim()}` : '',
+      data.socialProof?.trim() ? `Optional social proof: ${data.socialProof.trim()}` : '',
+    ].filter(Boolean);
+
+    return [
+      'Generate one single ecommerce image.',
+      '',
+      'Template: Guarantee & Trust.',
+      '',
+      `Alignment: ${base.alignment}`,
+      `Background: ${base.backgroundColor}`,
+      `Font: ${base.fontFamily} ${base.fontSize}`,
+      `Preset: ${base.presetStyle}`,
+      '',
+      'Content:',
+      ...content,
+      'Product required.',
+      '',
+      'Layout:',
+      'Product left/center/right.',
+      'Trust list on opposite side.',
+      '',
+      'Do not invent trust badges or claims.',
+    ].filter(Boolean).join('\n');
+  };
+
+  const buildConversionImagePrompt = (state: ConversionBuilderState) => {
+    const selectedTemplate: Record<ConversionTemplateId, number> = {
+      valueProp: 1,
+      whatDoesItDo: 2,
+      howItWorks: 3,
+      results: 4,
+      differentiators: 5,
+      trust: 6,
+    };
+    const base: TemplateBaseInput = {
+      alignment: state.alignment,
+      backgroundColor: state.backgroundColor,
+      fontFamily: state.fontFamily,
+      fontSize: state.fontSize,
+      presetStyle: state.stylePreset,
+    };
+
+    switch (selectedTemplate[state.activeTemplate]) {
+      case 1:
+        return buildTemplate1(base, state.templates.valueProp);
+      case 2:
+        return buildTemplate2(base, state.templates.whatDoesItDo);
+      case 3:
+        return buildTemplate3(base, state.templates.howItWorks);
+      case 4:
+        return buildTemplate4(base, state.templates.results);
+      case 5:
+        return buildTemplate5(base, state.templates.differentiators);
+      case 6:
+        return buildTemplate6(base, state.templates.trust);
+      default:
+        return '';
+    }
   };
 
   const buildCopyPrompt = useCallback(
@@ -2940,7 +3522,9 @@ Lucide icons must be line-icons with consistent stroke.
         return;
       }
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string, apiVersion: 'v1beta' });
-      const prompt = buildCopyPrompt(options);
+      const prompt = useConversionBuilder
+        ? buildConversionImagePrompt(conversionBuilderState)
+        : buildCopyPrompt(options);
       const response = await ai.models.generateContent({
         model: GEMINI_IMAGE_MODEL,
         contents: [{ text: prompt }],
@@ -3374,6 +3958,8 @@ Lucide icons must be line-icons with consistent stroke.
     setHeroProductAlignment('center');
     setHeroProductScale(1);
     setHeroShadowStyle('softDrop');
+    setConversionBuilderState(createDefaultConversionState());
+    setUseConversionBuilder(true);
   }, [activeProductAsset, applyOptionsUpdate, resetOutputs]);
 
   const handleLogout = useCallback(async () => {
@@ -3484,11 +4070,11 @@ Lucide icons must be line-icons with consistent stroke.
     uploaderRef.current?.openFileDialog();
   }, []);
 
-  const constructPrompt = (bundleProductsOverride?: ProductId[] | null): string => {
+  const constructPrompt = (_bundleProductsOverride?: ProductId[] | null): string => {
     if (useConversionBuilder) {
-      return buildImagePrompt(conversionBuilderFields);
+      return buildConversionImagePrompt(conversionBuilderState);
     }
-    return buildImagePrompt(options as ImagePromptFields);
+    return buildCopyPrompt(options);
   };
 
   const getImageCreditCost = useCallback(
