@@ -172,6 +172,48 @@ const createPersonIdentityPackage = (options: MockupOptions, overrides?: Partial
   personDetails: overrides?.personDetails ?? pickPersonDetails(options),
 });
 
+const clonePersonIdentityPackage = (packageData: PersonIdentityPackage): PersonIdentityPackage => ({
+  identityLock: packageData.identityLock,
+  modelReferenceBase64: packageData.modelReferenceBase64,
+  modelReferenceMime: packageData.modelReferenceMime,
+  personDetails: packageData.personDetails ? { ...packageData.personDetails } : undefined,
+});
+
+const IDENTITY_LOCKED_CATEGORIES: Set<OptionCategory> = new Set([
+  'ageGroup',
+  'gender',
+  'ethnicity',
+  'skinTone',
+  'hairColor',
+  'hairStyle',
+  'personPose',
+  'wardrobeStyle',
+  'wardrobe',
+  'pose',
+]);
+
+const identityPackageToProfile = (packageData: PersonIdentityPackage): Partial<MockupOptions> => {
+  const details = packageData.personDetails;
+  if (!details) {
+    return {};
+  }
+  const profile: Partial<MockupOptions> = {};
+  if (details.ageGroup) profile.ageGroup = details.ageGroup;
+  if (details.gender) profile.gender = details.gender;
+  if (details.ethnicity) profile.ethnicity = details.ethnicity;
+  if (details.skinTone) profile.skinTone = details.skinTone;
+  if (details.hairColor) profile.hairColor = details.hairColor;
+  if (details.wardrobe) {
+    profile.wardrobe = details.wardrobe;
+    profile.wardrobeStyle = details.wardrobe;
+  }
+  if (details.pose) {
+    profile.personPose = details.pose;
+    profile.pose = details.pose;
+  }
+  return profile;
+};
+
 type ProductAsset = {
   id: string;
   label: string;
@@ -807,6 +849,7 @@ const App: React.FC = () => {
   const [personIdentityPackage, setPersonIdentityPackage] = useState<PersonIdentityPackage>(() =>
     createPersonIdentityPackage(createDefaultOptions())
   );
+  const [identitySourceSceneId, setIdentitySourceSceneId] = useState<string>(initialSceneRef.current!.id);
   const [compositionMode, setCompositionMode] = useState<CompositionMode>('balanced');
   const [activeSupplementPreset, setActiveSupplementPreset] = useState('none');
   const [supplementPresetCue, setSupplementPresetCue] = useState<string | null>(null);
@@ -1031,13 +1074,17 @@ const App: React.FC = () => {
   const canUseMood = hasUploadedProduct;
   const contentStyleValue = hasSelectedIntent ? options.contentStyle : CONTENT_STYLE_OPTIONS[0].value;
   const isProductPlacement = contentStyleValue === 'product';
-  const hasModelReference = Boolean(modelReferenceFile);
+  const hasModelReference = Boolean(modelReferenceFile || personIdentityPackage.modelReferenceBase64);
   useEffect(() => {
     if (!hasModelReference) {
       setCompositionMode('balanced');
     }
   }, [hasModelReference]);
-  const isPersonOptionsDisabled = isProductPlacement || options.ageGroup === 'no person' || hasModelReference;
+  const primarySceneId = storyboardScenes[0]?.id ?? identitySourceSceneId;
+  const isActiveScenePrimary = activeSceneId === primarySceneId;
+  const samePersonControlsDisabled = isTalentLinkedAcrossScenes && !isActiveScenePrimary;
+  const isPersonOptionsDisabled =
+    isProductPlacement || options.ageGroup === 'no person' || hasModelReference || samePersonControlsDisabled;
   const personControlsDisabled = isPersonOptionsDisabled;
   const personInScene = !isPersonOptionsDisabled;
   const personPropNoneValue = PERSON_PROP_OPTIONS[0].value;
@@ -1067,6 +1114,12 @@ const App: React.FC = () => {
       persistUgcRealSettings(prev => ({ ...prev, isEnabled: false }));
     }
   }, [personInScene, isProductPlacement, ugcRealSettings.isEnabled, persistUgcRealSettings]);
+
+  useEffect(() => {
+    if (!isTalentLinkedAcrossScenes) return;
+    if (!storyboardScenes.length) return;
+    setIdentitySourceSceneId(storyboardScenes[0].id);
+  }, [isTalentLinkedAcrossScenes, storyboardScenes]);
 
   useEffect(() => {
     setStoryboardScenes(prev => {
@@ -1375,7 +1428,7 @@ const App: React.FC = () => {
             heroProductAlignment,
             heroProductScale,
             heroShadowStyle,
-            personIdentityPackage,
+            personIdentityPackage: clonePersonIdentityPackage(personIdentityPackage),
             modelReferenceNotes,
           }
           : scene
@@ -1559,6 +1612,15 @@ const App: React.FC = () => {
     []
   );
 
+  const syncIdentityPackageAcrossScenes = useCallback((packageData: PersonIdentityPackage) => {
+    setStoryboardScenes(prev =>
+      prev.map(scene => ({
+        ...scene,
+        personIdentityPackage: clonePersonIdentityPackage(packageData),
+      }))
+    );
+  }, []);
+
   const renderPersonDetailsSection = () => (
     <>
       {isProductPlacement ? null : (
@@ -1599,9 +1661,14 @@ const App: React.FC = () => {
                         {isTalentLinkedAcrossScenes ? 'Active' : 'Off'}
                       </span>
                     </label>
-                  </div>
-                  {personControlsDisabled && <p className="text-[11px] text-gray-500">Enable people in this scene to sync the talent across your storyboard.</p>}
-                  {isTalentLinkedAcrossScenes && !personControlsDisabled && (
+                </div>
+                {personControlsDisabled && <p className="text-[11px] text-gray-500">Enable people in this scene to sync the talent across your storyboard.</p>}
+                {isTalentLinkedAcrossScenes && !isActiveScenePrimary && (
+                  <p className="text-[11px] text-amber-200">
+                    Identity locked from {storyboardScenes[0]?.label || 'Scene 1'} while Same Person is active.
+                  </p>
+                )}
+                {isTalentLinkedAcrossScenes && !personControlsDisabled && (
                     <p className="text-[11px] text-indigo-200">
                       Any tweak you make to the person instantly updates every other scene that still features them.
                     </p>
@@ -1885,7 +1952,7 @@ const App: React.FC = () => {
     setFormulationExpertProfession(scene.formulationExpertProfession ?? 'custom');
     setGeneratedCopy(null);
     setCopyError(null);
-    setPersonIdentityPackage(scene.personIdentityPackage);
+    setPersonIdentityPackage(clonePersonIdentityPackage(scene.personIdentityPackage));
     setModelReferenceNotes(scene.modelReferenceNotes ?? '');
   }, [applyOptionsUpdate, storyboardScenes]);
 
@@ -1919,7 +1986,7 @@ const App: React.FC = () => {
       formulationExpertRole,
       formulationLabStyle,
       formulationExpertProfession,
-      personIdentityPackage,
+      personIdentityPackage: clonePersonIdentityPackage(personIdentityPackage),
       modelReferenceNotes,
     };
     setStoryboardScenes(prev => [...prev, newScene]);
@@ -1979,7 +2046,7 @@ const App: React.FC = () => {
       formulationExpertRole: scene.formulationExpertRole,
       formulationLabStyle: scene.formulationLabStyle,
       formulationExpertProfession: scene.formulationExpertProfession,
-      personIdentityPackage: scene.personIdentityPackage,
+      personIdentityPackage: clonePersonIdentityPackage(scene.personIdentityPackage),
       modelReferenceNotes: scene.modelReferenceNotes,
     };
     setStoryboardScenes(prev => [...prev, newScene]);
@@ -2023,17 +2090,31 @@ const App: React.FC = () => {
 
   const applyTalentProfile = useCallback((profile?: Partial<MockupOptions> | null) => {
     if (!profile) return;
-    applyOptionsUpdate(prev => ({ ...prev, ...profile }));
+    const primarySceneId = storyboardScenes[0]?.id;
+    const isPrimarySceneActive = primarySceneId ? activeSceneId === primarySceneId : true;
+    const shouldLockIdentity = isTalentLinkedAcrossScenes && !isPrimarySceneActive;
+    const filteredProfile = shouldLockIdentity
+      ? (() => {
+        const sanitized = { ...profile };
+        IDENTITY_LOCKED_CATEGORIES.forEach(key => {
+          if (key in sanitized) {
+            delete (sanitized as Partial<MockupOptions>)[key];
+          }
+        });
+        return sanitized;
+      })()
+      : profile;
+    applyOptionsUpdate(prev => ({ ...prev, ...filteredProfile }));
     setSelectedCategories(prev => {
       const next = new Set(prev);
       PERSON_FIELD_KEYS.forEach(key => {
-        if (profile[key] !== undefined) {
+        if (filteredProfile[key] !== undefined) {
           next.add(key);
         }
       });
       return next;
     });
-  }, [applyOptionsUpdate, setSelectedCategories]);
+  }, [applyOptionsUpdate, setSelectedCategories, isTalentLinkedAcrossScenes, activeSceneId, storyboardScenes]);
 
   const handlePresetSelect = useCallback((value: string) => {
     setActiveTalentPreset(value);
@@ -2395,17 +2476,30 @@ const App: React.FC = () => {
     if (isProductPlacement || options.ageGroup === 'no person') {
       return;
     }
-    const profile = getTalentProfileFromOptions();
+    const sourceSceneId = storyboardScenes[0]?.id ?? activeSceneId;
+    const sourceScene = storyboardScenes.find(scene => scene.id === sourceSceneId);
+    const baseIdentity = sourceScene?.personIdentityPackage ?? personIdentityPackage;
+    const sharedPackage = clonePersonIdentityPackage(baseIdentity);
+    setIdentitySourceSceneId(sourceSceneId);
+    setPersonIdentityPackage(sharedPackage);
+    syncIdentityPackageAcrossScenes(sharedPackage);
+    const profile = identityPackageToProfile(sharedPackage);
     setLinkedTalentProfile(profile);
+    syncTalentAcrossScenes(profile, sourceSceneId);
+    if (Object.keys(profile).length) {
+      applyOptionsUpdate(prev => applyPersonProfileToOptions(prev, profile));
+    }
     setIsTalentLinkedAcrossScenes(true);
-    syncTalentAcrossScenes(profile, activeSceneId);
   }, [
     isTalentLinkedAcrossScenes,
     isProductPlacement,
     options.ageGroup,
-    getTalentProfileFromOptions,
-    syncTalentAcrossScenes,
+    storyboardScenes,
     activeSceneId,
+    personIdentityPackage,
+    syncIdentityPackageAcrossScenes,
+    syncTalentAcrossScenes,
+    applyOptionsUpdate,
   ]);
 
   useEffect(() => {
@@ -2899,6 +2993,11 @@ const App: React.FC = () => {
 
   const handleOptionChange = (category: OptionCategory, value: string, accordionTitle: string) => {
     const newOptions = { ...options, [category]: value };
+    const primarySceneId = storyboardScenes[0]?.id;
+    const isPrimarySceneActive = primarySceneId ? activeSceneId === primarySceneId : true;
+    if (isTalentLinkedAcrossScenes && !isPrimarySceneActive && IDENTITY_LOCKED_CATEGORIES.has(category)) {
+      return;
+    }
     const updatedSelectedCategories = new Set(selectedCategories).add(category);
 
     if (category === 'contentStyle') {
@@ -2990,6 +3089,22 @@ const App: React.FC = () => {
 
     applyOptionsUpdate(() => newOptions);
     setSelectedCategories(updatedSelectedCategories);
+    if (PERSON_FIELD_KEYS.includes(category)) {
+      const updatedDetails = pickPersonDetails(newOptions);
+      setPersonIdentityPackage(prev => {
+        const updatedPackage = clonePersonIdentityPackage({
+          ...prev,
+          personDetails: updatedDetails,
+        });
+        if (isTalentLinkedAcrossScenes) {
+          const profile = identityPackageToProfile(updatedPackage);
+          setLinkedTalentProfile(profile);
+          syncIdentityPackageAcrossScenes(updatedPackage);
+          syncTalentAcrossScenes(profile, identitySourceSceneId);
+        }
+        return updatedPackage;
+      });
+    }
 
     const accordionCategoryMap: Record<string, OptionCategory[]> = {
       'Scene & Environment': ['setting', 'environmentOrder'],
@@ -3252,7 +3367,25 @@ const App: React.FC = () => {
         ? customHeroDescription
         : heroDescriptionPreset?.description ?? '';
     const heroDescriptionText = clean(heroDescriptionSource);
-    const compositionBlock = hasModelReference ? COMPOSITION_BLOCKS[compositionMode] : '';
+    const identityPackage = personIdentityPackage;
+    const identityHasModelReference = Boolean(identityPackage.modelReferenceBase64);
+    const compositionIntro = COMPOSITION_BLOCKS[compositionMode] ?? '';
+    const describeValue = (value?: string, fallback = 'unspecified') => clean(value || fallback);
+    const identityBlock = identityHasModelReference
+      ? `Use the uploaded model reference as the exact identity.
+Do not change or alter the person's face, age, hair, skin tone, gender, or any physical attributes.
+Preserve identity exactly. Do not stylize, enhance, beautify, or modify the appearance in any way.`
+      : identityPackage.personDetails
+        ? `Use the following identity consistently:
+- Age group: ${describeValue(identityPackage.personDetails.ageGroup)}
+- Gender: ${describeValue(identityPackage.personDetails.gender)}
+- Ethnicity: ${describeValue(identityPackage.personDetails.ethnicity)}
+- Skin tone: ${describeValue(identityPackage.personDetails.skinTone)}
+- Hair: ${describeValue(identityPackage.personDetails.hairType, 'natural')} ${describeValue(identityPackage.personDetails.hairLength, 'medium')} in ${describeValue(identityPackage.personDetails.hairColor)}
+- Wardrobe: ${describeValue(identityPackage.personDetails.wardrobe)}
+- Pose: ${describeValue(identityPackage.personDetails.pose)}
+Facial features: Do not alter or randomize.`
+        : '';
 
     const getInteractionDescription = (interaction: string): string => {
       switch (interaction) {
@@ -3311,6 +3444,17 @@ const App: React.FC = () => {
       }
     } else {
       prompt += `The scene is a ${cleanSetting}, illuminated by ${cleanLighting}. The overall environment has a ${cleanEnvironmentOrder} feel. The photo is shot from a ${cleanPerspective}, embracing the chosen camera style and its natural characteristics. Frame the composition so the product lives in ${cleanProductPlane}. `;
+    }
+
+    const prefixParts: string[] = [];
+    if (compositionIntro) {
+      prefixParts.push(compositionIntro.trim());
+    }
+    if (identityBlock) {
+      prefixParts.push(identityBlock.trim());
+    }
+    if (prefixParts.length) {
+      prompt = `${prefixParts.join(' ')} ${prompt}`;
     }
 
     if (options.creationMode === 'lifestyle') {
@@ -3501,26 +3645,13 @@ Maintain correct human anatomy at all times:
 
     if (personIncluded) {
       if (hasModelReference) {
-        if (compositionBlock) {
-          prompt += compositionBlock;
-        }
-        prompt += 'Use the uploaded model reference image as the only on-camera talent. Match their face, hair, skin tone, outfit, and proportions exactly—do not replace or alter their appearance.';
         if (modelReferenceNotes.trim()) {
           prompt += ` Follow this direction for the model: ${clean(modelReferenceNotes.trim())}.`;
         }
-        prompt += ' Ignore all age, gender, pose, wardrobe, props, mood, expression, hair, and other Person Details settings; rely solely on the reference for appearance.';
-        prompt += ' Keep them as the sole person in frame and respect the exact look of the reference image without adding accessories or changing hairstyle.';
-        if (modelReferenceFile) {
+        if (identityHasModelReference) {
           prompt += ' Treat the reference photo as ground truth for identity and styling.';
         }
         prompt += `
-Use the uploaded model reference as the exact identity.
-Do not modify face, age, hair, skin tone, or physical attributes.
-Preserve identity completely.
-Integrate the product naturally in the person's hand with correct scale and perspective.
-Match lighting and shadows between person and product.
-Do not superimpose or float the product.
-
 Scene:
 ${cleanSetting}
 ${cleanLighting}
@@ -3768,6 +3899,13 @@ If the model attempts to create a scene or environment, override it and force a 
     prompt += ' Deliver the render at ultra-high fidelity: native 4K resolution (minimum 3840px on the long edge) so it still looks razor sharp when downscaled to 2K for alternate exports.';
     prompt += ` Final image must be high-resolution and free of any watermarks, text, or artificial elements. It should feel like a captured moment, not a staged ad.`;
 
+    const conflictPatterns = [/new person/gi, /different model/gi, /sample diversity/gi, /random talent/gi];
+    conflictPatterns.forEach(pattern => {
+      prompt = prompt.replace(pattern, '');
+    });
+
+    prompt = prompt.trim();
+
     return prompt;
   }
 
@@ -3776,7 +3914,7 @@ If the model attempts to create a scene or environment, override it and force a 
       if (contentStyleValue === 'product') {
         return 1;
       }
-      if (opts.ageGroup === 'no person' && !modelReferenceFile) {
+      if (opts.ageGroup === 'no person' && !hasModelReference) {
         return 2;
       }
       return isSimpleMode ? 3 : 4;
@@ -3878,21 +4016,30 @@ const publishFreeGallery = useCallback(
         return;
       }
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string, apiVersion: 'v1beta' });
-      const requestParts: any[] = [
-        {
-          inlineData: { data: base64, mimeType },
+      const identityInlinePart = personIdentityPackage.modelReferenceBase64
+        ? {
+          inlineData: {
+            data: personIdentityPackage.modelReferenceBase64,
+            mimeType: personIdentityPackage.modelReferenceMime ?? 'image/png',
+          },
           reference: true,
-        },
-        { text: finalPrompt },
-      ];
-
-      if (modelReferenceFile) {
+        }
+        : null;
+      const requestParts: any[] = [];
+      if (identityInlinePart) {
+        requestParts.push(identityInlinePart);
+      } else if (modelReferenceFile) {
         const { base64: modelBase64, mimeType: modelMimeType } = await fileToBase64(modelReferenceFile);
-        requestParts.unshift({
+        requestParts.push({
           inlineData: { data: modelBase64, mimeType: modelMimeType },
           reference: true,
         });
       }
+      requestParts.push({
+        inlineData: { data: base64, mimeType },
+        reference: true,
+      });
+      requestParts.push({ text: finalPrompt });
 
       const response = await ai.models.generateContent({
         model: GEMINI_IMAGE_MODEL, // maintain this but enforce insert behavior through the prompt and config above

@@ -437,7 +437,7 @@ const LandingPage: React.FC = () => {
             {isMobileMenuOpen && (
               <div
                 id="mobile-menu"
-                className="md:hidden absolute inset-x-6 top-full mt-3 rounded-3xl border border-white/10 bg-gray-950/95 p-4 shadow-2xl backdrop-blur"
+                className="md:hidden absolute inset-x-6 top-full mt-3 rounded-3xl border border-white/10 bg-gray-950/95 p-4 shadow-2xl backdrop-blur z-[999]"
               >
                 <div className="flex flex-col gap-3 text-sm uppercase tracking-[0.3em] text-white/90">
                   {NAV_LINKS.map(link => (
