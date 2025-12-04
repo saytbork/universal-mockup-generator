@@ -71,29 +71,30 @@ const BundleSelector: React.FC<BundleSelectorProps> = ({
               console.log('DEBUG productMeta:', productMeta);
               return (
                 <div key={slot.id} className="w-28 text-center text-xs text-gray-300">
-                <div className="relative h-28 w-full overflow-hidden rounded-xl border border-white/10 bg-black/20">
-                  {slot.meta?.imageUrl ? (
-                    <img
-                      src={slot.meta.imageUrl}
-                      alt={slot.meta.label}
-                      className={`h-full w-full object-cover transition ${
-                        slot.filled ? '' : 'opacity-60'
-                      }`}
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-gray-600">
-                      {slot.meta?.label || slot.id}
-                    </div>
-                  )}
-                  {!slot.filled && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-[10px] font-semibold text-amber-200">
-                      Upload to fill
-                    </div>
-                  )}
+                  <div className="relative h-28 w-full overflow-hidden rounded-xl border border-white/10 bg-black/20">
+                    {productMeta?.imageUrl ? (
+                      <img
+                        src={productMeta.imageUrl}
+                        alt={productMeta.label}
+                        className={`h-full w-full object-cover transition ${
+                          slot.filled ? '' : 'opacity-60'
+                        }`}
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-gray-600">
+                        {productMeta?.label || slot.id}
+                      </div>
+                    )}
+                    {!slot.filled && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-[10px] font-semibold text-amber-200">
+                        Upload to fill
+                      </div>
+                    )}
+                  </div>
+                  <p className="mt-1 text-[11px]">{productMeta?.label || slot.id}</p>
                 </div>
-                <p className="mt-1 text-[11px]">{slot.meta?.label || slot.id}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
