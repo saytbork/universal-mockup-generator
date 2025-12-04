@@ -1,16 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import {
-  addDoc,
-  collection,
-  getDocs,
-  limit,
-  orderBy,
-  query,
-  serverTimestamp,
-} from 'firebase/firestore';
-import { db } from "../src/firebase/admin";
+import { adminDB, FieldValue } from "../src/firebase/admin";
 
-
+// Tipos
 type GalleryMeta = {
   width?: number;
   height?: number;
@@ -23,75 +14,74 @@ type ListEntry = {
   imageUrl: string;
   userId: string;
   plan: string;
-  createdAt: string | Date;
+  createdAt: any;
   width?: number;
   height?: number;
   modelReferenceUsed?: boolean;
   productsUsed?: number;
 };
 
+// Parseo parámetro action
 const parseAction = (req: VercelRequest) => {
   const raw = req.query.action;
-  if (Array.isArray(raw)) {
-    return raw[0]?.toString().toLowerCase() ?? '';
-  }
+  if (Array.isArray(raw)) return raw[0]?.toString().toLowerCase() ?? '';
   return typeof raw === 'string' ? raw.toLowerCase() : '';
 };
 
+// Handler
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const action = parseAction(req);
+
   try {
-    if (!db) {
-      throw new Error('Firebase configuration is missing');
-    }
     switch (action) {
+      
+      // --------------------
+      // AGREGAR IMAGEN
+      // --------------------
       case 'add': {
         if (req.method !== 'POST') {
           res.setHeader('Allow', 'POST');
-          res.status(405).json({ error: 'Method not allowed' });
-          return;
+          return res.status(405).json({ error: 'Method not allowed' });
         }
+
         const { imageUrl, userId, plan, meta } = req.body || {};
-        if (!imageUrl || typeof imageUrl !== 'string') {
-          res.status(400).json({ error: 'Missing imageUrl' });
-          return;
-        }
-        if (!userId || typeof userId !== 'string') {
-          res.status(400).json({ error: 'Missing userId' });
-          return;
-        }
-        if (!plan || typeof plan !== 'string') {
-          res.status(400).json({ error: 'Missing plan' });
-          return;
-        }
-        const docRef = await addDoc(collection(db, 'gallery'), {
+
+        if (!imageUrl) return res.status(400).json({ error: 'Missing imageUrl' });
+        if (!userId) return res.status(400).json({ error: 'Missing userId' });
+        if (!plan) return res.status(400).json({ error: 'Missing plan' });
+
+        const ref = await adminDB.collection('gallery').add({
           imageUrl: imageUrl.trim(),
           userId,
           plan,
-          createdAt: serverTimestamp(),
+          createdAt: FieldValue.serverTimestamp(),
           width: meta?.width,
           height: meta?.height,
           modelReferenceUsed: meta?.modelReferenceUsed,
           productsUsed: meta?.productsUsed,
         });
-        res.status(201).json({ id: docRef.id });
-        return;
+
+        return res.status(201).json({ id: ref.id });
       }
+
+      // --------------------
+      // LISTAR IMÁGENES
+      // --------------------
       case 'list': {
         if (req.method !== 'GET') {
           res.setHeader('Allow', 'GET');
-          res.status(405).json({ error: 'Method not allowed' });
-          return;
+          return res.status(405).json({ error: 'Method not allowed' });
         }
-        const snapshot = await getDocs(
-          query(
-            collection(db, 'gallery'),
-            orderBy('createdAt', 'desc'),
-            limit(200)
-          )
-        );
+
+        const snapshot = await adminDB
+          .collection('gallery')
+          .orderBy('createdAt', 'desc')
+          .limit(200)
+          .get();
+
         const images: ListEntry[] = snapshot.docs.map(doc => {
-          const data = doc.data() as Omit<ListEntry, 'id'>;
+          const data = doc.data();
+
           return {
             id: doc.id,
             imageUrl: data.imageUrl,
@@ -104,18 +94,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             productsUsed: data.productsUsed,
           };
         });
-        res.status(200).json({ images });
-        return;
+
+        return res.status(200).json({ images });
       }
+
+      // --------------------
+      // ACCIÓN INVÁLIDA
+      // --------------------
       default:
-        res.status(400).json({ error: 'Invalid action' });
+        return res.status(400).json({ error: 'Invalid action' });
     }
   } catch (error: any) {
-    console.error('Gallery handler error', error);
-    if (error.message.includes('Firebase configuration')) {
-      res.status(500).json({ error: 'Firebase is not configured' });
-      return;
-    }
-    res.status(500).json({ error: error?.message ?? 'Internal server error' });
+    console.error("Gallery handler error:", error);
+    return res.status(500).json({ error: error.message ?? 'Internal server error' });
   }
 }

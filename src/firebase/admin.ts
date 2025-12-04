@@ -1,5 +1,14 @@
-import { getFirestore } from "firebase/firestore";
-import { app } from "./firebase";
+import * as admin from "firebase-admin";
 
-// Firestore para API routes
-export const db = getFirestore(app);
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(
+      JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
+    ),
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET
+  });
+}
+
+export const adminDB = admin.firestore();
+export const adminStorage = admin.storage().bucket();
+export const FieldValue = admin.firestore.FieldValue;
