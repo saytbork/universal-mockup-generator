@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-const { adminDB, FieldValue } = require("../server/lib/firebase/admin");
+import { adminDB, FieldValue } from "../src/firebase/admin";
 
 // Tipos
 type GalleryMeta = {
