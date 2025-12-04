@@ -6,12 +6,14 @@ interface BundleSelectorProps {
   onGenerate: (bundleProducts: ProductId[]) => void;
   productMediaLibrary: ProductMediaLibrary;
   visibleProductIds: ProductId[];
+  activeProductCount: number;
 }
 
 const BundleSelector: React.FC<BundleSelectorProps> = ({
   onGenerate,
   productMediaLibrary,
   visibleProductIds,
+  activeProductCount,
 }) => {
   const bundleEntries = useMemo(() => Object.entries(PREMADE_BUNDLES), []);
   const [activeKey, setActiveKey] = useState(bundleEntries[0]?.[0] ?? '');
@@ -19,7 +21,8 @@ const BundleSelector: React.FC<BundleSelectorProps> = ({
   const activeBundle = activeKey ? PREMADE_BUNDLES[activeKey] : null;
   const visibleSet = useMemo(() => new Set(visibleProductIds), [visibleProductIds]);
   const visibleProducts = activeBundle?.products.filter(id => visibleSet.has(id)) ?? [];
-  const bundleDisabled = !visibleProducts.length;
+  const needMoreProducts = activeProductCount < 2;
+  const bundleDisabled = needMoreProducts || !visibleProducts.length;
   const slotProducts = useMemo(() => {
     if (!activeBundle) return [];
     return activeBundle.products.map(productId => ({
@@ -56,7 +59,9 @@ const BundleSelector: React.FC<BundleSelectorProps> = ({
           <p className="text-sm font-semibold text-white">{activeBundle.name}</p>
           {bundleDisabled && (
             <p className="text-xs text-amber-200">
-              Upload matching product photos to use this bundle.
+              {needMoreProducts
+                ? 'Add another product to enable bundles.'
+                : 'Upload matching product photos to use this bundle.'}
             </p>
           )}
           <div className="flex flex-wrap gap-3">

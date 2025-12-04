@@ -151,6 +151,27 @@ const DEFAULT_PERSON_DETAILS: PersonDetails = {
   bodyType: '',
 };
 
+const CONFLICTING_IDENTITY_PHRASES = [
+  'new person',
+  'random model',
+  'different talent',
+  'sample diversity',
+  'younger looking',
+  'someone else',
+  'another person',
+  'new creator',
+];
+
+const removeConflictingIdentityPhrases = (text: string): string => {
+  let next = text;
+  for (const phrase of CONFLICTING_IDENTITY_PHRASES) {
+    const regexp = new RegExp(phrase, 'gi');
+    next = next.replace(regexp, '');
+  }
+  next = next.replace(/\s{2,}/g, ' ');
+  return next.trim();
+};
+
 const pickPersonDetails = (options: MockupOptions): PersonDetails => ({
   ageGroup: options.ageGroup,
   gender: options.gender,
@@ -164,6 +185,19 @@ const pickPersonDetails = (options: MockupOptions): PersonDetails => ({
   wardrobe: options.wardrobeStyle ?? options.wardrobe,
   pose: options.personPose ?? options.pose,
 });
+
+const buildActiveProductFromAsset = (asset: ProductAsset): ActiveProduct | null => {
+  if (!asset.base64 || !asset.mimeType) {
+    return null;
+  }
+  return {
+    id: asset.id,
+    base64: asset.base64,
+    mimeType: asset.mimeType,
+    name: asset.label || 'Product',
+    heightCm: asset.heightValue ?? undefined,
+  };
+};
 
 const createPersonIdentityPackage = (options: MockupOptions, overrides?: Partial<PersonIdentityPackage>): PersonIdentityPackage => ({
   identityLock: overrides?.identityLock ?? false,
@@ -222,12 +256,22 @@ type ProductAsset = {
   createdAt: number;
   heightValue: number | null;
   heightUnit: 'cm' | 'in';
+  base64?: string;
+  mimeType?: string;
 };
 
 type ImageVariant = {
   url: string;
   width: number;
   height: number;
+};
+
+type ActiveProduct = {
+  id: string;
+  base64: string;
+  mimeType: string;
+  name: string;
+  heightCm?: number;
 };
 
 type GoogleCredentialResponse = {
@@ -841,7 +885,7 @@ const App: React.FC = () => {
   const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null);
   const [uploadedImagePreview, setUploadedImagePreview] = useState<string | null>(null);
   const [productAssets, setProductAssets] = useState<ProductAsset[]>([]);
-  const [activeProductId, setActiveProductId] = useState<string | null>(null);
+  const [activeProducts, setActiveProducts] = useState<ActiveProduct[]>([]);
   const [isMultiProductPackaging, setIsMultiProductPackaging] = useState(false);
   const [modelReferenceFile, setModelReferenceFile] = useState<File | null>(null);
   const [modelReferencePreview, setModelReferencePreview] = useState<string | null>(null);
@@ -877,6 +921,10 @@ const App: React.FC = () => {
   const availableProductIds = useMemo<ProductId[]>(
     () => productAssets.map((_, index) => `product_${index + 1}` as ProductId),
     [productAssets]
+  );
+  const activeProductIds = useMemo<ProductId[]>(
+    () => activeProducts.map(product => product.id as ProductId),
+    [activeProducts]
   );
   const normalizedCreatorPresetOptions = useMemo(
     () =>
@@ -917,6 +965,38 @@ const App: React.FC = () => {
       };
       return acc;
     }, {});
+  }, [productAssets]);
+  useEffect(() => {
+    setActiveProducts(prev => {
+      const next = prev
+        .map(product => {
+          const asset = productAssets.find(assetItem => assetItem.id === product.id);
+          if (!asset) return null;
+          return {
+            ...product,
+            name: asset.label || product.name,
+            heightCm: asset.heightValue ?? undefined,
+            base64: asset.base64 ?? product.base64,
+            mimeType: asset.mimeType ?? product.mimeType,
+          };
+        })
+        .filter((item): item is ActiveProduct => Boolean(item));
+      const isSame =
+        next.length === prev.length &&
+        next.every((item, index) => item.name === prev[index]?.name && item.heightCm === prev[index]?.heightCm);
+      if (isSame) {
+        if (!next.length && productAssets.length) {
+          const fallback = buildActiveProductFromAsset(productAssets[0]);
+          return fallback ? [fallback] : [];
+        }
+        return prev;
+      }
+      if (!next.length && productAssets.length) {
+        const fallback = buildActiveProductFromAsset(productAssets[0]);
+        return fallback ? [fallback] : [];
+      }
+      return next;
+    });
   }, [productAssets]);
   useEffect(() => {
     if (!availableProductIds.length) return;
@@ -1036,9 +1116,10 @@ const App: React.FC = () => {
   });
   const [isTalentLinkedAcrossScenes, setIsTalentLinkedAcrossScenes] = useState(false);
   const [linkedTalentProfile, setLinkedTalentProfile] = useState<Partial<MockupOptions> | null>(null);
+  const heroProductId = activeProducts[0]?.id ?? productAssets[0]?.id ?? null;
   const activeProductAsset = useMemo(
-    () => productAssets.find(asset => asset.id === activeProductId) ?? null,
-    [productAssets, activeProductId]
+    () => productAssets.find(asset => asset.id === heroProductId) ?? null,
+    [productAssets, heroProductId]
   );
   const intentRef = useRef<HTMLDivElement>(null);
   const uploadRef = useRef<HTMLDivElement>(null);
@@ -1070,7 +1151,7 @@ const App: React.FC = () => {
   const [trialCodeError, setTrialCodeError] = useState<string | null>(null);
   const isTrialBypassActive = hasTrialBypass || isDevBypass;
   const hasSelectedIntent = Boolean(options.contentStyle);
-  const hasUploadedProduct = Boolean(activeProductAsset);
+  const hasUploadedProduct = activeProducts.length > 0 || productAssets.length > 0;
   const canUseMood = hasUploadedProduct;
   const contentStyleValue = hasSelectedIntent ? options.contentStyle : CONTENT_STYLE_OPTIONS[0].value;
   const isProductPlacement = contentStyleValue === 'product';
@@ -1859,17 +1940,18 @@ const App: React.FC = () => {
           ))}
         </div>
         {activeBundleTab === 'premade' && (
-          <BundleSelector
-            onGenerate={generateMockup}
-            productMediaLibrary={productMediaLibrary}
-            visibleProductIds={availableProductIds}
-          />
+            <BundleSelector
+              onGenerate={generateMockup}
+              productMediaLibrary={productMediaLibrary}
+              visibleProductIds={activeProductIds}
+              activeProductCount={activeProducts.length}
+            />
         )}
         {activeBundleTab === 'custom' && (
           <CustomBundleBuilder
             onGenerate={generateMockup}
             productMediaLibrary={productMediaLibrary}
-            visibleProductIds={availableProductIds}
+            visibleProductIds={activeProductIds}
           />
         )}
         {activeBundleTab === 'recommended' && (
@@ -1896,7 +1978,7 @@ const App: React.FC = () => {
                   productId={recommendedBaseProduct}
                   onGenerate={generateMockup}
                   productMediaLibrary={productMediaLibrary}
-                  visibleProductIds={availableProductIds}
+                  visibleProductIds={activeProductIds}
                 />
               </>
             )}
@@ -2480,6 +2562,7 @@ const App: React.FC = () => {
     const sourceScene = storyboardScenes.find(scene => scene.id === sourceSceneId);
     const baseIdentity = sourceScene?.personIdentityPackage ?? personIdentityPackage;
     const sharedPackage = clonePersonIdentityPackage(baseIdentity);
+    sharedPackage.identityLock = true;
     setIdentitySourceSceneId(sourceSceneId);
     setPersonIdentityPackage(sharedPackage);
     syncIdentityPackageAcrossScenes(sharedPackage);
@@ -3208,61 +3291,99 @@ const App: React.FC = () => {
   }, [logout, handleReset]);
 
 
-  const handleImageUpload = useCallback(async (files: File[]) => {
-    const ALLOWED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
+  const handleImageUpload = useCallback(
+    async (files: File[]) => {
+      const ALLOWED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 
-    if (!files.length) return;
+      if (!files.length) return;
 
-    resetOutputs();
-    setImageError(null);
-    setGeneratedCopy(null);
-    setCopyError(null);
+      resetOutputs();
+      setImageError(null);
+      setGeneratedCopy(null);
+      setCopyError(null);
 
-    const validFiles = files.filter(file => ALLOWED_MIME_TYPES.includes(file.type));
-    if (!validFiles.length) {
-      setImageError('Unsupported file type. Please upload PNG, JPEG, or WebP images.');
-      return;
-    }
+      const validFiles = files.filter(file => ALLOWED_MIME_TYPES.includes(file.type));
+      if (!validFiles.length) {
+        setImageError('Unsupported file type. Please upload PNG, JPEG, or WebP images.');
+        return;
+      }
 
-    const newAssets = validFiles.map(file => ({
-      id: makeSceneId(),
-      file,
-      previewUrl: URL.createObjectURL(file),
-      createdAt: Date.now(),
-    }));
+      const baseIndex = productAssets.length;
+      const processedAssets: ProductAsset[] = [];
+      const newActiveProducts: ActiveProduct[] = [];
 
-    let firstNewId: string | null = null;
-    setProductAssets(prev => {
-      const startIndex = prev.length;
-      const additions = newAssets.map((asset, index) => ({
-        id: asset.id,
-        label: `Product ${startIndex + index + 1}`,
-        file: asset.file,
-        previewUrl: asset.previewUrl,
-        createdAt: asset.createdAt,
-        heightValue: null,
-        heightUnit: 'cm' as const,
-      }));
-      firstNewId = additions[0]?.id ?? firstNewId;
-      return [...prev, ...additions];
-    });
+      for (const file of validFiles) {
+        try {
+          const previewUrl = URL.createObjectURL(file);
+          const { base64, mimeType } = await fileToBase64(file);
+          const assetId = makeSceneId();
+          const label = `Product ${baseIndex + processedAssets.length + 1}`;
+          const asset: ProductAsset = {
+            id: assetId,
+            label,
+            file,
+            previewUrl,
+            createdAt: Date.now(),
+            heightValue: null,
+            heightUnit: 'cm',
+            base64,
+            mimeType,
+          };
+          processedAssets.push(asset);
+          const activeProduct = buildActiveProductFromAsset(asset);
+          if (activeProduct) {
+            newActiveProducts.push(activeProduct);
+          }
+        } catch (error) {
+          console.error('Unable to read uploaded file', error);
+          if (!imageError) {
+            setImageError('We could not process one of the uploaded files.');
+          }
+        }
+      }
 
-    if (firstNewId) {
-      setActiveProductId(firstNewId);
-    }
+      if (!processedAssets.length) {
+        return;
+      }
 
-    advanceOnboardingFromStep(2);
-  }, [resetOutputs, advanceOnboardingFromStep]);
+      setProductAssets(prev => [...prev, ...processedAssets]);
+      setActiveProducts(prev => {
+        const existingIds = new Set(prev.map(product => product.id));
+        const additions = newActiveProducts.filter(product => !existingIds.has(product.id));
+        const next = [...prev, ...additions];
+        if (!next.length && processedAssets.length) {
+          const fallback = buildActiveProductFromAsset(processedAssets[0]);
+          if (fallback) {
+            return [fallback];
+          }
+        }
+        return next;
+      });
+
+      advanceOnboardingFromStep(2);
+    },
+    [resetOutputs, advanceOnboardingFromStep, productAssets.length, imageError]
+  );
 
   const handleProductAssetSelect = useCallback(
     (assetId: string) => {
-      if (assetId === activeProductId) return;
-      const asset = productAssets.find(item => item.id === assetId);
-      if (!asset) return;
-      setActiveProductId(assetId);
+      setActiveProducts(prev => {
+        const isActive = prev.some(product => product.id === assetId);
+        if (isActive) {
+          if (prev.length <= 1) {
+            return prev;
+          }
+          return prev.filter(product => product.id !== assetId);
+        }
+        const asset = productAssets.find(item => item.id === assetId);
+        if (!asset) return prev;
+        const nextProduct = buildActiveProductFromAsset(asset);
+        if (!nextProduct) return prev;
+        return [...prev, nextProduct];
+      });
       resetOutputs();
     },
-    [activeProductId, productAssets, resetOutputs]
+    [productAssets, resetOutputs]
   );
 
   const handleProductAssetLabelChange = useCallback((assetId: string, label: string) => {
@@ -3297,15 +3418,9 @@ const App: React.FC = () => {
         if (assetToRemove) {
           URL.revokeObjectURL(assetToRemove.previewUrl);
         }
-        const next = prev.filter(asset => asset.id !== assetId);
-        setActiveProductId(prevActive => {
-          if (prevActive === assetId) {
-            return next[0]?.id ?? null;
-          }
-          return prevActive;
-        });
-        return next;
+        return prev.filter(asset => asset.id !== assetId);
       });
+      setActiveProducts(prev => prev.filter(product => product.id !== assetId));
       resetOutputs();
     },
     [resetOutputs]
@@ -3381,14 +3496,17 @@ const App: React.FC = () => {
 Do not change or alter the person's face, age, hair, skin tone, gender, or any physical attributes.
 Preserve identity exactly. Do not stylize, enhance, beautify, or modify the appearance in any way.`
       : identityPackage.personDetails
-        ? `Use the following identity consistently:
-- Age group: ${describeValue(identityPackage.personDetails.ageGroup)}
-- Gender: ${describeValue(identityPackage.personDetails.gender)}
-- Ethnicity: ${describeValue(identityPackage.personDetails.ethnicity)}
-- Skin tone: ${describeValue(identityPackage.personDetails.skinTone)}
-- Hair: ${describeValue(identityPackage.personDetails.hairType, 'natural')} ${describeValue(identityPackage.personDetails.hairLength, 'medium')} in ${describeValue(identityPackage.personDetails.hairColor)}
-- Wardrobe: ${describeValue(identityPackage.personDetails.wardrobe)}
-- Pose: ${describeValue(identityPackage.personDetails.pose)}
+        ? `Use the following identity for the person in this scene.
+This identity must remain exactly consistent across all scenes.
+Do not alter or randomize the face, age, facial structure, or appearance.
+
+Age group: ${describeValue(identityPackage.personDetails.ageGroup)}
+Gender: ${describeValue(identityPackage.personDetails.gender)}
+Ethnicity: ${describeValue(identityPackage.personDetails.ethnicity)}
+Skin tone: ${describeValue(identityPackage.personDetails.skinTone)}
+Hair: ${describeValue(identityPackage.personDetails.hairType, 'natural')}, ${describeValue(identityPackage.personDetails.hairLength, 'medium')}, ${describeValue(identityPackage.personDetails.hairColor)}
+Facial hair: ${describeValue(identityPackage.personDetails.facialHair, 'natural')}
+Body type: ${describeValue(identityPackage.personDetails.bodyType, 'balanced')}
 Facial features: Do not alter or randomize.`
         : '';
 
@@ -3904,14 +4022,7 @@ If the model attempts to create a scene or environment, override it and force a 
     prompt += ' Deliver the render at ultra-high fidelity: native 4K resolution (minimum 3840px on the long edge) so it still looks razor sharp when downscaled to 2K for alternate exports.';
     prompt += ` Final image must be high-resolution and free of any watermarks, text, or artificial elements. It should feel like a captured moment, not a staged ad.`;
 
-    const conflictPatterns = [/new person/gi, /different model/gi, /sample diversity/gi, /random talent/gi];
-    conflictPatterns.forEach(pattern => {
-      prompt = prompt.replace(pattern, '');
-    });
-
-    prompt = prompt.trim();
-
-    return prompt;
+    return removeConflictingIdentityPhrases(prompt);
   }
 
   const getImageCreditCost = useCallback(
@@ -3962,176 +4073,198 @@ const publishFreeGallery = useCallback(
     return planTier;
   }, [inviteUsed, planTier]);
 
-  const handleGenerateClick = async (bundleProducts?: ProductId[]) => {
-    bundleSelectionRef.current = bundleProducts ?? null;
-    if (isTrialLocked) {
-      setImageError(`You reached the ${currentPlan.label} limit (${planCreditLimit} credits). Upgrade your plan to keep generating scenes.`);
-      return;
-    }
-    if (!productAssets.length) {
-      setImageError("Please upload a product image first.");
-      return;
-    }
-    const personIncluded = !isProductPlacement && (options.ageGroup !== 'no person' || !!modelReferenceFile);
-    const realModeActive = ugcRealSettings.isEnabled && !isProductPlacement && personIncluded;
+  const getActiveProductsFromIds = useCallback(
+    (ids: ProductId[]): ActiveProduct[] =>
+      ids
+        .map(id => {
+          const idx = availableProductIds.indexOf(id);
+          if (idx === -1) return null;
+          const asset = productAssets[idx];
+          if (!asset) return null;
+          return buildActiveProductFromAsset(asset);
+        })
+        .filter((item): item is ActiveProduct => Boolean(item)),
+    [availableProductIds, productAssets]
+  );
 
-    const creditCost = getImageCreditCost(options);
-    if (!isTrialBypassActive && creditCost > remainingCredits) {
-      setImageError('Not enough credits for this generation. Upgrade your plan.');
-      setShowPlanModal(true);
-      return;
-    }
-
-    resetOutputs();
-    setGeneratedCopy(null);
-    setCopyError(null);
-    setIsImageLoading(true);
-
-    try {
-      // Prioritize assets based on bundle selection if provided, then activeProductId, then recency.
-      const bundlePriorities: string[] = [];
-      if (bundleProducts?.length) {
-        bundleProducts.forEach(bp => {
-          const idx = availableProductIds.findIndex(id => id === bp);
-          if (idx >= 0 && productAssets[idx]) {
-            bundlePriorities.push(productAssets[idx].id);
-          }
-        });
-      }
-      const orderedAssets = productAssets.slice().sort((a, b) => {
-        const aIdx = bundlePriorities.indexOf(a.id);
-        const bIdx = bundlePriorities.indexOf(b.id);
-        if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
-        if (aIdx !== -1) return -1;
-        if (bIdx !== -1) return 1;
-        if (a.id === activeProductId) return -1;
-        if (b.id === activeProductId) return 1;
-        return a.createdAt - b.createdAt;
-      });
-      const [primary] = orderedAssets;
-      if (!primary) {
-        throw new Error('No product image found.');
-      }
-      const { base64, mimeType } = await fileToBase64(primary.file);
-      const finalPrompt = constructPrompt(bundleSelectionRef.current);
-      const aspectRatio = options?.aspectRatio || '1:1';
-
-      const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
-      if (!resolvedApiKey) {
+  const handleGenerateClick = useCallback(
+    async (bundleProducts?: ProductId[], overrideActiveList?: ActiveProduct[]) => {
+      bundleSelectionRef.current = bundleProducts ?? null;
+      if (isTrialLocked) {
+        setImageError(`You reached the ${currentPlan.label} limit (${planCreditLimit} credits). Upgrade your plan to keep generating scenes.`);
         return;
       }
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string, apiVersion: 'v1beta' });
-      const identityInlinePart = personIdentityPackage.modelReferenceBase64
-        ? {
-          inlineData: {
-            data: personIdentityPackage.modelReferenceBase64,
-            mimeType: personIdentityPackage.modelReferenceMime ?? 'image/png',
-          },
-          reference: true,
-        }
-        : null;
-      const requestParts: any[] = [];
-      if (identityInlinePart) {
-        requestParts.push(identityInlinePart);
-      } else if (modelReferenceFile) {
-        const { base64: modelBase64, mimeType: modelMimeType } = await fileToBase64(modelReferenceFile);
-        requestParts.push({
-          inlineData: { data: modelBase64, mimeType: modelMimeType },
-          reference: true,
-        });
+      const generationProducts = overrideActiveList?.length ? overrideActiveList : activeProducts;
+      if (!generationProducts.length) {
+        setImageError("Please upload a product image first.");
+        return;
       }
-      requestParts.push({
-        inlineData: { data: base64, mimeType },
-        reference: true,
-      });
-      requestParts.push({ text: finalPrompt });
+      const personIncluded = !isProductPlacement && (options.ageGroup !== 'no person' || !!modelReferenceFile);
+      const realModeActive = ugcRealSettings.isEnabled && !isProductPlacement && personIncluded;
 
-      const response = await ai.models.generateContent({
-        model: GEMINI_IMAGE_MODEL, // maintain this but enforce insert behavior through the prompt and config above
-        contents: { parts: requestParts },
-        config: {
-          responseModalities: [Modality.IMAGE],
-          safetySettings: [],
-          generationConfig: {
-            responseMimeType: 'image/png',
-            aspectRatio,
-            preserveReferenceImage: true,
-            temperature: 0.25,
-            topP: 0.9,
-          },
-        },
-      });
-
-      const responseParts = response?.candidates?.[0]?.content?.parts ?? [];
-      const inlineImage = responseParts.find(part => (part as any)?.inlineData?.data) as { inlineData?: { data?: string } } | undefined;
-      const encodedImage = inlineImage?.inlineData?.data;
-      if (!encodedImage) {
-        throw new Error('Image generation failed or returned no images.');
+      const creditCost = getImageCreditCost(options);
+      if (!isTrialBypassActive && creditCost > remainingCredits) {
+        setImageError('Not enough credits for this generation. Upgrade your plan.');
+        setShowPlanModal(true);
+        return;
       }
 
-      const finalUrl = `data:image/png;base64,${encodedImage}`;
-      setGeneratedImageUrl(finalUrl);
-      const galleryPlan = determineGalleryPlan();
-      if (galleryPlan) {
-        const galleryPayload: Record<string, string> = { url: finalUrl, plan: galleryPlan };
-        if (hasModelReference) {
-          galleryPayload.compositionMode = compositionMode;
+      resetOutputs();
+      setGeneratedCopy(null);
+      setCopyError(null);
+      setIsImageLoading(true);
+
+      try {
+        const finalPrompt = constructPrompt(bundleSelectionRef.current);
+        const aspectRatio = options?.aspectRatio || '1:1';
+
+        const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
+        if (!resolvedApiKey) {
+          return;
         }
-        console.log('Sending gallery POST', galleryPayload);
-        try {
-          const response = await fetch('/api/galleryHandler?action=add', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(galleryPayload),
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string, apiVersion: 'v1beta' });
+        const identityInlinePart = personIdentityPackage.modelReferenceBase64
+          ? {
+            inlineData: {
+              data: personIdentityPackage.modelReferenceBase64,
+              mimeType: personIdentityPackage.modelReferenceMime ?? 'image/png',
+            },
+            reference: true,
+          }
+          : null;
+        const requestParts: any[] = [];
+        if (identityInlinePart) {
+          requestParts.push(identityInlinePart);
+        } else if (modelReferenceFile) {
+          const { base64: modelBase64, mimeType: modelMimeType } = await fileToBase64(modelReferenceFile);
+          requestParts.push({
+            inlineData: { data: modelBase64, mimeType: modelMimeType },
+            reference: true,
           });
-          console.log('Gallery add status:', response.status);
-          if (!response.ok) {
-            console.log('Gallery add response:', await response.text());
-          }
-          if (!response.ok) {
-            const errorText = await response.text().catch(() => 'unknown error');
-            console.warn('Failed to save community gallery image', errorText);
-          }
-        } catch (err) {
-          console.warn('Failed to save community gallery image', err);
         }
-      }
-      runHiResPipeline(finalUrl);
-      const newCount = creditUsage + creditCost;
-      setCreditUsage(newCount);
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(IMAGE_COUNT_KEY, String(newCount));
-      }
-      publishFreeGallery(finalUrl, galleryPlan, compositionMode);
-    } catch (err) {
-      console.error(err);
-      let errorMessage = '';
-      if (err instanceof Error) {
-        errorMessage = err.message;
-      } else if (typeof err === 'string') {
-        errorMessage = err;
-      } else {
-        try {
-          errorMessage = JSON.stringify(err);
-        } catch {
-          errorMessage = String(err);
-        }
-      }
+        generationProducts.forEach(product => {
+          requestParts.push({
+            inlineData: { data: product.base64, mimeType: product.mimeType },
+            reference: true,
+          });
+        });
+        requestParts.push({ text: finalPrompt });
 
-      if (errorMessage.includes('Requested entity was not found')) {
-        setImageError('Your API Key is invalid. Please select a valid key to continue.');
-        handleApiKeyInvalid();
-      } else if (errorMessage.toLowerCase().includes('quota')) {
-        setImageError("API quota exceeded. Please select a different API key, or check your current key's plan and billing details.");
-        handleApiKeyInvalid();
-      } else {
-        setImageError(errorMessage);
+        const response = await ai.models.generateContent({
+          model: GEMINI_IMAGE_MODEL,
+          contents: { parts: requestParts },
+          config: {
+            responseModalities: [Modality.IMAGE],
+            safetySettings: [],
+            generationConfig: {
+              responseMimeType: 'image/png',
+              aspectRatio,
+              preserveReferenceImage: true,
+              temperature: 0.25,
+              topP: 0.9,
+            },
+          },
+        });
+
+        const responseParts = response?.candidates?.[0]?.content?.parts ?? [];
+        const inlineImage = responseParts.find(part => (part as any)?.inlineData?.data) as { inlineData?: { data?: string } } | undefined;
+        const encodedImage = inlineImage?.inlineData?.data;
+        if (!encodedImage) {
+          throw new Error('Image generation failed or returned no images.');
+        }
+
+        const finalUrl = `data:image/png;base64,${encodedImage}`;
+        setGeneratedImageUrl(finalUrl);
+        const galleryPlan = determineGalleryPlan();
+        if (galleryPlan) {
+          const galleryPayload: Record<string, string> = { url: finalUrl, plan: galleryPlan };
+          if (hasModelReference) {
+            galleryPayload.compositionMode = compositionMode;
+          }
+          console.log('Sending gallery POST', galleryPayload);
+          try {
+            const response = await fetch('/api/galleryHandler?action=add', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(galleryPayload),
+            });
+            console.log('Gallery add status:', response.status);
+            if (!response.ok) {
+              console.log('Gallery add response:', await response.text());
+            }
+            if (!response.ok) {
+              const errorText = await response.text().catch(() => 'unknown error');
+              console.warn('Failed to save community gallery image', errorText);
+            }
+          } catch (err) {
+            console.warn('Failed to save community gallery image', err);
+          }
+        }
+        runHiResPipeline(finalUrl);
+        const newCount = creditUsage + creditCost;
+        setCreditUsage(newCount);
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem(IMAGE_COUNT_KEY, String(newCount));
+        }
+        publishFreeGallery(finalUrl, galleryPlan, compositionMode);
+      } catch (err) {
+        console.error(err);
+        let errorMessage = '';
+        if (err instanceof Error) {
+          errorMessage = err.message;
+        } else if (typeof err === 'string') {
+          errorMessage = err;
+        } else {
+          try {
+            errorMessage = JSON.stringify(err);
+          } catch {
+            errorMessage = String(err);
+          }
+        }
+
+        if (errorMessage.includes('Requested entity was not found')) {
+          setImageError('Your API Key is invalid. Please select a valid key to continue.');
+          handleApiKeyInvalid();
+        } else if (errorMessage.toLowerCase().includes('quota')) {
+          setImageError("API quota exceeded. Please select a different API key, or check your current key's plan and billing details.");
+          handleApiKeyInvalid();
+        } else {
+          setImageError(errorMessage);
+        }
+      } finally {
+        setIsImageLoading(false);
+        bundleSelectionRef.current = null;
       }
-    } finally {
-      setIsImageLoading(false);
-      bundleSelectionRef.current = null;
-    }
-  };
+    },
+    [
+      activeProducts,
+      planTier,
+      planCreditLimit,
+      isTrialLocked,
+      productAssets.length,
+      setIsImageLoading,
+      resetOutputs,
+      getImageCreditCost,
+      remainingCredits,
+      setShowPlanModal,
+      setImageError,
+      setGeneratedCopy,
+      setCopyError,
+      constructPrompt,
+      personIdentityPackage,
+      modelReferenceFile,
+      runHiResPipeline,
+      publishFreeGallery,
+      determineGalleryPlan,
+      hasModelReference,
+      compositionMode,
+      creditUsage,
+      handleApiKeyInvalid,
+      GEMINI_IMAGE_MODEL,
+      Modality,
+      GOOGLE_MODEL? ??? 
+    ]
+  );
 
   const generateMockup = useCallback(
     (bundleProducts: string[]) => {
@@ -4139,14 +4272,18 @@ const publishFreeGallery = useCallback(
         availableProductIdSet.has(product as ProductId)
       );
       if (sanitized.length) {
+        const overrideList = getActiveProductsFromIds(sanitized);
+        if (overrideList.length) {
+          setActiveProducts(overrideList);
+        }
         setLastBundleSelection(sanitized);
-        handleGenerateClick(sanitized);
+        handleGenerateClick(sanitized, overrideList);
         return;
       }
       setPlanNotice('Upload matching product photos for this bundle.');
       handleGenerateClick();
     },
-    [handleGenerateClick, availableProductIdSet]
+    [handleGenerateClick, availableProductIdSet, getActiveProductsFromIds]
   );
 
   const applyImageEdit = useCallback(async (prompt: string, editOptions?: { clearManual?: boolean }) => {
@@ -4747,68 +4884,73 @@ const publishFreeGallery = useCallback(
                       </button>
                     </div>
                     <div className="space-y-3 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
-                      {productAssets.map(asset => (
-                        <div
-                          key={asset.id}
-                          className={`rounded-xl border px-3 py-3 space-y-3 ${asset.id === activeProductId ? 'border-indigo-400 bg-indigo-500/5' : 'border-white/10 bg-black/20'}`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <button
-                              type="button"
-                              onClick={() => handleProductAssetSelect(asset.id)}
-                              className={`flex flex-col text-left text-xs font-semibold ${asset.id === activeProductId ? 'text-white' : 'text-gray-300'}`}
-                            >
-                              <span>{asset.label || 'Untitled product'}</span>
-                              <span className="text-[10px] text-gray-400">{Math.round(asset.file.size / 1024)} KB</span>
-                            </button>
-                            <div className="relative">
-                              <img src={asset.previewUrl} alt={asset.label} className="h-20 w-20 rounded-md object-cover border border-white/10" />
+                      {productAssets.map(asset => {
+                        const isActive = activeProducts.some(product => product.id === asset.id);
+                        return (
+                          <div
+                            key={asset.id}
+                            className={`rounded-xl border px-3 py-3 space-y-3 ${isActive ? 'border-indigo-400 bg-indigo-500/5' : 'border-white/10 bg-black/20'}`}
+                          >
+                            <div className="flex items-center gap-3">
                               <button
                                 type="button"
-                                onClick={() => handleProductAssetDelete(asset.id)}
-                                className="absolute -right-2 -top-2 rounded-full bg-black/80 p-1 text-[10px] uppercase tracking-widest text-rose-300 hover:bg-rose-500/40"
+                                onClick={() => handleProductAssetSelect(asset.id)}
+                                className={`flex flex-col text-left text-xs font-semibold ${isActive ? 'text-white' : 'text-gray-300'}`}
                               >
-                                Remove
+                                <span>{asset.label || 'Untitled product'}</span>
+                                <span className="text-[10px] text-gray-400">{Math.round(asset.file.size / 1024)} KB</span>
                               </button>
+                              <div className="relative">
+                                <img src={asset.previewUrl} alt={asset.label} className="h-20 w-20 rounded-md object-cover border border-white/10" />
+                                <button
+                                  type="button"
+                                  onClick={() => handleProductAssetDelete(asset.id)}
+                                  className="absolute -right-2 -top-2 rounded-full bg-black/80 p-1 text-[10px] uppercase tracking-widest text-rose-300 hover:bg-rose-500/40"
+                                >
+                                  Remove
+                                </button>
+                              </div>
                             </div>
-                          </div>
-                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-                            <input
-                              type="text"
-                              value={asset.label}
-                              onChange={event => handleProductAssetLabelChange(asset.id, event.target.value)}
-                              className="flex-1 rounded-md border border-white/10 bg-black/20 px-2 py-1 text-xs text-white focus:border-indigo-400 focus:outline-none"
-                              placeholder="Name this product"
-                            />
-                            <div className="flex flex-col gap-1 text-xs text-gray-300">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                               <input
-                                type="number"
-                                min="0"
-                                step="0.1"
-                                value={asset.heightValue ?? ''}
-                                onChange={event => handleProductHeightChange(asset.id, event.target.value)}
-                                className="w-full rounded-md border border-white/10 bg-black/20 px-2 py-1 text-white focus:border-indigo-400 focus:outline-none"
-                                placeholder="Height"
+                                type="text"
+                                value={asset.label}
+                                onChange={event => handleProductAssetLabelChange(asset.id, event.target.value)}
+                                className="flex-1 rounded-md border border-white/10 bg-black/20 px-2 py-1 text-xs text-white focus:border-indigo-400 focus:outline-none"
+                                placeholder="Name this product"
                               />
-                              <select
-                                value={asset.heightUnit}
-                                onChange={event => handleProductHeightUnitChange(asset.id, event.target.value as 'cm' | 'in')}
-                                className="rounded-md border border-white/10 bg-black/20 px-2 py-1 text-white focus:border-indigo-400 focus:outline-none"
-                              >
-                                <option value="cm">cm</option>
-                                <option value="in">in</option>
-                              </select>
+                              <div className="flex flex-col gap-1 text-xs text-gray-300">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.1"
+                                  value={asset.heightValue ?? ''}
+                                  onChange={event => handleProductHeightChange(asset.id, event.target.value)}
+                                  className="w-full rounded-md border border-white/10 bg-black/20 px-2 py-1 text-white focus:border-indigo-400 focus:outline-none"
+                                  placeholder="Height"
+                                />
+                                <select
+                                  value={asset.heightUnit}
+                                  onChange={event => handleProductHeightUnitChange(asset.id, event.target.value as 'cm' | 'in')}
+                                  className="rounded-md border border-white/10 bg-black/20 px-2 py-1 text-white focus:border-indigo-400 focus:outline-none"
+                                >
+                                  <option value="cm">cm</option>
+                                  <option value="in">in</option>
+                                </select>
+                              </div>
+                              {productAssets.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleProductAssetSelect(asset.id)}
+                                  className={`rounded-full border px-3 py-1 text-[11px] ${isActive ? 'border-indigo-400 text-white' : 'border-white/20 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+                                >
+                                  {isActive ? 'Active' : 'Use'}
+                                </button>
+                              )}
                             </div>
-                            <button
-                              type="button"
-                              onClick={() => handleProductAssetSelect(asset.id)}
-                              className={`rounded-full border px-3 py-1 text-[11px] ${asset.id === activeProductId ? 'border-indigo-400 text-white' : 'border-white/20 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
-                            >
-                              Use
-                            </button>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                       <button
                         type="button"
                         onClick={handleLibraryAddClick}
