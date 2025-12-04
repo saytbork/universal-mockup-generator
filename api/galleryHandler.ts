@@ -8,7 +8,7 @@ import {
   query,
   serverTimestamp,
 } from 'firebase/firestore';
-import { getClientFirestore } from '../src/firebase/client';
+import { db } from '../src/firebase';
 
 type GalleryMeta = {
   width?: number;
@@ -37,18 +37,12 @@ const parseAction = (req: VercelRequest) => {
   return typeof raw === 'string' ? raw.toLowerCase() : '';
 };
 
-const getFirestore = () => {
-  const db = getClientFirestore();
-  if (!db) {
-    throw new Error('Firebase configuration is missing');
-  }
-  return db;
-};
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const action = parseAction(req);
   try {
-    const db = getFirestore();
+    if (!db) {
+      throw new Error('Firebase configuration is missing');
+    }
     switch (action) {
       case 'add': {
         if (req.method !== 'POST') {
