@@ -609,6 +609,7 @@ const EMAIL_VERIFICATION_ENABLED = import.meta.env.VITE_EMAIL_VERIFICATION === '
 const normalizeGeminiModel = (raw?: string) => raw || '';
 
 const GEMINI_IMAGE_MODEL = normalizeGeminiModel('gemini-2.5-flash-image') || 'gemini-2.5-flash-image';
+const GOOGLE_MODEL = import.meta.env.VITE_GOOGLE_MODEL ?? '';
 
 type PlanTier = 'free' | 'creator' | 'studio';
 
