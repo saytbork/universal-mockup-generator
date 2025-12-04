@@ -61,42 +61,11 @@ const steps = [
   { title: '3. Generate & refine', detail: 'Produce mockups, tweak with edit prompts, and spin up video clips.' },
 ];
 
-type GalleryImage = { id: string; url: string; plan?: string; createdAt?: number };
-
-const LOCAL_GALLERY_CACHE_KEY = 'ugc-free-gallery';
-
-type CachedGalleryEntry = {
-  id?: string;
-  imageUrl?: string;
+type GalleryEntry = {
+  id: string;
+  imageUrl: string;
   plan?: string;
-  compositionMode?: string;
-  createdAt?: number;
-  title?: string;
-};
-
-const readCachedGalleryImages = (): GalleryImage[] => {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = window.localStorage.getItem(LOCAL_GALLERY_CACHE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed
-      .map((entry: CachedGalleryEntry, index: number) => {
-        if (!entry?.imageUrl) return null;
-        const id = entry.id || `local-${entry.createdAt ?? Date.now()}-${index}`;
-        return {
-          id,
-          url: entry.imageUrl,
-          plan: (entry.plan ?? 'free').toLowerCase(),
-          createdAt: entry.createdAt,
-        };
-      })
-      .filter((entry): entry is GalleryImage => Boolean(entry));
-  } catch (error) {
-    console.warn('Failed to load cached gallery images', error);
-    return [];
-  }
+  createdAt?: string | number | Date;
 };
 
 const getGalleryPlanLabel = (plan?: string) => {
@@ -217,7 +186,7 @@ const LandingPage: React.FC = () => {
   const [heroEmail, setHeroEmail] = useState('');
   const [heroStatus, setHeroStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [heroMessage, setHeroMessage] = useState<string | null>(null);
-  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  const [galleryImages, setGalleryImages] = useState<GalleryEntry[]>([]);
   const [galleryLoading, setGalleryLoading] = useState(true);
   const [activeMode, setActiveMode] = useState('lifestyle');
   const handleSmoothScroll = useCallback((selector: string) => {
@@ -331,17 +300,14 @@ const LandingPage: React.FC = () => {
         if (!response.ok) {
           throw new Error(`Gallery fetch failed with ${response.status}`);
         }
-        const data = (await response.json()) as { images?: GalleryImage[] };
+        const data = (await response.json()) as { images?: GalleryEntry[] };
         if (!mounted) return;
-        const images = Array.isArray(data?.images)
-          ? data.images.filter(image => Boolean(image?.url))
-          : [];
-        const fallbackImages = readCachedGalleryImages();
-        setGalleryImages(images.length ? images : fallbackImages);
+        const images = Array.isArray(data?.images) ? data.images : [];
+        setGalleryImages(images);
       } catch (error) {
         console.error('Community gallery fetch failed', error);
         if (mounted) {
-          setGalleryImages(readCachedGalleryImages());
+          setGalleryImages([]);
         }
       } finally {
         if (mounted) {
@@ -552,28 +518,34 @@ const LandingPage: React.FC = () => {
                   Loading community gallery...
                 </div>
               )}
-              {!galleryLoading && galleryImages.length === 0 && (
-                <div className="col-span-full rounded-3xl border border-white/10 bg-gray-900/40 p-6 text-gray-300 text-sm">
-                  No community images yet. Generate yours!
-                </div>
-              )}
-              {!galleryLoading &&
-                galleryImages.map(image => (
-                  <div
-                    key={image.id}
-                    className="group relative block overflow-hidden rounded-3xl border border-white/10 bg-gray-900/40 text-left"
-                  >
-                    <img
-                      src={image.url}
-                      alt={getGalleryPlanLabel(image.plan)}
-                      className="h-64 w-full object-cover transition duration-500 group-hover:scale-105 group-hover:opacity-90"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition flex items-end">
-                      <p className="p-4 text-sm text-white">{getGalleryPlanLabel(image.plan)}</p>
-                    </div>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {galleryLoading ? (
+                  <div className="col-span-full rounded-3xl border border-white/10 bg-black/30 p-10 text-center text-sm uppercase tracking-[0.2em] text-white/50">
+                    Loading community gallery...
                   </div>
-                ))}
+                ) : galleryImages.length === 0 ? (
+                  <div className="col-span-full rounded-3xl border border-white/10 bg-gray-900/40 p-6 text-gray-300 text-sm">
+                    No community images yet. Generate yours!
+                  </div>
+                ) : (
+                  galleryImages.map(image => (
+                    <div
+                      key={image.id}
+                      className="group relative block overflow-hidden rounded-3xl border border-white/10 bg-gray-900/40 text-left"
+                    >
+                      <img
+                        src={image.imageUrl}
+                        alt={getGalleryPlanLabel(image.plan)}
+                        className="h-64 w-full object-cover transition duration-500 group-hover:scale-105 group-hover:opacity-90"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition flex items-end">
+                        <p className="p-4 text-sm text-white">{getGalleryPlanLabel(image.plan)}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </section>
         </div>

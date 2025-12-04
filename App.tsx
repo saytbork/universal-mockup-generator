@@ -4039,9 +4039,9 @@ If the model attempts to create a scene or environment, override it and force a 
     [contentStyleValue, isSimpleMode, modelReferenceFile]
   );
 
-const publishFreeGallery = useCallback(
-  (imageUrl: string, plan?: string, compositionMode?: string) => {
-    if (typeof window === 'undefined') return;
+  const publishFreeGallery = useCallback(
+    (imageUrl: string, plan?: string, compositionMode?: string) => {
+      if (typeof window === 'undefined') return;
     try {
       const key = LOCAL_GALLERY_CACHE_KEY;
       const stored = window.localStorage.getItem(key);
@@ -4064,10 +4064,52 @@ const publishFreeGallery = useCallback(
       window.localStorage.setItem(key, JSON.stringify(next));
     } catch (err) {
       console.warn('Failed to publish to gallery', err);
-    }
-  },
-  []
-);
+      }
+    },
+    []
+  );
+
+  const getImageDimensions = useCallback((url: string): Promise<{ width: number; height: number }> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        resolve({ width: img.naturalWidth, height: img.naturalHeight });
+      };
+      img.onerror = () => {
+        reject(new Error('Unable to measure image dimensions'));
+      };
+      img.src = url;
+    });
+  }, []);
+
+  const reportGalleryEntry = useCallback(
+    async (url: string) => {
+      if (!url) return;
+      const userId = userEmail || 'guest';
+      const plan = planTier;
+      try {
+        const { width, height } = await getImageDimensions(url);
+        await fetch('/api/galleryHandler?action=add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            imageUrl: url,
+            userId,
+            plan,
+            meta: {
+              width,
+              height,
+              modelReferenceUsed: Boolean(modelReferenceFile),
+              productsUsed: Math.max(1, productAssets.length),
+            },
+          }),
+        });
+      } catch (error) {
+        console.warn('Failed to report gallery entry', error);
+      }
+    },
+    [userEmail, planTier, modelReferenceFile, productAssets.length, getImageDimensions]
+  );
 
   const determineGalleryPlan = useCallback(() => {
     if (inviteUsed) return 'access';
@@ -4174,9 +4216,10 @@ const publishFreeGallery = useCallback(
           throw new Error('Image generation failed or returned no images.');
         }
 
-        const finalUrl = `data:image/png;base64,${encodedImage}`;
-        setGeneratedImageUrl(finalUrl);
-        const galleryPlan = determineGalleryPlan();
+      const finalUrl = `data:image/png;base64,${encodedImage}`;
+      setGeneratedImageUrl(finalUrl);
+      void reportGalleryEntry(finalUrl);
+      const galleryPlan = determineGalleryPlan();
         if (galleryPlan) {
           const galleryPayload: Record<string, string> = { url: finalUrl, plan: galleryPlan };
           if (hasModelReference) {
@@ -4339,6 +4382,7 @@ const publishFreeGallery = useCallback(
         if ('inlineData' in part && (part as any).inlineData?.data) {
           const editedUrl = `data:image/png;base64,${(part as any).inlineData.data}`;
           setGeneratedImageUrl(editedUrl);
+          void reportGalleryEntry(editedUrl);
           runHiResPipeline(editedUrl);
           if (editOptions?.clearManual) {
             setEditPrompt('');

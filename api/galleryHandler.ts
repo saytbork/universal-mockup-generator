@@ -1,98 +1,121 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { kv } from '@vercel/kv';
 import {
-  saveGeneratedImageToGallery,
-  clearGalleryImages,
-  shouldAddToGallery,
-} from '../services/gallery.js';
+  addDoc,
+  collection,
+  getDocs,
+  orderBy,
+  query,
+  serverTimestamp,
+} from 'firebase/firestore';
+import { getClientFirestore } from '../src/firebase/client';
 
-type GalleryEntry = {
+type GalleryMeta = {
+  width?: number;
+  height?: number;
+  modelReferenceUsed?: boolean;
+  productsUsed?: number;
+};
+
+type ListEntry = {
   id: string;
-  url: string;
-  plan?: string;
-  public?: boolean;
-  timestamp?: number;
-  compositionMode?: string;
+  imageUrl: string;
+  userId: string;
+  plan: string;
+  createdAt: string | Date;
+  width?: number;
+  height?: number;
+  modelReferenceUsed?: boolean;
+  productsUsed?: number;
 };
 
 const parseAction = (req: VercelRequest) => {
   const raw = req.query.action;
   if (Array.isArray(raw)) {
-    return raw[0]?.toString() ?? '';
+    return raw[0]?.toString().toLowerCase() ?? '';
   }
-  return typeof raw === 'string' ? raw : '';
+  return typeof raw === 'string' ? raw.toLowerCase() : '';
+};
+
+const getFirestore = () => {
+  const db = getClientFirestore();
+  if (!db) {
+    throw new Error('Firebase configuration is missing');
+  }
+  return db;
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const action = parseAction(req).toLowerCase();
-
-  switch (action) {
-    case 'list': {
-      if (req.method !== 'GET') {
-        res.setHeader('Allow', 'GET');
-        res.status(405).json({ error: 'Method not allowed' });
+  const action = parseAction(req);
+  try {
+    const db = getFirestore();
+    switch (action) {
+      case 'add': {
+        if (req.method !== 'POST') {
+          res.setHeader('Allow', 'POST');
+          res.status(405).json({ error: 'Method not allowed' });
+          return;
+        }
+        const { imageUrl, userId, plan, meta } = req.body || {};
+        if (!imageUrl || typeof imageUrl !== 'string') {
+          res.status(400).json({ error: 'Missing imageUrl' });
+          return;
+        }
+        if (!userId || typeof userId !== 'string') {
+          res.status(400).json({ error: 'Missing userId' });
+          return;
+        }
+        if (!plan || typeof plan !== 'string') {
+          res.status(400).json({ error: 'Missing plan' });
+          return;
+        }
+        const docRef = await addDoc(collection(db, 'gallery'), {
+          imageUrl: imageUrl.trim(),
+          userId,
+          plan,
+          createdAt: serverTimestamp(),
+          width: meta?.width,
+          height: meta?.height,
+          modelReferenceUsed: meta?.modelReferenceUsed,
+          productsUsed: meta?.productsUsed,
+        });
+        res.status(201).json({ id: docRef.id });
         return;
       }
-      try {
-        const raw = await kv.lrange('community_gallery', 0, -1);
-        const images: GalleryEntry[] = raw
-          .map(item => {
-            try {
-              return JSON.parse(item) as GalleryEntry;
-            } catch {
-              return null;
-            }
-          })
-          .filter((entry): entry is GalleryEntry => Boolean(entry?.public && entry?.url));
+      case 'list': {
+        if (req.method !== 'GET') {
+          res.setHeader('Allow', 'GET');
+          res.status(405).json({ error: 'Method not allowed' });
+          return;
+        }
+        const snapshot = await getDocs(
+          query(collection(db, 'gallery'), orderBy('createdAt', 'desc'))
+        );
+        const images: ListEntry[] = snapshot.docs.map(doc => {
+          const data = doc.data() as Omit<ListEntry, 'id'>;
+          return {
+            id: doc.id,
+            imageUrl: data.imageUrl,
+            userId: data.userId,
+            plan: data.plan,
+            createdAt: data.createdAt ?? null,
+            width: data.width,
+            height: data.height,
+            modelReferenceUsed: data.modelReferenceUsed,
+            productsUsed: data.productsUsed,
+          };
+        });
         res.status(200).json({ images });
-      } catch (error: any) {
-        console.error('Failed to fetch gallery list', error);
-        res.status(500).json({ error: error?.message ?? 'Unable to fetch gallery images' });
-      }
-      return;
-    }
-    case 'add': {
-      if (req.method !== 'POST') {
-        res.setHeader('Allow', 'POST');
-        res.status(405).json({ error: 'Method not allowed' });
         return;
       }
-      const body = req.body || {};
-      console.log('GALLERY ADD BODY:', body);
-      const { url, imageUrl, plan, compositionMode } = body;
-      console.log('GALLERY PLAN:', plan);
-      const finalUrl = typeof url === 'string' ? url : imageUrl;
-      console.log('ALLOW?', shouldAddToGallery(plan));
-      console.log('URL LENGTH:', finalUrl?.length);
-      if (!finalUrl || typeof finalUrl !== 'string') {
-        res.status(400).json({ error: 'Missing imageUrl' });
-        return;
-      }
-      try {
-        await saveGeneratedImageToGallery(finalUrl.trim(), plan, compositionMode);
-        res.status(201).json({ success: true });
-      } catch (error: any) {
-        console.error('Failed to save community gallery image', error);
-        res.status(500).json({ error: 'Unable to save community image' });
-      }
+      default:
+        res.status(400).json({ error: 'Invalid action' });
+    }
+  } catch (error: any) {
+    console.error('Gallery handler error', error);
+    if (error.message.includes('Firebase configuration')) {
+      res.status(500).json({ error: 'Firebase is not configured' });
       return;
     }
-    case 'clear': {
-      if (req.method !== 'POST') {
-        res.setHeader('Allow', 'POST');
-        res.status(405).json({ error: 'Method not allowed' });
-        return;
-      }
-      try {
-        await clearGalleryImages();
-        res.status(200).json({ ok: true });
-      } catch (error: any) {
-        console.error('Failed to clear gallery', error);
-        res.status(500).json({ error: error?.message ?? 'Unable to clear gallery images' });
-      }
-      return;
-    }
-    default:
-      res.status(400).json({ error: 'Invalid action' });
+    res.status(500).json({ error: error?.message ?? 'Internal server error' });
   }
 }
