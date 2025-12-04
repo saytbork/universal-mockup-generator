@@ -3,6 +3,7 @@ import {
   addDoc,
   collection,
   getDocs,
+  limit,
   orderBy,
   query,
   serverTimestamp,
@@ -88,7 +89,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return;
         }
         const snapshot = await getDocs(
-          query(collection(db, 'gallery'), orderBy('createdAt', 'desc'))
+          query(
+            collection(db, 'gallery'),
+            orderBy('createdAt', 'desc'),
+            limit(200)
+          )
         );
         const images: ListEntry[] = snapshot.docs.map(doc => {
           const data = doc.data() as Omit<ListEntry, 'id'>;
