@@ -107,7 +107,7 @@ const SiteNav: React.FC = () => {
       </div>
 
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-50 bg-black/80 backdrop-blur">
+        <div className="md:hidden fixed inset-0 z-[999] bg-black/90 backdrop-blur">
           <div className="relative max-w-sm w-full h-full mx-auto bg-gray-950/95 border border-white/10 p-6 flex flex-col gap-6">
             <div className="flex items-center justify-between">
               <span className="text-white font-semibold text-lg">Menu</span>
