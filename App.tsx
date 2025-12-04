@@ -258,6 +258,7 @@ type ProductAsset = {
   heightUnit: 'cm' | 'in';
   base64?: string;
   mimeType?: string;
+  imageUrl?: string;
 };
 
 type ImageVariant = {
@@ -954,19 +955,29 @@ const App: React.FC = () => {
     []
   );
   const availableProductIdSet = useMemo(() => new Set<ProductId>(availableProductIds), [availableProductIds]);
+  const normalizedProductAssets = useMemo(
+    () =>
+      productAssets.map(asset => ({
+        id: asset.id,
+        label: asset.label,
+        imageUrl: (asset as any).imageUrl ?? asset.previewUrl ?? (asset as any).url ?? null,
+      })),
+    [productAssets]
+  );
   const productMediaLibrary = useMemo<ProductMediaLibrary>(() => {
-    if (!productAssets.length) {
+    if (!normalizedProductAssets.length) {
       return PRODUCT_MEDIA_LIBRARY;
     }
-    return productAssets.reduce<ProductMediaLibrary>((acc, asset, index) => {
+    return normalizedProductAssets.reduce<ProductMediaLibrary>((acc, asset, index) => {
       const productId = `product_${index + 1}` as ProductId;
-      acc[productId] = {
+      const entry = {
         label: asset.label || `Product ${index + 1}`,
-        imageUrl: asset.previewUrl,
+        imageUrl: asset.imageUrl,
       };
+      acc[productId] = entry;
       return acc;
     }, {});
-  }, [productAssets]);
+  }, [normalizedProductAssets]);
   useEffect(() => {
     setActiveProducts(prev => {
       const next = prev
@@ -3319,17 +3330,18 @@ const App: React.FC = () => {
           const { base64, mimeType } = await fileToBase64(file);
           const assetId = makeSceneId();
           const label = `Product ${baseIndex + processedAssets.length + 1}`;
-          const asset: ProductAsset = {
-            id: assetId,
-            label,
-            file,
-            previewUrl,
-            createdAt: Date.now(),
-            heightValue: null,
-            heightUnit: 'cm',
-            base64,
-            mimeType,
-          };
+        const asset: ProductAsset = {
+          id: assetId,
+          label,
+          file,
+          previewUrl,
+          imageUrl: previewUrl,
+          createdAt: Date.now(),
+          heightValue: null,
+          heightUnit: 'cm',
+          base64,
+          mimeType,
+        };
           processedAssets.push(asset);
           const activeProduct = buildActiveProductFromAsset(asset);
           if (activeProduct) {

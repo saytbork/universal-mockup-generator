@@ -8,7 +8,8 @@ import {
   query,
   serverTimestamp,
 } from 'firebase/firestore';
-import { db } from '../src/firebase/admin';
+import { db } from "../src/firebase/admin";
+
 
 type GalleryMeta = {
   width?: number;
