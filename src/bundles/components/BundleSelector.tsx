@@ -37,6 +37,7 @@ const BundleSelector: React.FC<BundleSelectorProps> = ({
     onGenerate(visibleProducts);
   };
 
+  console.log('DEBUG productMediaLibrary:', productMediaLibrary);
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-2">
@@ -65,8 +66,11 @@ const BundleSelector: React.FC<BundleSelectorProps> = ({
             </p>
           )}
           <div className="flex flex-wrap gap-3">
-            {slotProducts.map(slot => (
-              <div key={slot.id} className="w-28 text-center text-xs text-gray-300">
+            {slotProducts.map(slot => {
+              const productMeta = slot.meta;
+              console.log('DEBUG productMeta:', productMeta);
+              return (
+                <div key={slot.id} className="w-28 text-center text-xs text-gray-300">
                 <div className="relative h-28 w-full overflow-hidden rounded-xl border border-white/10 bg-black/20">
                   {slot.meta?.imageUrl ? (
                     <img

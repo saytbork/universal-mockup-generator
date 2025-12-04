@@ -15,6 +15,7 @@ const RecommendedBundle: React.FC<RecommendedBundleProps> = ({
   productMediaLibrary,
   visibleProductIds,
 }) => {
+  console.log('DEBUG productMediaLibrary (recommended):', productMediaLibrary);
   const { getRecommendedBundle } = useBundles(visibleProductIds);
   const visibleSet = useMemo(() => new Set(visibleProductIds), [visibleProductIds]);
   const recommendedProducts = useMemo(
@@ -31,11 +32,12 @@ const RecommendedBundle: React.FC<RecommendedBundleProps> = ({
         {bundleDisabled && (
           <p className="text-xs text-amber-200">Upload more products to view recommendations.</p>
         )}
-        <div className="mt-3 flex flex-wrap gap-3">
-          {recommendedProducts.map(product => {
-            const meta = productMediaLibrary[product];
-            return (
-              <div key={product} className="w-28 text-center text-xs text-gray-300">
+          <div className="mt-3 flex flex-wrap gap-3">
+            {recommendedProducts.map(product => {
+              const meta = productMediaLibrary[product];
+              console.log('DEBUG productMeta (recommended):', meta);
+              return (
+                <div key={product} className="w-28 text-center text-xs text-gray-300">
                 <div className="h-28 w-full overflow-hidden rounded-xl border border-white/10 bg-black/20">
                   {meta?.imageUrl ? (
                     <img src={meta.imageUrl} alt={meta.label} className="h-full w-full object-cover" />

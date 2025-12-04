@@ -13,6 +13,7 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
   productMediaLibrary,
   visibleProductIds,
 }) => {
+  console.log('DEBUG productMediaLibrary (custom):', productMediaLibrary);
   const { buildCustomBundle } = useBundles(visibleProductIds);
   const [selectedIds, setSelectedIds] = useState<ProductId[]>([]);
 
@@ -51,10 +52,11 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
           Upload product photos to build your own bundle.
         </p>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-3">
-          {visibleProductIds.map(productId => {
-            const meta = productMediaLibrary[productId];
-            const isChecked = filteredSelection.includes(productId);
+          <div className="grid gap-3 sm:grid-cols-3">
+            {visibleProductIds.map(productId => {
+              const meta = productMediaLibrary[productId];
+              console.log('DEBUG productMeta (custom):', meta);
+              const isChecked = filteredSelection.includes(productId);
             return (
               <label
                 key={productId}
