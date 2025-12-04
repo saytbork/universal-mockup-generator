@@ -4260,9 +4260,8 @@ const publishFreeGallery = useCallback(
       compositionMode,
       creditUsage,
       handleApiKeyInvalid,
-      GEMINI_IMAGE_MODEL,
+      normalizeGeminiModel(GOOGLE_MODEL ?? GEMINI_IMAGE_MODEL),
       Modality,
-      GOOGLE_MODEL? ??? 
     ]
   );
 
