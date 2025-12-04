@@ -1,0 +1,51 @@
+{
+  "id": "shopify-ai-photos",
+  "slug": "shopify-product-photos-ai-tactics",
+  "title": "Shopify Product Photos: AI Tactics to Increase Conversion",
+  "subtitle": "Learn how AI-generated product images improve clarity, trust, and add-to-cart rates on Shopify stores.",
+  "seo": {
+    "title": "AI Product Photos for Shopify | BoostUGC",
+    "description": "Upgrade your Shopify product photos using AI. Learn what images convert, how to structure them, and how to reduce bounce rates."
+  },
+  "heroImage": {
+    "prompt": "High-end product photo on a clean Shopify-style white background. A dropper bottle with crisp shadows and subtle UI overlays like add-to-cart and rating icons. Soft daylight. 1:1.",
+    "alt": "Shopify-style clean product image with conversion UI elements."
+  },
+  "sections": [
+    {
+      "heading": "Why Product Photos Matter More Than Anything Else",
+      "body": "On Shopify, product photos decide whether someone stays or bounces. Clean visuals increase trust, reduce friction, and instantly communicate product quality.",
+      "imagePrompt": "",
+      "imageAlt": ""
+    },
+    {
+      "heading": "The 4 Must-Have Image Types",
+      "body": "<p><strong>1. Hero product image.</strong> Clean white background.</p><p><strong>2. Lifestyle context shot.</strong> Show real environments.</p><p><strong>3. Detail close-ups.</strong> Textures and materials.</p><p><strong>4. Benefit callouts.</strong> Add simple overlays.</p>",
+      "imagePrompt": "Minimal Shopify hero product image with perfect lighting. 1:1.",
+      "imageAlt": "Minimal hero shot on white background."
+    },
+    {
+      "heading": "How AI Helps",
+      "body": "AI renders shadows, reflections, lighting, and consistency at studio quality. It enables brands to produce dozens of variations without expensive photoshoots.",
+      "imagePrompt": "Soft daylight studio-style rendering of dropper bottle with subtle reflections. 1:1.",
+      "imageAlt": "Studio-like AI product rendering."
+    },
+    {
+      "heading": "Best Practices",
+      "body": "<ul><li>Keep backgrounds neutral.</li><li>Avoid inconsistent lighting.</li><li>Use matching angles across catalog.</li><li>Show the product clearly and cleanly.</li></ul>",
+      "imagePrompt": "",
+      "imageAlt": ""
+    },
+    {
+      "heading": "Final Takeaway",
+      "body": "Shopify customers judge quality in seconds. AI helps you deliver professional images instantly and consistently.",
+      "imagePrompt": "",
+      "imageAlt": ""
+    }
+  ],
+  "cta": {
+    "title": "Upgrade Your Shopify Photos",
+    "text": "Generate clean hero shots, close-ups, and lifestyle images instantly with BoostUGC.",
+    "button": "Launch App"
+  }
+}

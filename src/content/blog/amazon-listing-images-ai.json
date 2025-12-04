@@ -1,0 +1,51 @@
+{
+  "id": "amazon-ai-listing",
+  "slug": "amazon-listing-images-ai",
+  "title": "Amazon Listing Images With AI: A+ Content That Ranks",
+  "subtitle": "Structure your Amazon product images for clarity, ranking, and higher conversions using AI.",
+  "seo": {
+    "title": "AI Amazon Listing Images | BoostUGC",
+    "description": "Learn how to generate Amazon-ready product images, A+ content modules, and lifestyle shots using AI."
+  },
+  "heroImage": {
+    "prompt": "Amazon listing-style product layout with clean white background, structured module hints, and minimal lifestyle elements. Ultra sharp, top-down composition. 1:1.",
+    "alt": "Clean Amazon listing hero image with structured layout."
+  },
+  "sections": [
+    {
+      "heading": "Why Amazon Images Matter More Than Titles",
+      "body": "Most shoppers read images, not text. Amazon rewards listings with structured, consistent, and high-clarity images.",
+      "imagePrompt": "",
+      "imageAlt": ""
+    },
+    {
+      "heading": "Required Image Types",
+      "body": "<p><strong>1. White background hero shot.</strong></p><p><strong>2. Benefit callout graphic.</strong></p><p><strong>3. Lifestyle demonstration.</strong></p><p><strong>4. Feature breakdown.</strong></p><p><strong>5. Comparison chart.</strong></p>",
+      "imagePrompt": "Amazon-compliant white background product photo, sharp edges and no shadows. 1:1.",
+      "imageAlt": "Pure white Amazon hero image."
+    },
+    {
+      "heading": "How AI Speeds Up A+ Content",
+      "body": "AI generates entire sets of matching images. Consistency builds trust and boosts conversions.",
+      "imagePrompt": "A+ style module with product centered and structured benefit callouts. 1:1.",
+      "imageAlt": "A+ content module graphic."
+    },
+    {
+      "heading": "Best Practices",
+      "body": "<ul><li>Use readable overlays.</li><li>Keep backgrounds clean.</li><li>Avoid clutter.</li><li>Show scale when relevant.</li></ul>",
+      "imagePrompt": "",
+      "imageAlt": ""
+    },
+    {
+      "heading": "Final Takeaway",
+      "body": "AI allows you to produce Amazon listings with consistency, clarity, and structure at studio-level quality.",
+      "imagePrompt": "",
+      "imageAlt": ""
+    }
+  ],
+  "cta": {
+    "title": "Create Amazon-Ready Images",
+    "text": "Generate A+ content, hero shots, and lifestyle photos in seconds.",
+    "button": "Launch App"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "id": "ai-supplement-beauty",
+  "slug": "ai-photography-supplements-beauty",
+  "title": "AI Photography for Supplements and Beauty Brands",
+  "subtitle": "Produce premium product photos, ingredient visuals, and lifestyle scenes tailored to wellness and beauty audiences.",
+  "seo": {
+    "title": "AI Photography for Supplements and Beauty Brands | BoostUGC",
+    "description": "Learn how to generate premium supplement and beauty product images using AI, including lifestyle, hero, and ingredient visuals."
+  },
+  "heroImage": {
+    "prompt": "Wellness-themed flat lay with dropper bottles, soft white fabric, eucalyptus leaves, and daylight shadows. Clean premium aesthetic. 1:1.",
+    "alt": "Wellness product flat lay with natural props and soft lighting."
+  },
+  "sections": [
+    {
+      "heading": "Why Supplements and Beauty Need Better Photos",
+      "body": "These categories depend heavily on trust and perceived quality. Clean visuals with natural props and soft lighting communicate safety, purity, and effectiveness.",
+      "imagePrompt": "",
+      "imageAlt": ""
+    },
+    {
+      "heading": "Key Visual Styles That Perform",
+      "body": "<p><strong>Wellness flat lays.</strong> Fabrics, botanicals, minimal props.</p><p><strong>Ingredient close-ups.</strong> Pure, scientific, natural.</p><p><strong>Bathroom rituals.</strong> Morning and evening routines.</p>",
+      "imagePrompt": "Ingredient macro shot of natural botanical elements with bright white background. 1:1.",
+      "imageAlt": "Macro ingredient shot with clean background."
+    },
+    {
+      "heading": "How AI Helps You Scale Beautiful Visuals",
+      "body": "AI allows you to produce consistent brand visuals across many SKUs without expensive photography or complex staging.",
+      "imagePrompt": "Dropper bottle on soft towel with warm natural window light. 1:1.",
+      "imageAlt": "Dropper bottle on towel with natural lighting."
+    },
+    {
+      "heading": "Best Practices",
+      "body": "<ul><li>Use soft daylight.</li><li>Avoid clutter.</li><li>Stick to neutral or botanical props.</li><li>Show textures and ingredients clearly.</li></ul>",
+      "imagePrompt": "",
+      "imageAlt": ""
+    },
+    {
+      "heading": "Final Takeaway",
+      "body": "AI photography gives supplement and beauty brands the ability to produce premium visuals consistently, affordably, and on demand.",
+      "imagePrompt": "",
+      "imageAlt": ""
+    }
+  ],
+  "cta": {
+    "title": "Create Wellness-Ready Product Photos",
+    "text": "Generate supplement, skincare, and beauty visuals instantly.",
+    "button": "Launch App"
+  }
+}

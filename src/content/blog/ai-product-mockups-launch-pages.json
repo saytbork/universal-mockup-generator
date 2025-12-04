@@ -1,0 +1,51 @@
+{
+  "id": "ai-product-mockups",
+  "slug": "ai-product-mockups-launch-pages",
+  "title": "AI Product Mockups for Launch Pages: Hero Images That Convert",
+  "subtitle": "Create high-impact hero images for landing pages, ecommerce stores, and ad campaigns using AI.",
+  "seo": {
+    "title": "AI Product Mockups for Launch Pages | BoostUGC",
+    "description": "Learn how to generate high-converting hero images for your landing pages using AI-driven product mockups."
+  },
+  "heroImage": {
+    "prompt": "Bold ecommerce hero shot with product floating slightly above surface, dramatic rim light, smooth gradient background in brand colors, soft reflections, premium modern aesthetic. 1:1.",
+    "alt": "Floating product hero mockup with dramatic lighting."
+  },
+  "sections": [
+    {
+      "heading": "Why Hero Images Matter",
+      "body": "The hero image is the first impression on any landing page. A clean, bold, and premium-looking visual can increase conversion rates instantly.",
+      "imagePrompt": "",
+      "imageAlt": ""
+    },
+    {
+      "heading": "What Makes a High-Converting Hero Image",
+      "body": "<p><strong>Strong lighting.</strong> Highlights edges and texture.</p><p><strong>Minimal background.</strong> Avoid distractions.</p><p><strong>Clear focus.</strong> The product must be unmistakable.</p><p><strong>Brand colors.</strong> Reinforce the visual identity.</p>",
+      "imagePrompt": "Floating product shot with brand color gradient background, crisp rim lighting, high clarity. 1:1.",
+      "imageAlt": "Floating product with branded gradient background."
+    },
+    {
+      "heading": "Why AI Mockups Are a Game-Changer",
+      "body": "AI mockups allow you to create hero images in multiple styles, colors, and angles without needing 3D artists or photographers.",
+      "imagePrompt": "",
+      "imageAlt": ""
+    },
+    {
+      "heading": "Best Practices",
+      "body": "<ul><li>Use gradients sparingly.</li><li>Keep the product centered.</li><li>Use soft shadows for realism.</li><li>Test multiple color variations.</li></ul>",
+      "imagePrompt": "Hero shot variations of same product across different gradient backgrounds. 1:1.",
+      "imageAlt": "Hero shot variations showing different gradient backdrops."
+    },
+    {
+      "heading": "Final Takeaway",
+      "body": "AI product mockups give brands the ability to test unlimited hero designs quickly and affordably, improving launch performance across all channels.",
+      "imagePrompt": "",
+      "imageAlt": ""
+    }
+  ],
+  "cta": {
+    "title": "Generate High-Impact Hero Images",
+    "text": "Build premium landing page visuals in seconds with BoostUGC.",
+    "button": "Launch App"
+  }
+}

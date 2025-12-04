@@ -1,0 +1,51 @@
+{
+  "id": "ab-testing-ugc",
+  "slug": "ab-testing-ai-ugc",
+  "title": "A/B Testing AI UGC: Find Your Best Performing Scenes",
+  "subtitle": "Use AI to rapidly test different visuals, angles, and styles to identify the creatives that convert best.",
+  "seo": {
+    "title": "A/B Testing AI UGC | BoostUGC",
+    "description": "Learn how to run rapid A/B tests with AI-generated UGC to discover which visuals drive the highest conversions."
+  },
+  "heroImage": {
+    "prompt": "Split-screen UGC scene showing two variations of the same product angle with different lighting styles. Clean modern layout, high realism, optimized for testing. 1:1.",
+    "alt": "Split-screen A/B test product image variations."
+  },
+  "sections": [
+    {
+      "heading": "Why A/B Testing Matters",
+      "body": "Every brand has different audiences, and small differences in visuals can dramatically impact performance. A/B testing allows you to compare variations and choose the best-performing creative.",
+      "imagePrompt": "",
+      "imageAlt": ""
+    },
+    {
+      "heading": "The Elements You Should Test",
+      "body": "<p><strong>Lighting style.</strong> Warm vs cool vs daylight.</p><p><strong>Camera angle.</strong> POV vs flat-lay vs product focus.</p><p><strong>Background type.</strong> Clean vs textured vs lifestyle.</p><p><strong>Props.</strong> More props vs minimal.</p>",
+      "imagePrompt": "A/B scene comparison of a product with warm vs cool lighting. 1:1.",
+      "imageAlt": "Two lighting variations for A/B testing."
+    },
+    {
+      "heading": "Why AI Makes Testing Easier",
+      "body": "AI lets you generate multiple variations instantly. Instead of waiting for reshoots, you can tweak angles, backgrounds, and lighting in seconds.",
+      "imagePrompt": "Product photographed from different angles with similar backgrounds for variation testing. 1:1.",
+      "imageAlt": "Different angle variations of the same product."
+    },
+    {
+      "heading": "Best Practices",
+      "body": "<ul><li>Test one variable at a time.</li><li>Start with 3 variations.</li><li>Use consistent metrics.</li><li>Keep brand identity consistent.</li></ul>",
+      "imagePrompt": "",
+      "imageAlt": ""
+    },
+    {
+      "heading": "Final Takeaway",
+      "body": "A/B testing with AI UGC helps you quickly identify what your audience responds to, giving your ads and product pages a measurable conversion lift.",
+      "imagePrompt": "",
+      "imageAlt": ""
+    }
+  ],
+  "cta": {
+    "title": "Run Instant A/B Creative Tests",
+    "text": "Generate multiple UGC variations and discover your top performers.",
+    "button": "Launch App"
+  }
+}

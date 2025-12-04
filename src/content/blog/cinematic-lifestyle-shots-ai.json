@@ -1,0 +1,51 @@
+{
+  "id": "cinematic-lifestyle",
+  "slug": "cinematic-lifestyle-shots-ai",
+  "title": "Cinematic Lifestyle Shots With AI: Lighting, Props, and Mood",
+  "subtitle": "Create film-like product scenes with depth, atmosphere, and lighting that feels alive.",
+  "seo": {
+    "title": "Cinematic Lifestyle Shots With AI | BoostUGC",
+    "description": "Learn how to generate cinematic lifestyle photography using AI with the right lighting, props, and visual storytelling."
+  },
+  "heroImage": {
+    "prompt": "Warm cinematic kitchen scene with dramatic soft sunlight, floating dust particles, depth of field, product bottle on wooden table, subtle props like fruit and mugs. Ultra realistic film look. 1:1.",
+    "alt": "Cinematic lifestyle scene of a product in warm natural lighting."
+  },
+  "sections": [
+    {
+      "heading": "Why Cinematic Shots Work So Well",
+      "body": "Cinematic lighting creates emotion. It makes simple products feel aspirational, premium, and part of an intentional lifestyle.",
+      "imagePrompt": "",
+      "imageAlt": ""
+    },
+    {
+      "heading": "Key Ingredients of Cinematic Photography",
+      "body": "<p><strong>1. Warm highlights and soft shadows.</strong></p><p><strong>2. Depth of field to guide the eye.</strong></p><p><strong>3. Props that create atmosphere.</strong></p><p><strong>4. Textures that feel tactile and real.</strong></p>",
+      "imagePrompt": "Cinematic product shot with warm highlights, dramatic shadows, props, and depth of field. 1:1.",
+      "imageAlt": "Cinematic tabletop shot with depth of field."
+    },
+    {
+      "heading": "Choosing the Right Props",
+      "body": "Props must support the story, not distract. Towels, mugs, fruit, books, or skincare tools help shape the scene while keeping the product central.",
+      "imagePrompt": "",
+      "imageAlt": ""
+    },
+    {
+      "heading": "Lighting Tips for Cinematic AI Photos",
+      "body": "<ul><li>Use warm indoor light.</li><li>Add soft window highlights.</li><li>Embrace subtle shadows.</li><li>Use textures like wood or stone.</li></ul>",
+      "imagePrompt": "Moody cinematic still-life of a product near a window with soft shadows. 1:1.",
+      "imageAlt": "Moody cinematic still-life product image."
+    },
+    {
+      "heading": "Final Takeaway",
+      "body": "Cinematic lifestyle photography elevates a product's perceived value. With AI, brands can produce film-like scenes instantly and consistently.",
+      "imagePrompt": "",
+      "imageAlt": ""
+    }
+  ],
+  "cta": {
+    "title": "Generate Cinematic Product Shots",
+    "text": "Produce warm, atmospheric lifestyle scenes that feel real and compelling.",
+    "button": "Launch App"
+  }
+}

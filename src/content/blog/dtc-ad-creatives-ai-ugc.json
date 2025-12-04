@@ -1,0 +1,51 @@
+{
+  "id": "dtc-ad-creatives",
+  "slug": "dtc-ad-creatives-ai-ugc",
+  "title": "DTC Ad Creatives: AI UGC That Scales Winning Angles",
+  "subtitle": "Produce high-performing paid ads with AI-generated UGC that feels authentic, scroll-stopping, and native to each platform.",
+  "seo": {
+    "title": "DTC Ad Creatives With AI | BoostUGC",
+    "description": "Learn how to create high-performing DTC ad creatives using ultra-realistic AI UGC. Build lifestyle scenes, product demos, and creator moments at scale."
+  },
+  "heroImage": {
+    "prompt": "High-energy UGC-style ad scene with product held in hand, blurred social media interface elements in background, cinematic lighting, vibrant colors, ultra-realistic skin texture. 1:1.",
+    "alt": "UGC-style ad creative with product held in hand and social platform elements in background."
+  },
+  "sections": [
+    {
+      "heading": "Why UGC Dominates DTC Paid Ads",
+      "body": "DTC brands win with ads that feel personal, relatable, and platform-native. AI UGC replicates the tone and feel of real creators, generating unlimited variations for testing and scaling.",
+      "imagePrompt": "",
+      "imageAlt": ""
+    },
+    {
+      "heading": "Winning Angles for DTC Ads",
+      "body": "<p><strong>Unboxing.</strong> Natural, handheld shots with excitement and curiosity.</p><p><strong>POV demo.</strong> Shows the product in use from first-person perspective.</p><p><strong>Transformation.</strong> Before-and-after or benefit comparison.</p><p><strong>Social proof.</strong> Creator-style recommendation moments.</p>",
+      "imagePrompt": "POV lifestyle demo showing a hand interacting with the product in warm interior lighting. 1:1.",
+      "imageAlt": "POV shot demonstrating product use in natural lighting."
+    },
+    {
+      "heading": "How AI Helps You Scale Ad Variations",
+      "body": "AI can recreate viral-style ad scenes with different settings, moods, and compositions while keeping brand consistency. This allows rapid A/B testing with minimal cost.",
+      "imagePrompt": "Split-screen ad creative showing two variant angles of the same product scene with different lighting. 1:1.",
+      "imageAlt": "Two ad variations of the same UGC product shot."
+    },
+    {
+      "heading": "Platform-Specific Creative Tips",
+      "body": "<ul><li><strong>TikTok:</strong> Fast, raw, handheld energy.</li><li><strong>Meta:</strong> Clean lifestyle scenes with clear product focus.</li><li><strong>YouTube:</strong> Higher-resolution product demos.</li><li><strong>Pinterest:</strong> Soft, aesthetic visuals.</li></ul>",
+      "imagePrompt": "",
+      "imageAlt": ""
+    },
+    {
+      "heading": "Final Takeaway",
+      "body": "DTC ads thrive when they feel personal and familiar. AI UGC lets you build endless creative variations without creators or studios, giving you a competitive advantage in paid ad testing.",
+      "imagePrompt": "",
+      "imageAlt": ""
+    }
+  ],
+  "cta": {
+    "title": "Build Better DTC Creatives",
+    "text": "Generate creator-style ads, lifestyle scenes, and product demos instantly.",
+    "button": "Launch App"
+  }
+}
