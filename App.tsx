@@ -3217,35 +3217,40 @@ const App: React.FC = () => {
     setImageError(null);
     setGeneratedCopy(null);
     setCopyError(null);
-    const newAssetIds: string[] = [];
 
-    for (const file of files) {
-      if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-        setImageError('Unsupported file type. Please upload a PNG, JPEG, or WebP image.');
-        continue;
-      }
-
-      const finalFile = file;
-      const previewUrl = URL.createObjectURL(file);
-
-      const assetId = makeSceneId();
-      setProductAssets(prev => [
-        ...prev,
-        {
-          id: assetId,
-          label: `Product ${prev.length + 1}`,
-          file: finalFile,
-          previewUrl,
-          createdAt: Date.now(),
-          heightValue: null,
-          heightUnit: 'cm',
-        },
-      ]);
-      newAssetIds.push(assetId);
+    const validFiles = files.filter(file => ALLOWED_MIME_TYPES.includes(file.type));
+    if (!validFiles.length) {
+      setImageError('Unsupported file type. Please upload PNG, JPEG, or WebP images.');
+      return;
     }
-    if (newAssetIds.length) {
-      setActiveProductId(newAssetIds[0]);
+
+    const newAssets = validFiles.map(file => ({
+      id: makeSceneId(),
+      file,
+      previewUrl: URL.createObjectURL(file),
+      createdAt: Date.now(),
+    }));
+
+    let firstNewId: string | null = null;
+    setProductAssets(prev => {
+      const startIndex = prev.length;
+      const additions = newAssets.map((asset, index) => ({
+        id: asset.id,
+        label: `Product ${startIndex + index + 1}`,
+        file: asset.file,
+        previewUrl: asset.previewUrl,
+        createdAt: asset.createdAt,
+        heightValue: null,
+        heightUnit: 'cm' as const,
+      }));
+      firstNewId = additions[0]?.id ?? firstNewId;
+      return [...prev, ...additions];
+    });
+
+    if (firstNewId) {
+      setActiveProductId(firstNewId);
     }
+
     advanceOnboardingFromStep(2);
   }, [resetOutputs, advanceOnboardingFromStep]);
 
