@@ -30,11 +30,30 @@ function initializeFirebaseAdmin() {
 
       // Parse service account key JSON
       let credential;
+      let serviceAccount;
       try {
-        const serviceAccount = JSON.parse(serviceAccountKey);
-        credential = admin.credential.cert(serviceAccount);
+        serviceAccount = JSON.parse(serviceAccountKey);
       } catch (parseError) {
-        throw new Error(`Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY: ${parseError.message}`);
+        console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY as JSON');
+        console.error('First 100 chars:', serviceAccountKey.substring(0, 100));
+        throw new Error(`Invalid JSON in FIREBASE_SERVICE_ACCOUNT_KEY: ${parseError.message}. Make sure you copied the entire JSON file contents.`);
+      }
+
+      // Validate required fields
+      if (!serviceAccount.private_key || !serviceAccount.client_email || !serviceAccount.project_id) {
+        throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY is missing required fields (private_key, client_email, or project_id)');
+      }
+
+      // Check if private key looks valid
+      if (!serviceAccount.private_key.includes('BEGIN PRIVATE KEY')) {
+        throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY has malformed private_key field. Ensure newlines (\\n) are preserved.');
+      }
+
+      try {
+        credential = admin.credential.cert(serviceAccount);
+      } catch (certError) {
+        console.error('Failed to create credential from service account');
+        throw new Error(`Failed to create Firebase credential: ${certError.message}. The private_key may be corrupted. Try re-copying from Firebase Console.`);
       }
 
       // Initialize Admin SDK
