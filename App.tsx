@@ -1808,8 +1808,8 @@ const App: React.FC = () => {
                           type="button"
                           onClick={() => handleHeroPosePresetSelect(preset.value)}
                           className={`w-full rounded-xl border px-3 py-2 text-left transition ${isActive
-                              ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                              : 'border-white/15 text-gray-200 hover-border-indigo-400 hover:text-white'
+                            ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                            : 'border-white/15 text-gray-200 hover-border-indigo-400 hover:text-white'
                             }`}
                         >
                           <div className="flex items-center gap-1 relative group text-sm font-semibold">
@@ -4249,32 +4249,8 @@ If the model attempts to create a scene or environment, override it and force a 
 
         const finalUrl = `data:image/png;base64,${encodedImage}`;
         setGeneratedImageUrl(finalUrl);
+        // Upload to Storage and save to gallery (async, non-blocking)
         void reportGalleryEntry(finalUrl);
-        const galleryPlan = determineGalleryPlan();
-        if (galleryPlan) {
-          const galleryPayload: Record<string, string> = { url: finalUrl, plan: galleryPlan };
-          if (hasModelReference) {
-            galleryPayload.compositionMode = compositionMode;
-          }
-          console.log('Sending gallery POST', galleryPayload);
-          try {
-            const response = await fetch('/api/galleryHandler?action=add', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(galleryPayload),
-            });
-            console.log('Gallery add status:', response.status);
-            if (!response.ok) {
-              console.log('Gallery add response:', await response.text());
-            }
-            if (!response.ok) {
-              const errorText = await response.text().catch(() => 'unknown error');
-              console.warn('Failed to save community gallery image', errorText);
-            }
-          } catch (err) {
-            console.warn('Failed to save community gallery image', err);
-          }
-        }
         runHiResPipeline(finalUrl);
         const newCount = creditUsage + creditCost;
         setCreditUsage(newCount);
