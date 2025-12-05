@@ -4257,7 +4257,7 @@ If the model attempts to create a scene or environment, override it and force a 
         if (typeof window !== 'undefined') {
           window.localStorage.setItem(IMAGE_COUNT_KEY, String(newCount));
         }
-        publishFreeGallery(finalUrl, galleryPlan, compositionMode);
+        publishFreeGallery(finalUrl, determineGalleryPlan(), compositionMode);
       } catch (err) {
         console.error(err);
         let errorMessage = '';
