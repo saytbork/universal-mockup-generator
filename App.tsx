@@ -1051,6 +1051,7 @@ const App: React.FC = () => {
   const [manualApiKey, setManualApiKey] = useState('');
   const [apiKeyError, setApiKeyError] = useState<string | null>(null);
   const [isUsingStoredKey, setIsUsingStoredKey] = useState(false);
+  const [debugPrompt, setDebugPrompt] = useState<string>('');
   const [userEmail, setUserEmail] = useState('');
   const [inviteUsed, setInviteUsed] = useState(false);
   useEffect(() => {
@@ -3789,6 +3790,8 @@ const App: React.FC = () => {
 
       try {
         const finalPrompt = constructPrompt(bundleSelectionRef.current);
+        console.log("FINAL PROMPT:\n\n", finalPrompt);
+        setDebugPrompt(finalPrompt);
         const aspectRatio = options?.aspectRatio || '1:1';
 
         const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
@@ -4144,6 +4147,25 @@ const App: React.FC = () => {
 
   return (
     <>
+      {process.env.NODE_ENV === "development" && debugPrompt && (
+        <button
+          onClick={() => navigator.clipboard.writeText(debugPrompt)}
+          style={{
+            position: "fixed",
+            top: 20,
+            right: 20,
+            padding: "8px 12px",
+            background: "#222",
+            color: "white",
+            borderRadius: "6px",
+            fontSize: "12px",
+            zIndex: 9999
+          }}
+        >
+          Copy Final Prompt
+        </button>
+      )}
+
       <OnboardingOverlay
         visible={shouldShowOnboarding}
         currentStep={onboardingStep}
