@@ -35,6 +35,7 @@ import {
   UGC_REAL_MODE_BASE_PROMPT,
 } from './src/data/ugcPresets';
 import { normalizeOptions } from './src/system/normalizeOptions';
+import { promptEngine } from './src/lib/promptEngine';
 
 type UGCRealModeSettings = {
   isEnabled: boolean;
