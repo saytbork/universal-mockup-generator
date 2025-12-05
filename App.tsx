@@ -3455,10 +3455,10 @@ const App: React.FC = () => {
         .replace(/see/gi, '')
         .trim();
     const personIncluded = isUgcStyle && (options.ageGroup !== 'no person' || hasModelReference);
-    
+
     // Real mode settings
     const realModeActive = ugcRealSettings.isEnabled && !isProductPlacement && personIncluded;
-    
+
     // Bundle products
     const bundleProductsForPrompt = bundleProductsOverride ?? bundleSelectionRef.current;
     const bundleLabels = bundleProductsForPrompt
@@ -3483,10 +3483,10 @@ const App: React.FC = () => {
     // Identity package
     const identityPackage = personIdentityPackage;
     const identityHasModelReference = Boolean(identityPackage.modelReferenceBase64);
-    
+
     // Composition intro
     const compositionIntro = COMPOSITION_BLOCKS[compositionMode] ?? '';
-    
+
     // Identity block
     const describeValue = (value?: string, fallback = 'unspecified') => clean(value || fallback);
     const identityBlock = identityHasModelReference
@@ -3513,7 +3513,7 @@ const App: React.FC = () => {
       const preset = FORMULATION_PRESET_LOOKUP[formulationExpertPreset];
       return (formulationExpertName || preset?.suggestedName || 'Dr. Ana Ruiz').trim();
     })();
-    
+
     const formulationExpertRoleValue = (() => {
       if (!formulationExpertEnabled) return undefined;
       const preset = FORMULATION_PRESET_LOOKUP[formulationExpertPreset];
@@ -3533,21 +3533,21 @@ const App: React.FC = () => {
     // ========================================
     // BUILD PROMPT WITH PROMPTENGINE V2
     // ========================================
-    
+
     const promptOptions = {
       // Core
       contentStyle: isUgcStyle ? 'ugc' as const : 'product' as const,
       creationMode: options.creationMode,
       aspectRatio: options.aspectRatio,
       camera: options.camera,
-      
+
       // Scene
       setting: options.setting,
       lighting: options.lighting,
       perspective: options.perspective,
       environmentOrder: options.environmentOrder,
       productPlane: options.productPlane,
-      
+
       // Person
       ageGroup: options.ageGroup,
       gender: options.gender,
@@ -3564,33 +3564,33 @@ const App: React.FC = () => {
       microLocation: options.microLocation,
       personExpression: options.personExpression,
       selfieType: options.selfieType,
-      
+
       // Product
       productAssets: productAssets,
       heightNotes: heightNotes || undefined,
       isMultiProductPackaging: isMultiProductPackaging,
       bundleLabels: bundleLabels.length > 0 ? bundleLabels : undefined,
-      
+
       // Special Modes
       isHeroLandingMode: isHeroLandingMode && !hasModelReference,
       heroBackground: heroBackground,
       heroAlignment: heroAlignment,
       heroScale: heroProductScale,
       heroShadow: heroShadow,
-      
+
       compositionMode: options.compositionMode,
       bgColor: options.bgColor,
       sidePlacement: options.sidePlacement,
-      
+
       formulationExpertEnabled: formulationExpertEnabled,
       formulationExpertName: formulationExpertNameValue,
       formulationExpertRole: formulationExpertRoleValue,
       formulationLabStyle: formulationLabStyle,
-      
+
       // Real Mode
       realModeActive: realModeActive,
       realModePreset: realModePreset,
-      
+
       // Identity
       modelReference: modelReference,
       identityLock: identityPackage.personDetails || undefined,
@@ -3601,7 +3601,7 @@ const App: React.FC = () => {
 
     // Generate prompt using PromptEngine v2
     const prompt = promptEngine.build(promptOptions);
-    
+
     console.log('✅ PromptEngine v2 generated prompt:', {
       length: prompt.length,
       mode: options.creationMode,
@@ -3611,13 +3611,7 @@ const App: React.FC = () => {
 
     return removeConflictingIdentityPhrases(prompt);
   }
-`;
-    }
-    prompt += ' Deliver the render at ultra-high fidelity: native 4K resolution (minimum 3840px on the long edge) so it still looks razor sharp when downscaled to 2K for alternate exports.';
-    prompt += ` Final image must be high-resolution and free of any watermarks, text, or artificial elements. It should feel like a captured moment, not a staged ad.`;
 
-    return removeConflictingIdentityPhrases(prompt);
-  }
 
   const getImageCreditCost = useCallback(
     (opts: MockupOptions) => {
