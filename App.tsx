@@ -3454,6 +3454,10 @@ const App: React.FC = () => {
         .replace(/reference/gi, '')
         .replace(/see/gi, '')
         .trim();
+
+    // Determine if person is included
+    const currentStyle = contentStyleValue;
+    const isUgcStyle = currentStyle !== 'product';
     const personIncluded = isUgcStyle && (options.ageGroup !== 'no person' || hasModelReference);
 
     // Real mode settings
