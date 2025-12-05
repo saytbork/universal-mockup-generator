@@ -3,6 +3,7 @@
  */
 
 import type { PromptOptions, PromptBuilder } from '../types';
+import { parameterMap } from '../parameterMap';
 
 export class IdentityBuilder implements PromptBuilder {
     build(options: PromptOptions): string {
@@ -12,6 +13,7 @@ export class IdentityBuilder implements PromptBuilder {
             identityLock,
             compositionIntro,
             identityBlock,
+            eyeDirection,
         } = options;
 
         if (!personIncluded) {
@@ -53,6 +55,13 @@ export class IdentityBuilder implements PromptBuilder {
         No CGI look.
         Perfect wrist, knuckle and finger proportions.
       `.trim().replace(/\s+/g, ' ');
+        }
+
+        if (eyeDirection) {
+            const mappedEyeDirection = parameterMap.eyeDirection[eyeDirection];
+            if (mappedEyeDirection) {
+                prompt += `${mappedEyeDirection} `;
+            }
         }
 
         return prompt;

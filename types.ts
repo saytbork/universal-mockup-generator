@@ -1,3 +1,5 @@
+import type { EyeDirectionKey } from './src/lib/promptEngine/parameterMap.types';
+
 export interface MockupOptions {
   contentStyle: string;
   placementStyle: string;
@@ -27,6 +29,7 @@ export interface MockupOptions {
   microLocation: string;
   personExpression: string;
   hairStyle: string;
+  eyeDirection?: EyeDirectionKey;
   proLens?: string;
   proLightingRig?: string;
   proPostTreatment?: string;

@@ -3,6 +3,7 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { GoogleGenAI, Modality } from "@google/genai";
+import { getAuth } from 'firebase/auth';
 import { MockupOptions, OptionCategory, Option } from './types';
 import {
   CONTENT_STYLE_OPTIONS,
@@ -36,6 +37,9 @@ import {
 } from './src/data/ugcPresets';
 import { normalizeOptions } from './src/system/normalizeOptions';
 import { promptEngine } from './src/lib/promptEngine';
+import { app } from './src/firebase/firebase';
+
+const auth = getAuth(app);
 
 type UGCRealModeSettings = {
   isEnabled: boolean;
@@ -136,6 +140,7 @@ type PersonDetails = {
   bodyType?: string;
   wardrobe?: string;
   pose?: string;
+  eyeDirection?: MockupOptions['eyeDirection'];
 };
 
 type PersonIdentityPackage = {
@@ -185,6 +190,7 @@ const pickPersonDetails = (options: MockupOptions): PersonDetails => ({
   bodyType: (options as any).bodyType ?? '',
   wardrobe: options.wardrobeStyle ?? options.wardrobe,
   pose: options.personPose ?? options.pose,
+  eyeDirection: options.eyeDirection,
 });
 
 const buildActiveProductFromAsset = (asset: ProductAsset): ActiveProduct | null => {
@@ -245,6 +251,9 @@ const identityPackageToProfile = (packageData: PersonIdentityPackage): Partial<M
   if (details.pose) {
     profile.personPose = details.pose;
     profile.pose = details.pose;
+  }
+  if (details.eyeDirection) {
+    profile.eyeDirection = details.eyeDirection;
   }
   return profile;
 };
@@ -681,6 +690,7 @@ const PERSON_FIELD_KEYS: OptionCategory[] = [
   'hairStyle',
   'hairColor',
   'eyeColor',
+  'eyeDirection',
   'skinTone',
   'skinRealism',
   'creatorPreset',
@@ -3221,6 +3231,7 @@ const App: React.FC = () => {
         'selfieType',
         'hairColor',
         'eyeColor',
+        'eyeDirection',
         'skinTone',
         'skinRealism',
       ],
@@ -3569,6 +3580,7 @@ const App: React.FC = () => {
       microLocation: options.microLocation,
       personExpression: options.personExpression,
       selfieType: options.selfieType,
+      eyeDirection: options.eyeDirection,
 
       // Product
       productAssets: productAssets,
@@ -3677,8 +3689,13 @@ const App: React.FC = () => {
   const reportGalleryEntry = useCallback(
     async (url: string) => {
       if (!url) return;
-      const userId = userEmail || 'guest';
+      const userId = userEmail ? userEmail : auth.currentUser?.email || 'guest';
       const plan = planTier;
+
+      if (!userId || userId === 'guest') {
+        console.warn("Skipping gallery save because user email has not loaded yet");
+        return;
+      }
 
       try {
         // Step 1: Upload image to Firebase Storage

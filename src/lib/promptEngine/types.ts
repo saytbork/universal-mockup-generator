@@ -3,6 +3,8 @@
  * Comprehensive types for modular prompt generation
  */
 
+import type { EyeDirectionKey } from './parameterMap.types';
+
 export interface ProductAsset {
     id: string;
     label?: string;
@@ -59,6 +61,7 @@ export interface PromptOptions {
     microLocation?: string;
     personExpression?: string;
     selfieType?: string;
+    eyeDirection?: EyeDirectionKey;
 
     // Product
     productAssets?: ProductAsset[];
