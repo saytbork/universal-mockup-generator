@@ -197,11 +197,10 @@ export default function Dashboard() {
             <div className="mt-6 flex flex-wrap gap-3">
               <a
                 href="/app/generator"
-                className={`inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition ${
-                  user.credits > 0
-                    ? "bg-indigo-500 text-white hover:bg-indigo-400"
-                    : "bg-white/10 text-gray-400 cursor-not-allowed"
-                }`}
+                className={`inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition ${user.credits > 0
+                  ? "bg-indigo-500 text-white hover:bg-indigo-400"
+                  : "bg-white/10 text-gray-400 cursor-not-allowed"
+                  }`}
               >
                 <Wand2 className="h-4 w-4" /> Generate an Image
               </a>
@@ -223,7 +222,7 @@ export default function Dashboard() {
               Quick Actions
             </div>
             <div className="space-y-3">
-                {[
+              {[
                 { label: "Create UGC Image", href: "/app/generator", icon: <ImageIcon className="h-4 w-4" /> },
                 { label: "Product Upload", href: "/app/generator?mode=upload", icon: <UploadCloud className="h-4 w-4" /> },
                 { label: "Hero Mode Generator", href: "/app/generator?hero=true", icon: <Shield className="h-4 w-4" /> },
@@ -284,7 +283,139 @@ export default function Dashboard() {
             </div>
           )}
         </motion.div>
+
+        {/* My Gallery */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut", delay: 0.15 }}
+          className="rounded-3xl bg-white/5 border border-white/10 p-6 shadow-xl backdrop-blur-lg"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-xs uppercase tracking-[0.25em] text-indigo-200">My Gallery</p>
+              <h3 className="text-lg font-semibold">Your Generated Images</h3>
+            </div>
+            <ImageIcon className="h-5 w-5 text-indigo-200" />
+          </div>
+          <GallerySection userEmail={user.email} />
+        </motion.div>
       </div>
     </div>
   );
 }
+
+// Gallery Section Component
+function GallerySection({ userEmail }: { userEmail: string }) {
+  const [images, setImages] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadGallery = async () => {
+      try {
+        const { listUserGallery } = await import('../services/galleryService');
+        const userImages = await listUserGallery(userEmail);
+        if (mounted) {
+          setImages(userImages);
+        }
+      } catch (err: any) {
+        console.error('Failed to load user gallery:', err);
+        if (mounted) {
+          setError(err.message || 'Failed to load gallery');
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+    loadGallery();
+    return () => {
+      mounted = false;
+    };
+  }, [userEmail]);
+
+  const handleDownload = async (imageUrl: string, imageName?: string) => {
+    try {
+      const { downloadImage } = await import('../services/galleryService');
+      downloadImage(imageUrl, imageName);
+    } catch (err) {
+      console.error('Download failed:', err);
+      alert('Failed to download image. Opening in new tab...');
+      window.open(imageUrl, '_blank');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <p className="text-sm text-gray-400">Loading your gallery...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
+        <p className="text-sm text-red-300">{error}</p>
+      </div>
+    );
+  }
+
+  if (images.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 space-y-3">
+        <ImageIcon className="h-12 w-12 text-gray-600" />
+        <p className="text-sm text-gray-400">No images generated yet</p>
+        <a
+          href="/app/generator"
+          className="inline-flex items-center gap-2 rounded-full bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-600 transition"
+        >
+          <Wand2 className="h-4 w-4" />
+          Generate Your First Image
+        </a>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      {images.map((image) => {
+        const createdDate = image.createdAt?.toDate?.() || new Date(image.createdAt?.seconds * 1000 || Date.now());
+        const dateStr = createdDate.toLocaleDateString();
+
+        return (
+          <div
+            key={image.id}
+            className="group relative rounded-2xl overflow-hidden border border-white/10 bg-white/5 transition hover:border-indigo-400/50"
+          >
+            <img
+              src={image.imageUrl}
+              alt={`Generated on ${dateStr}`}
+              className="w-full h-48 object-cover"
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition flex flex-col justify-end p-4 space-y-2">
+              <div className="text-xs text-gray-300 space-y-1">
+                <p>Plan: {image.plan || 'free'}</p>
+                {image.width && image.height && (
+                  <p>Size: {image.width}×{image.height}</p>
+                )}
+                <p>Created: {dateStr}</p>
+              </div>
+              <button
+                onClick={() => handleDownload(image.imageUrl, `ugc-image-${image.id}.png`)}
+                className="w-full rounded-lg bg-indigo-500 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-600 transition"
+              >
+                Download
+              </button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+

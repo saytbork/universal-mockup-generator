@@ -1754,14 +1754,14 @@ const App: React.FC = () => {
                         {isTalentLinkedAcrossScenes ? 'Active' : 'Off'}
                       </span>
                     </label>
-                </div>
-                {personControlsDisabled && <p className="text-[11px] text-gray-500">Enable people in this scene to sync the talent across your storyboard.</p>}
-                {isTalentLinkedAcrossScenes && !isActiveScenePrimary && (
-                  <p className="text-[11px] text-amber-200">
-                    Identity locked from {storyboardScenes[0]?.label || 'Scene 1'} while Same Person is active.
-                  </p>
-                )}
-                {isTalentLinkedAcrossScenes && !personControlsDisabled && (
+                  </div>
+                  {personControlsDisabled && <p className="text-[11px] text-gray-500">Enable people in this scene to sync the talent across your storyboard.</p>}
+                  {isTalentLinkedAcrossScenes && !isActiveScenePrimary && (
+                    <p className="text-[11px] text-amber-200">
+                      Identity locked from {storyboardScenes[0]?.label || 'Scene 1'} while Same Person is active.
+                    </p>
+                  )}
+                  {isTalentLinkedAcrossScenes && !personControlsDisabled && (
                     <p className="text-[11px] text-indigo-200">
                       Any tweak you make to the person instantly updates every other scene that still features them.
                     </p>
@@ -1807,11 +1807,10 @@ const App: React.FC = () => {
                           key={preset.value}
                           type="button"
                           onClick={() => handleHeroPosePresetSelect(preset.value)}
-                          className={`w-full rounded-xl border px-3 py-2 text-left transition ${
-                            isActive
+                          className={`w-full rounded-xl border px-3 py-2 text-left transition ${isActive
                               ? 'border-indigo-400 bg-indigo-500/10 text-white'
                               : 'border-white/15 text-gray-200 hover-border-indigo-400 hover:text-white'
-                          }`}
+                            }`}
                         >
                           <div className="flex items-center gap-1 relative group text-sm font-semibold">
                             <span>{preset.label}</span>
@@ -1952,12 +1951,12 @@ const App: React.FC = () => {
           ))}
         </div>
         {activeBundleTab === 'premade' && (
-            <BundleSelector
-              onGenerate={generateMockup}
-              productMediaLibrary={productMediaLibrary}
-              visibleProductIds={activeProductIds}
-              activeProductCount={activeProducts.length}
-            />
+          <BundleSelector
+            onGenerate={generateMockup}
+            productMediaLibrary={productMediaLibrary}
+            visibleProductIds={activeProductIds}
+            activeProductCount={activeProducts.length}
+          />
         )}
         {activeBundleTab === 'custom' && (
           <CustomBundleBuilder
@@ -3330,18 +3329,18 @@ const App: React.FC = () => {
           const { base64, mimeType } = await fileToBase64(file);
           const assetId = makeSceneId();
           const label = `Product ${baseIndex + processedAssets.length + 1}`;
-        const asset: ProductAsset = {
-          id: assetId,
-          label,
-          file,
-          previewUrl,
-          imageUrl: previewUrl,
-          createdAt: Date.now(),
-          heightValue: null,
-          heightUnit: 'cm',
-          base64,
-          mimeType,
-        };
+          const asset: ProductAsset = {
+            id: assetId,
+            label,
+            file,
+            previewUrl,
+            imageUrl: previewUrl,
+            createdAt: Date.now(),
+            heightValue: null,
+            heightUnit: 'cm',
+            base64,
+            mimeType,
+          };
           processedAssets.push(asset);
           const activeProduct = buildActiveProductFromAsset(asset);
           if (activeProduct) {
@@ -3688,9 +3687,8 @@ Do NOT generate rooms, environments, furniture, props or scenery.
 Keep the background perfectly uniform and flat.
 
 Place the product and the person exclusively on the ${options.sidePlacement} side of the frame.
-Leave large, clean negative space on the ${
-        options.sidePlacement === 'left' ? 'right' : 'left'
-      } side for text overlays.
+Leave large, clean negative space on the ${options.sidePlacement === 'left' ? 'right' : 'left'
+        } side for text overlays.
 
 Use soft studio lighting suitable for Amazon, Shopify and paid ads.
 Do NOT add text, logos, watermarks or graphics.
@@ -3985,8 +3983,8 @@ No warped, melted, or floating limbs.
             prompt += ` ${clean(framingPreset.prompt)}`;
           }
           if (ugcRealSettings.blurAmount > 0 || ugcRealSettings.grainAmount > 0) {
-           prompt += ` Add roughly ${ugcRealSettings.blurAmount}% focus blur and ${ugcRealSettings.grainAmount}% grain to mimic raw smartphone texture.`;
-         }
+            prompt += ` Add roughly ${ugcRealSettings.blurAmount}% focus blur and ${ugcRealSettings.grainAmount}% grain to mimic raw smartphone texture.`;
+          }
           prompt += ' UGC Real Mode may add grain, lighting imperfections and organic feel to the scene, but must not degrade product clarity, readability or branding. ';
         }
       }
@@ -4054,28 +4052,28 @@ If the model attempts to create a scene or environment, override it and force a 
   const publishFreeGallery = useCallback(
     (imageUrl: string, plan?: string, compositionMode?: string) => {
       if (typeof window === 'undefined') return;
-    try {
-      const key = LOCAL_GALLERY_CACHE_KEY;
-      const stored = window.localStorage.getItem(key);
-      const parsed = stored ? JSON.parse(stored) : [];
-      const existing = Array.isArray(parsed) ? parsed : [];
-      const generateId = () => {
-        if (window.crypto?.randomUUID) {
-          return window.crypto.randomUUID();
-        }
-        return `local-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
-      };
-      const entry = {
-        id: generateId(),
-        imageUrl,
-        plan: plan ? plan.toLowerCase() : 'free',
-        compositionMode,
-        createdAt: Date.now(),
-      };
-      const next = [entry, ...existing].slice(0, 20);
-      window.localStorage.setItem(key, JSON.stringify(next));
-    } catch (err) {
-      console.warn('Failed to publish to gallery', err);
+      try {
+        const key = LOCAL_GALLERY_CACHE_KEY;
+        const stored = window.localStorage.getItem(key);
+        const parsed = stored ? JSON.parse(stored) : [];
+        const existing = Array.isArray(parsed) ? parsed : [];
+        const generateId = () => {
+          if (window.crypto?.randomUUID) {
+            return window.crypto.randomUUID();
+          }
+          return `local-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
+        };
+        const entry = {
+          id: generateId(),
+          imageUrl,
+          plan: plan ? plan.toLowerCase() : 'free',
+          compositionMode,
+          createdAt: Date.now(),
+        };
+        const next = [entry, ...existing].slice(0, 20);
+        window.localStorage.setItem(key, JSON.stringify(next));
+      } catch (err) {
+        console.warn('Failed to publish to gallery', err);
       }
     },
     []
@@ -4099,13 +4097,32 @@ If the model attempts to create a scene or environment, override it and force a 
       if (!url) return;
       const userId = userEmail || 'guest';
       const plan = planTier;
+
       try {
-        const { width, height } = await getImageDimensions(url);
+        // Step 1: Upload image to Firebase Storage
+        let storageUrl = url;
+        if (url.startsWith('data:')) {
+          // Only upload base64 images to Storage
+          try {
+            const { uploadImageWithRetry } = await import('./src/services/storageService');
+            const uploadResult = await uploadImageWithRetry(url, userId);
+            storageUrl = uploadResult.url;
+            console.log('✅ Image uploaded to Firebase Storage:', uploadResult.path);
+          } catch (uploadError) {
+            console.warn('⚠️ Storage upload failed, using base64 URL as fallback:', uploadError);
+            // Continue with base64 URL if upload fails (fallback)
+          }
+        }
+
+        // Step 2: Get image dimensions
+        const { width, height } = await getImageDimensions(storageUrl.startsWith('data:') ? url : storageUrl);
+
+        // Step 3: Save gallery entry to Firestore via API
         await fetch('/api/galleryHandler?action=add', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            imageUrl: url,
+            imageUrl: storageUrl, // Use Storage URL instead of base64
             userId,
             plan,
             meta: {
@@ -4116,6 +4133,8 @@ If the model attempts to create a scene or environment, override it and force a 
             },
           }),
         });
+
+        console.log('✅ Gallery entry saved successfully');
       } catch (error) {
         console.warn('Failed to report gallery entry', error);
       }
@@ -4228,10 +4247,10 @@ If the model attempts to create a scene or environment, override it and force a 
           throw new Error('Image generation failed or returned no images.');
         }
 
-      const finalUrl = `data:image/png;base64,${encodedImage}`;
-      setGeneratedImageUrl(finalUrl);
-      void reportGalleryEntry(finalUrl);
-      const galleryPlan = determineGalleryPlan();
+        const finalUrl = `data:image/png;base64,${encodedImage}`;
+        setGeneratedImageUrl(finalUrl);
+        void reportGalleryEntry(finalUrl);
+        const galleryPlan = determineGalleryPlan();
         if (galleryPlan) {
           const galleryPayload: Record<string, string> = { url: finalUrl, plan: galleryPlan };
           if (hasModelReference) {
@@ -4622,25 +4641,25 @@ If the model attempts to create a scene or environment, override it and force a 
                 {normalizedCreatorWizardPresets
                   .filter(preset => preset.value !== 'custom')
                   .map(preset => (
-                  <button
-                    key={preset.value}
-                    onClick={() => handleGoalWizardSelect('preset', preset.value)}
-                    className={`rounded-2xl border p-4 text-left transition ${goalWizardData.preset === preset.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
-                  >
-                    <div className="flex items-center gap-1 relative group">
-                      <span className="text-base font-semibold">{preset.label}</span>
-                      {preset.tooltip && (
-                        <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
-                          ⓘ
-                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/90 text-white text-xs p-2 rounded shadow-lg w-44">
-                            {preset.tooltip}
-                          </div>
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-400 mt-2">{cleanDescription(preset.description)}</p>
-                  </button>
-                ))}
+                    <button
+                      key={preset.value}
+                      onClick={() => handleGoalWizardSelect('preset', preset.value)}
+                      className={`rounded-2xl border p-4 text-left transition ${goalWizardData.preset === preset.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
+                    >
+                      <div className="flex items-center gap-1 relative group">
+                        <span className="text-base font-semibold">{preset.label}</span>
+                        {preset.tooltip && (
+                          <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
+                            ⓘ
+                            <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                              {preset.tooltip}
+                            </div>
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-400 mt-2">{cleanDescription(preset.description)}</p>
+                    </button>
+                  ))}
               </div>
             )}
             <div className="flex items-center justify-between pt-4 border-t border-white/5">
@@ -5021,17 +5040,17 @@ If the model attempts to create a scene or environment, override it and force a 
               </div>
               {/* MoodReferencePanel temporarily hidden per request */}
               <div className="flex flex-col gap-3">
-              <ModelReferencePanel
-                onFileSelect={handleModelReferenceUpload}
-                previewUrl={modelReferencePreview}
-                notes={modelReferenceNotes}
-                onNotesChange={setModelReferenceNotes}
-                onClear={handleClearModelReference}
-                disabled={!hasUploadedProduct || isProductPlacement}
-                lockedMessage={
-                  !hasUploadedProduct
-                    ? "Upload your product image first to attach a model."
-                    : 'Model references are only available in UGC Lifestyle scenes with a person enabled. Switch out of Product Placement and pick an age group to unlock this.'
+                <ModelReferencePanel
+                  onFileSelect={handleModelReferenceUpload}
+                  previewUrl={modelReferencePreview}
+                  notes={modelReferenceNotes}
+                  onNotesChange={setModelReferenceNotes}
+                  onClear={handleClearModelReference}
+                  disabled={!hasUploadedProduct || isProductPlacement}
+                  lockedMessage={
+                    !hasUploadedProduct
+                      ? "Upload your product image first to attach a model."
+                      : 'Model references are only available in UGC Lifestyle scenes with a person enabled. Switch out of Product Placement and pick an age group to unlock this.'
                   }
                 />
                 {hasModelReference && (
@@ -5076,60 +5095,60 @@ If the model attempts to create a scene or environment, override it and force a 
                         onToggle={() => handleToggleAccordion('Scene & Environment')}
                       >
                         <div className="space-y-4">
-                    <ChipSelectGroup
-                      label="Location / Setting"
-                      options={SETTING_OPTIONS}
-                      selectedValue={options.setting}
-                      onChange={(value) => handleOptionChange('setting', value, 'Scene & Environment')}
-                      allowCustom
-                      customLabel="Custom setting"
-                      customPlaceholder="Describe the location"
-                    />
-                    <ChipSelectGroup
-                      label="Environment Order"
-                      options={ENVIRONMENT_ORDER_OPTIONS}
-                      selectedValue={options.environmentOrder}
-                      onChange={(value) => handleOptionChange('environmentOrder', value, 'Scene & Environment')}
-                      allowCustom
-                      customLabel="Custom environment"
-                      customPlaceholder="Describe the vibe"
-                    />
-                    <ChipSelectGroup
-                      label="Composition Mode"
-                      options={COMPOSITION_MODE_OPTIONS}
-                      selectedValue={options.compositionMode}
-                      onChange={(value) => handleOptionChange('compositionMode', value, 'Scene & Environment')}
-                    />
-                    <ChipSelectGroup
-                      label="Creation Mode"
-                      options={CREATION_MODE_OPTIONS}
-                      selectedValue={options.creationMode}
-                      onChange={(value) => handleOptionChange('creationMode', value, 'Scene & Product')}
-                    />
-                    {options.compositionMode === 'ecom-blank' && (
-                      <>
-                        <ChipSelectGroup
-                          label="Side Placement"
-                          options={SIDE_PLACEMENT_OPTIONS}
-                          selectedValue={options.sidePlacement}
-                          onChange={(value) => handleOptionChange('sidePlacement', value, 'Scene & Environment')}
-                        />
-                        <div className="flex flex-col gap-2 mt-4">
-                          <label className="text-sm font-medium">Background Color</label>
-                          <input
-                            type="color"
-                            value={options.bgColor}
-                            onChange={event =>
-                              applyOptionsUpdate(prev => ({ ...prev, bgColor: event.target.value }))
-                            }
-                            className="h-10 w-16 rounded cursor-pointer border border-gray-600"
+                          <ChipSelectGroup
+                            label="Location / Setting"
+                            options={SETTING_OPTIONS}
+                            selectedValue={options.setting}
+                            onChange={(value) => handleOptionChange('setting', value, 'Scene & Environment')}
+                            allowCustom
+                            customLabel="Custom setting"
+                            customPlaceholder="Describe the location"
                           />
+                          <ChipSelectGroup
+                            label="Environment Order"
+                            options={ENVIRONMENT_ORDER_OPTIONS}
+                            selectedValue={options.environmentOrder}
+                            onChange={(value) => handleOptionChange('environmentOrder', value, 'Scene & Environment')}
+                            allowCustom
+                            customLabel="Custom environment"
+                            customPlaceholder="Describe the vibe"
+                          />
+                          <ChipSelectGroup
+                            label="Composition Mode"
+                            options={COMPOSITION_MODE_OPTIONS}
+                            selectedValue={options.compositionMode}
+                            onChange={(value) => handleOptionChange('compositionMode', value, 'Scene & Environment')}
+                          />
+                          <ChipSelectGroup
+                            label="Creation Mode"
+                            options={CREATION_MODE_OPTIONS}
+                            selectedValue={options.creationMode}
+                            onChange={(value) => handleOptionChange('creationMode', value, 'Scene & Product')}
+                          />
+                          {options.compositionMode === 'ecom-blank' && (
+                            <>
+                              <ChipSelectGroup
+                                label="Side Placement"
+                                options={SIDE_PLACEMENT_OPTIONS}
+                                selectedValue={options.sidePlacement}
+                                onChange={(value) => handleOptionChange('sidePlacement', value, 'Scene & Environment')}
+                              />
+                              <div className="flex flex-col gap-2 mt-4">
+                                <label className="text-sm font-medium">Background Color</label>
+                                <input
+                                  type="color"
+                                  value={options.bgColor}
+                                  onChange={event =>
+                                    applyOptionsUpdate(prev => ({ ...prev, bgColor: event.target.value }))
+                                  }
+                                  className="h-10 w-16 rounded cursor-pointer border border-gray-600"
+                                />
+                              </div>
+                            </>
+                          )}
                         </div>
-                      </>
-                    )}
-                  </div>
-                </Accordion>
-              </div>
+                      </Accordion>
+                    </div>
                     {isProductPlacement && (
                       <div id={getSectionId('Product Details')}>
                         <Accordion
@@ -5208,7 +5227,7 @@ If the model attempts to create a scene or environment, override it and force a 
                                     className={`rounded-full border px-3 py-1 text-xs transition ${activeSupplementPreset === preset.value
                                       ? 'border-indigo-400 bg-indigo-500/10 text-white'
                                       : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
-                                    }`}
+                                      }`}
                                     title={preset.description}
                                   >
                                     <div className="flex items-center gap-1 relative group">

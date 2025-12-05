@@ -27,6 +27,17 @@ const parseAction = (req: VercelRequest) => {
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Add CORS headers for frontend requests
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   const action = parseAction(req);
 
   try {
@@ -43,6 +54,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!userId) return res.status(400).json({ error: "Missing userId" });
         if (!plan) return res.status(400).json({ error: "Missing plan" });
 
+        // Validate imageUrl is a valid URL
+        try {
+          new URL(imageUrl);
+        } catch {
+          return res.status(400).json({ error: "Invalid imageUrl format" });
+        }
+
         const ref = await adminDB.collection("gallery").add({
           imageUrl: imageUrl.trim(),
           userId,
@@ -54,6 +72,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           productsUsed: meta?.productsUsed,
         });
 
+        console.log(`✅ Gallery entry created: ${ref.id}`);
         return res.status(201).json({ id: ref.id });
       }
 
@@ -85,14 +104,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           };
         });
 
+        console.log(`✅ Loaded ${images.length} gallery images`);
         return res.status(200).json({ images });
       }
 
       default:
-        return res.status(400).json({ error: "Invalid action" });
+        return res.status(400).json({ error: "Invalid action. Use 'add' or 'list'" });
     }
   } catch (error: any) {
-    console.error("Gallery handler error:", error);
-    return res.status(500).json({ error: error.message ?? "Internal server error" });
+    console.error("❌ Gallery handler error:", error);
+
+    // Provide more specific error messages
+    let errorMessage = "Internal server error";
+    if (error.message?.includes('FIREBASE_SERVICE_ACCOUNT_KEY')) {
+      errorMessage = "Firebase configuration error. Please check environment variables.";
+    } else if (error.code === 'permission-denied') {
+      errorMessage = "Database permission denied. Please check Firestore rules.";
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    return res.status(500).json({ error: errorMessage });
   }
 }
+

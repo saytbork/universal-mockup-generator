@@ -327,17 +327,21 @@ const LandingPage: React.FC = () => {
     let mounted = true;
     const fetchGallery = async () => {
       try {
-        const response = await fetch('/api/galleryHandler?action=list');
-        if (!response.ok) {
-          throw new Error(`Gallery fetch failed with ${response.status}`);
-        }
-        const data = (await response.json()) as { images?: GalleryImage[] };
+        // Import gallery service dynamically
+        const { listPublicGallery } = await import('./src/services/galleryService');
+        const images = await listPublicGallery();
+
         if (!mounted) return;
-        const images = Array.isArray(data?.images)
-          ? data.images.filter(image => Boolean(image?.url))
-          : [];
-        const fallbackImages = readCachedGalleryImages();
-        setGalleryImages(images.length ? images : fallbackImages);
+
+        // Transform to expected format
+        const transformedImages: GalleryImage[] = images.map(img => ({
+          id: img.id,
+          url: img.imageUrl,
+          plan: img.plan,
+          createdAt: img.createdAt?.seconds ? img.createdAt.seconds * 1000 : Date.now(),
+        }));
+
+        setGalleryImages(transformedImages.length ? transformedImages : readCachedGalleryImages());
       } catch (error) {
         console.error('Community gallery fetch failed', error);
         if (mounted) {
@@ -519,9 +523,8 @@ const LandingPage: React.FC = () => {
                 </form>
                 {heroMessage && (
                   <p
-                    className={`mt-2 text-sm ${
-                      heroStatus === 'success' ? 'text-green-300' : 'text-rose-300'
-                    }`}
+                    className={`mt-2 text-sm ${heroStatus === 'success' ? 'text-green-300' : 'text-rose-300'
+                      }`}
                   >
                     {heroMessage}
                   </p>
@@ -645,9 +648,8 @@ const LandingPage: React.FC = () => {
                   <button
                     key={mode.id}
                     onClick={() => setActiveMode(mode.id)}
-                    className={`w-full text-left rounded-2xl border p-4 transition ${
-                      activeMode === mode.id ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'
-                    }`}
+                    className={`w-full text-left rounded-2xl border p-4 transition ${activeMode === mode.id ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'
+                      }`}
                   >
                     <p className="font-semibold">{mode.title}</p>
                     <p className="text-sm text-gray-400 mt-1">{mode.desc}</p>
@@ -658,9 +660,8 @@ const LandingPage: React.FC = () => {
                 {modeSlides.map(mode => (
                   <div
                     key={mode.id}
-                    className={`absolute inset-0 transition-all duration-500 ${
-                      activeMode === mode.id ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
-                    }`}
+                    className={`absolute inset-0 transition-all duration-500 ${activeMode === mode.id ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
+                      }`}
                   >
                     <img
                       src={`${mode.image}&auto=format&fit=crop&w=1200&q=80`}
@@ -855,11 +856,10 @@ const LandingPage: React.FC = () => {
                       return (
                         <a
                           href={targetUrl || '#'}
-                          className={`mt-auto w-full rounded-full px-4 py-3 text-sm font-semibold transition text-center ${
-                            plan.featured
+                          className={`mt-auto w-full rounded-full px-4 py-3 text-sm font-semibold transition text-center ${plan.featured
                               ? 'bg-white text-[#120A24] hover:bg-gray-100'
                               : 'bg-indigo-500 text-white hover:bg-indigo-400'
-                          }`}
+                            }`}
                         >
                           {plan.cta}
                         </a>
