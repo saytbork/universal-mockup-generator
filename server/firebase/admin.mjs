@@ -57,12 +57,19 @@ function initializeFirebaseAdmin() {
       }
 
       // Initialize Admin SDK
-      admin.initializeApp({
+      const initConfig = {
         credential,
-        storageBucket
-      });
+        projectId: serviceAccount.project_id,
+        storageBucket,
+        // Explicitly set database URL to use default database
+        databaseURL: `https://${serviceAccount.project_id}.firebaseio.com`
+      };
+
+      admin.initializeApp(initConfig);
 
       console.log('✅ Firebase Admin SDK initialized successfully');
+      console.log('   Project ID:', serviceAccount.project_id);
+      console.log('   Storage Bucket:', storageBucket);
     }
 
     initialized = true;
