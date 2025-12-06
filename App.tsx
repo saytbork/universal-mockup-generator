@@ -1,6 +1,26 @@
+import { useEffect, useRef, useState } from 'react';
 
+import ImageUploader, { ImageUploaderHandle } from './src/components/ImageUploader';
+import GeneratedImage from './src/components/GeneratedImage';
+import VideoGenerator from './src/components/VideoGenerator';
+import { Accordion } from './src/components/ui/Accordion';
+import ChipSelectGroup from './src/components/ChipSelectGroup';
+import ImageEditor from './src/components/ImageEditor';
+import ModelReferencePanel from './src/components/ModelReferencePanel';
+import OnboardingOverlay from './src/components/OnboardingOverlay';
 
-import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { useAuth } from './src/contexts/AuthContext';
+
+import { getUserSubscription } from './src/services/subscriptionService';
+import { saveImageToGallery } from './src/services/galleryService';
+import { trackEvent } from './src/utils/analytics';
+
+import { promptEngine } from './src/lib/promptEngine';
+
+import './src/styles/tailwind.css';
+import './src/styles/global.css';
+
+import React, { useCallback, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { GoogleGenAI, Modality } from "@google/genai";
 import { getAuth } from 'firebase/auth';
@@ -25,7 +45,7 @@ import BundleSelector from './src/bundles/components/BundleSelector';
 import CustomBundleBuilder from './src/bundles/components/CustomBundleBuilder';
 import RecommendedBundle from './src/bundles/components/RecommendedBundle';
 import { ALL_PRODUCT_IDS, PRODUCT_MEDIA_LIBRARY, ProductId, ProductMediaLibrary } from './src/bundles/bundles.config';
-import UGCRealModePanel from './components/UGCRealModePanel';
+import UGCRealModePanel from './src/components/UGCRealModePanel';
 import {
   UGC_CLOTHING_PRESETS,
   UGC_REALITY_PRESETS,
@@ -36,7 +56,6 @@ import {
   UGC_REAL_MODE_BASE_PROMPT,
 } from './src/data/ugcPresets';
 import { normalizeOptions } from './src/system/normalizeOptions';
-import { promptEngine } from './src/lib/promptEngine';
 import { app } from './src/firebase/firebase';
 import * as storageService from './src/services/storageService';
 
@@ -553,18 +572,6 @@ const createDefaultOptions = (): MockupOptions => ({
   sidePlacement: 'right',
   bgColor: '#FFFFFF',
 });
-import ImageUploader, { ImageUploaderHandle } from './components/ImageUploader';
-import GeneratedImage from './components/GeneratedImage';
-import VideoGenerator from './components/VideoGenerator';
-import { Accordion } from './src/components/ui/Accordion';
-import ChipSelectGroup from './components/ChipSelectGroup';
-import ImageEditor from './components/ImageEditor';
-import ModelReferencePanel from './components/ModelReferencePanel';
-
-import OnboardingOverlay from './components/OnboardingOverlay';
-
-import { useAuth } from './src/contexts/AuthContext';
-
 const describeAgeGroup = (ageGroup: string, gender: string) => {
   const genderNoun =
     gender === 'female'
