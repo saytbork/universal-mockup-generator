@@ -174,5 +174,13 @@ export const parameterMap: ParameterMap = {
     "Vanity Mirror": "near a vanity mirror",
     "Boutique Shelf": "beside a boutique retail shelf",
     "Rooftop Lounge": "in a rooftop lounge atmosphere"
+  },
+
+  clothingPresets: {
+    tired_hoodie_wrinkles: "wearing a tired hoodie with visible wrinkles, slightly worn texture",
+    oversized_home_sweater: "wearing an oversized home sweater, cozy and loose",
+    messy_casual_outfit: "wearing a messy casual outfit, imperfect and relaxed",
+    loose_imperfect_tshirt: "wearing a loose imperfect t-shirt",
+    no_makeup_natural_home_clothes: "wearing natural, no-makeup home clothes"
   }
 };

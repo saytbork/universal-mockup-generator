@@ -38,6 +38,7 @@ import {
 import { normalizeOptions } from './src/system/normalizeOptions';
 import { promptEngine } from './src/lib/promptEngine';
 import { app } from './src/firebase/firebase';
+import * as storageService from './src/services/storageService';
 
 const auth = getAuth(app);
 
@@ -263,6 +264,8 @@ type ProductAsset = {
   label: string;
   file: File;
   previewUrl: string;
+  type?: string;
+  name?: string;
   createdAt: number;
   heightValue: number | null;
   heightUnit: 'cm' | 'in';
@@ -553,7 +556,7 @@ const createDefaultOptions = (): MockupOptions => ({
 import ImageUploader, { ImageUploaderHandle } from './components/ImageUploader';
 import GeneratedImage from './components/GeneratedImage';
 import VideoGenerator from './components/VideoGenerator';
-import Accordion from './components/Accordion';
+import { Accordion } from './components/ui/Accordion';
 import ChipSelectGroup from './components/ChipSelectGroup';
 import ImageEditor from './components/ImageEditor';
 import ModelReferencePanel from './components/ModelReferencePanel';
@@ -898,7 +901,12 @@ const App: React.FC = () => {
   const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null);
   const [uploadedImagePreview, setUploadedImagePreview] = useState<string | null>(null);
   const [productAssets, setProductAssets] = useState<ProductAsset[]>([]);
+  const [productMediaLibrary, setProductMediaLibrary] = useState<ProductMediaLibrary>(PRODUCT_MEDIA_LIBRARY);
   const [activeProducts, setActiveProducts] = useState<ActiveProduct[]>([]);
+  const [clothingPreset, setClothingPreset] = useState<string | null>(null);
+  const [clothingQuickPreset, setClothingQuickPreset] = useState<string | null>(null);
+  const [clothingCustomImage, setClothingCustomImage] = useState<string | null>(null);
+  const [ugcRealityPreset, setUgcRealityPreset] = useState<string | null>(null);
   const [isMultiProductPackaging, setIsMultiProductPackaging] = useState(false);
   const [modelReferenceFile, setModelReferenceFile] = useState<File | null>(null);
   const [modelReferencePreview, setModelReferencePreview] = useState<string | null>(null);
@@ -966,29 +974,26 @@ const App: React.FC = () => {
     []
   );
   const availableProductIdSet = useMemo(() => new Set<ProductId>(availableProductIds), [availableProductIds]);
-  const normalizedProductAssets = useMemo(
-    () =>
-      productAssets.map(asset => ({
-        id: asset.id,
-        label: asset.label,
-        imageUrl: (asset as any).imageUrl ?? asset.previewUrl ?? (asset as any).url ?? null,
-      })),
-    [productAssets]
-  );
-  const productMediaLibrary = useMemo<ProductMediaLibrary>(() => {
-    if (!normalizedProductAssets.length) {
-      return PRODUCT_MEDIA_LIBRARY;
+  useEffect(() => {
+    if (!productAssets.length) {
+      const emptyLibrary = Object.entries(PRODUCT_MEDIA_LIBRARY).reduce<ProductMediaLibrary>((acc, [productId, meta]) => {
+        acc[productId] = { label: meta.label, imageUrl: '' };
+        return acc;
+      }, {});
+      setProductMediaLibrary(emptyLibrary);
+      return;
     }
-    return normalizedProductAssets.reduce<ProductMediaLibrary>((acc, asset, index) => {
+
+    const nextLibrary: ProductMediaLibrary = {};
+    productAssets.forEach((asset, index) => {
       const productId = `product_${index + 1}` as ProductId;
-      const entry = {
-        label: asset.label || `Product ${index + 1}`,
-        imageUrl: asset.imageUrl,
+      nextLibrary[productId] = {
+        label: asset.name || asset.label || `Product ${index + 1}`,
+        imageUrl: asset.imageUrl || asset.previewUrl || '',
       };
-      acc[productId] = entry;
-      return acc;
-    }, {});
-  }, [normalizedProductAssets]);
+    });
+    setProductMediaLibrary(nextLibrary);
+  }, [productAssets]);
   useEffect(() => {
     setActiveProducts(prev => {
       const next = prev
@@ -1334,36 +1339,9 @@ const App: React.FC = () => {
   const [isAiStudioAvailable, setIsAiStudioAvailable] = useState(false);
   const [isKeySelected, setIsKeySelected] = useState(true); // Always bypass Gemini key gate
 
-  // State to manage which accordion is currently open
-  const [openAccordion, setOpenAccordion] = useState<string | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<Set<OptionCategory>>(new Set());
-  const accordionOrder = useMemo(() => {
-    const order: string[] = [];
-    order.push('Content Intent');
-    order.push('Scene & Environment');
-    if (isProductPlacement) {
-      order.push('Product Details');
-    }
-    order.push('Photography');
-    if (!isProductPlacement) {
-      order.push('Person Details');
-      order.push('UGC Real Mode');
-    }
-    return order;
-  }, [isProductPlacement]);
   const activePresetMeta = useMemo(() => CREATOR_PRESET_LOOKUP[activeTalentPreset], [activeTalentPreset]);
   const hasSavedTalent = Boolean(savedTalentProfile);
-  useEffect(() => {
-    if (isProductPlacement && openAccordion === 'Person Details') {
-      setOpenAccordion('Product Details');
-    }
-    if (isProductPlacement && openAccordion === 'UGC Real Mode') {
-      setOpenAccordion('Product Details');
-    }
-    if (!isProductPlacement && openAccordion === 'Product Details') {
-      setOpenAccordion('Person Details');
-    }
-  }, [isProductPlacement, openAccordion]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -1615,13 +1593,6 @@ const App: React.FC = () => {
   }, [activeProductAsset]);
 
   useEffect(() => {
-    if (!isProductPlacement) return;
-    if (openAccordion === 'Person Details') {
-      setOpenAccordion('Scene & Environment');
-    }
-  }, [isProductPlacement, openAccordion]);
-
-  useEffect(() => {
     if (contentStyleValue !== 'product' && isProPhotographer) {
       setIsProPhotographer(false);
       setActiveProPreset('custom');
@@ -1730,11 +1701,7 @@ const App: React.FC = () => {
     <>
       {isProductPlacement ? null : (
         <div id={getSectionId('Person Details')}>
-          <Accordion
-            title="Person Details"
-            isOpen={openAccordion === 'Person Details'}
-            onToggle={() => handleToggleAccordion('Person Details')}
-          >
+          <Accordion title="Person Details">
             <div className="space-y-4">
               <ChipSelectGroup label="Age Group" options={AGE_GROUP_OPTIONS} selectedValue={options.ageGroup} onChange={(value) => handleOptionChange('ageGroup', value, 'Person Details')} disabled={personControlsDisabled} />
               {isProductPlacement && <p className="text-xs text-gray-500">Person options are disabled for product placement shots.</p>}
@@ -1892,12 +1859,7 @@ const App: React.FC = () => {
       )}
       {!isProductPlacement && (
         <div id={getSectionId('UGC Real Mode')}>
-          <Accordion
-            title="UGC Real Mode"
-            isOpen={openAccordion === 'UGC Real Mode'}
-            onToggle={() => handleToggleAccordion('UGC Real Mode')}
-            disabled={personControlsDisabled}
-          >
+          <Accordion title="UGC Real Mode">
             <UGCRealModePanel
               disabled={personControlsDisabled}
               enabled={ugcRealSettings.isEnabled}
@@ -1905,7 +1867,7 @@ const App: React.FC = () => {
               clothingPresets={UGC_CLOTHING_PRESETS}
               selectedClothingPresetIds={ugcRealSettings.selectedClothingPresetIds}
               onToggleClothingPreset={handleClothingPresetToggle}
-              onUploadClothing={handleCustomClothesUpload}
+              onUploadClothing={handleClothingUpload}
               onClearClothing={handleClearCustomClothes}
               clothingPreview={ugcRealSettings.clothingPreview}
               realityPresets={UGC_REALITY_PRESETS}
@@ -2361,6 +2323,9 @@ const App: React.FC = () => {
         const nextPresets = exists
           ? prev.selectedClothingPresetIds.filter(item => item !== id)
           : [...prev.selectedClothingPresetIds, id];
+        const nextValue = exists ? null : id;
+        setClothingQuickPreset(nextValue);
+        setClothingPreset(nextValue);
         return { ...prev, selectedClothingPresetIds: nextPresets };
       });
     },
@@ -2368,16 +2333,39 @@ const App: React.FC = () => {
   );
 
   const handleCustomClothesUpload = useCallback(
-    (file: File) => {
+    async (file: File) => {
       const previewUrl = URL.createObjectURL(file);
-      persistUgcRealSettings(prev => {
-        if (prev.clothingPreview && prev.clothingPreview !== previewUrl) {
-          URL.revokeObjectURL(prev.clothingPreview);
-        }
-        return { ...prev, clothingUpload: file, clothingPreview: previewUrl };
-      });
+      try {
+        const uploaded = await storageService.uploadGenericAsset(
+          file,
+          userEmail,
+          () => {},
+          () => {}
+        );
+        const finalUrl = uploaded?.imageUrl || previewUrl;
+        setClothingCustomImage(finalUrl);
+        persistUgcRealSettings(prev => {
+          if (prev.clothingPreview && prev.clothingPreview !== previewUrl) {
+            URL.revokeObjectURL(prev.clothingPreview);
+          }
+          return { ...prev, clothingUpload: file, clothingPreview: finalUrl };
+        });
+      } catch (error) {
+        console.error('Unable to upload clothing reference', error);
+        setClothingCustomImage(previewUrl);
+        persistUgcRealSettings(prev => ({ ...prev, clothingUpload: file, clothingPreview: previewUrl }));
+      }
     },
-    [persistUgcRealSettings]
+    [persistUgcRealSettings, userEmail]
+  );
+
+  const handleClothingUpload = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      await handleCustomClothesUpload(file);
+    },
+    [handleCustomClothesUpload]
   );
 
   const handleClearCustomClothes = useCallback(() => {
@@ -2387,10 +2375,12 @@ const App: React.FC = () => {
       }
       return { ...prev, clothingUpload: null, clothingPreview: null };
     });
+    setClothingCustomImage(null);
   }, [persistUgcRealSettings]);
 
   const handleSelectRealityPreset = useCallback(
     (id: string) => {
+      setUgcRealityPreset(id);
       persistUgcRealSettings(prev => ({ ...prev, selectedRealityPresetId: id }));
     },
     [persistUgcRealSettings]
@@ -3093,10 +3083,6 @@ const App: React.FC = () => {
   }, []);
 
 
-  const handleToggleAccordion = (title: string) => {
-    setOpenAccordion(current => (current === title ? null : title));
-  };
-
   const handleOptionChange = (category: OptionCategory, value: string, accordionTitle: string) => {
     const newOptions = { ...options, [category]: value };
     const primarySceneId = storyboardScenes[0]?.id;
@@ -3271,7 +3257,6 @@ const App: React.FC = () => {
     const defaultOptions = createDefaultOptions();
     applyOptionsUpdate(() => defaultOptions);
     setSelectedCategories(new Set());
-    setOpenAccordion('Scene & Environment');
     setActiveTalentPreset('custom');
     setIsProPhotographer(false);
     setActiveProPreset('custom');
@@ -3316,78 +3301,37 @@ const App: React.FC = () => {
 
 
   const handleImageUpload = useCallback(
-    async (files: File[]) => {
-      const ALLOWED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
+    async (file: File) => {
+      const localPreview = URL.createObjectURL(file);
 
-      if (!files.length) return;
+      const uploaded = await storageService.uploadProductAsset(
+        file,
+        userEmail,
+        async () => {},
+        async () => {}
+      );
 
-      resetOutputs();
-      setImageError(null);
-      setGeneratedCopy(null);
-      setCopyError(null);
+      const finalUrl = uploaded?.imageUrl || localPreview;
+      const { base64, mimeType } = await fileToBase64(file);
 
-      const validFiles = files.filter(file => ALLOWED_MIME_TYPES.includes(file.type));
-      if (!validFiles.length) {
-        setImageError('Unsupported file type. Please upload PNG, JPEG, or WebP images.');
-        return;
-      }
+      const asset: ProductAsset = {
+        id: crypto.randomUUID(),
+        type: "image" as const,
+        file,
+        imageUrl: finalUrl,
+        previewUrl: finalUrl,
+        name: file.name,
+        label: file.name,
+        createdAt: Date.now(),
+        heightValue: null,
+        heightUnit: 'cm',
+        base64,
+        mimeType,
+      };
 
-      const baseIndex = productAssets.length;
-      const processedAssets: ProductAsset[] = [];
-      const newActiveProducts: ActiveProduct[] = [];
-
-      for (const file of validFiles) {
-        try {
-          const previewUrl = URL.createObjectURL(file);
-          const { base64, mimeType } = await fileToBase64(file);
-          const assetId = makeSceneId();
-          const label = `Product ${baseIndex + processedAssets.length + 1}`;
-          const asset: ProductAsset = {
-            id: assetId,
-            label,
-            file,
-            previewUrl,
-            imageUrl: previewUrl,
-            createdAt: Date.now(),
-            heightValue: null,
-            heightUnit: 'cm',
-            base64,
-            mimeType,
-          };
-          processedAssets.push(asset);
-          const activeProduct = buildActiveProductFromAsset(asset);
-          if (activeProduct) {
-            newActiveProducts.push(activeProduct);
-          }
-        } catch (error) {
-          console.error('Unable to read uploaded file', error);
-          if (!imageError) {
-            setImageError('We could not process one of the uploaded files.');
-          }
-        }
-      }
-
-      if (!processedAssets.length) {
-        return;
-      }
-
-      setProductAssets(prev => [...prev, ...processedAssets]);
-      setActiveProducts(prev => {
-        const existingIds = new Set(prev.map(product => product.id));
-        const additions = newActiveProducts.filter(product => !existingIds.has(product.id));
-        const next = [...prev, ...additions];
-        if (!next.length && processedAssets.length) {
-          const fallback = buildActiveProductFromAsset(processedAssets[0]);
-          if (fallback) {
-            return [fallback];
-          }
-        }
-        return next;
-      });
-
-      advanceOnboardingFromStep(2);
+      setProductAssets(prev => [...prev, asset]);
     },
-    [resetOutputs, advanceOnboardingFromStep, productAssets.length, imageError]
+    [userEmail]
   );
 
   const handleProductAssetSelect = useCallback(
@@ -3566,22 +3510,24 @@ const App: React.FC = () => {
       productPlane: options.productPlane,
 
       // Person
-      ageGroup: options.ageGroup,
-      gender: options.gender,
-      ethnicity: options.ethnicity,
-      skinTone: options.skinTone,
-      hairColor: options.hairColor,
-      hairStyle: options.hairStyle,
-      personPose: options.personPose,
-      personMood: options.personMood,
-      personAppearance: options.personAppearance,
-      productInteraction: options.productInteraction,
-      wardrobeStyle: options.wardrobeStyle,
-      personProps: options.personProps,
-      microLocation: options.microLocation,
-      personExpression: options.personExpression,
-      selfieType: options.selfieType,
-      eyeDirection: options.eyeDirection,
+      personDetails: {
+        ageGroup: options.ageGroup,
+        gender: options.gender,
+        ethnicity: options.ethnicity,
+        skinTone: options.skinTone,
+        hairColor: options.hairColor,
+        hairStyle: options.hairStyle,
+        personPose: options.personPose,
+        personMood: options.personMood,
+        personAppearance: options.personAppearance,
+        productInteraction: options.productInteraction,
+        wardrobeStyle: options.wardrobeStyle,
+        personProps: options.personProps,
+        microLocation: options.microLocation,
+        personExpression: options.personExpression,
+        selfieType: options.selfieType,
+        eyeDirection: options.eyeDirection,
+      },
 
       // Product
       productAssets: productAssets,
@@ -3595,6 +3541,11 @@ const App: React.FC = () => {
       heroAlignment: heroAlignment,
       heroScale: heroProductScale,
       heroShadow: heroShadow,
+
+      clothingPreset,
+      clothingQuickPreset,
+      clothingCustomImage,
+      ugcRealityPreset,
 
       compositionMode: options.compositionMode,
       bgColor: options.bgColor,
@@ -4501,583 +4452,431 @@ const App: React.FC = () => {
                 </div>
               </div>
             )}
-            <div className="grid gap-6 lg:grid-cols-3">
-              <div ref={intentRef} className="bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-4 h-full">
-                <div className="flex flex-col gap-1">
-                  <p className="text-xs uppercase tracking-widest text-indigo-300">Step 1</p>
-                  <h2 className="text-2xl font-bold text-gray-200">Choose Content Intent</h2>
-                  <p className="text-sm text-gray-400">
-                    {isProductPlacement
-                      ? 'Product Placement focuses on stylized scenes with zero people so the product stays hero.'
-                      : 'UGC Lifestyle enables authentic creator vibes, including people interacting with the product.'}
-                  </p>
-                </div>
-                <ChipSelectGroup
-                  label="Content Style"
-                  options={CONTENT_STYLE_OPTIONS}
-                  selectedValue={options.contentStyle}
-                  onChange={(value) => handleOptionChange('contentStyle', value, 'Content Intent')}
-                />
-              </div>
-              <div ref={uploadRef} className="bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-4 h-full">
-                <div className="flex flex-col gap-1">
-                  <p className="text-xs uppercase tracking-widest text-indigo-300">Step 2</p>
-                  <h2 className="text-2xl font-bold text-gray-200">
-                    {hasUploadedProduct ? 'Product Photo Ready' : 'Add Your Product Photo'}
-                  </h2>
-                  <p className="text-sm text-gray-400">
-                    {hasUploadedProduct
-                      ? 'This product image will be reused for both UGC and Product Placement. Upload again only if you want to replace it.'
-                      : 'Upload a transparent PNG, JPG, or WebP of your product to anchor every scene.'}
-                  </p>
-                </div>
-                <ImageUploader
-                  ref={uploaderRef}
-                  onImageUpload={handleImageUpload}
-                  uploadedImagePreview={uploadedImagePreview}
-                  disabled={!hasSelectedIntent}
-                  lockedMessage="Select Step 1 first to unlock uploads."
-                />
-                {productAssets.length > 0 && (
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div className="flex items-center gap-2">
-                        <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Product library</p>
-                        <span className="rounded-full border border-white/20 px-2 py-0.5 text-[11px] text-white/80">
-                          {productAssets.length}
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleLibraryAddClick}
-                        className="inline-flex items-center gap-2 rounded-full border border-white/20 px-3 py-1 text-[11px] text-gray-200 hover:border-indigo-400 hover:text-white transition"
-                      >
-                        + Add photo
-                      </button>
-                    </div>
-                    <div className="space-y-3 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
-                      {productAssets.map(asset => {
-                        const isActive = activeProducts.some(product => product.id === asset.id);
-                        return (
-                          <div
-                            key={asset.id}
-                            className={`rounded-xl border px-3 py-3 space-y-3 ${isActive ? 'border-indigo-400 bg-indigo-500/5' : 'border-white/10 bg-black/20'}`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <button
-                                type="button"
-                                onClick={() => handleProductAssetSelect(asset.id)}
-                                className={`flex flex-col text-left text-xs font-semibold ${isActive ? 'text-white' : 'text-gray-300'}`}
-                              >
-                                <span>{asset.label || 'Untitled product'}</span>
-                                <span className="text-[10px] text-gray-400">{Math.round(asset.file.size / 1024)} KB</span>
-                              </button>
-                              <div className="relative">
-                                <img src={asset.previewUrl} alt={asset.label} className="h-20 w-20 rounded-md object-cover border border-white/10" />
-                                <button
-                                  type="button"
-                                  onClick={() => handleProductAssetDelete(asset.id)}
-                                  className="absolute -right-2 -top-2 rounded-full bg-black/80 p-1 text-[10px] uppercase tracking-widest text-rose-300 hover:bg-rose-500/40"
-                                >
-                                  Remove
-                                </button>
-                              </div>
-                            </div>
-                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-                              <input
-                                type="text"
-                                value={asset.label}
-                                onChange={event => handleProductAssetLabelChange(asset.id, event.target.value)}
-                                className="flex-1 rounded-md border border-white/10 bg-black/20 px-2 py-1 text-xs text-white focus:border-indigo-400 focus:outline-none"
-                                placeholder="Name this product"
-                              />
-                              <div className="flex flex-col gap-1 text-xs text-gray-300">
-                                <input
-                                  type="number"
-                                  min="0"
-                                  step="0.1"
-                                  value={asset.heightValue ?? ''}
-                                  onChange={event => handleProductHeightChange(asset.id, event.target.value)}
-                                  className="w-full rounded-md border border-white/10 bg-black/20 px-2 py-1 text-white focus:border-indigo-400 focus:outline-none"
-                                  placeholder="Height"
-                                />
-                                <select
-                                  value={asset.heightUnit}
-                                  onChange={event => handleProductHeightUnitChange(asset.id, event.target.value as 'cm' | 'in')}
-                                  className="rounded-md border border-white/10 bg-black/20 px-2 py-1 text-white focus:border-indigo-400 focus:outline-none"
-                                >
-                                  <option value="cm">cm</option>
-                                  <option value="in">in</option>
-                                </select>
-                              </div>
-                              {productAssets.length > 1 && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleProductAssetSelect(asset.id)}
-                                  className={`rounded-full border px-3 py-1 text-[11px] ${isActive ? 'border-indigo-400 text-white' : 'border-white/20 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
-                                >
-                                  {isActive ? 'Active' : 'Use'}
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                      <button
-                        type="button"
-                        onClick={handleLibraryAddClick}
-                        className="w-full rounded-xl border border-dashed border-white/20 bg-black/10 px-3 py-3 text-left text-xs text-gray-400 hover:border-indigo-400 hover:text-white transition"
-                      >
-                        <p className="text-sm font-semibold text-white">+ Add another photo</p>
-                        <p className="text-[11px] text-gray-500">Drop a batch of files or tap to keep building your library.</p>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-              {/* MoodReferencePanel temporarily hidden per request */}
-              <div className="flex flex-col gap-3">
-                <ModelReferencePanel
-                  onFileSelect={handleModelReferenceUpload}
-                  previewUrl={modelReferencePreview}
-                  notes={modelReferenceNotes}
-                  onNotesChange={setModelReferenceNotes}
-                  onClear={handleClearModelReference}
-                  disabled={!hasUploadedProduct || isProductPlacement}
-                  lockedMessage={
-                    !hasUploadedProduct
-                      ? "Upload your product image first to attach a model."
-                      : 'Model references are only available in UGC Lifestyle scenes with a person enabled. Switch out of Product Placement and pick an age group to unlock this.'
-                  }
-                />
-                {hasModelReference && (
-                  <div className="rounded-2xl border border-white/10 bg-black/30 p-4 space-y-2 text-sm">
-                    <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Composition Mode</p>
-                    <select
-                      value={compositionMode}
-                      onChange={event => setCompositionMode(event.target.value as CompositionMode)}
-                      className="w-full rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                    >
-                      <option value="balanced">Balanced</option>
-                      <option value="product-first">Product First</option>
-                      <option value="model-first">Model First</option>
-                      <option value="fifty-fifty">Fifty / Fifty</option>
-                    </select>
-                    <p className="text-[11px] text-gray-400">
-                      Control which subject leads the frame while keeping both elements physically integrated.
+            <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-8 h-full">
+              <div className="flex flex-col gap-8 overflow-y-auto h-full pr-4 custom-scrollbar">
+                <div ref={intentRef} className="bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-4">
+                  <div className="flex flex-col gap-1">
+                    <p className="text-xs uppercase tracking-widest text-indigo-300">Step 1</p>
+                    <h2 className="text-2xl font-bold text-gray-200">Choose Content Intent</h2>
+                    <p className="text-sm text-gray-400">
+                      {isProductPlacement
+                        ? 'Product Placement focuses on stylized scenes with zero people so the product stays hero.'
+                        : 'UGC Lifestyle enables authentic creator vibes, including people interacting with the product.'}
                     </p>
                   </div>
-                )}
-                {hasUploadedProduct && !personInScene && !isProductPlacement && !hasModelReference && (
-                  <p className="text-xs text-amber-300">
-                    Model references only apply when this scene uses UGC Lifestyle with a person selected. Switch off Product Placement and choose an age so the same talent can carry across your morning/afternoon/night shots.
-                  </p>
-                )}
-              </div>
-            </div>
-            <fieldset disabled={!hasUploadedProduct || isTrialLocked} className="contents">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Controls Column */}
-                <div ref={customizeRef} className={`lg:col-span-1 bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col max-h-[calc(100vh-12rem)] ${!hasUploadedProduct ? 'opacity-60' : ''}`}>
-                  <div className="mb-4 border-b border-gray-600 pb-3 flex-shrink-0">
-                    <p className="text-xs uppercase tracking-widest text-indigo-300">Step 3</p>
-                    <h2 className="text-2xl font-bold text-gray-200">Customize Your Mockup</h2>
-                  </div>
+                  <ChipSelectGroup
+                    label="Content Style"
+                    options={CONTENT_STYLE_OPTIONS}
+                    selectedValue={options.contentStyle}
+                    onChange={(value) => handleOptionChange('contentStyle', value, 'Content Intent')}
+                  />
+                </div>
 
-                  <div className={`flex-grow overflow-y-auto custom-scrollbar -mr-4 pr-4 ${!hasUploadedProduct ? 'pointer-events-none' : ''}`}>
-                    <div id={getSectionId('Scene & Environment')}>
-                      <Accordion
-                        title="Scene & Environment"
-                        isOpen={openAccordion === 'Scene & Environment'}
-                        onToggle={() => handleToggleAccordion('Scene & Environment')}
-                      >
-                        <div className="space-y-4">
-                          <ChipSelectGroup
-                            label="Location / Setting"
-                            options={SETTING_OPTIONS}
-                            selectedValue={options.setting}
-                            onChange={(value) => handleOptionChange('setting', value, 'Scene & Environment')}
-                            allowCustom
-                            customLabel="Custom setting"
-                            customPlaceholder="Describe the location"
-                          />
-                          <ChipSelectGroup
-                            label="Environment Order"
-                            options={ENVIRONMENT_ORDER_OPTIONS}
-                            selectedValue={options.environmentOrder}
-                            onChange={(value) => handleOptionChange('environmentOrder', value, 'Scene & Environment')}
-                            allowCustom
-                            customLabel="Custom environment"
-                            customPlaceholder="Describe the vibe"
-                          />
-                          <ChipSelectGroup
-                            label="Composition Mode"
-                            options={COMPOSITION_MODE_OPTIONS}
-                            selectedValue={options.compositionMode}
-                            onChange={(value) => handleOptionChange('compositionMode', value, 'Scene & Environment')}
-                          />
-                          <ChipSelectGroup
-                            label="Creation Mode"
-                            options={CREATION_MODE_OPTIONS}
-                            selectedValue={options.creationMode}
-                            onChange={(value) => handleOptionChange('creationMode', value, 'Scene & Product')}
-                          />
-                          {options.compositionMode === 'ecom-blank' && (
-                            <>
-                              <ChipSelectGroup
-                                label="Side Placement"
-                                options={SIDE_PLACEMENT_OPTIONS}
-                                selectedValue={options.sidePlacement}
-                                onChange={(value) => handleOptionChange('sidePlacement', value, 'Scene & Environment')}
-                              />
-                              <div className="flex flex-col gap-2 mt-4">
-                                <label className="text-sm font-medium">Background Color</label>
-                                <input
-                                  type="color"
-                                  value={options.bgColor}
-                                  onChange={event =>
-                                    applyOptionsUpdate(prev => ({ ...prev, bgColor: event.target.value }))
-                                  }
-                                  className="h-10 w-16 rounded cursor-pointer border border-gray-600"
-                                />
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      </Accordion>
+                <fieldset disabled={!hasUploadedProduct || isTrialLocked} className="contents">
+                  <div
+                    ref={customizeRef}
+                    className={`bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-6 ${!hasUploadedProduct ? 'opacity-60 pointer-events-none' : ''}`}
+                  >
+                    <div className="border-b border-gray-600 pb-3">
+                      <p className="text-xs uppercase tracking-widest text-indigo-300">Step 3</p>
+                      <h2 className="text-2xl font-bold text-gray-200">Customize Your Mockup</h2>
                     </div>
-                    {isProductPlacement && (
-                      <div id={getSectionId('Product Details')}>
-                        <Accordion
-                          title="Product Details"
-                          isOpen={openAccordion === 'Product Details'}
-                          onToggle={() => handleToggleAccordion('Product Details')}
-                        >
+
+                    <div className="space-y-6">
+                      <div id={getSectionId('Scene & Environment')}>
+                        <Accordion title="Scene & Environment">
                           <div className="space-y-4">
                             <ChipSelectGroup
-                              label="Product Material"
-                              options={PRODUCT_MATERIAL_OPTIONS}
-                              selectedValue={options.productMaterial}
-                              onChange={(value) => handleOptionChange('productMaterial', value, 'Product Details')}
+                              label="Location / Setting"
+                              options={SETTING_OPTIONS}
+                              selectedValue={options.setting}
+                              onChange={(value) => handleOptionChange('setting', value, 'Scene & Environment')}
                               allowCustom
-                              customLabel="Custom material"
-                              customPlaceholder="Describe the finish"
+                              customLabel="Custom setting"
+                              customPlaceholder="Describe the location"
                             />
                             <ChipSelectGroup
-                              label="Product Plane"
-                              options={PRODUCT_PLANE_OPTIONS}
-                              selectedValue={options.productPlane}
-                              onChange={(value) => handleOptionChange('productPlane', value, 'Product Details')}
+                              label="Environment Order"
+                              options={ENVIRONMENT_ORDER_OPTIONS}
+                              selectedValue={options.environmentOrder}
+                              onChange={(value) => handleOptionChange('environmentOrder', value, 'Scene & Environment')}
                               allowCustom
-                              customLabel="Custom composition"
-                              customPlaceholder="Describe the depth placement"
-                            />
-                            <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3 text-xs text-gray-300">
-                              <div className="flex items-center justify-between gap-2">
-                                <div>
-                                  <p className="uppercase tracking-[0.3em] text-indigo-200">Packaging kit</p>
-                                  <p className="text-gray-400 mt-1">Keep the entire box and inserts visible in every render.</p>
-                                </div>
-                                <label className="relative inline-flex cursor-pointer items-center gap-2">
-                                  <input
-                                    type="checkbox"
-                                    className="sr-only"
-                                    checked={isMultiProductPackaging}
-                                    onChange={event => setIsMultiProductPackaging(event.target.checked)}
-                                    aria-label="Packaging contains multiple products"
-                                  />
-                                  <div
-                                    className={`relative h-5 w-10 rounded-full transition ${isMultiProductPackaging ? 'bg-indigo-500' : 'bg-gray-700'
-                                      }`}
-                                  >
-                                    <span
-                                      className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${isMultiProductPackaging ? 'translate-x-4' : ''
-                                        }`}
-                                    />
-                                  </div>
-                                  <span className={`text-xs font-semibold ${isMultiProductPackaging ? 'text-indigo-200' : 'text-gray-500'}`}>
-                                    {isMultiProductPackaging ? 'Active' : 'Off'}
-                                  </span>
-                                </label>
-                              </div>
-                            </div>
-                            <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-2">
-                              <div className="flex flex-wrap items-center justify-between gap-2">
-                                <div>
-                                  <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Supplement photo modes</p>
-                                  <p className="text-[11px] text-gray-400">Preset palettes inspired by top supplement launches.</p>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => handleSupplementPresetSelect('none')}
-                                  className="rounded-full border border-white/15 px-3 py-1 text-xs text-gray-300 hover:border-indigo-400 hover:text-white"
-                                >
-                                  Clear
-                                </button>
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                {normalizedSupplementPresets.map(preset => (
-                                  <button
-                                    key={preset.value}
-                                    type="button"
-                                    onClick={() => handleSupplementPresetSelect(preset.value)}
-                                    className={`rounded-full border px-3 py-1 text-xs transition ${activeSupplementPreset === preset.value
-                                      ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                                      : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
-                                      }`}
-                                    title={preset.description}
-                                  >
-                                    <div className="flex items-center gap-1 relative group">
-                                      <span>{preset.label}</span>
-                                      {preset.tooltip && (
-                                        <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
-                                          ⓘ
-                                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/90 text-white text-xs p-2 rounded shadow-lg w-44">
-                                            {preset.tooltip}
-                                          </div>
-                                        </span>
-                                      )}
-                                    </div>
-                                  </button>
-                                ))}
-                              </div>
-                              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                <div className="flex flex-col gap-1">
-                                  <label className="text-xs uppercase tracking-widest text-gray-500">Background color</label>
-                                  <input
-                                    type="text"
-                                    value={supplementBackgroundColor}
-                                    onChange={event => setSupplementBackgroundColor(event.target.value)}
-                                    placeholder="e.g., #FFB347 or pastel peach"
-                                    className="rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                                  />
-                                </div>
-                                <div className="flex flex-col gap-1">
-                                  <label className="text-xs uppercase tracking-widest text-gray-500">Accent color / props</label>
-                                  <input
-                                    type="text"
-                                    value={supplementAccentColor}
-                                    onChange={event => setSupplementAccentColor(event.target.value)}
-                                    placeholder="e.g., teal acrylic cube"
-                                    className="rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                                  />
-                                </div>
-                              </div>
-                              {isHeroLandingMode && (
-                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                  <div className="flex flex-col gap-1">
-                                    <label className="text-xs uppercase tracking-widest text-gray-500">Product alignment</label>
-                                    <div className="flex flex-wrap gap-2">
-                                      {HERO_ALIGNMENT_OPTIONS.map(option => (
-                                        <button
-                                          key={option.value}
-                                          type="button"
-                                          onClick={() => setHeroProductAlignment(option.value)}
-                                          className={`rounded-full border px-3 py-1 text-xs transition ${heroProductAlignment === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
-                                        >
-                                          {option.label}
-                                        </button>
-                                      ))}
-                                    </div>
-                                  </div>
-                                  <div className="flex flex-col gap-1">
-                                    <label className="text-xs uppercase tracking-widest text-gray-500">Product scale</label>
-                                    <input
-                                      type="number"
-                                      min="0.5"
-                                      max="2"
-                                      step="0.05"
-                                      value={heroProductScale}
-                                      onChange={event => {
-                                        const value = Number.parseFloat(event.target.value);
-                                        if (Number.isNaN(value)) return;
-                                        setHeroProductScale(Math.max(0.3, Math.min(3, value)));
-                                      }}
-                                      className="rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                                    />
-                                    <p className="text-[11px] text-gray-500">1 = original sizing. Increase for bolder hero presence.</p>
-                                  </div>
-                                  <div className="flex flex-col gap-1 sm:col-span-2">
-                                    <label className="text-xs uppercase tracking-widest text-gray-500">Shadow style</label>
-                                    <div className="flex flex-wrap gap-2">
-                                      {HERO_SHADOW_OPTIONS.map(option => (
-                                        <button
-                                          key={option.value}
-                                          type="button"
-                                          onClick={() => setHeroShadowStyle(option.value)}
-                                          className={`rounded-full border px-3 py-1 text-xs transition ${heroShadowStyle === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
-                                        >
-                                          {option.label}
-                                        </button>
-                                      ))}
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                              {renderFormulationStoryPanel('product')}
-                              <div className="flex flex-col gap-2">
-                                <label className="text-xs uppercase tracking-widest text-gray-500">Flavor / ingredient props</label>
-                                <textarea
-                                  value={supplementFlavorNotes}
-                                  onChange={event => setSupplementFlavorNotes(event.target.value)}
-                                  placeholder="e.g., pineapple, lavender sprigs, gummy vitamins"
-                                  className="rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                                  rows={2}
-                                />
-                              </div>
-                              <div className="flex flex-col gap-2">
-                                <label className="text-xs uppercase tracking-widest text-gray-500">Custom hero cue</label>
-                                <textarea
-                                  value={supplementCustomPrompt}
-                                  onChange={event => setSupplementCustomPrompt(event.target.value)}
-                                  placeholder="e.g., have a manicured hand toss gummies mid-air beside the bottle"
-                                  className="rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                                  rows={2}
-                                />
-                                <p className="text-[11px] text-gray-500">We append this line directly to the prompt so you can call out extra beats (hands, props, typography, etc.).</p>
-                              </div>
-                              <label className="flex items-center gap-2 text-xs text-gray-300">
-                                <input
-                                  type="checkbox"
-                                  className="h-4 w-4 rounded border-gray-600 bg-gray-900 text-indigo-500 focus:ring-indigo-400"
-                                  checked={includeSupplementHand}
-                                  onChange={event => setIncludeSupplementHand(event.target.checked)}
-                                />
-                                Include a cropped hand interacting with the product
-                              </label>
-                            </div>
-                            <ChipSelectGroup
-                              label="Studio Setup"
-                              options={PLACEMENT_STYLE_OPTIONS}
-                              selectedValue={options.placementStyle}
-                              onChange={(value) => handleOptionChange('placementStyle', value, 'Product Details')}
+                              customLabel="Custom environment"
+                              customPlaceholder="Describe the vibe"
                             />
                             <ChipSelectGroup
-                              label="Hero Camera Rig"
-                              options={PLACEMENT_CAMERA_OPTIONS}
-                              selectedValue={options.placementCamera}
-                              onChange={(value) => handleOptionChange('placementCamera', value, 'Product Details')}
+                              label="Composition Mode"
+                              options={COMPOSITION_MODE_OPTIONS}
+                              selectedValue={options.compositionMode}
+                              onChange={(value) => handleOptionChange('compositionMode', value, 'Scene & Environment')}
                             />
-                            <div className="rounded-2xl border border-white/10 bg-gray-900/40 p-4 space-y-4">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Pro photographer mode</p>
-                                  <p className="text-xs text-gray-400">Unlock lens + lighting controls for hero product shoots.</p>
-                                </div>
-                                <label className="relative inline-flex cursor-pointer items-center gap-2">
+                            <ChipSelectGroup
+                              label="Creation Mode"
+                              options={CREATION_MODE_OPTIONS}
+                              selectedValue={options.creationMode}
+                              onChange={(value) => handleOptionChange('creationMode', value, 'Scene & Product')}
+                            />
+                            {options.compositionMode === 'ecom-blank' && (
+                              <>
+                                <ChipSelectGroup
+                                  label="Side Placement"
+                                  options={SIDE_PLACEMENT_OPTIONS}
+                                  selectedValue={options.sidePlacement}
+                                  onChange={(value) => handleOptionChange('sidePlacement', value, 'Scene & Environment')}
+                                />
+                                <div className="flex flex-col gap-2 mt-4">
+                                  <label className="text-sm font-medium">Background Color</label>
                                   <input
-                                    type="checkbox"
-                                    className="sr-only"
-                                    checked={isProPhotographer}
-                                    onChange={handleProPhotographerToggle}
-                                  />
-                                  <div
-                                    className={`relative h-5 w-10 rounded-full transition ${isProPhotographer ? 'bg-indigo-500' : 'bg-gray-700'
-                                      }`}
-                                  >
-                                    <span
-                                      className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${isProPhotographer ? 'translate-x-4' : ''
-                                        }`}
-                                    />
-                                  </div>
-                                  <span className={`text-xs font-semibold ${isProPhotographer ? 'text-indigo-200' : 'text-gray-500'}`}>
-                                    {isProPhotographer ? 'Active' : 'Off'}
-                                  </span>
-                                </label>
-                              </div>
-                              {isProPhotographer && (
-                                <div className="space-y-3">
-                                  <div className="flex flex-wrap gap-2">
-                                    {PRO_LOOK_PRESETS.map(preset => (
-                                      <button
-                                        key={preset.value}
-                                        type="button"
-                                        onClick={() => handleProPresetSelect(preset.value)}
-                                        className={`rounded-full border px-3 py-1 text-xs transition ${activeProPreset === preset.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
-                                      >
-                                        {preset.label}
-                                      </button>
-                                    ))}
-                                    <button
-                                      type="button"
-                                      onClick={() => handleProPresetSelect('custom')}
-                                      className={`rounded-full border px-3 py-1 text-xs transition ${activeProPreset === 'custom' ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
-                                    >
-                                      Custom build
-                                    </button>
-                                  </div>
-                                  <ChipSelectGroup
-                                    label="Lens"
-                                    options={PRO_LENS_OPTIONS}
-                                    selectedValue={options.proLens ?? ''}
-                                    onChange={(value) => handleOptionChange('proLens', value, 'Product Details')}
-                                    labelTooltip="Pick a lens profile (focal length/optics) to define depth of field and hero perspective."
-                                    allowCustom
-                                    customLabel="Custom lens"
-                                    customPlaceholder="Describe the lens setup"
-                                  />
-                                  <ChipSelectGroup
-                                    label="Lighting Rig"
-                                    options={PRO_LIGHTING_RIG_OPTIONS}
-                                    selectedValue={options.proLightingRig ?? ''}
-                                    onChange={(value) => handleOptionChange('proLightingRig', value, 'Product Details')}
-                                    labelTooltip="Select your lighting kit to craft reflections, gradients, and the overall mood."
-                                    allowCustom
-                                    customLabel="Custom rig"
-                                    customPlaceholder="Describe the lighting rig"
-                                  />
-                                  <ChipSelectGroup
-                                    label="Finish / Treatment"
-                                    options={PRO_POST_TREATMENT_OPTIONS}
-                                    selectedValue={options.proPostTreatment ?? ''}
-                                    onChange={(value) => handleOptionChange('proPostTreatment', value, 'Product Details')}
-                                    labelTooltip="Choose the finishing treatment that sets the final polish—glossy, matte, grainy, etc."
-                                    allowCustom
-                                    customLabel="Custom finish"
-                                    customPlaceholder="Describe the post treatment"
+                                    type="color"
+                                    value={options.bgColor}
+                                    onChange={event =>
+                                      applyOptionsUpdate(prev => ({ ...prev, bgColor: event.target.value }))
+                                    }
+                                    className="h-10 w-16 rounded cursor-pointer border border-gray-600"
                                   />
                                 </div>
-                              )}
-                            </div>
+                              </>
+                            )}
                           </div>
                         </Accordion>
                       </div>
-                    )}
-                    <div id={getSectionId('Photography')}>
-                      <Accordion
-                        title="Photography"
-                        isOpen={openAccordion === 'Photography'}
-                        onToggle={() => handleToggleAccordion('Photography')}
-                      >
-                        <div className="space-y-4">
-                          <ChipSelectGroup label="Lighting" options={LIGHTING_OPTIONS} selectedValue={options.lighting} onChange={(value) => handleOptionChange('lighting', value, 'Photography')} />
-                          <ChipSelectGroup label="Camera Type" options={CAMERA_OPTIONS} selectedValue={options.camera} onChange={(value) => handleOptionChange('camera', value, 'Photography')} />
-                          <ChipSelectGroup label="Aspect Ratio" options={ASPECT_RATIO_OPTIONS} selectedValue={options.aspectRatio} onChange={(value) => handleOptionChange('aspectRatio', value, 'Photography')} />
-                          {!isSimpleMode && (
-                            <>
-                              <ChipSelectGroup label="Perspective" options={PERSPECTIVE_OPTIONS} selectedValue={options.perspective} onChange={(value) => handleOptionChange('perspective', value, 'Photography')} />
-                              <ChipSelectGroup label="Realism / Imperfections" options={REALISM_OPTIONS} selectedValue={options.realism} onChange={(value) => handleOptionChange('realism', value, 'Photography')} />
-                            </>
-                          )}
+                      {isProductPlacement && (
+                        <div id={getSectionId('Product Details')}>
+                          <Accordion title="Product Details">
+                            <div className="space-y-4">
+                              <ChipSelectGroup
+                                label="Product Material"
+                                options={PRODUCT_MATERIAL_OPTIONS}
+                                selectedValue={options.productMaterial}
+                                onChange={(value) => handleOptionChange('productMaterial', value, 'Product Details')}
+                                allowCustom
+                                customLabel="Custom material"
+                                customPlaceholder="Describe the finish"
+                              />
+                              <ChipSelectGroup
+                                label="Product Plane"
+                                options={PRODUCT_PLANE_OPTIONS}
+                                selectedValue={options.productPlane}
+                                onChange={(value) => handleOptionChange('productPlane', value, 'Product Details')}
+                                allowCustom
+                                customLabel="Custom composition"
+                                customPlaceholder="Describe the depth placement"
+                              />
+                              <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3 text-xs text-gray-300">
+                                <div className="flex items-center justify-between gap-2">
+                                  <div>
+                                    <p className="uppercase tracking-[0.3em] text-indigo-200">Packaging kit</p>
+                                    <p className="text-gray-400 mt-1">Keep the entire box and inserts visible in every render.</p>
+                                  </div>
+                                  <label className="relative inline-flex cursor-pointer items-center gap-2">
+                                    <input
+                                      type="checkbox"
+                                      className="sr-only"
+                                      checked={isMultiProductPackaging}
+                                      onChange={event => setIsMultiProductPackaging(event.target.checked)}
+                                      aria-label="Packaging contains multiple products"
+                                    />
+                                    <div
+                                      className={`relative h-5 w-10 rounded-full transition ${isMultiProductPackaging ? 'bg-indigo-500' : 'bg-gray-700'}`}
+                                    >
+                                      <span
+                                        className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${isMultiProductPackaging ? 'translate-x-4' : ''}`}
+                                      />
+                                    </div>
+                                    <span className={`text-xs font-semibold ${isMultiProductPackaging ? 'text-indigo-200' : 'text-gray-500'}`}>
+                                      {isMultiProductPackaging ? 'Active' : 'Off'}
+                                    </span>
+                                  </label>
+                                </div>
+                              </div>
+                              <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-2">
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                  <div>
+                                    <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Supplement photo modes</p>
+                                    <p className="text-[11px] text-gray-400">Preset palettes inspired by top supplement launches.</p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSupplementPresetSelect('none')}
+                                    className="rounded-full border border-white/15 px-3 py-1 text-xs text-gray-300 hover:border-indigo-400 hover:text-white"
+                                  >
+                                    Clear
+                                  </button>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                  {normalizedSupplementPresets.map(preset => (
+                                    <button
+                                      key={preset.value}
+                                      type="button"
+                                      onClick={() => handleSupplementPresetSelect(preset.value)}
+                                      className={`rounded-full border px-3 py-1 text-xs transition ${activeSupplementPreset === preset.value
+                                        ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                                        : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
+                                        }`}
+                                      title={preset.description}
+                                    >
+                                      <div className="flex items-center gap-1 relative group">
+                                        <span>{preset.label}</span>
+                                        {preset.tooltip && (
+                                          <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
+                                            ⓘ
+                                            <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                                              {preset.tooltip}
+                                            </div>
+                                          </span>
+                                        )}
+                                      </div>
+                                    </button>
+                                  ))}
+                                </div>
+                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                  <div className="flex flex-col gap-1">
+                                    <label className="text-xs uppercase tracking-widest text-gray-500">Background color</label>
+                                    <input
+                                      type="text"
+                                      value={supplementBackgroundColor}
+                                      onChange={event => setSupplementBackgroundColor(event.target.value)}
+                                      placeholder="e.g., #FFB347 or pastel peach"
+                                      className="rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                                    />
+                                  </div>
+                                  <div className="flex flex-col gap-1">
+                                    <label className="text-xs uppercase tracking-widest text-gray-500">Accent color / props</label>
+                                    <input
+                                      type="text"
+                                      value={supplementAccentColor}
+                                      onChange={event => setSupplementAccentColor(event.target.value)}
+                                      placeholder="e.g., teal acrylic cube"
+                                      className="rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                                    />
+                                  </div>
+                                </div>
+                                {isHeroLandingMode && (
+                                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                    <div className="flex flex-col gap-1">
+                                      <label className="text-xs uppercase tracking-widest text-gray-500">Product alignment</label>
+                                      <div className="flex flex-wrap gap-2">
+                                        {HERO_ALIGNMENT_OPTIONS.map(option => (
+                                          <button
+                                            key={option.value}
+                                            type="button"
+                                            onClick={() => setHeroProductAlignment(option.value)}
+                                            className={`rounded-full border px-3 py-1 text-xs transition ${heroProductAlignment === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+                                          >
+                                            {option.label}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                      <label className="text-xs uppercase tracking-widest text-gray-500">Product scale</label>
+                                      <input
+                                        type="number"
+                                        min="0.5"
+                                        max="2"
+                                        step="0.05"
+                                        value={heroProductScale}
+                                        onChange={event => {
+                                          const value = Number.parseFloat(event.target.value);
+                                          if (Number.isNaN(value)) return;
+                                          setHeroProductScale(Math.max(0.3, Math.min(3, value)));
+                                        }}
+                                        className="rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                                      />
+                                      <p className="text-[11px] text-gray-500">1 = original sizing. Increase for bolder hero presence.</p>
+                                    </div>
+                                    <div className="flex flex-col gap-1 sm:col-span-2">
+                                      <label className="text-xs uppercase tracking-widest text-gray-500">Shadow style</label>
+                                      <div className="flex flex-wrap gap-2">
+                                        {HERO_SHADOW_OPTIONS.map(option => (
+                                          <button
+                                            key={option.value}
+                                            type="button"
+                                            onClick={() => setHeroShadowStyle(option.value)}
+                                            className={`rounded-full border px-3 py-1 text-xs transition ${heroShadowStyle === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+                                          >
+                                            {option.label}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                                {renderFormulationStoryPanel('product')}
+                                <div className="flex flex-col gap-2">
+                                  <label className="text-xs uppercase tracking-widest text-gray-500">Flavor / ingredient props</label>
+                                  <textarea
+                                    value={supplementFlavorNotes}
+                                    onChange={event => setSupplementFlavorNotes(event.target.value)}
+                                    placeholder="e.g., pineapple, lavender sprigs, gummy vitamins"
+                                    className="rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                                    rows={2}
+                                  />
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                  <label className="text-xs uppercase tracking-widest text-gray-500">Custom hero cue</label>
+                                  <textarea
+                                    value={supplementCustomPrompt}
+                                    onChange={event => setSupplementCustomPrompt(event.target.value)}
+                                    placeholder="e.g., have a manicured hand toss gummies mid-air beside the bottle"
+                                    className="rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                                    rows={2}
+                                  />
+                                  <p className="text-[11px] text-gray-500">Add any specific staging or stylistic callouts for this product.</p>
+                                </div>
+                              </div>
+                            </div>
+                          </Accordion>
                         </div>
-                      </Accordion>
+                      )}
+                      <div id={getSectionId('Photography')}>
+                        <Accordion title="Photography">
+                          <div className="space-y-4">
+                            <ChipSelectGroup label="Lighting" options={LIGHTING_OPTIONS} selectedValue={options.lighting} onChange={(value) => handleOptionChange('lighting', value, 'Photography')} />
+                            <ChipSelectGroup label="Camera Type" options={CAMERA_OPTIONS} selectedValue={options.camera} onChange={(value) => handleOptionChange('camera', value, 'Photography')} />
+                            <ChipSelectGroup label="Aspect Ratio" options={ASPECT_RATIO_OPTIONS} selectedValue={options.aspectRatio} onChange={(value) => handleOptionChange('aspectRatio', value, 'Photography')} />
+                            {!isSimpleMode && (
+                              <>
+                                <ChipSelectGroup label="Perspective" options={PERSPECTIVE_OPTIONS} selectedValue={options.perspective} onChange={(value) => handleOptionChange('perspective', value, 'Photography')} />
+                                <ChipSelectGroup label="Realism / Imperfections" options={REALISM_OPTIONS} selectedValue={options.realism} onChange={(value) => handleOptionChange('realism', value, 'Photography')} />
+                              </>
+                            )}
+                          </div>
+                        </Accordion>
+                      </div>
+                      {renderPersonDetailsSection()}
+                      {renderBundlesSection()}
                     </div>
-                    {renderPersonDetailsSection()}
-                    {renderBundlesSection()}
+                    <div className="pt-2">
+                      <button
+                        onClick={() => handleGenerateClick()}
+                        disabled={isImageLoading || !uploadedImageFile}
+                        className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-900/50 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+                      >
+                        {isImageLoading ? 'Generating...' : 'Generate Mockup'}
+                      </button>
+                    </div>
                   </div>
-                  <div className="mt-8 flex-shrink-0">
-                    <button
-                      onClick={() => handleGenerateClick()}
-                      disabled={isImageLoading || !uploadedImageFile}
-                      className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-900/50 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
-                    >
-                      {isImageLoading ? 'Generating...' : 'Generate Mockup'}
-                    </button>
+                </fieldset>
+              </div>
+
+              <div className="flex flex-col gap-8 pr-4 h-full overflow-y-auto custom-scrollbar">
+                <div ref={uploadRef} className="rounded-2xl border border-white/10 bg-gray-900/40 p-4 space-y-3">
+                  <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Step 2</p>
+                  <h2 className="text-xl font-bold text-gray-200">Product Photos</h2>
+                  <div
+                    className={`border border-dashed border-white/20 rounded-xl bg-black/20 p-6 flex flex-col items-center justify-center cursor-pointer hover:border-indigo-400 transition ${!hasSelectedIntent ? 'opacity-60 cursor-not-allowed' : ''}`}
+                    onClick={() => {
+                      if (!hasSelectedIntent) return;
+                      handleLibraryAddClick();
+                    }}
+                    onDragOver={event => event.preventDefault()}
+                    onDrop={event => {
+                      event.preventDefault();
+                      if (!hasSelectedIntent) return;
+                      const file = event.dataTransfer.files?.[0];
+                      if (file) {
+                        handleImageUpload(file);
+                      }
+                    }}
+                  >
+                    <div className="text-center text-gray-300 space-y-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-10 w-10 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      </svg>
+                      <p className="text-sm text-gray-300">Drop your product photo here</p>
+                      {!hasSelectedIntent && <p className="text-xs text-amber-200">Select Step 1 first to unlock uploads.</p>}
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400">
+                    Tip: upload multiple images to swap products easily.
+                  </p>
+                  <div className="sr-only">
+                    <ImageUploader
+                      ref={uploaderRef}
+                      onImageUpload={handleImageUpload}
+                      uploadedImagePreview={uploadedImagePreview}
+                      disabled={!hasSelectedIntent}
+                      lockedMessage="Select Step 1 first to unlock uploads."
+                    />
                   </div>
                 </div>
 
-                {/* Visuals Column */}
-                <div className="lg:col-span-2 flex flex-col gap-8">
+                <div className="rounded-2xl border border-white/10 bg-gray-900/60 p-4 space-y-3">
+                  <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Product Library</p>
+                  {productAssets.length === 0 ? (
+                    <p className="text-sm text-gray-400">Upload product photos to build your library.</p>
+                  ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {productAssets.map(asset => {
+                        const imageSrc = asset.imageUrl?.length ? asset.imageUrl : asset.previewUrl;
+                        const isActive = activeProducts.some(product => product.id === asset.id);
+                        return (
+                          <button
+                            key={asset.id}
+                            type="button"
+                            onClick={() => handleProductAssetSelect(asset.id)}
+                            className="text-center text-xs text-gray-300 focus:outline-none"
+                          >
+                            <div className={`relative h-32 w-full overflow-hidden rounded-xl border ${isActive ? 'border-indigo-400' : 'border-white/10'} bg-black/20`}>
+                              {imageSrc && imageSrc.length > 5 ? (
+                                <img
+                                  src={imageSrc}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="absolute inset-0 flex items-center justify-center text-[10px] text-amber-200">
+                                  Upload to fill
+                                </div>
+                              )}
+                            </div>
+                            <p className="mt-1 text-[11px]">{asset.label || 'Product'}</p>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <ModelReferencePanel
+                    onFileSelect={handleModelReferenceUpload}
+                    previewUrl={modelReferencePreview}
+                    notes={modelReferenceNotes}
+                    onNotesChange={setModelReferenceNotes}
+                    onClear={handleClearModelReference}
+                    disabled={!hasUploadedProduct || isProductPlacement}
+                    lockedMessage={
+                      !hasUploadedProduct
+                        ? "Upload your product image first to attach a model."
+                        : 'Model references are only available in UGC Lifestyle scenes with a person enabled. Switch out of Product Placement and pick an age group to unlock this.'
+                    }
+                  />
+                  {hasModelReference && (
+                    <div className="rounded-2xl border border-white/10 bg-black/30 p-4 space-y-2 text-sm">
+                      <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Composition Mode</p>
+                      <select
+                        value={compositionMode}
+                        onChange={event => setCompositionMode(event.target.value as CompositionMode)}
+                        className="w-full rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                      >
+                        <option value="balanced">Balanced</option>
+                        <option value="product-first">Product First</option>
+                        <option value="model-first">Model First</option>
+                        <option value="fifty-fifty">Fifty / Fifty</option>
+                      </select>
+                      <p className="text-[11px] text-gray-400">
+                        Control which subject leads the frame while keeping both elements physically integrated.
+                      </p>
+                    </div>
+                  )}
+                  {hasUploadedProduct && !personInScene && !isProductPlacement && !hasModelReference && (
+                    <p className="text-xs text-amber-300">
+                      Model references only apply when this scene uses UGC Lifestyle with a person selected. Switch off Product Placement and choose an age so the same talent can carry across your morning/afternoon/night shots.
+                    </p>
+                  )}
+                </div>
+                <div className="relative rounded-2xl border border-white/10 bg-gray-900/70 p-4 flex flex-col gap-6 min-h-[460px]">
                   <GeneratedImage
                     imageUrl={generatedImageUrl}
                     fourKVariant={fourKVariant}
@@ -5121,7 +4920,7 @@ const App: React.FC = () => {
                   )}
                 </div>
               </div>
-            </fieldset>
+            </div>
           </main>
         </div >
       </div >

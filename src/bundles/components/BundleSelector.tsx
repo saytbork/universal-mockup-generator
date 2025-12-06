@@ -13,24 +13,32 @@ const BundleSelector: React.FC<BundleSelectorProps> = ({
   onGenerate,
   productMediaLibrary,
   visibleProductIds,
-  activeProductCount,
+  activeProductCount: _activeProductCount,
 }) => {
   const bundleEntries = useMemo(() => Object.entries(PREMADE_BUNDLES), []);
   const [activeKey, setActiveKey] = useState(bundleEntries[0]?.[0] ?? '');
 
   const activeBundle = activeKey ? PREMADE_BUNDLES[activeKey] : null;
-  const visibleSet = useMemo(() => new Set(visibleProductIds), [visibleProductIds]);
-  const visibleProducts = activeBundle?.products.filter(id => visibleSet.has(id)) ?? [];
-  const needMoreProducts = activeProductCount < 2;
+  const filledSet = useMemo(
+    () =>
+      new Set(
+        Object.entries(productMediaLibrary)
+          .filter(([, meta]) => Boolean(meta?.imageUrl && meta.imageUrl.length > 0))
+          .map(([id]) => id as ProductId)
+      ),
+    [productMediaLibrary]
+  );
+  const visibleProducts = activeBundle?.products.filter(id => filledSet.has(id)) ?? [];
+  const needMoreProducts = filledSet.size < 2;
   const bundleDisabled = needMoreProducts || !visibleProducts.length;
   const slotProducts = useMemo(() => {
     if (!activeBundle) return [];
     return activeBundle.products.map(productId => ({
       id: productId,
       meta: productMediaLibrary[productId] ?? PRODUCT_MEDIA_LIBRARY[productId],
-      filled: visibleSet.has(productId),
+      filled: Boolean(productMediaLibrary[productId]?.imageUrl && productMediaLibrary[productId]?.imageUrl.length > 0),
     }));
-  }, [activeBundle, productMediaLibrary, visibleSet]);
+  }, [activeBundle, productMediaLibrary]);
 
   const handleGenerate = () => {
     if (!activeBundle || bundleDisabled) return;
@@ -70,20 +78,13 @@ const BundleSelector: React.FC<BundleSelectorProps> = ({
               return (
                 <div key={slot.id} className="w-28 text-center text-xs text-gray-300">
                   <div className="relative h-28 w-full overflow-hidden rounded-xl border border-white/10 bg-black/20">
-                    {productMeta?.imageUrl ? (
+                    {productMeta?.imageUrl && (
                       <img
                         src={productMeta.imageUrl}
-                        alt={productMeta.label}
-                        className={`h-full w-full object-cover transition ${
-                          slot.filled ? '' : 'opacity-60'
-                        }`}
+                        className="h-full w-full object-cover"
                       />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-gray-600">
-                        {productMeta?.label || slot.id}
-                      </div>
                     )}
-                    {!slot.filled && (
+                    {!productMeta?.imageUrl && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-[10px] font-semibold text-amber-200">
                         Upload to fill
                       </div>

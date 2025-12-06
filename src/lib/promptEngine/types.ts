@@ -31,6 +31,25 @@ export interface ModelReference {
     notes?: string;
 }
 
+export interface PersonDetails {
+    ageGroup?: string;
+    gender?: string;
+    ethnicity?: string;
+    skinTone?: string;
+    hairColor?: string;
+    hairStyle?: string;
+    personPose?: string;
+    personMood?: string;
+    personAppearance?: string;
+    productInteraction?: string;
+    wardrobeStyle?: string;
+    personProps?: string;
+    microLocation?: string;
+    personExpression?: string;
+    selfieType?: string;
+    eyeDirection?: EyeDirectionKey;
+}
+
 export interface PromptOptions {
     // Core
     contentStyle: 'ugc' | 'product' | '';
@@ -46,7 +65,8 @@ export interface PromptOptions {
     productPlane: string;
 
     // Person
-    ageGroup: string;
+    personDetails?: PersonDetails;
+    ageGroup?: string;
     gender?: string;
     ethnicity?: string;
     skinTone?: string;
@@ -68,6 +88,11 @@ export interface PromptOptions {
     heightNotes?: string;
     isMultiProductPackaging?: boolean;
     bundleLabels?: string[];
+    clothingReference?: string;
+    clothingPreset?: string;
+    clothingQuickPreset?: string;
+    clothingCustomImage?: string;
+    ugcRealityPreset?: string;
 
     // Special Modes
     isHeroLandingMode?: boolean;

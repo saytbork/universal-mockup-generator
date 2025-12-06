@@ -315,10 +315,20 @@ function GallerySection({ userEmail }: { userEmail: string }) {
     let mounted = true;
     const loadGallery = async () => {
       try {
-        const { listUserGallery } = await import('../services/galleryService');
-        const userImages = await listUserGallery(userEmail);
+        const { listPublicGallery } = await import('../services/galleryService');
+        const allImages = await listPublicGallery();
+
+        const currentUserEmail = userEmail;
+        const userId = userEmail;
+
+        const userImages = allImages.filter(img =>
+          img.userId === userId ||
+          (img.userId === 'guest' && userId === currentUserEmail)
+        );
+
         if (mounted) {
           setImages(userImages);
+          console.log(`📸 Mostrando ${userImages.length} imágenes en el dashboard`);
         }
       } catch (err: any) {
         console.error('Failed to load user gallery:', err);
@@ -418,4 +428,3 @@ function GallerySection({ userEmail }: { userEmail: string }) {
     </div>
   );
 }
-

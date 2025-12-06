@@ -51,7 +51,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const { imageUrl, userId, plan, meta } = req.body || {};
 
         if (!imageUrl) return res.status(400).json({ error: "Missing imageUrl" });
-        if (!userId) return res.status(400).json({ error: "Missing userId" });
+        if (!userId || userId === 'guest') {
+          return res.status(400).json({ error: "Missing or invalid userId. Email must be loaded before saving gallery items." });
+        }
         if (!plan) return res.status(400).json({ error: "Missing plan" });
 
         // Validate imageUrl is a valid URL
@@ -127,4 +129,3 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: errorMessage });
   }
 }
-

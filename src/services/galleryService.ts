@@ -4,6 +4,10 @@
  */
 
 import axios from 'axios';
+import { getAuth } from 'firebase/auth';
+import { app } from '../firebase/firebase';
+
+const auth = getAuth(app);
 
 export interface GalleryMeta {
     width?: number;
@@ -103,7 +107,9 @@ export async function listUserGallery(userId: string): Promise<GalleryImage[]> {
         const allImages = await listPublicGallery();
 
         // Filter images by userId on client side
-        const userImages = allImages.filter(img => img.userId === userId);
+        const userImages = allImages.filter(img =>
+            img.userId === userId || (img.userId === 'guest' && userId === auth.currentUser?.email)
+        );
 
         console.log(`✅ Loaded ${userImages.length} gallery images for user ${userId}`);
         return userImages;

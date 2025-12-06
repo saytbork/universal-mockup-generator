@@ -1,7 +1,7 @@
 import React, { useCallback, useState, useImperativeHandle } from 'react';
 
 interface ImageUploaderProps {
-  onImageUpload: (files: File[]) => void;
+  onImageUpload: (file: File) => void;
   uploadedImagePreview: string | null;
   disabled?: boolean;
   lockedMessage?: string;
@@ -29,7 +29,7 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length && !disabled) {
-      onImageUpload(Array.from(e.target.files));
+      onImageUpload(e.target.files[0]);
     }
   };
 
@@ -38,7 +38,7 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
     e.stopPropagation();
     setIsDragging(false);
     if (!disabled && e.dataTransfer.files && e.dataTransfer.files.length) {
-      onImageUpload(Array.from(e.dataTransfer.files));
+      onImageUpload(e.dataTransfer.files[0]);
     }
   }, [disabled, onImageUpload]);
 

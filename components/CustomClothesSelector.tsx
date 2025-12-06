@@ -6,7 +6,7 @@ interface CustomClothesSelectorProps {
   presets: UGCCustomClothingPreset[];
   selectedPresetIds: string[];
   onTogglePreset: (id: string) => void;
-  onUpload: (file: File) => void;
+  onUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onClearUpload: () => void;
   uploadPreview: string | null;
   disabled?: boolean;
@@ -55,12 +55,7 @@ const CustomClothesSelector: React.FC<CustomClothesSelectorProps> = ({
           accept="image/*"
           className="hidden"
           disabled={disabled}
-          onChange={event => {
-            const file = event.target.files?.[0];
-            if (file) {
-              onUpload(file);
-            }
-          }}
+          onChange={onUpload}
         />
       </label>
       {uploadPreview && (

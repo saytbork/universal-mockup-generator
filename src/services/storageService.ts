@@ -125,3 +125,79 @@ export async function uploadImageWithRetry(
 
     throw lastError || new Error('Upload failed after retries');
 }
+
+/**
+ * Upload raw product asset file to Firebase Storage
+ * @param file - File object to upload
+ * @param userId - User ID for path scoping
+ * @param onUploadStart - Optional callback before upload starts
+ * @param onUploadComplete - Optional callback after upload completes
+ */
+export async function uploadProductAsset(
+    file: File,
+    userId: string,
+    onUploadStart?: () => Promise<void> | void,
+    onUploadComplete?: () => Promise<void> | void
+): Promise<{ imageUrl: string; path: string }> {
+    try {
+        if (onUploadStart) await onUploadStart();
+
+        const safeUserId = userId || 'guest';
+        const storagePath = `product-assets/${safeUserId}/${Date.now()}_${file.name}`;
+        const storageRef = ref(storage, storagePath);
+
+        const snapshot = await uploadBytes(storageRef, file, {
+            contentType: file.type || 'application/octet-stream',
+            customMetadata: {
+                userId: safeUserId,
+                uploadedAt: new Date().toISOString(),
+                originalName: file.name || 'product-asset',
+            },
+        });
+
+        const imageUrl = await getDownloadURL(snapshot.ref);
+
+        if (onUploadComplete) await onUploadComplete();
+
+        return { imageUrl, path: storagePath };
+    } catch (error) {
+        console.error('❌ uploadProductAsset failed:', error);
+        throw error;
+    }
+}
+
+/**
+ * Upload a generic asset (e.g., clothing reference) to Firebase Storage
+ */
+export async function uploadGenericAsset(
+    file: File,
+    userId: string,
+    onUploadStart?: () => Promise<void> | void,
+    onUploadComplete?: () => Promise<void> | void
+): Promise<{ imageUrl: string; path: string }> {
+    try {
+        if (onUploadStart) await onUploadStart();
+
+        const safeUserId = userId || 'guest';
+        const storagePath = `generic-assets/${safeUserId}/${Date.now()}_${file.name}`;
+        const storageRef = ref(storage, storagePath);
+
+        const snapshot = await uploadBytes(storageRef, file, {
+            contentType: file.type || 'application/octet-stream',
+            customMetadata: {
+                userId: safeUserId,
+                uploadedAt: new Date().toISOString(),
+                originalName: file.name || 'generic-asset',
+            },
+        });
+
+        const imageUrl = await getDownloadURL(snapshot.ref);
+
+        if (onUploadComplete) await onUploadComplete();
+
+        return { imageUrl, path: storagePath };
+    } catch (error) {
+        console.error('❌ uploadGenericAsset failed:', error);
+        throw error;
+    }
+}

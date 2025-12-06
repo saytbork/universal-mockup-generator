@@ -38,15 +38,21 @@ const RecommendedBundle: React.FC<RecommendedBundleProps> = ({
               console.log('DEBUG productMeta (recommended):', meta);
               return (
                 <div key={product} className="w-28 text-center text-xs text-gray-300">
-                <div className="h-28 w-full overflow-hidden rounded-xl border border-white/10 bg-black/20">
-                  {meta?.imageUrl ? (
-                    <img src={meta.imageUrl} alt={meta.label} className="h-full w-full object-cover" />
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-gray-500">{meta?.label || product}</div>
-                  )}
+                  <div className="relative h-28 w-full overflow-hidden rounded-xl border border-white/10 bg-black/20">
+                    {meta?.imageUrl && (
+                      <img
+                        src={meta.imageUrl}
+                        className="h-full w-full object-cover"
+                      />
+                    )}
+                    {!meta?.imageUrl && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-[10px] font-semibold text-amber-200">
+                        Upload to fill
+                      </div>
+                    )}
+                  </div>
+                  <p className="mt-1">{meta?.label || product}</p>
                 </div>
-                <p className="mt-1">{meta?.label || product}</p>
-              </div>
             );
           })}
         </div>

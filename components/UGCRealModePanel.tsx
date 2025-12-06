@@ -31,7 +31,7 @@ interface UGCRealModePanelProps {
   clothingPresets: UGCCustomClothingPreset[];
   selectedClothingPresetIds: string[];
   onToggleClothingPreset: (id: string) => void;
-  onUploadClothing: (file: File) => void;
+  onUploadClothing: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onClearClothing: () => void;
   clothingPreview: string | null;
   realityPresets: UGCRealityPreset[];

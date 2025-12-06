@@ -75,17 +75,19 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
                 />
                 {meta?.label || productId}
               </div>
-              {meta?.imageUrl ? (
-                <img
-                  src={meta.imageUrl}
-                  alt={meta.label}
-                  className="h-28 w-full rounded-xl object-cover"
-                />
-              ) : (
-                <div className="flex h-28 items-center justify-center rounded-xl bg-gray-900/40 text-sm text-gray-500">
-                  {meta?.label || productId}
-                </div>
-              )}
+              <div className="relative h-28 w-full overflow-hidden rounded-xl bg-gray-900/40">
+                {meta?.imageUrl && (
+                  <img
+                    src={meta.imageUrl}
+                    className="h-full w-full object-cover"
+                  />
+                )}
+                {!meta?.imageUrl && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-[10px] font-semibold text-amber-200">
+                    Upload to fill
+                  </div>
+                )}
+              </div>
             </label>
           );
         })}
