@@ -12,6 +12,20 @@ const firebaseConfig = {
   appId: env.VITE_FIREBASE_APP_ID ?? env.FIREBASE_APP_ID
 };
 
+// Debug: show which values loaded (but hide real keys)
+try {
+  const safeConfig = {
+    apiKey: firebaseConfig.apiKey ? "***loaded***" : "MISSING",
+    authDomain: firebaseConfig.authDomain || "MISSING",
+    projectId: firebaseConfig.projectId || "MISSING",
+    storageBucket: firebaseConfig.storageBucket || "MISSING",
+    appId: firebaseConfig.appId ? "***loaded***" : "MISSING",
+  };
+  console.log("🔥 Firebase config loaded:", safeConfig);
+} catch (e) {
+  console.log("🔥 Firebase config error:", e);
+}
+
 export const app = !getApps().length
   ? initializeApp(firebaseConfig)
   : getApps()[0];
