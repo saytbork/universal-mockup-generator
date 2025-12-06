@@ -556,7 +556,7 @@ const createDefaultOptions = (): MockupOptions => ({
 import ImageUploader, { ImageUploaderHandle } from './components/ImageUploader';
 import GeneratedImage from './components/GeneratedImage';
 import VideoGenerator from './components/VideoGenerator';
-import { Accordion } from './components/ui/Accordion';
+import { Accordion } from 'src/components/ui/Accordion';
 import ChipSelectGroup from './components/ChipSelectGroup';
 import ImageEditor from './components/ImageEditor';
 import ModelReferencePanel from './components/ModelReferencePanel';
