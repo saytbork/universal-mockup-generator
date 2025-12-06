@@ -3312,8 +3312,8 @@ const App: React.FC = () => {
 
 
   const handleImageUpload = useCallback(
-    async (file: File) => {
-      const localPreview = URL.createObjectURL(file);
+    async (file: File, previewUrl?: string) => {
+      const localPreview = previewUrl ?? URL.createObjectURL(file);
 
       const uploaded = await storageService.uploadProductAsset(
         file,
@@ -3340,6 +3340,7 @@ const App: React.FC = () => {
         mimeType,
       };
 
+      console.log('[App] Product image uploaded', { finalUrl, hasUpload: Boolean(uploaded?.imageUrl) });
       setProductAssets(prev => [...prev, asset]);
     },
     [userEmail]
@@ -4805,7 +4806,7 @@ const App: React.FC = () => {
                   <div className="sr-only">
                     <ImageUploader
                       ref={uploaderRef}
-                      onImageUpload={handleImageUpload}
+                      onUpload={handleImageUpload}
                       uploadedImagePreview={uploadedImagePreview}
                       disabled={!hasSelectedIntent}
                       lockedMessage="Select Step 1 first to unlock uploads."

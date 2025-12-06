@@ -1,8 +1,8 @@
-import React, { useCallback, useState, useImperativeHandle } from 'react';
+import React, { useCallback, useEffect, useImperativeHandle, useState } from 'react';
 
 interface ImageUploaderProps {
-  onImageUpload: (file: File) => void;
-  uploadedImagePreview: string | null;
+  onUpload: (file: File, previewUrl: string) => void;
+  uploadedImagePreview?: string | null;
   disabled?: boolean;
   lockedMessage?: string;
 }
@@ -12,13 +12,18 @@ export interface ImageUploaderHandle {
 }
 
 const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(({
-  onImageUpload,
-  uploadedImagePreview,
+  onUpload,
+  uploadedImagePreview = null,
   disabled = false,
   lockedMessage,
 }, ref) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [localPreview, setLocalPreview] = useState<string | null>(uploadedImagePreview);
   const inputRef = React.useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    setLocalPreview(uploadedImagePreview ?? null);
+  }, [uploadedImagePreview]);
 
   useImperativeHandle(ref, () => ({
     openFileDialog: () => {
@@ -27,9 +32,18 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
     },
   }), [disabled]);
 
+  const emitUpload = useCallback((file: File) => {
+    const previewUrl = URL.createObjectURL(file);
+    setLocalPreview(previewUrl);
+    console.log('[ImageUploader] File selected, emitting upload with preview');
+    onUpload(file, previewUrl);
+  }, [onUpload]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length && !disabled) {
-      onImageUpload(e.target.files[0]);
+    if (disabled) return;
+    const file = e.target.files?.[0];
+    if (file) {
+      emitUpload(file);
     }
   };
 
@@ -37,10 +51,12 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-    if (!disabled && e.dataTransfer.files && e.dataTransfer.files.length) {
-      onImageUpload(e.dataTransfer.files[0]);
+    if (disabled) return;
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      emitUpload(file);
     }
-  }, [disabled, onImageUpload]);
+  }, [disabled, emitUpload]);
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLElement>) => {
     e.preventDefault();
@@ -64,18 +80,20 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
     inputRef.current?.click();
   };
 
+  const previewToShow = localPreview || uploadedImagePreview;
+
   return (
     <div className={`relative flex flex-col items-center justify-center w-full p-4 bg-gray-800 rounded-lg border-2 border-dashed border-gray-600 ${disabled ? 'opacity-60' : ''}`}>
       <h3 className="text-lg font-semibold text-gray-300 mb-4">Upload Product Image</h3>
-      <div 
+      <div
         className={`relative w-full h-40 flex items-center justify-center rounded-md transition-all duration-300 ${isDragging ? 'bg-gray-700' : ''}`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
       >
-        {uploadedImagePreview ? (
-          <img src={uploadedImagePreview} alt="Product Preview" className="max-h-full max-w-full object-contain rounded-md" />
+        {previewToShow ? (
+          <img src={previewToShow} alt="Product Preview" className="max-h-full max-w-full object-contain rounded-md" />
         ) : (
           <div className="text-center text-gray-400">
             <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -84,8 +102,8 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
             <p>Drag & drop or click to upload</p>
           </div>
         )}
-        <input 
-          type="file" 
+        <input
+          type="file"
           className={`absolute inset-0 w-full h-full opacity-0 ${disabled ? 'cursor-not-allowed pointer-events-none' : 'cursor-pointer'}`}
           disabled={disabled}
           multiple
