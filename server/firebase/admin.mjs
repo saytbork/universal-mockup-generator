@@ -18,7 +18,7 @@ function initializeFirebaseAdmin() {
     // Check if already initialized (serverless warm starts)
     if (!admin.apps.length) {
       const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-      const storageBucket = process.env.FIREBASE_STORAGE_BUCKET;
+      const storageBucket = process.env.FIREBASE_STORAGE_BUCKET || 'boostugc-6d83f.firebasestorage.app';
 
       if (!serviceAccountKey) {
         throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY environment variable is not set');
@@ -86,7 +86,7 @@ initializeFirebaseAdmin();
 export const adminDB = admin.firestore();
 
 // Export Storage bucket instance
-export const adminStorage = admin.storage().bucket();
+export const adminStorage = admin.storage().bucket('boostugc-6d83f.firebasestorage.app');
 
 // Export FieldValue for timestamp operations
 export const FieldValue = admin.firestore.FieldValue;
