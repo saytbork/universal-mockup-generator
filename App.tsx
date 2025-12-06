@@ -1,4 +1,41 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { GoogleGenAI, Modality } from "@google/genai";
+import { getAuth } from 'firebase/auth';
+import { MockupOptions, OptionCategory, Option } from './types';
+import {
+  CONTENT_STYLE_OPTIONS,
+  CREATION_MODE_OPTIONS,
+  PLACEMENT_STYLE_OPTIONS,
+  PLACEMENT_CAMERA_OPTIONS,
+  LIGHTING_OPTIONS, SETTING_OPTIONS, AGE_GROUP_OPTIONS, CAMERA_OPTIONS,
+  PERSPECTIVE_OPTIONS, SELFIE_TYPE_OPTIONS, ETHNICITY_OPTIONS,
+  GENDER_OPTIONS, ASPECT_RATIO_OPTIONS, ENVIRONMENT_ORDER_OPTIONS, PERSON_APPEARANCE_OPTIONS,
+  PRODUCT_MATERIAL_OPTIONS, PRODUCT_INTERACTION_OPTIONS, REALISM_OPTIONS,
+  PERSON_POSE_OPTIONS, WARDROBE_STYLE_OPTIONS, PERSON_MOOD_OPTIONS,
+  PERSON_PROP_OPTIONS, MICRO_LOCATION_OPTIONS, MICRO_LOCATION_NONE_VALUE, PERSON_EXPRESSION_OPTIONS, HAIR_STYLE_OPTIONS,
+  CREATOR_PRESETS, PROP_BUNDLES, PRO_LENS_OPTIONS, PRO_LIGHTING_RIG_OPTIONS, PRO_POST_TREATMENT_OPTIONS, PRO_LOOK_PRESETS, PRODUCT_PLANE_OPTIONS, SUPPLEMENT_PHOTO_PRESETS, HERO_PERSON_PRESETS, HERO_PERSON_DESCRIPTION_PRESETS,
+  HAIR_COLOR_OPTIONS, EYE_COLOR_OPTIONS, SKIN_TONE_OPTIONS, HeroLandingAlignment, HeroLandingShadowStyle, DOWNLOAD_CREDIT_CONFIG, HIGH_RES_UNAVAILABLE_MESSAGE, SKIN_REALISM_OPTIONS,
+  COMPOSITION_MODE_OPTIONS, SIDE_PLACEMENT_OPTIONS
+} from './constants';
+import type { CreatorPreset, DownloadResolution, HeroPosePreset, PropBundle, ProLookPreset, SupplementPhotoPreset } from './constants';
+import BundleSelector from './src/bundles/components/BundleSelector';
+import CustomBundleBuilder from './src/bundles/components/CustomBundleBuilder';
+import RecommendedBundle from './src/bundles/components/RecommendedBundle';
+import { ALL_PRODUCT_IDS, PRODUCT_MEDIA_LIBRARY, ProductId, ProductMediaLibrary } from './src/bundles/bundles.config';
+import UGCRealModePanel from './components/UGCRealModePanel';
+import {
+  UGC_CLOTHING_PRESETS,
+  UGC_REALITY_PRESETS,
+  UGC_HERO_PERSONA_PRESETS,
+  UGC_EXPRESSION_PRESETS,
+  UGC_OFF_CENTER_OPTIONS,
+  UGC_SPONTANEOUS_FRAMING_OPTIONS,
+  UGC_REAL_MODE_BASE_PROMPT,
+} from './src/data/ugcPresets';
+import { normalizeOptions } from './src/system/normalizeOptions';
+import { app } from './src/firebase/firebase';
+import * as storageService from './src/services/storageService';
 
 // Components (root/components)
 import ImageUploader, { ImageUploaderHandle } from './components/ImageUploader';
