@@ -1,6 +1,6 @@
 // @ts-ignore – TS needs this because admin.mjs is ESM
 import admin, { adminDB, FieldValue } from "../server/firebase/admin.mjs";
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 type GalleryMeta = {
   width?: number;
@@ -27,7 +27,7 @@ const parseAction = (req: VercelRequest) => {
   return typeof raw === "string" ? raw.toLowerCase() : "";
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Add CORS headers for frontend requests
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
