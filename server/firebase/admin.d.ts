@@ -1,4 +1,4 @@
 declare module '../server/firebase/admin.mjs' {
-  const value: any;
-  export default value;
+  import * as admin from 'firebase-admin';
+  export default admin;
 }
