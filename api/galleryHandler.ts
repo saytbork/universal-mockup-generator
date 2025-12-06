@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import type { FirebaseFirestore } from "firebase-admin";
 import { adminDB, FieldValue } from "../server/firebase/admin.mjs";
 
 type GalleryMeta = {
@@ -90,7 +91,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .limit(200)
           .get();
 
-        const images: ListEntry[] = snapshot.docs.map((doc) => {
+        const images: ListEntry[] = snapshot.docs.map((doc: FirebaseFirestore.QueryDocumentSnapshot) => {
           const data = doc.data();
 
           return {
