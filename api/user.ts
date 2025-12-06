@@ -23,11 +23,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   const email = checkAuth(req);
   if (!email) {
-    res.status(401).json({ error: 'Not authenticated' });
+    res.status(200).json({
+      userId: 'guest',
+      email: null,
+      plan: 'free',
+    });
     return;
   }
+
   const user = await getUser(email);
   res.status(200).json({
+    userId: email,
     email,
     credits: user.credits ?? 0,
     plan: user.plan ?? 'free',
