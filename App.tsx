@@ -2350,8 +2350,8 @@ const App: React.FC = () => {
         const uploaded = await storageService.uploadGenericAsset(
           file,
           userEmail,
-          () => {},
-          () => {}
+          () => { },
+          () => { }
         );
         const finalUrl = uploaded?.imageUrl || previewUrl;
         setClothingCustomImage(finalUrl);
@@ -3314,23 +3314,35 @@ const App: React.FC = () => {
   const handleImageUpload = useCallback(
     async (file: File, previewUrl?: string) => {
       const localPreview = previewUrl ?? URL.createObjectURL(file);
+      let firebaseUrl: string | null = null;
 
-      const uploaded = await storageService.uploadProductAsset(
-        file,
-        userEmail,
-        async () => {},
-        async () => {}
-      );
+      // Try to upload to Firebase Storage (may fail in Preview environment)
+      try {
+        const uploaded = await storageService.uploadProductAsset(
+          file,
+          userEmail,
+          async () => { },
+          async () => { }
+        );
+        firebaseUrl = uploaded?.imageUrl || null;
+        if (firebaseUrl) {
+          console.log('[App] ✅ Product image uploaded to Firebase Storage:', firebaseUrl);
+        }
+      } catch (error) {
+        console.warn('[App] ⚠️ Firebase upload failed, using local preview:', error);
+        console.warn('[App] This is expected if Firebase env vars are not configured in Preview deployment');
+      }
 
-      const finalUrl = uploaded?.imageUrl || localPreview;
+      // Use Firebase URL if available, otherwise fall back to local preview
+      const finalUrl = firebaseUrl || localPreview;
       const { base64, mimeType } = await fileToBase64(file);
 
       const asset: ProductAsset = {
         id: crypto.randomUUID(),
         type: "image" as const,
         file,
-        imageUrl: finalUrl,
-        previewUrl: finalUrl,
+        imageUrl: firebaseUrl || undefined, // Only set if Firebase upload succeeded
+        previewUrl: localPreview, // Always keep local preview
         name: file.name,
         label: file.name,
         createdAt: Date.now(),
@@ -3340,7 +3352,11 @@ const App: React.FC = () => {
         mimeType,
       };
 
-      console.log('[App] Product image uploaded', { finalUrl, hasUpload: Boolean(uploaded?.imageUrl) });
+      console.log('[App] Product asset created:', {
+        hasFirebaseUrl: Boolean(firebaseUrl),
+        hasLocalPreview: Boolean(localPreview),
+        willDisplay: finalUrl
+      });
       setProductAssets(prev => [...prev, asset]);
     },
     [userEmail]
@@ -4821,7 +4837,8 @@ const App: React.FC = () => {
                   ) : (
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       {productAssets.map(asset => {
-                        const imageSrc = asset.imageUrl?.length ? asset.imageUrl : asset.previewUrl;
+                        // Prefer Firebase URL if available and valid, otherwise use local preview
+                        const imageSrc = (asset.imageUrl && asset.imageUrl.length > 0) ? asset.imageUrl : asset.previewUrl;
                         const isActive = activeProducts.some(product => product.id === asset.id);
                         return (
                           <button
