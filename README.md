@@ -70,12 +70,27 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 STRIPE_PRICE_CREATOR_MONTHLY=price_...
 STRIPE_PRICE_CREATOR_YEARLY=price_...
 STRIPE_PRICE_STUDIO_MONTHLY=price_...
-STRIPE_PRICE_STUDIO_YEARLY=price_...
-FIREBASE_SERVICE_ACCOUNT={"type":"service_account",...}
-NEXT_PUBLIC_APP_URL=https://boostugc.app
+  STRIPE_PRICE_STUDIO_YEARLY=price_...
+  FIREBASE_SERVICE_ACCOUNT={"type":"service_account",...}
+  NEXT_PUBLIC_APP_URL=https://boostugc.app
 ```
 
 The webhook attaches the Firebase `uid` from `metadata.firebase_uid`, sets plan/status/credits, and refreshes credits on recurring invoices. `create-checkout-session` builds a Stripe Checkout link per plan and reuses/creates a customer with the user email. `create-portal-session` opens Stripe Billing Portal, and `api/credits/consume` decrements credits atomically.
+
+### Configure Firebase Storage CORS
+
+If uploads to Firebase Storage fail due to CORS, apply the provided policy:
+
+1) Install gcloud/gsutil (if missing):
+```
+brew install --cask google-cloud-sdk
+gcloud init
+```
+
+2) Apply CORS to the storage bucket:
+```
+gsutil cors set cors.json gs://boostugc-6d83f.firebasestorage.app
+```
 
 ## Deploy to Vercel
 
