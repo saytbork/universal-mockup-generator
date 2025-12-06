@@ -1,19 +1,30 @@
 
 
-import React from 'react';
+import React, { useState } from 'react';
 
 interface AccordionProps {
   title: string;
   children: React.ReactNode;
-  isOpen: boolean;
-  onToggle: () => void;
+  isOpen?: boolean;
+  onToggle?: () => void;
 }
 
 const Accordion: React.FC<AccordionProps> = ({ title, children, isOpen, onToggle }) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = typeof isOpen === 'boolean' ? isOpen : internalOpen;
+
+  const handleToggle = () => {
+    if (onToggle) {
+      onToggle();
+    } else {
+      setInternalOpen(prev => !prev);
+    }
+  };
+
   return (
     <div className="border-b border-gray-700 last:border-b-0">
       <button
-        onClick={onToggle}
+        onClick={handleToggle}
         className="w-full flex justify-between items-center py-3 text-left text-md font-semibold text-gray-200 hover:bg-gray-700/50 px-2 rounded-t-md transition-colors"
         aria-expanded={isOpen}
       >
@@ -28,7 +39,7 @@ const Accordion: React.FC<AccordionProps> = ({ title, children, isOpen, onToggle
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
-      {isOpen && (
+      {open && (
         <div className="pt-2 pb-4 px-2">
           {children}
         </div>

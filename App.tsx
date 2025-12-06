@@ -8,7 +8,7 @@ import ChipSelectGroup from './components/ChipSelectGroup';
 import ImageEditor from './components/ImageEditor';
 import ModelReferencePanel from './components/ModelReferencePanel';
 import OnboardingOverlay from './components/OnboardingOverlay';
-import { Accordion } from './components/ui/Accordion';
+import Accordion from './components/Accordion';
 
 // Contexts
 import { useAuth } from './src/contexts/AuthContext';
