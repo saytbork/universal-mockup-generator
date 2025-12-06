@@ -87,9 +87,9 @@ brew install --cask google-cloud-sdk
 gcloud init
 ```
 
-2) Apply CORS to the storage bucket:
+2) Apply CORS to the storage bucket (replace with your bucket if different):
 ```
-gsutil cors set cors.json gs://boostugc-6d83f.firebasestorage.app
+gsutil cors set cors.json gs://boostugc-6d83f.appspot.com
 ```
 
 ## Deploy to Vercel
