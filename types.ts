@@ -8,6 +8,9 @@ export interface MockupOptions {
   setting: string;
   ageGroup: string;
   camera: string;
+  cameraShot: string;
+  cameraAngle: string;
+  cameraDistance: string;
   perspective: string;
   selfieType: string;
   ethnicity: string;

@@ -84,11 +84,11 @@ export const SETTING_OPTIONS: Option[] = [
 
 // Reduced 5-option version covering only visually distinct materials.
 export const PRODUCT_MATERIAL_OPTIONS: Option[] = [
-    { label: 'Matte Plastic', value: 'matte plastic' },
-    { label: 'Glossy Plastic', value: 'glossy plastic' },
-    { label: 'Glass & Liquid', value: 'transparent glass, may contain liquid' },
-    { label: 'Metal', value: 'reflective metal' },
-    { label: 'Paper & Cardboard', value: 'textured paper or cardboard' },
+  { label: 'Matte Plastic', value: 'matte plastic' },
+  { label: 'Glossy Plastic', value: 'glossy plastic' },
+  { label: 'Glass & Liquid', value: 'transparent glass, may contain liquid' },
+  { label: 'Metal', value: 'reflective metal' },
+  { label: 'Paper & Cardboard', value: 'textured paper or cardboard' },
 ];
 
 // Simplified 3-option version (Clean, Natural, Casual).
@@ -308,6 +308,32 @@ export const PERSPECTIVE_OPTIONS: Option[] = [
   { label: 'High Angle', value: 'shot from a high angle, looking down' },
   { label: 'Low Angle', value: 'shot from a low angle, looking up' },
   { label: 'Close-Up', value: 'a detailed close-up on the product' },
+];
+
+export const CAMERA_SHOT_OPTIONS: Option[] = [
+  { label: 'Full Body Shot', value: 'fullBodyShot' },
+  { label: 'Close Up', value: 'closeUp' },
+  { label: 'Extreme Close Up', value: 'extremeCloseUp' },
+  { label: 'Extreme Long Shot', value: 'extremeLongShot' },
+  { label: 'High Angle Shot', value: 'highAngleShot' },
+  { label: 'Bird\'s Eye View', value: 'birdsEyeView' },
+  { label: 'Dutch Angle', value: 'dutchAngle' },
+  { label: 'Side Profile Shot', value: 'sideProfileShot' },
+  { label: 'Low Angle Shot', value: 'lowAngleShot' },
+];
+
+export const CAMERA_ANGLE_OPTIONS: Option[] = [
+  { label: 'High', value: 'high' },
+  { label: 'Low', value: 'low' },
+  { label: 'Straight', value: 'straight' },
+  { label: 'Tilted', value: 'tilted' },
+];
+
+export const CAMERA_DISTANCE_OPTIONS: Option[] = [
+  { label: 'Macro', value: 'macro' },
+  { label: 'Close', value: 'close' },
+  { label: 'Medium', value: 'medium' },
+  { label: 'Long', value: 'long' },
 ];
 
 export type HeroLandingAlignment = 'left' | 'center' | 'right';
@@ -907,16 +933,16 @@ export const HERO_PERSON_PRESETS: HeroPosePreset[] = [
       setting: getOptionValueByLabel(SETTING_OPTIONS, 'Garden Party', 12),
       environmentOrder: getOptionValueByLabel(ENVIRONMENT_ORDER_OPTIONS, 'Casual', 2),
     },
-   promptCue:
+    promptCue:
       ' Place the model reclining on a mat or rug with knees bent, scattering multiple supplement bottles and gummy props around them while they hold one bottle near their face and look up at camera.',
   },
 ];
 
 // 5-option version representing common human-view compositions.
 export const ASPECT_RATIO_OPTIONS: Option[] = [
-    { label: '16:9 (Widescreen)', value: '16:9' },
-    { label: '9:16 (Vertical)', value: '9:16' },
-    { label: '1:1 (Square)', value: '1:1' },
+  { label: '16:9 (Widescreen)', value: '16:9' },
+  { label: '9:16 (Vertical)', value: '9:16' },
+  { label: '1:1 (Square)', value: '1:1' },
 ];
 
 export const SELFIE_TYPE_OPTIONS: Option[] = [

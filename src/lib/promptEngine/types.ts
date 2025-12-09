@@ -56,6 +56,9 @@ export interface PromptOptions {
     creationMode: 'lifestyle' | 'studio' | 'aesthetic' | 'bg-replace' | 'ecom-blank';
     aspectRatio: string;
     camera: string;
+    cameraShot?: string;
+    cameraAngle?: string;
+    cameraDistance?: string;
 
     // Scene
     setting: string;

@@ -122,6 +122,32 @@ export const parameterMap: ParameterMap = {
     "Sony FX3": "Sony FX3 cinematic modern look"
   },
 
+  cameraShot: {
+    fullBodyShot: "full body shot of the subject.",
+    closeUp: "tight close up of the subject's face.",
+    extremeCloseUp: "extreme close up of a detailed facial feature.",
+    extremeLongShot: "extreme long shot showing the subject within the full environment.",
+    highAngleShot: "high angle shot looking down at the subject.",
+    birdsEyeView: "bird's eye view from top down.",
+    dutchAngle: "dutch angle tilted frame.",
+    sideProfileShot: "side profile view of the subject.",
+    lowAngleShot: "low angle shot looking upward."
+  },
+
+  cameraAngle: {
+    high: "shot from a high angle.",
+    low: "shot from a low angle.",
+    straight: "shot at eye level.",
+    tilted: "shot with tilted framing."
+  },
+
+  cameraDistance: {
+    macro: "macro distance capturing fine details.",
+    close: "close distance framing.",
+    medium: "medium distance framing.",
+    long: "long distance establishing shot."
+  },
+
   lighting: {
     "Natural Light": "soft natural window lighting",
     "Sunny Day": "bright sunny lighting with crisp highlights",

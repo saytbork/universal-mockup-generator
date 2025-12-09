@@ -59,8 +59,11 @@ function formatScene(o: any) {
 function cameraRules(options: any) {
     const selfieType = options?.selfieType ?? options?.personDetails?.selfieType;
     const eyeDirection = options?.eyeDirection ?? options?.personDetails?.eyeDirection;
-    const { personIncluded, contentStyle } = options || {};
+    const { personIncluded, contentStyle, cameraShot, cameraAngle, cameraDistance } = options || {};
     const rules: string[] = [];
+
+    // Selfie types that override camera settings
+    const selfieOverrideActive = ['mirrorSelfie', 'frontCameraPOV', 'backCameraPOV', 'mirror_selfie', 'front_camera_selfie', 'back_camera_pov'].includes(selfieType);
 
     if (contentStyle === "product") {
         rules.push("no person visible", "focus on product only");
@@ -73,7 +76,7 @@ function cameraRules(options: any) {
     }
 
     // Selfie logic
-    if (selfieType === "mirror_selfie") {
+    if (selfieType === "mirror_selfie" || selfieType === "mirrorSelfie") {
         rules.push(
             "mirror selfie",
             "phone visible in the reflection",
@@ -82,7 +85,7 @@ function cameraRules(options: any) {
         );
     }
 
-    if (selfieType === "front_camera_selfie") {
+    if (selfieType === "front_camera_selfie" || selfieType === "frontCameraPOV") {
         rules.push(
             "selfie from front camera",
             "phone not visible",
@@ -107,13 +110,27 @@ function cameraRules(options: any) {
         );
     }
 
-    if (selfieType === "back_camera_pov") {
+    if (selfieType === "back_camera_pov" || selfieType === "backCameraPOV") {
         rules.push(
             "over the shoulder pov",
             "phone slightly visible from behind",
             "face not visible",
             "focus on product subject"
         );
+    }
+
+    // Camera shot/angle/distance injection (only if selfie NOT active)
+    if (!selfieOverrideActive) {
+        const map: any = parameterMap as any;
+        if (cameraShot && map.cameraShot?.[cameraShot]) {
+            rules.push(map.cameraShot[cameraShot]);
+        }
+        if (cameraAngle && map.cameraAngle?.[cameraAngle]) {
+            rules.push(map.cameraAngle[cameraAngle]);
+        }
+        if (cameraDistance && map.cameraDistance?.[cameraDistance]) {
+            rules.push(map.cameraDistance[cameraDistance]);
+        }
     }
 
     // Eye direction
