@@ -5067,7 +5067,6 @@ If the model attempts to create a scene or environment, override it and force a 
               </div>
             </div>
             <div className={`contents ${!hasUploadedProduct || isTrialLocked ? 'pointer-events-none opacity-50' : ''}`}>
-
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
                 {/* Controls Column - 40% width (2 of 5 columns) */}
                 <div ref={customizeRef} className={`lg:col-span-2 bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col max-h-[calc(100vh-12rem)] ${!hasUploadedProduct ? 'opacity-60' : ''}`}>
@@ -5079,7 +5078,6 @@ If the model attempts to create a scene or environment, override it and force a 
                   <ModeTierToggle modeTier={modeTier} onToggle={setModeTier} />
 
                   <div className="flex-grow overflow-y-auto custom-scrollbar -mr-4 pr-4">
-
                     {/* BASIC MODE - Simplified controls */}
                     {modeTier === 'basic' && (
                       <>
@@ -5669,7 +5667,7 @@ If the model attempts to create a scene or environment, override it and force a 
                   )}
                 </div>
               </div>
-            </fieldset>
+            </div>
           </main>
         </div >
       </div >
