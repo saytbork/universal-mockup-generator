@@ -3309,81 +3309,51 @@ const App: React.FC = () => {
 
 
   const handleImageUpload = useCallback(
-    async (files: File[]) => {
-      const ALLOWED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
-
-      if (!files.length) return;
-
+    async (file: File, previewUrl: string) => {
       resetOutputs();
       setImageError(null);
       setGeneratedCopy(null);
       setCopyError(null);
 
-      const validFiles = files.filter(file => ALLOWED_MIME_TYPES.includes(file.type));
-      if (!validFiles.length) {
+      const ALLOWED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
+      if (!ALLOWED_MIME_TYPES.includes(file.type)) {
         setImageError('Unsupported file type. Please upload PNG, JPEG, or WebP images.');
         return;
       }
 
-      const baseIndex = productAssets.length;
-      const processedAssets: ProductAsset[] = [];
-      const newActiveProducts: ActiveProduct[] = [];
+      try {
+        const { base64, mimeType } = await fileToBase64(file);
+        const assetId = makeSceneId();
+        const label = `Product ${productAssets.length + 1}`;
 
-      for (const file of validFiles) {
-        try {
-          const previewUrl = URL.createObjectURL(file);
-          const { base64, mimeType } = await fileToBase64(file);
-          const assetId = makeSceneId();
-          const label = `Product ${baseIndex + processedAssets.length + 1}`;
-          const asset: ProductAsset = {
-            id: assetId,
-            label,
-            file,
-            previewUrl,
-            imageUrl: previewUrl,
-            createdAt: Date.now(),
-            heightValue: null,
-            heightUnit: 'cm',
-            base64,
-            mimeType,
-          };
-          processedAssets.push(asset);
-          const activeProduct = buildActiveProductFromAsset(asset);
-          if (activeProduct) {
-            newActiveProducts.push(activeProduct);
-          }
-        } catch (error) {
-          console.error('Unable to read uploaded file', error);
-          if (!imageError) {
-            setImageError('We could not process one of the uploaded files.');
-          }
+        const asset: ProductAsset = {
+          id: assetId,
+          label,
+          file,
+          previewUrl,
+          imageUrl: previewUrl,
+          createdAt: Date.now(),
+          heightValue: null,
+          heightUnit: 'cm',
+          base64,
+          mimeType,
+        };
+
+        setProductAssets(prev => [...prev, asset]);
+
+        const activeProduct = buildActiveProductFromAsset(asset);
+        if (activeProduct) {
+          setActiveProducts(prev => [...prev, activeProduct]);
         }
+
+        setUploadedImagePreview(previewUrl);
+        advanceOnboardingFromStep(2);
+      } catch (error) {
+        console.error('Unable to read uploaded file', error);
+        setImageError('We could not process the uploaded file.');
       }
-
-      if (!processedAssets.length) {
-        return;
-      }
-
-      // Step 3 activation: update uploaded image preview
-      setUploadedImagePreview(processedAssets[0].previewUrl);
-
-      setProductAssets(prev => [...prev, ...processedAssets]);
-      setActiveProducts(prev => {
-        const existingIds = new Set(prev.map(product => product.id));
-        const additions = newActiveProducts.filter(product => !existingIds.has(product.id));
-        const next = [...prev, ...additions];
-        if (!next.length && processedAssets.length) {
-          const fallback = buildActiveProductFromAsset(processedAssets[0]);
-          if (fallback) {
-            return [fallback];
-          }
-        }
-        return next;
-      });
-
-      advanceOnboardingFromStep(2);
     },
-    [resetOutputs, advanceOnboardingFromStep, productAssets.length, imageError]
+    [productAssets.length, resetOutputs, advanceOnboardingFromStep]
   );
 
   const handleProductAssetSelect = useCallback(
