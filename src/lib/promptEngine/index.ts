@@ -20,7 +20,9 @@ function formatPersonDetails(d: any) {
     const parts: string[] = [];
     const personMap: any = (parameterMap as any).personDetails || {};
     const lookup = (section: string, key: string) =>
-        personMap?.[section]?.[key] ?? (parameterMap as any)?.[section]?.[key] ?? key;
+        personMap?.[section]?.[key] ??
+        (parameterMap as any)?.[section]?.[key] ??
+        key;
 
     if (d.ageGroup) parts.push(lookup('ageGroup', d.ageGroup));
     if (d.gender) parts.push(lookup('gender', d.gender));
@@ -62,11 +64,9 @@ function cameraRules(options: any) {
     const { personIncluded, contentStyle, cameraShot, cameraAngle, cameraDistance } = options || {};
     const rules: string[] = [];
 
-    // Selfie types that override camera settings
-    const selfieOverrideActive = ['mirrorSelfie', 'frontCameraPOV', 'backCameraPOV', 'mirror_selfie', 'front_camera_selfie', 'back_camera_pov'].includes(selfieType);
-
+    // FULL lockout for Product Mode (correct behavior)
     if (contentStyle === "product") {
-        rules.push("no person visible", "focus on product only");
+        rules.push("no person visible", "focus entirely on product", "studio-quality clarity");
         return rules.join(", ");
     }
 
@@ -75,65 +75,39 @@ function cameraRules(options: any) {
         return rules.join(", ");
     }
 
+    const selfieOverrideActive =
+        ['mirrorSelfie', 'frontCameraPOV', 'backCameraPOV', 'mirror_selfie', 'front_camera_selfie', 'back_camera_pov']
+            .includes(selfieType);
+
     // Selfie logic
     if (selfieType === "mirror_selfie" || selfieType === "mirrorSelfie") {
-        rules.push(
-            "mirror selfie",
-            "phone visible in the reflection",
-            "frontal framing",
-            "shoulders and face visible"
-        );
+        rules.push("mirror selfie", "phone visible in reflection", "frontal framing", "shoulders and face visible");
     }
 
     if (selfieType === "front_camera_selfie" || selfieType === "frontCameraPOV") {
-        rules.push(
-            "selfie from front camera",
-            "phone not visible",
-            "arm extended",
-            "face centered"
-        );
+        rules.push("selfie from front camera", "phone not visible", "arm extended", "face centered");
     }
 
     if (selfieType === "one_hand_product_selfie") {
-        rules.push(
-            "close up of product in hand",
-            "phone hidden",
-            "focus on hand and product"
-        );
+        rules.push("close up of product in hand", "phone hidden", "focus on hand and product");
     }
 
     if (selfieType === "hands_only") {
-        rules.push(
-            "hands only",
-            "no face visible",
-            "clean framing of hands and product"
-        );
+        rules.push("hands only", "no face visible", "clean framing of hands and product");
     }
 
     if (selfieType === "back_camera_pov" || selfieType === "backCameraPOV") {
-        rules.push(
-            "over the shoulder pov",
-            "phone slightly visible from behind",
-            "face not visible",
-            "focus on product subject"
-        );
+        rules.push("over the shoulder pov", "phone slightly visible from behind", "face not visible", "focus on product subject");
     }
 
-    // Camera shot/angle/distance injection (only if selfie NOT active)
+    // Camera shot/angle/distance injection (if selfie not overriding)
     if (!selfieOverrideActive) {
         const map: any = parameterMap as any;
-        if (cameraShot && map.cameraShot?.[cameraShot]) {
-            rules.push(map.cameraShot[cameraShot]);
-        }
-        if (cameraAngle && map.cameraAngle?.[cameraAngle]) {
-            rules.push(map.cameraAngle[cameraAngle]);
-        }
-        if (cameraDistance && map.cameraDistance?.[cameraDistance]) {
-            rules.push(map.cameraDistance[cameraDistance]);
-        }
+        if (cameraShot && map.cameraShot?.[cameraShot]) rules.push(map.cameraShot[cameraShot]);
+        if (cameraAngle && map.cameraAngle?.[cameraAngle]) rules.push(map.cameraAngle[cameraAngle]);
+        if (cameraDistance && map.cameraDistance?.[cameraDistance]) rules.push(map.cameraDistance[cameraDistance]);
     }
 
-    // Eye direction
     if (eyeDirection) {
         rules.push((parameterMap as any).eyeDirection?.[eyeDirection]);
     }
@@ -143,53 +117,15 @@ function cameraRules(options: any) {
 
 function negativePrompt() {
     return [
-        "deformed hands",
-        "extra fingers",
-        "missing fingers",
-        "long fingers",
-        "broken fingers",
-        "distorted limbs",
-        "blurry face",
-        "distorted face",
-        "face artifacts",
-        "asymmetric face",
-        "extra limbs",
-        "extra arms",
-        "extra legs",
-        "mutated body",
-        "mangled hands",
-        "text",
-        "logo",
-        "watermark",
-        "signature",
-        "caption",
-        "cartoon style",
-        "3d cartoon",
-        "plush toy",
-        "doll-like face",
-        "overexposed skin",
-        "underexposed skin",
-        "grainy skin texture",
-        "over-smoothed skin",
-        "warped product",
-        "stretched product",
-        "deformed bottle",
-        "incorrect label",
-        "fake reflections",
-        "ai artifacts",
-        "floating objects",
-        "cut-off head",
-        "cut-off body",
-        "partial person",
-        "framing issues",
-        "duplicate objects",
-        "double body",
-        "disconnected arms",
-        "altered outfit",
-        "invented clothing",
-        "incorrect fabric",
-        "incorrect outfit color",
-        "wrong clothing texture"
+        "deformed hands", "extra fingers", "missing fingers", "long fingers", "broken fingers",
+        "distorted limbs", "blurry face", "distorted face", "face artifacts", "asymmetric face",
+        "extra limbs", "extra arms", "extra legs", "mutated body", "mangled hands",
+        "text", "logo", "watermark", "signature", "caption", "cartoon style", "3d cartoon",
+        "plush toy", "doll-like face", "overexposed skin", "underexposed skin", "grainy skin texture",
+        "over-smoothed skin", "warped product", "stretched product", "deformed bottle", "incorrect label",
+        "fake reflections", "ai artifacts", "floating objects", "cut-off head", "cut-off body",
+        "partial person", "framing issues", "duplicate objects", "double body", "disconnected arms",
+        "altered outfit", "invented clothing", "incorrect fabric", "incorrect outfit color", "wrong clothing texture"
     ].join(", ");
 }
 
@@ -197,25 +133,33 @@ export class PromptEngine {
     private builders: PromptBuilder[];
 
     constructor() {
-        // Order matters: Base → Identity → Scene → Product → Modes → Special → Finalize
+        // IdentityBuilder is added dynamically in build()
+        this.builders = [];
+    }
+
+    build(options: PromptOptions): string {
+
+        // Correct product-only behavior:
+        if (options.contentStyle === "product") {
+            options.personIncluded = false;
+            options.personDetails = {};
+        }
+
+        // Build pipeline dynamically
         this.builders = [
             new BaseBuilder(),
-            new IdentityBuilder(),
+            ...(options.contentStyle === "lifestyle" ? [new IdentityBuilder()] : []),
             new SceneBuilder(),
             new ProductBuilder(),
             new ModesBuilder(),
-            new ClothingBuilder(),     // <-- ADD HERE
+            new ClothingBuilder(),
             new SpecialModesBuilder(),
             new FinalizeBuilder(),
         ];
-    }
 
-    /**
-     * Build complete prompt from options
-     */
-    build(options: PromptOptions): string {
         const productBuilder = this.builders.find(
-            (builder): builder is ProductBuilder => builder instanceof ProductBuilder
+            (builder): builder is ProductBuilder =>
+                builder instanceof ProductBuilder
         );
         const productSection = productBuilder ? productBuilder.build(options) : '';
 
@@ -229,7 +173,10 @@ Camera rules:
 ${cameraRules(options)}
 
 Person details:
-${options.personIncluded ? formatPersonDetails((options as any).personDetails) : "no person"}
+${options.contentStyle === "product"
+                ? "no person"
+                : (options.personIncluded ? formatPersonDetails(options.personDetails) : "no person")
+            }
 
 Product details:
 ${productSection}
@@ -238,56 +185,34 @@ Negative prompt:
 ${negativePrompt()}
 `.trim();
 
-        console.log('🚀 PromptEngine v2:', {
+        console.log("🚀 PromptEngine v2:", {
             segments: 4,
             length: finalPrompt.length,
-            mode: options.creationMode,
+            mode: options.contentStyle,
         });
 
         return finalPrompt;
     }
 
-    /**
-     * Get individual components for debugging
-     */
     getComponents(options: PromptOptions): Record<string, string> {
         return this.builders.reduce((acc, builder) => {
-            const name = builder.constructor.name.replace('Builder', '');
+            const name = builder.constructor.name.replace("Builder", "");
             acc[name] = builder.build(options);
             return acc;
         }, {} as Record<string, string>);
     }
 
-    /**
-     * Validate options (basic validation)
-     */
     validate(options: PromptOptions): { valid: boolean; errors: string[] } {
         const errors: string[] = [];
 
-        if (!options.creationMode) {
-            errors.push('creationMode is required');
-        }
+        if (!options.creationMode) errors.push('creationMode is required');
+        if (!options.aspectRatio) errors.push('aspectRatio is required');
+        if (!options.camera) errors.push('camera is required');
 
-        if (!options.aspectRatio) {
-            errors.push('aspectRatio is required');
-        }
-
-        if (!options.camera) {
-            errors.push('camera is required');
-        }
-
-        return {
-            valid: errors.length === 0,
-            errors,
-        };
+        return { valid: errors.length === 0, errors };
     }
 }
 
-// Export singleton instance for convenience
 export const promptEngine = new PromptEngine();
-
-// Export class for testing
 export { PromptEngine as PromptEngineClass };
-
-// Re-export types
 export type { PromptOptions } from './types';

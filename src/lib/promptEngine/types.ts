@@ -53,7 +53,7 @@ export interface PersonDetails {
 export interface PromptOptions {
     // Core
     contentStyle: 'ugc' | 'product' | '';
-    creationMode: 'lifestyle' | 'studio' | 'aesthetic' | 'bg-replace' | 'ecom-blank';
+    creationMode: 'lifestyle' | 'studio' | 'aesthetic' | 'bg-replace' | 'ecom-blank' | 'product';
     aspectRatio: string;
     camera: string;
     cameraShot?: string;
