@@ -3364,6 +3364,9 @@ const App: React.FC = () => {
         return;
       }
 
+      // Step 3 activation: update uploaded image preview
+      setUploadedImagePreview(processedAssets[0].previewUrl);
+
       setProductAssets(prev => [...prev, ...processedAssets]);
       setActiveProducts(prev => {
         const existingIds = new Set(prev.map(product => product.id));
@@ -4921,7 +4924,7 @@ If the model attempts to create a scene or environment, override it and force a 
                 </div>
                 <ImageUploader
                   ref={uploaderRef}
-                  onImageUpload={handleImageUpload}
+                  onUpload={handleImageUpload}
                   uploadedImagePreview={uploadedImagePreview}
                   disabled={!hasSelectedIntent}
                   lockedMessage="Select Step 1 first to unlock uploads."
