@@ -18,6 +18,7 @@ interface AccordionProps {
  * - Smooth max-height transition
  * - Chevron rotation on open/close
  * - Subtle borders and modern spacing
+ * - FIXED: Proper pointer-events handling
  */
 const Accordion: React.FC<AccordionProps> = ({
   title,
@@ -84,18 +85,20 @@ const Accordion: React.FC<AccordionProps> = ({
         </svg>
       </button>
 
-      {/* Animated content container */}
-      <div
-        className="overflow-hidden transition-all duration-300 ease-out"
-        style={{
-          maxHeight: open ? contentHeight + 32 : 0,
-          opacity: open ? 1 : 0
-        }}
-      >
-        <div ref={contentRef} className="px-3 pb-4 pt-1">
-          {children}
+      {/* Animated content container - FIXED pointer-events */}
+      {open && (
+        <div
+          className="overflow-hidden"
+          style={{
+            maxHeight: contentHeight + 32,
+            transition: 'max-height 0.2s ease-out',
+          }}
+        >
+          <div ref={contentRef} className="px-3 pb-4 pt-1">
+            {children}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
