@@ -1722,7 +1722,7 @@ const App: React.FC = () => {
 
   const renderPersonDetailsSection = () => (
     <>
-      {isProductPlacement ? null : (
+      {options.contentStyle === 'lifestyle' && (
         <div id={getSectionId('Person Details')}>
           <Accordion
             title="Person Details"
@@ -1884,7 +1884,7 @@ const App: React.FC = () => {
           </Accordion>
         </div>
       )}
-      {!isProductPlacement && (
+      {options.contentStyle === 'lifestyle' && (
         <div id={getSectionId('UGC Real Mode')}>
           <Accordion
             title="UGC Real Mode"
@@ -5113,70 +5113,72 @@ If the model attempts to create a scene or environment, override it and force a 
                           </Accordion>
                         </div>
 
-                        {/* Person Details Accordion - BASIC */}
-                        <div id={getSectionId('Person Details')}>
-                          <Accordion
-                            title="Person Details"
-                            isOpen={openAccordion === 'Person Details'}
-                            onToggle={() => handleToggleAccordion('Person Details')}
-                          >
-                            <div className="space-y-4">
-                              <div className="grid grid-cols-2 gap-3">
-                                <ChipSelectGroup
-                                  label="Age Group"
-                                  options={AGE_GROUP_OPTIONS}
-                                  selectedValue={options.ageGroup}
-                                  onChange={(value) => handleOptionChange('ageGroup', value, 'Person Details')}
-                                  disabled={personControlsDisabled}
-                                />
-                                <ChipSelectGroup
-                                  label="Gender"
-                                  options={GENDER_OPTIONS}
-                                  selectedValue={options.gender}
-                                  onChange={(value) => handleOptionChange('gender', value, 'Person Details')}
-                                  disabled={personControlsDisabled}
-                                />
-                              </div>
-                              <ChipSelectGroup
-                                label="Ethnicity"
-                                options={ETHNICITY_OPTIONS}
-                                selectedValue={options.ethnicity}
-                                onChange={(value) => handleOptionChange('ethnicity', value, 'Person Details')}
-                                disabled={personControlsDisabled}
-                              />
-                              <ChipSelectGroup
-                                label="Expression"
-                                options={PERSON_EXPRESSION_OPTIONS}
-                                selectedValue={options.personExpression}
-                                onChange={(value) => handleOptionChange('personExpression', value, 'Person Details')}
-                                disabled={personControlsDisabled}
-                              />
-                              <div className="rounded-xl border border-white/10 bg-black/20 p-3 space-y-3">
-                                <ChipSelectGroup
-                                  label="Creator Preset"
-                                  options={normalizedCreatorPresetOptions}
-                                  selectedValue={activeTalentPreset}
-                                  onChange={(value) => handlePresetSelect(value)}
-                                  disabled={personControlsDisabled}
-                                />
-                                <div className="flex items-center justify-between gap-3">
-                                  <div>
-                                    <p className="text-xs text-gray-400">Link talent across scenes</p>
-                                  </div>
-                                  <label className="relative inline-flex cursor-pointer items-center gap-2">
-                                    <input type="checkbox" className="sr-only" checked={isTalentLinkedAcrossScenes} onChange={handleTalentLinkToggle} disabled={personControlsDisabled} />
-                                    <div className={`relative h-5 w-10 rounded-full transition ${isTalentLinkedAcrossScenes ? 'bg-indigo-500' : 'bg-gray-700'} ${personControlsDisabled ? 'opacity-50' : ''}`}>
-                                      <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${isTalentLinkedAcrossScenes ? 'translate-x-4' : ''}`} />
-                                    </div>
-                                  </label>
+                        {/* Person Details Accordion - BASIC (only show for lifestyle) */}
+                        {options.contentStyle === 'lifestyle' && (
+                          <div id={getSectionId('Person Details')}>
+                            <Accordion
+                              title="Person Details"
+                              isOpen={openAccordion === 'Person Details'}
+                              onToggle={() => handleToggleAccordion('Person Details')}
+                            >
+                              <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-3">
+                                  <ChipSelectGroup
+                                    label="Age Group"
+                                    options={AGE_GROUP_OPTIONS}
+                                    selectedValue={options.ageGroup}
+                                    onChange={(value) => handleOptionChange('ageGroup', value, 'Person Details')}
+                                    disabled={personControlsDisabled}
+                                  />
+                                  <ChipSelectGroup
+                                    label="Gender"
+                                    options={GENDER_OPTIONS}
+                                    selectedValue={options.gender}
+                                    onChange={(value) => handleOptionChange('gender', value, 'Person Details')}
+                                    disabled={personControlsDisabled}
+                                  />
                                 </div>
+                                <ChipSelectGroup
+                                  label="Ethnicity"
+                                  options={ETHNICITY_OPTIONS}
+                                  selectedValue={options.ethnicity}
+                                  onChange={(value) => handleOptionChange('ethnicity', value, 'Person Details')}
+                                  disabled={personControlsDisabled}
+                                />
+                                <ChipSelectGroup
+                                  label="Expression"
+                                  options={PERSON_EXPRESSION_OPTIONS}
+                                  selectedValue={options.personExpression}
+                                  onChange={(value) => handleOptionChange('personExpression', value, 'Person Details')}
+                                  disabled={personControlsDisabled}
+                                />
+                                <div className="rounded-xl border border-white/10 bg-black/20 p-3 space-y-3">
+                                  <ChipSelectGroup
+                                    label="Creator Preset"
+                                    options={normalizedCreatorPresetOptions}
+                                    selectedValue={activeTalentPreset}
+                                    onChange={(value) => handlePresetSelect(value)}
+                                    disabled={personControlsDisabled}
+                                  />
+                                  <div className="flex items-center justify-between gap-3">
+                                    <div>
+                                      <p className="text-xs text-gray-400">Link talent across scenes</p>
+                                    </div>
+                                    <label className="relative inline-flex cursor-pointer items-center gap-2">
+                                      <input type="checkbox" className="sr-only" checked={isTalentLinkedAcrossScenes} onChange={handleTalentLinkToggle} disabled={personControlsDisabled} />
+                                      <div className={`relative h-5 w-10 rounded-full transition ${isTalentLinkedAcrossScenes ? 'bg-indigo-500' : 'bg-gray-700'} ${personControlsDisabled ? 'opacity-50' : ''}`}>
+                                        <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${isTalentLinkedAcrossScenes ? 'translate-x-4' : ''}`} />
+                                      </div>
+                                    </label>
+                                  </div>
+                                </div>
+                                {personControlsDisabled && (
+                                  <p className="text-xs text-gray-500">Person options disabled for product placement.</p>
+                                )}
                               </div>
-                              {personControlsDisabled && (
-                                <p className="text-xs text-gray-500">Person options disabled for product placement.</p>
-                              )}
-                            </div>
-                          </Accordion>
-                        </div>
+                            </Accordion>
+                          </div>
+                        )}
 
                         {/* Output Accordion - BASIC */}
                         <div id={getSectionId('Output')}>
