@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Camera, Eye, FileText, Flask, Hand, Image, Settings, Shirt, Sparkles, Box, User } from 'lucide-react';
+import { Camera, Eye, FileText, FlaskConical, Hand, Image, Settings, Shirt, Sparkles, Box, User } from 'lucide-react';
 import ChipGroup from './ChipGroup';
 import SliderControl from './SliderControl';
 
@@ -523,7 +523,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ onPromptChange }) => {
 
       <div className={panelBaseClass}>
         <SectionHeader
-          icon={Flask}
+        icon={FlaskConical}
           title="Formulation Story"
           description="Frame your scene through expert-driven mood cues and visual emphasis."
         />
@@ -607,12 +607,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ onPromptChange }) => {
         </div>
       </div>
     </div>
-
-      <div className="h-px bg-gray-800 my-6" />
-
-      <div className="h-px bg-gray-800 my-6" />
-
-      <div className="h-px bg-gray-800 my-6" />
   );
 };
 
