@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useImperativeHandle, useState } from 'react';
 
 interface ImageUploaderProps {
-  onUpload: (file: File, previewUrl: string) => void;
+  onImageUpload: (files: File[]) => void;
   uploadedImagePreview?: string | null;
   disabled?: boolean;
   lockedMessage?: string;
@@ -12,7 +12,7 @@ export interface ImageUploaderHandle {
 }
 
 const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(({
-  onUpload,
+  onImageUpload,
   uploadedImagePreview = null,
   disabled = false,
   lockedMessage,
@@ -32,18 +32,20 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
     },
   }), [disabled]);
 
-  const emitUpload = useCallback((file: File) => {
+  const emitUpload = useCallback((files: File[]) => {
+    const [file] = files;
+    if (!file) return;
     const previewUrl = URL.createObjectURL(file);
     setLocalPreview(previewUrl);
     console.log('[ImageUploader] File selected, emitting upload with preview');
-    onUpload(file, previewUrl);
-  }, [onUpload]);
+    onImageUpload(files);
+  }, [onImageUpload]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (disabled) return;
-    const file = e.target.files?.[0];
-    if (file) {
-      emitUpload(file);
+    const files = Array.from(e.target.files ?? []);
+    if (files.length) {
+      emitUpload(files);
     }
   };
 
@@ -52,9 +54,9 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
     e.stopPropagation();
     setIsDragging(false);
     if (disabled) return;
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      emitUpload(file);
+    const files = Array.from(e.dataTransfer.files ?? []);
+    if (files.length) {
+      emitUpload(files);
     }
   }, [disabled, emitUpload]);
 
