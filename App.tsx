@@ -36,6 +36,8 @@ import {
   UGC_REAL_MODE_BASE_PROMPT,
 } from './src/data/ugcPresets';
 import { normalizeOptions } from './src/system/normalizeOptions';
+import { promptEngine } from './src/lib/promptEngine';
+import { mapLifestyleToPromptOptions } from './src/lib/promptEngine/mapLifestyleToPromptOptions';
 import LifestyleStep3, { type Step3Values } from "@/components/LifestyleStep3";
 
 
@@ -1109,6 +1111,9 @@ const App: React.FC = () => {
   const [isMoodProcessing, setIsMoodProcessing] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(1);
+
+  // LifestyleStep3 state for PromptEngine
+  const [lifestyleStep3Values, setLifestyleStep3Values] = useState<Step3Values | null>(null);
   const [activeTalentPreset, setActiveTalentPreset] = useState('custom');
   const [isProPhotographer, setIsProPhotographer] = useState(false);
   const [activeProPreset, setActiveProPreset] = useState<string>('custom');
@@ -2816,6 +2821,9 @@ const App: React.FC = () => {
 
   // Handler for LifestyleStep3 component 
   const handleLifestyleStep3Change = useCallback((values: Step3Values) => {
+    // Store values for PromptEngine
+    setLifestyleStep3Values(values);
+
     const updates: Partial<MockupOptions> = {};
 
     // Map person settings
@@ -4320,10 +4328,28 @@ If the model attempts to create a scene or environment, override it and force a 
       setIsImageLoading(true);
 
       try {
-        let finalPrompt = constructPrompt(bundleSelectionRef.current);
-        if (!isProductPlacement) {
-          finalPrompt = lifestylePrompt;
+        // Build PromptOptions from current state
+        const basePromptOptions: any = {
+          ...options,
+          contentStyle: isProductPlacement ? 'product' : 'ugc',
+          creationMode: options.creationMode || 'lifestyle',
+          personIncluded,
+          productAssets: generationProducts.map(p => ({
+            id: p.id,
+            base64: p.base64,
+            mimeType: p.mimeType,
+          })),
+        };
+
+        // If LifestyleStep3 values exist, map them to PromptOptions
+        let promptOptions = basePromptOptions;
+        if (lifestyleStep3Values && !isProductPlacement) {
+          promptOptions = mapLifestyleToPromptOptions(lifestyleStep3Values, basePromptOptions);
         }
+
+        // Use PromptEngine to build final prompt
+        const finalPrompt = promptEngine.build(promptOptions);
+
         const aspectRatio = options?.aspectRatio || '1:1';
 
         const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
