@@ -11,6 +11,7 @@ import { ModesBuilder } from './builders/modes';
 import { ClothingBuilder } from "./builders/clothing";
 import { SpecialModesBuilder } from './builders/special';
 import { FinalizeBuilder } from './builders/finalize';
+import { ConstraintsBuilder } from './builders/constraints';
 import { parameterMap, cameraPresets } from './parameterMap';
 import type { PromptOptions, PromptBuilder } from './types';
 import type { CameraAngleKey, CameraDistanceKey, CameraMovementKey } from './parameterMap.types';
@@ -217,14 +218,15 @@ export class PromptEngine {
     private builders: PromptBuilder[];
 
     constructor() {
-        // Order matters: Base → Identity → Scene → Product → Modes → Special → Finalize
+        // Order matters: Base → Constraints → Identity → Scene → Product → Modes → Special → Finalize
         this.builders = [
             new BaseBuilder(),
+            new ConstraintsBuilder(),  // Image preservation constraints
             new IdentityBuilder(),
             new SceneBuilder(),
             new ProductBuilder(),
             new ModesBuilder(),
-            new ClothingBuilder(),     // <-- ADD HERE
+            new ClothingBuilder(),
             new SpecialModesBuilder(),
             new FinalizeBuilder(),
         ];
@@ -263,6 +265,9 @@ export class PromptEngine {
         const baseBuilder = this.builders.find(
             (builder): builder is BaseBuilder => builder instanceof BaseBuilder
         );
+        const constraintsBuilder = this.builders.find(
+            (builder): builder is ConstraintsBuilder => builder instanceof ConstraintsBuilder
+        );
         const productBuilder = this.builders.find(
             (builder): builder is ProductBuilder => builder instanceof ProductBuilder
         );
@@ -277,6 +282,7 @@ export class PromptEngine {
         );
 
         const baseSection = baseBuilder ? baseBuilder.build(options) : '';
+        const constraintsSection = constraintsBuilder ? constraintsBuilder.build(options) : '';
         const identitySection =
             options.personIncluded && options.contentStyle !== 'product'
                 ? (identityBuilder ? identityBuilder.build(options) : '')
@@ -288,6 +294,7 @@ export class PromptEngine {
         const finalPrompt = buildMasterPrompt(
             {
                 base: baseSection,
+                constraints: constraintsSection,
                 identity: identitySection,
                 mode: modeSection,
                 product: productSection,
@@ -297,11 +304,16 @@ export class PromptEngine {
             negativePrompt()
         );
 
-        console.log('🚀 PromptEngine v2:', {
-            segments: 5,
+        // Debug logging for final prompt validation
+        console.log('🚀 PromptEngine v2 - FINAL PROMPT:', {
+            segments: 6,
             length: finalPrompt.length,
             mode: options.creationMode,
+            hasConstraints: !!constraintsSection,
+            hasIdentity: !!identitySection,
+            personIncluded: options.personIncluded,
         });
+        console.log('📝 Full Prompt:', finalPrompt.substring(0, 500) + '...');
 
         return finalPrompt;
     }
