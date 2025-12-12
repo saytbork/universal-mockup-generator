@@ -14,9 +14,10 @@ export class IdentityBuilder implements PromptBuilder {
             compositionIntro,
             identityBlock,
             eyeDirection,
+            contentStyle,
         } = options;
 
-        if (!personIncluded) {
+        if (!personIncluded || contentStyle === 'product') {
             return '';
         }
 
@@ -62,6 +63,67 @@ export class IdentityBuilder implements PromptBuilder {
             if (mappedEyeDirection) {
                 prompt += `${mappedEyeDirection} `;
             }
+        }
+
+        const personDetails = options.personDetails || {
+            ageGroup: (options as any).ageGroup,
+            gender: (options as any).gender,
+            ethnicity: (options as any).ethnicity,
+            skinTone: (options as any).skinTone,
+            hairColor: (options as any).hairColor,
+            hairStyle: (options as any).hairStyle,
+            personPose: (options as any).personPose,
+            personMood: (options as any).personMood,
+            personAppearance: (options as any).personAppearance,
+            productInteraction: (options as any).productInteraction,
+            wardrobeStyle: (options as any).wardrobeStyle,
+            personProps: (options as any).personProps,
+            microLocation: (options as any).microLocation,
+            personExpression: (options as any).personExpression,
+            selfieType: (options as any).selfieType,
+        };
+
+        const details: string[] = [];
+
+        if (personDetails.ageGroup && personDetails.ageGroup !== 'no person') {
+            details.push(parameterMap.ageGroup?.[personDetails.ageGroup] ?? personDetails.ageGroup);
+        }
+        if (personDetails.gender) {
+            details.push(`gender: ${personDetails.gender}`);
+        }
+        if (personDetails.ethnicity) {
+            details.push(`ethnicity: ${personDetails.ethnicity}`);
+        }
+        if (personDetails.personAppearance) {
+            details.push(personDetails.personAppearance);
+        }
+        if (personDetails.personMood) {
+            details.push(parameterMap.mood?.[personDetails.personMood] ?? personDetails.personMood);
+        }
+        if (personDetails.personExpression) {
+            details.push(parameterMap.expression?.[personDetails.personExpression] ?? personDetails.personExpression);
+        }
+        if (personDetails.personPose) {
+            details.push(parameterMap.pose?.[personDetails.personPose] ?? personDetails.personPose);
+        }
+        if (personDetails.productInteraction) {
+            details.push(parameterMap.interaction?.[personDetails.productInteraction] ?? personDetails.productInteraction);
+        }
+        if (personDetails.wardrobeStyle) {
+            details.push(parameterMap.wardrobe?.[personDetails.wardrobeStyle] ?? personDetails.wardrobeStyle);
+        }
+        if (personDetails.personProps) {
+            details.push(personDetails.personProps);
+        }
+        if (personDetails.microLocation) {
+            details.push(parameterMap.microLocation?.[personDetails.microLocation] ?? personDetails.microLocation);
+        }
+        if (personDetails.selfieType) {
+            details.push(parameterMap.selfieType?.[personDetails.selfieType] ?? personDetails.selfieType);
+        }
+
+        if (details.length > 0) {
+            prompt += ` Person details: ${details.filter(Boolean).join(', ')}.`;
         }
 
         return prompt;

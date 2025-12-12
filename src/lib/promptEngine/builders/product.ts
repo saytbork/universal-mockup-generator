@@ -3,6 +3,7 @@
  */
 
 import type { PromptOptions, PromptBuilder } from '../types';
+import { parameterMap } from '../parameterMap';
 
 export class ProductBuilder implements PromptBuilder {
     build(options: PromptOptions): string {
@@ -11,9 +12,17 @@ export class ProductBuilder implements PromptBuilder {
             heightNotes,
             isMultiProductPackaging,
             bundleLabels = [],
+            productMaterial,
         } = options;
 
         let prompt = this.buildProductInsertion();
+
+        const mappedMaterial = productMaterial
+            ? parameterMap.productMaterial?.[productMaterial] ?? productMaterial
+            : '';
+        if (mappedMaterial) {
+            prompt += ` Material and finish: ${mappedMaterial}.`;
+        }
 
         if (heightNotes) {
             prompt += ` Respect real-world scale: ${heightNotes}. Adjust hands, props, and camera distance so the item visibly matches that measurement.`;

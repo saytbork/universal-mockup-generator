@@ -3,15 +3,58 @@
  */
 
 import type { PromptOptions, PromptBuilder } from '../types';
+import { buildProductPlacementPrompt } from './productPlacement';
+import { buildLifestylePrompt } from './lifestyle';
 
 export class ModesBuilder implements PromptBuilder {
     build(options: PromptOptions): string {
-        const { creationMode } = options;
+        const mode = options.contentStyle === 'product' ? 'product' : options.creationMode;
+        const primaryAsset = options.productAssets?.[0];
+        const productMeta = {
+            name: (primaryAsset as any)?.name || primaryAsset?.label || primaryAsset?.id || 'product',
+        };
+        const params = {
+            setting: options.setting,
+            environmentOrder: options.environmentOrder,
+            lighting: options.lighting,
+            camera: options.camera,
+            compositionMode: options.compositionMode,
+            productPlane: options.productPlane,
+            placementStyle: (options as any).placementStyle,
+            placementCamera: (options as any).placementCamera,
+            cameraDistance: options.cameraDistance || 'medium',
+            cameraAngle: (options as any).cameraAngle || (options as any).cameraShot,
+            cameraShot: (options as any).cameraShot || (options as any).cameraAngle,
+            cameraMovement: (options as any).cameraMovement,
+            personPose: (options as any).personPose,
+            personExpression: (options as any).personExpression,
+            wardrobeStyle: (options as any).wardrobeStyle,
+            personMood: (options as any).personMood,
+            personProps: (options as any).personProps,
+            microLocation: (options as any).microLocation,
+            eyeDirection: (options as any).eyeDirection,
+            creationMode: options.creationMode,
+            selfieType: (options as any).selfieType,
+            addHands: options.addHands,
+        };
 
-        switch (creationMode) {
-            case 'lifestyle':
-                return this.buildLifestyle();
+        if (mode === 'product') {
+            return buildProductPlacementPrompt({
+                productMeta,
+                params: { ...params },
+                userPrompt: '',
+            }).trim().replace(/\s+/g, ' ');
+        }
 
+        if (mode === 'lifestyle') {
+            return buildLifestylePrompt({
+                productMeta,
+                params: { ...params },
+                userPrompt: '',
+            }).trim().replace(/\s+/g, ' ');
+        }
+
+        switch (mode) {
             case 'studio':
                 return this.buildStudio();
 

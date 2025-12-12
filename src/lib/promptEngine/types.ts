@@ -3,7 +3,13 @@
  * Comprehensive types for modular prompt generation
  */
 
-import type { EyeDirectionKey } from './parameterMap.types';
+import type {
+    CameraAngleKey,
+    CameraDistanceKey,
+    CameraMovementKey,
+    CameraShotKey,
+    EyeDirectionKey
+} from './parameterMap.types';
 
 export interface ProductAsset {
     id: string;
@@ -53,12 +59,13 @@ export interface PersonDetails {
 export interface PromptOptions {
     // Core
     contentStyle: 'ugc' | 'product' | '';
-    creationMode: 'lifestyle' | 'studio' | 'aesthetic' | 'bg-replace' | 'ecom-blank' | 'product';
+    creationMode: 'lifestyle' | 'studio' | 'aesthetic' | 'bg-replace' | 'ecom-blank';
     aspectRatio: string;
     camera: string;
-    cameraShot?: string;
-    cameraAngle?: string;
-    cameraDistance?: string;
+    cameraDistance?: CameraDistanceKey;
+    cameraAngle?: CameraAngleKey;
+    cameraShot?: CameraShotKey;
+    cameraMovement?: CameraMovementKey;
 
     // Scene
     setting: string;
@@ -66,6 +73,8 @@ export interface PromptOptions {
     perspective: string;
     environmentOrder: string;
     productPlane: string;
+    placementStyle?: string;
+    placementCamera?: string;
 
     // Person
     personDetails?: PersonDetails;
@@ -91,6 +100,8 @@ export interface PromptOptions {
     heightNotes?: string;
     isMultiProductPackaging?: boolean;
     bundleLabels?: string[];
+    productMaterial?: string;
+    addHands?: boolean;
     clothingReference?: string;
     clothingPreset?: string;
     clothingQuickPreset?: string;

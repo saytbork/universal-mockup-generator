@@ -1,154 +1,131 @@
 /**
- * PromptEngine v2 - Orchestrator
- * ARREGLADO + NORMALIZADO + PRODUCT MODE FIX + CAMERA FIX
+ * PromptEngine v2 - Main Orchestrator
+ * Modular, professional, and reliable prompt generation system
  */
 
-import { BaseBuilder } from "./builders/base";
-import { ProductBuilder } from "./builders/product";
-import { IdentityBuilder } from "./builders/identity";
-import { SceneBuilder } from "./builders/scene";
-import { ModesBuilder } from "./builders/modes";
+import { BaseBuilder } from './builders/base';
+import { ProductBuilder } from './builders/product';
+import { IdentityBuilder } from './builders/identity';
+import { SceneBuilder } from './builders/scene';
+import { ModesBuilder } from './builders/modes';
 import { ClothingBuilder } from "./builders/clothing";
-import { SpecialModesBuilder } from "./builders/special";
-import { FinalizeBuilder } from "./builders/finalize";
-import { parameterMap } from "./parameterMap";
-import type { PromptOptions, PromptBuilder } from "./types";
+import { SpecialModesBuilder } from './builders/special';
+import { FinalizeBuilder } from './builders/finalize';
+import { parameterMap, cameraPresets } from './parameterMap';
+import type { PromptOptions, PromptBuilder } from './types';
+import type { CameraAngleKey, CameraDistanceKey, CameraMovementKey } from './parameterMap.types';
+import { buildMasterPrompt } from './masterPrompt';
 
-/* ---------------------------------------- */
-/* NORMALIZADOR UNIVERSAL */
-/* ---------------------------------------- */
-function normalizeKey(str = "") {
-    return str
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9\s]/g, "")
-        .split(/\s+/)
-        .map((word, index) =>
-            index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1)
-        )
-        .join("");
-}
-
-/* ---------------------------------------- */
-/* PERSON DETAILS FORMATTER */
-/* ---------------------------------------- */
 function formatPersonDetails(d: any) {
     if (!d) return "";
 
     const parts: string[] = [];
-    const map: any = parameterMap as any;
+    const personMap: any = (parameterMap as any).personDetails || {};
+    const lookup = (section: string, key: string) =>
+        personMap?.[section]?.[key] ?? (parameterMap as any)?.[section]?.[key] ?? key;
 
-    const add = (section: string, value: string) => {
-        const key = normalizeKey(value);
-        if (map[section]?.[key]) parts.push(map[section][key]);
-    };
-
-    // Age fix (Gemini tiende a rejuvenecer)
-    if (d.ageGroup) {
-        const key = normalizeKey(d.ageGroup);
-
-        if (key === "75") {
-            parts.push(
-                "an elderly person age 75 to 95 with deep wrinkles, realistic aged skin, gray or white hair, unmistakably old"
-            );
-        } else {
-            add("ageGroup", d.ageGroup);
-        }
-    }
-
-    add("gender", d.gender);
-    add("ethnicity", d.ethnicity);
-    add("skinTone", d.skinTone);
-    add("hairColor", d.hairColor);
-    add("hairStyle", d.hairStyle);
-    add("personAppearance", d.personAppearance);
-    add("pose", d.personPose);
-    add("mood", d.personMood);
-    add("expression", d.personExpression);
-    add("microLocation", d.microLocation);
-    add("interaction", d.productInteraction);
-    add("wardrobe", d.wardrobeStyle);
-    add("props", d.personProps);
+    if (d.ageGroup) parts.push(lookup('ageGroup', d.ageGroup));
+    if (d.gender) parts.push(lookup('gender', d.gender));
+    if (d.ethnicity) parts.push(lookup('ethnicity', d.ethnicity));
+    if (d.skinTone) parts.push(lookup('skinTone', d.skinTone));
+    if (d.hairColor) parts.push(lookup('hairColor', d.hairColor));
+    if (d.hairStyle) parts.push(lookup('hairStyle', d.hairStyle));
+    if (d.personAppearance) parts.push(d.personAppearance);
+    if (d.personPose) parts.push(lookup('personPose', d.personPose));
+    if (d.personMood) parts.push(lookup('personMood', d.personMood));
+    if (d.personExpression) parts.push(lookup('personExpression', d.personExpression));
+    if (d.microLocation) parts.push(lookup('microLocation', d.microLocation));
+    if (d.productInteraction) parts.push(lookup('productInteraction', d.productInteraction));
+    if (d.wardrobeStyle) parts.push(lookup('wardrobeStyle', d.wardrobeStyle));
+    if (d.personProps) parts.push(lookup('personProps', d.personProps));
+    if (d.selfieType) parts.push(lookup('selfieType', d.selfieType));
+    if (d.eyeDirection) parts.push((parameterMap as any).eyeDirection?.[d.eyeDirection]);
 
     return parts.filter(Boolean).join(", ");
 }
 
-/* ---------------------------------------- */
-/* SCENE FORMATTER */
-/* ---------------------------------------- */
 function formatScene(o: any) {
     if (!o) return "";
     const map: any = parameterMap as any;
-
-    const normalizeAndMap = (section: string, key: string) => {
-        const nk = normalizeKey(key);
-        return map[section]?.[nk] ?? key;
-    };
-
     return [
-        normalizeAndMap("setting", o.setting),
-        normalizeAndMap("lighting", o.lighting),
-        normalizeAndMap("compositionMode", o.compositionMode),
-        normalizeAndMap("cameraType", o.camera),
+        map.setting?.[o.setting] ?? o.setting,
+        map.lighting?.[o.lighting] ?? o.lighting,
+        map.perspective?.[o.perspective] ?? o.perspective,
+        map.camera?.[o.camera] ?? map.cameraType?.[o.camera] ?? o.camera,
+        map.compositionMode?.[o.compositionMode] ?? o.compositionMode,
     ]
         .filter(Boolean)
         .join(", ");
 }
 
-/* ---------------------------------------- */
-/* CAMERA RULES */
-/* ---------------------------------------- */
 function cameraRules(options: any) {
-    const map: any = parameterMap as any;
-
     const selfieType = options?.selfieType ?? options?.personDetails?.selfieType;
+    const eyeDirection = options?.eyeDirection ?? options?.personDetails?.eyeDirection;
     const { personIncluded, contentStyle } = options || {};
-
     const rules: string[] = [];
 
-    /* PRODUCT MODE → NO PERSON */
     if (contentStyle === "product") {
-        return "no person visible, focus entirely on product, studio-quality clarity";
+        rules.push("no person visible", "focus on product only");
+        return rules.join(", ");
     }
 
-    /* NO PERSON */
     if (!personIncluded) {
-        return "no human presence";
+        rules.push("no human presence");
+        return rules.join(", ");
     }
 
-    /* SELFIE OVERRIDES */
-    const selfieOverride = [
-        "mirrorselfie",
-        "frontcamerapov",
-        "backcamerapov",
-    ].includes(normalizeKey(selfieType));
+    // Selfie logic
+    if (selfieType === "mirror_selfie") {
+        rules.push(
+            "mirror selfie",
+            "phone visible in the reflection",
+            "frontal framing",
+            "shoulders and face visible"
+        );
+    }
 
-    if (!selfieOverride) {
-        /* Camera Shot */
-        if (options.cameraShot) {
-            const key = normalizeKey(options.cameraShot);
-            if (map.cameraShot?.[key]) rules.push(map.cameraShot[key]);
-        }
+    if (selfieType === "front_camera_selfie") {
+        rules.push(
+            "selfie from front camera",
+            "phone not visible",
+            "arm extended",
+            "face centered"
+        );
+    }
 
-        /* Camera Angle */
-        if (options.cameraAngle) {
-            const key = normalizeKey(options.cameraAngle);
-            if (map.cameraAngle?.[key]) rules.push(map.cameraAngle[key]);
-        }
+    if (selfieType === "one_hand_product_selfie") {
+        rules.push(
+            "close up of product in hand",
+            "phone hidden",
+            "focus on hand and product"
+        );
+    }
 
-        /* Camera Distance */
-        if (options.cameraDistance) {
-            const key = normalizeKey(options.cameraDistance);
-            if (map.cameraDistance?.[key]) rules.push(map.cameraDistance[key]);
-        }
+    if (selfieType === "hands_only") {
+        rules.push(
+            "hands only",
+            "no face visible",
+            "clean framing of hands and product"
+        );
+    }
+
+    if (selfieType === "back_camera_pov") {
+        rules.push(
+            "over the shoulder pov",
+            "phone slightly visible from behind",
+            "face not visible",
+            "focus on product subject"
+        );
+    }
+
+    // Eye direction
+    if (eyeDirection) {
+        rules.push((parameterMap as any).eyeDirection?.[eyeDirection]);
     }
 
     return rules.filter(Boolean).join(", ");
 }
 
-/* ---------------------------------------- */
-/* NEGATIVE PROMPT */
-/* ---------------------------------------- */
 function negativePrompt() {
     return [
         "deformed hands",
@@ -162,78 +139,214 @@ function negativePrompt() {
         "face artifacts",
         "asymmetric face",
         "extra limbs",
+        "extra arms",
+        "extra legs",
         "mutated body",
-        "cartoon style",
+        "mangled hands",
         "text",
         "logo",
         "watermark",
+        "signature",
+        "caption",
+        "cartoon style",
+        "3d cartoon",
+        "plush toy",
+        "doll-like face",
+        "overexposed skin",
+        "underexposed skin",
+        "grainy skin texture",
+        "over-smoothed skin",
+        "warped product",
+        "stretched product",
+        "deformed bottle",
+        "incorrect label",
+        "fake reflections",
         "ai artifacts",
         "floating objects",
         "cut-off head",
         "cut-off body",
+        "partial person",
+        "framing issues",
+        "duplicate objects",
+        "double body",
+        "disconnected arms",
+        "altered outfit",
+        "invented clothing",
+        "incorrect fabric",
+        "incorrect outfit color",
+        "wrong clothing texture"
     ].join(", ");
 }
 
-/* ---------------------------------------- */
-/* PROMPT ENGINE CLASS */
-/* ---------------------------------------- */
+function handAppearanceRules(options: PromptOptions): string {
+    if (!options.personIncluded) {
+        return "";
+    }
+
+    const pose =
+        options.personDetails?.personPose ||
+        (options as any).personPose ||
+        "";
+    const normalizedPose = pose.toString().toLowerCase();
+    const hideHands =
+        normalizedPose.includes("no hand") ||
+        normalizedPose.includes("without hands") ||
+        normalizedPose.includes("sin manos") ||
+        normalizedPose.includes("hands-free") ||
+        normalizedPose.includes("hands free") ||
+        normalizedPose.includes("hands out of frame") ||
+        normalizedPose.includes("hands off frame") ||
+        normalizedPose.includes("hands hidden") ||
+        normalizedPose.includes("hide hands") ||
+        normalizedPose.includes("hands not visible");
+
+    if (hideHands) {
+        return "do not show hands, focus only on the product with natural placement.";
+    }
+
+    return [
+        "render hands with anatomically correct positioning and natural finger alignment",
+        "avoid extra fingers, avoid distorted hands, avoid disembodied limbs",
+        "clean and realistic grip on the product, correct finger count",
+        "no floating fingers, no deformed fingertips",
+        "ensure hand is fully connected and natural in the frame"
+    ].join(", ") + ".";
+}
+
 export class PromptEngine {
-    private builders: PromptBuilder[] = [];
+    private builders: PromptBuilder[];
 
-    build(options: PromptOptions): string {
-        /* PRODUCT MODE → FORZAR SIN PERSONA */
-        if (options.contentStyle === "product") {
-            options.personIncluded = false;
-            options.personDetails = {};
-        }
-
-        /* BUILDERS PIPELINE */
+    constructor() {
+        // Order matters: Base → Identity → Scene → Product → Modes → Special → Finalize
         this.builders = [
             new BaseBuilder(),
-            ...(options.contentStyle === "lifestyle" ? [new IdentityBuilder()] : []),
+            new IdentityBuilder(),
             new SceneBuilder(),
             new ProductBuilder(),
             new ModesBuilder(),
-            new ClothingBuilder(),
+            new ClothingBuilder(),     // <-- ADD HERE
             new SpecialModesBuilder(),
             new FinalizeBuilder(),
         ];
+    }
 
+    private applyCameraAngle(parts: string[], key?: CameraAngleKey) {
+        if (!key) return;
+        const preset =
+            parameterMap.cameraAngles?.[key] ||
+            cameraPresets.cameraAngles[key]?.prompt;
+        if (preset) {
+            parts.push(preset);
+        }
+    }
+
+    private applyCameraMovement(parts: string[], key?: CameraMovementKey) {
+        if (!key) return;
+        const preset = cameraPresets.cameraMovements[key];
+        if (preset?.prompt) {
+            parts.push(preset.prompt);
+        }
+    }
+
+    private applyCameraDistance(parts: string[], key?: CameraDistanceKey) {
+        if (!key) return;
+        const mapped = parameterMap.cameraDistance?.[key];
+        if (mapped) {
+            parts.push(mapped);
+        }
+    }
+
+    /**
+     * Build complete prompt from options
+     */
+    build(options: PromptOptions): string {
+        const baseBuilder = this.builders.find(
+            (builder): builder is BaseBuilder => builder instanceof BaseBuilder
+        );
         const productBuilder = this.builders.find(
-            (b): b is ProductBuilder => b instanceof ProductBuilder
+            (builder): builder is ProductBuilder => builder instanceof ProductBuilder
+        );
+        const identityBuilder = this.builders.find(
+            (builder): builder is IdentityBuilder => builder instanceof IdentityBuilder
+        );
+        const modesBuilder = this.builders.find(
+            (builder): builder is ModesBuilder => builder instanceof ModesBuilder
+        );
+        const finalizeBuilder = this.builders.find(
+            (builder): builder is FinalizeBuilder => builder instanceof FinalizeBuilder
         );
 
-        const productSection = productBuilder ? productBuilder.build(options) : "";
+        const baseSection = baseBuilder ? baseBuilder.build(options) : '';
+        const identitySection =
+            options.personIncluded && options.contentStyle !== 'product'
+                ? (identityBuilder ? identityBuilder.build(options) : '')
+                : '';
+        const modeSection = modesBuilder ? modesBuilder.build(options) : '';
+        const productSection = productBuilder ? productBuilder.build(options) : '';
+        const finalizeSection = finalizeBuilder ? finalizeBuilder.build(options) : '';
 
-        /* FINAL PROMPT */
-        const finalPrompt = `
-Ultra realistic photo, cinematic lighting.
+        const finalPrompt = buildMasterPrompt(
+            {
+                base: baseSection,
+                identity: identitySection,
+                mode: modeSection,
+                product: productSection,
+                finalize: finalizeSection,
+                includeIdentity: options.personIncluded && options.contentStyle !== 'product',
+            },
+            negativePrompt()
+        );
 
-Scene details:
-${formatScene(options)}
-
-Camera rules:
-${cameraRules(options)}
-
-Person details:
-${options.contentStyle === "product"
-                ? "no person"
-                : options.personIncluded
-                    ? formatPersonDetails(options.personDetails)
-                    : "no person"
-            }
-
-Product details:
-${productSection}
-
-Negative prompt:
-${negativePrompt()}
-`.trim();
+        console.log('🚀 PromptEngine v2:', {
+            segments: 5,
+            length: finalPrompt.length,
+            mode: options.creationMode,
+        });
 
         return finalPrompt;
     }
+
+    /**
+     * Get individual components for debugging
+     */
+    getComponents(options: PromptOptions): Record<string, string> {
+        return this.builders.reduce((acc, builder) => {
+            const name = builder.constructor.name.replace('Builder', '');
+            acc[name] = builder.build(options);
+            return acc;
+        }, {} as Record<string, string>);
+    }
+
+    /**
+     * Validate options (basic validation)
+     */
+    validate(options: PromptOptions): { valid: boolean; errors: string[] } {
+        const errors: string[] = [];
+
+        if (!options.creationMode) {
+            errors.push('creationMode is required');
+        }
+
+        if (!options.aspectRatio) {
+            errors.push('aspectRatio is required');
+        }
+
+        if (!options.camera) {
+            errors.push('camera is required');
+        }
+
+        return {
+            valid: errors.length === 0,
+            errors,
+        };
+    }
 }
 
+// Export singleton instance for convenience
 export const promptEngine = new PromptEngine();
+
+// Export class for testing
 export { PromptEngine as PromptEngineClass };
-export type { PromptOptions } from "./types";
+
+// Re-export types
+export type { PromptOptions } from './types';

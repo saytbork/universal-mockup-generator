@@ -3,6 +3,31 @@
  */
 
 import type { PromptOptions, PromptBuilder } from '../types';
+import { parameterMap } from '../parameterMap';
+
+const uniqueParts = (parts: (string | undefined)[]) =>
+    Array.from(new Set(parts.filter(Boolean) as string[])).join(", ");
+
+export function buildScene(params: any): string {
+    const setting =
+        parameterMap.setting?.[params.setting || params.sceneSetting] ??
+        params.setting ??
+        params.sceneSetting ??
+        "";
+    const perspective =
+        (parameterMap as any).perspective?.[params.perspective || params.scenePerspective] ??
+        params.perspective ??
+        params.scenePerspective ??
+        "";
+
+    // Prevent duplication in mapped styling
+    delete params.setting;
+    delete params.sceneSetting;
+    delete params.perspective;
+    delete params.scenePerspective;
+
+    return uniqueParts([setting, perspective]);
+}
 
 export class SceneBuilder implements PromptBuilder {
     build(options: PromptOptions): string {
