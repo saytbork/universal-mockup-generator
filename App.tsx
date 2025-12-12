@@ -36,7 +36,9 @@ import {
   UGC_REAL_MODE_BASE_PROMPT,
 } from './src/data/ugcPresets';
 import { normalizeOptions } from './src/system/normalizeOptions';
-import LifestyleStep3 from "./src/components/LifestyleStep3";
+import LifestyleStep3 from "@/components/LifestyleStep3";
+
+
 
 type UGCRealModeSettings = {
   isEnabled: boolean;
