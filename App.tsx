@@ -3666,7 +3666,23 @@ Facial features: Do not alter or randomize.`
     };
 
     const bundleProductsForPrompt = bundleProductsOverride ?? bundleSelectionRef.current;
-    let prompt = `Create an ultra-realistic, authentic ${isUgcStyle ? 'UGC lifestyle' : 'product placement'} photo with a ${cleanAspectRatio} aspect ratio. `;
+
+    // CRITICAL: Image preservation constraints (only for lifestyle with uploaded image)
+    const hasUploadedProduct = productAssets.length > 0;
+    const preservationBlock = (hasUploadedProduct && isUgcStyle) ? `
+CRITICAL IMAGE CONSTRAINTS:
+Use the uploaded image as the primary immutable reference.
+Do not redesign, reinterpret, or replace the scene.
+Preserve subject, pose, framing, proportions and realism.
+Preserve the exact uploaded product shape, proportions, colors, label layout, text and typography.
+Do not modify branding. Do not rotate or mirror the product.
+The uploaded image is the ground truth reference.
+Only enhance lighting, background softness and lifestyle realism.
+Do not invent new people, products, text or environments.
+
+` : '';
+
+    let prompt = preservationBlock + `Create an ultra-realistic, authentic ${isUgcStyle ? 'UGC lifestyle' : 'product placement'} photo with a ${cleanAspectRatio} aspect ratio. `;
     prompt = prompt
       .replace(/label design/gi, 'existing label preserved exactly')
       .replace(/redesign/gi, '')
@@ -4157,7 +4173,19 @@ If the model attempts to create a scene or environment, override it and force a 
     prompt += ' Deliver the render at ultra-high fidelity: native 4K resolution (minimum 3840px on the long edge) so it still looks razor sharp when downscaled to 2K for alternate exports.';
     prompt += ` Final image must be high-resolution and free of any watermarks, text, or artificial elements. It should feel like a captured moment, not a staged ad.`;
 
-    return removeConflictingIdentityPhrases(prompt);
+    const finalPrompt = removeConflictingIdentityPhrases(prompt);
+
+    // DEBUG: Log final prompt for validation
+    console.log('🚀 FINAL PROMPT GENERATED:', {
+      length: finalPrompt.length,
+      isLifestyle: isUgcStyle,
+      personIncluded,
+      hasPreservation: hasUploadedProduct && isUgcStyle,
+      mode: options.creationMode,
+    });
+    console.log('📝 Prompt Preview (first 800 chars):', finalPrompt.substring(0, 800));
+
+    return finalPrompt;
   }
 
   const getImageCreditCost = useCallback(
