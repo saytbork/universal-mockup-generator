@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   SlidersHorizontal, User, Palette, Activity, Scissors, Smile, Eye, Sparkles,
   Clock, Sun, Camera, Rotate3d, Layout, Hand, Smartphone, Shirt, Layers, Film,
-  Home, MapPin, Coffee, Utensils, Car, Waves, Mountain, Building2, Edit3
+  Home, MapPin, Coffee, Utensils, Car, Waves, Mountain, Building2, Edit3, Heart
 } from 'lucide-react';
 
 // ============================================================================
@@ -175,10 +175,10 @@ const PillButton: React.FC<{
     type="button"
     onClick={onClick}
     disabled={disabled}
-    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-150 border ${selected
+    className={`px - 3 py - 1.5 rounded - full text - xs font - medium transition - all duration - 150 border ${selected
         ? 'bg-indigo-500/30 border-indigo-400 text-white'
         : 'bg-gray-800/50 border-gray-700/50 text-gray-400 hover:border-gray-500 hover:text-gray-300'
-      } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+      } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} `}
   >
     {label}
   </button>
@@ -250,8 +250,8 @@ const SwatchSelector: React.FC<{
           type="button"
           onClick={() => onChange(option)}
           disabled={disabled}
-          className={`w-10 h-10 rounded-full ${getSwatchColor(option)} border-2 transition ${selected === option ? 'border-indigo-400 scale-110' : 'border-gray-600 hover:border-gray-400'
-            } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+          className={`w - 10 h - 10 rounded - full ${getSwatchColor(option)} border - 2 transition ${selected === option ? 'border-indigo-400 scale-110' : 'border-gray-600 hover:border-gray-400'
+            } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} `}
           title={option}
         />
       ))}
@@ -280,7 +280,7 @@ const AccordionSection: React.FC<{
         <span className="text-sm font-medium text-gray-200">{title}</span>
       </div>
       <svg
-        className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+        className={`w - 4 h - 4 text - gray - 500 transition - transform duration - 200 ${isOpen ? 'rotate-180' : ''} `}
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -290,8 +290,8 @@ const AccordionSection: React.FC<{
       </svg>
     </button>
     <div
-      className={`overflow-hidden transition-all duration-200 ${isOpen ? 'max-h-[500px] opacity-100 pb-4 px-2' : 'max-h-0 opacity-0'
-        }`}
+      className={`overflow - hidden transition - all duration - 200 ${isOpen ? 'max-h-[500px] opacity-100 pb-4 px-2' : 'max-h-0 opacity-0'
+        } `}
     >
       {children}
     </div>
@@ -394,14 +394,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
               onChange={(e) => setIsPro(e.target.checked)}
               className="sr-only"
             />
-            <div className={`relative h-6 w-11 rounded-full transition ${isPro ? 'bg-indigo-600' : 'bg-gray-700'}`}>
+            <div className={`relative h - 6 w - 11 rounded - full transition ${isPro ? 'bg-indigo-600' : 'bg-gray-700'} `}>
               <span
-                className={`absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow transition ${isPro ? 'translate-x-5' : ''
-                  }`}
+                className={`absolute left - 1 top - 1 h - 4 w - 4 rounded - full bg - white shadow transition ${isPro ? 'translate-x-5' : ''
+                  } `}
               />
             </div>
           </label>
-          <span className={`text-sm font-medium ${isPro ? 'text-white' : 'text-gray-400'}`}>PRO</span>
+          <span className={`text - sm font - medium ${isPro ? 'text-white' : 'text-gray-400'} `}>PRO</span>
         </div>
       </div>
 
@@ -555,10 +555,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                   key={preset.id}
                   type="button"
                   onClick={() => updateValue('creatorPreset', preset.id)}
-                  className={`p-3 rounded-lg border transition ${values.creatorPreset === preset.id
+                  className={`p - 3 rounded - lg border transition ${values.creatorPreset === preset.id
                       ? 'bg-indigo-500/20 border-indigo-400 text-white'
                       : 'bg-gray-800/30 border-gray-700 text-gray-400 hover:border-gray-500'
-                    }`}
+                    } `}
                 >
                   <preset.icon className="w-5 h-5 mx-auto mb-1" />
                   <p className="text-xs font-medium">{preset.label}</p>
