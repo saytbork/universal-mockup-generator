@@ -8,7 +8,7 @@ interface LifestyleStep3Props {
   onValuesChange?: (values: Step3Values) => void;
 }
 
-interface Step3Values {
+export interface Step3Values {
   sceneType: string;
   microLocation: string;
   lighting: string;

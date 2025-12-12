@@ -36,7 +36,7 @@ import {
   UGC_REAL_MODE_BASE_PROMPT,
 } from './src/data/ugcPresets';
 import { normalizeOptions } from './src/system/normalizeOptions';
-import LifestyleStep3 from "@/components/LifestyleStep3";
+import LifestyleStep3, { type Step3Values } from "@/components/LifestyleStep3";
 
 
 
@@ -2814,6 +2814,113 @@ const App: React.FC = () => {
     }
   }, [applyProPreset]);
 
+  // Handler for LifestyleStep3 component 
+  const handleLifestyleStep3Change = useCallback((values: Step3Values) => {
+    const updates: Partial<MockupOptions> = {};
+
+    // Map person settings
+    if (values.personType && values.personType !== 'No person') {
+      // Map gender from person type
+      const personTypeLower = values.personType.toLowerCase();
+      if (personTypeLower === 'woman') {
+        updates.gender = 'female';
+      } else if (personTypeLower === 'man') {
+        updates.gender = 'male';
+      }
+
+      // Map age group: Teen → '18-25', Adult → '26-35', Senior → '46-60'
+      if (values.ageGroup) {
+        const ageMap: Record<string, string> = {
+          'Teen': '18-25',
+          'Adult': '26-35',
+          'Senior': '46-60'
+        };
+        updates.ageGroup = ageMap[values.ageGroup] || AGE_GROUP_OPTIONS[0].value;
+      }
+
+      // Map skin tone to existing values
+      if (values.skinTone) {
+        const skinToneMap: Record<string, string> = {
+          'Light': 'light',
+          'Medium': 'medium',
+          'Tan': 'tan',
+          'Deep': 'deep'
+        };
+        updates.skinTone = skinToneMap[values.skinTone] || SKIN_TONE_OPTIONS[0].value;
+      }
+
+      // Map ethnicity (direct mapping, labels match)
+      if (values.ethnicity) {
+        const ethnicityLower = values.ethnicity.toLowerCase();
+        updates.ethnicity = ethnicityLower;
+      }
+
+      // Map wardrobe: Casual/Sporty/Elegant/Neutral/Colorful
+      if (values.wardrobe) {
+        const wardrobeMap: Record<string, string> = {
+          'Casual': 'casual',
+          'Sporty': 'sporty',
+          'Elegant': 'business casual',
+          'Neutral': 'plain white tee',
+          'Colorful': 'colorful'
+        };
+        updates.wardrobeStyle = wardrobeMap[values.wardrobe] || WARDROBE_STYLE_OPTIONS[0].value;
+      }
+
+      // Map product interaction
+      if (values.productInteraction) {
+        const interactionMap: Record<string, string> = {
+          'Holding product': 'holding it naturally',
+          'Using product': 'using it',
+          'Placing product': 'placing on surface',
+          'Near product': 'showing to camera'
+        };
+        updates.productInteraction = interactionMap[values.productInteraction] || PRODUCT_INTERACTION_OPTIONS[0].value;
+      }
+    } else {
+      // No person selected
+      updates.ageGroup = 'no person';
+    }
+
+    // Map micro location if provided
+    if (values.microLocation) {
+      const locationMap: Record<string, string> = {
+        'Kitchen set': 'kitchen counter',
+        'Bathroom vanity': 'bathroom',
+        'Living room': 'cozy living room',
+        'Neutral soft': MICRO_LOCATION_NONE_VALUE,
+        'Outdoor patio': 'outdoor terrace'
+      };
+      updates.microLocation = locationMap[values.microLocation] || MICRO_LOCATION_NONE_VALUE;
+    }
+
+    // Map lighting if provided
+    if (values.lighting) {
+      const lightingMap: Record<string, string> = {
+        'Soft': 'soft natural',
+        'Hard': 'direct sunlight',
+        'Studio': 'studio'
+      };
+      const lightingOption = LIGHTING_OPTIONS.find(opt =>
+        opt.label.toLowerCase().includes(lightingMap[values.lighting]?.toLowerCase() || '')
+      );
+      if (lightingOption) {
+        updates.lighting = lightingOption.value;
+      }
+    }
+
+    // Map aspect ratio directly
+    if (values.aspectRatio) {
+      updates.aspectRatio = values.aspectRatio;
+    }
+
+    // Apply all updates at once
+    if (Object.keys(updates).length > 0) {
+      applyOptionsUpdate(prev => ({ ...prev, ...updates }));
+    }
+  }, [applyOptionsUpdate]);
+
+
   const buildCopyPrompt = useCallback(
     (sceneOptions: MockupOptions) => {
       const style = sceneOptions.contentStyle === 'product' ? 'product placement' : 'UGC lifestyle';
@@ -4930,7 +5037,10 @@ If the model attempts to create a scene or environment, override it and force a 
                 {/* STEP 3 – row 2 (fills remaining space), col 1 */}
                 <div ref={customizeRef} className={`row-start-2 col-start-1 col-end-2 bg-gray-800/50 rounded-lg shadow-lg border border-gray-700 flex flex-col overflow-hidden ${!hasUploadedProduct ? 'opacity-60 pointer-events-none' : ''}`}>
                   <div className="flex-grow overflow-y-auto custom-scrollbar">
-                    <LifestyleStep3 isProductMode={isProductPlacement} />
+                    <LifestyleStep3
+                      isProductMode={isProductPlacement}
+                      onValuesChange={handleLifestyleStep3Change}
+                    />
                   </div>
                   <div className="mt-8 flex-shrink-0">
                     <button
