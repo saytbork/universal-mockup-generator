@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   SlidersHorizontal, User, Palette, Activity, Scissors, Smile, Eye, Sparkles,
   Clock, Sun, Camera, Rotate3d, Layout, Hand, Smartphone, Shirt, Layers, Film,
@@ -280,6 +280,9 @@ const FRAMING_OPTIONS = ['Centered', 'Rule of thirds', 'Off-center', 'Spontaneou
 const PRODUCT_INTERACTION_OPTIONS = INTERACTION_OPTIONS; // Use the same
 const ASPECT_RATIO_OPTIONS = ['1:1 (Square)', '4:5 (Portrait)', '9:16 (Story)'];
 
+const DEFAULT_UGC_CREATION_MODE = 'Lifestyle UGC';
+const DEFAULT_ECOMMERCE_CREATION_MODE = 'Ecommerce Blank Space';
+
 const AGE_GROUP_CHIP_OPTIONS = AGE_GROUP_OPTIONS.filter(option => option !== 'No Person');
 
 const CREATION_INTENT_OPTIONS = [
@@ -490,9 +493,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
     });
   };
 
-  const updateValue = <K extends keyof Step3Values>(key: K, value: Step3Values[K]) => {
+  const updateValue = useCallback(<K extends keyof Step3Values>(key: K, value: Step3Values[K]) => {
     setValues(prev => ({ ...prev, [key]: value }));
-  };
+  }, []);
 
   const toggleBooleanFlag = <K extends keyof Step3Values>(key: K) => {
     const current = values[key];
@@ -508,6 +511,114 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
   }, [values, onValuesChange]);
 
   const isPersonDisabled = values.noPerson;
+  const isEcommerceIntent = values.creationIntent === 'product' || values.creationIntent === 'brand';
+  const shouldShowEcommerceBuilder = isPro && (isEcommerceIntent || values.creationMode === DEFAULT_ECOMMERCE_CREATION_MODE);
+
+  useEffect(() => {
+    if (!values.formulationStoryEnabled) {
+      return;
+    }
+
+    if (values.creationIntent !== 'brand') {
+      updateValue('creationIntent', 'brand');
+    }
+    if (values.creationMode !== DEFAULT_ECOMMERCE_CREATION_MODE) {
+      updateValue('creationMode', DEFAULT_ECOMMERCE_CREATION_MODE);
+    }
+    if (values.ugcRealMode) {
+      updateValue('ugcRealMode', false);
+    }
+  }, [
+    values.formulationStoryEnabled,
+    values.creationIntent,
+    values.creationMode,
+    values.ugcRealMode,
+    updateValue
+  ]);
+
+  useEffect(() => {
+    if (values.creationIntent === 'ugc') {
+      if (!values.ugcRealMode) {
+        updateValue('ugcRealMode', true);
+      }
+      if (values.creationMode === DEFAULT_ECOMMERCE_CREATION_MODE) {
+        updateValue('creationMode', DEFAULT_UGC_CREATION_MODE);
+      }
+      if (values.formulationStoryEnabled) {
+        updateValue('formulationStoryEnabled', false);
+      }
+    } else {
+      if (values.ugcRealMode) {
+        updateValue('ugcRealMode', false);
+      }
+      if (values.selfieType !== 'None') {
+        updateValue('selfieType', 'None');
+      }
+    }
+  }, [
+    values.creationIntent,
+    values.creationMode,
+    values.ugcRealMode,
+    values.formulationStoryEnabled,
+    values.selfieType,
+    updateValue
+  ]);
+
+  useEffect(() => {
+    if (values.ugcRealMode) {
+      if (values.creationIntent !== 'ugc') {
+        updateValue('creationIntent', 'ugc');
+      }
+      if (values.creationMode === DEFAULT_ECOMMERCE_CREATION_MODE) {
+        updateValue('creationMode', DEFAULT_UGC_CREATION_MODE);
+      }
+      if (values.formulationStoryEnabled) {
+        updateValue('formulationStoryEnabled', false);
+      }
+      if (values.selfieType === 'None') {
+        updateValue('selfieType', 'Standard selfie');
+      }
+    }
+  }, [
+    values.ugcRealMode,
+    values.creationIntent,
+    values.creationMode,
+    values.formulationStoryEnabled,
+    values.selfieType,
+    updateValue
+  ]);
+
+  useEffect(() => {
+    if (values.creationMode === DEFAULT_ECOMMERCE_CREATION_MODE && values.creationIntent === 'ugc' && !values.formulationStoryEnabled) {
+      updateValue('creationIntent', 'product');
+    }
+  }, [
+    values.creationMode,
+    values.creationIntent,
+    values.formulationStoryEnabled,
+    updateValue
+  ]);
+
+  useEffect(() => {
+    if (shouldShowEcommerceBuilder) {
+      return;
+    }
+    if (values.compositionMode !== COMPOSITION_MODE_OPTIONS[0]) {
+      updateValue('compositionMode', COMPOSITION_MODE_OPTIONS[0]);
+    }
+    if (values.sidePlacement !== SIDE_PLACEMENT_OPTIONS[1]) {
+      updateValue('sidePlacement', SIDE_PLACEMENT_OPTIONS[1]);
+    }
+    if (values.ecommerceBackgroundColor !== ECOMMERCE_BACKGROUND_COLORS[0]) {
+      updateValue('ecommerceBackgroundColor', ECOMMERCE_BACKGROUND_COLORS[0]);
+    }
+  }, [
+    shouldShowEcommerceBuilder,
+    values.compositionMode,
+    values.sidePlacement,
+    values.ecommerceBackgroundColor,
+    updateValue
+  ]);
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6 pb-8">
@@ -1168,7 +1279,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
       </AccordionSection>
 
       {/* Ecommerce Image Builder (Pro) */}
-      {isPro && (
+      {shouldShowEcommerceBuilder && (
         <AccordionSection
           icon={Building2}
           title="Ecommerce Image Builder (Pro)"
