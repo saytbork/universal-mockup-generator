@@ -59,6 +59,7 @@ export interface PersonDetails {
 export interface PromptOptions {
     // Core
     contentStyle: 'ugc' | 'product' | '';
+    creationIntent?: 'ugc' | 'product' | 'brand';
     creationMode: 'lifestyle' | 'studio' | 'aesthetic' | 'bg-replace' | 'ecom-blank';
     aspectRatio: string;
     camera: string;
@@ -117,7 +118,7 @@ export interface PromptOptions {
 
     compositionMode?: string;
     bgColor?: string;
-    sidePlacement?: 'left' | 'right';
+    sidePlacement?: 'left' | 'center' | 'right';
 
     formulationExpertEnabled?: boolean;
     formulationExpertName?: string;

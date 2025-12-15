@@ -3,129 +3,12 @@
  * Modular, professional, and reliable prompt generation system
  */
 
-import { BaseBuilder } from './builders/base';
-import { ProductBuilder } from './builders/product';
 import { IdentityBuilder } from './builders/identity';
-import { SceneBuilder } from './builders/scene';
-import { ModesBuilder } from './builders/modes';
-import { ClothingBuilder } from "./builders/clothing";
-import { SpecialModesBuilder } from './builders/special';
-import { FinalizeBuilder } from './builders/finalize';
 import { ConstraintsBuilder } from './builders/constraints';
-import { parameterMap, cameraPresets } from './parameterMap';
-import type { PromptOptions, PromptBuilder } from './types';
-import type { CameraAngleKey, CameraDistanceKey, CameraMovementKey } from './parameterMap.types';
+import { FinalizeBuilder } from './builders/finalize';
+import { SceneNarrativeBuilder } from './builders/canonicalScene';
+import type { PromptOptions } from './types';
 import { buildMasterPrompt } from './masterPrompt';
-
-function formatPersonDetails(d: any) {
-    if (!d) return "";
-
-    const parts: string[] = [];
-    const personMap: any = (parameterMap as any).personDetails || {};
-    const lookup = (section: string, key: string) =>
-        personMap?.[section]?.[key] ?? (parameterMap as any)?.[section]?.[key] ?? key;
-
-    if (d.ageGroup) parts.push(lookup('ageGroup', d.ageGroup));
-    if (d.gender) parts.push(lookup('gender', d.gender));
-    if (d.ethnicity) parts.push(lookup('ethnicity', d.ethnicity));
-    if (d.skinTone) parts.push(lookup('skinTone', d.skinTone));
-    if (d.hairColor) parts.push(lookup('hairColor', d.hairColor));
-    if (d.hairStyle) parts.push(lookup('hairStyle', d.hairStyle));
-    if (d.personAppearance) parts.push(d.personAppearance);
-    if (d.personPose) parts.push(lookup('personPose', d.personPose));
-    if (d.personMood) parts.push(lookup('personMood', d.personMood));
-    if (d.personExpression) parts.push(lookup('personExpression', d.personExpression));
-    if (d.microLocation) parts.push(lookup('microLocation', d.microLocation));
-    if (d.productInteraction) parts.push(lookup('productInteraction', d.productInteraction));
-    if (d.wardrobeStyle) parts.push(lookup('wardrobeStyle', d.wardrobeStyle));
-    if (d.personProps) parts.push(lookup('personProps', d.personProps));
-    if (d.selfieType) parts.push(lookup('selfieType', d.selfieType));
-    if (d.eyeDirection) parts.push((parameterMap as any).eyeDirection?.[d.eyeDirection]);
-
-    return parts.filter(Boolean).join(", ");
-}
-
-function formatScene(o: any) {
-    if (!o) return "";
-    const map: any = parameterMap as any;
-    return [
-        map.setting?.[o.setting] ?? o.setting,
-        map.lighting?.[o.lighting] ?? o.lighting,
-        map.perspective?.[o.perspective] ?? o.perspective,
-        map.camera?.[o.camera] ?? map.cameraType?.[o.camera] ?? o.camera,
-        map.compositionMode?.[o.compositionMode] ?? o.compositionMode,
-    ]
-        .filter(Boolean)
-        .join(", ");
-}
-
-function cameraRules(options: any) {
-    const selfieType = options?.selfieType ?? options?.personDetails?.selfieType;
-    const eyeDirection = options?.eyeDirection ?? options?.personDetails?.eyeDirection;
-    const { personIncluded, contentStyle } = options || {};
-    const rules: string[] = [];
-
-    if (contentStyle === "product") {
-        rules.push("no person visible", "focus on product only");
-        return rules.join(", ");
-    }
-
-    if (!personIncluded) {
-        rules.push("no human presence");
-        return rules.join(", ");
-    }
-
-    // Selfie logic
-    if (selfieType === "mirror_selfie") {
-        rules.push(
-            "mirror selfie",
-            "phone visible in the reflection",
-            "frontal framing",
-            "shoulders and face visible"
-        );
-    }
-
-    if (selfieType === "front_camera_selfie") {
-        rules.push(
-            "selfie from front camera",
-            "phone not visible",
-            "arm extended",
-            "face centered"
-        );
-    }
-
-    if (selfieType === "one_hand_product_selfie") {
-        rules.push(
-            "close up of product in hand",
-            "phone hidden",
-            "focus on hand and product"
-        );
-    }
-
-    if (selfieType === "hands_only") {
-        rules.push(
-            "hands only",
-            "no face visible",
-            "clean framing of hands and product"
-        );
-    }
-
-    if (selfieType === "back_camera_pov") {
-        rules.push(
-            "over the shoulder pov",
-            "phone slightly visible from behind",
-            "face not visible",
-            "focus on product subject"
-        );
-    }
-
-    // Eye direction
-    if (eyeDirection) {
-        rules.push((parameterMap as any).eyeDirection?.[eyeDirection]);
-    }
-
-    return rules.filter(Boolean).join(", ");
-}
 
 function negativePrompt() {
     return [
@@ -179,139 +62,48 @@ function negativePrompt() {
     ].join(", ");
 }
 
-function handAppearanceRules(options: PromptOptions): string {
-    if (!options.personIncluded) {
-        return "";
-    }
-
-    const pose =
-        options.personDetails?.personPose ||
-        (options as any).personPose ||
-        "";
-    const normalizedPose = pose.toString().toLowerCase();
-    const hideHands =
-        normalizedPose.includes("no hand") ||
-        normalizedPose.includes("without hands") ||
-        normalizedPose.includes("sin manos") ||
-        normalizedPose.includes("hands-free") ||
-        normalizedPose.includes("hands free") ||
-        normalizedPose.includes("hands out of frame") ||
-        normalizedPose.includes("hands off frame") ||
-        normalizedPose.includes("hands hidden") ||
-        normalizedPose.includes("hide hands") ||
-        normalizedPose.includes("hands not visible");
-
-    if (hideHands) {
-        return "do not show hands, focus only on the product with natural placement.";
-    }
-
-    return [
-        "render hands with anatomically correct positioning and natural finger alignment",
-        "avoid extra fingers, avoid distorted hands, avoid disembodied limbs",
-        "clean and realistic grip on the product, correct finger count",
-        "no floating fingers, no deformed fingertips",
-        "ensure hand is fully connected and natural in the frame"
-    ].join(", ") + ".";
-}
-
 export class PromptEngine {
-    private builders: PromptBuilder[];
-
-    constructor() {
-        // Order matters: Base → Constraints → Identity → Scene → Product → Modes → Special → Finalize
-        this.builders = [
-            new BaseBuilder(),
-            new ConstraintsBuilder(),  // Image preservation constraints
-            new IdentityBuilder(),
-            new SceneBuilder(),
-            new ProductBuilder(),
-            new ModesBuilder(),
-            new ClothingBuilder(),
-            new SpecialModesBuilder(),
-            new FinalizeBuilder(),
-        ];
-    }
-
-    private applyCameraAngle(parts: string[], key?: CameraAngleKey) {
-        if (!key) return;
-        const preset =
-            parameterMap.cameraAngles?.[key] ||
-            cameraPresets.cameraAngles[key]?.prompt;
-        if (preset) {
-            parts.push(preset);
-        }
-    }
-
-    private applyCameraMovement(parts: string[], key?: CameraMovementKey) {
-        if (!key) return;
-        const preset = cameraPresets.cameraMovements[key];
-        if (preset?.prompt) {
-            parts.push(preset.prompt);
-        }
-    }
-
-    private applyCameraDistance(parts: string[], key?: CameraDistanceKey) {
-        if (!key) return;
-        const mapped = parameterMap.cameraDistance?.[key];
-        if (mapped) {
-            parts.push(mapped);
-        }
-    }
+    private constraintsBuilder = new ConstraintsBuilder();
+    private identityBuilder = new IdentityBuilder();
+    private finalizeBuilder = new FinalizeBuilder();
+    private narrativeBuilder = new SceneNarrativeBuilder();
 
     /**
      * Build complete prompt from options
      */
     build(options: PromptOptions): string {
-        const baseBuilder = this.builders.find(
-            (builder): builder is BaseBuilder => builder instanceof BaseBuilder
-        );
-        const constraintsBuilder = this.builders.find(
-            (builder): builder is ConstraintsBuilder => builder instanceof ConstraintsBuilder
-        );
-        const productBuilder = this.builders.find(
-            (builder): builder is ProductBuilder => builder instanceof ProductBuilder
-        );
-        const identityBuilder = this.builders.find(
-            (builder): builder is IdentityBuilder => builder instanceof IdentityBuilder
-        );
-        const modesBuilder = this.builders.find(
-            (builder): builder is ModesBuilder => builder instanceof ModesBuilder
-        );
-        const finalizeBuilder = this.builders.find(
-            (builder): builder is FinalizeBuilder => builder instanceof FinalizeBuilder
-        );
-
-        const baseSection = baseBuilder ? baseBuilder.build(options) : '';
-        const constraintsSection = constraintsBuilder ? constraintsBuilder.build(options) : '';
+        const constraintsSection = this.constraintsBuilder.build(options);
         const identitySection =
             options.personIncluded && options.contentStyle !== 'product'
-                ? (identityBuilder ? identityBuilder.build(options) : '')
+                ? this.identityBuilder.build(options)
                 : '';
-        const modeSection = modesBuilder ? modesBuilder.build(options) : '';
-        const productSection = productBuilder ? productBuilder.build(options) : '';
-        const finalizeSection = finalizeBuilder ? finalizeBuilder.build(options) : '';
+        const narrativeSections = this.narrativeBuilder.build(options, {
+            identity: identitySection,
+            constraints: constraintsSection
+        });
+        const finalizeSection = this.finalizeBuilder.build(options);
 
         const finalPrompt = buildMasterPrompt(
             {
-                base: baseSection,
-                constraints: constraintsSection,
-                identity: identitySection,
-                mode: modeSection,
-                product: productSection,
-                finalize: finalizeSection,
-                includeIdentity: options.personIncluded && options.contentStyle !== 'product',
+                creationIntent: narrativeSections.creationIntent,
+                creationMode: narrativeSections.creationMode,
+                ugcRealMode: narrativeSections.ugcRealMode,
+                formulationStory: narrativeSections.formulationStory,
+                ecommerceBuilder: narrativeSections.ecommerceBuilder,
+                cameraFraming: narrativeSections.cameraFraming,
+                environmentLightingMood: narrativeSections.environmentLightingMood,
+                identity: narrativeSections.identity,
+                finalize: finalizeSection
             },
             negativePrompt()
         );
 
         // Debug logging for final prompt validation
         console.log('🚀 PromptEngine v2 - FINAL PROMPT:', {
-            segments: 6,
             length: finalPrompt.length,
-            mode: options.creationMode,
-            hasConstraints: !!constraintsSection,
-            hasIdentity: !!identitySection,
-            personIncluded: options.personIncluded,
+            creationIntent: options.creationIntent,
+            creationMode: options.creationMode,
+            personIncluded: options.personIncluded
         });
         console.log('📝 Full Prompt:', finalPrompt.substring(0, 500) + '...');
 
@@ -322,11 +114,34 @@ export class PromptEngine {
      * Get individual components for debugging
      */
     getComponents(options: PromptOptions): Record<string, string> {
-        return this.builders.reduce((acc, builder) => {
-            const name = builder.constructor.name.replace('Builder', '');
-            acc[name] = builder.build(options);
-            return acc;
-        }, {} as Record<string, string>);
+        const constraintsSection = this.constraintsBuilder.build(options);
+        const identitySection =
+            options.personIncluded && options.contentStyle !== 'product'
+                ? this.identityBuilder.build(options)
+                : '';
+        const narrativeSections = this.narrativeBuilder.build(options, {
+            identity: identitySection,
+            constraints: constraintsSection
+        });
+        const finalizeSection = this.finalizeBuilder.build(options);
+
+        return {
+            Narrative: [
+                narrativeSections.creationIntent,
+                narrativeSections.creationMode,
+                narrativeSections.ugcRealMode,
+                narrativeSections.formulationStory ?? '',
+                narrativeSections.ecommerceBuilder ?? '',
+                narrativeSections.cameraFraming,
+                narrativeSections.environmentLightingMood,
+                finalizeSection
+            ]
+                .filter(Boolean)
+                .join(' '),
+            Identity: identitySection,
+            Constraints: constraintsSection,
+            Finalize: finalizeSection
+        };
     }
 
     /**

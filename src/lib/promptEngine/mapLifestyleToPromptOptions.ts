@@ -163,26 +163,34 @@ export function mapLifestyleToPromptOptions(
     // Time of Day → influences lighting
     const timeMap: Record<string, string> = {
         'Morning': 'morning light',
+        'Midday': 'midday light',
         'Afternoon': 'afternoon light',
-        'Golden hour': 'golden hour',
+        'Golden Hour': 'golden hour glow',
         'Evening': 'evening ambient light',
         'Night': 'night time lighting'
     };
 
     // Lighting Style
     const lightingMap: Record<string, string> = {
-        'Natural daylight': 'natural daylight',
-        'Soft window light': 'soft window light',
-        'Golden hour warm': 'golden hour warm glow',
-        'Indoor ambient': 'indoor ambient lighting',
-        'Overcast soft': 'overcast soft light',
-        'Low light cinematic': 'low light cinematic'
+        'Natural window': 'natural window lighting',
+        'Soft diffused': 'soft diffused light',
+        'Direct sunlight': 'direct sunlight',
+        'Indoor artificial': 'artificial indoor lighting',
+        'Moody/dramatic': 'moody dramatic lighting',
+        'Phone flashlight': 'phone flashlight illumination'
     };
-    mapped.lighting = lightingMap[lifestyleState.lightingStyle] || lifestyleState.lightingStyle.toLowerCase();
+    const timeDescriptor = timeMap[lifestyleState.timeOfDay];
+    const lightingDescriptor = lightingMap[lifestyleState.lightingStyle] || lifestyleState.lightingStyle.toLowerCase();
+    mapped.lighting = [timeDescriptor, lightingDescriptor].filter(Boolean).join(', ');
 
     // Mood / Vibe → personMood
     const moodMap: Record<string, string> = {
-        'Casual everyday': 'casual and relaxed',
+        'Calm & Serene': 'calm and serene vibe',
+        'Joyful & High-Energy': 'joyful and high-energy',
+        'Confident & Editorial': 'confident editorial tone',
+        'Playful & Candid': 'playful and candid',
+        'Hustle & Juggle': 'hustle-focused energy',
+        'Stressed but Determined': 'stressed but determined focus',
         'Calm and relaxed': 'calm and peaceful',
         'Happy and energetic': 'happy and energetic',
         'Cozy': 'cozy and comfortable',
@@ -190,16 +198,15 @@ export function mapLifestyleToPromptOptions(
         'Authentic UGC': 'authentic creator vibe',
         'Candid, unposed': 'candid unposed'
     };
-    mapped.personMood = moodMap[lifestyleState.mood];
+    mapped.personMood = moodMap[lifestyleState.mood] || lifestyleState.mood;
 
     // Shot Type → camera distance
     const shotMap: Record<string, string> = {
-        'Close up': 'close-up',
-        'Medium shot': 'medium',
+        'Close-up': 'close-up',
+        'Medium': 'medium',
         'Full body': 'full-body',
-        'Over the shoulder': 'over-the-shoulder',
-        'POV': 'pov',
-        'Selfie style': 'selfie'
+        'Product focus': 'product focus',
+        'Environmental': 'environmental'
     };
     mapped.cameraShot = shotMap[lifestyleState.shotType] as any;
     mapped.camera = 'smartphone'; // Default for lifestyle
@@ -209,7 +216,7 @@ export function mapLifestyleToPromptOptions(
         'Eye level': 'eye-level',
         'Slightly above': 'slightly-above',
         'Slightly below': 'slightly-below',
-        '3/4 angle': 'three-quarter'
+        'Dutch angle': 'dutch angle'
     };
     mapped.cameraAngle = angleMap[lifestyleState.cameraAngle] as any;
 
@@ -217,28 +224,52 @@ export function mapLifestyleToPromptOptions(
     const framingMap: Record<string, string> = {
         'Centered': 'centered',
         'Rule of thirds': 'rule-of-thirds',
-        'Off center lifestyle': 'off-center lifestyle'
+        'Off-center': 'off-center',
+        'Spontaneous': 'spontaneous composition'
     };
     mapped.perspective = framingMap[lifestyleState.framing];
 
     // Product Interaction
     const interactionMap: Record<string, string> = {
-        'Holding product': 'holding it naturally',
-        'Using product': 'using it',
-        'Product on table': 'placing on surface',
-        'Product in hand casually': 'holding it naturally',
-        'Product in background': 'product in background',
-        'Product secondary': 'product as secondary element'
+        'Holding': 'holding the product naturally',
+        'Using': 'using the product',
+        'Showing to Camera': 'showing the product to camera',
+        'Unboxing': 'unboxing the product',
+        'Applying': 'applying the product',
+        'Placing on Surface': 'placing the product on surface'
     };
     mapped.productInteraction = interactionMap[lifestyleState.productInteraction];
     if (mapped.personDetails) {
         mapped.personDetails.productInteraction = mapped.productInteraction;
     }
 
+    // Selfie Type
+    if (mapped.personDetails) {
+        mapped.personDetails.selfieType = lifestyleState.selfieType;
+    }
+
+    // Pose
+    if (lifestyleState.pose) {
+        if (!mapped.personDetails) {
+            mapped.personDetails = {};
+        }
+        mapped.personDetails.personPose = lifestyleState.pose;
+    }
+
+    // Mood assignment to person details
+    if (mapped.personDetails) {
+        mapped.personDetails.personMood = mapped.personMood;
+    }
+
     // UGC Real Mode
     if (lifestyleState.ugcRealMode) {
         mapped.realModeActive = true;
         mapped.ugcRealityPreset = 'authentic-ugc';
+    }
+
+    // Camera rules rely on perspective/time mapping
+    if (mapped.personDetails) {
+        mapped.personDetails.eyeDirection = lifestyleState.eyeDirection as any;
     }
 
     // Background Behavior
@@ -251,9 +282,35 @@ export function mapLifestyleToPromptOptions(
     // Aspect Ratio
     mapped.aspectRatio = lifestyleState.aspectRatio;
 
-    // Content Style & Creation Mode
-    mapped.contentStyle = personIncluded ? 'ugc' : 'product';
-    mapped.creationMode = 'lifestyle';
+    // Content Style & Creation Intent
+    mapped.creationIntent = lifestyleState.creationIntent;
+    if (lifestyleState.creationIntent === 'ugc') {
+        mapped.contentStyle = personIncluded ? 'ugc' : 'product';
+    } else {
+        mapped.contentStyle = 'product';
+    }
+
+    const creationModeMap: Record<string, PromptOptions['creationMode']> = {
+        'Lifestyle UGC': 'lifestyle',
+        'Studio Hero': 'studio',
+        'Aesthetic Builder': 'aesthetic',
+        'Background Replace': 'bg-replace',
+        'Ecommerce Blank Space': 'ecom-blank'
+    };
+    mapped.creationMode = creationModeMap[lifestyleState.creationMode] || 'lifestyle';
+
+    // Ecommerce builder settings
+    mapped.compositionMode = lifestyleState.compositionMode;
+    const placement = lifestyleState.sidePlacement?.toLowerCase() || 'center';
+    mapped.sidePlacement = placement as PromptOptions['sidePlacement'];
+    mapped.bgColor = lifestyleState.ecommerceBackgroundColor;
+
+    // Formulation story details
+    mapped.formulationExpertEnabled = lifestyleState.formulationStoryEnabled;
+    mapped.formulationExpertName = lifestyleState.formulationName;
+    mapped.formulationExpertRole = lifestyleState.formulationRole;
+    mapped.formulationLabStyle = lifestyleState.formulationLabVibe;
+    mapped.formulationExpertPreset = lifestyleState.formulationPreset;
 
     return mapped;
 }
