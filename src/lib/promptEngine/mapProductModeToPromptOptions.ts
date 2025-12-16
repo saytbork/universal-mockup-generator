@@ -73,7 +73,6 @@ export function mapProductModeToPromptOptions(
     mapped.contentStyle = 'product';
     mapped.creationMode = 'studio'; // Product mode uses studio creation mode
     mapped.personIncluded = false;
-    mapped.ageGroup = 'no person';
 
     // ========================================================================
     // PRODUCT COMPOSITION (Stage 4)

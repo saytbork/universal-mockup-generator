@@ -83,17 +83,6 @@ export const selfieTypes = [
   "Back Camera POV"
 ];
 
-export const ageGroups = [
-  "6-12",
-  "13-17",
-  "18-25",
-  "26-35",
-  "36-45",
-  "46-60",
-  "60-75",
-  "75+"
-];
-
 export const genders = [
   "Female",
   "Male",

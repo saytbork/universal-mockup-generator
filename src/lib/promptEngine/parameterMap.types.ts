@@ -33,7 +33,6 @@ export type CameraShotKey =
 
 export interface ParameterMap {
   eyeDirection: Record<EyeDirectionKey, string>;
-  ageGroup: Record<string, string>;
   appearanceLevel: Record<string, string>;
   wardrobe: Record<string, string>;
   mood: Record<string, string>;

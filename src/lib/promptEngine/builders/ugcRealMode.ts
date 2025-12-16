@@ -2,66 +2,117 @@
  * UGC Real Mode Builder
  * Enforces authentic user-generated content rules
  * HIGHEST PRIORITY when ugcRealModeActive === true
+ * 
+ * HARD OVERRIDES:
+ * - Human-first composition (person is main subject)
+ * - Force lifestyle mode
+ * - Force selfie logic when enabled
+ * - Block studio/editorial vocabulary
+ * - Mandatory product interaction
  */
 
 import type { PromptOptions, PromptBuilder } from '../types';
 
 export class UGCRealModeBuilder implements PromptBuilder {
     build(options: PromptOptions): string {
-        const { ugcRealModeActive, personDetails } = options;
+        const { ugcRealModeActive, personDetails, personIncluded } = options;
 
         if (!ugcRealModeActive) {
             return '';
         }
 
+        console.log('[UGC REAL MODE] Building with hard overrides');
         const parts: string[] = [];
 
-        // MANDATORY OVERRIDE - This MUST come first
+        // ========================================================================
+        // MANDATORY COMPOSITION OVERRIDE - This MUST come first
+        // ========================================================================
         parts.push(`
-This image MUST follow authentic user-generated content rules.
+UGC REAL MODE OVERRIDE - HIGHEST PRIORITY:
+This image must follow authentic user-generated content rules.
 Prioritize realism over aesthetics.
 Avoid editorial, hero, luxury, studio, or polished compositions.
 Natural human imperfections are REQUIRED.
+Smartphone-quality aesthetic with computational photography characteristics.
         `.trim().replace(/\s+/g, ' '));
 
-        // UGC COMPOSITION OVERRIDE
-        parts.push(`
-UGC COMPOSITION OVERRIDE:
-Human-first composition.
-The person is the main subject.
-The person MUST be holding the product with their hand.
-No table placement. No surface placement.
-No hero product framing. No editorial composition.
-        `.trim().replace(/\s+/g, ' '));
-
-        // Age realism override for 70+
-        const age = personDetails?.age || 0;
-        if (age >= 70) {
+        // ========================================================================
+        // HUMAN-FIRST COMPOSITION (NOT NEGOTIABLE)
+        // ========================================================================
+        if (personIncluded) {
             parts.push(`
-Age realism override: The subject's advanced age must remain visually dominant even in UGC style.
-Do not beautify, rejuvenate, or modernize facial features.
-Smartphone realism must adapt to the age, not the opposite.
+HUMAN-FIRST COMPOSITION (MANDATORY):
+The person is the main subject of the image.
+Person takes visual priority over product.
+Person MUST be holding the product with their hand - natural grip, relaxed fingers.
+NO table placement. NO surface placement. NO floating product.
+NO hero product framing. NO editorial product showcase.
+Frame the scene as if captured by the person or a friend with a smartphone.
             `.trim().replace(/\s+/g, ' '));
         }
 
-        // Selfie POV if available
-        if (personDetails?.selfieType) {
-            const selfieMap: Record<string, string> = {
-                "Arm's Length Selfie": "selfie taken at arm's length, natural front-camera perspective",
-                "Classic Arm Selfie (phone not visible)": "selfie perspective taken at arm's length, forearm partially visible in frame, phone not visible, natural front-camera distortion",
-                "Mirror Selfie (phone visible)": "mirror selfie with phone clearly visible in reflection",
-                "One-hand product selfie": "one-hand selfie holding product, natural smartphone angle",
-                "Overhead in-bed selfie": "overhead selfie taken from above while lying down",
-                "Low-angle hero selfie": "low-angle selfie from below, empowering perspective",
-                "Back camera POV": "back camera perspective, arm's length or slightly extended"
-            };
-
-            const selfieInstruction = selfieMap[personDetails.selfieType];
-            if (selfieInstruction) {
-                parts.push(selfieInstruction);
-            }
+        // ========================================================================
+        // AGE REALISM OVERRIDE for 70+
+        // ========================================================================
+        const age = personDetails?.age || 0;
+        if (age >= 70) {
+            parts.push(`
+AGE REALISM OVERRIDE (70+):
+The subject's advanced age of ${age} must remain visually dominant even in casual UGC style.
+Do NOT beautify, rejuvenate, or smooth skin.
+Do NOT use youthful proportions or middle-aged features.
+Age-appropriate skin texture, posture, and presence REQUIRED.
+Smartphone camera characteristics must adapt to the age, not the opposite.
+            `.trim().replace(/\s+/g, ' '));
         }
 
-        return parts.filter(Boolean).join(' ').trim();
+        // ========================================================================
+        // SELFIE POV - Physical camera position
+        // ========================================================================
+        if (personDetails?.selfieType && personDetails.selfieType !== 'None') {
+            parts.push(`
+CAMERA POV: ${personDetails.selfieType}
+            `.trim().replace(/\s+/g, ' '));
+        }
+
+        // ========================================================================
+        // HERO PERSONA - Semantic character description
+        // ========================================================================
+        if (options.heroPersona || personDetails?.heroPersona) {
+            const persona = options.heroPersona || personDetails?.heroPersona;
+            parts.push(`
+CREATOR PERSONA: ${persona}
+            `.trim().replace(/\s+/g, ' '));
+        }
+
+        // ========================================================================
+        // BLOCKED VOCABULARY - These terms must NOT appear
+        // ========================================================================
+        parts.push(`
+BLOCKED VOCABULARY (DO NOT USE):
+- "hero shot", "hero framing", "product hero"
+- "editorial", "editorial lighting", "editorial composition"
+- "studio", "studio lighting", "controlled studio"
+- "commercial", "advertising", "campaign"
+- "luxury", "premium", "high-end" (in composition context)
+- "perfectly composed", "precise arrangement"
+        `.trim().replace(/\s+/g, ' '));
+
+        // ========================================================================
+        // REQUIRED VOCABULARY - These concepts MUST be present
+        // ========================================================================
+        parts.push(`
+REQUIRED UGC CHARACTERISTICS:
+- Authentic, candid, real-world feeling
+- Slight imperfections in framing or lighting
+- Natural hand positioning (not posed)
+- Smartphone-like depth of field
+- Real environment (not styled set)
+        `.trim().replace(/\s+/g, ' '));
+
+        const result = parts.filter(Boolean).join(' ').trim();
+        console.log('[UGC REAL MODE OUTPUT]', result.substring(0, 200) + '...');
+        return result;
     }
 }
+

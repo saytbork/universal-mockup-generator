@@ -21,7 +21,6 @@ export interface ProductAsset {
 }
 
 export interface PersonIdentity {
-    ageGroup?: string;
     gender?: string;
     ethnicity?: string;
     skinTone?: string;
@@ -39,7 +38,6 @@ export interface ModelReference {
 
 export interface PersonDetails {
     age?: number;                    // Numeric age 18-90
-    ageGroup?: string;
     gender?: string;
     ethnicity?: string;
     skinTone?: string;
@@ -61,6 +59,7 @@ export interface PersonDetails {
     microLocation?: string;
     personExpression?: string;
     selfieType?: string;
+    heroPersona?: string;             // Semantic UGC persona description
 }
 
 export interface PromptOptions {
@@ -86,7 +85,6 @@ export interface PromptOptions {
 
     // Person
     personDetails?: PersonDetails;
-    ageGroup?: string;
     gender?: string;
     ethnicity?: string;
     skinTone?: string;
@@ -101,6 +99,7 @@ export interface PromptOptions {
     microLocation?: string;
     personExpression?: string;
     selfieType?: string;
+    selfieExecution?: string;    // Execution style for Front Camera Selfie
     eyeDirection?: EyeDirectionKey;
 
     // Product
@@ -145,6 +144,7 @@ export interface PromptOptions {
 
     // UGC Real Mode
     ugcRealModeActive?: boolean;      // UGC Real Mode toggle
+    heroPersona?: string;             // Semantic UGC persona description
 
     // Composition
     compositionIntro?: string;

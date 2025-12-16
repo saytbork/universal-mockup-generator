@@ -39,6 +39,28 @@ Avoid youthful facial proportions, smooth skin, or middle-aged appearance.
             `.trim().replace(/\s+/g, ' '));
         }
 
+        // UGC DEGRADATION LOGIC
+        const isUGC = options.ugcRealModeActive;
+
+        // Blocked terms that cause CGI/Doll look
+        const BLOCKED_IDENTITY_TERMS = [
+            'ultra-realistic', 'cinematic', 'beauty dish', 'three-point lighting',
+            'macro lens', 'perfect symmetry', 'flawless skin', 'high-gloss retouch',
+            'editorial face', 'studio lighting', 'professional retouching',
+            'perfect complexion', 'hyper-detailed', '8k', 'unreal engine'
+        ];
+
+        // Helper to sanitize parts
+        const sanitizePart = (text: string) => {
+            if (!isUGC) return text;
+            let cleanText = text;
+            BLOCKED_IDENTITY_TERMS.forEach(term => {
+                const regex = new RegExp(`\\b${term}\\b`, 'gi');
+                cleanText = cleanText.replace(regex, '');
+            });
+            return cleanText.replace(/\s+/g, ' ').trim();
+        };
+
         // IDENTITY BLOCK - Core attributes
         const identityParts: string[] = [];
 
@@ -57,66 +79,69 @@ Avoid youthful facial proportions, smooth skin, or middle-aged appearance.
             };
             const mapped = genderMap[personDetails.gender];
             if (mapped) {
-                identityParts.push(mapped);
+                identityParts.push(sanitizePart(mapped));
             }
         }
 
-        // Ethnicity
+        // Ethnicity - with physical features
         if (personDetails?.ethnicity && personDetails.ethnicity !== 'Prefer not to specify') {
-            if (personDetails.ethnicity.startsWith('ethnicity described as:')) {
-                // Custom ethnicity
-                identityParts.push(personDetails.ethnicity);
-            } else {
-                identityParts.push(`of ${personDetails.ethnicity} appearance`);
-            }
+            identityParts.push(sanitizePart(personDetails.ethnicity));
         }
 
         // Body Type
         if (personDetails?.bodyType) {
-            identityParts.push(`${personDetails.bodyType.toLowerCase()} build`);
+            identityParts.push(sanitizePart(`${personDetails.bodyType.toLowerCase()} build`));
         }
 
-        // Skin Tone (avoid duplication)
+        // Skin Tone
         if (personDetails?.skinTone) {
             const skinMap: Record<string, string> = {
                 'Very Fair': 'very fair',
                 'Fair': 'fair',
+                'Fair Cool': 'fair with cool undertones',
+                'Fair Warm': 'fair with warm undertones',
                 'Medium': 'medium',
+                'Medium Neutral': 'medium with neutral undertones',
                 'Olive': 'olive',
                 'Tan': 'tan',
                 'Brown': 'brown',
+                'Deep Golden': 'deep with golden undertones',
                 'Deep Brown': 'deep brown',
+                'Deep Cool': 'deep with cool undertones',
                 'Very Deep': 'very deep'
             };
             const mappedSkin = skinMap[personDetails.skinTone] || personDetails.skinTone.toLowerCase();
-            identityParts.push(`${mappedSkin} skin`); // NO "skin tone" duplication
+            identityParts.push(`${mappedSkin} skin`);
         }
 
-        // Skin Realism
-        if (personDetails?.skinRealism) {
-            const realismMap: Record<string, string> = {
-                'Ultra realistic': 'realistic skin texture with visible pores, fine lines, and natural imperfections',
-                'Natural': 'natural skin texture with subtle imperfections',
-                'Polished': 'polished skin with minimal visible texture',
-                'Smooth': 'smooth skin with very subtle texture'
-            };
-            const mapped = realismMap[personDetails.skinRealism];
-            if (mapped) {
-                identityParts.push(mapped);
-            }
+        // Skin Realism - UGC Override logic
+        if (isUGC) {
+            // FORCE RAW SKIN IN UGC MODE
+            identityParts.push('real human appearance, everyday skin texture, minor unevenness, natural asymmetry, no cosmetic retouching');
         } else {
-            // Default realistic skin
-            identityParts.push('realistic skin texture appropriate for their age');
+            // Standard Logic
+            if (personDetails?.skinRealism) {
+                identityParts.push(personDetails.skinRealism);
+            } else {
+                identityParts.push('realistic skin texture appropriate for their age');
+            }
         }
 
         // Eye Color
         if (personDetails?.eyeColor) {
-            identityParts.push(`${personDetails.eyeColor.toLowerCase()} eyes`);
+            identityParts.push(sanitizePart(personDetails.eyeColor));
         }
 
         // Hair
-        if (personDetails?.hairLength && personDetails?.hairTexture && personDetails?.hairColor) {
-            identityParts.push(`${personDetails.hairLength.toLowerCase()} ${personDetails.hairTexture.toLowerCase()} ${personDetails.hairColor.toLowerCase()} hair`);
+        if (personDetails?.hairLength || personDetails?.hairTexture || personDetails?.hairColor) {
+            const hairParts = [
+                personDetails?.hairLength?.toLowerCase(),
+                personDetails?.hairTexture?.toLowerCase(),
+                personDetails?.hairColor?.toLowerCase()
+            ].filter(Boolean);
+            if (hairParts.length > 0) {
+                identityParts.push(sanitizePart(`${hairParts.join(' ')} hair`));
+            }
         }
 
         // Join core identity
@@ -124,37 +149,65 @@ Avoid youthful facial proportions, smooth skin, or middle-aged appearance.
             parts.push(identityParts.join(', '));
         }
 
-        // EXPRESSION - Map to visual facial cues
+        // EXPRESSION
         if (personDetails?.facialExpression) {
-            const expressionMap: Record<string, string> = {
-                'Soft Smile': 'soft relaxed smile, lips slightly curved, natural facial tension',
-                'Full Smile': 'broad genuine smile, teeth visible, expressive eyes',
-                'Serious Focus': 'neutral serious expression, focused eyes, relaxed mouth',
-                'Excited Surprise': 'wide eyes, raised eyebrows, mouth slightly open in surprise',
-                'Stressed but Hopeful': 'subtle facial tension, tired eyes with a gentle hopeful expression',
-                'Caffeinated Crash': 'slightly exhausted expression, heavy eyelids, casual fatigue',
-                'Real-Life Calm': 'calm everyday expression, natural relaxed face',
-                'UGC Reality': 'imperfect natural facial expression, candid non-posed look'
-            };
-            const mapped = expressionMap[personDetails.facialExpression];
-            if (mapped) {
-                parts.push(mapped);
-            }
+            parts.push(`FACIAL EXPRESSION: ${sanitizePart(personDetails.facialExpression)}`);
         }
 
-        // EYE DIRECTION - Map to gaze behavior
+        // EYE DIRECTION
         if (personDetails?.eyeDirection) {
             const eyeMap: Record<string, string> = {
-                'Looking at camera': 'eyes looking directly into the camera lens',
-                'Looking at product': 'eyes clearly directed toward the product',
-                'Looking away naturally': 'eyes looking slightly off-camera, distracted natural gaze'
+                'Looking at camera': 'eyes directed straight into camera lens with focused engaging gaze',
+                'Looking at product': 'eyes clearly directed toward the product with attentive focus',
+                'Looking away naturally': 'eyes directed off-camera at natural angle, authentic candid gaze'
             };
-            const mapped = eyeMap[personDetails.eyeDirection];
-            if (mapped) {
-                parts.push(mapped);
-            }
+            const mapped = eyeMap[personDetails.eyeDirection] || personDetails.eyeDirection;
+            parts.push(sanitizePart(mapped));
         }
 
-        return parts.filter(Boolean).join('. ').trim();
+        // POSE
+        if (personDetails?.personPose) {
+            parts.push(sanitizePart(personDetails.personPose));
+        }
+
+        // APPEARANCE LEVEL
+        if (personDetails?.personAppearance) {
+            parts.push(sanitizePart(personDetails.personAppearance));
+        }
+
+        // SCENE MOOD
+        if (personDetails?.personMood) {
+            parts.push(`SCENE MOOD: ${sanitizePart(personDetails.personMood)}`);
+        }
+
+        // WARDROBE
+        if (personDetails?.wardrobeStyle) {
+            parts.push(`wearing ${sanitizePart(personDetails.wardrobeStyle)}`);
+        }
+
+        // PRODUCT INTERACTION
+        if (personDetails?.productInteraction) {
+            parts.push(sanitizePart(personDetails.productInteraction));
+        }
+
+        // SELFIE TYPE
+        if (personDetails?.selfieType) {
+            parts.push(sanitizePart(personDetails.selfieType));
+        }
+
+        // PROPS
+        if (personDetails?.personProps) {
+            parts.push(sanitizePart(personDetails.personProps));
+        }
+
+        // *** CRITICAL ANTI-DOLL CONSTRAINT FOR UGC ***
+        if (isUGC) {
+            parts.push('The person must look like a real unedited smartphone photo of a real human. Avoid CGI, 3D render, synthetic human, mannequin, doll-like appearance at all costs.');
+        }
+
+        const result = parts.filter(Boolean).join('. ').trim();
+        console.log('[IDENTITY BUILDER OUTPUT]', result);
+        return result;
     }
 }
+

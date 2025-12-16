@@ -4,6 +4,7 @@ import { ClothingBuilder } from './clothing';
 import { buildCamera } from './camera';
 import { buildEnvironment } from './environment';
 import { buildLighting } from './lighting';
+import { FormulationStoryBuilder } from './formulationStory';
 
 export interface SceneNarrativeSections {
     creationIntent: string;
@@ -113,14 +114,20 @@ export class SceneNarrativeBuilder {
     }
 
     private buildFormulationStory(options: PromptOptions): string | undefined {
+        // FORMULATION STORY IS OPTIONAL - if disabled, skip entirely
         if (!options.formulationExpertEnabled) {
             return undefined;
         }
 
-        // PHASE 5: Use dedicated FormulationStoryBuilder
+        // Use the properly imported FormulationStoryBuilder
         // Injects HUMAN TRAITS ONLY (no titles, no narrative, no UGC language)
-        const formulationBuilder = new (require('./formulationStory').FormulationStoryBuilder)();
-        return formulationBuilder.build(options);
+        try {
+            const formulationBuilder = new FormulationStoryBuilder();
+            return formulationBuilder.build(options);
+        } catch (error) {
+            console.error('[CANONICAL SCENE] FormulationStoryBuilder error:', error);
+            return undefined;
+        }
     }
 
     private buildEcommerceBuilder(options: PromptOptions): string | undefined {
@@ -180,12 +187,22 @@ export class SceneNarrativeBuilder {
             sceneLighting: (options as any).sceneLighting
         });
         const mood = options.personMood ? `Mood: ${options.personMood}.` : '';
+
+        // Inject structural rules from mapper
+        const creationModeStructural = (options as any).creationModeStructural || '';
+        const compositionModeStructural = (options as any).compositionModeStructural || '';
+        const cameraDeviceSemantic = (options as any).cameraDeviceSemantic || '';
+
         const parts = [
+            creationModeStructural ? `Creation: ${creationModeStructural}.` : '',
+            compositionModeStructural ? `Composition: ${compositionModeStructural}.` : '',
+            cameraDeviceSemantic ? `Camera: ${cameraDeviceSemantic}.` : '',
             environmentText ? `Environment: ${environmentText}.` : '',
             lightingText ? `Lighting: ${lightingText}.` : '',
             mood
         ].filter(Boolean);
 
+        console.log('[SCENE NARRATIVE] Environment/Lighting/Mood:', parts.join(' ').substring(0, 200) + '...');
         return parts.join(' ');
     }
 }

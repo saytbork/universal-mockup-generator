@@ -50,18 +50,6 @@ export const parameterMap: ParameterMap = {
     "Eyes Closed": "their eyes are softly closed in a serene natural moment"
   },
 
-  ageGroup: {
-    "6-12": "a child between ages 6 and 12",
-    "13-17": "a teenager between ages 13 and 17",
-    "18-25": "a young adult age 18 to 25",
-    "26-35": "an adult age 26 to 35",
-    "36-45": "an adult age 36 to 45",
-    "46-60": "a mature adult age 46 to 60",
-    "60-75": "a senior adult age 60 to 75",
-    "75+": "an elderly adult over age 75",
-    "No Person": ""
-  },
-
   appearanceLevel: {
     Regular: "with regular everyday grooming",
     "Well-Groomed": "with a well groomed polished appearance",

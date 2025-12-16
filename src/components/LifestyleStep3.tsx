@@ -94,13 +94,12 @@ interface LifestyleStep3Props {
 
 export interface Step3Values {
   // Creator/Person
-  age: number; // DEPRECATED - use ageGroup
-  ageGroup: string; // NEW: explicit age chips
+  age: number; // Numeric age (18-90)
   noPerson: boolean;
-  gender: 'Male' | 'Female';
+  gender: 'Female' | 'Male' | 'Non-binary' | 'Trans woman' | 'Trans man' | 'Gender non-conforming';
   skinTone: string; // Now 7 refined options
   ethnicity: string;
-  bodyType: 'Slim' | 'Average' | 'Athletic' | 'Curvy' | 'Plus size';
+  bodyType: 'Slim' | 'Average' | 'Curvy' | 'Plus size';
   hair: string; // DEPRECATED - keeping for backward compatibility
 
   // NEW: 3 Hair Dimensions
@@ -121,6 +120,7 @@ export interface Step3Values {
 
   // Creator Presets
   creatorPreset: string | null;
+  heroPersona: string; // Semantic persona description for prompt
 
   // Environment
   environment: string;
@@ -147,6 +147,9 @@ export interface Step3Values {
   // Selfie Type (for UGC framing)
   selfieType: string;
 
+  // Selfie Execution (only for Front Camera Selfie)
+  selfieExecution: string;
+
   // Wardrobe
   wardrobe: string;
 
@@ -160,6 +163,11 @@ export interface Step3Values {
   compositionMode: string;
   sidePlacement: string;
   ecommerceBackgroundColor: string;
+
+  // Scene Intent Rule
+  // Environment and Ecommerce are mutually exclusive
+  // Only one can be active at any time
+  sceneIntent: 'environment' | 'ecommerce';
 
   // Background
   preserveEnvironment: boolean;
@@ -187,18 +195,8 @@ export interface Step3Values {
 // ============================================================================
 // CONSTANTS
 // ============================================================================
-// Age Group - Explicit chips
-const AGE_GROUP_OPTIONS = [
-  '6–12',
-  '13–17',
-  '18–25',
-  '26–35',
-  '36–45',
-  '46–60',
-  '60–75',
-  '75+',
-  'No Person'
-];
+// CONSTANTS
+// ============================================================================
 
 const AGE_SLIDER_CATEGORIES = [
   { min: 18, max: 25, label: 'Young adult', group: '18–25' },
@@ -213,14 +211,15 @@ const getAgeCategory = (age: number) => {
   return AGE_SLIDER_CATEGORIES.find(category => age <= category.max) ?? AGE_SLIDER_CATEGORIES[AGE_SLIDER_CATEGORIES.length - 1];
 };
 
-const getPillClass = (isActive: boolean, fullWidth = false) => {
-  const base = 'rounded-full border px-4 py-2 text-xs font-semibold transition';
-  const active = 'border-indigo-400 bg-indigo-500/10 text-white shadow-[0_10px_30px_-20px_rgba(99,102,241,0.75)]';
-  const inactive = 'border-gray-600 bg-gray-900/40 text-gray-300 hover:border-indigo-400 hover:text-white';
+const getPillClass = (isActive: boolean, _fullWidth = false) => {
+  const base = 'rounded-full border px-2 py-1 text-xs transition';
+  const active = 'border-indigo-400 bg-indigo-500/10 text-white';
+  const inactive = 'border-gray-600 text-gray-300 hover:border-gray-500';
   return [base, isActive ? active : inactive].filter(Boolean).join(' ');
 };
 
-const GENDER_OPTIONS = ['Male', 'Female'];
+// EXPANDED GENDER OPTIONS - Exact spec (6 options)
+const GENDER_OPTIONS = ['Female', 'Male', 'Non-binary', 'Trans woman', 'Trans man', 'Gender non-conforming'];
 
 // Refined Skin Tone (7 options)
 const SKIN_TONE_OPTIONS = [
@@ -242,23 +241,22 @@ const ETHNICITY_OPTIONS = [
   'Mixed',
   'Non-specific'
 ];
-const BODY_TYPE_OPTIONS = ['Slim', 'Average', 'Athletic', 'Curvy', 'Plus size'];
+// REDUCED BODY TYPE OPTIONS - Removed: Athletic, Muscular, Petite
+const BODY_TYPE_OPTIONS = ['Slim', 'Average', 'Curvy', 'Plus size'];
 
 // 3D Hair System
 const HAIR_LENGTH_OPTIONS = ['Buzzcut', 'Short', 'Chin-length', 'Shoulder', 'Long', 'Very long'];
 const HAIR_TEXTURE_OPTIONS = ['Straight', 'Wavy', 'Curly', 'Coily/Kinky', 'Locs'];
 const HAIR_COLOR_OPTIONS = ['Black', 'Dark brown', 'Light brown', 'Blonde', 'Red', 'Gray/White', 'Unnatural (pink, blue, etc)'];
 
-// Expression - Expanded options
+// SIMPLIFIED EXPRESSIONS - Removed: UGC Reality, Caffeinated Crash (confusing)
 const EXPRESSION_OPTIONS = [
   'Soft Smile',
   'Full Smile',
   'Serious Focus',
   'Excited Surprise',
   'Stressed but Hopeful',
-  'Caffeinated Crash',
-  'Real-Life Calm',
-  'UGC Reality'
+  'Real-Life Calm'
 ];
 
 const EYE_DIRECTION_OPTIONS = ['Looking at camera', 'Looking at product', 'Looking away naturally'];
@@ -275,95 +273,52 @@ const APPEARANCE_LEVEL_OPTIONS = [
   'Running Late'
 ];
 
-// Pose
-const POSE_OPTIONS = [
-  'Relaxed Portrait',
-  'Dynamic Mid-Action',
-  'Over-the-Shoulder',
-  'Leaned-In Close',
-  'Hands-Only Crop',
-  'Face Frame Hero',
-  'Grounded Lounge',
-  'Offer-to-Lens Reach'
-];
+// Product Interaction - SIMPLIFIED per spec
+const INTERACTION_OPTIONS = ['Holding', 'Using', 'Presenting'];
 
-// Interaction (Product)
-const INTERACTION_OPTIONS = [
-  'Holding',
-  'Using',
-  'Showing to Camera',
-  'Unboxing',
-  'Applying',
-  'Placing on Surface'
-];
-
-// Wardrobe Presets
-const WARDROBE_PRESET_OPTIONS = [
-  'Casual Streetwear',
-  'Athleisure Set',
-  'Minimal Luxe',
-  'Cozy Knitwear',
-  'Bold Color Pop',
-  'Errand-Day Layers',
-  'Custom'
-];
-
-// Props
-const PROPS_OPTIONS = [
-  'None',
-  'Smartphone / Tech',
-  'Coffee / Beverage',
-  'Notebook / Journal',
-  'Makeup Tool',
-  'Shopping Tote',
-  'Custom'
-];
-
-// Skin Realism
+// SKIN REALISM - 3 options only
 const SKIN_REALISM_OPTIONS = [
-  'Real Raw Photo',
-  'Natural Clean Retouch',
-  'Beauty Editorial Soft Skin'
+  'Raw / Real',
+  'Natural',
+  'Soft Retouch'
 ];
 
-// Selfie Type - Exact spec options
-const SELFIE_TYPE_OPTIONS = [
-  'None',
-  'Arm\'s Length Selfie',
-  'Mirror Selfie (phone visible)',
-  'One-hand product selfie',
-  'Overhead in-bed selfie',
-  'Low-angle hero selfie',
-  'Back camera POV'
-];
-
-const CREATOR_PRESETS = [
-  { id: 'beauty', label: 'Beauty Creator', icon: Sparkles },
-  { id: 'wellness', label: 'Wellness Coach', icon: Heart },
-  { id: 'fitness', label: 'Fitness Creator', icon: Activity },
-  { id: 'everyday', label: 'Everyday Hustler', icon: Coffee },
-  { id: 'streetwear', label: 'Streetwear Reviewer', icon: Shirt },
-  { id: 'custom', label: 'Custom Build', icon: Edit3 },
-];
-
+// ENVIRONMENT OPTIONS - EXPANDED per spec
 const ENVIRONMENT_INDOOR = [
-  { value: 'Living Room', icon: Home },
   { value: 'Kitchen', icon: Utensils },
+  { value: 'Living Room', icon: Home },
   { value: 'Bedroom', icon: Home },
-  { value: 'Coffee Shop', icon: Coffee },
-  { value: 'Office', icon: Building2 },
+  { value: 'Bathroom', icon: Home },
+  { value: 'Workspace', icon: Home },
 ];
 
+// OUTDOOR
 const ENVIRONMENT_OUTDOOR = [
-  { value: 'City Street', icon: Building2 },
-  { value: 'Park', icon: Mountain },
-  { value: 'Beach', icon: Waves },
-  { value: 'Car Interior', icon: Car },
+  { value: 'Urban Exterior', icon: Building2 },
+  { value: 'Natural Exterior', icon: Mountain },
 ];
 
-const TIME_OF_DAY_OPTIONS = ['Morning', 'Midday', 'Afternoon', 'Golden Hour', 'Evening', 'Night'];
-const LIGHTING_STYLE_OPTIONS = ['Natural window', 'Soft diffused', 'Direct sunlight', 'Indoor artificial', 'Moody/dramatic', 'Phone flashlight'];
-// Mood - Expanded options
+// SELFIE TYPE - Camera Origin / Capture Style (per final spec)
+const SELFIE_TYPE_OPTIONS = [
+  'Front Camera Selfie',
+  'Mirror Selfie',
+  'Back Camera Handheld',
+  'Third-Person Phone Shot'
+];
+
+// SELFIE EXECUTION - How the selfie is taken (only for Front Camera Selfie)
+const SELFIE_EXECUTION_OPTIONS = [
+  { value: "Arm's length selfie", prompt: "arm's length front camera selfie, handheld smartphone, phone not visible in frame, classic UGC composition" },
+  { value: 'Close face selfie', prompt: 'close-up front camera selfie, intimate framing, face dominant in frame, casual handheld feel' },
+  { value: 'Upper body selfie', prompt: 'front camera selfie showing head and upper torso, clean framing, casual creator style' },
+  { value: 'Casual angled selfie', prompt: 'front camera selfie with slight tilt, imperfect angle, spontaneous casual composition' },
+];
+
+// TIME & LIGHTING - per final spec
+const TIME_OF_DAY_OPTIONS = ['Morning', 'Midday', 'Evening', 'Night'];
+const LIGHTING_STYLE_OPTIONS = ['Natural', 'Indoor', 'Mixed'];
+
+// Mood - Physical body language
 const MOOD_OPTIONS = [
   'Calm & Serene',
   'Joyful & High-Energy',
@@ -372,51 +327,27 @@ const MOOD_OPTIONS = [
   'Hustle & Juggle',
   'Stressed but Determined'
 ];
-const SHOT_TYPE_OPTIONS = ['Close-up', 'Medium', 'Full body', 'Product focus', 'Environmental'];
-const CAMERA_ANGLE_OPTIONS = ['Eye level', 'Slightly above', 'Slightly below', 'Dutch angle'];
-const FRAMING_OPTIONS = ['Centered', 'Rule of thirds', 'Off-center', 'Spontaneous'];
-const PRODUCT_INTERACTION_OPTIONS = INTERACTION_OPTIONS; // Use the same
+
+// SHOT TYPE - Simplified to 3 options
+const SHOT_TYPE_OPTIONS = ['Close', 'Medium', 'Wide'];
+
+// CAMERA ANGLE - Simplified
+const CAMERA_ANGLE_OPTIONS = ['Eye level', 'Above', 'Below'];
+
+// Product Interaction alias
+const PRODUCT_INTERACTION_OPTIONS = INTERACTION_OPTIONS;
+
+// ASPECT RATIO - Output Format
 const ASPECT_RATIO_OPTIONS = ['1:1 (Square)', '4:5 (Portrait)', '9:16 (Story)'];
 
-const DEFAULT_UGC_CREATION_MODE = 'Lifestyle UGC';
-const DEFAULT_ECOMMERCE_CREATION_MODE = 'Ecommerce Blank Space';
-
-const AGE_GROUP_CHIP_OPTIONS = AGE_GROUP_OPTIONS.filter(option => option !== 'No Person');
-
-const CREATION_INTENT_OPTIONS = [
-  { value: 'ugc', label: 'UGC Intent', description: 'Authentic creator moments' },
-  { value: 'product', label: 'Product / Ecommerce Intent', description: 'Product-first ecommerce' },
-  { value: 'brand', label: 'Brand Expert Intent', description: 'Expert-led narratives' }
-];
-
-const CREATION_MODE_OPTIONS = [
-  'Lifestyle UGC',
-  'Studio Hero',
-  'Aesthetic Builder',
-  'Background Replace',
-  'Ecommerce Blank Space'
-];
-
-const COMPOSITION_MODE_OPTIONS = ['Lifestyle Showcase', 'Editorial Spread', 'Blank Space'];
+// ECOMMERCE IMAGE BUILDER - definitivo
+// Options: Ecommerce Blank Space (PDP, ads, hero) | Product Bundle / Routine (packs, kits)
+const COMPOSITION_MODE_OPTIONS = ['Ecommerce Blank Space', 'Product Bundle / Routine'];
 const SIDE_PLACEMENT_OPTIONS = ['Left', 'Center', 'Right'];
-const ECOMMERCE_BACKGROUND_COLORS = ['#0f172a', '#161b31', '#1f2937', '#111827', '#0b1220'];
 
+// FORMULATION STORY
 const FORMULATION_PRESETS = ['Clinical Research', 'Lifestyle Study', 'Functional Science'];
 const LAB_VIBE_OPTIONS = ['Clean Lab', 'Moody Lab', 'Warm Studio'];
-
-const FINAL_OUTPUT_BACKGROUND_FLAGS: Array<{ key: 'preserveEnvironment' | 'backgroundBlur' | 'allowMessiness' | 'noArtificialProps'; label: string }> = [
-  { key: 'preserveEnvironment', label: 'Preserve environment details' },
-  { key: 'backgroundBlur', label: 'Background blur (portrait)' },
-  { key: 'allowMessiness', label: 'Allow realistic messiness' },
-  { key: 'noArtificialProps', label: 'No artificial props' }
-];
-
-const FINAL_OUTPUT_ADVANCED_FLAGS: Array<{ key: 'sameCreatorAcrossScenes' | 'sceneContinuity' | 'cinematicLook' | 'storytellingConsistency'; label: string }> = [
-  { key: 'sameCreatorAcrossScenes', label: 'Same creator across scenes' },
-  { key: 'sceneContinuity', label: 'Scene continuity' },
-  { key: 'cinematicLook', label: 'Cinematic look' },
-  { key: 'storytellingConsistency', label: 'Storytelling consistency' }
-];
 
 // ============================================================================
 // HELPER COMPONENTS
@@ -464,9 +395,12 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
             <p className="text-xs text-gray-400">{tooltip}</p>
           </div>
         </div>
-        <div className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}>
-          ▼
-        </div>
+        <svg
+          className={`w-4 h-4 text-gray-400 transform transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
       </button>
       {isOpen && (
         <div className="p-4 border-t border-gray-700">
@@ -488,8 +422,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
 
   const initialValues: Step3Values = {
     // Creator/Person
-    age: 30, // DEPRECATED - keeping for backward compatibility
-    ageGroup: '26–35', // NEW: explicit age group
+    age: 30, // Numeric age
     noPerson: false, // UGC Rule: person MUST be present by default
     gender: 'Female',
     skinTone: 'Medium Neutral', // Refined options
@@ -511,21 +444,22 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
     eyeColor: 'Brown', // NEW
     appearanceLevel: 'Regular', // NEW
     pose: 'Relaxed Portrait', // UGC Rule: natural pose
-    skinRealism: 'Real Raw Photo', // NEW - UGC default
+    skinRealism: 'Raw / Real', // Simplified options
 
     // Creator Presets
     creatorPreset: null,
+    heroPersona: '', // Empty = no persona selected
 
     // Environment - UGC Rule: must have table/surface for product
     environment: 'Kitchen', // Kitchen has table/counter surface by default
     customEnvironment: '',
 
-    // Time & Lighting
-    timeOfDay: 'Midday',
-    lightingStyle: 'Natural window',
+    // Time & Lighting - simplified
+    timeOfDay: 'Afternoon',
+    lightingStyle: 'Natural',
 
     // Mood
-    mood: 'Calm & Serene', // Updated to new options
+    mood: 'Calm & Serene',
 
     // Camera
     shotType: 'Medium',
@@ -533,27 +467,33 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
     framing: 'Centered',
 
     // Product Interaction
-    productInteraction: 'Holding', // UGC Rule: product in hand
+    productInteraction: 'Holding',
 
     // Realism
-    ugcRealMode: true, // UGC Rule: ALWAYS ON by default
+    ugcRealMode: true,
 
     // Selfie Type
-    selfieType: 'One-hand product selfie', // UGC Rule: NEVER 'None', product in hand
+    selfieType: 'Front Camera Selfie',
+
+    // Selfie Execution (only for Front Camera Selfie)
+    selfieExecution: "Arm's length selfie",
 
     // Wardrobe
-    wardrobe: 'Casual Streetwear', // Updated to preset options
+    wardrobe: '',
 
-    // Props - NEW
-    props: 'None',
+    // Props
+    props: '',
     customProps: '',
 
-    // Creation Intent / Modes
+    // Creation Intent / Modes (simplified - removed legacy modes)
     creationIntent: 'ugc',
-    creationMode: CREATION_MODE_OPTIONS[0],
-    compositionMode: COMPOSITION_MODE_OPTIONS[0],
+    creationMode: 'Lifestyle UGC',
+    compositionMode: '', // Empty = not in ecommerce mode
     sidePlacement: SIDE_PLACEMENT_OPTIONS[1],
-    ecommerceBackgroundColor: ECOMMERCE_BACKGROUND_COLORS[0],
+    ecommerceBackgroundColor: '#ffffff',
+
+    // Scene Intent Rule - Default: Environment/Lifestyle mode active
+    sceneIntent: 'environment',
 
     // Background
     preserveEnvironment: false,
@@ -608,9 +548,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
   const ageSliderProgress = Math.min(Math.max(((values.age - 18) / 72) * 100, 0), 100);
   const ageSliderLabel = getAgeCategory(values.age);
   const handleAgeSliderChange = (nextValue: number) => {
-    const nextCategory = getAgeCategory(nextValue);
     updateValue('age', nextValue);
-    updateValue('ageGroup', nextCategory.group);
     markSectionTouched('creator');
   };
 
@@ -623,153 +561,50 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
   }, [values, onValuesChange]);
 
   const isPersonDisabled = values.noPerson;
-  const isEcommerceIntent = values.creationIntent === 'product' || values.creationIntent === 'brand';
-  const shouldShowEcommerceBuilder = isPro && (isEcommerceIntent || values.creationMode === DEFAULT_ECOMMERCE_CREATION_MODE);
 
   // ============================================================================
-  // PHASE 2: HARD RULES (CODE, NOT UI)
+  // SCENE INTENT - SINGLE SOURCE OF TRUTH
+  // Environment and Ecommerce are mutually exclusive
+  // Only one can be active at any time
   // ============================================================================
 
-  // HARD RULE 1: creationIntent === 'ecommerce-blank-space'
+  // Derived from sceneIntent - no longer computed independently
+  const isEcommerceMode = values.sceneIntent === 'ecommerce';
+  const isEnvironmentMode = values.sceneIntent === 'environment';
+
+
+
+  // Scene Intent Handler: Enable Environment Mode
+  const enableEnvironment = useCallback(() => {
+    console.log('[SCENE INTENT] Switching to Environment mode');
+    setValues(prev => ({
+      ...prev,
+      sceneIntent: 'environment',
+      compositionMode: '',           // Clear ecommerce
+      ugcRealMode: true,             // Enable environment mode
+      sidePlacement: SIDE_PLACEMENT_OPTIONS[1], // Reset placement
+    }));
+  }, []);
+
+  // Scene Intent Handler: Enable Ecommerce Mode
+  const enableEcommerce = useCallback(() => {
+    console.log('[SCENE INTENT] Switching to Ecommerce mode');
+    setValues(prev => ({
+      ...prev,
+      sceneIntent: 'ecommerce',
+      ugcRealMode: false,            // Disable environment mode
+      selfieType: 'None',            // Clear UGC-specific values
+      customEnvironment: '',         // Clear custom environment
+    }));
+  }, []);
+
+  // HARD RULE: Custom Environment → switches to Environment intent
   useEffect(() => {
-    if (values.creationMode === DEFAULT_ECOMMERCE_CREATION_MODE) {
-      console.log('[HARD RULE 1] Ecommerce Blank Space mode detected');
-
-      // Auto-set ugcRealMode = false
-      if (values.ugcRealMode) {
-        console.log('[HARD RULE 1] Setting ugcRealMode = false');
-        updateValue('ugcRealMode', false);
-      }
-
-      // Auto-set environment = null (clear environment)
-      if (values.environment !== '') {
-        console.log('[HARD RULE 1] Clearing environment');
-        updateValue('environment', '');
-        updateValue('customEnvironment', '');
-      }
+    if (values.customEnvironment && values.sceneIntent === 'ecommerce') {
+      console.log('[HARD RULE] Custom Environment set - switching to Environment intent');
+      enableEnvironment();
     }
-  }, [values.creationMode, values.ugcRealMode, values.environment, updateValue]);
-
-  // HARD RULE 2: ugcRealMode === false → clear ugcExpressions
-  // (Note: ugcExpressions not in current Step3Values, will be added when implementing SceneState mapping)
-
-  // HARD RULE 3: formulationStory.enabled === true
-  useEffect(() => {
-    if (values.formulationStoryEnabled) {
-      console.log('[HARD RULE 3] Formulation Story enabled');
-
-      // Auto-set ugcRealMode = false
-      if (values.ugcRealMode) {
-        console.log('[HARD RULE 3] Setting ugcRealMode = false');
-        updateValue('ugcRealMode', false);
-      }
-
-      // Force creationMode to Ecommerce Blank Space
-      if (values.creationMode !== DEFAULT_ECOMMERCE_CREATION_MODE) {
-        console.log('[HARD RULE 3] Setting creationMode to Ecommerce Blank Space');
-        updateValue('creationMode', DEFAULT_ECOMMERCE_CREATION_MODE);
-      }
-    }
-  }, [values.formulationStoryEnabled, values.ugcRealMode, values.creationMode, updateValue]);
-
-  // HARD RULE 4: Environment and Ecommerce Blank Space mutual exclusivity
-  useEffect(() => {
-    const hasEnvironment = values.environment !== '' || values.customEnvironment !== '';
-    const isEcommerceMode = values.creationMode === DEFAULT_ECOMMERCE_CREATION_MODE;
-
-    if (hasEnvironment && isEcommerceMode) {
-      console.log('[HARD RULE 4] Environment and Ecommerce are mutually exclusive - clearing environment');
-      updateValue('environment', '');
-      updateValue('customEnvironment', '');
-    }
-  }, [values.environment, values.customEnvironment, values.creationMode, updateValue]);
-
-  // Additional hard rule: UGC mode enforcement
-  useEffect(() => {
-    if (values.creationIntent === 'ugc') {
-      if (!values.ugcRealMode && values.creationMode !== DEFAULT_ECOMMERCE_CREATION_MODE) {
-        updateValue('ugcRealMode', true);
-      }
-      if (values.creationMode === DEFAULT_ECOMMERCE_CREATION_MODE) {
-        updateValue('creationMode', DEFAULT_UGC_CREATION_MODE);
-      }
-      if (values.formulationStoryEnabled) {
-        updateValue('formulationStoryEnabled', false);
-      }
-    } else {
-      if (values.ugcRealMode) {
-        updateValue('ugcRealMode', false);
-      }
-      if (values.selfieType !== 'None') {
-        updateValue('selfieType', 'None');
-      }
-    }
-  }, [
-    values.creationIntent,
-    values.creationMode,
-    values.ugcRealMode,
-    values.formulationStoryEnabled,
-    values.selfieType,
-    updateValue
-  ]);
-
-  // UGC Real Mode enforcement
-  useEffect(() => {
-    if (values.ugcRealMode) {
-      if (values.creationIntent !== 'ugc') {
-        updateValue('creationIntent', 'ugc');
-      }
-      if (values.creationMode === DEFAULT_ECOMMERCE_CREATION_MODE) {
-        updateValue('creationMode', DEFAULT_UGC_CREATION_MODE);
-      }
-      if (values.formulationStoryEnabled) {
-        updateValue('formulationStoryEnabled', false);
-      }
-      if (values.selfieType === 'None') {
-        updateValue('selfieType', 'Standard selfie');
-      }
-    }
-  }, [
-    values.ugcRealMode,
-    values.creationIntent,
-    values.creationMode,
-    values.formulationStoryEnabled,
-    values.selfieType,
-    updateValue
-  ]);
-
-  // Ecommerce mode and creation intent alignment
-  useEffect(() => {
-    if (values.creationMode === DEFAULT_ECOMMERCE_CREATION_MODE && values.creationIntent === 'ugc' && !values.formulationStoryEnabled) {
-      updateValue('creationIntent', 'product');
-    }
-  }, [
-    values.creationMode,
-    values.creationIntent,
-    values.formulationStoryEnabled,
-    updateValue
-  ]);
-
-  useEffect(() => {
-    if (shouldShowEcommerceBuilder) {
-      return;
-    }
-    if (values.compositionMode !== COMPOSITION_MODE_OPTIONS[0]) {
-      updateValue('compositionMode', COMPOSITION_MODE_OPTIONS[0]);
-    }
-    if (values.sidePlacement !== SIDE_PLACEMENT_OPTIONS[1]) {
-      updateValue('sidePlacement', SIDE_PLACEMENT_OPTIONS[1]);
-    }
-    if (values.ecommerceBackgroundColor !== ECOMMERCE_BACKGROUND_COLORS[0]) {
-      updateValue('ecommerceBackgroundColor', ECOMMERCE_BACKGROUND_COLORS[0]);
-    }
-  }, [
-    shouldShowEcommerceBuilder,
-    values.compositionMode,
-    values.sidePlacement,
-    values.ecommerceBackgroundColor,
-    updateValue
-  ]);
+  }, [values.customEnvironment, values.sceneIntent, enableEnvironment]);
 
   // ========================================================================
   // PRODUCT MODE VALIDATION (Stage 11)
@@ -826,26 +661,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
   ]);
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-6 pb-8">
+    <div className="w-full max-w-2xl mx-auto space-y-4 pb-8 px-4">
       {/* Header */}
-      <div className="text-center space-y-2">
-        <p className="text-xs uppercase tracking-wider text-gray-500">STEP 3</p>
-        <h2 className="text-xl font-bold text-gray-200">Scene Builder</h2>
-        <p className="text-sm text-gray-400">Create authentic lifestyle moments</p>
+      <div className="flex flex-col gap-1">
+        <p className="text-xs uppercase tracking-widest text-indigo-300">Step 3</p>
+        <h2 className="text-2xl font-bold text-gray-200">Scene Builder</h2>
+        <p className="text-sm text-gray-400">Define how the scene looks, feels, and behaves visually.</p>
       </div>
 
-      {/* Basic/Pro Toggle */}
-      <div className="flex items-center justify-center gap-3 p-4 rounded-xl bg-gray-800/50 border border-gray-700">
-        <span className={`text-sm font-medium ${!isPro ? 'text-white' : 'text-gray-400'}`}>BASIC</span>
-        <button
-          type="button"
-          onClick={() => setIsPro(!isPro)}
-          className={`relative w-12 h-6 rounded-full transition ${isPro ? 'bg-indigo-600' : 'bg-gray-600'}`}
-        >
-          <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${isPro ? 'translate-x-6' : ''}`} />
-        </button>
-        <span className={`text-sm font-medium ${isPro ? 'text-white' : 'text-gray-400'}`}>PRO</span>
-      </div>
 
       {/* Creator / Person */}
       <AccordionSection
@@ -858,26 +681,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
         isTouched={touchedSections.has('creator')}
       >
         <div className="flex flex-col gap-4">
-          <button
-            type="button"
-            onClick={() => { updateValue('noPerson', !values.noPerson); markSectionTouched('creator'); }}
-            className={`w-full rounded-lg border px-3 py-2.5 text-sm transition ${values.noPerson
-              ? 'border-amber-400 bg-amber-500/10 text-white'
-              : 'border-gray-600 bg-gray-800/30 text-gray-300 hover:border-gray-500'
-              }`}
-          >
-            {values.noPerson ? '✓ No person in scene' : 'Include person in scene'}
-          </button>
-
-          <div
-            className={`space-y-3 rounded-2xl border px-3 py-3 ${values.ugcRealMode ? 'border-indigo-400/60 bg-indigo-500/10' : 'border-gray-700 bg-gray-900/50'} ${isPersonDisabled ? 'opacity-60' : ''}`}
-          >
+          <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
             <div className="flex items-center justify-between">
-              <p className="text-xs uppercase tracking-wider text-indigo-200">Age</p>
-              <div className="text-right">
-                <p className="text-sm font-semibold text-white">Age: {ageSliderLabel.label}</p>
-                <p className="text-[10px] uppercase tracking-[0.35em] text-indigo-300">{ageSliderLabel.group}</p>
-              </div>
+              <p className="text-xs uppercase tracking-wider text-indigo-200">AGE</p>
+              <p className="text-sm text-white">{values.age}</p>
             </div>
             <input
               type="range"
@@ -886,26 +693,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
               step={1}
               value={values.age}
               onChange={(event) => handleAgeSliderChange(Number(event.target.value))}
-              disabled={isPersonDisabled}
-              className={`scene-age-slider w-full ${isPersonDisabled ? 'cursor-not-allowed' : ''}`}
+              className="scene-age-slider w-full"
               style={{
                 background: `linear-gradient(90deg, rgba(129,140,248,0.95) ${ageSliderProgress}%, rgba(31,41,55,0.5) ${ageSliderProgress}%)`
               }}
             />
-            <p className="text-[11px] text-gray-500 flex items-center gap-1">
-              <span className="text-indigo-300" title="Used to generate realistic facial features and proportions.">ⓘ</span>
-              Used to generate realistic facial features and proportions.
-            </p>
-            <p className="text-[11px] text-gray-500">
-              Age strongly influences facial structure, skin texture, and realism.
-            </p>
           </div>
 
           {!isPersonDisabled && (
             <div className="space-y-4">
-              <div className="space-y-2">
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
                 <p className="text-xs uppercase tracking-wider text-indigo-200">GENDER</p>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {GENDER_OPTIONS.map(option => (
                     <button
                       key={option}
@@ -919,9 +718,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
                 <p className="text-xs uppercase tracking-wider text-indigo-200">ETHNICITY</p>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {ETHNICITY_OPTIONS.map(option => (
                     <button
                       key={option}
@@ -935,9 +734,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
                 <p className="text-xs uppercase tracking-wider text-indigo-200">SKIN TONE</p>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {SKIN_TONE_OPTIONS.map(option => (
                     <button
                       key={option}
@@ -951,9 +750,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
                 <p className="text-xs uppercase tracking-wider text-indigo-200">EYE COLOR</p>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {EYE_COLOR_OPTIONS.map(option => (
                     <button
                       key={option}
@@ -967,9 +766,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
                 <p className="text-xs uppercase tracking-wider text-indigo-200">BODY TYPE</p>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {BODY_TYPE_OPTIONS.map(option => (
                     <button
                       key={option}
@@ -992,9 +791,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                       updateValue('hairState', values.hairState === 'bald' ? 'natural' : 'bald');
                       markSectionTouched('creator');
                     }}
-                    className={`rounded-full px-3 py-1 text-xs transition ${values.hairState === 'bald'
-                      ? 'bg-amber-500/20 text-amber-300 border border-amber-400'
-                      : 'bg-gray-700/50 text-gray-400 border border-gray-600 hover:border-gray-500'
+                    className={`rounded-full border px-2 py-1 text-xs transition ${values.hairState === 'bald'
+                      ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                      : 'border-gray-600 text-gray-300 hover:border-gray-500'
                       }`}
                   >
                     {values.hairState === 'bald' ? 'Bald' : 'Has hair'}
@@ -1005,13 +804,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                   <>
                     <div className="space-y-1.5">
                       <p className="text-xs text-gray-400">Length</p>
-                      <div className="grid grid-cols-3 gap-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
                         {HAIR_LENGTH_OPTIONS.map(option => (
                           <button
                             key={option}
                             type="button"
                             onClick={() => { updateValue('hairLength', option); markSectionTouched('creator'); }}
-                            className={`rounded border px-2 py-1 text-xs transition ${values.hairLength === option
+                            className={`rounded-full border px-2 py-1 text-xs transition ${values.hairLength === option
                               ? 'border-indigo-400 bg-indigo-500/10 text-white'
                               : 'border-gray-600 text-gray-300 hover:border-gray-500'
                               }`}
@@ -1024,13 +823,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
 
                     <div className="space-y-1.5">
                       <p className="text-xs text-gray-400">Texture</p>
-                      <div className="grid grid-cols-3 gap-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
                         {HAIR_TEXTURE_OPTIONS.map(option => (
                           <button
                             key={option}
                             type="button"
                             onClick={() => { updateValue('hairTexture', option); markSectionTouched('creator'); }}
-                            className={`rounded border px-2 py-1 text-xs transition ${values.hairTexture === option
+                            className={`rounded-full border px-2 py-1 text-xs transition ${values.hairTexture === option
                               ? 'border-indigo-400 bg-indigo-500/10 text-white'
                               : 'border-gray-600 text-gray-300 hover:border-gray-500'
                               }`}
@@ -1043,13 +842,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
 
                     <div className="space-y-1.5">
                       <p className="text-xs text-gray-400">Color</p>
-                      <div className="grid grid-cols-2 gap-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
                         {HAIR_COLOR_OPTIONS.map(option => (
                           <button
                             key={option}
                             type="button"
                             onClick={() => { updateValue('hairColor', option); markSectionTouched('creator'); }}
-                            className={`rounded border px-2 py-1 text-xs transition ${values.hairColor === option
+                            className={`rounded-full border px-2 py-1 text-xs transition ${values.hairColor === option
                               ? 'border-indigo-400 bg-indigo-500/10 text-white'
                               : 'border-gray-600 text-gray-300 hover:border-gray-500'
                               }`}
@@ -1063,9 +862,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                 )}
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
                 <p className="text-xs uppercase tracking-wider text-indigo-200">FACIAL EXPRESSION</p>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {EXPRESSION_OPTIONS.map(option => (
                     <button
                       key={option}
@@ -1079,9 +878,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
                 <p className="text-xs uppercase tracking-wider text-indigo-200">EYE DIRECTION</p>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {EYE_DIRECTION_OPTIONS.map(option => (
                     <button
                       key={option}
@@ -1099,69 +898,241 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
         </div>
       </AccordionSection>
 
-      {!isPersonDisabled && (
-        <AccordionSection
-          icon={User}
-          title="Age-group chips"
-          tooltip="Select a quick age range"
-          isOpen={openSection === 'ageGroups'}
-          onToggle={() => toggleSection('ageGroups')}
-          isTouched={touchedSections.has('ageGroups')}
-        >
-          <div className="flex flex-wrap gap-2">
-            {AGE_GROUP_CHIP_OPTIONS.map(option => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => { updateValue('ageGroup', option); markSectionTouched('ageGroups'); }}
-                className={getPillClass(values.ageGroup === option)}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-        </AccordionSection>
-      )}
-
-      {isProductMode && !isPersonDisabled && (
-        <AccordionSection
-          icon={Hand}
-          title="Product interaction"
-          tooltip="Control how the creator handles the product"
-          isOpen={openSection === 'productInteraction'}
-          onToggle={() => toggleSection('productInteraction')}
-          isTouched={touchedSections.has('productInteraction')}
-        >
-          <div className="grid grid-cols-2 gap-2">
-            {PRODUCT_INTERACTION_OPTIONS.map(option => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => { updateValue('productInteraction', option); markSectionTouched('productInteraction'); }}
-                className={getPillClass(values.productInteraction === option)}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-        </AccordionSection>
-      )}
-
-      {/* Output Format */}
+      {/* UGC REAL MODE */}
+      {/* DO NOT SPLIT THIS BLOCK */}
+      {/* All UGC controls must render inside this container */}
       <AccordionSection
-        icon={Layout}
-        title="Output Format"
-        tooltip="Aspect ratio for the final image"
-        isOpen={openSection === 'output'}
-        onToggle={() => toggleSection('output')}
+        icon={Smartphone}
+        title="UGC Real Mode"
+        tooltip="Creates an authentic user generated content look"
+        isOpen={openSection === 'realism'}
+        onToggle={() => toggleSection('realism')}
       >
-        <div className="grid grid-cols-3 gap-2">
-          {ASPECT_RATIO_OPTIONS.map(option => (
+        <div id="ugc-real-mode">
+          <div className="pt-2 pb-4 px-2">
+            <div className="space-y-4">
+
+              {/* UGC TOGGLE */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <p className="text-xs uppercase tracking-wider text-indigo-200">UGC REAL MODE</p>
+                  <p className="text-sm text-gray-400">Switch to a raw, imperfect creator workspace.</p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={values.ugcRealMode}
+                  onClick={() => {
+                    const newValue = !values.ugcRealMode;
+                    updateValue('ugcRealMode', newValue);
+                    if (!newValue) {
+                      updateValue('selfieType', 'Front Camera Selfie');
+                    } else {
+                      updateValue('facialExpression', 'Soft Smile');
+                      updateValue('eyeDirection', 'Looking at camera');
+                    }
+                  }}
+                  className={`relative shrink-0 h-6 w-11 rounded-full transition ${values.ugcRealMode ? 'bg-indigo-500' : 'bg-gray-600'}`}
+                >
+                  <span className={`absolute left-1 top-1 block h-4 w-4 rounded-full bg-white shadow transition ${values.ugcRealMode ? 'translate-x-5' : 'translate-x-0'}`} />
+                </button>
+              </div>
+
+              {values.ugcRealMode && (
+                <>
+                  {/* UGC REALITY PRESETS */}
+                  <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                    <p className="text-xs uppercase tracking-wider text-indigo-200">UGC REALITY PRESETS</p>
+                    <div className="flex flex-wrap gap-2">
+                      {['Raw Selfie', 'Mirror Shot', 'Bathroom Lighting', 'Car Interior', 'Messy Room'].map(preset => (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => {
+                            // Apply preset settings
+                            if (preset === 'Raw Selfie') {
+                              updateValue('selfieType', 'Front Camera Selfie');
+                              updateValue('lightingStyle', 'Natural');
+                            } else if (preset === 'Mirror Shot') {
+                              updateValue('selfieType', 'Mirror Selfie');
+                            } else if (preset === 'Bathroom Lighting') {
+                              updateValue('environment', 'Bathroom');
+                              updateValue('lightingStyle', 'Indoor');
+                            } else if (preset === 'Car Interior') {
+                              updateValue('selfieType', 'Back Camera Handheld');
+                              updateValue('environment', 'Car Interior');
+                            } else if (preset === 'Messy Room') {
+                              updateValue('environment', 'Bedroom');
+                              updateValue('allowMessiness', true);
+                            }
+                          }}
+                          className={getPillClass(false)}
+                        >
+                          {preset}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* CUSTOM CLOTHES */}
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Custom clothes</p>
+                      <p className="text-[11px] text-gray-400">Upload a reference outfit or tap a preset to keep it raw and real.</p>
+                    </div>
+
+                    <label className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/20 bg-black/30 px-4 py-6 text-center text-xs text-gray-300 cursor-pointer hover:border-indigo-400">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 5v14m7-7H5" />
+                      </svg>
+                      <span>Upload clothing reference</span>
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                        // Handle file upload - this can be connected to wardrobe state
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          console.log('[UGC] Clothing reference uploaded:', file.name);
+                          // Future: connect to wardrobe upload handler
+                        }
+                      }} />
+                    </label>
+                  </div>
+
+                  {/* HERO PERSONAS */}
+                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
+                    <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Hero personas</p>
+                    <div className="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
+                      {[
+                        { label: 'The Busy Mom', semantic: 'busy mom managing household, natural home environment, multitasking moment, authentic daily routine' },
+                        { label: 'The Fitness Enthusiast', semantic: 'fitness-focused adult after workout, casual activewear, natural indoor or outdoor setting' },
+                        { label: 'The Skincare Obsessed', semantic: 'skincare-focused woman during daily routine, bathroom mirror, natural lighting' },
+                        { label: 'The Minimalist', semantic: 'minimalist person in clean home environment, neutral tones, simple lifestyle' },
+                        { label: 'The Trendsetter', semantic: 'trend-focused young adult in casual lifestyle moment, modern outfit, spontaneous feel' }
+                      ].map(persona => (
+                        <button
+                          key={persona.label}
+                          type="button"
+                          onClick={() => {
+                            // Set semantic persona for prompt engine
+                            updateValue('heroPersona', persona.semantic);
+                            // Also set complementary mood/appearance for visual consistency
+                            if (persona.label === 'The Busy Mom') {
+                              updateValue('mood', 'Hustle & Juggle');
+                              updateValue('appearanceLevel', 'Running Late');
+                            } else if (persona.label === 'The Fitness Enthusiast') {
+                              updateValue('mood', 'Joyful & High-Energy');
+                              updateValue('appearanceLevel', 'Well-Groomed');
+                            } else if (persona.label === 'The Skincare Obsessed') {
+                              updateValue('mood', 'Calm & Serene');
+                              updateValue('skinRealism', 'Raw / Real');
+                            } else if (persona.label === 'The Minimalist') {
+                              updateValue('mood', 'Confident & Editorial');
+                              updateValue('appearanceLevel', 'Styled');
+                            } else if (persona.label === 'The Trendsetter') {
+                              updateValue('mood', 'Playful & Candid');
+                              updateValue('appearanceLevel', 'Styled');
+                            }
+                          }}
+                          className="w-full text-left px-3 py-2 rounded-lg border border-gray-600 text-sm text-gray-200 hover:border-indigo-400 hover:bg-indigo-500/10 transition"
+                        >
+                          {persona.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* SELFIE TYPE */}
+                  <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                    <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Selfie Type</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {SELFIE_TYPE_OPTIONS.map(option => (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => updateValue('selfieType', option)}
+                          className={getPillClass(values.selfieType === option)}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* SELFIE EXECUTION - Only for Front Camera Selfie */}
+                  {values.selfieType === 'Front Camera Selfie' && (
+                    <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                      <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Selfie Execution</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {SELFIE_EXECUTION_OPTIONS.map(option => (
+                          <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => updateValue('selfieExecution', option.value)}
+                            className={getPillClass(values.selfieExecution === option.value)}
+                          >
+                            {option.value}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SKIN REALISM */}
+                  <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                    <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Skin Realism</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {SKIN_REALISM_OPTIONS.map(option => (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => updateValue('skinRealism', option)}
+                          className={getPillClass(values.skinRealism === option)}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* APPEARANCE LEVEL */}
+                  <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                    <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Appearance Level</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {APPEARANCE_LEVEL_OPTIONS.map(option => (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => updateValue('appearanceLevel', option)}
+                          className={getPillClass(values.appearanceLevel === option)}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+
+            </div>
+          </div>
+        </div>
+      </AccordionSection>
+
+      {/* Product Interaction */}
+      <AccordionSection
+        icon={Hand}
+        title="Product Interaction"
+        tooltip="Control how the creator handles the product"
+        isOpen={openSection === 'productInteraction'}
+        onToggle={() => toggleSection('productInteraction')}
+        isTouched={touchedSections.has('productInteraction')}
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          {PRODUCT_INTERACTION_OPTIONS.map(option => (
             <button
               key={option}
               type="button"
-              onClick={() => { updateValue('aspectRatio', option); markSectionTouched('output'); }}
-              className={getPillClass(values.aspectRatio === option)}
+              onClick={() => { updateValue('productInteraction', option); markSectionTouched('productInteraction'); }}
+              className={getPillClass(values.productInteraction === option)}
             >
               {option}
             </button>
@@ -1187,9 +1158,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                 key={env.value}
                 type="button"
                 onClick={() => { updateValue('environment', env.value); markSectionTouched('environment'); }}
-                className={`flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition ${values.environment === env.value
+                className={`flex items-center gap-2 rounded-full border px-2 py-1 text-xs transition ${values.environment === env.value
                   ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                  : 'border-gray-600 bg-gray-900/40 text-gray-300 hover:border-indigo-400'
+                  : 'border-gray-600 text-gray-300 hover:border-gray-500'
                   }`}
               >
                 <env.icon className="w-4 h-4" />
@@ -1205,15 +1176,33 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                 key={env.value}
                 type="button"
                 onClick={() => { updateValue('environment', env.value); markSectionTouched('environment'); }}
-                className={`flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition ${values.environment === env.value
+                className={`flex items-center gap-2 rounded-full border px-2 py-1 text-xs transition ${values.environment === env.value
                   ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                  : 'border-gray-600 bg-gray-900/40 text-gray-300 hover:border-indigo-400'
+                  : 'border-gray-600 text-gray-300 hover:border-gray-500'
                   }`}
               >
                 <env.icon className="w-4 h-4" />
                 <span>{env.value}</span>
               </button>
             ))}
+          </div>
+
+          {/* CUSTOM ENVIRONMENT */}
+          <div className="pt-3">
+            <p className="text-xs uppercase tracking-wider text-indigo-200 mb-2">CUSTOM ENVIRONMENT</p>
+            <input
+              type="text"
+              value={values.customEnvironment}
+              onChange={(e) => {
+                updateValue('customEnvironment', e.target.value);
+                if (e.target.value) {
+                  updateValue('environment', 'Custom');
+                }
+                markSectionTouched('environment');
+              }}
+              placeholder="e.g., cozy cabin, rooftop terrace, yoga studio..."
+              className="w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            />
           </div>
         </div>
       </AccordionSection>
@@ -1228,9 +1217,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
         isTouched={touchedSections.has('lighting')}
       >
         <div className="space-y-3">
-          <div className="space-y-2">
+          <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
             <p className="text-xs uppercase tracking-wider text-indigo-200">TIME OF DAY</p>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {TIME_OF_DAY_OPTIONS.map(option => (
                 <button
                   key={option}
@@ -1244,9 +1233,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
             <p className="text-xs uppercase tracking-wider text-indigo-200">LIGHTING STYLE</p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {LIGHTING_STYLE_OPTIONS.map(option => (
                 <button
                   key={option}
@@ -1271,7 +1260,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
         onToggle={() => toggleSection('mood')}
         isTouched={touchedSections.has('mood')}
       >
-        <div className="grid grid-cols-3 gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {MOOD_OPTIONS.map(option => (
             <button
               key={option}
@@ -1285,65 +1274,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
         </div>
       </AccordionSection>
 
-      {/* UGC Real Mode */}
-      <AccordionSection
-        icon={Smartphone}
-        title="UGC Real Mode"
-        tooltip="Creates an authentic user generated content look"
-        isOpen={openSection === 'realism'}
-        onToggle={() => toggleSection('realism')}
-      >
-        <div className="flex flex-col gap-3">
-          <div className="space-y-2">
-            <p className="text-xs uppercase tracking-wider text-indigo-200">UGC Mode</p>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  updateValue('ugcRealMode', false);
-                  updateValue('selfieType', 'None');
-                }}
-                className={getPillClass(!values.ugcRealMode, true)}
-              >
-                OFF
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  updateValue('ugcRealMode', true);
-                  if (values.selfieType === 'None') {
-                    updateValue('selfieType', 'Standard selfie');
-                    updateValue('facialExpression', 'Soft smile');
-                    updateValue('eyeDirection', 'Looking at camera');
-                  }
-                }}
-                className={`${getPillClass(values.ugcRealMode, true)} border-amber-300 bg-amber-500/10 text-white`}
-              >
-                ON
-              </button>
-            </div>
-          </div>
-
-          {values.ugcRealMode && (
-            <div className="space-y-2">
-              <p className="text-xs uppercase tracking-wider text-indigo-200">SELFIE TYPE</p>
-              <div className="grid grid-cols-2 gap-2">
-                {SELFIE_TYPE_OPTIONS.map(option => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => updateValue('selfieType', option)}
-                    className={getPillClass(values.selfieType === option)}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </AccordionSection>
-
       {/* Camera & Framing */}
       <AccordionSection
         icon={Camera}
@@ -1354,9 +1284,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
         isTouched={touchedSections.has('camera')}
       >
         <div className="space-y-3">
-          <div className="space-y-2">
+          <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
             <p className="text-xs uppercase tracking-wider text-indigo-200">SHOT TYPE</p>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {SHOT_TYPE_OPTIONS.map(option => (
                 <button
                   key={option}
@@ -1370,9 +1300,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
             <p className="text-xs uppercase tracking-wider text-indigo-200">CAMERA ANGLE</p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {CAMERA_ANGLE_OPTIONS.map(option => (
                 <button
                   key={option}
@@ -1385,324 +1315,217 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
               ))}
             </div>
           </div>
+        </div>
+      </AccordionSection>
 
-          <div className="space-y-2">
-            <p className="text-xs uppercase tracking-wider text-indigo-200">FRAMING</p>
-            <div className="grid grid-cols-2 gap-2">
-              {FRAMING_OPTIONS.map(option => (
+      {/* ECOMMERCE IMAGE BUILDER */}
+      {/* Mutually exclusive with UGC Real Mode */}
+      {/* Side Placement and Background Color only render for 'Ecommerce Blank Space' */}
+      <AccordionSection
+        icon={Building2}
+        title="Ecommerce Image Builder"
+        tooltip="PDP, ads, bundles, hero ecommerce visuals"
+        isOpen={openSection === 'bundles'}
+        onToggle={() => toggleSection('bundles')}
+      >
+        <div className="space-y-4">
+          {/* COMPOSITION MODE */}
+          <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+            <div>
+              <p className="text-xs uppercase tracking-wider text-indigo-200">COMPOSITION MODE</p>
+              <p className="text-[11px] text-gray-400 mt-1">Select ecommerce composition style</p>
+            </div>
+            <div className="flex flex-col gap-2">
+              {COMPOSITION_MODE_OPTIONS.map(option => (
                 <button
                   key={option}
                   type="button"
-                  onClick={() => { updateValue('framing', option); markSectionTouched('camera'); }}
-                  className={getPillClass(values.framing === option)}
+                  onClick={() => {
+                    // Toggle: if already selected, deselect and return to Environment
+                    const newValue = values.compositionMode === option ? '' : option;
+                    if (newValue) {
+                      // Selecting an Ecommerce option → switch to Ecommerce intent
+                      enableEcommerce();
+                      updateValue('compositionMode', newValue);
+                    } else {
+                      // Deselecting → return to Environment intent
+                      enableEnvironment();
+                    }
+                    markSectionTouched('bundles');
+                    // Reset side placement when switching modes
+                    if (newValue !== 'Ecommerce Blank Space') {
+                      updateValue('sidePlacement', 'Center');
+                    }
+                  }}
+                  className={`w-full text-left px-3 py-2 rounded-lg border text-sm transition ${values.compositionMode === option
+                    ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                    : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                    }`}
                 >
-                  {option}
+                  <span className="font-medium">{option}</span>
+                  <p className="text-[10px] text-gray-400 mt-0.5">
+                    {option === 'Ecommerce Blank Space'
+                      ? 'PDP hero, ads, editorial product shots'
+                      : 'Packs, routines, kits with multiple products'}
+                  </p>
                 </button>
               ))}
             </div>
           </div>
-        </div>
-      </AccordionSection>
 
-      {/* Creation Intent */}
-      <AccordionSection
-        icon={Sparkles}
-        title="Creation Intent"
-        tooltip="Creation Intent powers the builder logic"
-        isOpen={openSection === 'creationIntent'}
-        onToggle={() => toggleSection('creationIntent')}
-      >
-        <div className="space-y-3">
-          <div className="rounded-2xl border border-indigo-500/30 bg-indigo-500/10 p-3 text-sm text-gray-200">
-            Creation Intent governs how the scene behaves—UGC, ecommerce, or the expert-led brand tone.
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {CREATION_INTENT_OPTIONS.map(option => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => { updateValue('creationIntent', option.value as Step3Values['creationIntent']); markSectionTouched('creationIntent'); }}
-                className={getPillClass(values.creationIntent === option.value)}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </AccordionSection>
-
-      {/* Creation Modes */}
-      <AccordionSection
-        icon={Activity}
-        title="Creation Modes"
-        tooltip="Switch between lifestyle, studio, or ecommerce intent"
-        isOpen={openSection === 'creationModes'}
-        onToggle={() => toggleSection('creationModes')}
-      >
-        <div className="space-y-2">
-          <p className="text-xs uppercase tracking-wider text-indigo-200">Switch between modes</p>
-          <div className="flex flex-wrap gap-2">
-            {CREATION_MODE_OPTIONS.map(option => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => { updateValue('creationMode', option); markSectionTouched('creationModes'); }}
-                className={getPillClass(values.creationMode === option)}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-        </div>
-      </AccordionSection>
-
-      {/* Ecommerce Image Builder (Pro) */}
-      {shouldShowEcommerceBuilder && (
-        <AccordionSection
-          icon={Building2}
-          title="Ecommerce Image Builder (Pro)"
-          tooltip="Pro controls for ecommerce composition"
-          isOpen={openSection === 'ecommerceBuilder'}
-          onToggle={() => toggleSection('ecommerceBuilder')}
-        >
-          <div className="space-y-3">
-            <div className="space-y-2">
-              <p className="text-xs uppercase tracking-wider text-indigo-200">Composition Mode</p>
-              <div className="flex flex-wrap gap-2">
-                {COMPOSITION_MODE_OPTIONS.map(option => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => { updateValue('compositionMode', option); markSectionTouched('ecommerceBuilder'); }}
-                    className={getPillClass(values.compositionMode === option)}
-                  >
-                    {option}
-                  </button>
-                ))}
+          {/* SIDE PLACEMENT - Only for Ecommerce Blank Space */}
+          {values.compositionMode === 'Ecommerce Blank Space' && (
+            <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+              <div>
+                <p className="text-xs uppercase tracking-wider text-indigo-200">SIDE PLACEMENT</p>
+                <p className="text-[11px] text-gray-400 mt-1">Product anchor position for copy space</p>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-xs uppercase tracking-wider text-indigo-200">Side Placement</p>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 {SIDE_PLACEMENT_OPTIONS.map(option => (
                   <button
                     key={option}
                     type="button"
-                    onClick={() => { updateValue('sidePlacement', option); markSectionTouched('ecommerceBuilder'); }}
-                    className={getPillClass(values.sidePlacement === option, true)}
+                    onClick={() => { updateValue('sidePlacement', option); markSectionTouched('bundles'); }}
+                    className={getPillClass(values.sidePlacement === option)}
                   >
                     {option}
                   </button>
                 ))}
               </div>
             </div>
+          )}
 
-            <div className="space-y-2">
-              <p className="text-xs uppercase tracking-wider text-indigo-200">Background Color</p>
-              <div className="flex flex-wrap gap-2">
-                {ECOMMERCE_BACKGROUND_COLORS.map(color => (
-                  <button
-                    key={color}
-                    type="button"
-                    onClick={() => { updateValue('ecommerceBackgroundColor', color); markSectionTouched('ecommerceBuilder'); }}
-                    className={`${getPillClass(values.ecommerceBackgroundColor === color)} inline-flex items-center gap-2`}
-                  >
-                    <span className="inline-flex h-4 w-4 rounded-full border border-gray-600" style={{ backgroundColor: color }} />
-                    {color}
-                  </button>
-                ))}
+          {/* BACKGROUND COLOR - Only for Ecommerce Blank Space */}
+          {values.compositionMode === 'Ecommerce Blank Space' && (
+            <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+              <div>
+                <p className="text-xs uppercase tracking-wider text-indigo-200">BACKGROUND COLOR</p>
+                <p className="text-[11px] text-gray-400 mt-1">Solid color canvas (no gradients)</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={values.ecommerceBackgroundColor}
+                  onChange={(e) => { updateValue('ecommerceBackgroundColor', e.target.value); markSectionTouched('bundles'); }}
+                  className="h-10 w-14 cursor-pointer rounded-lg border border-gray-600 bg-transparent p-1"
+                />
+                <input
+                  type="text"
+                  value={values.ecommerceBackgroundColor}
+                  onChange={(e) => { updateValue('ecommerceBackgroundColor', e.target.value); markSectionTouched('bundles'); }}
+                  placeholder="#ffffff"
+                  className="flex-1 rounded-full border border-gray-600 bg-gray-800/50 px-4 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                />
               </div>
             </div>
-          </div>
-        </AccordionSection>
-      )}
+          )}
+
+          {/* Info when Bundle mode is active */}
+          {values.compositionMode === 'Product Bundle / Routine' && (
+            <div className="p-3 rounded-lg border border-amber-500/30 bg-amber-500/10">
+              <p className="text-xs text-amber-200">Bundle mode: Multiple products visible with balanced composition and clear hierarchy.</p>
+            </div>
+          )}
+        </div >
+      </AccordionSection >
 
       {/* Formulation Story */}
-      {isPro && (
-        <AccordionSection
-          icon={Edit3}
-          title="Formulation Story"
-          tooltip="Align brand expert, research, and product goals"
-          isOpen={openSection === 'formulationStory'}
-          onToggle={() => toggleSection('formulationStory')}
-        >
-          <div className="space-y-3">
+      <AccordionSection
+        icon={Edit3}
+        title="Formulation Story"
+        tooltip="Align brand expert, research, and product goals"
+        isOpen={openSection === 'formulationStory'}
+        onToggle={() => toggleSection('formulationStory')}
+      >
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-200">Enable Formulation Story</span>
             <button
               type="button"
+              role="switch"
+              aria-checked={values.formulationStoryEnabled}
               onClick={() => {
                 updateValue('formulationStoryEnabled', !values.formulationStoryEnabled);
                 markSectionTouched('formulationStory');
               }}
-              className={`w-full rounded-xl border px-4 py-2 text-sm font-medium transition ${values.formulationStoryEnabled
-                ? 'border-amber-300 bg-amber-500/10 text-white'
-                : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                }`}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900 ${values.formulationStoryEnabled ? 'bg-indigo-500' : 'bg-gray-600'}`}
             >
-              Formulation Story {values.formulationStoryEnabled ? 'ON' : 'OFF'}
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${values.formulationStoryEnabled ? 'translate-x-5' : 'translate-x-0'}`}
+              />
             </button>
+          </div>
 
-            {values.formulationStoryEnabled && (
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  <p className="text-xs uppercase tracking-wider text-indigo-200">Presets</p>
-                  <div className="flex flex-wrap gap-2">
-                    {FORMULATION_PRESETS.map(option => (
-                      <button
-                        key={option}
-                        type="button"
-                        onClick={() => { updateValue('formulationPreset', option); markSectionTouched('formulationStory'); }}
-                        className={getPillClass(values.formulationPreset === option)}
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-wider text-indigo-200">Expert Name</label>
-                  <input
-                    type="text"
-                    value={values.formulationName}
-                    onChange={(e) => { updateValue('formulationName', e.target.value); markSectionTouched('formulationStory'); }}
-                    className="w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-                    placeholder="e.g., Dr. Maya Collins"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-wider text-indigo-200">Expert Role</label>
-                  <input
-                    type="text"
-                    value={values.formulationRole}
-                    onChange={(e) => { updateValue('formulationRole', e.target.value); markSectionTouched('formulationStory'); }}
-                    className="w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-                    placeholder="e.g., Clinical researcher"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <p className="text-xs uppercase tracking-wider text-indigo-200">Lab Vibe</p>
-                  <div className="flex flex-wrap gap-2">
-                    {LAB_VIBE_OPTIONS.map(option => (
-                      <button
-                        key={option}
-                        type="button"
-                        onClick={() => { updateValue('formulationLabVibe', option); markSectionTouched('formulationStory'); }}
-                        className={getPillClass(values.formulationLabVibe === option)}
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
+          {values.formulationStoryEnabled && (
+            <div className="space-y-3">
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <p className="text-xs uppercase tracking-wider text-indigo-200">Presets</p>
+                <div className="flex flex-wrap gap-2">
+                  {FORMULATION_PRESETS.map(option => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => { updateValue('formulationPreset', option); markSectionTouched('formulationStory'); }}
+                      className={getPillClass(values.formulationPreset === option)}
+                    >
+                      {option}
+                    </button>
+                  ))}
                 </div>
               </div>
-            )}
-          </div>
-        </AccordionSection>
-      )}
 
-      {/* Final Output */}
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <label className="text-xs uppercase tracking-wider text-indigo-200">Expert Name</label>
+                <input
+                  type="text"
+                  value={values.formulationName}
+                  onChange={(e) => { updateValue('formulationName', e.target.value); markSectionTouched('formulationStory'); }}
+                  className="w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  placeholder="e.g., Dr. Maya Collins"
+                />
+              </div>
+
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <p className="text-xs uppercase tracking-wider text-indigo-200">Lab Vibe</p>
+                <div className="flex flex-wrap gap-2">
+                  {LAB_VIBE_OPTIONS.map(option => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => { updateValue('formulationLabVibe', option); markSectionTouched('formulationStory'); }}
+                      className={getPillClass(values.formulationLabVibe === option)}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </AccordionSection>
+
+      {/* Output Format - LAST */}
       <AccordionSection
         icon={Layers}
-        title="Final Output"
-        tooltip="Wrap up wardrobe, props, and background behavior"
-        isOpen={openSection === 'finalOutput'}
-        onToggle={() => toggleSection('finalOutput')}
+        title="Output Format"
+        tooltip="Aspect ratio for the final image"
+        isOpen={openSection === 'output'}
+        onToggle={() => toggleSection('output')}
       >
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <p className="text-xs uppercase tracking-wider text-indigo-200">Wardrobe</p>
-            <input
-              type="text"
-              value={values.wardrobe}
-              onChange={(e) => { updateValue('wardrobe', e.target.value); markSectionTouched('finalOutput'); }}
-              placeholder="e.g., Casual hoodie, white tee..."
-              className="w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-            />
-            <div className="flex flex-wrap gap-2 pt-2">
-              {WARDROBE_PRESET_OPTIONS.map(option => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => { updateValue('wardrobe', option); markSectionTouched('finalOutput'); }}
-                  className={getPillClass(values.wardrobe === option)}
-                >
-                  {option}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <p className="text-xs uppercase tracking-wider text-indigo-200">Props</p>
-            <input
-              type="text"
-              value={values.props}
-              onChange={(e) => { updateValue('props', e.target.value); markSectionTouched('finalOutput'); }}
-              placeholder="Describe props or items in scene"
-              className="w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-            />
-            <input
-              type="text"
-              value={values.customProps}
-              onChange={(e) => { updateValue('customProps', e.target.value); markSectionTouched('finalOutput'); }}
-              placeholder="Custom props notes"
-              className="w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <p className="text-xs uppercase tracking-wider text-indigo-200">Background Controls</p>
-            <div className="grid gap-2">
-              {FINAL_OUTPUT_BACKGROUND_FLAGS.map(flag => {
-                const isActive = values[flag.key] as boolean;
-                return (
-                  <button
-                    key={flag.key}
-                    type="button"
-                    onClick={() => {
-                      toggleBooleanFlag(flag.key);
-                      markSectionTouched('finalOutput');
-                    }}
-                    className={`flex items-center justify-between rounded-xl border px-4 py-2 text-xs transition ${isActive
-                      ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                      : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                      }`}
-                  >
-                    <span>{flag.label}</span>
-                    <span className="text-[10px] uppercase tracking-wider text-indigo-200">{isActive ? 'On' : 'Off'}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <p className="text-xs uppercase tracking-wider text-indigo-200">Advanced (Pro)</p>
-            <div className="grid gap-2">
-              {FINAL_OUTPUT_ADVANCED_FLAGS.map(flag => {
-                const isActive = values[flag.key] as boolean;
-                return (
-                  <button
-                    key={flag.key}
-                    type="button"
-                    onClick={() => {
-                      toggleBooleanFlag(flag.key);
-                      markSectionTouched('finalOutput');
-                    }}
-                    className={`flex items-center justify-between rounded-xl border px-4 py-2 text-xs transition ${isActive
-                      ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                      : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                      }`}
-                  >
-                    <span>{flag.label}</span>
-                    <span className="text-[10px] uppercase tracking-wider text-indigo-200">{isActive ? 'On' : 'Off'}</span>
-                  </button>
-                );
-              })}
-            </div>
+        <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+          <p className="text-xs uppercase tracking-wider text-indigo-200">ASPECT RATIO</p>
+          <div className="flex flex-wrap items-center gap-2">
+            {ASPECT_RATIO_OPTIONS.map(option => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => { updateValue('aspectRatio', option); markSectionTouched('output'); }}
+                className={getPillClass(values.aspectRatio === option)}
+              >
+                {option}
+              </button>
+            ))}
           </div>
         </div>
       </AccordionSection>
