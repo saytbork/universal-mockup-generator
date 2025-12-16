@@ -404,6 +404,7 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
 // ============================================================================
 const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, onValuesChange, onCanGenerateChange }) => {
   const [isPro, setIsPro] = useState(false);
+  const [sceneMode, setSceneMode] = useState<'ugc' | 'product'>('ugc');
   const [openSection, setOpenSection] = useState<string | null>('creator');
   const [touchedSections, setTouchedSections] = useState<Set<string>>(new Set());
 
@@ -670,10 +671,30 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
         <span className={`text-sm font-medium ${isPro ? 'text-white' : 'text-gray-400'}`}>PRO</span>
       </div>
 
-      {/* Creator / Person */}
-      <AccordionSection
-        icon={User}
-        title="Creator / Person"
+      {/* Scene Mode Selector */}
+      <div className="flex items-center justify-center gap-3">
+        <button
+          type="button"
+          onClick={() => setSceneMode('ugc')}
+          className={getPillClass(sceneMode === 'ugc')}
+        >
+          Lifestyle / UGC
+        </button>
+        <button
+          type="button"
+          onClick={() => setSceneMode('product')}
+          className={getPillClass(sceneMode === 'product')}
+        >
+          Product / Ecommerce
+        </button>
+      </div>
+
+      {sceneMode === 'ugc' ? (
+        <>
+          {/* Creator / Person */}
+          <AccordionSection
+            icon={User}
+            title="Creator / Person"
         tooltip="Define the person in your scene"
         isOpen={openSection === 'creator'}
         onToggle={() => toggleSection('creator')}
@@ -1529,6 +1550,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
           </div>
         </div>
       </AccordionSection>
+        </>
+      ) : (
+        <div className="rounded-2xl border border-gray-700 bg-gray-900/50 p-6 text-center">
+          <p className="text-sm font-semibold text-gray-200">Product / Ecommerce mode is coming soon.</p>
+          <p className="text-xs text-gray-500">Switch back to Lifestyle / UGC to keep editing creators.</p>
+        </div>
+      )}
     </div>
   );
 };
