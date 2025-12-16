@@ -8,6 +8,84 @@ import {
 // ============================================================================
 // TYPES & INTERFACES
 // ============================================================================
+
+// **CANONICAL STATE** - SINGLE SOURCE OF TRUTH for Step 3 Scene Builder
+export interface SceneState {
+  mode: 'basic' | 'pro';
+
+  ugcRealMode: boolean;
+
+  identity: {
+    age: number;
+    gender: string;
+  };
+
+  ugcExpressions: string[];
+
+  creationIntent:
+  | 'lifestyle-ugc'
+  | 'studio-hero'
+  | 'aesthetic-builder'
+  | 'background-replace'
+  | 'ecommerce-blank-space';
+
+  environment:
+  | 'living-room'
+  | 'kitchen'
+  | 'bedroom'
+  | 'coffee-shop'
+  | 'office'
+  | 'city-street'
+  | 'park'
+  | 'beach'
+  | 'car-interior'
+  | { custom: string }
+  | null;
+
+  timeLighting: {
+    timeOfDay: string;
+    lightingStyle: string;
+  };
+
+  mood: string;
+
+  camera: {
+    shotType:
+    | 'close-up'
+    | 'medium'
+    | 'full-body'
+    | 'product-focus'
+    | 'environmental';
+
+    angle:
+    | 'eye-level'
+    | 'slightly-above'
+    | 'slightly-below'
+    | 'dutch-angle';
+
+    framing:
+    | 'centered'
+    | 'rule-of-thirds'
+    | 'off-center'
+    | 'spontaneous';
+  };
+
+  ecommerce: {
+    enabled: boolean;
+    composition: 'blank-space' | null;
+    sidePlacement: 'left' | 'center' | 'right' | null;
+    backgroundColor: string | null;
+  };
+
+  formulationStory: {
+    enabled: boolean;
+    expertName: string;
+    professionalFocus: string;
+    labVibe: string;
+  };
+
+  outputFormat: '1:1' | '4:5' | '9:16';
+}
 interface LifestyleStep3Props {
   isProductMode?: boolean;
   onValuesChange?: (values: Step3Values) => void;
@@ -131,16 +209,16 @@ const AGE_SLIDER_CATEGORIES = [
   { min: 76, max: 90, label: 'Senior', group: '75+' }
 ];
 
-  const getAgeCategory = (age: number) => {
-    return AGE_SLIDER_CATEGORIES.find(category => age <= category.max) ?? AGE_SLIDER_CATEGORIES[AGE_SLIDER_CATEGORIES.length - 1];
-  };
+const getAgeCategory = (age: number) => {
+  return AGE_SLIDER_CATEGORIES.find(category => age <= category.max) ?? AGE_SLIDER_CATEGORIES[AGE_SLIDER_CATEGORIES.length - 1];
+};
 
-  const getPillClass = (isActive: boolean, fullWidth = false) => {
-    const base = 'rounded-full border px-4 py-2 text-xs font-semibold transition';
-    const active = 'border-indigo-400 bg-indigo-500/10 text-white shadow-[0_10px_30px_-20px_rgba(99,102,241,0.75)]';
-    const inactive = 'border-gray-600 bg-gray-900/40 text-gray-300 hover:border-indigo-400 hover:text-white';
-    return [base, isActive ? active : inactive, fullWidth ? 'flex-1' : ''].filter(Boolean).join(' ');
-  };
+const getPillClass = (isActive: boolean, fullWidth = false) => {
+  const base = 'rounded-full border px-4 py-2 text-xs font-semibold transition';
+  const active = 'border-indigo-400 bg-indigo-500/10 text-white shadow-[0_10px_30px_-20px_rgba(99,102,241,0.75)]';
+  const inactive = 'border-gray-600 bg-gray-900/40 text-gray-300 hover:border-indigo-400 hover:text-white';
+  return [base, isActive ? active : inactive].filter(Boolean).join(' ');
+};
 
 const GENDER_OPTIONS = ['Male', 'Female'];
 
@@ -404,8 +482,8 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
 // ============================================================================
 const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, onValuesChange, onCanGenerateChange }) => {
   const [isPro, setIsPro] = useState(false);
-  const [sceneMode, setSceneMode] = useState<'ugc' | 'product'>('ugc');
-  const [openSection, setOpenSection] = useState<string | null>('creator');
+  const [sceneMode, setSceneMode] = useState<'ugc' | 'product'>(isProductMode ? 'product' : 'ugc');
+  const [openSection, setOpenSection] = useState<string | null>(isProductMode ? 'product-setup' : 'creator');
   const [touchedSections, setTouchedSections] = useState<Set<string>>(new Set());
 
   const initialValues: Step3Values = {
@@ -515,8 +593,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
   };
 
   const updateValue = useCallback(<K extends keyof Step3Values>(key: K, value: Step3Values[K]) => {
+    // MANDATORY LOG on every update (Phase 3)
+    console.log('[STEP3 UPDATE]', key, value, values);
     setValues(prev => ({ ...prev, [key]: value }));
-  }, []);
+  }, [values]);
 
   const toggleBooleanFlag = <K extends keyof Step3Values>(key: K) => {
     const current = values[key];
@@ -534,7 +614,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
     markSectionTouched('creator');
   };
 
+  // PHASE 3: Emit sceneState on EVERY change
   useEffect(() => {
+    console.log('[STEP3 EMIT]', values);
     if (onValuesChange) {
       onValuesChange(values);
     }
@@ -544,31 +626,68 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
   const isEcommerceIntent = values.creationIntent === 'product' || values.creationIntent === 'brand';
   const shouldShowEcommerceBuilder = isPro && (isEcommerceIntent || values.creationMode === DEFAULT_ECOMMERCE_CREATION_MODE);
 
+  // ============================================================================
+  // PHASE 2: HARD RULES (CODE, NOT UI)
+  // ============================================================================
+
+  // HARD RULE 1: creationIntent === 'ecommerce-blank-space'
   useEffect(() => {
-    if (!values.formulationStoryEnabled) {
-      return;
-    }
+    if (values.creationMode === DEFAULT_ECOMMERCE_CREATION_MODE) {
+      console.log('[HARD RULE 1] Ecommerce Blank Space mode detected');
 
-    if (values.creationIntent !== 'brand') {
-      updateValue('creationIntent', 'brand');
-    }
-    if (values.creationMode !== DEFAULT_ECOMMERCE_CREATION_MODE) {
-      updateValue('creationMode', DEFAULT_ECOMMERCE_CREATION_MODE);
-    }
-    if (values.ugcRealMode) {
-      updateValue('ugcRealMode', false);
-    }
-  }, [
-    values.formulationStoryEnabled,
-    values.creationIntent,
-    values.creationMode,
-    values.ugcRealMode,
-    updateValue
-  ]);
+      // Auto-set ugcRealMode = false
+      if (values.ugcRealMode) {
+        console.log('[HARD RULE 1] Setting ugcRealMode = false');
+        updateValue('ugcRealMode', false);
+      }
 
+      // Auto-set environment = null (clear environment)
+      if (values.environment !== '') {
+        console.log('[HARD RULE 1] Clearing environment');
+        updateValue('environment', '');
+        updateValue('customEnvironment', '');
+      }
+    }
+  }, [values.creationMode, values.ugcRealMode, values.environment, updateValue]);
+
+  // HARD RULE 2: ugcRealMode === false → clear ugcExpressions
+  // (Note: ugcExpressions not in current Step3Values, will be added when implementing SceneState mapping)
+
+  // HARD RULE 3: formulationStory.enabled === true
+  useEffect(() => {
+    if (values.formulationStoryEnabled) {
+      console.log('[HARD RULE 3] Formulation Story enabled');
+
+      // Auto-set ugcRealMode = false
+      if (values.ugcRealMode) {
+        console.log('[HARD RULE 3] Setting ugcRealMode = false');
+        updateValue('ugcRealMode', false);
+      }
+
+      // Force creationMode to Ecommerce Blank Space
+      if (values.creationMode !== DEFAULT_ECOMMERCE_CREATION_MODE) {
+        console.log('[HARD RULE 3] Setting creationMode to Ecommerce Blank Space');
+        updateValue('creationMode', DEFAULT_ECOMMERCE_CREATION_MODE);
+      }
+    }
+  }, [values.formulationStoryEnabled, values.ugcRealMode, values.creationMode, updateValue]);
+
+  // HARD RULE 4: Environment and Ecommerce Blank Space mutual exclusivity
+  useEffect(() => {
+    const hasEnvironment = values.environment !== '' || values.customEnvironment !== '';
+    const isEcommerceMode = values.creationMode === DEFAULT_ECOMMERCE_CREATION_MODE;
+
+    if (hasEnvironment && isEcommerceMode) {
+      console.log('[HARD RULE 4] Environment and Ecommerce are mutually exclusive - clearing environment');
+      updateValue('environment', '');
+      updateValue('customEnvironment', '');
+    }
+  }, [values.environment, values.customEnvironment, values.creationMode, updateValue]);
+
+  // Additional hard rule: UGC mode enforcement
   useEffect(() => {
     if (values.creationIntent === 'ugc') {
-      if (!values.ugcRealMode) {
+      if (!values.ugcRealMode && values.creationMode !== DEFAULT_ECOMMERCE_CREATION_MODE) {
         updateValue('ugcRealMode', true);
       }
       if (values.creationMode === DEFAULT_ECOMMERCE_CREATION_MODE) {
@@ -594,6 +713,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
     updateValue
   ]);
 
+  // UGC Real Mode enforcement
   useEffect(() => {
     if (values.ugcRealMode) {
       if (values.creationIntent !== 'ugc') {
@@ -618,6 +738,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
     updateValue
   ]);
 
+  // Ecommerce mode and creation intent alignment
   useEffect(() => {
     if (values.creationMode === DEFAULT_ECOMMERCE_CREATION_MODE && values.creationIntent === 'ugc' && !values.formulationStoryEnabled) {
       updateValue('creationIntent', 'product');
@@ -650,10 +771,65 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
     updateValue
   ]);
 
+  // ========================================================================
+  // PRODUCT MODE VALIDATION (Stage 11)
+  // ========================================================================
+
+  // Sync sceneMode with isProductMode prop
+  useEffect(() => {
+    setSceneMode(isProductMode ? 'product' : 'ugc');
+  }, [isProductMode]);
+
+  // Block and clear UGC state when Product Mode is active
+  useEffect(() => {
+    if (!isProductMode) return;
+
+    console.log('[PRODUCT MODE VALIDATION] Clearing UGC state');
+
+    // Auto-clear UGC Real Mode
+    if (values.ugcRealMode) {
+      console.log('[PRODUCT MODE] Disabling UGC Real Mode');
+      updateValue('ugcRealMode', false);
+    }
+
+    // Auto-clear mood (UGC-specific)
+    if (values.mood && values.mood !== '') {
+      console.log('[PRODUCT MODE] Clearing mood');
+      updateValue('mood', '');
+    }
+
+    // Auto-clear selfie type
+    if (values.selfieType && values.selfieType !== 'None') {
+      console.log('[PRODUCT MODE] Clearing selfie type');
+      updateValue('selfieType', 'None');
+    }
+
+    // Ensure noPerson is true
+    if (!values.noPerson) {
+      console.log('[PRODUCT MODE] Setting noPerson = true');
+      updateValue('noPerson', true);
+    }
+
+    // Set creation intent to product
+    if (values.creationIntent !== 'product') {
+      console.log('[PRODUCT MODE] Setting creationIntent = product');
+      updateValue('creationIntent', 'product');
+    }
+  }, [
+    isProductMode,
+    values.ugcRealMode,
+    values.mood,
+    values.selfieType,
+    values.noPerson,
+    values.creationIntent,
+    updateValue
+  ]);
+
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6 pb-8">
       {/* Header */}
       <div className="text-center space-y-2">
+        <p className="text-xs uppercase tracking-wider text-gray-500">STEP 3</p>
         <h2 className="text-xl font-bold text-gray-200">Scene Builder</h2>
         <p className="text-sm text-gray-400">Create authentic lifestyle moments</p>
       </div>
@@ -671,30 +847,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
         <span className={`text-sm font-medium ${isPro ? 'text-white' : 'text-gray-400'}`}>PRO</span>
       </div>
 
-      {/* Scene Mode Selector */}
-      <div className="flex items-center justify-center gap-3">
-        <button
-          type="button"
-          onClick={() => setSceneMode('ugc')}
-          className={getPillClass(sceneMode === 'ugc')}
-        >
-          Lifestyle / UGC
-        </button>
-        <button
-          type="button"
-          onClick={() => setSceneMode('product')}
-          className={getPillClass(sceneMode === 'product')}
-        >
-          Product / Ecommerce
-        </button>
-      </div>
-
-      {sceneMode === 'ugc' ? (
-        <>
-          {/* Creator / Person */}
-          <AccordionSection
-            icon={User}
-            title="Creator / Person"
+      {/* Creator / Person */}
+      <AccordionSection
+        icon={User}
+        title="Creator / Person"
         tooltip="Define the person in your scene"
         isOpen={openSection === 'creator'}
         onToggle={() => toggleSection('creator')}
@@ -952,14 +1108,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
           onToggle={() => toggleSection('ageGroups')}
           isTouched={touchedSections.has('ageGroups')}
         >
-              <div className="flex flex-wrap gap-2">
-                {AGE_GROUP_CHIP_OPTIONS.map(option => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => { updateValue('ageGroup', option); markSectionTouched('ageGroups'); }}
-                    className={getPillClass(values.ageGroup === option)}
-                  >
+          <div className="flex flex-wrap gap-2">
+            {AGE_GROUP_CHIP_OPTIONS.map(option => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => { updateValue('ageGroup', option); markSectionTouched('ageGroups'); }}
+                className={getPillClass(values.ageGroup === option)}
+              >
                 {option}
               </button>
             ))}
@@ -999,18 +1155,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
         isOpen={openSection === 'output'}
         onToggle={() => toggleSection('output')}
       >
-          <div className="grid grid-cols-3 gap-2">
-            {ASPECT_RATIO_OPTIONS.map(option => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => { updateValue('aspectRatio', option); markSectionTouched('output'); }}
-                className={getPillClass(values.aspectRatio === option)}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
+        <div className="grid grid-cols-3 gap-2">
+          {ASPECT_RATIO_OPTIONS.map(option => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => { updateValue('aspectRatio', option); markSectionTouched('output'); }}
+              className={getPillClass(values.aspectRatio === option)}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
       </AccordionSection>
 
       {/* Environment */}
@@ -1025,37 +1181,37 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
       >
         <div className="space-y-3">
           <p className="text-xs uppercase tracking-wider text-indigo-200">INDOOR</p>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="flex flex-wrap gap-2">
             {ENVIRONMENT_INDOOR.map(env => (
               <button
                 key={env.value}
                 type="button"
                 onClick={() => { updateValue('environment', env.value); markSectionTouched('environment'); }}
-                className={`flex flex-col items-center gap-1 rounded-lg border p-3 transition ${values.environment === env.value
-                  ? 'border-indigo-400 bg-indigo-500/10'
-                  : 'border-gray-600 hover:border-gray-500'
+                className={`flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition ${values.environment === env.value
+                  ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                  : 'border-gray-600 bg-gray-900/40 text-gray-300 hover:border-indigo-400'
                   }`}
               >
-                <env.icon className="w-5 h-5 text-gray-300" />
-                <span className="text-xs text-gray-300">{env.value}</span>
+                <env.icon className="w-4 h-4" />
+                <span>{env.value}</span>
               </button>
             ))}
           </div>
 
           <p className="text-xs uppercase tracking-wider text-indigo-200 pt-2">OUTDOOR</p>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="flex flex-wrap gap-2">
             {ENVIRONMENT_OUTDOOR.map(env => (
               <button
                 key={env.value}
                 type="button"
                 onClick={() => { updateValue('environment', env.value); markSectionTouched('environment'); }}
-                className={`flex flex-col items-center gap-1 rounded-lg border p-3 transition ${values.environment === env.value
-                  ? 'border-indigo-400 bg-indigo-500/10'
-                  : 'border-gray-600 hover:border-gray-500'
+                className={`flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition ${values.environment === env.value
+                  ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                  : 'border-gray-600 bg-gray-900/40 text-gray-300 hover:border-indigo-400'
                   }`}
               >
-                <env.icon className="w-5 h-5 text-gray-300" />
-                <span className="text-xs text-gray-300">{env.value}</span>
+                <env.icon className="w-4 h-4" />
+                <span>{env.value}</span>
               </button>
             ))}
           </div>
@@ -1168,8 +1324,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
             </div>
           </div>
 
-              {values.ugcRealMode && (
-                <div className="space-y-2">
+          {values.ugcRealMode && (
+            <div className="space-y-2">
               <p className="text-xs uppercase tracking-wider text-indigo-200">SELFIE TYPE</p>
               <div className="grid grid-cols-2 gap-2">
                 {SELFIE_TYPE_OPTIONS.map(option => (
@@ -1550,13 +1706,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
           </div>
         </div>
       </AccordionSection>
-        </>
-      ) : (
-        <div className="rounded-2xl border border-gray-700 bg-gray-900/50 p-6 text-center">
-          <p className="text-sm font-semibold text-gray-200">Product / Ecommerce mode is coming soon.</p>
-          <p className="text-xs text-gray-500">Switch back to Lifestyle / UGC to keep editing creators.</p>
-        </div>
-      )}
+
     </div>
   );
 };
