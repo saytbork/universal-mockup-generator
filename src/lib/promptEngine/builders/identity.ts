@@ -1,154 +1,160 @@
 /**
- * Identity Builder - Person identity and appearance
+ * Identity Builder - Person identity and appearance with SEMANTIC MAPPING
+ * Maps UI controls to physical, observable, photographic language
  */
 
 import type { PromptOptions, PromptBuilder } from '../types';
-import { parameterMap } from '../parameterMap';
 
 export class IdentityBuilder implements PromptBuilder {
     build(options: PromptOptions): string {
-        const {
-            personIncluded,
-            modelReference,
-            identityLock,
-            compositionIntro,
-            identityBlock,
-            eyeDirection,
-            contentStyle,
-        } = options;
+        const { personIncluded, hasModelReference, personDetails, contentStyle } = options;
 
+        // Don't build identity if no person or if product-only mode
         if (!personIncluded || contentStyle === 'product') {
             return '';
         }
 
-        let prompt = '';
-
-        // Add composition intro if provided
-        if (compositionIntro) {
-            prompt += compositionIntro.trim() + ' ';
+        // MODEL REFERENCE OVERRIDE - Takes absolute priority
+        if (hasModelReference) {
+            return `
+MODEL REFERENCE OVERRIDE:
+Use the uploaded model reference image as the single source of truth for the person's appearance.
+Do not alter or reinterpret age, gender, ethnicity, facial structure, skin texture, hair, or expression.
+Do not beautify, rejuvenate, stylize, or idealize the face.
+Match the person exactly as shown in the reference image.
+The model reference overrides any synthetic identity description.
+            `.trim().replace(/\s+/g, ' ');
         }
 
-        // Add identity block if provided
-        if (identityBlock) {
-            prompt += identityBlock.trim() + ' ';
+        const parts: string[] = [];
+        const age = personDetails?.age || 30;
+
+        // AGE ANCHOR for 70+ (CRITICAL)
+        if (age >= 70) {
+            parts.push(`
+AGE ANCHOR: The subject MUST visually read as approximately ${age} years old.
+Facial structure, skin laxity, eye area, neck, hands, posture, and overall presence must be consistent with a real ${age}-year-old adult.
+Do NOT make the person appear younger.
+Avoid youthful facial proportions, smooth skin, or middle-aged appearance.
+            `.trim().replace(/\s+/g, ' '));
         }
 
-        // Model reference takes priority
-        if (modelReference?.base64) {
-            prompt += `
-        Use the uploaded model reference as the exact identity.
-        Do not alter face, facial structure, gender, age or skin tone.
-      `.trim().replace(/\s+/g, ' ');
+        // IDENTITY BLOCK - Core attributes
+        const identityParts: string[] = [];
 
-            if (modelReference.notes) {
-                prompt += ` ${modelReference.notes.trim()}`;
+        // Age - ALWAYS numeric
+        identityParts.push(`${age}-year-old adult`);
+
+        // Gender - soft descriptor
+        if (personDetails?.gender) {
+            const genderMap: Record<string, string> = {
+                'Female': 'female-presenting adult',
+                'Male': 'male-presenting adult',
+                'Non-binary': 'non-binary presenting adult, balanced gender expression',
+                'They / Them': 'person with neutral gender presentation',
+                'Androgynous': 'androgynous appearance with blended masculine and feminine traits',
+                'Gender non-conforming': 'gender non-conforming presentation',
+            };
+            const mapped = genderMap[personDetails.gender];
+            if (mapped) {
+                identityParts.push(mapped);
             }
         }
-        // Identity lock (persona settings)
-        else if (identityLock) {
-            prompt += this.buildIdentityLock(identityLock);
-        }
-        // Generic person
-        else {
-            prompt += `
-        Render a photorealistic person.
-        Real skin texture with pores and micro shadows.
-        No CGI look.
-        Perfect wrist, knuckle and finger proportions.
-      `.trim().replace(/\s+/g, ' ');
-        }
 
-        if (eyeDirection) {
-            const mappedEyeDirection = parameterMap.eyeDirection[eyeDirection];
-            if (mappedEyeDirection) {
-                prompt += `${mappedEyeDirection} `;
+        // Ethnicity
+        if (personDetails?.ethnicity && personDetails.ethnicity !== 'Prefer not to specify') {
+            if (personDetails.ethnicity.startsWith('ethnicity described as:')) {
+                // Custom ethnicity
+                identityParts.push(personDetails.ethnicity);
+            } else {
+                identityParts.push(`of ${personDetails.ethnicity} appearance`);
             }
         }
 
-        const personDetails = options.personDetails || {
-            ageGroup: (options as any).ageGroup,
-            gender: (options as any).gender,
-            ethnicity: (options as any).ethnicity,
-            skinTone: (options as any).skinTone,
-            hairColor: (options as any).hairColor,
-            hairStyle: (options as any).hairStyle,
-            personPose: (options as any).personPose,
-            personMood: (options as any).personMood,
-            personAppearance: (options as any).personAppearance,
-            productInteraction: (options as any).productInteraction,
-            wardrobeStyle: (options as any).wardrobeStyle,
-            personProps: (options as any).personProps,
-            microLocation: (options as any).microLocation,
-            personExpression: (options as any).personExpression,
-            selfieType: (options as any).selfieType,
-        };
-
-        const details: string[] = [];
-
-        if (personDetails.ageGroup && personDetails.ageGroup !== 'no person') {
-            details.push(parameterMap.ageGroup?.[personDetails.ageGroup] ?? personDetails.ageGroup);
-        }
-        if (personDetails.gender) {
-            details.push(`gender: ${personDetails.gender}`);
-        }
-        if (personDetails.ethnicity) {
-            details.push(`ethnicity: ${personDetails.ethnicity}`);
-        }
-        if (personDetails.personAppearance) {
-            details.push(personDetails.personAppearance);
-        }
-        if (personDetails.personMood) {
-            details.push(parameterMap.mood?.[personDetails.personMood] ?? personDetails.personMood);
-        }
-        if (personDetails.personExpression) {
-            details.push(parameterMap.expression?.[personDetails.personExpression] ?? personDetails.personExpression);
-        }
-        if (personDetails.personPose) {
-            details.push(parameterMap.pose?.[personDetails.personPose] ?? personDetails.personPose);
-        }
-        if (personDetails.productInteraction) {
-            details.push(parameterMap.interaction?.[personDetails.productInteraction] ?? personDetails.productInteraction);
-        }
-        if (personDetails.wardrobeStyle) {
-            details.push(parameterMap.wardrobe?.[personDetails.wardrobeStyle] ?? personDetails.wardrobeStyle);
-        }
-        if (personDetails.personProps) {
-            details.push(personDetails.personProps);
-        }
-        if (personDetails.microLocation) {
-            details.push(parameterMap.microLocation?.[personDetails.microLocation] ?? personDetails.microLocation);
-        }
-        if (personDetails.selfieType) {
-            details.push(parameterMap.selfieType?.[personDetails.selfieType] ?? personDetails.selfieType);
+        // Body Type
+        if (personDetails?.bodyType) {
+            identityParts.push(`${personDetails.bodyType.toLowerCase()} build`);
         }
 
-        if (details.length > 0) {
-            prompt += ` Person details: ${details.filter(Boolean).join(', ')}.`;
+        // Skin Tone (avoid duplication)
+        if (personDetails?.skinTone) {
+            const skinMap: Record<string, string> = {
+                'Very Fair': 'very fair',
+                'Fair': 'fair',
+                'Medium': 'medium',
+                'Olive': 'olive',
+                'Tan': 'tan',
+                'Brown': 'brown',
+                'Deep Brown': 'deep brown',
+                'Very Deep': 'very deep'
+            };
+            const mappedSkin = skinMap[personDetails.skinTone] || personDetails.skinTone.toLowerCase();
+            identityParts.push(`${mappedSkin} skin`); // NO "skin tone" duplication
         }
 
-        return prompt;
-    }
-
-    private buildIdentityLock(identity: any): string {
-        const parts = [];
-
-        if (identity.ageGroup) parts.push(`Age group: ${identity.ageGroup}`);
-        if (identity.gender) parts.push(`Gender: ${identity.gender}`);
-        if (identity.ethnicity) parts.push(`Ethnicity: ${identity.ethnicity}`);
-        if (identity.skinTone) parts.push(`Skin tone: ${identity.skinTone}`);
-        if (identity.hairType && identity.hairLength && identity.hairColor) {
-            parts.push(`Hair: ${identity.hairType}, ${identity.hairLength}, ${identity.hairColor}`);
-        }
-        if (identity.bodyType) parts.push(`Body type: ${identity.bodyType}`);
-
-        if (parts.length === 0) {
-            return '';
+        // Skin Realism
+        if (personDetails?.skinRealism) {
+            const realismMap: Record<string, string> = {
+                'Ultra realistic': 'realistic skin texture with visible pores, fine lines, and natural imperfections',
+                'Natural': 'natural skin texture with subtle imperfections',
+                'Polished': 'polished skin with minimal visible texture',
+                'Smooth': 'smooth skin with very subtle texture'
+            };
+            const mapped = realismMap[personDetails.skinRealism];
+            if (mapped) {
+                identityParts.push(mapped);
+            }
+        } else {
+            // Default realistic skin
+            identityParts.push('realistic skin texture appropriate for their age');
         }
 
-        return `
-      Render consistent identity:
-      ${parts.join('. ')}.
-      Facial features must never be randomized.
-    `.trim().replace(/\s+/g, ' ');
+        // Eye Color
+        if (personDetails?.eyeColor) {
+            identityParts.push(`${personDetails.eyeColor.toLowerCase()} eyes`);
+        }
+
+        // Hair
+        if (personDetails?.hairLength && personDetails?.hairTexture && personDetails?.hairColor) {
+            identityParts.push(`${personDetails.hairLength.toLowerCase()} ${personDetails.hairTexture.toLowerCase()} ${personDetails.hairColor.toLowerCase()} hair`);
+        }
+
+        // Join core identity
+        if (identityParts.length > 0) {
+            parts.push(identityParts.join(', '));
+        }
+
+        // EXPRESSION - Map to visual facial cues
+        if (personDetails?.facialExpression) {
+            const expressionMap: Record<string, string> = {
+                'Soft Smile': 'soft relaxed smile, lips slightly curved, natural facial tension',
+                'Full Smile': 'broad genuine smile, teeth visible, expressive eyes',
+                'Serious Focus': 'neutral serious expression, focused eyes, relaxed mouth',
+                'Excited Surprise': 'wide eyes, raised eyebrows, mouth slightly open in surprise',
+                'Stressed but Hopeful': 'subtle facial tension, tired eyes with a gentle hopeful expression',
+                'Caffeinated Crash': 'slightly exhausted expression, heavy eyelids, casual fatigue',
+                'Real-Life Calm': 'calm everyday expression, natural relaxed face',
+                'UGC Reality': 'imperfect natural facial expression, candid non-posed look'
+            };
+            const mapped = expressionMap[personDetails.facialExpression];
+            if (mapped) {
+                parts.push(mapped);
+            }
+        }
+
+        // EYE DIRECTION - Map to gaze behavior
+        if (personDetails?.eyeDirection) {
+            const eyeMap: Record<string, string> = {
+                'Looking at camera': 'eyes looking directly into the camera lens',
+                'Looking at product': 'eyes clearly directed toward the product',
+                'Looking away naturally': 'eyes looking slightly off-camera, distracted natural gaze'
+            };
+            const mapped = eyeMap[personDetails.eyeDirection];
+            if (mapped) {
+                parts.push(mapped);
+            }
+        }
+
+        return parts.filter(Boolean).join('. ').trim();
     }
 }

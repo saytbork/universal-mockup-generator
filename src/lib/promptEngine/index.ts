@@ -7,6 +7,7 @@ import { IdentityBuilder } from './builders/identity';
 import { ConstraintsBuilder } from './builders/constraints';
 import { FinalizeBuilder } from './builders/finalize';
 import { SceneNarrativeBuilder } from './builders/canonicalScene';
+import { UGCRealModeBuilder } from './builders/ugcRealMode';
 import type { PromptOptions } from './types';
 import { buildMasterPrompt } from './masterPrompt';
 
@@ -58,41 +59,73 @@ function negativePrompt() {
         "invented clothing",
         "incorrect fabric",
         "incorrect outfit color",
-        "wrong clothing texture"
+        "wrong clothing texture",
+        // Product integrity (from Claude work)
+        "deformed label",
+        "warped text",
+        "curved typography",
+        "melted text",
+        "incorrect font",
+        "missing letters",
+        "extra letters",
+        "blurry label",
+        "smudged label",
+        "redrawn packaging",
+        "ai-generated label",
+        "fake branding",
+        "incorrect logo",
+        "distorted bottle",
+        "wrong proportions",
+        "incorrect cap",
+        "invented graphics"
     ].join(", ");
 }
 
 export class PromptEngine {
     private constraintsBuilder = new ConstraintsBuilder();
     private identityBuilder = new IdentityBuilder();
+    private ugcBuilder = new UGCRealModeBuilder();
     private finalizeBuilder = new FinalizeBuilder();
     private narrativeBuilder = new SceneNarrativeBuilder();
 
     /**
      * Build complete prompt from options
+     * MODIFIED: UGC runs right after Identity for human-first ordering
      */
     build(options: PromptOptions): string {
+        const shouldIncludeIdentity =
+            options.personIncluded &&
+            !options.hasModelReference &&
+            options.contentStyle !== 'product';
+
         const constraintsSection = this.constraintsBuilder.build(options);
-        const identitySection =
-            options.personIncluded && options.contentStyle !== 'product'
-                ? this.identityBuilder.build(options)
-                : '';
+
+        // Identity (if applicable)
+        const identitySection = shouldIncludeIdentity
+            ? this.identityBuilder.build(options)
+            : '';
+
+        // UGC Real Mode (runs AFTER identity, BEFORE scene)
+        const ugcSection = this.ugcBuilder.build(options);
+
         const narrativeSections = this.narrativeBuilder.build(options, {
             identity: identitySection,
             constraints: constraintsSection
         });
+
         const finalizeSection = this.finalizeBuilder.build(options);
 
+        // Build master prompt with UGC-aware ordering
         const finalPrompt = buildMasterPrompt(
             {
                 creationIntent: narrativeSections.creationIntent,
                 creationMode: narrativeSections.creationMode,
-                ugcRealMode: narrativeSections.ugcRealMode,
+                ugcRealMode: ugcSection || narrativeSections.ugcRealMode,
                 formulationStory: narrativeSections.formulationStory,
                 ecommerceBuilder: narrativeSections.ecommerceBuilder,
                 cameraFraming: narrativeSections.cameraFraming,
                 environmentLightingMood: narrativeSections.environmentLightingMood,
-                identity: narrativeSections.identity,
+                identity: narrativeSections.identity || identitySection,
                 finalize: finalizeSection
             },
             negativePrompt()
@@ -103,7 +136,9 @@ export class PromptEngine {
             length: finalPrompt.length,
             creationIntent: options.creationIntent,
             creationMode: options.creationMode,
-            personIncluded: options.personIncluded
+            personIncluded: options.personIncluded,
+            ugcRealModeActive: options.ugcRealModeActive,
+            hasModelReference: options.hasModelReference
         });
         console.log('📝 Full Prompt:', finalPrompt.substring(0, 500) + '...');
 
@@ -114,11 +149,16 @@ export class PromptEngine {
      * Get individual components for debugging
      */
     getComponents(options: PromptOptions): Record<string, string> {
+        const shouldIncludeIdentity =
+            options.personIncluded &&
+            !options.hasModelReference &&
+            options.contentStyle !== 'product';
+
         const constraintsSection = this.constraintsBuilder.build(options);
-        const identitySection =
-            options.personIncluded && options.contentStyle !== 'product'
-                ? this.identityBuilder.build(options)
-                : '';
+        const identitySection = shouldIncludeIdentity
+            ? this.identityBuilder.build(options)
+            : '';
+        const ugcSection = this.ugcBuilder.build(options);
         const narrativeSections = this.narrativeBuilder.build(options, {
             identity: identitySection,
             constraints: constraintsSection
@@ -129,7 +169,7 @@ export class PromptEngine {
             Narrative: [
                 narrativeSections.creationIntent,
                 narrativeSections.creationMode,
-                narrativeSections.ugcRealMode,
+                ugcSection || narrativeSections.ugcRealMode,
                 narrativeSections.formulationStory ?? '',
                 narrativeSections.ecommerceBuilder ?? '',
                 narrativeSections.cameraFraming,
@@ -139,6 +179,7 @@ export class PromptEngine {
                 .filter(Boolean)
                 .join(' '),
             Identity: identitySection,
+            UGC: ugcSection,
             Constraints: constraintsSection,
             Finalize: finalizeSection
         };

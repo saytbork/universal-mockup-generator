@@ -38,12 +38,20 @@ export interface ModelReference {
 }
 
 export interface PersonDetails {
+    age?: number;                    // Numeric age 18-90
     ageGroup?: string;
     gender?: string;
     ethnicity?: string;
     skinTone?: string;
+    skinRealism?: string;             // Ultra realistic | Natural | Polished | Smooth
+    eyeColor?: string;
+    bodyType?: string;                // Slim | Average | Athletic | Curvy | Plus-size
+    hairLength?: string;              // Bald | Buzz cut | Short | Shoulder | Long
+    hairTexture?: string;             // Straight | Wavy | Curly | Coily
     hairColor?: string;
     hairStyle?: string;
+    facialExpression?: string;        // Soft Smile | Full Smile | Serious Focus | etc.
+    eyeDirection?: EyeDirectionKey;   // Looking at camera | at product | away
     personPose?: string;
     personMood?: string;
     personAppearance?: string;
@@ -53,7 +61,6 @@ export interface PersonDetails {
     microLocation?: string;
     personExpression?: string;
     selfieType?: string;
-    eyeDirection?: EyeDirectionKey;
 }
 
 export interface PromptOptions {
@@ -131,9 +138,13 @@ export interface PromptOptions {
     realModePreset?: string;
 
     // Identity
+    hasModelReference?: boolean;      // Model reference uploaded
     modelReference?: ModelReference;
     identityLock?: PersonIdentity;
     personIncluded?: boolean;
+
+    // UGC Real Mode
+    ugcRealModeActive?: boolean;      // UGC Real Mode toggle
 
     // Composition
     compositionIntro?: string;
