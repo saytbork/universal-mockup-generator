@@ -53,34 +53,34 @@ export function mapLifestyleToPromptOptions(
     const mapped: Partial<PromptOptions> = { ...existingOptions };
 
     // ========================================================================
-    // CAMERA VALUE TRANSLATIONS → Framing Language
+    // CAMERA → PHYSICAL COMPOSITION LANGUAGE
     // ========================================================================
 
-    // Shot Type → camera framing language
+    // Shot Type → framing/distance
     const shotTypeMap: Record<string, string> = {
-        'Close-up': 'close-up',
-        'Medium': 'medium',
-        'Full body': 'full-body',
-        'Product focus': 'product-focus',
-        'Environmental': 'environmental'
+        'Close-up': 'close-up framing focused on face and upper torso',
+        'Medium': 'medium shot framing from waist up, balanced composition',
+        'Full body': 'full-body shot showing entire person and surroundings',
+        'Product focus': 'tight product-focused framing with person secondary',
+        'Environmental': 'wide environmental shot emphasizing setting and context'
     };
-    mapped.cameraShot = shotTypeMap[sceneState.shotType] as any || 'medium';
+    mapped.cameraShot = shotTypeMap[sceneState.shotType] as any || 'medium shot framing from waist up';
 
-    // Camera Angle → perspective language
+    // Camera Angle → perspective  
     const angleMap: Record<string, string> = {
-        'Eye level': 'eye-level',
-        'Slightly above': 'slightly-above',
-        'Slightly below': 'slightly-below',
-        'Dutch angle': 'dutch-angle'
+        'Eye level': 'camera at natural eye level, neutral perspective',
+        'Slightly above': 'camera positioned slightly above eye level, subtle downward angle',
+        'Slightly below': 'camera positioned slightly below eye level, subtle upward angle',
+        'Dutch angle': 'camera tilted at subtle dutch angle for dynamic composition'
     };
-    mapped.cameraAngle = angleMap[sceneState.cameraAngle] as any || 'eye-level';
+    mapped.cameraAngle = angleMap[sceneState.cameraAngle] as any || 'camera at natural eye level';
 
-    // Framing → perspective/composition
+    // Framing → composition style
     const framingMap: Record<string, string> = {
-        'Centered': 'centered composition',
-        'Rule of thirds': 'rule-of-thirds composition',
-        'Off-center': 'off-center asymmetric composition',
-        'Spontaneous': 'spontaneous natural framing'
+        'Centered': 'centered symmetrical composition, subject in middle of frame',
+        'Rule of thirds': 'rule-of-thirds composition with subject off-center for visual balance',
+        'Off-center': 'intentionally off-center asymmetric composition for dynamic feel',
+        'Spontaneous': 'spontaneous imperfect natural framing, slightly cropped edges, unplanned authentic composition'
     };
     mapped.perspective = framingMap[sceneState.framing] || 'centered composition';
 
@@ -151,28 +151,34 @@ export function mapLifestyleToPromptOptions(
         // Normal lifestyle mode
         mapped.creationMode = 'lifestyle';
 
-        // Time of Day → lighting influences
+        // =====================================================================
+        // TIME OF DAY → SEMANTIC LIGHTING & ATMOSPHERE
+        // =====================================================================
         const timeMap: Record<string, string> = {
-            'Morning': 'morning light',
-            'Midday': 'midday light',
-            'Afternoon': 'afternoon light',
-            'Golden Hour': 'golden hour glow',
-            'Evening': 'evening ambient light',
-            'Night': 'night time lighting'
+            'Morning': 'soft early morning natural light, fresh atmosphere, cool tones',
+            'Midday': 'bright midday light with neutral color temperature, strong even illumination',
+            'Afternoon': 'warm afternoon light, balanced shadows, gentle natural warmth',
+            'Golden Hour': 'golden hour sunlight with warm orange-amber glow, long soft shadows',
+            'Evening': 'soft fading evening light, warm indoor ambient tones, subtle shadows',
+            'Night': 'low ambient nighttime lighting, indoor artificial warmth, deeper shadows'
         };
 
-        // Lighting Style
+        // =====================================================================
+        // LIGHTING STYLE → PHYSICAL LIGHT BEHAVIOR
+        // =====================================================================
         const lightingMap: Record<string, string> = {
-            'Natural window': 'natural window lighting',
-            'Soft diffused': 'soft diffused light',
-            'Direct sunlight': 'direct sunlight',
-            'Indoor artificial': 'artificial indoor lighting',
-            'Moody/dramatic': 'moody dramatic lighting',
-            'Phone flashlight': 'phone flashlight illumination'
+            'Natural window': 'natural window light from the side, soft directional illumination, gentle falloff',
+            'Soft diffused': 'soft diffused lighting with minimal harsh shadows, even gentle illumination',
+            'Direct sunlight': 'direct natural sunlight with strong contrast, defined shadows, bright highlights',
+            'Indoor artificial': 'indoor artificial lighting with realistic color temperature, typical home ambiance',
+            'Moody/dramatic': 'moody low-key dramatic lighting with deeper shadows, selective illumination',
+            'Phone flashlight': 'harsh direct phone flashlight illumination, uneven exposure, realistic phone camera lighting'
         };
 
-        const timeDescriptor = timeMap[sceneState.timeOfDay];
-        const lightingDescriptor = lightingMap[sceneState.lightingStyle] || sceneState.lightingStyle.toLowerCase();
+        const timeDescriptor = timeMap[sceneState.timeOfDay] || 'natural daylight';
+        const lightingDescriptor = lightingMap[sceneState.lightingStyle] || sceneState.lightingStyle?.toLowerCase() || 'natural light';
+
+        // Combine time + lighting for complete lighting narrative
         mapped.lighting = [timeDescriptor, lightingDescriptor].filter(Boolean).join(', ');
     }
 
@@ -295,16 +301,16 @@ export function mapLifestyleToPromptOptions(
     }
 
     // ========================================================================
-    // Mood / Vibe
+    // MOOD → BODY LANGUAGE & POSTURE (NOT ADJECTIVES)
     // ========================================================================
 
     const moodMap: Record<string, string> = {
-        'Calm & Serene': 'calm and serene vibe',
-        'Joyful & High-Energy': 'joyful and high-energy',
-        'Confident & Editorial': 'confident editorial tone',
-        'Playful & Candid': 'playful and candid',
-        'Hustle & Juggle': 'hustle-focused energy',
-        'Stressed but Determined': 'stressed but determined focus'
+        'Calm & Serene': 'relaxed posture with peaceful atmosphere, natural shoulders, gentle breathing, serene body language',
+        'Joyful & High-Energy': 'energetic posture with lively candid movement, upbeat body language, spontaneous joyful presence',
+        'Confident & Editorial': 'upright confident posture with composed presence, open chest, self-assured body language',
+        'Playful & Candid': 'loose playful body language with spontaneous natural moment, casual relaxed positioning',
+        'Hustle & Juggle': 'busy everyday posture with multitasking vibe, active engaged body language, real-life energy',
+        'Stressed but Determined': 'visible effort in body language with focused determined posture, subtle tension with resolve'
     };
     mapped.personMood = moodMap[sceneState.mood] || sceneState.mood;
 
