@@ -2821,6 +2821,9 @@ const App: React.FC = () => {
 
   // Handler for LifestyleStep3 component 
   const handleLifestyleStep3Change = useCallback((values: Step3Values) => {
+    // PHASE 3: MANDATORY LOG - Prove App receives sceneState
+    console.log('[APP RECEIVED SCENESTATE]', values);
+
     // Store values for PromptEngine - mapper handles all conversions
     setLifestyleStep3Values(values);
   }, []);
@@ -4244,8 +4247,15 @@ If the model attempts to create a scene or environment, override it and force a 
           promptOptions = mapLifestyleToPromptOptions(lifestyleStep3Values, basePromptOptions);
         }
 
+        // MANDATORY LOGS - Prove injection works
+        console.log('[SCENESTATE]', lifestyleStep3Values);
+        console.log('[PROMPT OPTIONS FROM MAP]', promptOptions);
+
         // Use PromptEngine to build final prompt
         const finalPrompt = promptEngine.build(promptOptions);
+
+        // MANDATORY LOG - Final prompt string MUST show injected values
+        console.log('[FINAL PROMPT STRING]', finalPrompt);
 
         const aspectRatio = options?.aspectRatio || '1:1';
 
@@ -5227,7 +5237,7 @@ If the model attempts to create a scene or environment, override it and force a 
           )}
         </div>
       )}
-  </>
+    </>
   );
 };
 
