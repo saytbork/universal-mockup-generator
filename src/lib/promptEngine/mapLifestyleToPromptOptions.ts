@@ -37,13 +37,12 @@ export function mapLifestyleToPromptOptions(
     console.log('[MAP INPUT]', sceneState);
 
     // ========================================================================
-    // PRODUCT MODE ROUTING (Stage 10)
+    // PRODUCT MODE ROUTING (Stage 10) - FIXED
     // ========================================================================
-    // If Product Mode is active, use dedicated Product mapper
-    // This prevents UGC contamination and ensures Product-only vocabulary
+    // CRITICAL FIX: Only route to Product Mode when creationIntent is EXPLICITLY 'product' or 'brand'
+    // DO NOT route based on noPerson - Lifestyle mode can have noPerson for product-only shots
     const isProductMode = sceneState.creationIntent === 'product' ||
-        sceneState.creationIntent === 'brand' ||
-        sceneState.noPerson === true;
+        sceneState.creationIntent === 'brand';
 
     if (isProductMode) {
         console.log('[MAP] Routing to Product Mode mapper');
