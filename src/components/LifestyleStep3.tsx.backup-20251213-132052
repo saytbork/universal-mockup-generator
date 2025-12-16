@@ -1,0 +1,1136 @@
+import React, { useState, useEffect } from 'react';
+import {
+  SlidersHorizontal, User, Palette, Activity, Scissors, Smile, Eye, Sparkles,
+  Clock, Sun, Camera, Rotate3d, Layout, Hand, Smartphone, Shirt, Layers, Film,
+  Home, MapPin, Coffee, Utensils, Car, Waves, Mountain, Building2, Edit3, Heart, Check
+} from 'lucide-react';
+
+// ============================================================================
+// TYPES & INTERFACES
+// ============================================================================
+interface LifestyleStep3Props {
+  isProductMode?: boolean;
+  onValuesChange?: (values: Step3Values) => void;
+  onCanGenerateChange?: (canGenerate: boolean) => void;
+}
+
+export interface Step3Values {
+  // Creator/Person
+  age: number; // DEPRECATED - use ageGroup
+  ageGroup: string; // NEW: explicit age chips
+  noPerson: boolean;
+  gender: 'Male' | 'Female';
+  skinTone: string; // Now 7 refined options
+  ethnicity: string;
+  bodyType: 'Slim' | 'Average' | 'Athletic' | 'Curvy' | 'Plus size';
+  hair: string; // DEPRECATED - keeping for backward compatibility
+
+  // NEW: 3 Hair Dimensions
+  hairLength: string;
+  hairLengthCustom: string;
+  hairTexture: string;
+  hairTextureCustom: string;
+  hairColor: string;
+  hairState: 'natural' | 'bald';
+
+  // Person Details - Expanded
+  facialExpression: string;
+  eyeDirection: string;
+  eyeColor: string; // NEW
+  appearanceLevel: string; // NEW
+  pose: string; // NEW
+  skinRealism: string; // NEW
+
+  // Creator Presets
+  creatorPreset: string | null;
+
+  // Environment
+  environment: string;
+  customEnvironment: string;
+
+  // Time & Lighting
+  timeOfDay: string;
+  lightingStyle: string;
+
+  // Mood
+  mood: string;
+
+  // Camera
+  shotType: string;
+  cameraAngle: string;
+  framing: string;
+
+  // Product Interaction
+  productInteraction: string;
+
+  // Realism
+  ugcRealMode: boolean;
+
+  // Selfie Type (for UGC framing)
+  selfieType: string;
+
+  // Wardrobe
+  wardrobe: string;
+
+  // Props - NEW
+  props: string;
+  customProps: string;
+
+  // Background
+  preserveEnvironment: boolean;
+  backgroundBlur: boolean;
+  allowMessiness: boolean;
+  noArtificialProps: boolean;
+
+  // Advanced Pro
+  sameCreatorAcrossScenes: boolean;
+  sceneContinuity: boolean;
+  cinematicLook: boolean;
+  storytellingConsistency: boolean;
+
+  // Output
+  aspectRatio: string;
+}
+
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+// Age Group - Explicit chips
+const AGE_GROUP_OPTIONS = [
+  '6–12',
+  '13–17',
+  '18–25',
+  '26–35',
+  '36–45',
+  '46–60',
+  '60–75',
+  '75+',
+  'No Person'
+];
+
+const GENDER_OPTIONS = ['Male', 'Female'];
+
+// Refined Skin Tone (7 options)
+const SKIN_TONE_OPTIONS = [
+  'Fair Cool',
+  'Fair Warm',
+  'Medium Neutral',
+  'Olive',
+  'Tan',
+  'Deep Golden',
+  'Deep Cool'
+];
+const ETHNICITY_OPTIONS = [
+  'Black / African descent',
+  'Latino / Hispanic',
+  'White / European descent',
+  'Asian',
+  'Middle Eastern',
+  'South Asian',
+  'Mixed',
+  'Non-specific'
+];
+const BODY_TYPE_OPTIONS = ['Slim', 'Average', 'Athletic', 'Curvy', 'Plus size'];
+
+// 3D Hair System
+const HAIR_LENGTH_OPTIONS = ['Buzzcut', 'Short', 'Chin-length', 'Shoulder', 'Long', 'Very long'];
+const HAIR_TEXTURE_OPTIONS = ['Straight', 'Wavy', 'Curly', 'Coily/Kinky', 'Locs'];
+const HAIR_COLOR_OPTIONS = ['Black', 'Dark brown', 'Light brown', 'Blonde', 'Red', 'Gray/White', 'Unnatural (pink, blue, etc)'];
+
+// Expression - Expanded options
+const EXPRESSION_OPTIONS = [
+  'Soft Smile',
+  'Full Smile',
+  'Serious Focus',
+  'Excited Surprise',
+  'Stressed but Hopeful',
+  'Caffeinated Crash',
+  'Real-Life Calm',
+  'UGC Reality'
+];
+
+const EYE_DIRECTION_OPTIONS = ['Looking at camera', 'Looking at product', 'Looking away naturally'];
+
+// Eye Color
+const EYE_COLOR_OPTIONS = ['Brown', 'Hazel', 'Green', 'Blue', 'Gray', 'Dark Amber'];
+
+// Appearance Level
+const APPEARANCE_LEVEL_OPTIONS = [
+  'Regular',
+  'Well-Groomed',
+  'Styled',
+  'Messy / Just Woke Up',
+  'Running Late'
+];
+
+// Pose
+const POSE_OPTIONS = [
+  'Relaxed Portrait',
+  'Dynamic Mid-Action',
+  'Over-the-Shoulder',
+  'Leaned-In Close',
+  'Hands-Only Crop',
+  'Face Frame Hero',
+  'Grounded Lounge',
+  'Offer-to-Lens Reach'
+];
+
+// Interaction (Product)
+const INTERACTION_OPTIONS = [
+  'Holding',
+  'Using',
+  'Showing to Camera',
+  'Unboxing',
+  'Applying',
+  'Placing on Surface'
+];
+
+// Wardrobe Presets
+const WARDROBE_PRESET_OPTIONS = [
+  'Casual Streetwear',
+  'Athleisure Set',
+  'Minimal Luxe',
+  'Cozy Knitwear',
+  'Bold Color Pop',
+  'Errand-Day Layers',
+  'Custom'
+];
+
+// Props
+const PROPS_OPTIONS = [
+  'None',
+  'Smartphone / Tech',
+  'Coffee / Beverage',
+  'Notebook / Journal',
+  'Makeup Tool',
+  'Shopping Tote',
+  'Custom'
+];
+
+// Skin Realism
+const SKIN_REALISM_OPTIONS = [
+  'Real Raw Photo',
+  'Natural Clean Retouch',
+  'Beauty Editorial Soft Skin'
+];
+
+const SELFIE_TYPE_OPTIONS = ['None', 'Standard selfie', 'Mirror selfie', 'Arm extended'];
+
+const CREATOR_PRESETS = [
+  { id: 'beauty', label: 'Beauty Creator', icon: Sparkles },
+  { id: 'wellness', label: 'Wellness Coach', icon: Heart },
+  { id: 'fitness', label: 'Fitness Creator', icon: Activity },
+  { id: 'everyday', label: 'Everyday Hustler', icon: Coffee },
+  { id: 'streetwear', label: 'Streetwear Reviewer', icon: Shirt },
+  { id: 'custom', label: 'Custom Build', icon: Edit3 },
+];
+
+const ENVIRONMENT_INDOOR = [
+  { value: 'Living Room', icon: Home },
+  { value: 'Kitchen', icon: Utensils },
+  { value: 'Bedroom', icon: Home },
+  { value: 'Coffee Shop', icon: Coffee },
+  { value: 'Office', icon: Building2 },
+];
+
+const ENVIRONMENT_OUTDOOR = [
+  { value: 'City Street', icon: Building2 },
+  { value: 'Park', icon: Mountain },
+  { value: 'Beach', icon: Waves },
+  { value: 'Car Interior', icon: Car },
+];
+
+const TIME_OF_DAY_OPTIONS = ['Morning', 'Midday', 'Afternoon', 'Golden Hour', 'Evening', 'Night'];
+const LIGHTING_STYLE_OPTIONS = ['Natural window', 'Soft diffused', 'Direct sunlight', 'Indoor artificial', 'Moody/dramatic', 'Phone flashlight'];
+// Mood - Expanded options
+const MOOD_OPTIONS = [
+  'Calm & Serene',
+  'Joyful & High-Energy',
+  'Confident & Editorial',
+  'Playful & Candid',
+  'Hustle & Juggle',
+  'Stressed but Determined'
+];
+const SHOT_TYPE_OPTIONS = ['Close-up', 'Medium', 'Full body', 'Product focus', 'Environmental'];
+const CAMERA_ANGLE_OPTIONS = ['Eye level', 'Slightly above', 'Slightly below', 'Dutch angle'];
+const FRAMING_OPTIONS = ['Centered', 'Rule of thirds', 'Off-center', 'Spontaneous'];
+const PRODUCT_INTERACTION_OPTIONS = INTERACTION_OPTIONS; // Use the same
+const ASPECT_RATIO_OPTIONS = ['1:1 (Square)', '4:5 (Portrait)', '9:16 (Story)'];
+
+// ============================================================================
+// HELPER COMPONENTS
+// ============================================================================
+interface AccordionSectionProps {
+  icon: React.ElementType;
+  title: string;
+  tooltip: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+  isRequired?: boolean;
+  isTouched?: boolean;
+}
+
+const AccordionSection: React.FC<AccordionSectionProps> = ({
+  icon: Icon,
+  title,
+  tooltip,
+  isOpen,
+  onToggle,
+  children,
+  isRequired = false,
+  isTouched = false
+}) => {
+  return (
+    <div className="rounded-xl border border-gray-700 bg-gray-800/30 overflow-hidden">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center justify-between p-4 hover:bg-gray-700/20 transition"
+      >
+        <div className="flex items-center gap-3">
+          <Icon className="w-5 h-5 text-indigo-400" />
+          <div className="text-left">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-semibold text-white">{title}</p>
+              {isRequired && !isTouched && (
+                <span className="text-xs text-amber-400">*Required</span>
+              )}
+              {isTouched && (
+                <Check className="w-4 h-4 text-green-400" />
+              )}
+            </div>
+            <p className="text-xs text-gray-400">{tooltip}</p>
+          </div>
+        </div>
+        <div className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}>
+          ▼
+        </div>
+      </button>
+      {isOpen && (
+        <div className="p-4 border-t border-gray-700">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, onValuesChange, onCanGenerateChange }) => {
+  const [isPro, setIsPro] = useState(false);
+  const [openSection, setOpenSection] = useState<string | null>('creator');
+  const [touchedSections, setTouchedSections] = useState<Set<string>>(new Set());
+
+  const initialValues: Step3Values = {
+    // Creator/Person
+    age: 30, // DEPRECATED - keeping for backward compatibility
+    ageGroup: '26–35', // NEW: explicit age group
+    noPerson: false, // UGC Rule: person MUST be present by default
+    gender: 'Female',
+    skinTone: 'Medium Neutral', // Refined options
+    ethnicity: 'Non-specific',
+    bodyType: 'Average',
+    hair: 'Medium', // DEPRECATED
+
+    // NEW: 3D Hair system
+    hairLength: 'Shoulder',
+    hairLengthCustom: '',
+    hairTexture: 'Wavy',
+    hairTextureCustom: '',
+    hairColor: 'Dark brown',
+    hairState: 'natural',
+
+    // Person Details - Expanded
+    facialExpression: 'Soft Smile', // UGC Rule: friendly default
+    eyeDirection: 'Looking at camera', // UGC Rule: eye contact
+    eyeColor: 'Brown', // NEW
+    appearanceLevel: 'Regular', // NEW
+    pose: 'Relaxed Portrait', // UGC Rule: natural pose
+    skinRealism: 'Real Raw Photo', // NEW - UGC default
+
+    // Creator Presets
+    creatorPreset: null,
+
+    // Environment
+    environment: 'Living Room',
+    customEnvironment: '',
+
+    // Time & Lighting
+    timeOfDay: 'Midday',
+    lightingStyle: 'Natural window',
+
+    // Mood
+    mood: 'Calm & Serene', // Updated to new options
+
+    // Camera
+    shotType: 'Medium',
+    cameraAngle: 'Eye level',
+    framing: 'Centered',
+
+    // Product Interaction
+    productInteraction: 'Holding', // UGC Rule: product in hand
+
+    // Realism
+    ugcRealMode: true, // UGC Rule: ALWAYS ON by default
+
+    // Selfie Type
+    selfieType: 'Standard selfie', // UGC Rule: NEVER 'None' by default
+
+    // Wardrobe
+    wardrobe: 'Casual Streetwear', // Updated to preset options
+
+    // Props - NEW
+    props: 'None',
+    customProps: '',
+
+    // Background
+    preserveEnvironment: false,
+    backgroundBlur: false,
+    allowMessiness: true,
+    noArtificialProps: true,
+
+    // Advanced Pro
+    sameCreatorAcrossScenes: false,
+    sceneContinuity: false,
+    cinematicLook: false,
+    storytellingConsistency: false,
+
+    // Output
+    aspectRatio: '1:1 (Square)',
+  };
+
+  const [values, setValues] = useState<Step3Values>(initialValues);
+
+  const toggleSection = (section: string) => {
+    setOpenSection(openSection === section ? null : section);
+  };
+
+  const markSectionTouched = (section: string) => {
+    setTouchedSections(prev => {
+      const newSet = new Set(prev);
+      newSet.add(section);
+      return newSet;
+    });
+  };
+
+  const updateValue = <K extends keyof Step3Values>(key: K, value: Step3Values[K]) => {
+    setValues(prev => ({ ...prev, [key]: value }));
+  };
+
+  useEffect(() => {
+    if (onValuesChange) {
+      onValuesChange(values);
+    }
+  }, [values, onValuesChange]);
+
+  const isPersonDisabled = values.noPerson;
+
+  return (
+    <div className="w-full max-w-2xl mx-auto space-y-6 pb-8">
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <h2 className="text-xl font-bold text-gray-200">Scene Builder</h2>
+        <p className="text-sm text-gray-400">Create authentic lifestyle moments</p>
+      </div>
+
+      {/* Basic/Pro Toggle */}
+      <div className="flex items-center justify-center gap-3 p-4 rounded-xl bg-gray-800/50 border border-gray-700">
+        <span className={`text-sm font-medium ${!isPro ? 'text-white' : 'text-gray-400'}`}>BASIC</span>
+        <button
+          type="button"
+          onClick={() => setIsPro(!isPro)}
+          className={`relative w-12 h-6 rounded-full transition ${isPro ? 'bg-indigo-600' : 'bg-gray-600'}`}
+        >
+          <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${isPro ? 'translate-x-6' : ''}`} />
+        </button>
+        <span className={`text-sm font-medium ${isPro ? 'text-white' : 'text-gray-400'}`}>PRO</span>
+      </div>
+
+      {/* Section 1: Creator / Person */}
+      <AccordionSection
+        icon={User}
+        title="Creator / Person"
+        tooltip="Define the person in your scene"
+        isOpen={openSection === 'creator'}
+        onToggle={() => toggleSection('creator')}
+        isRequired={!isProductMode}
+        isTouched={touchedSections.has('creator')}
+      >
+        <div className="flex flex-col gap-4">
+          {/* No Person Toggle Chip */}
+          <button
+            type="button"
+            onClick={() => { updateValue('noPerson', !values.noPerson); markSectionTouched('creator'); }}
+            className={`w-full rounded-lg border px-3 py-2.5 text-sm transition ${values.noPerson
+              ? 'border-amber-400 bg-amber-500/10 text-white'
+              : 'border-gray-600 bg-gray-800/30 text-gray-300 hover:border-gray-500'
+              }`}
+          >
+            {values.noPerson ? '✓ No person in scene' : 'Include person in scene'}
+          </button>
+
+          {!isPersonDisabled && (
+            <>
+              {/* AGE */}
+              <div className="space-y-2">
+                <p className="text-xs uppercase tracking-wider text-indigo-200">AGE</p>
+                <input
+                  type="range"
+                  min="18"
+                  max="85"
+                  value={values.age}
+                  onChange={(e) => { updateValue('age', parseInt(e.target.value)); markSectionTouched('creator'); }}
+                  className="w-full"
+                />
+                <div className="flex gap-2">
+                  {AGE_PRESETS.map(preset => (
+                    <button
+                      key={preset.value}
+                      type="button"
+                      onClick={() => { updateValue('age', preset.value); markSectionTouched('creator'); }}
+                      className={`flex-1 rounded-lg border px-2 py-1.5 text-xs transition ${Math.abs(values.age - preset.value) <= 2
+                        ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                        : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                        }`}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-center text-sm text-gray-300">{values.age} years old</p>
+              </div>
+
+              {/* GENDER */}
+              <div className="space-y-2">
+                <p className="text-xs uppercase tracking-wider text-indigo-200">GENDER</p>
+                <div className="flex gap-2">
+                  {GENDER_OPTIONS.map(option => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => { updateValue('gender', option as any); markSectionTouched('creator'); }}
+                      className={`flex-1 rounded-lg border px-3 py-2 text-xs transition ${values.gender === option
+                        ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                        : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                        }`}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* ETHNICITY */}
+              <div className="space-y-2">
+                <p className="text-xs uppercase tracking-wider text-indigo-200">ETHNICITY</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {ETHNICITY_OPTIONS.map(option => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => { updateValue('ethnicity', option); markSectionTouched('creator'); }}
+                      className={`rounded-lg border px-2 py-2 text-xs transition ${values.ethnicity === option
+                        ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                        : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                        }`}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* BODY TYPE */}
+              <div className="space-y-2">
+                <p className="text-xs uppercase tracking-wider text-indigo-200">BODY TYPE</p>
+                <div className="flex gap-2">
+                  {BODY_TYPE_OPTIONS.map(option => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => { updateValue('bodyType', option as any); markSectionTouched('creator'); }}
+                      className={`flex-1 rounded-lg border px-2 py-1.5 text-xs transition ${values.bodyType === option
+                        ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                        : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                        }`}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* HAIR - 3D System */}
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs uppercase tracking-wider text-indigo-200">HAIR</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      updateValue('hairState', values.hairState === 'bald' ? 'natural' : 'bald');
+                      markSectionTouched('creator');
+                    }}
+                    className={`rounded-full px-3 py-1 text-xs transition ${values.hairState === 'bald'
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-400'
+                      : 'bg-gray-700/50 text-gray-400 border border-gray-600 hover:border-gray-500'
+                      }`}
+                  >
+                    {values.hairState === 'bald' ? 'Bald' : 'Has hair'}
+                  </button>
+                </div>
+
+                {values.hairState === 'natural' && (
+                  <>
+                    <div className="space-y-1.5">
+                      <p className="text-xs text-gray-400">Length</p>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {HAIR_LENGTH_OPTIONS.map(option => (
+                          <button
+                            key={option}
+                            type="button"
+                            onClick={() => { updateValue('hairLength', option); markSectionTouched('creator'); }}
+                            className={`rounded border px-2 py-1 text-xs transition ${values.hairLength === option
+                              ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                              : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                              }`}
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <p className="text-xs text-gray-400">Texture</p>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {HAIR_TEXTURE_OPTIONS.map(option => (
+                          <button
+                            key={option}
+                            type="button"
+                            onClick={() => { updateValue('hairTexture', option); markSectionTouched('creator'); }}
+                            className={`rounded border px-2 py-1 text-xs transition ${values.hairTexture === option
+                              ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                              : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                              }`}
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <p className="text-xs text-gray-400">Color</p>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {HAIR_COLOR_OPTIONS.map(option => (
+                          <button
+                            key={option}
+                            type="button"
+                            onClick={() => { updateValue('hairColor', option); markSectionTouched('creator'); }}
+                            className={`rounded border px-2 py-1 text-xs transition ${values.hairColor === option
+                              ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                              : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                              }`}
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* EXPRESSION */}
+              <div className="space-y-2">
+                <p className="text-xs uppercase tracking-wider text-indigo-200">FACIAL EXPRESSION</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {EXPRESSION_OPTIONS.map(option => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => { updateValue('facialExpression', option); markSectionTouched('creator'); }}
+                      className={`rounded-lg border px-2 py-1.5 text-xs transition ${values.facialExpression === option
+                        ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                        : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                        }`}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* EYE DIRECTION */}
+              <div className="space-y-2">
+                <p className="text-xs uppercase tracking-wider text-indigo-200">EYE DIRECTION</p>
+                <div className="flex gap-2">
+                  {EYE_DIRECTION_OPTIONS.map(option => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => { updateValue('eyeDirection', option); markSectionTouched('creator'); }}
+                      className={`flex-1 rounded-lg border px-2 py-1.5 text-xs transition ${values.eyeDirection === option
+                        ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                        : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                        }`}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </AccordionSection>
+
+      {/* Section 2: Environment */}
+      <AccordionSection
+        icon={Home}
+        title="Environment"
+        tooltip="Where the scene takes place"
+        isOpen={openSection === 'environment'}
+        onToggle={() => toggleSection('environment')}
+        isRequired={true}
+        isTouched={touchedSections.has('environment')}
+      >
+        <div className="space-y-3">
+          <p className="text-xs uppercase tracking-wider text-indigo-200">INDOOR</p>
+          <div className="grid grid-cols-3 gap-2">
+            {ENVIRONMENT_INDOOR.map(env => (
+              <button
+                key={env.value}
+                type="button"
+                onClick={() => { updateValue('environment', env.value); markSectionTouched('environment'); }}
+                className={`flex flex-col items-center gap-1 rounded-lg border p-3 transition ${values.environment === env.value
+                  ? 'border-indigo-400 bg-indigo-500/10'
+                  : 'border-gray-600 hover:border-gray-500'
+                  }`}
+              >
+                <env.icon className="w-5 h-5 text-gray-300" />
+                <span className="text-xs text-gray-300">{env.value}</span>
+              </button>
+            ))}
+          </div>
+
+          <p className="text-xs uppercase tracking-wider text-indigo-200 pt-2">OUTDOOR</p>
+          <div className="grid grid-cols-3 gap-2">
+            {ENVIRONMENT_OUTDOOR.map(env => (
+              <button
+                key={env.value}
+                type="button"
+                onClick={() => { updateValue('environment', env.value); markSectionTouched('environment'); }}
+                className={`flex flex-col items-center gap-1 rounded-lg border p-3 transition ${values.environment === env.value
+                  ? 'border-indigo-400 bg-indigo-500/10'
+                  : 'border-gray-600 hover:border-gray-500'
+                  }`}
+              >
+                <env.icon className="w-5 h-5 text-gray-300" />
+                <span className="text-xs text-gray-300">{env.value}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </AccordionSection>
+
+      {/* Section 3: Lighting & Time */}
+      <AccordionSection
+        icon={Sun}
+        title="Time & Lighting"
+        tooltip="Control the lighting and time of day"
+        isOpen={openSection === 'lighting'}
+        onToggle={() => toggleSection('lighting')}
+        isTouched={touchedSections.has('lighting')}
+      >
+        <div className="space-y-3">
+          <div className="space-y-2">
+            <p className="text-xs uppercase tracking-wider text-indigo-200">TIME OF DAY</p>
+            <div className="grid grid-cols-3 gap-2">
+              {TIME_OF_DAY_OPTIONS.map(option => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => { updateValue('timeOfDay', option); markSectionTouched('lighting'); }}
+                  className={`rounded-lg border px-2 py-1.5 text-xs transition ${values.timeOfDay === option
+                    ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                    : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                    }`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs uppercase tracking-wider text-indigo-200">LIGHTING STYLE</p>
+            <div className="grid grid-cols-2 gap-2">
+              {LIGHTING_STYLE_OPTIONS.map(option => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => { updateValue('lightingStyle', option); markSectionTouched('lighting'); }}
+                  className={`rounded-lg border px-2 py-1.5 text-xs transition ${values.lightingStyle === option
+                    ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                    : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                    }`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </AccordionSection>
+
+      {/* Section 4: Mood */}
+      <AccordionSection
+        icon={Palette}
+        title="Mood"
+        tooltip="Overall feeling of the scene"
+        isOpen={openSection === 'mood'}
+        onToggle={() => toggleSection('mood')}
+        isTouched={touchedSections.has('mood')}
+      >
+        <div className="grid grid-cols-3 gap-2">
+          {MOOD_OPTIONS.map(option => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => { updateValue('mood', option); markSectionTouched('mood'); }}
+              className={`rounded-lg border px-2 py-2 text-xs transition ${values.mood === option
+                ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                }`}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      </AccordionSection>
+
+      {/* Section 5: Camera */}
+      <AccordionSection
+        icon={Camera}
+        title="Camera & Framing"
+        tooltip="How the scene is captured"
+        isOpen={openSection === 'camera'}
+        onToggle={() => toggleSection('camera')}
+        isTouched={touchedSections.has('camera')}
+      >
+        <div className="space-y-3">
+          <div className="space-y-2">
+            <p className="text-xs uppercase tracking-wider text-indigo-200">SHOT TYPE</p>
+            <div className="grid grid-cols-3 gap-2">
+              {SHOT_TYPE_OPTIONS.map(option => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => { updateValue('shotType', option); markSectionTouched('camera'); }}
+                  className={`rounded-lg border px-2 py-1.5 text-xs transition ${values.shotType === option
+                    ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                    : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                    }`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs uppercase tracking-wider text-indigo-200">CAMERA ANGLE</p>
+            <div className="grid grid-cols-2 gap-2">
+              {CAMERA_ANGLE_OPTIONS.map(option => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => { updateValue('cameraAngle', option); markSectionTouched('camera'); }}
+                  className={`rounded-lg border px-2 py-1.5 text-xs transition ${values.cameraAngle === option
+                    ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                    : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                    }`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs uppercase tracking-wider text-indigo-200">FRAMING</p>
+            <div className="grid grid-cols-2 gap-2">
+              {FRAMING_OPTIONS.map(option => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => { updateValue('framing', option); markSectionTouched('camera'); }}
+                  className={`rounded-lg border px-2 py-1.5 text-xs transition ${values.framing === option
+                    ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                    : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                    }`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </AccordionSection>
+
+      {/* Section 6: Product Interaction */}
+      {isProductMode && (
+        <AccordionSection
+          icon={Hand}
+          title="Product Interaction"
+          tooltip="How the person interacts with the product"
+          isOpen={openSection === 'product'}
+          onToggle={() => toggleSection('product')}
+          isTouched={touchedSections.has('product')}
+        >
+          <div className="grid grid-cols-2 gap-2">
+            {PRODUCT_INTERACTION_OPTIONS.map(option => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => { updateValue('productInteraction', option); markSectionTouched('product'); }}
+                className={`rounded-lg border px-2 py-2 text-xs transition ${values.productInteraction === option
+                  ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                  : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                  }`}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        </AccordionSection>
+      )}
+
+      {/* Section 7: UGC Real Mode */}
+      <AccordionSection
+        icon={Smartphone}
+        title="UGC Real Mode"
+        tooltip="Creates an authentic user generated content look"
+        isOpen={openSection === 'realism'}
+        onToggle={() => toggleSection('realism')}
+      >
+        <div className="flex flex-col gap-3">
+          {/* UGC Mode Pills */}
+          <div className="space-y-2">
+            <p className="text-xs uppercase tracking-wider text-indigo-200">UGC Mode</p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  updateValue('ugcRealMode', false);
+                  updateValue('selfieType', 'None');
+                }}
+                className={`flex-1 rounded-lg border px-3 py-2 text-xs transition ${!values.ugcRealMode
+                  ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                  : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                  }`}
+              >
+                OFF
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  updateValue('ugcRealMode', true);
+                  // Smart defaults when turning ON
+                  if (values.selfieType === 'None') {
+                    updateValue('selfieType', 'Standard selfie');
+                    updateValue('facialExpression', 'Soft smile');
+                    updateValue('eyeDirection', 'Looking at camera');
+                  }
+                }}
+                className={`flex-1 rounded-lg border px-3 py-2 text-xs transition ${values.ugcRealMode
+                  ? 'border-amber-300 bg-amber-500/10 text-white'
+                  : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                  }`}
+              >
+                ON
+              </button>
+            </div>
+          </div>
+
+          {values.ugcRealMode && (
+            <div className="space-y-2">
+              <p className="text-xs uppercase tracking-wider text-indigo-200">SELFIE TYPE</p>
+              <div className="grid grid-cols-2 gap-2">
+                {SELFIE_TYPE_OPTIONS.map(option => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => updateValue('selfieType', option)}
+                    className={`rounded-lg border px-2 py-2 text-xs transition ${values.selfieType === option
+                      ? 'border-amber-300 bg-amber-500/10 text-white'
+                      : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                      }`}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </AccordionSection>
+
+      {/* Section 8: Wardrobe */}
+      <AccordionSection
+        icon={Shirt}
+        title="Wardrobe"
+        tooltip="What the creator is wearing"
+        isOpen={openSection === 'wardrobe'}
+        onToggle={() => toggleSection('wardrobe')}
+        isRequired={false}
+      >
+        <input
+          type="text"
+          value={values.wardrobe}
+          onChange={(e) => { updateValue('wardrobe', e.target.value); markSectionTouched('wardrobe'); }}
+          placeholder="e.g., Casual hoodie, white t-shirt..."
+          className="w-full rounded-lg border border-gray-600 bg-gray-700/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+        />
+      </AccordionSection>
+
+      {/* PRO SECTIONS */}
+      {isPro && (
+        <>
+          {/* Section : Background Controls */}
+          <AccordionSection
+            icon={Layers}
+            title="Background"
+            tooltip="Control how the background behaves"
+            isOpen={openSection === 'background'}
+            onToggle={() => toggleSection('background')}
+          >
+            <div className="space-y-3">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={values.preserveEnvironment}
+                  onChange={(e) => updateValue('preserveEnvironment', e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-600 text-indigo-600"
+                />
+                <span className="text-sm text-gray-300">Preserve exact environment details</span>
+              </label>
+
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={values.backgroundBlur}
+                  onChange={(e) => updateValue('backgroundBlur', e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-600 text-indigo-600"
+                />
+                <span className="text-sm text-gray-300">Background blur (portrait mode)</span>
+              </label>
+
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={values.allowMessiness}
+                  onChange={(e) => updateValue('allowMessiness', e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-600 text-indigo-600"
+                />
+                <span className="text-sm text-gray-300">Allow realistic messiness</span>
+              </label>
+
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={values.noArtificialProps}
+                  onChange={(e) => updateValue('noArtificialProps', e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-600 text-indigo-600"
+                />
+                <span className="text-sm text-gray-300">No artificial props</span>
+              </label>
+            </div>
+          </AccordionSection>
+
+          {/* Section 10: Advanced */}
+          <AccordionSection
+            icon={Film}
+            title="Advanced"
+            tooltip="Advanced scene controls"
+            isOpen={openSection === 'advanced'}
+            onToggle={() => toggleSection('advanced')}
+          >
+            <div className="space-y-3">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={values.sameCreatorAcrossScenes}
+                  onChange={(e) => updateValue('sameCreatorAcrossScenes', e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-600 text-indigo-600"
+                />
+                <span className="text-sm text-gray-300">Same creator across all scenes</span>
+              </label>
+
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={values.sceneContinuity}
+                  onChange={(e) => updateValue('sceneContinuity', e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-600 text-indigo-600"
+                />
+                <span className="text-sm text-gray-300">Scene continuity</span>
+              </label>
+
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={values.cinematicLook}
+                  onChange={(e) => updateValue('cinematicLook', e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-600 text-indigo-600"
+                />
+                <span className="text-sm text-gray-300">Cinematic look</span>
+              </label>
+
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={values.storytellingConsistency}
+                  onChange={(e) => updateValue('storytellingConsistency', e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-600 text-indigo-600"
+                />
+                <span className="text-sm text-gray-300">Storytelling consistency</span>
+              </label>
+            </div>
+          </AccordionSection>
+        </>
+      )}
+
+      {/* Section 11: Output Format */}
+      <AccordionSection
+        icon={Layout}
+        title="Output Format"
+        tooltip="Aspect ratio for the final image"
+        isOpen={openSection === 'output'}
+        onToggle={() => toggleSection('output')}
+      >
+        <div className="grid grid-cols-3 gap-2">
+          {ASPECT_RATIO_OPTIONS.map(option => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => { updateValue('aspectRatio', option); markSectionTouched('output'); }}
+              className={`rounded-lg border px-2 py-2 text-xs transition ${values.aspectRatio === option
+                ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                }`}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      </AccordionSection>
+    </div>
+  );
+};
+
+export default LifestyleStep3;

@@ -117,18 +117,10 @@ export class SceneNarrativeBuilder {
             return undefined;
         }
 
-        const name = options.formulationExpertName || 'the expert';
-        const role = options.formulationExpertRole || 'formulation specialist';
-        const labStyle = options.formulationLabStyle || 'realistic lab environment';
-
-        return [
-            'Formulation story active.',
-            'Expert-led narrative focused on trust and credibility.',
-            `Featuring ${name}, a ${role}, in ${labStyle}.`,
-            'The expert appears human, photoreal, and imperfect.',
-            'UGC Real Mode disabled.',
-            'Expert remains the primary subject.'
-        ].join(' ');
+        // PHASE 5: Use dedicated FormulationStoryBuilder
+        // Injects HUMAN TRAITS ONLY (no titles, no narrative, no UGC language)
+        const formulationBuilder = new (require('./formulationStory').FormulationStoryBuilder)();
+        return formulationBuilder.build(options);
     }
 
     private buildEcommerceBuilder(options: PromptOptions): string | undefined {

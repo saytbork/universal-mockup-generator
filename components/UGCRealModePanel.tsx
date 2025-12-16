@@ -132,14 +132,12 @@ const UGCRealModePanel: React.FC<UGCRealModePanelProps> = ({
           type="button"
           onClick={() => onToggle(!enabled)}
           disabled={panelDisabled}
-          className={`relative h-6 w-11 rounded-full transition ${
-            enabled ? 'bg-amber-400/80' : 'bg-gray-600'
-          } ${panelDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
+          className={`relative h-6 w-11 rounded-full transition ${enabled ? 'bg-indigo-500' : 'bg-gray-600'
+            } ${panelDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
         >
           <span
-            className={`absolute left-1 top-1 block h-4 w-4 rounded-full bg-white shadow transition ${
-              enabled ? 'translate-x-5' : ''
-            }`}
+            className={`absolute left-1 top-1 block h-4 w-4 rounded-full bg-white shadow transition ${enabled ? 'translate-x-5' : ''
+              }`}
           />
         </button>
       </div>
@@ -160,9 +158,8 @@ const UGCRealModePanel: React.FC<UGCRealModePanelProps> = ({
                     key={preset.id}
                     type="button"
                     onClick={() => onSelectRealityPreset(preset.id)}
-                    className={`rounded-xl border px-3 py-2 text-left transition ${
-                      isActive ? 'border-amber-300 bg-amber-500/10 text-white' : 'border-white/15 text-gray-200 hover:border-indigo-400 hover:text-white'
-                    }`}
+                    className={`rounded-xl border px-3 py-2 text-left transition ${isActive ? 'border-indigo-400 bg-indigo-500/15 text-white' : 'border-white/15 text-gray-200 hover:border-indigo-400 hover:text-white'
+                      }`}
                   >
                     <div className="flex items-center gap-1 relative group">
                       <span className="text-sm font-semibold">{preset.label}</span>
@@ -199,9 +196,8 @@ const UGCRealModePanel: React.FC<UGCRealModePanelProps> = ({
                     key={preset.id}
                     type="button"
                     onClick={() => onToggleHeroPersona(preset.id)}
-                    className={`rounded-xl border px-3 py-2 text-left transition ${
-                      isActive ? 'border-amber-300 bg-amber-500/10 text-white' : 'border-white/15 text-gray-200 hover:border-indigo-400 hover:text-white'
-                    }`}
+                    className={`rounded-xl border px-3 py-2 text-left transition ${isActive ? 'border-indigo-400 bg-indigo-500/15 text-white' : 'border-white/15 text-gray-200 hover:border-indigo-400 hover:text-white'
+                      }`}
                   >
                     <div className="flex items-center gap-1 relative group">
                       <span className="text-sm font-semibold">{preset.label}</span>
