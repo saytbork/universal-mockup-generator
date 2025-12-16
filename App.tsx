@@ -1,6 +1,6 @@
 
 
-import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { forwardRef, useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { GoogleGenAI, Modality } from "@google/genai";
 import { MockupOptions, OptionCategory, Option } from './types';
@@ -4964,237 +4964,238 @@ If the model attempts to create a scene or environment, override it and force a 
             )}
 
             <fieldset className="contents">
-              <div className="grid grid-cols-[40%_30%_30%] gap-3 w-full" style={{ gridTemplateRows: 'auto 1fr' }}>
+              <div className="grid gap-3 w-full lg:grid-cols-[minmax(0,0.36fr)_minmax(0,0.44fr)_minmax(0,0.24fr)]">
 
-                {/* STEP 1 – row 1 only */}
-                <div ref={intentRef} className="row-start-1 row-end-2 col-start-1 col-end-2 bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-3">
-                  <div className="flex flex-col gap-1">
-                    <p className="text-xs uppercase tracking-widest text-indigo-300">Step 1</p>
-                    <h2 className="text-2xl font-bold text-gray-200">Choose Content Intent</h2>
-                    <p className="text-sm text-gray-400">
-                      {isProductPlacement
-                        ? 'Product Placement focuses on stylized scenes with zero people so the product stays hero.'
-                        : 'UGC Lifestyle enables authentic creator vibes, including people interacting with the product.'}
-                    </p>
-                  </div>
-                  <ChipSelectGroup
-                    label="Content Style"
-                    options={CONTENT_STYLE_OPTIONS}
-                    selectedValue={options.contentStyle}
-                    onChange={(value) => handleOptionChange('contentStyle', value, 'Content Intent')}
-                  />
-                </div>
-
-                {/* STEP 3 – row 2 (fills remaining space), col 1 */}
-                <div ref={customizeRef} className={`row-start-2 col-start-1 col-end-2 bg-gray-800/50 rounded-lg shadow-lg border border-gray-700 flex flex-col overflow-hidden ${!hasUploadedProduct ? 'opacity-60 pointer-events-none' : ''}`}>
-                  <div className="flex-grow overflow-y-auto custom-scrollbar">
-                    <LifestyleStep3
-                      isProductMode={isProductPlacement}
-                      onValuesChange={handleLifestyleStep3Change}
-                    />
-                  </div>
-                  <div className="mt-8 flex-shrink-0">
-                    <button
-                      onClick={() => handleGenerateClick()}
-                      disabled={isImageLoading || !uploadedImageFile}
-                      className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-900/50 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
-                    >
-                      {isImageLoading ? 'Generating...' : 'Generate Mockup'}
-                    </button>
-                  </div>
-                </div>
-
-                {/* STEP 2 – PRODUCT UPLOAD – row 1 only, col 2 */}
-                <div ref={uploadRef} className="row-start-1 col-start-2 col-end-3 bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-3 overflow-hidden">
-                  <div className="flex flex-col gap-1">
-                    <p className="text-xs uppercase tracking-widest text-indigo-300">Step 2</p>
-                    <h2 className="text-2xl font-bold text-gray-200">
-                      {hasUploadedProduct ? 'Product Photo Ready' : 'Add Your Product Photo'}
-                    </h2>
-                    <p className="text-sm text-gray-400">
-                      {hasUploadedProduct
-                        ? 'This product image will be reused for both UGC and Product Placement. Upload again only if you want to replace it.'
-                        : 'Upload a transparent PNG, JPG, or WebP of your product to anchor every scene.'}
-                    </p>
-                  </div>
-                  <ImageUploader
-                    ref={uploaderRef}
-                    onImageUpload={handleImageUpload}
-                    uploadedImagePreview={uploadedImagePreview}
-                    disabled={!hasSelectedIntent}
-                    lockedMessage="Select Step 1 first to unlock uploads."
-                  />
-                  {productAssets.length > 0 && (
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
-                      <div className="flex flex-wrap items-center justify-between gap-3">
-                        <div className="flex items-center gap-2">
-                          <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Product library</p>
-                          <span className="rounded-full border border-white/20 px-2 py-0.5 text-[11px] text-white/80">
-                            {productAssets.length}
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={handleLibraryAddClick}
-                          className="inline-flex items-center gap-2 rounded-full border border-white/20 px-3 py-1 text-[11px] text-gray-200 hover:border-indigo-400 hover:text-white transition"
-                        >
-                          + Add photo
-                        </button>
-                      </div>
-                      <div className="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
-                        {productAssets.map(asset => {
-                          const isActive = activeProducts.some(product => product.id === asset.id);
-                          return (
-                            <div
-                              key={asset.id}
-                              className={`flex-shrink-0 w-32 rounded-xl border p-2 ${isActive ? 'border-indigo-400 bg-indigo-500/5' : 'border-white/10 bg-black/20'}`}
-                            >
-                              <div className="relative mb-2">
-                                <img src={asset.previewUrl} alt={asset.label} className="h-20 w-full rounded-md object-cover border border-white/10" />
-                                <button
-                                  type="button"
-                                  onClick={() => handleProductAssetDelete(asset.id)}
-                                  className="absolute -right-1 -top-1 rounded-full bg-black/80 p-0.5 text-[9px] text-rose-300 hover:bg-rose-500/40"
-                                >
-                                  ✕
-                                </button>
-                              </div>
-                              <input
-                                type="text"
-                                value={asset.label}
-                                onChange={event => handleProductAssetLabelChange(asset.id, event.target.value)}
-                                className="w-full rounded-md border border-white/10 bg-black/20 px-1.5 py-0.5 text-[10px] text-white focus:border-indigo-400 focus:outline-none mb-1"
-                                placeholder="Name"
-                              />
-                              <div className="flex gap-1">
-                                <input
-                                  type="number"
-                                  min="0"
-                                  step="0.1"
-                                  value={asset.heightValue ?? ''}
-                                  onChange={event => handleProductHeightChange(asset.id, event.target.value)}
-                                  className="flex-1 w-full rounded-md border border-white/10 bg-black/20 px-1 py-0.5 text-[10px] text-white focus:border-indigo-400 focus:outline-none"
-                                  placeholder="H"
-                                />
-                                <select
-                                  value={asset.heightUnit}
-                                  onChange={event => handleProductHeightUnitChange(asset.id, event.target.value as 'cm' | 'in')}
-                                  className="rounded-md border border-white/10 bg-black/20 px-1 py-0.5 text-[10px] text-white focus:border-indigo-400 focus:outline-none"
-                                >
-                                  <option value="cm">cm</option>
-                                  <option value="in">in</option>
-                                </select>
-                              </div>
-                              {productAssets.length > 1 && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleProductAssetSelect(asset.id)}
-                                  className={`w-full mt-1 rounded-full border px-2 py-0.5 text-[10px] ${isActive ? 'border-indigo-400 text-white' : 'border-white/20 text-gray-300 hover:border-indigo-400'}`}
-                                >
-                                  {isActive ? 'Active' : 'Use'}
-                                </button>
-                              )}
-                            </div>
-                          );
-                        })}
-                        <button
-                          type="button"
-                          onClick={handleLibraryAddClick}
-                          className="flex-shrink-0 w-24 rounded-xl border border-dashed border-white/20 bg-black/10 p-2 flex flex-col items-center justify-center text-center hover:border-indigo-400 transition"
-                        >
-                          <span className="text-xl text-white/60">+</span>
-                          <span className="text-[10px] text-gray-500">Add</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* STEP 2 – MODEL UPLOAD – row 1 only, col 3 */}
-                <div className="row-start-1 col-start-3 col-end-4 flex flex-col gap-3 bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 overflow-hidden">
-                  <ModelReferencePanel
-                    onFileSelect={handleModelReferenceUpload}
-                    previewUrl={modelReferencePreview}
-                    notes={modelReferenceNotes}
-                    onNotesChange={setModelReferenceNotes}
-                    onClear={handleClearModelReference}
-                    disabled={!hasUploadedProduct || isProductPlacement}
-                    lockedMessage={
-                      !hasUploadedProduct
-                        ? "Upload your product image first to attach a model."
-                        : 'Model references are only available in UGC Lifestyle scenes with a person enabled. Switch out of Product Placement and pick an age group to unlock this.'
-                    }
-                  />
-                  {hasModelReference && (
-                    <div className="rounded-2xl border border-white/10 bg-black/30 p-4 space-y-2 text-sm">
-                      <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Composition Mode</p>
-                      <select
-                        value={compositionMode}
-                        onChange={event => setCompositionMode(event.target.value as CompositionMode)}
-                        className="w-full rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                      >
-                        <option value="balanced">Balanced</option>
-                        <option value="product-first">Product First</option>
-                        <option value="model-first">Model First</option>
-                        <option value="fifty-fifty">Fifty / Fifty</option>
-                      </select>
-                      <p className="text-[11px] text-gray-400">
-                        Control which subject leads the frame while keeping both elements physically integrated.
+                <div className="flex flex-col gap-3">
+                  {/* STEP 1 */}
+                  <div
+                    ref={intentRef}
+                    className="bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-3"
+                  >
+                    <div className="flex flex-col gap-1">
+                      <p className="text-xs uppercase tracking-widest text-indigo-300">Step 1</p>
+                      <h2 className="text-2xl font-bold text-gray-200">Choose Content Intent</h2>
+                      <p className="text-sm text-gray-400">
+                        {isProductPlacement
+                          ? 'Product Placement focuses on stylized scenes with zero people so the product stays hero.'
+                          : 'UGC Lifestyle enables authentic creator vibes, including people interacting with the product.'}
                       </p>
                     </div>
-                  )}
-                  {hasUploadedProduct && !personInScene && !isProductPlacement && !hasModelReference && (
-                    <p className="text-xs text-amber-300">
-                      Model references only apply when this scene uses UGC Lifestyle with a person selected. Switch off Product Placement and choose an age so the same talent can carry across your morning/afternoon/night shots.
-                    </p>
-                  )}
+                    <ChipSelectGroup
+                      label="Content Style"
+                      options={CONTENT_STYLE_OPTIONS}
+                      selectedValue={options.contentStyle}
+                      onChange={(value) => handleOptionChange('contentStyle', value, 'Content Intent')}
+                    />
+                  </div>
+
+                  <SceneBuilderStep
+                    ref={customizeRef}
+                    isProductMode={isProductPlacement}
+                    isLocked={!hasUploadedProduct}
+                    isImageLoading={isImageLoading}
+                    isGenerateDisabled={isImageLoading || !uploadedImageFile}
+                    onValuesChange={handleLifestyleStep3Change}
+                    onGenerate={handleGenerateClick}
+                  />
                 </div>
 
-                {/* RENDER FINAL – row 2, cols 2-3 (beside Step 3) */}
-                <div className="row-start-2 col-start-2 col-end-4 bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 sticky top-4">
-                  <GeneratedImage
-                    imageUrl={generatedImageUrl}
-                    fourKVariant={fourKVariant}
-                    twoKVariant={twoKVariant}
-                    isHiResProcessing={isPreparingHiRes}
-                    hiResError={hiResError}
-                    isImageLoading={isImageLoading}
-                    imageError={imageError}
-                    onReset={handleReset}
-                    isFreeUser={isFreeUser}
-                    downloadCreditConfig={DOWNLOAD_CREDIT_CONFIG}
-                    onChargeDownloadCredits={handleDownloadCreditCharge}
-                  />
-
-                  {generatedImageUrl && (
-                    <ImageEditor
-                      editPrompt={editPrompt}
-                      onPromptChange={(e) => setEditPrompt(e.target.value)}
-                      onEditImage={handleEditImage}
-                      isEditing={isImageLoading}
+                <div className="flex flex-col gap-3">
+                  {/* STEP 2 – PRODUCT UPLOAD */}
+                  <div
+                    ref={uploadRef}
+                    className="bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-3 overflow-hidden"
+                  >
+                    <div className="flex flex-col gap-1">
+                      <p className="text-xs uppercase tracking-widest text-indigo-300">Step 2</p>
+                      <h2 className="text-2xl font-bold text-gray-200">
+                        {hasUploadedProduct ? 'Product Photo Ready' : 'Add Your Product Photo'}
+                      </h2>
+                      <p className="text-sm text-gray-400">
+                        {hasUploadedProduct
+                          ? 'This product image will be reused for both UGC and Product Placement. Upload again only if you want to replace it.'
+                          : 'Upload a transparent PNG, JPG, or WebP of your product to anchor every scene.'}
+                      </p>
+                    </div>
+                    <ImageUploader
+                      ref={uploaderRef}
+                      onImageUpload={handleImageUpload}
+                      uploadedImagePreview={uploadedImagePreview}
+                      disabled={!hasSelectedIntent}
+                      lockedMessage="Select Step 1 first to unlock uploads."
                     />
-                  )}
+                    {productAssets.length > 0 && (
+                      <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div className="flex items-center gap-2">
+                            <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Product library</p>
+                            <span className="rounded-full border border-white/20 px-2 py-0.5 text-[11px] text-white/80">
+                              {productAssets.length}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleLibraryAddClick}
+                            className="inline-flex items-center gap-2 rounded-full border border-white/20 px-3 py-1 text-[11px] text-gray-200 hover:border-indigo-400 hover:text-white transition"
+                          >
+                            + Add photo
+                          </button>
+                        </div>
+                        <div className="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
+                          {productAssets.map(asset => {
+                            const isActive = activeProducts.some(product => product.id === asset.id);
+                            return (
+                              <div
+                                key={asset.id}
+                                className={`flex-shrink-0 w-32 rounded-xl border p-2 ${isActive ? 'border-indigo-400 bg-indigo-500/5' : 'border-white/10 bg-black/20'}`}
+                              >
+                                <div className="relative mb-2">
+                                  <img src={asset.previewUrl} alt={asset.label} className="h-20 w-full rounded-md object-cover border border-white/10" />
+                                  <button
+                                    type="button"
+                                    onClick={() => handleProductAssetDelete(asset.id)}
+                                    className="absolute -right-1 -top-1 rounded-full bg-black/80 p-0.5 text-[9px] text-rose-300 hover:bg-rose-500/40"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                                <input
+                                  type="text"
+                                  value={asset.label}
+                                  onChange={event => handleProductAssetLabelChange(asset.id, event.target.value)}
+                                  className="w-full rounded-md border border-white/10 bg-black/20 px-1.5 py-0.5 text-[10px] text-white focus:border-indigo-400 focus:outline-none mb-1"
+                                  placeholder="Name"
+                                />
+                                <div className="flex gap-1">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.1"
+                                    value={asset.heightValue ?? ''}
+                                    onChange={event => handleProductHeightChange(asset.id, event.target.value)}
+                                    className="flex-1 w-full rounded-md border border-white/10 bg-black/20 px-1 py-0.5 text-[10px] text-white focus:border-indigo-400 focus:outline-none"
+                                    placeholder="H"
+                                  />
+                                  <select
+                                    value={asset.heightUnit}
+                                    onChange={event => handleProductHeightUnitChange(asset.id, event.target.value as 'cm' | 'in')}
+                                    className="rounded-md border border-white/10 bg-black/20 px-1 py-0.5 text-[10px] text-white focus:border-indigo-400 focus:outline-none"
+                                  >
+                                    <option value="cm">cm</option>
+                                    <option value="in">in</option>
+                                  </select>
+                                </div>
+                                {productAssets.length > 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleProductAssetSelect(asset.id)}
+                                    className={`w-full mt-1 rounded-full border px-2 py-0.5 text-[10px] ${isActive ? 'border-indigo-400 text-white' : 'border-white/20 text-gray-300 hover:border-indigo-400'}`}
+                                  >
+                                    {isActive ? 'Active' : 'Use'}
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          })}
+                          <button
+                            type="button"
+                            onClick={handleLibraryAddClick}
+                            className="flex-shrink-0 w-24 rounded-xl border border-dashed border-white/20 bg-black/10 p-2 flex flex-col items-center justify-center text-center hover:border-indigo-400 transition"
+                          >
+                            <span className="text-xl text-white/60">+</span>
+                            <span className="text-[10px] text-gray-500">Add</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
-                  {generatedImageUrl && (
-                    <VideoGenerator
-                      videoPrompt={videoPrompt}
-                      onPromptChange={(e) => setVideoPrompt(e.target.value)}
-                      onGenerateVideo={handleGenerateVideo}
-                      isVideoLoading={isVideoLoading}
-                      videoError={videoError}
-                      generatedVideoUrl={generatedVideoUrl}
-                      isGenerating={isVideoLoading || isImageLoading}
-                      hasAccess={hasPlanVideoAccess}
-                      lockMessage={planVideoLimit === 0 ? "Upgrade to Creator or Studio to unlock video generation." : undefined}
-                      showAccessCodeField={planVideoLimit === 0}
-                      remainingVideos={planVideoLimit > 0 ? remainingVideos : null}
-                      planLabel={currentPlan.label}
-                      accessCode={videoAccessInput}
-                      onAccessCodeChange={handleVideoAccessCodeChange}
-                      onAccessSubmit={handleVideoAccessSubmit}
-                      accessError={videoAccessError}
+                  <div className="bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 sticky top-4 flex flex-col gap-6">
+                    <GeneratedImage
+                      imageUrl={generatedImageUrl}
+                      fourKVariant={fourKVariant}
+                      twoKVariant={twoKVariant}
+                      isHiResProcessing={isPreparingHiRes}
+                      hiResError={hiResError}
+                      isImageLoading={isImageLoading}
+                      imageError={imageError}
+                      onReset={handleReset}
+                      isFreeUser={isFreeUser}
+                      downloadCreditConfig={DOWNLOAD_CREDIT_CONFIG}
+                      onChargeDownloadCredits={handleDownloadCreditCharge}
                     />
-                  )}
+
+                    {generatedImageUrl && (
+                      <ImageEditor
+                        editPrompt={editPrompt}
+                        onPromptChange={(e) => setEditPrompt(e.target.value)}
+                        onEditImage={handleEditImage}
+                        isEditing={isImageLoading}
+                      />
+                    )}
+
+                    {generatedImageUrl && (
+                      <VideoGenerator
+                        videoPrompt={videoPrompt}
+                        onPromptChange={(e) => setVideoPrompt(e.target.value)}
+                        onGenerateVideo={handleGenerateVideo}
+                        isVideoLoading={isVideoLoading}
+                        videoError={videoError}
+                        generatedVideoUrl={generatedVideoUrl}
+                        isGenerating={isVideoLoading || isImageLoading}
+                        hasAccess={hasPlanVideoAccess}
+                        lockMessage={planVideoLimit === 0 ? "Upgrade to Creator or Studio to unlock video generation." : undefined}
+                        showAccessCodeField={planVideoLimit === 0}
+                        remainingVideos={planVideoLimit > 0 ? remainingVideos : null}
+                        planLabel={currentPlan.label}
+                        accessCode={videoAccessInput}
+                        onAccessCodeChange={handleVideoAccessCodeChange}
+                        onAccessSubmit={handleVideoAccessSubmit}
+                        accessError={videoAccessError}
+                      />
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <div className="bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-3 overflow-hidden">
+                    <ModelReferencePanel
+                      onFileSelect={handleModelReferenceUpload}
+                      previewUrl={modelReferencePreview}
+                      notes={modelReferenceNotes}
+                      onNotesChange={setModelReferenceNotes}
+                      onClear={handleClearModelReference}
+                      disabled={!hasUploadedProduct || isProductPlacement}
+                      lockedMessage={
+                        !hasUploadedProduct
+                          ? "Upload your product image first to attach a model."
+                          : 'Model references are only available in UGC Lifestyle scenes with a person enabled. Switch out of Product Placement and pick an age group to unlock this.'
+                      }
+                    />
+                    {hasModelReference && (
+                      <div className="rounded-2xl border border-white/10 bg-black/30 p-4 space-y-2 text-sm">
+                        <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Composition Mode</p>
+                        <select
+                          value={compositionMode}
+                          onChange={event => setCompositionMode(event.target.value as CompositionMode)}
+                          className="w-full rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                        >
+                          <option value="balanced">Balanced</option>
+                          <option value="product-first">Product First</option>
+                          <option value="model-first">Model First</option>
+                          <option value="fifty-fifty">Fifty / Fifty</option>
+                        </select>
+                        <p className="text-[11px] text-gray-400">
+                          Control which subject leads the frame while keeping both elements physically integrated.
+                        </p>
+                      </div>
+                    )}
+                    {hasUploadedProduct && !personInScene && !isProductPlacement && !hasModelReference && (
+                      <p className="text-xs text-amber-300">
+                        Model references only apply when this scene uses UGC Lifestyle with a person selected. Switch off Product Placement and choose an age so the same talent can carry across your morning/afternoon/night shots.
+                      </p>
+                    )}
+                  </div>
                 </div>
 
               </div>
@@ -5226,8 +5227,48 @@ If the model attempts to create a scene or environment, override it and force a 
           )}
         </div>
       )}
-    </>
+  </>
   );
 };
+
+interface SceneBuilderStepProps {
+  isProductMode: boolean;
+  isLocked: boolean;
+  isImageLoading: boolean;
+  isGenerateDisabled: boolean;
+  onValuesChange: (values: Step3Values) => void;
+  onGenerate: () => void;
+}
+
+const SceneBuilderStep = forwardRef<HTMLDivElement, SceneBuilderStepProps>(({
+  isProductMode,
+  isLocked,
+  isImageLoading,
+  isGenerateDisabled,
+  onValuesChange,
+  onGenerate,
+}, ref) => (
+  <div
+    ref={ref}
+    className={`bg-gray-800/50 rounded-lg shadow-lg border border-gray-700 flex flex-col overflow-hidden ${isLocked ? 'opacity-60 pointer-events-none' : ''}`}
+  >
+    <div className="flex-grow overflow-y-auto custom-scrollbar">
+      <LifestyleStep3
+        isProductMode={isProductMode}
+        onValuesChange={onValuesChange}
+      />
+    </div>
+    <div className="mt-8 flex-shrink-0">
+      <button
+        type="button"
+        onClick={onGenerate}
+        disabled={isGenerateDisabled}
+        className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-900/50 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+      >
+        {isImageLoading ? 'Generating...' : 'Generate Mockup'}
+      </button>
+    </div>
+  </div>
+));
 
 export default App;

@@ -859,10 +859,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                 </div>
               </div>
 
-            <div className="space-y-2">
-              <p className="text-xs uppercase tracking-wider text-indigo-200">EYE DIRECTION</p>
-              <div className="flex gap-2">
-                {EYE_DIRECTION_OPTIONS.map(option => (
+              <div className="space-y-2">
+                <p className="text-xs uppercase tracking-wider text-indigo-200">EYE DIRECTION</p>
+                <div className="flex gap-2">
+                  {EYE_DIRECTION_OPTIONS.map(option => (
                     <button
                       key={option}
                       type="button"
@@ -1460,16 +1460,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                           ? 'border-indigo-400 bg-indigo-500/10 text-white'
                           : 'border-gray-600 text-gray-300 hover:border-gray-500'
                           }`}
-                  >
-                    {option}
-                  </button>
-                ))}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
-
-            </>
-          </div>
-        )}
+            )}
           </div>
         </AccordionSection>
       )}
