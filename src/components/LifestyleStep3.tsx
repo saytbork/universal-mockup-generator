@@ -931,17 +931,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
           onToggle={() => toggleSection('ageGroups')}
           isTouched={touchedSections.has('ageGroups')}
         >
-          <div className="flex flex-wrap gap-2">
-            {AGE_GROUP_CHIP_OPTIONS.map(option => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => { updateValue('ageGroup', option); markSectionTouched('ageGroups'); }}
-                className={`rounded-full border px-3 py-1 text-xs transition ${values.ageGroup === option
-                  ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                  : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                  }`}
-              >
+              <div className="flex flex-wrap gap-2">
+                {AGE_GROUP_CHIP_OPTIONS.map(option => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => { updateValue('ageGroup', option); markSectionTouched('ageGroups'); }}
+                    className={getPillClass(values.ageGroup === option)}
+                  >
                 {option}
               </button>
             ))}
@@ -964,10 +961,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                 key={option}
                 type="button"
                 onClick={() => { updateValue('productInteraction', option); markSectionTouched('productInteraction'); }}
-                className={`rounded-lg border px-2 py-2 text-xs transition ${values.productInteraction === option
-                  ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                  : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                  }`}
+                className={getPillClass(values.productInteraction === option)}
               >
                 {option}
               </button>
@@ -984,21 +978,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
         isOpen={openSection === 'output'}
         onToggle={() => toggleSection('output')}
       >
-        <div className="grid grid-cols-3 gap-2">
-          {ASPECT_RATIO_OPTIONS.map(option => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => { updateValue('aspectRatio', option); markSectionTouched('output'); }}
-              className={`rounded-lg border px-2 py-2 text-xs transition ${values.aspectRatio === option
-                ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                }`}
-            >
-              {option}
-            </button>
-          ))}
-        </div>
+          <div className="grid grid-cols-3 gap-2">
+            {ASPECT_RATIO_OPTIONS.map(option => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => { updateValue('aspectRatio', option); markSectionTouched('output'); }}
+                className={getPillClass(values.aspectRatio === option)}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
       </AccordionSection>
 
       {/* Environment */}
@@ -1068,10 +1059,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                   key={option}
                   type="button"
                   onClick={() => { updateValue('timeOfDay', option); markSectionTouched('lighting'); }}
-                  className={`rounded-lg border px-2 py-1.5 text-xs transition ${values.timeOfDay === option
-                    ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                    : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                    }`}
+                  className={getPillClass(values.timeOfDay === option)}
                 >
                   {option}
                 </button>
@@ -1087,10 +1075,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                   key={option}
                   type="button"
                   onClick={() => { updateValue('lightingStyle', option); markSectionTouched('lighting'); }}
-                  className={`rounded-lg border px-2 py-1.5 text-xs transition ${values.lightingStyle === option
-                    ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                    : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                    }`}
+                  className={getPillClass(values.lightingStyle === option)}
                 >
                   {option}
                 </button>
@@ -1115,10 +1100,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
               key={option}
               type="button"
               onClick={() => { updateValue('mood', option); markSectionTouched('mood'); }}
-              className={`rounded-lg border px-2 py-2 text-xs transition ${values.mood === option
-                ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                }`}
+              className={getPillClass(values.mood === option)}
             >
               {option}
             </button>
@@ -1144,10 +1126,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                   updateValue('ugcRealMode', false);
                   updateValue('selfieType', 'None');
                 }}
-                className={`flex-1 rounded-lg border px-3 py-2 text-xs transition ${!values.ugcRealMode
-                  ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                  : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                  }`}
+                className={getPillClass(!values.ugcRealMode, true)}
               >
                 OFF
               </button>
@@ -1161,10 +1140,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                     updateValue('eyeDirection', 'Looking at camera');
                   }
                 }}
-                className={`flex-1 rounded-lg border px-3 py-2 text-xs transition ${values.ugcRealMode
-                  ? 'border-amber-300 bg-amber-500/10 text-white'
-                  : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                  }`}
+                className={`${getPillClass(values.ugcRealMode, true)} border-amber-300 bg-amber-500/10 text-white`}
               >
                 ON
               </button>
@@ -1180,10 +1156,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                     key={option}
                     type="button"
                     onClick={() => updateValue('selfieType', option)}
-                    className={`rounded-lg border px-2 py-2 text-xs transition ${values.selfieType === option
-                      ? 'border-amber-300 bg-amber-500/10 text-white'
-                      : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                      }`}
+                    className={getPillClass(values.selfieType === option)}
                   >
                     {option}
                   </button>
@@ -1212,10 +1185,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                   key={option}
                   type="button"
                   onClick={() => { updateValue('shotType', option); markSectionTouched('camera'); }}
-                  className={`rounded-lg border px-2 py-1.5 text-xs transition ${values.shotType === option
-                    ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                    : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                    }`}
+                  className={getPillClass(values.shotType === option)}
                 >
                   {option}
                 </button>
@@ -1231,10 +1201,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                   key={option}
                   type="button"
                   onClick={() => { updateValue('cameraAngle', option); markSectionTouched('camera'); }}
-                  className={`rounded-lg border px-2 py-1.5 text-xs transition ${values.cameraAngle === option
-                    ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                    : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                    }`}
+                  className={getPillClass(values.cameraAngle === option)}
                 >
                   {option}
                 </button>
@@ -1250,10 +1217,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                   key={option}
                   type="button"
                   onClick={() => { updateValue('framing', option); markSectionTouched('camera'); }}
-                  className={`rounded-lg border px-2 py-1.5 text-xs transition ${values.framing === option
-                    ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                    : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                    }`}
+                  className={getPillClass(values.framing === option)}
                 >
                   {option}
                 </button>
@@ -1281,10 +1245,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                 key={option.value}
                 type="button"
                 onClick={() => { updateValue('creationIntent', option.value as Step3Values['creationIntent']); markSectionTouched('creationIntent'); }}
-                className={`rounded-full border px-4 py-2 text-xs transition ${values.creationIntent === option.value
-                  ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                  : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                  }`}
+                className={getPillClass(values.creationIntent === option.value)}
               >
                 {option.label}
               </button>
@@ -1309,10 +1270,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                 key={option}
                 type="button"
                 onClick={() => { updateValue('creationMode', option); markSectionTouched('creationModes'); }}
-                className={`rounded-full border px-4 py-2 text-xs transition ${values.creationMode === option
-                  ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                  : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                  }`}
+                className={getPillClass(values.creationMode === option)}
               >
                 {option}
               </button>
@@ -1339,10 +1297,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                     key={option}
                     type="button"
                     onClick={() => { updateValue('compositionMode', option); markSectionTouched('ecommerceBuilder'); }}
-                    className={`rounded-full border px-3 py-1.5 text-xs transition ${values.compositionMode === option
-                      ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                      : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                      }`}
+                    className={getPillClass(values.compositionMode === option)}
                   >
                     {option}
                   </button>
@@ -1358,10 +1313,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                     key={option}
                     type="button"
                     onClick={() => { updateValue('sidePlacement', option); markSectionTouched('ecommerceBuilder'); }}
-                    className={`flex-1 rounded-full border px-3 py-1.5 text-xs transition ${values.sidePlacement === option
-                      ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                      : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                      }`}
+                    className={getPillClass(values.sidePlacement === option, true)}
                   >
                     {option}
                   </button>
@@ -1377,10 +1329,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                     key={color}
                     type="button"
                     onClick={() => { updateValue('ecommerceBackgroundColor', color); markSectionTouched('ecommerceBuilder'); }}
-                    className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition ${values.ecommerceBackgroundColor === color
-                      ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                      : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                      }`}
+                    className={`${getPillClass(values.ecommerceBackgroundColor === color)} inline-flex items-center gap-2`}
                   >
                     <span className="inline-flex h-4 w-4 rounded-full border border-gray-600" style={{ backgroundColor: color }} />
                     {color}
@@ -1426,10 +1375,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                         key={option}
                         type="button"
                         onClick={() => { updateValue('formulationPreset', option); markSectionTouched('formulationStory'); }}
-                        className={`rounded-full border px-3 py-1.5 text-xs transition ${values.formulationPreset === option
-                          ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                          : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                          }`}
+                        className={getPillClass(values.formulationPreset === option)}
                       >
                         {option}
                       </button>
@@ -1467,10 +1413,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                         key={option}
                         type="button"
                         onClick={() => { updateValue('formulationLabVibe', option); markSectionTouched('formulationStory'); }}
-                        className={`rounded-full border px-3 py-1.5 text-xs transition ${values.formulationLabVibe === option
-                          ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                          : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                          }`}
+                        className={getPillClass(values.formulationLabVibe === option)}
                       >
                         {option}
                       </button>
@@ -1507,10 +1450,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                   key={option}
                   type="button"
                   onClick={() => { updateValue('wardrobe', option); markSectionTouched('finalOutput'); }}
-                  className={`rounded-full border px-3 py-1 text-xs transition ${values.wardrobe === option
-                    ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                    : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                    }`}
+                  className={getPillClass(values.wardrobe === option)}
                 >
                   {option}
                 </button>
