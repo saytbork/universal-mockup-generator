@@ -177,7 +177,7 @@ export function mapLifestyleToPromptOptions(
     }
 
     // ========================================================================
-    // Person Settings
+    // Person Settings - COMPLETE SEMANTIC MAPPING
     // ========================================================================
 
     const personIncluded = !sceneState.noPerson;
@@ -188,125 +188,104 @@ export function mapLifestyleToPromptOptions(
             mapped.personDetails = {};
         }
 
-        // Age → ageGroup
+        // **AGE - NUMERIC** (CRITICAL)
+        mapped.personDetails.age = sceneState.age;  // 18-90
         mapped.ageGroup = ageToGroup(sceneState.age);
-        if (mapped.personDetails) {
-            mapped.personDetails.ageGroup = mapped.ageGroup;
-        }
+        mapped.personDetails.ageGroup = mapped.ageGroup;
 
-        // Gender
-        const genderMap: Record<string, string> = {
-            'Male': 'male',
-            'Female': 'female'
-        };
+        // **GENDER** - Extended options
         if (sceneState.gender) {
-            mapped.gender = genderMap[sceneState.gender];
-            if (mapped.personDetails) {
-                mapped.personDetails.gender = mapped.gender;
+            mapped.gender = sceneState.gender;
+            mapped.personDetails.gender = sceneState.gender;
+        }
+
+        // **ETHNICITY**
+        if (sceneState.ethnicity && sceneState.ethnicity !== 'Prefer not to specify') {
+            if (sceneState.customEthnicity) {
+                // Custom ethnicity
+                mapped.ethnicity = `ethnicity described as: ${sceneState.customEthnicity}`;
+                mapped.personDetails.ethnicity = `ethnicity described as: ${sceneState.customEthnicity}`;
+            } else {
+                mapped.ethnicity = sceneState.ethnicity;
+                mapped.personDetails.ethnicity = sceneState.ethnicity;
             }
         }
 
-        // Skin Tone
-        const skinToneMap: Record<string, string> = {
-            'Fair Cool': 'fair cool',
-            'Fair Warm': 'fair warm',
-            'Medium Neutral': 'medium neutral',
-            'Olive': 'olive',
-            'Tan': 'tan',
-            'Deep Golden': 'deep golden',
-            'Deep Cool': 'deep cool'
-        };
-        mapped.skinTone = skinToneMap[sceneState.skinTone] || 'medium neutral';
-        if (mapped.personDetails) {
-            mapped.personDetails.skinTone = mapped.skinTone;
+        // **BODY TYPE**
+        if (sceneState.bodyType) {
+            mapped.personDetails.bodyType = sceneState.bodyType;
         }
 
-        // ETHNICITY → Explicit Visual Facial Traits (CRITICAL FIX)
-        const ethnicityMap: Record<string, string> = {
-            'Asian': 'East Asian facial features with distinct East Asian bone structure, epicanthic folds, and characteristic East Asian appearance',
-            'Black / African descent': 'African descent with rich deep skin tone, natural coily hair texture, and distinctive African facial features',
-            'Latino / Hispanic': 'Latino Hispanic appearance with warm skin tone and characteristic Latin American facial features',
-            'White / European descent': 'European Caucasian appearance with characteristic Western European facial structure',
-            'Middle Eastern': 'Middle Eastern appearance with distinctive Mediterranean-Middle Eastern facial features',
-            'South Asian': 'South Asian appearance with characteristic Indian subcontinent facial features',
-            'Mixed': 'mixed ethnic heritage with blended facial characteristics',
-            'Non-specific': ''
-        };
-        const ethnicityTrait = ethnicityMap[sceneState.ethnicity] || '';
-        if (ethnicityTrait) {
-            mapped.ethnicity = ethnicityTrait;
-            if (mapped.personDetails) {
-                mapped.personDetails.ethnicity = ethnicityTrait;
-            }
-            console.log('[ETHNICITY INJECTION]', sceneState.ethnicity, '→', ethnicityTrait);
+        // **SKIN TONE**
+        if (sceneState.skinTone) {
+            mapped.skinTone = sceneState.skinTone;
+            mapped.personDetails.skinTone = sceneState.skinTone;
         }
 
-        // Body Type → personAppearance
-        const bodyTypeMap: Record<string, string> = {
-            'Slim': 'slim build',
-            'Average': 'average build',
-            'Athletic': 'athletic and fit',
-            'Curvy': 'curvy',
-            'Plus size': 'plus-size'
-        };
-        mapped.personAppearance = bodyTypeMap[sceneState.bodyType];
-
-        // Facial Expression → personExpression
-        const expressionMap: Record<string, string> = {
-            'Soft Smile': 'soft smile',
-            'Full Smile': 'full smile',
-            'Serious Focus': 'serious focused',
-            'Excited Surprise': 'excited surprise',
-            'Stressed but Hopeful': 'stressed but hopeful',
-            'Caffeinated Crash': 'caffeinated crash',
-            'Real-Life Calm': 'real-life calm',
-            'UGC Reality': 'ugc authentic expression'
-        };
-        mapped.personExpression = expressionMap[sceneState.facialExpression] || sceneState.facialExpression.toLowerCase();
-        if (mapped.personDetails) {
-            mapped.personDetails.personExpression = mapped.personExpression;
+        // **SKIN REALISM**
+        if (sceneState.skinRealism) {
+            mapped.personDetails.skinRealism = sceneState.skinRealism;
         }
 
-        // Hair
-        mapped.hairStyle = sceneState.hairLength.toLowerCase() + ' ' + sceneState.hairTexture.toLowerCase();
-        if (mapped.personDetails) {
-            mapped.personDetails.hairStyle = mapped.hairStyle;
+        // **EYE COLOR**
+        if (sceneState.eyeColor) {
+            mapped.personDetails.eyeColor = sceneState.eyeColor;
+        }
+
+        // **HAIR** - Separate properties
+        if (sceneState.hairLength) {
+            mapped.personDetails.hairLength = sceneState.hairLength;
+        }
+        if (sceneState.hairTexture) {
+            mapped.personDetails.hairTexture = sceneState.hairTexture;
+        }
+        if (sceneState.hairColor) {
+            mapped.hairColor = sceneState.hairColor;
             mapped.personDetails.hairColor = sceneState.hairColor;
         }
 
-        // Wardrobe
-        const wardrobeMap: Record<string, string> = {
-            'Casual Streetwear': 'casual streetwear',
-            'Athleisure Set': 'athleisure',
-            'Minimal Luxe': 'minimal luxe',
-            'Cozy Knitwear': 'cozy knitwear',
-            'Bold Color Pop': 'bold color pop',
-            'Errand-Day Layers': 'errand-day layers'
-        };
-        mapped.wardrobeStyle = wardrobeMap[sceneState.wardrobe] || sceneState.wardrobe.toLowerCase();
-        if (mapped.personDetails) {
+        // **FACIAL EXPRESSION** - Semantic mapping
+        if (sceneState.facialExpression) {
+            mapped.personDetails.facialExpression = sceneState.facialExpression;
+        }
+
+        // **EYE DIRECTION** - Gaze mapping
+        if (sceneState.eyeDirection) {
+            mapped.eyeDirection = sceneState.eyeDirection as any;
+            mapped.personDetails.eyeDirection = sceneState.eyeDirection as any;
+        }
+
+        // **SELFIE TYPE** - POV mapping
+        if (sceneState.selfieType && sceneState.selfieType !== 'None') {
+            mapped.selfieType = sceneState.selfieType;
+            mapped.personDetails.selfieType = sceneState.selfieType;
+        }
+
+        // **WARDROBE**
+        if (sceneState.wardrobe) {
+            const wardrobeMap: Record<string, string> = {
+                'Casual Streetwear': 'casual streetwear',
+                'Athleisure Set': 'athleisure',
+                'Minimal Luxe': 'minimal luxe',
+                'Cozy Knitwear': 'cozy knitwear',
+                'Bold Color Pop': 'bold color pop',
+                'Errand-Day Layers': 'errand-day layers'
+            };
+            mapped.wardrobeStyle = wardrobeMap[sceneState.wardrobe] || sceneState.wardrobe.toLowerCase();
             mapped.personDetails.wardrobeStyle = mapped.wardrobeStyle;
         }
 
-        // Pose
-        if (sceneState.pose) {
-            if (!mapped.personDetails) {
-                mapped.personDetails = {};
-            }
-            mapped.personDetails.personPose = sceneState.pose;
-        }
-
-        // Product Interaction
-        const interactionMap: Record<string, string> = {
-            'Holding': 'holding the product naturally',
-            'Using': 'using the product',
-            'Showing to Camera': 'showing the product to camera',
-            'Unboxing': 'unboxing the product',
-            'Applying': 'applying the product',
-            'Placing on Surface': 'placing the product on surface'
-        };
-        mapped.productInteraction = interactionMap[sceneState.productInteraction];
-        if (mapped.personDetails) {
+        // **PRODUCT INTERACTION**
+        if (sceneState.productInteraction) {
+            const interactionMap: Record<string, string> = {
+                'Holding': 'holding the product naturally',
+                'Using': 'using the product',
+                'Showing to Camera': 'showing the product to camera',
+                'Unboxing': 'unboxing the product',
+                'Applying': 'applying the product',
+                'Placing on Surface': 'placing the product on surface'
+            };
+            mapped.productInteraction = interactionMap[sceneState.productInteraction];
             mapped.personDetails.productInteraction = mapped.productInteraction;
         }
     } else {
@@ -338,6 +317,7 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
 
     if (sceneState.ugcRealMode) {
+        mapped.ugcRealModeActive = true;
         mapped.realModeActive = true;
         mapped.ugcRealityPreset = 'authentic-ugc';
     }
