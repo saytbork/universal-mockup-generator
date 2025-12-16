@@ -131,9 +131,16 @@ const AGE_SLIDER_CATEGORIES = [
   { min: 76, max: 90, label: 'Senior', group: '75+' }
 ];
 
-const getAgeCategory = (age: number) => {
-  return AGE_SLIDER_CATEGORIES.find(category => age <= category.max) ?? AGE_SLIDER_CATEGORIES[AGE_SLIDER_CATEGORIES.length - 1];
-};
+  const getAgeCategory = (age: number) => {
+    return AGE_SLIDER_CATEGORIES.find(category => age <= category.max) ?? AGE_SLIDER_CATEGORIES[AGE_SLIDER_CATEGORIES.length - 1];
+  };
+
+  const getPillClass = (isActive: boolean, fullWidth = false) => {
+    const base = 'rounded-full border px-4 py-2 text-xs font-semibold transition';
+    const active = 'border-indigo-400 bg-indigo-500/10 text-white shadow-[0_10px_30px_-20px_rgba(99,102,241,0.75)]';
+    const inactive = 'border-gray-600 bg-gray-900/40 text-gray-300 hover:border-indigo-400 hover:text-white';
+    return [base, isActive ? active : inactive, fullWidth ? 'flex-1' : ''].filter(Boolean).join(' ');
+  };
 
 const GENDER_OPTIONS = ['Male', 'Female'];
 
@@ -727,10 +734,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                       key={option}
                       type="button"
                       onClick={() => { updateValue('gender', option as any); markSectionTouched('creator'); }}
-                      className={`flex-1 rounded-lg border px-3 py-2 text-xs transition ${values.gender === option
-                        ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                        : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                        }`}
+                      className={getPillClass(values.gender === option, true)}
                     >
                       {option}
                     </button>
@@ -746,10 +750,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                       key={option}
                       type="button"
                       onClick={() => { updateValue('ethnicity', option); markSectionTouched('creator'); }}
-                      className={`rounded-lg border px-2 py-2 text-xs transition ${values.ethnicity === option
-                        ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                        : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                        }`}
+                      className={getPillClass(values.ethnicity === option)}
                     >
                       {option}
                     </button>
@@ -765,10 +766,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                       key={option}
                       type="button"
                       onClick={() => { updateValue('skinTone', option); markSectionTouched('creator'); }}
-                      className={`rounded-lg border px-2 py-2 text-xs transition ${values.skinTone === option
-                        ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                        : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                        }`}
+                      className={getPillClass(values.skinTone === option)}
                     >
                       {option}
                     </button>
@@ -784,10 +782,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                       key={option}
                       type="button"
                       onClick={() => { updateValue('eyeColor', option); markSectionTouched('creator'); }}
-                      className={`rounded-lg border px-2 py-2 text-xs transition ${values.eyeColor === option
-                        ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                        : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                        }`}
+                      className={getPillClass(values.eyeColor === option)}
                     >
                       {option}
                     </button>
@@ -803,10 +798,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                       key={option}
                       type="button"
                       onClick={() => { updateValue('bodyType', option as any); markSectionTouched('creator'); }}
-                      className={`flex-1 rounded-lg border px-2 py-1.5 text-xs transition ${values.bodyType === option
-                        ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                        : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                        }`}
+                      className={getPillClass(values.bodyType === option)}
                     >
                       {option}
                     </button>
@@ -902,10 +894,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                       key={option}
                       type="button"
                       onClick={() => { updateValue('facialExpression', option); markSectionTouched('creator'); }}
-                      className={`rounded-lg border px-2 py-1.5 text-xs transition ${values.facialExpression === option
-                        ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                        : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                        }`}
+                      className={getPillClass(values.facialExpression === option)}
                     >
                       {option}
                     </button>
@@ -921,10 +910,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                       key={option}
                       type="button"
                       onClick={() => { updateValue('eyeDirection', option); markSectionTouched('creator'); }}
-                      className={`flex-1 rounded-lg border px-2 py-1.5 text-xs transition ${values.eyeDirection === option
-                        ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                        : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                        }`}
+                      className={getPillClass(values.eyeDirection === option)}
                     >
                       {option}
                     </button>
