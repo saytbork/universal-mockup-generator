@@ -62,3 +62,43 @@ body {
   opacity: 0.45;
   cursor: not-allowed;
 }
+
+.scene-age-slider {
+  appearance: none;
+  height: 12px;
+  border-radius: 999px;
+  background: #1f2937;
+  transition: box-shadow 0.2s ease, background 0.2s ease;
+}
+.scene-age-slider:focus {
+  outline: none;
+  box-shadow: 0 0 0 6px rgba(129, 140, 248, 0.25);
+}
+.scene-age-slider:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+.scene-age-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #eef2ff;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.scene-age-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.35);
+}
+.scene-age-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #eef2ff;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.4);
+  border: none;
+}
+.scene-age-slider::-moz-range-track {
+  background: transparent;
+}

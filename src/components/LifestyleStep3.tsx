@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   SlidersHorizontal, User, Palette, Activity, Scissors, Smile, Eye, Sparkles,
-  Clock, Sun, Camera, Rotate3d, Layout, Hand, Smartphone, Shirt, Layers, Film,
+  Sun, Camera, Rotate3d, Layout, Hand, Smartphone, Shirt, Layers, Film,
   Home, MapPin, Coffee, Utensils, Car, Waves, Mountain, Building2, Edit3, Heart, Check
 } from 'lucide-react';
 
@@ -121,6 +121,19 @@ const AGE_GROUP_OPTIONS = [
   '75+',
   'No Person'
 ];
+
+const AGE_SLIDER_CATEGORIES = [
+  { min: 18, max: 25, label: 'Young adult', group: '18–25' },
+  { min: 26, max: 35, label: 'Late 20s / early 30s', group: '26–35' },
+  { min: 36, max: 45, label: 'Mid-age adult', group: '36–45' },
+  { min: 46, max: 60, label: 'Mature adult', group: '46–60' },
+  { min: 61, max: 75, label: 'Senior', group: '60–75' },
+  { min: 76, max: 90, label: 'Senior', group: '75+' }
+];
+
+const getAgeCategory = (age: number) => {
+  return AGE_SLIDER_CATEGORIES.find(category => age <= category.max) ?? AGE_SLIDER_CATEGORIES[AGE_SLIDER_CATEGORIES.length - 1];
+};
 
 const GENDER_OPTIONS = ['Male', 'Female'];
 
@@ -504,6 +517,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
     }
   };
 
+  const ageSliderProgress = Math.min(Math.max(((values.age - 18) / 72) * 100, 0), 100);
+  const ageSliderLabel = getAgeCategory(values.age);
+  const handleAgeSliderChange = (nextValue: number) => {
+    const nextCategory = getAgeCategory(nextValue);
+    updateValue('age', nextValue);
+    updateValue('ageGroup', nextCategory.group);
+    markSectionTouched('creator');
+  };
+
   useEffect(() => {
     if (onValuesChange) {
       onValuesChange(values);
@@ -662,6 +684,38 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
           >
             {values.noPerson ? '✓ No person in scene' : 'Include person in scene'}
           </button>
+
+          <div
+            className={`space-y-3 rounded-2xl border px-3 py-3 ${values.ugcRealMode ? 'border-indigo-400/60 bg-indigo-500/10' : 'border-gray-700 bg-gray-900/50'} ${isPersonDisabled ? 'opacity-60' : ''}`}
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase tracking-wider text-indigo-200">Age</p>
+              <div className="text-right">
+                <p className="text-sm font-semibold text-white">Age: {ageSliderLabel.label}</p>
+                <p className="text-[10px] uppercase tracking-[0.35em] text-indigo-300">{ageSliderLabel.group}</p>
+              </div>
+            </div>
+            <input
+              type="range"
+              min={18}
+              max={90}
+              step={1}
+              value={values.age}
+              onChange={(event) => handleAgeSliderChange(Number(event.target.value))}
+              disabled={isPersonDisabled}
+              className={`scene-age-slider w-full ${isPersonDisabled ? 'cursor-not-allowed' : ''}`}
+              style={{
+                background: `linear-gradient(90deg, rgba(129,140,248,0.95) ${ageSliderProgress}%, rgba(31,41,55,0.5) ${ageSliderProgress}%)`
+              }}
+            />
+            <p className="text-[11px] text-gray-500 flex items-center gap-1">
+              <span className="text-indigo-300" title="Used to generate realistic facial features and proportions.">ⓘ</span>
+              Used to generate realistic facial features and proportions.
+            </p>
+            <p className="text-[11px] text-gray-500">
+              Age strongly influences facial structure, skin texture, and realism.
+            </p>
+          </div>
 
           {!isPersonDisabled && (
             <div className="space-y-4">
@@ -881,35 +935,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
           )}
         </div>
       </AccordionSection>
-
-      {!isPersonDisabled && (
-        <AccordionSection
-          icon={Clock}
-          title="Age slider"
-          tooltip="Set the exact age between 18 and 90"
-          isOpen={openSection === 'ageSlider'}
-          onToggle={() => toggleSection('ageSlider')}
-          isTouched={touchedSections.has('ageSlider')}
-        >
-          <div className="space-y-3">
-            <div className="flex items-center justify-between text-xs uppercase tracking-wider text-indigo-200">
-              <span>Age</span>
-              <span className="text-xs text-gray-300">Age: {values.age} years</span>
-            </div>
-            <input
-              type="range"
-              min={18}
-              max={90}
-              value={values.age}
-              onChange={(e) => { updateValue('age', Number(e.target.value)); markSectionTouched('ageSlider'); }}
-              className="w-full accent-indigo-400"
-            />
-            <p className="text-[11px] text-gray-500">
-              Age influences facial structure, skin texture, and realism.
-            </p>
-          </div>
-        </AccordionSection>
-      )}
 
       {!isPersonDisabled && (
         <AccordionSection
