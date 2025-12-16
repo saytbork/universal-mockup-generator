@@ -665,36 +665,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
 
           {!isPersonDisabled && (
             <div className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-xs uppercase tracking-wider text-indigo-200">
-                  <span>Age</span>
-                  <span className="text-xs text-gray-300">Age: {values.age} years</span>
-                </div>
-                <input
-                  type="range"
-                  min={18}
-                  max={90}
-                  value={values.age}
-                  onChange={(e) => { updateValue('age', Number(e.target.value)); markSectionTouched('creator'); }}
-                  className="w-full accent-indigo-400"
-                />
-                <div className="flex flex-wrap gap-2">
-                  {AGE_GROUP_CHIP_OPTIONS.map(option => (
-                    <button
-                      key={option}
-                      type="button"
-                      onClick={() => { updateValue('ageGroup', option); markSectionTouched('creator'); }}
-                      className={`rounded-full border px-3 py-1 text-xs transition ${values.ageGroup === option
-                        ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                        : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                        }`}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               <div className="space-y-2">
                 <p className="text-xs uppercase tracking-wider text-indigo-200">GENDER</p>
                 <div className="flex gap-2">
@@ -889,10 +859,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <p className="text-xs uppercase tracking-wider text-indigo-200">EYE DIRECTION</p>
-                <div className="flex gap-2">
-                  {EYE_DIRECTION_OPTIONS.map(option => (
+            <div className="space-y-2">
+              <p className="text-xs uppercase tracking-wider text-indigo-200">EYE DIRECTION</p>
+              <div className="flex gap-2">
+                {EYE_DIRECTION_OPTIONS.map(option => (
                     <button
                       key={option}
                       type="button"
@@ -907,31 +877,93 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                   ))}
                 </div>
               </div>
-
-              {isProductMode && (
-                <div className="space-y-2">
-                  <p className="text-xs uppercase tracking-wider text-indigo-200">PRODUCT INTERACTION</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {PRODUCT_INTERACTION_OPTIONS.map(option => (
-                      <button
-                        key={option}
-                        type="button"
-                        onClick={() => { updateValue('productInteraction', option); markSectionTouched('creator'); }}
-                        className={`rounded-lg border px-2 py-2 text-xs transition ${values.productInteraction === option
-                          ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                          : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                          }`}
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           )}
         </div>
       </AccordionSection>
+
+      {!isPersonDisabled && (
+        <AccordionSection
+          icon={Clock}
+          title="Age slider"
+          tooltip="Set the exact age between 18 and 90"
+          isOpen={openSection === 'ageSlider'}
+          onToggle={() => toggleSection('ageSlider')}
+          isTouched={touchedSections.has('ageSlider')}
+        >
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-xs uppercase tracking-wider text-indigo-200">
+              <span>Age</span>
+              <span className="text-xs text-gray-300">Age: {values.age} years</span>
+            </div>
+            <input
+              type="range"
+              min={18}
+              max={90}
+              value={values.age}
+              onChange={(e) => { updateValue('age', Number(e.target.value)); markSectionTouched('ageSlider'); }}
+              className="w-full accent-indigo-400"
+            />
+            <p className="text-[11px] text-gray-500">
+              Age influences facial structure, skin texture, and realism.
+            </p>
+          </div>
+        </AccordionSection>
+      )}
+
+      {!isPersonDisabled && (
+        <AccordionSection
+          icon={User}
+          title="Age-group chips"
+          tooltip="Select a quick age range"
+          isOpen={openSection === 'ageGroups'}
+          onToggle={() => toggleSection('ageGroups')}
+          isTouched={touchedSections.has('ageGroups')}
+        >
+          <div className="flex flex-wrap gap-2">
+            {AGE_GROUP_CHIP_OPTIONS.map(option => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => { updateValue('ageGroup', option); markSectionTouched('ageGroups'); }}
+                className={`rounded-full border px-3 py-1 text-xs transition ${values.ageGroup === option
+                  ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                  : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                  }`}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        </AccordionSection>
+      )}
+
+      {isProductMode && !isPersonDisabled && (
+        <AccordionSection
+          icon={Hand}
+          title="Product interaction"
+          tooltip="Control how the creator handles the product"
+          isOpen={openSection === 'productInteraction'}
+          onToggle={() => toggleSection('productInteraction')}
+          isTouched={touchedSections.has('productInteraction')}
+        >
+          <div className="grid grid-cols-2 gap-2">
+            {PRODUCT_INTERACTION_OPTIONS.map(option => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => { updateValue('productInteraction', option); markSectionTouched('productInteraction'); }}
+                className={`rounded-lg border px-2 py-2 text-xs transition ${values.productInteraction === option
+                  ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                  : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                  }`}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        </AccordionSection>
+      )}
 
       {/* Output Format */}
       <AccordionSection
@@ -1128,8 +1160,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
             </div>
           </div>
 
-          {values.ugcRealMode && (
-            <div className="space-y-2">
+              {values.ugcRealMode && (
+                <div className="space-y-2">
               <p className="text-xs uppercase tracking-wider text-indigo-200">SELFIE TYPE</p>
               <div className="grid grid-cols-2 gap-2">
                 {SELFIE_TYPE_OPTIONS.map(option => (
@@ -1428,14 +1460,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                           ? 'border-indigo-400 bg-indigo-500/10 text-white'
                           : 'border-gray-600 text-gray-300 hover:border-gray-500'
                           }`}
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                  >
+                    {option}
+                  </button>
+                ))}
               </div>
-            )}
+            </div>
+
+            </>
+          </div>
+        )}
           </div>
         </AccordionSection>
       )}
