@@ -22,6 +22,15 @@ export class UGCRealModeBuilder implements PromptBuilder {
             return '';
         }
 
+        if (ugcRealModeActive) {
+            const overrideTarget = options as any;
+            overrideTarget.cameraShot = 'SELFIE_CLOSE';
+            delete overrideTarget.perspective;
+            delete overrideTarget.personPose;
+            delete overrideTarget.pose;
+            delete overrideTarget.mediumShot;
+        }
+
         console.log('[UGC REAL MODE] Building with hard overrides');
         const parts: string[] = [];
 
@@ -121,11 +130,35 @@ REQUIRED UGC CHARACTERISTICS:
             'All camera angle, shot type, framing, and composition rules are invalid. The capture situation fully defines the geometry of the image.'
         );
 
+        const constraintsText = `
+This image is a real smartphone selfie.
+The phone is held at arm’s length.
+The arm holding the phone is completely outside the frame.
+No full arm, forearm, elbow, wrist, or both arms may be visible.
+If an arm is visible, the image is invalid.
+`.trim();
+        parts.push(constraintsText);
+
+        const humanText = `
+The person must look like a real human.
+No mannequin, doll, CGI, avatar, or rendered appearance.
+Natural skin texture, asymmetry, and real-world imperfections are required.
+`.trim();
+        parts.push(humanText);
+
+        const walkingText = `
+Walking, handheld motion is a selfie perspective while walking.
+Slight camera instability and imperfect crop.
+Smartphone selfie.
+Arm holding the phone remains completely outside the frame.
+`.trim();
+        parts.push(walkingText);
+
         if (options.ugcRealModeActive) {
             const prompt = options as any;
+            prompt.cameraShot = 'SELFIE_CLOSE';
             // HARD OVERRIDES — UGC MUST KILL COMPOSITION
             delete prompt.cameraAngle;
-            delete prompt.cameraShot;
             delete prompt.framing;
             delete prompt.perspective;
             delete prompt.placementStyle;
