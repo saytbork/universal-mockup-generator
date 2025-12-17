@@ -12,6 +12,7 @@
  */
 
 import type { PromptOptions, PromptBuilder } from '../types';
+import { buildUGCCaptureSituationText } from '../ugcCaptureSituation';
 
 export class UGCRealModeBuilder implements PromptBuilder {
     build(options: PromptOptions): string {
@@ -110,9 +111,14 @@ REQUIRED UGC CHARACTERISTICS:
 - Real environment (not styled set)
         `.trim().replace(/\s+/g, ' '));
 
+        if (options.ugcCaptureSituation) {
+            parts.push(buildUGCCaptureSituationText(options.ugcCaptureSituation));
+        } else {
+            console.warn('[UGC CAPTURE SITUATION] Missing selection, skipping injection');
+        }
+
         const result = parts.filter(Boolean).join(' ').trim();
         console.log('[UGC REAL MODE OUTPUT]', result.substring(0, 200) + '...');
         return result;
     }
 }
-

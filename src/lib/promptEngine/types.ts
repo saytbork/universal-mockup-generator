@@ -146,6 +146,7 @@ export interface PromptOptions {
     // UGC Real Mode
     ugcRealModeActive?: boolean;      // UGC Real Mode toggle
     heroPersona?: string;             // Semantic UGC persona description
+    ugcCaptureSituation?: string | null; // Selected UGC capture situation
 
     // Composition
     compositionIntro?: string;

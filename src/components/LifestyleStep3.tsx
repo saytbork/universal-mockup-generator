@@ -10,6 +10,7 @@ import {
   CAMERA_OPTIONS,
   CAMERA_ANGLE_OPTIONS as CONSTANT_CAMERA_ANGLE_OPTIONS // Use constant if needed or stick to local if it matches
 } from '../../constants';
+import { UGCCaptureSituationOptions, type UGCCaptureSituationId } from '../lib/promptEngine/ugcCaptureSituation';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -54,6 +55,7 @@ export interface SceneState {
   };
 
   mood: string;
+  ugcCaptureSituation?: UGCCaptureSituationId | null;
 
   camera: {
     shotType:
@@ -152,6 +154,7 @@ export interface Step3Values {
 
   // Realism
   ugcRealMode: boolean;
+  ugcCaptureSituation: UGCCaptureSituationId | null;
 
   // Selfie Mode (Unified System)
   selfieMode: string;
@@ -492,6 +495,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
     // Realism
     ugcRealMode: true,
+    ugcCaptureSituation: null,
 
     // Selfie
     selfieMode: 'None',
@@ -557,6 +561,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     setValues(prev => {
       const newValues = { ...prev, [key]: value };
 
+      if (key === 'ugcRealMode' && value === false) {
+        newValues.ugcCaptureSituation = null;
+      }
+
       // SAFETY RULE: If hasModelReference is true, force UGC off and clear creator
       if (hasModelReference) {
         newValues.ugcRealMode = false;
@@ -589,6 +597,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     }
   }, [values, onValuesChange]);
 
+  useEffect(() => {
+    if (onCanGenerateChange) {
+      const canGenerate = !(values.ugcRealMode && !values.ugcCaptureSituation);
+      onCanGenerateChange(canGenerate);
+    }
+  }, [onCanGenerateChange, values.ugcCaptureSituation, values.ugcRealMode]);
+
   const isPersonDisabled = values.noPerson;
 
   // Initial Safety Check for hasModelReference
@@ -597,7 +612,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       setValues(prev => ({
         ...prev,
         ugcRealMode: false,
-        creatorPreset: null
+        creatorPreset: null,
+        ugcCaptureSituation: null
       }));
     }
   }, [hasModelReference, values.ugcRealMode, values.creatorPreset]);
@@ -635,6 +651,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       ugcRealMode: false,            // Disable environment mode
       selfieMode: 'None',            // Clear UGC-specific values
       customEnvironment: '',         // Clear custom environment
+      ugcCaptureSituation: null
     }));
   }, []);
 
@@ -1013,6 +1030,32 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </button>
                       ))}
                     </div>
+                  </div>
+
+                  {/* UGC CAPTURE SITUATION */}
+                  <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                    <div>
+                      <p className="text-xs uppercase tracking-wider text-indigo-200">UGC Capture Situation</p>
+                      <p className="text-[11px] text-gray-400 mt-1">Choose how the phone is held in real life. This is not a camera angle.</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {UGCCaptureSituationOptions.map(option => (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() => {
+                            updateValue('ugcCaptureSituation', option.id);
+                            markSectionTouched('ugc');
+                          }}
+                          className={getPillClass(values.ugcCaptureSituation === option.id)}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                    {!values.ugcCaptureSituation && (
+                      <p className="text-[11px] text-rose-300">Please choose a real-life capture situation to continue.</p>
+                    )}
                   </div>
 
                   {/* CUSTOM CLOTHES */}

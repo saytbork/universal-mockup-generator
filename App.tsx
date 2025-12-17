@@ -5156,17 +5156,21 @@ If the model attempts to create a scene or environment, override it and force a 
 
                 {/* STEP 3 (Scene Builder): col-1, rows-2-5 (scrolls internally) */}
                 <div className="col-start-1 row-start-2 row-span-4 overflow-hidden">
-                  <SceneBuilderStep
-                    ref={customizeRef}
-                    isProductMode={isProductPlacement}
-                    isLocked={!hasUploadedProduct}
-                    isImageLoading={isImageLoading}
-                    isGenerateDisabled={isImageLoading || !uploadedImageFile}
-                    onValuesChange={handleLifestyleStep3Change}
-                    onGenerate={handleGenerateClick}
-                    hasModelReference={hasModelReference}
-                    productCount={activeProducts.length}
-                  />
+                    <SceneBuilderStep
+                      ref={customizeRef}
+                      isProductMode={isProductPlacement}
+                      isLocked={!hasUploadedProduct}
+                      isImageLoading={isImageLoading}
+                      isGenerateDisabled={
+                        isImageLoading ||
+                        !uploadedImageFile ||
+                        (lifestyleStep3Values?.ugcRealMode && !lifestyleStep3Values?.ugcCaptureSituation)
+                      }
+                      onValuesChange={handleLifestyleStep3Change}
+                      onGenerate={handleGenerateClick}
+                      hasModelReference={hasModelReference}
+                      productCount={activeProducts.length}
+                    />
                 </div>
 
                 {/* GENERATED MOCKUP: cols-2-3, rows-3-5 (visually dominant) */}
