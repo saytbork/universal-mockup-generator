@@ -16,6 +16,19 @@ const PROFESSIONAL_FOCUS_COPY: Record<ProfessionalFocus, string> = {
     custom: 'hands-on formulation work that feels rooted in the creator’s routine'
 };
 
+const BADGE_REFERENCE: Record<ProfessionalFocus, string> = {
+    pulmonologist: 'respiratory care focus with breathing health cues',
+    nutritionist: 'nutrition science focus that highlights ingredient balance',
+    dermatologist: 'dermatology focus that honors human texture and skin touch',
+    pharmacist: 'pharmacy stewardship focus on precise compounding',
+    clinical_researcher: 'clinical trial focus grounded in repeated testing',
+    herbalist: 'botanical formulation focus rooted in natural rituals',
+    functional_health_expert: 'functional health focus connecting science with daily routines',
+    wellness_practitioner: 'wellness practice focus that speaks to stress-relief rituals',
+    research_scientist: 'analytic research focus documenting lab notes',
+    custom: 'custom expert focus provided by the creator'
+};
+
 const LAB_VIBE_HINTS: Record<LabVibe, string> = {
     modern_clinical_lab: 'notebooks, research books, and simple ingredient containers',
     r_and_d_studio: 'sketches, ingredient jars, and small glass tools on a lived-in desk',
@@ -39,18 +52,31 @@ export class FormulationStoryBuilder implements PromptBuilder {
             'Their expertise is implied through context and demeanor, not explicit authority cues.'
         ];
 
-        if (story.professionalFocus) {
-            parts.push(`Their background aligns with ${PROFESSIONAL_FOCUS_COPY[story.professionalFocus]}.`);
+        const focus = story.professionalFocus;
+        const badgeDescriptor = focus ? BADGE_REFERENCE[focus] : 'the selected expert focus';
+        const embroideredNameText = story.expertName
+            ? `The embroidery reads "${story.expertName}" above the chest pocket and is referenced casually without fanfare.`
+            : '';
+
+        const scrubsSentence = [
+            'The expert is wearing professional medical scrubs with a single embroidered name above the chest pocket',
+            focus ? `and a visible specialty badge opposite the name referencing ${badgeDescriptor}` : 'and a visible specialty badge opposite the name',
+            'keeping the uniform authentic and grounded while signaling their role.'
+        ].filter(Boolean).join(' ');
+        parts.push(scrubsSentence);
+
+        if (embroideredNameText) {
+            parts.push(embroideredNameText);
+        }
+
+        if (focus) {
+            parts.push(`Their background aligns with ${PROFESSIONAL_FOCUS_COPY[focus]}.`);
         }
 
         if (story.roleCredentials) {
             parts.push(
                 `Their credentials are woven into the conversation naturally, emphasizing hands-on knowledge rather than grand titles.`
             );
-        }
-
-        if (story.expertName) {
-            parts.push(`They are casually referred to as ${story.expertName}, mentioned without emphasis.`);
         }
 
         if (story.labVibe && story.labVibe !== 'none') {

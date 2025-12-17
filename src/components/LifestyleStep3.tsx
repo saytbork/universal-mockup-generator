@@ -725,6 +725,30 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     updateValue
   ]);
 
+  useEffect(() => {
+    if (!values.formulationStoryEnabled) {
+      return;
+    }
+
+    if (values.ugcRealMode) {
+      updateValue('ugcRealMode', false);
+    }
+
+    if (values.ugcCaptureSituation) {
+      updateValue('ugcCaptureSituation', null);
+    }
+
+    if (values.selfieMode && values.selfieMode !== 'None') {
+      updateValue('selfieMode', 'None');
+    }
+  }, [
+    values.formulationStoryEnabled,
+    values.ugcRealMode,
+    values.ugcCaptureSituation,
+    values.selfieMode,
+    updateValue
+  ]);
+
   return (
     <div className="w-full max-w-2xl mx-auto space-y-4 pb-8 px-4">
       {/* Header */}
