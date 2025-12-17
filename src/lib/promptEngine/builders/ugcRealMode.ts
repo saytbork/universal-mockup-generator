@@ -122,6 +122,13 @@ REQUIRED UGC CHARACTERISTICS:
 
         if (options.ugcCaptureSituation) {
             parts.push(buildUGCCaptureSituationText(options.ugcCaptureSituation));
+            const handText = `
+The phone is held in one hand, completely outside the frame.
+Only one hand may be visible in the image.
+The visible hand is the free hand and holds the product naturally.
+The hand holding the phone is never visible.
+`.trim();
+            parts.push(handText);
         } else {
             console.warn('[UGC CAPTURE SITUATION] Missing selection, skipping injection');
         }
@@ -133,9 +140,9 @@ REQUIRED UGC CHARACTERISTICS:
         const constraintsText = `
 This image is a real smartphone selfie.
 The phone is held at arm’s length.
-The arm holding the phone is completely outside the frame.
-No full arm, forearm, elbow, wrist, or both arms may be visible.
-If an arm is visible, the image is invalid.
+The arm holding the phone must never be visible.
+The hand holding the product may be visible with a small portion of forearm.
+Only one arm may be partially visible, and only to support the product.
 `.trim();
         parts.push(constraintsText);
 
