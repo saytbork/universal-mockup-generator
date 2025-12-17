@@ -104,10 +104,6 @@ export class SpecialModesBuilder implements PromptBuilder {
       Never reduce product readability.
     `.trim().replace(/\s+/g, ' ');
 
-        if (options.realModePreset) {
-            return `${basePrompt} ${options.realModePreset}`;
-        }
-
         return basePrompt;
     }
 }

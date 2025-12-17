@@ -114,8 +114,6 @@ export interface PromptOptions {
     clothingPreset?: string;
     clothingQuickPreset?: string;
     clothingCustomImage?: string;
-    ugcRealityPreset?: string;
-
     // Special Modes
     isHeroLandingMode?: boolean;
     heroBackground?: string;
@@ -135,7 +133,6 @@ export interface PromptOptions {
 
     // Real Mode
     realModeActive?: boolean;
-    realModePreset?: string;
 
     // Identity
     hasModelReference?: boolean;      // Model reference uploaded

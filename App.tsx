@@ -28,7 +28,6 @@ import { ALL_PRODUCT_IDS, PRODUCT_MEDIA_LIBRARY, ProductId, ProductMediaLibrary 
 import UGCRealModePanel from './components/UGCRealModePanel';
 import {
   UGC_CLOTHING_PRESETS,
-  UGC_REALITY_PRESETS,
   UGC_HERO_PERSONA_PRESETS,
   UGC_EXPRESSION_PRESETS,
   UGC_OFF_CENTER_OPTIONS,
@@ -44,7 +43,6 @@ import LifestyleStep3, { type Step3Values } from "@/components/LifestyleStep3";
 
 type UGCRealModeSettings = {
   isEnabled: boolean;
-  selectedRealityPresetId: string;
   selectedHeroPersonaIds: string[];
   selectedClothingPresetIds: string[];
   clothingUpload: File | null;
@@ -62,7 +60,6 @@ type UGCRealModeSettings = {
 
 const createDefaultUGCRealSettings = (): UGCRealModeSettings => ({
   isEnabled: false,
-  selectedRealityPresetId: UGC_REALITY_PRESETS[0]?.id ?? '',
   selectedHeroPersonaIds: [],
   selectedClothingPresetIds: [],
   clothingUpload: null,
@@ -80,7 +77,6 @@ const createDefaultUGCRealSettings = (): UGCRealModeSettings => ({
 
 const cloneUGCRealSettings = (settings?: UGCRealModeSettings): UGCRealModeSettings => ({
   isEnabled: settings?.isEnabled ?? false,
-  selectedRealityPresetId: settings?.selectedRealityPresetId ?? UGC_REALITY_PRESETS[0]?.id ?? '',
   selectedHeroPersonaIds: [...(settings?.selectedHeroPersonaIds ?? [])],
   selectedClothingPresetIds: [...(settings?.selectedClothingPresetIds ?? [])],
   clothingUpload: settings?.clothingUpload ?? null,
@@ -1915,9 +1911,6 @@ const App: React.FC = () => {
               onUploadClothing={handleCustomClothesUpload}
               onClearClothing={handleClearCustomClothes}
               clothingPreview={ugcRealSettings.clothingPreview}
-              realityPresets={UGC_REALITY_PRESETS}
-              selectedRealityPresetId={ugcRealSettings.selectedRealityPresetId}
-              onSelectRealityPreset={handleSelectRealityPreset}
               heroPersonaPresets={UGC_HERO_PERSONA_PRESETS}
               selectedHeroPersonaIds={ugcRealSettings.selectedHeroPersonaIds}
               onToggleHeroPersona={handleHeroPersonaToggle}
@@ -2395,13 +2388,6 @@ const App: React.FC = () => {
       return { ...prev, clothingUpload: null, clothingPreview: null };
     });
   }, [persistUgcRealSettings]);
-
-  const handleSelectRealityPreset = useCallback(
-    (id: string) => {
-      persistUgcRealSettings(prev => ({ ...prev, selectedRealityPresetId: id }));
-    },
-    [persistUgcRealSettings]
-  );
 
   const handleHeroPersonaToggle = useCallback(
     (id: string) => {
@@ -3776,10 +3762,6 @@ Maintain correct human anatomy at all times:
     }
     if (realModeActive) {
       prompt += ` ${UGC_REAL_MODE_BASE_PROMPT}.`;
-      const realityPreset = UGC_REALITY_PRESETS.find(item => item.id === ugcRealSettings.selectedRealityPresetId);
-      if (realityPreset) {
-        prompt += ` ${clean(realityPreset.prompt)}`;
-      }
     }
     if (productAssets.length > 1) {
       prompt += ' There are multiple distinct product cutouts supplied. Arrange every unique product in the final scene, keeping each one fully visible and recognizable while avoiding any invented packaging. Treat them as a cohesive collection in the same frame.';

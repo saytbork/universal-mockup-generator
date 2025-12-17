@@ -4,13 +4,6 @@ export interface UGCCustomClothingPreset {
   prompt: string;
 }
 
-export interface UGCRealityPreset {
-  id: string;
-  label: string;
-  description: string;
-  prompt: string;
-}
-
 export interface UGCHeroPersonaPreset {
   id: string;
   label: string;
@@ -58,39 +51,6 @@ export const UGC_CLOTHING_PRESETS: UGCCustomClothingPreset[] = [
     id: 'no-makeup-home',
     label: 'no-makeup natural home clothes',
     prompt: 'Keep their outfit to simple, no-makeup home clothes—soft tank, sweatpants, barefoot energy.',
-  },
-];
-
-export const UGC_REALITY_PRESETS: UGCRealityPreset[] = [
-  {
-    id: 'stressed-under-eye',
-    label: 'stressed tired person with under-eye bags',
-    description: 'Adds exhaustion cues and subtle eye puffiness.',
-    prompt: 'Highlight visible under-eye bags, gentle swelling, and slightly puffy eyelids that communicate stress and tiredness.',
-  },
-  {
-    id: 'messy-hair-lighting',
-    label: 'messy hair, uneven lighting, natural skin texture',
-    description: 'Gives messy hair, stray flyaways, and imperfect lighting falloff.',
-    prompt: 'Render messy, imperfect hair with random flyaways and uneven lighting that exposes natural skin texture and pores.',
-  },
-  {
-    id: 'blurry-smartphone',
-    label: 'slightly blurry casual smartphone photo',
-    description: 'Applies mild blur and handheld shake.',
-    prompt: 'Add a slight handheld blur like a casual smartphone photo, embracing softness at the edges of the frame.',
-  },
-  {
-    id: 'grainy-low-res',
-    label: 'grainy low-res imperfect shot',
-    description: 'Adds grain and imperfect details.',
-    prompt: 'Overlay grain, pixel softness, and imperfect focus breathing so it feels like a low-resolution phone capture.',
-  },
-  {
-    id: 'real-everyday',
-    label: 'real everyday person, not a model, spontaneous moment',
-    description: 'Grounds the shot in authenticity.',
-    prompt: 'Keep the person looking like a real everyday individual—not a model—with spontaneous posture and natural flaws.',
   },
 ];
 

@@ -3,12 +3,6 @@
  * Simple, human, real. No technical language.
  */
 
-export interface UGCRealityPreset {
-    id: string;
-    label: string;
-    prompt: string;
-}
-
 export interface UGCWardrobePreset {
     id: string;
     label: string;
@@ -27,35 +21,6 @@ export interface UGCExpression {
     label: string;
     prompt: string;
 }
-
-// UGC Reality Presets (Single-select)
-export const UGC_REALITY_PRESETS_V2: UGCRealityPreset[] = [
-    {
-        id: 'stressed-tired',
-        label: 'Stressed tired person',
-        prompt: 'stressed tired person with under-eye bags',
-    },
-    {
-        id: 'messy-hair',
-        label: 'Messy hair & uneven lighting',
-        prompt: 'messy hair, uneven lighting, natural skin texture',
-    },
-    {
-        id: 'blurry-casual',
-        label: 'Blurry casual photo',
-        prompt: 'slightly blurry casual smartphone photo',
-    },
-    {
-        id: 'grainy-lowres',
-        label: 'Grainy low-res shot',
-        prompt: 'grainy low-res imperfect shot',
-    },
-    {
-        id: 'real-everyday',
-        label: 'Real everyday person',
-        prompt: 'real everyday person, not a model, spontaneous moment',
-    },
-];
 
 // Wardrobe Quick Presets (Multi-select)
 export const UGC_WARDROBE_PRESETS: UGCWardrobePreset[] = [

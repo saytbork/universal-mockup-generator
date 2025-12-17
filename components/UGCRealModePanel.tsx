@@ -6,7 +6,6 @@ import BlurGrainControls from './BlurGrainControls';
 import { normalizeOptions } from '../src/system/normalizeOptions';
 import type {
   UGCCustomClothingPreset,
-  UGCRealityPreset,
   UGCHeroPersonaPreset,
   UGCExpressionPreset,
   UGCCameraFramingOption,
@@ -34,9 +33,6 @@ interface UGCRealModePanelProps {
   onUploadClothing: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onClearClothing: () => void;
   clothingPreview: string | null;
-  realityPresets: UGCRealityPreset[];
-  selectedRealityPresetId: string;
-  onSelectRealityPreset: (id: string) => void;
   heroPersonaPresets: UGCHeroPersonaPreset[];
   selectedHeroPersonaIds: string[];
   onToggleHeroPersona: (id: string) => void;
@@ -73,9 +69,6 @@ const UGCRealModePanel: React.FC<UGCRealModePanelProps> = ({
   onUploadClothing,
   onClearClothing,
   clothingPreview,
-  realityPresets,
-  selectedRealityPresetId,
-  onSelectRealityPreset,
   heroPersonaPresets,
   selectedHeroPersonaIds,
   onToggleHeroPersona,
@@ -102,9 +95,6 @@ const UGCRealModePanel: React.FC<UGCRealModePanelProps> = ({
   onSelectFraming,
 }) => {
   const panelDisabled = disabled && !enabled;
-  const normalizedRealityPresets = normalizeOptions(
-    realityPresets.map(preset => ({ ...preset, value: preset.id }))
-  );
   const normalizedHeroPersonaPresets = normalizeOptions(
     heroPersonaPresets.map(preset => ({ ...preset, value: preset.id }))
   );
@@ -148,36 +138,6 @@ const UGCRealModePanel: React.FC<UGCRealModePanelProps> = ({
       )}
       {enabled && (
         <div className="space-y-6">
-          <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">UGC reality presets</p>
-            <div className="flex flex-col gap-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
-              {normalizedRealityPresets.map(preset => {
-                const isActive = preset.id === selectedRealityPresetId;
-                return (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    onClick={() => onSelectRealityPreset(preset.id)}
-                    className={`rounded-xl border px-3 py-2 text-left transition ${isActive ? 'border-indigo-400 bg-indigo-500/15 text-white' : 'border-white/15 text-gray-200 hover:border-indigo-400 hover:text-white'
-                      }`}
-                  >
-                    <div className="flex items-center gap-1 relative group">
-                      <span className="text-sm font-semibold">{preset.label}</span>
-                      {preset.tooltip && (
-                        <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
-                          ⓘ
-                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/80 text-white text-xs p-2 rounded shadow-lg w-48">
-                            {preset.tooltip}
-                          </div>
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-[11px] text-gray-400">{cleanDescription(preset.description)}</p>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
           <CustomClothesSelector
             presets={normalizedClothing}
             selectedPresetIds={selectedClothingPresetIds}

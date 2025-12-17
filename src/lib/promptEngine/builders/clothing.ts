@@ -8,7 +8,6 @@ export class ClothingBuilder implements PromptBuilder {
             clothingPreset,
             clothingQuickPreset,
             clothingCustomImage,
-            ugcRealityPreset,
         } = options;
 
         // User uploaded an outfit image
@@ -29,10 +28,6 @@ export class ClothingBuilder implements PromptBuilder {
 
         if (clothingQuickPreset && parameterMap.clothingPresets?.[clothingQuickPreset]) {
             return parameterMap.clothingPresets[clothingQuickPreset];
-        }
-
-        if (ugcRealityPreset) {
-            return `Using UGC reality preset: ${ugcRealityPreset}`;
         }
 
         return "";

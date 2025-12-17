@@ -78,13 +78,6 @@ cat > /tmp/new_prompt_engine.txt << 'EOF'
         : (FORMULATION_PROFESSION_LOOKUP[formulationExpertProfession]?.label ?? expertRole);
     })();
 
-    // Real mode preset
-    const realModePreset = (() => {
-      if (!realModeActive) return undefined;
-      const realityPreset = UGC_REALITY_PRESETS.find(item => item.id === ugcRealSettings.selectedRealityPresetId);
-      return realityPreset ? clean(realityPreset.prompt) : undefined;
-    })();
-
     // ========================================
     // BUILD PROMPT WITH PROMPTENGINE V2
     // ========================================
@@ -144,7 +137,6 @@ cat > /tmp/new_prompt_engine.txt << 'EOF'
       
       // Real Mode
       realModeActive: realModeActive,
-      realModePreset: realModePreset,
       
       // Identity
       modelReference: modelReference,

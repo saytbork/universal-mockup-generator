@@ -478,7 +478,6 @@ export function mapLifestyleToPromptOptions(
         mapped.creationMode = 'lifestyle';
         mapped.ugcRealModeActive = true;
         mapped.realModeActive = true;
-        mapped.ugcRealityPreset = 'authentic-ugc';
         mapped.ugcCaptureSituation = sceneState.ugcCaptureSituation || null;
     } else {
         mapped.ugcCaptureSituation = null;
