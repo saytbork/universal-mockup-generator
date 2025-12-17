@@ -537,6 +537,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   };
 
   const [values, setValues] = useState<Step3Values>(initialValues);
+  const isUGC = values.ugcRealMode === true;
 
   const toggleSection = (section: string) => {
     setOpenSection(openSection === section ? null : section);
@@ -952,27 +953,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         <div id="ugc-real-mode">
           <div className="pt-2 pb-4 px-2">
             <div className="space-y-4">
-              {/* CAMERA TYPE - NEW */}
-              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-indigo-200">CAMERA TYPE</p>
-                  <p className="text-[11px] text-gray-400 mt-1">Select the capture device aesthetic</p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {CAMERA_OPTIONS.map(option => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => { updateValue('cameraType', option.label); markSectionTouched('camera'); }}
-                      className={getPillClass(values.cameraType === option.label)}
-                      title={option.value}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {/* SHOT TYPE */}
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
@@ -999,7 +979,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </button>
               </div>
 
-              {values.ugcRealMode && (
+            {values.ugcRealMode && (
                 <>
                   {/* UGC REALITY PRESETS */}
                   <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
@@ -1058,115 +1038,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     </label>
                   </div>
 
-                  {/* HERO PERSONAS */}
-                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
-                    <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Hero personas</p>
-                    <div className="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
-                      {[
-                        { label: 'The Busy Mom', semantic: 'busy mom managing household, natural home environment, multitasking moment, authentic daily routine' },
-                        { label: 'The Fitness Enthusiast', semantic: 'fitness-focused adult after workout, casual activewear, natural indoor or outdoor setting' },
-                        { label: 'The Skincare Obsessed', semantic: 'skincare-focused woman during daily routine, bathroom mirror, natural lighting' },
-                        { label: 'The Minimalist', semantic: 'minimalist person in clean home environment, neutral tones, simple lifestyle' },
-                        { label: 'The Trendsetter', semantic: 'trend-focused young adult in casual lifestyle moment, modern outfit, spontaneous feel' }
-                      ].map(persona => (
-                        <button
-                          key={persona.label}
-                          type="button"
-                          onClick={() => {
-                            // Set semantic persona for prompt engine
-                            updateValue('heroPersona', persona.semantic);
-                            // Also set complementary mood/appearance for visual consistency
-                            if (persona.label === 'The Busy Mom') {
-                              updateValue('mood', 'Hustle & Juggle');
-                              updateValue('appearanceLevel', 'Running Late');
-                            } else if (persona.label === 'The Fitness Enthusiast') {
-                              updateValue('mood', 'Joyful & High-Energy');
-                              updateValue('appearanceLevel', 'Well-Groomed');
-                            } else if (persona.label === 'The Skincare Obsessed') {
-                              updateValue('mood', 'Calm & Serene');
-                              updateValue('skinRealism', 'Raw / Real');
-                            } else if (persona.label === 'The Minimalist') {
-                              updateValue('mood', 'Confident & Editorial');
-                              updateValue('appearanceLevel', 'Styled');
-                            } else if (persona.label === 'The Trendsetter') {
-                              updateValue('mood', 'Playful & Candid');
-                              updateValue('appearanceLevel', 'Styled');
-                            }
-                          }}
-                          className={`w-full text-left px-3 py-2 rounded-lg border text-sm transition ${values.heroPersona === persona.label
-                            ? 'bg-indigo-600 border-indigo-500 text-white shadow-md'
-                            : 'border-gray-600 text-gray-200 hover:border-indigo-400 hover:bg-indigo-500/10'
-                            }`}
-                        >
-                          {persona.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* SELFIE MODE SELECTION (Unified) */}
-                  {values.ugcRealMode && !hasModelReference && (
-                    <div className="space-y-3 pt-2 border-t border-gray-700/50">
-                      <div>
-                        <label className="text-xs uppercase tracking-wider text-indigo-300">Selfie Mode</label>
-                        <p className="text-[10px] text-gray-400">Exclusive capture styles</p>
-                      </div>
-
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          onClick={() => updateValue('selfieMode', 'None')}
-                          className={getPillClass(values.selfieMode === 'None' || !values.selfieMode)}
-                        >
-                          None
-                        </button>
-                        {SELFIE_MODE_OPTIONS.map(mode => (
-                          <button
-                            key={mode}
-                            type="button"
-                            onClick={() => updateValue('selfieMode', mode)}
-                            className={getPillClass(values.selfieMode === mode)}
-                          >
-                            {mode}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* SKIN REALISM */}
-                  <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-                    <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Skin Realism</p>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {SKIN_REALISM_OPTIONS.map(option => (
-                        <button
-                          key={option}
-                          type="button"
-                          onClick={() => updateValue('skinRealism', option)}
-                          className={getPillClass(values.skinRealism === option)}
-                        >
-                          {option}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* APPEARANCE LEVEL */}
-                  <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-                    <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Appearance Level</p>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {APPEARANCE_LEVEL_OPTIONS.map(option => (
-                        <button
-                          key={option}
-                          type="button"
-                          onClick={() => updateValue('appearanceLevel', option)}
-                          className={getPillClass(values.appearanceLevel === option)}
-                        >
-                          {option}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
                 </>
               )}
 
@@ -1320,32 +1191,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       </AccordionSection >
 
       {/* Mood */}
-      {/* BLOCK: Person Details (Locked if Model Ref Active) */}
-      {!hasModelReference && (
-        <AccordionSection
-          icon={User}
-          title="Person Details"
-          tooltip="Physical traits of the model"
-          isOpen={openSection === 'person'}
-          onToggle={() => toggleSection('person')}
-          isTouched={touchedSections.has('person')}
-        >
-          <div className="flex flex-wrap items-center gap-2">
-            {MOOD_OPTIONS.map(option => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => { updateValue('mood', option); markSectionTouched('mood'); }}
-                className={getPillClass(values.mood === option)}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-        </AccordionSection>
-      )}
-
-      {/* Mood */}
       < AccordionSection
         icon={Palette}
         title="Mood"
@@ -1368,25 +1213,60 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         </div>
       </AccordionSection >
 
-      {/* Camera & Framing */}
-      < AccordionSection
-        icon={Camera}
-        title="Camera & Framing"
-        tooltip="How the scene is captured"
-        isOpen={openSection === 'camera'}
-        onToggle={() => toggleSection('camera')}
-        isTouched={touchedSections.has('camera')}
-      >
-        <div className="space-y-3">
+      {!isUGC && (
+        <>
+          <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
+            <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Hero personas</p>
+            <div className="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
+              {[
+                { label: 'The Busy Mom', semantic: 'busy mom managing household, natural home environment, multitasking moment, authentic daily routine' },
+                { label: 'The Fitness Enthusiast', semantic: 'fitness-focused adult after workout, casual activewear, natural indoor or outdoor setting' },
+                { label: 'The Skincare Obsessed', semantic: 'skincare-focused woman during daily routine, bathroom mirror, natural lighting' },
+                { label: 'The Minimalist', semantic: 'minimalist person in clean home environment, neutral tones, simple lifestyle' },
+                { label: 'The Trendsetter', semantic: 'trend-focused young adult in casual lifestyle moment, modern outfit, spontaneous feel' }
+              ].map(persona => (
+                <button
+                  key={persona.label}
+                  type="button"
+                  onClick={() => {
+                    updateValue('heroPersona', persona.semantic);
+                    if (persona.label === 'The Busy Mom') {
+                      updateValue('mood', 'Hustle & Juggle');
+                      updateValue('appearanceLevel', 'Running Late');
+                    } else if (persona.label === 'The Fitness Enthusiast') {
+                      updateValue('mood', 'Joyful & High-Energy');
+                      updateValue('appearanceLevel', 'Well-Groomed');
+                    } else if (persona.label === 'The Skincare Obsessed') {
+                      updateValue('mood', 'Calm & Serene');
+                      updateValue('skinRealism', 'Raw / Real');
+                    } else if (persona.label === 'The Minimalist') {
+                      updateValue('mood', 'Confident & Editorial');
+                      updateValue('appearanceLevel', 'Styled');
+                    } else if (persona.label === 'The Trendsetter') {
+                      updateValue('mood', 'Playful & Candid');
+                      updateValue('appearanceLevel', 'Styled');
+                    }
+                  }}
+                  className={`w-full text-left px-3 py-2 rounded-lg border text-sm transition ${values.heroPersona === persona.label
+                    ? 'bg-indigo-600 border-indigo-500 text-white shadow-md'
+                    : 'border-gray-600 text-gray-200 hover:border-indigo-400 hover:bg-indigo-500/10'
+                    }`}
+                >
+                  {persona.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-            <p className="text-xs uppercase tracking-wider text-indigo-200">SHOT TYPE</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Skin Realism</p>
             <div className="flex flex-wrap items-center gap-2">
-              {SHOT_TYPE_OPTIONS.map(option => (
+              {SKIN_REALISM_OPTIONS.map(option => (
                 <button
                   key={option}
                   type="button"
-                  onClick={() => { updateValue('shotType', option); markSectionTouched('camera'); }}
-                  className={getPillClass(values.shotType === option)}
+                  onClick={() => updateValue('skinRealism', option)}
+                  className={getPillClass(values.skinRealism === option)}
                 >
                   {option}
                 </button>
@@ -1395,22 +1275,113 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           </div>
 
           <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-            <p className="text-xs uppercase tracking-wider text-indigo-200">CAMERA ANGLE</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Appearance Level</p>
             <div className="flex flex-wrap items-center gap-2">
-              {CAMERA_ANGLE_OPTIONS.map(option => (
+              {APPEARANCE_LEVEL_OPTIONS.map(option => (
                 <button
                   key={option}
                   type="button"
-                  onClick={() => { updateValue('cameraAngle', option); markSectionTouched('camera'); }}
-                  className={getPillClass(values.cameraAngle === option)}
+                  onClick={() => updateValue('appearanceLevel', option)}
+                  className={getPillClass(values.appearanceLevel === option)}
                 >
                   {option}
                 </button>
               ))}
             </div>
           </div>
-        </div>
-      </AccordionSection >
+
+          <AccordionSection
+            icon={Camera}
+            title="Camera & Framing"
+            tooltip="How the scene is captured"
+            isOpen={openSection === 'camera'}
+            onToggle={() => toggleSection('camera')}
+            isTouched={touchedSections.has('camera')}
+          >
+            <div className="space-y-3">
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-indigo-200">CAMERA TYPE</p>
+                  <p className="text-[11px] text-gray-400 mt-1">Select the capture device aesthetic</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {CAMERA_OPTIONS.map(option => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => { updateValue('cameraType', option.label); markSectionTouched('camera'); }}
+                      className={getPillClass(values.cameraType === option.label)}
+                      title={option.value}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <p className="text-xs uppercase tracking-wider text-indigo-200">SHOT TYPE</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  {SHOT_TYPE_OPTIONS.map(option => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => { updateValue('shotType', option); markSectionTouched('camera'); }}
+                      className={getPillClass(values.shotType === option)}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <p className="text-xs uppercase tracking-wider text-indigo-200">CAMERA ANGLE</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  {CAMERA_ANGLE_OPTIONS.map(option => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => { updateValue('cameraAngle', option); markSectionTouched('camera'); }}
+                      className={getPillClass(values.cameraAngle === option)}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {!hasModelReference && (
+                <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                  <div>
+                    <label className="text-xs uppercase tracking-wider text-indigo-300">Selfie Mode</label>
+                    <p className="text-[10px] text-gray-400">Exclusive capture styles</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => updateValue('selfieMode', 'None')}
+                      className={getPillClass(values.selfieMode === 'None' || !values.selfieMode)}
+                    >
+                      None
+                    </button>
+                    {SELFIE_MODE_OPTIONS.map(mode => (
+                      <button
+                        key={mode}
+                        type="button"
+                        onClick={() => updateValue('selfieMode', mode)}
+                        className={getPillClass(values.selfieMode === mode)}
+                      >
+                        {mode}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </AccordionSection >
+        </>
+      )}
 
       {/* BUNDLES SYSTEM - STRICTLY ISOLATED */}
       {/* Bundles are enabled ONLY when multiple products are uploaded. */}
