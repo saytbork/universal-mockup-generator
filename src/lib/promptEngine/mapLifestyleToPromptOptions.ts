@@ -12,7 +12,7 @@
  * - ALL mappings logged for debugging
  */
 
-import type { ExpertRole, Step3Values } from '@/components/LifestyleStep3';
+import type { ExpertRole, Step3Values, ExpertAttire } from '@/components/LifestyleStep3';
 import type { FormulationStoryOptions, PromptOptions } from './types';
 import { mapProductModeToPromptOptions } from './mapProductModeToPromptOptions';
 
@@ -95,7 +95,28 @@ const FORMULATION_LAB_VIBE_MAP: Record<string, FormulationStoryOptions['labVibe'
     'Warm Studio': 'apothecary_lab'
 };
 
+const ROLE_LABELS: Record<ExpertRole, string> = {
+    doctor: 'medical doctor / physician (MD)',
+    medical_professional: 'medical professional',
+    clinical_researcher: 'clinical researcher',
+    research_scientist: 'research scientist',
+    functional_health_expert: 'functional health expert',
+    wellness_practitioner: 'wellness practitioner',
+    pharmacist: 'pharmacist',
+    nutritionist: 'nutritionist',
+    custom: 'formulation expert'
+};
+
+const ATTIRE_DESCRIPTIONS: Record<ExpertAttire, string> = {
+    white_medical_coat: 'a white medical coat over professional attire',
+    white_scrubs: 'white medical scrubs',
+    light_blue_scrubs: 'light blue scrubs',
+    burgundy_scrubs: 'burgundy scrubs',
+    green_scrubs: 'green scrubs'
+};
+
 const EXPERT_ROLE_FOCUS_MAP: Record<ExpertRole, FormulationStoryOptions['professionalFocus']> = {
+    doctor: 'clinical_researcher',
     medical_professional: 'clinical_researcher',
     clinical_researcher: 'clinical_researcher',
     research_scientist: 'research_scientist',
@@ -116,7 +137,12 @@ const buildFormulationStoryOptions = (sceneState: Step3Values): FormulationStory
         professionalFocus: focus,
         expertName: sceneState.expertName?.trim() || undefined,
         roleCredentials: sceneState.expertCredentials?.trim() || undefined,
-        labVibe
+        labVibe,
+        expertRole: sceneState.expertRole,
+        expertRoleLabel: ROLE_LABELS[sceneState.expertRole] ?? 'medical expert',
+        expertAttire: sceneState.expertAttire,
+        expertAttireDescription: ATTIRE_DESCRIPTIONS[sceneState.expertAttire] ?? 'professional medical attire',
+        badgePreference: sceneState.expertBadgePreference
     };
 };
 
@@ -646,7 +672,7 @@ export function mapLifestyleToPromptOptions(
     mapped.formulationStory = formulationStoryOptions;
     mapped.formulationExpertEnabled = Boolean(formulationStoryOptions);
     mapped.formulationExpertName = sceneState.expertName;
-    mapped.formulationExpertRole = sceneState.expertCredentials;
+    mapped.formulationExpertRole = sceneState.expertCredentials?.trim() || sceneState.expertRole;
     mapped.formulationLabStyle = sceneState.labVibe;
     mapped.formulationExpertPreset = undefined;
 

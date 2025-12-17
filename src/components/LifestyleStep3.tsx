@@ -189,6 +189,8 @@ export interface Step3Values {
   expertRole: ExpertRole;
   expertName: string;
   expertCredentials: string;
+  expertAttire: ExpertAttire;
+  expertBadgePreference: BadgePreference;
   labVibe: string;
 
   // Advanced Pro
@@ -231,6 +233,7 @@ const getPillClass = (isActive: boolean, _fullWidth = false) => {
 const GENDER_OPTIONS = ['Female', 'Male', 'Non-binary', 'Trans woman', 'Trans man', 'Gender non-conforming'];
 
 export type ExpertRole =
+  | 'doctor'
   | 'medical_professional'
   | 'clinical_researcher'
   | 'research_scientist'
@@ -240,7 +243,17 @@ export type ExpertRole =
   | 'nutritionist'
   | 'custom';
 
+export type ExpertAttire =
+  | 'white_medical_coat'
+  | 'white_scrubs'
+  | 'light_blue_scrubs'
+  | 'burgundy_scrubs'
+  | 'green_scrubs';
+
+export type BadgePreference = 'name_only' | 'name_and_badge';
+
 const EXPERT_ROLE_OPTIONS: { label: string; value: ExpertRole }[] = [
+  { label: 'Doctor / Physician (MD)', value: 'doctor' },
   { label: 'Medical Professional', value: 'medical_professional' },
   { label: 'Clinical Researcher', value: 'clinical_researcher' },
   { label: 'Research Scientist', value: 'research_scientist' },
@@ -249,6 +262,19 @@ const EXPERT_ROLE_OPTIONS: { label: string; value: ExpertRole }[] = [
   { label: 'Pharmacist', value: 'pharmacist' },
   { label: 'Nutritionist', value: 'nutritionist' },
   { label: 'Custom', value: 'custom' }
+];
+
+const EXPERT_ATTIRE_OPTIONS: { label: string; value: ExpertAttire }[] = [
+  { label: 'White medical coat', value: 'white_medical_coat' },
+  { label: 'White scrubs', value: 'white_scrubs' },
+  { label: 'Light blue scrubs', value: 'light_blue_scrubs' },
+  { label: 'Burgundy scrubs', value: 'burgundy_scrubs' },
+  { label: 'Green scrubs', value: 'green_scrubs' }
+];
+
+const BADGE_PREFERENCE_OPTIONS: { label: string; value: BadgePreference; description: string }[] = [
+  { label: 'Name only', value: 'name_only', description: 'Single embroidered name, no badge.' },
+  { label: 'Name + badge', value: 'name_and_badge', description: 'Name with a small specialty badge opposite the pocket.' }
 ];
 const SKIN_TONE_OPTIONS = [
   'Fair Cool',
@@ -536,6 +562,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     expertRole: EXPERT_ROLE_OPTIONS[0].value,
     expertName: '',
     expertCredentials: '',
+    expertAttire: EXPERT_ATTIRE_OPTIONS[0].value,
+    expertBadgePreference: BADGE_PREFERENCE_OPTIONS[0].value,
     labVibe: LAB_VIBE_OPTIONS[0],
 
     // Advanced Pro
@@ -1665,6 +1693,22 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               </div>
 
               <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <p className="text-xs uppercase tracking-wider text-indigo-200">Medical Attire</p>
+                <div className="flex flex-wrap gap-2">
+                  {EXPERT_ATTIRE_OPTIONS.map(option => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => { updateValue('expertAttire', option.value); markSectionTouched('formulationStory'); }}
+                      className={getPillClass(values.expertAttire === option.value)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
                 <p className="text-xs uppercase tracking-wider text-indigo-200">Lab Vibe</p>
                 <div className="flex flex-wrap gap-2">
                   {LAB_VIBE_OPTIONS.map(option => (
@@ -1675,6 +1719,28 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       className={getPillClass(values.labVibe === option)}
                     >
                       {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <p className="text-xs uppercase tracking-wider text-indigo-200">Badge Preference</p>
+                <div className="flex flex-wrap gap-2">
+                  {BADGE_PREFERENCE_OPTIONS.map(option => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        updateValue('expertBadgePreference', option.value);
+                        markSectionTouched('formulationStory');
+                      }}
+                      className={getPillClass(values.expertBadgePreference === option.value)}
+                    >
+                      <span className="flex flex-col text-left">
+                        <span>{option.label}</span>
+                        <span className="text-[10px] text-gray-400">{option.description}</span>
+                      </span>
                     </button>
                   ))}
                 </div>

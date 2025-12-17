@@ -75,11 +75,25 @@ export type ProfessionalFocus =
     | 'research_scientist'
     | 'custom';
 
+export type ExpertAttire =
+    | 'white_medical_coat'
+    | 'white_scrubs'
+    | 'light_blue_scrubs'
+    | 'burgundy_scrubs'
+    | 'green_scrubs';
+
+export type BadgePreference = 'name_only' | 'name_and_badge';
+
 export interface FormulationStoryOptions {
     professionalFocus?: ProfessionalFocus;
     expertName?: string;
     roleCredentials?: string;
     labVibe?: 'modern_clinical_lab' | 'r_and_d_studio' | 'apothecary_lab' | 'none';
+    expertRole?: string;
+    expertRoleLabel?: string;
+    expertAttire?: ExpertAttire;
+    expertAttireDescription?: string;
+    badgePreference?: BadgePreference;
 }
 
 export interface PromptOptions {
