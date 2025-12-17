@@ -186,10 +186,10 @@ export interface Step3Values {
 
   // Formulation Story
   formulationStoryEnabled: boolean;
-  formulationPreset: string;
-  formulationName: string;
-  formulationRole: string;
-  formulationLabVibe: string;
+  expertRole: ExpertRole;
+  expertName: string;
+  expertCredentials: string;
+  labVibe: string;
 
   // Advanced Pro
   sameCreatorAcrossScenes: boolean;
@@ -230,18 +230,25 @@ const getPillClass = (isActive: boolean, _fullWidth = false) => {
 // EXPANDED GENDER OPTIONS - Exact spec (6 options)
 const GENDER_OPTIONS = ['Female', 'Male', 'Non-binary', 'Trans woman', 'Trans man', 'Gender non-conforming'];
 
-const FORMULATION_ROLES = [
-  'Respiratory Doctor',
-  'Pulmonologist',
-  'Clinical Researcher',
-  'Herbal Formulator',
-  'Nutritionist',
-  'Dermatologist',
-  'Pharmacist',
-  'Herbalist',
-  'Clinical Chemist',
-  'Cosmetic Scientist',
-  'Custom'
+export type ExpertRole =
+  | 'medical_professional'
+  | 'clinical_researcher'
+  | 'research_scientist'
+  | 'functional_health_expert'
+  | 'wellness_practitioner'
+  | 'pharmacist'
+  | 'nutritionist'
+  | 'custom';
+
+const EXPERT_ROLE_OPTIONS: { label: string; value: ExpertRole }[] = [
+  { label: 'Medical Professional', value: 'medical_professional' },
+  { label: 'Clinical Researcher', value: 'clinical_researcher' },
+  { label: 'Research Scientist', value: 'research_scientist' },
+  { label: 'Functional Health Expert', value: 'functional_health_expert' },
+  { label: 'Wellness Practitioner', value: 'wellness_practitioner' },
+  { label: 'Pharmacist', value: 'pharmacist' },
+  { label: 'Nutritionist', value: 'nutritionist' },
+  { label: 'Custom', value: 'custom' }
 ];
 const SKIN_TONE_OPTIONS = [
   'Fair Cool',
@@ -365,7 +372,6 @@ const COMPOSITION_MODE_OPTIONS = ['Ecommerce Blank Space', 'Product Bundle / Rou
 const SIDE_PLACEMENT_OPTIONS = ['Left', 'Center', 'Right'];
 
 // FORMULATION STORY
-const FORMULATION_PRESETS = ['Clinical Research', 'Lifestyle Study', 'Functional Science'];
 const LAB_VIBE_OPTIONS = ['Clean Lab', 'Moody Lab', 'Warm Studio'];
 
 // ============================================================================
@@ -527,10 +533,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
     // Formulation Story
     formulationStoryEnabled: false,
-    formulationPreset: FORMULATION_PRESETS[0],
-    formulationName: '',
-    formulationRole: FORMULATION_ROLES[0],
-    formulationLabVibe: LAB_VIBE_OPTIONS[0],
+    expertRole: EXPERT_ROLE_OPTIONS[0].value,
+    expertName: '',
+    expertCredentials: '',
+    labVibe: LAB_VIBE_OPTIONS[0],
 
     // Advanced Pro
     sameCreatorAcrossScenes: false,
@@ -1597,43 +1603,38 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           {values.formulationStoryEnabled && (
             <div className="space-y-3">
               <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-                <p className="text-xs uppercase tracking-wider text-indigo-200">Presets</p>
-                <div className="flex flex-wrap gap-2">
-                  {FORMULATION_PRESETS.map(option => (
-                    <button
-                      key={option}
-                      type="button"
-                      onClick={() => { updateValue('formulationPreset', option); markSectionTouched('formulationStory'); }}
-                      className={getPillClass(values.formulationPreset === option)}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
                 <label className="text-xs uppercase tracking-wider text-indigo-200">Expert Name</label>
                 <input
                   type="text"
-                  value={values.formulationName}
-                  onChange={(e) => { updateValue('formulationName', e.target.value); markSectionTouched('formulationStory'); }}
+                  value={values.expertName}
+                  onChange={(e) => { updateValue('expertName', e.target.value); markSectionTouched('formulationStory'); }}
                   className="w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                   placeholder="e.g., Dr. Maya Collins"
                 />
               </div>
 
               <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <label className="text-xs uppercase tracking-wider text-indigo-200">Expert Credentials</label>
+                <input
+                  type="text"
+                  value={values.expertCredentials}
+                  onChange={(e) => { updateValue('expertCredentials', e.target.value); markSectionTouched('formulationStory'); }}
+                  className="w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  placeholder="e.g., Formulation Scientist, 12 years mixing botanicals"
+                />
+              </div>
+
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
                 <p className="text-xs uppercase tracking-wider text-indigo-200">Expert Role</p>
                 <div className="flex flex-wrap gap-2">
-                  {FORMULATION_ROLES.map(option => (
+                  {EXPERT_ROLE_OPTIONS.map(option => (
                     <button
-                      key={option}
+                      key={option.value}
                       type="button"
-                      onClick={() => { updateValue('formulationRole', option); markSectionTouched('formulationStory'); }}
-                      className={getPillClass(values.formulationRole === option)}
+                      onClick={() => { updateValue('expertRole', option.value); markSectionTouched('formulationStory'); }}
+                      className={getPillClass(values.expertRole === option.value)}
                     >
-                      {option}
+                      {option.label}
                     </button>
                   ))}
                 </div>
@@ -1646,8 +1647,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     <button
                       key={option}
                       type="button"
-                      onClick={() => { updateValue('formulationLabVibe', option); markSectionTouched('formulationStory'); }}
-                      className={getPillClass(values.formulationLabVibe === option)}
+                      onClick={() => { updateValue('labVibe', option); markSectionTouched('formulationStory'); }}
+                      className={getPillClass(values.labVibe === option)}
                     >
                       {option}
                     </button>

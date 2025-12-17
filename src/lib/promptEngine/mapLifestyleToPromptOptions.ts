@@ -12,7 +12,7 @@
  * - ALL mappings logged for debugging
  */
 
-import type { Step3Values } from '@/components/LifestyleStep3';
+import type { ExpertRole, Step3Values } from '@/components/LifestyleStep3';
 import type { FormulationStoryOptions, PromptOptions } from './types';
 import { mapProductModeToPromptOptions } from './mapProductModeToPromptOptions';
 
@@ -57,44 +57,33 @@ const PROPS_SEMANTIC_MAP: Record<string, string> = {
     'Shopping Tote': 'cloth shopping tote bag as lifestyle prop, suggesting everyday errands'
 };
 
-const FORMULATION_PRESET_MAP: Record<string, FormulationStoryOptions['expertPreset']> = {
-    'Clinical Research': 'clinical_researcher',
-    'Lifestyle Study': 'herbal_formulator',
-    'Functional Science': 'respiratory_doctor'
-};
-
-const FORMULATION_ROLE_FOCUS_MAP: Record<string, FormulationStoryOptions['professionalFocus']> = {
-    'Respiratory Doctor': 'pulmonologist',
-    'Pulmonologist': 'pulmonologist',
-    'Clinical Researcher': 'clinical_researcher',
-    'Herbal Formulator': 'herbalist',
-    'Nutritionist': 'nutritionist',
-    'Dermatologist': 'dermatologist',
-    'Pharmacist': 'pharmacist',
-    'Herbalist': 'herbalist',
-    'Clinical Chemist': 'clinical_researcher',
-    'Cosmetic Scientist': 'dermatologist',
-    'Custom': 'custom'
-};
-
 const FORMULATION_LAB_VIBE_MAP: Record<string, FormulationStoryOptions['labVibe']> = {
     'Clean Lab': 'modern_clinical_lab',
     'Moody Lab': 'r_and_d_studio',
     'Warm Studio': 'apothecary_lab'
 };
 
+const EXPERT_ROLE_FOCUS_MAP: Record<ExpertRole, FormulationStoryOptions['professionalFocus']> = {
+    medical_professional: 'clinical_researcher',
+    clinical_researcher: 'clinical_researcher',
+    research_scientist: 'research_scientist',
+    functional_health_expert: 'functional_health_expert',
+    wellness_practitioner: 'wellness_practitioner',
+    pharmacist: 'pharmacist',
+    nutritionist: 'nutritionist',
+    custom: 'custom'
+};
+
 const buildFormulationStoryOptions = (sceneState: Step3Values): FormulationStoryOptions | undefined => {
     if (!sceneState.formulationStoryEnabled) {
         return undefined;
     }
-    const preset = FORMULATION_PRESET_MAP[sceneState.formulationPreset] ?? 'custom';
-    const focus = FORMULATION_ROLE_FOCUS_MAP[sceneState.formulationRole] ?? 'custom';
-    const labVibe = FORMULATION_LAB_VIBE_MAP[sceneState.formulationLabVibe] ?? 'none';
+    const focus = EXPERT_ROLE_FOCUS_MAP[sceneState.expertRole] ?? 'custom';
+    const labVibe = FORMULATION_LAB_VIBE_MAP[sceneState.labVibe] ?? 'none';
     return {
-        expertPreset: (preset as FormulationStoryOptions['expertPreset']) ?? undefined,
-        professionalFocus: (focus as FormulationStoryOptions['professionalFocus']) ?? undefined,
-        expertName: sceneState.formulationName?.trim() || undefined,
-        roleCredentials: sceneState.formulationRole?.trim() || undefined,
+        professionalFocus: focus,
+        expertName: sceneState.expertName?.trim() || undefined,
+        roleCredentials: sceneState.expertCredentials?.trim() || undefined,
         labVibe
     };
 };
@@ -617,10 +606,21 @@ export function mapLifestyleToPromptOptions(
     const formulationStoryOptions = buildFormulationStoryOptions(sceneState);
     mapped.formulationStory = formulationStoryOptions;
     mapped.formulationExpertEnabled = Boolean(formulationStoryOptions);
-    mapped.formulationExpertName = sceneState.formulationName;
-    mapped.formulationExpertRole = sceneState.formulationRole;
-    mapped.formulationLabStyle = sceneState.formulationLabVibe;
-    mapped.formulationExpertPreset = sceneState.formulationPreset;
+    mapped.formulationExpertName = sceneState.expertName;
+    mapped.formulationExpertRole = sceneState.expertCredentials;
+    mapped.formulationLabStyle = sceneState.labVibe;
+    mapped.formulationExpertPreset = undefined;
+
+    if (formulationStoryOptions) {
+        mapped.ugcRealModeActive = false;
+        mapped.realModeActive = false;
+        mapped.ugcCaptureSituation = null;
+        mapped.selfieMode = 'None';
+        if (mapped.personDetails) {
+            mapped.personDetails.selfieMode = undefined;
+            mapped.personDetails.selfieType = undefined;
+        }
+    }
 
     // ========================================================================
     // CONTENT STYLE & CREATION INTENT

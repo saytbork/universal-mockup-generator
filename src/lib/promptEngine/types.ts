@@ -63,9 +63,20 @@ export interface PersonDetails {
     heroPersona?: string;             // Semantic UGC persona description
 }
 
+export type ProfessionalFocus =
+    | 'pulmonologist'
+    | 'nutritionist'
+    | 'dermatologist'
+    | 'pharmacist'
+    | 'clinical_researcher'
+    | 'herbalist'
+    | 'functional_health_expert'
+    | 'wellness_practitioner'
+    | 'research_scientist'
+    | 'custom';
+
 export interface FormulationStoryOptions {
-    expertPreset?: 'respiratory_doctor' | 'clinical_researcher' | 'herbal_formulator' | 'custom';
-    professionalFocus?: 'pulmonologist' | 'nutritionist' | 'dermatologist' | 'pharmacist' | 'clinical_researcher' | 'herbalist' | 'custom';
+    professionalFocus?: ProfessionalFocus;
     expertName?: string;
     roleCredentials?: string;
     labVibe?: 'modern_clinical_lab' | 'r_and_d_studio' | 'apothecary_lab' | 'none';

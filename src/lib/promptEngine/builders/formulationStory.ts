@@ -10,6 +10,9 @@ const PROFESSIONAL_FOCUS_COPY: Record<ProfessionalFocus, string> = {
     pharmacist: 'pharmaceutical formulation and ingredient stewardship from a practical standpoint',
     clinical_researcher: 'clinical research and hands-on testing with real volunteers',
     herbalist: 'botanical and herbal formulation with natural, attainable rituals',
+    functional_health_expert: 'practical functional health formulation rooted in everyday routines',
+    wellness_practitioner: 'wellness practice and formulation that honors stress-relief rituals',
+    research_scientist: 'research scientist background with grounded lab observations and repeated notes',
     custom: 'hands-on formulation work that feels rooted in the creator’s routine'
 };
 
