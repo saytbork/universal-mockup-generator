@@ -58,6 +58,7 @@ export interface PersonDetails {
     personProps?: string;
     microLocation?: string;
     personExpression?: string;
+    selfieMode?: string;
     selfieType?: string;
     heroPersona?: string;             // Semantic UGC persona description
 }
@@ -98,8 +99,8 @@ export interface PromptOptions {
     personProps?: string;
     microLocation?: string;
     personExpression?: string;
-    selfieType?: string;
-    selfieExecution?: string;    // Execution style for Front Camera Selfie
+    selfieMode?: string;      // Unified Selfie Mode
+    selfieType?: string;      // Legacy
     eyeDirection?: EyeDirectionKey;
 
     // Product

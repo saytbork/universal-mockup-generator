@@ -107,7 +107,7 @@ export class FormulationStoryBuilder implements PromptBuilder {
             // Determine if it's scrubs or lab coat for the description
             // const isScrubs = attireDescription.includes('scrubs'); // Unused for now but kept concept
 
-            result += `\nEXPERT DETAIL: The expert is wearing ${attireDescription}. On the LEFT SIDE OF THE IMAGE (viewer's left) ONLY, on the chest area, there is a single small embroidered name reading "${expertName}". The embroidery is stitched into the fabric. There is absolutely NO embroidery, text, badge, or marking on the opposite side. The embroidery must not be mirrored, duplicated, or symmetrically repeated.`;
+            result += `\nEXPERT DETAIL: The expert is wearing ${attireDescription}. On the LEFT SIDE OF THE IMAGE (viewer's left) ONLY, on the chest area of the ${attireDescription}, there is a single small embroidered name in plain text reading "${expertName}". The text is small, realistic, and stitched directly into the fabric. There is absolutely NO embroidery, text, badge, or marking on the opposite side. The embroidery must NEVER be mirrored, duplicated, or symmetrically repeated.`;
         }
 
         console.log('[FORMULATION STORY] Injected:', result.substring(0, 150) + '...');

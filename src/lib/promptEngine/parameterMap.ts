@@ -146,16 +146,16 @@ export const parameterMap: ParameterMap = {
   },
 
   cameraType: {
-    "Modern Smartphone": "captured with a modern smartphone aesthetic",
-    "Front Selfie Cam": "captured using the front selfie camera perspective",
-    "Sony Handycam Hi8": "retro Sony Hi8 camcorder aesthetic",
-    "Disposable Film Camera": "disposable film camera grainy look",
-    "Polaroid OneStep": "polaroid style soft tone aesthetic",
-    "DSLR/Mirrorless": "mirrorless camera depth and clarity",
-    "Laptop Webcam": "webcam look with flat lighting",
-    "Cinema Camera Rig": "cinema camera dynamic range look",
-    "Medium Format Studio Camera": "medium format high clarity aesthetic",
-    "Sony FX3": "Sony FX3 cinematic modern look"
+    "Modern Smartphone": "captured with a consumer-grade handheld camera, imperfect focus and exposure",
+    "Front Selfie Cam": "captured using the front selfie camera perspective with subtle wide-angle distortion",
+    "Sony Handycam Hi8": "vintage Sony Hi8 camcorder aesthetic with softer focus, warmer color cast, period-appropriate grain",
+    "Disposable Film Camera": "shot on a disposable 35mm film camera with strong flash and grain, casual snapshot feel",
+    "Polaroid OneStep": "shot on an instant Polaroid camera with soft focus and vignette",
+    "DSLR/Mirrorless": "shot on a professional DSLR/Mirrorless camera with a shallow depth of field",
+    "Laptop Webcam": "shot on a built-in laptop webcam with low-light noise",
+    "Cinema Camera Rig": "captured on a cinema camera rig with PL glass, 6K sensors, and stabilized movement",
+    "Medium Format Studio Camera": "shot on a medium format studio camera tethered to Capture One for razor-sharp product detail",
+    "Sony FX3": "captured on a Sony FX3 cinema camera with S-Cinetone color science"
   },
 
   cameraDistance: {
@@ -167,25 +167,28 @@ export const parameterMap: ParameterMap = {
   },
 
   lighting: {
-    "Natural Light": "soft natural window lighting",
-    "Sunny Day": "bright sunny lighting with crisp highlights",
-    "Golden Hour": "warm golden hour ambience",
-    Overcast: "diffused overcast lighting",
-    "Cozy Indoors": "warm indoor light ambiance",
-    "Ring Light": "ring light with circular catchlights",
-    "Mood Lighting": "moody low light environment",
-    "Night Mode": "night mode with low exposure feel",
-    "Flash Photo": "on camera flash aesthetic with crisp shadows"
+    "Natural Light": "natural ambient daylight with soft shadows and uneven falloff",
+    "Sunny Day": "bright direct sunlight with hard shadows and high contrast",
+    "Golden Hour": "warm golden sunlight, low-angle light, gentle highlights, natural exposure variation",
+    "Overcast": "soft diffused cloudy light, low contrast, muted highlights",
+    "Cozy Indoors": "warm ambient indoor lighting, practical lamps, soft falloff",
+    "Ring Light": "direct frontal ring light, visible catchlights, slight flattening of facial shadows",
+    "Mood Lighting": "dim moody lighting with colored accents or low-key atmosphere",
+    "Night Mode": "low-light night scene with high iso noise and ambient city glow",
+    "Flash Photo": "harsh direct flash, strong highlights, hard shadows, casual snapshot feel"
   },
 
-  selfieType: {
-    None: "",
-    "Arm's Length Selfie": "captured from arm's length selfie distance",
-    "Mirror Selfie (phone visible)": "mirror selfie with visible phone",
-    "One-hand product selfie": "one handed selfie with product close and phone unseen",
-    "Overhead in-bed selfie": "overhead selfie from in bed angle",
-    "Low-angle hero selfie": "low angle selfie direction",
-    "Back camera POV": "back camera POV with visible arms"
+  selfieMode: {
+    "Front camera, arm's length": "front-facing smartphone camera, arm's length selfie, partially visible arm, natural distortion, casual framing",
+    "Front camera, close face": "front-facing smartphone camera, close-up face selfie, intimate framing, lens distortion features",
+    "Front camera, upper body": "front-facing smartphone camera, upper body selfie shot, showing outfit context",
+    "Mirror selfie": "mirror selfie with visible smartphone in hand, reflection shot, environment visible behind",
+    "Back camera handheld": "back camera handheld POV shot, one hand visible in frame holding product or interacting",
+    "Third-person phone shot": "shot of someone taking a photo with their phone, third person perspective showing the act of capturing content",
+    "Casual angled selfie": "high-angle casual selfie, playful perspective, arm extended upward",
+    "Friend holding phone": "candid selfie taken by a friend/second person, interaction with lens",
+    "Table propped phone": "selfie taken from a phone propped on a table, slightly low angle, self-timer aesthetic",
+    "Laptop webcam": "laptop webcam capture, slight low angle looking up, screen glow reflection"
   },
 
   compositionMode: {

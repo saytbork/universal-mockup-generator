@@ -152,6 +152,17 @@ function validateSemanticCombinations(options: PromptOptions): ValidationWarning
 // ============================================================================
 // PROMPT ENGINE - Main Orchestrator
 // ============================================================================
+
+// ============================================================================
+// CUSTOM ERRORS
+// ============================================================================
+export class InvalidSceneCombinationError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'InvalidSceneCombinationError';
+    }
+}
+
 export class PromptEngine {
     // CANONICAL BUILDER ORDER
     private constraintsBuilder = new ConstraintsBuilder();    // Priority 6
@@ -171,8 +182,22 @@ export class PromptEngine {
      * 5. Special Builders (formulation, ecommerce)
      * 6. Finalize (constraints, output)
      */
+
     build(options: PromptOptions): string {
         console.log('[PROMPT ENGINE] Starting canonical build pipeline');
+
+        // ====================================================================
+        // RULE 4: MANDATORY SAFETY GUARD - Fail early
+        // ====================================================================
+        const isSelfie = options.selfieMode && options.selfieMode !== 'None';
+        const productCount = options.productAssets?.length || 0;
+
+        if (isSelfie && productCount > 1) {
+            console.error('❌ CRITICAL: Attempted to build prompt with Selfie Mode + Multiple Products');
+            throw new InvalidSceneCombinationError(
+                'Selfie mode cannot be used with multiple products. Please switch to Standard Camera or Single Product.'
+            );
+        }
 
         // ====================================================================
         // VALIDATION - Check for illegal combinations

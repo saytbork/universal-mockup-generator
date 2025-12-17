@@ -4244,7 +4244,7 @@ If the model attempts to create a scene or environment, override it and force a 
         // If LifestyleStep3 values exist, map them to PromptOptions
         let promptOptions = basePromptOptions;
         if (lifestyleStep3Values && !isProductPlacement) {
-          promptOptions = mapLifestyleToPromptOptions(lifestyleStep3Values, basePromptOptions);
+          promptOptions = mapLifestyleToPromptOptions(lifestyleStep3Values, basePromptOptions, hasModelReference);
         }
 
         // MANDATORY LOGS - Prove injection works
@@ -5164,6 +5164,8 @@ If the model attempts to create a scene or environment, override it and force a 
                     isGenerateDisabled={isImageLoading || !uploadedImageFile}
                     onValuesChange={handleLifestyleStep3Change}
                     onGenerate={handleGenerateClick}
+                    hasModelReference={hasModelReference}
+                    productCount={activeProducts.length}
                   />
                 </div>
 
@@ -5254,6 +5256,8 @@ interface SceneBuilderStepProps {
   isGenerateDisabled: boolean;
   onValuesChange: (values: Step3Values) => void;
   onGenerate: () => void;
+  hasModelReference: boolean;
+  productCount: number;
 }
 
 const SceneBuilderStep = forwardRef<HTMLDivElement, SceneBuilderStepProps>(({
@@ -5263,6 +5267,8 @@ const SceneBuilderStep = forwardRef<HTMLDivElement, SceneBuilderStepProps>(({
   isGenerateDisabled,
   onValuesChange,
   onGenerate,
+  hasModelReference,
+  productCount,
 }, ref) => (
   <div
     ref={ref}
@@ -5272,6 +5278,10 @@ const SceneBuilderStep = forwardRef<HTMLDivElement, SceneBuilderStepProps>(({
       <LifestyleStep3
         isProductMode={isProductMode}
         onValuesChange={onValuesChange}
+        onCanGenerateChange={(canGenerate) => {
+          // Add logic if needed
+        }}
+        hasModelReference={hasModelReference}
       />
     </div>
     <div className="mt-8 flex-shrink-0">

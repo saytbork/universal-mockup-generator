@@ -46,7 +46,7 @@ export interface ParameterMap {
   productMaterial: Record<string, string>;
   cameraAngles?: Record<CameraShotKey, string>;
   lighting: Record<string, string>;
-  selfieType: Record<string, string>;
+  selfieMode: Record<string, string>;
   compositionMode: Record<string, string>;
   creationMode: Record<string, string>;
   props: Record<string, string>;

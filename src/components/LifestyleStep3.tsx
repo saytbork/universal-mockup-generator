@@ -2,8 +2,14 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   SlidersHorizontal, User, Palette, Activity, Scissors, Smile, Eye, Sparkles,
   Sun, Camera, Rotate3d, Layout, Hand, Smartphone, Shirt, Layers, Film,
-  Home, MapPin, Coffee, Utensils, Car, Waves, Mountain, Building2, Edit3, Heart, Check
+  Home, MapPin, Coffee, Utensils, Car, Waves, Mountain, Building2, Edit3, Heart, Check,
+  Aperture, Zap
 } from 'lucide-react';
+import {
+  LIGHTING_OPTIONS,
+  CAMERA_OPTIONS,
+  CAMERA_ANGLE_OPTIONS as CONSTANT_CAMERA_ANGLE_OPTIONS // Use constant if needed or stick to local if it matches
+} from '../../constants';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -90,6 +96,8 @@ interface LifestyleStep3Props {
   isProductMode?: boolean;
   onValuesChange?: (values: Step3Values) => void;
   onCanGenerateChange?: (canGenerate: boolean) => void;
+  hasModelReference?: boolean;
+  productCount?: number;
 }
 
 export interface Step3Values {
@@ -135,6 +143,7 @@ export interface Step3Values {
 
   // Camera
   shotType: string;
+  cameraType: string;
   cameraAngle: string;
   framing: string;
 
@@ -144,11 +153,8 @@ export interface Step3Values {
   // Realism
   ugcRealMode: boolean;
 
-  // Selfie Type (for UGC framing)
-  selfieType: string;
-
-  // Selfie Execution (only for Front Camera Selfie)
-  selfieExecution: string;
+  // Selfie Mode (Unified System)
+  selfieMode: string;
 
   // Wardrobe
   wardrobe: string;
@@ -221,7 +227,17 @@ const getPillClass = (isActive: boolean, _fullWidth = false) => {
 // EXPANDED GENDER OPTIONS - Exact spec (6 options)
 const GENDER_OPTIONS = ['Female', 'Male', 'Non-binary', 'Trans woman', 'Trans man', 'Gender non-conforming'];
 
-// Refined Skin Tone (7 options)
+const FORMULATION_ROLES = [
+  'Respiratory Doctor',
+  'Pulmonologist',
+  'Clinical Researcher',
+  'Herbal Formulator',
+  'Nutritionist',
+  'Dermatologist',
+  'Pharmacist',
+  'Herbalist',
+  'Custom'
+];
 const SKIN_TONE_OPTIONS = [
   'Fair Cool',
   'Fair Warm',
@@ -298,25 +314,23 @@ const ENVIRONMENT_OUTDOOR = [
   { value: 'Natural Exterior', icon: Mountain },
 ];
 
-// SELFIE TYPE - Camera Origin / Capture Style (per final spec)
-const SELFIE_TYPE_OPTIONS = [
-  'Front Camera Selfie',
-  'Mirror Selfie',
-  'Back Camera Handheld',
-  'Third-Person Phone Shot'
-];
-
-// SELFIE EXECUTION - How the selfie is taken (only for Front Camera Selfie)
-const SELFIE_EXECUTION_OPTIONS = [
-  { value: "Arm's length selfie", prompt: "arm's length front camera selfie, handheld smartphone, phone not visible in frame, classic UGC composition" },
-  { value: 'Close face selfie', prompt: 'close-up front camera selfie, intimate framing, face dominant in frame, casual handheld feel' },
-  { value: 'Upper body selfie', prompt: 'front camera selfie showing head and upper torso, clean framing, casual creator style' },
-  { value: 'Casual angled selfie', prompt: 'front camera selfie with slight tilt, imperfect angle, spontaneous casual composition' },
+// SELFIE MODE - Unified Exclusive Enum
+const SELFIE_MODE_OPTIONS = [
+  "Front camera, arm's length",
+  "Front camera, close face",
+  "Front camera, upper body",
+  "Mirror selfie",
+  "Back camera handheld",
+  "Third-person phone shot",
+  "Casual angled selfie",
+  "Friend holding phone",
+  "Table propped phone",
+  "Laptop webcam"
 ];
 
 // TIME & LIGHTING - per final spec
 const TIME_OF_DAY_OPTIONS = ['Morning', 'Midday', 'Evening', 'Night'];
-const LIGHTING_STYLE_OPTIONS = ['Natural', 'Indoor', 'Mixed'];
+// LIGHTING_STYLE_OPTIONS removed in favor of imported LIGHTING_OPTIONS
 
 // Mood - Physical body language
 const MOOD_OPTIONS = [
@@ -414,7 +428,13 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
-const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, onValuesChange, onCanGenerateChange }) => {
+const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
+  isProductMode = false,
+  onValuesChange,
+  onCanGenerateChange,
+  hasModelReference = false,
+  productCount = 0,
+}: LifestyleStep3Props) => {
   const [isPro, setIsPro] = useState(false);
   const [sceneMode, setSceneMode] = useState<'ugc' | 'product'>(isProductMode ? 'product' : 'ugc');
   const [openSection, setOpenSection] = useState<string | null>(isProductMode ? 'product-setup' : 'creator');
@@ -463,8 +483,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
 
     // Camera
     shotType: 'Medium',
+    cameraType: 'Modern Smartphone',
     cameraAngle: 'Eye level',
-    framing: 'Centered',
+    framing: 'Rule of thirds',
 
     // Product Interaction
     productInteraction: 'Holding',
@@ -472,11 +493,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
     // Realism
     ugcRealMode: true,
 
-    // Selfie Type
-    selfieType: 'Front Camera Selfie',
-
-    // Selfie Execution (only for Front Camera Selfie)
-    selfieExecution: "Arm's length selfie",
+    // Selfie
+    selfieMode: 'None',
 
     // Wardrobe
     wardrobe: '',
@@ -535,8 +553,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
   const updateValue = useCallback(<K extends keyof Step3Values>(key: K, value: Step3Values[K]) => {
     // MANDATORY LOG on every update (Phase 3)
     console.log('[STEP3 UPDATE]', key, value, values);
-    setValues(prev => ({ ...prev, [key]: value }));
-  }, [values]);
+    setValues(prev => {
+      const newValues = { ...prev, [key]: value };
+
+      // SAFETY RULE: If hasModelReference is true, force UGC off and clear creator
+      if (hasModelReference) {
+        newValues.ugcRealMode = false;
+        newValues.creatorPreset = null;
+      }
+
+      return newValues;
+    });
+  }, [values, hasModelReference]);
 
   const toggleBooleanFlag = <K extends keyof Step3Values>(key: K) => {
     const current = values[key];
@@ -561,6 +589,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
   }, [values, onValuesChange]);
 
   const isPersonDisabled = values.noPerson;
+
+  // Initial Safety Check for hasModelReference
+  useEffect(() => {
+    if (hasModelReference && (values.ugcRealMode || values.creatorPreset)) {
+      setValues(prev => ({
+        ...prev,
+        ugcRealMode: false,
+        creatorPreset: null
+      }));
+    }
+  }, [hasModelReference, values.ugcRealMode, values.creatorPreset]);
 
   // ============================================================================
   // SCENE INTENT - SINGLE SOURCE OF TRUTH
@@ -593,7 +632,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
       ...prev,
       sceneIntent: 'ecommerce',
       ugcRealMode: false,            // Disable environment mode
-      selfieType: 'None',            // Clear UGC-specific values
+      selfieMode: 'None',            // Clear UGC-specific values
       customEnvironment: '',         // Clear custom environment
     }));
   }, []);
@@ -634,9 +673,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
     }
 
     // Auto-clear selfie type
-    if (values.selfieType && values.selfieType !== 'None') {
-      console.log('[PRODUCT MODE] Clearing selfie type');
-      updateValue('selfieType', 'None');
+    if (values.selfieMode && values.selfieMode !== 'None') {
+      console.log('[PRODUCT MODE] Clearing selfie mode');
+      updateValue('selfieMode', 'None');
     }
 
     // Ensure noPerson is true
@@ -654,7 +693,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
     isProductMode,
     values.ugcRealMode,
     values.mood,
-    values.selfieType,
+    values.selfieMode,
     values.noPerson,
     values.creationIntent,
     updateValue
@@ -896,7 +935,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
             </div>
           )}
         </div>
-      </AccordionSection>
+
+      </AccordionSection >
 
       {/* UGC REAL MODE */}
       {/* DO NOT SPLIT THIS BLOCK */}
@@ -907,12 +947,33 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
         tooltip="Creates an authentic user generated content look"
         isOpen={openSection === 'realism'}
         onToggle={() => toggleSection('realism')}
+        isTouched={touchedSections.has('ugc')}
       >
         <div id="ugc-real-mode">
           <div className="pt-2 pb-4 px-2">
             <div className="space-y-4">
+              {/* CAMERA TYPE - NEW */}
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-indigo-200">CAMERA TYPE</p>
+                  <p className="text-[11px] text-gray-400 mt-1">Select the capture device aesthetic</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {CAMERA_OPTIONS.map(option => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => { updateValue('cameraType', option.label); markSectionTouched('camera'); }}
+                      className={getPillClass(values.cameraType === option.label)}
+                      title={option.value}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-              {/* UGC TOGGLE */}
+              {/* SHOT TYPE */}
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
                   <p className="text-xs uppercase tracking-wider text-indigo-200">UGC REAL MODE</p>
@@ -926,7 +987,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                     const newValue = !values.ugcRealMode;
                     updateValue('ugcRealMode', newValue);
                     if (!newValue) {
-                      updateValue('selfieType', 'Front Camera Selfie');
+                      updateValue('selfieMode', 'None');
                     } else {
                       updateValue('facialExpression', 'Soft Smile');
                       updateValue('eyeDirection', 'Looking at camera');
@@ -951,15 +1012,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                           onClick={() => {
                             // Apply preset settings
                             if (preset === 'Raw Selfie') {
-                              updateValue('selfieType', 'Front Camera Selfie');
+                              updateValue('selfieMode', "Front camera, arm's length");
                               updateValue('lightingStyle', 'Natural');
                             } else if (preset === 'Mirror Shot') {
-                              updateValue('selfieType', 'Mirror Selfie');
+                              updateValue('selfieMode', 'Mirror selfie');
                             } else if (preset === 'Bathroom Lighting') {
                               updateValue('environment', 'Bathroom');
                               updateValue('lightingStyle', 'Indoor');
                             } else if (preset === 'Car Interior') {
-                              updateValue('selfieType', 'Back Camera Handheld');
+                              updateValue('selfieMode', 'Back camera handheld');
                               updateValue('environment', 'Car Interior');
                             } else if (preset === 'Messy Room') {
                               updateValue('environment', 'Bedroom');
@@ -1032,7 +1093,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                               updateValue('appearanceLevel', 'Styled');
                             }
                           }}
-                          className="w-full text-left px-3 py-2 rounded-lg border border-gray-600 text-sm text-gray-200 hover:border-indigo-400 hover:bg-indigo-500/10 transition"
+                          className={`w-full text-left px-3 py-2 rounded-lg border text-sm transition ${values.heroPersona === persona.label
+                            ? 'bg-indigo-600 border-indigo-500 text-white shadow-md'
+                            : 'border-gray-600 text-gray-200 hover:border-indigo-400 hover:bg-indigo-500/10'
+                            }`}
                         >
                           {persona.label}
                         </button>
@@ -1040,36 +1104,30 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
                     </div>
                   </div>
 
-                  {/* SELFIE TYPE */}
-                  <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-                    <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Selfie Type</p>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {SELFIE_TYPE_OPTIONS.map(option => (
-                        <button
-                          key={option}
-                          type="button"
-                          onClick={() => updateValue('selfieType', option)}
-                          className={getPillClass(values.selfieType === option)}
-                        >
-                          {option}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  {/* SELFIE MODE SELECTION (Unified) */}
+                  {values.ugcRealMode && !hasModelReference && (
+                    <div className="space-y-3 pt-2 border-t border-gray-700/50">
+                      <div>
+                        <label className="text-xs uppercase tracking-wider text-indigo-300">Selfie Mode</label>
+                        <p className="text-[10px] text-gray-400">Exclusive capture styles</p>
+                      </div>
 
-                  {/* SELFIE EXECUTION - Only for Front Camera Selfie */}
-                  {values.selfieType === 'Front Camera Selfie' && (
-                    <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-                      <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Selfie Execution</p>
-                      <div className="flex flex-wrap items-center gap-2">
-                        {SELFIE_EXECUTION_OPTIONS.map(option => (
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => updateValue('selfieMode', 'None')}
+                          className={getPillClass(values.selfieMode === 'None' || !values.selfieMode)}
+                        >
+                          None
+                        </button>
+                        {SELFIE_MODE_OPTIONS.map(mode => (
                           <button
-                            key={option.value}
+                            key={mode}
                             type="button"
-                            onClick={() => updateValue('selfieExecution', option.value)}
-                            className={getPillClass(values.selfieExecution === option.value)}
+                            onClick={() => updateValue('selfieMode', mode)}
+                            className={getPillClass(values.selfieMode === mode)}
                           >
-                            {option.value}
+                            {mode}
                           </button>
                         ))}
                       </div>
@@ -1115,10 +1173,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
             </div>
           </div>
         </div>
-      </AccordionSection>
+
+      </AccordionSection >
 
       {/* Product Interaction */}
-      <AccordionSection
+      < AccordionSection
         icon={Hand}
         title="Product Interaction"
         tooltip="Control how the creator handles the product"
@@ -1138,10 +1197,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
             </button>
           ))}
         </div>
-      </AccordionSection>
+      </AccordionSection >
 
       {/* Environment */}
-      <AccordionSection
+      < AccordionSection
         icon={Home}
         title="Environment"
         tooltip="Where the scene takes place"
@@ -1205,10 +1264,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
             />
           </div>
         </div>
-      </AccordionSection>
+      </AccordionSection >
 
       {/* Time & Lighting */}
-      <AccordionSection
+      < AccordionSection
         icon={Sun}
         title="Time & Lighting"
         tooltip="Control the lighting and time of day"
@@ -1217,8 +1276,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
         isTouched={touchedSections.has('lighting')}
       >
         <div className="space-y-3">
+          {/* TIME OF DAY */}
           <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-            <p className="text-xs uppercase tracking-wider text-indigo-200">TIME OF DAY</p>
+            <div>
+              <p className="text-xs uppercase tracking-wider text-indigo-200">TIME OF DAY</p>
+              <p className="text-[11px] text-gray-400 mt-1">Set the temporal context</p>
+            </div>
             <div className="flex flex-wrap items-center gap-2">
               {TIME_OF_DAY_OPTIONS.map(option => (
                 <button
@@ -1233,26 +1296,57 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
             </div>
           </div>
 
+          {/* LIGHTING STYLE - Updated to use LIGHTING_OPTIONS from constants */}
           <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-            <p className="text-xs uppercase tracking-wider text-indigo-200">LIGHTING STYLE</p>
-            <div className="flex flex-wrap items-center gap-2">
-              {LIGHTING_STYLE_OPTIONS.map(option => (
+            <div>
+              <p className="text-xs uppercase tracking-wider text-indigo-200">LIGHTING STYLE</p>
+              <p className="text-[11px] text-gray-400 mt-1">Select the lighting quality</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {LIGHTING_OPTIONS.map(option => (
                 <button
-                  key={option}
+                  key={option.value}
                   type="button"
-                  onClick={() => { updateValue('lightingStyle', option); markSectionTouched('lighting'); }}
-                  className={getPillClass(values.lightingStyle === option)}
+                  onClick={() => { updateValue('lightingStyle', option.label); markSectionTouched('lighting'); }}
+                  className={getPillClass(values.lightingStyle === option.label)}
+                  title={option.value}
                 >
-                  {option}
+                  {option.label}
                 </button>
               ))}
             </div>
           </div>
         </div>
-      </AccordionSection>
+      </AccordionSection >
 
       {/* Mood */}
-      <AccordionSection
+      {/* BLOCK: Person Details (Locked if Model Ref Active) */}
+      {!hasModelReference && (
+        <AccordionSection
+          icon={User}
+          title="Person Details"
+          tooltip="Physical traits of the model"
+          isOpen={openSection === 'person'}
+          onToggle={() => toggleSection('person')}
+          isTouched={touchedSections.has('person')}
+        >
+          <div className="flex flex-wrap items-center gap-2">
+            {MOOD_OPTIONS.map(option => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => { updateValue('mood', option); markSectionTouched('mood'); }}
+                className={getPillClass(values.mood === option)}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        </AccordionSection>
+      )}
+
+      {/* Mood */}
+      < AccordionSection
         icon={Palette}
         title="Mood"
         tooltip="Overall feeling of the scene"
@@ -1272,10 +1366,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
             </button>
           ))}
         </div>
-      </AccordionSection>
+      </AccordionSection >
 
       {/* Camera & Framing */}
-      <AccordionSection
+      < AccordionSection
         icon={Camera}
         title="Camera & Framing"
         tooltip="How the scene is captured"
@@ -1316,7 +1410,69 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
             </div>
           </div>
         </div>
-      </AccordionSection>
+      </AccordionSection >
+
+      {/* BUNDLES SYSTEM - STRICTLY ISOLATED */}
+      {/* Bundles are enabled ONLY when multiple products are uploaded. */}
+      {/* Bundles control product grouping only. */}
+      {/* Bundles must never affect modes, composition, or human presence. */}
+      {productCount > 1 && (
+        <div id="bundles" className="mt-6">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-4">
+            <div className="flex flex-col gap-1">
+              <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Bundles</p>
+              <p className="text-sm text-gray-400">
+                Quickly swap between curated packs, your own mix, or AI-recommended combos.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition border-indigo-400 bg-indigo-500/10 text-white">
+                Pre-made Bundles
+              </button>
+              <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white">
+                Custom Bundle Builder
+              </button>
+              <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white">
+                Recommended Bundles
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex flex-col gap-2">
+                <label className="text-xs uppercase tracking-[0.3em] text-gray-400">Pick a bundle</label>
+                <select className="rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none">
+                  <option value="essentials_trio">Core Essentials Trio</option>
+                  <option value="daily_duo">Daily Duo Stack</option>
+                  <option value="launch_showcase">Launch Showcase Set</option>
+                  <option value="hero_lineup">Complete Hero Lineup</option>
+                </select>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-gray-900/60 p-4 space-y-3">
+                <p className="text-sm font-semibold text-white">Core Essentials Trio</p>
+                <p className="text-xs text-amber-200">Add another product to enable bundles.</p>
+
+                <div className="flex flex-wrap gap-3">
+                  <div className="w-28 text-center text-xs text-gray-300">
+                    <div className="relative h-28 w-full overflow-hidden rounded-xl border border-white/10 bg-black/20">
+                      <img className="h-full w-full object-cover opacity-60" />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-[10px] font-semibold text-amber-200">
+                        Upload to fill
+                      </div>
+                    </div>
+                    <p className="mt-1 text-[11px]">Product 1</p>
+                  </div>
+                </div>
+              </div>
+
+              <button type="button" disabled className="w-full rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:bg-indigo-900/50">
+                Generate Bundle Mockup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ECOMMERCE IMAGE BUILDER */}
       {/* Mutually exclusive with UGC Real Mode */}
@@ -1530,7 +1686,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({ isProductMode = false, 
         </div>
       </AccordionSection>
 
-    </div>
+    </div >
   );
 };
 

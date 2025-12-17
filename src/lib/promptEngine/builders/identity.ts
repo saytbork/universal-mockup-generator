@@ -14,32 +14,7 @@ export class IdentityBuilder implements PromptBuilder {
             return '';
         }
 
-        // MODEL REFERENCE OVERRIDE - Takes absolute priority
-        if (hasModelReference) {
-            return `
-MODEL REFERENCE OVERRIDE:
-Use the uploaded model reference image as the single source of truth for the person's appearance.
-Do not alter or reinterpret age, gender, ethnicity, facial structure, skin texture, hair, or expression.
-Do not beautify, rejuvenate, stylize, or idealize the face.
-Match the person exactly as shown in the reference image.
-The model reference overrides any synthetic identity description.
-            `.trim().replace(/\s+/g, ' ');
-        }
-
-        const parts: string[] = [];
-        const age = personDetails?.age || 30;
-
-        // AGE ANCHOR for 70+ (CRITICAL)
-        if (age >= 70) {
-            parts.push(`
-AGE ANCHOR: The subject MUST visually read as approximately ${age} years old.
-Facial structure, skin laxity, eye area, neck, hands, posture, and overall presence must be consistent with a real ${age}-year-old adult.
-Do NOT make the person appear younger.
-Avoid youthful facial proportions, smooth skin, or middle-aged appearance.
-            `.trim().replace(/\s+/g, ' '));
-        }
-
-        // UGC DEGRADATION LOGIC
+        // UGC DEGRADATION LOGIC & HELPERS
         const isUGC = options.ugcRealModeActive;
 
         // Blocked terms that cause CGI/Doll look
@@ -61,92 +36,117 @@ Avoid youthful facial proportions, smooth skin, or middle-aged appearance.
             return cleanText.replace(/\s+/g, ' ').trim();
         };
 
-        // IDENTITY BLOCK - Core attributes
-        const identityParts: string[] = [];
+        const parts: string[] = [];
+        const age = personDetails?.age || 30;
 
-        // Age - ALWAYS numeric
-        identityParts.push(`${age}-year-old adult`);
-
-        // Gender - soft descriptor
-        if (personDetails?.gender) {
-            const genderMap: Record<string, string> = {
-                'Female': 'female-presenting adult',
-                'Male': 'male-presenting adult',
-                'Non-binary': 'non-binary presenting adult, balanced gender expression',
-                'They / Them': 'person with neutral gender presentation',
-                'Androgynous': 'androgynous appearance with blended masculine and feminine traits',
-                'Gender non-conforming': 'gender non-conforming presentation',
-            };
-            const mapped = genderMap[personDetails.gender];
-            if (mapped) {
-                identityParts.push(sanitizePart(mapped));
-            }
-        }
-
-        // Ethnicity - with physical features
-        if (personDetails?.ethnicity && personDetails.ethnicity !== 'Prefer not to specify') {
-            identityParts.push(sanitizePart(personDetails.ethnicity));
-        }
-
-        // Body Type
-        if (personDetails?.bodyType) {
-            identityParts.push(sanitizePart(`${personDetails.bodyType.toLowerCase()} build`));
-        }
-
-        // Skin Tone
-        if (personDetails?.skinTone) {
-            const skinMap: Record<string, string> = {
-                'Very Fair': 'very fair',
-                'Fair': 'fair',
-                'Fair Cool': 'fair with cool undertones',
-                'Fair Warm': 'fair with warm undertones',
-                'Medium': 'medium',
-                'Medium Neutral': 'medium with neutral undertones',
-                'Olive': 'olive',
-                'Tan': 'tan',
-                'Brown': 'brown',
-                'Deep Golden': 'deep with golden undertones',
-                'Deep Brown': 'deep brown',
-                'Deep Cool': 'deep with cool undertones',
-                'Very Deep': 'very deep'
-            };
-            const mappedSkin = skinMap[personDetails.skinTone] || personDetails.skinTone.toLowerCase();
-            identityParts.push(`${mappedSkin} skin`);
-        }
-
-        // Skin Realism - UGC Override logic
-        if (isUGC) {
-            // FORCE RAW SKIN IN UGC MODE
-            identityParts.push('real human appearance, everyday skin texture, minor unevenness, natural asymmetry, no cosmetic retouching');
+        // 1. PHYSICAL IDENTITY (Standard or Reference Override)
+        if (hasModelReference) {
+            parts.push(`
+MODEL REFERENCE OVERRIDE:
+Use the uploaded model reference image as the single source of truth for the person's appearance.
+Do not alter or reinterpret age, gender, ethnicity, facial structure, skin texture, hair, or expression.
+Do not beautify, rejuvenate, stylize, or idealize the face.
+Match the person exactly as shown in the reference image.
+The model reference overrides any synthetic identity description.
+            `.trim().replace(/\s+/g, ' '));
         } else {
-            // Standard Logic
-            if (personDetails?.skinRealism) {
-                identityParts.push(personDetails.skinRealism);
+            // AGE ANCHOR for 70+ (CRITICAL)
+            if (age >= 70) {
+                parts.push(`
+AGE ANCHOR: The subject MUST visually read as approximately ${age} years old.
+Facial structure, skin laxity, eye area, neck, hands, posture, and overall presence must be consistent with a real ${age}-year-old adult.
+Do NOT make the person appear younger.
+Avoid youthful facial proportions, smooth skin, or middle-aged appearance.
+                `.trim().replace(/\s+/g, ' '));
+            }
+
+            // IDENTITY BLOCK - Core attributes
+            const identityParts: string[] = [];
+
+            // Age - ALWAYS numeric
+            identityParts.push(`${age}-year-old adult`);
+
+            // Gender - soft descriptor
+            if (personDetails?.gender) {
+                const genderMap: Record<string, string> = {
+                    'Female': 'female-presenting adult',
+                    'Male': 'male-presenting adult',
+                    'Non-binary': 'non-binary presenting adult, balanced gender expression',
+                    'They / Them': 'person with neutral gender presentation',
+                    'Androgynous': 'androgynous appearance with blended masculine and feminine traits',
+                    'Gender non-conforming': 'gender non-conforming presentation',
+                };
+                const mapped = genderMap[personDetails.gender];
+                if (mapped) {
+                    identityParts.push(sanitizePart(mapped));
+                }
+            }
+
+            // Ethnicity - with physical features
+            if (personDetails?.ethnicity && personDetails.ethnicity !== 'Prefer not to specify') {
+                identityParts.push(sanitizePart(personDetails.ethnicity));
+            }
+
+            // Body Type
+            if (personDetails?.bodyType) {
+                identityParts.push(sanitizePart(`${personDetails.bodyType.toLowerCase()} build`));
+            }
+
+            // Skin Tone
+            if (personDetails?.skinTone) {
+                const skinMap: Record<string, string> = {
+                    'Very Fair': 'very fair',
+                    'Fair': 'fair',
+                    'Fair Cool': 'fair with cool undertones',
+                    'Fair Warm': 'fair with warm undertones',
+                    'Medium': 'medium',
+                    'Medium Neutral': 'medium with neutral undertones',
+                    'Olive': 'olive',
+                    'Tan': 'tan',
+                    'Brown': 'brown',
+                    'Deep Golden': 'deep with golden undertones',
+                    'Deep Brown': 'deep brown',
+                    'Deep Cool': 'deep with cool undertones',
+                    'Very Deep': 'very deep'
+                };
+                const mappedSkin = skinMap[personDetails.skinTone] || personDetails.skinTone.toLowerCase();
+                identityParts.push(`${mappedSkin} skin`);
+            }
+
+            // Skin Realism - UGC Override logic
+            if (isUGC) {
+                // FORCE RAW SKIN IN UGC MODE
+                identityParts.push('real human appearance, everyday skin texture, minor unevenness, natural asymmetry, no cosmetic retouching');
             } else {
-                identityParts.push('realistic skin texture appropriate for their age');
+                // Standard Logic
+                if (personDetails?.skinRealism) {
+                    identityParts.push(personDetails.skinRealism);
+                } else {
+                    identityParts.push('realistic skin texture appropriate for their age');
+                }
             }
-        }
 
-        // Eye Color
-        if (personDetails?.eyeColor) {
-            identityParts.push(sanitizePart(personDetails.eyeColor));
-        }
-
-        // Hair
-        if (personDetails?.hairLength || personDetails?.hairTexture || personDetails?.hairColor) {
-            const hairParts = [
-                personDetails?.hairLength?.toLowerCase(),
-                personDetails?.hairTexture?.toLowerCase(),
-                personDetails?.hairColor?.toLowerCase()
-            ].filter(Boolean);
-            if (hairParts.length > 0) {
-                identityParts.push(sanitizePart(`${hairParts.join(' ')} hair`));
+            // Eye Color
+            if (personDetails?.eyeColor) {
+                identityParts.push(sanitizePart(personDetails.eyeColor));
             }
-        }
 
-        // Join core identity
-        if (identityParts.length > 0) {
-            parts.push(identityParts.join(', '));
+            // Hair
+            if (personDetails?.hairLength || personDetails?.hairTexture || personDetails?.hairColor) {
+                const hairParts = [
+                    personDetails?.hairLength?.toLowerCase(),
+                    personDetails?.hairTexture?.toLowerCase(),
+                    personDetails?.hairColor?.toLowerCase()
+                ].filter(Boolean);
+                if (hairParts.length > 0) {
+                    identityParts.push(sanitizePart(`${hairParts.join(' ')} hair`));
+                }
+            }
+
+            // Join core identity
+            if (identityParts.length > 0) {
+                parts.push(identityParts.join(', '));
+            }
         }
 
         // EXPRESSION
