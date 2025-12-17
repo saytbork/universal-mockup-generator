@@ -117,6 +117,25 @@ REQUIRED UGC CHARACTERISTICS:
             console.warn('[UGC CAPTURE SITUATION] Missing selection, skipping injection');
         }
 
+        parts.push(
+            'All camera angle, shot type, framing, and composition rules are invalid. The capture situation fully defines the geometry of the image.'
+        );
+
+        if (options.ugcRealModeActive) {
+            const prompt = options as any;
+            // HARD OVERRIDES — UGC MUST KILL COMPOSITION
+            delete prompt.cameraAngle;
+            delete prompt.cameraShot;
+            delete prompt.framing;
+            delete prompt.perspective;
+            delete prompt.placementStyle;
+            delete prompt.placementCamera;
+            delete prompt.proLens;
+            delete prompt.proLightingRig;
+            delete prompt.proPostTreatment;
+            delete prompt.compositionMode;
+        }
+
         const result = parts.filter(Boolean).join(' ').trim();
         console.log('[UGC REAL MODE OUTPUT]', result.substring(0, 200) + '...');
         return result;
