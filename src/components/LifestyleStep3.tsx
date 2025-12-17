@@ -998,40 +998,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
             {values.ugcRealMode && (
                 <>
-                  {/* UGC REALITY PRESETS */}
-                  <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-                    <p className="text-xs uppercase tracking-wider text-indigo-200">UGC REALITY PRESETS</p>
-                    <div className="flex flex-wrap gap-2">
-                      {['Raw Selfie', 'Mirror Shot', 'Bathroom Lighting', 'Car Interior', 'Messy Room'].map(preset => (
-                        <button
-                          key={preset}
-                          type="button"
-                          onClick={() => {
-                            // Apply preset settings
-                            if (preset === 'Raw Selfie') {
-                              updateValue('selfieMode', "Front camera, arm's length");
-                              updateValue('lightingStyle', 'Natural');
-                            } else if (preset === 'Mirror Shot') {
-                              updateValue('selfieMode', 'Mirror selfie');
-                            } else if (preset === 'Bathroom Lighting') {
-                              updateValue('environment', 'Bathroom');
-                              updateValue('lightingStyle', 'Indoor');
-                            } else if (preset === 'Car Interior') {
-                              updateValue('selfieMode', 'Back camera handheld');
-                              updateValue('environment', 'Car Interior');
-                            } else if (preset === 'Messy Room') {
-                              updateValue('environment', 'Bedroom');
-                              updateValue('allowMessiness', true);
-                            }
-                          }}
-                          className={getPillClass(false)}
-                        >
-                          {preset}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
                   {/* UGC CAPTURE SITUATION */}
                   <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
                     <div>
