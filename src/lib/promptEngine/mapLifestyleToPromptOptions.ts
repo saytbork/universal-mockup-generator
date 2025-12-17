@@ -34,16 +34,48 @@ const POSE_SEMANTIC_MAP: Record<string, string> = {
     'Offer-to-Lens Reach': 'arm extended toward camera lens, product held outward, body leaning slightly forward in offering gesture'
 };
 
-/**
- * APPEARANCE LEVEL → Grooming state and styling effort
- */
-const APPEARANCE_SEMANTIC_MAP: Record<string, string> = {
-    'Regular': 'regular everyday grooming with natural unstyled appearance, hair in its natural state without product',
-    'Well-Groomed': 'well-groomed polished appearance with neat styled hair, clean skin, put-together presentation',
-    'Styled': 'curated styled look with intentional fashion choices, hair deliberately arranged, makeup if applicable',
-    'Messy / Just Woke Up': 'messy just-woke-up appearance with tousled bedhead hair, slightly puffy face, natural morning tiredness visible',
-    'Running Late': 'rushed running-late appearance with quickly styled hair, slightly disheveled clothing, subtle stress in posture'
-};
+const normalizeKey = (value?: string) =>
+    value
+        ? value
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/-+/g, '-')
+        : '';
+
+function mapSkinRealism(value?: string): string | null {
+    switch (normalizeKey(value)) {
+        case 'raw':
+        case 'raw-real':
+        case 'rawreal':
+            return 'raw, unretouched skin with visible texture, pores, and natural imperfections';
+        case 'natural':
+            return 'natural realistic skin texture with visible pores and subtle imperfections, no plastic look';
+        case 'soft-retouch':
+        case 'softretouch':
+            return 'lightly retouched skin with minimal smoothing, still realistic and human';
+        default:
+            return null;
+    }
+}
+
+function mapAppearanceLevel(value?: string): string | null {
+    switch (normalizeKey(value)) {
+        case 'regular':
+            return 'regular everyday professional appearance';
+        case 'well-groomed':
+            return 'well-groomed but authentic professional appearance';
+        case 'styled':
+            return 'styled but believable appearance, intentionally prepared';
+        case 'messy':
+        case 'messy-just-woke-up':
+            return 'slightly messy, just woke up look with natural dishevelment';
+        case 'running-late':
+            return 'running-late appearance with minor imperfections in hair and clothing';
+        default:
+            return null;
+    }
+}
 
 /**
  * PROPS → Scene objects and lifestyle accessories
@@ -434,10 +466,17 @@ export function mapLifestyleToPromptOptions(
         }
 
         // APPEARANCE (Manual if not nuked by Custom Clothes)
-        if (!hasCustomClothes && sceneState.appearanceLevel) {
-            const app = APPEARANCE_SEMANTIC_MAP[sceneState.appearanceLevel] || sceneState.appearanceLevel;
-            mapped.personAppearance = app;
-            mapped.personDetails.personAppearance = app;
+        if (!hasCustomClothes) {
+            const appearanceDescriptor = mapAppearanceLevel(sceneState.appearanceLevel);
+            if (appearanceDescriptor) {
+                mapped.personAppearance = appearanceDescriptor;
+                mapped.personDetails.personAppearance = appearanceDescriptor;
+            }
+        }
+
+        const skinDescriptor = mapSkinRealism(sceneState.skinRealism);
+        if (skinDescriptor) {
+            mapped.personDetails.skinRealism = skinDescriptor;
         }
 
         // OTHER PERSON DETAILS (Non-conflicting)
