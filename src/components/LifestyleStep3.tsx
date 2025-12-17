@@ -1041,14 +1041,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   role="switch"
                   aria-checked={values.ugcRealMode}
                   onClick={() => {
-                    const newValue = !values.ugcRealMode;
-                    updateValue('ugcRealMode', newValue);
-                    if (!newValue) {
-                      updateValue('selfieMode', 'None');
-                    } else {
-                      updateValue('facialExpression', 'Soft Smile');
-                      updateValue('eyeDirection', 'Looking at camera');
-                    }
+                const newValue = !values.ugcRealMode;
+                updateValue('ugcRealMode', newValue);
+                if (!newValue) {
+                  updateValue('selfieMode', 'None');
+                } else {
+                  updateValue('formulationStoryEnabled', false);
+                  updateValue('facialExpression', 'Soft Smile');
+                  updateValue('eyeDirection', 'Looking at camera');
+                }
                   }}
                   className={`relative shrink-0 h-6 w-11 rounded-full transition ${values.ugcRealMode ? 'bg-indigo-500' : 'bg-gray-600'}`}
                 >
