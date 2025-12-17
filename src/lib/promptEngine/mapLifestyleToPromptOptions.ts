@@ -230,19 +230,6 @@ const LIGHTING_SEMANTIC_MAP: Record<string, string> = {
 };
 
 /**
- * SCENE MOOD → Overall atmosphere and energy (NOT body/facial details)
- * Describes the global feeling of the scene, not physical muscle states
- */
-const SCENE_MOOD_MAP: Record<string, string> = {
-    'Calm & Serene': 'calm serene atmosphere, low emotional intensity, peaceful pacing',
-    'Joyful & High-Energy': 'energetic joyful mood, lively movement, upbeat presence',
-    'Confident & Editorial': 'confident composed mood, editorial presence, controlled energy',
-    'Playful & Candid': 'playful candid mood, spontaneous energy, informal feel',
-    'Hustle & Juggle': 'busy dynamic mood, multitasking energy, purposeful movement',
-    'Stressed but Determined': 'stressed yet determined mood, visible tension with resolve'
-};
-
-/**
  * FACIAL EXPRESSION → Physical facial muscle states ONLY
  * Describes specific facial gestures, NOT scene energy or body language
  */
@@ -339,31 +326,26 @@ const SELFIE_EXECUTION_SEMANTIC_MAP: Record<string, string> = {
 // HERO PERSONA MACROS - Strict behavioral overrides
 const HERO_PERSONA_MACROS: Record<string, any> = {
     'The Busy Mom': {
-        mood: 'practical, multitasking energy',
         wardrobe: 'comfortable casual everyday wear, functional clothing, slightly disheveled realism',
         pose: 'natural mid-action candid movement',
         framing: 'spontaneous imperfect framing'
     },
     'The Fitness Enthusiast': {
-        mood: 'energized focused athletic intensity',
         wardrobe: 'modern activewear, moisture-wicking fabric, athletic styling',
         pose: 'mid-workout movement or post-exercise recovery pose',
         framing: 'dynamic angled composition'
     },
     'The Skincare Obsessed': {
-        mood: 'calm ritualistic clean atmosphere',
         wardrobe: 'minimal clean loungewear, soft fabrics, neutral tones',
         environment: 'Bathroom', // Hint for environment
         pose: 'focused self-care application intent'
     },
     'The Minimalist': {
-        mood: 'intentional calm composed presence',
         wardrobe: 'high-quality minimal solid colors, structured simple silhouette',
         environment: 'Modern Living Room', // Hint
         pose: 'still composed architectural posture'
     },
     'The Trendsetter': {
-        mood: 'confident editorial cool, effortless styleiness',
         wardrobe: 'bold statement outfit, layers, current fashion trends',
         pose: 'confident styled candid pose',
         framing: 'editorial spontaneous framing'
@@ -429,19 +411,12 @@ export function mapLifestyleToPromptOptions(
     // PRIORITY 3: HERO PERSONAS (SEMANTIC MACRO)
     // ========================================================================
     const heroPersona = sceneState.heroPersona;
-    let moodOverride = null;
     let poseOverride = null;
     let framingOverride = null;
 
     if (heroPersona && HERO_PERSONA_MACROS[heroPersona]) {
         console.log(`[PRIORITY 2] Hero Persona Active: ${heroPersona} - Applying MACROS`);
         const macro = HERO_PERSONA_MACROS[heroPersona];
-
-        // Apply Mood Override
-        moodOverride = macro.mood;
-        (mapped as any).sceneMood = moodOverride;
-        mapped.personMood = moodOverride;
-        mapped.personDetails.personMood = moodOverride;
 
         // Apply Pose Override
         poseOverride = macro.pose;
@@ -513,13 +488,6 @@ export function mapLifestyleToPromptOptions(
         // HAIR
         if (sceneState.hairColor) mapped.personDetails.hairColor = sceneState.hairColor;
         // ... (other hair props mapped normally)
-    }
-
-    // MOOD (Manual if no Override)
-    if (!moodOverride && sceneState.mood) {
-        const mood = SCENE_MOOD_MAP[sceneState.mood] || sceneState.mood;
-        (mapped as any).sceneMood = mood;
-        mapped.personDetails.personMood = mood;
     }
 
     // FRAMING/PERSPECTIVE (Manual if no Override)

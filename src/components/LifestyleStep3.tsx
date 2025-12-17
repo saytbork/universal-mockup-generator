@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  SlidersHorizontal, User, Palette, Activity, Scissors, Smile, Eye, Sparkles,
+  SlidersHorizontal, User, Activity, Scissors, Smile, Eye, Sparkles,
   Sun, Camera, Rotate3d, Layout, Hand, Smartphone, Shirt, Layers, Film,
-  Home, MapPin, Coffee, Utensils, Car, Waves, Mountain, Building2, Edit3, Heart, Check,
-  Aperture, Zap
+  Home, MapPin, Coffee, Utensils, Car, Waves, Mountain, Building2, Edit3, Heart, Check
 } from 'lucide-react';
 import {
   LIGHTING_OPTIONS,
@@ -54,7 +53,6 @@ export interface SceneState {
     lightingStyle: string;
   };
 
-  mood: string;
   ugcCaptureSituation?: UGCCaptureSituationId | null;
 
   camera: {
@@ -139,9 +137,6 @@ export interface Step3Values {
   // Time & Lighting
   timeOfDay: string;
   lightingStyle: string;
-
-  // Mood
-  mood: string;
 
   // Camera
   shotType: string;
@@ -305,12 +300,12 @@ const HAIR_COLOR_OPTIONS = ['Black', 'Dark brown', 'Light brown', 'Blonde', 'Red
 
 // SIMPLIFIED EXPRESSIONS - Removed: UGC Reality, Caffeinated Crash (confusing)
 const EXPRESSION_OPTIONS = [
-  'Soft Smile',
-  'Full Smile',
-  'Serious Focus',
-  'Excited Surprise',
-  'Stressed but Hopeful',
-  'Real-Life Calm'
+  'Calm & Serene',
+  'Joyful & High-Energy',
+  'Confident & Editorial',
+  'Playful & Candid',
+  'Hustle & Juggle',
+  'Stressed but Determined'
 ];
 
 const EYE_DIRECTION_OPTIONS = ['Looking at camera', 'Looking at product', 'Looking away naturally'];
@@ -369,16 +364,6 @@ const SELFIE_MODE_OPTIONS = [
 // TIME & LIGHTING - per final spec
 const TIME_OF_DAY_OPTIONS = ['Morning', 'Midday', 'Evening', 'Night'];
 // LIGHTING_STYLE_OPTIONS removed in favor of imported LIGHTING_OPTIONS
-
-// Mood - Physical body language
-const MOOD_OPTIONS = [
-  'Calm & Serene',
-  'Joyful & High-Energy',
-  'Confident & Editorial',
-  'Playful & Candid',
-  'Hustle & Juggle',
-  'Stressed but Determined'
-];
 
 // SHOT TYPE - Simplified to 3 options
 const SHOT_TYPE_OPTIONS = ['Close', 'Medium', 'Wide'];
@@ -496,7 +481,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     hairState: 'natural',
 
     // Person Details - Expanded
-    facialExpression: 'Soft Smile', // UGC Rule: friendly default
+    facialExpression: 'Calm & Serene', // UGC Rule: friendly default
     eyeDirection: 'Looking at camera', // UGC Rule: eye contact
     eyeColor: 'Brown', // NEW
     appearanceLevel: 'Regular', // NEW
@@ -514,9 +499,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     // Time & Lighting - simplified
     timeOfDay: 'Afternoon',
     lightingStyle: 'Natural',
-
-    // Mood
-    mood: 'Calm & Serene',
 
     // Camera
     shotType: 'Medium',
@@ -720,12 +702,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       updateValue('ugcRealMode', false);
     }
 
-    // Auto-clear mood (UGC-specific)
-    if (values.mood && values.mood !== '') {
-      console.log('[PRODUCT MODE] Clearing mood');
-      updateValue('mood', '');
-    }
-
     // Auto-clear selfie type
     if (values.selfieMode && values.selfieMode !== 'None') {
       console.log('[PRODUCT MODE] Clearing selfie mode');
@@ -746,7 +722,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   }, [
     isProductMode,
     values.ugcRealMode,
-    values.mood,
     values.selfieMode,
     values.noPerson,
     values.creationIntent,
@@ -1260,29 +1235,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         </div>
       </AccordionSection >
 
-      {/* Mood */}
-      < AccordionSection
-        icon={Palette}
-        title="Mood"
-        tooltip="Overall feeling of the scene"
-        isOpen={openSection === 'mood'}
-        onToggle={() => toggleSection('mood')}
-        isTouched={touchedSections.has('mood')}
-      >
-        <div className="flex flex-wrap items-center gap-2">
-          {MOOD_OPTIONS.map(option => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => { updateValue('mood', option); markSectionTouched('mood'); }}
-              className={getPillClass(values.mood === option)}
-            >
-              {option}
-            </button>
-          ))}
-        </div>
-      </AccordionSection >
-
       {!isUGC && (
         <>
           <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
@@ -1301,19 +1253,19 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   onClick={() => {
                     updateValue('heroPersona', persona.semantic);
                     if (persona.label === 'The Busy Mom') {
-                      updateValue('mood', 'Hustle & Juggle');
+                      updateValue('facialExpression', 'Hustle & Juggle');
                       updateValue('appearanceLevel', 'Running Late');
                     } else if (persona.label === 'The Fitness Enthusiast') {
-                      updateValue('mood', 'Joyful & High-Energy');
+                      updateValue('facialExpression', 'Joyful & High-Energy');
                       updateValue('appearanceLevel', 'Well-Groomed');
                     } else if (persona.label === 'The Skincare Obsessed') {
-                      updateValue('mood', 'Calm & Serene');
+                      updateValue('facialExpression', 'Calm & Serene');
                       updateValue('skinRealism', 'Raw / Real');
                     } else if (persona.label === 'The Minimalist') {
-                      updateValue('mood', 'Confident & Editorial');
+                      updateValue('facialExpression', 'Confident & Editorial');
                       updateValue('appearanceLevel', 'Styled');
                     } else if (persona.label === 'The Trendsetter') {
-                      updateValue('mood', 'Playful & Candid');
+                      updateValue('facialExpression', 'Playful & Candid');
                       updateValue('appearanceLevel', 'Styled');
                     }
                   }}
