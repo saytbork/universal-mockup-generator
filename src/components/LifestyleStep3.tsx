@@ -239,6 +239,8 @@ const FORMULATION_ROLES = [
   'Dermatologist',
   'Pharmacist',
   'Herbalist',
+  'Clinical Chemist',
+  'Cosmetic Scientist',
   'Custom'
 ];
 const SKIN_TONE_OPTIONS = [
@@ -527,7 +529,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     formulationStoryEnabled: false,
     formulationPreset: FORMULATION_PRESETS[0],
     formulationName: '',
-    formulationRole: '',
+    formulationRole: FORMULATION_ROLES[0],
     formulationLabVibe: LAB_VIBE_OPTIONS[0],
 
     // Advanced Pro
@@ -1619,6 +1621,22 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   className="w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                   placeholder="e.g., Dr. Maya Collins"
                 />
+              </div>
+
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <p className="text-xs uppercase tracking-wider text-indigo-200">Expert Role</p>
+                <div className="flex flex-wrap gap-2">
+                  {FORMULATION_ROLES.map(option => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => { updateValue('formulationRole', option); markSectionTouched('formulationStory'); }}
+                      className={getPillClass(values.formulationRole === option)}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">

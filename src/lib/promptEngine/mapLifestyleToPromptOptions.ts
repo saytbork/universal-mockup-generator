@@ -13,7 +13,7 @@
  */
 
 import type { Step3Values } from '@/components/LifestyleStep3';
-import type { PromptOptions } from './types';
+import type { FormulationStoryOptions, PromptOptions } from './types';
 import { mapProductModeToPromptOptions } from './mapProductModeToPromptOptions';
 
 // ============================================================================
@@ -55,6 +55,48 @@ const PROPS_SEMANTIC_MAP: Record<string, string> = {
     'Notebook / Journal': 'notebook or journal as lifestyle prop, possibly open with visible pages',
     'Makeup Tool': 'makeup brush or beauty tool visible in scene',
     'Shopping Tote': 'cloth shopping tote bag as lifestyle prop, suggesting everyday errands'
+};
+
+const FORMULATION_PRESET_MAP: Record<string, FormulationStoryOptions['expertPreset']> = {
+    'Clinical Research': 'clinical_researcher',
+    'Lifestyle Study': 'herbal_formulator',
+    'Functional Science': 'respiratory_doctor'
+};
+
+const FORMULATION_ROLE_FOCUS_MAP: Record<string, FormulationStoryOptions['professionalFocus']> = {
+    'Respiratory Doctor': 'pulmonologist',
+    'Pulmonologist': 'pulmonologist',
+    'Clinical Researcher': 'clinical_researcher',
+    'Herbal Formulator': 'herbalist',
+    'Nutritionist': 'nutritionist',
+    'Dermatologist': 'dermatologist',
+    'Pharmacist': 'pharmacist',
+    'Herbalist': 'herbalist',
+    'Clinical Chemist': 'clinical_researcher',
+    'Cosmetic Scientist': 'dermatologist',
+    'Custom': 'custom'
+};
+
+const FORMULATION_LAB_VIBE_MAP: Record<string, FormulationStoryOptions['labVibe']> = {
+    'Clean Lab': 'modern_clinical_lab',
+    'Moody Lab': 'r_and_d_studio',
+    'Warm Studio': 'apothecary_lab'
+};
+
+const buildFormulationStoryOptions = (sceneState: Step3Values): FormulationStoryOptions | undefined => {
+    if (!sceneState.formulationStoryEnabled) {
+        return undefined;
+    }
+    const preset = FORMULATION_PRESET_MAP[sceneState.formulationPreset] ?? 'custom';
+    const focus = FORMULATION_ROLE_FOCUS_MAP[sceneState.formulationRole] ?? 'custom';
+    const labVibe = FORMULATION_LAB_VIBE_MAP[sceneState.formulationLabVibe] ?? 'none';
+    return {
+        expertPreset: (preset as FormulationStoryOptions['expertPreset']) ?? undefined,
+        professionalFocus: (focus as FormulationStoryOptions['professionalFocus']) ?? undefined,
+        expertName: sceneState.formulationName?.trim() || undefined,
+        roleCredentials: sceneState.formulationRole?.trim() || undefined,
+        labVibe
+    };
 };
 
 /**
@@ -572,7 +614,9 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     // FORMULATION STORY (Restored)
     // ========================================================================
-    mapped.formulationExpertEnabled = sceneState.formulationStoryEnabled;
+    const formulationStoryOptions = buildFormulationStoryOptions(sceneState);
+    mapped.formulationStory = formulationStoryOptions;
+    mapped.formulationExpertEnabled = Boolean(formulationStoryOptions);
     mapped.formulationExpertName = sceneState.formulationName;
     mapped.formulationExpertRole = sceneState.formulationRole;
     mapped.formulationLabStyle = sceneState.formulationLabVibe;

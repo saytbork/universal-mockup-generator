@@ -1,16 +1,24 @@
-/**
- * Formulation Story Builder
- * Inject HUMAN CREDIBILITY TRAITS for expert appearance
- * 
- * RULES:
- * - Expert is a CREDIBLE HUMAN, not an actor or model
- * - Respect age if provided (no rejuvenation for 70+)
- * - Respect UGC Real Mode if active (imperfections allowed)
- * - NO marketing language, ONLY physical observable traits
- * - NO titles in prompt (Dr., specialist, etc.)
- */
+import type { FormulationStoryOptions, PromptOptions, PromptBuilder } from '../types';
 
-import type { PromptOptions, PromptBuilder } from '../types';
+type ProfessionalFocus = NonNullable<FormulationStoryOptions['professionalFocus']>;
+type LabVibe = NonNullable<FormulationStoryOptions['labVibe']>;
+
+const PROFESSIONAL_FOCUS_COPY: Record<ProfessionalFocus, string> = {
+    pulmonologist: 'hands-on respiratory care and formulation work tied to breathing support',
+    nutritionist: 'day-to-day nutritional science that makes supplements feel grounded',
+    dermatologist: 'skin-health and dermatology experience that respects human texture',
+    pharmacist: 'pharmaceutical formulation and ingredient stewardship from a practical standpoint',
+    clinical_researcher: 'clinical research and hands-on testing with real volunteers',
+    herbalist: 'botanical and herbal formulation with natural, attainable rituals',
+    custom: 'hands-on formulation work that feels rooted in the creator’s routine'
+};
+
+const LAB_VIBE_HINTS: Record<LabVibe, string> = {
+    modern_clinical_lab: 'notebooks, research books, and simple ingredient containers',
+    r_and_d_studio: 'sketches, ingredient jars, and small glass tools on a lived-in desk',
+    apothecary_lab: 'botanical jars, droppers, and amber bottles with handwritten notes',
+    none: ''
+};
 
 export class FormulationStoryBuilder implements PromptBuilder {
     build(options: PromptOptions): string {
@@ -18,101 +26,41 @@ export class FormulationStoryBuilder implements PromptBuilder {
             return '';
         }
 
-        console.log('[FORMULATION STORY] Building expert credibility injection');
-
-        const traits: string[] = [];
-        const age = options.personDetails?.age || 45;
-        const isUGCActive = options.ugcRealModeActive;
-
-        // ====================================================================
-        // AGE-APPROPRIATE CREDIBILITY
-        // ====================================================================
-        if (age >= 70) {
-            traits.push(`mature professional approximately ${age} years old`);
-            traits.push('visible age-appropriate features');
-            traits.push('natural age signs in face and hands');
-            traits.push('distinguished experienced presence');
-        } else if (age >= 50) {
-            traits.push(`experienced professional in their ${Math.floor(age / 10) * 10}s`);
-            traits.push('subtle age-appropriate features');
-            traits.push('composed authoritative demeanor');
-        } else {
-            traits.push('professional expert appearance');
-            traits.push('intelligent focused demeanor');
+        const story = options.formulationStory;
+        if (!story) {
+            return '';
         }
 
-        // ====================================================================
-        // CREDIBLE EXPERT PRESENCE (NOT MODEL OR ACTOR)
-        // ====================================================================
-        traits.push('confident upright posture');
-        traits.push('direct knowledgeable gaze');
-        traits.push('calm composed expression');
-        traits.push('authentic human presence with natural imperfections');
+        const parts: string[] = [
+            'The person is presented as a real individual who worked on the formulation of the product, shown in an approachable and human way rather than as a staged professional.',
+            'Their expertise is implied through context and demeanor, not explicit authority cues.'
+        ];
 
-        // ====================================================================
-        // UGC-AWARE IMPERFECTIONS
-        // ====================================================================
-        if (isUGCActive) {
-            traits.push('realistic skin texture with visible pores');
-            traits.push('natural minor imperfections appropriate for real person');
-            traits.push('unretouched photoreal appearance');
-        } else {
-            traits.push('natural skin texture with subtle imperfections');
-            traits.push('photoreal credible features');
+        if (story.professionalFocus) {
+            parts.push(`Their background aligns with ${PROFESSIONAL_FOCUS_COPY[story.professionalFocus]}.`);
         }
 
-        // ====================================================================
-        // LAB ENVIRONMENT (VISUAL CONTEXT)
-        // ====================================================================
-        const labStyle = options.formulationLabStyle;
-        if (labStyle) {
-            const labContextMap: Record<string, string> = {
-                'Clean Lab': 'clean clinical lab environment with white surfaces and controlled lighting',
-                'Moody Lab': 'moody atmospheric lab with dramatic directional lighting',
-                'Warm Studio': 'warm studio environment with natural tones and soft lighting'
-            };
-            const labContext = labContextMap[labStyle] || 'professional laboratory environment';
-            traits.push(`in ${labContext}`);
+        if (story.roleCredentials) {
+            parts.push(
+                `Their credentials are woven into the conversation naturally, emphasizing hands-on knowledge rather than grand titles.`
+            );
         }
 
-        // ====================================================================
-        // PROFESSIONAL ATTIRE (ROLE-SPECIFIC)
-        // ====================================================================
-        const expertRole = options.formulationExpertRole || 'Custom';
-
-        const ROLE_ATTIRE_MAP: Record<string, string> = {
-            'Respiratory Doctor': 'light blue medical scrubs, real hospital fabric, slightly worn, natural wrinkles',
-            'Pulmonologist': 'light blue medical scrubs, real hospital fabric, slightly worn, natural wrinkles', // Alias
-            'Clinical Researcher': 'off-white lab coat, slightly aged fabric, subtle creases, real clinical wear',
-            'Herbal Formulator': 'olive green or beige lab coat, natural fabric texture, understated and practical',
-            'Herbalist': 'olive green or beige lab coat, natural fabric texture, understated and practical', // Alias
-            'Pharmacist': 'light gray-white lab coat, structured but worn, practical clinical look',
-            'Nutritionist': 'soft sage green or pale blue scrubs, relaxed fit, everyday professional wear',
-            'Dermatologist': 'light gray-blue scrubs, clean but not pristine, real clinic fabric',
-            'Custom': 'neutral-toned professional lab attire, understated and realistic'
-        };
-
-        // Get specific attire or fall back to Custom/Generic
-        const attireDescription = ROLE_ATTIRE_MAP[expertRole] || ROLE_ATTIRE_MAP['Custom'];
-
-        traits.push(`wearing ${attireDescription}`);
-        traits.push('clean professional grooming');
-
-        let result = traits.join(', ') + '.';
-
-        // INJECT EMBROIDERY DETAIL IF NAME EXISTS
-        // Context: "a small embroidered name on the lab coat chest..." logic adapted to attire
-        const expertName = options.formulationExpertName;
-        if (expertName) {
-            // Determine if it's scrubs or lab coat for the description
-            // const isScrubs = attireDescription.includes('scrubs'); // Unused for now but kept concept
-
-            result += `\nEXPERT DETAIL: The expert is wearing ${attireDescription}. On the LEFT SIDE OF THE IMAGE (viewer's left) ONLY, on the chest area of the ${attireDescription}, there is a single small embroidered name in plain text reading "${expertName}". The text is small, realistic, and stitched directly into the fabric. There is absolutely NO embroidery, text, badge, or marking on the opposite side. The embroidery must NEVER be mirrored, duplicated, or symmetrically repeated.`;
+        if (story.expertName) {
+            parts.push(`They are casually referred to as ${story.expertName}, mentioned without emphasis.`);
         }
 
-        console.log('[FORMULATION STORY] Injected:', result.substring(0, 150) + '...');
+        if (story.labVibe && story.labVibe !== 'none') {
+            const hint = LAB_VIBE_HINTS[story.labVibe];
+            if (hint) {
+                parts.push(
+                    `Subtle background hints such as ${hint} may appear, but the space remains a lived-in environment—no sterile benches, white coats, or clinical staging.`
+                );
+            }
+        }
 
-        return result;
+        parts.push('No grand titles, no hero language; just an approachable expert who keeps the person-first focus.');
+
+        return parts.filter(Boolean).join(' ');
     }
 }
-

@@ -63,6 +63,14 @@ export interface PersonDetails {
     heroPersona?: string;             // Semantic UGC persona description
 }
 
+export interface FormulationStoryOptions {
+    expertPreset?: 'respiratory_doctor' | 'clinical_researcher' | 'herbal_formulator' | 'custom';
+    professionalFocus?: 'pulmonologist' | 'nutritionist' | 'dermatologist' | 'pharmacist' | 'clinical_researcher' | 'herbalist' | 'custom';
+    expertName?: string;
+    roleCredentials?: string;
+    labVibe?: 'modern_clinical_lab' | 'r_and_d_studio' | 'apothecary_lab' | 'none';
+}
+
 export interface PromptOptions {
     // Core
     contentStyle: 'ugc' | 'product' | '';
@@ -130,6 +138,7 @@ export interface PromptOptions {
     formulationExpertRole?: string;
     formulationLabStyle?: string;
     formulationExpertPreset?: string;
+    formulationStory?: FormulationStoryOptions;
 
     // Real Mode
     realModeActive?: boolean;

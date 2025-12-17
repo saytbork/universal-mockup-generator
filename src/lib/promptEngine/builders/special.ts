@@ -18,11 +18,6 @@ export class SpecialModesBuilder implements PromptBuilder {
             prompt += this.buildEcomBlankExtended(options) + ' ';
         }
 
-        // Formulation Expert
-        if (options.formulationExpertEnabled) {
-            prompt += this.buildFormulationExpert(options) + ' ';
-        }
-
         // Real Mode
         if (options.realModeActive) {
             prompt += this.buildRealMode(options) + ' ';
@@ -78,21 +73,6 @@ export class SpecialModesBuilder implements PromptBuilder {
       - correct finger shape,
       - proper wrist rotation,
       - realistic arm connection to the body.
-    `.trim().replace(/\s+/g, ' ');
-    }
-
-    private buildFormulationExpert(options: PromptOptions): string {
-        const {
-            formulationExpertName = 'Dr. Ana Ruiz',
-            formulationExpertRole = 'lead formulator',
-            formulationLabStyle = 'modern lab',
-        } = options;
-
-        return `
-      Feature ${formulationExpertName}, a ${formulationExpertRole}, present in ${formulationLabStyle} beside the hero product.
-      Their face must look photorealistic and human—no CGI, animation, or plastic skin.
-      Keep real pores, imperfect lighting, and shallow depth of field like an editorial portrait.
-      Make it obvious they created the formula based on cited clinical research—include subtle clipboard notes, lab coat details, and a respectful nod to science-backed development.
     `.trim().replace(/\s+/g, ' ');
     }
 
