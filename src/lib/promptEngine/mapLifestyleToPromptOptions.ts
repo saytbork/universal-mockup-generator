@@ -390,6 +390,12 @@ export function mapLifestyleToPromptOptions(
     mapped.sceneIntent = sceneIntent;
     const isEnvironmentSceneIntent = sceneIntent === 'environment';
     const isEcommerceSceneIntent = sceneIntent === 'ecommerce';
+    const rawCreationMode = (sceneState.creationMode || '').toLowerCase();
+    const isCreationModeEcommerceBlank =
+        rawCreationMode === 'ecommerce blank space' || rawCreationMode === 'ecom-blank';
+    const isCompositionModeEcommerceBlank = sceneState.compositionMode === 'Ecommerce Blank Space';
+    const isEcommerceBlankSpaceActive =
+        isEcommerceSceneIntent || isCreationModeEcommerceBlank || isCompositionModeEcommerceBlank;
 
 
     // ========================================================================
@@ -565,7 +571,9 @@ export function mapLifestyleToPromptOptions(
 
     const creationModeStructural = isEnvironmentSceneIntent
         ? 'Environment-first lifestyle composition keeping the product grounded within the lived-in room.'
-        : CREATION_MODE_STRUCTURAL_MAP[creationModeKey] || CREATION_MODE_STRUCTURAL_MAP['Lifestyle UGC'];
+        : isEcommerceBlankSpaceActive
+            ? 'Ecommerce blank-space layout with pure white background (#FFFFFF), heavy negative space for UX overlays, and no environmental narrative.'
+            : CREATION_MODE_STRUCTURAL_MAP[creationModeKey] || CREATION_MODE_STRUCTURAL_MAP['Lifestyle UGC'];
 
     // Map to internal creation mode
     const creationModeInternalMap: Record<string, 'lifestyle' | 'studio' | 'aesthetic' | 'bg-replace' | 'ecom-blank'> = {
@@ -586,7 +594,9 @@ export function mapLifestyleToPromptOptions(
     const compositionModeKey = isEnvironmentSceneIntent ? 'Lifestyle Showcase' : rawCompositionModeKey;
     const compositionModeStructural = isEnvironmentSceneIntent
         ? 'Environment-first layout with human-first framing and contextual surroundings.'
-        : COMPOSITION_MODE_STRUCTURAL_MAP[rawCompositionModeKey] || '';
+        : isEcommerceBlankSpaceActive
+            ? 'Ecommerce blank-space arrangement with white void for product and copy, no lifestyle embellishments.'
+            : COMPOSITION_MODE_STRUCTURAL_MAP[rawCompositionModeKey] || '';
     mapped.compositionMode = compositionModeKey;
     mapped.compositionModeStructural = compositionModeStructural;
     console.log('[MAP] compositionMode:', compositionModeKey, '→', compositionModeStructural);
@@ -647,60 +657,65 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     // ENVIRONMENT → Scene Context (Restored Full Logic)
     // ========================================================================
-    const allowedEnvironmentMap: Record<string, string> = {
-        'Kitchen': 'Kitchen',
-        'Living Room': 'Living Room',
-        'Bedroom': 'Bedroom',
-        'Bathroom': 'Bathroom',
-        'Workspace': 'Workspace',
-        'Urban Exterior': 'Urban Exterior',
-        'Natural Exterior': 'Natural Exterior'
-    };
-
-    const selectedEnvironment = sceneState.environment || '';
-    const customEnvironmentValue = (sceneState.customEnvironment || '').trim();
-
-    (mapped as any).selectedEnvironment = selectedEnvironment;
-    (mapped as any).customEnvironment = customEnvironmentValue;
-
-    if (selectedEnvironment === 'Custom' && customEnvironmentValue) {
-        mapped.setting = customEnvironmentValue;
-        mapped.microLocation = customEnvironmentValue;
-    } else if (allowedEnvironmentMap[selectedEnvironment]) {
-        const envLabel = allowedEnvironmentMap[selectedEnvironment];
-        mapped.setting = envLabel;
-        mapped.microLocation = envLabel;
-    } else {
+    if (isEcommerceBlankSpaceActive) {
+        (mapped as any).selectedEnvironment = '';
+        (mapped as any).customEnvironment = '';
         mapped.setting = '';
         mapped.microLocation = '';
-    }
+        (mapped as any).sceneEnvironment = '';
+        (mapped as any).customEnvironment = '';
+        console.log('[MAP] environment: Ecommerce Blank Space active - environment suppressed');
+    } else {
+        const allowedEnvironmentMap: Record<string, string> = {
+            'Kitchen': 'Kitchen',
+            'Living Room': 'Living Room',
+            'Bedroom': 'Bedroom',
+            'Bathroom': 'Bathroom',
+            'Workspace': 'Workspace',
+            'Urban Exterior': 'Urban Exterior',
+            'Natural Exterior': 'Natural Exterior'
+        };
 
-    (mapped as any).sceneEnvironment = mapped.setting;
-    console.log('[MAP] environment:', selectedEnvironment, '→', mapped.setting);
+        const selectedEnvironment = sceneState.environment || '';
+        const customEnvironmentValue = (sceneState.customEnvironment || '').trim();
+
+        (mapped as any).selectedEnvironment = selectedEnvironment;
+        (mapped as any).customEnvironment = customEnvironmentValue;
+
+        if (selectedEnvironment === 'Custom' && customEnvironmentValue) {
+            mapped.setting = customEnvironmentValue;
+            mapped.microLocation = customEnvironmentValue;
+        } else if (allowedEnvironmentMap[selectedEnvironment]) {
+            const envLabel = allowedEnvironmentMap[selectedEnvironment];
+            mapped.setting = envLabel;
+            mapped.microLocation = envLabel;
+        } else {
+            mapped.setting = '';
+            mapped.microLocation = '';
+        }
+
+        (mapped as any).sceneEnvironment = mapped.setting;
+        console.log('[MAP] environment:', selectedEnvironment, '→', mapped.setting);
+    }
 
     // ========================================================================
     // TIME OF DAY + LIGHTING STYLE → Combined Light Narrative
     // ========================================================================
-    const isEcommerceBlankSpaceCreationMode = sceneState.creationMode === 'Ecommerce Blank Space';
-    const isEcommerceBlankSpaceCompositionMode = sceneState.compositionMode === 'Ecommerce Blank Space';
-    const shouldInjectEcommerceBackground = isEcommerceSceneIntent && isEcommerceBlankSpaceCompositionMode;
-
-    if (isEcommerceBlankSpaceCreationMode) {
-        // Ecommerce mode: studio lighting only
-        mapped.setting = '';
-        mapped.microLocation = '';
-        mapped.bgColor = shouldInjectEcommerceBackground ? sceneState.ecommerceBackgroundColor : undefined;
-        mapped.sidePlacement = (sceneState.sidePlacement?.toLowerCase() || 'center') as any;
-        mapped.lighting = 'controlled studio lighting with soft even shadows, neutral color temperature, product-grade illumination';
-        console.log('[MAP] Ecommerce Blank Space mode - studio lighting applied');
+    if (isEcommerceBlankSpaceActive) {
+        mapped.bgColor = '#FFFFFF';
+        mapped.lighting =
+            'Pure white background (#FFFFFF) with neutral studio lighting, flat even illumination, and only a subtle contact shadow directly beneath the product.';
+        (mapped as any).timeLightingContext = mapped.lighting;
+        console.log('[MAP] Ecommerce Blank Space lighting enforced:', mapped.lighting);
     } else {
-        // Lifestyle mode: combine time + lighting
         const timeSemantic = TIME_SEMANTIC_MAP[sceneState.timeOfDay] || TIME_SEMANTIC_MAP['Midday'];
         const lightingSemantic = LIGHTING_SEMANTIC_MAP[sceneState.lightingStyle] || LIGHTING_SEMANTIC_MAP['Natural window'];
         mapped.lighting = `${timeSemantic}, ${lightingSemantic}`;
+        (mapped as any).timeLightingContext = mapped.lighting;
         console.log('[MAP] lighting:', sceneState.timeOfDay, '+', sceneState.lightingStyle, '→', mapped.lighting);
     }
-    (mapped as any).timeLightingContext = mapped.lighting;
+
+    mapped.ecommerceBlankSpaceMode = isEcommerceBlankSpaceActive;
 
     if (mapped.creationMode === 'lifestyle') {
         delete (mapped as any).proLens;

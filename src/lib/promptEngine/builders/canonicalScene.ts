@@ -118,7 +118,7 @@ export class SceneNarrativeBuilder {
 
     private buildFormulationStory(options: PromptOptions): string | undefined {
         // FORMULATION STORY IS OPTIONAL - if disabled, skip entirely
-        if (!options.formulationExpertEnabled) {
+        if (!options.formulationExpertEnabled || options.personIncluded === false) {
             return undefined;
         }
 
@@ -184,6 +184,18 @@ export class SceneNarrativeBuilder {
     }
 
     private buildEnvironmentLightingMood(options: PromptOptions): string {
+        const isEcommerceBlankSpaceMode =
+            options.ecommerceBlankSpaceMode ||
+            options.sceneIntent === 'ecommerce' ||
+            options.creationMode === 'ecom-blank';
+
+        if (isEcommerceBlankSpaceMode) {
+            const text =
+                'Pure white background (#FFFFFF) with extremely neutral studio lighting, flat even illumination, and a minimal contact shadow straight under the product. No environment, no lifestyle storytelling.';
+            console.log('[SCENE NARRATIVE] Ecommerce Blank Space enforced lighting:', text);
+            return text;
+        }
+
         const environmentText = buildEnvironment({
             environmentOrder: options.environmentOrder,
             sceneEnvironment: (options as any).sceneEnvironment || options.setting,

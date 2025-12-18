@@ -159,6 +159,7 @@ export interface PromptOptions {
     sidePlacement?: 'left' | 'center' | 'right';
     productStructure?: 'single' | 'bundle' | 'routine';
     sceneIntent?: 'environment' | 'ecommerce';
+    ecommerceBlankSpaceMode?: boolean;
 
     formulationExpertEnabled?: boolean;
     formulationExpertName?: string;

@@ -15,17 +15,24 @@ export class ProductBuilder implements PromptBuilder {
             productMaterial,
         } = options;
 
-        let prompt = this.buildProductInsertion();
+        const isEcommerceBlankSpaceMode = options.ecommerceBlankSpaceMode;
+        let prompt = isEcommerceBlankSpaceMode
+            ? this.buildEcommerceBlankProductInsertion()
+            : this.buildProductInsertion();
+
+        if (heightNotes) {
+            prompt += ` Respect real-world scale: ${heightNotes}. Adjust camera distance so the item visually matches that measurement.`;
+        }
+
+        if (isEcommerceBlankSpaceMode) {
+            return prompt;
+        }
 
         const mappedMaterial = productMaterial
             ? parameterMap.productMaterial?.[productMaterial] ?? productMaterial
             : '';
         if (mappedMaterial) {
             prompt += ` Material and finish: ${mappedMaterial}.`;
-        }
-
-        if (heightNotes) {
-            prompt += ` Respect real-world scale: ${heightNotes}. Adjust hands, props, and camera distance so the item visibly matches that measurement.`;
         }
 
         if (productAssets.length > 1) {
@@ -44,6 +51,15 @@ export class ProductBuilder implements PromptBuilder {
         }
 
         return prompt;
+    }
+
+    private buildEcommerceBlankProductInsertion(): string {
+        return `
+      Use the uploaded product asset exactly as provided. Do not redesign, restyle, recolor, or reinterpret its shape, label, or material.
+      Place it on a pure white background (#FFFFFF) with neutral studio lighting, flat even illumination, and only a subtle contact shadow directly beneath the product.
+      Preserve the exact proportions, textures, reflections, and printed graphics. Avoid any environmental, lifestyle, or storytelling context; maintain the pixel-perfect look of the asset.
+    `.trim().replace(/\s+/g, ' ');
+
     }
 
     private buildProductInsertion(): string {
