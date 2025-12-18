@@ -261,6 +261,8 @@ const WARDROBE_SEMANTIC_MAP: Record<string, string> = {
 const INTERACTION_SEMANTIC_MAP: Record<string, string> = {
     'Holding': 'hands naturally gripping product with relaxed fingers, product stable in palm or between hands',
     'Using': 'hands actively using product in natural application, demonstrating real product function',
+    'Presenting': 'product extended toward camera with natural wrist motion, label visible without forced styling',
+    'Unboxing / Open Box': 'hands opening packaging or revealing the product inside with natural curiosity',
     'Showing to Camera': 'product held outward toward camera lens, hand angled to display product label or design',
     'Unboxing': 'hands in process of opening product packaging, revealing contents with natural excitement',
     'Applying': 'hands applying product to skin or surface with natural spreading or dabbing motion',
@@ -506,7 +508,14 @@ export function mapLifestyleToPromptOptions(
         const eyeDirectionLabel = sceneState.eyeDirection || 'Looking at camera';
         mapped.personDetails.eyeDirection =
             EYE_DIRECTION_SEMANTIC_MAP[eyeDirectionLabel] || eyeDirectionLabel as any;
-        if (sceneState.productInteraction) mapped.personDetails.productInteraction = INTERACTION_SEMANTIC_MAP[sceneState.productInteraction] || sceneState.productInteraction;
+        if (sceneState.productInteraction) {
+            const interactionBase = INTERACTION_SEMANTIC_MAP[sceneState.productInteraction] || sceneState.productInteraction;
+            const interactionParts = [interactionBase];
+            if (sceneState.productInteraction === 'Using' && sceneState.productUsageDescription) {
+                interactionParts.push(sceneState.productUsageDescription.trim());
+            }
+            mapped.personDetails.productInteraction = interactionParts.filter(Boolean).join(' ');
+        }
         mapped.productStructure = sceneState.productStructure || 'single';
         if (sceneState.eyeColor) mapped.personDetails.eyeColor = sceneState.eyeColor;
 
@@ -672,8 +681,14 @@ export function mapLifestyleToPromptOptions(
             'Bedroom': 'Bedroom',
             'Bathroom': 'Bathroom',
             'Workspace': 'Workspace',
+            'Hallway': 'Hallway',
+            'Home Gym': 'Home Gym',
+            'Balcony / Indoor Terrace': 'Balcony / Indoor Terrace',
             'Urban Exterior': 'Urban Exterior',
-            'Natural Exterior': 'Natural Exterior'
+            'Natural Exterior': 'Natural Exterior',
+            'Parking Lot': 'Parking Lot',
+            'Backyard / Patio': 'Backyard / Patio',
+            'Street Corner': 'Street Corner'
         };
 
         const selectedEnvironment = sceneState.environment || '';

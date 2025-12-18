@@ -9,7 +9,12 @@ import {
   CAMERA_OPTIONS,
   CAMERA_ANGLE_OPTIONS as CONSTANT_CAMERA_ANGLE_OPTIONS // Use constant if needed or stick to local if it matches
 } from '../../constants';
-import { UGCCaptureSituationOptions, type UGCCaptureSituationId } from '../lib/promptEngine/ugcCaptureSituation';
+import {
+  UGCCaptureSituationOptions,
+  type UGCCaptureSituationId,
+  type UGCCaptureSituationOption,
+  type UGCCaptureCategory
+} from '../lib/promptEngine/ugcCaptureSituation';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -146,6 +151,7 @@ export interface Step3Values {
 
   // Product Interaction
   productInteraction: string;
+  productUsageDescription: string;
   productStructure: 'single' | 'bundle' | 'routine';
 
   // Realism
@@ -324,7 +330,7 @@ const APPEARANCE_LEVEL_OPTIONS = [
 ];
 
 // Product Interaction - SIMPLIFIED per spec
-const INTERACTION_OPTIONS = ['Holding', 'Using', 'Presenting'];
+const INTERACTION_OPTIONS = ['Holding', 'Using', 'Presenting', 'Unboxing / Open Box'];
 
 // SKIN REALISM - 3 options only
 const SKIN_REALISM_OPTIONS = [
@@ -333,6 +339,33 @@ const SKIN_REALISM_OPTIONS = [
   'Soft Retouch'
 ];
 
+const UGC_CAPTURE_ORDER: UGCCaptureCategory[] = ['body', 'motion', 'framing', 'context'];
+
+const UGC_CAPTURE_CATEGORY_LABELS: Record<UGCCaptureCategory, string> = {
+  body: 'Body & Phone Position',
+  motion: 'Motion & Stability',
+  framing: 'Framing Imperfections',
+  context: 'Contextual Awkwardness'
+};
+
+const UGC_CAPTURE_CATEGORY_DESCRIPTIONS: Record<UGCCaptureCategory, string> = {
+  body: 'Select how the phone and body are positioned during the shot.',
+  motion: 'Capture the stabilization or wobble while the person moves.',
+  framing: 'Highlight the imperfect framing glitches common in real selfies.',
+  context: 'Add distracting elements or settings that feel raw and unplanned.'
+};
+
+const UGC_CAPTURE_OPTIONS_BY_CATEGORY: Record<UGCCaptureCategory, UGCCaptureSituationOption[]> = {
+  body: [],
+  motion: [],
+  framing: [],
+  context: []
+};
+
+UGCCaptureSituationOptions.forEach(option => {
+  UGC_CAPTURE_OPTIONS_BY_CATEGORY[option.category].push(option);
+});
+
 // ENVIRONMENT OPTIONS - EXPANDED per spec
 const ENVIRONMENT_INDOOR = [
   { value: 'Kitchen', icon: Utensils },
@@ -340,12 +373,18 @@ const ENVIRONMENT_INDOOR = [
   { value: 'Bedroom', icon: Home },
   { value: 'Bathroom', icon: Home },
   { value: 'Workspace', icon: Home },
+  { value: 'Hallway', icon: Building2 },
+  { value: 'Home Gym', icon: Home },
+  { value: 'Balcony / Indoor Terrace', icon: MapPin }
 ];
 
 // OUTDOOR
 const ENVIRONMENT_OUTDOOR = [
   { value: 'Urban Exterior', icon: Building2 },
   { value: 'Natural Exterior', icon: Mountain },
+  { value: 'Parking Lot', icon: Building2 },
+  { value: 'Backyard / Patio', icon: Waves },
+  { value: 'Street Corner', icon: MapPin }
 ];
 
 // SELFIE MODE - Unified Exclusive Enum
@@ -514,6 +553,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
     // Product Interaction
     productInteraction: 'Holding',
+    productUsageDescription: '',
     productStructure: 'single',
 
     // Realism
@@ -1089,24 +1129,36 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   {/* UGC CAPTURE SITUATION */}
                   <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
                     <div>
-                      <p className="text-xs uppercase tracking-wider text-indigo-200">UGC Capture Situation</p>
-                      <p className="text-[11px] text-gray-400 mt-1">Choose how the phone is held in real life. This is not a camera angle.</p>
+                      <p className="text-xs uppercase tracking-wider text-indigo-200">UGC Capture Style</p>
+                      <p className="text-[11px] text-gray-400 mt-1">
+                        Casual handheld smartphone capture, imperfect framing, natural human mistakes, non-staged.
+                      </p>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      {UGCCaptureSituationOptions.map(option => (
-                        <button
-                          key={option.id}
-                          type="button"
-                          onClick={() => {
-                            updateValue('ugcCaptureSituation', option.id);
-                            markSectionTouched('ugc');
-                          }}
-                          className={getPillClass(values.ugcCaptureSituation === option.id)}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
+                    {UGC_CAPTURE_ORDER.map(category => (
+                      <div key={category} className="space-y-2">
+                        <div>
+                          <p className="text-[11px] uppercase tracking-[0.3em] text-gray-400">
+                            {UGC_CAPTURE_CATEGORY_LABELS[category]}
+                          </p>
+                          <p className="text-[10px] text-gray-500">{UGC_CAPTURE_CATEGORY_DESCRIPTIONS[category]}</p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {UGC_CAPTURE_OPTIONS_BY_CATEGORY[category].map(option => (
+                            <button
+                              key={option.id}
+                              type="button"
+                              onClick={() => {
+                                updateValue('ugcCaptureSituation', option.id);
+                                markSectionTouched('ugc');
+                              }}
+                              className={getPillClass(values.ugcCaptureSituation === option.id)}
+                            >
+                              {option.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
                     {!values.ugcCaptureSituation && (
                       <p className="text-[11px] text-rose-300">Please choose a real-life capture situation to continue.</p>
                     )}
@@ -1153,17 +1205,33 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         onToggle={() => toggleSection('productInteraction')}
         isTouched={touchedSections.has('productInteraction')}
       >
-        <div className="flex flex-wrap items-center gap-2">
-          {PRODUCT_INTERACTION_OPTIONS.map(option => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => { updateValue('productInteraction', option); markSectionTouched('productInteraction'); }}
-              className={getPillClass(values.productInteraction === option)}
-            >
-              {option}
-            </button>
-          ))}
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            {PRODUCT_INTERACTION_OPTIONS.map(option => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => { updateValue('productInteraction', option); markSectionTouched('productInteraction'); }}
+                className={getPillClass(values.productInteraction === option)}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+          {values.productInteraction === 'Using' && (
+            <div className="mt-2">
+              <textarea
+                value={values.productUsageDescription}
+                onChange={(event) => {
+                  updateValue('productUsageDescription', event.target.value);
+                  markSectionTouched('productInteraction');
+                }}
+                placeholder="Describe what the person is naturally doing with the product"
+                className="w-full rounded-lg border border-gray-600 bg-gray-900/60 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 resize-none"
+                rows={3}
+              />
+            </div>
+          )}
         </div>
       </AccordionSection >
 
