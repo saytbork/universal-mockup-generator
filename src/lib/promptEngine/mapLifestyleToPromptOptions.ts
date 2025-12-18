@@ -15,6 +15,7 @@
 import type { ExpertRole, Step3Values, ExpertAttire } from '@/components/LifestyleStep3';
 import type { FormulationStoryOptions, PromptOptions } from './types';
 import { mapProductModeToPromptOptions } from './mapProductModeToPromptOptions';
+import { APPEARANCE_SEMANTIC_MAP } from './semanticMaps/appearance';
 
 // ============================================================================
 // SEMANTIC MAPPING TABLES - PHYSICAL, OBSERVABLE LANGUAGE ONLY
@@ -246,14 +247,6 @@ const SKIN_REALISM_SEMANTIC_MAP: Record<string, string> = {
     'Raw / Real': 'raw, unretouched skin with visible texture, pores, and natural imperfections',
     'Natural': 'natural realistic skin texture with visible pores and subtle imperfections, no plastic look',
     'Soft Retouch': 'lightly retouched skin, minimal smoothing, still realistic and human'
-};
-
-const APPEARANCE_SEMANTIC_MAP: Record<string, string> = {
-    'Regular': 'regular everyday professional appearance',
-    'Well-Groomed': 'well-groomed, clean, realistic professional appearance',
-    'Styled': 'styled but believable appearance, intentionally prepared',
-    'Messy / Just Woke Up': 'slightly messy, just-woke-up look with natural dishevelment',
-    'Running Late': 'running-late appearance with minor imperfections in hair and clothing'
 };
 
 /**
