@@ -100,6 +100,9 @@ export class SceneNarrativeBuilder {
     }
 
     private buildCreationMode(options: PromptOptions): string {
+        if (options.sceneIntent === 'environment') {
+            return 'Environment-first lifestyle composition with the product grounded in a natural space, avoiding hero or studio framing.';
+        }
         const mode = options.creationMode;
         const copy = creationModeCopy[mode] || creationModeCopy.lifestyle;
         return copy;
@@ -131,6 +134,9 @@ export class SceneNarrativeBuilder {
     }
 
     private buildEcommerceBuilder(options: PromptOptions): string | undefined {
+        if (options.sceneIntent === 'environment') {
+            return undefined;
+        }
         const isEcommerceIntent = options.creationIntent === 'product' || options.creationIntent === 'brand';
         const isEcomBlank = options.creationMode === 'ecom-blank';
 

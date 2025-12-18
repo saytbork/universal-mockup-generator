@@ -50,7 +50,7 @@ import { UGCRealModeBuilder } from './builders/ugcRealMode';
 import { FormulationStoryInjectionBuilder } from './builders/formulationStoryInjection';
 import { CompositionDetailsBuilder } from './builders/compositionDetails';
 import type { PromptOptions } from './types';
-import { buildMasterPrompt } from './masterPrompt';
+import { buildMasterPrompt, MasterPromptSections } from './masterPrompt';
 
 // ============================================================================
 // NEGATIVE PROMPT - Quality anchors and artifact prevention
@@ -261,7 +261,6 @@ export class PromptEngine {
         // STEP 6: Finalize
         // ====================================================================
         const formulationStoryInjection = this.formulationStoryInjectionBuilder.build(options);
-        const compositionDetails = this.compositionDetailsBuilder.build(options);
         const compositionDetailsSection = this.compositionDetailsBuilder.build(options);
         const finalizeSection = this.finalizeBuilder.build(options);
         console.log('[PROMPT ENGINE] Step 6: Finalize -', `${finalizeSection.length} chars`);
@@ -269,21 +268,30 @@ export class PromptEngine {
         // ====================================================================
         // ASSEMBLE MASTER PROMPT (canonical order)
         // ====================================================================
-        const finalPrompt = buildMasterPrompt(
-            {
-                creationIntent: narrativeSections.creationIntent,
-                creationMode: narrativeSections.creationMode,
-                ugcRealMode: ugcSection || narrativeSections.ugcRealMode,
-                formulationStory: [narrativeSections.formulationStory, formulationStoryInjection].filter(Boolean).join(' '),
-                ecommerceBuilder: narrativeSections.ecommerceBuilder,
-                cameraFraming: narrativeSections.cameraFraming,
-                environmentLightingMood: narrativeSections.environmentLightingMood,
-                compositionDetails,
-                identity: narrativeSections.identity || identitySection,
-                finalize: finalizeSection
-            },
-            negativePrompt()
-        );
+        const negative = negativePrompt();
+        const masterSections: MasterPromptSections = {
+            creationIntent: narrativeSections.creationIntent,
+            creationMode: narrativeSections.creationMode,
+            ugcRealMode: ugcSection || narrativeSections.ugcRealMode,
+            formulationStory: [narrativeSections.formulationStory, formulationStoryInjection].filter(Boolean).join(' '),
+            ecommerceBuilder: narrativeSections.ecommerceBuilder,
+            cameraFraming: narrativeSections.cameraFraming,
+            environmentLightingMood: narrativeSections.environmentLightingMood,
+            compositionDetails: compositionDetailsSection,
+            identity: narrativeSections.identity || identitySection,
+            finalize: finalizeSection
+        };
+
+        let finalPrompt = buildMasterPrompt(masterSections, negative);
+
+        const bannedEnvironmentalTerms = /(luxury editorial|hero framing|cinema camera)/i;
+        if (options.sceneIntent === 'environment' && bannedEnvironmentalTerms.test(finalPrompt)) {
+            console.warn('[PROMPT ENGINE] Environment guard triggered - overriding to environment-safe placement');
+            masterSections.creationMode = 'Environment-first lifestyle composition with natural surroundings and contextual product placement.';
+            masterSections.ecommerceBuilder = undefined;
+            masterSections.cameraFraming = 'Camera: handheld smartphone perspective capturing spatial depth, avoiding cinematic hero angles.';
+            finalPrompt = buildMasterPrompt(masterSections, negative);
+        }
 
         // ====================================================================
         // MANDATORY DEBUG LOGGING
@@ -323,6 +331,7 @@ export class PromptEngine {
             constraints: constraintsSection
         });
         const finalizeSection = this.finalizeBuilder.build(options);
+        const compositionDetailsSection = this.compositionDetailsBuilder.build(options);
 
         return {
             Narrative: [

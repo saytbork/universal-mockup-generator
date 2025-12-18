@@ -157,6 +157,7 @@ export interface PromptOptions {
     compositionMode?: string;
     bgColor?: string;
     sidePlacement?: 'left' | 'center' | 'right';
+    sceneIntent?: 'environment' | 'ecommerce';
 
     formulationExpertEnabled?: boolean;
     formulationExpertName?: string;

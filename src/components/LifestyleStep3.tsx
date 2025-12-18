@@ -225,7 +225,7 @@ const getPillClass = (isActive: boolean, _fullWidth = false) => {
 };
 
 // EXPANDED GENDER OPTIONS - Exact spec (6 options)
-const GENDER_OPTIONS = ['Female', 'Male', 'Non-binary', 'Trans woman', 'Trans man', 'Gender non-conforming'];
+const GENDER_OPTIONS = ['Female', 'Male', 'Trans', 'Non-binary', 'Gender non-conforming'];
 
 export type ExpertRole =
   | 'doctor'

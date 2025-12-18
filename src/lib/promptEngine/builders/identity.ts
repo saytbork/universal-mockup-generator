@@ -68,9 +68,9 @@ Avoid youthful facial proportions, smooth skin, or middle-aged appearance.
             const ageLabel = `${age}-year-old ${ageGroupLabel}`;
             identityParts.push(ageLabel);
 
-            // Gender - use only explicit Male/Female selections
-            if (personDetails?.gender === 'Male' || personDetails?.gender === 'Female') {
-                identityParts.push(personDetails.gender);
+            // Gender - use allowed selections verbatim
+            if (personDetails?.gender) {
+                identityParts.push(sanitizePart(personDetails.gender));
             }
 
             // Ethnicity - inject verbatim

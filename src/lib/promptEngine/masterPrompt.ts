@@ -14,7 +14,7 @@
  * 9. finalize - Constraints and output format
  */
 
-type MasterPromptSections = {
+export type MasterPromptSections = {
   creationIntent: string;
   creationMode: string;
   ugcRealMode: string;

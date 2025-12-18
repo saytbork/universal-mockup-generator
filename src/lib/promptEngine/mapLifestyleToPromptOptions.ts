@@ -386,6 +386,11 @@ export function mapLifestyleToPromptOptions(
     const personIncluded = !sceneState.noPerson;
     mapped.personIncluded = personIncluded;
 
+    const sceneIntent = sceneState.sceneIntent || 'environment';
+    mapped.sceneIntent = sceneIntent;
+    const isEnvironmentSceneIntent = sceneIntent === 'environment';
+    const isEcommerceSceneIntent = sceneIntent === 'ecommerce';
+
 
     // ========================================================================
     // PRIORITY 2: CUSTOM CLOTHES (ABSOLUTE OVERRIDE)
@@ -549,11 +554,17 @@ export function mapLifestyleToPromptOptions(
 
     // OVERRIDE: If Composition Mode is 'Ecommerce Blank Space', force creation mode
     // This allows Ecommerce Builder to work without UI state sync complexity
-    if (sceneState.compositionMode === 'Ecommerce Blank Space') {
+    if (sceneState.compositionMode === 'Ecommerce Blank Space' && !isEnvironmentSceneIntent) {
         creationModeKey = 'Ecommerce Blank Space';
     }
 
-    const creationModeStructural = CREATION_MODE_STRUCTURAL_MAP[creationModeKey] || CREATION_MODE_STRUCTURAL_MAP['Lifestyle UGC'];
+    if (isEnvironmentSceneIntent) {
+        creationModeKey = 'Lifestyle UGC';
+    }
+
+    const creationModeStructural = isEnvironmentSceneIntent
+        ? 'Environment-first lifestyle composition keeping the product grounded within the lived-in room.'
+        : CREATION_MODE_STRUCTURAL_MAP[creationModeKey] || CREATION_MODE_STRUCTURAL_MAP['Lifestyle UGC'];
 
     // Map to internal creation mode
     const creationModeInternalMap: Record<string, 'lifestyle' | 'studio' | 'aesthetic' | 'bg-replace' | 'ecom-blank'> = {
@@ -564,15 +575,26 @@ export function mapLifestyleToPromptOptions(
         'Ecommerce Blank Space': 'ecom-blank'
     };
     mapped.creationMode = creationModeInternalMap[creationModeKey] || 'lifestyle';
+    mapped.creationModeStructural = creationModeStructural;
     console.log('[MAP] creationMode:', creationModeKey, '→', mapped.creationMode, '→', creationModeStructural);
 
     // ========================================================================
     // COMPOSITION MODE → Layout Intent
     // ========================================================================
-    const compositionModeKey = sceneState.compositionMode || 'Lifestyle Showcase';
-    const compositionModeStructural = COMPOSITION_MODE_STRUCTURAL_MAP[compositionModeKey] || '';
+    const rawCompositionModeKey = sceneState.compositionMode || 'Lifestyle Showcase';
+    const compositionModeKey = isEnvironmentSceneIntent ? 'Lifestyle Showcase' : rawCompositionModeKey;
+    const compositionModeStructural = isEnvironmentSceneIntent
+        ? 'Environment-first layout with human-first framing and contextual surroundings.'
+        : COMPOSITION_MODE_STRUCTURAL_MAP[rawCompositionModeKey] || '';
     mapped.compositionMode = compositionModeKey;
+    mapped.compositionModeStructural = compositionModeStructural;
     console.log('[MAP] compositionMode:', compositionModeKey, '→', compositionModeStructural);
+
+    if (isEnvironmentSceneIntent) {
+        mapped.placementStyle = 'Lifestyle placement with the product integrated in the environment, not hero-focused.';
+        mapped.productPlane = 'Mid-ground contextual placement within the room or space.';
+        mapped.placementCamera = sceneState.cameraType || mapped.placementCamera;
+    }
 
     // ========================================================================
     // UGC REAL MODE → HARD OVERRIDES (Highest Priority)
@@ -596,8 +618,12 @@ export function mapLifestyleToPromptOptions(
     // Camera Device Type
     const cameraDevice = (sceneState as any).cameraType || 'Modern Smartphone';
     const cameraDeviceSemantic = CAMERA_DEVICE_SEMANTIC_MAP[cameraDevice] || CAMERA_DEVICE_SEMANTIC_MAP['Modern Smartphone'];
+    const effectiveCameraSemantic = isEnvironmentSceneIntent
+        ? 'Handheld smartphone perspective capturing real spatial depth, emphasizing the surrounding environment.'
+        : cameraDeviceSemantic;
     mapped.camera = cameraDevice;
-    console.log('[MAP] camera:', cameraDevice, '→', cameraDeviceSemantic);
+    mapped.cameraDeviceSemantic = effectiveCameraSemantic;
+    console.log('[MAP] camera:', cameraDevice, '→', effectiveCameraSemantic);
 
     // Shot Type
     const shotTypeSemantic = SHOT_TYPE_SEMANTIC_MAP[sceneState.shotType] || SHOT_TYPE_SEMANTIC_MAP['Medium'];
@@ -656,7 +682,6 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     const isEcommerceBlankSpaceCreationMode = sceneState.creationMode === 'Ecommerce Blank Space';
     const isEcommerceBlankSpaceCompositionMode = sceneState.compositionMode === 'Ecommerce Blank Space';
-    const isEcommerceSceneIntent = sceneState.sceneIntent === 'ecommerce';
     const shouldInjectEcommerceBackground = isEcommerceSceneIntent && isEcommerceBlankSpaceCompositionMode;
 
     if (isEcommerceBlankSpaceCreationMode) {
