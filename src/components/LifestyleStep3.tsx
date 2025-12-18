@@ -708,12 +708,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       updateValue('selfieMode', 'None');
     }
 
-    // Ensure noPerson is true
-    if (!values.noPerson) {
-      console.log('[PRODUCT MODE] Setting noPerson = true');
-      updateValue('noPerson', true);
-    }
-
     // Set creation intent to product
     if (values.creationIntent !== 'product') {
       console.log('[PRODUCT MODE] Setting creationIntent = product');
@@ -745,10 +739,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       updateValue('selfieMode', 'None');
     }
 
-    if (!values.noPerson) {
-      updateValue('noPerson', true);
-    }
-
     if (values.heroPersona) {
       updateValue('heroPersona', '');
     }
@@ -763,15 +753,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   ]);
 
   useEffect(() => {
-    if (values.noPerson) {
-      return;
+    const shouldDisablePerson = isProductMode || values.formulationStoryEnabled;
+    if (values.noPerson !== shouldDisablePerson) {
+      updateValue('noPerson', shouldDisablePerson);
     }
+  }, [isProductMode, values.formulationStoryEnabled, values.noPerson, updateValue]);
 
-    if (values.formulationStoryEnabled) {
+  useEffect(() => {
+    if (values.ugcRealMode && values.formulationStoryEnabled) {
       updateValue('formulationStoryEnabled', false);
     }
-  }, [values.noPerson, values.formulationStoryEnabled, updateValue]);
-
+  }, [values.ugcRealMode, values.formulationStoryEnabled, updateValue]);
   return (
     <div className="w-full max-w-2xl mx-auto space-y-4 pb-8 px-4">
       {/* Header */}
@@ -793,219 +785,225 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         isTouched={touchedSections.has('creator')}
       >
         <div className="flex flex-col gap-4">
-          <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-            <div className="flex items-center justify-between">
-              <p className="text-xs uppercase tracking-wider text-indigo-200">AGE</p>
-              <p className="text-sm text-white">{values.age}</p>
+          {isPersonDisabled ? (
+            <div className="p-4 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-100 text-sm">
+              Formulation Story is enabled, so Creator / Person controls are temporarily disabled to prevent conflicting modes.
             </div>
-            <input
-              type="range"
-              min={18}
-              max={90}
-              step={1}
-              value={values.age}
-              onChange={(event) => handleAgeSliderChange(Number(event.target.value))}
-              className="scene-age-slider w-full"
-              style={{
-                background: `linear-gradient(90deg, rgba(129,140,248,0.95) ${ageSliderProgress}%, rgba(31,41,55,0.5) ${ageSliderProgress}%)`
-              }}
-            />
-          </div>
-
-          {!isPersonDisabled && (
-            <div className="space-y-4">
-              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-                <p className="text-xs uppercase tracking-wider text-indigo-200">GENDER</p>
-                <div className="flex flex-wrap gap-2">
-                  {GENDER_OPTIONS.map(option => (
-                    <button
-                      key={option}
-                      type="button"
-                      onClick={() => { updateValue('gender', option as any); markSectionTouched('creator'); }}
-                      className={getPillClass(values.gender === option, true)}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-                <p className="text-xs uppercase tracking-wider text-indigo-200">ETHNICITY</p>
-                <div className="flex flex-wrap items-center gap-2">
-                  {ETHNICITY_OPTIONS.map(option => (
-                    <button
-                      key={option}
-                      type="button"
-                      onClick={() => { updateValue('ethnicity', option); markSectionTouched('creator'); }}
-                      className={getPillClass(values.ethnicity === option)}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-                <p className="text-xs uppercase tracking-wider text-indigo-200">SKIN TONE</p>
-                <div className="flex flex-wrap items-center gap-2">
-                  {SKIN_TONE_OPTIONS.map(option => (
-                    <button
-                      key={option}
-                      type="button"
-                      onClick={() => { updateValue('skinTone', option); markSectionTouched('creator'); }}
-                      className={getPillClass(values.skinTone === option)}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-                <p className="text-xs uppercase tracking-wider text-indigo-200">EYE COLOR</p>
-                <div className="flex flex-wrap items-center gap-2">
-                  {EYE_COLOR_OPTIONS.map(option => (
-                    <button
-                      key={option}
-                      type="button"
-                      onClick={() => { updateValue('eyeColor', option); markSectionTouched('creator'); }}
-                      className={getPillClass(values.eyeColor === option)}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-                <p className="text-xs uppercase tracking-wider text-indigo-200">BODY TYPE</p>
-                <div className="flex flex-wrap gap-2">
-                  {BODY_TYPE_OPTIONS.map(option => (
-                    <button
-                      key={option}
-                      type="button"
-                      onClick={() => { updateValue('bodyType', option as any); markSectionTouched('creator'); }}
-                      className={getPillClass(values.bodyType === option)}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
+          ) : (
+            <>
               <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs uppercase tracking-wider text-indigo-200">HAIR</p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      updateValue('hairState', values.hairState === 'bald' ? 'natural' : 'bald');
-                      markSectionTouched('creator');
-                    }}
-                    className={`rounded-full border px-2 py-1 text-xs transition ${values.hairState === 'bald'
-                      ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                      : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                      }`}
-                  >
-                    {values.hairState === 'bald' ? 'Bald' : 'Has hair'}
-                  </button>
+                  <p className="text-xs uppercase tracking-wider text-indigo-200">AGE</p>
+                  <p className="text-sm text-white">{values.age}</p>
                 </div>
-
-                {values.hairState === 'natural' && (
-                  <>
-                    <div className="space-y-1.5">
-                      <p className="text-xs text-gray-400">Length</p>
-                      <div className="flex flex-wrap items-center gap-2">
-                        {HAIR_LENGTH_OPTIONS.map(option => (
-                          <button
-                            key={option}
-                            type="button"
-                            onClick={() => { updateValue('hairLength', option); markSectionTouched('creator'); }}
-                            className={`rounded-full border px-2 py-1 text-xs transition ${values.hairLength === option
-                              ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                              : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                              }`}
-                          >
-                            {option}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <p className="text-xs text-gray-400">Texture</p>
-                      <div className="flex flex-wrap items-center gap-2">
-                        {HAIR_TEXTURE_OPTIONS.map(option => (
-                          <button
-                            key={option}
-                            type="button"
-                            onClick={() => { updateValue('hairTexture', option); markSectionTouched('creator'); }}
-                            className={`rounded-full border px-2 py-1 text-xs transition ${values.hairTexture === option
-                              ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                              : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                              }`}
-                          >
-                            {option}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <p className="text-xs text-gray-400">Color</p>
-                      <div className="flex flex-wrap items-center gap-2">
-                        {HAIR_COLOR_OPTIONS.map(option => (
-                          <button
-                            key={option}
-                            type="button"
-                            onClick={() => { updateValue('hairColor', option); markSectionTouched('creator'); }}
-                            className={`rounded-full border px-2 py-1 text-xs transition ${values.hairColor === option
-                              ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                              : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                              }`}
-                          >
-                            {option}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                )}
+                <input
+                  type="range"
+                  min={18}
+                  max={90}
+                  step={1}
+                  value={values.age}
+                  onChange={(event) => handleAgeSliderChange(Number(event.target.value))}
+                  className="scene-age-slider w-full"
+                  style={{
+                    background: `linear-gradient(90deg, rgba(129,140,248,0.95) ${ageSliderProgress}%, rgba(31,41,55,0.5) ${ageSliderProgress}%)`
+                  }}
+                />
               </div>
 
-              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-                <p className="text-xs uppercase tracking-wider text-indigo-200">FACIAL EXPRESSION</p>
-                <div className="flex flex-wrap items-center gap-2">
-                  {EXPRESSION_OPTIONS.map(option => (
+              <div className="space-y-4">
+                <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                  <p className="text-xs uppercase tracking-wider text-indigo-200">GENDER</p>
+                  <div className="flex flex-wrap gap-2">
+                    {GENDER_OPTIONS.map(option => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => { updateValue('gender', option as any); markSectionTouched('creator'); }}
+                        className={getPillClass(values.gender === option, true)}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                  <p className="text-xs uppercase tracking-wider text-indigo-200">ETHNICITY</p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {ETHNICITY_OPTIONS.map(option => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => { updateValue('ethnicity', option); markSectionTouched('creator'); }}
+                        className={getPillClass(values.ethnicity === option)}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                  <p className="text-xs uppercase tracking-wider text-indigo-200">SKIN TONE</p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {SKIN_TONE_OPTIONS.map(option => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => { updateValue('skinTone', option); markSectionTouched('creator'); }}
+                        className={getPillClass(values.skinTone === option)}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                  <p className="text-xs uppercase tracking-wider text-indigo-200">EYE COLOR</p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {EYE_COLOR_OPTIONS.map(option => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => { updateValue('eyeColor', option); markSectionTouched('creator'); }}
+                        className={getPillClass(values.eyeColor === option)}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                  <p className="text-xs uppercase tracking-wider text-indigo-200">BODY TYPE</p>
+                  <div className="flex flex-wrap gap-2">
+                    {BODY_TYPE_OPTIONS.map(option => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => { updateValue('bodyType', option as any); markSectionTouched('creator'); }}
+                        className={getPillClass(values.bodyType === option)}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs uppercase tracking-wider text-indigo-200">HAIR</p>
                     <button
-                      key={option}
                       type="button"
-                      onClick={() => { updateValue('facialExpression', option); markSectionTouched('creator'); }}
-                      className={getPillClass(values.facialExpression === option)}
+                      onClick={() => {
+                        updateValue('hairState', values.hairState === 'bald' ? 'natural' : 'bald');
+                        markSectionTouched('creator');
+                      }}
+                      className={`rounded-full border px-2 py-1 text-xs transition ${values.hairState === 'bald'
+                        ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                        : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                        }`}
                     >
-                      {option}
+                      {values.hairState === 'bald' ? 'Bald' : 'Has hair'}
                     </button>
-                  ))}
-                </div>
-              </div>
+                  </div>
 
-              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-                <p className="text-xs uppercase tracking-wider text-indigo-200">EYE DIRECTION</p>
-                <div className="flex flex-wrap gap-2">
-                  {EYE_DIRECTION_OPTIONS.map(option => (
-                    <button
-                      key={option}
-                      type="button"
-                      onClick={() => { updateValue('eyeDirection', option); markSectionTouched('creator'); }}
-                      className={getPillClass(values.eyeDirection === option)}
-                    >
-                      {option}
-                    </button>
-                  ))}
+                  {values.hairState === 'natural' && (
+                    <>
+                      <div className="space-y-1.5">
+                        <p className="text-xs text-gray-400">Length</p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          {HAIR_LENGTH_OPTIONS.map(option => (
+                            <button
+                              key={option}
+                              type="button"
+                              onClick={() => { updateValue('hairLength', option); markSectionTouched('creator'); }}
+                              className={`rounded-full border px-2 py-1 text-xs transition ${values.hairLength === option
+                                ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                                : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                                }`}
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <p className="text-xs text-gray-400">Texture</p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          {HAIR_TEXTURE_OPTIONS.map(option => (
+                            <button
+                              key={option}
+                              type="button"
+                              onClick={() => { updateValue('hairTexture', option); markSectionTouched('creator'); }}
+                              className={`rounded-full border px-2 py-1 text-xs transition ${values.hairTexture === option
+                                ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                                : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                                }`}
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <p className="text-xs text-gray-400">Color</p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          {HAIR_COLOR_OPTIONS.map(option => (
+                            <button
+                              key={option}
+                              type="button"
+                              onClick={() => { updateValue('hairColor', option); markSectionTouched('creator'); }}
+                              className={`rounded-full border px-2 py-1 text-xs transition ${values.hairColor === option
+                                ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                                : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                                }`}
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                  <p className="text-xs uppercase tracking-wider text-indigo-200">FACIAL EXPRESSION</p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {EXPRESSION_OPTIONS.map(option => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => { updateValue('facialExpression', option); markSectionTouched('creator'); }}
+                        className={getPillClass(values.facialExpression === option)}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                  <p className="text-xs uppercase tracking-wider text-indigo-200">EYE DIRECTION</p>
+                  <div className="flex flex-wrap gap-2">
+                    {EYE_DIRECTION_OPTIONS.map(option => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => { updateValue('eyeDirection', option); markSectionTouched('creator'); }}
+                        className={getPillClass(values.eyeDirection === option)}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
+            </>
           )}
         </div>
 
