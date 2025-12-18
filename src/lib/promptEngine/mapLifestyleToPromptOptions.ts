@@ -403,18 +403,13 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     // PRIORITY 2: CUSTOM CLOTHES (ABSOLUTE OVERRIDE)
     // ========================================================================
-    const hasCustomClothes = !!existingOptions.clothingReference;
+    const customClothingReference = sceneState.customClothingReference?.trim();
+    const hasCustomClothes = !!(customClothingReference || existingOptions.clothingReference);
     let wardrobeOverride = null;
 
-    if (hasCustomClothes) {
-        console.log('[PRIORITY 1] Custom Clothes Detected - NUKING conflicting wardrobe settings');
-        const constraint = "The person is wearing the exact outfit from the uploaded clothing reference image. Do not redesign, reinterpret, restyle, or invent clothing.";
-        wardrobeOverride = constraint;
-        mapped.wardrobeStyle = constraint;
-        mapped.personDetails.wardrobeStyle = constraint;
-        // Block Appearance Level from inventing style conflicts
-        mapped.personAppearance = "neutral grooming matching reference";
-        mapped.personDetails.personAppearance = "neutral grooming matching reference";
+    if (customClothingReference) {
+        mapped.clothingReference = customClothingReference;
+        mapped.clothingCustomImage = customClothingReference;
     }
 
     // ========================================================================
@@ -485,13 +480,11 @@ export function mapLifestyleToPromptOptions(
             mapped.personDetails.wardrobeStyle = ward;
         }
 
-        // APPEARANCE (Manual if not nuked by Custom Clothes)
-        if (!hasCustomClothes) {
-            const appearanceDescriptor = mapAppearanceLevel(sceneState.appearanceLevel);
-            if (appearanceDescriptor) {
-                mapped.personAppearance = appearanceDescriptor;
-                mapped.personDetails.personAppearance = appearanceDescriptor;
-            }
+        // APPEARANCE (Manual input)
+        const appearanceDescriptor = mapAppearanceLevel(sceneState.appearanceLevel);
+        if (appearanceDescriptor) {
+            mapped.personAppearance = appearanceDescriptor;
+            mapped.personDetails.personAppearance = appearanceDescriptor;
         }
 
         const skinDescriptor = mapSkinRealism(sceneState.skinRealism);

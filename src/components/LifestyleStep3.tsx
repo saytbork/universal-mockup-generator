@@ -506,6 +506,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const [sceneMode, setSceneMode] = useState<'ugc' | 'product'>(isProductMode ? 'product' : 'ugc');
   const [openAccordionId, setOpenAccordionId] = useState<string | null>(isProductMode ? 'product-setup' : 'creator');
   const [touchedSections, setTouchedSections] = useState<Set<string>>(new Set());
+  const [customClothesDragActive, setCustomClothesDragActive] = useState(false);
 
   const initialValues: Step3Values = {
     // Creator/Person
@@ -1164,29 +1165,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     )}
                   </div>
 
-                  {/* CUSTOM CLOTHES */}
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Custom clothes</p>
-                      <p className="text-[11px] text-gray-400">Upload a reference outfit or tap a preset to keep it raw and real.</p>
-                    </div>
-
-                    <label className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/20 bg-black/30 px-4 py-6 text-center text-xs text-gray-300 cursor-pointer hover:border-indigo-400">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 5v14m7-7H5" />
-                      </svg>
-                      <span>Upload clothing reference</span>
-                      <input type="file" accept="image/*" className="hidden" onChange={(e) => {
-                        // Handle file upload - this can be connected to wardrobe state
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          console.log('[UGC] Clothing reference uploaded:', file.name);
-                          // Future: connect to wardrobe upload handler
-                        }
-                      }} />
-                    </label>
-                  </div>
-
                 </>
               )}
 
@@ -1234,6 +1212,93 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           )}
         </div>
       </AccordionSection >
+
+      {/* Custom Clothes Asset */}
+      <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-900/20">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-wider text-indigo-200">Custom Clothes</p>
+            <p className="text-[11px] text-gray-400">Upload an outfit reference to guide how the garment should appear.</p>
+          </div>
+          {values.customClothingReference && (
+            <button
+              type="button"
+              onClick={() => {
+                updateValue('customClothingReference', '');
+                markSectionTouched('customClothes');
+              }}
+              className="text-[11px] text-rose-300 hover:text-white"
+            >
+              Remove
+            </button>
+          )}
+        </div>
+
+        <div
+          className={`relative h-32 w-full overflow-hidden rounded-2xl border-2 border-dashed ${customClothesDragActive ? 'border-indigo-400 bg-white/5' : 'border-gray-600 bg-black/30'}`}
+          onDragOver={(event) => {
+            event.preventDefault();
+            setCustomClothesDragActive(true);
+          }}
+          onDragLeave={() => {
+            setCustomClothesDragActive(false);
+          }}
+          onDrop={(event) => {
+            event.preventDefault();
+            setCustomClothesDragActive(false);
+            const files = event.dataTransfer?.files;
+            if (files?.length) {
+              const file = files[0];
+              const reader = new FileReader();
+              reader.onload = () => {
+                const result = reader.result;
+                if (typeof result === 'string') {
+                  updateValue('customClothingReference', result);
+                  markSectionTouched('customClothes');
+                }
+              };
+              reader.readAsDataURL(file);
+            }
+          }}
+        >
+          {values.customClothingReference ? (
+            <>
+              <img
+                src={values.customClothingReference}
+                alt="Clothing reference"
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/40 text-[11px] text-white">
+                Drop or click to replace
+              </div>
+            </>
+          ) : (
+            <div className="flex h-full flex-col items-center justify-center gap-1 text-center">
+              <p className="text-sm text-white">Drag & drop or click to upload</p>
+              <p className="text-[11px] text-gray-400">Like a product upload, this reference describes fabric, silhouette, and fit.</p>
+            </div>
+          )}
+          <input
+            type="file"
+            accept="image/*"
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (!file) return;
+              const reader = new FileReader();
+              reader.onload = () => {
+                const result = reader.result;
+                if (typeof result === 'string') {
+                  updateValue('customClothingReference', result);
+                  markSectionTouched('customClothes');
+                }
+              };
+              reader.readAsDataURL(file);
+              event.target.value = '';
+            }}
+          />
+        </div>
+      </div>
 
       <AccordionSection
         icon={Layers}
