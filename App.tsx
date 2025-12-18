@@ -37,6 +37,7 @@ import {
 import { normalizeOptions } from './src/system/normalizeOptions';
 import { promptEngine } from './src/lib/promptEngine';
 import { mapLifestyleToPromptOptions } from './src/lib/promptEngine/mapLifestyleToPromptOptions';
+import { validatePrompt, type PromptValidationResult } from './src/lib/promptEngine/validator';
 import LifestyleStep3, { type Step3Values } from "@/components/LifestyleStep3";
 
 
@@ -1110,6 +1111,7 @@ const App: React.FC = () => {
 
   // LifestyleStep3 state for PromptEngine
   const [lifestyleStep3Values, setLifestyleStep3Values] = useState<Step3Values | null>(null);
+  const [, setPromptValidationResult] = useState<PromptValidationResult | null>(null);
   const [activeTalentPreset, setActiveTalentPreset] = useState('custom');
   const [isProPhotographer, setIsProPhotographer] = useState(false);
   const [activeProPreset, setActiveProPreset] = useState<string>('custom');
@@ -4183,7 +4185,7 @@ If the model attempts to create a scene or environment, override it and force a 
   );
 
   const handleGenerateClick = useCallback(
-    async (bundleProducts?: ProductId[], overrideActiveList?: ActiveProduct[]) => {
+    async (bundleProducts?: ProductId[], overrideActiveList?: ActiveProduct[], runMode: 'generate' | 'validate' = 'generate') => {
       bundleSelectionRef.current = bundleProducts ?? null;
       if (isTrialLocked) {
         setImageError(`You reached the ${currentPlan.label} limit (${planCreditLimit} credits). Upgrade your plan to keep generating scenes.`);
@@ -4208,6 +4210,7 @@ If the model attempts to create a scene or environment, override it and force a 
       setGeneratedCopy(null);
       setCopyError(null);
       setIsImageLoading(true);
+      setImageError(null);
 
       try {
         // Build PromptOptions from current state
@@ -4238,6 +4241,25 @@ If the model attempts to create a scene or environment, override it and force a 
 
         // MANDATORY LOG - Final prompt string MUST show injected values
         console.log('[FINAL PROMPT STRING]', finalPrompt);
+
+        const validationResult = validatePrompt({
+          sceneState: lifestyleStep3Values,
+          promptOptions,
+          finalPrompt,
+        });
+        setPromptValidationResult(validationResult);
+        console.log('[PROMPT VALIDATION]', validationResult);
+        if (!validationResult.valid) {
+          const errorText = validationResult.errors.map(error => error.message).join(' | ');
+          setImageError(errorText || 'Prompt validation blocked generation.');
+          setIsImageLoading(false);
+          return;
+        }
+        if (runMode === 'validate') {
+          setImageError(null);
+          setIsImageLoading(false);
+          return;
+        }
 
         const aspectRatio = options?.aspectRatio || '1:1';
 
@@ -4387,8 +4409,19 @@ If the model attempts to create a scene or environment, override it and force a 
       normalizeGeminiModel(GOOGLE_MODEL ?? GEMINI_IMAGE_MODEL),
       Modality,
       lifestylePrompt,
+      lifestyleStep3Values,
+      setPromptValidationResult,
+      validatePrompt,
     ]
   );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    (window as any).validatePrompt = () => handleGenerateClick(undefined, undefined, 'validate');
+    return () => {
+      delete (window as any).validatePrompt;
+    };
+  }, [handleGenerateClick]);
 
   const generateMockup = useCallback(
     (bundleProducts: string[]) => {
