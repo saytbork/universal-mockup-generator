@@ -514,28 +514,36 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     // ENVIRONMENT → Scene Context (Restored Full Logic)
     // ========================================================================
-    if (sceneState.environment === 'Custom' && sceneState.customEnvironment) {
-        mapped.setting = sceneState.customEnvironment;
-        mapped.microLocation = sceneState.customEnvironment;
-    } else if (sceneState.environment && sceneState.environment !== '') {
-        const envMap: Record<string, string> = {
-            'Living Room': 'cozy living room interior with soft furnishings, natural materials, warm textures',
-            'Kitchen': 'modern kitchen with counter space, appliances visible, functional realistic environment',
-            'Bedroom': 'bedroom interior with soft bedding, natural bedroom lighting, personal space',
-            'Coffee Shop': 'coffee shop interior with warm ambient lighting, casual public atmosphere',
-            'Office': 'minimal office workspace with desk, professional but personal environment',
-            'City Street': 'urban city street exterior with buildings, pavement, urban textures',
-            'Park': 'outdoor park with greenery, natural daylight, trees and grass visible',
-            'Beach': 'beach setting with sand, water visible, bright natural sunlight',
-            'Car Interior': 'inside car interior with dashboard visible, realistic vehicle environment'
-        };
-        mapped.setting = envMap[sceneState.environment] || sceneState.environment.toLowerCase();
-        mapped.microLocation = mapped.setting;
+    const allowedEnvironmentMap: Record<string, string> = {
+        'Kitchen': 'Kitchen',
+        'Living Room': 'Living Room',
+        'Bedroom': 'Bedroom',
+        'Bathroom': 'Bathroom',
+        'Workspace': 'Workspace',
+        'Urban Exterior': 'Urban Exterior',
+        'Natural Exterior': 'Natural Exterior'
+    };
+
+    const selectedEnvironment = sceneState.environment || '';
+    const customEnvironmentValue = (sceneState.customEnvironment || '').trim();
+
+    (mapped as any).selectedEnvironment = selectedEnvironment;
+    (mapped as any).customEnvironment = customEnvironmentValue;
+
+    if (selectedEnvironment === 'Custom' && customEnvironmentValue) {
+        mapped.setting = customEnvironmentValue;
+        mapped.microLocation = customEnvironmentValue;
+    } else if (allowedEnvironmentMap[selectedEnvironment]) {
+        const envLabel = allowedEnvironmentMap[selectedEnvironment];
+        mapped.setting = envLabel;
+        mapped.microLocation = envLabel;
     } else {
         mapped.setting = '';
         mapped.microLocation = '';
     }
-    console.log('[MAP] environment:', sceneState.environment, '→', mapped.setting);
+
+    (mapped as any).sceneEnvironment = mapped.setting;
+    console.log('[MAP] environment:', selectedEnvironment, '→', mapped.setting);
 
     // ========================================================================
     // TIME OF DAY + LIGHTING STYLE → Combined Light Narrative
@@ -557,6 +565,19 @@ export function mapLifestyleToPromptOptions(
         mapped.lighting = `${timeSemantic}, ${lightingSemantic}`;
         console.log('[MAP] lighting:', sceneState.timeOfDay, '+', sceneState.lightingStyle, '→', mapped.lighting);
     }
+    (mapped as any).timeLightingContext = mapped.lighting;
+
+    if (mapped.creationMode === 'lifestyle') {
+        delete (mapped as any).proLens;
+        delete (mapped as any).proLightingRig;
+        delete (mapped as any).proPostTreatment;
+
+        const lifestyleLightingBan = /(studio|ring light|three-point|beauty dish|controlled lighting|macro|flash photo)/i;
+        if (mapped.lighting && lifestyleLightingBan.test(mapped.lighting)) {
+            mapped.lighting = 'natural ambient lifestyle lighting with imperfect falloff';
+            (mapped as any).timeLightingContext = mapped.lighting;
+        }
+    }
 
     // ========================================================================
     // OUTPUT FORMAT → Aspect Ratio
@@ -577,6 +598,8 @@ export function mapLifestyleToPromptOptions(
     mapped.formulationExpertRole = sceneState.formulationRole;
     mapped.formulationLabStyle = sceneState.formulationLabVibe;
     mapped.formulationExpertPreset = sceneState.formulationPreset;
+    (mapped as any).formulationTone =
+        (sceneState as any).formulationTone || 'calm, grounded, everyday';
 
     // ========================================================================
     // CONTENT STYLE & CREATION INTENT

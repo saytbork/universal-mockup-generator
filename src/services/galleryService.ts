@@ -84,8 +84,9 @@ export async function listPublicGallery(): Promise<GalleryImage[]> {
             '/api/galleryHandler?action=list'
         );
 
-        console.log(`✅ Loaded ${response.data.images.length} gallery images`);
-        return response.data.images;
+        const images = Array.isArray(response.data?.images) ? response.data.images : [];
+        console.log(`✅ Loaded ${images.length} gallery images`);
+        return images;
     } catch (error) {
         console.error('❌ Failed to load public gallery:', error);
         if (axios.isAxiosError(error)) {

@@ -147,9 +147,10 @@ Only one arm may be partially visible, and only to support the product.
         parts.push(constraintsText);
 
         const humanText = `
-The person must look like a real human.
-No mannequin, doll, CGI, avatar, or rendered appearance.
-Natural skin texture, asymmetry, and real-world imperfections are required.
+The person must look like a real human captured by a smartphone.
+No mannequin, doll, CGI, avatar, or synthetic appearance.
+Natural skin texture is required, including visible pores, minor blemishes, uneven tone, and natural facial asymmetry.
+This must not look like a render, stock photo, studio portrait, or AI-generated human.
 `.trim();
         parts.push(humanText);
 

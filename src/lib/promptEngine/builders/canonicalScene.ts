@@ -180,7 +180,8 @@ export class SceneNarrativeBuilder {
     private buildEnvironmentLightingMood(options: PromptOptions): string {
         const environmentText = buildEnvironment({
             environmentOrder: options.environmentOrder,
-            sceneEnvironment: (options as any).sceneEnvironment || options.setting
+            sceneEnvironment: (options as any).sceneEnvironment || options.setting,
+            customEnvironment: (options as any).customEnvironment
         });
         const lightingText = buildLighting({
             lighting: options.lighting,

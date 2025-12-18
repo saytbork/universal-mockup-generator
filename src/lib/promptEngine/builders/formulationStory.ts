@@ -1,16 +1,6 @@
-/**
- * Formulation Story Builder
- * Inject HUMAN CREDIBILITY TRAITS for expert appearance
- * 
- * RULES:
- * - Expert is a CREDIBLE HUMAN, not an actor or model
- * - Respect age if provided (no rejuvenation for 70+)
- * - Respect UGC Real Mode if active (imperfections allowed)
- * - NO marketing language, ONLY physical observable traits
- * - NO titles in prompt (Dr., specialist, etc.)
- */
-
 import type { PromptOptions, PromptBuilder } from '../types';
+
+const DEFAULT_TONE = 'calm, grounded, everyday';
 
 export class FormulationStoryBuilder implements PromptBuilder {
     build(options: PromptOptions): string {
@@ -18,101 +8,89 @@ export class FormulationStoryBuilder implements PromptBuilder {
             return '';
         }
 
-        console.log('[FORMULATION STORY] Building expert credibility injection');
+        const isLifestyleMode = options.creationMode === 'lifestyle';
+        const isEcommerceComposition =
+            (options.compositionMode || '').toLowerCase().includes('ecommerce') ||
+            options.creationMode === 'ecom-blank';
 
-        const traits: string[] = [];
-        const age = options.personDetails?.age || 45;
-        const isUGCActive = options.ugcRealModeActive;
+        if (!isLifestyleMode || isEcommerceComposition) {
+            return '';
+        }
 
-        // ====================================================================
-        // AGE-APPROPRIATE CREDIBILITY
-        // ====================================================================
-        if (age >= 70) {
-            traits.push(`mature professional approximately ${age} years old`);
-            traits.push('visible age-appropriate features');
-            traits.push('natural age signs in face and hands');
-            traits.push('distinguished experienced presence');
-        } else if (age >= 50) {
-            traits.push(`experienced professional in their ${Math.floor(age / 10) * 10}s`);
-            traits.push('subtle age-appropriate features');
-            traits.push('composed authoritative demeanor');
+        if (!options.personIncluded) {
+            return '';
+        }
+
+        const customEnvironment = (((options as any).customEnvironment as string) || '').trim();
+        const environmentSelection = (((options as any).selectedEnvironment as string) || '').trim();
+        const environment = (customEnvironment || options.setting || '').trim();
+
+        if (!environment) {
+            return '';
+        }
+
+        const productName =
+            (((options as any).productName as string) ||
+                ((options.productAssets?.[0] as any)?.name as string) ||
+                (options.productAssets?.[0]?.label as string) ||
+                'the product').trim();
+
+        const timeLighting =
+            (((options as any).timeLightingContext as string) || options.lighting || '').trim();
+        const profession = (options.formulationExpertRole || '').trim();
+        const professionalContext = (((options as any).professionalContext as string) || '').trim();
+        const embroideredName = (options.formulationExpertName || '').trim();
+        const tone = (((options as any).formulationTone as string) || DEFAULT_TONE).trim();
+
+        const lines: string[] = [];
+        lines.push(
+            `This scene includes a quiet, natural moment that reflects how ${productName} fits into everyday life.`
+        );
+
+        if (customEnvironment) {
+            lines.push(
+                `Set within the following real environment: ${environment}, the product appears as part of a natural, everyday moment rather than a staged presentation.`
+            );
         } else {
-            traits.push('professional expert appearance');
-            traits.push('intelligent focused demeanor');
+            const normalizedEnvironment = environmentSelection || environment;
+            lines.push(
+                `Set within a real ${normalizedEnvironment} setting, the product appears as part of a normal routine rather than a staged presentation. The context feels familiar, lived-in, and believable.`
+            );
         }
 
-        // ====================================================================
-        // CREDIBLE EXPERT PRESENCE (NOT MODEL OR ACTOR)
-        // ====================================================================
-        traits.push('confident upright posture');
-        traits.push('direct knowledgeable gaze');
-        traits.push('calm composed expression');
-        traits.push('authentic human presence with natural imperfections');
-
-        // ====================================================================
-        // UGC-AWARE IMPERFECTIONS
-        // ====================================================================
-        if (isUGCActive) {
-            traits.push('realistic skin texture with visible pores');
-            traits.push('natural minor imperfections appropriate for real person');
-            traits.push('unretouched photoreal appearance');
-        } else {
-            traits.push('natural skin texture with subtle imperfections');
-            traits.push('photoreal credible features');
+        if (timeLighting) {
+            lines.push(
+                `The moment takes place during ${timeLighting}, reinforcing a genuine sense of time and atmosphere without drawing attention to technical lighting or setup.`
+            );
         }
 
-        // ====================================================================
-        // LAB ENVIRONMENT (VISUAL CONTEXT)
-        // ====================================================================
-        const labStyle = options.formulationLabStyle;
-        if (labStyle) {
-            const labContextMap: Record<string, string> = {
-                'Clean Lab': 'clean clinical lab environment with white surfaces and controlled lighting',
-                'Moody Lab': 'moody atmospheric lab with dramatic directional lighting',
-                'Warm Studio': 'warm studio environment with natural tones and soft lighting'
-            };
-            const labContext = labContextMap[labStyle] || 'professional laboratory environment';
-            traits.push(`in ${labContext}`);
+        if (profession) {
+            lines.push(
+                `The person appears in their everyday role as a ${profession}, naturally situated within this environment. Their presence feels authentic and unperformed, as if captured during a real moment rather than posed for a photo.`
+            );
         }
 
-        // ====================================================================
-        // PROFESSIONAL ATTIRE (ROLE-SPECIFIC)
-        // ====================================================================
-        const expertRole = options.formulationExpertRole || 'Custom';
-
-        const ROLE_ATTIRE_MAP: Record<string, string> = {
-            'Respiratory Doctor': 'light blue medical scrubs, real hospital fabric, slightly worn, natural wrinkles',
-            'Pulmonologist': 'light blue medical scrubs, real hospital fabric, slightly worn, natural wrinkles', // Alias
-            'Clinical Researcher': 'off-white lab coat, slightly aged fabric, subtle creases, real clinical wear',
-            'Herbal Formulator': 'olive green or beige lab coat, natural fabric texture, understated and practical',
-            'Herbalist': 'olive green or beige lab coat, natural fabric texture, understated and practical', // Alias
-            'Pharmacist': 'light gray-white lab coat, structured but worn, practical clinical look',
-            'Nutritionist': 'soft sage green or pale blue scrubs, relaxed fit, everyday professional wear',
-            'Dermatologist': 'light gray-blue scrubs, clean but not pristine, real clinic fabric',
-            'Custom': 'neutral-toned professional lab attire, understated and realistic'
-        };
-
-        // Get specific attire or fall back to Custom/Generic
-        const attireDescription = ROLE_ATTIRE_MAP[expertRole] || ROLE_ATTIRE_MAP['Custom'];
-
-        traits.push(`wearing ${attireDescription}`);
-        traits.push('clean professional grooming');
-
-        let result = traits.join(', ') + '.';
-
-        // INJECT EMBROIDERY DETAIL IF NAME EXISTS
-        // Context: "a small embroidered name on the lab coat chest..." logic adapted to attire
-        const expertName = options.formulationExpertName;
-        if (expertName) {
-            // Determine if it's scrubs or lab coat for the description
-            // const isScrubs = attireDescription.includes('scrubs'); // Unused for now but kept concept
-
-            result += `\nEXPERT DETAIL: The expert is wearing ${attireDescription}. On the LEFT SIDE OF THE IMAGE (viewer's left) ONLY, on the chest area of the ${attireDescription}, there is a single small embroidered name in plain text reading "${expertName}". The text is small, realistic, and stitched directly into the fabric. There is absolutely NO embroidery, text, badge, or marking on the opposite side. The embroidery must NEVER be mirrored, duplicated, or symmetrically repeated.`;
+        if (professionalContext) {
+            lines.push(
+                `The scene subtly reflects this professional context (${professionalContext}) through clothing, posture, and surrounding details, without exaggeration or visual emphasis.`
+            );
         }
 
-        console.log('[FORMULATION STORY] Injected:', result.substring(0, 150) + '...');
+        if (embroideredName) {
+            lines.push(
+                `A small embroidered name reading "${embroideredName}" is visible on the clothing, reinforcing realism and personal identity without drawing focus.`
+            );
+        }
 
+        lines.push(
+            `Rather than emphasizing features or claims, the scene focuses on presence and intention. ${productName} is simply there, supporting a small, human moment, calm, personal, and unforced.`
+        );
+        lines.push(
+            `The overall tone is ${tone}, grounded in realism and subtlety, allowing the product to feel integrated into life instead of presented as a centerpiece.`
+        );
+
+        const result = lines.filter(Boolean).join(' ');
+        console.log('[FORMULATION STORY] Injected lifestyle narrative block');
         return result;
     }
 }
-

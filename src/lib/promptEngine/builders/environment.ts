@@ -1,18 +1,48 @@
-import { parameterMap } from "../parameterMap";
+const ALLOWED_ENVIRONMENTS = new Set([
+  "Kitchen",
+  "Living Room",
+  "Bedroom",
+  "Bathroom",
+  "Workspace",
+  "Urban Exterior",
+  "Natural Exterior",
+]);
 
-const uniqueParts = (parts: (string | undefined)[]) =>
-  Array.from(new Set(parts.filter(Boolean) as string[])).join(", ");
+const BANNED_TERMS = /\b(clean|tidy|organized)\b/i;
 
 export function buildEnvironment(params: any): string {
-  const environment =
-    parameterMap.environmentOrder?.[params.environmentOrder || params.sceneEnvironment] ??
-    params.environmentOrder ??
-    params.sceneEnvironment ??
-    "";
+  const customEnvironment =
+    typeof params.customEnvironment === "string"
+      ? params.customEnvironment.trim()
+      : "";
 
-  // Prevent duplication in mapped styling
+  let environment =
+    (typeof params.sceneEnvironment === "string"
+      ? params.sceneEnvironment.trim()
+      : "") ||
+    (typeof params.environmentOrder === "string"
+      ? params.environmentOrder.trim()
+      : "");
+
   delete params.environmentOrder;
   delete params.sceneEnvironment;
+  delete params.customEnvironment;
 
-  return uniqueParts([environment]);
+  if (!environment) {
+    return "";
+  }
+
+  if (customEnvironment && environment === customEnvironment) {
+    return customEnvironment;
+  }
+
+  if (BANNED_TERMS.test(environment)) {
+    return "";
+  }
+
+  if (!ALLOWED_ENVIRONMENTS.has(environment)) {
+    return "";
+  }
+
+  return environment;
 }

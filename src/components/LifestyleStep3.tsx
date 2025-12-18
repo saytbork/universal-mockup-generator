@@ -11,6 +11,7 @@ import {
   CAMERA_ANGLE_OPTIONS as CONSTANT_CAMERA_ANGLE_OPTIONS // Use constant if needed or stick to local if it matches
 } from '../../constants';
 import { UGCCaptureSituationOptions, type UGCCaptureSituationId } from '../lib/promptEngine/ugcCaptureSituation';
+import { TOOLTIP_MAP } from '@/constants/sceneBuilderTooltips';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -731,7 +732,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       <AccordionSection
         icon={User}
         title="Creator / Person"
-        tooltip="Define the person in your scene"
+        tooltip={TOOLTIP_MAP.creatorPerson}
         isOpen={openSection === 'creator'}
         onToggle={() => toggleSection('creator')}
         isRequired={!isProductMode}
@@ -962,7 +963,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       <AccordionSection
         icon={Smartphone}
         title="UGC Real Mode"
-        tooltip="Creates an authentic user generated content look"
+        tooltip={TOOLTIP_MAP.ugcRealMode}
         isOpen={openSection === 'realism'}
         onToggle={() => toggleSection('realism')}
         isTouched={touchedSections.has('ugc')}
@@ -1060,7 +1061,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       < AccordionSection
         icon={Hand}
         title="Product Interaction"
-        tooltip="Control how the creator handles the product"
+        tooltip={TOOLTIP_MAP.productInteraction}
         isOpen={openSection === 'productInteraction'}
         onToggle={() => toggleSection('productInteraction')}
         isTouched={touchedSections.has('productInteraction')}
@@ -1083,7 +1084,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       < AccordionSection
         icon={Home}
         title="Environment"
-        tooltip="Where the scene takes place"
+        tooltip={TOOLTIP_MAP.environment}
         isOpen={openSection === 'environment'}
         onToggle={() => toggleSection('environment')}
         isRequired={true}
@@ -1150,7 +1151,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       < AccordionSection
         icon={Sun}
         title="Time & Lighting"
-        tooltip="Control the lighting and time of day"
+        tooltip={TOOLTIP_MAP.timeLighting}
         isOpen={openSection === 'lighting'}
         onToggle={() => toggleSection('lighting')}
         isTouched={touchedSections.has('lighting')}
@@ -1203,7 +1204,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       < AccordionSection
         icon={Palette}
         title="Mood"
-        tooltip="Overall feeling of the scene"
+        tooltip={TOOLTIP_MAP.facialExpression}
         isOpen={openSection === 'mood'}
         onToggle={() => toggleSection('mood')}
         isTouched={touchedSections.has('mood')}
@@ -1302,7 +1303,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           <AccordionSection
             icon={Camera}
             title="Camera & Framing"
-            tooltip="How the scene is captured"
+            tooltip={TOOLTIP_MAP.cameraFraming}
             isOpen={openSection === 'camera'}
             onToggle={() => toggleSection('camera')}
             isTouched={touchedSections.has('camera')}
@@ -1460,7 +1461,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       <AccordionSection
         icon={Building2}
         title="Ecommerce Image Builder"
-        tooltip="PDP, ads, bundles, hero ecommerce visuals"
+        tooltip={TOOLTIP_MAP.ecommerceImageBuilder}
         isOpen={openSection === 'bundles'}
         onToggle={() => toggleSection('bundles')}
       >
@@ -1569,7 +1570,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       <AccordionSection
         icon={Edit3}
         title="Formulation Story"
-        tooltip="Align brand expert, research, and product goals"
+        tooltip={TOOLTIP_MAP.formulationStory}
         isOpen={openSection === 'formulationStory'}
         onToggle={() => toggleSection('formulationStory')}
       >
@@ -1645,7 +1646,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       <AccordionSection
         icon={Layers}
         title="Output Format"
-        tooltip="Aspect ratio for the final image"
+        tooltip={TOOLTIP_MAP.outputFormat}
         isOpen={openSection === 'output'}
         onToggle={() => toggleSection('output')}
       >

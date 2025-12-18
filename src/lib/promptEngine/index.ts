@@ -69,7 +69,8 @@ function negativePrompt() {
 
         // Skin issues
         "overexposed skin", "underexposed skin", "grainy skin texture",
-        "over-smoothed skin",
+        "over-smoothed skin", "plastic skin", "CGI human", "synthetic human",
+        "mannequin", "waxy skin", "artificial face",
 
         // Product integrity
         "warped product", "stretched product", "deformed bottle",
