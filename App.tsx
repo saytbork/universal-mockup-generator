@@ -4,6 +4,7 @@ import React, { forwardRef, useState, useCallback, useEffect, useMemo, useRef } 
 import { useLocation } from 'react-router-dom';
 import { GoogleGenAI, Modality } from "@google/genai";
 import { MockupOptions, OptionCategory, Option } from './types';
+import { Info } from 'lucide-react';
 import {
   CONTENT_STYLE_OPTIONS,
   CREATION_MODE_OPTIONS,
@@ -5140,21 +5141,41 @@ If the model attempts to create a scene or environment, override it and force a 
 
                 {/* STEP 3 (Scene Builder): col-1, rows-2-5 (scrolls internally) */}
                 <div className="col-start-1 row-start-2 row-span-4 overflow-hidden">
-                    <SceneBuilderStep
-                      ref={customizeRef}
-                      isProductMode={isProductPlacement}
-                      isLocked={!hasUploadedProduct}
-                      isImageLoading={isImageLoading}
-                      isGenerateDisabled={
-                        isImageLoading ||
-                        !uploadedImageFile ||
-                        (lifestyleStep3Values?.ugcRealMode && !lifestyleStep3Values?.ugcCaptureSituation)
+                  {(() => {
+                    const isGenerateDisabled =
+                      isImageLoading ||
+                      !uploadedImageFile ||
+                      (lifestyleStep3Values?.ugcRealMode && !lifestyleStep3Values?.ugcCaptureSituation);
+
+                    const generationRestrictionMessage = (() => {
+                      if (!isGenerateDisabled) return '';
+                      if (lifestyleStep3Values?.ugcRealMode && !lifestyleStep3Values?.ugcCaptureSituation) {
+                        return 'Select a real-life capture situation before generating UGC.';
                       }
-                      onValuesChange={handleLifestyleStep3Change}
-                      onGenerate={handleGenerateClick}
-                      hasModelReference={hasModelReference}
-                      productCount={activeProducts.length}
-                    />
+                      if (!uploadedImageFile) {
+                        return 'Upload a product photo before generating.';
+                      }
+                      if (isImageLoading) {
+                        return 'Generation is in progress; please wait.';
+                      }
+                      return '';
+                    })();
+
+                    return (
+                      <SceneBuilderStep
+                        ref={customizeRef}
+                        isProductMode={isProductPlacement}
+                        isLocked={!hasUploadedProduct}
+                        isImageLoading={isImageLoading}
+                        isGenerateDisabled={isGenerateDisabled}
+                        generationRestriction={generationRestrictionMessage}
+                        onValuesChange={handleLifestyleStep3Change}
+                        onGenerate={handleGenerateClick}
+                        hasModelReference={hasModelReference}
+                        productCount={activeProducts.length}
+                      />
+                    );
+                  })()}
                 </div>
 
                 {/* GENERATED MOCKUP: cols-2-3, rows-3-5 (visually dominant) */}
@@ -5242,6 +5263,7 @@ interface SceneBuilderStepProps {
   isLocked: boolean;
   isImageLoading: boolean;
   isGenerateDisabled: boolean;
+  generationRestriction?: string;
   onValuesChange: (values: Step3Values) => void;
   onGenerate: () => void;
   hasModelReference: boolean;
@@ -5253,6 +5275,7 @@ const SceneBuilderStep = forwardRef<HTMLDivElement, SceneBuilderStepProps>(({
   isLocked,
   isImageLoading,
   isGenerateDisabled,
+  generationRestriction,
   onValuesChange,
   onGenerate,
   hasModelReference,
@@ -5277,10 +5300,17 @@ const SceneBuilderStep = forwardRef<HTMLDivElement, SceneBuilderStepProps>(({
         type="button"
         onClick={onGenerate}
         disabled={isGenerateDisabled}
+        title={generationRestriction && isGenerateDisabled ? generationRestriction : undefined}
         className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-900/50 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
       >
         {isImageLoading ? 'Generating...' : 'Generate Mockup'}
       </button>
+      {generationRestriction && isGenerateDisabled && (
+        <div className="mt-2 flex items-start gap-2 text-xs text-amber-300">
+          <Info size={14} />
+          <span>{generationRestriction}</span>
+        </div>
+      )}
     </div>
   </div>
 ));
