@@ -661,13 +661,16 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     // TIME OF DAY + LIGHTING STYLE → Combined Light Narrative
     // ========================================================================
-    const isEcommerceBlankSpace = sceneState.creationMode === 'Ecommerce Blank Space';
+    const isEcommerceBlankSpaceCreationMode = sceneState.creationMode === 'Ecommerce Blank Space';
+    const isEcommerceBlankSpaceCompositionMode = sceneState.compositionMode === 'Ecommerce Blank Space';
+    const isEcommerceSceneIntent = sceneState.sceneIntent === 'ecommerce';
+    const shouldInjectEcommerceBackground = isEcommerceSceneIntent && isEcommerceBlankSpaceCompositionMode;
 
-    if (isEcommerceBlankSpace) {
+    if (isEcommerceBlankSpaceCreationMode) {
         // Ecommerce mode: studio lighting only
         mapped.setting = '';
         mapped.microLocation = '';
-        mapped.bgColor = sceneState.ecommerceBackgroundColor || '#FFFFFF';
+        mapped.bgColor = shouldInjectEcommerceBackground ? sceneState.ecommerceBackgroundColor : undefined;
         mapped.sidePlacement = (sceneState.sidePlacement?.toLowerCase() || 'center') as any;
         mapped.lighting = 'controlled studio lighting with soft even shadows, neutral color temperature, product-grade illumination';
         console.log('[MAP] Ecommerce Blank Space mode - studio lighting applied');
@@ -693,7 +696,6 @@ export function mapLifestyleToPromptOptions(
     }
 
     mapped.sidePlacement = mapped.sidePlacement || (sceneState.sidePlacement?.toLowerCase() || 'center') as any;
-    mapped.bgColor = sceneState.ecommerceBackgroundColor || mapped.bgColor || '#FFFFFF';
 
     // ========================================================================
     // OUTPUT FORMAT → Aspect Ratio
