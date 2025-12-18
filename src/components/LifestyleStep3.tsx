@@ -146,6 +146,7 @@ export interface Step3Values {
 
   // Product Interaction
   productInteraction: string;
+  productStructure: 'single' | 'bundle' | 'routine';
 
   // Realism
   ugcRealMode: boolean;
@@ -379,7 +380,12 @@ const ASPECT_RATIO_OPTIONS = ['1:1 (Square)', '4:5 (Portrait)', '9:16 (Story)'];
 
 // ECOMMERCE IMAGE BUILDER - definitivo
 // Options: Ecommerce Blank Space (PDP, ads, hero) | Product Bundle / Routine (packs, kits)
-const COMPOSITION_MODE_OPTIONS = ['Ecommerce Blank Space', 'Product Bundle / Routine'];
+const COMPOSITION_MODE_OPTIONS = ['Ecommerce Blank Space'];
+const PRODUCT_STRUCTURE_OPTIONS = [
+  { label: 'Single Product', value: 'single', description: 'One product, the hero, is presented.' },
+  { label: 'Bundle (2–3 products)', value: 'bundle', description: 'Small set: one held, others placed nearby.' },
+  { label: 'Routine (multi-product)', value: 'routine', description: 'Step-based set with multiple items arranged together.' }
+];
 const SIDE_PLACEMENT_OPTIONS = ['Left', 'Center', 'Right'];
 
 // FORMULATION STORY
@@ -508,6 +514,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
     // Product Interaction
     productInteraction: 'Holding',
+    productStructure: 'single',
 
     // Realism
     ugcRealMode: true,
@@ -1158,6 +1165,37 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               {option}
             </button>
           ))}
+        </div>
+      </AccordionSection >
+
+      <AccordionSection
+        icon={Layers}
+        title="Product Structure"
+        tooltip="Define how products are grouped and placed"
+        isOpen={openAccordionId === 'productStructure'}
+        onToggle={() => toggleSection('productStructure')}
+        isTouched={touchedSections.has('productStructure')}
+      >
+        <div className="space-y-3">
+          <p className="text-xs uppercase tracking-wider text-indigo-200">Group & count</p>
+          <div className="flex flex-wrap gap-2">
+            {PRODUCT_STRUCTURE_OPTIONS.map(option => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => {
+                  updateValue('productStructure', option.value as Step3Values['productStructure']);
+                  markSectionTouched('productStructure');
+                }}
+                className={getPillClass(values.productStructure === option.value)}
+              >
+                <span className="flex flex-col text-left">
+                  <span>{option.label}</span>
+                  <span className="text-[10px] text-gray-400">{option.description}</span>
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
       </AccordionSection >
 

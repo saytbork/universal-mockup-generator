@@ -30,6 +30,13 @@ export class FinalizeBuilder implements PromptBuilder {
             );
         }
 
+        if (options.productStructure && options.productStructure !== 'single') {
+            lines.push(
+                'Only one product is held naturally in the hand while any additional items rest on nearby surfaces (table, shelf, counter, or bag).',
+                'Do not place multiple products in one hand or in both hands simultaneously.'
+            );
+        }
+
         return lines.join(' ').trim().replace(/\s+/g, ' ');
     }
 }

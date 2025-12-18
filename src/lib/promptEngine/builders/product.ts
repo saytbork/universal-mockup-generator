@@ -38,6 +38,11 @@ export class ProductBuilder implements PromptBuilder {
             prompt += ` Treat this as a curated bundle featuring ${bundleLabels.join(', ')}. Arrange every uploaded product cutout to mimic that assortment so shoppers immediately read it as a kit.`;
         }
 
+        const structure = options.productStructure || 'single';
+        if (structure !== 'single') {
+            prompt += ' One product is held naturally in the hand while all remaining products rest on nearby surfaces like tables, counters, shelves, or bags; never place multiple products in one hand nor have multiple hands holding different items.';
+        }
+
         return prompt;
     }
 

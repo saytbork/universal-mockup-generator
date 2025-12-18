@@ -501,6 +501,7 @@ export function mapLifestyleToPromptOptions(
         mapped.personDetails.eyeDirection =
             EYE_DIRECTION_SEMANTIC_MAP[eyeDirectionLabel] || eyeDirectionLabel as any;
         if (sceneState.productInteraction) mapped.personDetails.productInteraction = INTERACTION_SEMANTIC_MAP[sceneState.productInteraction] || sceneState.productInteraction;
+        mapped.productStructure = sceneState.productStructure || 'single';
         if (sceneState.eyeColor) mapped.personDetails.eyeColor = sceneState.eyeColor;
 
         // HAIR
