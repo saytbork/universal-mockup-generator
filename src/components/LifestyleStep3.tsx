@@ -839,7 +839,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     }
   }, [values.ugcRealMode, values.formulationStoryEnabled, updateValue]);
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-4 pb-8 px-4">
+    <div className="w-full max-w-2xl mx-auto space-y-4 p-4">
       {/* Header */}
       <div className="flex flex-col gap-1">
         <p className="text-xs uppercase tracking-widest text-indigo-300">Step 3</p>

@@ -5285,7 +5285,7 @@ const SceneBuilderStep = forwardRef<HTMLDivElement, SceneBuilderStepProps>(({
       ref={ref}
       className={`bg-gray-800/50 rounded-lg flex flex-col overflow-hidden ${isLocked ? 'opacity-60 pointer-events-none' : ''}`}
     >
-      <div className="flex-grow overflow-y-auto custom-scrollbar px-4 sm:px-6 md:px-8">
+      <div className="flex-grow overflow-y-auto custom-scrollbar">
         <LifestyleStep3
         isProductMode={isProductMode}
         onValuesChange={onValuesChange}
