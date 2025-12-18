@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   SlidersHorizontal, User, Activity, Scissors, Smile, Eye, Sparkles,
   Sun, Camera, Rotate3d, Layout, Hand, Smartphone, Shirt, Layers, Film,
-  Home, MapPin, Coffee, Utensils, Car, Waves, Mountain, Building2, Edit3, Heart, Check
+  Home, MapPin, Coffee, Utensils, Car, Waves, Mountain, Building2, Edit3, Heart, Check, Info
 } from 'lucide-react';
 import {
   LIGHTING_OPTIONS,
@@ -10,6 +10,8 @@ import {
   CAMERA_ANGLE_OPTIONS as CONSTANT_CAMERA_ANGLE_OPTIONS // Use constant if needed or stick to local if it matches
 } from '../../constants';
 import { UGCCaptureSituationOptions, type UGCCaptureSituationId } from '../lib/promptEngine/ugcCaptureSituation';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { TOOLTIP_MAP } from '@/constants/sceneBuilderTooltips';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -388,6 +390,42 @@ const LAB_VIBE_OPTIONS = ['Clean Lab', 'Moody Lab', 'Warm Studio'];
 // ============================================================================
 // HELPER COMPONENTS
 // ============================================================================
+interface FieldLabelProps {
+  label: string;
+  tooltipKey?: keyof typeof TOOLTIP_MAP;
+  subcopy?: string;
+}
+
+const FieldLabel: React.FC<FieldLabelProps> = ({ label, tooltipKey, subcopy }) => {
+  const tooltipText = tooltipKey ? TOOLTIP_MAP[tooltipKey] : undefined;
+
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-indigo-200">
+        <span>{label}</span>
+        {tooltipText && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                className="text-gray-400 hover:text-gray-100 transition"
+                onClick={(event) => event.preventDefault()}
+              >
+                <span className="sr-only">{`More info about ${label}`}</span>
+                <Info className="w-3.5 h-3.5" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-xs rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-xs text-gray-100 shadow-lg">
+              {tooltipText}
+            </TooltipContent>
+          </Tooltip>
+        )}
+      </div>
+      {subcopy && <p className="text-[11px] text-gray-400">{subcopy}</p>}
+    </div>
+  );
+};
+
 interface AccordionSectionProps {
   icon: React.ElementType;
   title: string;
@@ -418,7 +456,7 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
       >
         <div className="flex items-center gap-3">
           <Icon className="w-5 h-5 text-indigo-400" />
-          <div className="text-left">
+          <div className="text-left flex flex-col gap-0.5">
             <div className="flex items-center gap-2">
               <p className="text-sm font-semibold text-white">{title}</p>
               {isRequired && !isTouched && (
@@ -427,8 +465,25 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
               {isTouched && (
                 <Check className="w-4 h-4 text-green-400" />
               )}
+              {tooltip && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      onClick={(event) => event.stopPropagation()}
+                      onMouseDown={(event) => event.stopPropagation()}
+                      className="text-gray-400 hover:text-gray-100 transition"
+                    >
+                      <span className="sr-only">{`More info about ${title}`}</span>
+                      <Info className="w-4 h-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-xs rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-xs text-gray-100 shadow-lg">
+                    {tooltip}
+                  </TooltipContent>
+                </Tooltip>
+              )}
             </div>
-            <p className="text-xs text-gray-400">{tooltip}</p>
           </div>
         </div>
         <svg
@@ -766,7 +821,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       <AccordionSection
         icon={User}
         title="Creator / Person"
-        tooltip="Define the person in your scene"
+        tooltip={TOOLTIP_MAP.creatorPerson}
         isOpen={openSection === 'creator'}
         onToggle={() => toggleSection('creator')}
         isRequired={!isProductMode}
@@ -774,8 +829,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       >
         <div className="flex flex-col gap-4">
           <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-            <div className="flex items-center justify-between">
-              <p className="text-xs uppercase tracking-wider text-indigo-200">AGE</p>
+            <div className="flex items-center justify-between gap-3">
+              <FieldLabel label="Age" tooltipKey="age" />
               <p className="text-sm text-white">{values.age}</p>
             </div>
             <input
@@ -794,6 +849,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
           {!isPersonDisabled && (
             <div className="space-y-4">
+              <FieldLabel label="Identity" tooltipKey="identity" />
               <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
                 <p className="text-xs uppercase tracking-wider text-indigo-200">GENDER</p>
                 <div className="flex flex-wrap gap-2">
@@ -955,7 +1011,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               </div>
 
               <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-                <p className="text-xs uppercase tracking-wider text-indigo-200">FACIAL EXPRESSION</p>
+                <FieldLabel label="Facial Expression" tooltipKey="facialExpression" />
                 <div className="flex flex-wrap items-center gap-2">
                   {EXPRESSION_OPTIONS.map(option => (
                     <button
@@ -997,7 +1053,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       <AccordionSection
         icon={Smartphone}
         title="UGC Real Mode"
-        tooltip="Creates an authentic user generated content look"
+        tooltip={TOOLTIP_MAP.ugcRealMode}
         isOpen={openSection === 'realism'}
         onToggle={() => toggleSection('realism')}
         isTouched={touchedSections.has('ugc')}
@@ -1036,10 +1092,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 <>
                   {/* UGC CAPTURE SITUATION */}
                   <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-                    <div>
-                      <p className="text-xs uppercase tracking-wider text-indigo-200">UGC Capture Situation</p>
-                      <p className="text-[11px] text-gray-400 mt-1">Choose how the phone is held in real life. This is not a camera angle.</p>
-                    </div>
+                    <FieldLabel
+                      label="UGC Capture Situation"
+                      tooltipKey="ugcCaptureSituation"
+                      subcopy={TOOLTIP_MAP.ugcCaptureHelper}
+                    />
                     <div className="flex flex-wrap gap-2">
                       {UGCCaptureSituationOptions.map(option => (
                         <button
@@ -1062,10 +1119,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                   {/* CUSTOM CLOTHES */}
                   <div className="space-y-3">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Custom clothes</p>
-                      <p className="text-[11px] text-gray-400">Upload a reference outfit or tap a preset to keep it raw and real.</p>
-                    </div>
+                    <FieldLabel
+                      label="Custom Clothes"
+                      tooltipKey="customClothes"
+                      subcopy="Upload a reference outfit or tap a preset to keep it raw and real."
+                    />
 
                     <label className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/20 bg-black/30 px-4 py-6 text-center text-xs text-gray-300 cursor-pointer hover:border-indigo-400">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -1096,7 +1154,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       < AccordionSection
         icon={Hand}
         title="Product Interaction"
-        tooltip="Control how the creator handles the product"
+        tooltip={TOOLTIP_MAP.productInteraction}
         isOpen={openSection === 'productInteraction'}
         onToggle={() => toggleSection('productInteraction')}
         isTouched={touchedSections.has('productInteraction')}
@@ -1119,7 +1177,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       < AccordionSection
         icon={Home}
         title="Environment"
-        tooltip="Where the scene takes place"
+        tooltip={TOOLTIP_MAP.environment}
         isOpen={openSection === 'environment'}
         onToggle={() => toggleSection('environment')}
         isRequired={true}
@@ -1186,7 +1244,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       < AccordionSection
         icon={Sun}
         title="Time & Lighting"
-        tooltip="Control the lighting and time of day"
+        tooltip={TOOLTIP_MAP.timeLighting}
         isOpen={openSection === 'lighting'}
         onToggle={() => toggleSection('lighting')}
         isTouched={touchedSections.has('lighting')}
@@ -1315,7 +1373,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           <AccordionSection
             icon={Camera}
             title="Camera & Framing"
-            tooltip="How the scene is captured"
+            tooltip={TOOLTIP_MAP.cameraFraming}
             isOpen={openSection === 'camera'}
             onToggle={() => toggleSection('camera')}
             isTouched={touchedSections.has('camera')}
@@ -1473,7 +1531,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       <AccordionSection
         icon={Building2}
         title="Ecommerce Image Builder"
-        tooltip="PDP, ads, bundles, hero ecommerce visuals"
+        tooltip={TOOLTIP_MAP.ecommerceImageBuilder}
         isOpen={openSection === 'bundles'}
         onToggle={() => toggleSection('bundles')}
       >
@@ -1582,7 +1640,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       <AccordionSection
         icon={Edit3}
         title="Formulation Story"
-        tooltip="Align brand expert, research, and product goals"
+        tooltip={TOOLTIP_MAP.formulationStory}
         isOpen={openSection === 'formulationStory'}
         onToggle={() => toggleSection('formulationStory')}
       >
@@ -1707,7 +1765,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       <AccordionSection
         icon={Layers}
         title="Output Format"
-        tooltip="Aspect ratio for the final image"
+        tooltip={TOOLTIP_MAP.outputFormat}
         isOpen={openSection === 'output'}
         onToggle={() => toggleSection('output')}
       >
