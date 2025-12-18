@@ -5295,7 +5295,7 @@ const SceneBuilderStep = forwardRef<HTMLDivElement, SceneBuilderStepProps>(({
         hasModelReference={hasModelReference}
       />
     </div>
-    <div className="mt-8 flex-shrink-0">
+    <div className="p-4 flex-shrink-0">
       <button
         type="button"
         onClick={onGenerate}
