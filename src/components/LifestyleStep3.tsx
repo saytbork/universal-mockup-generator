@@ -744,6 +744,33 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     if (values.selfieMode && values.selfieMode !== 'None') {
       updateValue('selfieMode', 'None');
     }
+
+    if (!values.noPerson) {
+      updateValue('noPerson', true);
+    }
+
+    if (values.heroPersona) {
+      updateValue('heroPersona', '');
+    }
+  }, [
+    values.formulationStoryEnabled,
+    values.ugcRealMode,
+    values.ugcCaptureSituation,
+    values.selfieMode,
+    values.noPerson,
+    values.heroPersona,
+    updateValue
+  ]);
+
+  useEffect(() => {
+    if (values.noPerson) {
+      return;
+    }
+
+    if (values.formulationStoryEnabled) {
+      updateValue('formulationStoryEnabled', false);
+    }
+  }, [values.noPerson, values.formulationStoryEnabled, updateValue]);
   }, [
     values.formulationStoryEnabled,
     values.ugcRealMode,
