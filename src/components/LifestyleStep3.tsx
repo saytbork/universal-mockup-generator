@@ -657,6 +657,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       compositionMode: '',           // Clear ecommerce
       ugcRealMode: true,             // Enable environment mode
       sidePlacement: SIDE_PLACEMENT_OPTIONS[1], // Reset placement
+      ecommerceBackgroundColor: '',
     }));
   }, []);
 
@@ -680,6 +681,33 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       enableEnvironment();
     }
   }, [values.customEnvironment, values.sceneIntent, enableEnvironment]);
+
+  useEffect(() => {
+    if (values.sceneIntent === 'environment') {
+      if (values.compositionMode) {
+        updateValue('compositionMode', '');
+      }
+      if (values.ecommerceBackgroundColor) {
+        updateValue('ecommerceBackgroundColor', '');
+      }
+      if (values.sidePlacement !== SIDE_PLACEMENT_OPTIONS[1]) {
+        updateValue('sidePlacement', SIDE_PLACEMENT_OPTIONS[1]);
+      }
+    }
+
+    if (values.sceneIntent === 'ecommerce') {
+      if (values.customEnvironment) {
+        updateValue('customEnvironment', '');
+      }
+    }
+  }, [
+    values.sceneIntent,
+    values.compositionMode,
+    values.ecommerceBackgroundColor,
+    values.sidePlacement,
+    values.customEnvironment,
+    updateValue
+  ]);
 
   // ========================================================================
   // PRODUCT MODE VALIDATION (Stage 11)
