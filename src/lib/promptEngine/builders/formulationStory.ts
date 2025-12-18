@@ -1,6 +1,27 @@
-import type { PromptOptions, PromptBuilder } from '../types';
+import type { FormulationStoryOptions, PromptOptions, PromptBuilder } from '../types';
 
-const DEFAULT_TONE = 'calm, grounded, everyday';
+type ProfessionalFocus = NonNullable<FormulationStoryOptions['professionalFocus']>;
+type LabVibe = NonNullable<FormulationStoryOptions['labVibe']>;
+
+const PROFESSIONAL_FOCUS_COPY: Record<ProfessionalFocus, string> = {
+    pulmonologist: 'hands-on respiratory care and formulation work tied to breathing support',
+    nutritionist: 'day-to-day nutritional science that makes supplements feel grounded',
+    dermatologist: 'skin-health and dermatology experience that respects human texture',
+    pharmacist: 'pharmaceutical formulation and ingredient stewardship from a practical standpoint',
+    clinical_researcher: 'clinical research and hands-on testing with real volunteers',
+    herbalist: 'botanical and herbal formulation with natural, attainable rituals',
+    functional_health_expert: 'practical functional health formulation rooted in everyday routines',
+    wellness_practitioner: 'wellness practice and formulation that honors stress-relief rituals',
+    research_scientist: 'research scientist background with grounded lab observations and repeated notes',
+    custom: 'hands-on formulation work that feels rooted in the creator’s routine'
+};
+
+const LAB_VIBE_HINTS: Record<LabVibe, string> = {
+    modern_clinical_lab: 'notebooks, research books, and simple ingredient containers',
+    r_and_d_studio: 'sketches, ingredient jars, and small glass tools on a lived-in desk',
+    apothecary_lab: 'botanical jars, droppers, and amber bottles with handwritten notes',
+    none: ''
+};
 
 export class FormulationStoryBuilder implements PromptBuilder {
     build(options: PromptOptions): string {
@@ -8,109 +29,57 @@ export class FormulationStoryBuilder implements PromptBuilder {
             return '';
         }
 
-        const isLifestyleMode = options.creationMode === 'lifestyle';
-        const isEcommerceComposition =
-            (options.compositionMode || '').toLowerCase().includes('ecommerce') ||
-            options.creationMode === 'ecom-blank';
-
-        if (!isLifestyleMode || isEcommerceComposition) {
+        const story = options.formulationStory;
+        if (!story) {
             return '';
         }
 
-        if (!options.personIncluded) {
-            return '';
-        }
+        const parts: string[] = [
+            'The person is presented as a real individual who worked on the formulation of the product, shown in an approachable and human way rather than as a staged professional.',
+            'Their expertise is implied through context and demeanor, not explicit authority cues.'
+        ];
 
-        const customEnvironment = (((options as any).customEnvironment as string) || '').trim();
-        const environmentSelection = (((options as any).selectedEnvironment as string) || '').trim();
-        const environment = (customEnvironment || options.setting || '').trim();
+        const roleLabel = story.expertRoleLabel || 'medical expert';
+        parts.push(`The expert is described as a ${roleLabel}.`);
 
-        if (!environment) {
-            return '';
-        }
+        const attireSentence = story.expertAttireDescription
+            ? `They are wearing ${story.expertAttireDescription}, keeping the uniform authentic and grounded.`
+            : 'They are wearing professional medical attire that feels real without excessive branding.';
+        parts.push(attireSentence);
 
-        const productName =
-            (((options as any).productName as string) ||
-                ((options.productAssets?.[0] as any)?.name as string) ||
-                (options.productAssets?.[0]?.label as string) ||
-                'the product').trim();
+        const embroideredNameText = story.expertName
+            ? `Their name, ${story.expertName}, is embroidered once above the chest pocket on one side and mentioned casually without emphasis.`
+            : 'A single embroidered name appears above the chest pocket on one side, referenced casually without fanfare.';
+        parts.push(embroideredNameText);
 
-        const timeLighting =
-            (((options as any).timeLightingContext as string) || options.lighting || '').trim();
-        const profession = (options.formulationExpertRole || '').trim();
-        const professionalContext = (((options as any).professionalContext as string) || '').trim();
-        const embroideredName = (options.formulationExpertName || '').trim();
-        const attire = (options.formulationExpertAttire || '').trim();
-        const badgeEnabled = Boolean((options as any).formulationBadgeEnabled);
-        const tone = (((options as any).formulationTone as string) || DEFAULT_TONE).trim();
-
-        const lines: string[] = [];
-        lines.push(
-            `This scene includes a quiet, natural moment that reflects how ${productName} fits into everyday life.`
-        );
-
-        if (customEnvironment) {
-            lines.push(
-                `Set within the following real environment: ${environment}, the product appears as part of a natural, everyday moment rather than a staged presentation.`
-            );
+        if (story.badgePreference === 'name_and_badge') {
+            parts.push('A small specialty badge sits opposite the name, referencing the chosen role while staying subtle.');
         } else {
-            const normalizedEnvironment = environmentSelection || environment;
-            lines.push(
-                `Set within a real ${normalizedEnvironment} setting, the product appears as part of a normal routine rather than a staged presentation. The context feels familiar, lived-in, and believable.`
+            parts.push('No excessive branding or artificial badges appear; the embroidered name remains the primary identifier.');
+        }
+
+        const focus = story.professionalFocus;
+        if (focus) {
+            parts.push(`Their background aligns with ${PROFESSIONAL_FOCUS_COPY[focus]}.`);
+        }
+
+        if (story.roleCredentials) {
+            parts.push(
+                `Their credentials are woven into the conversation naturally, emphasizing hands-on knowledge rather than grand titles.`
             );
         }
 
-        if (timeLighting) {
-            lines.push(
-                `The moment takes place during ${timeLighting}, reinforcing a genuine sense of time and atmosphere without drawing attention to technical lighting or setup.`
-            );
+        if (story.labVibe && story.labVibe !== 'none') {
+            const hint = LAB_VIBE_HINTS[story.labVibe];
+            if (hint) {
+                parts.push(
+                    `Subtle background hints such as ${hint} may appear, but the space remains a lived-in environment—no sterile benches, white coats, or clinical staging.`
+                );
+            }
         }
 
-        if (profession) {
-            lines.push(
-                `The person appears in their everyday role as a ${profession}, naturally situated within this environment. Their presence feels authentic and unperformed, as if captured during a real moment rather than posed for a photo.`
-            );
-        }
+        parts.push('No grand titles, no hero language; just an approachable expert who keeps the person-first focus.');
 
-        if (attire) {
-            lines.push(
-                `They wear ${attire.toLowerCase()}, styled for practical, real-world work rather than a staged uniform.`
-            );
-        }
-
-        if (professionalContext) {
-            lines.push(
-                `The scene subtly reflects this professional context (${professionalContext}) through clothing, posture, and surrounding details, without exaggeration or visual emphasis.`
-            );
-        }
-
-        if (embroideredName) {
-            lines.push(
-                `A single embroidered name reading "${embroideredName}" sits just above the chest pocket on one side only, stitched directly into the fabric without any mirrored duplicate.`
-            );
-        } else {
-            lines.push(
-                'A single embroidered name label sits above the chest pocket on one side only, stitched directly into the fabric with no mirrored duplicate.'
-            );
-        }
-
-        if (badgeEnabled) {
-            lines.push(
-                'A single minimal ID badge is clipped near the chest pocket to reference a real institution.'
-            );
-        } else {
-            lines.push('No additional badges, icons, or decorative patches appear on the clothing.');
-        }
-
-        lines.push(
-            `Rather than emphasizing features or claims, the scene focuses on presence and intention. ${productName} is simply there, supporting a small, human moment, calm, personal, and unforced.`
-        );
-        lines.push(
-            `The overall tone is ${tone}, grounded in realism and subtlety, allowing the product to feel integrated into life instead of presented as a centerpiece.`
-        );
-
-        const result = lines.filter(Boolean).join(' ');
-        console.log('[FORMULATION STORY] Injected lifestyle narrative block');
-        return result;
+        return parts.filter(Boolean).join(' ');
     }
 }

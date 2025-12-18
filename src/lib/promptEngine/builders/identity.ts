@@ -113,14 +113,29 @@ Avoid youthful facial proportions, smooth skin, or middle-aged appearance.
                 identityParts.push(`${mappedSkin} skin`);
             }
 
-            // Skin Realism - UGC Override logic
+            // Skin Realism + Appearance - UGC Override logic
             if (isUGC) {
                 // FORCE RAW SKIN IN UGC MODE
                 identityParts.push('real human appearance, everyday skin texture, minor unevenness, natural asymmetry, no cosmetic retouching');
             } else {
-                // Standard Logic
-                if (personDetails?.skinRealism) {
-                    identityParts.push(personDetails.skinRealism);
+                const skinDescriptor = personDetails?.skinRealism;
+                const appearanceDescriptor = personDetails?.personAppearance;
+                const appearancePieces: string[] = [];
+
+                if (skinDescriptor) {
+                    appearancePieces.push(skinDescriptor);
+                }
+                if (appearanceDescriptor) {
+                    appearancePieces.push(appearanceDescriptor);
+                }
+
+                if (appearancePieces.length > 0) {
+                    appearancePieces.push('real human presence, no stock photo, no over-retouching');
+                    const appearanceBlock = appearancePieces.filter(Boolean).join('. ');
+                    const formattedBlock = appearanceBlock.endsWith('.')
+                        ? appearanceBlock
+                        : `${appearanceBlock}.`;
+                    identityParts.push(sanitizePart(formattedBlock));
                 } else {
                     identityParts.push('realistic skin texture appropriate for their age');
                 }
@@ -170,9 +185,9 @@ Avoid youthful facial proportions, smooth skin, or middle-aged appearance.
             parts.push(sanitizePart(personDetails.personPose));
         }
 
-        // APPEARANCE LEVEL
-        if (personDetails?.personAppearance) {
-            parts.push(sanitizePart(personDetails.personAppearance));
+        // SCENE MOOD
+        if (personDetails?.personMood) {
+            parts.push(`SCENE MOOD: ${sanitizePart(personDetails.personMood)}`);
         }
 
         // WARDROBE

@@ -2,8 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   SlidersHorizontal, User, Activity, Scissors, Smile, Eye, Sparkles,
   Sun, Camera, Rotate3d, Layout, Hand, Smartphone, Shirt, Layers, Film,
-  Home, MapPin, Coffee, Utensils, Car, Waves, Mountain, Building2, Edit3, Heart, Check,
-  Aperture, Zap
+  Home, MapPin, Coffee, Utensils, Car, Waves, Mountain, Building2, Edit3, Heart, Check
 } from 'lucide-react';
 import {
   LIGHTING_OPTIONS,
@@ -11,7 +10,6 @@ import {
   CAMERA_ANGLE_OPTIONS as CONSTANT_CAMERA_ANGLE_OPTIONS // Use constant if needed or stick to local if it matches
 } from '../../constants';
 import { UGCCaptureSituationOptions, type UGCCaptureSituationId } from '../lib/promptEngine/ugcCaptureSituation';
-import { TOOLTIP_MAP } from '@/constants/sceneBuilderTooltips';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -54,6 +52,7 @@ export interface SceneState {
     timeOfDay: string;
     lightingStyle: string;
   };
+
   ugcCaptureSituation?: UGCCaptureSituationId | null;
 
   camera: {
@@ -88,10 +87,7 @@ export interface SceneState {
     enabled: boolean;
     expertName: string;
     professionalFocus: string;
-    customRole?: string;
     labVibe: string;
-    attire: string;
-    badgeEnabled: boolean;
   };
 
   outputFormat: '1:1' | '4:5' | '9:16';
@@ -185,13 +181,12 @@ export interface Step3Values {
 
   // Formulation Story
   formulationStoryEnabled: boolean;
-  formulationPreset: string;
-  formulationName: string;
-  formulationRole: string;
-  formulationCustomRole: string;
-  formulationLabVibe: string;
-  formulationAttire: string;
-  formulationBadgeEnabled: boolean;
+  expertRole: ExpertRole;
+  expertName: string;
+  expertCredentials: string;
+  expertAttire: ExpertAttire;
+  expertBadgePreference: BadgePreference;
+  labVibe: string;
 
   // Advanced Pro
   sameCreatorAcrossScenes: boolean;
@@ -232,23 +227,49 @@ const getPillClass = (isActive: boolean, _fullWidth = false) => {
 // EXPANDED GENDER OPTIONS - Exact spec (6 options)
 const GENDER_OPTIONS = ['Female', 'Male', 'Non-binary', 'Trans woman', 'Trans man', 'Gender non-conforming'];
 
-const FORMULATION_ROLES = [
-  'Doctor / Physician (MD)',
-  'Medical Professional',
-  'Clinical Researcher',
-  'Research Scientist',
-  'Pharmacist',
-  'Nutritionist',
-  'Functional Health Expert',
-  'Wellness Practitioner',
-  'Custom'
+export type ExpertRole =
+  | 'doctor'
+  | 'medical_professional'
+  | 'clinical_researcher'
+  | 'research_scientist'
+  | 'functional_health_expert'
+  | 'wellness_practitioner'
+  | 'pharmacist'
+  | 'nutritionist'
+  | 'custom';
+
+export type ExpertAttire =
+  | 'white_medical_coat'
+  | 'white_scrubs'
+  | 'light_blue_scrubs'
+  | 'burgundy_scrubs'
+  | 'green_scrubs';
+
+export type BadgePreference = 'name_only' | 'name_and_badge';
+
+const EXPERT_ROLE_OPTIONS: { label: string; value: ExpertRole }[] = [
+  { label: 'Doctor / Physician (MD)', value: 'doctor' },
+  { label: 'Medical Professional', value: 'medical_professional' },
+  { label: 'Clinical Researcher', value: 'clinical_researcher' },
+  { label: 'Research Scientist', value: 'research_scientist' },
+  { label: 'Functional Health Expert', value: 'functional_health_expert' },
+  { label: 'Wellness Practitioner', value: 'wellness_practitioner' },
+  { label: 'Pharmacist', value: 'pharmacist' },
+  { label: 'Nutritionist', value: 'nutritionist' },
+  { label: 'Custom', value: 'custom' }
 ];
-const MEDICAL_ATTIRE_OPTIONS = [
-  'White medical coat',
-  'White scrubs',
-  'Light blue scrubs',
-  'Burgundy scrubs',
-  'Green scrubs'
+
+const EXPERT_ATTIRE_OPTIONS: { label: string; value: ExpertAttire }[] = [
+  { label: 'White medical coat', value: 'white_medical_coat' },
+  { label: 'White scrubs', value: 'white_scrubs' },
+  { label: 'Light blue scrubs', value: 'light_blue_scrubs' },
+  { label: 'Burgundy scrubs', value: 'burgundy_scrubs' },
+  { label: 'Green scrubs', value: 'green_scrubs' }
+];
+
+const BADGE_PREFERENCE_OPTIONS: { label: string; value: BadgePreference; description: string }[] = [
+  { label: 'Name only', value: 'name_only', description: 'Single embroidered name, no badge.' },
+  { label: 'Name + badge', value: 'name_and_badge', description: 'Name with a small specialty badge opposite the pocket.' }
 ];
 const SKIN_TONE_OPTIONS = [
   'Fair Cool',
@@ -277,6 +298,7 @@ const HAIR_LENGTH_OPTIONS = ['Buzzcut', 'Short', 'Chin-length', 'Shoulder', 'Lon
 const HAIR_TEXTURE_OPTIONS = ['Straight', 'Wavy', 'Curly', 'Coily/Kinky', 'Locs'];
 const HAIR_COLOR_OPTIONS = ['Black', 'Dark brown', 'Light brown', 'Blonde', 'Red', 'Gray/White', 'Unnatural (pink, blue, etc)'];
 
+// SIMPLIFIED EXPRESSIONS - Removed: UGC Reality, Caffeinated Crash (confusing)
 const EXPRESSION_OPTIONS = [
   'Calm & Serene',
   'Joyful & High-Energy',
@@ -361,7 +383,6 @@ const COMPOSITION_MODE_OPTIONS = ['Ecommerce Blank Space', 'Product Bundle / Rou
 const SIDE_PLACEMENT_OPTIONS = ['Left', 'Center', 'Right'];
 
 // FORMULATION STORY
-const FORMULATION_PRESETS = ['Clinical Research', 'Lifestyle Study', 'Functional Science'];
 const LAB_VIBE_OPTIONS = ['Clean Lab', 'Moody Lab', 'Warm Studio'];
 
 // ============================================================================
@@ -460,12 +481,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     hairState: 'natural',
 
     // Person Details - Expanded
-    facialExpression: 'Calm & Serene', // Default emotional source
+    facialExpression: 'Calm & Serene', // UGC Rule: friendly default
     eyeDirection: 'Looking at camera', // UGC Rule: eye contact
     eyeColor: 'Brown', // NEW
     appearanceLevel: 'Regular', // NEW
     pose: 'Relaxed Portrait', // UGC Rule: natural pose
-    skinRealism: 'Natural', // Simplified options
+    skinRealism: 'Raw / Real', // Simplified options
 
     // Creator Presets
     creatorPreset: null,
@@ -519,14 +540,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     noArtificialProps: true,
 
     // Formulation Story
-  formulationStoryEnabled: false,
-  formulationPreset: FORMULATION_PRESETS[0],
-  formulationName: '',
-  formulationRole: 'Doctor / Physician (MD)',
-  formulationCustomRole: '',
-  formulationLabVibe: LAB_VIBE_OPTIONS[0],
-  formulationAttire: MEDICAL_ATTIRE_OPTIONS[0],
-  formulationBadgeEnabled: false,
+    formulationStoryEnabled: false,
+    expertRole: EXPERT_ROLE_OPTIONS[0].value,
+    expertName: '',
+    expertCredentials: '',
+    expertAttire: EXPERT_ATTIRE_OPTIONS[0].value,
+    expertBadgePreference: BADGE_PREFERENCE_OPTIONS[0].value,
+    labVibe: LAB_VIBE_OPTIONS[0],
 
     // Advanced Pro
     sameCreatorAcrossScenes: false,
@@ -554,35 +574,22 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   };
 
   const updateValue = useCallback(<K extends keyof Step3Values>(key: K, value: Step3Values[K]) => {
+    // MANDATORY LOG on every update (Phase 3)
     console.log('[STEP3 UPDATE]', key, value, values);
     setValues(prev => {
-      const next = { ...prev };
-
-      if (key === 'ugcRealMode' && value === true) {
-        next.formulationStoryEnabled = false;
-      }
-
-      if (key === 'formulationStoryEnabled' && value === true) {
-        next.ugcRealMode = false;
-        next.ugcCaptureSituation = null;
-      }
-
-      if (key === 'formulationRole' && value !== 'Custom') {
-        next.formulationCustomRole = '';
-      }
-
-      next[key] = value;
+      const newValues = { ...prev, [key]: value };
 
       if (key === 'ugcRealMode' && value === false) {
-        next.ugcCaptureSituation = null;
+        newValues.ugcCaptureSituation = null;
       }
 
+      // SAFETY RULE: If hasModelReference is true, force UGC off and clear creator
       if (hasModelReference) {
-        next.ugcRealMode = false;
-        next.creatorPreset = null;
+        newValues.ugcRealMode = false;
+        newValues.creatorPreset = null;
       }
 
-      return next;
+      return newValues;
     });
   }, [values, hasModelReference]);
 
@@ -649,7 +656,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       sceneIntent: 'environment',
       compositionMode: '',           // Clear ecommerce
       ugcRealMode: true,             // Enable environment mode
-      formulationStoryEnabled: false,
       sidePlacement: SIDE_PLACEMENT_OPTIONS[1], // Reset placement
     }));
   }, []);
@@ -722,6 +728,30 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     updateValue
   ]);
 
+  useEffect(() => {
+    if (!values.formulationStoryEnabled) {
+      return;
+    }
+
+    if (values.ugcRealMode) {
+      updateValue('ugcRealMode', false);
+    }
+
+    if (values.ugcCaptureSituation) {
+      updateValue('ugcCaptureSituation', null);
+    }
+
+    if (values.selfieMode && values.selfieMode !== 'None') {
+      updateValue('selfieMode', 'None');
+    }
+  }, [
+    values.formulationStoryEnabled,
+    values.ugcRealMode,
+    values.ugcCaptureSituation,
+    values.selfieMode,
+    updateValue
+  ]);
+
   return (
     <div className="w-full max-w-2xl mx-auto space-y-4 pb-8 px-4">
       {/* Header */}
@@ -736,7 +766,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       <AccordionSection
         icon={User}
         title="Creator / Person"
-        tooltip={TOOLTIP_MAP.creatorPerson}
+        tooltip="Define the person in your scene"
         isOpen={openSection === 'creator'}
         onToggle={() => toggleSection('creator')}
         isRequired={!isProductMode}
@@ -967,7 +997,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       <AccordionSection
         icon={Smartphone}
         title="UGC Real Mode"
-        tooltip={TOOLTIP_MAP.ugcRealMode}
+        tooltip="Creates an authentic user generated content look"
         isOpen={openSection === 'realism'}
         onToggle={() => toggleSection('realism')}
         isTouched={touchedSections.has('ugc')}
@@ -986,14 +1016,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   role="switch"
                   aria-checked={values.ugcRealMode}
                   onClick={() => {
-                    const newValue = !values.ugcRealMode;
-                    updateValue('ugcRealMode', newValue);
-                    if (!newValue) {
-                      updateValue('selfieMode', 'None');
-                    } else {
-                      updateValue('facialExpression', 'Calm & Serene');
-                      updateValue('eyeDirection', 'Looking at camera');
-                    }
+                const newValue = !values.ugcRealMode;
+                updateValue('ugcRealMode', newValue);
+                if (!newValue) {
+                  updateValue('selfieMode', 'None');
+                } else {
+                  updateValue('formulationStoryEnabled', false);
+                  updateValue('facialExpression', 'Soft Smile');
+                  updateValue('eyeDirection', 'Looking at camera');
+                }
                   }}
                   className={`relative shrink-0 h-6 w-11 rounded-full transition ${values.ugcRealMode ? 'bg-indigo-500' : 'bg-gray-600'}`}
                 >
@@ -1065,7 +1096,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       < AccordionSection
         icon={Hand}
         title="Product Interaction"
-        tooltip={TOOLTIP_MAP.productInteraction}
+        tooltip="Control how the creator handles the product"
         isOpen={openSection === 'productInteraction'}
         onToggle={() => toggleSection('productInteraction')}
         isTouched={touchedSections.has('productInteraction')}
@@ -1088,7 +1119,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       < AccordionSection
         icon={Home}
         title="Environment"
-        tooltip={TOOLTIP_MAP.environment}
+        tooltip="Where the scene takes place"
         isOpen={openSection === 'environment'}
         onToggle={() => toggleSection('environment')}
         isRequired={true}
@@ -1155,7 +1186,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       < AccordionSection
         icon={Sun}
         title="Time & Lighting"
-        tooltip={TOOLTIP_MAP.timeLighting}
+        tooltip="Control the lighting and time of day"
         isOpen={openSection === 'lighting'}
         onToggle={() => toggleSection('lighting')}
         isTouched={touchedSections.has('lighting')}
@@ -1238,7 +1269,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       updateValue('appearanceLevel', 'Styled');
                     }
                   }}
-                  className={`w-full text-left px-3 py-2 rounded-lg border text-sm transition ${values.heroPersona === persona.semantic
+                  className={`w-full text-left px-3 py-2 rounded-lg border text-sm transition ${values.heroPersona === persona.label
                     ? 'bg-indigo-600 border-indigo-500 text-white shadow-md'
                     : 'border-gray-600 text-gray-200 hover:border-indigo-400 hover:bg-indigo-500/10'
                     }`}
@@ -1284,7 +1315,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           <AccordionSection
             icon={Camera}
             title="Camera & Framing"
-            tooltip={TOOLTIP_MAP.cameraFraming}
+            tooltip="How the scene is captured"
             isOpen={openSection === 'camera'}
             onToggle={() => toggleSection('camera')}
             isTouched={touchedSections.has('camera')}
@@ -1442,7 +1473,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       <AccordionSection
         icon={Building2}
         title="Ecommerce Image Builder"
-        tooltip={TOOLTIP_MAP.ecommerceImageBuilder}
+        tooltip="PDP, ads, bundles, hero ecommerce visuals"
         isOpen={openSection === 'bundles'}
         onToggle={() => toggleSection('bundles')}
       >
@@ -1551,7 +1582,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       <AccordionSection
         icon={Edit3}
         title="Formulation Story"
-        tooltip={TOOLTIP_MAP.formulationStory}
+        tooltip="Align brand expert, research, and product goals"
         isOpen={openSection === 'formulationStory'}
         onToggle={() => toggleSection('formulationStory')}
       >
@@ -1563,11 +1594,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               role="switch"
               aria-checked={values.formulationStoryEnabled}
               onClick={() => {
-                const next = !values.formulationStoryEnabled;
-                updateValue('formulationStoryEnabled', next);
-                if (next && (values.appearanceLevel === '' || values.appearanceLevel === 'Regular')) {
-                  updateValue('appearanceLevel', 'Well-Groomed');
-                }
+                updateValue('formulationStoryEnabled', !values.formulationStoryEnabled);
                 markSectionTouched('formulationStory');
               }}
               className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900 ${values.formulationStoryEnabled ? 'bg-indigo-500' : 'bg-gray-600'}`}
@@ -1581,68 +1608,54 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           {values.formulationStoryEnabled && (
             <div className="space-y-3">
               <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-                <p className="text-xs uppercase tracking-wider text-indigo-200">Presets</p>
-                <div className="flex flex-wrap gap-2">
-                  {FORMULATION_PRESETS.map(option => (
-                    <button
-                      key={option}
-                      type="button"
-                      onClick={() => { updateValue('formulationPreset', option); markSectionTouched('formulationStory'); }}
-                      className={getPillClass(values.formulationPreset === option)}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
                 <label className="text-xs uppercase tracking-wider text-indigo-200">Expert Name</label>
                 <input
                   type="text"
-                  value={values.formulationName}
-                  onChange={(e) => { updateValue('formulationName', e.target.value); markSectionTouched('formulationStory'); }}
+                  value={values.expertName}
+                  onChange={(e) => { updateValue('expertName', e.target.value); markSectionTouched('formulationStory'); }}
                   className="w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                   placeholder="e.g., Dr. Maya Collins"
                 />
               </div>
 
               <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <label className="text-xs uppercase tracking-wider text-indigo-200">Expert Credentials</label>
+                <input
+                  type="text"
+                  value={values.expertCredentials}
+                  onChange={(e) => { updateValue('expertCredentials', e.target.value); markSectionTouched('formulationStory'); }}
+                  className="w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  placeholder="e.g., Formulation Scientist, 12 years mixing botanicals"
+                />
+              </div>
+
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
                 <p className="text-xs uppercase tracking-wider text-indigo-200">Expert Role</p>
                 <div className="flex flex-wrap gap-2">
-                  {FORMULATION_ROLES.map(option => (
+                  {EXPERT_ROLE_OPTIONS.map(option => (
                     <button
-                      key={option}
+                      key={option.value}
                       type="button"
-                      onClick={() => { updateValue('formulationRole', option); markSectionTouched('formulationStory'); }}
-                      className={getPillClass(values.formulationRole === option)}
+                      onClick={() => { updateValue('expertRole', option.value); markSectionTouched('formulationStory'); }}
+                      className={getPillClass(values.expertRole === option.value)}
                     >
-                      {option}
+                      {option.label}
                     </button>
                   ))}
                 </div>
-                {values.formulationRole === 'Custom' && (
-                  <input
-                    type="text"
-                    value={values.formulationCustomRole}
-                    onChange={(e) => { updateValue('formulationCustomRole', e.target.value); markSectionTouched('formulationStory'); }}
-                    placeholder="Enter custom role"
-                    className="mt-3 w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-                  />
-                )}
               </div>
 
               <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
                 <p className="text-xs uppercase tracking-wider text-indigo-200">Medical Attire</p>
                 <div className="flex flex-wrap gap-2">
-                  {MEDICAL_ATTIRE_OPTIONS.map(option => (
+                  {EXPERT_ATTIRE_OPTIONS.map(option => (
                     <button
-                      key={option}
+                      key={option.value}
                       type="button"
-                      onClick={() => { updateValue('formulationAttire', option); markSectionTouched('formulationStory'); }}
-                      className={getPillClass(values.formulationAttire === option)}
+                      onClick={() => { updateValue('expertAttire', option.value); markSectionTouched('formulationStory'); }}
+                      className={getPillClass(values.expertAttire === option.value)}
                     >
-                      {option}
+                      {option.label}
                     </button>
                   ))}
                 </div>
@@ -1655,8 +1668,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     <button
                       key={option}
                       type="button"
-                      onClick={() => { updateValue('formulationLabVibe', option); markSectionTouched('formulationStory'); }}
-                      className={getPillClass(values.formulationLabVibe === option)}
+                      onClick={() => { updateValue('labVibe', option); markSectionTouched('formulationStory'); }}
+                      className={getPillClass(values.labVibe === option)}
                     >
                       {option}
                     </button>
@@ -1664,25 +1677,26 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between rounded-lg border border-gray-700 bg-gray-800/20 px-4 py-3">
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-indigo-200">Professional Badge</p>
-                  <p className="text-[11px] text-gray-400">Optional ID clip for lab or academic scenes.</p>
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <p className="text-xs uppercase tracking-wider text-indigo-200">Badge Preference</p>
+                <div className="flex flex-wrap gap-2">
+                  {BADGE_PREFERENCE_OPTIONS.map(option => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        updateValue('expertBadgePreference', option.value);
+                        markSectionTouched('formulationStory');
+                      }}
+                      className={getPillClass(values.expertBadgePreference === option.value)}
+                    >
+                      <span className="flex flex-col text-left">
+                        <span>{option.label}</span>
+                        <span className="text-[10px] text-gray-400">{option.description}</span>
+                      </span>
+                    </button>
+                  ))}
                 </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={values.formulationBadgeEnabled}
-                  onClick={() => {
-                    updateValue('formulationBadgeEnabled', !values.formulationBadgeEnabled);
-                    markSectionTouched('formulationStory');
-                  }}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900 ${values.formulationBadgeEnabled ? 'bg-indigo-500' : 'bg-gray-600'}`}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${values.formulationBadgeEnabled ? 'translate-x-5' : 'translate-x-0'}`}
-                  />
-                </button>
               </div>
             </div>
           )}
@@ -1693,7 +1707,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       <AccordionSection
         icon={Layers}
         title="Output Format"
-        tooltip={TOOLTIP_MAP.outputFormat}
+        tooltip="Aspect ratio for the final image"
         isOpen={openSection === 'output'}
         onToggle={() => toggleSection('output')}
       >

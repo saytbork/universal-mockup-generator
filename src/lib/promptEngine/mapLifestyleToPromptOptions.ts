@@ -12,8 +12,8 @@
  * - ALL mappings logged for debugging
  */
 
-import type { Step3Values } from '@/components/LifestyleStep3';
-import type { PromptOptions } from './types';
+import type { ExpertRole, Step3Values, ExpertAttire } from '@/components/LifestyleStep3';
+import type { FormulationStoryOptions, PromptOptions } from './types';
 import { mapProductModeToPromptOptions } from './mapProductModeToPromptOptions';
 
 // ============================================================================
@@ -34,16 +34,48 @@ const POSE_SEMANTIC_MAP: Record<string, string> = {
     'Offer-to-Lens Reach': 'arm extended toward camera lens, product held outward, body leaning slightly forward in offering gesture'
 };
 
-/**
- * APPEARANCE LEVEL → Grooming state and styling effort
- */
-const APPEARANCE_SEMANTIC_MAP: Record<string, string> = {
-    'Regular': 'regular everyday grooming with natural unstyled appearance, hair in its natural state without product',
-    'Well-Groomed': 'well-groomed polished appearance with neat styled hair, clean skin, put-together presentation',
-    'Styled': 'curated styled look with intentional fashion choices, hair deliberately arranged, makeup if applicable',
-    'Messy / Just Woke Up': 'messy just-woke-up appearance with tousled bedhead hair, slightly puffy face, natural morning tiredness visible',
-    'Running Late': 'rushed running-late appearance with quickly styled hair, slightly disheveled clothing, subtle stress in posture'
-};
+const normalizeKey = (value?: string) =>
+    value
+        ? value
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/-+/g, '-')
+        : '';
+
+function mapSkinRealism(value?: string): string | null {
+    switch (normalizeKey(value)) {
+        case 'raw':
+        case 'raw-real':
+        case 'rawreal':
+            return 'raw, unretouched skin with visible texture, pores, and natural imperfections';
+        case 'natural':
+            return 'natural realistic skin texture with visible pores and subtle imperfections, no plastic look';
+        case 'soft-retouch':
+        case 'softretouch':
+            return 'lightly retouched skin with minimal smoothing, still realistic and human';
+        default:
+            return null;
+    }
+}
+
+function mapAppearanceLevel(value?: string): string | null {
+    switch (normalizeKey(value)) {
+        case 'regular':
+            return 'regular everyday professional appearance';
+        case 'well-groomed':
+            return 'well-groomed but authentic professional appearance';
+        case 'styled':
+            return 'styled but believable appearance, intentionally prepared';
+        case 'messy':
+        case 'messy-just-woke-up':
+            return 'slightly messy, just woke up look with natural dishevelment';
+        case 'running-late':
+            return 'running-late appearance with minor imperfections in hair and clothing';
+        default:
+            return null;
+    }
+}
 
 /**
  * PROPS → Scene objects and lifestyle accessories
@@ -55,6 +87,63 @@ const PROPS_SEMANTIC_MAP: Record<string, string> = {
     'Notebook / Journal': 'notebook or journal as lifestyle prop, possibly open with visible pages',
     'Makeup Tool': 'makeup brush or beauty tool visible in scene',
     'Shopping Tote': 'cloth shopping tote bag as lifestyle prop, suggesting everyday errands'
+};
+
+const FORMULATION_LAB_VIBE_MAP: Record<string, FormulationStoryOptions['labVibe']> = {
+    'Clean Lab': 'modern_clinical_lab',
+    'Moody Lab': 'r_and_d_studio',
+    'Warm Studio': 'apothecary_lab'
+};
+
+const ROLE_LABELS: Record<ExpertRole, string> = {
+    doctor: 'medical doctor / physician (MD)',
+    medical_professional: 'medical professional',
+    clinical_researcher: 'clinical researcher',
+    research_scientist: 'research scientist',
+    functional_health_expert: 'functional health expert',
+    wellness_practitioner: 'wellness practitioner',
+    pharmacist: 'pharmacist',
+    nutritionist: 'nutritionist',
+    custom: 'formulation expert'
+};
+
+const ATTIRE_DESCRIPTIONS: Record<ExpertAttire, string> = {
+    white_medical_coat: 'a white medical coat over professional attire',
+    white_scrubs: 'white medical scrubs',
+    light_blue_scrubs: 'light blue scrubs',
+    burgundy_scrubs: 'burgundy scrubs',
+    green_scrubs: 'green scrubs'
+};
+
+const EXPERT_ROLE_FOCUS_MAP: Record<ExpertRole, FormulationStoryOptions['professionalFocus']> = {
+    doctor: 'clinical_researcher',
+    medical_professional: 'clinical_researcher',
+    clinical_researcher: 'clinical_researcher',
+    research_scientist: 'research_scientist',
+    functional_health_expert: 'functional_health_expert',
+    wellness_practitioner: 'wellness_practitioner',
+    pharmacist: 'pharmacist',
+    nutritionist: 'nutritionist',
+    custom: 'custom'
+};
+
+const buildFormulationStoryOptions = (sceneState: Step3Values): FormulationStoryOptions | undefined => {
+    if (!sceneState.formulationStoryEnabled) {
+        return undefined;
+    }
+    const focus = EXPERT_ROLE_FOCUS_MAP[sceneState.expertRole] ?? 'custom';
+    const labVibe = FORMULATION_LAB_VIBE_MAP[sceneState.labVibe] ?? 'none';
+    return {
+        professionalFocus: focus,
+        expertName: sceneState.expertName?.trim() || undefined,
+        roleCredentials: sceneState.expertCredentials?.trim() || undefined,
+        labVibe,
+        expertRole: sceneState.expertRole,
+        expertRoleLabel: ROLE_LABELS[sceneState.expertRole] ?? 'medical expert',
+        expertAttire: sceneState.expertAttire,
+        expertAttireDescription: ATTIRE_DESCRIPTIONS[sceneState.expertAttire] ?? 'professional medical attire',
+        badgePreference: sceneState.expertBadgePreference
+    };
 };
 
 /**
@@ -344,7 +433,6 @@ export function mapLifestyleToPromptOptions(
         if (macro.expression) {
             expressionOverride = macro.expression;
         }
-
         // Apply Pose Override
         poseOverride = macro.pose;
         mapped.personPose = poseOverride;
@@ -394,10 +482,17 @@ export function mapLifestyleToPromptOptions(
         }
 
         // APPEARANCE (Manual if not nuked by Custom Clothes)
-        if (!hasCustomClothes && sceneState.appearanceLevel) {
-            const app = APPEARANCE_SEMANTIC_MAP[sceneState.appearanceLevel] || sceneState.appearanceLevel;
-            mapped.personAppearance = app;
-            mapped.personDetails.personAppearance = app;
+        if (!hasCustomClothes) {
+            const appearanceDescriptor = mapAppearanceLevel(sceneState.appearanceLevel);
+            if (appearanceDescriptor) {
+                mapped.personAppearance = appearanceDescriptor;
+                mapped.personDetails.personAppearance = appearanceDescriptor;
+            }
+        }
+
+        const skinDescriptor = mapSkinRealism(sceneState.skinRealism);
+        if (skinDescriptor) {
+            mapped.personDetails.skinRealism = skinDescriptor;
         }
 
         // OTHER PERSON DETAILS (Non-conflicting)
