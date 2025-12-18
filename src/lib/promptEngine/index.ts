@@ -47,6 +47,7 @@ import { ConstraintsBuilder } from './builders/constraints';
 import { FinalizeBuilder } from './builders/finalize';
 import { SceneNarrativeBuilder } from './builders/canonicalScene';
 import { UGCRealModeBuilder } from './builders/ugcRealMode';
+import { FormulationStoryInjectionBuilder } from './builders/formulationStoryInjection';
 import type { PromptOptions } from './types';
 import { buildMasterPrompt } from './masterPrompt';
 
@@ -171,6 +172,7 @@ export class PromptEngine {
     private ugcBuilder = new UGCRealModeBuilder();            // Priority 3 (DOMINANT)
     private narrativeBuilder = new SceneNarrativeBuilder();   // Priority 4
     private finalizeBuilder = new FinalizeBuilder();          // Priority 6
+    private formulationStoryInjectionBuilder = new FormulationStoryInjectionBuilder();
 
     /**
      * Build complete prompt from options
@@ -256,6 +258,7 @@ export class PromptEngine {
         // ====================================================================
         // STEP 6: Finalize
         // ====================================================================
+        const formulationStoryInjection = this.formulationStoryInjectionBuilder.build(options);
         const finalizeSection = this.finalizeBuilder.build(options);
         console.log('[PROMPT ENGINE] Step 6: Finalize -', `${finalizeSection.length} chars`);
 
@@ -267,7 +270,7 @@ export class PromptEngine {
                 creationIntent: narrativeSections.creationIntent,
                 creationMode: narrativeSections.creationMode,
                 ugcRealMode: ugcSection || narrativeSections.ugcRealMode,
-                formulationStory: narrativeSections.formulationStory,
+                formulationStory: [narrativeSections.formulationStory, formulationStoryInjection].filter(Boolean).join(' '),
                 ecommerceBuilder: narrativeSections.ecommerceBuilder,
                 cameraFraming: narrativeSections.cameraFraming,
                 environmentLightingMood: narrativeSections.environmentLightingMood,
