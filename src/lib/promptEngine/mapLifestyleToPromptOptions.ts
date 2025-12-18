@@ -704,18 +704,19 @@ export function mapLifestyleToPromptOptions(
     console.log('[MAP] aspectRatio:', sceneState.aspectRatio, '→', mapped.aspectRatio);
 
     // ========================================================================
-    // FORMULATION STORY (Restored)
+    // FORMULATION STORY (Dedicated builder input)
     // ========================================================================
-    mapped.formulationExpertEnabled = sceneState.formulationStoryEnabled;
-    mapped.formulationExpertName = sceneState.formulationName;
-    const roleValue = sceneState.formulationRole === 'Custom'
-        ? sceneState.formulationCustomRole
-        : sceneState.formulationRole;
-    mapped.formulationExpertRole = roleValue ? roleValue.trim() : '';
-    mapped.formulationLabStyle = sceneState.formulationLabVibe;
-    mapped.formulationExpertPreset = sceneState.formulationPreset;
-    mapped.formulationExpertAttire = sceneState.formulationAttire;
-    mapped.formulationBadgeEnabled = sceneState.formulationBadgeEnabled;
+    mapped.formulationExpertEnabled = !!sceneState.formulationStoryEnabled;
+    const formulationStory = buildFormulationStoryOptions(sceneState);
+    if (formulationStory) {
+        mapped.formulationStory = formulationStory;
+        mapped.formulationExpertName = formulationStory.expertName;
+        mapped.formulationExpertRole = formulationStory.expertRoleLabel;
+        mapped.formulationLabStyle = formulationStory.labVibe;
+        mapped.formulationExpertAttire = formulationStory.expertAttire;
+        (mapped as any).formulationExpertCredentials = formulationStory.roleCredentials;
+        (mapped as any).formulationBadgePreference = formulationStory.badgePreference;
+    }
     (mapped as any).formulationTone =
         (sceneState as any).formulationTone || 'calm, grounded, everyday';
 
