@@ -771,13 +771,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       updateValue('formulationStoryEnabled', false);
     }
   }, [values.noPerson, values.formulationStoryEnabled, updateValue]);
-  }, [
-    values.formulationStoryEnabled,
-    values.ugcRealMode,
-    values.ugcCaptureSituation,
-    values.selfieMode,
-    updateValue
-  ]);
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-4 pb-8 px-4">
