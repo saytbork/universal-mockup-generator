@@ -164,21 +164,6 @@ const CAMERA_DEVICE_SEMANTIC_MAP: Record<string, string> = {
 };
 
 /**
- * ETHNICITY → Physical facial structure and feature descriptors
- * Maps to observable physical characteristics, not cultural labels
- */
-const ETHNICITY_FACIAL_MAP: Record<string, string> = {
-    'Black / African descent': 'person of African descent with characteristic facial bone structure, fuller lips, broader nose bridge, textured hair',
-    'Latino / Hispanic': 'person of Latino heritage with warm olive to brown skin tones, varied facial features typical of Latin American ancestry',
-    'White / European descent': 'person of European descent with characteristic facial structure, varied skin tones from fair to olive',
-    'Asian': 'person of East Asian or Southeast Asian descent with characteristic facial features including epicanthic fold, varied skin tones',
-    'Middle Eastern': 'person of Middle Eastern descent with characteristic facial structure, olive to brown skin tones, defined features',
-    'South Asian': 'person of South Asian descent with characteristic facial structure, medium to deep brown skin tones',
-    'Mixed': 'person of mixed ethnic heritage with blended facial features from multiple ancestries',
-    'Non-specific': 'person with ambiguous ethnic presentation'
-};
-
-/**
  * SHOT TYPE → Physical camera framing (SIMPLIFIED)
  */
 const SHOT_TYPE_SEMANTIC_MAP: Record<string, string> = {
@@ -247,13 +232,6 @@ const SKIN_REALISM_SEMANTIC_MAP: Record<string, string> = {
     'Raw / Real': 'raw, unretouched skin with visible texture, pores, and natural imperfections',
     'Natural': 'natural realistic skin texture with visible pores and subtle imperfections, no plastic look',
     'Soft Retouch': 'lightly retouched skin, minimal smoothing, still realistic and human'
-};
-
-const BODY_TYPE_SEMANTIC_MAP: Record<string, string> = {
-    'Slim': 'slim',
-    'Average': 'average',
-    'Curvy': 'curvy',
-    'Plus size': 'plus-size'
 };
 
 /**
@@ -470,14 +448,14 @@ export function mapLifestyleToPromptOptions(
         // AGE, GENDER, ETHNICITY (Always respect unless Model Ref)
         mapped.personDetails.age = sceneState.age;
         if (sceneState.gender) mapped.personDetails.gender = sceneState.gender;
-        if (sceneState.ethnicity) {
-            const eth = ETHNICITY_FACIAL_MAP[sceneState.ethnicity] || sceneState.ethnicity;
-            mapped.personDetails.ethnicity = eth;
+        if (sceneState.ethnicity && sceneState.ethnicity !== 'Prefer not to specify') {
+            mapped.personDetails.ethnicity = sceneState.ethnicity;
         }
-
         if (sceneState.bodyType) {
-            const normalizedBodyType = BODY_TYPE_SEMANTIC_MAP[sceneState.bodyType] || sceneState.bodyType.toLowerCase();
-            mapped.personDetails.bodyType = normalizedBodyType;
+            mapped.personDetails.bodyType = sceneState.bodyType;
+        }
+        if (sceneState.skinTone) {
+            mapped.personDetails.skinTone = sceneState.skinTone;
         }
 
         // POSE (Manual if no Override)
@@ -518,8 +496,11 @@ export function mapLifestyleToPromptOptions(
         mapped.personDetails.eyeDirection =
             EYE_DIRECTION_SEMANTIC_MAP[eyeDirectionLabel] || eyeDirectionLabel as any;
         if (sceneState.productInteraction) mapped.personDetails.productInteraction = INTERACTION_SEMANTIC_MAP[sceneState.productInteraction] || sceneState.productInteraction;
+        if (sceneState.eyeColor) mapped.personDetails.eyeColor = sceneState.eyeColor;
 
         // HAIR
+        if (sceneState.hairLength) mapped.personDetails.hairLength = sceneState.hairLength;
+        if (sceneState.hairTexture) mapped.personDetails.hairTexture = sceneState.hairTexture;
         if (sceneState.hairColor) mapped.personDetails.hairColor = sceneState.hairColor;
         // ... (other hair props mapped normally)
     }

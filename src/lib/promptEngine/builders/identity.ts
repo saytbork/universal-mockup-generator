@@ -38,6 +38,7 @@ export class IdentityBuilder implements PromptBuilder {
 
         const parts: string[] = [];
         const age = personDetails?.age || 30;
+        const ageGroupLabel = age >= 75 ? 'elder' : 'adult';
 
         // 1. PHYSICAL IDENTITY (Standard or Reference Override)
         if (hasModelReference) {
@@ -54,7 +55,7 @@ The model reference overrides any synthetic identity description.
             if (age >= 70) {
                 parts.push(`
 AGE ANCHOR: The subject MUST visually read as approximately ${age} years old.
-Facial structure, skin laxity, eye area, neck, hands, posture, and overall presence must be consistent with a real ${age}-year-old adult.
+Facial structure, skin laxity, eye area, neck, hands, posture, and overall presence must be consistent with a real ${age}-year-old ${ageGroupLabel}.
 Do NOT make the person appear younger.
 Avoid youthful facial proportions, smooth skin, or middle-aged appearance.
                 `.trim().replace(/\s+/g, ' '));
@@ -63,54 +64,28 @@ Avoid youthful facial proportions, smooth skin, or middle-aged appearance.
             // IDENTITY BLOCK - Core attributes
             const identityParts: string[] = [];
 
-            // Age - ALWAYS numeric
-            identityParts.push(`${age}-year-old adult`);
+            // Age - ALWAYS numeric, elder group for 75+
+            const ageLabel = `${age}-year-old ${ageGroupLabel}`;
+            identityParts.push(ageLabel);
 
-            // Gender - soft descriptor
-            if (personDetails?.gender) {
-                const genderMap: Record<string, string> = {
-                    'Female': 'female-presenting adult',
-                    'Male': 'male-presenting adult',
-                    'Non-binary': 'non-binary presenting adult, balanced gender expression',
-                    'They / Them': 'person with neutral gender presentation',
-                    'Androgynous': 'androgynous appearance with blended masculine and feminine traits',
-                    'Gender non-conforming': 'gender non-conforming presentation',
-                };
-                const mapped = genderMap[personDetails.gender];
-                if (mapped) {
-                    identityParts.push(sanitizePart(mapped));
-                }
+            // Gender - use only explicit Male/Female selections
+            if (personDetails?.gender === 'Male' || personDetails?.gender === 'Female') {
+                identityParts.push(personDetails.gender);
             }
 
-            // Ethnicity - with physical features
+            // Ethnicity - inject verbatim
             if (personDetails?.ethnicity && personDetails.ethnicity !== 'Prefer not to specify') {
                 identityParts.push(sanitizePart(personDetails.ethnicity));
             }
 
-            // Body Type
+            // Body Type - use the exact selection
             if (personDetails?.bodyType) {
-                identityParts.push(sanitizePart(`${personDetails.bodyType.toLowerCase()} build`));
+                identityParts.push(sanitizePart(`${personDetails.bodyType} build`));
             }
 
-            // Skin Tone
+            // Skin Tone - inject the selected option exactly
             if (personDetails?.skinTone) {
-                const skinMap: Record<string, string> = {
-                    'Very Fair': 'very fair',
-                    'Fair': 'fair',
-                    'Fair Cool': 'fair with cool undertones',
-                    'Fair Warm': 'fair with warm undertones',
-                    'Medium': 'medium',
-                    'Medium Neutral': 'medium with neutral undertones',
-                    'Olive': 'olive',
-                    'Tan': 'tan',
-                    'Brown': 'brown',
-                    'Deep Golden': 'deep with golden undertones',
-                    'Deep Brown': 'deep brown',
-                    'Deep Cool': 'deep with cool undertones',
-                    'Very Deep': 'very deep'
-                };
-                const mappedSkin = skinMap[personDetails.skinTone] || personDetails.skinTone.toLowerCase();
-                identityParts.push(`${mappedSkin} skin`);
+                identityParts.push(sanitizePart(personDetails.skinTone));
             }
 
             // Skin Realism + Appearance - UGC Override logic
@@ -149,9 +124,9 @@ Avoid youthful facial proportions, smooth skin, or middle-aged appearance.
             // Hair
             if (personDetails?.hairLength || personDetails?.hairTexture || personDetails?.hairColor) {
                 const hairParts = [
-                    personDetails?.hairLength?.toLowerCase(),
-                    personDetails?.hairTexture?.toLowerCase(),
-                    personDetails?.hairColor?.toLowerCase()
+                    personDetails?.hairLength,
+                    personDetails?.hairTexture,
+                    personDetails?.hairColor
                 ].filter(Boolean);
                 if (hairParts.length > 0) {
                     identityParts.push(sanitizePart(`${hairParts.join(' ')} hair`));
