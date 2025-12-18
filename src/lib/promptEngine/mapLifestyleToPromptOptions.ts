@@ -429,8 +429,8 @@ export function mapLifestyleToPromptOptions(
         mapped.personPose = poseOverride;
         mapped.personDetails.personPose = poseOverride;
 
-        // Apply Framing Override (if exists)
-        if (macro.framing) {
+        // Apply Framing Override (if exists) only when environment intent is not locked
+        if (!isEnvironmentSceneIntent && macro.framing) {
             framingOverride = macro.framing;
             mapped.perspective = framingOverride;
         }
@@ -806,6 +806,14 @@ export function mapLifestyleToPromptOptions(
             // Ensure camera is consistent with selfie
             mapped.cameraShot = 'closeUp' as any; // Selfies are generally close
         }
+    }
+
+    if (isEnvironmentSceneIntent) {
+        delete mapped.bgColor;
+        delete (mapped as any).ageGroup;
+        mapped.creationMode = mapped.creationMode || 'lifestyle';
+        mapped.creationModeStructural = mapped.creationModeStructural || 'Environment-first lifestyle composition keeping the product grounded within the lived-in room.';
+        mapped.cameraDeviceSemantic = mapped.cameraDeviceSemantic || 'Handheld smartphone perspective capturing real spatial depth, emphasizing the surrounding environment.';
     }
 
     // MANDATORY LOGGING - Complete output
