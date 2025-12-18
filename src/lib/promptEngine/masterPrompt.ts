@@ -22,6 +22,7 @@ type MasterPromptSections = {
   ecommerceBuilder?: string;
   cameraFraming: string;
   environmentLightingMood: string;
+  compositionDetails?: string;
   identity?: string;
   finalize?: string;
 };
@@ -35,30 +36,32 @@ type MasterPromptSections = {
  * - Finalize provides quality anchors and constraints
  */
 export function buildMasterPrompt(sections: MasterPromptSections, negativePrompt: string): string {
-  const {
-    creationIntent,
-    creationMode,
-    ugcRealMode,
-    formulationStory,
-    ecommerceBuilder,
-    cameraFraming,
-    environmentLightingMood,
-    identity,
-    finalize
-  } = sections;
+    const {
+      creationIntent,
+      creationMode,
+      ugcRealMode,
+      formulationStory,
+      ecommerceBuilder,
+      cameraFraming,
+      environmentLightingMood,
+      compositionDetails,
+      identity,
+      finalize
+    } = sections;
 
   // CANONICAL ORDER - Do not change this sequence
-  const parts = [
-    creationIntent,     // 1. Structural context
-    creationMode,       // 2. Mode rules
-    ugcRealMode,        // 3. UGC override (DOMINANT)
-    formulationStory,   // 4. Expert credibility
-    ecommerceBuilder,   // 5. Blank space layout
-    cameraFraming,      // 6. Camera composition
-    environmentLightingMood, // 7. Scene + lighting
-    identity,           // 8. Person traits
-    finalize            // 9. Constraints + output
-  ]
+    const parts = [
+      creationIntent,     // 1. Structural context
+      creationMode,       // 2. Mode rules
+      ugcRealMode,        // 3. UGC override (DOMINANT)
+      formulationStory,   // 4. Expert credibility
+      ecommerceBuilder,   // 5. Blank space layout
+      cameraFraming,      // 6. Camera composition
+      environmentLightingMood, // 7. Scene + lighting
+      compositionDetails, // 8. Composition instructions
+      identity,           // 9. Person traits
+      finalize            // 10. Constraints + output
+    ]
     .filter(Boolean)
     .map(part => (part || '').trim())
     .filter(part => part.length > 0);
@@ -69,4 +72,3 @@ export function buildMasterPrompt(sections: MasterPromptSections, negativePrompt
 
   return `${prompt} Negative prompt: ${negativePrompt}`.replace(/\s+/g, ' ').trim();
 }
-

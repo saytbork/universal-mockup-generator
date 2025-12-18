@@ -692,6 +692,9 @@ export function mapLifestyleToPromptOptions(
         }
     }
 
+    mapped.sidePlacement = mapped.sidePlacement || (sceneState.sidePlacement?.toLowerCase() || 'center') as any;
+    mapped.bgColor = sceneState.ecommerceBackgroundColor || mapped.bgColor || '#FFFFFF';
+
     // ========================================================================
     // OUTPUT FORMAT → Aspect Ratio
     // ========================================================================

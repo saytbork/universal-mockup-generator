@@ -48,6 +48,7 @@ import { FinalizeBuilder } from './builders/finalize';
 import { SceneNarrativeBuilder } from './builders/canonicalScene';
 import { UGCRealModeBuilder } from './builders/ugcRealMode';
 import { FormulationStoryInjectionBuilder } from './builders/formulationStoryInjection';
+import { CompositionDetailsBuilder } from './builders/compositionDetails';
 import type { PromptOptions } from './types';
 import { buildMasterPrompt } from './masterPrompt';
 
@@ -173,6 +174,7 @@ export class PromptEngine {
     private narrativeBuilder = new SceneNarrativeBuilder();   // Priority 4
     private finalizeBuilder = new FinalizeBuilder();          // Priority 6
     private formulationStoryInjectionBuilder = new FormulationStoryInjectionBuilder();
+    private compositionDetailsBuilder = new CompositionDetailsBuilder();
 
     /**
      * Build complete prompt from options
@@ -259,6 +261,8 @@ export class PromptEngine {
         // STEP 6: Finalize
         // ====================================================================
         const formulationStoryInjection = this.formulationStoryInjectionBuilder.build(options);
+        const compositionDetails = this.compositionDetailsBuilder.build(options);
+        const compositionDetailsSection = this.compositionDetailsBuilder.build(options);
         const finalizeSection = this.finalizeBuilder.build(options);
         console.log('[PROMPT ENGINE] Step 6: Finalize -', `${finalizeSection.length} chars`);
 
@@ -274,6 +278,7 @@ export class PromptEngine {
                 ecommerceBuilder: narrativeSections.ecommerceBuilder,
                 cameraFraming: narrativeSections.cameraFraming,
                 environmentLightingMood: narrativeSections.environmentLightingMood,
+                compositionDetails,
                 identity: narrativeSections.identity || identitySection,
                 finalize: finalizeSection
             },
@@ -328,6 +333,7 @@ export class PromptEngine {
                 narrativeSections.ecommerceBuilder ?? '',
                 narrativeSections.cameraFraming,
                 narrativeSections.environmentLightingMood,
+                compositionDetailsSection,
                 finalizeSection
             ]
                 .filter(Boolean)
