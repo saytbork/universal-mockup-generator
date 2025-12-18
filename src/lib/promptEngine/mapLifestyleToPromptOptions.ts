@@ -249,6 +249,13 @@ const SKIN_REALISM_SEMANTIC_MAP: Record<string, string> = {
     'Soft Retouch': 'lightly retouched skin, minimal smoothing, still realistic and human'
 };
 
+const BODY_TYPE_SEMANTIC_MAP: Record<string, string> = {
+    'Slim': 'slim',
+    'Average': 'average',
+    'Curvy': 'curvy',
+    'Plus size': 'plus-size'
+};
+
 /**
  * EYE DIRECTION → Physical gaze vector and eye position
  */
@@ -466,6 +473,11 @@ export function mapLifestyleToPromptOptions(
         if (sceneState.ethnicity) {
             const eth = ETHNICITY_FACIAL_MAP[sceneState.ethnicity] || sceneState.ethnicity;
             mapped.personDetails.ethnicity = eth;
+        }
+
+        if (sceneState.bodyType) {
+            const normalizedBodyType = BODY_TYPE_SEMANTIC_MAP[sceneState.bodyType] || sceneState.bodyType.toLowerCase();
+            mapped.personDetails.bodyType = normalizedBodyType;
         }
 
         // POSE (Manual if no Override)
@@ -721,6 +733,7 @@ export function mapLifestyleToPromptOptions(
     mapped.formulationExpertPreset = sceneState.formulationPreset;
     mapped.formulationExpertAttire = sceneState.formulationAttire;
     mapped.formulationBadgeEnabled = sceneState.formulationBadgeEnabled;
+    mapped.formulationStory = buildFormulationStoryOptions(sceneState);
     (mapped as any).formulationTone =
         (sceneState as any).formulationTone || 'calm, grounded, everyday';
 

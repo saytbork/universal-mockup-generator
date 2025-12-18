@@ -1632,7 +1632,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   value={values.expertName}
                   onChange={(e) => { updateValue('expertName', e.target.value); markSectionTouched('formulationStory'); }}
                   className="w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-                  placeholder="e.g., Dr. Maya Collins"
+                  placeholder="The name you enter here (e.g., 'Dr. Ali M.D') will be embroidered on the medical attire."
                 />
               </div>
 
@@ -1695,27 +1695,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               </div>
 
-              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-                <p className="text-xs uppercase tracking-wider text-indigo-200">Badge Preference</p>
-                <div className="flex flex-wrap gap-2">
-                  {BADGE_PREFERENCE_OPTIONS.map(option => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => {
-                        updateValue('expertBadgePreference', option.value);
-                        markSectionTouched('formulationStory');
-                      }}
-                      className={getPillClass(values.expertBadgePreference === option.value)}
-                    >
-                      <span className="flex flex-col text-left">
-                        <span>{option.label}</span>
-                        <span className="text-[10px] text-gray-400">{option.description}</span>
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
             </div>
           )}
         </div>

@@ -47,15 +47,10 @@ export class FormulationStoryBuilder implements PromptBuilder {
             : 'They are wearing professional medical attire that feels real without excessive branding.';
         parts.push(attireSentence);
 
-        const embroideredNameText = story.expertName
-            ? `Their name, ${story.expertName}, is embroidered once above the chest pocket on one side and mentioned casually without emphasis.`
-            : 'A single embroidered name appears above the chest pocket on one side, referenced casually without fanfare.';
-        parts.push(embroideredNameText);
-
-        if (story.badgePreference === 'name_and_badge') {
-            parts.push('A small specialty badge sits opposite the name, referencing the chosen role while staying subtle.');
-        } else {
-            parts.push('No excessive branding or artificial badges appear; the embroidered name remains the primary identifier.');
+        if (story.expertName) {
+            parts.push(
+                `Their name, ${story.expertName}, is embroidered once above the chest pocket on one side and mentioned casually without emphasis.`
+            );
         }
 
         const focus = story.professionalFocus;
