@@ -566,7 +566,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   };
 
   const [values, setValues] = useState<Step3Values>(initialValues);
-  const isUGC = values.ugcRealMode === true;
 
   const toggleSection = (section: string) => {
     setOpenAccordionId(openAccordionId === section ? null : section);
@@ -1319,8 +1318,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         </div>
       </AccordionSection >
 
-      {!isUGC && (
-        <>
+      
           <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Hero personas</p>
             <div className="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
@@ -1486,9 +1484,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               )}
             </div>
           </AccordionSection >
-        </>
-      )}
-
       {/* BUNDLES SYSTEM - STRICTLY ISOLATED */}
       {/* Bundles are enabled ONLY when multiple products are uploaded. */}
       {/* Bundles control product grouping only. */}
