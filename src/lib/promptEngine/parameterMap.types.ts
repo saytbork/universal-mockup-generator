@@ -35,7 +35,6 @@ export interface ParameterMap {
   eyeDirection: Record<EyeDirectionKey, string>;
   appearanceLevel: Record<string, string>;
   wardrobe: Record<string, string>;
-  mood: Record<string, string>;
   expression: Record<string, string>;
   pose: Record<string, string>;
   interaction: Record<string, string>;

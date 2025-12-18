@@ -142,7 +142,6 @@ export function mapProductModeToPromptOptions(
     mapped.realModeActive = false;
     mapped.selfieType = 'None';
     mapped.personExpression = undefined;
-    mapped.personMood = undefined;
     mapped.personPose = undefined;
 
     console.log('[PRODUCT MODE MAP OUTPUT]', mapped);

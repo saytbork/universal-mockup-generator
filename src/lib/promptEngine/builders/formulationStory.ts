@@ -40,6 +40,8 @@ export class FormulationStoryBuilder implements PromptBuilder {
         const profession = (options.formulationExpertRole || '').trim();
         const professionalContext = (((options as any).professionalContext as string) || '').trim();
         const embroideredName = (options.formulationExpertName || '').trim();
+        const attire = (options.formulationExpertAttire || '').trim();
+        const badgeEnabled = Boolean((options as any).formulationBadgeEnabled);
         const tone = (((options as any).formulationTone as string) || DEFAULT_TONE).trim();
 
         const lines: string[] = [];
@@ -70,6 +72,12 @@ export class FormulationStoryBuilder implements PromptBuilder {
             );
         }
 
+        if (attire) {
+            lines.push(
+                `They wear ${attire.toLowerCase()}, styled for practical, real-world work rather than a staged uniform.`
+            );
+        }
+
         if (professionalContext) {
             lines.push(
                 `The scene subtly reflects this professional context (${professionalContext}) through clothing, posture, and surrounding details, without exaggeration or visual emphasis.`
@@ -78,8 +86,20 @@ export class FormulationStoryBuilder implements PromptBuilder {
 
         if (embroideredName) {
             lines.push(
-                `A small embroidered name reading "${embroideredName}" is visible on the clothing, reinforcing realism and personal identity without drawing focus.`
+                `A single embroidered name reading "${embroideredName}" sits just above the chest pocket on one side only, stitched directly into the fabric without any mirrored duplicate.`
             );
+        } else {
+            lines.push(
+                'A single embroidered name label sits above the chest pocket on one side only, stitched directly into the fabric with no mirrored duplicate.'
+            );
+        }
+
+        if (badgeEnabled) {
+            lines.push(
+                'A single minimal ID badge is clipped near the chest pocket to reference a real institution.'
+            );
+        } else {
+            lines.push('No additional badges, icons, or decorative patches appear on the clothing.');
         }
 
         lines.push(

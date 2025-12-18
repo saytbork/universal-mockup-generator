@@ -25,7 +25,6 @@ export function buildLifestylePrompt({ productMeta, params, userPrompt }) {
   const pose = parameterMap.pose?.[params.personPose] ?? params.personPose ?? "";
   const expression = parameterMap.expression?.[params.personExpression] ?? params.personExpression ?? "";
   const wardrobe = parameterMap.wardrobe?.[params.wardrobeStyle] ?? params.wardrobeStyle ?? "";
-  const mood = parameterMap.mood?.[params.personMood] ?? params.personMood ?? "";
   const props = params.personProps || "";
   const microLocation = parameterMap.microLocation?.[params.microLocation] ?? params.microLocation ?? "";
   const eyeDirection = parameterMap.eyeDirection?.[params.eyeDirection] ?? "";
@@ -40,7 +39,6 @@ export function buildLifestylePrompt({ productMeta, params, userPrompt }) {
     Expression: ${expression || "natural expression"}.
     Setting: ${buildScene(params)}. Micro-location: ${microLocation}.
     Lighting: ${buildLighting(params)}.
-    Mood: ${mood}.
     Wardrobe: ${wardrobe}.
     Props: ${props}.
     Eye direction: ${eyeDirection}.

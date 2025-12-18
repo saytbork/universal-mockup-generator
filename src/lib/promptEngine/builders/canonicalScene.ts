@@ -187,7 +187,6 @@ export class SceneNarrativeBuilder {
             lighting: options.lighting,
             sceneLighting: (options as any).sceneLighting
         });
-        const mood = options.personMood ? `Mood: ${options.personMood}.` : '';
 
         // Inject structural rules from mapper
         const creationModeStructural = (options as any).creationModeStructural || '';
@@ -199,8 +198,7 @@ export class SceneNarrativeBuilder {
             compositionModeStructural ? `Composition: ${compositionModeStructural}.` : '',
             cameraDeviceSemantic ? `Camera: ${cameraDeviceSemantic}.` : '',
             environmentText ? `Environment: ${environmentText}.` : '',
-            lightingText ? `Lighting: ${lightingText}.` : '',
-            mood
+            lightingText ? `Lighting: ${lightingText}.` : ''
         ].filter(Boolean);
 
         console.log('[SCENE NARRATIVE] Environment/Lighting/Mood:', parts.join(' ').substring(0, 200) + '...');

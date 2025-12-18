@@ -141,29 +141,22 @@ const LIGHTING_SEMANTIC_MAP: Record<string, string> = {
 };
 
 /**
- * SCENE MOOD → Overall atmosphere and energy (NOT body/facial details)
- * Describes the global feeling of the scene, not physical muscle states
- */
-const SCENE_MOOD_MAP: Record<string, string> = {
-    'Calm & Serene': 'calm serene atmosphere, low emotional intensity, peaceful pacing',
-    'Joyful & High-Energy': 'energetic joyful mood, lively movement, upbeat presence',
-    'Confident & Editorial': 'confident composed mood, editorial presence, controlled energy',
-    'Playful & Candid': 'playful candid mood, spontaneous energy, informal feel',
-    'Hustle & Juggle': 'busy dynamic mood, multitasking energy, purposeful movement',
-    'Stressed but Determined': 'stressed yet determined mood, visible tension with resolve'
-};
-
-/**
  * FACIAL EXPRESSION → Physical facial muscle states ONLY
  * Describes specific facial gestures, NOT scene energy or body language
  */
 const FACIAL_EXPRESSION_MAP: Record<string, string> = {
-    'Soft Smile': 'soft subtle smile, relaxed facial muscles',
-    'Full Smile': 'full smile, teeth visible, lifted cheeks',
-    'Serious Focus': 'neutral serious expression, focused eyes',
-    'Excited Surprise': 'widened eyes, open mouth, surprised expression',
-    'Stressed but Hopeful': 'slight tension in brow, hopeful eyes',
-    'Real-Life Calm': 'neutral calm face, everyday relaxed expression'
+    'Calm & Serene': 'calm, serene facial expression, relaxed and natural, no forced emotion',
+    'Joyful & High-Energy': 'joyful, high-energy facial expression, vibrant, expressive, genuine emotion',
+    'Confident & Editorial': 'confident, editorial-style expression, composed, self-assured, professional presence',
+    'Playful & Candid': 'playful, candid facial expression, spontaneous and natural, real-life moment',
+    'Hustle & Juggle': 'busy, focused expression, multitasking energy, real-life hustle moment',
+    'Stressed but Determined': 'slightly stressed but determined expression, visible effort with inner strength'
+};
+
+const SKIN_REALISM_SEMANTIC_MAP: Record<string, string> = {
+    'Raw / Real': 'raw, unretouched skin with visible texture, pores, and natural imperfections',
+    'Natural': 'natural realistic skin texture with visible pores and subtle imperfections, no plastic look',
+    'Soft Retouch': 'lightly retouched skin, minimal smoothing, still realistic and human'
 };
 
 /**
@@ -250,31 +243,31 @@ const SELFIE_EXECUTION_SEMANTIC_MAP: Record<string, string> = {
 // HERO PERSONA MACROS - Strict behavioral overrides
 const HERO_PERSONA_MACROS: Record<string, any> = {
     'The Busy Mom': {
-        mood: 'practical, multitasking energy',
+        expression: 'Hustle & Juggle',
         wardrobe: 'comfortable casual everyday wear, functional clothing, slightly disheveled realism',
         pose: 'natural mid-action candid movement',
         framing: 'spontaneous imperfect framing'
     },
     'The Fitness Enthusiast': {
-        mood: 'energized focused athletic intensity',
+        expression: 'Joyful & High-Energy',
         wardrobe: 'modern activewear, moisture-wicking fabric, athletic styling',
         pose: 'mid-workout movement or post-exercise recovery pose',
         framing: 'dynamic angled composition'
     },
     'The Skincare Obsessed': {
-        mood: 'calm ritualistic clean atmosphere',
+        expression: 'Calm & Serene',
         wardrobe: 'minimal clean loungewear, soft fabrics, neutral tones',
         environment: 'Bathroom', // Hint for environment
         pose: 'focused self-care application intent'
     },
     'The Minimalist': {
-        mood: 'intentional calm composed presence',
+        expression: 'Confident & Editorial',
         wardrobe: 'high-quality minimal solid colors, structured simple silhouette',
         environment: 'Modern Living Room', // Hint
         pose: 'still composed architectural posture'
     },
     'The Trendsetter': {
-        mood: 'confident editorial cool, effortless styleiness',
+        expression: 'Playful & Candid',
         wardrobe: 'bold statement outfit, layers, current fashion trends',
         pose: 'confident styled candid pose',
         framing: 'editorial spontaneous framing'
@@ -340,19 +333,17 @@ export function mapLifestyleToPromptOptions(
     // PRIORITY 3: HERO PERSONAS (SEMANTIC MACRO)
     // ========================================================================
     const heroPersona = sceneState.heroPersona;
-    let moodOverride = null;
     let poseOverride = null;
     let framingOverride = null;
+    let expressionOverride: string | null = null;
 
     if (heroPersona && HERO_PERSONA_MACROS[heroPersona]) {
         console.log(`[PRIORITY 2] Hero Persona Active: ${heroPersona} - Applying MACROS`);
         const macro = HERO_PERSONA_MACROS[heroPersona];
 
-        // Apply Mood Override
-        moodOverride = macro.mood;
-        (mapped as any).sceneMood = moodOverride;
-        mapped.personMood = moodOverride;
-        mapped.personDetails.personMood = moodOverride;
+        if (macro.expression) {
+            expressionOverride = macro.expression;
+        }
 
         // Apply Pose Override
         poseOverride = macro.pose;
@@ -410,8 +401,14 @@ export function mapLifestyleToPromptOptions(
         }
 
         // OTHER PERSON DETAILS (Non-conflicting)
-        if (sceneState.facialExpression) mapped.personDetails.facialExpression = FACIAL_EXPRESSION_MAP[sceneState.facialExpression] || sceneState.facialExpression;
-        if (sceneState.eyeDirection) mapped.personDetails.eyeDirection = EYE_DIRECTION_SEMANTIC_MAP[sceneState.eyeDirection] || sceneState.eyeDirection as any;
+        const expressionLabel = expressionOverride || sceneState.facialExpression || 'Calm & Serene';
+        const expressionSemantic =
+            FACIAL_EXPRESSION_MAP[expressionLabel] || FACIAL_EXPRESSION_MAP['Calm & Serene'];
+        mapped.personDetails.facialExpression = expressionSemantic;
+
+        const eyeDirectionLabel = sceneState.eyeDirection || 'Looking at camera';
+        mapped.personDetails.eyeDirection =
+            EYE_DIRECTION_SEMANTIC_MAP[eyeDirectionLabel] || eyeDirectionLabel as any;
         if (sceneState.productInteraction) mapped.personDetails.productInteraction = INTERACTION_SEMANTIC_MAP[sceneState.productInteraction] || sceneState.productInteraction;
 
         // HAIR
@@ -419,11 +416,31 @@ export function mapLifestyleToPromptOptions(
         // ... (other hair props mapped normally)
     }
 
-    // MOOD (Manual if no Override)
-    if (!moodOverride && sceneState.mood) {
-        const mood = SCENE_MOOD_MAP[sceneState.mood] || sceneState.mood;
-        (mapped as any).sceneMood = mood;
-        mapped.personDetails.personMood = mood;
+    const isUGCActive = !!sceneState.ugcRealMode;
+    const isFormulationActive = !!sceneState.formulationStoryEnabled;
+
+    if (!isUGCActive) {
+        const skinLabel = sceneState.skinRealism || 'Natural';
+        const skinSemantic =
+            SKIN_REALISM_SEMANTIC_MAP[skinLabel] || SKIN_REALISM_SEMANTIC_MAP['Natural'];
+        mapped.skinRealism = skinSemantic;
+        mapped.personDetails.skinRealism = skinSemantic;
+
+        let appearanceLabel = sceneState.appearanceLevel;
+        if (!appearanceLabel) {
+            appearanceLabel = isFormulationActive ? 'Well-Groomed' : 'Regular';
+        }
+        const appearanceSemantic =
+            APPEARANCE_SEMANTIC_MAP[appearanceLabel] || APPEARANCE_SEMANTIC_MAP['Regular'];
+
+        if (!mapped.personDetails.personAppearance) {
+            mapped.personDetails.personAppearance = appearanceSemantic;
+        }
+        if (!mapped.personAppearance) {
+            mapped.personAppearance = appearanceSemantic;
+        }
+    } else {
+        delete mapped.skinRealism;
     }
 
     // FRAMING/PERSPECTIVE (Manual if no Override)
@@ -595,9 +612,14 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     mapped.formulationExpertEnabled = sceneState.formulationStoryEnabled;
     mapped.formulationExpertName = sceneState.formulationName;
-    mapped.formulationExpertRole = sceneState.formulationRole;
+    const roleValue = sceneState.formulationRole === 'Custom'
+        ? sceneState.formulationCustomRole
+        : sceneState.formulationRole;
+    mapped.formulationExpertRole = roleValue ? roleValue.trim() : '';
     mapped.formulationLabStyle = sceneState.formulationLabVibe;
     mapped.formulationExpertPreset = sceneState.formulationPreset;
+    mapped.formulationExpertAttire = sceneState.formulationAttire;
+    mapped.formulationBadgeEnabled = sceneState.formulationBadgeEnabled;
     (mapped as any).formulationTone =
         (sceneState as any).formulationTone || 'calm, grounded, everyday';
 

@@ -67,15 +67,6 @@ export const parameterMap: ParameterMap = {
     "Errand-Day Layers": "wearing layered casual errand-day clothing"
   },
 
-  mood: {
-    "Calm & Serene": "with a calm serene mood",
-    "Joyful & High-Energy": "with joyful high energy presence",
-    "Confident & Editorial": "with confident editorial attitude",
-    "Playful & Candid": "with playful candid energy",
-    "Hustle & Juggle": "with multitasking hustle mood",
-    "Stressed but Determined": "with stressed but determined determination"
-  },
-
   expression: {
     "Soft Smile": "with a soft gentle smile",
     "Full Smile": "with a bright natural full smile",

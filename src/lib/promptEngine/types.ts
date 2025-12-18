@@ -130,6 +130,8 @@ export interface PromptOptions {
     formulationExpertRole?: string;
     formulationLabStyle?: string;
     formulationExpertPreset?: string;
+    formulationExpertAttire?: string;
+    formulationBadgeEnabled?: boolean;
 
     // Real Mode
     realModeActive?: boolean;

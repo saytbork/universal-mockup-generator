@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  SlidersHorizontal, User, Palette, Activity, Scissors, Smile, Eye, Sparkles,
+  SlidersHorizontal, User, Activity, Scissors, Smile, Eye, Sparkles,
   Sun, Camera, Rotate3d, Layout, Hand, Smartphone, Shirt, Layers, Film,
   Home, MapPin, Coffee, Utensils, Car, Waves, Mountain, Building2, Edit3, Heart, Check,
   Aperture, Zap
@@ -54,8 +54,6 @@ export interface SceneState {
     timeOfDay: string;
     lightingStyle: string;
   };
-
-  mood: string;
   ugcCaptureSituation?: UGCCaptureSituationId | null;
 
   camera: {
@@ -90,7 +88,10 @@ export interface SceneState {
     enabled: boolean;
     expertName: string;
     professionalFocus: string;
+    customRole?: string;
     labVibe: string;
+    attire: string;
+    badgeEnabled: boolean;
   };
 
   outputFormat: '1:1' | '4:5' | '9:16';
@@ -141,9 +142,6 @@ export interface Step3Values {
   timeOfDay: string;
   lightingStyle: string;
 
-  // Mood
-  mood: string;
-
   // Camera
   shotType: string;
   cameraType: string;
@@ -190,7 +188,10 @@ export interface Step3Values {
   formulationPreset: string;
   formulationName: string;
   formulationRole: string;
+  formulationCustomRole: string;
   formulationLabVibe: string;
+  formulationAttire: string;
+  formulationBadgeEnabled: boolean;
 
   // Advanced Pro
   sameCreatorAcrossScenes: boolean;
@@ -232,15 +233,22 @@ const getPillClass = (isActive: boolean, _fullWidth = false) => {
 const GENDER_OPTIONS = ['Female', 'Male', 'Non-binary', 'Trans woman', 'Trans man', 'Gender non-conforming'];
 
 const FORMULATION_ROLES = [
-  'Respiratory Doctor',
-  'Pulmonologist',
+  'Doctor / Physician (MD)',
+  'Medical Professional',
   'Clinical Researcher',
-  'Herbal Formulator',
-  'Nutritionist',
-  'Dermatologist',
+  'Research Scientist',
   'Pharmacist',
-  'Herbalist',
+  'Nutritionist',
+  'Functional Health Expert',
+  'Wellness Practitioner',
   'Custom'
+];
+const MEDICAL_ATTIRE_OPTIONS = [
+  'White medical coat',
+  'White scrubs',
+  'Light blue scrubs',
+  'Burgundy scrubs',
+  'Green scrubs'
 ];
 const SKIN_TONE_OPTIONS = [
   'Fair Cool',
@@ -269,14 +277,13 @@ const HAIR_LENGTH_OPTIONS = ['Buzzcut', 'Short', 'Chin-length', 'Shoulder', 'Lon
 const HAIR_TEXTURE_OPTIONS = ['Straight', 'Wavy', 'Curly', 'Coily/Kinky', 'Locs'];
 const HAIR_COLOR_OPTIONS = ['Black', 'Dark brown', 'Light brown', 'Blonde', 'Red', 'Gray/White', 'Unnatural (pink, blue, etc)'];
 
-// SIMPLIFIED EXPRESSIONS - Removed: UGC Reality, Caffeinated Crash (confusing)
 const EXPRESSION_OPTIONS = [
-  'Soft Smile',
-  'Full Smile',
-  'Serious Focus',
-  'Excited Surprise',
-  'Stressed but Hopeful',
-  'Real-Life Calm'
+  'Calm & Serene',
+  'Joyful & High-Energy',
+  'Confident & Editorial',
+  'Playful & Candid',
+  'Hustle & Juggle',
+  'Stressed but Determined'
 ];
 
 const EYE_DIRECTION_OPTIONS = ['Looking at camera', 'Looking at product', 'Looking away naturally'];
@@ -335,16 +342,6 @@ const SELFIE_MODE_OPTIONS = [
 // TIME & LIGHTING - per final spec
 const TIME_OF_DAY_OPTIONS = ['Morning', 'Midday', 'Evening', 'Night'];
 // LIGHTING_STYLE_OPTIONS removed in favor of imported LIGHTING_OPTIONS
-
-// Mood - Physical body language
-const MOOD_OPTIONS = [
-  'Calm & Serene',
-  'Joyful & High-Energy',
-  'Confident & Editorial',
-  'Playful & Candid',
-  'Hustle & Juggle',
-  'Stressed but Determined'
-];
 
 // SHOT TYPE - Simplified to 3 options
 const SHOT_TYPE_OPTIONS = ['Close', 'Medium', 'Wide'];
@@ -463,12 +460,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     hairState: 'natural',
 
     // Person Details - Expanded
-    facialExpression: 'Soft Smile', // UGC Rule: friendly default
+    facialExpression: 'Calm & Serene', // Default emotional source
     eyeDirection: 'Looking at camera', // UGC Rule: eye contact
     eyeColor: 'Brown', // NEW
     appearanceLevel: 'Regular', // NEW
     pose: 'Relaxed Portrait', // UGC Rule: natural pose
-    skinRealism: 'Raw / Real', // Simplified options
+    skinRealism: 'Natural', // Simplified options
 
     // Creator Presets
     creatorPreset: null,
@@ -481,9 +478,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     // Time & Lighting - simplified
     timeOfDay: 'Afternoon',
     lightingStyle: 'Natural',
-
-    // Mood
-    mood: 'Calm & Serene',
 
     // Camera
     shotType: 'Medium',
@@ -525,11 +519,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     noArtificialProps: true,
 
     // Formulation Story
-    formulationStoryEnabled: false,
-    formulationPreset: FORMULATION_PRESETS[0],
-    formulationName: '',
-    formulationRole: '',
-    formulationLabVibe: LAB_VIBE_OPTIONS[0],
+  formulationStoryEnabled: false,
+  formulationPreset: FORMULATION_PRESETS[0],
+  formulationName: '',
+  formulationRole: 'Doctor / Physician (MD)',
+  formulationCustomRole: '',
+  formulationLabVibe: LAB_VIBE_OPTIONS[0],
+  formulationAttire: MEDICAL_ATTIRE_OPTIONS[0],
+  formulationBadgeEnabled: false,
 
     // Advanced Pro
     sameCreatorAcrossScenes: false,
@@ -557,22 +554,35 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   };
 
   const updateValue = useCallback(<K extends keyof Step3Values>(key: K, value: Step3Values[K]) => {
-    // MANDATORY LOG on every update (Phase 3)
     console.log('[STEP3 UPDATE]', key, value, values);
     setValues(prev => {
-      const newValues = { ...prev, [key]: value };
+      const next = { ...prev };
+
+      if (key === 'ugcRealMode' && value === true) {
+        next.formulationStoryEnabled = false;
+      }
+
+      if (key === 'formulationStoryEnabled' && value === true) {
+        next.ugcRealMode = false;
+        next.ugcCaptureSituation = null;
+      }
+
+      if (key === 'formulationRole' && value !== 'Custom') {
+        next.formulationCustomRole = '';
+      }
+
+      next[key] = value;
 
       if (key === 'ugcRealMode' && value === false) {
-        newValues.ugcCaptureSituation = null;
+        next.ugcCaptureSituation = null;
       }
 
-      // SAFETY RULE: If hasModelReference is true, force UGC off and clear creator
       if (hasModelReference) {
-        newValues.ugcRealMode = false;
-        newValues.creatorPreset = null;
+        next.ugcRealMode = false;
+        next.creatorPreset = null;
       }
 
-      return newValues;
+      return next;
     });
   }, [values, hasModelReference]);
 
@@ -639,6 +649,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       sceneIntent: 'environment',
       compositionMode: '',           // Clear ecommerce
       ugcRealMode: true,             // Enable environment mode
+      formulationStoryEnabled: false,
       sidePlacement: SIDE_PLACEMENT_OPTIONS[1], // Reset placement
     }));
   }, []);
@@ -685,12 +696,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       updateValue('ugcRealMode', false);
     }
 
-    // Auto-clear mood (UGC-specific)
-    if (values.mood && values.mood !== '') {
-      console.log('[PRODUCT MODE] Clearing mood');
-      updateValue('mood', '');
-    }
-
     // Auto-clear selfie type
     if (values.selfieMode && values.selfieMode !== 'None') {
       console.log('[PRODUCT MODE] Clearing selfie mode');
@@ -711,7 +716,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   }, [
     isProductMode,
     values.ugcRealMode,
-    values.mood,
     values.selfieMode,
     values.noPerson,
     values.creationIntent,
@@ -987,7 +991,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     if (!newValue) {
                       updateValue('selfieMode', 'None');
                     } else {
-                      updateValue('facialExpression', 'Soft Smile');
+                      updateValue('facialExpression', 'Calm & Serene');
                       updateValue('eyeDirection', 'Looking at camera');
                     }
                   }}
@@ -1200,29 +1204,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         </div>
       </AccordionSection >
 
-      {/* Mood */}
-      < AccordionSection
-        icon={Palette}
-        title="Mood"
-        tooltip={TOOLTIP_MAP.facialExpression}
-        isOpen={openSection === 'mood'}
-        onToggle={() => toggleSection('mood')}
-        isTouched={touchedSections.has('mood')}
-      >
-        <div className="flex flex-wrap items-center gap-2">
-          {MOOD_OPTIONS.map(option => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => { updateValue('mood', option); markSectionTouched('mood'); }}
-              className={getPillClass(values.mood === option)}
-            >
-              {option}
-            </button>
-          ))}
-        </div>
-      </AccordionSection >
-
       {!isUGC && (
         <>
           <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
@@ -1241,23 +1222,23 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   onClick={() => {
                     updateValue('heroPersona', persona.semantic);
                     if (persona.label === 'The Busy Mom') {
-                      updateValue('mood', 'Hustle & Juggle');
+                      updateValue('facialExpression', 'Hustle & Juggle');
                       updateValue('appearanceLevel', 'Running Late');
                     } else if (persona.label === 'The Fitness Enthusiast') {
-                      updateValue('mood', 'Joyful & High-Energy');
+                      updateValue('facialExpression', 'Joyful & High-Energy');
                       updateValue('appearanceLevel', 'Well-Groomed');
                     } else if (persona.label === 'The Skincare Obsessed') {
-                      updateValue('mood', 'Calm & Serene');
+                      updateValue('facialExpression', 'Calm & Serene');
                       updateValue('skinRealism', 'Raw / Real');
                     } else if (persona.label === 'The Minimalist') {
-                      updateValue('mood', 'Confident & Editorial');
+                      updateValue('facialExpression', 'Confident & Editorial');
                       updateValue('appearanceLevel', 'Styled');
                     } else if (persona.label === 'The Trendsetter') {
-                      updateValue('mood', 'Playful & Candid');
+                      updateValue('facialExpression', 'Playful & Candid');
                       updateValue('appearanceLevel', 'Styled');
                     }
                   }}
-                  className={`w-full text-left px-3 py-2 rounded-lg border text-sm transition ${values.heroPersona === persona.label
+                  className={`w-full text-left px-3 py-2 rounded-lg border text-sm transition ${values.heroPersona === persona.semantic
                     ? 'bg-indigo-600 border-indigo-500 text-white shadow-md'
                     : 'border-gray-600 text-gray-200 hover:border-indigo-400 hover:bg-indigo-500/10'
                     }`}
@@ -1582,7 +1563,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               role="switch"
               aria-checked={values.formulationStoryEnabled}
               onClick={() => {
-                updateValue('formulationStoryEnabled', !values.formulationStoryEnabled);
+                const next = !values.formulationStoryEnabled;
+                updateValue('formulationStoryEnabled', next);
+                if (next && (values.appearanceLevel === '' || values.appearanceLevel === 'Regular')) {
+                  updateValue('appearanceLevel', 'Well-Groomed');
+                }
                 markSectionTouched('formulationStory');
               }}
               className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900 ${values.formulationStoryEnabled ? 'bg-indigo-500' : 'bg-gray-600'}`}
@@ -1623,6 +1608,47 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               </div>
 
               <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <p className="text-xs uppercase tracking-wider text-indigo-200">Expert Role</p>
+                <div className="flex flex-wrap gap-2">
+                  {FORMULATION_ROLES.map(option => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => { updateValue('formulationRole', option); markSectionTouched('formulationStory'); }}
+                      className={getPillClass(values.formulationRole === option)}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+                {values.formulationRole === 'Custom' && (
+                  <input
+                    type="text"
+                    value={values.formulationCustomRole}
+                    onChange={(e) => { updateValue('formulationCustomRole', e.target.value); markSectionTouched('formulationStory'); }}
+                    placeholder="Enter custom role"
+                    className="mt-3 w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  />
+                )}
+              </div>
+
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <p className="text-xs uppercase tracking-wider text-indigo-200">Medical Attire</p>
+                <div className="flex flex-wrap gap-2">
+                  {MEDICAL_ATTIRE_OPTIONS.map(option => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => { updateValue('formulationAttire', option); markSectionTouched('formulationStory'); }}
+                      className={getPillClass(values.formulationAttire === option)}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
                 <p className="text-xs uppercase tracking-wider text-indigo-200">Lab Vibe</p>
                 <div className="flex flex-wrap gap-2">
                   {LAB_VIBE_OPTIONS.map(option => (
@@ -1636,6 +1662,27 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     </button>
                   ))}
                 </div>
+              </div>
+
+              <div className="flex items-center justify-between rounded-lg border border-gray-700 bg-gray-800/20 px-4 py-3">
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-indigo-200">Professional Badge</p>
+                  <p className="text-[11px] text-gray-400">Optional ID clip for lab or academic scenes.</p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={values.formulationBadgeEnabled}
+                  onClick={() => {
+                    updateValue('formulationBadgeEnabled', !values.formulationBadgeEnabled);
+                    markSectionTouched('formulationStory');
+                  }}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900 ${values.formulationBadgeEnabled ? 'bg-indigo-500' : 'bg-gray-600'}`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${values.formulationBadgeEnabled ? 'translate-x-5' : 'translate-x-0'}`}
+                  />
+                </button>
               </div>
             </div>
           )}

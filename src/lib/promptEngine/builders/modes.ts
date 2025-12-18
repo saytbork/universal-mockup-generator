@@ -29,7 +29,6 @@ export class ModesBuilder implements PromptBuilder {
             personPose: (options as any).personPose,
             personExpression: (options as any).personExpression,
             wardrobeStyle: (options as any).wardrobeStyle,
-            personMood: (options as any).personMood,
             personProps: (options as any).personProps,
             microLocation: (options as any).microLocation,
             eyeDirection: (options as any).eyeDirection,
@@ -75,7 +74,7 @@ export class ModesBuilder implements PromptBuilder {
     private buildLifestyle(): string {
         return `
       Photorealistic lifestyle UGC with real people and natural environments.
-      Natural lighting, candid mood, real skin texture and shadows.
+      Natural lighting, real skin texture and shadows.
       Avoid perfect studio look.
     `.trim().replace(/\s+/g, ' ');
     }

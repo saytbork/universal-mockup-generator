@@ -175,11 +175,6 @@ Avoid youthful facial proportions, smooth skin, or middle-aged appearance.
             parts.push(sanitizePart(personDetails.personAppearance));
         }
 
-        // SCENE MOOD
-        if (personDetails?.personMood) {
-            parts.push(`SCENE MOOD: ${sanitizePart(personDetails.personMood)}`);
-        }
-
         // WARDROBE
         if (personDetails?.wardrobeStyle) {
             parts.push(`wearing ${sanitizePart(personDetails.wardrobeStyle)}`);
@@ -210,4 +205,3 @@ Avoid youthful facial proportions, smooth skin, or middle-aged appearance.
         return result;
     }
 }
-
