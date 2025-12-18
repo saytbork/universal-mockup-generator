@@ -180,7 +180,26 @@ export class SceneNarrativeBuilder {
             parts.push(constraints);
         }
 
+        const professionalCapture = this.buildNonUgcCameraMandate(options);
+        if (professionalCapture) {
+            parts.push(professionalCapture);
+        }
+
         return parts.join(' ');
+    }
+
+    private buildNonUgcCameraMandate(options: PromptOptions): string | undefined {
+        if (options.contentStyle === 'ugc' || options.ugcRealModeActive) {
+            return undefined;
+        }
+
+        return [
+            'Professional capture only: DSLR/mirrorless, cinema, or medium format studio camera with high-quality optics; no smartphones, selfie angles, mirror reflections, webcams, or casual phone positioning.',
+            'Lens and optics emphasize natural perspective, accurate proportions, controlled depth of field within a 35–85mm equivalent, and no wide-angle distortion unless explicitly required.',
+            'Shot type and angle are unambiguous, centered or intentionally rule-of-thirds aligned, with clean foreground/background separation and no cropped limbs or obstructions.',
+            'Camera is fully stabilized with no motion blur, shake, or handheld wobble; any movement is smooth, controlled, and cinematic.',
+            'Visual finish is editorial, commercial, and brand-safe with neutral studio illumination supporting clarity, texture, and product legibility; no UGC imperfections allowed.'
+        ].join(' ');
     }
 
     private buildEnvironmentLightingMood(options: PromptOptions): string {
