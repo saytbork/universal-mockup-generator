@@ -67,7 +67,7 @@ function mapSkinRealism(value?: string): string | null {
         case 'raw':
         case 'raw-real':
         case 'rawreal':
-            return 'raw, unretouched skin with visible texture, pores, and natural imperfections';
+            return 'raw, unretouched skin with gentle natural variation and minimal emphasis on pores';
         case 'natural':
             return 'natural, believable skin texture with subtle variation, no plastic look';
         case 'soft-retouch':
