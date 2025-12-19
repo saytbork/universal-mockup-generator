@@ -96,6 +96,16 @@ export interface FormulationStoryOptions {
     badgePreference?: BadgePreference;
 }
 
+export type CustomClothes = {
+    enabled: boolean;
+    garmentType?: string;
+    primaryColor?: string;
+    fit?: string;
+    style?: string;
+    material?: string;
+    customDetail?: string;
+};
+
 export interface PromptOptions {
     // Core
     contentStyle: 'ugc' | 'product' | '';
@@ -143,10 +153,9 @@ export interface PromptOptions {
     bundleLabels?: string[];
     productMaterial?: string;
     addHands?: boolean;
-    clothingReference?: string;
     clothingPreset?: string;
     clothingQuickPreset?: string;
-    clothingCustomImage?: string;
+    customClothes?: CustomClothes;
     // Special Modes
     isHeroLandingMode?: boolean;
     heroBackground?: string;

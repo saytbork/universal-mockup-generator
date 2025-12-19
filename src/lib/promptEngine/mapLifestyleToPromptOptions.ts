@@ -13,7 +13,7 @@
  */
 
 import type { ExpertRole, Step3Values, ExpertAttire } from '@/components/LifestyleStep3';
-import type { FormulationStoryOptions, PromptOptions } from './types';
+import type { CustomClothes, FormulationStoryOptions, PromptOptions } from './types';
 import { mapProductModeToPromptOptions } from './mapProductModeToPromptOptions';
 import { APPEARANCE_SEMANTIC_MAP } from './semanticMaps/appearance';
 
@@ -43,6 +43,24 @@ const normalizeKey = (value?: string) =>
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/-+/g, '-')
         : '';
+
+function buildCustomClothesDescriptor(sceneState: Step3Values): CustomClothes | undefined {
+    if (!sceneState.customClothesEnabled) {
+        return undefined;
+    }
+
+    const fields = {
+        garmentType: sceneState.customClothesGarmentType?.trim() || undefined,
+        primaryColor: sceneState.customClothesPrimaryColor?.trim() || undefined,
+        fit: sceneState.customClothesFit?.trim() || undefined,
+        style: sceneState.customClothesStyle?.trim() || undefined,
+        material: sceneState.customClothesMaterial?.trim() || undefined,
+        customDetail: sceneState.customClothesDetail?.trim() || undefined
+    };
+
+    const hasValue = Object.values(fields).some(Boolean);
+    return hasValue ? { enabled: true, ...fields } : undefined;
+}
 
 function mapSkinRealism(value?: string): string | null {
     switch (normalizeKey(value)) {
@@ -403,13 +421,10 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     // PRIORITY 2: CUSTOM CLOTHES (ABSOLUTE OVERRIDE)
     // ========================================================================
-    const customClothingReference = sceneState.customClothingReference?.trim();
-    const hasCustomClothes = !!(customClothingReference || existingOptions.clothingReference);
-    let wardrobeOverride = null;
-
-    if (customClothingReference) {
-        mapped.clothingReference = customClothingReference;
-        mapped.clothingCustomImage = customClothingReference;
+    const customClothes = buildCustomClothesDescriptor(sceneState);
+    const hasCustomClothes = Boolean(customClothes);
+    if (customClothes) {
+        mapped.customClothes = customClothes;
     }
 
     // ========================================================================
@@ -419,6 +434,7 @@ export function mapLifestyleToPromptOptions(
     let poseOverride = null;
     let framingOverride = null;
     let expressionOverride: string | null = null;
+    let wardrobeOverride: string | null = null;
 
     if (heroPersona && HERO_PERSONA_MACROS[heroPersona]) {
         console.log(`[PRIORITY 2] Hero Persona Active: ${heroPersona} - Applying MACROS`);

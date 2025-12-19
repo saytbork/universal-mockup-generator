@@ -168,6 +168,15 @@ export interface Step3Values {
   props: string;
   customProps: string;
 
+  // Custom Clothes
+  customClothesEnabled: boolean;
+  customClothesGarmentType: string;
+  customClothesPrimaryColor: string;
+  customClothesFit: string;
+  customClothesStyle: string;
+  customClothesMaterial: string;
+  customClothesDetail: string;
+
   // Creation Intent / Modes
   creationIntent: 'ugc' | 'product' | 'brand';
   creationMode: string;
@@ -339,6 +348,12 @@ const SKIN_REALISM_OPTIONS = [
   'Soft Retouch'
 ];
 
+const CUSTOM_CLOTHES_GARMENTS = ['t-shirt', 'hoodie', 'sweater', 'dress', 'blazer', 'jacket'];
+const CUSTOM_CLOTHES_COLORS = ['black', 'white', 'beige', 'navy', 'olive', 'gray'];
+const CUSTOM_CLOTHES_FITS = ['regular', 'slim', 'oversized'];
+const CUSTOM_CLOTHES_STYLES = ['casual', 'streetwear', 'business casual', 'sporty'];
+const CUSTOM_CLOTHES_MATERIALS = ['cotton', 'denim', 'knit', 'wool'];
+
 const UGC_CAPTURE_ORDER: UGCCaptureCategory[] = ['body', 'motion', 'framing', 'context'];
 
 const UGC_CAPTURE_CATEGORY_LABELS: Record<UGCCaptureCategory, string> = {
@@ -506,8 +521,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const [sceneMode, setSceneMode] = useState<'ugc' | 'product'>(isProductMode ? 'product' : 'ugc');
   const [openAccordionId, setOpenAccordionId] = useState<string | null>(isProductMode ? 'product-setup' : 'creator');
   const [touchedSections, setTouchedSections] = useState<Set<string>>(new Set());
-  const [customClothesDragActive, setCustomClothesDragActive] = useState(false);
-
   const initialValues: Step3Values = {
     // Creator/Person
     age: 30, // Numeric age
@@ -570,6 +583,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     // Props
     props: '',
     customProps: '',
+
+    // Custom Clothes
+    customClothesEnabled: false,
+    customClothesGarmentType: '',
+    customClothesPrimaryColor: '',
+    customClothesFit: '',
+    customClothesStyle: '',
+    customClothesMaterial: '',
+    customClothesDetail: '',
 
     // Creation Intent / Modes (simplified - removed legacy modes)
     creationIntent: 'ugc',
@@ -1242,91 +1264,121 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         </div>
       </AccordionSection >
 
-      {/* Custom Clothes Asset */}
       <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-900/20">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs uppercase tracking-wider text-indigo-200">Custom Clothes</p>
-            <p className="text-[11px] text-gray-400">Upload an outfit reference to guide how the garment should appear.</p>
+            <p className="text-[11px] text-gray-400">Optionally describe an outfit without uploading images.</p>
           </div>
-          {values.customClothingReference && (
-            <button
-              type="button"
-              onClick={() => {
-                updateValue('customClothingReference', '');
-                markSectionTouched('customClothes');
-              }}
-              className="text-[11px] text-rose-300 hover:text-white"
-            >
-              Remove
-            </button>
-          )}
-        </div>
-
-        <div
-          className={`relative h-32 w-full overflow-hidden rounded-2xl border-2 border-dashed ${customClothesDragActive ? 'border-indigo-400 bg-white/5' : 'border-gray-600 bg-black/30'}`}
-          onDragOver={(event) => {
-            event.preventDefault();
-            setCustomClothesDragActive(true);
-          }}
-          onDragLeave={() => {
-            setCustomClothesDragActive(false);
-          }}
-          onDrop={(event) => {
-            event.preventDefault();
-            setCustomClothesDragActive(false);
-            const files = event.dataTransfer?.files;
-            if (files?.length) {
-              const file = files[0];
-              const reader = new FileReader();
-              reader.onload = () => {
-                const result = reader.result;
-                if (typeof result === 'string') {
-                  updateValue('customClothingReference', result);
-                  markSectionTouched('customClothes');
-                }
-              };
-              reader.readAsDataURL(file);
-            }
-          }}
-        >
-          {values.customClothingReference ? (
-            <>
-              <img
-                src={values.customClothingReference}
-                alt="Clothing reference"
-                className="h-full w-full object-cover"
-              />
-              <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/40 text-[11px] text-white">
-                Drop or click to replace
-              </div>
-            </>
-          ) : (
-            <div className="flex h-full flex-col items-center justify-center gap-1 text-center">
-              <p className="text-sm text-white">Drag & drop or click to upload</p>
-              <p className="text-[11px] text-gray-400">Like a product upload, this reference describes fabric, silhouette, and fit.</p>
-            </div>
-          )}
-          <input
-            type="file"
-            accept="image/*"
-            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              if (!file) return;
-              const reader = new FileReader();
-              reader.onload = () => {
-                const result = reader.result;
-                if (typeof result === 'string') {
-                  updateValue('customClothingReference', result);
-                  markSectionTouched('customClothes');
-                }
-              };
-              reader.readAsDataURL(file);
-              event.target.value = '';
+          <button
+            type="button"
+            onClick={() => {
+              updateValue('customClothesEnabled', !values.customClothesEnabled);
+              markSectionTouched('customClothes');
             }}
-          />
+            className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${values.customClothesEnabled ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-gray-600 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+          >
+            Customize outfit
+          </button>
         </div>
+        {values.customClothesEnabled && (
+          <div className="space-y-3">
+            <div>
+              <label className="text-[11px] uppercase tracking-wider text-gray-400">Garment type</label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {CUSTOM_CLOTHES_GARMENTS.map(option => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => updateValue('customClothesGarmentType', option)}
+                    className={getPillClass(values.customClothesGarmentType === option)}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-[11px] uppercase tracking-wider text-gray-400">Primary color</label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {CUSTOM_CLOTHES_COLORS.map(option => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => updateValue('customClothesPrimaryColor', option)}
+                    className={getPillClass(values.customClothesPrimaryColor === option)}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-[11px] uppercase tracking-wider text-gray-400">Fit</label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {CUSTOM_CLOTHES_FITS.map(option => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => updateValue('customClothesFit', option)}
+                    className={getPillClass(values.customClothesFit === option)}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-[11px] uppercase tracking-wider text-gray-400">Style</label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {CUSTOM_CLOTHES_STYLES.map(option => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => updateValue('customClothesStyle', option)}
+                    className={getPillClass(values.customClothesStyle === option)}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-[11px] uppercase tracking-wider text-gray-400">Material</label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {CUSTOM_CLOTHES_MATERIALS.map(option => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => updateValue('customClothesMaterial', option)}
+                    className={getPillClass(values.customClothesMaterial === option)}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-[11px] uppercase tracking-wider text-gray-400">Custom detail (optional)</label>
+              <input
+                type="text"
+                maxLength={100}
+                value={values.customClothesDetail}
+                onChange={(event) => {
+                  updateValue('customClothesDetail', event.target.value.replace(/[\r\n]/g, ''));
+                  markSectionTouched('customClothes');
+                }}
+                placeholder="small embroidered logo on the chest"
+                className="w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       <AccordionSection
