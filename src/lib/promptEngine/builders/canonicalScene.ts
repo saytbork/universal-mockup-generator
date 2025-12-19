@@ -184,6 +184,9 @@ export class SceneNarrativeBuilder {
             parts.push(
                 'This scene is captured using professional-grade camera equipment only, such as DSLR or mirrorless cameras, cinema cameras, or medium format systems. Framing and shot selection are intentional and precise, with a clearly defined shot type and camera angle. The camera is fully stabilized, either on a tripod or controlled rig, with smooth, deliberate movement if any. Lighting is studio-grade or professionally controlled, producing clean exposure, accurate colors, and natural depth. The image must not resemble user-generated content in any way. Exclude all casual, handheld, selfie-based, phone-captured, webcam-style, or amateur artifacts.'
             );
+            parts.push(
+                'Camera movement, if present, is intentional, minimal, and professionally executed. The camera remains fully stabilized using tripods, sliders, gimbals, or controlled rigs, with smooth and deliberate motion only when it serves the scene. Exclude all handheld shake, walking motion, body-mounted movement, phone wobble, accidental drift, or jitter commonly associated with user-generated content. The scene must feel composed, steady, and editorial at all times.'
+            );
         }
 
         return parts.join(' ');
