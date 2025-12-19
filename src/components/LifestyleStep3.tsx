@@ -474,6 +474,7 @@ interface AccordionSectionProps {
   children: React.ReactNode;
   isRequired?: boolean;
   isTouched?: boolean;
+  isActive?: boolean;
 }
 
 const AccordionSection: React.FC<AccordionSectionProps> = ({
@@ -484,7 +485,8 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
   onToggle,
   children,
   isRequired = false,
-  isTouched = false
+  isTouched = false,
+  isActive = true
 }) => {
   return (
     <div className="rounded-xl border border-gray-700 bg-gray-800/30 overflow-hidden">
@@ -501,7 +503,7 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
               {isRequired && !isTouched && (
                 <span className="text-xs text-amber-400">*Required</span>
               )}
-              {isTouched && (
+              {isTouched && isActive && (
                 <Check className="w-4 h-4 text-green-400" />
               )}
             </div>
@@ -1135,6 +1137,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         isOpen={openAccordionId === 'realism'}
         onToggle={() => toggleSection('realism')}
         isTouched={touchedSections.has('ugc')}
+        isActive={values.ugcRealMode}
       >
         <div id="ugc-real-mode">
           <div className="pt-2 pb-4 px-2">
@@ -1289,6 +1292,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         isOpen={openAccordionId === 'custom-clothes'}
         onToggle={() => toggleSection('custom-clothes')}
         isTouched={touchedSections.has('customClothes')}
+        isActive={values.customClothesEnabled}
       >
         <div className="space-y-4">
           <div className="flex items-center justify-between rounded-lg border border-gray-700 bg-gray-900/40 px-3 py-2">
@@ -1675,15 +1679,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             </div>
           </div>
 
-          <AccordionSection
-            icon={Camera}
-            title="Camera & Framing"
-            tooltip="How the scene is captured"
-            isOpen={openAccordionId === 'camera'}
-            onToggle={() => toggleSection('camera')}
-            isTouched={touchedSections.has('camera')}
-          >
           {!isUGCMode && (
+            <AccordionSection
+              icon={Camera}
+              title="Camera & Framing"
+              tooltip="How the scene is captured"
+              isOpen={openAccordionId === 'camera'}
+              onToggle={() => toggleSection('camera')}
+              isTouched={touchedSections.has('camera')}
+            >
             <div className="space-y-3">
               <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
                 <div>
@@ -1737,8 +1741,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               </div>
             </div>
+            </AccordionSection >
           )}
-        </AccordionSection >
       {/* BUNDLES SYSTEM - STRICTLY ISOLATED */}
       {/* Bundles are enabled ONLY when multiple products are uploaded. */}
       {/* Bundles control product grouping only. */}
@@ -1919,6 +1923,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         tooltip="Align brand expert, research, and product goals"
         isOpen={openAccordionId === 'formulationStory'}
         onToggle={() => toggleSection('formulationStory')}
+        isActive={values.formulationStoryEnabled}
       >
         <div className="space-y-3">
           <div className="flex items-center justify-between">
