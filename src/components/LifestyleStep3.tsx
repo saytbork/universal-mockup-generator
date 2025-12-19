@@ -692,6 +692,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // Derived from sceneIntent - no longer computed independently
   const isEcommerceMode = values.sceneIntent === 'ecommerce';
   const isEnvironmentMode = values.sceneIntent === 'environment';
+  const isUGCMode = values.ugcRealMode;
 
 
 
@@ -1135,35 +1136,63 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         Casual handheld smartphone capture, imperfect framing, natural human mistakes, non-staged.
                       </p>
                     </div>
-                    {UGC_CAPTURE_ORDER.map(category => (
-                      <div key={category} className="space-y-2">
-                        <div>
-                          <p className="text-[11px] uppercase tracking-[0.3em] text-gray-400">
-                            {UGC_CAPTURE_CATEGORY_LABELS[category]}
-                          </p>
-                          <p className="text-[10px] text-gray-500">{UGC_CAPTURE_CATEGORY_DESCRIPTIONS[category]}</p>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {UGC_CAPTURE_OPTIONS_BY_CATEGORY[category].map(option => (
-                            <button
-                              key={option.id}
-                              type="button"
-                              onClick={() => {
-                                updateValue('ugcCaptureSituation', option.id);
-                                markSectionTouched('ugc');
-                              }}
-                              className={getPillClass(values.ugcCaptureSituation === option.id)}
-                            >
-                              {option.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                    {!values.ugcCaptureSituation && (
-                      <p className="text-[11px] text-rose-300">Please choose a real-life capture situation to continue.</p>
-                    )}
+                {UGC_CAPTURE_ORDER.map(category => (
+                  <div key={category} className="space-y-2">
+                    <div>
+                      <p className="text-[11px] uppercase tracking-[0.3em] text-gray-400">
+                        {UGC_CAPTURE_CATEGORY_LABELS[category]}
+                      </p>
+                      <p className="text-[10px] text-gray-500">{UGC_CAPTURE_CATEGORY_DESCRIPTIONS[category]}</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {UGC_CAPTURE_OPTIONS_BY_CATEGORY[category].map(option => (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() => {
+                            updateValue('ugcCaptureSituation', option.id);
+                            markSectionTouched('ugc');
+                          }}
+                          className={getPillClass(values.ugcCaptureSituation === option.id)}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
+                ))}
+                {!values.ugcCaptureSituation && (
+                  <p className="text-[11px] text-rose-300">Please choose a real-life capture situation to continue.</p>
+                )}
+              </div>
+
+              {!hasModelReference && (
+                <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                  <div>
+                    <label className="text-xs uppercase tracking-wider text-indigo-300">Selfie Mode</label>
+                    <p className="text-[10px] text-gray-400">Exclusive capture styles</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => updateValue('selfieMode', 'None')}
+                      className={getPillClass(values.selfieMode === 'None' || !values.selfieMode)}
+                    >
+                      None
+                    </button>
+                    {SELFIE_MODE_OPTIONS.map(mode => (
+                      <button
+                        key={mode}
+                        type="button"
+                        onClick={() => updateValue('selfieMode', mode)}
+                        className={getPillClass(values.selfieMode === mode)}
+                      >
+                        {mode}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
                 </>
               )}
@@ -1535,6 +1564,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             onToggle={() => toggleSection('camera')}
             isTouched={touchedSections.has('camera')}
           >
+          {!isUGCMode && (
             <div className="space-y-3">
               <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
                 <div>
@@ -1587,36 +1617,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   ))}
                 </div>
               </div>
-
-              {!hasModelReference && (
-                <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-                  <div>
-                    <label className="text-xs uppercase tracking-wider text-indigo-300">Selfie Mode</label>
-                    <p className="text-[10px] text-gray-400">Exclusive capture styles</p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => updateValue('selfieMode', 'None')}
-                      className={getPillClass(values.selfieMode === 'None' || !values.selfieMode)}
-                    >
-                      None
-                    </button>
-                    {SELFIE_MODE_OPTIONS.map(mode => (
-                      <button
-                        key={mode}
-                        type="button"
-                        onClick={() => updateValue('selfieMode', mode)}
-                        className={getPillClass(values.selfieMode === mode)}
-                      >
-                        {mode}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
-          </AccordionSection >
+          )}
+        </AccordionSection >
       {/* BUNDLES SYSTEM - STRICTLY ISOLATED */}
       {/* Bundles are enabled ONLY when multiple products are uploaded. */}
       {/* Bundles control product grouping only. */}
