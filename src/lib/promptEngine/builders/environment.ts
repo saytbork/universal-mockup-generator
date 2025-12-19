@@ -4,8 +4,14 @@ const ALLOWED_ENVIRONMENTS = new Set([
   "Bedroom",
   "Bathroom",
   "Workspace",
+  "Hallway",
+  "Home Gym",
+  "Balcony / Indoor Terrace",
   "Urban Exterior",
   "Natural Exterior",
+  "Parking Lot",
+  "Backyard / Patio",
+  "Street Corner",
 ]);
 
 const BANNED_TERMS = /\b(clean|tidy|organized)\b/i;

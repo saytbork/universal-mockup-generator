@@ -719,6 +719,7 @@ export function mapLifestyleToPromptOptions(
         }
 
         (mapped as any).sceneEnvironment = mapped.setting;
+        mapped.environmentOrder = mapped.setting;
         console.log('[MAP] environment:', selectedEnvironment, '→', mapped.setting);
     }
 

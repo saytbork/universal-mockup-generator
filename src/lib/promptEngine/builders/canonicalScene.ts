@@ -31,6 +31,40 @@ const sidePlacementCopy: Record<string, string> = {
     right: 'Product positioned on the right side of the frame.'
 };
 
+const INDOOR_ENVIRONMENTS = new Set([
+    'Kitchen',
+    'Living Room',
+    'Bedroom',
+    'Bathroom',
+    'Workspace',
+    'Hallway',
+    'Home Gym',
+    'Balcony / Indoor Terrace'
+]);
+
+const OUTDOOR_ENVIRONMENTS = new Set([
+    'Urban Exterior',
+    'Natural Exterior',
+    'Parking Lot',
+    'Backyard / Patio',
+    'Street Corner'
+]);
+
+const formatEnvironmentPhrase = (environmentText?: string): string => {
+    if (!environmentText?.trim()) {
+        return '';
+    }
+    const normalized = environmentText.trim();
+    const lower = normalized.toLowerCase();
+    if (INDOOR_ENVIRONMENTS.has(normalized)) {
+        return `inside a ${lower}`;
+    }
+    if (OUTDOOR_ENVIRONMENTS.has(normalized)) {
+        return `outdoors on a ${lower}`;
+    }
+    return `in ${lower}`;
+};
+
 export class SceneNarrativeBuilder {
     private productBuilder = new ProductBuilder();
     private clothingBuilder = new ClothingBuilder();
@@ -223,11 +257,12 @@ export class SceneNarrativeBuilder {
         const compositionModeStructural = (options as any).compositionModeStructural || '';
         const cameraDeviceSemantic = (options as any).cameraDeviceSemantic || '';
 
+        const environmentPhrase = formatEnvironmentPhrase(environmentText);
         const narrativeParts = [
             creationModeStructural ? `Creation: ${creationModeStructural}.` : '',
             compositionModeStructural ? `Composition: ${compositionModeStructural}.` : '',
             cameraDeviceSemantic ? `Camera: ${cameraDeviceSemantic}.` : '',
-            environmentText ? `Environment: ${environmentText}.` : '',
+            environmentPhrase ? `Environment: ${environmentPhrase}.` : '',
             lightingText ? `Lighting: ${lightingText}.` : ''
         ].filter(Boolean);
 
@@ -245,6 +280,26 @@ export class SceneNarrativeBuilder {
         }
 
         console.log('[SCENE NARRATIVE] Environment/Lighting/Mood:', narrativeParts.join(' ').substring(0, 200) + '...');
+        const shouldInjectLifestyleRealism =
+            !options.ugcRealModeActive &&
+            options.contentStyle !== 'ugc' &&
+            options.creationMode === 'lifestyle';
+
+        if (shouldInjectLifestyleRealism) {
+            narrativeParts.push(
+                'Lifestyle Realism Enforcement',
+                'This is a real-life lifestyle photograph, not user-generated content.',
+                'The scene must feel real, human, and intentionally composed.',
+                'Lighting is natural and believable, clean and balanced, not studio-perfect.',
+                'Human skin shows subtle natural variation and micro texture, no smoothing, no plastic or CGI appearance.',
+                'Posture and hand positioning include slight natural imperfection, avoid symmetry or mannequin-like alignment.',
+                'Facial expression is relaxed and natural, not posed or model-like.',
+                'The product is held naturally as part of everyday life, not centered or hero-framed.',
+                'Camera capture is intentional and stable, not handheld, not selfie-based.',
+                'Avoid render look, avoid artificial perfection, avoid hyper-polished surfaces.'
+            );
+        }
+
         if (options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
             narrativeParts.push(
                 'Final quality check. The scene must present a fully professional, editorial-grade result. If any conflicting cues appear, prioritize professional camera equipment, controlled lighting, stabilized motion, and deliberate environments. Suppress or override any residual casual, handheld, selfie-based, phone-captured, webcam-like, or user-generated signals. The final image should be brand-safe, visually consistent, and suitable for commercial or editorial use.'
