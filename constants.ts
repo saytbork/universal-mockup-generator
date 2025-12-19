@@ -778,23 +778,23 @@ export const CREATOR_PRESETS: CreatorPreset[] = [
 // Essential 5-option set representing true UGC shooting styles.
 export const CAMERA_OPTIONS: Option[] = [
   {
-    label: 'Smartphone rear camera (intentional, non-selfie use)',
+    label: 'Intentional smartphone camera',
     value: 'captured with the phone’s rear camera for deliberate, stabilized framing without selfie distortion',
   },
   {
-    label: 'DSLR or mirrorless camera',
+    label: 'DSLR / mirrorless camera',
     value: 'captured with a professional DSLR or mirrorless body using high-quality optics and shallow depth of field',
   },
   {
-    label: 'Cinema camera',
+    label: 'Cinema camera rig',
     value: 'captured on a cinema camera with controlled rigs, smooth movement, and filmic color science',
   },
   {
-    label: 'Studio camera (medium format)',
+    label: 'Medium format studio camera',
     value: 'captured on a medium format studio system for ultra-sharp detail and precise tonal control',
   },
   {
-    label: 'Laptop webcam (professional context only)',
+    label: 'Laptop webcam (pro setup)',
     value: 'captured via a laptop webcam in an intentional professional context such as a remote consultation',
   },
 ];
@@ -911,7 +911,7 @@ export const HERO_PERSON_PRESETS: HeroPosePreset[] = [
       productInteraction: getOptionValueByLabel(PRODUCT_INTERACTION_OPTIONS, 'Showing to Camera', 2),
       productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Hero Close-Up (Primer plano)', 0),
       perspective: getOptionValueByLabel(PERSPECTIVE_OPTIONS, 'Close-Up', 4),
-      camera: getOptionValueByLabel(CAMERA_OPTIONS, 'Smartphone rear camera (intentional, non-selfie use)', 0),
+      camera: getOptionValueByLabel(CAMERA_OPTIONS, 'Intentional smartphone camera', 0),
     },
     promptCue:
       ' Have the creator lean in and gently hug the supplement jar against their cheek while keeping eyes on the camera. Crop tightly so the face and product fill most of the frame with soft hands supporting the label.',
@@ -925,7 +925,7 @@ export const HERO_PERSON_PRESETS: HeroPosePreset[] = [
       productInteraction: getOptionValueByLabel(PRODUCT_INTERACTION_OPTIONS, 'Showing to Camera', 2),
       productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Hero Close-Up (Primer plano)', 0),
       perspective: getOptionValueByLabel(PERSPECTIVE_OPTIONS, 'Eye-Level', 0),
-      camera: getOptionValueByLabel(CAMERA_OPTIONS, 'Smartphone rear camera (intentional, non-selfie use)', 0),
+      camera: getOptionValueByLabel(CAMERA_OPTIONS, 'Intentional smartphone camera', 0),
     },
     promptCue:
       ' Pose them with one arm reaching straight toward the lens while the other relaxes at their side so the jar hovers closest to viewers, keeping fingers around the lid without covering the logo.',
@@ -939,7 +939,7 @@ export const HERO_PERSON_PRESETS: HeroPosePreset[] = [
       productInteraction: getOptionValueByLabel(PRODUCT_INTERACTION_OPTIONS, 'Holding', 0),
       productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Mid-Ground Focus (Segundo plano)', 1),
       perspective: getOptionValueByLabel(PERSPECTIVE_OPTIONS, 'High Angle', 2),
-      camera: getOptionValueByLabel(CAMERA_OPTIONS, 'DSLR or mirrorless camera', 1),
+      camera: getOptionValueByLabel(CAMERA_OPTIONS, 'DSLR / mirrorless camera', 1),
       setting: getOptionValueByLabel(SETTING_OPTIONS, 'Garden Party', 12),
       environmentOrder: getOptionValueByLabel(ENVIRONMENT_ORDER_OPTIONS, 'Casual', 2),
     },

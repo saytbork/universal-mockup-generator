@@ -74,9 +74,9 @@ export const LIGHTING_PRESETS = {
 };
 
 export const CAMERA_PRESETS = {
-  'Smartphone rear camera (intentional, non-selfie use)': 'modern smartphone rear camera perspective with stabilized handheld realism',
-  'DSLR or mirrorless camera': 'professional interchangeable-lens clarity with shallow depth of field',
-  'Cinema camera': 'cinematic depth, smooth blur, and controlled tonal response',
-  'Studio camera (medium format)': 'tethered studio capture with ultra-sharp detail',
-  'Laptop webcam (professional context only)': 'flat webcam lighting and straightforward framing for remote sessions',
+  'Intentional smartphone camera': 'modern smartphone rear camera perspective with stabilized handheld realism',
+  'DSLR / mirrorless camera': 'professional interchangeable-lens clarity with shallow depth of field',
+  'Cinema camera rig': 'cinematic depth, smooth blur, and controlled tonal response',
+  'Medium format studio camera': 'tethered studio capture with ultra-sharp detail',
+  'Laptop webcam (pro setup)': 'flat webcam lighting and straightforward framing for remote sessions',
 };

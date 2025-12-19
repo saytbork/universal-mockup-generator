@@ -19,8 +19,8 @@ export function buildCamera(params: any): string {
   // 1️⃣ UGC Real Mode ACTIVE - Strict Degradation
   if (params.ugcRealMode) {
     const allowedCameras = [
-      "Smartphone rear camera (intentional, non-selfie use)",
-      "Laptop webcam (professional context only)"
+      "Intentional smartphone camera",
+      "Laptop webcam (pro setup)"
     ];
 
     const isAllowed = allowedCameras.some(allowed =>
@@ -30,7 +30,7 @@ export function buildCamera(params: any): string {
     // If user selected a PRO camera in UGC mode, force degradation
     if (!isAllowed) {
       camera =
-        parameterMap.cameraType?.["Smartphone rear camera (intentional, non-selfie use)"] ??
+        parameterMap.cameraType?.["Intentional smartphone camera"] ??
         "captured with the phone’s rear camera for deliberate framing, stabilized handheld realism";
     }
   }
