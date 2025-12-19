@@ -61,6 +61,15 @@ Avoid youthful facial proportions, smooth skin, or middle-aged appearance.
                 `.trim().replace(/\s+/g, ' '));
             }
 
+            if (age >= 75) {
+                parts.push(`
+ELDER REALISM: Deep-set crow's feet, softened jawline definition, gentle jowls, and age spots on face and hands are expected.
+Hair should skew gray, silver, or white with natural softness unless explicitly overridden.
+Hands must show visible veins and knuckle definition, and muscles should feel relaxed rather than toned.
+Skin carries micro wrinkles around the mouth, eyes, and neck with authentic sag, not harsh texture or stylized pores.
+                `.trim().replace(/\s+/g, ' '));
+            }
+
             // IDENTITY BLOCK - Core attributes
             const identityParts: string[] = [];
 
