@@ -102,7 +102,7 @@ const UGC_CAPTURE_LAYER_SENTENCES: Record<UGCCaptureSituationId, { category: UGC
   },
   'finger-invading-lens': {
     category: 'framing',
-    sentence: 'A finger partially invades the lens.',
+    sentence: 'A finger from the phone-holding hand partially invades the lens while the opposite hand holds the product.',
   },
   'accidental-off-center': {
     category: 'framing',
