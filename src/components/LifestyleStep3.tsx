@@ -571,7 +571,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     productStructure: 'single',
 
     // Realism
-    ugcRealMode: true,
+    ugcRealMode: false,
     ugcCaptureSituation: null,
 
     // Selfie
