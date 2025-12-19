@@ -69,7 +69,7 @@ function mapSkinRealism(value?: string): string | null {
         case 'rawreal':
             return 'raw, unretouched skin with visible texture, pores, and natural imperfections';
         case 'natural':
-            return 'natural realistic skin texture with visible pores and subtle imperfections, no plastic look';
+            return 'natural, believable skin texture with subtle variation, no plastic look';
         case 'soft-retouch':
         case 'softretouch':
             return 'lightly retouched skin with minimal smoothing, still realistic and human';
@@ -248,7 +248,7 @@ const FACIAL_EXPRESSION_MAP: Record<string, string> = {
 
 const SKIN_REALISM_SEMANTIC_MAP: Record<string, string> = {
     'Raw / Real': 'raw, unretouched skin with visible texture, pores, and natural imperfections',
-    'Natural': 'natural realistic skin texture with visible pores and subtle imperfections, no plastic look',
+    'Natural': 'natural, believable skin texture with subtle variation, no plastic look',
     'Soft Retouch': 'lightly retouched skin, minimal smoothing, still realistic and human'
 };
 

@@ -308,7 +308,7 @@ export class SceneNarrativeBuilder {
                 'This is a real-life lifestyle photograph, not user-generated content.',
                 'The scene must feel real, human, and intentionally composed.',
                 'Lighting is natural and believable, clean and balanced, not studio-perfect.',
-                'Human skin shows subtle natural variation and micro texture, no smoothing, no plastic or CGI appearance.',
+                'Human skin shows subtle natural variation and soft texture, no smoothing, no plastic or CGI appearance.',
                 'Posture and hand positioning include slight natural imperfection, avoid symmetry or mannequin-like alignment.',
                 'Facial expression is relaxed and natural, not posed or model-like.',
                 'The product is held naturally as part of everyday life, not centered or hero-framed.',

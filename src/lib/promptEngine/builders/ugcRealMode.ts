@@ -149,7 +149,7 @@ Only one arm may be partially visible, and only to support the product.
         const humanText = `
 The person must look like a real human captured by a smartphone.
 No mannequin, doll, CGI, avatar, or synthetic appearance.
-Natural skin texture is required, including visible pores, minor blemishes, uneven tone, and natural facial asymmetry.
+Natural skin texture is required, soft and even with minimal pore detail, gentle tonal variation, and honest asymmetry.
 This must not look like a render, stock photo, studio portrait, or AI-generated human.
 `.trim();
         parts.push(humanText);
