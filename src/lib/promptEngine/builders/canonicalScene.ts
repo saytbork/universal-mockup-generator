@@ -241,6 +241,12 @@ export class SceneNarrativeBuilder {
         }
 
         console.log('[SCENE NARRATIVE] Environment/Lighting/Mood:', narrativeParts.join(' ').substring(0, 200) + '...');
+        if (options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
+            narrativeParts.push(
+                'Final quality check. The scene must present a fully professional, editorial-grade result. If any conflicting cues appear, prioritize professional camera equipment, controlled lighting, stabilized motion, and deliberate environments. Suppress or override any residual casual, handheld, selfie-based, phone-captured, webcam-like, or user-generated signals. The final image should be brand-safe, visually consistent, and suitable for commercial or editorial use.'
+            );
+        }
+
         return narrativeParts.join(' ');
     }
 }
