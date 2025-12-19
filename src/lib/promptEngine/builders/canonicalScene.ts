@@ -180,26 +180,13 @@ export class SceneNarrativeBuilder {
             parts.push(constraints);
         }
 
-        const professionalCapture = this.buildNonUgcCameraMandate(options);
-        if (professionalCapture) {
-            parts.push(professionalCapture);
+        if (options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
+            parts.push(
+                'This scene is captured using professional-grade camera equipment only, such as DSLR or mirrorless cameras, cinema cameras, or medium format systems. Framing and shot selection are intentional and precise, with a clearly defined shot type and camera angle. The camera is fully stabilized, either on a tripod or controlled rig, with smooth, deliberate movement if any. Lighting is studio-grade or professionally controlled, producing clean exposure, accurate colors, and natural depth. The image must not resemble user-generated content in any way. Exclude all casual, handheld, selfie-based, phone-captured, webcam-style, or amateur artifacts.'
+            );
         }
 
         return parts.join(' ');
-    }
-
-    private buildNonUgcCameraMandate(options: PromptOptions): string | undefined {
-        if (options.contentStyle === 'ugc' || options.ugcRealModeActive) {
-            return undefined;
-        }
-
-        return [
-            'Professional capture only: DSLR/mirrorless, cinema, or medium format studio camera with high-quality optics; no smartphones, selfie angles, mirror reflections, webcams, or casual phone positioning.',
-            'Lens and optics emphasize natural perspective, accurate proportions, controlled depth of field within a 35–85mm equivalent, and no wide-angle distortion unless explicitly required.',
-            'Shot type and angle are unambiguous, centered or intentionally rule-of-thirds aligned, with clean foreground/background separation and no cropped limbs or obstructions.',
-            'Camera is fully stabilized with no motion blur, shake, or handheld wobble; any movement is smooth, controlled, and cinematic.',
-            'Visual finish is editorial, commercial, and brand-safe with neutral studio illumination supporting clarity, texture, and product legibility; no UGC imperfections allowed.'
-        ].join(' ');
     }
 
     private buildEnvironmentLightingMood(options: PromptOptions): string {
@@ -230,7 +217,7 @@ export class SceneNarrativeBuilder {
         const compositionModeStructural = (options as any).compositionModeStructural || '';
         const cameraDeviceSemantic = (options as any).cameraDeviceSemantic || '';
 
-        const parts = [
+        const narrativeParts = [
             creationModeStructural ? `Creation: ${creationModeStructural}.` : '',
             compositionModeStructural ? `Composition: ${compositionModeStructural}.` : '',
             cameraDeviceSemantic ? `Camera: ${cameraDeviceSemantic}.` : '',
@@ -238,7 +225,13 @@ export class SceneNarrativeBuilder {
             lightingText ? `Lighting: ${lightingText}.` : ''
         ].filter(Boolean);
 
-        console.log('[SCENE NARRATIVE] Environment/Lighting/Mood:', parts.join(' ').substring(0, 200) + '...');
-        return parts.join(' ');
+        if (options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
+            narrativeParts.push(
+                'Lighting is professionally designed and intentionally controlled. The scene uses studio-grade or well-managed natural lighting with balanced exposure, consistent color temperature, and soft, dimensional shadows. Illumination enhances clarity, depth, and material detail without harsh overhead light, uneven shadows, or mixed lighting sources. Exclude all phone-based lighting, on-camera flash, bathroom or ceiling lights, low-quality ambient light, or any casual, uncontrolled illumination commonly associated with user-generated content.'
+            );
+        }
+
+        console.log('[SCENE NARRATIVE] Environment/Lighting/Mood:', narrativeParts.join(' ').substring(0, 200) + '...');
+        return narrativeParts.join(' ');
     }
 }
