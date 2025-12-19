@@ -275,6 +275,7 @@ export class SceneNarrativeBuilder {
             compositionModeStructural ? `Composition: ${compositionModeStructural}.` : '',
             cameraDeviceSemantic ? `Camera: ${cameraDeviceSemantic}.` : '',
             environmentPhrase ? `Environment: ${environmentPhrase}.` : '',
+            options.sceneOrderChaosDescriptor ? `Scene order: ${options.sceneOrderChaosDescriptor}.` : '',
             lightingText ? `Lighting: ${lightingText}.` : ''
         ].filter(Boolean);
 

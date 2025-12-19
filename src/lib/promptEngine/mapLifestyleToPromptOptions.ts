@@ -62,6 +62,54 @@ function buildCustomClothesDescriptor(sceneState: Step3Values): CustomClothes | 
     return hasValue ? { enabled: true, ...fields } : undefined;
 }
 
+const SCENE_ORDER_MESSY_VARIATIONS = [
+    'scattered magazines, half-folded laundry, and an open skincare pouch create believable clutter',
+    'the countertop holds forgotten coffee mugs, open product caps, and casually draped towels',
+    'chairs and stools have jackets tossed over them, with personal items layered across surfaces',
+    'makeup brushes, notebooks, and unopened deliveries overlap each other in soft disarray'
+];
+
+const SCENE_ORDER_CHAOTIC_VARIATIONS = [
+    'multiple surfaces are overwhelmed with stacked products, toppled props, and hurriedly placed bags',
+    'drawers are left ajar, blankets spill off seating, and accessories scatter across the floor',
+    'there are overlapping clothes, tangled cords, and runaway packaging tumbling into frame',
+    'the space shows open suitcases, spilled tote bags, and scattered samples fighting for space'
+];
+
+const SCENE_ORDER_RANDOM_VARIATIONS = [
+    'a surprising mix of overturned boxes, mismatched decor, and abandoned tripods collide in frame',
+    'last-minute props, delivery parcels, and wardrobe pieces collide unpredictably throughout the environment',
+    'snacks, cables, notes, and beauty tools are strewn everywhere, hinting at a frantic creative session',
+    'the set looks like it was frozen mid-chaos with repositioned lights, stools, and scattered clothing layers'
+];
+
+const pickRandomDescriptor = (list: string[]) => list[Math.floor(Math.random() * list.length)];
+
+function buildSceneOrderChaosDescriptor(value?: string): string | null {
+    const key = normalizeKey(value);
+    if (!key) return null;
+    switch (key) {
+        case 'clean':
+            return 'Every surface is carefully organized, spotless, and staged for a tidy lifestyle set';
+        case 'normal':
+            return 'The space feels lived-in yet balanced, with light clutter that still reads intentional';
+        case 'messy':
+            return pickRandomDescriptor(SCENE_ORDER_MESSY_VARIATIONS);
+        case 'chaotic':
+            return pickRandomDescriptor(SCENE_ORDER_CHAOTIC_VARIATIONS);
+        case 'randomized-chaos': {
+            const combined = [
+                ...SCENE_ORDER_MESSY_VARIATIONS,
+                ...SCENE_ORDER_CHAOTIC_VARIATIONS,
+                ...SCENE_ORDER_RANDOM_VARIATIONS
+            ];
+            return pickRandomDescriptor(combined);
+        }
+        default:
+            return null;
+    }
+}
+
 function mapSkinRealism(value?: string): string | null {
     switch (normalizeKey(value)) {
         case 'raw':
@@ -169,11 +217,11 @@ const buildFormulationStoryOptions = (sceneState: Step3Values): FormulationStory
  * CAMERA DEVICE → Physical capture characteristics and lens behavior
  */
 const CAMERA_DEVICE_SEMANTIC_MAP: Record<string, string> = {
-    'Smartphone rear camera (intentional, non-selfie use)': 'captured with a modern smartphone’s rear camera, stabilized grip, intentional framing, no selfie distortion',
-    'DSLR or mirrorless camera': 'captured with a professional DSLR or mirrorless body using premium glass, shallow depth of field, and crisp subject separation',
-    'Cinema camera': 'captured on a cinema camera with controlled rigs, smooth motion, and filmic dynamic range',
-    'Studio camera (medium format)': 'captured on a medium-format studio system with tethered capture for ultra-sharp detail and tonal accuracy',
-    'Laptop webcam (professional context only)': 'captured through a laptop webcam in a professional setting, flat lighting, slight compression, intentional composition'
+    'Intentional smartphone camera': 'captured with a modern smartphone’s rear camera, stabilized grip, intentional framing, no selfie distortion',
+    'DSLR / mirrorless camera': 'captured with a professional DSLR or mirrorless body using premium glass, shallow depth of field, and crisp subject separation',
+    'Cinema camera rig': 'captured on a cinema camera with controlled rigs, smooth motion, and filmic dynamic range',
+    'Medium format studio camera': 'captured on a medium-format studio system with tethered capture for ultra-sharp detail and tonal accuracy',
+    'Laptop webcam (pro setup)': 'captured through a laptop webcam in a professional setting, flat lighting, slight compression, intentional composition'
 };
 
 /**
@@ -653,7 +701,7 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
 
     // Camera Device Type
-    const defaultCameraLabel = 'Smartphone rear camera (intentional, non-selfie use)';
+    const defaultCameraLabel = 'Intentional smartphone camera';
     const cameraDevice = (sceneState as any).cameraType || defaultCameraLabel;
     const cameraDeviceSemantic = CAMERA_DEVICE_SEMANTIC_MAP[cameraDevice] || CAMERA_DEVICE_SEMANTIC_MAP[defaultCameraLabel];
     const effectiveCameraSemantic = isEnvironmentSceneIntent
@@ -729,7 +777,15 @@ export function mapLifestyleToPromptOptions(
 
         (mapped as any).sceneEnvironment = mapped.setting;
         mapped.environmentOrder = mapped.setting;
-        console.log('[MAP] environment:', selectedEnvironment, '→', mapped.setting);
+
+        const sceneOrderChaosValue = sceneState.sceneOrderChaos || 'Normal';
+        mapped.sceneOrderChaos = sceneOrderChaosValue;
+        const sceneOrderChaosDescriptor = buildSceneOrderChaosDescriptor(sceneOrderChaosValue);
+        if (sceneOrderChaosDescriptor) {
+            (mapped as any).sceneOrderChaosDescriptor = sceneOrderChaosDescriptor;
+        }
+
+        console.log('[MAP] environment:', selectedEnvironment, '→', mapped.setting, '| order:', sceneOrderChaosValue);
     }
 
     // ========================================================================
@@ -841,10 +897,10 @@ export function mapLifestyleToPromptOptions(
     if (sceneState.ugcRealMode) {
         // Block cinema cameras if they slipped through
         const proCameras = [
-            'DSLR or mirrorless camera',
-            'Cinema camera',
-            'Studio camera (medium format)',
-            'Laptop webcam (professional context only)'
+            'DSLR / mirrorless camera',
+            'Cinema camera rig',
+            'Medium format studio camera',
+            'Laptop webcam (pro setup)'
         ];
         if (proCameras.includes(mapped.camera || '')) {
             console.log('[SAFETY] Downgrading Pro Camera in UGC Mode');

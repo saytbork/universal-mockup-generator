@@ -123,6 +123,8 @@ export interface PromptOptions {
     lighting: string;
     perspective: string;
     environmentOrder: string;
+    sceneOrderChaos?: 'Clean' | 'Normal' | 'Messy' | 'Chaotic' | 'Randomized Chaos';
+    sceneOrderChaosDescriptor?: string;
     productPlane: string;
     placementStyle?: string;
     placementCamera?: string;

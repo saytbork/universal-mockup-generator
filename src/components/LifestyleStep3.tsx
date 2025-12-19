@@ -138,6 +138,7 @@ export interface Step3Values {
   // Environment
   environment: string;
   customEnvironment: string;
+  sceneOrderChaos: 'Clean' | 'Normal' | 'Messy' | 'Chaotic' | 'Randomized Chaos';
 
   // Time & Lighting
   timeOfDay: string;
@@ -402,6 +403,14 @@ const ENVIRONMENT_OUTDOOR = [
   { value: 'Street Corner', icon: MapPin }
 ];
 
+const SCENE_ORDER_CHAOS_OPTIONS: Step3Values['sceneOrderChaos'][] = [
+  'Clean',
+  'Normal',
+  'Messy',
+  'Chaotic',
+  'Randomized Chaos'
+];
+
 // SELFIE MODE - Unified Exclusive Enum
 const SELFIE_MODE_OPTIONS = [
   "Front camera, arm's length",
@@ -562,6 +571,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     // Environment - UGC Rule: must have table/surface for product
     environment: 'Kitchen', // Kitchen has table/counter surface by default
     customEnvironment: '',
+    sceneOrderChaos: 'Normal',
 
     // Time & Lighting - simplified
     timeOfDay: 'Afternoon',
@@ -569,7 +579,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
     // Camera
     shotType: 'Medium',
-    cameraType: 'Smartphone rear camera (intentional, non-selfie use)',
+    cameraType: 'Intentional smartphone camera',
     cameraAngle: 'Eye level',
     framing: 'Rule of thirds',
 
@@ -1288,13 +1298,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             </div>
             <button
               type="button"
+              role="switch"
+              aria-checked={values.customClothesEnabled}
               onClick={() => {
                 updateValue('customClothesEnabled', !values.customClothesEnabled);
                 markSectionTouched('customClothes');
               }}
-              className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${values.customClothesEnabled ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-gray-600 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+              className={`relative h-6 w-11 rounded-full transition ${values.customClothesEnabled ? 'bg-indigo-500' : 'bg-gray-600'}`}
             >
-              {values.customClothesEnabled ? 'Disable' : 'Customize outfit'}
+              <span className={`absolute left-1 top-1 block h-4 w-4 rounded-full bg-white shadow transition ${values.customClothesEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
             </button>
           </div>
 
@@ -1508,6 +1520,28 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               placeholder="e.g., cozy cabin, rooftop terrace, yoga studio..."
               className="w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
             />
+          </div>
+
+          <div className="pt-3 space-y-2">
+            <div>
+              <p className="text-xs uppercase tracking-wider text-indigo-200">SCENE ORDER & CHAOS</p>
+              <p className="text-[11px] text-gray-400">Control how tidy or chaotic the surroundings feel.</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {SCENE_ORDER_CHAOS_OPTIONS.map(option => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => {
+                    updateValue('sceneOrderChaos', option);
+                    markSectionTouched('environment');
+                  }}
+                  className={getPillClass(values.sceneOrderChaos === option)}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </AccordionSection >
