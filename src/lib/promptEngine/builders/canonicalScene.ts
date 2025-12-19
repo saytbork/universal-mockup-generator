@@ -234,6 +234,12 @@ export class SceneNarrativeBuilder {
             );
         }
 
+        if (options.ugcRealModeActive) {
+            narrativeParts.push(
+                'This scene must feel raw, spontaneous, and unpolished. Do not correct framing, posture, lighting, or composition. Allow imperfect angles, uneven headroom, off-center subjects, partial cropping, and accidental framing. Lighting may be uneven, mixed in color temperature, or suboptimal, including harsh shadows or dim indoor light. Facial expressions should feel natural, tired, distracted, or mid-moment rather than posed or aspirational. Product handling may be awkward, partially obscured, tilted, or off-axis. Imperfections are intentional and should not be fixed. The image must look like a real, unplanned moment captured by a normal person, not a styled or optimized shot.'
+            );
+        }
+
         if (options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
             narrativeParts.push(
                 'Lighting is professionally designed and intentionally controlled. The scene uses studio-grade or well-managed natural lighting with balanced exposure, consistent color temperature, and soft, dimensional shadows. Illumination enhances clarity, depth, and material detail without harsh overhead light, uneven shadows, or mixed lighting sources. Exclude all phone-based lighting, on-camera flash, bathroom or ceiling lights, low-quality ambient light, or any casual, uncontrolled illumination commonly associated with user-generated content.'
