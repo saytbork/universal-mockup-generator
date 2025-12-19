@@ -247,9 +247,9 @@ const FACIAL_EXPRESSION_MAP: Record<string, string> = {
 };
 
 const SKIN_REALISM_SEMANTIC_MAP: Record<string, string> = {
-    'Raw / Real': 'raw, unretouched skin with visible texture, pores, and natural imperfections',
-    'Natural': 'natural, believable skin texture with subtle variation, no plastic look',
-    'Soft Retouch': 'lightly retouched skin, minimal smoothing, still realistic and human'
+    'Raw / Real': 'smooth continuous smartphone-captured skin with natural tonal shifts and gentle asymmetry, no pore emphasis or exaggerated texture',
+    'Natural': 'believable skin appearance with soft falloff and subtle variation, realistic but never plastic or overly detailed',
+    'Soft Retouch': 'lightly smoothed skin with minimal retouching, still human but without artificial pore detail or render-like finish'
 };
 
 /**

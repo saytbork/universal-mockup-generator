@@ -154,6 +154,22 @@ This must not look like a render, stock photo, studio portrait, or AI-generated 
 `.trim();
         parts.push(humanText);
 
+        const humanStateText = `
+UGC HUMAN STATE:
+The face shows real fatigue and lived-in details such as subtle under-eye bags, soft eye shadows, and natural expression lines around the eyes and mouth.
+Expressions feel tired, distracted, or slightly drained instead of posed.
+Do NOT exaggerate pores, harsh texture, or macro-style skin detail—keep the skin continuous and smartphone-smooth while the fatigue sells the realism.
+        `.trim().replace(/\s+/g, ' ');
+        parts.push(humanStateText);
+
+        const smartphoneFailureText = `
+SMARTPHONE FAILURE CHARACTERISTICS:
+Slight softness from low-resolution capture, minor focus bleed from autofocus hunting, and uneven or mixed lighting are expected.
+Framing may be off-center or slightly crooked, with imperfect headroom and in-the-moment composition.
+These optical flaws must replace any attempt to add heavy skin texture or polished studio control.
+        `.trim().replace(/\s+/g, ' ');
+        parts.push(smartphoneFailureText);
+
         const walkingText = `
 Walking, handheld motion is a selfie perspective while walking.
 Slight camera instability and imperfect crop.
