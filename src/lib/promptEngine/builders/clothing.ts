@@ -12,12 +12,10 @@ export class ClothingBuilder implements PromptBuilder {
 
         // User uploaded an outfit image
         if (clothingCustomImage || clothingReference) {
-            const referenceUrl = clothingCustomImage || clothingReference;
             return `
             The person is wearing the exact outfit shown in the uploaded reference image.
             Match the same color, texture, fabric, silhouette, folds, and overall fit.
             Do not invent or modify clothing elements.
-            Clothing reference image URL: ${referenceUrl}
             `.trim().replace(/\s+/g, " ");
         }
 

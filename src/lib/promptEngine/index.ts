@@ -293,6 +293,14 @@ export class PromptEngine {
             finalPrompt = buildMasterPrompt(masterSections, negative);
         }
 
+        if (/data:image/i.test(finalPrompt)) {
+            throw new Error('Base64 image data must not be included in prompt text');
+        }
+
+        if (finalPrompt.length > 30000) {
+            throw new Error('Prompt too large, aborting build');
+        }
+
         // ====================================================================
         // MANDATORY DEBUG LOGGING
         // ====================================================================
