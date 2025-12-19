@@ -5,7 +5,6 @@ import {
   Home, MapPin, Coffee, Utensils, Car, Waves, Mountain, Building2, Edit3, Heart, Check, Info
 } from 'lucide-react';
 import {
-  LIGHTING_OPTIONS,
   CAMERA_OPTIONS,
   CAMERA_ANGLE_OPTIONS as CONSTANT_CAMERA_ANGLE_OPTIONS // Use constant if needed or stick to local if it matches
 } from '../../constants';
@@ -364,8 +363,22 @@ const SELFIE_MODE_OPTIONS = [
 ];
 
 // TIME & LIGHTING - per final spec
-const TIME_OF_DAY_OPTIONS = ['Morning', 'Midday', 'Evening', 'Night'];
-// LIGHTING_STYLE_OPTIONS removed in favor of imported LIGHTING_OPTIONS
+const TIME_OF_DAY_OPTIONS = [
+  { label: 'Morning', value: 'morning' },
+  { label: 'Midday', value: 'midday' },
+  { label: 'Afternoon', value: 'afternoon' },
+  { label: 'Evening', value: 'evening' },
+  { label: 'Night', value: 'night' },
+];
+
+const PRO_LIGHTING_OPTIONS = [
+  { label: 'Natural daylight', value: 'natural_daylight' },
+  { label: 'Soft studio light', value: 'soft_studio' },
+  { label: 'Directional studio light', value: 'directional_studio' },
+  { label: 'Golden hour light', value: 'golden_hour' },
+  { label: 'Overcast daylight', value: 'overcast_daylight' },
+  { label: 'Controlled indoor lighting', value: 'controlled_indoor' },
+];
 
 // SHOT TYPE - Simplified to 3 options
 const SHOT_TYPE_OPTIONS = ['Close', 'Medium', 'Wide'];
@@ -552,8 +565,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     customEnvironment: '',
 
     // Time & Lighting - simplified
-    timeOfDay: 'Afternoon',
-    lightingStyle: 'Natural',
+    timeOfDay: 'midday',
+    lightingStyle: 'natural_daylight',
 
     // Camera
     shotType: 'Medium',
@@ -615,6 +628,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
   const [values, setValues] = useState<Step3Values>(initialValues);
   const isUGC = values.ugcRealMode === true;
+  const isNonUGCTimeLighting = !isUGC && values.creationIntent !== 'ugc';
 
   const toggleSection = (section: string) => {
     setOpenSection(openSection === section ? null : section);
@@ -1241,15 +1255,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       </AccordionSection >
 
       {/* Time & Lighting */}
-      < AccordionSection
-        icon={Sun}
-        title="Time & Lighting"
-        tooltip={TOOLTIP_MAP.timeLighting}
-        isOpen={openSection === 'lighting'}
-        onToggle={() => toggleSection('lighting')}
-        isTouched={touchedSections.has('lighting')}
-      >
-        <div className="space-y-3">
+      {isNonUGCTimeLighting && (
+        <AccordionSection
+          icon={Sun}
+          title="Time & Lighting"
+          tooltip={TOOLTIP_MAP.timeLighting}
+          isOpen={openSection === 'lighting'}
+          onToggle={() => toggleSection('lighting')}
+          isTouched={touchedSections.has('lighting')}
+        >
+          <div className="space-y-3">
           {/* TIME OF DAY */}
           <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
             <div>
@@ -1259,31 +1274,30 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             <div className="flex flex-wrap items-center gap-2">
               {TIME_OF_DAY_OPTIONS.map(option => (
                 <button
-                  key={option}
+                  key={option.value}
                   type="button"
-                  onClick={() => { updateValue('timeOfDay', option); markSectionTouched('lighting'); }}
-                  className={getPillClass(values.timeOfDay === option)}
+                  onClick={() => { updateValue('timeOfDay', option.value); markSectionTouched('lighting'); }}
+                  className={getPillClass(values.timeOfDay === option.value)}
                 >
-                  {option}
+                  {option.label}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* LIGHTING STYLE - Updated to use LIGHTING_OPTIONS from constants */}
+          {/* LIGHTING STYLE */}
           <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
             <div>
               <p className="text-xs uppercase tracking-wider text-indigo-200">LIGHTING STYLE</p>
               <p className="text-[11px] text-gray-400 mt-1">Select the lighting quality</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              {LIGHTING_OPTIONS.map(option => (
+              {PRO_LIGHTING_OPTIONS.map(option => (
                 <button
                   key={option.value}
                   type="button"
-                  onClick={() => { updateValue('lightingStyle', option.label); markSectionTouched('lighting'); }}
-                  className={getPillClass(values.lightingStyle === option.label)}
-                  title={option.value}
+                  onClick={() => { updateValue('lightingStyle', option.value); markSectionTouched('lighting'); }}
+                  className={getPillClass(values.lightingStyle === option.value)}
                 >
                   {option.label}
                 </button>
@@ -1291,7 +1305,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             </div>
           </div>
         </div>
-      </AccordionSection >
+        </AccordionSection>
+      )}
 
       {!isUGC && (
         <>

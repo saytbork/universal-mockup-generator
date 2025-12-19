@@ -46,15 +46,12 @@ export const cameraAngles = [
 ];
 
 export const lightingStyles = [
-  "Natural Light",
-  "Sunny Day",
-  "Golden Hour",
-  "Overcast",
-  "Cozy Indoors",
-  "Ring Light",
-  "Mood Lighting",
-  "Night Mode",
-  "Flash Photo"
+  "Natural daylight",
+  "Soft studio light",
+  "Directional studio light",
+  "Golden hour light",
+  "Overcast daylight",
+  "Controlled indoor lighting"
 ];
 
 export const shotTypes = [

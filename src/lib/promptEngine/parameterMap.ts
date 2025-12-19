@@ -158,6 +158,12 @@ export const parameterMap: ParameterMap = {
   },
 
   lighting: {
+    natural_daylight: "natural daylight with even diffusion and precise exposure control",
+    soft_studio: "soft studio lighting with large diffusers, gentle gradients, and controlled highlights",
+    directional_studio: "directional studio lighting with sculpted highlights and deliberate shadow falloff",
+    golden_hour: "golden hour inspired lighting with low-angle warmth and balanced glow",
+    overcast_daylight: "overcast daylight with diffused, shadow-free illumination",
+    controlled_indoor: "controlled indoor lighting with consistent color temperature and balanced exposure",
     "Natural Light": "natural ambient daylight with soft shadows and uneven falloff",
     "Sunny Day": "bright direct sunlight with hard shadows and high contrast",
     "Golden Hour": "warm golden sunlight, low-angle light, gentle highlights, natural exposure variation",

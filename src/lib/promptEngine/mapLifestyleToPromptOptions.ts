@@ -207,30 +207,6 @@ const FRAMING_SEMANTIC_MAP: Record<string, string> = {
 };
 
 /**
- * TIME OF DAY → Physical light characteristics and atmosphere
- */
-const TIME_SEMANTIC_MAP: Record<string, string> = {
-    'Morning': 'early morning natural light with cool blue undertones, soft directional rays, fresh atmospheric quality',
-    'Midday': 'bright midday sunlight with neutral white color temperature, strong overhead illumination, minimal shadows',
-    'Afternoon': 'warm afternoon light with slight golden undertones, balanced illumination, medium-length shadows',
-    'Golden Hour': 'golden hour sunlight with rich orange-amber color temperature, long dramatic shadows, warm glow on skin',
-    'Evening': 'fading evening light with purple-blue undertones, warm indoor ambient mixing with cool exterior',
-    'Night': 'nighttime lighting with artificial indoor warmth, deep shadows, limited light sources visible'
-};
-
-/**
- * LIGHTING STYLE → Physical light source behavior and shadow characteristics
- */
-const LIGHTING_SEMANTIC_MAP: Record<string, string> = {
-    'Natural window': 'natural window light entering from the side, soft directional quality with gentle shadow falloff, graduated illumination across face',
-    'Soft diffused': 'soft diffused lighting with minimal harsh shadows, even illumination wrapping around subject, gentle gradations',
-    'Direct sunlight': 'direct hard sunlight with strong contrast, defined crisp shadows, bright specular highlights on skin',
-    'Indoor artificial': 'indoor artificial lighting with typical home color temperature, mixed light sources, realistic ambient',
-    'Moody/dramatic': 'moody low-key dramatic lighting with deep shadows, selective illumination, strong light-to-dark ratio',
-    'Phone flashlight': 'harsh direct phone flashlight illumination, uneven hot-spot exposure, realistic smartphone flash behavior'
-};
-
-/**
  * FACIAL EXPRESSION → Physical facial muscle states ONLY
  * Describes specific facial gestures, NOT scene energy or body language
  */
@@ -322,6 +298,42 @@ const SELFIE_EXECUTION_SEMANTIC_MAP: Record<string, string> = {
     'Casual angled selfie': 'front camera selfie with slight tilt, imperfect angle, spontaneous casual composition'
 };
 
+const TIME_OF_DAY_LABELS: Record<string, string> = {
+    morning: 'Morning',
+    midday: 'Midday',
+    afternoon: 'Afternoon',
+    evening: 'Evening',
+    night: 'Night'
+};
+
+const LIGHTING_STYLE_LABELS: Record<string, string> = {
+    natural_daylight: 'Natural daylight',
+    soft_studio: 'Soft studio light',
+    directional_studio: 'Directional studio light',
+    golden_hour: 'Golden hour light',
+    overcast_daylight: 'Overcast daylight',
+    controlled_indoor: 'Controlled indoor lighting'
+};
+
+const DEFAULT_TIME_OF_DAY_KEY = 'midday';
+const DEFAULT_LIGHTING_KEY = 'natural_daylight';
+
+const buildProLightingNarrative = (timeLabel: string, lightingLabel: string) =>
+    [
+        `The scene is set during ${timeLabel}.`,
+        'Lighting is professionally controlled and intentional.',
+        `Lighting style: ${lightingLabel}.`,
+        'Exposure is balanced, highlights and shadows are well controlled, and color temperature is consistent.',
+        'No harsh overhead lighting, mixed color temperatures, phone flash, ring lights, or low-quality ambient lighting are present.'
+    ].join(' ');
+
+const UGC_LIGHTING_NARRATIVE = [
+    'Lighting and time of day are natural, uncontrolled, and imperfect.',
+    'The scene is lit by whatever ambient light is available at the moment.',
+    'Exposure, color temperature, and shadows may be uneven or inconsistent.',
+    'No lighting corrections or optimizations are applied.'
+].join(' ');
+
 // ============================================================================
 // MAIN MAPPER FUNCTION
 // ============================================================================
@@ -400,6 +412,7 @@ export function mapLifestyleToPromptOptions(
     if (!mapped.personDetails) mapped.personDetails = {};
     const personIncluded = !sceneState.noPerson;
     mapped.personIncluded = personIncluded;
+    const contentStyle = sceneState.creationIntent === 'ugc' && personIncluded ? 'ugc' : 'product';
 
 
     // ========================================================================
@@ -659,37 +672,45 @@ export function mapLifestyleToPromptOptions(
     console.log('[MAP] environment:', selectedEnvironment, '→', mapped.setting);
 
     // ========================================================================
-    // TIME OF DAY + LIGHTING STYLE → Combined Light Narrative
+    // TIME OF DAY + LIGHTING STYLE → Explicit canonical narrative
     // ========================================================================
     const isEcommerceBlankSpace = sceneState.creationMode === 'Ecommerce Blank Space';
 
     if (isEcommerceBlankSpace) {
-        // Ecommerce mode: studio lighting only
         mapped.setting = '';
         mapped.microLocation = '';
         mapped.bgColor = sceneState.ecommerceBackgroundColor || '#FFFFFF';
         mapped.sidePlacement = (sceneState.sidePlacement?.toLowerCase() || 'center') as any;
-        mapped.lighting = 'controlled studio lighting with soft even shadows, neutral color temperature, product-grade illumination';
         console.log('[MAP] Ecommerce Blank Space mode - studio lighting applied');
-    } else {
-        // Lifestyle mode: combine time + lighting
-        const timeSemantic = TIME_SEMANTIC_MAP[sceneState.timeOfDay] || TIME_SEMANTIC_MAP['Midday'];
-        const lightingSemantic = LIGHTING_SEMANTIC_MAP[sceneState.lightingStyle] || LIGHTING_SEMANTIC_MAP['Natural window'];
-        mapped.lighting = `${timeSemantic}, ${lightingSemantic}`;
-        console.log('[MAP] lighting:', sceneState.timeOfDay, '+', sceneState.lightingStyle, '→', mapped.lighting);
     }
-    (mapped as any).timeLightingContext = mapped.lighting;
 
-    if (mapped.creationMode === 'lifestyle') {
+    const normalizedTimeKey = (sceneState.timeOfDay || DEFAULT_TIME_OF_DAY_KEY).toLowerCase();
+    const normalizedLightingKey = (sceneState.lightingStyle || DEFAULT_LIGHTING_KEY).toLowerCase();
+    const timeLabel = TIME_OF_DAY_LABELS[normalizedTimeKey] || TIME_OF_DAY_LABELS[DEFAULT_TIME_OF_DAY_KEY];
+    const lightingLabel = LIGHTING_STYLE_LABELS[normalizedLightingKey] || LIGHTING_STYLE_LABELS[DEFAULT_LIGHTING_KEY];
+    const useProfessionalLighting = !sceneState.ugcRealMode && contentStyle !== 'ugc';
+
+    let lightingDescriptor = '';
+    if (isEcommerceBlankSpace) {
+        lightingDescriptor = 'controlled studio lighting with soft even shadows, neutral color temperature, product-grade illumination';
+    } else if (!useProfessionalLighting) {
+        lightingDescriptor = 'natural ambient lighting with imperfect falloff';
+    } else {
+        lightingDescriptor = lightingLabel;
+    }
+    mapped.lighting = lightingDescriptor;
+
+    const timeLightingNarrative = useProfessionalLighting
+        ? buildProLightingNarrative(timeLabel, lightingLabel)
+        : UGC_LIGHTING_NARRATIVE;
+
+    (mapped as any).timeLightingNarrative = timeLightingNarrative;
+    (mapped as any).timeLightingContext = timeLightingNarrative;
+
+    if (mapped.creationMode === 'lifestyle' && contentStyle === 'ugc') {
         delete (mapped as any).proLens;
         delete (mapped as any).proLightingRig;
         delete (mapped as any).proPostTreatment;
-
-        const lifestyleLightingBan = /(studio|ring light|three-point|beauty dish|controlled lighting|macro|flash photo)/i;
-        if (mapped.lighting && lifestyleLightingBan.test(mapped.lighting)) {
-            mapped.lighting = 'natural ambient lifestyle lighting with imperfect falloff';
-            (mapped as any).timeLightingContext = mapped.lighting;
-        }
     }
 
     // ========================================================================
@@ -724,7 +745,7 @@ export function mapLifestyleToPromptOptions(
     // CONTENT STYLE & CREATION INTENT
     // ========================================================================
     mapped.creationIntent = sceneState.creationIntent;
-    mapped.contentStyle = sceneState.creationIntent === 'ugc' && personIncluded ? 'ugc' : 'product';
+    mapped.contentStyle = contentStyle;
 
     // ========================================================================
     // SELFIE MODE (Restored Logic)

@@ -193,7 +193,10 @@ export class SceneNarrativeBuilder {
         const compositionModeStructural = (options as any).compositionModeStructural || '';
         const cameraDeviceSemantic = (options as any).cameraDeviceSemantic || '';
 
+        const timeLightingNarrative = (options as any).timeLightingNarrative || '';
+
         const parts = [
+            timeLightingNarrative ? `${timeLightingNarrative}` : '',
             creationModeStructural ? `Creation: ${creationModeStructural}.` : '',
             compositionModeStructural ? `Composition: ${compositionModeStructural}.` : '',
             cameraDeviceSemantic ? `Camera: ${cameraDeviceSemantic}.` : '',
