@@ -110,7 +110,10 @@ export class SceneNarrativeBuilder {
 
     private buildUgcRealMode(options: PromptOptions): string {
         if (options.realModeActive) {
-            return 'UGC Real Mode active. Phone-like framing. Subtle real-world imperfections.';
+            return [
+                'UGC Real Mode active. Phone-like framing. Subtle real-world imperfections.',
+                'This is raw, real user-generated content. Do not correct framing, lighting, posture, or composition. Allow awkward angles, uneven headroom, off-center subjects, partial cropping, and accidental framing. Lighting may be harsh, dim, mixed, or unbalanced, including shadows or color casts. Facial expressions should feel natural, tired, distracted, or mid-moment rather than posed or aspirational. The product may be held awkwardly, partially obscured, tilted, or off-axis. Minor motion blur, handheld shake, and casual instability are acceptable. Imperfections are intentional and must not be fixed. The final image should feel spontaneous, unplanned, and slightly broken, like a real moment captured without aesthetic intent.'
+            ].join(' ');
         }
 
         return 'UGC Real Mode disabled. No selfie perspective. No creator narrative.';
@@ -234,11 +237,6 @@ export class SceneNarrativeBuilder {
             );
         }
 
-        if (options.ugcRealModeActive) {
-            narrativeParts.push(
-                'This scene must feel raw, spontaneous, and unpolished. Do not correct framing, posture, lighting, or composition. Allow imperfect angles, uneven headroom, off-center subjects, partial cropping, and accidental framing. Lighting may be uneven, mixed in color temperature, or suboptimal, including harsh shadows or dim indoor light. Facial expressions should feel natural, tired, distracted, or mid-moment rather than posed or aspirational. Product handling may be awkward, partially obscured, tilted, or off-axis. Imperfections are intentional and should not be fixed. The image must look like a real, unplanned moment captured by a normal person, not a styled or optimized shot.'
-            );
-        }
 
         if (options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
             narrativeParts.push(
