@@ -65,6 +65,14 @@ const formatEnvironmentPhrase = (environmentText?: string): string => {
     return `in ${lower}`;
 };
 
+const HUMAN_REALISM_GUARD =
+    'The person looks like a real human, candid and imperfect, with natural skin texture, subtle asymmetry, and a lived-in environment. Nothing looks 3D, CGI, rendered, or studio-polished.';
+
+const shouldApplyHumanRealismGuard = (options: PromptOptions): boolean => {
+    const isNonUGC = !options.ugcRealModeActive && options.contentStyle !== 'ugc';
+    return isNonUGC && (options.creationMode === 'lifestyle' || options.formulationExpertEnabled);
+};
+
 export class SceneNarrativeBuilder {
     private productBuilder = new ProductBuilder();
     private clothingBuilder = new ClothingBuilder();

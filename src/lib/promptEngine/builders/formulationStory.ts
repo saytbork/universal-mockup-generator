@@ -35,16 +35,16 @@ export class FormulationStoryBuilder implements PromptBuilder {
         }
 
         const parts: string[] = [
-            'The person is presented as a real individual who worked on the formulation of the product, shown in an approachable and human way rather than as a staged professional.',
-            'Their expertise is implied through context and demeanor, not explicit authority cues.'
+            'The person is introduced as a real individual who worked on the formulation of the product, shown in an approachable, everyday setting instead of a staged production.',
+            'Their expertise is communicated through practical detail and natural posture rather than grand authority.'
         ];
 
         const roleLabel = story.expertRoleLabel || 'medical expert';
         parts.push(`The expert is described as a ${roleLabel}.`);
 
         const attireSentence = story.expertAttireDescription
-            ? `They are wearing ${story.expertAttireDescription}, keeping the uniform authentic and grounded.`
-            : 'They are wearing professional medical attire that feels real without excessive branding.';
+            ? `They wear ${story.expertAttireDescription} that stays true to real medical workwear without slick polish.`
+            : 'They wear practical medical attire that feels worn-in and ready for hands-on work.';
         parts.push(attireSentence);
 
         if (story.expertName) {
@@ -68,12 +68,12 @@ export class FormulationStoryBuilder implements PromptBuilder {
             const hint = LAB_VIBE_HINTS[story.labVibe];
             if (hint) {
                 parts.push(
-                    `Subtle background hints such as ${hint} may appear, but the space remains a lived-in environment—no sterile benches, white coats, or clinical staging.`
+                    `Subtle background hints such as ${hint} may appear, keeping the space cozy yet focused rather than sterile or theatrical.`
                 );
             }
         }
 
-        parts.push('No grand titles, no hero language; just an approachable expert who keeps the person-first focus.');
+        parts.push('No hero language or cinematic polish—just an approachable expert who keeps the person-first focus.');
 
         return parts.filter(Boolean).join(' ');
     }
