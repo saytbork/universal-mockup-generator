@@ -420,11 +420,19 @@ const SELFIE_MODE_OPTIONS = [
 const TIME_OF_DAY_OPTIONS = ['Morning', 'Midday', 'Evening', 'Night'];
 // LIGHTING_STYLE_OPTIONS removed in favor of imported LIGHTING_OPTIONS
 
-// SHOT TYPE - Simplified to 3 options
-const SHOT_TYPE_OPTIONS = ['Close', 'Medium', 'Wide'];
+// SHOT TYPE - Canonical professional set
+const SHOT_TYPE_OPTIONS = ['Extreme close-up', 'Close', 'Medium', 'Wide', 'Full body'];
 
-// CAMERA ANGLE - Simplified
-const CAMERA_ANGLE_OPTIONS = ['Eye level', 'Above', 'Below'];
+// CAMERA ANGLE - Canonical professional set
+const CAMERA_ANGLE_OPTIONS = [
+  'Eye level',
+  'Slightly above eye level',
+  'Slightly below eye level',
+  'High angle',
+  'Low angle',
+  'Top-down',
+  'Bottom-up'
+];
 
 // Product Interaction alias
 const PRODUCT_INTERACTION_OPTIONS = INTERACTION_OPTIONS;
@@ -561,7 +569,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
     // Camera
     shotType: 'Medium',
-    cameraType: 'Modern Smartphone',
+    cameraType: 'Smartphone rear camera (intentional, non-selfie use)',
     cameraAngle: 'Eye level',
     framing: 'Rule of thirds',
 
@@ -1264,122 +1272,147 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         </div>
       </AccordionSection >
 
-      <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-900/20">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-wider text-indigo-200">Custom Clothes</p>
-            <p className="text-[11px] text-gray-400">Optionally describe an outfit without uploading images.</p>
+      <AccordionSection
+        icon={Shirt}
+        title="Custom Clothes"
+        tooltip="Optionally describe an outfit without uploading images."
+        isOpen={openAccordionId === 'custom-clothes'}
+        onToggle={() => toggleSection('custom-clothes')}
+        isTouched={touchedSections.has('customClothes')}
+      >
+        <div className="space-y-4">
+          <div className="flex items-center justify-between rounded-lg border border-gray-700 bg-gray-900/40 px-3 py-2">
+            <div>
+              <p className="text-sm text-white">Enable outfit customization</p>
+              <p className="text-[11px] text-gray-400">Describe garments with text-only controls.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                updateValue('customClothesEnabled', !values.customClothesEnabled);
+                markSectionTouched('customClothes');
+              }}
+              className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${values.customClothesEnabled ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-gray-600 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+            >
+              {values.customClothesEnabled ? 'Disable' : 'Customize outfit'}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              updateValue('customClothesEnabled', !values.customClothesEnabled);
-              markSectionTouched('customClothes');
-            }}
-            className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${values.customClothesEnabled ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-gray-600 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
-          >
-            Customize outfit
-          </button>
+
+          {values.customClothesEnabled && (
+            <div className="space-y-3">
+              <div>
+                <label className="text-[11px] uppercase tracking-wider text-gray-400">Garment type</label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {CUSTOM_CLOTHES_GARMENTS.map(option => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => {
+                        updateValue('customClothesGarmentType', option);
+                        markSectionTouched('customClothes');
+                      }}
+                      className={getPillClass(values.customClothesGarmentType === option)}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] uppercase tracking-wider text-gray-400">Primary color</label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {CUSTOM_CLOTHES_COLORS.map(option => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => {
+                        updateValue('customClothesPrimaryColor', option);
+                        markSectionTouched('customClothes');
+                      }}
+                      className={getPillClass(values.customClothesPrimaryColor === option)}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] uppercase tracking-wider text-gray-400">Fit</label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {CUSTOM_CLOTHES_FITS.map(option => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => {
+                        updateValue('customClothesFit', option);
+                        markSectionTouched('customClothes');
+                      }}
+                      className={getPillClass(values.customClothesFit === option)}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] uppercase tracking-wider text-gray-400">Style</label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {CUSTOM_CLOTHES_STYLES.map(option => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => {
+                        updateValue('customClothesStyle', option);
+                        markSectionTouched('customClothes');
+                      }}
+                      className={getPillClass(values.customClothesStyle === option)}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] uppercase tracking-wider text-gray-400">Material</label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {CUSTOM_CLOTHES_MATERIALS.map(option => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => {
+                        updateValue('customClothesMaterial', option);
+                        markSectionTouched('customClothes');
+                      }}
+                      className={getPillClass(values.customClothesMaterial === option)}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] uppercase tracking-wider text-gray-400">Custom detail (optional)</label>
+                <input
+                  type="text"
+                  maxLength={100}
+                  value={values.customClothesDetail}
+                  onChange={(event) => {
+                    updateValue('customClothesDetail', event.target.value.replace(/[\r\n]/g, ''));
+                    markSectionTouched('customClothes');
+                  }}
+                  placeholder="small embroidered logo on the chest"
+                  className="w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
+            </div>
+          )}
         </div>
-        {values.customClothesEnabled && (
-          <div className="space-y-3">
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-gray-400">Garment type</label>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {CUSTOM_CLOTHES_GARMENTS.map(option => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => updateValue('customClothesGarmentType', option)}
-                    className={getPillClass(values.customClothesGarmentType === option)}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-gray-400">Primary color</label>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {CUSTOM_CLOTHES_COLORS.map(option => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => updateValue('customClothesPrimaryColor', option)}
-                    className={getPillClass(values.customClothesPrimaryColor === option)}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-gray-400">Fit</label>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {CUSTOM_CLOTHES_FITS.map(option => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => updateValue('customClothesFit', option)}
-                    className={getPillClass(values.customClothesFit === option)}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-gray-400">Style</label>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {CUSTOM_CLOTHES_STYLES.map(option => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => updateValue('customClothesStyle', option)}
-                    className={getPillClass(values.customClothesStyle === option)}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-gray-400">Material</label>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {CUSTOM_CLOTHES_MATERIALS.map(option => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => updateValue('customClothesMaterial', option)}
-                    className={getPillClass(values.customClothesMaterial === option)}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-gray-400">Custom detail (optional)</label>
-              <input
-                type="text"
-                maxLength={100}
-                value={values.customClothesDetail}
-                onChange={(event) => {
-                  updateValue('customClothesDetail', event.target.value.replace(/[\r\n]/g, ''));
-                  markSectionTouched('customClothes');
-                }}
-                placeholder="small embroidered logo on the chest"
-                className="w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-              />
-            </div>
-          </div>
-        )}
-      </div>
+      </AccordionSection>
 
       <AccordionSection
         icon={Layers}

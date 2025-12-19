@@ -137,16 +137,11 @@ export const parameterMap: ParameterMap = {
   },
 
   cameraType: {
-    "Modern Smartphone": "captured with a consumer-grade handheld camera, imperfect focus and exposure",
-    "Front Selfie Cam": "captured using the front selfie camera perspective with subtle wide-angle distortion",
-    "Sony Handycam Hi8": "vintage Sony Hi8 camcorder aesthetic with softer focus, warmer color cast, period-appropriate grain",
-    "Disposable Film Camera": "shot on a disposable 35mm film camera with strong flash and grain, casual snapshot feel",
-    "Polaroid OneStep": "shot on an instant Polaroid camera with soft focus and vignette",
-    "DSLR/Mirrorless": "shot on a professional DSLR/Mirrorless camera with a shallow depth of field",
-    "Laptop Webcam": "shot on a built-in laptop webcam with low-light noise",
-    "Cinema Camera Rig": "captured on a cinema camera rig with PL glass, 6K sensors, and stabilized movement",
-    "Medium Format Studio Camera": "shot on a medium format studio camera tethered to Capture One for razor-sharp product detail",
-    "Sony FX3": "captured on a Sony FX3 cinema camera with S-Cinetone color science"
+    "Smartphone rear camera (intentional, non-selfie use)": "captured with the phone’s rear camera for deliberate framing, stabilized handheld realism, and subtle computational processing",
+    "DSLR or mirrorless camera": "captured with a professional DSLR or mirrorless body using high-quality optics and shallow depth of field",
+    "Cinema camera": "captured on a cinema camera rig with smooth motion, filmic color science, and controlled dynamic range",
+    "Studio camera (medium format)": "captured on a medium-format studio system with tethered capture for ultra-sharp commercial detail",
+    "Laptop webcam (professional context only)": "captured through a laptop webcam in an intentional professional context such as a remote consultation"
   },
 
   cameraDistance: {

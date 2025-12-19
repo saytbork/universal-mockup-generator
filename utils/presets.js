@@ -74,12 +74,9 @@ export const LIGHTING_PRESETS = {
 };
 
 export const CAMERA_PRESETS = {
-  'Modern Smartphone': 'modern smartphone camera perspective with handheld realism',
-  'Front Selfie Cam': 'front camera selfie angle with slight distortion',
-  'DSLR or Mirrorless': 'professional camera clarity and shallow depth of field',
-  'Cinema Camera': 'cinematic depth and smooth blur for premium shots',
-  'Laptop Webcam': 'flat webcam lighting and straightforward framing',
-  'Sony FX3': 'cinema hybrid camera look with clean detail',
-  Polaroid: 'instant film look with subtle imperfection',
-  'Film Camera': 'film grain and analog texture',
+  'Smartphone rear camera (intentional, non-selfie use)': 'modern smartphone rear camera perspective with stabilized handheld realism',
+  'DSLR or mirrorless camera': 'professional interchangeable-lens clarity with shallow depth of field',
+  'Cinema camera': 'cinematic depth, smooth blur, and controlled tonal response',
+  'Studio camera (medium format)': 'tethered studio capture with ultra-sharp detail',
+  'Laptop webcam (professional context only)': 'flat webcam lighting and straightforward framing for remote sessions',
 };

@@ -777,16 +777,26 @@ export const CREATOR_PRESETS: CreatorPreset[] = [
 
 // Essential 5-option set representing true UGC shooting styles.
 export const CAMERA_OPTIONS: Option[] = [
-  { label: 'Modern Smartphone', value: 'shot on a recent smartphone with computational HDR' },
-  { label: 'Front Selfie Cam', value: 'shot on a front-facing selfie camera with arm’s length framing' },
-  { label: 'Sony Handycam Hi8', value: 'shot on a vintage Sony Handycam Hi8 with interlaced video look and washed colors' },
-  { label: 'Disposable Film Camera', value: 'shot on a disposable 35mm film camera with strong flash and grain' },
-  { label: 'Polaroid OneStep', value: 'shot on an instant Polaroid camera with soft focus and vignette' },
-  { label: 'DSLR/Mirrorless', value: 'shot on a professional DSLR/Mirrorless camera with a shallow depth of field' },
-  { label: 'Laptop Webcam', value: 'shot on a built-in laptop webcam with low-light noise' },
-  { label: 'Cinema Camera Rig', value: 'captured on a cinema camera rig with PL glass, 6K sensors, and stabilized movement' },
-  { label: 'Medium Format Studio Camera', value: 'shot on a medium format studio camera tethered to Capture One for razor-sharp product detail' },
-  { label: 'Sony FX3', value: 'captured on a Sony FX3 cinema camera with S-Cinetone color science' },
+  {
+    label: 'Smartphone rear camera (intentional, non-selfie use)',
+    value: 'captured with the phone’s rear camera for deliberate, stabilized framing without selfie distortion',
+  },
+  {
+    label: 'DSLR or mirrorless camera',
+    value: 'captured with a professional DSLR or mirrorless body using high-quality optics and shallow depth of field',
+  },
+  {
+    label: 'Cinema camera',
+    value: 'captured on a cinema camera with controlled rigs, smooth movement, and filmic color science',
+  },
+  {
+    label: 'Studio camera (medium format)',
+    value: 'captured on a medium format studio system for ultra-sharp detail and precise tonal control',
+  },
+  {
+    label: 'Laptop webcam (professional context only)',
+    value: 'captured via a laptop webcam in an intentional professional context such as a remote consultation',
+  },
 ];
 
 export type HeroPosePreset = {
@@ -901,7 +911,7 @@ export const HERO_PERSON_PRESETS: HeroPosePreset[] = [
       productInteraction: getOptionValueByLabel(PRODUCT_INTERACTION_OPTIONS, 'Showing to Camera', 2),
       productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Hero Close-Up (Primer plano)', 0),
       perspective: getOptionValueByLabel(PERSPECTIVE_OPTIONS, 'Close-Up', 4),
-      camera: getOptionValueByLabel(CAMERA_OPTIONS, 'Modern Smartphone', 0),
+      camera: getOptionValueByLabel(CAMERA_OPTIONS, 'Smartphone rear camera (intentional, non-selfie use)', 0),
     },
     promptCue:
       ' Have the creator lean in and gently hug the supplement jar against their cheek while keeping eyes on the camera. Crop tightly so the face and product fill most of the frame with soft hands supporting the label.',
@@ -915,7 +925,7 @@ export const HERO_PERSON_PRESETS: HeroPosePreset[] = [
       productInteraction: getOptionValueByLabel(PRODUCT_INTERACTION_OPTIONS, 'Showing to Camera', 2),
       productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Hero Close-Up (Primer plano)', 0),
       perspective: getOptionValueByLabel(PERSPECTIVE_OPTIONS, 'Eye-Level', 0),
-      camera: getOptionValueByLabel(CAMERA_OPTIONS, 'Front Selfie Cam', 1),
+      camera: getOptionValueByLabel(CAMERA_OPTIONS, 'Smartphone rear camera (intentional, non-selfie use)', 0),
     },
     promptCue:
       ' Pose them with one arm reaching straight toward the lens while the other relaxes at their side so the jar hovers closest to viewers, keeping fingers around the lid without covering the logo.',
@@ -929,7 +939,7 @@ export const HERO_PERSON_PRESETS: HeroPosePreset[] = [
       productInteraction: getOptionValueByLabel(PRODUCT_INTERACTION_OPTIONS, 'Holding', 0),
       productPlane: getOptionValueByLabel(PRODUCT_PLANE_OPTIONS, 'Mid-Ground Focus (Segundo plano)', 1),
       perspective: getOptionValueByLabel(PERSPECTIVE_OPTIONS, 'High Angle', 2),
-      camera: getOptionValueByLabel(CAMERA_OPTIONS, 'DSLR/Mirrorless', 5),
+      camera: getOptionValueByLabel(CAMERA_OPTIONS, 'DSLR or mirrorless camera', 1),
       setting: getOptionValueByLabel(SETTING_OPTIONS, 'Garden Party', 12),
       environmentOrder: getOptionValueByLabel(ENVIRONMENT_ORDER_OPTIONS, 'Casual', 2),
     },

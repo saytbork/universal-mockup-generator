@@ -169,34 +169,35 @@ const buildFormulationStoryOptions = (sceneState: Step3Values): FormulationStory
  * CAMERA DEVICE → Physical capture characteristics and lens behavior
  */
 const CAMERA_DEVICE_SEMANTIC_MAP: Record<string, string> = {
-    'Modern Smartphone': 'captured with modern smartphone camera, slight computational sharpening, natural perspective compression',
-    'Front Selfie Cam': 'front-facing selfie camera perspective with subtle wide-angle distortion near frame edges, typical selfie framing',
-    'Sony Handycam Hi8': 'vintage Sony Hi8 camcorder aesthetic with softer focus, warmer color cast, period-appropriate grain',
-    'Disposable Film Camera': 'disposable film camera aesthetic with visible grain, slight color shift, flash if indoor',
-    'Polaroid OneStep': 'Polaroid instant camera aesthetic with soft dreamy tones, slight vignette, characteristic color palette',
-    'DSLR/Mirrorless': 'professional DSLR quality with shallow depth of field, creamy bokeh in background, precise focus',
-    'Laptop Webcam': 'laptop webcam quality with flat front lighting, eye-level angle, typical video call framing',
-    'Cinema Camera Rig': 'cinema camera quality with film-like color grading, wide dynamic range, cinematic depth',
-    'Medium Format Studio Camera': 'medium format studio camera with exceptional detail, subtle depth, commercial quality',
-    'Sony FX3': 'Sony FX3 cinema camera with modern filmic look, smooth gradations, professional video quality'
+    'Smartphone rear camera (intentional, non-selfie use)': 'captured with a modern smartphone’s rear camera, stabilized grip, intentional framing, no selfie distortion',
+    'DSLR or mirrorless camera': 'captured with a professional DSLR or mirrorless body using premium glass, shallow depth of field, and crisp subject separation',
+    'Cinema camera': 'captured on a cinema camera with controlled rigs, smooth motion, and filmic dynamic range',
+    'Studio camera (medium format)': 'captured on a medium-format studio system with tethered capture for ultra-sharp detail and tonal accuracy',
+    'Laptop webcam (professional context only)': 'captured through a laptop webcam in a professional setting, flat lighting, slight compression, intentional composition'
 };
 
 /**
  * SHOT TYPE → Physical camera framing (SIMPLIFIED)
  */
 const SHOT_TYPE_SEMANTIC_MAP: Record<string, string> = {
-    'Close': 'close-up framing showing face and upper shoulders, tight composition focused on facial details',
-    'Medium': 'medium shot framing from waist up, showing upper body, arms, and face with balanced negative space',
-    'Wide': 'wide shot showing full body and surrounding environment, complete spatial context'
+    'Extreme close-up': 'extreme close-up framing emphasizing fine detail such as skin texture, fingertips, or specific product features',
+    'Close': 'tight close-up showing face and upper shoulders with minimal background, focused on expression and product proximity',
+    'Medium': 'medium framing from mid-torso up, balanced view of face, hands, and immediate environment',
+    'Wide': 'wide framing capturing the person within their surroundings, showing more of the room or setting for context',
+    'Full body': 'full-body framing from head to toe, including ground contact and environmental elements around the subject'
 };
 
 /**
  * CAMERA ANGLE → Physical camera position (SIMPLIFIED)
  */
 const CAMERA_ANGLE_SEMANTIC_MAP: Record<string, string> = {
-    'Eye level': 'camera positioned at natural eye level creating neutral perspective, subject appears at equal height to viewer',
-    'Above': 'camera positioned above eye level angled downward, subject appears approachable and slightly smaller',
-    'Below': 'camera positioned below eye level angled upward, subject appears more powerful and dominant'
+    'Eye level': 'camera positioned at natural eye level creating a neutral, balanced perspective',
+    'Slightly above eye level': 'camera positioned just above eye level, angled gently downward for an approachable view',
+    'Slightly below eye level': 'camera positioned just below eye level, angled subtly upward for added presence',
+    'High angle': 'camera noticeably above the subject, angled down to emphasize vulnerability or environment',
+    'Low angle': 'camera noticeably below the subject, angled up to emphasize stature or drama',
+    'Top-down': 'camera positioned directly overhead, looking straight down for flat-lay or tabletop compositions',
+    'Bottom-up': 'camera positioned low near ground, aiming sharply upward for dramatic height and foreground impact'
 };
 
 /**
@@ -529,9 +530,16 @@ export function mapLifestyleToPromptOptions(
         if (sceneState.eyeColor) mapped.personDetails.eyeColor = sceneState.eyeColor;
 
         // HAIR
-        if (sceneState.hairLength) mapped.personDetails.hairLength = sceneState.hairLength;
-        if (sceneState.hairTexture) mapped.personDetails.hairTexture = sceneState.hairTexture;
-        if (sceneState.hairColor) mapped.personDetails.hairColor = sceneState.hairColor;
+        const hairState = sceneState.hairState || 'natural';
+        if (hairState === 'bald') {
+            mapped.personDetails.hairLength = 'bald / clean-shaven head';
+            delete mapped.personDetails.hairTexture;
+            delete mapped.personDetails.hairColor;
+        } else {
+            if (sceneState.hairLength) mapped.personDetails.hairLength = sceneState.hairLength;
+            if (sceneState.hairTexture) mapped.personDetails.hairTexture = sceneState.hairTexture;
+            if (sceneState.hairColor) mapped.personDetails.hairColor = sceneState.hairColor;
+        }
         // ... (other hair props mapped normally)
     }
 
@@ -645,8 +653,9 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
 
     // Camera Device Type
-    const cameraDevice = (sceneState as any).cameraType || 'Modern Smartphone';
-    const cameraDeviceSemantic = CAMERA_DEVICE_SEMANTIC_MAP[cameraDevice] || CAMERA_DEVICE_SEMANTIC_MAP['Modern Smartphone'];
+    const defaultCameraLabel = 'Smartphone rear camera (intentional, non-selfie use)';
+    const cameraDevice = (sceneState as any).cameraType || defaultCameraLabel;
+    const cameraDeviceSemantic = CAMERA_DEVICE_SEMANTIC_MAP[cameraDevice] || CAMERA_DEVICE_SEMANTIC_MAP[defaultCameraLabel];
     const effectiveCameraSemantic = isEnvironmentSceneIntent
         ? 'Handheld smartphone perspective capturing real spatial depth, emphasizing the surrounding environment.'
         : cameraDeviceSemantic;
@@ -831,10 +840,15 @@ export function mapLifestyleToPromptOptions(
     // Rule: UGC Real Mode overrides everything
     if (sceneState.ugcRealMode) {
         // Block cinema cameras if they slipped through
-        const proCameras = ['Sony FX3', 'Cinema Camera Rig', 'Medium Format Studio Camera'];
+        const proCameras = [
+            'DSLR or mirrorless camera',
+            'Cinema camera',
+            'Studio camera (medium format)',
+            'Laptop webcam (professional context only)'
+        ];
         if (proCameras.includes(mapped.camera || '')) {
             console.log('[SAFETY] Downgrading Pro Camera in UGC Mode');
-            mapped.camera = 'Modern Smartphone';
+            mapped.camera = defaultCameraLabel;
         }
     }
 
