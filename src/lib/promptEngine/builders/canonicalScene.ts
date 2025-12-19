@@ -5,6 +5,10 @@ import { buildCamera } from './camera';
 import { buildEnvironment } from './environment';
 import { buildLighting } from './lighting';
 import { FormulationStoryBuilder } from './formulationStory';
+import {
+  UGC_CAPTURE_BASE_SENTENCE,
+  buildUGCCaptureLayerSentences,
+} from '../ugcCaptureSituation';
 
 export interface SceneNarrativeSections {
     creationIntent: string;
@@ -285,6 +289,11 @@ export class SceneNarrativeBuilder {
             narrativeParts.push(
                 'Lighting is professionally designed and intentionally controlled. The scene uses studio-grade or well-managed natural lighting with balanced exposure, consistent color temperature, and soft, dimensional shadows. Illumination enhances clarity, depth, and material detail without harsh overhead light, uneven shadows, or mixed lighting sources. Exclude all phone-based lighting, on-camera flash, bathroom or ceiling lights, low-quality ambient light, or any casual, uncontrolled illumination commonly associated with user-generated content.'
             );
+        }
+
+        if (options.ugcRealModeActive && options.ugcCaptureSituation) {
+            narrativeParts.push(UGC_CAPTURE_BASE_SENTENCE);
+            narrativeParts.push(...buildUGCCaptureLayerSentences(options.ugcCaptureSituation));
         }
 
         console.log('[SCENE NARRATIVE] Environment/Lighting/Mood:', narrativeParts.join(' ').substring(0, 200) + '...');

@@ -63,3 +63,78 @@ export function buildUGCCaptureSituationText(situationId: UGCCaptureSituationId)
   }
   return text;
 }
+
+export const UGC_CAPTURE_BASE_SENTENCE =
+  'Casual handheld smartphone capture with imperfect framing, natural human mistakes, non-staged, real-world selfie behavior.';
+
+const UGC_CAPTURE_LAYER_SENTENCES: Record<UGCCaptureSituationId, { category: UGCCaptureCategory; sentence: string }> = {
+  'lying-bed-phone-above-face': {
+    category: 'body',
+    sentence: 'The person is lying in bed, holding the phone above their face.',
+  },
+  'phone-resting-on-chest': {
+    category: 'body',
+    sentence: 'The phone rests loosely on the person’s chest while recording.',
+  },
+  'phone-too-low-chin': {
+    category: 'body',
+    sentence: 'The phone is held too low, making the chin more prominent.',
+  },
+  'phone-too-high-forehead': {
+    category: 'body',
+    sentence: 'The phone is held too high, emphasizing the forehead.',
+  },
+  'walking-handheld-motion': {
+    category: 'motion',
+    sentence: 'The person is walking while recording, causing natural handheld motion.',
+  },
+  'standing-slight-handshake': {
+    category: 'motion',
+    sentence: 'The person is standing still with slight natural hand shake.',
+  },
+  'sitting-casually-tilted': {
+    category: 'motion',
+    sentence: 'The person is sitting casually, with the phone slightly tilted.',
+  },
+  'face-partial-cutoff': {
+    category: 'framing',
+    sentence: 'Part of the face is unintentionally cut off by the frame.',
+  },
+  'finger-invading-lens': {
+    category: 'framing',
+    sentence: 'A finger partially invades the lens.',
+  },
+  'accidental-off-center': {
+    category: 'framing',
+    sentence: 'The subject is accidentally off-center.',
+  },
+  'over-the-shoulder-obstructed': {
+    category: 'framing',
+    sentence: 'An arm partially blocks the frame over the shoulder.',
+  },
+  'mirror-shot-partial': {
+    category: 'context',
+    sentence: 'The shot is taken in a mirror with a partial reflection visible.',
+  },
+  'bathroom-selfie-overhead': {
+    category: 'context',
+    sentence: 'The selfie is taken in a bathroom under harsh overhead lighting.',
+  },
+  'car-interior-awkward': {
+    category: 'context',
+    sentence: 'The shot is taken inside a car at an awkward angle.',
+  },
+};
+
+export function buildUGCCaptureLayerSentences(
+  situationId?: UGCCaptureSituationId
+): string[] {
+  if (!situationId) {
+    return [];
+  }
+  const entry = UGC_CAPTURE_LAYER_SENTENCES[situationId];
+  if (!entry) {
+    return [];
+  }
+  return [entry.sentence];
+}
