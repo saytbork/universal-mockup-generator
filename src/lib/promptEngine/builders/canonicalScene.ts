@@ -106,8 +106,11 @@ export class SceneNarrativeBuilder {
     }
 
     private buildUgcRealMode(options: PromptOptions): string {
-        if (options.realModeActive) {
-            return 'UGC Real Mode active. Phone-like framing. Subtle real-world imperfections.';
+        const isActive = !!options.ugcRealModeActive || !!options.realModeActive;
+        if (isActive) {
+            return options.ugcCaptureSituation
+                ? 'UGC Real Mode active with physical capture override. Phone-like framing with imperfect handheld geometry.'
+                : 'UGC Real Mode active. Maintain handheld framing and everyday imperfections.';
         }
 
         return 'UGC Real Mode disabled. No selfie perspective. No creator narrative.';
@@ -157,24 +160,30 @@ export class SceneNarrativeBuilder {
             placementCamera: (options as any).placementCamera
         });
         const parts: string[] = [];
+        const ugcActive = !!options.ugcRealModeActive;
+        const age = options.personDetails?.age || 0;
 
         if (cameraText) {
             parts.push(`Camera: ${cameraText}.`);
         }
-        if (options.cameraAngle) {
+        if (!ugcActive && options.cameraAngle) {
             parts.push(`Camera angle: ${options.cameraAngle}.`);
         }
-        if (options.perspective) {
+        if (!ugcActive && options.perspective) {
             parts.push(`Framing: ${options.perspective}.`);
         }
-        if (options.cameraShot) {
+        if (!ugcActive && options.cameraShot) {
             parts.push(`Shot type: ${options.cameraShot}.`);
         }
         if (constraints) {
             parts.push(constraints);
         }
 
-        return parts.join(' ');
+        let framingBlock = parts.join(' ');
+        if (age >= 85) {
+            framingBlock = this.stripSymmetryLanguage(framingBlock);
+        }
+        return framingBlock;
     }
 
     private buildEnvironmentLightingMood(options: PromptOptions): string {
@@ -187,6 +196,9 @@ export class SceneNarrativeBuilder {
             lighting: options.lighting,
             sceneLighting: (options as any).sceneLighting
         });
+        const age = options.personDetails?.age || 0;
+        const isAge80Plus = age >= 80;
+        const isAge85Plus = age >= 85;
 
         // Inject structural rules from mapper
         const creationModeStructural = (options as any).creationModeStructural || '';
@@ -204,7 +216,53 @@ export class SceneNarrativeBuilder {
             lightingText ? `Lighting: ${lightingText}.` : ''
         ].filter(Boolean);
 
-        console.log('[SCENE NARRATIVE] Environment/Lighting/Mood:', parts.join(' ').substring(0, 200) + '...');
-        return parts.join(' ');
+        if (isAge80Plus) {
+            parts.push(
+                'Lighting stays uneven, mixed, and imperfect—only available ambient sources with uncontrolled falloff.'
+            );
+        }
+
+        let narrative = parts.join(' ');
+        narrative = this.enforceUnevenLightingLanguage(narrative, age);
+        if (isAge85Plus) {
+            narrative = this.stripSymmetryLanguage(narrative);
+        }
+
+        console.log('[SCENE NARRATIVE] Environment/Lighting/Mood:', narrative.substring(0, 200) + '...');
+        return narrative;
+    }
+
+    private enforceUnevenLightingLanguage(block: string, age: number): string {
+        if (age < 80 || !block) {
+            return block;
+        }
+        const replacements: Array<[RegExp, string]> = [
+            [/\bgraduated illumination\b/gi, 'improvised illumination'],
+            [/\bbalanced illumination\b/gi, 'imperfect illumination'],
+            [/\bbalanced lighting\b/gi, 'imperfect lighting'],
+            [/\bbalanced\b/gi, 'off-kilter'],
+            [/\bcontrolled\b/gi, 'uncontrolled'],
+            [/\baesthetic\b/gi, 'plain'],
+            [/\bpolished\b/gi, 'raw']
+        ];
+        let sanitized = block;
+        replacements.forEach(([regex, replacement]) => {
+            sanitized = sanitized.replace(regex, replacement);
+        });
+        if (age >= 85) {
+            sanitized = sanitized.replace(/\b[Ee]ven\b/g, 'irregular');
+        }
+        return sanitized;
+    }
+
+    private stripSymmetryLanguage(block: string): string {
+        if (!block) {
+            return block;
+        }
+        return block
+            .replace(/\b[Bb]alanced\b/g, 'off-kilter')
+            .replace(/\b[Ee]ven\b/g, 'irregular')
+            .replace(/\b[Ss]ymmetrical\b/g, 'lopsided')
+            .replace(/\b[Ss]ymmetry\b/g, 'lopsided layout');
     }
 }

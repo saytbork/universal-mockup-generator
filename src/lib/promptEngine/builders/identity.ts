@@ -147,15 +147,21 @@ Avoid youthful facial proportions, smooth skin, or middle-aged appearance.
             }
 
             // Hair
-            if (personDetails?.hairLength || personDetails?.hairTexture || personDetails?.hairColor) {
+            const hasHairDetails = personDetails?.hairLength || personDetails?.hairTexture || personDetails?.hairColor;
+            if (hasHairDetails) {
                 const hairParts = [
                     personDetails?.hairLength?.toLowerCase(),
                     personDetails?.hairTexture?.toLowerCase(),
                     personDetails?.hairColor?.toLowerCase()
                 ].filter(Boolean);
+                if (age >= 85 && !personDetails?.hairColor) {
+                    hairParts.push('gray and white dominant');
+                }
                 if (hairParts.length > 0) {
                     identityParts.push(sanitizePart(`${hairParts.join(' ')} hair`));
                 }
+            } else if (age >= 85) {
+                identityParts.push('natural hair with gray and white dominance, visible regrowth allowed');
             }
 
             // Join core identity

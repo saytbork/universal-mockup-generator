@@ -164,21 +164,6 @@ const CAMERA_DEVICE_SEMANTIC_MAP: Record<string, string> = {
 };
 
 /**
- * ETHNICITY → Physical facial structure and feature descriptors
- * Maps to observable physical characteristics, not cultural labels
- */
-const ETHNICITY_FACIAL_MAP: Record<string, string> = {
-    'Black / African descent': 'person of African descent with characteristic facial bone structure, fuller lips, broader nose bridge, textured hair',
-    'Latino / Hispanic': 'person of Latino heritage with warm olive to brown skin tones, varied facial features typical of Latin American ancestry',
-    'White / European descent': 'person of European descent with characteristic facial structure, varied skin tones from fair to olive',
-    'Asian': 'person of East Asian or Southeast Asian descent with characteristic facial features including epicanthic fold, varied skin tones',
-    'Middle Eastern': 'person of Middle Eastern descent with characteristic facial structure, olive to brown skin tones, defined features',
-    'South Asian': 'person of South Asian descent with characteristic facial structure, medium to deep brown skin tones',
-    'Mixed': 'person of mixed ethnic heritage with blended facial features from multiple ancestries',
-    'Non-specific': 'person with ambiguous ethnic presentation'
-};
-
-/**
  * SHOT TYPE → Physical camera framing (SIMPLIFIED)
  */
 const SHOT_TYPE_SEMANTIC_MAP: Record<string, string> = {
@@ -477,8 +462,7 @@ export function mapLifestyleToPromptOptions(
         mapped.personDetails.age = sceneState.age;
         if (sceneState.gender) mapped.personDetails.gender = sceneState.gender;
         if (sceneState.ethnicity) {
-            const eth = ETHNICITY_FACIAL_MAP[sceneState.ethnicity] || sceneState.ethnicity;
-            mapped.personDetails.ethnicity = eth;
+            mapped.personDetails.ethnicity = sceneState.ethnicity;
         }
 
         // POSE (Manual if no Override)
