@@ -49,6 +49,11 @@ function buildCustomClothesDescriptor(sceneState: Step3Values): CustomClothes | 
         return undefined;
     }
 
+    if (sceneState.ugcRealMode) {
+        framingOverride = null;
+        delete mapped.perspective;
+    }
+
     const fields = {
         garmentType: sceneState.customClothesGarmentType?.trim() || undefined,
         primaryColor: sceneState.customClothesPrimaryColor?.trim() || undefined,
@@ -336,6 +341,68 @@ const INTERACTION_SEMANTIC_MAP: Record<string, string> = {
     'Placing on Surface': 'hands lowering product onto surface, fingers releasing grip, natural placement motion'
 };
 
+const normalizeSingleSelectLayer = (entries: string[] | undefined | null, fieldName: string): string[] => {
+    if (!Array.isArray(entries)) {
+        return [];
+    }
+    const filtered = entries.filter(Boolean);
+    if (filtered.length <= 1) {
+        return filtered;
+    }
+    console.error(`[MAP] Invalid multi-select detected for ${fieldName}; using the first entry only.`, filtered);
+    return [filtered[0]];
+};
+
+const PROPPED_SURFACE_ID = 'propped-surface';
+const SURFACE_OPERATOR_ID = 'surface-staged';
+const DEFAULT_HANDHELD_CAPTURE = 'torso-level-handheld';
+const DEFAULT_HANDHELD_OPERATOR = 'self-held';
+const DEFAULT_HAIR_COLOR = 'Dark brown';
+
+const appendOnce = (base: string, addition: string): string => {
+    if (!addition) return base;
+    if (base.includes(addition)) return base;
+    const trimmed = base.trim();
+    const needsPeriod = trimmed && !/[.!?]$/.test(trimmed);
+    const prefix = needsPeriod ? `${trimmed}.` : trimmed;
+    return `${prefix ? `${prefix} ` : ''}${addition}`.trim();
+};
+
+const enforceElderLightingProfile = (text: string, age: number): string => {
+    if (!text || age < 80) {
+        return text;
+    }
+
+    let result = text
+        .replace(/graduated illumination/gi, 'patchy illumination with uneven falloff')
+        .replace(/\bcontrolled\b/gi, 'imperfect')
+        .replace(/\baesthetic\b/gi, 'imperfect');
+
+    if (age >= 85) {
+        result = result
+            .replace(/\bbalanced\b/gi, 'lopsided')
+            .replace(/\beven\b/gi, 'irregular');
+    } else {
+        result = result
+            .replace(/\bbalanced\b/gi, 'uneven')
+            .replace(/\beven\b/gi, 'uneven');
+    }
+
+    result = appendOnce(
+        result,
+        'Lighting stays uneven, mixed-temperature, and imperfect like window spill colliding with household lamps.'
+    );
+
+    if (age >= 85) {
+        result = appendOnce(
+            result,
+            'No balanced or even cues—illumination feels lopsided, off-kilter, and asymmetrical.'
+        );
+    }
+
+    return result.trim();
+};
+
 /**
  * CREATION MODE → Structural composition rules
  */
@@ -465,6 +532,12 @@ export function mapLifestyleToPromptOptions(
     const isCompositionModeEcommerceBlank = sceneState.compositionMode === 'Ecommerce Blank Space';
     const isEcommerceBlankSpaceActive =
         isEcommerceSceneIntent || isCreationModeEcommerceBlank || isCompositionModeEcommerceBlank;
+    const isUGCRealMode = !!sceneState.ugcRealMode;
+    const personAge = sceneState.age || 0;
+    const is80Plus = isUGCRealMode && personAge >= 80;
+    const is85Plus = isUGCRealMode && personAge >= 85;
+    const hairColorSelection = (sceneState.hairColor || '').trim();
+    const hasExplicitHairColor = Boolean(hairColorSelection && hairColorSelection !== DEFAULT_HAIR_COLOR);
 
 
     // ========================================================================
@@ -586,12 +659,23 @@ export function mapLifestyleToPromptOptions(
         } else {
             if (sceneState.hairLength) mapped.personDetails.hairLength = sceneState.hairLength;
             if (sceneState.hairTexture) mapped.personDetails.hairTexture = sceneState.hairTexture;
-            if (sceneState.hairColor) mapped.personDetails.hairColor = sceneState.hairColor;
+            const hairColorValue = sceneState.hairColor?.trim();
+            if (hairColorValue) {
+                let resolvedHairColor = sceneState.hairColor;
+                if (is85Plus && !hasExplicitHairColor) {
+                    resolvedHairColor =
+                        'gray-white hair with dominant salt-and-pepper variation, natural softness, gentle frizz';
+                }
+                mapped.personDetails.hairColor = resolvedHairColor;
+            } else if (is85Plus) {
+                mapped.personDetails.hairColor =
+                    'gray-white hair with dominant salt-and-pepper variation, natural softness, gentle frizz';
+            }
         }
         // ... (other hair props mapped normally)
     }
 
-    const isUGCActive = !!sceneState.ugcRealMode;
+    const isUGCActive = isUGCRealMode;
     const isFormulationActive = !!sceneState.formulationStoryEnabled;
 
     if (!isUGCActive) {
@@ -619,7 +703,7 @@ export function mapLifestyleToPromptOptions(
     }
 
     // FRAMING/PERSPECTIVE (Manual if no Override)
-    if (!framingOverride && sceneState.framing) {
+    if (!sceneState.ugcRealMode && !framingOverride && sceneState.framing) {
         mapped.perspective = FRAMING_SEMANTIC_MAP[sceneState.framing] || sceneState.framing;
     }
 
@@ -696,20 +780,65 @@ export function mapLifestyleToPromptOptions(
         mapped.ugcCaptureSituation = null;
     }
 
-    mapped.ugcCaptureStyleBase = sceneState.ugcCaptureStyleBase;
-    mapped.ugcCameraOperator = sceneState.ugcCameraOperator;
-    mapped.ugcBodyPhonePosition = sceneState.ugcBodyPhonePosition;
-    mapped.ugcMotionStability = sceneState.ugcMotionStability;
-    mapped.ugcFramingImperfections = sceneState.ugcFramingImperfections;
-    mapped.ugcAwkwardContext = sceneState.ugcAwkwardContext;
+    let normalizedCaptureBase = normalizeSingleSelectLayer(sceneState.ugcCaptureStyleBase, 'ugcCaptureStyleBase');
+    let normalizedCameraOperator = normalizeSingleSelectLayer(sceneState.ugcCameraOperator, 'ugcCameraOperator');
+    const normalizedBodyPhone = Array.isArray(sceneState.ugcBodyPhonePosition)
+        ? sceneState.ugcBodyPhonePosition.filter(Boolean)
+        : [];
+    const normalizedMotion = Array.isArray(sceneState.ugcMotionStability)
+        ? sceneState.ugcMotionStability.filter(Boolean)
+        : [];
+    const normalizedFraming = Array.isArray(sceneState.ugcFramingImperfections)
+        ? sceneState.ugcFramingImperfections.filter(Boolean)
+        : [];
+    const normalizedAwkward = Array.isArray(sceneState.ugcAwkwardContext)
+        ? sceneState.ugcAwkwardContext.filter(Boolean)
+        : [];
+
+    const productInteractionLabel = (sceneState.productInteraction || '').trim();
+    const captureBaseSelection = normalizedCaptureBase[0];
+    const operatorSelection = normalizedCameraOperator[0];
+    const hasProppedSurface = captureBaseSelection === PROPPED_SURFACE_ID;
+    const isHoldingProduct = productInteractionLabel === 'Holding';
+
+    if (hasProppedSurface && isHoldingProduct) {
+        console.warn('[MAP] Blocking propped-surface when product interaction is Holding.');
+        normalizedCaptureBase =
+            is85Plus || isHoldingProduct ? [DEFAULT_HANDHELD_CAPTURE] : [];
+    }
+
+    if (is85Plus && hasProppedSurface) {
+        console.warn(`[MAP] Forcing handheld capture for age ${personAge}.`);
+        normalizedCaptureBase = [DEFAULT_HANDHELD_CAPTURE];
+    }
+
+    if (is85Plus && normalizedCaptureBase.length === 0) {
+        console.log('[MAP] No capture base provided for 85+ UGC request. Forcing handheld default.');
+        normalizedCaptureBase = [DEFAULT_HANDHELD_CAPTURE];
+    }
+
+    if (
+        is85Plus &&
+        (!operatorSelection || operatorSelection === SURFACE_OPERATOR_ID)
+    ) {
+        console.log('[MAP] Age 85+ requires handheld operator. Forcing self-held camera operator.');
+        normalizedCameraOperator = [DEFAULT_HANDHELD_OPERATOR];
+    }
+
+    mapped.ugcCaptureStyleBase = normalizedCaptureBase;
+    mapped.ugcCameraOperator = normalizedCameraOperator;
+    mapped.ugcBodyPhonePosition = normalizedBodyPhone;
+    mapped.ugcMotionStability = normalizedMotion;
+    mapped.ugcFramingImperfections = normalizedFraming;
+    mapped.ugcAwkwardContext = normalizedAwkward;
 
     const ugcLayerSet: UGCRealModeLayerSet = {
-        captureBase: sceneState.ugcCaptureStyleBase,
-        cameraOperator: sceneState.ugcCameraOperator,
-        bodyPhonePosition: sceneState.ugcBodyPhonePosition,
-        motionStability: sceneState.ugcMotionStability,
-        framingImperfections: sceneState.ugcFramingImperfections,
-        awkwardContext: sceneState.ugcAwkwardContext
+        captureBase: normalizedCaptureBase,
+        cameraOperator: normalizedCameraOperator,
+        bodyPhonePosition: normalizedBodyPhone,
+        motionStability: normalizedMotion,
+        framingImperfections: normalizedFraming,
+        awkwardContext: normalizedAwkward
     };
     mapped.ugcRealModeLayers = ugcLayerSet;
 
@@ -733,23 +862,29 @@ export function mapLifestyleToPromptOptions(
     mapped.cameraDeviceSemantic = effectiveCameraSemantic;
     console.log('[MAP] camera:', cameraDevice, '→', effectiveCameraSemantic);
 
-    // Shot Type
-    const shotTypeSemantic = SHOT_TYPE_SEMANTIC_MAP[sceneState.shotType] || SHOT_TYPE_SEMANTIC_MAP['Medium'];
-    mapped.cameraShot = shotTypeSemantic as any;
-    console.log('[MAP] shotType:', sceneState.shotType, '→', shotTypeSemantic);
+    if (!sceneState.ugcRealMode) {
+        // Shot Type
+        const shotTypeSemantic = SHOT_TYPE_SEMANTIC_MAP[sceneState.shotType] || SHOT_TYPE_SEMANTIC_MAP['Medium'];
+        mapped.cameraShot = shotTypeSemantic as any;
+        console.log('[MAP] shotType:', sceneState.shotType, '→', shotTypeSemantic);
 
-    // Camera Angle
-    const cameraAngleSemantic = CAMERA_ANGLE_SEMANTIC_MAP[sceneState.cameraAngle] || CAMERA_ANGLE_SEMANTIC_MAP['Eye level'];
-    mapped.cameraAngle = cameraAngleSemantic as any;
-    console.log('[MAP] cameraAngle:', sceneState.cameraAngle, '→', cameraAngleSemantic);
+        // Camera Angle
+        const cameraAngleSemantic = CAMERA_ANGLE_SEMANTIC_MAP[sceneState.cameraAngle] || CAMERA_ANGLE_SEMANTIC_MAP['Eye level'];
+        mapped.cameraAngle = cameraAngleSemantic as any;
+        console.log('[MAP] cameraAngle:', sceneState.cameraAngle, '→', cameraAngleSemantic);
 
-    // Framing
-    // This was already handled by PRIORITY 3/4, but if not set, use default
-    if (!mapped.perspective) {
-        const framingSemantic = FRAMING_SEMANTIC_MAP[sceneState.framing] || FRAMING_SEMANTIC_MAP['Centered'];
-        mapped.perspective = framingSemantic;
+        // Framing
+        // This was already handled by PRIORITY 3/4, but if not set, use default
+        if (!mapped.perspective) {
+            const framingSemantic = FRAMING_SEMANTIC_MAP[sceneState.framing] || FRAMING_SEMANTIC_MAP['Centered'];
+            mapped.perspective = framingSemantic;
+        }
+        console.log('[MAP] framing:', sceneState.framing, '→', mapped.perspective);
+    } else {
+        delete mapped.cameraShot;
+        delete mapped.cameraAngle;
+        delete mapped.perspective;
     }
-    console.log('[MAP] framing:', sceneState.framing, '→', mapped.perspective);
 
     // ========================================================================
     // ENVIRONMENT → Scene Context (Restored Full Logic)
@@ -825,6 +960,11 @@ export function mapLifestyleToPromptOptions(
         mapped.lighting = `${timeSemantic}, ${lightingSemantic}`;
         (mapped as any).timeLightingContext = mapped.lighting;
         console.log('[MAP] lighting:', sceneState.timeOfDay, '+', sceneState.lightingStyle, '→', mapped.lighting);
+    }
+
+    if (is80Plus && mapped.lighting) {
+        mapped.lighting = enforceElderLightingProfile(mapped.lighting, personAge);
+        (mapped as any).timeLightingContext = mapped.lighting;
     }
 
     mapped.ecommerceBlankSpaceMode = isEcommerceBlankSpaceActive;

@@ -17,6 +17,9 @@ const ECOM_SIDE_TEXT: Record<string, string> = {
     center: 'Product centered with equal copy space on both sides.',
     right: 'Product anchored along the right edge, leaving intentional copy space to the left.'
 };
+const PROPPED_SURFACE_CAPTURE_ID = 'propped-surface';
+const SURFACE_OPERATOR_ID = 'surface-staged';
+const WALKING_MOTION_ID = 'walking-motion';
 
 export class UGCRealModeBuilder implements PromptBuilder {
     private injectLayer(parts: string[], label: string, entries?: string[]) {
@@ -29,6 +32,12 @@ export class UGCRealModeBuilder implements PromptBuilder {
         });
     }
 
+    private assertSingleEntry(label: string, entries?: string[]) {
+        if (entries && entries.length > 1) {
+            throw new Error(`[UGC REAL MODE] ${label} received multiple selections (${entries.join(', ')}). This layer is single-select only.`);
+        }
+    }
+
     build(options: PromptOptions): string {
         const { ugcRealModeActive, personDetails, personIncluded } = options;
 
@@ -36,12 +45,33 @@ export class UGCRealModeBuilder implements PromptBuilder {
             return '';
         }
 
+        const layers = options.ugcRealModeLayers ?? {
+            captureBase: options.ugcCaptureStyleBase,
+            cameraOperator: options.ugcCameraOperator,
+            bodyPhonePosition: options.ugcBodyPhonePosition,
+            motionStability: options.ugcMotionStability,
+            framingImperfections: options.ugcFramingImperfections,
+            awkwardContext: options.ugcAwkwardContext
+        };
+
+        this.assertSingleEntry('UGC capture style', layers.captureBase);
+        this.assertSingleEntry('Camera & operator', layers.cameraOperator);
+
+        const captureBase = layers.captureBase?.[0];
+        const cameraOperator = layers.cameraOperator?.[0];
+        const hasPhysicalCaptureLayer = Boolean(captureBase || cameraOperator);
+        const isProppedSurfaceCapture = captureBase === PROPPED_SURFACE_CAPTURE_ID;
+        const isSurfaceOperator = cameraOperator === SURFACE_OPERATOR_ID;
+        const includeHandheldConstraints = hasPhysicalCaptureLayer && !isProppedSurfaceCapture && !isSurfaceOperator;
+        const includesWalkingMotion = (layers.motionStability || []).includes(WALKING_MOTION_ID);
+
         const overrideTarget = options as any;
-        overrideTarget.cameraShot = 'SELFIE_CLOSE';
-        delete overrideTarget.perspective;
-        delete overrideTarget.personPose;
-        delete overrideTarget.pose;
-        delete overrideTarget.mediumShot;
+        if (hasPhysicalCaptureLayer) {
+            delete overrideTarget.perspective;
+            delete overrideTarget.personPose;
+            delete overrideTarget.pose;
+            delete overrideTarget.mediumShot;
+        }
         console.log('[UGC REAL MODE] Building with layered overrides');
 
         const parts: string[] = [];
@@ -56,7 +86,16 @@ Smartphone-quality aesthetic with computational photography characteristics.
         `.trim().replace(/\s+/g, ' '));
 
         if (personIncluded) {
-            parts.push(`
+            if (isProppedSurfaceCapture || isSurfaceOperator) {
+                parts.push(`
+HUMAN-FIRST COMPOSITION (MANDATORY):
+The person still anchors the scene, but the phone may sit propped on a countertop, towel stack, or improvised support.
+Hands can reposition or steady the product, yet there is no requirement to keep gripping it.
+Allow the product to rest on the same surface or adjacent prop—surface placement is intentional and expected.
+Keep the setup grounded in believable household clutter, never a floating or hero-framed product.
+                `.trim().replace(/\s+/g, ' '));
+            } else {
+                parts.push(`
 HUMAN-FIRST COMPOSITION (MANDATORY):
 The person is the main subject of the image.
 Person takes visual priority over product.
@@ -64,7 +103,8 @@ Person MUST be holding the product with their hand - natural grip, relaxed finge
 NO table placement. NO surface placement. NO floating product.
 NO hero product framing. NO editorial product showcase.
 Frame the scene as if captured by the person or a friend with a smartphone.
-            `.trim().replace(/\s+/g, ' '));
+                `.trim().replace(/\s+/g, ' '));
+            }
         }
 
         const age = personDetails?.age || 0;
@@ -119,15 +159,6 @@ REQUIRED UGC CHARACTERISTICS:
             }
         }
 
-        const layers = options.ugcRealModeLayers ?? {
-            captureBase: options.ugcCaptureStyleBase,
-            cameraOperator: options.ugcCameraOperator,
-            bodyPhonePosition: options.ugcBodyPhonePosition,
-            motionStability: options.ugcMotionStability,
-            framingImperfections: options.ugcFramingImperfections,
-            awkwardContext: options.ugcAwkwardContext
-        };
-
         this.injectLayer(parts, 'UGC capture style', layers.captureBase);
         this.injectLayer(parts, 'Camera & operator', layers.cameraOperator);
         this.injectLayer(parts, 'Body + phone position', layers.bodyPhonePosition);
@@ -135,9 +166,11 @@ REQUIRED UGC CHARACTERISTICS:
         this.injectLayer(parts, 'Framing imperfections', layers.framingImperfections);
         this.injectLayer(parts, 'Awkward context', layers.awkwardContext);
 
-        parts.push(
-            'All camera angle, shot type, framing, and composition rules are invalid. The selected capture layers fully define the geometry of the image.'
-        );
+        if (hasPhysicalCaptureLayer) {
+            parts.push(
+                'All camera angle, shot type, framing, and composition rules are invalid. The selected capture layers fully define the geometry of the image.'
+            );
+        }
 
         const constraintsText = `
 This image is a real smartphone capture.
@@ -146,7 +179,13 @@ The arm holding the phone must never be visible.
 The hand holding the product may be visible with a small portion of forearm.
 Only one arm may be partially visible, and only to support the product.
 `.trim();
-        parts.push(constraintsText);
+        if (includeHandheldConstraints) {
+            parts.push(constraintsText);
+        } else if (isProppedSurfaceCapture || isSurfaceOperator) {
+            parts.push(
+                'This is a stationary, surface-supported smartphone capture. The phone remains propped on a counter or leaning object, wobbling slightly between breaths. No human arm enters frame to hold the phone; treat it like a self-timer resting shot.'
+            );
+        }
 
         const humanText = `
 The person must look like a real human captured by a smartphone.
@@ -172,16 +211,30 @@ These optical flaws must replace any attempt to add heavy skin texture or polish
         `.trim().replace(/\s+/g, ' ');
         parts.push(smartphoneFailureText);
 
+        if (age >= 80) {
+            parts.push(
+                'AGE 80+ LIGHTING OVERRIDE: Turn off any notion of graduated or balanced illumination. Lighting must stay uneven, mixed-temperature, and imperfect so age realism outweighs aesthetic polish.'
+            );
+        }
+
+        if (age >= 85) {
+            parts.push(
+                'AGE 85+ GEOMETRY OVERRIDE: Capture stays handheld-only with asymmetrical framing cues. Hair should lean gray/white unless the request explicitly specifies another color, and no balanced/even composition language may appear.'
+            );
+        }
+
         const walkingText = `
 Walking, handheld motion is a selfie perspective while walking.
 Slight camera instability and imperfect crop.
 Smartphone capture with the arm holding the phone remaining completely outside the frame.
 `.trim();
-        parts.push(walkingText);
+        if (includeHandheldConstraints && includesWalkingMotion) {
+            parts.push(walkingText);
+        }
 
-        if (options.ugcRealModeActive) {
+        if (options.ugcRealModeActive && hasPhysicalCaptureLayer) {
             const prompt = options as any;
-            prompt.cameraShot = 'SELFIE_CLOSE';
+            delete prompt.cameraShot;
             delete prompt.cameraAngle;
             delete prompt.framing;
             delete prompt.perspective;

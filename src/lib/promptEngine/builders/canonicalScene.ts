@@ -210,17 +210,18 @@ export class SceneNarrativeBuilder {
             placementCamera: (options as any).placementCamera
         });
         const parts: string[] = [];
+        const suppressCameraDescriptors = !!options.ugcRealModeActive;
 
         if (cameraText) {
             parts.push(`Camera: ${cameraText}.`);
         }
-        if (options.cameraAngle) {
+        if (!suppressCameraDescriptors && options.cameraAngle) {
             parts.push(`Camera angle: ${options.cameraAngle}.`);
         }
-        if (options.perspective) {
+        if (!suppressCameraDescriptors && options.perspective) {
             parts.push(`Framing: ${options.perspective}.`);
         }
-        if (options.cameraShot) {
+        if (!suppressCameraDescriptors && options.cameraShot) {
             parts.push(`Shot type: ${options.cameraShot}.`);
         }
         if (constraints) {
@@ -259,7 +260,9 @@ export class SceneNarrativeBuilder {
         });
         const lightingText = buildLighting({
             lighting: options.lighting,
-            sceneLighting: (options as any).sceneLighting
+            sceneLighting: (options as any).sceneLighting,
+            personDetails: options.personDetails,
+            ugcRealMode: options.ugcRealModeActive
         });
 
         // Inject structural rules from mapper

@@ -562,6 +562,18 @@ const UGC_LAYER_SECTIONS: UGCLayerSection[] = [
 ];
 
 const UGC_LAYER_FIELDS: UGCLayerField[] = UGC_LAYER_SECTIONS.map(section => section.field);
+const SINGLE_SELECT_UGC_FIELDS: UGCLayerField[] = ['ugcCaptureStyleBase', 'ugcCameraOperator'];
+const SINGLE_SELECT_UGC_FIELD_SET = new Set<UGCLayerField>(SINGLE_SELECT_UGC_FIELDS);
+
+const enforceSingleSelectLayers = (draft: Step3Values) => {
+  SINGLE_SELECT_UGC_FIELDS.forEach(field => {
+    const current = draft[field];
+    if (Array.isArray(current) && current.length > 1) {
+      console.warn(`[UGC] Invalid multi-select detected for ${field}; collapsing to first entry`, current);
+      draft[field] = [current[0]] as any;
+    }
+  });
+};
 
 // ENVIRONMENT OPTIONS - EXPANDED per spec
 const ENVIRONMENT_INDOOR = [
@@ -826,6 +838,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     // Output
     aspectRatio: '1:1 (Square)',
   };
+  enforceSingleSelectLayers(initialValues);
 
   const [values, setValues] = useState<Step3Values>(initialValues);
 
@@ -859,6 +872,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         newValues.creatorPreset = null;
       }
 
+      enforceSingleSelectLayers(newValues);
+
       return newValues;
     });
   }, [values, hasModelReference]);
@@ -866,9 +881,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const toggleUGCLayerSelection = useCallback(
     (field: UGCLayerField, optionId: string) => {
       const current = (values[field] as string[]) || [];
-      const next = current.includes(optionId)
-        ? current.filter(item => item !== optionId)
-        : [...current, optionId];
+      let next: string[];
+      if (SINGLE_SELECT_UGC_FIELD_SET.has(field)) {
+        next = current[0] === optionId ? [] : [optionId];
+      } else {
+        next = current.includes(optionId)
+          ? current.filter(item => item !== optionId)
+          : [...current, optionId];
+      }
       updateValue(field, next as Step3Values[typeof field]);
       markSectionTouched('ugc');
     },
@@ -913,6 +933,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         UGC_LAYER_FIELDS.forEach(layer => {
           (newValues as any)[layer] = [];
         });
+        enforceSingleSelectLayers(newValues);
         return newValues;
       });
     }
@@ -940,20 +961,25 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // Scene Intent Handler: Enable Environment Mode
   const enableEnvironment = useCallback(() => {
     console.log('[SCENE INTENT] Switching to Environment mode');
-    setValues(prev => ({
+    setValues(prev => {
+      const next = {
       ...prev,
       sceneIntent: 'environment',
       compositionMode: '',           // Clear ecommerce
       ugcRealMode: true,             // Enable environment mode
       sidePlacement: SIDE_PLACEMENT_OPTIONS[1], // Reset placement
       ecommerceBackgroundColor: '',
-    }));
+    };
+      enforceSingleSelectLayers(next);
+      return next;
+    });
   }, []);
 
   // Scene Intent Handler: Enable Ecommerce Mode
   const enableEcommerce = useCallback(() => {
     console.log('[SCENE INTENT] Switching to Ecommerce mode');
-    setValues(prev => ({
+    setValues(prev => {
+      const next = {
       ...prev,
       sceneIntent: 'ecommerce',
       ugcRealMode: false,            // Disable environment mode
@@ -964,7 +990,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       ugcMotionStability: [],
       ugcFramingImperfections: [],
       ugcAwkwardContext: []
-    }));
+    };
+      enforceSingleSelectLayers(next);
+      return next;
+    });
     setOpenUgcLayerId(null);
   }, []);
 

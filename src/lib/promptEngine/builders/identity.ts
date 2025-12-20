@@ -84,7 +84,7 @@ Skin carries micro wrinkles around the mouth, eyes, and neck with authentic sag,
 
             // Ethnicity - inject verbatim
             if (personDetails?.ethnicity && personDetails.ethnicity !== 'Prefer not to specify') {
-                identityParts.push(sanitizePart(personDetails.ethnicity));
+                identityParts.push(personDetails.ethnicity);
             }
 
             // Body Type - use the exact selection
