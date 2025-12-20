@@ -9,12 +9,7 @@ import {
   CAMERA_OPTIONS,
   CAMERA_ANGLE_OPTIONS as CONSTANT_CAMERA_ANGLE_OPTIONS // Use constant if needed or stick to local if it matches
 } from '../../constants';
-import {
-  UGCCaptureSituationOptions,
-  type UGCCaptureSituationId,
-  type UGCCaptureSituationOption,
-  type UGCCaptureCategory
-} from '../lib/promptEngine/ugcCaptureSituation';
+import type { UGCCaptureSituationId } from '../lib/promptEngine/ugcCaptureSituation';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -366,32 +361,207 @@ const CUSTOM_CLOTHES_FITS = ['regular', 'slim', 'oversized'];
 const CUSTOM_CLOTHES_STYLES = ['casual', 'streetwear', 'business casual', 'sporty'];
 const CUSTOM_CLOTHES_MATERIALS = ['cotton', 'denim', 'knit', 'wool'];
 
-const UGC_CAPTURE_ORDER: UGCCaptureCategory[] = ['body', 'motion', 'framing', 'context'];
+type UGCLayerField =
+  | 'ugcCaptureStyleBase'
+  | 'ugcCameraOperator'
+  | 'ugcBodyPhonePosition'
+  | 'ugcMotionStability'
+  | 'ugcFramingImperfections'
+  | 'ugcAwkwardContext';
 
-const UGC_CAPTURE_CATEGORY_LABELS: Record<UGCCaptureCategory, string> = {
-  body: 'Body & Phone Position',
-  motion: 'Motion & Stability',
-  framing: 'Framing Imperfections',
-  context: 'Contextual Awkwardness'
-};
+interface UGCLayerOption {
+  id: string;
+  label: string;
+  detail: string;
+}
 
-const UGC_CAPTURE_CATEGORY_DESCRIPTIONS: Record<UGCCaptureCategory, string> = {
-  body: 'Select how the phone and body are positioned during the shot.',
-  motion: 'Capture the stabilization or wobble while the person moves.',
-  framing: 'Highlight the imperfect framing glitches common in real selfies.',
-  context: 'Add distracting elements or settings that feel raw and unplanned.'
-};
+interface UGCLayerSection {
+  field: UGCLayerField;
+  title: string;
+  tooltip: string;
+  description: string;
+  icon: React.ElementType;
+  options: UGCLayerOption[];
+}
 
-const UGC_CAPTURE_OPTIONS_BY_CATEGORY: Record<UGCCaptureCategory, UGCCaptureSituationOption[]> = {
-  body: [],
-  motion: [],
-  framing: [],
-  context: []
-};
+const UGC_LAYER_SECTIONS: UGCLayerSection[] = [
+  {
+    field: 'ugcCaptureStyleBase',
+    title: 'Camera & Capture Style',
+    tooltip: 'Define how the phone is held and framed at the base level.',
+    description: 'Describe the overall capture geometry and angle before motion or environment are added.',
+    icon: Camera,
+    options: [
+      {
+        id: 'torso-level-handheld',
+        label: 'Torso-level handheld',
+        detail: 'Phone held at torso height, slight downward tilt, natural grip.'
+      },
+      {
+        id: 'high-angle',
+        label: 'High-angle vantage',
+        detail: 'Phone elevated above the head, looking down across shoulders.'
+      },
+      {
+        id: 'close-face',
+        label: 'Close face framing',
+        detail: 'Phone tight on the face with shoulders and chest cropped.'
+      },
+      {
+        id: 'propped-surface',
+        label: 'Propped on surface',
+        detail: 'Phone resting on a stack/towel, wobbles slightly with each breath.'
+      }
+    ]
+  },
+  {
+    field: 'ugcCameraOperator',
+    title: 'Camera & Operator',
+    tooltip: 'Specify who handles the phone and visible operator cues.',
+    description: 'Capture whether the creator holds the phone, a friend does, or it is visible in a mirror.',
+    icon: Hand,
+    options: [
+      {
+        id: 'self-held',
+        label: 'Self-held back camera',
+        detail: 'Creator grips the phone with fingers visible near the glass.'
+      },
+      {
+        id: 'friend-held',
+        label: 'Phone held by another',
+        detail: 'Someone else holds the phone while the creator interacts.'
+      },
+      {
+        id: 'mirror-shot',
+        label: 'Mirror reflection',
+        detail: 'Phone is captured inside a mirror, doubling the frame.'
+      },
+      {
+        id: 'surface-staged',
+        label: 'Phone on surface',
+        detail: 'Phone leans against objects or a shelf, capturing a hands-off shot.'
+      }
+    ]
+  },
+  {
+    field: 'ugcBodyPhonePosition',
+    title: 'Body & Phone Position',
+    tooltip: 'Capture how the body and phone relate spatially.',
+    description: 'Clarify whether arms are extended, phones rest on chests, or angles peek over shoulders.',
+    icon: Layout,
+    options: [
+      {
+        id: 'arm-extended',
+        label: 'Arm extended forward',
+        detail: 'Arm straight out, product held at arm’s length.'
+      },
+      {
+        id: 'chest-rest',
+        label: 'Phone near chest',
+        detail: 'Phone rests close to the chest or collarbone.'
+      },
+      {
+        id: 'shoulder-peek',
+        label: 'Over-shoulder peek',
+        detail: 'Phone peeks over a shoulder, face partially turned away.'
+      },
+      {
+        id: 'tilted-angle',
+        label: 'Tilted wrist angle',
+        detail: 'Phone tilts downward or upward from a wrist twist.'
+      }
+    ]
+  },
+  {
+    field: 'ugcMotionStability',
+    title: 'Motion & Stability',
+    tooltip: 'Describe how much movement the capture contains.',
+    description: 'Detail walking, shaking, or steady holds to guide the prompt toward real-world shake.',
+    icon: Film,
+    options: [
+      {
+        id: 'walking-motion',
+        label: 'Walking handheld',
+        detail: 'Natural bounce from footfall while keeping phone moving.'
+      },
+      {
+        id: 'hand-shake',
+        label: 'Slight hand shake',
+        detail: 'Subtle tremor from tired arms or fatigue.'
+      },
+      {
+        id: 'static-drift',
+        label: 'Static with drift',
+        detail: 'Mostly still but the frame slowly drifts or tilts.'
+      },
+      {
+        id: 'tilt-shift',
+        label: 'Tilted camera drift',
+        detail: 'Phone tilts and shifts while capturing, not locked in place.'
+      }
+    ]
+  },
+  {
+    field: 'ugcFramingImperfections',
+    title: 'Framing Imperfections',
+    tooltip: 'Highlight intentional framing mistakes.',
+    description: 'Select the common flaws that keep the shot feeling raw.',
+    icon: Rotate3d,
+    options: [
+      {
+        id: 'partial-face-cut',
+        label: 'Partial face cutoff',
+        detail: 'Top or bottom of the face is cropped by the frame edges.'
+      },
+      {
+        id: 'off-center',
+        label: 'Off-center subject',
+        detail: 'Subject leans toward one side, leaving empty space elsewhere.'
+      },
+      {
+        id: 'finger-lens',
+        label: 'Finger invading lens',
+        detail: 'Phone-holding fingers partially obscure the lens.'
+      },
+      {
+        id: 'tight-headroom',
+        label: 'Tight headroom',
+        detail: 'Very little space above the head, pushing the face to the edge.'
+      }
+    ]
+  },
+  {
+    field: 'ugcAwkwardContext',
+    title: 'Awkward Context',
+    tooltip: 'Add real-world environmental quirks.',
+    description: 'Select the background or setting that makes the capture feel lived-in.',
+    icon: Building2,
+    options: [
+      {
+        id: 'bathroom-set',
+        label: 'Bathroom sink/mirror',
+        detail: 'Bathroom surfaces, towels, or mirror reflections are visible.'
+      },
+      {
+        id: 'car-interior',
+        label: 'Car interior',
+        detail: 'Seatbelt, dashboard, or windshield reflections creep into frame.'
+      },
+      {
+        id: 'bedroom-corner',
+        label: 'Bedroom or bed',
+        detail: 'Pillows, sheets, or bedside objects appear near the creator.'
+      },
+      {
+        id: 'cluttered-desk',
+        label: 'Desk or cluttered table',
+        detail: 'Messy workspace, snacks, cables, or packaging crowd the edges.'
+      }
+    ]
+  }
+];
 
-UGCCaptureSituationOptions.forEach(option => {
-  UGC_CAPTURE_OPTIONS_BY_CATEGORY[option.category].push(option);
-});
+const UGC_LAYER_FIELDS: UGCLayerField[] = UGC_LAYER_SECTIONS.map(section => section.field);
 
 // ENVIRONMENT OPTIONS - EXPANDED per spec
 const ENVIRONMENT_INDOOR = [
@@ -420,20 +590,6 @@ const SCENE_ORDER_CHAOS_OPTIONS: Step3Values['sceneOrderChaos'][] = [
   'Messy',
   'Chaotic',
   'Randomized Chaos'
-];
-
-// SELFIE MODE - Unified Exclusive Enum
-const SELFIE_MODE_OPTIONS = [
-  "Front camera, arm's length",
-  "Front camera, close face",
-  "Front camera, upper body",
-  "Mirror selfie",
-  "Back camera handheld",
-  "Third-person phone shot",
-  "Casual angled selfie",
-  "Friend holding phone",
-  "Table propped phone",
-  "Laptop webcam"
 ];
 
 // TIME & LIGHTING - per final spec
@@ -550,6 +706,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const [isPro, setIsPro] = useState(false);
   const [sceneMode, setSceneMode] = useState<'ugc' | 'product'>(isProductMode ? 'product' : 'ugc');
   const [openAccordionId, setOpenAccordionId] = useState<string | null>(isProductMode ? 'product-setup' : 'creator');
+  const [openUgcLayerId, setOpenUgcLayerId] = useState<UGCLayerField | null>(null);
   const [touchedSections, setTouchedSections] = useState<Set<string>>(new Set());
   const initialValues: Step3Values = {
     // Creator/Person
@@ -691,7 +848,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       const newValues = { ...prev, [key]: value };
 
       if (key === 'ugcRealMode' && value === false) {
-        newValues.ugcCaptureSituation = null;
+        UGC_LAYER_FIELDS.forEach(layer => {
+          (newValues as any)[layer] = [];
+        });
       }
 
       // SAFETY RULE: If hasModelReference is true, force UGC off and clear creator
@@ -703,6 +862,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       return newValues;
     });
   }, [values, hasModelReference]);
+
+  const toggleUGCLayerSelection = useCallback(
+    (field: UGCLayerField, optionId: string) => {
+      const current = (values[field] as string[]) || [];
+      const next = current.includes(optionId)
+        ? current.filter(item => item !== optionId)
+        : [...current, optionId];
+      updateValue(field, next as Step3Values[typeof field]);
+      markSectionTouched('ugc');
+    },
+    [values, updateValue]
+  );
 
   const toggleBooleanFlag = <K extends keyof Step3Values>(key: K) => {
     const current = values[key];
@@ -728,24 +899,30 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
   useEffect(() => {
     if (onCanGenerateChange) {
-      const canGenerate = !(values.ugcRealMode && !values.ugcCaptureSituation);
-      onCanGenerateChange(canGenerate);
+      onCanGenerateChange(true);
     }
-  }, [onCanGenerateChange, values.ugcCaptureSituation, values.ugcRealMode]);
+  }, [onCanGenerateChange]);
 
   const isPersonDisabled = values.noPerson;
 
   // Initial Safety Check for hasModelReference
   useEffect(() => {
     if (hasModelReference && (values.ugcRealMode || values.creatorPreset)) {
-      setValues(prev => ({
-        ...prev,
-        ugcRealMode: false,
-        creatorPreset: null,
-        ugcCaptureSituation: null
-      }));
+      setValues(prev => {
+        const newValues = { ...prev, ugcRealMode: false, creatorPreset: null };
+        UGC_LAYER_FIELDS.forEach(layer => {
+          (newValues as any)[layer] = [];
+        });
+        return newValues;
+      });
     }
   }, [hasModelReference, values.ugcRealMode, values.creatorPreset]);
+
+  useEffect(() => {
+    if (!values.ugcRealMode) {
+      setOpenUgcLayerId(null);
+    }
+  }, [values.ugcRealMode]);
 
   // ============================================================================
   // SCENE INTENT - SINGLE SOURCE OF TRUTH
@@ -780,10 +957,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       ...prev,
       sceneIntent: 'ecommerce',
       ugcRealMode: false,            // Disable environment mode
-      selfieMode: 'None',            // Clear UGC-specific values
       customEnvironment: '',         // Clear custom environment
-      ugcCaptureSituation: null
+      ugcCaptureStyleBase: [],
+      ugcCameraOperator: [],
+      ugcBodyPhonePosition: [],
+      ugcMotionStability: [],
+      ugcFramingImperfections: [],
+      ugcAwkwardContext: []
     }));
+    setOpenUgcLayerId(null);
   }, []);
 
   // HARD RULE: Custom Environment → switches to Environment intent
@@ -842,12 +1024,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       updateValue('ugcRealMode', false);
     }
 
-    // Auto-clear selfie type
-    if (values.selfieMode && values.selfieMode !== 'None') {
-      console.log('[PRODUCT MODE] Clearing selfie mode');
-      updateValue('selfieMode', 'None');
-    }
-
     // Set creation intent to product
     if (values.creationIntent !== 'product') {
       console.log('[PRODUCT MODE] Setting creationIntent = product');
@@ -856,7 +1032,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   }, [
     isProductMode,
     values.ugcRealMode,
-    values.selfieMode,
     values.noPerson,
     values.creationIntent,
     updateValue
@@ -871,26 +1046,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       updateValue('ugcRealMode', false);
     }
 
-    if (values.ugcCaptureSituation) {
-      updateValue('ugcCaptureSituation', null);
-    }
-
-    if (values.selfieMode && values.selfieMode !== 'None') {
-      updateValue('selfieMode', 'None');
-    }
-
     if (values.heroPersona) {
       updateValue('heroPersona', '');
     }
-  }, [
-    values.formulationStoryEnabled,
-    values.ugcRealMode,
-    values.ugcCaptureSituation,
-    values.selfieMode,
-    values.noPerson,
-    values.heroPersona,
-    updateValue
-  ]);
+
+    UGC_LAYER_FIELDS.forEach(layer => {
+      updateValue(layer, []);
+    });
+  }, [values.formulationStoryEnabled, values.ugcRealMode, values.heroPersona, updateValue]);
 
   useEffect(() => {
     const shouldDisablePerson = isProductMode || values.formulationStoryEnabled;
@@ -1174,12 +1337,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   type="button"
                   role="switch"
                   aria-checked={values.ugcRealMode}
-                  onClick={() => {
-                const newValue = !values.ugcRealMode;
-                updateValue('ugcRealMode', newValue);
-                if (!newValue) {
-                  updateValue('selfieMode', 'None');
-                } else {
+                onClick={() => {
+              const newValue = !values.ugcRealMode;
+              updateValue('ugcRealMode', newValue);
+               if (newValue) {
                   updateValue('formulationStoryEnabled', false);
                   updateValue('facialExpression', 'Soft Smile');
                   updateValue('eyeDirection', 'Looking at camera');
@@ -1193,72 +1354,41 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
             {values.ugcRealMode && (
                 <>
-                  {/* UGC CAPTURE SITUATION */}
-                  <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-                    <div>
-                      <p className="text-xs uppercase tracking-wider text-indigo-200">UGC Capture Style</p>
-                      <p className="text-[11px] text-gray-400 mt-1">
-                        Casual handheld smartphone capture, imperfect framing, natural human mistakes, non-staged.
-                      </p>
-                    </div>
-                {UGC_CAPTURE_ORDER.map(category => (
-                  <div key={category} className="space-y-2">
-                    <div>
-                      <p className="text-[11px] uppercase tracking-[0.3em] text-gray-400">
-                        {UGC_CAPTURE_CATEGORY_LABELS[category]}
-                      </p>
-                      <p className="text-[10px] text-gray-500">{UGC_CAPTURE_CATEGORY_DESCRIPTIONS[category]}</p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {UGC_CAPTURE_OPTIONS_BY_CATEGORY[category].map(option => (
-                        <button
-                          key={option.id}
-                          type="button"
-                          onClick={() => {
-                            updateValue('ugcCaptureSituation', option.id);
-                            markSectionTouched('ugc');
-                          }}
-                          className={getPillClass(values.ugcCaptureSituation === option.id)}
+                  <div className="space-y-4">
+                    {UGC_LAYER_SECTIONS.map(section => {
+                      const currentSelections = (values[section.field] as string[]) || [];
+                      return (
+                        <AccordionSection
+                          key={section.field}
+                          icon={section.icon}
+                          title={section.title}
+                          tooltip={section.tooltip}
+                          isOpen={openUgcLayerId === section.field}
+                          onToggle={() =>
+                            setOpenUgcLayerId(prev => (prev === section.field ? null : section.field))
+                          }
+                          isTouched={touchedSections.has('ugc')}
+                          isActive={values.ugcRealMode}
                         >
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
+                          <p className="text-xs text-gray-400">{section.description}</p>
+                          <div className="mt-3 flex flex-wrap gap-3">
+                            {section.options.map(option => (
+                              <div key={option.id} className="flex flex-col gap-1 max-w-[220px]">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleUGCLayerSelection(section.field, option.id)}
+                                  className={getPillClass(currentSelections.includes(option.id))}
+                                >
+                                  {option.label}
+                                </button>
+                                <p className="text-[10px] text-gray-500">{option.detail}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </AccordionSection>
+                      );
+                    })}
                   </div>
-                ))}
-                {!values.ugcCaptureSituation && (
-                  <p className="text-[11px] text-rose-300">Please choose a real-life capture situation to continue.</p>
-                )}
-              </div>
-
-              {!hasModelReference && (
-                <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-                  <div>
-                    <label className="text-xs uppercase tracking-wider text-indigo-300">Selfie Mode</label>
-                    <p className="text-[10px] text-gray-400">Exclusive capture styles</p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => updateValue('selfieMode', 'None')}
-                      className={getPillClass(values.selfieMode === 'None' || !values.selfieMode)}
-                    >
-                      None
-                    </button>
-                    {SELFIE_MODE_OPTIONS.map(mode => (
-                      <button
-                        key={mode}
-                        type="button"
-                        onClick={() => updateValue('selfieMode', mode)}
-                        className={getPillClass(values.selfieMode === mode)}
-                      >
-                        {mode}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
                 </>
               )}
 

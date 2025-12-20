@@ -5142,16 +5142,10 @@ If the model attempts to create a scene or environment, override it and force a 
                 {/* STEP 3 (Scene Builder): col-1, rows-2-5 (scrolls internally) */}
                 <div className="col-start-1 row-start-2 row-span-4 overflow-hidden">
                   {(() => {
-                    const isGenerateDisabled =
-                      isImageLoading ||
-                      !uploadedImageFile ||
-                      (lifestyleStep3Values?.ugcRealMode && !lifestyleStep3Values?.ugcCaptureSituation);
+                    const isGenerateDisabled = isImageLoading || !uploadedImageFile;
 
                     const generationRestrictionMessage = (() => {
                       if (!isGenerateDisabled) return '';
-                      if (lifestyleStep3Values?.ugcRealMode && !lifestyleStep3Values?.ugcCaptureSituation) {
-                        return 'Select a real-life capture situation before generating UGC.';
-                      }
                       if (!uploadedImageFile) {
                         return 'Upload a product photo before generating.';
                       }
