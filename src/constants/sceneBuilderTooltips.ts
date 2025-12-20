@@ -1,5 +1,6 @@
 export const TOOLTIP_MAP = {
-  ugcRealMode: "Creates an authentic user generated content look.",
+  ugcRealMode:
+    "Enables layered UGC Real Mode. Each accordion below controls a specific physical capture variable, and every selection flows directly into the prompt—no cleanup or perfection magic.",
 
   creatorPerson: "Define the person in your scene.",
   identity: "Defines who the person is.",
@@ -8,10 +9,6 @@ export const TOOLTIP_MAP = {
   environment: "Defines where the scene takes place.",
   timeLighting: "Controls the time of day and lighting conditions.",
   facialExpression: "Defines the facial expression and emotional presence.",
-
-  ugcCaptureSituation: "Defines how the phone is physically held in real life.",
-  ugcCaptureHelper:
-    "This is not a camera angle. It reflects real-world phone positioning.",
 
   customClothes: "Allows referencing real clothing for a natural look.",
 
