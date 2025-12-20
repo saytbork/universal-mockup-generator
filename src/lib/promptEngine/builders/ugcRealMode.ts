@@ -2,19 +2,33 @@
  * UGC Real Mode Builder
  * Enforces authentic user-generated content rules
  * HIGHEST PRIORITY when ugcRealModeActive === true
- * 
+ *
  * HARD OVERRIDES:
  * - Human-first composition (person is main subject)
  * - Force lifestyle mode
- * - Force selfie logic when enabled
  * - Block studio/editorial vocabulary
  * - Mandatory product interaction
  */
 
 import type { PromptOptions, PromptBuilder } from '../types';
-import { buildUGCCaptureSituationText } from '../ugcCaptureSituation';
+
+const ECOM_SIDE_TEXT: Record<string, string> = {
+    left: 'Product anchored along the left edge, leaving intentional copy space to the right.',
+    center: 'Product centered with equal copy space on both sides.',
+    right: 'Product anchored along the right edge, leaving intentional copy space to the left.'
+};
 
 export class UGCRealModeBuilder implements PromptBuilder {
+    private injectLayer(parts: string[], label: string, entries?: string[]) {
+        if (!entries || entries.length === 0) return;
+        entries.forEach(entry => {
+            const trimmed = entry?.trim();
+            if (trimmed) {
+                parts.push(`${label}: ${trimmed}`);
+            }
+        });
+    }
+
     build(options: PromptOptions): string {
         const { ugcRealModeActive, personDetails, personIncluded } = options;
 
@@ -22,21 +36,16 @@ export class UGCRealModeBuilder implements PromptBuilder {
             return '';
         }
 
-        if (ugcRealModeActive) {
-            const overrideTarget = options as any;
-            overrideTarget.cameraShot = 'SELFIE_CLOSE';
-            delete overrideTarget.perspective;
-            delete overrideTarget.personPose;
-            delete overrideTarget.pose;
-            delete overrideTarget.mediumShot;
-        }
+        const overrideTarget = options as any;
+        overrideTarget.cameraShot = 'SELFIE_CLOSE';
+        delete overrideTarget.perspective;
+        delete overrideTarget.personPose;
+        delete overrideTarget.pose;
+        delete overrideTarget.mediumShot;
+        console.log('[UGC REAL MODE] Building with layered overrides');
 
-        console.log('[UGC REAL MODE] Building with hard overrides');
         const parts: string[] = [];
 
-        // ========================================================================
-        // MANDATORY COMPOSITION OVERRIDE - This MUST come first
-        // ========================================================================
         parts.push(`
 UGC REAL MODE OVERRIDE - HIGHEST PRIORITY:
 This image must follow authentic user-generated content rules.
@@ -46,9 +55,6 @@ Natural human imperfections are REQUIRED.
 Smartphone-quality aesthetic with computational photography characteristics.
         `.trim().replace(/\s+/g, ' '));
 
-        // ========================================================================
-        // HUMAN-FIRST COMPOSITION (NOT NEGOTIABLE)
-        // ========================================================================
         if (personIncluded) {
             parts.push(`
 HUMAN-FIRST COMPOSITION (MANDATORY):
@@ -61,9 +67,6 @@ Frame the scene as if captured by the person or a friend with a smartphone.
             `.trim().replace(/\s+/g, ' '));
         }
 
-        // ========================================================================
-        // AGE REALISM OVERRIDE for 70+
-        // ========================================================================
         const age = personDetails?.age || 0;
         if (age >= 70) {
             parts.push(`
@@ -76,18 +79,6 @@ Smartphone camera characteristics must adapt to the age, not the opposite.
             `.trim().replace(/\s+/g, ' '));
         }
 
-        // ========================================================================
-        // SELFIE POV - Physical camera position
-        // ========================================================================
-        if (personDetails?.selfieType && personDetails.selfieType !== 'None') {
-            parts.push(`
-CAMERA POV: ${personDetails.selfieType}
-            `.trim().replace(/\s+/g, ' '));
-        }
-
-        // ========================================================================
-        // HERO PERSONA - Semantic character description
-        // ========================================================================
         if (options.heroPersona || personDetails?.heroPersona) {
             const persona = options.heroPersona || personDetails?.heroPersona;
             parts.push(`
@@ -95,9 +86,6 @@ CREATOR PERSONA: ${persona}
             `.trim().replace(/\s+/g, ' '));
         }
 
-        // ========================================================================
-        // BLOCKED VOCABULARY - These terms must NOT appear
-        // ========================================================================
         parts.push(`
 BLOCKED VOCABULARY (DO NOT USE):
 - "hero shot", "hero framing", "product hero"
@@ -108,9 +96,6 @@ BLOCKED VOCABULARY (DO NOT USE):
 - "perfectly composed", "precise arrangement"
         `.trim().replace(/\s+/g, ' '));
 
-        // ========================================================================
-        // REQUIRED VOCABULARY - These concepts MUST be present
-        // ========================================================================
         parts.push(`
 REQUIRED UGC CHARACTERISTICS:
 - Authentic, candid, real-world feeling
@@ -120,25 +105,42 @@ REQUIRED UGC CHARACTERISTICS:
 - Real environment (not styled set)
         `.trim().replace(/\s+/g, ' '));
 
-        if (options.ugcCaptureSituation) {
-            parts.push(buildUGCCaptureSituationText(options.ugcCaptureSituation));
-            const handText = `
-The phone is held in one hand, completely outside the frame.
-Only one hand may be visible in the image.
-The visible hand is the free hand and holds the product naturally.
-The hand holding the phone is never visible.
-`.trim();
-            parts.push(handText);
-        } else {
-            console.warn('[UGC CAPTURE SITUATION] Missing selection, skipping injection');
+        if (options.sceneOrderChaosDescriptor) {
+            parts.push(`Scene order: ${options.sceneOrderChaosDescriptor}.`);
         }
 
+        if (options.ecommerceSidePlacementFlag) {
+            const placementCopy =
+                options.ecommerceSidePlacementDescriptor ||
+                ECOM_SIDE_TEXT[options.ecommerceSidePlacement || ''] ||
+                (options.sidePlacement ? `Product placed to the ${options.sidePlacement} side.` : '');
+            if (placementCopy) {
+                parts.push(`Ecommerce placement: ${placementCopy}`);
+            }
+        }
+
+        const layers = options.ugcRealModeLayers ?? {
+            captureBase: options.ugcCaptureStyleBase,
+            cameraOperator: options.ugcCameraOperator,
+            bodyPhonePosition: options.ugcBodyPhonePosition,
+            motionStability: options.ugcMotionStability,
+            framingImperfections: options.ugcFramingImperfections,
+            awkwardContext: options.ugcAwkwardContext
+        };
+
+        this.injectLayer(parts, 'UGC capture style', layers.captureBase);
+        this.injectLayer(parts, 'Camera & operator', layers.cameraOperator);
+        this.injectLayer(parts, 'Body + phone position', layers.bodyPhonePosition);
+        this.injectLayer(parts, 'Motion & stability', layers.motionStability);
+        this.injectLayer(parts, 'Framing imperfections', layers.framingImperfections);
+        this.injectLayer(parts, 'Awkward context', layers.awkwardContext);
+
         parts.push(
-            'All camera angle, shot type, framing, and composition rules are invalid. The capture situation fully defines the geometry of the image.'
+            'All camera angle, shot type, framing, and composition rules are invalid. The selected capture layers fully define the geometry of the image.'
         );
 
         const constraintsText = `
-This image is a real smartphone selfie.
+This image is a real smartphone capture.
 The phone is held at arm’s length.
 The arm holding the phone must never be visible.
 The hand holding the product may be visible with a small portion of forearm.
@@ -173,15 +175,13 @@ These optical flaws must replace any attempt to add heavy skin texture or polish
         const walkingText = `
 Walking, handheld motion is a selfie perspective while walking.
 Slight camera instability and imperfect crop.
-Smartphone selfie.
-Arm holding the phone remains completely outside the frame.
+Smartphone capture with the arm holding the phone remaining completely outside the frame.
 `.trim();
         parts.push(walkingText);
 
         if (options.ugcRealModeActive) {
             const prompt = options as any;
             prompt.cameraShot = 'SELFIE_CLOSE';
-            // HARD OVERRIDES — UGC MUST KILL COMPOSITION
             delete prompt.cameraAngle;
             delete prompt.framing;
             delete prompt.perspective;
