@@ -540,10 +540,6 @@ export function mapLifestyleToPromptOptions(
     const hasExplicitHairColor = Boolean(hairColorSelection && hairColorSelection !== DEFAULT_HAIR_COLOR);
     const ugcHouseholdLighting =
         'household ambient lighting with side window spill colliding with warm kitchen bulbs, uneven and unplanned';
-    const ugcExpressionOverride =
-        'neutral, mildly tired expression with relaxed mouth corners and no promotional smile';
-    const ugcEyeDegrade =
-        'eyes drifting slightly past the camera lens, casual unfocused gaze with no intentional engagement';
 
 
     // ========================================================================
@@ -641,15 +637,10 @@ export function mapLifestyleToPromptOptions(
         const expressionSemantic =
             FACIAL_EXPRESSION_MAP[expressionLabel] || FACIAL_EXPRESSION_MAP['Calm & Serene'];
         mapped.personDetails.facialExpression = expressionSemantic;
-        if (sceneState.ugcRealMode) {
-            mapped.personDetails.facialExpression = ugcExpressionOverride;
-        }
 
         const eyeDirectionLabel = sceneState.eyeDirection || 'Looking at camera';
         mapped.personDetails.eyeDirection =
-            sceneState.ugcRealMode
-                ? ugcEyeDegrade
-                : EYE_DIRECTION_SEMANTIC_MAP[eyeDirectionLabel] || eyeDirectionLabel as any;
+            EYE_DIRECTION_SEMANTIC_MAP[eyeDirectionLabel] || eyeDirectionLabel as any;
         if (sceneState.productInteraction) {
             const interactionBase = INTERACTION_SEMANTIC_MAP[sceneState.productInteraction] || sceneState.productInteraction;
             const interactionParts = [interactionBase];

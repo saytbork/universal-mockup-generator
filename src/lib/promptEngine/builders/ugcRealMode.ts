@@ -174,6 +174,11 @@ HOUSEHOLD LIGHTING MANDATE:
 Treat lighting like casual home illumination—window daylight colliding with warm kitchen bulbs, creating patchy highlights, falloff, and color shifts. Nothing should look like professional fixtures or studio rigs.
         `.trim().replace(/\s+/g, ' '));
 
+        parts.push(`
+CROP + DEPTH OVERRIDE:
+Keep the person physically close to the lens, as if the phone were at arm's length. Backgrounds should collapse into soft clutter with barely legible details—no deliberate second plane, no hero environment, no wide depth. Everything beyond the subject can smear, clip, or fall into noise like a real smartphone snapshot.
+        `.trim().replace(/\s+/g, ' '));
+
         if (options.sceneOrderChaosDescriptor) {
             parts.push(`Scene order: ${options.sceneOrderChaosDescriptor}.`);
         }
