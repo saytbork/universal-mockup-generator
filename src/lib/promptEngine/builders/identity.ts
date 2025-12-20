@@ -22,7 +22,10 @@ export class IdentityBuilder implements PromptBuilder {
             'ultra-realistic', 'cinematic', 'beauty dish', 'three-point lighting',
             'macro lens', 'perfect symmetry', 'flawless skin', 'high-gloss retouch',
             'editorial face', 'studio lighting', 'professional retouching',
-            'perfect complexion', 'hyper-detailed', '8k', 'unreal engine'
+            'perfect complexion', 'hyper-detailed', '8k', 'unreal engine',
+            'silky', 'glossy', 'voluminous', 'styled', 'sculpted', 'salon',
+            'beauty finish', 'cinematic hair', 'perfect waves', 'uniform texture',
+            'soft hair shader', 'ai smooth hair', 'portrait polish'
         ];
 
         // Helper to sanitize parts
@@ -140,6 +143,13 @@ Skin carries micro wrinkles around the mouth, eyes, and neck with authentic sag,
                 if (hairParts.length > 0) {
                     identityParts.push(sanitizePart(`${hairParts.join(' ')} hair`));
                 }
+            }
+
+            if (age >= 80) {
+                parts.push(`
+HAIR REALISM OVERRIDE:
+Hair must appear eighty-plus years old with collapsed volume, irregular thinning, uneven strand density, and a visibly fragile hairline. Strands cling to skin, ears, and clothing with real contact, random flyaways, and slight scalp visibility. The capture is from a casual smartphone, so fine edges fall slightly soft, some strands break or vanish from compression, and there is zero sense of salon styling or clean silhouette—reject any appearance of healthy, plush, or aesthetic hair.
+                `.trim().replace(/\s+/g, ' '));
             }
 
             // Join core identity
