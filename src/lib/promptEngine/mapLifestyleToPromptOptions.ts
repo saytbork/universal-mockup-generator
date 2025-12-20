@@ -358,6 +358,12 @@ const SURFACE_OPERATOR_ID = 'surface-staged';
 const DEFAULT_HANDHELD_CAPTURE = 'torso-level-handheld';
 const DEFAULT_HANDHELD_OPERATOR = 'self-held';
 const DEFAULT_HAIR_COLOR = 'Dark brown';
+const AWKWARD_CONTEXT_ENVIRONMENT_MAP: Record<string, string> = {
+    'bathroom-set': 'Bathroom sink counter with towels, mirror streaks, and toiletries crowding the edges.',
+    'car-interior': 'Cramped car interior with seatbelt, dashboard clutter, and windshield reflections creeping into frame.',
+    'bedroom-corner': 'Bedroom corner with visible pillows, wrinkled sheets, and bedside clutter spilling into the shot.',
+    'cluttered-desk': 'Messy desk overflowing with snacks, cables, open packaging, and random paperwork.'
+};
 
 const appendOnce = (base: string, addition: string): string => {
     if (!addition) return base;
@@ -784,18 +790,14 @@ export function mapLifestyleToPromptOptions(
 
     let normalizedCaptureBase = normalizeSingleSelectLayer(sceneState.ugcCaptureStyleBase, 'ugcCaptureStyleBase');
     let normalizedCameraOperator = normalizeSingleSelectLayer(sceneState.ugcCameraOperator, 'ugcCameraOperator');
-    const normalizedBodyPhone = Array.isArray(sceneState.ugcBodyPhonePosition)
-        ? sceneState.ugcBodyPhonePosition.filter(Boolean)
-        : [];
-    const normalizedMotion = Array.isArray(sceneState.ugcMotionStability)
-        ? sceneState.ugcMotionStability.filter(Boolean)
-        : [];
-    const normalizedFraming = Array.isArray(sceneState.ugcFramingImperfections)
-        ? sceneState.ugcFramingImperfections.filter(Boolean)
-        : [];
-    const normalizedAwkward = Array.isArray(sceneState.ugcAwkwardContext)
-        ? sceneState.ugcAwkwardContext.filter(Boolean)
-        : [];
+    const normalizedBodyPhone = normalizeSingleSelectLayer(sceneState.ugcBodyPhonePosition, 'ugcBodyPhonePosition');
+    const normalizedMotion = normalizeSingleSelectLayer(sceneState.ugcMotionStability, 'ugcMotionStability');
+    const normalizedFraming = normalizeSingleSelectLayer(sceneState.ugcFramingImperfections, 'ugcFramingImperfections');
+    const normalizedAwkward = normalizeSingleSelectLayer(sceneState.ugcAwkwardContext, 'ugcAwkwardContext');
+    const awkwardEnvironmentOverride =
+        sceneState.ugcRealMode && normalizedAwkward.length > 0
+            ? AWKWARD_CONTEXT_ENVIRONMENT_MAP[normalizedAwkward[0]] || null
+            : null;
 
     const productInteractionLabel = (sceneState.productInteraction || '').trim();
     const captureBaseSelection = normalizedCaptureBase[0];
@@ -899,7 +901,7 @@ export function mapLifestyleToPromptOptions(
         (mapped as any).sceneEnvironment = '';
         (mapped as any).customEnvironment = '';
         console.log('[MAP] environment: Ecommerce Blank Space active - environment suppressed');
-    } else {
+    } else if (!awkwardEnvironmentOverride) {
         const allowedEnvironmentMap: Record<string, string> = {
             'Kitchen': 'Kitchen',
             'Living Room': 'Living Room',
@@ -937,14 +939,23 @@ export function mapLifestyleToPromptOptions(
         (mapped as any).sceneEnvironment = mapped.setting;
         mapped.environmentOrder = mapped.setting;
 
-        const sceneOrderChaosValue = sceneState.sceneOrderChaos || 'Normal';
-        mapped.sceneOrderChaos = sceneOrderChaosValue;
-        const sceneOrderChaosDescriptor = buildSceneOrderChaosDescriptor(sceneOrderChaosValue);
-        if (sceneOrderChaosDescriptor) {
-            (mapped as any).sceneOrderChaosDescriptor = sceneOrderChaosDescriptor;
-        }
+        console.log('[MAP] environment:', selectedEnvironment, '→', mapped.setting);
+    } else if (awkwardEnvironmentOverride) {
+        mapped.setting = awkwardEnvironmentOverride;
+        mapped.microLocation = awkwardEnvironmentOverride;
+        (mapped as any).sceneEnvironment = awkwardEnvironmentOverride;
+        mapped.environmentOrder = awkwardEnvironmentOverride;
+        (mapped as any).selectedEnvironment = 'Awkward Context Override';
+        (mapped as any).customEnvironment = awkwardEnvironmentOverride;
+        mapped.sceneIntent = 'environment';
+        console.log('[MAP] Awkward context override →', awkwardEnvironmentOverride);
+    }
 
-        console.log('[MAP] environment:', selectedEnvironment, '→', mapped.setting, '| order:', sceneOrderChaosValue);
+    const sceneOrderChaosValue = sceneState.sceneOrderChaos || 'Normal';
+    mapped.sceneOrderChaos = sceneOrderChaosValue;
+    const sceneOrderChaosDescriptor = buildSceneOrderChaosDescriptor(sceneOrderChaosValue);
+    if (sceneOrderChaosDescriptor) {
+        (mapped as any).sceneOrderChaosDescriptor = sceneOrderChaosDescriptor;
     }
 
     // ========================================================================

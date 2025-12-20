@@ -56,6 +56,10 @@ export class UGCRealModeBuilder implements PromptBuilder {
 
         this.assertSingleEntry('UGC capture style', layers.captureBase);
         this.assertSingleEntry('Camera & operator', layers.cameraOperator);
+        this.assertSingleEntry('Body & phone position', layers.bodyPhonePosition);
+        this.assertSingleEntry('Motion & stability', layers.motionStability);
+        this.assertSingleEntry('Framing imperfections', layers.framingImperfections);
+        this.assertSingleEntry('Awkward context', layers.awkwardContext);
 
         const captureBase = layers.captureBase?.[0];
         const cameraOperator = layers.cameraOperator?.[0];

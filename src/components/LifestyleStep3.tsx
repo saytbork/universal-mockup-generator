@@ -562,7 +562,14 @@ const UGC_LAYER_SECTIONS: UGCLayerSection[] = [
 ];
 
 const UGC_LAYER_FIELDS: UGCLayerField[] = UGC_LAYER_SECTIONS.map(section => section.field);
-const SINGLE_SELECT_UGC_FIELDS: UGCLayerField[] = ['ugcCaptureStyleBase', 'ugcCameraOperator'];
+const SINGLE_SELECT_UGC_FIELDS: UGCLayerField[] = [
+  'ugcCaptureStyleBase',
+  'ugcCameraOperator',
+  'ugcBodyPhonePosition',
+  'ugcMotionStability',
+  'ugcFramingImperfections',
+  'ugcAwkwardContext'
+];
 const SINGLE_SELECT_UGC_FIELD_SET = new Set<UGCLayerField>(SINGLE_SELECT_UGC_FIELDS);
 
 const enforceSingleSelectLayers = (draft: Step3Values) => {
