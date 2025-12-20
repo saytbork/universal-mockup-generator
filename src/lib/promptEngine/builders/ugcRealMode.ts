@@ -20,6 +20,42 @@ const ECOM_SIDE_TEXT: Record<string, string> = {
 const PROPPED_SURFACE_CAPTURE_ID = 'propped-surface';
 const SURFACE_OPERATOR_ID = 'surface-staged';
 const WALKING_MOTION_ID = 'walking-motion';
+const CAPTURE_STYLE_DETAILS: Record<string, string> = {
+    'torso-level-handheld': 'Phone held at torso height with a slight downward tilt and relaxed grip.',
+    'high-angle': 'Phone lifted overhead looking down across shoulders in a casual selfie tilt.',
+    'close-face': 'Phone pushed close to the face so shoulders crop out and the lens feels near skin.',
+    'propped-surface': 'Phone resting on a counter or towel stack, wobbling lightly between breaths.'
+};
+const CAMERA_OPERATOR_DETAILS: Record<string, string> = {
+    'self-held': 'Creator holds the phone themselves with fingers visible near the glass.',
+    'friend-held': 'Someone else stands nearby holding the phone while the creator interacts.',
+    'mirror-shot': 'Mirror reflection shows both the person and the phone partially covering their face.',
+    'surface-staged': 'Phone is staged on a shelf or object capturing the scene hands-free.'
+};
+const BODY_PHONE_DETAILS: Record<string, string> = {
+    'arm-extended': 'Arm fully extended forward, product reaching toward the lens, slight shoulder strain.',
+    'chest-rest': 'Phone pressed close to chest or collarbone, elbows tucked in tight.',
+    'shoulder-peek': 'Phone peeks over a shoulder while the face turns partly away.',
+    'tilted-angle': 'Phone twists up or down from a wrist flick, giving an irregular angle.'
+};
+const MOTION_DETAILS: Record<string, string> = {
+    'walking-motion': 'Walking handheld motion with natural bounce in the frame.',
+    'hand-shake': 'Subtle hand shake from tired grip or wrist fatigue.',
+    'static-drift': 'Mostly stationary but the framing slowly drifts or tilts.',
+    'tilt-shift': 'Phone tilts and shifts mid-capture, never fully locked.'
+};
+const FRAMING_DETAILS: Record<string, string> = {
+    'partial-face-cut': 'Top or bottom of the face is cropped at the edge of frame.',
+    'off-center': 'Subject leans to one side leaving empty space elsewhere.',
+    'finger-lens': 'Holding fingers partially cover the lens creating soft obstructions.',
+    'tight-headroom': 'Very little headroom with the scalp pressed against the top border.'
+};
+const AWKWARD_CONTEXT_DETAILS: Record<string, string> = {
+    'bathroom-set': 'Bathroom sink or mirror clutter shows towels, toiletries, or reflections in frame.',
+    'car-interior': 'Car interior elements like seatbelts, dashboards, or windshield reflections creep in.',
+    'bedroom-corner': 'Bedroom corner clutter with pillows, sheets, or bedside items crowding the shot.',
+    'cluttered-desk': 'Messy desk or table with snacks, cables, and packaging encroaching on the frame.'
+};
 
 export class UGCRealModeBuilder implements PromptBuilder {
     private injectLayer(parts: string[], label: string, entries?: string[]) {
@@ -36,6 +72,11 @@ export class UGCRealModeBuilder implements PromptBuilder {
         if (entries && entries.length > 1) {
             throw new Error(`[UGC REAL MODE] ${label} received multiple selections (${entries.join(', ')}). This layer is single-select only.`);
         }
+    }
+
+    private describeLayer(entries: string[] | undefined, detailMap: Record<string, string>): string[] | undefined {
+        if (!entries) return entries;
+        return entries.map(entry => detailMap[entry] || entry);
     }
 
     build(options: PromptOptions): string {
@@ -197,12 +238,19 @@ Keep the person physically close to the lens, as if the phone were at arm's leng
             }
         }
 
-        this.injectLayer(parts, 'UGC capture style', layers.captureBase);
-        this.injectLayer(parts, 'Camera & operator', layers.cameraOperator);
-        this.injectLayer(parts, 'Body + phone position', layers.bodyPhonePosition);
-        this.injectLayer(parts, 'Motion & stability', layers.motionStability);
-        this.injectLayer(parts, 'Framing imperfections', layers.framingImperfections);
-        this.injectLayer(parts, 'Awkward context', layers.awkwardContext);
+        const captureDescriptions = this.describeLayer(layers.captureBase, CAPTURE_STYLE_DETAILS);
+        const operatorDescriptions = this.describeLayer(layers.cameraOperator, CAMERA_OPERATOR_DETAILS);
+        const bodyPhoneDescriptions = this.describeLayer(layers.bodyPhonePosition, BODY_PHONE_DETAILS);
+        const motionDescriptions = this.describeLayer(layers.motionStability, MOTION_DETAILS);
+        const framingDescriptions = this.describeLayer(layers.framingImperfections, FRAMING_DETAILS);
+        const awkwardDescriptions = this.describeLayer(layers.awkwardContext, AWKWARD_CONTEXT_DETAILS);
+
+        this.injectLayer(parts, 'UGC capture style', captureDescriptions);
+        this.injectLayer(parts, 'Camera & operator', operatorDescriptions);
+        this.injectLayer(parts, 'Body & phone position', bodyPhoneDescriptions);
+        this.injectLayer(parts, 'Motion & stability', motionDescriptions);
+        this.injectLayer(parts, 'Framing imperfections', framingDescriptions);
+        this.injectLayer(parts, 'Awkward context', awkwardDescriptions);
 
         if (hasPhysicalCaptureLayer) {
             parts.push(
