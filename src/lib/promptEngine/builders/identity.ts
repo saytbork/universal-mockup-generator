@@ -42,6 +42,7 @@ export class IdentityBuilder implements PromptBuilder {
         const parts: string[] = [];
         const age = personDetails?.age || 30;
         const ageGroupLabel = age >= 75 ? 'elder' : 'adult';
+        const isAge80Plus = age >= 80;
 
         // 1. PHYSICAL IDENTITY (Standard or Reference Override)
         if (hasModelReference) {
@@ -67,7 +68,7 @@ Avoid youthful facial proportions, smooth skin, or middle-aged appearance.
             if (age >= 75) {
                 parts.push(`
 ELDER REALISM: Deep-set crow's feet, softened jawline definition, gentle jowls, and age spots on face and hands are expected.
-Hair should skew gray, silver, or white with natural softness unless explicitly overridden.
+Hair should skew gray, silver, or white with visible thinning and irregular texture unless explicitly overridden.
 Hands must show visible veins and knuckle definition, and muscles should feel relaxed rather than toned.
 Skin carries micro wrinkles around the mouth, eyes, and neck with authentic sag, not harsh texture or stylized pores.
                 `.trim().replace(/\s+/g, ' '));
@@ -134,7 +135,7 @@ Skin carries micro wrinkles around the mouth, eyes, and neck with authentic sag,
             }
 
             // Hair
-            if (personDetails?.hairLength || personDetails?.hairTexture || personDetails?.hairColor) {
+            if (!isAge80Plus && (personDetails?.hairLength || personDetails?.hairTexture || personDetails?.hairColor)) {
                 const hairParts = [
                     personDetails?.hairLength,
                     personDetails?.hairTexture,
@@ -143,6 +144,27 @@ Skin carries micro wrinkles around the mouth, eyes, and neck with authentic sag,
                 if (hairParts.length > 0) {
                     identityParts.push(sanitizePart(`${hairParts.join(' ')} hair`));
                 }
+            }
+
+            if (isAge80Plus) {
+                parts.push(`
+HAIR REALISM OVERRIDE (80+):
+Hair must appear physically aged, thinning, and irregular with uneven density and collapsed volume.
+Strands are weak, fragile, and inconsistently shaped.
+Scalp visibility is normal and expected.
+Hairline is uneven and imperfect.
+Hair does not form a clean silhouette or aesthetic shape.
+Strands rest against skin, ears, and clothing with visible compression and gravity effects.
+Flyaway hairs are sparse, random, and unintentional.
+There is no sense of styling, grooming, softness, or visual beauty.
+                `.trim().replace(/\s+/g, ' '));
+                parts.push(`
+SMARTPHONE HAIR CAPTURE:
+Fine hair edges may appear partially soft, broken, or missing due to smartphone autofocus and compression.
+Some strands may disappear or clip irregularly.
+No clean edges, no haloing, no painterly rendering.
+Hair imperfections must come from capture failure, not artistic styling.
+                `.trim().replace(/\s+/g, ' '));
             }
 
             if (age >= 80) {

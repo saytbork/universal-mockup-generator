@@ -664,12 +664,12 @@ export function mapLifestyleToPromptOptions(
                 let resolvedHairColor = sceneState.hairColor;
                 if (is85Plus && !hasExplicitHairColor) {
                     resolvedHairColor =
-                        'gray-white hair with dominant salt-and-pepper variation, natural softness, gentle frizz';
+                        'gray-white hair with dominant salt-and-pepper variation, collapsed volume, sparse uneven density';
                 }
                 mapped.personDetails.hairColor = resolvedHairColor;
             } else if (is85Plus) {
                 mapped.personDetails.hairColor =
-                    'gray-white hair with dominant salt-and-pepper variation, natural softness, gentle frizz';
+                    'gray-white hair with dominant salt-and-pepper variation, collapsed volume, sparse uneven density';
             }
         }
         // ... (other hair props mapped normally)

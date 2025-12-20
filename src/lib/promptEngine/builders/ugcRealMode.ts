@@ -85,6 +85,15 @@ Natural human imperfections are REQUIRED.
 Smartphone-quality aesthetic with computational photography characteristics.
         `.trim().replace(/\s+/g, ' '));
 
+        parts.push(`
+UGC HUMAN STATE OVERRIDE:
+The person must appear casually present, not performing or posing.
+Posture may be slightly slouched, uneven, or asymmetrical.
+Body alignment should feel unbalanced or relaxed, not upright or confident.
+Hands may look tense, uncertain, or imperfectly positioned.
+The person should not look camera-ready or appear to be presenting to the viewer.
+        `.trim().replace(/\s+/g, ' '));
+
         if (personIncluded) {
             if (isProppedSurfaceCapture || isSurfaceOperator) {
                 parts.push(`
@@ -145,6 +154,21 @@ REQUIRED UGC CHARACTERISTICS:
 - Real environment (not styled set)
         `.trim().replace(/\s+/g, ' '));
 
+        parts.push(`
+SMARTPHONE CAPTURE FAILURE:
+Framing stays slightly crooked or off-center with imperfect headroom.
+Depth of field feels computational and a little shallow.
+Minor focus inconsistencies, autofocus hunting, and subtle motion softness are expected.
+No perfect framing, no pristine focus, and no optical lens precision.
+        `.trim().replace(/\s+/g, ' '));
+
+        parts.push(`
+LIGHTING REALISM:
+Lighting must feel accidental and uneven with mixed color temperatures if needed.
+No balanced key-fill setup, no studio softness, no commercial exposure.
+If the light looks styled or intentional, override it toward imperfect window spill or interior ambient.
+        `.trim().replace(/\s+/g, ' '));
+
         if (options.sceneOrderChaosDescriptor) {
             parts.push(`Scene order: ${options.sceneOrderChaosDescriptor}.`);
         }
@@ -203,6 +227,22 @@ Do NOT exaggerate pores, harsh texture, or macro-style skin detail—keep the sk
         `.trim().replace(/\s+/g, ' ');
         parts.push(humanStateText);
 
+        parts.push(`
+FACIAL REALISM RULES:
+No perfect smiles, no symmetrical big grins, and no bright promotional expressions.
+Expression should sit between emotions—neutral, distracted, tired, or mildly present.
+Mouth may be slightly open, uneven, or relaxed.
+Eye contact feels incidental or slightly off-axis, never piercing or promotional.
+If the person looks happy to be photographed, override and dull the expression.
+        `.trim().replace(/\s+/g, ' '));
+
+        parts.push(`
+GAZE OVERRIDE:
+Eyes may look slightly unfocused, mid-blink, or looking just past the camera.
+No locked-on, confident brand-ready eye contact.
+Gaze must feel casual, imperfect, and unintentional.
+        `.trim().replace(/\s+/g, ' '));
+
         const smartphoneFailureText = `
 SMARTPHONE FAILURE CHARACTERISTICS:
 Slight softness from low-resolution capture, minor focus bleed from autofocus hunting, and uneven or mixed lighting are expected.
@@ -222,6 +262,11 @@ These optical flaws must replace any attempt to add heavy skin texture or polish
                 'AGE 85+ GEOMETRY OVERRIDE: Capture stays handheld-only with asymmetrical framing cues. Hair should lean gray/white unless the request explicitly specifies another color, and no balanced/even composition language may appear.'
             );
         }
+
+        parts.push(`
+AESTHETIC SUPPRESSION RULE:
+If any qualities feel polished, confident, commercial, lifestyle-perfect, stock-photo-like, influencer-ready, or brand-friendly, override them with more awkwardness and imperfection until it feels like a candid personal capture.
+        `.trim().replace(/\s+/g, ' '));
 
         const walkingText = `
 Walking, handheld motion is a selfie perspective while walking.
