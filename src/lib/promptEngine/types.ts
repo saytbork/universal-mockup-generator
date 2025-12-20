@@ -106,6 +106,17 @@ export type CustomClothes = {
     customDetail?: string;
 };
 
+export type SceneOrderChaosLevel = 'clean' | 'normal' | 'messy' | 'chaotic' | 'randomized-chaos';
+
+export interface UGCRealModeLayerSet {
+    captureBase?: string[];
+    cameraOperator?: string[];
+    bodyPhonePosition?: string[];
+    motionStability?: string[];
+    framingImperfections?: string[];
+    awkwardContext?: string[];
+}
+
 export interface PromptOptions {
     // Core
     contentStyle: 'ugc' | 'product' | '';
@@ -123,7 +134,7 @@ export interface PromptOptions {
     lighting: string;
     perspective: string;
     environmentOrder: string;
-    sceneOrderChaos?: 'Clean' | 'Normal' | 'Messy' | 'Chaotic' | 'Randomized Chaos';
+    sceneOrderChaos?: SceneOrderChaosLevel;
     sceneOrderChaosDescriptor?: string;
     productPlane: string;
     placementStyle?: string;
@@ -168,6 +179,9 @@ export interface PromptOptions {
     compositionMode?: string;
     bgColor?: string;
     sidePlacement?: 'left' | 'center' | 'right';
+    ecommerceSidePlacement?: 'left' | 'center' | 'right';
+    ecommerceSidePlacementDescriptor?: string;
+    ecommerceSidePlacementFlag?: boolean;
     productStructure?: 'single' | 'bundle' | 'routine';
     sceneIntent?: 'environment' | 'ecommerce';
     ecommerceBlankSpaceMode?: boolean;
@@ -192,6 +206,17 @@ export interface PromptOptions {
     ugcRealModeActive?: boolean;      // UGC Real Mode toggle
     heroPersona?: string;             // Semantic UGC persona description
     ugcCaptureSituation?: string | null; // Selected UGC capture situation
+    ugcCaptureStyleBase?: string[];
+    ugcCameraOperator?: string[];
+    ugcBodyPhonePosition?: string[];
+    ugcMotionStability?: string[];
+    ugcFramingImperfections?: string[];
+    ugcAwkwardContext?: string[];
+    ugcRealModeLayers?: UGCRealModeLayerSet;
+    elderlyRealismGuard?: boolean;
+    elderlyRealismDescriptor?: string;
+    elderlyRealismGuardActive?: boolean;
+    elderlyRealismGuardLabel?: string;
 
     // Composition
     compositionIntro?: string;
