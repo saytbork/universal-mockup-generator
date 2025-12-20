@@ -5,10 +5,6 @@ import { buildCamera } from './camera';
 import { buildEnvironment } from './environment';
 import { buildLighting } from './lighting';
 import { FormulationStoryBuilder } from './formulationStory';
-import {
-  UGC_CAPTURE_BASE_SENTENCE,
-  buildUGCCaptureLayerSentences,
-} from '../ugcCaptureSituation';
 
 export interface SceneNarrativeSections {
     creationIntent: string;
@@ -30,9 +26,9 @@ const creationModeCopy: Record<string, string> = {
 };
 
 const sidePlacementCopy: Record<string, string> = {
-    left: 'Product positioned on the left side of the frame.',
-    center: 'Product positioned near the center of the frame.',
-    right: 'Product positioned on the right side of the frame.'
+    left: 'Product anchored on the left side of the frame, leaving the right side open for copy.',
+    center: 'Product centered with balanced copy space on both sides.',
+    right: 'Product anchored on the right side of the frame, leaving the left side open for copy.'
 };
 
 const INDOOR_ENVIRONMENTS = new Set([
@@ -183,26 +179,28 @@ export class SceneNarrativeBuilder {
     }
 
     private buildEcommerceBuilder(options: PromptOptions): string | undefined {
-        if (options.sceneIntent === 'environment') {
-            return undefined;
-        }
-        const isEcommerceIntent = options.creationIntent === 'product' || options.creationIntent === 'brand';
-        const isEcomBlank = options.creationMode === 'ecom-blank';
-
-        if (!isEcommerceIntent && !isEcomBlank) {
+        if (
+            options.sceneIntent === 'environment' ||
+            options.ugcRealModeActive ||
+            !options.ecommerceSidePlacementFlag
+        ) {
             return undefined;
         }
 
-        const composition = options.compositionMode
-            ? `Blank-space layout optimized for text and UI overlays with ${options.compositionMode}.`
-            : 'Blank-space layout optimized for text and UI overlays.';
         const placement =
-            options.sidePlacement && sidePlacementCopy[options.sidePlacement]
-                ? sidePlacementCopy[options.sidePlacement]
-                : 'Product positioned near the center of the frame.';
-        const bgColor = options.bgColor ? `Clean solid background color ${options.bgColor}.` : '';
+            options.ecommerceSidePlacementDescriptor ||
+            (options.sidePlacement && sidePlacementCopy[options.sidePlacement]) ||
+            'Product positioned near the center of the frame.';
+        const copySpace =
+            options.sidePlacement === 'center'
+                ? 'Maintain even negative space on both sides so copy can wrap naturally.'
+                : options.sidePlacement
+                ? `Reserve large, clean negative space on the ${
+                      options.sidePlacement === 'left' ? 'right' : 'left'
+                  } side for text overlays.`
+                : '';
 
-        return [composition, placement, bgColor].filter(Boolean).join(' ');
+        return [placement, copySpace].filter(Boolean).join(' ');
     }
 
     private buildCameraFraming(options: PromptOptions, constraints?: string): string {
@@ -279,6 +277,13 @@ export class SceneNarrativeBuilder {
             lightingText ? `Lighting: ${lightingText}.` : ''
         ].filter(Boolean);
 
+        if (options.elderlyRealismGuardActive) {
+            const descriptor =
+                options.elderlyRealismDescriptor?.trim() ||
+                'Elderly realism guard: advanced age must remain visually dominant with natural skin texture, posture, and lived-in cues.';
+            narrativeParts.push(descriptor);
+        }
+
         if (options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
             narrativeParts.push(
                 'The environment is intentionally selected and professionally appropriate. Scenes take place in clean, controlled, and visually coherent settings suitable for editorial, lifestyle, or ecommerce use, such as studios, curated interiors, or well-composed outdoor locations. The environment must feel deliberate and brand-safe, with no association to casual personal spaces or accidental capture contexts. Exclude all user-generated environments or situations, including bedrooms, bathrooms, car interiors, mirrors, beds, couches, or any setting that implies a selfie, phone capture, or informal personal moment. The environment should support a polished, professional narrative without human capture artifacts.'
@@ -290,11 +295,6 @@ export class SceneNarrativeBuilder {
             narrativeParts.push(
                 'Lighting is professionally designed and intentionally controlled. The scene uses studio-grade or well-managed natural lighting with balanced exposure, consistent color temperature, and soft, dimensional shadows. Illumination enhances clarity, depth, and material detail without harsh overhead light, uneven shadows, or mixed lighting sources. Exclude all phone-based lighting, on-camera flash, bathroom or ceiling lights, low-quality ambient light, or any casual, uncontrolled illumination commonly associated with user-generated content.'
             );
-        }
-
-        if (options.ugcRealModeActive && options.ugcCaptureSituation) {
-            narrativeParts.push(UGC_CAPTURE_BASE_SENTENCE);
-            narrativeParts.push(...buildUGCCaptureLayerSentences(options.ugcCaptureSituation));
         }
 
         console.log('[SCENE NARRATIVE] Environment/Lighting/Mood:', narrativeParts.join(' ').substring(0, 200) + '...');
