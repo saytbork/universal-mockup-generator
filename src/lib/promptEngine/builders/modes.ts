@@ -105,11 +105,14 @@ export class ModesBuilder implements PromptBuilder {
     }
 
     private buildEcomBlank(options: PromptOptions): string {
-        const { bgColor = '#FFFFFF', sidePlacement = 'right' } = options;
+        const { bgColor = '#FFFFFF', sidePlacement = 'right', bgGradient } = options;
         const oppositeSide = sidePlacement === 'left' ? 'right' : 'left';
+        const backgroundLine = bgGradient
+            ? `Ecommerce layout with a ${bgGradient.angle ?? 90}° gradient background blending ${bgGradient.startColor} and ${bgGradient.endColor}.`
+            : `Ecommerce layout with solid background color: ${bgColor}.`;
 
         return `
-      Ecommerce layout with solid background color: ${bgColor}.
+      ${backgroundLine}
       Product and person on the ${sidePlacement} side.
       Large clean negative space on the ${oppositeSide} side.
       Studio lighting, minimal shadows, no props or environments.

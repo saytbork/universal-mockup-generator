@@ -47,11 +47,14 @@ export class SpecialModesBuilder implements PromptBuilder {
     }
 
     private buildEcomBlankExtended(options: PromptOptions): string {
-        const { bgColor = '#FFFFFF', sidePlacement = 'right' } = options;
+        const { bgColor = '#FFFFFF', sidePlacement = 'right', bgGradient } = options;
         const oppositeSide = sidePlacement === 'left' ? 'right' : 'left';
+        const backgroundCopy = bgGradient
+            ? `This image must use a linear gradient background at ${bgGradient.angle ?? 90}° transitioning from ${bgGradient.startColor} to ${bgGradient.endColor}.`
+            : `This image must use a pure solid background with the exact color: ${bgColor}.`;
 
         return `
-      This image must use a pure solid background with the exact color: ${bgColor}.
+      ${backgroundCopy}
       Do NOT generate rooms, environments, furniture, props or scenery.
       Keep the background perfectly uniform and flat.
       

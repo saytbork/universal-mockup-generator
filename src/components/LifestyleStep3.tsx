@@ -190,6 +190,10 @@ export interface Step3Values {
   compositionMode: string;
   sidePlacement: string;
   ecommerceBackgroundColor: string;
+  ecommerceBackgroundMode: 'white' | 'gradient';
+  ecommerceGradientStart: string;
+  ecommerceGradientEnd: string;
+  ecommerceGradientAngle: '45' | '90' | '180';
 
   // Scene Intent Rule
   // Environment and Ecommerce are mutually exclusive
@@ -635,6 +639,8 @@ const PRODUCT_INTERACTION_OPTIONS = INTERACTION_OPTIONS;
 // ASPECT RATIO - Output Format
 const ASPECT_RATIO_OPTIONS = ['1:1 (Square)', '4:5 (Portrait)', '9:16 (Story)'];
 
+const GRADIENT_ANGLE_OPTIONS: Array<'45' | '90' | '180'> = ['45', '90', '180'];
+
 // ECOMMERCE IMAGE BUILDER - definitivo
 // Options: Ecommerce Blank Space (PDP, ads, hero) | Product Bundle / Routine (packs, kits)
 const COMPOSITION_MODE_OPTIONS = ['Ecommerce Blank Space'];
@@ -817,6 +823,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     compositionMode: '', // Empty = not in ecommerce mode
     sidePlacement: SIDE_PLACEMENT_OPTIONS[1],
     ecommerceBackgroundColor: '#ffffff',
+    ecommerceBackgroundMode: 'white',
+    ecommerceGradientStart: '#f7f7f7',
+    ecommerceGradientEnd: '#d9d9d9',
+    ecommerceGradientAngle: '90',
 
     // Scene Intent Rule - Default: Environment/Lifestyle mode active
     sceneIntent: 'environment',
@@ -909,6 +919,19 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     }
   };
 
+  const handleGradientColorChange = useCallback((key: 'ecommerceGradientStart' | 'ecommerceGradientEnd', color: string) => {
+    updateValue(key, color as any);
+    markSectionTouched('bundles');
+  }, [updateValue, markSectionTouched]);
+
+  const invertGradient = useCallback(() => {
+    const start = values.ecommerceGradientStart;
+    const end = values.ecommerceGradientEnd;
+    updateValue('ecommerceGradientStart', end);
+    updateValue('ecommerceGradientEnd', start);
+    markSectionTouched('bundles');
+  }, [values.ecommerceGradientStart, values.ecommerceGradientEnd, updateValue, markSectionTouched]);
+
   const ageSliderProgress = Math.min(Math.max(((values.age - 18) / 72) * 100, 0), 100);
   const ageSliderLabel = getAgeCategory(values.age);
   const handleAgeSliderChange = (nextValue: number) => {
@@ -975,7 +998,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       compositionMode: '',           // Clear ecommerce
       ugcRealMode: true,             // Enable environment mode
       sidePlacement: SIDE_PLACEMENT_OPTIONS[1], // Reset placement
-      ecommerceBackgroundColor: '',
+      ecommerceBackgroundColor: '#ffffff',
+      ecommerceBackgroundMode: 'white',
+      ecommerceGradientStart: '#f7f7f7',
+      ecommerceGradientEnd: '#d9d9d9',
+      ecommerceGradientAngle: '90',
     };
       enforceSingleSelectLayers(next);
       return next;
@@ -996,7 +1023,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       ugcBodyPhonePosition: [],
       ugcMotionStability: [],
       ugcFramingImperfections: [],
-      ugcAwkwardContext: []
+      ugcAwkwardContext: [],
+      ecommerceBackgroundColor: '#ffffff',
+      ecommerceBackgroundMode: 'white',
+      ecommerceGradientStart: '#f7f7f7',
+      ecommerceGradientEnd: '#d9d9d9',
+      ecommerceGradientAngle: '90'
     };
       enforceSingleSelectLayers(next);
       return next;
@@ -1017,8 +1049,20 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       if (values.compositionMode) {
         updateValue('compositionMode', '');
       }
-      if (values.ecommerceBackgroundColor) {
-        updateValue('ecommerceBackgroundColor', '');
+      if (values.ecommerceBackgroundColor !== '#ffffff') {
+        updateValue('ecommerceBackgroundColor', '#ffffff');
+      }
+      if (values.ecommerceBackgroundMode !== 'white') {
+        updateValue('ecommerceBackgroundMode', 'white');
+      }
+      if (values.ecommerceGradientStart !== '#f7f7f7') {
+        updateValue('ecommerceGradientStart', '#f7f7f7');
+      }
+      if (values.ecommerceGradientEnd !== '#d9d9d9') {
+        updateValue('ecommerceGradientEnd', '#d9d9d9');
+      }
+      if (values.ecommerceGradientAngle !== '90') {
+        updateValue('ecommerceGradientAngle', '90');
       }
       if (values.sidePlacement !== SIDE_PLACEMENT_OPTIONS[1]) {
         updateValue('sidePlacement', SIDE_PLACEMENT_OPTIONS[1]);
@@ -1034,10 +1078,24 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     values.sceneIntent,
     values.compositionMode,
     values.ecommerceBackgroundColor,
+    values.ecommerceBackgroundMode,
+    values.ecommerceGradientStart,
+    values.ecommerceGradientEnd,
+    values.ecommerceGradientAngle,
     values.sidePlacement,
     values.customEnvironment,
     updateValue
   ]);
+
+  useEffect(() => {
+    if (
+      values.compositionMode === 'Ecommerce Blank Space' &&
+      values.ecommerceBackgroundMode === 'white' &&
+      values.ecommerceBackgroundColor !== '#ffffff'
+    ) {
+      updateValue('ecommerceBackgroundColor', '#ffffff');
+    }
+  }, [values.compositionMode, values.ecommerceBackgroundMode, values.ecommerceBackgroundColor, updateValue]);
 
   // ========================================================================
   // PRODUCT MODE VALIDATION (Stage 11)
@@ -2070,28 +2128,82 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             </div>
           )}
 
-          {/* BACKGROUND COLOR - Only for Ecommerce Blank Space */}
+          {/* BACKGROUND STYLE - Only for Ecommerce Blank Space */}
           {values.compositionMode === 'Ecommerce Blank Space' && (
             <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
               <div>
-                <p className="text-xs uppercase tracking-wider text-indigo-200">BACKGROUND COLOR</p>
-                <p className="text-[11px] text-gray-400 mt-1">Solid color canvas (no gradients)</p>
+                <p className="text-xs uppercase tracking-wider text-indigo-200">BACKGROUND STYLE</p>
+                <p className="text-[11px] text-gray-400 mt-1">Pure white PDP canvas or custom gradient</p>
               </div>
-              <div className="flex items-center gap-3">
-                <input
-                  type="color"
-                  value={values.ecommerceBackgroundColor}
-                  onChange={(e) => { updateValue('ecommerceBackgroundColor', e.target.value); markSectionTouched('bundles'); }}
-                  className="h-10 w-14 cursor-pointer rounded-lg border border-gray-600 bg-transparent p-1"
-                />
-                <input
-                  type="text"
-                  value={values.ecommerceBackgroundColor}
-                  onChange={(e) => { updateValue('ecommerceBackgroundColor', e.target.value); markSectionTouched('bundles'); }}
-                  placeholder="#ffffff"
-                  className="flex-1 rounded-full border border-gray-600 bg-gray-800/50 px-4 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-                />
+              <div className="flex flex-wrap gap-2">
+                {(['white', 'gradient'] as Step3Values['ecommerceBackgroundMode'][]).map(mode => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => { updateValue('ecommerceBackgroundMode', mode); markSectionTouched('bundles'); }}
+                    className={getPillClass(values.ecommerceBackgroundMode === mode)}
+                  >
+                    {mode === 'white' ? 'Pure White' : 'Gradient'}
+                  </button>
+                ))}
               </div>
+              {values.ecommerceBackgroundMode === 'white' ? (
+                <div className="rounded-lg border border-gray-600 bg-gray-900/40 px-3 py-3 text-sm text-gray-300">
+                  Background locked to pure #FFFFFF for PDP hero compliance. No color overrides allowed.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {[
+                      { key: 'ecommerceGradientStart', label: 'Start color', value: values.ecommerceGradientStart },
+                      { key: 'ecommerceGradientEnd', label: 'End color', value: values.ecommerceGradientEnd }
+                    ].map(cfg => (
+                      <div key={cfg.key} className="space-y-2">
+                        <p className="text-[11px] uppercase tracking-wide text-gray-400">{cfg.label}</p>
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="color"
+                            value={cfg.value}
+                            onChange={(e) => handleGradientColorChange(cfg.key as 'ecommerceGradientStart' | 'ecommerceGradientEnd', e.target.value)}
+                            className="h-10 w-14 cursor-pointer rounded-lg border border-gray-600 bg-transparent p-1"
+                          />
+                          <input
+                            type="text"
+                            value={cfg.value}
+                            onChange={(e) => handleGradientColorChange(cfg.key as 'ecommerceGradientStart' | 'ecommerceGradientEnd', e.target.value)}
+                            className="flex-1 rounded-full border border-gray-600 bg-gray-800/50 px-4 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label className="text-[11px] uppercase tracking-wide text-gray-400">Angle</label>
+                    <select
+                      value={values.ecommerceGradientAngle}
+                      onChange={(e) => { updateValue('ecommerceGradientAngle', e.target.value as Step3Values['ecommerceGradientAngle']); markSectionTouched('bundles'); }}
+                      className="rounded-full border border-gray-600 bg-gray-900/50 px-3 py-1 text-sm text-gray-200"
+                    >
+                      {GRADIENT_ANGLE_OPTIONS.map(angle => (
+                        <option key={angle} value={angle}>{angle}°</option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={invertGradient}
+                      className="inline-flex items-center gap-2 rounded-full border border-gray-600 px-3 py-1 text-sm text-gray-200 hover:border-indigo-400 transition"
+                    >
+                      Invert gradient
+                    </button>
+                  </div>
+                  <div
+                    className="h-16 w-full rounded-xl border border-gray-600"
+                    style={{
+                      background: `linear-gradient(${values.ecommerceGradientAngle}deg, ${values.ecommerceGradientStart}, ${values.ecommerceGradientEnd})`
+                    }}
+                  />
+                </div>
+              )}
             </div>
           )}
 

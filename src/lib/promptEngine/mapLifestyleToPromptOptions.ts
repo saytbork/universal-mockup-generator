@@ -49,6 +49,20 @@ function buildCustomClothesDescriptor(sceneState: Step3Values): CustomClothes | 
         return undefined;
     }
 
+    if (!isEcommerceBlankSpaceActive) {
+        if (wantsGradientBackground) {
+            mapped.bgGradient = {
+                startColor: gradientConfig.startColor,
+                endColor: gradientConfig.endColor,
+                angle: gradientConfig.angle
+            };
+            delete mapped.bgColor;
+        } else if (sceneState.ecommerceBackgroundColor) {
+            mapped.bgColor = sceneState.ecommerceBackgroundColor;
+            delete mapped.bgGradient;
+        }
+    }
+
     if (sceneState.ugcRealMode) {
         framingOverride = null;
         delete mapped.perspective;
@@ -544,6 +558,13 @@ export function mapLifestyleToPromptOptions(
     const is85Plus = isUGCRealMode && personAge >= 85;
     const hairColorSelection = (sceneState.hairColor || '').trim();
     const hasExplicitHairColor = Boolean(hairColorSelection && hairColorSelection !== DEFAULT_HAIR_COLOR);
+    const wantsGradientBackground = sceneState.ecommerceBackgroundMode === 'gradient';
+    const gradientAngleValue = parseInt(sceneState.ecommerceGradientAngle || '90', 10) || 90;
+    const gradientConfig = {
+        startColor: sceneState.ecommerceGradientStart || '#f7f7f7',
+        endColor: sceneState.ecommerceGradientEnd || '#d9d9d9',
+        angle: gradientAngleValue
+    };
     const ugcHouseholdLighting =
         'household ambient lighting with side window spill colliding with warm kitchen bulbs, uneven and unplanned';
 
@@ -962,9 +983,21 @@ export function mapLifestyleToPromptOptions(
     // TIME OF DAY + LIGHTING STYLE → Combined Light Narrative
     // ========================================================================
     if (isEcommerceBlankSpaceActive) {
-        mapped.bgColor = '#FFFFFF';
+        if (wantsGradientBackground) {
+            mapped.bgGradient = {
+                startColor: gradientConfig.startColor,
+                endColor: gradientConfig.endColor,
+                angle: gradientConfig.angle
+            };
+            delete mapped.bgColor;
+        } else {
+            mapped.bgColor = '#FFFFFF';
+            delete mapped.bgGradient;
+        }
         mapped.lighting =
-            'Pure white background (#FFFFFF) with neutral studio lighting, flat even illumination, and only a subtle contact shadow directly beneath the product.';
+            wantsGradientBackground
+                ? 'Gradient ecommerce backdrop with even studio lighting and gentle reflections.'
+                : 'Pure white background (#FFFFFF) with neutral studio lighting, flat even illumination, and only a subtle contact shadow directly beneath the product.';
         (mapped as any).timeLightingContext = mapped.lighting;
         console.log('[MAP] Ecommerce Blank Space lighting enforced:', mapped.lighting);
     } else {

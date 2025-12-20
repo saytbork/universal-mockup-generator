@@ -12,7 +12,10 @@ export class CompositionDetailsBuilder implements PromptBuilder {
             parts.push(`Product and person placement: ${options.sidePlacement} side.`);
         }
 
-        if (options.bgColor) {
+        if (options.bgGradient) {
+            const { startColor, endColor, angle = 90 } = options.bgGradient;
+            parts.push(`Background gradient: linear ${angle}° from ${startColor} to ${endColor}.`);
+        } else if (options.bgColor) {
             parts.push(`Background color: solid ${options.bgColor}.`);
         }
 

@@ -178,6 +178,11 @@ export interface PromptOptions {
 
     compositionMode?: string;
     bgColor?: string;
+    bgGradient?: {
+        startColor: string;
+        endColor: string;
+        angle?: number;
+    };
     sidePlacement?: 'left' | 'center' | 'right';
     ecommerceSidePlacement?: 'left' | 'center' | 'right';
     ecommerceSidePlacementDescriptor?: string;
