@@ -139,6 +139,7 @@ export interface Step3Values {
   environment: string;
   customEnvironment: string;
   sceneOrderChaos: 'Clean' | 'Normal' | 'Messy' | 'Chaotic' | 'Randomized Chaos';
+  ecommerceSidePlacementFlag: boolean;
 
   // Time & Lighting
   timeOfDay: string;
@@ -158,6 +159,16 @@ export interface Step3Values {
   // Realism
   ugcRealMode: boolean;
   ugcCaptureSituation: UGCCaptureSituationId | null;
+  ugcCaptureStyleBase: string[];
+  ugcCameraOperator: string[];
+  ugcBodyPhonePosition: string[];
+  ugcMotionStability: string[];
+  ugcFramingImperfections: string[];
+  ugcAwkwardContext: string[];
+  elderlyRealismGuard: boolean;
+  elderlyRealismDescriptor: string;
+  elderlyRealismGuardActive: boolean;
+  elderlyRealismGuardLabel: string;
 
   // Selfie Mode (Unified System)
   selfieMode: string;
@@ -574,6 +585,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     environment: 'Kitchen', // Kitchen has table/counter surface by default
     customEnvironment: '',
     sceneOrderChaos: 'Normal',
+    ecommerceSidePlacementFlag: false,
 
     // Time & Lighting - simplified
     timeOfDay: 'Afternoon',
@@ -593,6 +605,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     // Realism
     ugcRealMode: false,
     ugcCaptureSituation: null,
+    ugcCaptureStyleBase: [],
+    ugcCameraOperator: [],
+    ugcBodyPhonePosition: [],
+    ugcMotionStability: [],
+    ugcFramingImperfections: [],
+    ugcAwkwardContext: [],
+    elderlyRealismGuard: false,
+    elderlyRealismDescriptor: '',
+    elderlyRealismGuardActive: false,
+    elderlyRealismGuardLabel: '',
 
     // Selfie
     selfieMode: 'None',

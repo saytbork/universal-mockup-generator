@@ -13,7 +13,7 @@
  */
 
 import type { ExpertRole, Step3Values, ExpertAttire } from '@/components/LifestyleStep3';
-import type { CustomClothes, FormulationStoryOptions, PromptOptions } from './types';
+import type { CustomClothes, FormulationStoryOptions, PromptOptions, UGCRealModeLayerSet } from './types';
 import { mapProductModeToPromptOptions } from './mapProductModeToPromptOptions';
 import { APPEARANCE_SEMANTIC_MAP } from './semanticMaps/appearance';
 
@@ -696,6 +696,28 @@ export function mapLifestyleToPromptOptions(
         mapped.ugcCaptureSituation = null;
     }
 
+    mapped.ugcCaptureStyleBase = sceneState.ugcCaptureStyleBase;
+    mapped.ugcCameraOperator = sceneState.ugcCameraOperator;
+    mapped.ugcBodyPhonePosition = sceneState.ugcBodyPhonePosition;
+    mapped.ugcMotionStability = sceneState.ugcMotionStability;
+    mapped.ugcFramingImperfections = sceneState.ugcFramingImperfections;
+    mapped.ugcAwkwardContext = sceneState.ugcAwkwardContext;
+
+    const ugcLayerSet: UGCRealModeLayerSet = {
+        captureBase: sceneState.ugcCaptureStyleBase,
+        cameraOperator: sceneState.ugcCameraOperator,
+        bodyPhonePosition: sceneState.ugcBodyPhonePosition,
+        motionStability: sceneState.ugcMotionStability,
+        framingImperfections: sceneState.ugcFramingImperfections,
+        awkwardContext: sceneState.ugcAwkwardContext
+    };
+    mapped.ugcRealModeLayers = ugcLayerSet;
+
+    mapped.elderlyRealismGuard = sceneState.elderlyRealismGuard;
+    mapped.elderlyRealismDescriptor = sceneState.elderlyRealismDescriptor;
+    mapped.elderlyRealismGuardActive = sceneState.elderlyRealismGuardActive;
+    mapped.elderlyRealismGuardLabel = sceneState.elderlyRealismGuardLabel;
+
     // ========================================================================
     // CAMERA → Physical Composition Language
     // ========================================================================
@@ -820,6 +842,7 @@ export function mapLifestyleToPromptOptions(
     }
 
     mapped.sidePlacement = mapped.sidePlacement || (sceneState.sidePlacement?.toLowerCase() || 'center') as any;
+    mapped.ecommerceSidePlacementFlag = sceneState.ecommerceSidePlacementFlag;
 
     // ========================================================================
     // OUTPUT FORMAT → Aspect Ratio
