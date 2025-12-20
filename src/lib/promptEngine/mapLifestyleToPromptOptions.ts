@@ -538,6 +538,12 @@ export function mapLifestyleToPromptOptions(
     const is85Plus = isUGCRealMode && personAge >= 85;
     const hairColorSelection = (sceneState.hairColor || '').trim();
     const hasExplicitHairColor = Boolean(hairColorSelection && hairColorSelection !== DEFAULT_HAIR_COLOR);
+    const ugcHouseholdLighting =
+        'household ambient lighting with side window spill colliding with warm kitchen bulbs, uneven and unplanned';
+    const ugcExpressionOverride =
+        'neutral, mildly tired expression with relaxed mouth corners and no promotional smile';
+    const ugcEyeDegrade =
+        'eyes drifting slightly past the camera lens, casual unfocused gaze with no intentional engagement';
 
 
     // ========================================================================
@@ -635,10 +641,15 @@ export function mapLifestyleToPromptOptions(
         const expressionSemantic =
             FACIAL_EXPRESSION_MAP[expressionLabel] || FACIAL_EXPRESSION_MAP['Calm & Serene'];
         mapped.personDetails.facialExpression = expressionSemantic;
+        if (sceneState.ugcRealMode) {
+            mapped.personDetails.facialExpression = ugcExpressionOverride;
+        }
 
         const eyeDirectionLabel = sceneState.eyeDirection || 'Looking at camera';
         mapped.personDetails.eyeDirection =
-            EYE_DIRECTION_SEMANTIC_MAP[eyeDirectionLabel] || eyeDirectionLabel as any;
+            sceneState.ugcRealMode
+                ? ugcEyeDegrade
+                : EYE_DIRECTION_SEMANTIC_MAP[eyeDirectionLabel] || eyeDirectionLabel as any;
         if (sceneState.productInteraction) {
             const interactionBase = INTERACTION_SEMANTIC_MAP[sceneState.productInteraction] || sceneState.productInteraction;
             const interactionParts = [interactionBase];
@@ -960,6 +971,11 @@ export function mapLifestyleToPromptOptions(
         mapped.lighting = `${timeSemantic}, ${lightingSemantic}`;
         (mapped as any).timeLightingContext = mapped.lighting;
         console.log('[MAP] lighting:', sceneState.timeOfDay, '+', sceneState.lightingStyle, '→', mapped.lighting);
+    }
+
+    if (sceneState.ugcRealMode && !isEcommerceBlankSpaceActive) {
+        mapped.lighting = ugcHouseholdLighting;
+        (mapped as any).timeLightingContext = mapped.lighting;
     }
 
     if (is80Plus && mapped.lighting) {

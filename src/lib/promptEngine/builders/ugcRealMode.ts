@@ -169,6 +169,11 @@ No balanced key-fill setup, no studio softness, no commercial exposure.
 If the light looks styled or intentional, override it toward imperfect window spill or interior ambient.
         `.trim().replace(/\s+/g, ' '));
 
+        parts.push(`
+HOUSEHOLD LIGHTING MANDATE:
+Treat lighting like casual home illumination—window daylight colliding with warm kitchen bulbs, creating patchy highlights, falloff, and color shifts. Nothing should look like professional fixtures or studio rigs.
+        `.trim().replace(/\s+/g, ' '));
+
         if (options.sceneOrderChaosDescriptor) {
             parts.push(`Scene order: ${options.sceneOrderChaosDescriptor}.`);
         }
