@@ -1283,7 +1283,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           )}
         </div>
 
-      </AccordionSection >
+      </AccordionSection>
 
       {/* RAW DOMESTIC UGC */}
       <AccordionSection
@@ -1371,10 +1371,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           </div>
         </div>
 
-      </AccordionSection >
+      </AccordionSection>
 
       {/* Product Interaction */}
-      < AccordionSection
+      <AccordionSection
         icon={Hand}
         title="Product Interaction"
         tooltip="Control how the creator handles the product"
@@ -1410,7 +1410,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             </div>
           )}
         </div>
-      </AccordionSection >
+      </AccordionSection>
 
       <AccordionSection
         icon={Shirt}
@@ -1586,10 +1586,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             ))}
           </div>
         </div>
-      </AccordionSection >
+      </AccordionSection>
 
       {/* Environment */}
-      < AccordionSection
+      <AccordionSection
         icon={Home}
         title="Environment"
         tooltip="Where the scene takes place"
@@ -1686,10 +1686,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             </div>
           </div>
         </div>
-      </AccordionSection >
+      </AccordionSection>
 
       {/* Time & Lighting */}
-      < AccordionSection
+      <AccordionSection
         icon={Sun}
         title="Time & Lighting"
         tooltip="Control the lighting and time of day"
@@ -1745,7 +1745,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             </div>
           </div>
         )}
-      </AccordionSection >
+      </AccordionSection>
 
       
           <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
@@ -1885,7 +1885,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               </div>
             </div>
-            </AccordionSection >
+            </AccordionSection>
           )}
       {/* BUNDLES SYSTEM - STRICTLY ISOLATED */}
       {/* Bundles are enabled ONLY when multiple products are uploaded. */}
@@ -2121,7 +2121,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             </div>
           )}
         </div >
-      </AccordionSection >
+      </AccordionSection>
 
       {/* Formulation Story */}
       <AccordionSection
