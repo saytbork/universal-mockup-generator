@@ -131,6 +131,20 @@ ENVIRONMENT HANDLING:
 - Environment labels only define where the person happens to be—lighting, cleanliness, and overall mood remain engine-controlled and never upgrade the capture.
 - Background remains readable and mostly sharp, with only minimal softness caused by actual distance. Absolutely no intentional blur or depth tricks.
 `.trim().replace(/\s+/g, ' ');
+const RAW_DOMESTIC_GENDERED_BACKGROUND_RULE = `
+When Raw Domestic UGC is active:
+- Male creators must never appear in cosmetic, makeup, or vanity-associated environments.
+- Female creators may appear in cosmetic-adjacent environments, but only as incidental background clutter.
+If a background implies intentional beauty setup, invalidate and re-roll.
+`.trim().replace(/\s+/g, ' ');
+const RAW_DOMESTIC_MALE_BACKGROUND_RULE = `
+MALE BACKGROUND RULE:
+- Keep backgrounds neutral and utilitarian (boxes, desks, kitchens, garages, generic bedrooms). Absolutely no makeup tools, brushes, skincare jars, vanities, or aesthetic grooming setups. If any beauty props slip in, invalidate and re-roll.
+`.trim().replace(/\s+/g, ' ');
+const RAW_DOMESTIC_FEMALE_BACKGROUND_RULE = `
+FEMALE BACKGROUND RULE:
+- Cosmetic items may appear only as incidental clutter. Makeup, brushes, creams, or vanities must feel accidental, disorganized, and never staged for beauty content. If the background feels like a beauty shoot or influencer vanity, invalidate and re-roll.
+`.trim().replace(/\s+/g, ' ');
 
 const RAW_DOMESTIC_ABSOLUTE_BANS = `
 ABSOLUTE PROHIBITIONS:
@@ -288,6 +302,13 @@ export class UGCRealModeBuilder implements PromptBuilder {
         parts.push(RAW_DOMESTIC_SUBJECT_RULES);
         parts.push(RAW_DOMESTIC_PRODUCT_RULES);
         parts.push(RAW_DOMESTIC_ENVIRONMENT_RULES);
+        parts.push(RAW_DOMESTIC_GENDERED_BACKGROUND_RULE);
+        const normalizedGender = (personDetails?.gender || '').toLowerCase();
+        if (normalizedGender.includes('male')) {
+            parts.push(RAW_DOMESTIC_MALE_BACKGROUND_RULE);
+        } else if (normalizedGender.includes('female')) {
+            parts.push(RAW_DOMESTIC_FEMALE_BACKGROUND_RULE);
+        }
         parts.push(RAW_DOMESTIC_ABSOLUTE_BANS);
 
         parts.push(UGC_FOCUS_HARD_RULE);
