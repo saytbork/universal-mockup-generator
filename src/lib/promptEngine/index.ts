@@ -96,20 +96,22 @@ function negativePrompt() {
     ].join(", ");
 }
 
-const DEPTH_DETECTION_REGEX = /(depth of field|portrait mode|bokeh|background blur|lens blur|cinematic focus|subject separation|shallow depth|soft background)/i;
+const DEPTH_DETECTION_REGEX = /(depth of field|portrait mode|bokeh|background blur|lens blur|cinematic focus|subject separation|shallow depth|soft background)/gi;
 
 function enforceUgcFocusGuard(prompt: string, options: PromptOptions): string {
     const ugcActive = options.ugcRealModeActive || options.rawDomesticUgcActive;
     if (!ugcActive) {
         return prompt;
     }
+    let sanitizedPrompt = prompt;
     if (DEPTH_DETECTION_REGEX.test(prompt)) {
-        throw new InvalidSceneCombinationError('UGC depth conflict detected: background separation language present. Re-run generation.');
+        console.warn('[UGC FOCUS GUARD] Removing background separation language from prompt.');
+        sanitizedPrompt = sanitizedPrompt.replace(DEPTH_DETECTION_REGEX, 'flat focus');
     }
-    if (!/flat focus across the entire frame/i.test(prompt)) {
-        return `${prompt} flat focus across the entire frame, small sensor, fixed wide lens, no depth separation, no portrait mode.`.replace(/\s+/g, ' ').trim();
+    if (!/flat focus across the entire frame/i.test(sanitizedPrompt)) {
+        sanitizedPrompt = `${sanitizedPrompt} flat focus across the entire frame, small sensor, fixed wide lens, no depth separation, no portrait mode.`;
     }
-    return prompt;
+    return sanitizedPrompt.replace(/\s+/g, ' ').trim();
 }
 
 // ============================================================================
