@@ -1598,9 +1598,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         isRequired={true}
         isTouched={touchedSections.has('environment')}
       >
-        {values.ugcRealMode ? (
-          <div className="rounded-lg border border-gray-700 bg-gray-900/60 px-4 py-3 text-sm text-gray-300">
-            Raw Domestic UGC locks environmental decisions. Backgrounds are incidental, messy, and engine-controlled. Turn this mode off to stage a location.
+        {values.ugcRealMode && values.sceneIntent === 'environment' ? (
+          <div className="space-y-3">
+            <div className="rounded-lg border border-gray-700 bg-gray-900/60 px-4 py-3 text-sm text-gray-300">
+              Raw Domestic UGC locks environmental decisions. Backgrounds are incidental, messy, and engine-controlled.
+            </div>
           </div>
         ) : (
           <div className="space-y-3">
@@ -2023,29 +2025,32 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
           {/* BACKGROUND STYLE - Only for Ecommerce Blank Space */}
           {values.compositionMode === 'Ecommerce Blank Space' && (
-            <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-              <div>
-                <p className="text-xs uppercase tracking-wider text-indigo-200">BACKGROUND STYLE</p>
-                <p className="text-[11px] text-gray-400 mt-1">Pure white PDP canvas or custom gradient</p>
+            <div className="space-y-5 rounded-xl border border-white/10 bg-gradient-to-b from-gray-900/60 to-gray-900/30 p-4">
+              <div className="space-y-1">
+                <p className="text-xs uppercase tracking-widest text-indigo-300">Background</p>
+                <p className="text-sm text-gray-300">Canvas style for product renders</p>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="inline-flex rounded-full bg-gray-800/50 p-1">
                 {(['white', 'gradient'] as Step3Values['ecommerceBackgroundMode'][]).map(mode => (
                   <button
                     key={mode}
                     type="button"
                     onClick={() => { updateValue('ecommerceBackgroundMode', mode); markSectionTouched('bundles'); }}
-                    className={getPillClass(values.ecommerceBackgroundMode === mode)}
+                    className={`rounded-full px-4 py-1.5 text-xs font-medium transition ${values.ecommerceBackgroundMode === mode
+                      ? 'bg-white text-black shadow'
+                      : 'text-gray-300 hover:text-white'
+                      }`}
                   >
                     {mode === 'white' ? 'Pure White' : 'Gradient'}
                   </button>
                 ))}
               </div>
               {values.ecommerceBackgroundMode === 'white' ? (
-                <div className="rounded-lg border border-gray-600 bg-gray-900/40 px-3 py-3 text-sm text-gray-300">
+                <div className="rounded-xl border border-white/15 bg-gray-900/60 px-3 py-3 text-sm text-gray-300">
                   Background locked to pure #FFFFFF for PDP hero compliance. No color overrides allowed.
                 </div>
               ) : (
-                <div className="space-y-4">
+                <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {[
                       { key: 'ecommerceGradientStart', label: 'Start color', value: values.ecommerceGradientStart },
@@ -2053,35 +2058,32 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     ].map(cfg => (
                       <div key={cfg.key} className="space-y-2">
                         <p className="text-[11px] uppercase tracking-wide text-gray-400">{cfg.label}</p>
-                        <div className="flex items-center gap-3">
+                        <label className="relative flex items-center gap-3 rounded-xl bg-gray-800/40 p-3 cursor-pointer hover:bg-gray-800/60 transition">
                           <div
-                            className="h-10 w-14 rounded-lg border border-gray-600 p-[2px] flex items-center justify-center"
+                            className="h-10 w-10 rounded-lg ring-1 ring-white/20"
                             style={{ background: cfg.value }}
-                          >
-                            <input
-                              type="color"
-                              value={cfg.value}
-                              onChange={(e) => handleGradientColorChange(cfg.key as 'ecommerceGradientStart' | 'ecommerceGradientEnd', e.target.value)}
-                              className="h-full w-full cursor-pointer rounded-md border-0 bg-transparent p-0 opacity-0"
-                              title={`${cfg.label} picker`}
-                            />
-                          </div>
+                          />
                           <input
                             type="text"
                             value={cfg.value}
                             onChange={(e) => handleGradientColorChange(cfg.key as 'ecommerceGradientStart' | 'ecommerceGradientEnd', e.target.value)}
-                            className="flex-1 rounded-full border border-gray-600 bg-gray-800/50 px-4 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                            className="w-full bg-transparent text-sm text-gray-200 focus:outline-none"
                           />
-                        </div>
+                          <input
+                            type="color"
+                            value={cfg.value}
+                            onChange={(e) => handleGradientColorChange(cfg.key as 'ecommerceGradientStart' | 'ecommerceGradientEnd', e.target.value)}
+                            className="absolute inset-0 opacity-0 cursor-pointer"
+                          />
+                        </label>
                       </div>
                     ))}
                   </div>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <label className="text-[11px] uppercase tracking-wide text-gray-400">Angle</label>
+                  <div className="flex items-center gap-3">
                     <select
                       value={values.ecommerceGradientAngle}
                       onChange={(e) => { updateValue('ecommerceGradientAngle', e.target.value as Step3Values['ecommerceGradientAngle']); markSectionTouched('bundles'); }}
-                      className="rounded-full border border-gray-600 bg-gray-900/50 px-3 py-1 text-sm text-gray-200"
+                      className="rounded-full bg-gray-800/60 px-3 py-1.5 text-sm text-gray-200 focus:outline-none"
                     >
                       {GRADIENT_ANGLE_OPTIONS.map(angle => (
                         <option key={angle} value={angle}>{angle}°</option>
@@ -2090,18 +2092,21 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     <button
                       type="button"
                       onClick={invertGradient}
-                      className="inline-flex items-center gap-2 rounded-full border border-gray-600 px-3 py-1 text-sm text-gray-200 hover:border-indigo-400 transition"
+                      className="rounded-full bg-gray-800/60 px-3 py-1.5 text-sm text-gray-300 hover:text-white transition"
                     >
-                      Invert gradient
+                      Invert
                     </button>
                   </div>
-                  <div
-                    className="h-16 w-full rounded-xl border border-gray-600"
-                    style={{
-                      background: `linear-gradient(${values.ecommerceGradientAngle}deg, ${values.ecommerceGradientStart}, ${values.ecommerceGradientEnd})`
-                    }}
-                  />
-                </div>
+                  <div className="relative overflow-hidden rounded-2xl border border-white/10">
+                    <div
+                      className="h-24 w-full"
+                      style={{
+                        background: `linear-gradient(${values.ecommerceGradientAngle}deg, ${values.ecommerceGradientStart}, ${values.ecommerceGradientEnd})`
+                      }}
+                    />
+                    <div className="absolute inset-0 ring-1 ring-black/5" />
+                  </div>
+                </>
               )}
             </div>
           )}
