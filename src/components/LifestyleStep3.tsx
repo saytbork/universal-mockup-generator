@@ -1598,17 +1598,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         isRequired={true}
         isTouched={touchedSections.has('environment')}
       >
-        {values.ugcRealMode && values.sceneIntent === 'environment' ? (
-          <div className="space-y-3">
-            <div className="rounded-lg border border-gray-700 bg-gray-900/60 px-4 py-3 text-sm text-gray-300">
-              Raw Domestic UGC locks environmental decisions. Backgrounds are incidental, messy, and engine-controlled. Turn this mode off to stage or select a location.
+        <div className="space-y-3">
+          {values.ugcRealMode && (
+            <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-xs text-amber-100">
+              Raw Domestic UGC still honors your environment choice—it just interprets it as incidental and unstaged. Pick any room; the engine keeps it messy, domestic, and low intent.
             </div>
-          </div>
-        ) : (
-          <div className="space-y-3">
+          )}
+          {!values.ugcRealMode && (
             <div className="rounded-lg border border-gray-700 bg-gray-900/40 px-3 py-2 text-[11px] text-gray-300">
-              Environment describes location context only. Lighting, cleanliness, and overall polish remain engine-controlled in UGC—changing this won’t upgrade quality or staging.
+              Environment describes location context only. Lighting, cleanliness, and overall polish remain engine-controlled—changing this won’t upgrade quality or staging.
             </div>
+          )}
             <p className="text-xs uppercase tracking-wider text-indigo-200">INDOOR</p>
             <div className="flex flex-wrap gap-2">
               {ENVIRONMENT_INDOOR.map(env => (
@@ -1685,7 +1685,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               </div>
             </div>
           </div>
-        )}
+        </div>
       </AccordionSection >
 
       {/* Time & Lighting */}

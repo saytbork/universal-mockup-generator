@@ -956,20 +956,59 @@ export function mapLifestyleToPromptOptions(
             'Street Corner': 'Street Corner'
         };
 
+        const incidentalFallbacks = [
+            'Kitchen',
+            'Living Room',
+            'Bedroom',
+            'Bathroom',
+            'Workspace',
+            'Hallway',
+            'Balcony / Indoor Terrace',
+            'Backyard / Patio',
+            'Street Corner'
+        ];
+
         const selectedEnvironment = sceneState.environment || '';
         const customEnvironmentValue = (sceneState.customEnvironment || '').trim();
 
-        const rawDomesticEnvironment =
-            'Incidental domestic background that exists only because it cannot be avoided — glimpses of kitchen cabinets, bathroom mirrors, bedroom clutter, or car interiors with zero staging.';
+        (mapped as any).selectedEnvironment = selectedEnvironment;
+        (mapped as any).customEnvironment = customEnvironmentValue;
 
-        (mapped as any).selectedEnvironment = isUGCRealMode ? 'Raw Domestic Locked' : selectedEnvironment;
-        (mapped as any).customEnvironment = isUGCRealMode ? '' : customEnvironmentValue;
+        const resolveEnvironmentLabel = (): { label: string; description: string } => {
+            if (selectedEnvironment === 'Custom' && customEnvironmentValue) {
+                return {
+                    label: customEnvironmentValue,
+                    description: `${customEnvironmentValue} captured incidentally with lived-in clutter and zero staging.`
+                };
+            }
+            const mappedLabel = allowedEnvironmentMap[selectedEnvironment];
+            if (mappedLabel) {
+                return {
+                    label: mappedLabel,
+                    description: `${mappedLabel} captured incidentally with lived-in domestic clutter and no deliberate styling.`
+                };
+            }
+            if (customEnvironmentValue) {
+                return {
+                    label: customEnvironmentValue,
+                    description: `${customEnvironmentValue} captured incidentally with lived-in clutter and no staging.`
+                };
+            }
+            const fallbackLabel =
+                incidentalFallbacks[Math.floor(Math.random() * incidentalFallbacks.length)] ||
+                'Bedroom';
+            return {
+                label: fallbackLabel,
+                description: `${fallbackLabel} captured incidentally with lived-in domestic clutter and no deliberate styling.`
+            };
+        };
 
         if (isUGCRealMode) {
-            mapped.setting = rawDomesticEnvironment;
-            mapped.microLocation = rawDomesticEnvironment;
-            (mapped as any).sceneEnvironment = rawDomesticEnvironment;
-            mapped.environmentOrder = rawDomesticEnvironment;
+            const { label, description } = resolveEnvironmentLabel();
+            mapped.setting = description;
+            mapped.microLocation = label;
+            (mapped as any).sceneEnvironment = description;
+            mapped.environmentOrder = description;
         } else if (selectedEnvironment === 'Custom' && customEnvironmentValue) {
             mapped.setting = customEnvironmentValue;
             mapped.microLocation = customEnvironmentValue;
