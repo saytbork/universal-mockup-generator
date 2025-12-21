@@ -32,6 +32,7 @@ CLOSE FACE FRAMING OVERRIDE:
 The lens sits inches from the subject’s face. Frame the image like a tight selfie where cheeks, forehead, and part of the product dominate the view.
 Background information must nearly disappear—treat walls and objects as blurred color streaks with no readable details.
 Crop aggressively: let the top of the head or chin clip at the frame edges and keep only a sliver of neck/shoulder visible.
+Slight barrel distortion, asymmetrical facial alignment, and a dominant nose/forehead are REQUIRED. If the result resembles a flattering beauty selfie or clean portrait, reject and re-roll.
     `.trim().replace(/\s+/g, ' ')
 };
 const RAW_DOMESTIC_CORE_DIRECTIVE = `
@@ -55,6 +56,11 @@ IMAGE QUALITY CHARACTERISTICS (MANDATORY):
 - Mild motion blur or micro-shake, uneven sharpening, compression artifacts, and aggressive noise reduction in shadows.
 - Allow highlight clipping and shadow crush. Slight exposure breathing is acceptable.
 - These are physical limitations, not creative filters. DO NOT add artistic grain, stylized noise, cinematic blur, or intentional retro effects.
+`.trim().replace(/\s+/g, ' ');
+const RAW_DOMESTIC_DEPTH_RULES = `
+DEPTH OF FIELD OVERRIDE:
+- Everything is roughly in focus because the tiny front camera cannot separate subject and background.
+- No background blur, cinematic depth, or “pleasing” bokeh. Keep focus mediocre across the frame with sharpening halos, noise-reduction smear, and accidental clarity.
 `.trim().replace(/\s+/g, ' ');
 
 const RAW_DOMESTIC_GEOMETRY_RULES = `
@@ -183,6 +189,14 @@ export class UGCRealModeBuilder implements PromptBuilder {
         const includesWalkingMotion = (layers.motionStability || []).includes(WALKING_MOTION_ID);
 
         const overrideTarget = options as any;
+        if (options.rawDomesticUgcActive) {
+            delete overrideTarget.backgroundBlur;
+            delete overrideTarget.depthOfField;
+            delete overrideTarget.lensEmulation;
+            delete overrideTarget.cameraDistance;
+            delete overrideTarget.focusFalloff;
+            delete overrideTarget.focusMode;
+        }
         if (hasPhysicalCaptureLayer) {
             delete overrideTarget.perspective;
             delete overrideTarget.personPose;
@@ -196,6 +210,7 @@ export class UGCRealModeBuilder implements PromptBuilder {
         parts.push(RAW_DOMESTIC_CORE_DIRECTIVE);
         parts.push(RAW_DOMESTIC_CAMERA_CONSTRAINTS);
         parts.push(RAW_DOMESTIC_IMAGE_QUALITY);
+        parts.push(RAW_DOMESTIC_DEPTH_RULES);
         parts.push(RAW_DOMESTIC_GEOMETRY_RULES);
         parts.push(RAW_DOMESTIC_LIGHTING_RULES);
         parts.push(RAW_DOMESTIC_SUBJECT_RULES);

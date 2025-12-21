@@ -2054,12 +2054,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       <div key={cfg.key} className="space-y-2">
                         <p className="text-[11px] uppercase tracking-wide text-gray-400">{cfg.label}</p>
                         <div className="flex items-center gap-3">
-                          <input
-                            type="color"
-                            value={cfg.value}
-                            onChange={(e) => handleGradientColorChange(cfg.key as 'ecommerceGradientStart' | 'ecommerceGradientEnd', e.target.value)}
-                            className="h-10 w-14 cursor-pointer rounded-lg border border-gray-600 bg-transparent p-1"
-                          />
+                          <div
+                            className="h-10 w-14 rounded-lg border border-gray-600 p-[2px] flex items-center justify-center"
+                            style={{ background: cfg.value }}
+                          >
+                            <input
+                              type="color"
+                              value={cfg.value}
+                              onChange={(e) => handleGradientColorChange(cfg.key as 'ecommerceGradientStart' | 'ecommerceGradientEnd', e.target.value)}
+                              className="h-full w-full cursor-pointer rounded-md border-0 bg-transparent p-0 opacity-0"
+                              title={`${cfg.label} picker`}
+                            />
+                          </div>
                           <input
                             type="text"
                             value={cfg.value}
