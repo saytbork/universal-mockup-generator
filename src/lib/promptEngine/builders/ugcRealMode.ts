@@ -135,6 +135,13 @@ RAW DOMESTIC VALIDATION:
 Before accepting the output, internally ask: “Does this look like a careless front-camera selfie captured at home with no intent to look good?”
 If the honest answer is no, reject or re-roll immediately.
 `.trim().replace(/\s+/g, ' ');
+const RAW_DOMESTIC_BACKGROUND_OVERRIDE = `
+BACKGROUND DE-EMPHASIS OVERRIDE:
+- Background must remain fully in focus yet perceptually quieter than the subject.
+- Reduce background micro-contrast and edge acuity with slight tonal compression in midtones (no blur, no haze).
+- Background textures should feel flatter, less legible, and visually tired.
+- The face and product must hold the highest local contrast in the frame. If background objects visually compete with them, re-roll.
+`.trim().replace(/\s+/g, ' ');
 const RAW_DOMESTIC_FOCUS_OVERRIDE = `
 FOCUS OVERRIDE (HARD):
 - Entire frame must remain in mediocre focus from foreground to background with no artistic falloff.
@@ -434,6 +441,7 @@ If any qualities feel polished, confident, commercial, lifestyle-perfect, stock-
         `.trim().replace(/\s+/g, ' '));
 
         parts.push(RAW_DOMESTIC_VALIDATION);
+        parts.push(RAW_DOMESTIC_BACKGROUND_OVERRIDE);
         parts.push(RAW_DOMESTIC_FOCUS_OVERRIDE);
         parts.push(RAW_DOMESTIC_FINAL_COMMAND);
 
