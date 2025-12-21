@@ -142,6 +142,11 @@ BACKGROUND DE-EMPHASIS OVERRIDE:
 - Background textures should feel flatter, less legible, and visually tired.
 - The face and product must hold the highest local contrast in the frame. If background objects visually compete with them, re-roll.
 `.trim().replace(/\s+/g, ' ');
+const RAW_DOMESTIC_BACKGROUND_CONTRAST_VALIDATION = `
+BACKGROUND CONTRAST VALIDATION:
+- After generation, compare visual hierarchy (contrast and tonal weight), not sharpness. If background contrast is approximately equal to the face or product, invalidate and regenerate.
+- The subject must remain the highest local contrast region without looking stylish or retouched. Background can stay in focus but must feel visually tired and secondary.
+`.trim().replace(/\s+/g, ' ');
 const RAW_DOMESTIC_FOCUS_OVERRIDE = `
 FOCUS OVERRIDE (HARD):
 - Entire frame must remain in mediocre focus from foreground to background with no artistic falloff.
@@ -443,6 +448,7 @@ If any qualities feel polished, confident, commercial, lifestyle-perfect, stock-
         parts.push(RAW_DOMESTIC_VALIDATION);
         parts.push(RAW_DOMESTIC_BACKGROUND_OVERRIDE);
         parts.push(RAW_DOMESTIC_FOCUS_OVERRIDE);
+        parts.push(RAW_DOMESTIC_BACKGROUND_CONTRAST_VALIDATION);
         parts.push(RAW_DOMESTIC_FINAL_COMMAND);
 
         const walkingText = `
