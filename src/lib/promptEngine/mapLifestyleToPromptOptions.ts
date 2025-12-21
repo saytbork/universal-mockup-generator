@@ -49,25 +49,6 @@ function buildCustomClothesDescriptor(sceneState: Step3Values): CustomClothes | 
         return undefined;
     }
 
-    if (!isEcommerceBlankSpaceActive) {
-        if (wantsGradientBackground) {
-            mapped.bgGradient = {
-                startColor: gradientConfig.startColor,
-                endColor: gradientConfig.endColor,
-                angle: gradientConfig.angle
-            };
-            delete mapped.bgColor;
-        } else if (sceneState.ecommerceBackgroundColor) {
-            mapped.bgColor = sceneState.ecommerceBackgroundColor;
-            delete mapped.bgGradient;
-        }
-    }
-
-    if (sceneState.ugcRealMode) {
-        framingOverride = null;
-        delete mapped.perspective;
-    }
-
     const fields = {
         garmentType: sceneState.customClothesGarmentType?.trim() || undefined,
         primaryColor: sceneState.customClothesPrimaryColor?.trim() || undefined,

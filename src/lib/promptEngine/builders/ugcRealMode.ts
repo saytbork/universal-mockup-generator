@@ -66,12 +66,14 @@ const UGC_FOCUS_HARD_RULE = `
 UGC FOCUS HARD RULE:
 - If UGC Real Mode or Raw Domestic is active, delete any background blur, portrait mode, cinematic depth, or lens emulation logic.
 - Treat every capture as a small-sensor front camera: wide focal length, shallow body depth, everything in mediocre focus within 0–3 meters.
+- The entire frame must stay evenly sharp with only minor digital softness—never optical blur. If background blur/bokeh appears indoors, invalidate and regenerate.
 - Only permit minimal softness if the background is physically farther than 3 meters; never artistic bokeh.
 - Replace any depth cues with uneven sharpening, compressed noise, and flat depth rendering. If background blur appears in a domestic space, invalidate and re-roll.
 `.trim().replace(/\s+/g, ' ');
 const UGC_HAIR_REALISM = `
 HAIR REALISM OVERRIDE:
 - Hair must render imperfectly with stray flyaways, irregular density, and messy edges, matching the person’s age and context.
+- Texture should feel soft and slightly muted—no hyper-detailed strand-by-strand rendering, no over-sharpening, no CGI gloss.
 - Ban salon-perfect clumps, glossy styling, uniform waves, or synthetic grooming. Slight dryness, frizz, or unkempt strands are mandatory.
 - If hair reads as styled, commercial, or synthetic, invalidate and re-roll.
 `.trim().replace(/\s+/g, ' ');
