@@ -39,6 +39,7 @@ export interface ModelReference {
 export interface PersonDetails {
     age?: number;                    // Numeric age 18-90
     gender?: string;
+    genderPresentation?: 'masculine' | 'feminine' | 'neutral';
     ethnicity?: string;
     skinTone?: string;
     skinRealism?: string;             // Ultra realistic | Natural | Polished | Smooth
@@ -142,6 +143,7 @@ export interface PromptOptions {
 
     // Person
     personDetails?: PersonDetails;
+    genderPresentation?: 'masculine' | 'feminine' | 'neutral';
     gender?: string;
     ethnicity?: string;
     skinTone?: string;

@@ -603,7 +603,32 @@ export function mapLifestyleToPromptOptions(
     if (personIncluded) {
         // AGE, GENDER, ETHNICITY (Always respect unless Model Ref)
         mapped.personDetails.age = sceneState.age;
-        if (sceneState.gender) mapped.personDetails.gender = sceneState.gender;
+        const genderValue = (sceneState.gender || '').trim();
+        if (genderValue) {
+            mapped.personDetails.gender = genderValue;
+        }
+        const normalizedGenderValue = genderValue.toLowerCase();
+        let genderPresentation: 'masculine' | 'feminine' | 'neutral' | undefined =
+            ((sceneState as any).genderPresentation || '').trim().toLowerCase() as any;
+        if (!genderPresentation) {
+            if (normalizedGenderValue === 'male') {
+                genderPresentation = 'masculine';
+            } else if (normalizedGenderValue === 'female') {
+                genderPresentation = 'feminine';
+            }
+        }
+        if (
+            isUGCRealMode &&
+            normalizedGenderValue === 'trans' &&
+            genderPresentation !== 'masculine' &&
+            genderPresentation !== 'feminine'
+        ) {
+            genderPresentation = 'neutral';
+        }
+        if (genderPresentation) {
+            (mapped as any).genderPresentation = genderPresentation;
+            mapped.personDetails.genderPresentation = genderPresentation;
+        }
         if (sceneState.ethnicity && sceneState.ethnicity !== 'Prefer not to specify') {
             mapped.personDetails.ethnicity = sceneState.ethnicity;
         }

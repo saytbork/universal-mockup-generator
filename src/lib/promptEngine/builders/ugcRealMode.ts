@@ -83,6 +83,7 @@ HAIR REALISM OVERRIDE (UGC):
 - Hair must lose micro-definition and strand-level clarity; allow clumping, partial merging, and low-detail zones.
 - Avoid crisp hair edges, perfectly isolated flyaways, or evenly resolved texture. It should feel imperfectly captured by a small phone sensor.
 - If individual strands look rendered with more detail than the surrounding skin, invalidate and re-run—the skin should always feel more resolved than the hair.
+- Hair must show minor asymmetry, uneven strand grouping, subtle frizz, and small flyaways typical of unstyled daily hair. Avoid uniform texture, sculpted volume, or intentional grooming.
 `.trim().replace(/\s+/g, ' ');
 const UGC_CLOTHING_REALISM = `
 CLOTHING REALISM OVERRIDE:
@@ -130,6 +131,12 @@ ENVIRONMENT HANDLING:
 - User selections are ignored; the engine owns the environment. Panels stay read-only while Raw Domestic UGC is active.
 - Environment labels only define where the person happens to be—lighting, cleanliness, and overall mood remain engine-controlled and never upgrade the capture.
 - Background remains readable and mostly sharp, with only minimal softness caused by actual distance. Absolutely no intentional blur or depth tricks.
+`.trim().replace(/\s+/g, ' ');
+const RAW_DOMESTIC_NEUTRAL_BACKGROUND_RULE = `
+NEUTRAL BACKGROUND RULE:
+- Keep the environment generic and utilitarian—kitchens, living rooms, bedrooms, desks, laundry piles, boxes, papers, everyday objects.
+- No cosmetic, vanity, or grooming cues may appear. Background clutter must remain random and non-aesthetic; if vanity elements surface, invalidate and re-roll.
+- Do not infer presentation from hair, clothing, or accessories. Everything remains incidental and non-aesthetic by default.
 `.trim().replace(/\s+/g, ' ');
 const RAW_DOMESTIC_GENDERED_BACKGROUND_RULE = `
 When Raw Domestic UGC is active:
@@ -304,9 +311,30 @@ export class UGCRealModeBuilder implements PromptBuilder {
         parts.push(RAW_DOMESTIC_ENVIRONMENT_RULES);
         parts.push(RAW_DOMESTIC_GENDERED_BACKGROUND_RULE);
         const normalizedGender = (personDetails?.gender || '').toLowerCase();
-        if (normalizedGender.includes('male')) {
+        const normalizedPresentation =
+            (
+                (personDetails as any)?.genderPresentation ||
+                (options as any).genderPresentation ||
+                ''
+            )
+                .toString()
+                .toLowerCase();
+        const usesMasculine =
+            normalizedPresentation === 'masculine' ||
+            (!normalizedPresentation && normalizedGender.includes('male'));
+        const usesFeminine =
+            normalizedPresentation === 'feminine' ||
+            (!normalizedPresentation && normalizedGender.includes('female'));
+        const usesNeutral =
+            normalizedPresentation === 'neutral' ||
+            (!usesMasculine && !usesFeminine);
+
+        if (usesNeutral) {
+            parts.push(RAW_DOMESTIC_NEUTRAL_BACKGROUND_RULE);
+        }
+        if (usesMasculine) {
             parts.push(RAW_DOMESTIC_MALE_BACKGROUND_RULE);
-        } else if (normalizedGender.includes('female')) {
+        } else if (usesFeminine) {
             parts.push(RAW_DOMESTIC_FEMALE_BACKGROUND_RULE);
         }
         parts.push(RAW_DOMESTIC_ABSOLUTE_BANS);
