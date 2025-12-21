@@ -5,6 +5,12 @@
 
 import type { PromptOptions, PromptBuilder } from '../types';
 
+const PERSONAL_ADDON_BASE_RULE = `
+PERSONAL ADD-ONS REALISM:
+- Accessories, piercings, glasses, facial hair, tattoos, and nails must look incidental and lived-in—common jewelry only, matte metals, slight wear, casual piercings, everyday glasses with minor glare or smudges, natural facial hair, aged tattoos, and short natural nails.
+- Nothing feels styled, trendy, or intentional. If an accessory appears curated or fashion-forward, invalidate and retry.
+`.trim().replace(/\s+/g, ' ');
+
 export class IdentityBuilder implements PromptBuilder {
     build(options: PromptOptions): string {
         const { personIncluded, hasModelReference, personDetails, contentStyle } = options;
@@ -178,6 +184,8 @@ Hair must appear eighty-plus years old with collapsed volume, irregular thinning
             if (identityParts.length > 0) {
                 parts.push(identityParts.join(', '));
             }
+
+            parts.push(PERSONAL_ADDON_BASE_RULE);
         }
 
         // EXPRESSION
