@@ -128,6 +128,7 @@ ENVIRONMENT HANDLING:
 - Backgrounds are incidental because they cannot be avoided: kitchen counters, bathroom mirrors, bedroom clutter, car interiors, etc.
 - No scenic framing, no narrative staging, no deliberate composition. Domestic hints appear only as side effects of the creator’s location.
 - User selections are ignored; the engine owns the environment. Panels stay read-only while Raw Domestic UGC is active.
+- Environment labels only define where the person happens to be—lighting, cleanliness, and overall mood remain engine-controlled and never upgrade the capture.
 - Background remains readable and mostly sharp, with only minimal softness caused by actual distance. Absolutely no intentional blur or depth tricks.
 `.trim().replace(/\s+/g, ' ');
 

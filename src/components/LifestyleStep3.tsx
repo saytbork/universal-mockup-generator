@@ -1606,6 +1606,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           </div>
         ) : (
           <div className="space-y-3">
+            <div className="rounded-lg border border-gray-700 bg-gray-900/40 px-3 py-2 text-[11px] text-gray-300">
+              Environment describes location context only. Lighting, cleanliness, and overall polish remain engine-controlled in UGC—changing this won’t upgrade quality or staging.
+            </div>
             <p className="text-xs uppercase tracking-wider text-indigo-200">INDOOR</p>
             <div className="flex flex-wrap gap-2">
               {ENVIRONMENT_INDOOR.map(env => (
