@@ -1601,7 +1601,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         {values.ugcRealMode && values.sceneIntent === 'environment' ? (
           <div className="space-y-3">
             <div className="rounded-lg border border-gray-700 bg-gray-900/60 px-4 py-3 text-sm text-gray-300">
-              Raw Domestic UGC locks environmental decisions. Backgrounds are incidental, messy, and engine-controlled.
+              Raw Domestic UGC locks environmental decisions. Backgrounds are incidental, messy, and engine-controlled. Turn this mode off to stage or select a location.
             </div>
           </div>
         ) : (

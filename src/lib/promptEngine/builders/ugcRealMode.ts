@@ -23,16 +23,16 @@ const WALKING_MOTION_ID = 'walking-motion';
 const CAPTURE_STYLE_DETAILS: Record<string, string> = {
     'torso-level-handheld': 'Phone held at torso height with a slight downward tilt and relaxed grip.',
     'high-angle': 'Phone lifted overhead looking down across shoulders in a casual selfie tilt.',
-    'close-face': 'Phone pushed inches from the face so cheeks and temples fill the frame, shoulders cropped out, background collapsed into soft noise.',
+    'close-face': 'Phone jammed inches from the face so cheeks, nose, and forehead dominate the frame, shoulders mostly cropped, background still visible but cramped inside the same mediocre focus plane.',
     'propped-surface': 'Phone resting on a counter or towel stack, wobbling lightly between breaths.'
 };
 const CAPTURE_STYLE_OVERRIDES: Record<string, string> = {
     'close-face': `
 CLOSE FACE FRAMING OVERRIDE:
-The lens sits inches from the subject’s face. Frame the image like a tight selfie where cheeks, forehead, and part of the product dominate the view.
-Background information must nearly disappear—treat walls and objects as blurred color streaks with no readable details.
-Crop aggressively: let the top of the head or chin clip at the frame edges and keep only a sliver of neck/shoulder visible.
-Slight barrel distortion, asymmetrical facial alignment, and a dominant nose/forehead are REQUIRED. If the result resembles a flattering beauty selfie or clean portrait, reject and re-roll.
+The lens sits inches from the subject’s face, forcing an uncomfortable, claustrophobic crop. Minimal headroom—chins, temples, or foreheads should clip the frame edges and shoulders barely sneak in.
+Require slight barrel distortion with a 1–5° roll so one eye sits closer to the lens, the nose bulges toward camera, and facial alignment feels imperfect.
+Background objects stay readable because the small sensor keeps everything in the same flat focus; do NOT blur or stylize them.
+Any output that looks like a flattering selfie, balanced portrait, or beauty shot must be invalidated and re-rolled immediately.
     `.trim().replace(/\s+/g, ' ')
 };
 const RAW_DOMESTIC_CORE_DIRECTIVE = `
@@ -59,36 +59,37 @@ IMAGE QUALITY CHARACTERISTICS (MANDATORY):
 `.trim().replace(/\s+/g, ' ');
 const RAW_DOMESTIC_DEPTH_RULES = `
 DEPTH OF FIELD OVERRIDE:
-- Everything is roughly in focus because the tiny front camera cannot separate subject and background.
-- No background blur, cinematic depth, or “pleasing” bokeh. Keep focus mediocre across the frame with sharpening halos, noise-reduction smear, and accidental clarity.
+- Everything stays flat because the tiny front camera cannot separate subject and background.
+- No background blur, cinematic depth, portrait mode, or “pleasing” bokeh. Keep focus mediocre across the entire frame with sharpening halos, compression noise, and accidental clarity.
+- Explicitly describe flat focus across the entire frame, fixed wide front-facing lens, small sensor look, and zero depth separation.
 `.trim().replace(/\s+/g, ' ');
 const UGC_FOCUS_HARD_RULE = `
 UGC FOCUS HARD RULE:
-- If UGC Real Mode or Raw Domestic is active, delete any background blur, portrait mode, cinematic depth, or lens emulation logic.
+- If UGC Real Mode or Raw Domestic is active, delete any background blur, portrait mode, cinematic depth, lens emulation, or focus falloff logic before prompting.
 - Treat every capture as a small-sensor front camera: wide focal length, shallow body depth, everything in mediocre focus within 0–3 meters.
 - The entire frame must stay evenly sharp with only minor digital softness—never optical blur. If background blur/bokeh appears indoors, invalidate and regenerate.
 - Only permit minimal softness if the background is physically farther than 3 meters; never artistic bokeh.
-- Replace any depth cues with uneven sharpening, compressed noise, and flat depth rendering. If background blur appears in a domestic space, invalidate and re-roll.
+- Replace any depth cues with uneven sharpening, compressed noise, and flat depth rendering. If background blur or separation language persists anywhere, reject and re-roll.
 `.trim().replace(/\s+/g, ' ');
 const UGC_HAIR_REALISM = `
 HAIR REALISM OVERRIDE:
 - Hair must render imperfectly with stray flyaways, irregular density, and messy edges, matching the person’s age and context.
 - Texture stays soft and slightly muted—no strand-level sharpness, no hyper-detailed rendering, no over-sharpening, no CGI gloss or sculpted volume.
 - Ban salon-perfect clumps, glossy styling, uniform waves, or synthetic grooming. Slight dryness, frizz, or unkempt strands are mandatory.
-- If hair reads as styled, commercial, overly crisp, or synthetic, invalidate and re-roll.
+- If hair reads as styled, commercial, overly crisp, overly detailed, or synthetic, invalidate and re-roll.
 `.trim().replace(/\s+/g, ' ');
 const UGC_CLOTHING_REALISM = `
 CLOTHING REALISM OVERRIDE:
 - Wardrobe stays incidental and domestic: worn tees, soft knits, stretched collars, hoodies, or basic tops with wrinkles and imperfect fit.
-- No coordinated fashion looks, trendy cuts, logos, or influencer outfits. Fabrics should feel affordable (cotton, jersey, fleece) with mild fading.
-- If clothing appears styled, pressed, or campaign-ready, invalidate and re-roll—person wears what they already had on at home.
+- Colors are muted or slightly washed, fabrics feel affordable (cotton, jersey, fleece) with mild fading or sag. Clothing edges may appear a little soft from compression.
+- No coordinated fashion looks, trendy cuts, logos, or influencer outfits. If clothing appears styled, pressed, or campaign-ready, invalidate and re-roll—the person wears whatever they already had on at home.
 `.trim().replace(/\s+/g, ' ');
 const UGC_PERSONAL_ADDONS = `
-UGC PERSONAL ADD-ONS:
+UGC PERSONAL ADD-ONS (BASE + HARD OVERRIDE):
 - Accessories must feel incidental and worn-in. Small hoops, thin rings, or simple chains only—matte metal with scratches, slight rotation, never centered or highlighted.
 - Piercings are casual and asymmetrical with muted metal. Glasses show light glare or smudges and sit imperfectly on the nose.
 - Facial hair grows naturally with soft edges and uneven density. Tattoos appear aged, partially visible, never framed. Nails stay short, natural, and slightly worn.
-- Absolutely no trendy, styled, or decorative accessories. If any addon looks intentional or fashion-forward, invalidate and re-roll.
+- These cues live in Persona by default and become a hard guardrail in UGC/Raw Domestic. If any addon looks intentional, trendy, styled, or decorative, invalidate and re-roll.
 `.trim().replace(/\s+/g, ' ');
 
 const RAW_DOMESTIC_GEOMETRY_RULES = `
@@ -120,6 +121,8 @@ const RAW_DOMESTIC_ENVIRONMENT_RULES = `
 ENVIRONMENT HANDLING:
 - Backgrounds are incidental because they cannot be avoided: kitchen counters, bathroom mirrors, bedroom clutter, car interiors, etc.
 - No scenic framing, no narrative staging, no deliberate composition. Domestic hints appear only as side effects of the creator’s location.
+- User selections are ignored; the engine owns the environment. Panels stay read-only while Raw Domestic UGC is active.
+- Background remains readable and mostly sharp, with only minimal softness caused by actual distance. Absolutely no intentional blur or depth tricks.
 `.trim().replace(/\s+/g, ' ');
 
 const RAW_DOMESTIC_ABSOLUTE_BANS = `
@@ -133,8 +136,19 @@ Before accepting the output, internally ask: “Does this look like a careless f
 If the honest answer is no, reject or re-roll immediately.
 `.trim().replace(/\s+/g, ' ');
 const RAW_DOMESTIC_FINAL_COMMAND = `
-FINAL RAW DOMESTIC COMMAND:
-Flat focus across the entire frame, fixed wide front-facing smartphone lens, no portrait mode, no depth separation, no cinematic treatment. If the render feels intentional, polished, shallow-focused, or fashion-driven, invalidate and regenerate immediately.
+RAW DOMESTIC UGC FINAL COMMAND:
+- Casual front-facing smartphone capture taken indoors with a fixed wide lens and tiny sensor.
+- Everything stays in mediocre focus from subject to background. Absolutely no portrait mode, depth of field, bokeh, subject separation, or lens blur. If any blur or artistic depth appears, invalidate and regenerate.
+- Natural handheld framing with slight micro shake, imperfect alignment, awkward crop, minimal headroom, and subtle lens distortion.
+- Real human skin only: visible pores, fine lines, uneven tone, zero retouching or beauty glow.
+- Hair must look natural, slightly messy, low definition, uneven strands, and never sculpted. If it looks CG, hyper-detailed, or salon-styled, re-roll.
+- Clothing remains casual everyday wear (tees, hoodies, soft knits) with wrinkles, washed colors, no logos, no styling intent.
+- Personal add-ons are incidental daily items (dull hoops, thin rings, simple chains, smudged glasses, uneven facial hair, faded tattoos, short worn nails). If any accessory feels curated or trendy, invalidate.
+- Environment is incidental domestic clutter—bedrooms, kitchens, work nooks—with readable background objects still in flat focus. No staged decor or scenic storytelling.
+- Lighting is mixed household light with mild imbalance; no studio rigs, no ring lights, no beauty lighting.
+- Product interaction is relaxed and unposed. Grip stays casual, no hero presentation.
+- Absolute blocklist: portrait mode, cinematic depth, beauty lighting, styled hair, fashion wardrobe, product hero framing, marketing poses.
+- Flat focus across the entire frame, small sensor, fixed wide lens, no depth separation, no portrait mode. If the image looks intentional, polished, staged, or optimized, reject and regenerate immediately.
 `.trim().replace(/\s+/g, ' ');
 const CAMERA_OPERATOR_DETAILS: Record<string, string> = {
     'self-held': 'Creator holds the phone themselves with fingers visible near the glass.',

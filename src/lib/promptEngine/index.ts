@@ -91,7 +91,8 @@ function negativePrompt() {
         "duplicate objects",
 
         // Depth of field suppression for UGC
-        "background blur", "portrait blur", "bokeh", "cinematic focus", "shallow depth of field", "soft background",
+        "background blur", "portrait blur", "bokeh", "cinematic focus", "cinematic blur", "shallow depth of field", "soft background",
+        "blurred background", "soft focus", "portrait mode effect", "depth effect", "background separation", "subject separation", "lens blur",
 
         // Wardrobe consistency
         "altered outfit", "invented clothing", "incorrect fabric",
@@ -99,7 +100,9 @@ function negativePrompt() {
     ].join(", ");
 }
 
-const DEPTH_DETECTION_REGEX = /(depth of field|portrait mode|bokeh|background blur|lens blur|cinematic focus|subject separation|shallow depth|soft background)/gi;
+const DEPTH_DETECTION_REGEX = /(depth of field|portrait mode|portrait blur|bokeh|bokeh effect|background blur|blurred background|lens blur|lens emulation|cinematic focus|cinematic blur|subject separation|background separation|subject isolation|shallow depth|shallow focus|soft background|soft focus|depth cues|depth effect|spatial depth|defocused background)/gi;
+const FOCUS_OVERRIDE_APPEND =
+    'flat focus across the entire frame, small sensor, fixed wide lens, no depth separation, no portrait mode.';
 
 function enforceUgcFocusGuard(prompt: string, options: PromptOptions): string {
     const ugcActive = options.ugcRealModeActive || options.rawDomesticUgcActive;
@@ -107,12 +110,19 @@ function enforceUgcFocusGuard(prompt: string, options: PromptOptions): string {
         return prompt;
     }
     let sanitizedPrompt = prompt;
+    DEPTH_DETECTION_REGEX.lastIndex = 0;
     if (DEPTH_DETECTION_REGEX.test(prompt)) {
         console.warn('[UGC FOCUS GUARD] Removing background separation language from prompt.');
+        DEPTH_DETECTION_REGEX.lastIndex = 0;
         sanitizedPrompt = sanitizedPrompt.replace(DEPTH_DETECTION_REGEX, 'flat focus');
     }
     if (!/flat focus across the entire frame/i.test(sanitizedPrompt)) {
-        sanitizedPrompt = `${sanitizedPrompt} flat focus across the entire frame, small sensor, fixed wide lens, no depth separation, no portrait mode.`;
+        sanitizedPrompt = `${sanitizedPrompt} ${FOCUS_OVERRIDE_APPEND}`;
+    }
+    DEPTH_DETECTION_REGEX.lastIndex = 0;
+    if (DEPTH_DETECTION_REGEX.test(sanitizedPrompt)) {
+        DEPTH_DETECTION_REGEX.lastIndex = 0;
+        throw new Error('UGC depth conflict detected: background separation language present. Re-run generation.');
     }
     return sanitizedPrompt.replace(/\s+/g, ' ').trim();
 }
@@ -310,7 +320,7 @@ export class PromptEngine {
             console.warn('[PROMPT ENGINE] Environment guard triggered - overriding to environment-safe placement');
             masterSections.creationMode = 'Environment-first lifestyle composition with natural surroundings and contextual product placement.';
             masterSections.ecommerceBuilder = undefined;
-            masterSections.cameraFraming = 'Camera: handheld smartphone perspective capturing spatial depth, avoiding cinematic hero angles.';
+            masterSections.cameraFraming = 'Camera: handheld smartphone perspective capturing lived-in surroundings, avoiding cinematic hero angles.';
             finalPrompt = buildMasterPrompt(masterSections, negative);
         }
 
