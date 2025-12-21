@@ -90,6 +90,9 @@ function negativePrompt() {
         "ai artifacts", "floating objects", "framing issues",
         "duplicate objects",
 
+        // Depth of field suppression for UGC
+        "background blur", "portrait blur", "bokeh", "cinematic focus", "shallow depth of field", "soft background",
+
         // Wardrobe consistency
         "altered outfit", "invented clothing", "incorrect fabric",
         "incorrect outfit color", "wrong clothing texture"
