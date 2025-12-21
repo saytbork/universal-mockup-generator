@@ -23,9 +23,81 @@ const WALKING_MOTION_ID = 'walking-motion';
 const CAPTURE_STYLE_DETAILS: Record<string, string> = {
     'torso-level-handheld': 'Phone held at torso height with a slight downward tilt and relaxed grip.',
     'high-angle': 'Phone lifted overhead looking down across shoulders in a casual selfie tilt.',
-    'close-face': 'Phone pushed close to the face so shoulders crop out and the lens feels near skin.',
+    'close-face': 'Phone pushed inches from the face so cheeks and temples fill the frame, shoulders cropped out, background collapsed into soft noise.',
     'propped-surface': 'Phone resting on a counter or towel stack, wobbling lightly between breaths.'
 };
+const CAPTURE_STYLE_OVERRIDES: Record<string, string> = {
+    'close-face': `
+CLOSE FACE FRAMING OVERRIDE:
+The lens sits inches from the subject’s face. Frame the image like a tight selfie where cheeks, forehead, and part of the product dominate the view.
+Background information must nearly disappear—treat walls and objects as blurred color streaks with no readable details.
+Crop aggressively: let the top of the head or chin clip at the frame edges and keep only a sliver of neck/shoulder visible.
+    `.trim().replace(/\s+/g, ' ')
+};
+const RAW_DOMESTIC_CORE_DIRECTIVE = `
+RAW DOMESTIC UGC MODE (HARD BEHAVIOR):
+- The capture must feel like a careless, low-intent front-camera selfie taken at home.
+- Device limitations drive the look; never beautify or optimize like lifestyle, influencer, or DSLR work.
+- If the creator appears to understand photography, treat the result as a failure.
+`.trim().replace(/\s+/g, ' ');
+
+const RAW_DOMESTIC_CAMERA_CONSTRAINTS = `
+DEVICE CONSTRAINTS:
+- Always simulate a front-facing smartphone camera with a tiny sensor and cheap glass.
+- Limited dynamic range, clipped highlights, crushed shadows, inconsistent face-priority autofocus, imperceptible exposure pumping.
+- Mild hand wobble or surface drift is mandatory; never stabilize like a tripod or gimbal.
+- The phone itself is never visible inside the frame.
+- Absolutely forbid DSLR, mirrorless, cinematic optics, intentional bokeh, or focus pulls.
+`.trim().replace(/\s+/g, ' ');
+
+const RAW_DOMESTIC_IMAGE_QUALITY = `
+IMAGE QUALITY CHARACTERISTICS (MANDATORY):
+- Mild motion blur or micro-shake, uneven sharpening, compression artifacts, and aggressive noise reduction in shadows.
+- Allow highlight clipping and shadow crush. Slight exposure breathing is acceptable.
+- These are physical limitations, not creative filters. DO NOT add artistic grain, stylized noise, cinematic blur, or intentional retro effects.
+`.trim().replace(/\s+/g, ' ');
+
+const RAW_DOMESTIC_GEOMETRY_RULES = `
+GEOMETRY & FRAMING RULES:
+- At least one of the following flaws must appear in every render: off-center framing, 1–5° camera roll, partial crop of face or product, awkward headroom, or the product invading facial space.
+- Framing must feel imprecise and reluctant to correct itself. Never allow perfect centering, level horizons, balanced compositions, or portrait-style framing.
+`.trim().replace(/\s+/g, ' ');
+
+const RAW_DOMESTIC_LIGHTING_RULES = `
+LIGHTING:
+- Overhead or mixed domestic fixtures only, often colliding with stray daylight.
+- Uneven facial shadows, mixed color temperatures, and zero fill logic. Lighting should feel indifferent, not deliberately “bad” or “good”.
+- Ban soft window key lights, balanced exposure, studio light falloff, or beauty lighting tricks.
+`.trim().replace(/\s+/g, ' ');
+
+const RAW_DOMESTIC_SUBJECT_RULES = `
+SUBJECT BEHAVIOR & PSYCHOLOGY:
+- The person must not be presenting. Capture them mid-gesture or mid-reaction, slightly awkward, distracted, or indifferent.
+- Expression should live between moments (half smile, half blink, loose jaw). Never give confident marketing expressions or camera-ready energy.
+`.trim().replace(/\s+/g, ' ');
+
+const RAW_DOMESTIC_PRODUCT_RULES = `
+PRODUCT RELATIONSHIP:
+- The product can block part of the face, crowd the lens, or drift slightly out of focus.
+- Never position the product like a hero prop or influencer demo. If it feels PDP-ready, the mode has failed.
+`.trim().replace(/\s+/g, ' ');
+
+const RAW_DOMESTIC_ENVIRONMENT_RULES = `
+ENVIRONMENT HANDLING:
+- Backgrounds are incidental because they cannot be avoided: kitchen counters, bathroom mirrors, bedroom clutter, car interiors, etc.
+- No scenic framing, no narrative staging, no deliberate composition. Domestic hints appear only as side effects of the creator’s location.
+`.trim().replace(/\s+/g, ' ');
+
+const RAW_DOMESTIC_ABSOLUTE_BANS = `
+ABSOLUTE PROHIBITIONS:
+- Under no circumstances produce DSLR-like clarity, lifestyle marketing imagery, influencer-style UGC, clean hero shots, symmetrical portraits, or “nice” polished photos.
+`.trim().replace(/\s+/g, ' ');
+
+const RAW_DOMESTIC_VALIDATION = `
+RAW DOMESTIC VALIDATION:
+Before accepting the output, internally ask: “Does this look like a careless front-camera selfie captured at home with no intent to look good?”
+If the honest answer is no, reject or re-roll immediately.
+`.trim().replace(/\s+/g, ' ');
 const CAMERA_OPERATOR_DETAILS: Record<string, string> = {
     'self-held': 'Creator holds the phone themselves with fingers visible near the glass.',
     'friend-held': 'Someone else stands nearby holding the phone while the creator interacts.',
@@ -121,42 +193,29 @@ export class UGCRealModeBuilder implements PromptBuilder {
 
         const parts: string[] = [];
 
-        parts.push(`
-UGC REAL MODE OVERRIDE - HIGHEST PRIORITY:
-This image must follow authentic user-generated content rules.
-Prioritize realism over aesthetics.
-Avoid editorial, hero, luxury, studio, or polished compositions.
-Natural human imperfections are REQUIRED.
-Smartphone-quality aesthetic with computational photography characteristics.
-        `.trim().replace(/\s+/g, ' '));
-
-        parts.push(`
-UGC HUMAN STATE OVERRIDE:
-The person must appear casually present, not performing or posing.
-Posture may be slightly slouched, uneven, or asymmetrical.
-Body alignment should feel unbalanced or relaxed, not upright or confident.
-Hands may look tense, uncertain, or imperfectly positioned.
-The person should not look camera-ready or appear to be presenting to the viewer.
-        `.trim().replace(/\s+/g, ' '));
+        parts.push(RAW_DOMESTIC_CORE_DIRECTIVE);
+        parts.push(RAW_DOMESTIC_CAMERA_CONSTRAINTS);
+        parts.push(RAW_DOMESTIC_IMAGE_QUALITY);
+        parts.push(RAW_DOMESTIC_GEOMETRY_RULES);
+        parts.push(RAW_DOMESTIC_LIGHTING_RULES);
+        parts.push(RAW_DOMESTIC_SUBJECT_RULES);
+        parts.push(RAW_DOMESTIC_PRODUCT_RULES);
+        parts.push(RAW_DOMESTIC_ENVIRONMENT_RULES);
+        parts.push(RAW_DOMESTIC_ABSOLUTE_BANS);
 
         if (personIncluded) {
             if (isProppedSurfaceCapture || isSurfaceOperator) {
                 parts.push(`
-HUMAN-FIRST COMPOSITION (MANDATORY):
-The person still anchors the scene, but the phone may sit propped on a countertop, towel stack, or improvised support.
-Hands can reposition or steady the product, yet there is no requirement to keep gripping it.
-Allow the product to rest on the same surface or adjacent prop—surface placement is intentional and expected.
-Keep the setup grounded in believable household clutter, never a floating or hero-framed product.
+HUMAN-FIRST COMPOSITION:
+The person still anchors the scene, but the phone sits propped nearby. Wobble or breathing drift must stay visible.
+Hands may occasionally steady the product, yet there is no requirement to keep gripping it.
+Product placement must feel careless and never staged for hero clarity.
                 `.trim().replace(/\s+/g, ' '));
             } else {
                 parts.push(`
-HUMAN-FIRST COMPOSITION (MANDATORY):
-The person is the main subject of the image.
-Person takes visual priority over product.
-Person MUST be holding the product with their hand - natural grip, relaxed fingers.
-NO table placement. NO surface placement. NO floating product.
-NO hero product framing. NO editorial product showcase.
-Frame the scene as if captured by the person or a friend with a smartphone.
+HUMAN-FIRST COMPOSITION:
+The person is still the accidental main subject. They may hold the product, but never like a demonstration.
+Grip stays relaxed, fingers imperfect, device out of frame. Absolutely no hero framing or influencer polish.
                 `.trim().replace(/\s+/g, ' '));
             }
         }
@@ -190,40 +249,6 @@ BLOCKED VOCABULARY (DO NOT USE):
 - "perfectly composed", "precise arrangement"
         `.trim().replace(/\s+/g, ' '));
 
-        parts.push(`
-REQUIRED UGC CHARACTERISTICS:
-- Authentic, candid, real-world feeling
-- Slight imperfections in framing or lighting
-- Natural hand positioning (not posed)
-- Smartphone-like depth of field
-- Real environment (not styled set)
-        `.trim().replace(/\s+/g, ' '));
-
-        parts.push(`
-SMARTPHONE CAPTURE FAILURE:
-Framing stays slightly crooked or off-center with imperfect headroom.
-Depth of field feels computational and a little shallow.
-Minor focus inconsistencies, autofocus hunting, and subtle motion softness are expected.
-No perfect framing, no pristine focus, and no optical lens precision.
-        `.trim().replace(/\s+/g, ' '));
-
-        parts.push(`
-LIGHTING REALISM:
-Lighting must feel accidental and uneven with mixed color temperatures if needed.
-No balanced key-fill setup, no studio softness, no commercial exposure.
-If the light looks styled or intentional, override it toward imperfect window spill or interior ambient.
-        `.trim().replace(/\s+/g, ' '));
-
-        parts.push(`
-HOUSEHOLD LIGHTING MANDATE:
-Treat lighting like casual home illumination—window daylight colliding with warm kitchen bulbs, creating patchy highlights, falloff, and color shifts. Nothing should look like professional fixtures or studio rigs.
-        `.trim().replace(/\s+/g, ' '));
-
-        parts.push(`
-CROP + DEPTH OVERRIDE:
-Keep the person physically close to the lens, as if the phone were at arm's length. Backgrounds should collapse into soft clutter with barely legible details—no deliberate second plane, no hero environment, no wide depth. Everything beyond the subject can smear, clip, or fall into noise like a real smartphone snapshot.
-        `.trim().replace(/\s+/g, ' '));
-
         if (options.sceneOrderChaosDescriptor) {
             parts.push(`Scene order: ${options.sceneOrderChaosDescriptor}.`);
         }
@@ -244,6 +269,11 @@ Keep the person physically close to the lens, as if the phone were at arm's leng
         const motionDescriptions = this.describeLayer(layers.motionStability, MOTION_DETAILS);
         const framingDescriptions = this.describeLayer(layers.framingImperfections, FRAMING_DETAILS);
         const awkwardDescriptions = this.describeLayer(layers.awkwardContext, AWKWARD_CONTEXT_DETAILS);
+
+        const captureOverrideText = captureBase ? CAPTURE_STYLE_OVERRIDES[captureBase] : undefined;
+        if (captureOverrideText) {
+            parts.push(captureOverrideText);
+        }
 
         this.injectLayer(parts, 'UGC capture style', captureDescriptions);
         this.injectLayer(parts, 'Camera & operator', operatorDescriptions);
@@ -329,6 +359,8 @@ These optical flaws must replace any attempt to add heavy skin texture or polish
 AESTHETIC SUPPRESSION RULE:
 If any qualities feel polished, confident, commercial, lifestyle-perfect, stock-photo-like, influencer-ready, or brand-friendly, override them with more awkwardness and imperfection until it feels like a candid personal capture.
         `.trim().replace(/\s+/g, ' '));
+
+        parts.push(RAW_DOMESTIC_VALIDATION);
 
         const walkingText = `
 Walking, handheld motion is a selfie perspective while walking.

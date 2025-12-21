@@ -566,7 +566,7 @@ export function mapLifestyleToPromptOptions(
         angle: gradientAngleValue
     };
     const ugcHouseholdLighting =
-        'household ambient lighting with side window spill colliding with warm kitchen bulbs, uneven and unplanned';
+        'overhead domestic bulbs colliding with stray window spill, mixed color temperatures, uneven shadows, clipped highlights, crushed blacks, and zero intentional fill';
 
 
     // ========================================================================
@@ -826,6 +826,10 @@ export function mapLifestyleToPromptOptions(
     const hasProppedSurface = captureBaseSelection === PROPPED_SURFACE_ID;
     const isHoldingProduct = productInteractionLabel === 'Holding';
 
+    if (isUGCRealMode && normalizedCaptureBase.length === 0) {
+        throw new Error('Raw Domestic UGC requires a capture style selection.');
+    }
+
     if (hasProppedSurface && isHoldingProduct) {
         console.warn('[MAP] Blocking propped-surface when product interaction is Holding.');
         normalizedCaptureBase =
@@ -876,16 +880,23 @@ export function mapLifestyleToPromptOptions(
     // CAMERA → Physical Composition Language
     // ========================================================================
 
-    // Camera Device Type
-    const defaultCameraLabel = 'Intentional smartphone camera';
-    const cameraDevice = (sceneState as any).cameraType || defaultCameraLabel;
-    const cameraDeviceSemantic = CAMERA_DEVICE_SEMANTIC_MAP[cameraDevice] || CAMERA_DEVICE_SEMANTIC_MAP[defaultCameraLabel];
-    const effectiveCameraSemantic = isEnvironmentSceneIntent
-        ? 'Handheld smartphone perspective capturing real spatial depth, emphasizing the surrounding environment.'
-        : cameraDeviceSemantic;
-    mapped.camera = cameraDevice;
-    mapped.cameraDeviceSemantic = effectiveCameraSemantic;
-    console.log('[MAP] camera:', cameraDevice, '→', effectiveCameraSemantic);
+    if (isUGCRealMode) {
+        mapped.rawDomesticUgcActive = true;
+        mapped.camera = 'Front-facing smartphone camera with tiny sensor limitations';
+        mapped.cameraDeviceSemantic =
+            'Front-facing phone camera with tiny sensor, face-priority autofocus hunting, limited dynamic range, clipped highlights, crushed shadows, wobbling handheld geometry.';
+        console.log('[MAP] camera: raw domestic front camera enforced');
+    } else {
+        const defaultCameraLabel = 'Intentional smartphone camera';
+        const cameraDevice = (sceneState as any).cameraType || defaultCameraLabel;
+        const cameraDeviceSemantic = CAMERA_DEVICE_SEMANTIC_MAP[cameraDevice] || CAMERA_DEVICE_SEMANTIC_MAP[defaultCameraLabel];
+        const effectiveCameraSemantic = isEnvironmentSceneIntent
+            ? 'Handheld smartphone perspective capturing real spatial depth, emphasizing the surrounding environment.'
+            : cameraDeviceSemantic;
+        mapped.camera = cameraDevice;
+        mapped.cameraDeviceSemantic = effectiveCameraSemantic;
+        console.log('[MAP] camera:', cameraDevice, '→', effectiveCameraSemantic);
+    }
 
     if (!sceneState.ugcRealMode) {
         // Shot Type
@@ -942,10 +953,18 @@ export function mapLifestyleToPromptOptions(
         const selectedEnvironment = sceneState.environment || '';
         const customEnvironmentValue = (sceneState.customEnvironment || '').trim();
 
-        (mapped as any).selectedEnvironment = selectedEnvironment;
-        (mapped as any).customEnvironment = customEnvironmentValue;
+        const rawDomesticEnvironment =
+            'Incidental domestic background that exists only because it cannot be avoided — glimpses of kitchen cabinets, bathroom mirrors, bedroom clutter, or car interiors with zero staging.';
 
-        if (selectedEnvironment === 'Custom' && customEnvironmentValue) {
+        (mapped as any).selectedEnvironment = isUGCRealMode ? 'Raw Domestic Locked' : selectedEnvironment;
+        (mapped as any).customEnvironment = isUGCRealMode ? '' : customEnvironmentValue;
+
+        if (isUGCRealMode) {
+            mapped.setting = rawDomesticEnvironment;
+            mapped.microLocation = rawDomesticEnvironment;
+            (mapped as any).sceneEnvironment = rawDomesticEnvironment;
+            mapped.environmentOrder = rawDomesticEnvironment;
+        } else if (selectedEnvironment === 'Custom' && customEnvironmentValue) {
             mapped.setting = customEnvironmentValue;
             mapped.microLocation = customEnvironmentValue;
         } else if (allowedEnvironmentMap[selectedEnvironment]) {
@@ -961,7 +980,7 @@ export function mapLifestyleToPromptOptions(
         mapped.environmentOrder = mapped.setting;
 
         console.log('[MAP] environment:', selectedEnvironment, '→', mapped.setting);
-    } else if (awkwardEnvironmentOverride) {
+    } else if (awkwardEnvironmentOverride && !isUGCRealMode) {
         mapped.setting = awkwardEnvironmentOverride;
         mapped.microLocation = awkwardEnvironmentOverride;
         (mapped as any).sceneEnvironment = awkwardEnvironmentOverride;
@@ -972,7 +991,7 @@ export function mapLifestyleToPromptOptions(
         console.log('[MAP] Awkward context override →', awkwardEnvironmentOverride);
     }
 
-    const sceneOrderChaosValue = sceneState.sceneOrderChaos || 'Normal';
+    const sceneOrderChaosValue = isUGCRealMode ? 'Messy' : (sceneState.sceneOrderChaos || 'Normal');
     mapped.sceneOrderChaos = sceneOrderChaosValue;
     const sceneOrderChaosDescriptor = buildSceneOrderChaosDescriptor(sceneOrderChaosValue);
     if (sceneOrderChaosDescriptor) {

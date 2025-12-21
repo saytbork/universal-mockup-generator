@@ -218,6 +218,7 @@ export interface PromptOptions {
     ugcFramingImperfections?: string[];
     ugcAwkwardContext?: string[];
     ugcRealModeLayers?: UGCRealModeLayerSet;
+    rawDomesticUgcActive?: boolean;
     elderlyRealismGuard?: boolean;
     elderlyRealismDescriptor?: string;
     elderlyRealismGuardActive?: boolean;

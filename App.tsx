@@ -4966,12 +4966,12 @@ If the model attempts to create a scene or environment, override it and force a 
                   Row 4: | Step 3 | Generated Mockup | Generated Mockup |
                   Row 5: | Step 3 | Generated Mockup | Generated Mockup |
               */}
-              <div className="grid gap-4 w-full grid-cols-[380px_minmax(520px,1fr)_340px] grid-rows-[auto_auto_1fr_1fr_1fr]">
+              <div className="grid gap-4 w-full grid-cols-1 auto-rows-auto lg:grid-cols-[380px_minmax(520px,1fr)_340px] lg:grid-rows-[auto_auto_1fr_1fr_1fr]">
 
                 {/* STEP 1: col-1, row-1 */}
                 <div
                   ref={intentRef}
-                  className="col-start-1 row-start-1 bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-3"
+                  className="col-span-1 lg:col-start-1 lg:row-start-1 bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-3"
                 >
                   <div className="flex flex-col gap-1">
                     <p className="text-xs uppercase tracking-widest text-indigo-300">Step 1</p>
@@ -4993,7 +4993,7 @@ If the model attempts to create a scene or environment, override it and force a 
                 {/* STEP 2 (Product Upload): col-2, rows-1-2 */}
                 <div
                   ref={uploadRef}
-                  className="col-start-2 row-start-1 row-span-2 bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-3 overflow-hidden"
+                  className="col-span-1 lg:col-start-2 lg:row-start-1 lg:row-span-2 bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-3 overflow-hidden"
                 >
                   <div className="flex flex-col gap-1">
                     <p className="text-xs uppercase tracking-widest text-indigo-300">Step 2</p>
@@ -5100,7 +5100,7 @@ If the model attempts to create a scene or environment, override it and force a 
                 </div>
 
                 {/* TALENT PANEL: col-3, rows-1-2 */}
-                <div className="col-start-3 row-start-1 row-span-2 bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-3 overflow-hidden">
+                <div className="col-span-1 lg:col-start-3 lg:row-start-1 lg:row-span-2 bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-3 overflow-hidden">
                   <ModelReferencePanel
                     onFileSelect={handleModelReferenceUpload}
                     previewUrl={modelReferencePreview}
@@ -5140,7 +5140,7 @@ If the model attempts to create a scene or environment, override it and force a 
                 </div>
 
                 {/* STEP 3 (Scene Builder): col-1, rows-2-5 (scrolls internally) */}
-                <div className="col-start-1 row-start-2 row-span-4 overflow-hidden">
+                <div className="col-span-1 lg:col-start-1 lg:row-start-2 lg:row-span-4 overflow-hidden">
                   {(() => {
                     const isGenerateDisabled = isImageLoading || !uploadedImageFile;
 
@@ -5173,7 +5173,7 @@ If the model attempts to create a scene or environment, override it and force a 
                 </div>
 
                 {/* GENERATED MOCKUP: cols-2-3, rows-3-5 (visually dominant) */}
-                <div className="col-start-2 col-span-2 row-start-3 row-span-3 bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 sticky top-4 flex flex-col gap-6">
+                <div className="col-span-1 lg:col-start-2 lg:col-span-2 lg:row-start-3 lg:row-span-3 bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 relative lg:sticky lg:top-4 flex flex-col gap-6">
                   <GeneratedImage
                     imageUrl={generatedImageUrl}
                     fourKVariant={fourKVariant}

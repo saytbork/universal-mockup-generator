@@ -388,184 +388,47 @@ interface UGCLayerSection {
   options: UGCLayerOption[];
 }
 
-const UGC_LAYER_SECTIONS: UGCLayerSection[] = [
+const RAW_DOMESTIC_CAPTURE_SECTIONS: UGCLayerSection[] = [
   {
     field: 'ugcCaptureStyleBase',
     title: 'Camera & Capture Style',
-    tooltip: 'Define how the phone is held and framed at the base level.',
-    description: 'Describe the overall capture geometry and angle before motion or environment are added.',
+    tooltip: 'Geometry is the only control exposed to the creator.',
+    description: 'Pick how the front camera is positioned. Everything else is locked for careless, domestic capture.',
     icon: Camera,
     options: [
       {
         id: 'torso-level-handheld',
         label: 'Torso-level handheld',
-        detail: 'Phone held at torso height, slight downward tilt, natural grip.'
+        detail: 'Torso height, slight downward drift. Never centered. Device stays invisible.'
       },
       {
         id: 'high-angle',
         label: 'High-angle vantage',
-        detail: 'Phone elevated above the head, looking down across shoulders.'
+        detail: 'Camera above eye level looking down across shoulders with awkward tilt.'
       },
       {
         id: 'close-face',
         label: 'Close face framing',
-        detail: 'Phone tight on the face with shoulders and chest cropped.'
+        detail: 'Tight, imperfect facial crop. Feels too close. Crops forehead/cheek/chin.'
       },
       {
         id: 'propped-surface',
         label: 'Propped on surface',
-        detail: 'Phone resting on a stack/towel, wobbles slightly with each breath.'
-      }
-    ]
-  },
-  {
-    field: 'ugcCameraOperator',
-    title: 'Camera & Operator',
-    tooltip: 'Specify who handles the phone and visible operator cues.',
-    description: 'Capture whether the creator holds the phone, a friend does, or it is visible in a mirror.',
-    icon: Hand,
-    options: [
-      {
-        id: 'self-held',
-        label: 'Self-held back camera',
-        detail: 'Creator grips the phone with fingers visible near the glass.'
-      },
-      {
-        id: 'friend-held',
-        label: 'Phone held by another',
-        detail: 'Someone else holds the phone while the creator interacts.'
-      },
-      {
-        id: 'mirror-shot',
-        label: 'Mirror reflection',
-        detail: 'Phone is captured inside a mirror, doubling the frame.'
-      },
-      {
-        id: 'surface-staged',
-        label: 'Phone on surface',
-        detail: 'Phone leans against objects or a shelf, capturing a hands-off shot.'
-      }
-    ]
-  },
-  {
-    field: 'ugcBodyPhonePosition',
-    title: 'Body & Phone Position',
-    tooltip: 'Capture how the body and phone relate spatially.',
-    description: 'Clarify whether arms are extended, phones rest on chests, or angles peek over shoulders.',
-    icon: Layout,
-    options: [
-      {
-        id: 'arm-extended',
-        label: 'Arm extended forward',
-        detail: 'Arm straight out, product held at arm’s length.'
-      },
-      {
-        id: 'chest-rest',
-        label: 'Phone near chest',
-        detail: 'Phone rests close to the chest or collarbone.'
-      },
-      {
-        id: 'shoulder-peek',
-        label: 'Over-shoulder peek',
-        detail: 'Phone peeks over a shoulder, face partially turned away.'
-      },
-      {
-        id: 'tilted-angle',
-        label: 'Tilted wrist angle',
-        detail: 'Phone tilts downward or upward from a wrist twist.'
-      }
-    ]
-  },
-  {
-    field: 'ugcMotionStability',
-    title: 'Motion & Stability',
-    tooltip: 'Describe how much movement the capture contains.',
-    description: 'Detail walking, shaking, or steady holds to guide the prompt toward real-world shake.',
-    icon: Film,
-    options: [
-      {
-        id: 'walking-motion',
-        label: 'Walking handheld',
-        detail: 'Natural bounce from footfall while keeping phone moving.'
-      },
-      {
-        id: 'hand-shake',
-        label: 'Slight hand shake',
-        detail: 'Subtle tremor from tired arms or fatigue.'
-      },
-      {
-        id: 'static-drift',
-        label: 'Static with drift',
-        detail: 'Mostly still but the frame slowly drifts or tilts.'
-      },
-      {
-        id: 'tilt-shift',
-        label: 'Tilted camera drift',
-        detail: 'Phone tilts and shifts while capturing, not locked in place.'
-      }
-    ]
-  },
-  {
-    field: 'ugcFramingImperfections',
-    title: 'Framing Imperfections',
-    tooltip: 'Highlight intentional framing mistakes.',
-    description: 'Select the common flaws that keep the shot feeling raw.',
-    icon: Rotate3d,
-    options: [
-      {
-        id: 'partial-face-cut',
-        label: 'Partial face cutoff',
-        detail: 'Top or bottom of the face is cropped by the frame edges.'
-      },
-      {
-        id: 'off-center',
-        label: 'Off-center subject',
-        detail: 'Subject leans toward one side, leaving empty space elsewhere.'
-      },
-      {
-        id: 'finger-lens',
-        label: 'Finger invading lens',
-        detail: 'Phone-holding fingers partially obscure the lens.'
-      },
-      {
-        id: 'tight-headroom',
-        label: 'Tight headroom',
-        detail: 'Very little space above the head, pushing the face to the edge.'
-      }
-    ]
-  },
-  {
-    field: 'ugcAwkwardContext',
-    title: 'Awkward Context',
-    tooltip: 'Add real-world environmental quirks.',
-    description: 'Select the background or setting that makes the capture feel lived-in.',
-    icon: Building2,
-    options: [
-      {
-        id: 'bathroom-set',
-        label: 'Bathroom sink/mirror',
-        detail: 'Bathroom surfaces, towels, or mirror reflections are visible.'
-      },
-      {
-        id: 'car-interior',
-        label: 'Car interior',
-        detail: 'Seatbelt, dashboard, or windshield reflections creep into frame.'
-      },
-      {
-        id: 'bedroom-corner',
-        label: 'Bedroom or bed',
-        detail: 'Pillows, sheets, or bedside objects appear near the creator.'
-      },
-      {
-        id: 'cluttered-desk',
-        label: 'Desk or cluttered table',
-        detail: 'Messy workspace, snacks, cables, or packaging crowd the edges.'
+        detail: 'Front camera resting on a counter with subtle wobble caused by breathing.'
       }
     ]
   }
 ];
 
-const UGC_LAYER_FIELDS: UGCLayerField[] = UGC_LAYER_SECTIONS.map(section => section.field);
+const USER_CONTROLLED_UGC_FIELDS: UGCLayerField[] = RAW_DOMESTIC_CAPTURE_SECTIONS.map(section => section.field);
+const ALL_UGC_LAYER_FIELDS: UGCLayerField[] = [
+  'ugcCaptureStyleBase',
+  'ugcCameraOperator',
+  'ugcBodyPhonePosition',
+  'ugcMotionStability',
+  'ugcFramingImperfections',
+  'ugcAwkwardContext'
+];
 const SINGLE_SELECT_UGC_FIELDS: UGCLayerField[] = [
   'ugcCaptureStyleBase',
   'ugcCameraOperator',
@@ -878,7 +741,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       const newValues = { ...prev, [key]: value };
 
       if (key === 'ugcRealMode' && value === false) {
-        UGC_LAYER_FIELDS.forEach(layer => {
+        ALL_UGC_LAYER_FIELDS.forEach(layer => {
           (newValues as any)[layer] = [];
         });
       }
@@ -907,7 +770,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           : [...current, optionId];
       }
       updateValue(field, next as Step3Values[typeof field]);
-      markSectionTouched('ugc');
     },
     [values, updateValue]
   );
@@ -939,6 +801,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     markSectionTouched('creator');
   };
 
+  const hasAnyUgcLayerSelection = USER_CONTROLLED_UGC_FIELDS.some(field => {
+    const selections = values[field] as string[] | undefined;
+    return Array.isArray(selections) && selections.length > 0;
+  });
+
   // PHASE 3: Emit sceneState on EVERY change
   useEffect(() => {
     console.log('[STEP3 EMIT]', values);
@@ -960,7 +827,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     if (hasModelReference && (values.ugcRealMode || values.creatorPreset)) {
       setValues(prev => {
         const newValues = { ...prev, ugcRealMode: false, creatorPreset: null };
-        UGC_LAYER_FIELDS.forEach(layer => {
+        ALL_UGC_LAYER_FIELDS.forEach(layer => {
           (newValues as any)[layer] = [];
         });
         enforceSingleSelectLayers(newValues);
@@ -974,6 +841,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       setOpenUgcLayerId(null);
     }
   }, [values.ugcRealMode]);
+
+  useEffect(() => {
+    if (values.ugcRealMode && (!values.ugcCaptureStyleBase || values.ugcCaptureStyleBase.length === 0)) {
+      updateValue('ugcCaptureStyleBase', ['torso-level-handheld'] as Step3Values['ugcCaptureStyleBase']);
+    }
+  }, [values.ugcRealMode, values.ugcCaptureStyleBase, updateValue]);
 
   // ============================================================================
   // SCENE INTENT - SINGLE SOURCE OF TRUTH
@@ -1008,6 +881,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       return next;
     });
   }, []);
+
+  useEffect(() => {
+    if (values.ugcRealMode && values.sceneIntent !== 'environment') {
+      enableEnvironment();
+    }
+  }, [values.ugcRealMode, values.sceneIntent, enableEnvironment]);
 
   // Scene Intent Handler: Enable Ecommerce Mode
   const enableEcommerce = useCallback(() => {
@@ -1144,9 +1023,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       updateValue('heroPersona', '');
     }
 
-    UGC_LAYER_FIELDS.forEach(layer => {
-      updateValue(layer, []);
-    });
+      ALL_UGC_LAYER_FIELDS.forEach(layer => {
+        updateValue(layer, []);
+      });
   }, [values.formulationStoryEnabled, values.ugcRealMode, values.heroPersona, updateValue]);
 
   useEffect(() => {
@@ -1406,26 +1285,25 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
       </AccordionSection >
 
-      {/* UGC REAL MODE */}
-      {/* DO NOT SPLIT THIS BLOCK */}
-      {/* All UGC controls must render inside this container */}
+      {/* RAW DOMESTIC UGC */}
       <AccordionSection
         icon={Smartphone}
-        title="UGC Real Mode"
-        tooltip="Creates an authentic user generated content look"
+        title="Raw Domestic UGC"
+        tooltip="Careless front-camera capture with zero polish"
         isOpen={openAccordionId === 'realism'}
         onToggle={() => toggleSection('realism')}
-        isTouched={touchedSections.has('ugc')}
+        isTouched={hasAnyUgcLayerSelection}
         isActive={values.ugcRealMode}
       >
         <div id="ugc-real-mode">
           <div className="pt-2 pb-4 px-2">
             <div className="space-y-4">
-              {/* SHOT TYPE */}
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
-                  <p className="text-xs uppercase tracking-wider text-indigo-200">UGC REAL MODE</p>
-                  <p className="text-sm text-gray-400">Switch to a raw, imperfect creator workspace.</p>
+                  <p className="text-xs uppercase tracking-wider text-indigo-200">Raw domestic capture</p>
+                  <p className="text-sm text-gray-400">
+                    Locks every pro control and simulates a bored creator using the front camera at home. You only pick the capture geometry.
+                  </p>
                 </div>
                 <button
                   type="button"
@@ -1448,8 +1326,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
             {values.ugcRealMode && (
                 <>
+                  <div className="rounded-lg border border-amber-400/40 bg-amber-400/10 px-3 py-2 text-[12px] text-amber-100">
+                    Front-camera physics only. Background, lighting, motion, and framing are engine-controlled. Environment, lighting, and camera panels are locked while this mode is on.
+                  </div>
                   <div className="space-y-4">
-                    {UGC_LAYER_SECTIONS.map(section => {
+                    {RAW_DOMESTIC_CAPTURE_SECTIONS.map(section => {
                       const currentSelections = (values[section.field] as string[]) || [];
                       return (
                         <AccordionSection
@@ -1461,7 +1342,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           onToggle={() =>
                             setOpenUgcLayerId(prev => (prev === section.field ? null : section.field))
                           }
-                          isTouched={touchedSections.has('ugc')}
+                          isTouched={currentSelections.length > 0}
                           isActive={values.ugcRealMode}
                         >
                           <p className="text-xs text-gray-400">{section.description}</p>
@@ -1717,83 +1598,89 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         isRequired={true}
         isTouched={touchedSections.has('environment')}
       >
-        <div className="space-y-3">
-          <p className="text-xs uppercase tracking-wider text-indigo-200">INDOOR</p>
-          <div className="flex flex-wrap gap-2">
-            {ENVIRONMENT_INDOOR.map(env => (
-              <button
-                key={env.value}
-                type="button"
-                onClick={() => { updateValue('environment', env.value); markSectionTouched('environment'); }}
-                className={`flex items-center gap-2 rounded-full border px-2 py-1 text-xs transition ${values.environment === env.value
-                  ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                  : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                  }`}
-              >
-                <env.icon className="w-4 h-4" />
-                <span>{env.value}</span>
-              </button>
-            ))}
+        {values.ugcRealMode ? (
+          <div className="rounded-lg border border-gray-700 bg-gray-900/60 px-4 py-3 text-sm text-gray-300">
+            Raw Domestic UGC locks environmental decisions. Backgrounds are incidental, messy, and engine-controlled. Turn this mode off to stage a location.
           </div>
-
-          <p className="text-xs uppercase tracking-wider text-indigo-200 pt-2">OUTDOOR</p>
-          <div className="flex flex-wrap gap-2">
-            {ENVIRONMENT_OUTDOOR.map(env => (
-              <button
-                key={env.value}
-                type="button"
-                onClick={() => { updateValue('environment', env.value); markSectionTouched('environment'); }}
-                className={`flex items-center gap-2 rounded-full border px-2 py-1 text-xs transition ${values.environment === env.value
-                  ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                  : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                  }`}
-              >
-                <env.icon className="w-4 h-4" />
-                <span>{env.value}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* CUSTOM ENVIRONMENT */}
-          <div className="pt-3">
-            <p className="text-xs uppercase tracking-wider text-indigo-200 mb-2">CUSTOM ENVIRONMENT</p>
-            <input
-              type="text"
-              value={values.customEnvironment}
-              onChange={(e) => {
-                updateValue('customEnvironment', e.target.value);
-                if (e.target.value) {
-                  updateValue('environment', 'Custom');
-                }
-                markSectionTouched('environment');
-              }}
-              placeholder="e.g., cozy cabin, rooftop terrace, yoga studio..."
-              className="w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-            />
-          </div>
-
-          <div className="pt-3 space-y-2">
-            <div>
-              <p className="text-xs uppercase tracking-wider text-indigo-200">SCENE ORDER & CHAOS</p>
-              <p className="text-[11px] text-gray-400">Control how tidy or chaotic the surroundings feel.</p>
-            </div>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-xs uppercase tracking-wider text-indigo-200">INDOOR</p>
             <div className="flex flex-wrap gap-2">
-              {SCENE_ORDER_CHAOS_OPTIONS.map(option => (
+              {ENVIRONMENT_INDOOR.map(env => (
                 <button
-                  key={option}
+                  key={env.value}
                   type="button"
-                  onClick={() => {
-                    updateValue('sceneOrderChaos', option);
-                    markSectionTouched('environment');
-                  }}
-                  className={getPillClass(values.sceneOrderChaos === option)}
+                  onClick={() => { updateValue('environment', env.value); markSectionTouched('environment'); }}
+                  className={`flex items-center gap-2 rounded-full border px-2 py-1 text-xs transition ${values.environment === env.value
+                    ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                    : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                    }`}
                 >
-                  {option}
+                  <env.icon className="w-4 h-4" />
+                  <span>{env.value}</span>
                 </button>
               ))}
             </div>
+
+            <p className="text-xs uppercase tracking-wider text-indigo-200 pt-2">OUTDOOR</p>
+            <div className="flex flex-wrap gap-2">
+              {ENVIRONMENT_OUTDOOR.map(env => (
+                <button
+                  key={env.value}
+                  type="button"
+                  onClick={() => { updateValue('environment', env.value); markSectionTouched('environment'); }}
+                  className={`flex items-center gap-2 rounded-full border px-2 py-1 text-xs transition ${values.environment === env.value
+                    ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                    : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                    }`}
+                >
+                  <env.icon className="w-4 h-4" />
+                  <span>{env.value}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* CUSTOM ENVIRONMENT */}
+            <div className="pt-3">
+              <p className="text-xs uppercase tracking-wider text-indigo-200 mb-2">CUSTOM ENVIRONMENT</p>
+              <input
+                type="text"
+                value={values.customEnvironment}
+                onChange={(e) => {
+                  updateValue('customEnvironment', e.target.value);
+                  if (e.target.value) {
+                    updateValue('environment', 'Custom');
+                  }
+                  markSectionTouched('environment');
+                }}
+                placeholder="e.g., cozy cabin, rooftop terrace, yoga studio..."
+                className="w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              />
+            </div>
+
+            <div className="pt-3 space-y-2">
+              <div>
+                <p className="text-xs uppercase tracking-wider text-indigo-200">SCENE ORDER & CHAOS</p>
+                <p className="text-[11px] text-gray-400">Control how tidy or chaotic the surroundings feel.</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {SCENE_ORDER_CHAOS_OPTIONS.map(option => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => {
+                      updateValue('sceneOrderChaos', option);
+                      markSectionTouched('environment');
+                    }}
+                    className={getPillClass(values.sceneOrderChaos === option)}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </AccordionSection >
 
       {/* Time & Lighting */}
@@ -1805,48 +1692,54 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         onToggle={() => toggleSection('lighting')}
         isTouched={touchedSections.has('lighting')}
       >
-        <div className="space-y-3">
-          {/* TIME OF DAY */}
-          <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-            <div>
-              <p className="text-xs uppercase tracking-wider text-indigo-200">TIME OF DAY</p>
-              <p className="text-[11px] text-gray-400 mt-1">Set the temporal context</p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              {TIME_OF_DAY_OPTIONS.map(option => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => { updateValue('timeOfDay', option); markSectionTouched('lighting'); }}
-                  className={getPillClass(values.timeOfDay === option)}
-                >
-                  {option}
-                </button>
-              ))}
-            </div>
+        {values.ugcRealMode ? (
+          <div className="rounded-lg border border-gray-700 bg-gray-900/60 px-4 py-3 text-sm text-gray-300">
+            Lighting is locked to indifferent domestic fixtures with mixed temperatures, clipped highlights, and crushed shadows. Turn Raw Domestic UGC off to control time or lighting.
           </div>
+        ) : (
+          <div className="space-y-3">
+            {/* TIME OF DAY */}
+            <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+              <div>
+                <p className="text-xs uppercase tracking-wider text-indigo-200">TIME OF DAY</p>
+                <p className="text-[11px] text-gray-400 mt-1">Set the temporal context</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {TIME_OF_DAY_OPTIONS.map(option => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => { updateValue('timeOfDay', option); markSectionTouched('lighting'); }}
+                    className={getPillClass(values.timeOfDay === option)}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-          {/* LIGHTING STYLE - Updated to use LIGHTING_OPTIONS from constants */}
-          <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-            <div>
-              <p className="text-xs uppercase tracking-wider text-indigo-200">LIGHTING STYLE</p>
-              <p className="text-[11px] text-gray-400 mt-1">Select the lighting quality</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {LIGHTING_OPTIONS.map(option => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => { updateValue('lightingStyle', option.label); markSectionTouched('lighting'); }}
-                  className={getPillClass(values.lightingStyle === option.label)}
-                  title={option.value}
-                >
-                  {option.label}
-                </button>
-              ))}
+            {/* LIGHTING STYLE */}
+            <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+              <div>
+                <p className="text-xs uppercase tracking-wider text-indigo-200">LIGHTING STYLE</p>
+                <p className="text-[11px] text-gray-400 mt-1">Select the lighting quality</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {LIGHTING_OPTIONS.map(option => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => { updateValue('lightingStyle', option.label); markSectionTouched('lighting'); }}
+                    className={getPillClass(values.lightingStyle === option.label)}
+                    title={option.value}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </AccordionSection >
 
       
