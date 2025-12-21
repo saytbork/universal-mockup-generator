@@ -83,6 +83,13 @@ CLOTHING REALISM OVERRIDE:
 - No coordinated fashion looks, trendy cuts, logos, or influencer outfits. Fabrics should feel affordable (cotton, jersey, fleece) with mild fading.
 - If clothing appears styled, pressed, or campaign-ready, invalidate and re-roll—person wears what they already had on at home.
 `.trim().replace(/\s+/g, ' ');
+const UGC_PERSONAL_ADDONS = `
+UGC PERSONAL ADD-ONS:
+- Accessories must feel incidental and worn-in. Small hoops, thin rings, or simple chains only—matte metal with scratches, slight rotation, never centered or highlighted.
+- Piercings are casual and asymmetrical with muted metal. Glasses show light glare or smudges and sit imperfectly on the nose.
+- Facial hair grows naturally with soft edges and uneven density. Tattoos appear aged, partially visible, never framed. Nails stay short, natural, and slightly worn.
+- Absolutely no trendy, styled, or decorative accessories. If any addon looks intentional or fashion-forward, invalidate and re-roll.
+`.trim().replace(/\s+/g, ' ');
 
 const RAW_DOMESTIC_GEOMETRY_RULES = `
 GEOMETRY & FRAMING RULES:
@@ -242,6 +249,7 @@ export class UGCRealModeBuilder implements PromptBuilder {
         parts.push(UGC_FOCUS_HARD_RULE);
         parts.push(UGC_HAIR_REALISM);
         parts.push(UGC_CLOTHING_REALISM);
+        parts.push(UGC_PERSONAL_ADDONS);
 
         if (personIncluded) {
             if (isProppedSurfaceCapture || isSurfaceOperator) {
