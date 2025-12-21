@@ -1609,85 +1609,84 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               Environment describes location context only. Lighting, cleanliness, and overall polish remain engine-controlled—changing this won’t upgrade quality or staging.
             </div>
           )}
-            <p className="text-xs uppercase tracking-wider text-indigo-200">INDOOR</p>
+
+          <p className="text-xs uppercase tracking-wider text-indigo-200">INDOOR</p>
+          <div className="flex flex-wrap gap-2">
+            {ENVIRONMENT_INDOOR.map(env => (
+              <button
+                key={env.value}
+                type="button"
+                onClick={() => { updateValue('environment', env.value); markSectionTouched('environment'); }}
+                className={`flex items-center gap-2 rounded-full border px-2 py-1 text-xs transition ${values.environment === env.value
+                  ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                  : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                  }`}
+              >
+                <env.icon className="w-4 h-4" />
+                <span>{env.value}</span>
+              </button>
+            ))}
+          </div>
+
+          <p className="text-xs uppercase tracking-wider text-indigo-200 pt-2">OUTDOOR</p>
+          <div className="flex flex-wrap gap-2">
+            {ENVIRONMENT_OUTDOOR.map(env => (
+              <button
+                key={env.value}
+                type="button"
+                onClick={() => { updateValue('environment', env.value); markSectionTouched('environment'); }}
+                className={`flex items-center gap-2 rounded-full border px-2 py-1 text-xs transition ${values.environment === env.value
+                  ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                  : 'border-gray-600 text-gray-300 hover-border-gray-500'
+                  }`}
+              >
+                <env.icon className="w-4 h-4" />
+                <span>{env.value}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* CUSTOM ENVIRONMENT */}
+          <div className="pt-3">
+            <p className="text-xs uppercase tracking-wider text-indigo-200 mb-2">CUSTOM ENVIRONMENT</p>
+            <input
+              type="text"
+              value={values.customEnvironment}
+              onChange={(e) => {
+                updateValue('customEnvironment', e.target.value);
+                if (e.target.value) {
+                  updateValue('environment', 'Custom');
+                }
+                markSectionTouched('environment');
+              }}
+              placeholder="e.g., cozy cabin, rooftop terrace, yoga studio..."
+              className="w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div className="pt-3 space-y-2">
+            <div>
+              <p className="text-xs uppercase tracking-wider text-indigo-200">SCENE ORDER & CHAOS</p>
+              <p className="text-[11px] text-gray-400">Control how tidy or chaotic the surroundings feel.</p>
+            </div>
             <div className="flex flex-wrap gap-2">
-              {ENVIRONMENT_INDOOR.map(env => (
+              {SCENE_ORDER_CHAOS_OPTIONS.map(option => (
                 <button
-                  key={env.value}
+                  key={option}
                   type="button"
-                  onClick={() => { updateValue('environment', env.value); markSectionTouched('environment'); }}
-                  className={`flex items-center gap-2 rounded-full border px-2 py-1 text-xs transition ${values.environment === env.value
-                    ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                    : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                    }`}
+                  onClick={() => {
+                    updateValue('sceneOrderChaos', option);
+                    markSectionTouched('environment');
+                  }}
+                  className={getPillClass(values.sceneOrderChaos === option)}
                 >
-                  <env.icon className="w-4 h-4" />
-                  <span>{env.value}</span>
+                  {option}
                 </button>
               ))}
-            </div>
-
-            <p className="text-xs uppercase tracking-wider text-indigo-200 pt-2">OUTDOOR</p>
-            <div className="flex flex-wrap gap-2">
-              {ENVIRONMENT_OUTDOOR.map(env => (
-                <button
-                  key={env.value}
-                  type="button"
-                  onClick={() => { updateValue('environment', env.value); markSectionTouched('environment'); }}
-                  className={`flex items-center gap-2 rounded-full border px-2 py-1 text-xs transition ${values.environment === env.value
-                    ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                    : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                    }`}
-                >
-                  <env.icon className="w-4 h-4" />
-                  <span>{env.value}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* CUSTOM ENVIRONMENT */}
-            <div className="pt-3">
-              <p className="text-xs uppercase tracking-wider text-indigo-200 mb-2">CUSTOM ENVIRONMENT</p>
-              <input
-                type="text"
-                value={values.customEnvironment}
-                onChange={(e) => {
-                  updateValue('customEnvironment', e.target.value);
-                  if (e.target.value) {
-                    updateValue('environment', 'Custom');
-                  }
-                  markSectionTouched('environment');
-                }}
-                placeholder="e.g., cozy cabin, rooftop terrace, yoga studio..."
-                className="w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-              />
-            </div>
-
-            <div className="pt-3 space-y-2">
-              <div>
-                <p className="text-xs uppercase tracking-wider text-indigo-200">SCENE ORDER & CHAOS</p>
-                <p className="text-[11px] text-gray-400">Control how tidy or chaotic the surroundings feel.</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {SCENE_ORDER_CHAOS_OPTIONS.map(option => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => {
-                      updateValue('sceneOrderChaos', option);
-                      markSectionTouched('environment');
-                    }}
-                    className={getPillClass(values.sceneOrderChaos === option)}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
             </div>
           </div>
         </div>
       </AccordionSection>
-
       {/* Time & Lighting */}
       <AccordionSection
         icon={Sun}
