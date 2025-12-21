@@ -78,6 +78,12 @@ HAIR REALISM OVERRIDE:
 - Ban salon-perfect clumps, glossy styling, uniform waves, or synthetic grooming. Slight dryness, frizz, or unkempt strands are mandatory.
 - If hair reads as styled, commercial, overly crisp, overly detailed, or synthetic, invalidate and re-roll.
 `.trim().replace(/\s+/g, ' ');
+const UGC_HAIR_CAPTURE_LIMIT = `
+HAIR REALISM OVERRIDE (UGC):
+- Hair must lose micro-definition and strand-level clarity; allow clumping, partial merging, and low-detail zones.
+- Avoid crisp hair edges, perfectly isolated flyaways, or evenly resolved texture. It should feel imperfectly captured by a small phone sensor.
+- If individual strands look rendered with more detail than the surrounding skin, invalidate and re-run—the skin should always feel more resolved than the hair.
+`.trim().replace(/\s+/g, ' ');
 const UGC_CLOTHING_REALISM = `
 CLOTHING REALISM OVERRIDE:
 - Wardrobe stays incidental and domestic: worn tees, soft knits, stretched collars, hoodies, or basic tops with wrinkles and imperfect fit.
@@ -285,6 +291,7 @@ export class UGCRealModeBuilder implements PromptBuilder {
 
         parts.push(UGC_FOCUS_HARD_RULE);
         parts.push(UGC_HAIR_REALISM);
+        parts.push(UGC_HAIR_CAPTURE_LIMIT);
         parts.push(UGC_CLOTHING_REALISM);
         parts.push(UGC_PERSONAL_ADDONS);
 
