@@ -62,6 +62,25 @@ DEPTH OF FIELD OVERRIDE:
 - Everything is roughly in focus because the tiny front camera cannot separate subject and background.
 - No background blur, cinematic depth, or “pleasing” bokeh. Keep focus mediocre across the frame with sharpening halos, noise-reduction smear, and accidental clarity.
 `.trim().replace(/\s+/g, ' ');
+const UGC_FOCUS_HARD_RULE = `
+UGC FOCUS HARD RULE:
+- If UGC Real Mode or Raw Domestic is active, delete any background blur, portrait mode, cinematic depth, or lens emulation logic.
+- Treat every capture as a small-sensor front camera: wide focal length, shallow body depth, everything in mediocre focus within 0–3 meters.
+- Only permit minimal softness if the background is physically farther than 3 meters; never artistic bokeh.
+- Replace any depth cues with uneven sharpening, compressed noise, and flat depth rendering. If background blur appears in a domestic space, invalidate and re-roll.
+`.trim().replace(/\s+/g, ' ');
+const UGC_HAIR_REALISM = `
+HAIR REALISM OVERRIDE:
+- Hair must render imperfectly with stray flyaways, irregular density, and messy edges, matching the person’s age and context.
+- Ban salon-perfect clumps, glossy styling, uniform waves, or synthetic grooming. Slight dryness, frizz, or unkempt strands are mandatory.
+- If hair reads as styled, commercial, or synthetic, invalidate and re-roll.
+`.trim().replace(/\s+/g, ' ');
+const UGC_CLOTHING_REALISM = `
+CLOTHING REALISM OVERRIDE:
+- Wardrobe stays incidental and domestic: worn tees, soft knits, stretched collars, hoodies, or basic tops with wrinkles and imperfect fit.
+- No coordinated fashion looks, trendy cuts, logos, or influencer outfits. Fabrics should feel affordable (cotton, jersey, fleece) with mild fading.
+- If clothing appears styled, pressed, or campaign-ready, invalidate and re-roll—person wears what they already had on at home.
+`.trim().replace(/\s+/g, ' ');
 
 const RAW_DOMESTIC_GEOMETRY_RULES = `
 GEOMETRY & FRAMING RULES:
@@ -189,7 +208,7 @@ export class UGCRealModeBuilder implements PromptBuilder {
         const includesWalkingMotion = (layers.motionStability || []).includes(WALKING_MOTION_ID);
 
         const overrideTarget = options as any;
-        if (options.rawDomesticUgcActive) {
+        if (options.rawDomesticUgcActive || options.ugcRealModeActive) {
             delete overrideTarget.backgroundBlur;
             delete overrideTarget.depthOfField;
             delete overrideTarget.lensEmulation;
@@ -217,6 +236,10 @@ export class UGCRealModeBuilder implements PromptBuilder {
         parts.push(RAW_DOMESTIC_PRODUCT_RULES);
         parts.push(RAW_DOMESTIC_ENVIRONMENT_RULES);
         parts.push(RAW_DOMESTIC_ABSOLUTE_BANS);
+
+        parts.push(UGC_FOCUS_HARD_RULE);
+        parts.push(UGC_HAIR_REALISM);
+        parts.push(UGC_CLOTHING_REALISM);
 
         if (personIncluded) {
             if (isProppedSurfaceCapture || isSurfaceOperator) {
