@@ -73,9 +73,9 @@ UGC FOCUS HARD RULE:
 const UGC_HAIR_REALISM = `
 HAIR REALISM OVERRIDE:
 - Hair must render imperfectly with stray flyaways, irregular density, and messy edges, matching the person’s age and context.
-- Texture should feel soft and slightly muted—no hyper-detailed strand-by-strand rendering, no over-sharpening, no CGI gloss.
+- Texture stays soft and slightly muted—no strand-level sharpness, no hyper-detailed rendering, no over-sharpening, no CGI gloss or sculpted volume.
 - Ban salon-perfect clumps, glossy styling, uniform waves, or synthetic grooming. Slight dryness, frizz, or unkempt strands are mandatory.
-- If hair reads as styled, commercial, or synthetic, invalidate and re-roll.
+- If hair reads as styled, commercial, overly crisp, or synthetic, invalidate and re-roll.
 `.trim().replace(/\s+/g, ' ');
 const UGC_CLOTHING_REALISM = `
 CLOTHING REALISM OVERRIDE:
@@ -131,6 +131,10 @@ const RAW_DOMESTIC_VALIDATION = `
 RAW DOMESTIC VALIDATION:
 Before accepting the output, internally ask: “Does this look like a careless front-camera selfie captured at home with no intent to look good?”
 If the honest answer is no, reject or re-roll immediately.
+`.trim().replace(/\s+/g, ' ');
+const RAW_DOMESTIC_FINAL_COMMAND = `
+FINAL RAW DOMESTIC COMMAND:
+Flat focus across the entire frame, fixed wide front-facing smartphone lens, no portrait mode, no depth separation, no cinematic treatment. If the render feels intentional, polished, shallow-focused, or fashion-driven, invalidate and regenerate immediately.
 `.trim().replace(/\s+/g, ' ');
 const CAMERA_OPERATOR_DETAILS: Record<string, string> = {
     'self-held': 'Creator holds the phone themselves with fingers visible near the glass.',
@@ -409,6 +413,7 @@ If any qualities feel polished, confident, commercial, lifestyle-perfect, stock-
         `.trim().replace(/\s+/g, ' '));
 
         parts.push(RAW_DOMESTIC_VALIDATION);
+        parts.push(RAW_DOMESTIC_FINAL_COMMAND);
 
         const walkingText = `
 Walking, handheld motion is a selfie perspective while walking.

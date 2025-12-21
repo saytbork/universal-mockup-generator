@@ -96,6 +96,22 @@ function negativePrompt() {
     ].join(", ");
 }
 
+const DEPTH_DETECTION_REGEX = /(depth of field|portrait mode|bokeh|background blur|lens blur|cinematic focus|subject separation|shallow depth|soft background)/i;
+
+function enforceUgcFocusGuard(prompt: string, options: PromptOptions): string {
+    const ugcActive = options.ugcRealModeActive || options.rawDomesticUgcActive;
+    if (!ugcActive) {
+        return prompt;
+    }
+    if (DEPTH_DETECTION_REGEX.test(prompt)) {
+        throw new InvalidSceneCombinationError('UGC depth conflict detected: background separation language present. Re-run generation.');
+    }
+    if (!/flat focus across the entire frame/i.test(prompt)) {
+        return `${prompt} flat focus across the entire frame, small sensor, fixed wide lens, no depth separation, no portrait mode.`.replace(/\s+/g, ' ').trim();
+    }
+    return prompt;
+}
+
 // ============================================================================
 // VALIDATION GUARDS - Illegal combination detection
 // ============================================================================
@@ -300,6 +316,8 @@ export class PromptEngine {
         if (finalPrompt.length > 30000) {
             throw new Error('Prompt too large, aborting build');
         }
+
+        finalPrompt = enforceUgcFocusGuard(finalPrompt, options);
 
         // ====================================================================
         // MANDATORY DEBUG LOGGING
