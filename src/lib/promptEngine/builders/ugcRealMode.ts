@@ -175,6 +175,20 @@ HANDHELD CAMERA TILT:
 The camera is unintentionally tilted due to natural wrist rotation (approximate tilt: {ANGLE}). The horizon sits slightly off-level, creating a subtle diagonal framing typical of real handheld smartphone selfies. This tilt must feel accidental, never cinematic or stylistic.
 `.trim().replace(/\s+/g, ' ');
 
+const UGC_SELFIE_DEEP_FOCUS = `
+DEEP FOCUS MANDATE:
+- Deep focus, no shallow depth-of-field, no bokeh, no portrait-mode blur, no depth-map artifacts. Everything stays sharp across face and background.
+- If any aperture value is mentioned, it must be f/16 and explicitly tied to the tiny front-facing sensor rather than a cinematic setup.
+`.trim().replace(/\s+/g, ' ');
+
+const UGC_SELFIE_IMPERFECTIONS_TEMPLATE = `
+UGC SELFIE IMPERFECTIONS:
+- Slight motion blur from hand movement, not a smeared streak—just enough to feel natural and unsettled.
+- Subtle smartphone sensor noise, like low-light grain from a tiny front camera, not artistic film grain.
+- Slightly off-level framing with {ROLL} roll, {PITCH} pitch, {YAW} yaw, and the camera sitting {DISTANCE} than a typical selfie.
+- Random micro-variation in angle and distance ensures each render feels accidental, not rehearsed.
+`.trim().replace(/\s+/g, ' ');
+
 const RAW_DOMESTIC_VALIDATION = `
 RAW DOMESTIC VALIDATION:
 Before accepting the output, internally ask: “Does this look like a careless front-camera selfie captured at home with no intent to look good?”
@@ -290,6 +304,24 @@ export class UGCRealModeBuilder implements PromptBuilder {
         return Math.round(angle * 10) / 10;
     }
 
+    private getRandomMicroVariation(range: number, minMagnitude = 0.3): number {
+        let value = 0;
+        let attempts = 0;
+        while (Math.abs(value) < minMagnitude && attempts < 8) {
+            value = (Math.random() * range * 2) - range;
+            attempts += 1;
+        }
+        if (Math.abs(value) < minMagnitude) {
+            value = value < 0 ? -minMagnitude : minMagnitude;
+        }
+        return Number(value.toFixed(1));
+    }
+
+    private describeDistanceVariation(delta: number): string {
+        const direction = delta > 0 ? 'slightly farther from the lens' : 'slightly closer to the lens';
+        return `${direction} than a typical selfie by ${Math.abs(delta).toFixed(1)} units`;
+    }
+
     build(options: PromptOptions): string {
         const { ugcRealModeActive, personDetails, personIncluded } = options;
 
@@ -339,6 +371,10 @@ export class UGCRealModeBuilder implements PromptBuilder {
         console.log('[UGC REAL MODE] Building with layered overrides');
 
         const tiltAngle = this.getRandomTiltAngle();
+        const pitchVariation = this.getRandomMicroVariation(3, 0.3);
+        const yawVariation = this.getRandomMicroVariation(3, 0.3);
+        const distanceDelta = this.getRandomMicroVariation(1.2, 0.1);
+        const distanceVariationText = this.describeDistanceVariation(distanceDelta);
 
         const parts: string[] = [];
 
@@ -394,6 +430,25 @@ export class UGCRealModeBuilder implements PromptBuilder {
         parts.push(UGC_CLOTHING_REALISM);
         parts.push(UGC_PERSONAL_ADDONS);
         parts.push(UGC_BACKGROUND_SECONDARY_RULE);
+
+        const isUgcSelfieCapture = includeHandheldConstraints && Boolean(captureBase);
+
+        if (isUgcSelfieCapture) {
+            parts.push(UGC_SELFIE_DEEP_FOCUS);
+            const imperfections = UGC_SELFIE_IMPERFECTIONS_TEMPLATE
+                .replace('{ROLL}', `${tiltAngle.toFixed(1)}°`)
+                .replace('{PITCH}', `${pitchVariation.toFixed(1)}°`)
+                .replace('{YAW}', `${yawVariation.toFixed(1)}°`)
+                .replace('{DISTANCE}', distanceVariationText);
+            parts.push(imperfections);
+            console.log(
+                `[UGC REAL MODE] UGC selfie realism block injected (roll=${tiltAngle.toFixed(
+                    1
+                )}°, pitch=${pitchVariation.toFixed(1)}°, yaw=${yawVariation.toFixed(
+                    1
+                )}°, distanceDelta=${distanceDelta.toFixed(1)})`
+            );
+        }
 
         if (personIncluded) {
             if (isProppedSurfaceCapture || isSurfaceOperator) {

@@ -151,6 +151,7 @@ export interface PromptOptions {
     productPlane: string;
     placementStyle?: string;
     placementCamera?: string;
+    sceneEnvironmentDescriptor?: string;
 
     // Person
     personDetails?: PersonDetails;

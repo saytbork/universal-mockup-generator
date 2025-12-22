@@ -1363,6 +1363,48 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </AccordionSection>
                       );
                     })}
+                    <div className="space-y-4 rounded-2xl border border-gray-600 bg-gray-900/40 p-4">
+                      <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Visual Fidelity</p>
+                      <div className="space-y-3">
+                        <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                          <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Skin Realism</p>
+                          <div className="flex flex-wrap items-center gap-2">
+                            {SKIN_REALISM_OPTIONS.map(option => (
+                              <button
+                                key={option}
+                                type="button"
+                                onClick={() => {
+                                  updateValue('skinRealism', option);
+                                  markSectionTouched('realism');
+                                }}
+                                className={getPillClass(values.skinRealism === option)}
+                              >
+                                {option}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                          <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Appearance Level</p>
+                          <div className="flex flex-wrap items-center gap-2">
+                            {APPEARANCE_LEVEL_OPTIONS.map(option => (
+                              <button
+                                key={option}
+                                type="button"
+                                onClick={() => {
+                                  updateValue('appearanceLevel', option);
+                                  markSectionTouched('realism');
+                                }}
+                                className={getPillClass(values.appearanceLevel === option)}
+                              >
+                                {option}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </>
               )}
@@ -1785,38 +1827,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     }`}
                 >
                   {persona.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Skin Realism</p>
-            <div className="flex flex-wrap items-center gap-2">
-              {SKIN_REALISM_OPTIONS.map(option => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => updateValue('skinRealism', option)}
-                  className={getPillClass(values.skinRealism === option)}
-                >
-                  {option}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Appearance Level</p>
-            <div className="flex flex-wrap items-center gap-2">
-              {APPEARANCE_LEVEL_OPTIONS.map(option => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => updateValue('appearanceLevel', option)}
-                  className={getPillClass(values.appearanceLevel === option)}
-                >
-                  {option}
                 </button>
               ))}
             </div>

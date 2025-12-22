@@ -280,6 +280,11 @@ export class SceneNarrativeBuilder {
             lightingText ? `Lighting: ${lightingText}.` : ''
         ].filter(Boolean);
 
+        const ugcEnvironmentDescriptor = (options as any).sceneEnvironmentDescriptor;
+        if (options.ugcRealModeActive && ugcEnvironmentDescriptor) {
+            narrativeParts.push(ugcEnvironmentDescriptor);
+        }
+
         if (options.elderlyRealismGuardActive) {
             const descriptor =
                 options.elderlyRealismDescriptor?.trim() ||

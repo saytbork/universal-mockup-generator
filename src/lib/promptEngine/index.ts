@@ -252,10 +252,10 @@ export class PromptEngine {
         const productCount = options.productAssets?.length || 0;
 
         if (isSelfie && productCount > 1) {
-            console.error('❌ CRITICAL: Attempted to build prompt with Selfie Mode + Multiple Products');
-            throw new InvalidSceneCombinationError(
-                'Selfie mode cannot be used with multiple products. Please switch to Standard Camera or Single Product.'
-            );
+            const errorMessage =
+                'Selfie capture allows exactly one visible product. Multiple products are not permitted.';
+            console.error(`❌ CRITICAL: ${errorMessage}`);
+            throw new InvalidSceneCombinationError(errorMessage);
         }
 
         // ====================================================================

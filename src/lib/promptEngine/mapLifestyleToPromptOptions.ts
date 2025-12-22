@@ -1017,10 +1017,11 @@ export function mapLifestyleToPromptOptions(
 
         if (isUGCRealMode) {
             const { label, description } = resolveEnvironmentLabel();
-            mapped.setting = description;
+            mapped.setting = label;
             mapped.microLocation = label;
-            (mapped as any).sceneEnvironment = description;
-            mapped.environmentOrder = description;
+            (mapped as any).sceneEnvironment = label;
+            mapped.environmentOrder = label;
+            (mapped as any).sceneEnvironmentDescriptor = description;
         } else if (selectedEnvironment === 'Custom' && customEnvironmentValue) {
             mapped.setting = customEnvironmentValue;
             mapped.microLocation = customEnvironmentValue;
