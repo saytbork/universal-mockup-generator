@@ -111,9 +111,20 @@ const sample = <T,>(items: T[], random: () => number): T =>
 
 const buildFacialMorphologyVariation = (random: () => number): string => {
     const shuffled = shuffleArray(FACIAL_MORPHOLOGY_CATEGORIES, random);
-    const selection = shuffled.slice(0, FACIAL_MORPHOLOGY_SELECTION_COUNT);
+    const selection = shuffled
+        .slice(0, FACIAL_MORPHOLOGY_SELECTION_COUNT)
+        .filter(Boolean);
+
+    if (selection.length === 0) {
+        return 'Facial morphology variation could not be determined; please re-run.';
+    }
+
     const descriptor = selection
-        .map(category => `${category.label}: ${sample(category.options, random)}`)
+        .map(category => {
+            const label = category?.label || 'Facial trait';
+            const option = sample(category.options, random);
+            return `${label}: ${option}`;
+        })
         .join('; ');
     if (GENERIC_IDENTITY_KEYWORDS.test(descriptor)) {
         return buildFacialMorphologyVariation(random);
@@ -122,9 +133,10 @@ const buildFacialMorphologyVariation = (random: () => number): string => {
 };
 
 const buildBodyVariation = (random: () => number): string =>
-    BODY_VARIATION_CATEGORIES.map(category => {
-        const option = sample(category.options, random);
-        return `${category.label} ${option}`;
+    BODY_VARIATION_CATEGORIES.filter(Boolean).map(category => {
+        const label = category?.label || 'Body detail';
+        const option = sample(category?.options || ['irregular detail'], random);
+        return `${label} ${option}`;
     }).join('; ');
 
 const buildExpressionNoise = (random: () => number): string =>
