@@ -3526,7 +3526,7 @@ const App: React.FC = () => {
       ? `Use the uploaded model reference as the exact identity.
 Do not change or alter the person's face, age, hair, skin tone, gender, or any physical attributes.
 Preserve identity exactly. Do not stylize, enhance, beautify, or modify the appearance in any way.`
-      : identityPackage.personDetails
+      : identityPackage.identityLock && identityPackage.personDetails
         ? `Use the following identity for the person in this scene.
 This identity must remain exactly consistent across all scenes.
 Do not alter or randomize the face, age, facial structure, or appearance.
