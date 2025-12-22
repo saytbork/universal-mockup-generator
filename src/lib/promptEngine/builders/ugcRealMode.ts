@@ -32,7 +32,7 @@ CLOSE FACE FRAMING OVERRIDE:
 The lens sits inches from the subject’s face, forcing an uncomfortable, claustrophobic crop. Minimal headroom—chins, temples, or foreheads should clip the frame edges and shoulders barely sneak in.
 Require slight barrel distortion with a 1–5° roll so one eye sits closer to the lens, the nose bulges toward camera, and facial alignment feels imperfect.
 Background objects stay readable because the small sensor keeps everything in the same flat focus; do NOT blur or stylize them.
-Any output that looks like a flattering selfie, balanced portrait, or beauty shot must be invalidated and re-rolled immediately.
+        Any output that looks like a flattering selfie, balanced face shot, or beauty shot must be invalidated and re-rolled immediately.
     `.trim().replace(/\s+/g, ' ')
 };
 const RAW_DOMESTIC_CORE_DIRECTIVE = `
@@ -62,12 +62,12 @@ IMAGE QUALITY CHARACTERISTICS (MANDATORY):
 const RAW_DOMESTIC_DEPTH_RULES = `
 DEPTH OF FIELD OVERRIDE:
 - Everything stays flat because the tiny front camera cannot separate subject and background.
-- No background blur, cinematic depth, portrait mode, or “pleasing” bokeh. Keep focus mediocre across the entire frame with sharpening halos, compression noise, and accidental clarity.
+- No background blur, cinematic depth, shallow depth isolation, or “pleasing” bokeh. Keep focus mediocre across the entire frame with sharpening halos, compression noise, and accidental clarity.
 - Explicitly describe flat focus across the entire frame, fixed wide front-facing lens, small sensor look, and zero depth separation.
 `.trim().replace(/\s+/g, ' ');
 const UGC_FOCUS_HARD_RULE = `
 UGC FOCUS HARD RULE:
-- If UGC Real Mode or Raw Domestic is active, delete any background blur, portrait mode, cinematic depth, lens emulation, or focus falloff logic before prompting.
+- If UGC Real Mode or Raw Domestic is active, delete any background blur, shallow depth isolation, cinematic depth, lens emulation, or focus falloff logic before prompting.
 - Treat every capture as a small-sensor front camera: wide focal length, shallow body depth, everything in mediocre focus within 0–3 meters.
 - The entire frame must stay evenly sharp with only minor digital softness—never optical blur. If background blur/bokeh appears indoors, invalidate and regenerate.
 - Only permit minimal softness if the background is physically farther than 3 meters; never artistic bokeh.
@@ -116,15 +116,29 @@ SKIN REALISM OVERRIDE:
 const RAW_DOMESTIC_GEOMETRY_RULES = `
 GEOMETRY & FRAMING RULES:
 - At least one of the following flaws must appear in every render: off-center framing, 1–5° camera roll, partial crop of face or product, awkward headroom, or the product invading facial space.
-- Framing must feel imprecise and reluctant to correct itself. Never allow perfect centering, level horizons, balanced compositions, or portrait-style framing.
+- Framing must feel imprecise and reluctant to correct itself. The composition reads as an unplanned selfie composition with awkward framing, accidental crop, imperfect alignment, and casual low-intent capture; no staged symmetry or deliberate hero posture is allowed.
 `.trim().replace(/\s+/g, ' ');
+
+const RAW_DOMESTIC_SPONTANEITY_SIGNAL = `
+The photo feels taken without preparation.
+The subject did not stop to set up lighting, pose, or framing.
+This looks like a quick, careless selfie captured in the middle of real life.
+`.trim();
 
 const RAW_DOMESTIC_LIGHTING_RULES = `
 LIGHTING:
-- Overhead or mixed domestic fixtures only, often colliding with stray daylight.
-- Uneven facial shadows, mixed color temperatures, and zero fill logic. Lighting should feel indifferent, not deliberately “bad” or “good”.
-- Ban soft window key lights, balanced exposure, studio light falloff, or beauty lighting tricks.
+- Light comes from accidental overhead domestic fixtures and opportunistic daylight slips; there is no attempt to sculpt, layer, or soften it.
+- Color temperatures clash across the frame, dragging skin tones through uneven warmth and coolness while highlights blow out and shadows sag with no remediation.
+- Shadows, glare, and inconsistent contrast are the only cues; the scene stays indifferent to fill or diffusion, leaving the lighting untreated and raw.
 `.trim().replace(/\s+/g, ' ');
+
+const RAW_DOMESTIC_LIGHTING_FAILURE = `
+Lighting is accidental and imperfect.
+Overhead domestic bulbs dominate the scene.
+Mixed color temperatures cause uneven skin tones.
+Some areas are slightly overexposed while others fall into shadow.
+No effort is made to correct lighting mistakes.
+`.trim();
 
 const RAW_DOMESTIC_SUBJECT_RULES = `
 SUBJECT BEHAVIOR & PSYCHOLOGY:
@@ -171,7 +185,7 @@ FEMALE BACKGROUND RULE:
 
 const RAW_DOMESTIC_ABSOLUTE_BANS = `
 ABSOLUTE PROHIBITIONS:
-- Under no circumstances produce DSLR-like clarity, lifestyle marketing imagery, influencer-style UGC, clean hero shots, symmetrical portraits, or “nice” polished photos.
+- Under no circumstances produce DSLR-like clarity, lifestyle marketing imagery, influencer-style UGC, clean hero shots, symmetrical face studies, or “nice” polished photos.
 `.trim().replace(/\s+/g, ' ');
 
 const HANDHELD_CAMERA_TILT_TEMPLATE = `
@@ -182,7 +196,7 @@ HANDHELD CAMERA TILT:
 
 const UGC_SELFIE_DEEP_FOCUS = `
 DEEP FOCUS MANDATE:
-- Deep focus, no shallow depth-of-field, no bokeh, no portrait-mode blur, no depth-map artifacts. Everything stays sharp across face and background.
+- Deep focus, no shallow depth-of-field, no bokeh, no blurred depth tricks, no depth-map artifacts. Everything stays sharp across face and background.
 - If any aperture value is mentioned, it must be f/16 and explicitly tied to the tiny front-facing sensor rather than a cinematic setup.
 `.trim().replace(/\s+/g, ' ');
 
@@ -215,13 +229,13 @@ const RAW_DOMESTIC_FOCUS_OVERRIDE = `
 FOCUS OVERRIDE (HARD):
 - Entire frame must remain in mediocre focus from foreground to background with no artistic falloff.
 - Simulate a tiny front-camera smartphone sensor with a fixed wide lens.
-- No depth separation, no portrait mode, no background blur, no subject isolation.
+- No depth separation, no depth isolation mode, no background blur, no subject isolation.
 - Any perceptual blur closer than 3 meters is INVALID. If the background appears softer than the subject, re-roll immediately.
 `.trim().replace(/\s+/g, ' ');
 const RAW_DOMESTIC_FINAL_COMMAND = `
 RAW DOMESTIC UGC FINAL COMMAND:
 - Casual front-facing smartphone capture taken indoors with a fixed wide lens and tiny sensor.
-- Everything stays in mediocre focus from subject to background. Absolutely no portrait mode, depth of field, bokeh, subject separation, or lens blur. If any blur or artistic depth appears, invalidate and regenerate.
+- Everything stays in mediocre focus from subject to background. Absolutely no depth isolation mode, depth of field, bokeh, subject separation, or lens blur. If any blur or artistic depth appears, invalidate and regenerate.
 - Natural handheld framing with slight micro shake, imperfect alignment, awkward crop, minimal headroom, and subtle lens distortion.
 - Real human skin only: visible pores, fine lines, uneven tone, zero retouching or beauty glow.
 - Hair must look natural, slightly messy, low definition, uneven strands, and never sculpted. If it looks CG, hyper-detailed, or salon-styled, re-roll.
@@ -230,10 +244,9 @@ RAW DOMESTIC UGC FINAL COMMAND:
 - Environment is incidental domestic clutter—bedrooms, kitchens, work nooks—with readable background objects still in flat focus. No staged decor or scenic storytelling.
 - Lighting is mixed household light with mild imbalance; no studio rigs, no ring lights, no beauty lighting.
 - Product interaction is relaxed and unposed. Grip stays casual, no hero presentation.
-- Absolute blocklist: portrait mode, cinematic depth, beauty lighting, styled hair, fashion wardrobe, product hero framing, marketing poses.
-- Flat focus across the entire frame, small sensor, fixed wide lens, no depth separation, no portrait mode. If the image looks intentional, polished, staged, or optimized, reject and regenerate immediately.
+- Absolute blocklist: depth isolation mode, cinematic depth, beauty lighting, styled hair, fashion wardrobe, product hero-level staging, marketing poses.
+- Flat focus across the entire frame, small sensor, fixed wide lens, no depth separation, no depth isolation mode. If the image looks intentional, polished, staged, or optimized, reject and regenerate immediately.
 `.trim().replace(/\s+/g, ' ');
-
 const RAW_DOMESTIC_FRONT_CAMERA_REALISM_CONTRACT = `
 RAW DOMESTIC FRONT CAMERA REALISM CONTRACT:
 - Device: front-facing smartphone camera only, no DSLR or high-end optics allowed.
@@ -241,7 +254,7 @@ RAW DOMESTIC FRONT CAMERA REALISM CONTRACT:
 - Composition: imperfect, asymmetric framing with accidental headroom, awkward crop, and never centered or passport-style alignment.
 - Framing: horizon intentionally tilted, the angle is never level, and posture shifts off-balance with incidental edges.
 - Pose: unposed, distracted, or mid-gesture—capture the person reacting, not presenting.
-- Product (if present): casually held with fingers partially obscuring the label and the label skewed in the frame; hero framing or influencer presentation is forbidden.
+- Product (if present): casually held with fingers partially obscuring the label and the label skewed in the frame; hero-level staging or influencer presentation is forbidden.
 `.trim().replace(/\s+/g, ' ');
 
 const BACKGROUND_CLUSTER_DEFINITIONS = [
@@ -454,7 +467,9 @@ export class UGCRealModeBuilder implements PromptBuilder {
         const tiltText = HANDHELD_CAMERA_TILT_TEMPLATE.replace('{ANGLE}', `${tiltAngle.toFixed(1)}°`);
         parts.push(tiltText);
         parts.push(RAW_DOMESTIC_GEOMETRY_RULES);
+        parts.push(RAW_DOMESTIC_SPONTANEITY_SIGNAL);
         parts.push(RAW_DOMESTIC_LIGHTING_RULES);
+        parts.push(RAW_DOMESTIC_LIGHTING_FAILURE);
         parts.push(RAW_DOMESTIC_SUBJECT_RULES);
         parts.push(RAW_DOMESTIC_PRODUCT_RULES);
         parts.push(RAW_DOMESTIC_ENVIRONMENT_RULES);
@@ -534,7 +549,7 @@ Product placement must feel careless and never staged for hero clarity.
                 parts.push(`
 HUMAN-FIRST COMPOSITION:
 The person is still the accidental main subject. They may hold the product, but never like a demonstration.
-Grip stays relaxed, fingers imperfect, device out of frame. Absolutely no hero framing or influencer polish.
+Grip stays relaxed, fingers imperfect, device out of frame. Absolutely no hero-level staging or influencer polish.
                 `.trim().replace(/\s+/g, ' '));
             }
         }
@@ -560,7 +575,7 @@ CREATOR PERSONA: ${persona}
 
         parts.push(`
 BLOCKED VOCABULARY (DO NOT USE):
-- "hero shot", "hero framing", "product hero"
+- "hero shot", "hero-level staging", "product hero"
 - "editorial", "editorial lighting", "editorial composition"
 - "studio", "studio lighting", "controlled studio"
 - "commercial", "advertising", "campaign"
@@ -633,7 +648,7 @@ Only one arm may be partially visible, and only to support the product.
 The person must look like a real human captured by a smartphone.
 No mannequin, doll, CGI, avatar, or synthetic appearance.
 Natural skin texture is required, soft and even with minimal pore emphasis, gentle tonal variation, and honest asymmetry.
-This must not look like a render, stock photo, studio portrait, or AI-generated human.
+This must not look like a render, stock photo, studio headshot, or AI-generated human.
 `.trim();
         parts.push(humanText);
 
@@ -716,6 +731,16 @@ Smartphone capture with the arm holding the phone remaining completely outside t
         }
 
         const result = parts.filter(Boolean).join(' ').trim();
+        const lowerPrompt = result.toLowerCase();
+        if (
+            options.ugcRealModeActive &&
+            (lowerPrompt.includes('balanced lighting') ||
+                lowerPrompt.includes('soft lighting') ||
+                lowerPrompt.includes('portrait') ||
+                lowerPrompt.includes('showcase'))
+        ) {
+            throw new Error('Raw Domestic UGC violated by staged lighting or composition');
+        }
         console.log('[UGC REAL MODE OUTPUT]', result.substring(0, 200) + '...');
         return result;
     }

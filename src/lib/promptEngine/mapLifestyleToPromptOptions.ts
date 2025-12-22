@@ -547,7 +547,7 @@ export function mapLifestyleToPromptOptions(
         angle: gradientAngleValue
     };
     const ugcHouseholdLighting =
-        'overhead domestic bulbs colliding with stray window spill, mixed color temperatures, uneven shadows, clipped highlights, crushed blacks, and zero intentional fill';
+        'Lighting is accidental and imperfect. Overhead domestic bulbs dominate the scene. Mixed color temperatures cause uneven skin tones. Some areas are slightly overexposed while others fall into shadow. No effort is made to correct lighting mistakes.';
 
 
     // ========================================================================
