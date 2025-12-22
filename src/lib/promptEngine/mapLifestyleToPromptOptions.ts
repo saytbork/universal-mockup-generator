@@ -13,7 +13,7 @@
  */
 
 import type { ExpertRole, Step3Values, ExpertAttire } from '@/components/LifestyleStep3';
-import type { CustomClothes, FormulationStoryOptions, PromptOptions, UGCRealModeLayerSet } from './types';
+import type { CustomClothes, FormulationStoryOptions, IdentityLock, PromptOptions, UGCRealModeLayerSet } from './types';
 import { mapProductModeToPromptOptions } from './mapProductModeToPromptOptions';
 import { APPEARANCE_SEMANTIC_MAP } from './semanticMaps/appearance';
 
@@ -708,6 +708,18 @@ export function mapLifestyleToPromptOptions(
             }
         }
         // ... (other hair props mapped normally)
+
+        const identityLock: IdentityLock = {
+            gender: sceneState.gender || mapped.personDetails.gender,
+            age: sceneState.age,
+            skinTone: sceneState.skinTone || mapped.personDetails.skinTone,
+            ethnicity: sceneState.ethnicity || mapped.personDetails.ethnicity,
+            hairColor: mapped.personDetails.hairColor || sceneState.hairColor,
+            hairTexture: mapped.personDetails.hairTexture || sceneState.hairTexture,
+            hairLength: mapped.personDetails.hairLength || sceneState.hairLength,
+            hairState
+        };
+        (mapped as any).identityLock = identityLock;
     }
 
     const isUGCActive = isUGCRealMode;

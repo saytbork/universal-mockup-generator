@@ -93,10 +93,22 @@ CLOTHING REALISM OVERRIDE:
 `.trim().replace(/\s+/g, ' ');
 const UGC_PERSONAL_ADDONS = `
 UGC PERSONAL ADD-ONS (BASE + HARD OVERRIDE):
-- Accessories must feel incidental and worn-in. Small hoops, thin rings, or simple chains only—matte metal with scratches, slight rotation, never centered or highlighted.
+- Accessories must feel incidental and worn-in. These cues are automatic—there is no user toggle. Small hoops, thin rings, or simple chains only—matte metal with scratches, slight rotation, never centered or highlighted.
 - Piercings are casual and asymmetrical with muted metal. Glasses show light glare or smudges and sit imperfectly on the nose.
 - Facial hair grows naturally with soft edges and uneven density. Tattoos appear aged, partially visible, never framed. Nails stay short, natural, and slightly worn.
 - These cues live in Persona by default and become a hard guardrail in UGC/Raw Domestic. If any addon looks intentional, trendy, styled, or decorative, invalidate and re-roll.
+`.trim().replace(/\s+/g, ' ');
+
+const UGC_BACKGROUND_SECONDARY_RULE = `
+BACKGROUND PRIORITY RULE:
+- Background must stay readable yet secondary. No beautifying blur, no hero lighting, no subject separation tricks.
+- Keep it dimmer, lower contrast, and visually tired so face and product remain the highest contrast zones. If the background competes, invalidate and re-roll.
+`.trim().replace(/\s+/g, ' ');
+
+const UGC_SKIN_REALISM_RULE = `
+SKIN REALISM OVERRIDE:
+- Preserve real skin texture with pores, uneven tone, and minor blemishes. No plastic smoothing, no retouching, no inferred makeup—especially for male creators.
+- Skin must feel like an unfiltered smartphone capture. Any beautification cues require invalidation.
 `.trim().replace(/\s+/g, ' ');
 
 const RAW_DOMESTIC_GEOMETRY_RULES = `
@@ -156,6 +168,11 @@ FEMALE BACKGROUND RULE:
 const RAW_DOMESTIC_ABSOLUTE_BANS = `
 ABSOLUTE PROHIBITIONS:
 - Under no circumstances produce DSLR-like clarity, lifestyle marketing imagery, influencer-style UGC, clean hero shots, symmetrical portraits, or “nice” polished photos.
+`.trim().replace(/\s+/g, ' ');
+
+const HANDHELD_CAMERA_TILT_TEMPLATE = `
+HANDHELD CAMERA TILT:
+The camera is unintentionally tilted due to natural wrist rotation (approximate tilt: {ANGLE}). The horizon sits slightly off-level, creating a subtle diagonal framing typical of real handheld smartphone selfies. This tilt must feel accidental, never cinematic or stylistic.
 `.trim().replace(/\s+/g, ' ');
 
 const RAW_DOMESTIC_VALIDATION = `
@@ -228,6 +245,16 @@ const AWKWARD_CONTEXT_DETAILS: Record<string, string> = {
     'cluttered-desk': 'Messy desk or table with snacks, cables, and packaging encroaching on the frame.'
 };
 
+const MALE_PROP_RULE = `
+GENDER PROP RULE (MALE):
+- Absolutely forbid makeup kits, cosmetic brushes, vanity mirrors, skincare staging, or any beauty-oriented props. Background clutter must stay neutral—boxes, towels, notebooks, gym gear—not grooming items. If any vanity cue appears, invalidate and re-roll.
+`.trim().replace(/\s+/g, ' ');
+
+const FEMALE_PROP_RULE = `
+GENDER PROP RULE (FEMALE):
+- Cosmetic or grooming items may appear only as incidental clutter. They must never feel staged, centered, or posed for use. If beauty props look intentional or heroed, invalidate and re-roll.
+`.trim().replace(/\s+/g, ' ');
+
 export class UGCRealModeBuilder implements PromptBuilder {
     private injectLayer(parts: string[], label: string, entries?: string[]) {
         if (!entries || entries.length === 0) return;
@@ -248,6 +275,19 @@ export class UGCRealModeBuilder implements PromptBuilder {
     private describeLayer(entries: string[] | undefined, detailMap: Record<string, string>): string[] | undefined {
         if (!entries) return entries;
         return entries.map(entry => detailMap[entry] || entry);
+    }
+
+    private getRandomTiltAngle(): number {
+        let angle = 0;
+        let attempts = 0;
+        while (Math.abs(angle) < 0.8 && attempts < 6) {
+            angle = (Math.random() * 12) - 6;
+            attempts += 1;
+        }
+        if (Math.abs(angle) < 0.8) {
+            angle = angle < 0 ? -0.8 : 0.8;
+        }
+        return Math.round(angle * 10) / 10;
     }
 
     build(options: PromptOptions): string {
@@ -298,12 +338,16 @@ export class UGCRealModeBuilder implements PromptBuilder {
         }
         console.log('[UGC REAL MODE] Building with layered overrides');
 
+        const tiltAngle = this.getRandomTiltAngle();
+
         const parts: string[] = [];
 
         parts.push(RAW_DOMESTIC_CORE_DIRECTIVE);
         parts.push(RAW_DOMESTIC_CAMERA_CONSTRAINTS);
         parts.push(RAW_DOMESTIC_IMAGE_QUALITY);
         parts.push(RAW_DOMESTIC_DEPTH_RULES);
+        const tiltText = HANDHELD_CAMERA_TILT_TEMPLATE.replace('{ANGLE}', `${tiltAngle.toFixed(1)}°`);
+        parts.push(tiltText);
         parts.push(RAW_DOMESTIC_GEOMETRY_RULES);
         parts.push(RAW_DOMESTIC_LIGHTING_RULES);
         parts.push(RAW_DOMESTIC_SUBJECT_RULES);
@@ -334,16 +378,22 @@ export class UGCRealModeBuilder implements PromptBuilder {
         }
         if (usesMasculine) {
             parts.push(RAW_DOMESTIC_MALE_BACKGROUND_RULE);
+            parts.push(MALE_PROP_RULE);
         } else if (usesFeminine) {
             parts.push(RAW_DOMESTIC_FEMALE_BACKGROUND_RULE);
+            parts.push(FEMALE_PROP_RULE);
+        } else if (usesNeutral) {
+            parts.push(MALE_PROP_RULE);
         }
         parts.push(RAW_DOMESTIC_ABSOLUTE_BANS);
 
         parts.push(UGC_FOCUS_HARD_RULE);
         parts.push(UGC_HAIR_REALISM);
         parts.push(UGC_HAIR_CAPTURE_LIMIT);
+        parts.push(UGC_SKIN_REALISM_RULE);
         parts.push(UGC_CLOTHING_REALISM);
         parts.push(UGC_PERSONAL_ADDONS);
+        parts.push(UGC_BACKGROUND_SECONDARY_RULE);
 
         if (personIncluded) {
             if (isProppedSurfaceCapture || isSurfaceOperator) {

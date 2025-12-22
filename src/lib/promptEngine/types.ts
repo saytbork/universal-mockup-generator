@@ -64,6 +64,17 @@ export interface PersonDetails {
     heroPersona?: string;             // Semantic UGC persona description
 }
 
+export interface IdentityLock {
+    gender?: string;
+    age?: number;
+    skinTone?: string;
+    ethnicity?: string;
+    hairLength?: string;
+    hairTexture?: string;
+    hairColor?: string;
+    hairState?: string;
+}
+
 export type ProfessionalFocus =
     | 'pulmonologist'
     | 'nutritionist'
@@ -144,6 +155,7 @@ export interface PromptOptions {
     // Person
     personDetails?: PersonDetails;
     genderPresentation?: 'masculine' | 'feminine' | 'neutral';
+    identityLock?: IdentityLock;
     gender?: string;
     ethnicity?: string;
     skinTone?: string;

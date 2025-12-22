@@ -104,6 +104,29 @@ const DEPTH_DETECTION_REGEX = /(depth of field|portrait mode|portrait blur|bokeh
 const FOCUS_OVERRIDE_APPEND =
     'flat focus across the entire frame, small sensor, fixed wide lens, no depth separation, no portrait mode.';
 
+function enforcePreflightGuards(options: PromptOptions) {
+    const lock = options.identityLock;
+    if (lock && options.personDetails) {
+        const mismatches: string[] = [];
+        const current = options.personDetails;
+        if (lock.gender && current.gender && lock.gender !== current.gender) mismatches.push('gender');
+        if (typeof lock.age === 'number' && typeof current.age === 'number' && lock.age !== current.age) mismatches.push('age');
+        if (lock.skinTone && current.skinTone && lock.skinTone !== current.skinTone) mismatches.push('skinTone');
+        if (lock.ethnicity && current.ethnicity && lock.ethnicity !== current.ethnicity) mismatches.push('ethnicity');
+        if (lock.hairColor && current.hairColor && lock.hairColor !== current.hairColor) mismatches.push('hairColor');
+        if (lock.hairTexture && current.hairTexture && lock.hairTexture !== current.hairTexture) mismatches.push('hairTexture');
+        if (lock.hairLength && current.hairLength && lock.hairLength !== current.hairLength) mismatches.push('hairLength');
+        if (mismatches.length > 0) {
+            throw new Error(`[UGC IDENTITY LOCK] Mutated fields detected: ${mismatches.join(', ')}`);
+        }
+    }
+    if (options.creationIntent === 'ugc') {
+        if (!options.setting) {
+            throw new Error('UGC environment missing or overridden. Please select or provide an environment.');
+        }
+    }
+}
+
 function enforceUgcFocusGuard(prompt: string, options: PromptOptions): string {
     const ugcActive = options.ugcRealModeActive || options.rawDomesticUgcActive;
     if (!ugcActive) {
@@ -244,6 +267,8 @@ export class PromptEngine {
             warnings.forEach(w => console.warn(`  ${w.message}`));
         }
 
+        enforcePreflightGuards(options);
+
         // ====================================================================
         // STEP 1: Modes (handled in narrativeBuilder.buildCreationIntent/Mode)
         // ====================================================================
@@ -316,7 +341,7 @@ export class PromptEngine {
         let finalPrompt = buildMasterPrompt(masterSections, negative);
 
         const bannedEnvironmentalTerms = /(luxury editorial|hero framing|cinema camera)/i;
-        if (options.sceneIntent === 'environment' && bannedEnvironmentalTerms.test(finalPrompt)) {
+        if (options.sceneIntent === 'environment' && options.creationIntent !== 'ugc' && bannedEnvironmentalTerms.test(finalPrompt)) {
             console.warn('[PROMPT ENGINE] Environment guard triggered - overriding to environment-safe placement');
             masterSections.creationMode = 'Environment-first lifestyle composition with natural surroundings and contextual product placement.';
             masterSections.ecommerceBuilder = undefined;
