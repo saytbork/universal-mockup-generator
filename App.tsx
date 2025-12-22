@@ -2570,6 +2570,10 @@ const App: React.FC = () => {
     if (isTalentLinkedAcrossScenes) {
       setIsTalentLinkedAcrossScenes(false);
       setLinkedTalentProfile(null);
+      setPersonIdentityPackage(prev => ({
+        ...prev,
+        identityLock: false,
+      }));
       return;
     }
     if (isProductPlacement || options.ageGroup === 'no person') {
