@@ -13,7 +13,7 @@
  */
 
 import type { ExpertRole, Step3Values, ExpertAttire } from '@/components/LifestyleStep3';
-import type { FormulationStoryOptions, PromptOptions } from './types';
+import type { CustomClothes, FormulationStoryOptions, IdentityLock, PromptOptions, UGCRealModeLayerSet } from './types';
 import { mapProductModeToPromptOptions } from './mapProductModeToPromptOptions';
 import { APPEARANCE_SEMANTIC_MAP } from './semanticMaps/appearance';
 
@@ -44,14 +44,80 @@ const normalizeKey = (value?: string) =>
             .replace(/-+/g, '-')
         : '';
 
+function buildCustomClothesDescriptor(sceneState: Step3Values): CustomClothes | undefined {
+    if (!sceneState.customClothesEnabled) {
+        return undefined;
+    }
+
+    const fields = {
+        garmentType: sceneState.customClothesGarmentType?.trim() || undefined,
+        primaryColor: sceneState.customClothesPrimaryColor?.trim() || undefined,
+        fit: sceneState.customClothesFit?.trim() || undefined,
+        style: sceneState.customClothesStyle?.trim() || undefined,
+        material: sceneState.customClothesMaterial?.trim() || undefined,
+        customDetail: sceneState.customClothesDetail?.trim() || undefined
+    };
+
+    const hasValue = Object.values(fields).some(Boolean);
+    return hasValue ? { enabled: true, ...fields } : undefined;
+}
+
+const SCENE_ORDER_MESSY_VARIATIONS = [
+    'scattered magazines, half-folded laundry, and an open skincare pouch create believable clutter',
+    'the countertop holds forgotten coffee mugs, open product caps, and casually draped towels',
+    'chairs and stools have jackets tossed over them, with personal items layered across surfaces',
+    'makeup brushes, notebooks, and unopened deliveries overlap each other in soft disarray'
+];
+
+const SCENE_ORDER_CHAOTIC_VARIATIONS = [
+    'multiple surfaces are overwhelmed with stacked products, toppled props, and hurriedly placed bags',
+    'drawers are left ajar, blankets spill off seating, and accessories scatter across the floor',
+    'there are overlapping clothes, tangled cords, and runaway packaging tumbling into frame',
+    'the space shows open suitcases, spilled tote bags, and scattered samples fighting for space'
+];
+
+const SCENE_ORDER_RANDOM_VARIATIONS = [
+    'a surprising mix of overturned boxes, mismatched decor, and abandoned tripods collide in frame',
+    'last-minute props, delivery parcels, and wardrobe pieces collide unpredictably throughout the environment',
+    'snacks, cables, notes, and beauty tools are strewn everywhere, hinting at a frantic creative session',
+    'the set looks like it was frozen mid-chaos with repositioned lights, stools, and scattered clothing layers'
+];
+
+const pickRandomDescriptor = (list: string[]) => list[Math.floor(Math.random() * list.length)];
+
+function buildSceneOrderChaosDescriptor(value?: string): string | null {
+    const key = normalizeKey(value);
+    if (!key) return null;
+    switch (key) {
+        case 'clean':
+            return 'Every surface is carefully organized, spotless, and staged for a tidy lifestyle set';
+        case 'normal':
+            return 'The space feels lived-in yet balanced, with light clutter that still reads intentional';
+        case 'messy':
+            return pickRandomDescriptor(SCENE_ORDER_MESSY_VARIATIONS);
+        case 'chaotic':
+            return pickRandomDescriptor(SCENE_ORDER_CHAOTIC_VARIATIONS);
+        case 'randomized-chaos': {
+            const combined = [
+                ...SCENE_ORDER_MESSY_VARIATIONS,
+                ...SCENE_ORDER_CHAOTIC_VARIATIONS,
+                ...SCENE_ORDER_RANDOM_VARIATIONS
+            ];
+            return pickRandomDescriptor(combined);
+        }
+        default:
+            return null;
+    }
+}
+
 function mapSkinRealism(value?: string): string | null {
     switch (normalizeKey(value)) {
         case 'raw':
         case 'raw-real':
         case 'rawreal':
-            return 'raw, unretouched skin with visible texture, pores, and natural imperfections';
+            return 'raw, unretouched skin with gentle natural variation and minimal emphasis on pores';
         case 'natural':
-            return 'natural realistic skin texture with visible pores and subtle imperfections, no plastic look';
+            return 'natural, believable skin texture with subtle variation, no plastic look';
         case 'soft-retouch':
         case 'softretouch':
             return 'lightly retouched skin with minimal smoothing, still realistic and human';
@@ -151,34 +217,35 @@ const buildFormulationStoryOptions = (sceneState: Step3Values): FormulationStory
  * CAMERA DEVICE → Physical capture characteristics and lens behavior
  */
 const CAMERA_DEVICE_SEMANTIC_MAP: Record<string, string> = {
-    'Modern Smartphone': 'captured with modern smartphone camera, slight computational sharpening, natural perspective compression',
-    'Front Selfie Cam': 'front-facing selfie camera perspective with subtle wide-angle distortion near frame edges, typical selfie framing',
-    'Sony Handycam Hi8': 'vintage Sony Hi8 camcorder aesthetic with softer focus, warmer color cast, period-appropriate grain',
-    'Disposable Film Camera': 'disposable film camera aesthetic with visible grain, slight color shift, flash if indoor',
-    'Polaroid OneStep': 'Polaroid instant camera aesthetic with soft dreamy tones, slight vignette, characteristic color palette',
-    'DSLR/Mirrorless': 'professional DSLR quality with shallow depth of field, creamy bokeh in background, precise focus',
-    'Laptop Webcam': 'laptop webcam quality with flat front lighting, eye-level angle, typical video call framing',
-    'Cinema Camera Rig': 'cinema camera quality with film-like color grading, wide dynamic range, cinematic depth',
-    'Medium Format Studio Camera': 'medium format studio camera with exceptional detail, subtle depth, commercial quality',
-    'Sony FX3': 'Sony FX3 cinema camera with modern filmic look, smooth gradations, professional video quality'
+    'Intentional smartphone camera': 'captured with a modern smartphone’s rear camera, stabilized grip, intentional framing, no selfie distortion',
+    'DSLR / mirrorless camera': 'captured with a professional DSLR or mirrorless body using premium glass, shallow depth of field, and crisp subject separation',
+    'Cinema camera rig': 'captured on a cinema camera with controlled rigs, smooth motion, and filmic dynamic range',
+    'Medium format studio camera': 'captured on a medium-format studio system with tethered capture for ultra-sharp detail and tonal accuracy',
+    'Laptop webcam (pro setup)': 'captured through a laptop webcam in a professional setting, flat lighting, slight compression, intentional composition'
 };
 
 /**
  * SHOT TYPE → Physical camera framing (SIMPLIFIED)
  */
 const SHOT_TYPE_SEMANTIC_MAP: Record<string, string> = {
-    'Close': 'close-up framing showing face and upper shoulders, tight composition focused on facial details',
-    'Medium': 'medium shot framing from waist up, showing upper body, arms, and face with balanced negative space',
-    'Wide': 'wide shot showing full body and surrounding environment, complete spatial context'
+    'Extreme close-up': 'extreme close-up framing emphasizing fine detail such as skin texture, fingertips, or specific product features',
+    'Close': 'tight close-up showing face and upper shoulders with minimal background, focused on expression and product proximity',
+    'Medium': 'medium framing from mid-torso up, balanced view of face, hands, and immediate environment',
+    'Wide': 'wide framing capturing the person within their surroundings, showing more of the room or setting for context',
+    'Full body': 'full-body framing from head to toe, including ground contact and environmental elements around the subject'
 };
 
 /**
  * CAMERA ANGLE → Physical camera position (SIMPLIFIED)
  */
 const CAMERA_ANGLE_SEMANTIC_MAP: Record<string, string> = {
-    'Eye level': 'camera positioned at natural eye level creating neutral perspective, subject appears at equal height to viewer',
-    'Above': 'camera positioned above eye level angled downward, subject appears approachable and slightly smaller',
-    'Below': 'camera positioned below eye level angled upward, subject appears more powerful and dominant'
+    'Eye level': 'camera positioned at natural eye level creating a neutral, balanced perspective',
+    'Slightly above eye level': 'camera positioned just above eye level, angled gently downward for an approachable view',
+    'Slightly below eye level': 'camera positioned just below eye level, angled subtly upward for added presence',
+    'High angle': 'camera noticeably above the subject, angled down to emphasize vulnerability or environment',
+    'Low angle': 'camera noticeably below the subject, angled up to emphasize stature or drama',
+    'Top-down': 'camera positioned directly overhead, looking straight down for flat-lay or tabletop compositions',
+    'Bottom-up': 'camera positioned low near ground, aiming sharply upward for dramatic height and foreground impact'
 };
 
 /**
@@ -189,6 +256,30 @@ const FRAMING_SEMANTIC_MAP: Record<string, string> = {
     'Rule of thirds': 'rule-of-thirds composition with subject positioned at intersection points, intentional asymmetric balance',
     'Off-center': 'deliberately off-center asymmetric composition, subject pushed to one side for dynamic visual weight',
     'Spontaneous': 'spontaneous imperfect framing with natural cropping, slightly off-kilter authentic composition'
+};
+
+/**
+ * TIME OF DAY → Physical light characteristics and atmosphere
+ */
+const TIME_SEMANTIC_MAP: Record<string, string> = {
+    'Morning': 'early morning natural light with cool blue undertones, soft directional rays, fresh atmospheric quality',
+    'Midday': 'bright midday sunlight with neutral white color temperature, strong overhead illumination, minimal shadows',
+    'Afternoon': 'warm afternoon light with slight golden undertones, balanced illumination, medium-length shadows',
+    'Golden Hour': 'golden hour sunlight with rich orange-amber color temperature, long dramatic shadows, warm glow on skin',
+    'Evening': 'fading evening light with purple-blue undertones, warm indoor ambient mixing with cool exterior',
+    'Night': 'nighttime lighting with artificial indoor warmth, deep shadows, limited light sources visible'
+};
+
+/**
+ * LIGHTING STYLE → Physical light source behavior and shadow characteristics
+ */
+const LIGHTING_SEMANTIC_MAP: Record<string, string> = {
+    'Natural window': 'natural window light entering from the side, soft directional quality with gentle shadow falloff, graduated illumination across face',
+    'Soft diffused': 'soft diffused lighting with minimal harsh shadows, even illumination wrapping around subject, gentle gradations',
+    'Direct sunlight': 'direct hard sunlight with strong contrast, defined crisp shadows, bright specular highlights on skin',
+    'Indoor artificial': 'indoor artificial lighting with typical home color temperature, mixed light sources, realistic ambient',
+    'Moody/dramatic': 'moody low-key dramatic lighting with deep shadows, selective illumination, strong light-to-dark ratio',
+    'Phone flashlight': 'harsh direct phone flashlight illumination, uneven hot-spot exposure, realistic smartphone flash behavior'
 };
 
 /**
@@ -205,9 +296,9 @@ const FACIAL_EXPRESSION_MAP: Record<string, string> = {
 };
 
 const SKIN_REALISM_SEMANTIC_MAP: Record<string, string> = {
-    'Raw / Real': 'raw, unretouched skin with visible texture, pores, and natural imperfections',
-    'Natural': 'natural realistic skin texture with visible pores and subtle imperfections, no plastic look',
-    'Soft Retouch': 'lightly retouched skin, minimal smoothing, still realistic and human'
+    'Raw / Real': 'smooth continuous smartphone-captured skin with natural tonal shifts and gentle asymmetry, no pore emphasis or exaggerated texture',
+    'Natural': 'believable skin appearance with soft falloff and subtle variation, realistic but never plastic or overly detailed',
+    'Soft Retouch': 'lightly smoothed skin with minimal retouching, still human but without artificial pore detail or render-like finish'
 };
 
 /**
@@ -237,10 +328,80 @@ const WARDROBE_SEMANTIC_MAP: Record<string, string> = {
 const INTERACTION_SEMANTIC_MAP: Record<string, string> = {
     'Holding': 'hands naturally gripping product with relaxed fingers, product stable in palm or between hands',
     'Using': 'hands actively using product in natural application, demonstrating real product function',
+    'Presenting': 'product extended toward camera with natural wrist motion, label visible without forced styling',
+    'Unboxing / Open Box': 'hands opening packaging or revealing the product inside with natural curiosity',
     'Showing to Camera': 'product held outward toward camera lens, hand angled to display product label or design',
     'Unboxing': 'hands in process of opening product packaging, revealing contents with natural excitement',
     'Applying': 'hands applying product to skin or surface with natural spreading or dabbing motion',
     'Placing on Surface': 'hands lowering product onto surface, fingers releasing grip, natural placement motion'
+};
+
+const normalizeSingleSelectLayer = (entries: string[] | undefined | null, fieldName: string): string[] => {
+    if (!Array.isArray(entries)) {
+        return [];
+    }
+    const filtered = entries.filter(Boolean);
+    if (filtered.length <= 1) {
+        return filtered;
+    }
+    console.error(`[MAP] Invalid multi-select detected for ${fieldName}; using the first entry only.`, filtered);
+    return [filtered[0]];
+};
+
+const PROPPED_SURFACE_ID = 'propped-surface';
+const SURFACE_OPERATOR_ID = 'surface-staged';
+const DEFAULT_HANDHELD_CAPTURE = 'torso-level-handheld';
+const DEFAULT_HANDHELD_OPERATOR = 'self-held';
+const DEFAULT_HAIR_COLOR = 'Dark brown';
+const AWKWARD_CONTEXT_ENVIRONMENT_MAP: Record<string, string> = {
+    'bathroom-set': 'Bathroom sink counter with towels, mirror streaks, and toiletries crowding the edges.',
+    'car-interior': 'Cramped car interior with seatbelt, dashboard clutter, and windshield reflections creeping into frame.',
+    'bedroom-corner': 'Bedroom corner with visible pillows, wrinkled sheets, and bedside clutter spilling into the shot.',
+    'cluttered-desk': 'Messy desk overflowing with snacks, cables, open packaging, and random paperwork.'
+};
+
+const appendOnce = (base: string, addition: string): string => {
+    if (!addition) return base;
+    if (base.includes(addition)) return base;
+    const trimmed = base.trim();
+    const needsPeriod = trimmed && !/[.!?]$/.test(trimmed);
+    const prefix = needsPeriod ? `${trimmed}.` : trimmed;
+    return `${prefix ? `${prefix} ` : ''}${addition}`.trim();
+};
+
+const enforceElderLightingProfile = (text: string, age: number): string => {
+    if (!text || age < 80) {
+        return text;
+    }
+
+    let result = text
+        .replace(/graduated illumination/gi, 'patchy illumination with uneven falloff')
+        .replace(/\bcontrolled\b/gi, 'imperfect')
+        .replace(/\baesthetic\b/gi, 'imperfect');
+
+    if (age >= 85) {
+        result = result
+            .replace(/\bbalanced\b/gi, 'lopsided')
+            .replace(/\beven\b/gi, 'irregular');
+    } else {
+        result = result
+            .replace(/\bbalanced\b/gi, 'uneven')
+            .replace(/\beven\b/gi, 'uneven');
+    }
+
+    result = appendOnce(
+        result,
+        'Lighting stays uneven, mixed-temperature, and imperfect like window spill colliding with household lamps.'
+    );
+
+    if (age >= 85) {
+        result = appendOnce(
+            result,
+            'No balanced or even cues—illumination feels lopsided, off-kilter, and asymmetrical.'
+        );
+    }
+
+    return result.trim();
 };
 
 /**
@@ -282,42 +443,6 @@ const SELFIE_EXECUTION_SEMANTIC_MAP: Record<string, string> = {
     'Upper body selfie': 'front camera selfie showing head and upper torso, clean framing, casual creator style',
     'Casual angled selfie': 'front camera selfie with slight tilt, imperfect angle, spontaneous casual composition'
 };
-
-const TIME_OF_DAY_LABELS: Record<string, string> = {
-    morning: 'Morning',
-    midday: 'Midday',
-    afternoon: 'Afternoon',
-    evening: 'Evening',
-    night: 'Night'
-};
-
-const LIGHTING_STYLE_LABELS: Record<string, string> = {
-    natural_daylight: 'Natural daylight',
-    soft_studio: 'Soft studio light',
-    directional_studio: 'Directional studio light',
-    golden_hour: 'Golden hour light',
-    overcast_daylight: 'Overcast daylight',
-    controlled_indoor: 'Controlled indoor lighting'
-};
-
-const DEFAULT_TIME_OF_DAY_KEY = 'midday';
-const DEFAULT_LIGHTING_KEY = 'natural_daylight';
-
-const buildProLightingNarrative = (timeLabel: string, lightingLabel: string) =>
-    [
-        `The scene is set during ${timeLabel}.`,
-        'Lighting is professionally controlled and intentional.',
-        `Lighting style: ${lightingLabel}.`,
-        'Exposure is balanced, highlights and shadows are well controlled, and color temperature is consistent.',
-        'No harsh overhead lighting, mixed color temperatures, phone flash, ring lights, or low-quality ambient lighting are present.'
-    ].join(' ');
-
-const UGC_LIGHTING_NARRATIVE = [
-    'Lighting and time of day are natural, uncontrolled, and imperfect.',
-    'The scene is lit by whatever ambient light is available at the moment.',
-    'Exposure, color temperature, and shadows may be uneven or inconsistent.',
-    'No lighting corrections or optimizations are applied.'
-].join(' ');
 
 // ============================================================================
 // MAIN MAPPER FUNCTION
@@ -397,24 +522,41 @@ export function mapLifestyleToPromptOptions(
     if (!mapped.personDetails) mapped.personDetails = {};
     const personIncluded = !sceneState.noPerson;
     mapped.personIncluded = personIncluded;
-    const contentStyle = sceneState.creationIntent === 'ugc' && personIncluded ? 'ugc' : 'product';
+
+    const sceneIntent = sceneState.sceneIntent || 'environment';
+    mapped.sceneIntent = sceneIntent;
+    const isEnvironmentSceneIntent = sceneIntent === 'environment';
+    const isEcommerceSceneIntent = sceneIntent === 'ecommerce';
+    const rawCreationMode = (sceneState.creationMode || '').toLowerCase();
+    const isCreationModeEcommerceBlank =
+        rawCreationMode === 'ecommerce blank space' || rawCreationMode === 'ecom-blank';
+    const isCompositionModeEcommerceBlank = sceneState.compositionMode === 'Ecommerce Blank Space';
+    const isEcommerceBlankSpaceActive =
+        isEcommerceSceneIntent || isCreationModeEcommerceBlank || isCompositionModeEcommerceBlank;
+    const isUGCRealMode = !!sceneState.ugcRealMode;
+    const personAge = sceneState.age || 0;
+    const is80Plus = isUGCRealMode && personAge >= 80;
+    const is85Plus = isUGCRealMode && personAge >= 85;
+    const hairColorSelection = (sceneState.hairColor || '').trim();
+    const hasExplicitHairColor = Boolean(hairColorSelection && hairColorSelection !== DEFAULT_HAIR_COLOR);
+    const wantsGradientBackground = sceneState.ecommerceBackgroundMode === 'gradient';
+    const gradientAngleValue = parseInt(sceneState.ecommerceGradientAngle || '90', 10) || 90;
+    const gradientConfig = {
+        startColor: sceneState.ecommerceGradientStart || '#f7f7f7',
+        endColor: sceneState.ecommerceGradientEnd || '#d9d9d9',
+        angle: gradientAngleValue
+    };
+    const ugcHouseholdLighting =
+        'overhead domestic bulbs colliding with stray window spill, mixed color temperatures, uneven shadows, clipped highlights, crushed blacks, and zero intentional fill';
 
 
     // ========================================================================
     // PRIORITY 2: CUSTOM CLOTHES (ABSOLUTE OVERRIDE)
     // ========================================================================
-    const hasCustomClothes = !!existingOptions.clothingReference;
-    let wardrobeOverride = null;
-
-    if (hasCustomClothes) {
-        console.log('[PRIORITY 1] Custom Clothes Detected - NUKING conflicting wardrobe settings');
-        const constraint = "The person is wearing the exact outfit from the uploaded clothing reference image. Do not redesign, reinterpret, restyle, or invent clothing.";
-        wardrobeOverride = constraint;
-        mapped.wardrobeStyle = constraint;
-        mapped.personDetails.wardrobeStyle = constraint;
-        // Block Appearance Level from inventing style conflicts
-        mapped.personAppearance = "neutral grooming matching reference";
-        mapped.personDetails.personAppearance = "neutral grooming matching reference";
+    const customClothes = buildCustomClothesDescriptor(sceneState);
+    const hasCustomClothes = Boolean(customClothes);
+    if (customClothes) {
+        mapped.customClothes = customClothes;
     }
 
     // ========================================================================
@@ -424,6 +566,7 @@ export function mapLifestyleToPromptOptions(
     let poseOverride = null;
     let framingOverride = null;
     let expressionOverride: string | null = null;
+    let wardrobeOverride: string | null = null;
 
     if (heroPersona && HERO_PERSONA_MACROS[heroPersona]) {
         console.log(`[PRIORITY 2] Hero Persona Active: ${heroPersona} - Applying MACROS`);
@@ -437,8 +580,8 @@ export function mapLifestyleToPromptOptions(
         mapped.personPose = poseOverride;
         mapped.personDetails.personPose = poseOverride;
 
-        // Apply Framing Override (if exists)
-        if (macro.framing) {
+        // Apply Framing Override (if exists) only when environment intent is not locked
+        if (!isEnvironmentSceneIntent && macro.framing) {
             framingOverride = macro.framing;
             mapped.perspective = framingOverride;
         }
@@ -460,9 +603,40 @@ export function mapLifestyleToPromptOptions(
     if (personIncluded) {
         // AGE, GENDER, ETHNICITY (Always respect unless Model Ref)
         mapped.personDetails.age = sceneState.age;
-        if (sceneState.gender) mapped.personDetails.gender = sceneState.gender;
-        if (sceneState.ethnicity) {
+        const genderValue = (sceneState.gender || '').trim();
+        if (genderValue) {
+            mapped.personDetails.gender = genderValue;
+        }
+        const normalizedGenderValue = genderValue.toLowerCase();
+        let genderPresentation: 'masculine' | 'feminine' | 'neutral' | undefined =
+            ((sceneState as any).genderPresentation || '').trim().toLowerCase() as any;
+        if (!genderPresentation) {
+            if (normalizedGenderValue === 'male') {
+                genderPresentation = 'masculine';
+            } else if (normalizedGenderValue === 'female') {
+                genderPresentation = 'feminine';
+            }
+        }
+        if (
+            isUGCRealMode &&
+            normalizedGenderValue === 'trans' &&
+            genderPresentation !== 'masculine' &&
+            genderPresentation !== 'feminine'
+        ) {
+            genderPresentation = 'neutral';
+        }
+        if (genderPresentation) {
+            (mapped as any).genderPresentation = genderPresentation;
+            mapped.personDetails.genderPresentation = genderPresentation;
+        }
+        if (sceneState.ethnicity && sceneState.ethnicity !== 'Prefer not to specify') {
             mapped.personDetails.ethnicity = sceneState.ethnicity;
+        }
+        if (sceneState.bodyType) {
+            mapped.personDetails.bodyType = sceneState.bodyType;
+        }
+        if (sceneState.skinTone) {
+            mapped.personDetails.skinTone = sceneState.skinTone;
         }
 
         // POSE (Manual if no Override)
@@ -479,13 +653,11 @@ export function mapLifestyleToPromptOptions(
             mapped.personDetails.wardrobeStyle = ward;
         }
 
-        // APPEARANCE (Manual if not nuked by Custom Clothes)
-        if (!hasCustomClothes) {
-            const appearanceDescriptor = mapAppearanceLevel(sceneState.appearanceLevel);
-            if (appearanceDescriptor) {
-                mapped.personAppearance = appearanceDescriptor;
-                mapped.personDetails.personAppearance = appearanceDescriptor;
-            }
+        // APPEARANCE (Manual input)
+        const appearanceDescriptor = mapAppearanceLevel(sceneState.appearanceLevel);
+        if (appearanceDescriptor) {
+            mapped.personAppearance = appearanceDescriptor;
+            mapped.personDetails.personAppearance = appearanceDescriptor;
         }
 
         const skinDescriptor = mapSkinRealism(sceneState.skinRealism);
@@ -502,14 +674,55 @@ export function mapLifestyleToPromptOptions(
         const eyeDirectionLabel = sceneState.eyeDirection || 'Looking at camera';
         mapped.personDetails.eyeDirection =
             EYE_DIRECTION_SEMANTIC_MAP[eyeDirectionLabel] || eyeDirectionLabel as any;
-        if (sceneState.productInteraction) mapped.personDetails.productInteraction = INTERACTION_SEMANTIC_MAP[sceneState.productInteraction] || sceneState.productInteraction;
+        if (sceneState.productInteraction) {
+            const interactionBase = INTERACTION_SEMANTIC_MAP[sceneState.productInteraction] || sceneState.productInteraction;
+            const interactionParts = [interactionBase];
+            if (sceneState.productInteraction === 'Using' && sceneState.productUsageDescription) {
+                interactionParts.push(sceneState.productUsageDescription.trim());
+            }
+            mapped.personDetails.productInteraction = interactionParts.filter(Boolean).join(' ');
+        }
+        mapped.productStructure = sceneState.productStructure || 'single';
+        if (sceneState.eyeColor) mapped.personDetails.eyeColor = sceneState.eyeColor;
 
         // HAIR
-        if (sceneState.hairColor) mapped.personDetails.hairColor = sceneState.hairColor;
+        const hairState = sceneState.hairState || 'natural';
+        if (hairState === 'bald') {
+            mapped.personDetails.hairLength = 'bald / clean-shaven head';
+            delete mapped.personDetails.hairTexture;
+            delete mapped.personDetails.hairColor;
+        } else {
+            if (sceneState.hairLength) mapped.personDetails.hairLength = sceneState.hairLength;
+            if (sceneState.hairTexture) mapped.personDetails.hairTexture = sceneState.hairTexture;
+            const hairColorValue = sceneState.hairColor?.trim();
+            if (hairColorValue) {
+                let resolvedHairColor = sceneState.hairColor;
+                if (is85Plus && !hasExplicitHairColor) {
+                    resolvedHairColor =
+                        'gray-white hair with dominant salt-and-pepper variation, collapsed volume, sparse uneven density';
+                }
+                mapped.personDetails.hairColor = resolvedHairColor;
+            } else if (is85Plus) {
+                mapped.personDetails.hairColor =
+                    'gray-white hair with dominant salt-and-pepper variation, collapsed volume, sparse uneven density';
+            }
+        }
         // ... (other hair props mapped normally)
+
+        const identityLock: IdentityLock = {
+            gender: sceneState.gender || mapped.personDetails.gender,
+            age: sceneState.age,
+            skinTone: sceneState.skinTone || mapped.personDetails.skinTone,
+            ethnicity: sceneState.ethnicity || mapped.personDetails.ethnicity,
+            hairColor: mapped.personDetails.hairColor || sceneState.hairColor,
+            hairTexture: mapped.personDetails.hairTexture || sceneState.hairTexture,
+            hairLength: mapped.personDetails.hairLength || sceneState.hairLength,
+            hairState
+        };
+        (mapped as any).identityLock = identityLock;
     }
 
-    const isUGCActive = !!sceneState.ugcRealMode;
+    const isUGCActive = isUGCRealMode;
     const isFormulationActive = !!sceneState.formulationStoryEnabled;
 
     if (!isUGCActive) {
@@ -537,7 +750,7 @@ export function mapLifestyleToPromptOptions(
     }
 
     // FRAMING/PERSPECTIVE (Manual if no Override)
-    if (!framingOverride && sceneState.framing) {
+    if (!sceneState.ugcRealMode && !framingOverride && sceneState.framing) {
         mapped.perspective = FRAMING_SEMANTIC_MAP[sceneState.framing] || sceneState.framing;
     }
 
@@ -553,11 +766,19 @@ export function mapLifestyleToPromptOptions(
 
     // OVERRIDE: If Composition Mode is 'Ecommerce Blank Space', force creation mode
     // This allows Ecommerce Builder to work without UI state sync complexity
-    if (sceneState.compositionMode === 'Ecommerce Blank Space') {
+    if (sceneState.compositionMode === 'Ecommerce Blank Space' && !isEnvironmentSceneIntent) {
         creationModeKey = 'Ecommerce Blank Space';
     }
 
-    const creationModeStructural = CREATION_MODE_STRUCTURAL_MAP[creationModeKey] || CREATION_MODE_STRUCTURAL_MAP['Lifestyle UGC'];
+    if (isEnvironmentSceneIntent) {
+        creationModeKey = 'Lifestyle UGC';
+    }
+
+    const creationModeStructural = isEnvironmentSceneIntent
+        ? 'Environment-first lifestyle composition keeping the product grounded within the lived-in room.'
+        : isEcommerceBlankSpaceActive
+            ? 'Ecommerce blank-space layout with pure white background (#FFFFFF), heavy negative space for UX overlays, and no environmental narrative.'
+            : CREATION_MODE_STRUCTURAL_MAP[creationModeKey] || CREATION_MODE_STRUCTURAL_MAP['Lifestyle UGC'];
 
     // Map to internal creation mode
     const creationModeInternalMap: Record<string, 'lifestyle' | 'studio' | 'aesthetic' | 'bg-replace' | 'ecom-blank'> = {
@@ -568,15 +789,28 @@ export function mapLifestyleToPromptOptions(
         'Ecommerce Blank Space': 'ecom-blank'
     };
     mapped.creationMode = creationModeInternalMap[creationModeKey] || 'lifestyle';
+    mapped.creationModeStructural = creationModeStructural;
     console.log('[MAP] creationMode:', creationModeKey, '→', mapped.creationMode, '→', creationModeStructural);
 
     // ========================================================================
     // COMPOSITION MODE → Layout Intent
     // ========================================================================
-    const compositionModeKey = sceneState.compositionMode || 'Lifestyle Showcase';
-    const compositionModeStructural = COMPOSITION_MODE_STRUCTURAL_MAP[compositionModeKey] || '';
+    const rawCompositionModeKey = sceneState.compositionMode || 'Lifestyle Showcase';
+    const compositionModeKey = isEnvironmentSceneIntent ? 'Lifestyle Showcase' : rawCompositionModeKey;
+    const compositionModeStructural = isEnvironmentSceneIntent
+        ? 'Environment-first layout with human-first framing and contextual surroundings.'
+        : isEcommerceBlankSpaceActive
+            ? 'Ecommerce blank-space arrangement with white void for product and copy, no lifestyle embellishments.'
+            : COMPOSITION_MODE_STRUCTURAL_MAP[rawCompositionModeKey] || '';
     mapped.compositionMode = compositionModeKey;
+    mapped.compositionModeStructural = compositionModeStructural;
     console.log('[MAP] compositionMode:', compositionModeKey, '→', compositionModeStructural);
+
+    if (isEnvironmentSceneIntent) {
+        mapped.placementStyle = 'Lifestyle placement with the product integrated in the environment, not hero-focused.';
+        mapped.productPlane = 'Mid-ground contextual placement within the room or space.';
+        mapped.placementCamera = sceneState.cameraType || mapped.placementCamera;
+    }
 
     // ========================================================================
     // UGC REAL MODE → HARD OVERRIDES (Highest Priority)
@@ -593,109 +827,289 @@ export function mapLifestyleToPromptOptions(
         mapped.ugcCaptureSituation = null;
     }
 
+    let normalizedCaptureBase = normalizeSingleSelectLayer(sceneState.ugcCaptureStyleBase, 'ugcCaptureStyleBase');
+    let normalizedCameraOperator = normalizeSingleSelectLayer(sceneState.ugcCameraOperator, 'ugcCameraOperator');
+    const normalizedBodyPhone = normalizeSingleSelectLayer(sceneState.ugcBodyPhonePosition, 'ugcBodyPhonePosition');
+    const normalizedMotion = normalizeSingleSelectLayer(sceneState.ugcMotionStability, 'ugcMotionStability');
+    const normalizedFraming = normalizeSingleSelectLayer(sceneState.ugcFramingImperfections, 'ugcFramingImperfections');
+    const normalizedAwkward = normalizeSingleSelectLayer(sceneState.ugcAwkwardContext, 'ugcAwkwardContext');
+    const awkwardEnvironmentOverride =
+        sceneState.ugcRealMode && normalizedAwkward.length > 0
+            ? AWKWARD_CONTEXT_ENVIRONMENT_MAP[normalizedAwkward[0]] || null
+            : null;
+
+    const productInteractionLabel = (sceneState.productInteraction || '').trim();
+    const captureBaseSelection = normalizedCaptureBase[0];
+    const operatorSelection = normalizedCameraOperator[0];
+    const hasProppedSurface = captureBaseSelection === PROPPED_SURFACE_ID;
+    const isHoldingProduct = productInteractionLabel === 'Holding';
+
+    if (isUGCRealMode && normalizedCaptureBase.length === 0) {
+        throw new Error('Raw Domestic UGC requires a capture style selection.');
+    }
+
+    if (hasProppedSurface && isHoldingProduct) {
+        console.warn('[MAP] Blocking propped-surface when product interaction is Holding.');
+        normalizedCaptureBase =
+            is85Plus || isHoldingProduct ? [DEFAULT_HANDHELD_CAPTURE] : [];
+    }
+
+    if (is85Plus && hasProppedSurface) {
+        console.warn(`[MAP] Forcing handheld capture for age ${personAge}.`);
+        normalizedCaptureBase = [DEFAULT_HANDHELD_CAPTURE];
+    }
+
+    if (is85Plus && normalizedCaptureBase.length === 0) {
+        console.log('[MAP] No capture base provided for 85+ UGC request. Forcing handheld default.');
+        normalizedCaptureBase = [DEFAULT_HANDHELD_CAPTURE];
+    }
+
+    if (
+        is85Plus &&
+        (!operatorSelection || operatorSelection === SURFACE_OPERATOR_ID)
+    ) {
+        console.log('[MAP] Age 85+ requires handheld operator. Forcing self-held camera operator.');
+        normalizedCameraOperator = [DEFAULT_HANDHELD_OPERATOR];
+    }
+
+    mapped.ugcCaptureStyleBase = normalizedCaptureBase;
+    mapped.ugcCameraOperator = normalizedCameraOperator;
+    mapped.ugcBodyPhonePosition = normalizedBodyPhone;
+    mapped.ugcMotionStability = normalizedMotion;
+    mapped.ugcFramingImperfections = normalizedFraming;
+    mapped.ugcAwkwardContext = normalizedAwkward;
+
+    const ugcLayerSet: UGCRealModeLayerSet = {
+        captureBase: normalizedCaptureBase,
+        cameraOperator: normalizedCameraOperator,
+        bodyPhonePosition: normalizedBodyPhone,
+        motionStability: normalizedMotion,
+        framingImperfections: normalizedFraming,
+        awkwardContext: normalizedAwkward
+    };
+    mapped.ugcRealModeLayers = ugcLayerSet;
+
+    mapped.elderlyRealismGuard = sceneState.elderlyRealismGuard;
+    mapped.elderlyRealismDescriptor = sceneState.elderlyRealismDescriptor;
+    mapped.elderlyRealismGuardActive = sceneState.elderlyRealismGuardActive;
+    mapped.elderlyRealismGuardLabel = sceneState.elderlyRealismGuardLabel;
+
     // ========================================================================
     // CAMERA → Physical Composition Language
     // ========================================================================
 
-    // Camera Device Type
-    const cameraDevice = (sceneState as any).cameraType || 'Modern Smartphone';
-    const cameraDeviceSemantic = CAMERA_DEVICE_SEMANTIC_MAP[cameraDevice] || CAMERA_DEVICE_SEMANTIC_MAP['Modern Smartphone'];
-    mapped.camera = cameraDevice;
-    console.log('[MAP] camera:', cameraDevice, '→', cameraDeviceSemantic);
-
-    // Shot Type
-    const shotTypeSemantic = SHOT_TYPE_SEMANTIC_MAP[sceneState.shotType] || SHOT_TYPE_SEMANTIC_MAP['Medium'];
-    mapped.cameraShot = shotTypeSemantic as any;
-    console.log('[MAP] shotType:', sceneState.shotType, '→', shotTypeSemantic);
-
-    // Camera Angle
-    const cameraAngleSemantic = CAMERA_ANGLE_SEMANTIC_MAP[sceneState.cameraAngle] || CAMERA_ANGLE_SEMANTIC_MAP['Eye level'];
-    mapped.cameraAngle = cameraAngleSemantic as any;
-    console.log('[MAP] cameraAngle:', sceneState.cameraAngle, '→', cameraAngleSemantic);
-
-    // Framing
-    // This was already handled by PRIORITY 3/4, but if not set, use default
-    if (!mapped.perspective) {
-        const framingSemantic = FRAMING_SEMANTIC_MAP[sceneState.framing] || FRAMING_SEMANTIC_MAP['Centered'];
-        mapped.perspective = framingSemantic;
+    if (isUGCRealMode) {
+        mapped.rawDomesticUgcActive = true;
+        mapped.camera = 'Front-facing smartphone camera with tiny sensor limitations';
+        mapped.cameraDeviceSemantic =
+            'Front-facing phone camera with tiny sensor, face-priority autofocus hunting, limited dynamic range, clipped highlights, crushed shadows, wobbling handheld geometry.';
+        console.log('[MAP] camera: raw domestic front camera enforced');
+    } else {
+        const defaultCameraLabel = 'Intentional smartphone camera';
+        const cameraDevice = (sceneState as any).cameraType || defaultCameraLabel;
+        const cameraDeviceSemantic = CAMERA_DEVICE_SEMANTIC_MAP[cameraDevice] || CAMERA_DEVICE_SEMANTIC_MAP[defaultCameraLabel];
+        const effectiveCameraSemantic = isEnvironmentSceneIntent
+            ? 'Handheld smartphone perspective capturing real spatial depth, emphasizing the surrounding environment.'
+            : cameraDeviceSemantic;
+        mapped.camera = cameraDevice;
+        mapped.cameraDeviceSemantic = effectiveCameraSemantic;
+        console.log('[MAP] camera:', cameraDevice, '→', effectiveCameraSemantic);
     }
-    console.log('[MAP] framing:', sceneState.framing, '→', mapped.perspective);
+
+    if (!sceneState.ugcRealMode) {
+        // Shot Type
+        const shotTypeSemantic = SHOT_TYPE_SEMANTIC_MAP[sceneState.shotType] || SHOT_TYPE_SEMANTIC_MAP['Medium'];
+        mapped.cameraShot = shotTypeSemantic as any;
+        console.log('[MAP] shotType:', sceneState.shotType, '→', shotTypeSemantic);
+
+        // Camera Angle
+        const cameraAngleSemantic = CAMERA_ANGLE_SEMANTIC_MAP[sceneState.cameraAngle] || CAMERA_ANGLE_SEMANTIC_MAP['Eye level'];
+        mapped.cameraAngle = cameraAngleSemantic as any;
+        console.log('[MAP] cameraAngle:', sceneState.cameraAngle, '→', cameraAngleSemantic);
+
+        // Framing
+        // This was already handled by PRIORITY 3/4, but if not set, use default
+        if (!mapped.perspective) {
+            const framingSemantic = FRAMING_SEMANTIC_MAP[sceneState.framing] || FRAMING_SEMANTIC_MAP['Centered'];
+            mapped.perspective = framingSemantic;
+        }
+        console.log('[MAP] framing:', sceneState.framing, '→', mapped.perspective);
+    } else {
+        delete mapped.cameraShot;
+        delete mapped.cameraAngle;
+        delete mapped.perspective;
+    }
 
     // ========================================================================
     // ENVIRONMENT → Scene Context (Restored Full Logic)
     // ========================================================================
-    const allowedEnvironmentMap: Record<string, string> = {
-        'Kitchen': 'Kitchen',
-        'Living Room': 'Living Room',
-        'Bedroom': 'Bedroom',
-        'Bathroom': 'Bathroom',
-        'Workspace': 'Workspace',
-        'Urban Exterior': 'Urban Exterior',
-        'Natural Exterior': 'Natural Exterior'
-    };
-
-    const selectedEnvironment = sceneState.environment || '';
-    const customEnvironmentValue = (sceneState.customEnvironment || '').trim();
-
-    (mapped as any).selectedEnvironment = selectedEnvironment;
-    (mapped as any).customEnvironment = customEnvironmentValue;
-
-    if (selectedEnvironment === 'Custom' && customEnvironmentValue) {
-        mapped.setting = customEnvironmentValue;
-        mapped.microLocation = customEnvironmentValue;
-    } else if (allowedEnvironmentMap[selectedEnvironment]) {
-        const envLabel = allowedEnvironmentMap[selectedEnvironment];
-        mapped.setting = envLabel;
-        mapped.microLocation = envLabel;
-    } else {
+    if (isEcommerceBlankSpaceActive) {
+        (mapped as any).selectedEnvironment = '';
+        (mapped as any).customEnvironment = '';
         mapped.setting = '';
         mapped.microLocation = '';
+        (mapped as any).sceneEnvironment = '';
+        (mapped as any).customEnvironment = '';
+        console.log('[MAP] environment: Ecommerce Blank Space active - environment suppressed');
+    } else if (!awkwardEnvironmentOverride) {
+        const allowedEnvironmentMap: Record<string, string> = {
+            'Kitchen': 'Kitchen',
+            'Living Room': 'Living Room',
+            'Bedroom': 'Bedroom',
+            'Bathroom': 'Bathroom',
+            'Workspace': 'Workspace',
+            'Hallway': 'Hallway',
+            'Home Gym': 'Home Gym',
+            'Balcony / Indoor Terrace': 'Balcony / Indoor Terrace',
+            'Urban Exterior': 'Urban Exterior',
+            'Natural Exterior': 'Natural Exterior',
+            'Parking Lot': 'Parking Lot',
+            'Backyard / Patio': 'Backyard / Patio',
+            'Street Corner': 'Street Corner'
+        };
+
+        const incidentalFallbacks = [
+            'Kitchen',
+            'Living Room',
+            'Bedroom',
+            'Bathroom',
+            'Workspace',
+            'Hallway',
+            'Balcony / Indoor Terrace',
+            'Backyard / Patio',
+            'Street Corner'
+        ];
+
+        const selectedEnvironment = sceneState.environment || '';
+        const customEnvironmentValue = (sceneState.customEnvironment || '').trim();
+
+        (mapped as any).selectedEnvironment = selectedEnvironment;
+        (mapped as any).customEnvironment = customEnvironmentValue;
+
+        const resolveEnvironmentLabel = (): { label: string; description: string } => {
+            if (selectedEnvironment === 'Custom' && customEnvironmentValue) {
+                return {
+                    label: customEnvironmentValue,
+                    description: `${customEnvironmentValue} captured incidentally with lived-in clutter and zero staging.`
+                };
+            }
+            const mappedLabel = allowedEnvironmentMap[selectedEnvironment];
+            if (mappedLabel) {
+                return {
+                    label: mappedLabel,
+                    description: `${mappedLabel} captured incidentally with lived-in domestic clutter and no deliberate styling.`
+                };
+            }
+            if (customEnvironmentValue) {
+                return {
+                    label: customEnvironmentValue,
+                    description: `${customEnvironmentValue} captured incidentally with lived-in clutter and no staging.`
+                };
+            }
+            const fallbackLabel =
+                incidentalFallbacks[Math.floor(Math.random() * incidentalFallbacks.length)] ||
+                'Bedroom';
+            return {
+                label: fallbackLabel,
+                description: `${fallbackLabel} captured incidentally with lived-in domestic clutter and no deliberate styling.`
+            };
+        };
+
+        if (isUGCRealMode) {
+            const { label, description } = resolveEnvironmentLabel();
+            mapped.setting = description;
+            mapped.microLocation = label;
+            (mapped as any).sceneEnvironment = description;
+            mapped.environmentOrder = description;
+        } else if (selectedEnvironment === 'Custom' && customEnvironmentValue) {
+            mapped.setting = customEnvironmentValue;
+            mapped.microLocation = customEnvironmentValue;
+        } else if (allowedEnvironmentMap[selectedEnvironment]) {
+            const envLabel = allowedEnvironmentMap[selectedEnvironment];
+            mapped.setting = envLabel;
+            mapped.microLocation = envLabel;
+        } else {
+            mapped.setting = '';
+            mapped.microLocation = '';
+        }
+
+        (mapped as any).sceneEnvironment = mapped.setting;
+        mapped.environmentOrder = mapped.setting;
+
+        console.log('[MAP] environment:', selectedEnvironment, '→', mapped.setting);
+    } else if (awkwardEnvironmentOverride && !isUGCRealMode) {
+        mapped.setting = awkwardEnvironmentOverride;
+        mapped.microLocation = awkwardEnvironmentOverride;
+        (mapped as any).sceneEnvironment = awkwardEnvironmentOverride;
+        mapped.environmentOrder = awkwardEnvironmentOverride;
+        (mapped as any).selectedEnvironment = 'Awkward Context Override';
+        (mapped as any).customEnvironment = awkwardEnvironmentOverride;
+        mapped.sceneIntent = 'environment';
+        console.log('[MAP] Awkward context override →', awkwardEnvironmentOverride);
     }
 
-    (mapped as any).sceneEnvironment = mapped.setting;
-    console.log('[MAP] environment:', selectedEnvironment, '→', mapped.setting);
-
-    // ========================================================================
-    // TIME OF DAY + LIGHTING STYLE → Explicit canonical narrative
-    // ========================================================================
-    const isEcommerceBlankSpace = sceneState.creationMode === 'Ecommerce Blank Space';
-
-    if (isEcommerceBlankSpace) {
-        mapped.setting = '';
-        mapped.microLocation = '';
-        mapped.bgColor = sceneState.ecommerceBackgroundColor || '#FFFFFF';
-        mapped.sidePlacement = (sceneState.sidePlacement?.toLowerCase() || 'center') as any;
-        console.log('[MAP] Ecommerce Blank Space mode - studio lighting applied');
+    const sceneOrderChaosValue = isUGCRealMode ? 'Messy' : (sceneState.sceneOrderChaos || 'Normal');
+    mapped.sceneOrderChaos = sceneOrderChaosValue;
+    const sceneOrderChaosDescriptor = buildSceneOrderChaosDescriptor(sceneOrderChaosValue);
+    if (sceneOrderChaosDescriptor) {
+        (mapped as any).sceneOrderChaosDescriptor = sceneOrderChaosDescriptor;
     }
 
-    const normalizedTimeKey = (sceneState.timeOfDay || DEFAULT_TIME_OF_DAY_KEY).toLowerCase();
-    const normalizedLightingKey = (sceneState.lightingStyle || DEFAULT_LIGHTING_KEY).toLowerCase();
-    const timeLabel = TIME_OF_DAY_LABELS[normalizedTimeKey] || TIME_OF_DAY_LABELS[DEFAULT_TIME_OF_DAY_KEY];
-    const lightingLabel = LIGHTING_STYLE_LABELS[normalizedLightingKey] || LIGHTING_STYLE_LABELS[DEFAULT_LIGHTING_KEY];
-    const useProfessionalLighting = !sceneState.ugcRealMode && contentStyle !== 'ugc';
-
-    let lightingDescriptor = '';
-    if (isEcommerceBlankSpace) {
-        lightingDescriptor = 'controlled studio lighting with soft even shadows, neutral color temperature, product-grade illumination';
-    } else if (!useProfessionalLighting) {
-        lightingDescriptor = 'natural ambient lighting with imperfect falloff';
+    // ========================================================================
+    // TIME OF DAY + LIGHTING STYLE → Combined Light Narrative
+    // ========================================================================
+    if (isEcommerceBlankSpaceActive) {
+        if (wantsGradientBackground) {
+            mapped.bgGradient = {
+                startColor: gradientConfig.startColor,
+                endColor: gradientConfig.endColor,
+                angle: gradientConfig.angle
+            };
+            delete mapped.bgColor;
+        } else {
+            mapped.bgColor = '#FFFFFF';
+            delete mapped.bgGradient;
+        }
+        mapped.lighting =
+            wantsGradientBackground
+                ? 'Gradient ecommerce backdrop with even studio lighting and gentle reflections.'
+                : 'Pure white background (#FFFFFF) with neutral studio lighting, flat even illumination, and only a subtle contact shadow directly beneath the product.';
+        (mapped as any).timeLightingContext = mapped.lighting;
+        console.log('[MAP] Ecommerce Blank Space lighting enforced:', mapped.lighting);
     } else {
-        lightingDescriptor = lightingLabel;
+        const timeSemantic = TIME_SEMANTIC_MAP[sceneState.timeOfDay] || TIME_SEMANTIC_MAP['Midday'];
+        const lightingSemantic = LIGHTING_SEMANTIC_MAP[sceneState.lightingStyle] || LIGHTING_SEMANTIC_MAP['Natural window'];
+        mapped.lighting = `${timeSemantic}, ${lightingSemantic}`;
+        (mapped as any).timeLightingContext = mapped.lighting;
+        console.log('[MAP] lighting:', sceneState.timeOfDay, '+', sceneState.lightingStyle, '→', mapped.lighting);
     }
-    mapped.lighting = lightingDescriptor;
 
-    const timeLightingNarrative = useProfessionalLighting
-        ? buildProLightingNarrative(timeLabel, lightingLabel)
-        : UGC_LIGHTING_NARRATIVE;
+    if (sceneState.ugcRealMode && !isEcommerceBlankSpaceActive) {
+        mapped.lighting = ugcHouseholdLighting;
+        (mapped as any).timeLightingContext = mapped.lighting;
+    }
 
-    (mapped as any).timeLightingNarrative = timeLightingNarrative;
-    (mapped as any).timeLightingContext = timeLightingNarrative;
+    if (is80Plus && mapped.lighting) {
+        mapped.lighting = enforceElderLightingProfile(mapped.lighting, personAge);
+        (mapped as any).timeLightingContext = mapped.lighting;
+    }
 
-    if (mapped.creationMode === 'lifestyle' && contentStyle === 'ugc') {
+    mapped.ecommerceBlankSpaceMode = isEcommerceBlankSpaceActive;
+
+    if (mapped.creationMode === 'lifestyle') {
         delete (mapped as any).proLens;
         delete (mapped as any).proLightingRig;
         delete (mapped as any).proPostTreatment;
+
+        const lifestyleLightingBan = /(studio|ring light|three-point|beauty dish|controlled lighting|macro|flash photo)/i;
+        if (mapped.lighting && lifestyleLightingBan.test(mapped.lighting)) {
+            mapped.lighting = 'natural ambient lifestyle lighting with imperfect falloff';
+            (mapped as any).timeLightingContext = mapped.lighting;
+        }
     }
+
+    mapped.sidePlacement = mapped.sidePlacement || (sceneState.sidePlacement?.toLowerCase() || 'center') as any;
+    mapped.ecommerceSidePlacementFlag = sceneState.ecommerceSidePlacementFlag;
 
     // ========================================================================
     // OUTPUT FORMAT → Aspect Ratio
@@ -709,19 +1123,19 @@ export function mapLifestyleToPromptOptions(
     console.log('[MAP] aspectRatio:', sceneState.aspectRatio, '→', mapped.aspectRatio);
 
     // ========================================================================
-    // FORMULATION STORY (Dedicated builder input)
+    // FORMULATION STORY (Restored)
     // ========================================================================
-    mapped.formulationExpertEnabled = !!sceneState.formulationStoryEnabled;
-    const formulationStory = buildFormulationStoryOptions(sceneState);
-    if (formulationStory) {
-        mapped.formulationStory = formulationStory;
-        mapped.formulationExpertName = formulationStory.expertName;
-        mapped.formulationExpertRole = formulationStory.expertRoleLabel;
-        mapped.formulationLabStyle = formulationStory.labVibe;
-        mapped.formulationExpertAttire = formulationStory.expertAttire;
-        (mapped as any).formulationExpertCredentials = formulationStory.roleCredentials;
-        (mapped as any).formulationBadgePreference = formulationStory.badgePreference;
-    }
+    mapped.formulationExpertEnabled = sceneState.formulationStoryEnabled;
+    mapped.formulationExpertName = sceneState.formulationName;
+    const roleValue = sceneState.formulationRole === 'Custom'
+        ? sceneState.formulationCustomRole
+        : sceneState.formulationRole;
+    mapped.formulationExpertRole = roleValue ? roleValue.trim() : '';
+    mapped.formulationLabStyle = sceneState.formulationLabVibe;
+    mapped.formulationExpertPreset = sceneState.formulationPreset;
+    mapped.formulationExpertAttire = sceneState.formulationAttire;
+    mapped.formulationBadgeEnabled = sceneState.formulationBadgeEnabled;
+    mapped.formulationStory = buildFormulationStoryOptions(sceneState);
     (mapped as any).formulationTone =
         (sceneState as any).formulationTone || 'calm, grounded, everyday';
 
@@ -729,7 +1143,7 @@ export function mapLifestyleToPromptOptions(
     // CONTENT STYLE & CREATION INTENT
     // ========================================================================
     mapped.creationIntent = sceneState.creationIntent;
-    mapped.contentStyle = contentStyle;
+    mapped.contentStyle = sceneState.creationIntent === 'ugc' && personIncluded ? 'ugc' : 'product';
 
     // ========================================================================
     // SELFIE MODE (Restored Logic)
@@ -772,10 +1186,15 @@ export function mapLifestyleToPromptOptions(
     // Rule: UGC Real Mode overrides everything
     if (sceneState.ugcRealMode) {
         // Block cinema cameras if they slipped through
-        const proCameras = ['Sony FX3', 'Cinema Camera Rig', 'Medium Format Studio Camera'];
+        const proCameras = [
+            'DSLR / mirrorless camera',
+            'Cinema camera rig',
+            'Medium format studio camera',
+            'Laptop webcam (pro setup)'
+        ];
         if (proCameras.includes(mapped.camera || '')) {
             console.log('[SAFETY] Downgrading Pro Camera in UGC Mode');
-            mapped.camera = 'Modern Smartphone';
+            mapped.camera = defaultCameraLabel;
         }
     }
 
@@ -788,6 +1207,14 @@ export function mapLifestyleToPromptOptions(
             // Ensure camera is consistent with selfie
             mapped.cameraShot = 'closeUp' as any; // Selfies are generally close
         }
+    }
+
+    if (isEnvironmentSceneIntent) {
+        delete mapped.bgColor;
+        delete (mapped as any).ageGroup;
+        mapped.creationMode = mapped.creationMode || 'lifestyle';
+        mapped.creationModeStructural = mapped.creationModeStructural || 'Environment-first lifestyle composition keeping the product grounded within the lived-in room.';
+        mapped.cameraDeviceSemantic = mapped.cameraDeviceSemantic || 'Handheld smartphone perspective capturing real spatial depth, emphasizing the surrounding environment.';
     }
 
     // MANDATORY LOGGING - Complete output
