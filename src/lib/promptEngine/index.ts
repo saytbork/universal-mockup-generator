@@ -55,8 +55,10 @@ import { buildMasterPrompt, MasterPromptSections } from './masterPrompt';
 // ============================================================================
 // NEGATIVE PROMPT - Quality anchors and artifact prevention
 // ============================================================================
-function negativePrompt() {
-    return [
+const RAW_DOMESTIC_NEGATIVE_APPEND =
+    'No studio lighting, no cinematic look, no professional photography, no centered composition, no passport photo, no fashion editorial, no shallow depth of field, no background bokeh, no HDR look, no perfect symmetry, no influencer styling, no product hero shot.';
+function negativePrompt(options?: PromptOptions) {
+    const entries = [
         // Anatomical integrity
         "deformed hands", "extra fingers", "missing fingers", "long fingers",
         "broken fingers", "distorted limbs", "extra limbs", "extra arms",
@@ -97,7 +99,11 @@ function negativePrompt() {
         // Wardrobe consistency
         "altered outfit", "invented clothing", "incorrect fabric",
         "incorrect outfit color", "wrong clothing texture"
-    ].join(", ");
+    ];
+    if (options?.rawDomesticUgcActive) {
+        entries.push(RAW_DOMESTIC_NEGATIVE_APPEND);
+    }
+    return entries.join(", ");
 }
 
 const DEPTH_DETECTION_REGEX = /(depth of field|portrait mode|portrait blur|bokeh|bokeh effect|background blur|blurred background|lens blur|lens emulation|cinematic focus|cinematic blur|subject separation|background separation|subject isolation|shallow depth|shallow focus|soft background|soft focus|depth cues|depth effect|spatial depth|defocused background)/gi;
@@ -324,7 +330,7 @@ export class PromptEngine {
         // ====================================================================
         // ASSEMBLE MASTER PROMPT (canonical order)
         // ====================================================================
-        const negative = negativePrompt();
+        const negative = negativePrompt(options);
         const masterSections: MasterPromptSections = {
             creationIntent: narrativeSections.creationIntent,
             creationMode: narrativeSections.creationMode,

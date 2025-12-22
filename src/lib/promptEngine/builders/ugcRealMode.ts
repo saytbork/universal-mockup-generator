@@ -53,9 +53,11 @@ DEVICE CONSTRAINTS:
 
 const RAW_DOMESTIC_IMAGE_QUALITY = `
 IMAGE QUALITY CHARACTERISTICS (MANDATORY):
-- Mild motion blur or micro-shake, uneven sharpening, compression artifacts, and aggressive noise reduction in shadows.
-- Allow highlight clipping and shadow crush. Slight exposure breathing is acceptable.
-- These are physical limitations, not creative filters. DO NOT add artistic grain, stylized noise, cinematic blur, or intentional retro effects.
+- Mild motion blur or micro-shake caused by handheld wobble or rolling shutter wobble.
+- Mild smartphone noise, compression artifacts, and oversharpening halos, especially around edges.
+- Slight exposure breathing, clipped highlights, and shadow crush reflect cheap sensor limitations.
+- Imperfect white balance (slightly warm or slightly green) feels authentic; no deliberate clean correction.
+- These are physical limitations, not creative filters—do NOT add artistic grain, cinematic blur, or stylized retro effects.
 `.trim().replace(/\s+/g, ' ');
 const RAW_DOMESTIC_DEPTH_RULES = `
 DEPTH OF FIELD OVERRIDE:
@@ -126,13 +128,15 @@ LIGHTING:
 
 const RAW_DOMESTIC_SUBJECT_RULES = `
 SUBJECT BEHAVIOR & PSYCHOLOGY:
-- The person must not be presenting. Capture them mid-gesture or mid-reaction, slightly awkward, distracted, or indifferent.
+- The person must not be presenting. Capture them mid-gesture, mid-thought, or mid-reaction—slightly awkward, distracted, or indifferent.
+- Pose stays spontaneous and unposed; let the shoulders slump, the head tilt, and the gaze drift so nothing feels rehearsed.
 - Expression should live between moments (half smile, half blink, loose jaw). Never give confident marketing expressions or camera-ready energy.
 `.trim().replace(/\s+/g, ' ');
 
 const RAW_DOMESTIC_PRODUCT_RULES = `
 PRODUCT RELATIONSHIP:
 - The product can block part of the face, crowd the lens, or drift slightly out of focus.
+- Hold the product casually; fingers may partially cover the label and the label should sit skewed or crooked in the frame.
 - Never position the product like a hero prop or influencer demo. If it feels PDP-ready, the mode has failed.
 `.trim().replace(/\s+/g, ' ');
 
@@ -172,7 +176,8 @@ ABSOLUTE PROHIBITIONS:
 
 const HANDHELD_CAMERA_TILT_TEMPLATE = `
 HANDHELD CAMERA TILT:
-The camera is unintentionally tilted due to natural wrist rotation (approximate tilt: {ANGLE}). The horizon sits slightly off-level, creating a subtle diagonal framing typical of real handheld smartphone selfies. This tilt must feel accidental, never cinematic or stylistic.
+- The camera is unintentionally tilted due to natural wrist rotation (approximate tilt: {ANGLE}). The horizon sits noticeably off-level—never 0°—and always leans between -10° and -6° or +6° and +10° to keep the framing diagonal and accidental.
+- This tilt feels authentic, never cinematic or stylized, and the edges wobble just enough to betray a handheld grip.
 `.trim().replace(/\s+/g, ' ');
 
 const UGC_SELFIE_DEEP_FOCUS = `
@@ -228,6 +233,53 @@ RAW DOMESTIC UGC FINAL COMMAND:
 - Absolute blocklist: portrait mode, cinematic depth, beauty lighting, styled hair, fashion wardrobe, product hero framing, marketing poses.
 - Flat focus across the entire frame, small sensor, fixed wide lens, no depth separation, no portrait mode. If the image looks intentional, polished, staged, or optimized, reject and regenerate immediately.
 `.trim().replace(/\s+/g, ' ');
+
+const RAW_DOMESTIC_FRONT_CAMERA_REALISM_CONTRACT = `
+RAW DOMESTIC FRONT CAMERA REALISM CONTRACT:
+- Device: front-facing smartphone camera only, no DSLR or high-end optics allowed.
+- Behavior: arm-length selfie or mirror selfie, casual bored creator energy, spontaneous mid-thought vibe without any marketing intent.
+- Composition: imperfect, asymmetric framing with accidental headroom, awkward crop, and never centered or passport-style alignment.
+- Framing: horizon intentionally tilted, the angle is never level, and posture shifts off-balance with incidental edges.
+- Pose: unposed, distracted, or mid-gesture—capture the person reacting, not presenting.
+- Product (if present): casually held with fingers partially obscuring the label and the label skewed in the frame; hero framing or influencer presentation is forbidden.
+`.trim().replace(/\s+/g, ' ');
+
+const BACKGROUND_CLUSTER_DEFINITIONS = [
+    {
+        label: 'Bathroom hygiene',
+        items: ['toothbrush cup', 'hand soap dispenser', 'floss container', 'wrinkled towel', 'razor']
+    },
+    {
+        label: 'Skincare',
+        items: ['moisturizer tube', 'serum dropper', 'cotton pads', 'small mirror', 'cream jar']
+    },
+    {
+        label: 'Hair',
+        items: ['hairbrush', 'hair tie', 'spray bottle', 'straightener cord', 'dry shampoo can']
+    },
+    {
+        label: 'Cleaning',
+        items: ['cleaning spray', 'sponge', 'paper towels', 'dish soap', 'microfiber cloth']
+    },
+    {
+        label: 'Kitchen mess',
+        items: ['dish rack', 'mug with lipstick marks', 'snack bag', 'cereal box', 'pot on stove']
+    },
+    {
+        label: 'Daily life',
+        items: ['keys', 'mail pile', 'hoodie on chair', 'laundry basket', 'random cables', 'water bottle', 'tissue box']
+    }
+] as const;
+
+const MIRROR_SELFIE_SUPPLEMENT = `
+MIRROR SELFIE ADDITION:
+- Phone is visibly held in the hand and partially covers the face, never hidden.
+- Mirror imperfections such as smudges, streaks, or dust remain visible, reinforcing the casual handheld reflection.
+- Environment stays in a bathroom or bedroom; no clean influencer bathroom, no symmetrical mirror composition, and no staged poses.
+- Lighting is overhead ceiling or vanity light—imperfect, slightly harsh, and mixed temperature with subtle glare.
+- Camera tilt still respects the -10° to -6° or +6° to +10° horizon requirement, and the background clutter must still follow the random cluster rules.
+- Mirror angles may crop the face, the phone overlaps the reflection, and the entire scene feels accidental rather than staged.
+`.trim().replace(/\s+/g, ' ');
 const CAMERA_OPERATOR_DETAILS: Record<string, string> = {
     'self-held': 'Creator holds the phone themselves with fingers visible near the glass.',
     'friend-held': 'Someone else stands nearby holding the phone while the creator interacts.',
@@ -270,6 +322,7 @@ GENDER PROP RULE (FEMALE):
 `.trim().replace(/\s+/g, ' ');
 
 export class UGCRealModeBuilder implements PromptBuilder {
+    private lastClutterCluster?: string;
     private injectLayer(parts: string[], label: string, entries?: string[]) {
         if (!entries || entries.length === 0) return;
         entries.forEach(entry => {
@@ -292,16 +345,11 @@ export class UGCRealModeBuilder implements PromptBuilder {
     }
 
     private getRandomTiltAngle(): number {
-        let angle = 0;
-        let attempts = 0;
-        while (Math.abs(angle) < 0.8 && attempts < 6) {
-            angle = (Math.random() * 12) - 6;
-            attempts += 1;
-        }
-        if (Math.abs(angle) < 0.8) {
-            angle = angle < 0 ? -0.8 : 0.8;
-        }
-        return Math.round(angle * 10) / 10;
+        const negative = Math.random() < 0.5;
+        const min = negative ? -10 : 6;
+        const max = negative ? -6 : 10;
+        const raw = min + Math.random() * (max - min);
+        return Number(raw.toFixed(1));
     }
 
     private getRandomMicroVariation(range: number, minMagnitude = 0.3): number {
@@ -320,6 +368,26 @@ export class UGCRealModeBuilder implements PromptBuilder {
     private describeDistanceVariation(delta: number): string {
         const direction = delta > 0 ? 'slightly farther from the lens' : 'slightly closer to the lens';
         return `${direction} than a typical selfie by ${Math.abs(delta).toFixed(1)} units`;
+    }
+
+    private pickBackgroundClutter() {
+        const available = BACKGROUND_CLUSTER_DEFINITIONS.filter(
+            cluster => cluster.label !== this.lastClutterCluster
+        );
+        const pool = available.length > 0 ? available : BACKGROUND_CLUSTER_DEFINITIONS;
+        const chosen = pool[Math.floor(Math.random() * pool.length)];
+        this.lastClutterCluster = chosen.label;
+        const itemCount = Math.min(chosen.items.length, 2 + Math.floor(Math.random() * 3));
+        const shuffled = [...chosen.items].sort(() => Math.random() - 0.5);
+        return {
+            label: chosen.label,
+            items: shuffled.slice(0, itemCount)
+        };
+    }
+
+    private buildBackgroundClutterText(): string {
+        const cluster = this.pickBackgroundClutter();
+        return `RANDOM BACKGROUND CLUTTER (${cluster.label}): ${cluster.items.join(', ')}. Background clutter must stay accidental and cannot reuse the same cluster back-to-back.`;
     }
 
     build(options: PromptOptions): string {
@@ -379,6 +447,7 @@ export class UGCRealModeBuilder implements PromptBuilder {
         const parts: string[] = [];
 
         parts.push(RAW_DOMESTIC_CORE_DIRECTIVE);
+        parts.push(RAW_DOMESTIC_FRONT_CAMERA_REALISM_CONTRACT);
         parts.push(RAW_DOMESTIC_CAMERA_CONSTRAINTS);
         parts.push(RAW_DOMESTIC_IMAGE_QUALITY);
         parts.push(RAW_DOMESTIC_DEPTH_RULES);
@@ -389,6 +458,9 @@ export class UGCRealModeBuilder implements PromptBuilder {
         parts.push(RAW_DOMESTIC_SUBJECT_RULES);
         parts.push(RAW_DOMESTIC_PRODUCT_RULES);
         parts.push(RAW_DOMESTIC_ENVIRONMENT_RULES);
+        if (options.rawDomesticUgcActive) {
+            parts.push(this.buildBackgroundClutterText());
+        }
         parts.push(RAW_DOMESTIC_GENDERED_BACKGROUND_RULE);
         const normalizedGender = (personDetails?.gender || '').toLowerCase();
         const normalizedPresentation =
@@ -548,6 +620,13 @@ Only one arm may be partially visible, and only to support the product.
             parts.push(
                 'This is a stationary, surface-supported smartphone capture. The phone remains propped on a counter or leaning object, wobbling slightly between breaths. No human arm enters frame to hold the phone; treat it like a self-timer resting shot.'
             );
+        }
+
+        const mirrorSelfieDetected =
+            cameraOperator === 'mirror-shot' ||
+            options.ugcCaptureSituation === 'mirror-shot-partial';
+        if (mirrorSelfieDetected) {
+            parts.push(MIRROR_SELFIE_SUPPLEMENT);
         }
 
         const humanText = `
