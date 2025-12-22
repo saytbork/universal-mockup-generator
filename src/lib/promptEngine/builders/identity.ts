@@ -5,12 +5,6 @@
 
 import type { PromptOptions, PromptBuilder } from '../types';
 
-const PERSONAL_ADDON_BASE_RULE = `
-PERSONAL ADD-ONS REALISM:
-- Accessories, piercings, glasses, facial hair, tattoos, and nails must look incidental and lived-in—common jewelry only, matte metals, slight wear, casual piercings, everyday glasses with minor glare or smudges, natural facial hair, aged tattoos, and short natural nails.
-- Nothing feels styled, trendy, or intentional. If an accessory appears curated or fashion-forward, invalidate and retry.
-`.trim().replace(/\s+/g, ' ');
-
 export class IdentityBuilder implements PromptBuilder {
     build(options: PromptOptions): string {
         const { personIncluded, hasModelReference, personDetails, contentStyle } = options;
@@ -28,10 +22,7 @@ export class IdentityBuilder implements PromptBuilder {
             'ultra-realistic', 'cinematic', 'beauty dish', 'three-point lighting',
             'macro lens', 'perfect symmetry', 'flawless skin', 'high-gloss retouch',
             'editorial face', 'studio lighting', 'professional retouching',
-            'perfect complexion', 'hyper-detailed', '8k', 'unreal engine',
-            'silky', 'glossy', 'voluminous', 'styled', 'sculpted', 'salon',
-            'beauty finish', 'cinematic hair', 'perfect waves', 'uniform texture',
-            'soft hair shader', 'ai smooth hair', 'portrait polish'
+            'perfect complexion', 'hyper-detailed', '8k', 'unreal engine'
         ];
 
         // Helper to sanitize parts
@@ -47,8 +38,6 @@ export class IdentityBuilder implements PromptBuilder {
 
         const parts: string[] = [];
         const age = personDetails?.age || 30;
-        const ageGroupLabel = age >= 75 ? 'elder' : 'adult';
-        const isAge80Plus = age >= 80;
 
         // 1. PHYSICAL IDENTITY (Standard or Reference Override)
         if (hasModelReference) {
@@ -65,46 +54,63 @@ The model reference overrides any synthetic identity description.
             if (age >= 70) {
                 parts.push(`
 AGE ANCHOR: The subject MUST visually read as approximately ${age} years old.
-Facial structure, skin laxity, eye area, neck, hands, posture, and overall presence must be consistent with a real ${age}-year-old ${ageGroupLabel}.
+Facial structure, skin laxity, eye area, neck, hands, posture, and overall presence must be consistent with a real ${age}-year-old adult.
 Do NOT make the person appear younger.
 Avoid youthful facial proportions, smooth skin, or middle-aged appearance.
-                `.trim().replace(/\s+/g, ' '));
-            }
-
-            if (age >= 75) {
-                parts.push(`
-ELDER REALISM: Deep-set crow's feet, softened jawline definition, gentle jowls, and age spots on face and hands are expected.
-Hair should skew gray, silver, or white with visible thinning and irregular texture unless explicitly overridden.
-Hands must show visible veins and knuckle definition, and muscles should feel relaxed rather than toned.
-Skin carries micro wrinkles around the mouth, eyes, and neck with authentic sag, not harsh texture or stylized pores.
                 `.trim().replace(/\s+/g, ' '));
             }
 
             // IDENTITY BLOCK - Core attributes
             const identityParts: string[] = [];
 
-            // Age - ALWAYS numeric, elder group for 75+
-            const ageLabel = `${age}-year-old ${ageGroupLabel}`;
-            identityParts.push(ageLabel);
+            // Age - ALWAYS numeric
+            identityParts.push(`${age}-year-old adult`);
 
-            // Gender - use allowed selections verbatim
+            // Gender - soft descriptor
             if (personDetails?.gender) {
-                identityParts.push(sanitizePart(personDetails.gender));
+                const genderMap: Record<string, string> = {
+                    'Female': 'female-presenting adult',
+                    'Male': 'male-presenting adult',
+                    'Non-binary': 'non-binary presenting adult, balanced gender expression',
+                    'They / Them': 'person with neutral gender presentation',
+                    'Androgynous': 'androgynous appearance with blended masculine and feminine traits',
+                    'Gender non-conforming': 'gender non-conforming presentation',
+                };
+                const mapped = genderMap[personDetails.gender];
+                if (mapped) {
+                    identityParts.push(sanitizePart(mapped));
+                }
             }
 
-            // Ethnicity - inject verbatim
+            // Ethnicity - with physical features
             if (personDetails?.ethnicity && personDetails.ethnicity !== 'Prefer not to specify') {
-                identityParts.push(personDetails.ethnicity);
+                identityParts.push(sanitizePart(personDetails.ethnicity));
             }
 
-            // Body Type - use the exact selection
+            // Body Type
             if (personDetails?.bodyType) {
-                identityParts.push(sanitizePart(`${personDetails.bodyType} build`));
+                identityParts.push(sanitizePart(`${personDetails.bodyType.toLowerCase()} build`));
             }
 
-            // Skin Tone - inject the selected option exactly
+            // Skin Tone
             if (personDetails?.skinTone) {
-                identityParts.push(sanitizePart(personDetails.skinTone));
+                const skinMap: Record<string, string> = {
+                    'Very Fair': 'very fair',
+                    'Fair': 'fair',
+                    'Fair Cool': 'fair with cool undertones',
+                    'Fair Warm': 'fair with warm undertones',
+                    'Medium': 'medium',
+                    'Medium Neutral': 'medium with neutral undertones',
+                    'Olive': 'olive',
+                    'Tan': 'tan',
+                    'Brown': 'brown',
+                    'Deep Golden': 'deep with golden undertones',
+                    'Deep Brown': 'deep brown',
+                    'Deep Cool': 'deep with cool undertones',
+                    'Very Deep': 'very deep'
+                };
+                const mappedSkin = skinMap[personDetails.skinTone] || personDetails.skinTone.toLowerCase();
+                identityParts.push(`${mappedSkin} skin`);
             }
 
             // Skin Realism + Appearance - UGC Override logic
@@ -141,51 +147,27 @@ Skin carries micro wrinkles around the mouth, eyes, and neck with authentic sag,
             }
 
             // Hair
-            if (!isAge80Plus && (personDetails?.hairLength || personDetails?.hairTexture || personDetails?.hairColor)) {
+            const hasHairDetails = personDetails?.hairLength || personDetails?.hairTexture || personDetails?.hairColor;
+            if (hasHairDetails) {
                 const hairParts = [
-                    personDetails?.hairLength,
-                    personDetails?.hairTexture,
-                    personDetails?.hairColor
+                    personDetails?.hairLength?.toLowerCase(),
+                    personDetails?.hairTexture?.toLowerCase(),
+                    personDetails?.hairColor?.toLowerCase()
                 ].filter(Boolean);
+                if (age >= 85 && !personDetails?.hairColor) {
+                    hairParts.push('gray and white dominant');
+                }
                 if (hairParts.length > 0) {
                     identityParts.push(sanitizePart(`${hairParts.join(' ')} hair`));
                 }
-            }
-
-            if (isAge80Plus) {
-                parts.push(`
-HAIR REALISM OVERRIDE (80+):
-Hair must appear physically aged, thinning, and irregular with uneven density and collapsed volume.
-Strands are weak, fragile, and inconsistently shaped.
-Scalp visibility is normal and expected.
-Hairline is uneven and imperfect.
-Hair does not form a clean silhouette or aesthetic shape.
-Strands rest against skin, ears, and clothing with visible compression and gravity effects.
-Flyaway hairs are sparse, random, and unintentional.
-There is no sense of styling, grooming, softness, or visual beauty.
-                `.trim().replace(/\s+/g, ' '));
-                parts.push(`
-SMARTPHONE HAIR CAPTURE:
-Fine hair edges may appear partially soft, broken, or missing due to smartphone autofocus and compression.
-Some strands may disappear or clip irregularly.
-No clean edges, no haloing, no painterly rendering.
-Hair imperfections must come from capture failure, not artistic styling.
-                `.trim().replace(/\s+/g, ' '));
-            }
-
-            if (age >= 80) {
-                parts.push(`
-HAIR REALISM OVERRIDE:
-Hair must appear eighty-plus years old with collapsed volume, irregular thinning, uneven strand density, and a visibly fragile hairline. Strands cling to skin, ears, and clothing with real contact, random flyaways, and slight scalp visibility. The capture is from a casual smartphone, so fine edges fall slightly soft, some strands break or vanish from compression, and there is zero sense of salon styling or clean silhouette—reject any appearance of healthy, plush, or aesthetic hair.
-                `.trim().replace(/\s+/g, ' '));
+            } else if (age >= 85) {
+                identityParts.push('natural hair with gray and white dominance, visible regrowth allowed');
             }
 
             // Join core identity
             if (identityParts.length > 0) {
                 parts.push(identityParts.join(', '));
             }
-
-            parts.push(PERSONAL_ADDON_BASE_RULE);
         }
 
         // EXPRESSION

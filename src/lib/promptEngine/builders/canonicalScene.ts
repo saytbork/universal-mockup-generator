@@ -26,51 +26,9 @@ const creationModeCopy: Record<string, string> = {
 };
 
 const sidePlacementCopy: Record<string, string> = {
-    left: 'Product anchored on the left side of the frame, leaving the right side open for copy.',
-    center: 'Product centered with balanced copy space on both sides.',
-    right: 'Product anchored on the right side of the frame, leaving the left side open for copy.'
-};
-
-const INDOOR_ENVIRONMENTS = new Set([
-    'Kitchen',
-    'Living Room',
-    'Bedroom',
-    'Bathroom',
-    'Workspace',
-    'Hallway',
-    'Home Gym',
-    'Balcony / Indoor Terrace'
-]);
-
-const OUTDOOR_ENVIRONMENTS = new Set([
-    'Urban Exterior',
-    'Natural Exterior',
-    'Parking Lot',
-    'Backyard / Patio',
-    'Street Corner'
-]);
-
-const formatEnvironmentPhrase = (environmentText?: string): string => {
-    if (!environmentText?.trim()) {
-        return '';
-    }
-    const normalized = environmentText.trim();
-    const lower = normalized.toLowerCase();
-    if (INDOOR_ENVIRONMENTS.has(normalized)) {
-        return `inside a ${lower}`;
-    }
-    if (OUTDOOR_ENVIRONMENTS.has(normalized)) {
-        return `outdoors on a ${lower}`;
-    }
-    return `in ${lower}`;
-};
-
-const HUMAN_REALISM_GUARD =
-    'The person looks like a real human, candid and imperfect, with natural skin texture, subtle asymmetry, and a lived-in environment. Nothing looks 3D, CGI, rendered, or studio-polished.';
-
-const shouldApplyHumanRealismGuard = (options: PromptOptions): boolean => {
-    const isNonUGC = !options.ugcRealModeActive && options.contentStyle !== 'ugc';
-    return isNonUGC && (options.creationMode === 'lifestyle' || options.formulationExpertEnabled);
+    left: 'Product positioned on the left side of the frame.',
+    center: 'Product positioned near the center of the frame.',
+    right: 'Product positioned on the right side of the frame.'
 };
 
 export class SceneNarrativeBuilder {
@@ -142,20 +100,17 @@ export class SceneNarrativeBuilder {
     }
 
     private buildCreationMode(options: PromptOptions): string {
-        if (options.sceneIntent === 'environment') {
-            return 'Environment-first lifestyle composition with the product grounded in a natural space, avoiding hero or studio framing.';
-        }
         const mode = options.creationMode;
         const copy = creationModeCopy[mode] || creationModeCopy.lifestyle;
         return copy;
     }
 
     private buildUgcRealMode(options: PromptOptions): string {
-        if (options.realModeActive) {
-            return [
-                'UGC Real Mode active. Phone-like framing. Subtle real-world imperfections.',
-                'This is raw, real user-generated content. Do not correct framing, lighting, posture, or composition. Allow awkward angles, uneven headroom, off-center subjects, partial cropping, and accidental framing. Lighting may be harsh, dim, mixed, or unbalanced, including shadows or color casts. Facial expressions should feel natural, tired, distracted, or mid-moment rather than posed or aspirational. The product may be held awkwardly, partially obscured, tilted, or off-axis. Minor motion blur, handheld shake, and casual instability are acceptable. Imperfections are intentional and must not be fixed. The final image should feel spontaneous, unplanned, and slightly broken, like a real moment captured without aesthetic intent.'
-            ].join(' ');
+        const isActive = !!options.ugcRealModeActive || !!options.realModeActive;
+        if (isActive) {
+            return options.ugcCaptureSituation
+                ? 'UGC Real Mode active with physical capture override. Phone-like framing with imperfect handheld geometry.'
+                : 'UGC Real Mode active. Maintain handheld framing and everyday imperfections.';
         }
 
         return 'UGC Real Mode disabled. No selfie perspective. No creator narrative.';
@@ -163,7 +118,7 @@ export class SceneNarrativeBuilder {
 
     private buildFormulationStory(options: PromptOptions): string | undefined {
         // FORMULATION STORY IS OPTIONAL - if disabled, skip entirely
-        if (!options.formulationExpertEnabled || options.personIncluded === false) {
+        if (!options.formulationExpertEnabled) {
             return undefined;
         }
 
@@ -179,28 +134,23 @@ export class SceneNarrativeBuilder {
     }
 
     private buildEcommerceBuilder(options: PromptOptions): string | undefined {
-        if (
-            options.sceneIntent === 'environment' ||
-            options.ugcRealModeActive ||
-            !options.ecommerceSidePlacementFlag
-        ) {
+        const isEcommerceIntent = options.creationIntent === 'product' || options.creationIntent === 'brand';
+        const isEcomBlank = options.creationMode === 'ecom-blank';
+
+        if (!isEcommerceIntent && !isEcomBlank) {
             return undefined;
         }
 
+        const composition = options.compositionMode
+            ? `Blank-space layout optimized for text and UI overlays with ${options.compositionMode}.`
+            : 'Blank-space layout optimized for text and UI overlays.';
         const placement =
-            options.ecommerceSidePlacementDescriptor ||
-            (options.sidePlacement && sidePlacementCopy[options.sidePlacement]) ||
-            'Product positioned near the center of the frame.';
-        const copySpace =
-            options.sidePlacement === 'center'
-                ? 'Maintain even negative space on both sides so copy can wrap naturally.'
-                : options.sidePlacement
-                ? `Reserve large, clean negative space on the ${
-                      options.sidePlacement === 'left' ? 'right' : 'left'
-                  } side for text overlays.`
-                : '';
+            options.sidePlacement && sidePlacementCopy[options.sidePlacement]
+                ? sidePlacementCopy[options.sidePlacement]
+                : 'Product positioned near the center of the frame.';
+        const bgColor = options.bgColor ? `Clean solid background color ${options.bgColor}.` : '';
 
-        return [placement, copySpace].filter(Boolean).join(' ');
+        return [composition, placement, bgColor].filter(Boolean).join(' ');
     }
 
     private buildCameraFraming(options: PromptOptions, constraints?: string): string {
@@ -210,49 +160,33 @@ export class SceneNarrativeBuilder {
             placementCamera: (options as any).placementCamera
         });
         const parts: string[] = [];
-        const suppressCameraDescriptors = !!options.ugcRealModeActive;
+        const ugcActive = !!options.ugcRealModeActive;
+        const age = options.personDetails?.age || 0;
 
         if (cameraText) {
             parts.push(`Camera: ${cameraText}.`);
         }
-        if (!suppressCameraDescriptors && options.cameraAngle) {
+        if (!ugcActive && options.cameraAngle) {
             parts.push(`Camera angle: ${options.cameraAngle}.`);
         }
-        if (!suppressCameraDescriptors && options.perspective) {
+        if (!ugcActive && options.perspective) {
             parts.push(`Framing: ${options.perspective}.`);
         }
-        if (!suppressCameraDescriptors && options.cameraShot) {
+        if (!ugcActive && options.cameraShot) {
             parts.push(`Shot type: ${options.cameraShot}.`);
         }
         if (constraints) {
             parts.push(constraints);
         }
 
-        if (options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
-            parts.push(
-                'This scene is captured using professional-grade camera equipment only, such as DSLR or mirrorless cameras, cinema cameras, or medium format systems. Framing and shot selection are intentional and precise, with a clearly defined shot type and camera angle. The camera is fully stabilized, either on a tripod or controlled rig, with smooth, deliberate movement if any. Lighting is studio-grade or professionally controlled, producing clean exposure, accurate colors, and natural depth. The image must not resemble user-generated content in any way. Exclude all casual, handheld, selfie-based, phone-captured, webcam-style, or amateur artifacts.'
-            );
-            parts.push(
-                'Camera movement, if present, is intentional, minimal, and professionally executed. The camera remains fully stabilized using tripods, sliders, gimbals, or controlled rigs, with smooth and deliberate motion only when it serves the scene. Exclude all handheld shake, walking motion, body-mounted movement, phone wobble, accidental drift, or jitter commonly associated with user-generated content. The scene must feel composed, steady, and editorial at all times.'
-            );
+        let framingBlock = parts.join(' ');
+        if (age >= 85) {
+            framingBlock = this.stripSymmetryLanguage(framingBlock);
         }
-
-        return parts.join(' ');
+        return framingBlock;
     }
 
     private buildEnvironmentLightingMood(options: PromptOptions): string {
-        const isEcommerceBlankSpaceMode =
-            options.ecommerceBlankSpaceMode ||
-            options.sceneIntent === 'ecommerce' ||
-            options.creationMode === 'ecom-blank';
-
-        if (isEcommerceBlankSpaceMode) {
-            const text =
-                'Pure white background (#FFFFFF) with extremely neutral studio lighting, flat even illumination, and a minimal contact shadow straight under the product. No environment, no lifestyle storytelling.';
-            console.log('[SCENE NARRATIVE] Ecommerce Blank Space enforced lighting:', text);
-            return text;
-        }
-
         const environmentText = buildEnvironment({
             environmentOrder: options.environmentOrder,
             sceneEnvironment: (options as any).sceneEnvironment || options.setting,
@@ -260,73 +194,75 @@ export class SceneNarrativeBuilder {
         });
         const lightingText = buildLighting({
             lighting: options.lighting,
-            sceneLighting: (options as any).sceneLighting,
-            personDetails: options.personDetails,
-            ugcRealMode: options.ugcRealModeActive
+            sceneLighting: (options as any).sceneLighting
         });
+        const age = options.personDetails?.age || 0;
+        const isAge80Plus = age >= 80;
+        const isAge85Plus = age >= 85;
 
         // Inject structural rules from mapper
         const creationModeStructural = (options as any).creationModeStructural || '';
         const compositionModeStructural = (options as any).compositionModeStructural || '';
         const cameraDeviceSemantic = (options as any).cameraDeviceSemantic || '';
 
-        const environmentPhrase = formatEnvironmentPhrase(environmentText);
-        const narrativeParts = [
+        const timeLightingNarrative = (options as any).timeLightingNarrative || '';
+
+        const parts = [
+            timeLightingNarrative ? `${timeLightingNarrative}` : '',
             creationModeStructural ? `Creation: ${creationModeStructural}.` : '',
             compositionModeStructural ? `Composition: ${compositionModeStructural}.` : '',
             cameraDeviceSemantic ? `Camera: ${cameraDeviceSemantic}.` : '',
-            environmentPhrase ? `Environment: ${environmentPhrase}.` : '',
-            options.sceneOrderChaosDescriptor ? `Scene order: ${options.sceneOrderChaosDescriptor}.` : '',
+            environmentText ? `Environment: ${environmentText}.` : '',
             lightingText ? `Lighting: ${lightingText}.` : ''
         ].filter(Boolean);
 
-        if (options.elderlyRealismGuardActive) {
-            const descriptor =
-                options.elderlyRealismDescriptor?.trim() ||
-                'Elderly realism guard: advanced age must remain visually dominant with natural skin texture, posture, and lived-in cues.';
-            narrativeParts.push(descriptor);
-        }
-
-        if (options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
-            narrativeParts.push(
-                'The environment is intentionally selected and professionally appropriate. Scenes take place in clean, controlled, and visually coherent settings suitable for editorial, lifestyle, or ecommerce use, such as studios, curated interiors, or well-composed outdoor locations. The environment must feel deliberate and brand-safe, with no association to casual personal spaces or accidental capture contexts. Exclude all user-generated environments or situations, including bedrooms, bathrooms, car interiors, mirrors, beds, couches, or any setting that implies a selfie, phone capture, or informal personal moment. The environment should support a polished, professional narrative without human capture artifacts.'
+        if (isAge80Plus) {
+            parts.push(
+                'Lighting stays uneven, mixed, and imperfect—only available ambient sources with uncontrolled falloff.'
             );
         }
 
-
-        if (options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
-            narrativeParts.push(
-                'Lighting is professionally designed and intentionally controlled. The scene uses studio-grade or well-managed natural lighting with balanced exposure, consistent color temperature, and soft, dimensional shadows. Illumination enhances clarity, depth, and material detail without harsh overhead light, uneven shadows, or mixed lighting sources. Exclude all phone-based lighting, on-camera flash, bathroom or ceiling lights, low-quality ambient light, or any casual, uncontrolled illumination commonly associated with user-generated content.'
-            );
+        let narrative = parts.join(' ');
+        narrative = this.enforceUnevenLightingLanguage(narrative, age);
+        if (isAge85Plus) {
+            narrative = this.stripSymmetryLanguage(narrative);
         }
 
-        console.log('[SCENE NARRATIVE] Environment/Lighting/Mood:', narrativeParts.join(' ').substring(0, 200) + '...');
-        const shouldInjectLifestyleRealism =
-            !options.ugcRealModeActive &&
-            options.contentStyle !== 'ugc' &&
-            options.creationMode === 'lifestyle';
+        console.log('[SCENE NARRATIVE] Environment/Lighting/Mood:', narrative.substring(0, 200) + '...');
+        return narrative;
+    }
 
-        if (shouldInjectLifestyleRealism) {
-            narrativeParts.push(
-                'Lifestyle Realism Enforcement',
-                'This is a real-life lifestyle photograph, not user-generated content.',
-                'The scene must feel real, human, and intentionally composed.',
-                'Lighting is natural and believable, clean and balanced, not studio-perfect.',
-                'Human skin shows subtle natural variation and soft texture, no smoothing, no plastic or CGI appearance.',
-                'Posture and hand positioning include slight natural imperfection, avoid symmetry or mannequin-like alignment.',
-                'Facial expression is relaxed and natural, not posed or model-like.',
-                'The product is held naturally as part of everyday life, not centered or hero-framed.',
-                'Camera capture is intentional and stable, not handheld, not selfie-based.',
-                'Avoid render look, avoid artificial perfection, avoid hyper-polished surfaces.'
-            );
+    private enforceUnevenLightingLanguage(block: string, age: number): string {
+        if (age < 80 || !block) {
+            return block;
         }
-
-        if (options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
-            narrativeParts.push(
-                'Final quality check. The scene must present a fully professional, editorial-grade result. If any conflicting cues appear, prioritize professional camera equipment, controlled lighting, stabilized motion, and deliberate environments. Suppress or override any residual casual, handheld, selfie-based, phone-captured, webcam-like, or user-generated signals. The final image should be brand-safe, visually consistent, and suitable for commercial or editorial use.'
-            );
+        const replacements: Array<[RegExp, string]> = [
+            [/\bgraduated illumination\b/gi, 'improvised illumination'],
+            [/\bbalanced illumination\b/gi, 'imperfect illumination'],
+            [/\bbalanced lighting\b/gi, 'imperfect lighting'],
+            [/\bbalanced\b/gi, 'off-kilter'],
+            [/\bcontrolled\b/gi, 'uncontrolled'],
+            [/\baesthetic\b/gi, 'plain'],
+            [/\bpolished\b/gi, 'raw']
+        ];
+        let sanitized = block;
+        replacements.forEach(([regex, replacement]) => {
+            sanitized = sanitized.replace(regex, replacement);
+        });
+        if (age >= 85) {
+            sanitized = sanitized.replace(/\b[Ee]ven\b/g, 'irregular');
         }
+        return sanitized;
+    }
 
-        return narrativeParts.join(' ');
+    private stripSymmetryLanguage(block: string): string {
+        if (!block) {
+            return block;
+        }
+        return block
+            .replace(/\b[Bb]alanced\b/g, 'off-kilter')
+            .replace(/\b[Ee]ven\b/g, 'irregular')
+            .replace(/\b[Ss]ymmetrical\b/g, 'lopsided')
+            .replace(/\b[Ss]ymmetry\b/g, 'lopsided layout');
     }
 }
