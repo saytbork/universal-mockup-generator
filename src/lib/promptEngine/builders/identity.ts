@@ -388,7 +388,7 @@ Hair must appear eighty-plus years old with collapsed volume, irregular thinning
         }
 
         // *** CRITICAL ANTI-DOLL CONSTRAINT FOR UGC ***
-        if (isUGC) {
+        if (isUgcMode) {
             parts.push('The person must look like a real unedited smartphone photo of a real human. Avoid CGI, 3D render, synthetic human, mannequin, doll-like appearance at all costs.');
         }
 
