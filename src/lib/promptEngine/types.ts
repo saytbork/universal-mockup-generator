@@ -221,6 +221,8 @@ export interface PromptOptions {
     modelReference?: ModelReference;
     identityLock?: PersonIdentity;
     personIncluded?: boolean;
+    sameCreatorAcrossScenes?: boolean;
+    identitySeed?: string;
 
     // UGC Real Mode
     ugcRealModeActive?: boolean;      // UGC Real Mode toggle

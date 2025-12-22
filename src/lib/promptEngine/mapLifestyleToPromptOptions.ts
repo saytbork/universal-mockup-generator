@@ -144,6 +144,11 @@ function mapAppearanceLevel(value?: string): string | null {
     }
 }
 
+const generateIdentitySeed = (): string => {
+    const randomComponent = Math.random().toString(36).slice(2, 10);
+    return `${Date.now().toString(36)}-${randomComponent}`;
+};
+
 /**
  * PROPS → Scene objects and lifestyle accessories
  */
@@ -513,10 +518,17 @@ export function mapLifestyleToPromptOptions(
     }
 
     // Initialize mapped options
+    const shouldPreserveIdentity = sceneState.sameCreatorAcrossScenes === true;
+    const identitySeed =
+        shouldPreserveIdentity && existingOptions.identitySeed
+            ? existingOptions.identitySeed
+            : generateIdentitySeed();
     const mapped: Partial<PromptOptions> = {
         ...existingOptions,
-        hasModelReference
+        hasModelReference,
+        identitySeed
     };
+    mapped.sameCreatorAcrossScenes = sceneState.sameCreatorAcrossScenes;
 
     // Initialize Person Details
     if (!mapped.personDetails) mapped.personDetails = {};

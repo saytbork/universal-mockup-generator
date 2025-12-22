@@ -11,9 +11,134 @@ PERSONAL ADD-ONS REALISM:
 - Nothing feels styled, trendy, or intentional. If an accessory appears curated or fashion-forward, invalidate and retry.
 `.trim().replace(/\s+/g, ' ');
 
+const FACIAL_MORPHOLOGY_CATEGORIES = [
+    { label: 'Face shape', options: ['narrow', 'oval', 'wide', 'angular', 'soft'] },
+    { label: 'Jawline', options: ['soft', 'rounded', 'defined', 'asymmetrical'] },
+    { label: 'Cheekbones', options: ['low', 'high', 'pronounced', 'subtle'] },
+    { label: 'Eye spacing', options: ['close', 'average', 'wide'] },
+    { label: 'Nose', options: ['narrow bridge', 'wide bridge', 'rounded tip', 'pronounced tip'] },
+    { label: 'Lips', options: ['thin', 'medium', 'uneven', 'asymmetrical'] },
+    { label: 'Facial asymmetry', options: ['subtle but visible'] }
+];
+const FACIAL_MORPHOLOGY_SELECTION_COUNT = 4;
+const FACIAL_STABILIZATION_BAN = `
+Do NOT preserve facial consistency.
+Do NOT reuse latent identity.
+Do NOT bias toward symmetry or attractiveness.
+UGC requires variation over beauty.
+`.trim();
+const IDENTITY_CONTRACT_TEXT = `
+This person must be a unique individual.
+Do not reuse or approximate any previous face or body.
+Each render represents a different real human unless identity persistence is explicitly enabled.
+Avoid average, generic, or stock-photo facial proportions.
+Distinctive features and mild asymmetry are required.
+`.trim();
+
+const BODY_VARIATION_CATEGORIES = [
+    {
+        label: 'Shoulder width',
+        options: [
+            'shoulders narrow and slightly hunched, one side dipping toward the camera',
+            'broad shoulders that slope downward with mild fatigue',
+            'square shoulders leaning ever so slightly forward, creating asymmetry'
+        ]
+    },
+    {
+        label: 'Neck length',
+        options: [
+            'neck short and thick, forcing the head to tilt forward',
+            'long, lean neck that tilts slightly to one side',
+            'neck of average length but with uneven tension on either side'
+        ]
+    },
+    {
+        label: 'Posture bias',
+        options: [
+            'posture slouches toward the right with one hip slightly higher',
+            'posture upright but the left shoulder drifts lower than the right',
+            'posture carries a subtle lean, as if mid-shift between standing and sitting'
+        ]
+    },
+    {
+        label: 'Hand impression',
+        options: [
+            'hands appear compact with stubby fingers curling inward',
+            'hands feel long-fin gered with knuckles visibly pronounced',
+            'hands rest relaxed with slightly splayed fingers that are not uniform in length'
+        ]
+    }
+];
+
+const EXPRESSION_NOISE_OPTIONS = [
+    'Expression noise: eyes vary in openness while the mouth holds soft tension and the eyebrows rest unevenly.',
+    'Expression noise: eyelids settle at different heights, lips part slightly with subtle tension, and brows arch in mild asymmetry.',
+    'Expression noise: gaze drifts just off camera, mouth corners vary, and the brow line softens on one side.',
+    'Expression noise: eyelids flicker open, mouth stretches into a strained neutral, and eyebrows dip unevenly.'
+];
+
+const GENERIC_IDENTITY_KEYWORDS = /(generic|identical|same person|same creator)/i;
+
+const ensureIdentitySeed = (seed?: string): string =>
+    seed || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+
+const createSeededRandom = (seed?: string): (() => number) => {
+    if (!seed) {
+        return Math.random;
+    }
+    let hash = 0;
+    for (let i = 0; i < seed.length; i += 1) {
+        hash = (Math.imul(31, hash) + seed.charCodeAt(i)) >>> 0;
+    }
+    let state = hash || 1;
+    return () => {
+        state = (Math.imul(48271, state) + 1) % 2147483647;
+        return state / 2147483647;
+    };
+};
+
+const shuffleArray = <T,>(items: T[], random: () => number): T[] => {
+    const array = [...items];
+    for (let i = array.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+};
+
+const sample = <T,>(items: T[], random: () => number): T =>
+    items[Math.floor(random() * items.length)];
+
+const buildFacialMorphologyVariation = (random: () => number): string => {
+    const shuffled = shuffleArray(FACIAL_MORPHOLOGY_CATEGORIES, random);
+    const selection = shuffled.slice(0, FACIAL_MORPHOLOGY_SELECTION_COUNT);
+    const descriptor = selection
+        .map(category => `${category.label}: ${sample(category.options, random)}`)
+        .join('; ');
+    if (GENERIC_IDENTITY_KEYWORDS.test(descriptor)) {
+        return buildFacialMorphologyVariation(random);
+    }
+    return descriptor;
+};
+
+const buildBodyVariation = (random: () => number): string =>
+    BODY_VARIATION_CATEGORIES.map(category => {
+        const option = sample(category.options, random);
+        return `${category.label} ${option}`;
+    }).join('; ');
+
+const buildExpressionNoise = (random: () => number): string =>
+    sample(EXPRESSION_NOISE_OPTIONS, random);
+
 export class IdentityBuilder implements PromptBuilder {
     build(options: PromptOptions): string {
-        const { personIncluded, hasModelReference, personDetails, contentStyle } = options;
+        const {
+            personIncluded,
+            hasModelReference,
+            personDetails,
+            contentStyle,
+            sameCreatorAcrossScenes
+        } = options;
 
         // Don't build identity if no person or if product-only mode
         if (!personIncluded || contentStyle === 'product') {
@@ -21,7 +146,13 @@ export class IdentityBuilder implements PromptBuilder {
         }
 
         // UGC DEGRADATION LOGIC & HELPERS
-        const isUGC = options.ugcRealModeActive;
+        const isRawUgc = options.ugcRealModeActive;
+        const isUgcMode =
+            options.contentStyle === 'ugc' ||
+            options.creationIntent === 'ugc' ||
+            isRawUgc;
+        const identitySeed = ensureIdentitySeed(options.identitySeed);
+        const randomNumber = createSeededRandom(identitySeed);
 
         // Blocked terms that cause CGI/Doll look
         const BLOCKED_IDENTITY_TERMS = [
@@ -36,7 +167,7 @@ export class IdentityBuilder implements PromptBuilder {
 
         // Helper to sanitize parts
         const sanitizePart = (text: string) => {
-            if (!isUGC) return text;
+            if (!isUgcMode) return text;
             let cleanText = text;
             BLOCKED_IDENTITY_TERMS.forEach(term => {
                 const regex = new RegExp(`\\b${term}\\b`, 'gi');
@@ -108,7 +239,7 @@ Skin carries micro wrinkles around the mouth, eyes, and neck with authentic sag,
             }
 
             // Skin Realism + Appearance - UGC Override logic
-            if (isUGC) {
+            if (isUgcMode) {
                 // FORCE RAW SKIN IN UGC MODE
                 identityParts.push('real human appearance, everyday skin texture, minor unevenness, natural asymmetry, no cosmetic retouching');
             } else {
@@ -183,6 +314,28 @@ Hair must appear eighty-plus years old with collapsed volume, irregular thinning
             // Join core identity
             if (identityParts.length > 0) {
                 parts.push(identityParts.join(', '));
+            }
+
+            const shouldVaryIdentity =
+                isUgcMode &&
+                !hasModelReference &&
+                sameCreatorAcrossScenes !== true;
+
+            if (shouldVaryIdentity) {
+                const morphologyVariation = buildFacialMorphologyVariation(randomNumber);
+                const bodyVariation = buildBodyVariation(randomNumber);
+                const expressionNoise = buildExpressionNoise(randomNumber);
+                parts.push(`FACIAL MORPHOLOGY VARIATION: ${morphologyVariation}.`);
+                parts.push(`BODY VARIATION: ${bodyVariation}.`);
+                parts.push(`EXPRESSION NOISE: ${expressionNoise}.`);
+            }
+
+            if (!hasModelReference) {
+                parts.push(FACIAL_STABILIZATION_BAN);
+            }
+
+            if (isUgcMode) {
+                parts.push(IDENTITY_CONTRACT_TEXT);
             }
 
             parts.push(PERSONAL_ADDON_BASE_RULE);
