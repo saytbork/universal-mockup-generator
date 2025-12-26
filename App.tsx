@@ -4267,10 +4267,8 @@ If the model attempts to create a scene or environment, override it and force a 
         const resolvedUgcStyle = (promptOptions.ugcStyle ?? 'optimized').toLowerCase();
         const naturalMode = resolvedUgcStyle === 'natural';
         const rawMode = !!promptOptions.ugcRealModeActive;
-        if (naturalMode || rawMode) {
-          generationProducts.length = 0;
-        }
-        const shouldIncludeImage = !(naturalMode || rawMode);
+        const shouldIncludeHumanImage = !(naturalMode || rawMode);
+        const shouldSendProductImage = generationProducts.length > 0;
         const identityInlinePart = personIdentityPackage.modelReferenceBase64
           ? {
               inlineData: {
@@ -4281,7 +4279,8 @@ If the model attempts to create a scene or environment, override it and force a 
             }
           : null;
         const requestParts: any[] = [];
-        if (shouldIncludeImage) {
+        requestParts.push({ text: finalPrompt });
+        if (shouldIncludeHumanImage) {
           if (identityInlinePart) {
             requestParts.push(identityInlinePart);
           } else if (modelReferenceFile) {
@@ -4291,6 +4290,8 @@ If the model attempts to create a scene or environment, override it and force a 
               reference: true,
             });
           }
+        }
+        if (shouldSendProductImage) {
           generationProducts.forEach(product => {
             requestParts.push({
               inlineData: { data: product.base64, mimeType: product.mimeType },
@@ -4298,12 +4299,14 @@ If the model attempts to create a scene or environment, override it and force a 
             });
           });
         }
-        requestParts.push({ text: finalPrompt });
         const payload = { parts: requestParts };
-        if (naturalMode || rawMode) {
-          console.log('[UGC IMAGE STRIPPED]', true);
-          console.log('[UGC FINAL PAYLOAD]', payload);
-        }
+        const payloadLog = {
+          isNaturalUgc: naturalMode || rawMode,
+          productImageSent: shouldSendProductImage,
+          humanImageSent: shouldIncludeHumanImage && (Boolean(identityInlinePart) || Boolean(modelReferenceFile)),
+          partsCount: requestParts.length,
+        };
+        console.log('[UGC PAYLOAD]', payloadLog);
 
         const seed = crypto.randomUUID();
         console.log('[UGC DEBUG] seed:', seed);

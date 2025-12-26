@@ -97,24 +97,23 @@ export async function generateImageWithGemini({
         apiVersion: "v1beta",
     });
 
-    // Build request parts with images
-    const shouldIncludeImage = !(
-        ugcStyle?.toLowerCase() === "natural" ||
-        ugcRealModeActive === true
-    );
+    const isNaturalUgc = ugcStyle?.toLowerCase() === "natural" || ugcRealModeActive === true;
+    const shouldIncludeHumanImage = !isNaturalUgc;
+    const shouldSendProductImage = products.length > 0;
+
+    const identityInlinePart = personIdentityPackage?.modelReferenceBase64
+        ? {
+              inlineData: {
+                  data: personIdentityPackage.modelReferenceBase64,
+                  mimeType: personIdentityPackage.modelReferenceMime ?? "image/png",
+              },
+              reference: true,
+          }
+        : null;
 
     const parts: any[] = [];
-    if (shouldIncludeImage) {
-        const identityInlinePart = personIdentityPackage?.modelReferenceBase64
-            ? {
-                  inlineData: {
-                      data: personIdentityPackage.modelReferenceBase64,
-                      mimeType: personIdentityPackage.modelReferenceMime ?? "image/png",
-                  },
-                  reference: true,
-              }
-            : null;
-
+    parts.push({ text: prompt });
+    if (shouldIncludeHumanImage) {
         if (identityInlinePart) {
             parts.push(identityInlinePart);
         } else if (modelReferenceFile) {
@@ -124,7 +123,9 @@ export async function generateImageWithGemini({
                 reference: true,
             });
         }
+    }
 
+    if (shouldSendProductImage) {
         products.forEach((product) => {
             parts.push({
                 inlineData: { data: product.base64, mimeType: product.mimeType },
@@ -133,7 +134,13 @@ export async function generateImageWithGemini({
         });
     }
 
-    parts.push({ text: prompt });
+    const payloadLog = {
+        isNaturalUgc,
+        productImageSent: shouldSendProductImage,
+        humanImageSent: shouldIncludeHumanImage && Boolean(identityInlinePart || modelReferenceFile),
+        partsCount: parts.length,
+    };
+    console.log('[UGC PAYLOAD]', payloadLog);
 
     const seed = crypto.randomUUID();
     console.log('[UGC DEBUG] seed:', seed);
