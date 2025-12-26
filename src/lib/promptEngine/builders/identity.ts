@@ -35,6 +35,14 @@ Avoid average, generic, or stock-photo facial proportions.
 Distinctive features and mild asymmetry are required.
 `.trim();
 
+const CREATOR_IDENTITY_DYNAMIC_BLOCK = `
+CREATOR IDENTITY (AUTO-GENERATED):
+Each generation must depict a different real person.
+Do NOT reuse the same face, age, ethnicity, hair, expression, or overall vibe.
+The person must appear unrelated to previous generations and never resemble a recurring model.
+Fresh, lived-in identity cues are required on every render.
+`.trim().replace(/\s+/g, ' ');
+
 const BODY_VARIATION_CATEGORIES = [
     {
         label: 'Shoulder width',
@@ -79,8 +87,19 @@ const EXPRESSION_NOISE_OPTIONS = [
 
 const GENERIC_IDENTITY_KEYWORDS = /(generic|identical|same person|same creator)/i;
 
+const createRandomIdentitySeed = (): string => {
+    if (typeof globalThis !== 'undefined') {
+        const runtimeCrypto = (globalThis as typeof globalThis & { crypto?: Crypto }).crypto;
+        if (runtimeCrypto?.randomUUID) {
+            return runtimeCrypto.randomUUID();
+        }
+    }
+    const randomComponent = Math.random().toString(36).slice(2, 10);
+    return `${Date.now().toString(36)}-${randomComponent}`;
+};
+
 const ensureIdentitySeed = (seed?: string): string =>
-    seed || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    seed || createRandomIdentitySeed();
 
 const createSeededRandom = (seed?: string): (() => number) => {
     if (!seed) {
@@ -340,6 +359,7 @@ Hair must appear eighty-plus years old with collapsed volume, irregular thinning
                 parts.push(`FACIAL MORPHOLOGY VARIATION: ${morphologyVariation}.`);
                 parts.push(`BODY VARIATION: ${bodyVariation}.`);
                 parts.push(`EXPRESSION NOISE: ${expressionNoise}.`);
+                parts.push(CREATOR_IDENTITY_DYNAMIC_BLOCK);
             }
 
             if (!hasModelReference) {

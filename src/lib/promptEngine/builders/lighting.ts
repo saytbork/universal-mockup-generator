@@ -47,9 +47,15 @@ export function buildLighting(params: any): string {
     params.sceneLighting ??
     "";
 
+  const ugcStyle = params.ugcStyle || "optimized";
+
   // Prevent duplication in mapped styling
   delete params.lighting;
   delete params.sceneLighting;
+
+  if (ugcStyle === "natural" && !params.ugcRealMode && !params.ugcRealModeActive) {
+    return "";
+  }
 
   const age = params.personDetails?.age ?? params.age;
   const isUGC = !!(params.ugcRealMode ?? params.ugcRealModeActive);

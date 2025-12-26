@@ -344,7 +344,8 @@ export class PromptEngine {
             finalize: finalizeSection
         };
 
-        let finalPrompt = buildMasterPrompt(masterSections, negative);
+        const resolvedUgcStyle = options.ugcStyle ?? 'optimized';
+        let finalPrompt = buildMasterPrompt(masterSections, negative, resolvedUgcStyle);
 
         const bannedEnvironmentalTerms = /(luxury editorial|hero framing|cinema camera)/i;
         if (options.sceneIntent === 'environment' && options.creationIntent !== 'ugc' && bannedEnvironmentalTerms.test(finalPrompt)) {
@@ -352,7 +353,7 @@ export class PromptEngine {
             masterSections.creationMode = 'Environment-first lifestyle composition with natural surroundings and contextual product placement.';
             masterSections.ecommerceBuilder = undefined;
             masterSections.cameraFraming = 'Camera: handheld smartphone perspective capturing lived-in surroundings, avoiding cinematic hero angles.';
-            finalPrompt = buildMasterPrompt(masterSections, negative);
+            finalPrompt = buildMasterPrompt(masterSections, negative, resolvedUgcStyle);
         }
 
         if (/data:image/i.test(finalPrompt)) {

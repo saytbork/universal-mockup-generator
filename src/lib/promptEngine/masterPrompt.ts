@@ -15,6 +15,68 @@
  * 10. ugcRealMode - DOMINANT override (always appended last when active)
  */
 
+const OPTIMIZED_UGC_PROMPT = '';
+const NATURAL_UGC_PROMPT = `
+LIFESTYLE MODE: NATURAL UGC.
+
+SCENE NARRATIVE:
+This must look like a real, casual photo taken at home by a normal person using a smartphone.
+The image should feel natural, human, and believable.
+It must not look staged, produced, or commercially polished.
+
+RULES:
+- No studio lighting.
+- No professional photography.
+- No polished or commercial composition.
+- No beauty filters.
+- No skin smoothing.
+- No brand-style presentation.
+
+VISUAL FIDELITY:
+- Smartphone front-camera feel.
+- Natural domestic lighting.
+- Uneven exposure is allowed.
+- Minor imperfections are allowed.
+- Do NOT force noise, blur, or degradation.
+
+CREATOR IDENTITY:
+- Real skin texture with natural variation.
+- No retouching.
+- Casual, unposed expression and posture.
+- The person is not presenting or performing.
+
+CAPTURE:
+- Handheld or casual front-camera framing.
+- Slightly imperfect framing is allowed.
+- Horizon does not need to be perfectly level.
+- Camera placement feels incidental, not planned.
+
+ENVIRONMENT:
+- Real domestic environment.
+- Lived-in but not dirty or chaotic.
+- Everyday surroundings.
+
+CRITICAL PROHIBITIONS:
+- No studio light.
+- No production setup.
+- No ecommerce product shot.
+- No influencer-style posing.
+- No showing the product directly to camera.
+
+GOAL:
+Natural, pleasant, believable UGC.
+Not raw and messy.
+Not polished or optimized.
+Just real.
+`.trim();
+const RAW_UGC_PROMPT = '';
+
+const UGC_CONTRACTS = {
+  optimized: OPTIMIZED_UGC_PROMPT,
+  natural: NATURAL_UGC_PROMPT,
+  raw: RAW_UGC_PROMPT,
+};
+
 export type MasterPromptSections = {
   creationIntent: string;
   creationMode: string;
@@ -36,7 +98,11 @@ export type MasterPromptSections = {
  * - Identity is placed AFTER scene for human-first composition.
  * - Finalize provides quality anchors and constraints before the final UGC override.
  */
-export function buildMasterPrompt(sections: MasterPromptSections, negativePrompt: string): string {
+export function buildMasterPrompt(
+  sections: MasterPromptSections,
+  negativePrompt: string,
+  ugcStyle: 'optimized' | 'natural' | 'raw' = 'optimized'
+): string {
     const {
       creationIntent,
       creationMode,
@@ -71,15 +137,23 @@ export function buildMasterPrompt(sections: MasterPromptSections, negativePrompt
       cleanedParts.push(trimmedCandidate);
     }
 
-    const renderedParts: string[] = [];
-    for (const cleanedPart of cleanedParts) {
-      renderedParts.push(cleanedPart);
-    }
+  const renderedParts: string[] = [];
+  for (const cleanedPart of cleanedParts) {
+    renderedParts.push(cleanedPart);
+  }
 
-    const ugcSection = (ugcRealMode || '').trim();
-    if (ugcSection) {
-      renderedParts.push(ugcSection);
+  const ugcContract = UGC_CONTRACTS[ugcStyle];
+  if (ugcContract) {
+    const trimmedContract = ugcContract.trim();
+    if (trimmedContract.length > 0) {
+      renderedParts.push(trimmedContract);
     }
+  }
+
+  const ugcSection = (ugcRealMode || '').trim();
+  if (ugcSection) {
+    renderedParts.push(ugcSection);
+  }
 
   const prompt = renderedParts.join(' ').replace(/\s+/g, ' ').trim();
 

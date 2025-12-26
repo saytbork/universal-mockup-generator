@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   SlidersHorizontal, User, Activity, Scissors, Smile, Eye, Sparkles,
   Sun, Camera, Rotate3d, Layout, Hand, Smartphone, Shirt, Layers, Film,
-  Home, MapPin, Coffee, Utensils, Car, Waves, Mountain, Building2, Edit3, Heart, Check
+  Home, MapPin, Coffee, Utensils, Car, Waves, Mountain, Building2, Edit3, Heart
 } from 'lucide-react';
 import {
   LIGHTING_OPTIONS,
@@ -10,6 +10,7 @@ import {
   CAMERA_ANGLE_OPTIONS as CONSTANT_CAMERA_ANGLE_OPTIONS // Use constant if needed or stick to local if it matches
 } from '../../constants';
 import type { UGCCaptureSituationId } from '../lib/promptEngine/ugcCaptureSituation';
+import SmoothAccordion from './SmoothAccordion';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -520,67 +521,6 @@ const LAB_VIBE_OPTIONS = ['Clean Lab', 'Moody Lab', 'Warm Studio'];
 // ============================================================================
 // HELPER COMPONENTS
 // ============================================================================
-interface AccordionSectionProps {
-  icon: React.ElementType;
-  title: string;
-  tooltip: string;
-  isOpen: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
-  isRequired?: boolean;
-  isTouched?: boolean;
-  isActive?: boolean;
-}
-
-const AccordionSection: React.FC<AccordionSectionProps> = ({
-  icon: Icon,
-  title,
-  tooltip,
-  isOpen,
-  onToggle,
-  children,
-  isRequired = false,
-  isTouched = false,
-  isActive = true
-}) => {
-  return (
-    <div className="rounded-xl border border-gray-700 bg-gray-800/30 overflow-hidden">
-      <button
-        type="button"
-        onClick={onToggle}
-        className="w-full flex items-center justify-between p-4 hover:bg-gray-700/20 transition"
-      >
-        <div className="flex items-center gap-3">
-          <Icon className="w-5 h-5 text-indigo-400" />
-          <div className="text-left">
-            <div className="flex items-center gap-2">
-              <p className="text-sm font-semibold text-white">{title}</p>
-              {isRequired && !isTouched && (
-                <span className="text-xs text-amber-400">*Required</span>
-              )}
-              {isTouched && isActive && (
-                <Check className="w-4 h-4 text-green-400" />
-              )}
-            </div>
-            <p className="text-xs text-gray-400">{tooltip}</p>
-          </div>
-        </div>
-        <svg
-          className={`w-4 h-4 text-gray-400 transform transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-          fill="none" stroke="currentColor" viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-      {isOpen && (
-        <div className="p-4 border-t border-gray-700">
-          {children}
-        </div>
-      )}
-    </div>
-  );
-};
-
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
@@ -1051,7 +991,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
 
       {/* Creator / Person */}
-      <AccordionSection
+      <SmoothAccordion
         icon={User}
         title="Creator / Person"
         tooltip="Define the person in your scene"
@@ -1283,10 +1223,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           )}
         </div>
 
-      </AccordionSection>
+      </SmoothAccordion>
 
       {/* RAW DOMESTIC UGC */}
-      <AccordionSection
+      <SmoothAccordion
         icon={Smartphone}
         title="Raw Domestic UGC"
         tooltip="Careless front-camera capture with zero polish"
@@ -1333,7 +1273,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     {RAW_DOMESTIC_CAPTURE_SECTIONS.map(section => {
                       const currentSelections = (values[section.field] as string[]) || [];
                       return (
-                        <AccordionSection
+                        <SmoothAccordion
                           key={section.field}
                           icon={section.icon}
                           title={section.title}
@@ -1360,7 +1300,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               </div>
                             ))}
                           </div>
-                        </AccordionSection>
+                        </SmoothAccordion>
                       );
                     })}
                     <div className="space-y-4 rounded-2xl border border-gray-600 bg-gray-900/40 p-4">
@@ -1413,10 +1353,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           </div>
         </div>
 
-      </AccordionSection>
+      </SmoothAccordion>
 
       {/* Product Interaction */}
-      <AccordionSection
+      <SmoothAccordion
         icon={Hand}
         title="Product Interaction"
         tooltip="Control how the creator handles the product"
@@ -1452,9 +1392,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             </div>
           )}
         </div>
-      </AccordionSection>
+      </SmoothAccordion>
 
-      <AccordionSection
+      <SmoothAccordion
         icon={Shirt}
         title="Custom Clothes"
         tooltip="Optionally describe an outfit without uploading images."
@@ -1597,9 +1537,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             </div>
           )}
         </div>
-      </AccordionSection>
+      </SmoothAccordion>
 
-      <AccordionSection
+      <SmoothAccordion
         icon={Layers}
         title="Product Structure"
         tooltip="Define how products are grouped and placed"
@@ -1628,10 +1568,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             ))}
           </div>
         </div>
-      </AccordionSection>
+      </SmoothAccordion>
 
       {/* Environment */}
-      <AccordionSection
+      <SmoothAccordion
         icon={Home}
         title="Environment"
         tooltip="Where the scene takes place"
@@ -1728,9 +1668,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             </div>
           </div>
         </div>
-      </AccordionSection>
+      </SmoothAccordion>
       {/* Time & Lighting */}
-      <AccordionSection
+      <SmoothAccordion
         icon={Sun}
         title="Time & Lighting"
         tooltip="Control the lighting and time of day"
@@ -1786,7 +1726,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             </div>
           </div>
         )}
-      </AccordionSection>
+      </SmoothAccordion>
 
       
           <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
@@ -1833,7 +1773,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           </div>
 
           {!isUGCMode && (
-            <AccordionSection
+            <SmoothAccordion
               icon={Camera}
               title="Camera & Framing"
               tooltip="How the scene is captured"
@@ -1894,7 +1834,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               </div>
             </div>
-            </AccordionSection>
+            </SmoothAccordion>
           )}
       {/* BUNDLES SYSTEM - STRICTLY ISOLATED */}
       {/* Bundles are enabled ONLY when multiple products are uploaded. */}
@@ -1961,7 +1901,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       {/* ECOMMERCE IMAGE BUILDER */}
       {/* Mutually exclusive with UGC Real Mode */}
       {/* Side Placement and Background Color only render for 'Ecommerce Blank Space' */}
-      <AccordionSection
+      <SmoothAccordion
         icon={Building2}
         title="Ecommerce Image Builder"
         tooltip="PDP, ads, bundles, hero ecommerce visuals"
@@ -2130,10 +2070,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             </div>
           )}
         </div >
-      </AccordionSection>
+      </SmoothAccordion>
 
       {/* Formulation Story */}
-      <AccordionSection
+      <SmoothAccordion
         icon={Edit3}
         title="Formulation Story"
         tooltip="Align brand expert, research, and product goals"
@@ -2235,10 +2175,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             </div>
           )}
         </div>
-      </AccordionSection>
+      </SmoothAccordion>
 
       {/* Output Format - LAST */}
-      <AccordionSection
+      <SmoothAccordion
         icon={Layers}
         title="Output Format"
         tooltip="Aspect ratio for the final image"
@@ -2260,7 +2200,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             ))}
           </div>
         </div>
-      </AccordionSection>
+      </SmoothAccordion>
 
     </div >
   );

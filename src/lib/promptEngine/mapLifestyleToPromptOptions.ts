@@ -145,6 +145,12 @@ function mapAppearanceLevel(value?: string): string | null {
 }
 
 const generateIdentitySeed = (): string => {
+    if (typeof globalThis !== 'undefined') {
+        const runtimeCrypto = (globalThis as typeof globalThis & { crypto?: Crypto }).crypto;
+        if (runtimeCrypto?.randomUUID) {
+            return runtimeCrypto.randomUUID();
+        }
+    }
     const randomComponent = Math.random().toString(36).slice(2, 10);
     return `${Date.now().toString(36)}-${randomComponent}`;
 };
@@ -518,9 +524,9 @@ export function mapLifestyleToPromptOptions(
     }
 
     // Initialize mapped options
-    const shouldPreserveIdentity = sceneState.sameCreatorAcrossScenes === true;
+    const identityContinuityRequested = sceneState.sameCreatorAcrossScenes === true;
     const identitySeed =
-        shouldPreserveIdentity && existingOptions.identitySeed
+        identityContinuityRequested && existingOptions.identitySeed
             ? existingOptions.identitySeed
             : generateIdentitySeed();
     const mapped: Partial<PromptOptions> = {
@@ -530,6 +536,9 @@ export function mapLifestyleToPromptOptions(
         ugcStyle: existingOptions.ugcStyle ?? 'optimized'
     };
     mapped.sameCreatorAcrossScenes = sceneState.sameCreatorAcrossScenes;
+    if (!identityContinuityRequested) {
+        delete (mapped as any).identityLock;
+    }
 
     // Initialize Person Details
     if (!mapped.personDetails) mapped.personDetails = {};
@@ -732,7 +741,9 @@ export function mapLifestyleToPromptOptions(
             hairLength: mapped.personDetails.hairLength || sceneState.hairLength,
             hairState
         };
-        (mapped as any).identityLock = identityLock;
+        if (identityContinuityRequested) {
+            (mapped as any).identityLock = identityLock;
+        }
     }
 
     const isUGCActive = isUGCRealMode;
