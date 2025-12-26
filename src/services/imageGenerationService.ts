@@ -23,6 +23,8 @@ type GenerateImageParams = {
     products: ActiveProduct[];
     personIdentityPackage?: PersonIdentityPackage;
     modelReferenceFile?: File | null;
+    ugcStyle?: string;
+    ugcRealModeActive?: boolean;
 };
 
 const fileToBase64 = (file: File): Promise<{ base64: string; mimeType: string }> => {
@@ -96,43 +98,48 @@ export async function generateImageWithGemini({
     });
 
     // Build request parts with images
-    const requestParts: any[] = [];
+    const shouldIncludeImage = !(
+        ugcStyle?.toLowerCase() === "natural" ||
+        ugcRealModeActive === true
+    );
 
-    // Add identity reference if exists
-    const identityInlinePart = personIdentityPackage?.modelReferenceBase64
-        ? {
-            inlineData: {
-                data: personIdentityPackage.modelReferenceBase64,
-                mimeType: personIdentityPackage.modelReferenceMime ?? "image/png",
-            },
-            reference: true,
+    const parts: any[] = [];
+    if (shouldIncludeImage) {
+        const identityInlinePart = personIdentityPackage?.modelReferenceBase64
+            ? {
+                  inlineData: {
+                      data: personIdentityPackage.modelReferenceBase64,
+                      mimeType: personIdentityPackage.modelReferenceMime ?? "image/png",
+                  },
+                  reference: true,
+              }
+            : null;
+
+        if (identityInlinePart) {
+            parts.push(identityInlinePart);
+        } else if (modelReferenceFile) {
+            const { base64: modelBase64, mimeType: modelMimeType } = await fileToBase64(modelReferenceFile);
+            parts.push({
+                inlineData: { data: modelBase64, mimeType: modelMimeType },
+                reference: true,
+            });
         }
-        : null;
 
-    if (identityInlinePart) {
-        requestParts.push(identityInlinePart);
-    } else if (modelReferenceFile) {
-        const { base64: modelBase64, mimeType: modelMimeType } = await fileToBase64(modelReferenceFile);
-        requestParts.push({
-            inlineData: { data: modelBase64, mimeType: modelMimeType },
-            reference: true,
+        products.forEach((product) => {
+            parts.push({
+                inlineData: { data: product.base64, mimeType: product.mimeType },
+                reference: true,
+            });
         });
     }
 
-    // Add product images
-    products.forEach((product) => {
-        requestParts.push({
-            inlineData: { data: product.base64, mimeType: product.mimeType },
-            reference: true,
-        });
-    });
+    parts.push({ text: prompt });
 
-    // Add text prompt
-    requestParts.push({ text: prompt });
-
+    const seed = crypto.randomUUID();
+    console.log('[UGC DEBUG] seed:', seed);
     const response = await ai.models.generateContent({
         model,
-        contents: { parts: requestParts },
+        contents: { parts },
         config: {
             responseModalities: [Modality.IMAGE],
             safetySettings: [],
@@ -142,7 +149,7 @@ export async function generateImageWithGemini({
                 preserveReferenceImage: true,
                 temperature: 0.25,
                 topP: 0.9,
-                seed: crypto.randomUUID(),
+                seed,
             },
         } as any,
     });
