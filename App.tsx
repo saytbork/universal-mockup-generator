@@ -4187,6 +4187,14 @@ If the model attempts to create a scene or environment, override it and force a 
     [availableProductIds, productAssets]
   );
 
+  const computePromptHash = async (text: string) => {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(text);
+    const hashBuffer = await (globalThis.crypto?.subtle ?? (window as any).crypto.subtle).digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+  };
+
   const handleGenerateClick = useCallback(
     async (bundleProducts?: ProductId[], overrideActiveList?: ActiveProduct[], runMode: 'generate' | 'validate' = 'generate') => {
       bundleSelectionRef.current = bundleProducts ?? null;
@@ -4242,6 +4250,10 @@ If the model attempts to create a scene or environment, override it and force a 
         // Use PromptEngine to build final prompt
         const finalPrompt = promptEngine.build(promptOptions);
 
+        const promptHash = await computePromptHash(finalPrompt);
+        console.log('[UGC DEBUG] promptHash:', promptHash);
+        console.log('[UGC DEBUG] promptPreview:', finalPrompt.slice(0, 300));
+
         // MANDATORY LOG - Final prompt string MUST show injected values
         console.log('[FINAL PROMPT STRING]', finalPrompt);
 
@@ -4252,36 +4264,52 @@ If the model attempts to create a scene or environment, override it and force a 
           return;
         }
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string, apiVersion: 'v1beta' });
+        const resolvedUgcStyle = (promptOptions.ugcStyle ?? 'optimized').toLowerCase();
+        const naturalMode = resolvedUgcStyle === 'natural';
+        const rawMode = !!promptOptions.ugcRealModeActive;
+        if (naturalMode || rawMode) {
+          generationProducts.length = 0;
+        }
+        const shouldIncludeImage = !(naturalMode || rawMode);
         const identityInlinePart = personIdentityPackage.modelReferenceBase64
           ? {
-            inlineData: {
-              data: personIdentityPackage.modelReferenceBase64,
-              mimeType: personIdentityPackage.modelReferenceMime ?? 'image/png',
-            },
-            reference: true,
-          }
+              inlineData: {
+                data: personIdentityPackage.modelReferenceBase64,
+                mimeType: personIdentityPackage.modelReferenceMime ?? 'image/png',
+              },
+              reference: true,
+            }
           : null;
         const requestParts: any[] = [];
-        if (identityInlinePart) {
-          requestParts.push(identityInlinePart);
-        } else if (modelReferenceFile) {
-          const { base64: modelBase64, mimeType: modelMimeType } = await fileToBase64(modelReferenceFile);
-          requestParts.push({
-            inlineData: { data: modelBase64, mimeType: modelMimeType },
-            reference: true,
+        if (shouldIncludeImage) {
+          if (identityInlinePart) {
+            requestParts.push(identityInlinePart);
+          } else if (modelReferenceFile) {
+            const { base64: modelBase64, mimeType: modelMimeType } = await fileToBase64(modelReferenceFile);
+            requestParts.push({
+              inlineData: { data: modelBase64, mimeType: modelMimeType },
+              reference: true,
+            });
+          }
+          generationProducts.forEach(product => {
+            requestParts.push({
+              inlineData: { data: product.base64, mimeType: product.mimeType },
+              reference: true,
+            });
           });
         }
-        generationProducts.forEach(product => {
-          requestParts.push({
-            inlineData: { data: product.base64, mimeType: product.mimeType },
-            reference: true,
-          });
-        });
         requestParts.push({ text: finalPrompt });
+        const payload = { parts: requestParts };
+        if (naturalMode || rawMode) {
+          console.log('[UGC IMAGE STRIPPED]', true);
+          console.log('[UGC FINAL PAYLOAD]', payload);
+        }
 
+        const seed = crypto.randomUUID();
+        console.log('[UGC DEBUG] seed:', seed);
         const response = await ai.models.generateContent({
           model: GEMINI_IMAGE_MODEL,
-          contents: { parts: requestParts },
+          contents: payload,
           config: {
             responseModalities: [Modality.IMAGE],
             safetySettings: [],
@@ -4291,6 +4319,7 @@ If the model attempts to create a scene or environment, override it and force a 
               preserveReferenceImage: true,
               temperature: 0.25,
               topP: 0.9,
+              seed,
             },
           },
         });
