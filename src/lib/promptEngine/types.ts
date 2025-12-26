@@ -133,6 +133,7 @@ export interface PromptOptions {
     // Core
     contentStyle: 'ugc' | 'product' | '';
     creationIntent?: 'ugc' | 'product' | 'brand';
+    ugcStyle?: 'optimized' | 'natural' | 'raw';
     creationMode: 'lifestyle' | 'studio' | 'aesthetic' | 'bg-replace' | 'ecom-blank';
     aspectRatio: string;
     camera: string;

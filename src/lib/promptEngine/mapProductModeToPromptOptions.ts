@@ -67,7 +67,10 @@ export function mapProductModeToPromptOptions(
 ): Partial<PromptOptions> {
     console.log('[PRODUCT MODE MAP INPUT]', sceneState);
 
-    const mapped: Partial<PromptOptions> = { ...existingOptions };
+    const mapped: Partial<PromptOptions> = {
+        ...existingOptions,
+        ugcStyle: existingOptions.ugcStyle ?? 'optimized'
+    };
 
     // Force Product Mode flags
     mapped.contentStyle = 'product';

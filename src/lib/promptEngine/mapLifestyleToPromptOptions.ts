@@ -526,7 +526,8 @@ export function mapLifestyleToPromptOptions(
     const mapped: Partial<PromptOptions> = {
         ...existingOptions,
         hasModelReference,
-        identitySeed
+        identitySeed,
+        ugcStyle: existingOptions.ugcStyle ?? 'optimized'
     };
     mapped.sameCreatorAcrossScenes = sceneState.sameCreatorAcrossScenes;
 

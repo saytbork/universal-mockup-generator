@@ -51,7 +51,7 @@ export function buildMasterPrompt(sections: MasterPromptSections, negativePrompt
     } = sections;
 
   // CANONICAL ORDER - creation intent first, raw domestic UGC last
-    const parts = [
+    const candidateParts = [
       creationIntent,     // 1. Structural context
       creationMode,       // 2. Mode rules
       formulationStory,   // 3. Expert credibility
@@ -61,19 +61,29 @@ export function buildMasterPrompt(sections: MasterPromptSections, negativePrompt
       compositionDetails, // 7. Composition instructions
       identity,           // 8. Person traits
       finalize            // 9. Constraints + output
-    ]
-    .filter(Boolean)
-    .map(part => (part || '').trim())
-    .filter(part => part.length > 0);
+    ];
+
+    const cleanedParts: string[] = [];
+    for (const candidate of candidateParts) {
+      if (!candidate) continue;
+      const trimmedCandidate = candidate.trim();
+      if (trimmedCandidate.length === 0) continue;
+      cleanedParts.push(trimmedCandidate);
+    }
+
+    const renderedParts: string[] = [];
+    for (const cleanedPart of cleanedParts) {
+      renderedParts.push(cleanedPart);
+    }
 
     const ugcSection = (ugcRealMode || '').trim();
     if (ugcSection) {
-      parts.push(ugcSection);
+      renderedParts.push(ugcSection);
     }
 
-  const prompt = parts.join(' ').replace(/\s+/g, ' ').trim();
+  const prompt = renderedParts.join(' ').replace(/\s+/g, ' ').trim();
 
-  console.log('[MASTER PROMPT] Assembled', parts.length, 'sections,', prompt.length, 'chars');
+  console.log('[MASTER PROMPT] Assembled', renderedParts.length, 'sections,', prompt.length, 'chars');
 
   return `${prompt} Negative prompt: ${negativePrompt}`.replace(/\s+/g, ' ').trim();
 }
