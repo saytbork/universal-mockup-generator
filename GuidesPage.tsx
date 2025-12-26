@@ -1,15 +1,9 @@
 import React from 'react';
-
-const guides = [
-  'How to Generate UGC with AI',
-  'How to Create AI Lifestyle Images',
-  'How to Build Shopify Photos with AI',
-  'How to Create eCommerce Packshots',
-  'AI for Amazon Listing Images',
-  'AI Photography Tips for Beginners',
-];
+import { Link } from 'react-router-dom';
+import { getAllGuideArticles } from './src/content/guides';
 
 const GuidesPage: React.FC = () => {
+  const guides = getAllGuideArticles();
   return (
     <div className="bg-gray-950 text-white min-h-screen">
       <div className="max-w-5xl mx-auto px-4 py-20 space-y-12">
@@ -18,22 +12,29 @@ const GuidesPage: React.FC = () => {
           <p className="text-gray-300">Learn how to create high-converting visuals using AI.</p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-6 sm:grid-cols-2">
           {guides.map(guide => (
             <div
-              key={guide}
-              className="rounded-2xl border border-white/10 bg-gray-900/60 p-5"
+              key={guide.slug}
+              className="rounded-2xl border border-white/10 bg-gray-900/60 overflow-hidden"
             >
-              <h2 className="text-2xl font-semibold">{guide}</h2>
-              <p className="text-gray-300 leading-relaxed mt-2">
-                Step-by-step instructions coming soon. Save this guide to start faster.
-              </p>
-              <a
-                href="#"
-                className="inline-block bg-black text-white px-4 py-2 rounded-md hover:bg-black/90 text-sm mt-4"
-              >
-                Read Guide
-              </a>
+              {guide.heroImage.src && (
+                <img
+                  src={guide.heroImage.src}
+                  alt={guide.heroImage.alt}
+                  className="w-full h-48 object-cover"
+                />
+              )}
+              <div className="p-6 space-y-3">
+                <h2 className="text-2xl font-semibold">{guide.title}</h2>
+                <p className="text-gray-300 leading-relaxed">{guide.subtitle}</p>
+                <Link
+                  to={`/guides/${guide.slug}`}
+                  className="inline-flex items-center justify-center bg-black text-white px-4 py-2 rounded-md hover:bg-black/90 text-sm"
+                >
+                  Read Guide
+                </Link>
+              </div>
             </div>
           ))}
         </div>

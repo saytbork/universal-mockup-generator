@@ -1,0 +1,58 @@
+{
+    "id": "ai-lifestyle-images-guide",
+    "slug": "how-to-create-ai-lifestyle-images",
+    "title": "How to Create AI Lifestyle Images for E-commerce",
+    "subtitle": "Transform product photos into stunning lifestyle scenes that sell. Complete guide to AI-powered lifestyle photography.",
+    "seo": {
+        "title": "How to Create AI Lifestyle Images for E-commerce | BoostUGC",
+        "description": "Learn to create professional AI lifestyle product images. Step-by-step tutorial for e-commerce sellers to generate high-converting lifestyle photography."
+    },
+    "heroImage": {
+        "src": "/src/content/guides/img/hero-guide2.webp",
+        "prompt": "Elegant lifestyle product photography scene with skincare bottles on marble bathroom counter, soft morning light, eucalyptus plant, luxury spa aesthetic. Ultra realistic commercial photography style.",
+        "alt": "Luxury lifestyle product photography with skincare on marble counter"
+    },
+    "sections": [
+        {
+            "heading": "Why Lifestyle Images Convert Better",
+            "body": "<p>Studies show that lifestyle product images outperform plain white background shots by 30-40% in click-through rates. Why? Because lifestyle images help customers visualize ownership.</p><p>When a shopper sees your product in a beautiful kitchen, on a stylish desk, or in a relaxing bathroom setting, their brain processes it differently. They're no longer evaluating a product—they're imagining a better version of their life.</p><p>AI makes creating these aspirational scenes accessible to every brand, regardless of budget or photography expertise.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Choosing the Perfect Environment",
+            "body": "<p>Match your environment to your customer's aspirations, not just their reality:</p><p><strong>Premium/Luxury Products:</strong> Marble surfaces, neutral tones, minimal props, abundant natural light. Think boutique hotel bathroom or designer apartment.</p><p><strong>Everyday Essentials:</strong> Warm wood tones, lived-in spaces, family-friendly environments. Cozy kitchen counters, organized bathroom shelves.</p><p><strong>Active/Wellness:</strong> Bright, energetic spaces with plants, natural textures. Yoga mats, gym bags, outdoor settings.</p><p><strong>Tech/Productivity:</strong> Clean desk setups, modern minimalist offices. Cable management, quality peripherals, focused aesthetic.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Lighting That Sells",
+            "body": "<p>Lighting is the single most important factor in lifestyle photography. AI excels at recreating these scenarios:</p><p><strong>Golden Hour:</strong> Warm, directional sunlight creates depth and emotion. Perfect for wellness and beauty products.</p><p><strong>Soft Diffused:</strong> Overcast window light or north-facing windows. Even, flattering illumination for any product.</p><p><strong>Dramatic Side Light:</strong> Strong shadows create visual interest. Works well for premium and artistic positioning.</p><p><strong>Bright and Airy:</strong> High-key lighting with minimal shadows. Clean, fresh aesthetic for health and skincare.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Prop Selection Strategy",
+            "body": "<p>Props should enhance your product story without competing for attention:</p><ul><li><strong>Color harmony:</strong> Props should complement your product colors, not clash</li><li><strong>Scale reference:</strong> Include items that help viewers understand product size</li><li><strong>Lifestyle indicators:</strong> A coffee cup suggests morning routine, a book suggests relaxation</li><li><strong>Seasonal elements:</strong> Adapt props for seasonal campaigns (cozy blankets for winter, fresh flowers for spring)</li></ul><p>The golden rule: Every prop should answer the question \"What else would my ideal customer have in this space?\"</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Composition Fundamentals",
+            "body": "<p>Apply these principles to create visually compelling lifestyle shots:</p><p><strong>Rule of Thirds:</strong> Place your product at intersection points for natural visual flow.</p><p><strong>Leading Lines:</strong> Use table edges, shadows, or prop arrangements to guide the eye to your product.</p><p><strong>Negative Space:</strong> Leave room for text overlays in ads while maintaining visual balance.</p><p><strong>Depth Layers:</strong> Create foreground, middle ground, and background elements for dimensional images.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Batch Production Workflow",
+            "body": "<p>Maximize efficiency with a systematic approach:</p><ol><li><strong>Plan your shot list:</strong> Define 10-20 scene variations before starting</li><li><strong>Group by environment:</strong> Generate all kitchen scenes, then all bathroom scenes</li><li><strong>Test and iterate:</strong> Generate 3-5 versions of your best performers</li><li><strong>Build a library:</strong> Save successful prompts for future campaigns</li></ol><p>With AI, you can produce a month's worth of content in a single session.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        }
+    ],
+    "cta": {
+        "title": "Create Lifestyle Images That Convert",
+        "text": "Generate stunning lifestyle product photography in minutes. Studio-quality results without the studio.",
+        "button": "Start Creating"
+    }
+}

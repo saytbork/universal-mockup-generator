@@ -8,6 +8,7 @@
     "description": "Learn how AI background replacement helps eCommerce brands create clean, consistent product photos with no editing software."
   },
   "heroImage": {
+    "src": "https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=800&h=800&fit=crop",
     "prompt": "Before-and-after product image showing messy background on left and clean branded gradient background on right. Professional lighting, crisp edges, studio clarity. 1:1.",
     "alt": "Before and after background replacement for product photography."
   },

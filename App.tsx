@@ -38,7 +38,10 @@ import {
 import { normalizeOptions } from './src/system/normalizeOptions';
 import { promptEngine } from './src/lib/promptEngine';
 import { mapLifestyleToPromptOptions } from './src/lib/promptEngine/mapLifestyleToPromptOptions';
-import LifestyleStep3, { type Step3Values } from "@/components/LifestyleStep3";
+import { mapProductModeToPromptOptions } from './src/lib/promptEngine/mapProductModeToPromptOptions';
+import LifestyleStep3 from "@/components/steps/LifestyleStep3";
+import ProductStep3 from "@/components/steps/ProductStep3";
+import type { ProductValues, Step3Values } from '@/types/step3Types';
 
 
 
@@ -93,6 +96,8 @@ const cloneUGCRealSettings = (settings?: UGCRealModeSettings): UGCRealModeSettin
   framingId: settings?.framingId ?? UGC_SPONTANEOUS_FRAMING_OPTIONS[0]?.id ?? 'arm-length',
 });
 
+type SceneFlow = 'lifestyle' | 'product';
+
 type StoryboardScene = {
   id: string;
   label: string;
@@ -119,6 +124,7 @@ type StoryboardScene = {
   formulationExpertProfession: string;
   personIdentityPackage: PersonIdentityPackage;
   modelReferenceNotes: string;
+  flow: SceneFlow;
 };
 
 type ModelReferenceData = {
@@ -546,6 +552,9 @@ const createDefaultOptions = (): MockupOptions => ({
   sidePlacement: 'right',
   bgColor: '#FFFFFF',
 });
+
+const resolveSceneFlow = (options?: MockupOptions): SceneFlow =>
+  options?.contentStyle === 'product' ? 'product' : 'lifestyle';
 import ImageUploader, { ImageUploaderHandle } from './components/ImageUploader';
 import GeneratedImage from './components/GeneratedImage';
 import VideoGenerator from './components/VideoGenerator';
@@ -876,6 +885,7 @@ const App: React.FC = () => {
       formulationExpertProfession: 'custom',
       personIdentityPackage: createPersonIdentityPackage(createDefaultOptions()),
       modelReferenceNotes: '',
+      flow: resolveSceneFlow(createDefaultOptions()),
     };
   }
   const [options, setOptions] = useState<MockupOptions>(() => syncCharacterFields(cloneOptions(initialSceneRef.current!.options)));
@@ -1110,7 +1120,7 @@ const App: React.FC = () => {
   const [onboardingStep, setOnboardingStep] = useState(1);
 
   // LifestyleStep3 state for PromptEngine
-  const [lifestyleStep3Values, setLifestyleStep3Values] = useState<Step3Values | null>(null);
+  const [lifestyleStep3Values, setLifestyleStep3Values] = useState<Step3Values | ProductValues | null>(null);
   const [activeTalentPreset, setActiveTalentPreset] = useState('custom');
   const [isProPhotographer, setIsProPhotographer] = useState(false);
   const [activeProPreset, setActiveProPreset] = useState<string>('custom');
@@ -1229,6 +1239,20 @@ const App: React.FC = () => {
     if (!storyboardScenes.length) return;
     setIdentitySourceSceneId(storyboardScenes[0].id);
   }, [isTalentLinkedAcrossScenes, storyboardScenes]);
+
+  useEffect(() => {
+    const nextFlow = resolveSceneFlow(options);
+    setStoryboardScenes(prev => {
+      let updated = false;
+      const next = prev.map(scene => {
+        if (scene.id !== activeSceneId) return scene;
+        if (scene.flow === nextFlow) return scene;
+        updated = true;
+        return { ...scene, flow: nextFlow };
+      });
+      return updated ? next : prev;
+    });
+  }, [activeSceneId, options.contentStyle]);
 
   useEffect(() => {
     setStoryboardScenes(prev => {
@@ -2811,7 +2835,7 @@ const App: React.FC = () => {
   }, [applyProPreset]);
 
   // Handler for LifestyleStep3 component 
-  const handleLifestyleStep3Change = useCallback((values: Step3Values) => {
+  const handleLifestyleStep3Change = useCallback((values: Step3Values | ProductValues) => {
     // PHASE 3: MANDATORY LOG - Prove App receives sceneState
     console.log('[APP RECEIVED SCENESTATE]', values);
 
@@ -4220,6 +4244,7 @@ If the model attempts to create a scene or environment, override it and force a 
         const basePromptOptions: any = {
           ...options,
           contentStyle: isProductPlacement ? 'product' : 'ugc',
+          productMode: isProductPlacement || (lifestyleStep3Values?.productMode ?? false),
           creationMode: options.creationMode || 'lifestyle',
           personIncluded,
           productAssets: generationProducts.map(p => ({
@@ -4231,8 +4256,14 @@ If the model attempts to create a scene or environment, override it and force a 
 
         // If LifestyleStep3 values exist, map them to PromptOptions
         let promptOptions = basePromptOptions;
-        if (lifestyleStep3Values && !isProductPlacement) {
-          promptOptions = mapLifestyleToPromptOptions(lifestyleStep3Values, basePromptOptions, hasModelReference);
+        if (lifestyleStep3Values) {
+          const sceneState = lifestyleStep3Values as Step3Values;
+          const isProductModeActive = Boolean(sceneState.productMode) || isProductPlacement;
+          if (isProductModeActive) {
+            promptOptions = mapProductModeToPromptOptions(sceneState, basePromptOptions);
+          } else {
+            promptOptions = mapLifestyleToPromptOptions(sceneState, basePromptOptions, hasModelReference);
+          }
         }
 
         // MANDATORY LOGS - Prove injection works
@@ -5159,19 +5190,35 @@ If the model attempts to create a scene or environment, override it and force a 
                       return '';
                     })();
 
+                    const activeScene = storyboardScenes.find(scene => scene.id === activeSceneId);
+                    const sceneFlow = activeScene?.flow ?? resolveSceneFlow(options);
+
                     return (
                       <SceneBuilderStep
                         ref={customizeRef}
-                        isProductMode={isProductPlacement}
                         isLocked={!hasUploadedProduct}
                         isImageLoading={isImageLoading}
                         isGenerateDisabled={isGenerateDisabled}
                         generationRestriction={generationRestrictionMessage}
-                        onValuesChange={handleLifestyleStep3Change}
                         onGenerate={handleGenerateClick}
-                        hasModelReference={hasModelReference}
-                        productCount={activeProducts.length}
-                      />
+                      >
+                        {sceneFlow === 'product' ? (
+                          <ProductStep3
+                            onValuesChange={handleLifestyleStep3Change}
+                            onCanGenerateChange={() => {
+                              // placeholder for future hooks
+                            }}
+                          />
+                        ) : (
+                          <LifestyleStep3
+                            onValuesChange={handleLifestyleStep3Change}
+                            onCanGenerateChange={() => {
+                              // placeholder for future hooks
+                            }}
+                            hasModelReference={hasModelReference}
+                          />
+                        )}
+                      </SceneBuilderStep>
                     );
                   })()}
                 </div>
@@ -5257,41 +5304,28 @@ If the model attempts to create a scene or environment, override it and force a 
 };
 
 interface SceneBuilderStepProps {
-  isProductMode: boolean;
   isLocked: boolean;
   isImageLoading: boolean;
   isGenerateDisabled: boolean;
   generationRestriction?: string;
-  onValuesChange: (values: Step3Values) => void;
   onGenerate: () => void;
-  hasModelReference: boolean;
-  productCount: number;
+  children: React.ReactNode;
 }
 
 const SceneBuilderStep = forwardRef<HTMLDivElement, SceneBuilderStepProps>(({
-  isProductMode,
   isLocked,
   isImageLoading,
   isGenerateDisabled,
   generationRestriction,
-  onValuesChange,
   onGenerate,
-  hasModelReference,
-  productCount,
+  children,
 }, ref) => (
-    <div
-      ref={ref}
-      className={`bg-gray-800/50 rounded-lg flex flex-col overflow-hidden ${isLocked ? 'opacity-60 pointer-events-none' : ''}`}
-    >
-      <div className="flex-grow overflow-y-auto custom-scrollbar">
-        <LifestyleStep3
-        isProductMode={isProductMode}
-        onValuesChange={onValuesChange}
-        onCanGenerateChange={(canGenerate) => {
-          // Add logic if needed
-        }}
-        hasModelReference={hasModelReference}
-      />
+  <div
+    ref={ref}
+    className={`bg-gray-800/50 rounded-lg flex flex-col overflow-hidden ${isLocked ? 'opacity-60 pointer-events-none' : ''}`}
+  >
+    <div className="flex-grow overflow-y-auto custom-scrollbar">
+      {children}
     </div>
     <div className="p-4 flex-shrink-0">
       <button

@@ -1,0 +1,93 @@
+import React, { useEffect, useMemo } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { getGuideArticleBySlug, GuideArticle } from './src/content/guides';
+
+const setMetaDescription = (content: string) => {
+    const meta = document.querySelector('meta[name="description"]');
+    if (meta) {
+        meta.setAttribute('content', content);
+    }
+};
+
+const GuideArticlePage: React.FC = () => {
+    const { slug } = useParams<{ slug: string }>();
+    const article = useMemo<GuideArticle | null>(() => getGuideArticleBySlug(slug), [slug]);
+
+    useEffect(() => {
+        if (!article) return;
+        document.title = article.seo.title;
+        setMetaDescription(article.seo.description);
+    }, [article]);
+
+    if (!article) {
+        return (
+            <div className="bg-gray-950 text-white min-h-screen flex flex-col">
+                <div className="max-w-5xl mx-auto px-4 py-20">
+                    <p className="text-sm text-gray-400">Guide not found.</p>
+                    <Link to="/guides" className="inline-flex mt-4 text-indigo-300">
+                        Back to guides
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="bg-gray-950 text-white min-h-screen">
+            <div className="max-w-5xl mx-auto px-4 py-12 space-y-10">
+                <section className="guide-hero rounded-3xl border border-white/10 bg-gradient-to-br from-emerald-500/30 to-teal-500/30 p-8 space-y-4">
+                    <Link className="text-sm text-gray-200 underline" to="/guides">
+                        ← Back to guides
+                    </Link>
+                    <div className="space-y-3">
+                        <p className="text-xs uppercase tracking-[0.4em] text-emerald-200">Guide</p>
+                        <h1 className="text-4xl font-semibold leading-tight">{article.title}</h1>
+                        <p className="text-lg text-gray-200 max-w-3xl">{article.subtitle}</p>
+                    </div>
+                    {article.heroImage.src && (
+                        <figure className="rounded-2xl overflow-hidden border border-white/10">
+                            <img
+                                src={article.heroImage.src}
+                                alt={article.heroImage.alt}
+                                className="w-full max-h-[550px] object-cover"
+                            />
+                        </figure>
+                    )}
+                </section>
+
+                <section className="guide-body space-y-12">
+                    {article.sections.map(section => (
+                        <article key={section.heading} className="space-y-3">
+                            <h2 className="text-2xl font-semibold">{section.heading}</h2>
+                            <div
+                                className="space-y-2 text-gray-200 leading-relaxed"
+                                dangerouslySetInnerHTML={{ __html: section.body }}
+                            />
+                            {section.imageSrc ? (
+                                <figure className="rounded-2xl overflow-hidden border border-white/10">
+                                    <img
+                                        src={section.imageSrc}
+                                        alt={section.imageAlt || section.heading}
+                                        className="w-full h-auto object-cover"
+                                    />
+                                </figure>
+                            ) : null}
+                        </article>
+                    ))}
+                    <div className="guide-cta rounded-3xl border border-white/10 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 p-6 space-y-3">
+                        <h3 className="text-2xl font-semibold">{article.cta.title}</h3>
+                        <p className="text-gray-200 leading-relaxed">{article.cta.text}</p>
+                        <a
+                            className="inline-flex items-center justify-center rounded-full bg-emerald-500/90 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-400"
+                            href="/app"
+                        >
+                            {article.cta.button}
+                        </a>
+                    </div>
+                </section>
+            </div>
+        </div>
+    );
+};
+
+export default GuideArticlePage;

@@ -1,4 +1,5 @@
 export type BlogHeroImage = {
+  src?: string;
   prompt: string;
   alt: string;
 };
@@ -6,6 +7,7 @@ export type BlogHeroImage = {
 export type BlogSection = {
   heading: string;
   body: string;
+  imageSrc?: string;
   imagePrompt?: string;
   imageAlt?: string;
 };

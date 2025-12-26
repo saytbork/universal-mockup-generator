@@ -8,6 +8,7 @@
     "description": "Upgrade your Shopify product photos using AI. Learn what images convert, how to structure them, and how to reduce bounce rates."
   },
   "heroImage": {
+    "src": "/src/content/blog/img/hero-article2.webp",
     "prompt": "High-end product photo on a clean Shopify-style white background. A dropper bottle with crisp shadows and subtle UI overlays like add-to-cart and rating icons. Soft daylight. 1:1.",
     "alt": "Shopify-style clean product image with conversion UI elements."
   },

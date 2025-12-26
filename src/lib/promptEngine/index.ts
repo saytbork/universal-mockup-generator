@@ -110,6 +110,17 @@ const DEPTH_DETECTION_REGEX = /(depth of field|portrait mode|portrait blur|bokeh
 const FOCUS_OVERRIDE_APPEND =
     'flat focus across the entire frame, small sensor, fixed wide lens, no depth separation, no portrait mode.';
 
+const NATURAL_POSITIVE_BLACKLIST = /(?<!\bno[\s,\.])\b(beautiful|well-lit|high quality|clean|sharp|professional)\b/gi;
+const NATURAL_HARD_FAIL_TERMS = [
+    'studio lighting',
+    'professional photography',
+    'beauty lighting',
+    'product hero shot',
+    'commercial composition',
+    'influencer pose',
+    'brand campaign style'
+];
+
 function enforcePreflightGuards(options: PromptOptions) {
     const lock = options.identityLock;
     if (lock && options.personDetails) {
@@ -361,6 +372,19 @@ export class PromptEngine {
 
         if (finalPrompt.length > 30000) {
             throw new Error('Prompt too large, aborting build');
+        }
+
+        if (options.naturalUgcActive) {
+            finalPrompt = finalPrompt.replace(NATURAL_POSITIVE_BLACKLIST, ' ');
+            finalPrompt = finalPrompt.replace(/\s+/g, ' ').trim();
+            const conflict = NATURAL_HARD_FAIL_TERMS.find(term =>
+                new RegExp(term, 'i').test(finalPrompt)
+            );
+            if (conflict) {
+                throw new InvalidSceneCombinationError(
+                    `Natural UGC conflict: prompt still contains "${conflict}".`
+                );
+            }
         }
 
         finalPrompt = enforceUgcFocusGuard(finalPrompt, options);

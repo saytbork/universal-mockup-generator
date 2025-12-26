@@ -16,16 +16,25 @@ const BlogPage: React.FC = () => {
           {posts.map(post => (
             <div
               key={post.slug}
-              className="rounded-2xl border border-white/10 bg-gray-900/60 p-6 space-y-3"
+              className="rounded-2xl border border-white/10 bg-gray-900/60 overflow-hidden"
             >
-              <h2 className="text-2xl font-semibold">{post.title}</h2>
-              <p className="text-gray-300 leading-relaxed">{post.subtitle}</p>
-              <Link
-                to={`/blog/${post.slug}`}
-                className="inline-flex items-center justify-center bg-black text-white px-4 py-2 rounded-md hover:bg-black/90 text-sm"
-              >
-                Read Article
-              </Link>
+              {post.heroImage.src && (
+                <img
+                  src={post.heroImage.src}
+                  alt={post.heroImage.alt}
+                  className="w-full h-48 object-cover"
+                />
+              )}
+              <div className="p-6 space-y-3">
+                <h2 className="text-2xl font-semibold">{post.title}</h2>
+                <p className="text-gray-300 leading-relaxed">{post.subtitle}</p>
+                <Link
+                  to={`/blog/${post.slug}`}
+                  className="inline-flex items-center justify-center bg-black text-white px-4 py-2 rounded-md hover:bg-black/90 text-sm"
+                >
+                  Read Article
+                </Link>
+              </div>
             </div>
           ))}
         </div>

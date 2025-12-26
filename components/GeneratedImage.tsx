@@ -158,7 +158,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
     return canvasToBlob(canvas);
   };
 
-  const buildFilename = () => `ai-mockup-${downloadResolution}.png`;
+  const buildFilename = () => `ai-mockup-${downloadResolution}.webp`;
 
   const showHiResStatus = isHiResProcessing || Boolean(fourKVariant || twoKVariant || hiResError);
 

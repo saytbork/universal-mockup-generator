@@ -8,6 +8,7 @@
     "description": "Learn how to generate premium supplement and beauty product images using AI, including lifestyle, hero, and ingredient visuals."
   },
   "heroImage": {
+    "src": "https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=800&h=800&fit=crop",
     "prompt": "Wellness-themed flat lay with dropper bottles, soft white fabric, eucalyptus leaves, and daylight shadows. Clean premium aesthetic. 1:1.",
     "alt": "Wellness product flat lay with natural props and soft lighting."
   },

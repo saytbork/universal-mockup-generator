@@ -54,7 +54,7 @@ export interface PersonDetails {
     personPose?: string;
     personMood?: string;
     personAppearance?: string;
-    productInteraction?: string;
+    productInteraction?: ProductInteractionVariant;
     wardrobeStyle?: string;
     personProps?: string;
     microLocation?: string;
@@ -120,6 +120,16 @@ export type CustomClothes = {
 
 export type SceneOrderChaosLevel = 'clean' | 'normal' | 'messy' | 'chaotic' | 'randomized-chaos';
 
+export type ProductInteractionVariant =
+    | 'Holding'
+    | 'Using'
+    | 'Presenting'
+    | 'Unboxing / Open Box'
+    | 'none'
+    | 'handsHolding'
+    | 'handsOpening'
+    | 'handsPlacing';
+
 export interface UGCRealModeLayerSet {
     captureBase?: string[];
     cameraOperator?: string[];
@@ -132,6 +142,7 @@ export interface UGCRealModeLayerSet {
 export interface PromptOptions {
     // Core
     contentStyle: 'ugc' | 'product' | '';
+    productMode?: boolean;
     creationIntent?: 'ugc' | 'product' | 'brand';
     creationMode: 'lifestyle' | 'studio' | 'aesthetic' | 'bg-replace' | 'ecom-blank';
     aspectRatio: string;
@@ -165,7 +176,7 @@ export interface PromptOptions {
     personPose?: string;
     personMood?: string;
     personAppearance?: string;
-    productInteraction?: string;
+    productInteraction?: ProductInteractionVariant;
     wardrobeStyle?: string;
     personProps?: string;
     microLocation?: string;
@@ -184,6 +195,19 @@ export interface PromptOptions {
     clothingPreset?: string;
     clothingQuickPreset?: string;
     customClothes?: CustomClothes;
+    productType?: 'capsules' | 'gummies' | 'drops' | 'powder' | 'skincare' | 'device';
+    productCount?: 1 | 2 | 3 | 4;
+    productScale?: 'small' | 'realistic' | 'hero';
+    productViewPreset?: 'front' | 'top' | 'perspective45' | 'highAngle' | 'lowAngle' | 'detail' | 'backSide';
+    productViewCustomText?: string;
+    productCompositionPreset?: 'cleanStudio' | 'editorialFlatLay' | 'ingredientStory' | 'abstractBenefit' | 'routineBundle';
+    ecommerceAlignment?: 'left' | 'center' | 'right';
+    reserveBlankSpace?: boolean;
+    productEnvironment?: 'solidColor' | 'softGradient' | 'studioSeamless' | 'realSurface';
+    backgroundColorHint?: string;
+    productLighting?: 'softStudio' | 'naturalWindow' | 'controlledDirectional';
+    productOutputFormat?: '1x1' | '4x5' | '16x9';
+    isBundle?: boolean;
     // Special Modes
     isHeroLandingMode?: boolean;
     heroBackground?: string;
@@ -215,6 +239,8 @@ export interface PromptOptions {
 
     // Real Mode
     realModeActive?: boolean;
+    ugcStyle?: 'optimized' | 'natural';
+    naturalUgcActive?: boolean;
 
     // Identity
     hasModelReference?: boolean;      // Model reference uploaded

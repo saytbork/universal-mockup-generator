@@ -8,6 +8,7 @@
     "description": "Learn how to generate Amazon-ready product images, A+ content modules, and lifestyle shots using AI."
   },
   "heroImage": {
+    "src": "https://images.unsplash.com/photo-1523474253046-8cd2748b5fd2?w=800&h=800&fit=crop",
     "prompt": "Amazon listing-style product layout with clean white background, structured module hints, and minimal lifestyle elements. Ultra sharp, top-down composition. 1:1.",
     "alt": "Clean Amazon listing hero image with structured layout."
   },

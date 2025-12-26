@@ -1,0 +1,58 @@
+{
+    "id": "ecommerce-packshots-guide",
+    "slug": "how-to-create-ecommerce-packshots",
+    "title": "How to Create Professional eCommerce Packshots with AI",
+    "subtitle": "Master the art of product packshots. Learn to create clean, consistent, conversion-optimized product photography.",
+    "seo": {
+        "title": "How to Create Professional eCommerce Packshots with AI | BoostUGC",
+        "description": "Complete guide to creating professional packshot photography with AI. Learn studio techniques for clean product photos that convert."
+    },
+    "heroImage": {
+        "src": "/src/content/guides/img/hero-guide4.webp",
+        "prompt": "Professional product photography studio setup with white seamless background, softbox lighting, cosmetic products arranged for packshot. Clean commercial photography aesthetic. Ultra realistic.",
+        "alt": "Professional packshot photography studio with products and lighting setup"
+    },
+    "sections": [
+        {
+            "heading": "What Makes a Great Packshot",
+            "body": "<p>A packshot is a clean product photograph optimized for commercial use. The best packshots share these qualities:</p><ul><li><strong>Clarity:</strong> Every detail visible and sharp</li><li><strong>Consistency:</strong> Uniform style across product lines</li><li><strong>Clean background:</strong> Pure white or seamless gradient</li><li><strong>Accurate colors:</strong> True-to-life product representation</li><li><strong>Professional lighting:</strong> Even illumination with subtle shadows for depth</li></ul><p>AI packshots can match studio quality when configured correctly.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Background Selection",
+            "body": "<p>Choose the right background for your use case:</p><p><strong>Pure White (#FFFFFF):</strong> Amazon main images, Google Shopping, clean marketplace listings. Requires no shadow for true white background compliance.</p><p><strong>Light Gray (#F5F5F5):</strong> Adds subtle dimension while maintaining clean aesthetic. Great for Shopify and direct-to-consumer sites.</p><p><strong>Gradient:</strong> Smooth transition from light to slightly darker. Creates depth without distraction.</p><p><strong>Colored:</strong> Brand-specific backgrounds for marketing materials. Match to brand guidelines.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Lighting Techniques",
+            "body": "<p>Packshot lighting eliminates harsh shadows while creating dimension:</p><p><strong>Three-Point Lighting:</strong> Key light (main), fill light (shadows), back light (separation). Classic studio setup.</p><p><strong>Soft Box Diffusion:</strong> Large, diffused light sources create even illumination.</p><p><strong>Reflection Control:</strong> For glossy products, control reflections with positioning and matte surfaces.</p><p><strong>Shadow Intensity:</strong> Subtle shadows ground the product. Avoid floating product syndrome.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Angle and Composition",
+            "body": "<p>Standard packshot angles for comprehensive product coverage:</p><p><strong>Front-Facing:</strong> Primary angle showing brand and product name. Label fully visible.</p><p><strong>Three-Quarter:</strong> Shows front and side for dimensional understanding.</p><p><strong>Profile:</strong> Side view for packaging depth and unique features.</p><p><strong>Top-Down:</strong> Cap, lid, or opening details. Secondary angle.</p><p>Generate all standard angles to build complete product assets.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Product Preparation Tips",
+            "body": "<p>Before generating AI packshots, ensure your product reference is clean:</p><ul><li><strong>Clear reference image:</strong> Remove previous backgrounds or clutter</li><li><strong>Multiple angles:</strong> Provide various views for AI reference</li><li><strong>Color accuracy:</strong> Use calibrated photos or adjust in post</li><li><strong>Detail visibility:</strong> Ensure labels and text are legible</li></ul><p>Better input = better AI output. Quality reference images are essential.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Batch Processing Workflow",
+            "body": "<p>Efficient packshot production follows a systematic approach:</p><ol><li><strong>Organize products:</strong> Group by category, size, or style</li><li><strong>Create templates:</strong> Define background, lighting, and angle presets</li><li><strong>Batch generate:</strong> Process similar products together</li><li><strong>Quality review:</strong> Check consistency and color accuracy</li><li><strong>Export and name:</strong> Use consistent naming conventions</li><li><strong>Organize assets:</strong> Folder structure by product/angle/version</li></ol><p>This workflow scales from 10 to 10,000 SKUs efficiently.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        }
+    ],
+    "cta": {
+        "title": "Create Studio-Quality Packshots",
+        "text": "Generate professional product photography without the studio. Consistent, fast, affordable.",
+        "button": "Generate Packshots"
+    }
+}

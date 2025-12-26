@@ -1,0 +1,58 @@
+{
+    "id": "ugc-ai-complete-guide",
+    "slug": "how-to-generate-ugc-with-ai",
+    "title": "How to Generate UGC with AI: Complete Step-by-Step Guide",
+    "subtitle": "Master the art of creating authentic user-generated content using AI tools. Learn professional techniques used by top DTC brands.",
+    "seo": {
+        "title": "How to Generate UGC with AI: Complete Step-by-Step Guide | BoostUGC",
+        "description": "Learn how to create authentic UGC content using AI. Complete tutorial covering lifestyle shots, creator-style content, and conversion-optimized visuals for e-commerce."
+    },
+    "heroImage": {
+        "src": "/src/content/guides/img/hero-guide1.webp",
+        "prompt": "Modern content creator workspace with multiple screens showing AI-generated UGC content, ring light, professional camera setup, lifestyle product photos displayed. Clean minimalist aesthetic with purple and blue ambient lighting. Ultra realistic photography.",
+        "alt": "Professional content creator workspace with AI-generated UGC displayed on screens"
+    },
+    "sections": [
+        {
+            "heading": "What is AI-Generated UGC?",
+            "body": "<p>AI-generated User-Generated Content (UGC) uses artificial intelligence to create authentic-looking lifestyle photos, product scenes, and creator-style content. Unlike traditional UGC that requires hiring influencers or waiting for customer submissions, AI UGC can be produced instantly while maintaining the authentic, relatable aesthetic that converts browsers into buyers.</p><p>Top DTC brands are now using AI UGC to:</p><ul><li>Scale content production without scaling costs</li><li>A/B test hundreds of visual variants</li><li>Maintain consistent quality across all touchpoints</li><li>Launch faster with instant creative assets</li></ul>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Step 1: Define Your Content Strategy",
+            "body": "<p>Before generating any images, establish clear goals for your UGC content:</p><p><strong>Awareness Stage:</strong> Lifestyle scenes showing your product in aspirational contexts. Focus on mood and emotion rather than product details.</p><p><strong>Consideration Stage:</strong> Creator-style POV shots demonstrating product use. Include hands, close-ups, and authentic environments.</p><p><strong>Conversion Stage:</strong> Clean product shots with social proof elements. Combine professional quality with UGC authenticity.</p>",
+            "imagePrompt": "Marketing funnel diagram with lifestyle photos, UGC content, and product shots at each stage. Clean infographic style.",
+            "imageAlt": "UGC content strategy funnel showing awareness, consideration, and conversion stages"
+        },
+        {
+            "heading": "Step 2: Choose the Right Scene Type",
+            "body": "<p>Different products perform better in different environments. Match your scene to your target customer's lifestyle:</p><p><strong>Bathroom/Vanity:</strong> Skincare, beauty, personal care products. Morning routine aesthetic with natural light.</p><p><strong>Kitchen/Dining:</strong> Food supplements, wellness products, kitchen tools. Warm, inviting atmosphere.</p><p><strong>Desk/Home Office:</strong> Tech accessories, productivity tools, supplements. Clean, organized aesthetic.</p><p><strong>Outdoor/Active:</strong> Fitness products, outdoor gear, athletic wear. Dynamic, energetic scenes.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Step 3: Master Camera Angles",
+            "body": "<p>The right camera angle makes AI-generated content feel authentic:</p><p><strong>POV (First Person):</strong> Shows hands interacting with product. Feels like the viewer is using the product themselves. Highest engagement for tutorials.</p><p><strong>Over-the-Shoulder:</strong> Creates intimacy without showing faces. Perfect for demonstrating product size and use context.</p><p><strong>Flat Lay:</strong> Bird's eye view showing product with complementary props. Ideal for social media grids and organized aesthetics.</p><p><strong>Hero Shot:</strong> Product as the clear focal point with subtle lifestyle elements. Balances professionalism with authenticity.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Step 4: Add Authentic Details",
+            "body": "<p>The secret to believable AI UGC is in the details:</p><ul><li><strong>Imperfect perfection:</strong> Slightly rumpled linens, a coffee cup in frame, natural light inconsistencies</li><li><strong>Contextual props:</strong> Items your target customer would actually have nearby</li><li><strong>Human elements:</strong> Hands, partial figures, or shadows suggest human presence without requiring face generation</li><li><strong>Natural lighting:</strong> Soft window light or warm indoor lighting beats harsh studio setups</li></ul>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Step 5: Optimize for Platform",
+            "body": "<p>Each platform has different requirements:</p><p><strong>Instagram Feed:</strong> 1:1 square format. Focus on aesthetic cohesion with your grid.</p><p><strong>Instagram Stories/Reels:</strong> 9:16 vertical. Dynamic angles, more casual feel.</p><p><strong>Facebook Ads:</strong> 1:1 or 4:5. Test multiple variants with different scenes.</p><p><strong>Amazon/Shopify:</strong> White background options for main images, lifestyle for gallery.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        }
+    ],
+    "cta": {
+        "title": "Start Creating AI UGC Today",
+        "text": "Generate professional UGC content in minutes. No studio, no influencers, no waiting.",
+        "button": "Launch Generator"
+    }
+}

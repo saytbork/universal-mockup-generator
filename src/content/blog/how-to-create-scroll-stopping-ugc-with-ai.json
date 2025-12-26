@@ -8,6 +8,7 @@
     "description": "Learn the exact framework to create ultra-realistic UGC photos and creator-style scenes using AI. No studio needed."
   },
   "heroImage": {
+    "src": "/src/content/blog/img/hero-article1.webp",
     "prompt": "Ultra realistic lifestyle flat-lay of a creator workspace with smartphone on tripod, ring light, small product bottle on a clean desk. Subtle AI glow effect on device screen. Soft ambient lighting. Premium creator studio aesthetic. 1:1.",
     "alt": "Creator workspace flat lay with AI-enhanced UGC setup, ring light, and product bottle."
   },

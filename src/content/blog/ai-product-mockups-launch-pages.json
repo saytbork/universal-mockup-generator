@@ -8,6 +8,7 @@
     "description": "Learn how to generate high-converting hero images for your landing pages using AI-driven product mockups."
   },
   "heroImage": {
+    "src": "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=800&h=800&fit=crop",
     "prompt": "Bold ecommerce hero shot with product floating slightly above surface, dramatic rim light, smooth gradient background in brand colors, soft reflections, premium modern aesthetic. 1:1.",
     "alt": "Floating product hero mockup with dramatic lighting."
   },

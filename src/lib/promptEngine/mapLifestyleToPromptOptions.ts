@@ -12,7 +12,7 @@
  * - ALL mappings logged for debugging
  */
 
-import type { ExpertRole, Step3Values, ExpertAttire } from '@/components/LifestyleStep3';
+import type { ExpertRole, Step3Values, ExpertAttire } from '@/types/step3Types';
 import type { CustomClothes, FormulationStoryOptions, IdentityLock, PromptOptions, UGCRealModeLayerSet } from './types';
 import { mapProductModeToPromptOptions } from './mapProductModeToPromptOptions';
 import { APPEARANCE_SEMANTIC_MAP } from './semanticMaps/appearance';
@@ -510,7 +510,8 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     // PRIORITY 1: PRODUCT MODE EXIT
     // ========================================================================
-    const isProductMode = sceneState.creationIntent === 'product' ||
+    const isProductMode = sceneState.productMode ||
+        sceneState.creationIntent === 'product' ||
         sceneState.creationIntent === 'brand';
 
     if (isProductMode) {
@@ -529,6 +530,8 @@ export function mapLifestyleToPromptOptions(
         identitySeed
     };
     mapped.sameCreatorAcrossScenes = sceneState.sameCreatorAcrossScenes;
+    mapped.ugcStyle = ugcStyle;
+    mapped.naturalUgcActive = isNaturalUgcMode;
 
     // Initialize Person Details
     if (!mapped.personDetails) mapped.personDetails = {};
@@ -546,6 +549,8 @@ export function mapLifestyleToPromptOptions(
     const isEcommerceBlankSpaceActive =
         isEcommerceSceneIntent || isCreationModeEcommerceBlank || isCompositionModeEcommerceBlank;
     const isUGCRealMode = !!sceneState.ugcRealMode;
+    const ugcStyle = (sceneState.ugcStyle || 'optimized') as 'optimized' | 'natural';
+    const isNaturalUgcMode = !isUGCRealMode && ugcStyle === 'natural';
     const personAge = sceneState.age || 0;
     const is80Plus = isUGCRealMode && personAge >= 80;
     const is85Plus = isUGCRealMode && personAge >= 85;
@@ -560,6 +565,8 @@ export function mapLifestyleToPromptOptions(
     };
     const ugcHouseholdLighting =
         'Lighting is accidental and imperfect. Overhead domestic bulbs dominate the scene. Mixed color temperatures cause uneven skin tones. Some areas are slightly overexposed while others fall into shadow. No effort is made to correct lighting mistakes.';
+    const naturalUgcLighting =
+        'Natural domestic lighting with mixed temperature spill, uneven exposure, and zero correction—just the way an ordinary phone captures a moment.';
 
 
     // ========================================================================
@@ -885,6 +892,15 @@ export function mapLifestyleToPromptOptions(
     }
 
     mapped.ugcCaptureStyleBase = normalizedCaptureBase;
+    if (normalizedCaptureBase.includes('close-face')) {
+        const closeFacePoseDescriptor =
+            'close-face framing with tight, imperfect crop slicing through forehead, cheek, and chin, lens hugging the face with slight off-angle tension';
+        const closeFaceMoodDescriptor =
+            'claustrophobic handheld selfie vibe, edges too near, forehead/cheek/chin feel clipped, background barely visible';
+
+        mapped.personDetails.personPose = appendOnce(mapped.personDetails.personPose || '', closeFacePoseDescriptor);
+        mapped.personDetails.personMood = appendOnce(mapped.personDetails.personMood || '', closeFaceMoodDescriptor);
+    }
     mapped.ugcCameraOperator = normalizedCameraOperator;
     mapped.ugcBodyPhonePosition = normalizedBodyPhone;
     mapped.ugcMotionStability = normalizedMotion;
@@ -1061,6 +1077,13 @@ export function mapLifestyleToPromptOptions(
         console.log('[MAP] Awkward context override →', awkwardEnvironmentOverride);
     }
 
+    if (isNaturalUgcMode) {
+        mapped.placementStyle =
+            'Product remains secondary to the person, never hero-shot, centered, or isolated—just incidental in the lived-in frame.';
+        mapped.productPlane =
+            'Product sits naturally in the scene, slightly off-center, softly grounded on surfaces without overt presentation.';
+    }
+
     const sceneOrderChaosValue = isUGCRealMode ? 'Messy' : (sceneState.sceneOrderChaos || 'Normal');
     mapped.sceneOrderChaos = sceneOrderChaosValue;
     const sceneOrderChaosDescriptor = buildSceneOrderChaosDescriptor(sceneOrderChaosValue);
@@ -1089,6 +1112,10 @@ export function mapLifestyleToPromptOptions(
                 : 'Pure white background (#FFFFFF) with neutral studio lighting, flat even illumination, and only a subtle contact shadow directly beneath the product.';
         (mapped as any).timeLightingContext = mapped.lighting;
         console.log('[MAP] Ecommerce Blank Space lighting enforced:', mapped.lighting);
+    } else if (isNaturalUgcMode) {
+        mapped.lighting = naturalUgcLighting;
+        (mapped as any).timeLightingContext = mapped.lighting;
+        console.log('[MAP] Natural UGC lighting enforced:', mapped.lighting);
     } else {
         const timeSemantic = TIME_SEMANTIC_MAP[sceneState.timeOfDay] || TIME_SEMANTIC_MAP['Midday'];
         const lightingSemantic = LIGHTING_SEMANTIC_MAP[sceneState.lightingStyle] || LIGHTING_SEMANTIC_MAP['Natural window'];

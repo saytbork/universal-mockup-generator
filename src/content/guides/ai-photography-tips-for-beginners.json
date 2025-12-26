@@ -1,0 +1,58 @@
+{
+    "id": "ai-photography-beginners-guide",
+    "slug": "ai-photography-tips-for-beginners",
+    "title": "AI Photography Tips for Beginners: From Zero to Pro",
+    "subtitle": "Everything you need to know to start creating professional product images with AI. No photography experience required.",
+    "seo": {
+        "title": "AI Photography Tips for Beginners: From Zero to Pro | BoostUGC",
+        "description": "Complete beginner's guide to AI product photography. Learn fundamental concepts, prompting techniques, and workflow tips to create professional images."
+    },
+    "heroImage": {
+        "src": "/src/content/guides/img/hero-guide6.webp",
+        "prompt": "Beginner photographer learning setup with laptop showing AI image generation, simple products on table, notebook with sketches, coffee cup. Warm encouraging learning environment. Natural daylight. Ultra realistic.",
+        "alt": "Beginner-friendly AI photography learning setup with laptop and products"
+    },
+    "sections": [
+        {
+            "heading": "AI Photography Fundamentals",
+            "body": "<p>AI photography uses machine learning to generate or enhance product images. You don't need a camera, studio, or photography skills—just clear direction and quality product references.</p><p><strong>What AI Can Do:</strong></p><ul><li>Generate lifestyle scenes around your product</li><li>Replace backgrounds with professional environments</li><li>Create consistent lighting across product lines</li><li>Produce multiple variations for A/B testing</li></ul><p><strong>What You Still Need:</strong></p><ul><li>Clear photos of your actual product</li><li>Understanding of your target customer</li><li>Vision for how you want products presented</li></ul>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Preparing Your Product Photos",
+            "body": "<p>AI works best with good input. Here's how to prepare product reference photos:</p><p><strong>Lighting:</strong> Natural daylight near a window. Avoid harsh shadows or mixed lighting.</p><p><strong>Background:</strong> Plain white or neutral background. A white poster board works perfectly.</p><p><strong>Angles:</strong> Take front, side, and three-quarter views. More angles = better AI understanding.</p><p><strong>Focus:</strong> Sharp focus on the product. Avoid blur or motion.</p><p><strong>Resolution:</strong> Highest resolution your phone allows. More pixels = more detail.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Understanding Prompts",
+            "body": "<p>Prompts are text instructions that guide AI generation. Good prompts include:</p><p><strong>Scene Description:</strong> Where is the product? (marble bathroom counter, wooden kitchen table)</p><p><strong>Lighting:</strong> What kind of light? (soft morning light, warm golden hour, bright studio)</p><p><strong>Style:</strong> What aesthetic? (minimal, luxury, cozy, modern)</p><p><strong>Camera Angle:</strong> What viewpoint? (straight-on, overhead flat lay, slight angle)</p><p><strong>Props:</strong> What else is in the scene? (coffee cup, plant, towel)</p><p>Start simple and add detail as you get comfortable.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Common Beginner Mistakes",
+            "body": "<p>Avoid these pitfalls when starting with AI photography:</p><p><strong>Over-Prompting:</strong> Too many details can confuse the AI. Start with 3-5 key elements.</p><p><strong>Unrealistic Expectations:</strong> AI is a tool, not magic. Some results need iteration.</p><p><strong>Ignoring Context:</strong> Your product should make sense in the scene. A protein powder doesn't belong on a bathroom vanity.</p><p><strong>Inconsistent Lighting:</strong> Match lighting to scene type. Bathroom = soft morning light, kitchen = warm ambient.</p><p><strong>Skipping Review:</strong> Always check details like shadows, reflections, and product accuracy before using.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Building Your First Collection",
+            "body": "<p>Start with a focused set of images:</p><ol><li><strong>Hero Shot:</strong> Your product in its ideal environment, best lighting, most flattering angle.</li><li><strong>Clean Product Shot:</strong> Simple white background for listings and catalogs.</li><li><strong>In-Use Shot:</strong> Show the product being used (hands holding, pouring, applying).</li><li><strong>Detail Shot:</strong> Close-up on texture, label, or unique feature.</li><li><strong>Lifestyle Context:</strong> Product as part of a larger scene or routine.</li></ol><p>These five shots cover most e-commerce needs.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Next Steps",
+            "body": "<p>Once you're comfortable with basics, explore advanced techniques:</p><p><strong>Batch Generation:</strong> Create multiple variations to test performance.</p><p><strong>Style Matching:</strong> Develop a consistent visual language across products.</p><p><strong>Seasonal Updates:</strong> Refresh imagery for holidays, seasons, campaigns.</p><p><strong>A/B Testing:</strong> Compare different scenes and styles to find what converts best.</p><p><strong>Video Stills:</strong> Generate images designed to work as video thumbnails or stills.</p><p>The best way to learn is to experiment. Generate, review, iterate, and refine your approach.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        }
+    ],
+    "cta": {
+        "title": "Start Your AI Photography Journey",
+        "text": "No experience needed. Generate professional product photos in minutes.",
+        "button": "Try It Free"
+    }
+}

@@ -1,0 +1,58 @@
+{
+    "id": "shopify-photos-ai-guide",
+    "slug": "how-to-build-shopify-photos-with-ai",
+    "title": "How to Build Shopify Product Photos with AI",
+    "subtitle": "Complete guide to creating Shopify-optimized product images using AI. From main listings to lifestyle galleries.",
+    "seo": {
+        "title": "How to Build Shopify Product Photos with AI | BoostUGC",
+        "description": "Master Shopify product photography with AI. Learn to create main listing images, lifestyle galleries, and conversion-optimized visuals for your store."
+    },
+    "heroImage": {
+        "src": "/src/content/guides/img/hero-guide3.webp",
+        "prompt": "Modern Shopify store product page displayed on large iMac screen, showing professional product photography gallery. Minimalist desk setup with keyboard, coffee, succulent plant. Bright, clean office environment. Ultra realistic.",
+        "alt": "Shopify product page with professional AI-generated product photography"
+    },
+    "sections": [
+        {
+            "heading": "Shopify Image Requirements",
+            "body": "<p>Before diving into AI generation, understand Shopify's image specifications:</p><p><strong>Recommended Size:</strong> 2048 x 2048 pixels (square format preferred)</p><p><strong>Max File Size:</strong> 20MB per image</p><p><strong>Format:</strong> JPEG, PNG, or WebP</p><p><strong>Aspect Ratio:</strong> Consistent across all product images for clean grid displays</p><p>AI-generated images at 1:1 ratio work perfectly for Shopify's default theme layouts.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Main Product Image Strategy",
+            "body": "<p>Your main product image appears in collection pages, search results, and cart. It needs to:</p><ul><li>Show the product clearly and completely</li><li>Stand out in a grid of competitors</li><li>Load quickly (optimize file size)</li><li>Look professional at any size</li></ul><p><strong>Best Approach:</strong> Clean white or light gray background with soft shadows. The product should fill 80-85% of the frame. Use consistent lighting across all products.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Building Your Image Gallery",
+            "body": "<p>Shopify allows multiple images per product. Use this hierarchy:</p><p><strong>Image 1 (Main):</strong> Clean product shot on neutral background</p><p><strong>Image 2:</strong> Lifestyle shot showing product in use</p><p><strong>Image 3:</strong> Scale reference or detail shot</p><p><strong>Image 4:</strong> Alternative angle or color variant</p><p><strong>Image 5:</strong> Ingredient list, sizing chart, or key features graphic</p><p>AI can generate images 1-4 instantly, dramatically reducing your launch timeline.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Theme Compatibility Tips",
+            "body": "<p>Different Shopify themes display images differently:</p><p><strong>Dawn (Default):</strong> Square images work best. Gallery uses slider format.</p><p><strong>Debut:</strong> Supports various aspect ratios. Test 1:1 and 4:3.</p><p><strong>Minimal:</strong> Images zoom on hover. Ensure high resolution.</p><p><strong>Custom Themes:</strong> Check your theme's product image settings before generating.</p><p>Generate at maximum resolution and let Shopify's CDN handle optimization.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "SEO for Product Images",
+            "body": "<p>Optimize your AI-generated images for search visibility:</p><p><strong>File Names:</strong> Use descriptive names like \"organic-face-serum-lifestyle.jpg\"</p><p><strong>Alt Text:</strong> Write detailed descriptions for accessibility and SEO</p><p><strong>Image Sitemap:</strong> Ensure product images are included in your sitemap</p><p><strong>Structured Data:</strong> Use Shopify's built-in product schema for rich snippets</p><p>Well-optimized images can drive significant traffic from Google Image Search.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Workflow: From AI to Shopify",
+            "body": "<ol><li><strong>Generate images</strong> at 1:1 ratio with max resolution</li><li><strong>Download and review</strong> all generated assets</li><li><strong>Batch rename</strong> files with SEO-friendly names</li><li><strong>Compress if needed</strong> (TinyPNG, Squoosh)</li><li><strong>Upload to Shopify</strong> via product editor or bulk import</li><li><strong>Add alt text</strong> for each image</li><li><strong>Test across devices</strong> to ensure proper display</li></ol><p>This workflow takes minutes instead of days with traditional photography.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        }
+    ],
+    "cta": {
+        "title": "Launch Your Shopify Store Faster",
+        "text": "Generate all your product images in minutes. Professional quality, instant delivery.",
+        "button": "Create Product Photos"
+    }
+}

@@ -8,6 +8,7 @@
     "description": "Learn how to create high-performing DTC ad creatives using ultra-realistic AI UGC. Build lifestyle scenes, product demos, and creator moments at scale."
   },
   "heroImage": {
+    "src": "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&h=800&fit=crop",
     "prompt": "High-energy UGC-style ad scene with product held in hand, blurred social media interface elements in background, cinematic lighting, vibrant colors, ultra-realistic skin texture. 1:1.",
     "alt": "UGC-style ad creative with product held in hand and social platform elements in background."
   },

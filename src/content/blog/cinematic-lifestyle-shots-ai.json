@@ -8,6 +8,7 @@
     "description": "Learn how to generate cinematic lifestyle photography using AI with the right lighting, props, and visual storytelling."
   },
   "heroImage": {
+    "src": "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800&h=800&fit=crop",
     "prompt": "Warm cinematic kitchen scene with dramatic soft sunlight, floating dust particles, depth of field, product bottle on wooden table, subtle props like fruit and mugs. Ultra realistic film look. 1:1.",
     "alt": "Cinematic lifestyle scene of a product in warm natural lighting."
   },

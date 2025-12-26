@@ -129,7 +129,7 @@ export function downloadImage(imageUrl: string, filename?: string): void {
     try {
         const link = document.createElement('a');
         link.href = imageUrl;
-        link.download = filename || `ugc-image-${Date.now()}.png`;
+        link.download = filename || `ugc-image-${Date.now()}.webp`;
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
 

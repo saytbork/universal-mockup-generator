@@ -44,13 +44,15 @@ const BlogArticlePage: React.FC = () => {
             <h1 className="text-4xl font-semibold leading-tight">{article.title}</h1>
             <p className="text-lg text-gray-200 max-w-3xl">{article.subtitle}</p>
           </div>
-          <figure className="rounded-2xl border border-white/10 bg-black/40 p-4 space-y-2">
-            <p className="text-xs uppercase tracking-[0.35em] text-gray-400">Hero prompt</p>
-            <p className="text-sm text-gray-200 leading-relaxed">{article.heroImage.prompt}</p>
-            <figcaption className="text-[11px] uppercase tracking-[0.35em] text-gray-500">
-              {article.heroImage.alt}
-            </figcaption>
-          </figure>
+          {article.heroImage.src && (
+            <figure className="rounded-2xl overflow-hidden border border-white/10">
+              <img
+                src={article.heroImage.src}
+                alt={article.heroImage.alt}
+                className="w-full h-auto object-cover"
+              />
+            </figure>
+          )}
         </section>
 
         <section className="blog-body space-y-12">
@@ -61,15 +63,13 @@ const BlogArticlePage: React.FC = () => {
                 className="space-y-2 text-gray-200 leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: section.body }}
               />
-              {section.imagePrompt ? (
-                <figure className="rounded-2xl border border-white/10 bg-gray-900/60 p-4 space-y-2">
-                  <p className="text-xs uppercase tracking-[0.35em] text-gray-400">Image prompt</p>
-                  <p className="text-sm text-gray-200 leading-relaxed">{section.imagePrompt}</p>
-                  {section.imageAlt && (
-                    <figcaption className="text-[11px] uppercase tracking-[0.35em] text-gray-500">
-                      {section.imageAlt}
-                    </figcaption>
-                  )}
+              {section.imageSrc ? (
+                <figure className="rounded-2xl overflow-hidden border border-white/10">
+                  <img
+                    src={section.imageSrc}
+                    alt={section.imageAlt || section.heading}
+                    className="w-full h-auto object-cover"
+                  />
                 </figure>
               ) : null}
             </article>

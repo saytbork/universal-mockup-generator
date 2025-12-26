@@ -16,6 +16,7 @@ import TermsPage from './TermsPage';
 import Login from './src/pages/Login';
 import Dashboard from './src/pages/Dashboard';
 import BlogArticlePage from './BlogArticlePage';
+import GuideArticlePage from './GuideArticlePage';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
 const MarketingLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -49,6 +50,7 @@ root.render(
           <Route path="/blog" element={<MarketingLayout><BlogPage /></MarketingLayout>} />
           <Route path="/blog/:slug" element={<MarketingLayout><BlogArticlePage /></MarketingLayout>} />
           <Route path="/guides" element={<MarketingLayout><GuidesPage /></MarketingLayout>} />
+          <Route path="/guides/:slug" element={<MarketingLayout><GuideArticlePage /></MarketingLayout>} />
           <Route path="/faq" element={<MarketingLayout><FAQPage /></MarketingLayout>} />
           <Route path="/privacy" element={<MarketingLayout><PrivacyPage /></MarketingLayout>} />
           <Route path="/terms" element={<MarketingLayout><TermsPage /></MarketingLayout>} />

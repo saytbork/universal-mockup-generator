@@ -8,6 +8,7 @@
     "description": "Learn how to build an automated UGC content engine using AI generation and Firebase storage, syncing, and delivery."
   },
   "heroImage": {
+    "src": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=800&fit=crop",
     "prompt": "Futuristic workspace with laptop showing dashboard UI, glowing neon blue accents symbolizing AI pipelines, product photos scattered around. Clean cinematic lighting. 1:1.",
     "alt": "AI and Firebase content engine dashboard on laptop."
   },

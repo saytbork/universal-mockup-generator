@@ -1,0 +1,58 @@
+{
+    "id": "amazon-listing-images-guide",
+    "slug": "ai-for-amazon-listing-images",
+    "title": "AI for Amazon Listing Images: Complete Seller Guide",
+    "subtitle": "Create Amazon-compliant product images that rank and convert. Master A+ Content, main images, and lifestyle photography.",
+    "seo": {
+        "title": "AI for Amazon Listing Images: Complete Seller Guide | BoostUGC",
+        "description": "Master Amazon product photography with AI. Complete guide to main images, A+ Content, and lifestyle photos that meet Amazon requirements and boost conversions."
+    },
+    "heroImage": {
+        "src": "/src/content/guides/img/hero-guide5.webp",
+        "prompt": "Amazon product listing page on laptop screen showing professional product photography, A+ Content section visible. Modern home office desk with coffee and notebook. Bright, clean aesthetic. Ultra realistic.",
+        "alt": "Amazon product listing with professional AI-generated images on laptop"
+    },
+    "sections": [
+        {
+            "heading": "Amazon Image Requirements",
+            "body": "<p>Amazon has strict guidelines for product images. Here are the key requirements:</p><p><strong>Main Image:</strong></p><ul><li>Pure white background (RGB 255,255,255)</li><li>Product fills 85% of frame</li><li>No text, graphics, or watermarks</li><li>Professional quality, no pixelation</li><li>Minimum 1000px on longest side (2000px+ recommended)</li></ul><p><strong>Additional Images:</strong></p><ul><li>Lifestyle and infographic images allowed</li><li>Text overlays permitted for features</li><li>Multiple angles encouraged</li></ul>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Main Image Best Practices",
+            "body": "<p>Your main image determines click-through rate in search results:</p><p><strong>Fill the Frame:</strong> Maximize product visibility. Scale to 85% of image area.</p><p><strong>Optimal Angle:</strong> Show the most recognizable, appealing view. Usually front-facing with label visible.</p><p><strong>True White Background:</strong> Any off-white may cause listing suppression. Verify with color picker.</p><p><strong>No Shadows:</strong> Amazon prefers floating product aesthetic for main images.</p><p><strong>High Resolution:</strong> Enables zoom function. 2000px+ recommended.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Gallery Image Strategy",
+            "body": "<p>Amazon allows up to 9 images. Use them strategically:</p><p><strong>Image 1:</strong> Main product (white background)</p><p><strong>Image 2:</strong> Lifestyle shot in use</p><p><strong>Image 3:</strong> Key features infographic</p><p><strong>Image 4:</strong> Size/scale reference</p><p><strong>Image 5:</strong> Ingredient/material detail</p><p><strong>Image 6:</strong> Back/alternate angle</p><p><strong>Image 7:</strong> Package contents</p><p>AI can generate images 1, 2, 4, and 6 directly. Combine with graphic design for infographics.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "A+ Content Images",
+            "body": "<p>Enhanced Brand Content (A+ Content) has different requirements:</p><p><strong>Module-Specific Sizes:</strong></p><ul><li>Standard: 970 x 300px to 970 x 600px</li><li>Comparison charts: 150 x 300px per product</li><li>Logo strip: 220 x 220px</li></ul><p><strong>Lifestyle Freedom:</strong> A+ Content allows creative lifestyle images that wouldn't work as main images.</p><p><strong>Brand Storytelling:</strong> Use AI lifestyle scenes to create aspirational brand narratives.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Compliance Checklist",
+            "body": "<p>Before uploading, verify each image:</p><ul><li>☐ White background is pure white (#FFFFFF)</li><li>☐ No text on main image</li><li>☐ Product fills 85%+ of frame</li><li>☐ Resolution is 1000px+ (2000px+ preferred)</li><li>☐ No props or accessories not included</li><li>☐ File size under 10MB</li><li>☐ JPEG or PNG format</li><li>☐ Color accuracy matches physical product</li></ul><p>Non-compliant images risk listing suppression.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        },
+        {
+            "heading": "Conversion Optimization",
+            "body": "<p>Beyond compliance, optimize for conversions:</p><p><strong>Test Main Images:</strong> Use Amazon's Manage Your Experiments to A/B test main images.</p><p><strong>Lifestyle Context:</strong> Show product solving customer problems in gallery images.</p><p><strong>Social Proof:</strong> Include UGC-style images that feel authentic.</p><p><strong>Mobile-First:</strong> Most Amazon shopping happens on mobile. Ensure images work at small sizes.</p><p>AI-generated lifestyle images consistently outperform generic stock photos in conversion rates.</p>",
+            "imagePrompt": "",
+            "imageAlt": ""
+        }
+    ],
+    "cta": {
+        "title": "Boost Your Amazon Listings",
+        "text": "Create compliant, high-converting Amazon images in minutes. Main images, lifestyle shots, and A+ Content.",
+        "button": "Create Amazon Images"
+    }
+}

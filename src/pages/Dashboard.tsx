@@ -416,7 +416,7 @@ function GallerySection({ userEmail }: { userEmail: string }) {
                 <p>Created: {dateStr}</p>
               </div>
               <button
-                onClick={() => handleDownload(image.imageUrl, `ugc-image-${image.id}.png`)}
+                onClick={() => handleDownload(image.imageUrl, `ugc-image-${image.id}.webp`)}
                 className="w-full rounded-lg bg-indigo-500 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-600 transition"
               >
                 Download

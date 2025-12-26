@@ -45,7 +45,7 @@ function base64ToBlob(base64Data: string): Blob {
 function generateFilename(userId: string): string {
     const timestamp = Date.now();
     const randomSuffix = Math.random().toString(36).substring(2, 9);
-    return `${userId}_${timestamp}_${randomSuffix}.png`;
+    return `${userId}_${timestamp}_${randomSuffix}.webp`;
 }
 
 export interface UploadImageResult {
