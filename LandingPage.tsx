@@ -194,12 +194,7 @@ const INVITE_CODE = import.meta.env.VITE_INVITE_CODE || '713371';
 const PLAN_STORAGE_KEY = 'ugc-plan-tier';
 const IMAGE_COUNT_KEY = 'ugc-product-mockup-generator-credit-count';
 
-const NAV_LINKS = [
-  { label: 'Features', target: '#features' },
-  { label: 'Steps', target: '#steps' },
-  { label: 'Pricing', target: '#pricing' },
-  { label: 'Gallery', target: '#gallery' },
-];
+// Navigation removed as requested
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -378,25 +373,25 @@ const LandingPage: React.FC = () => {
       id: 'lifestyle',
       title: 'Lifestyle UGC',
       desc: 'Real people + product in natural environments.',
-      image: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80',
+      image: '/images/home/Lifestyle-UGC.webp',
     },
     {
       id: 'studio',
       title: 'Studio Hero',
       desc: 'Clean, bold hero shots for homepages.',
-      image: 'https://images.unsplash.com/photo-1512499617640-c2f999098c01?auto=format&fit=crop&w=1200&q=80',
+      image: '/images/home/Studio-Hero.webp',
     },
     {
       id: 'aesthetic',
       title: 'Aesthetic Builder',
       desc: 'Curated props, palettes, and lighting for brand vibes.',
-      image: 'https://images.unsplash.com/photo-1506617420156-8e4536971650?auto=format&fit=crop&w=1200&q=80',
+      image: '/images/home/Aesthetic-Builder.webp',
     },
     {
       id: 'background',
       title: 'Background Replace',
       desc: 'Swap backgrounds while preserving product fidelity.',
-      image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1200&q=80',
+      image: '/images/home/Background-Replace.webp',
     },
   ];
 
@@ -405,61 +400,17 @@ const LandingPage: React.FC = () => {
       <div className="min-h-screen bg-gray-950 text-gray-100">
         <div className="bg-gradient-to-br from-indigo-900/40 via-gray-950 to-gray-950">
           <div className="relative">
-            <nav className="relative z-10 max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+            <nav className="relative z-10 max-w-6xl mx-auto px-6 py-8 flex items-center justify-between">
               <div className="text-sm font-semibold uppercase tracking-[0.3em] text-white">BoostUGC</div>
-              <div className="hidden items-center gap-6 text-xs uppercase tracking-[0.3em] text-white/80 md:flex">
-                {NAV_LINKS.map(link => (
-                  <button
-                    key={link.target}
-                    type="button"
-                    onClick={handleSmoothScroll(link.target)}
-                    className="hover:text-white focus:outline-none focus:text-white"
-                  >
-                    {link.label}
-                  </button>
-                ))}
+              <div className="flex items-center gap-4">
+                <Link
+                  to="/login"
+                  className="px-5 py-2.5 text-xs uppercase tracking-widest font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-full transition shadow-lg shadow-indigo-500/20"
+                >
+                  Sign in
+                </Link>
               </div>
-              <button
-                type="button"
-                aria-label="Toggle menu"
-                aria-expanded={isMobileMenuOpen}
-                aria-controls="mobile-menu"
-                onClick={() => setIsMobileMenuOpen(prev => !prev)}
-                className="relative z-20 flex h-10 w-10 flex-col items-center justify-center gap-1 rounded-full border border-white/20 bg-black/20 text-white transition hover:border-white/40 focus:outline-none md:hidden"
-              >
-                <span
-                  className={`block h-[2px] w-6 bg-current transition-transform duration-300 ${isMobileMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`}
-                />
-                <span
-                  className={`block h-[2px] w-6 bg-current transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-0' : 'opacity-100'}`}
-                />
-                <span
-                  className={`block h-[2px] w-6 bg-current transition-transform duration-300 ${isMobileMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}
-                />
-              </button>
             </nav>
-            {isMobileMenuOpen && (
-              <div
-                id="mobile-menu"
-                className="md:hidden absolute inset-x-6 top-full mt-3 rounded-3xl border border-white/10 bg-gray-950/95 p-4 shadow-2xl backdrop-blur"
-              >
-                <div className="flex flex-col gap-3 text-sm uppercase tracking-[0.3em] text-white/90">
-                  {NAV_LINKS.map(link => (
-                    <button
-                      key={link.target}
-                      type="button"
-                      onClick={event => {
-                        handleSmoothScroll(link.target)(event);
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className="rounded-2xl px-4 py-2 text-left hover:bg-white/10 focus:outline-none"
-                    >
-                      {link.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
           <header className="relative overflow-hidden py-12">
@@ -642,7 +593,7 @@ const LandingPage: React.FC = () => {
               <p className="text-sm uppercase tracking-widest text-indigo-300">Creation Modes</p>
               <h2 className="text-3xl text-white font-semibold">Four powerful creation modes</h2>
             </div>
-            <div className="grid gap-6 lg:grid-cols-[320px,1fr] items-center">
+            <div className="grid gap-6 lg:grid-cols-[320px,1fr]">
               <div className="space-y-3">
                 {modeSlides.map(mode => (
                   <button
@@ -656,7 +607,7 @@ const LandingPage: React.FC = () => {
                   </button>
                 ))}
               </div>
-              <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gray-900/60 p-4 min-h-[260px]">
+              <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gray-900/60 h-full min-h-[260px]">
                 {modeSlides.map(mode => (
                   <div
                     key={mode.id}
@@ -664,7 +615,7 @@ const LandingPage: React.FC = () => {
                       }`}
                   >
                     <img
-                      src={`${mode.image}&auto=format&fit=crop&w=1200&q=80`}
+                      src={mode.image}
                       alt={mode.title}
                       className="h-full w-full object-cover rounded-2xl"
                     />
@@ -723,14 +674,17 @@ const LandingPage: React.FC = () => {
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {[
-                  { title: 'Shopify Stores', desc: 'Lifestyle + hero visuals without models or photographers.' },
-                  { title: 'Amazon Sellers', desc: 'A+ content, packshots, and lifestyle scenes that boost conversion.' },
-                  { title: 'Social Media Creators', desc: 'UGC-style shots for TikTok, Instagram, Reels, and thumbnails.' },
-                  { title: 'Agencies & Marketing Teams', desc: 'Produce unlimited branded assets for clients and campaigns.' },
+                  { title: 'Shopify Stores', desc: 'Lifestyle + hero visuals without models or photographers.', icon: <ShoppingBag className="w-5 h-5 text-indigo-300" /> },
+                  { title: 'Amazon Sellers', desc: 'A+ content, packshots, and lifestyle scenes that boost conversion.', icon: <Package className="w-5 h-5 text-indigo-300" /> },
+                  { title: 'Social Media Creators', desc: 'UGC-style shots for TikTok, Instagram, Reels, and thumbnails.', icon: <Camera className="w-5 h-5 text-indigo-300" /> },
+                  { title: 'Agencies & Marketing Teams', desc: 'Produce unlimited branded assets for clients and campaigns.', icon: <Building2 className="w-5 h-5 text-indigo-300" /> },
                 ].map(item => (
                   <div key={item.title} className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-2">
-                    <p className="font-semibold text-white">{item.title}</p>
-                    <p className="text-gray-300 text-sm">{item.desc}</p>
+                    <div className="flex items-center gap-3">
+                      {item.icon}
+                      <p className="font-semibold text-white">{item.title}</p>
+                    </div>
+                    <p className="text-gray-300 text-sm ml-8">{item.desc}</p>
                   </div>
                 ))}
               </div>
@@ -857,8 +811,8 @@ const LandingPage: React.FC = () => {
                         <a
                           href={targetUrl || '#'}
                           className={`mt-auto w-full rounded-full px-4 py-3 text-sm font-semibold transition text-center ${plan.featured
-                              ? 'bg-white text-[#120A24] hover:bg-gray-100'
-                              : 'bg-indigo-500 text-white hover:bg-indigo-400'
+                            ? 'bg-white text-[#120A24] hover:bg-gray-100'
+                            : 'bg-indigo-500 text-white hover:bg-indigo-400'
                             }`}
                         >
                           {plan.cta}

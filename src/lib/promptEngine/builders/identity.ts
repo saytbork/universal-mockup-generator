@@ -87,6 +87,37 @@ const EXPRESSION_NOISE_OPTIONS = [
 
 const GENERIC_IDENTITY_KEYWORDS = /(generic|identical|same person|same creator)/i;
 
+const NATURAL_HAIR_VARIATIONS = [
+    'Hair texture shows soft waves with frayed ends and a slightly off-center part.',
+    'Hair is dense but tousled, leaning toward uneven curls with subtle frizz at the crown.',
+    'Hair is thin along one temple with tiny flyaways and patchy density near the part.'
+];
+
+const NATURAL_SKIN_VARIATIONS = [
+    'Skin tone drifts between warm beige and muted olive, with soft discoloration over the forehead and cheeks.',
+    'Skin shows a faint cool undertone on the jawline and a warm flush inside the cheeks.',
+    'Skin combines a medium bronze base with scattered warmth and light freckling toward the nose.'
+];
+
+const NATURAL_FACIAL_VARIATIONS = [
+    'Facial structure leans toward a square jaw with subtle asymmetry at the chin.',
+    'Facial structure is elongated with one cheekbone slightly higher than the other.',
+    'Facial structure is round with a gentle tilt of the head and a soft uneven brow line.'
+];
+
+const buildNaturalIdentityFlavor = (random: () => number, age: number): string => {
+    const ageDelta = Math.round((random() - 0.5) * 10);
+    const perceivedAge = Math.max(18, Math.min(90, age + ageDelta));
+    const ageDescriptor =
+        ageDelta === 0
+            ? `Perceived age matches ${age}-year-old cues with lived-in softness.`
+            : `Perceived age drifts ${Math.abs(ageDelta)} years ${ageDelta > 0 ? 'older' : 'younger'} than base ${age}.`;
+    const hairDescriptor = NATURAL_HAIR_VARIATIONS[Math.floor(random() * NATURAL_HAIR_VARIATIONS.length)];
+    const skinDescriptor = NATURAL_SKIN_VARIATIONS[Math.floor(random() * NATURAL_SKIN_VARIATIONS.length)];
+    const facialDescriptor = NATURAL_FACIAL_VARIATIONS[Math.floor(random() * NATURAL_FACIAL_VARIATIONS.length)];
+    return `${ageDescriptor} ${hairDescriptor} ${skinDescriptor} ${facialDescriptor}`;
+};
+
 const createRandomIdentitySeed = (): string => {
     if (typeof globalThis !== 'undefined') {
         const runtimeCrypto = (globalThis as typeof globalThis & { crypto?: Crypto }).crypto;
@@ -168,7 +199,7 @@ export class IdentityBuilder implements PromptBuilder {
             hasModelReference,
             personDetails,
             contentStyle,
-            sameCreatorAcrossScenes
+        sameCreatorAcrossScenes
         } = options;
 
         // Don't build identity if no person or if product-only mode
@@ -182,7 +213,8 @@ export class IdentityBuilder implements PromptBuilder {
             options.contentStyle === 'ugc' ||
             options.creationIntent === 'ugc' ||
             isRawUgc;
-        const identitySeed = ensureIdentitySeed(options.identitySeed);
+        const isNaturalStyle = options.ugcStyle === 'natural';
+        const identitySeed = isNaturalStyle ? createRandomIdentitySeed() : ensureIdentitySeed(options.identitySeed);
         const randomNumber = createSeededRandom(identitySeed);
 
         // Blocked terms that cause CGI/Doll look
@@ -349,6 +381,7 @@ Hair must appear eighty-plus years old with collapsed volume, irregular thinning
 
             const shouldVaryIdentity =
                 isUgcMode &&
+                isNaturalStyle &&
                 !hasModelReference &&
                 sameCreatorAcrossScenes !== true;
 
@@ -360,6 +393,10 @@ Hair must appear eighty-plus years old with collapsed volume, irregular thinning
                 parts.push(`BODY VARIATION: ${bodyVariation}.`);
                 parts.push(`EXPRESSION NOISE: ${expressionNoise}.`);
                 parts.push(CREATOR_IDENTITY_DYNAMIC_BLOCK);
+            }
+
+            if (isNaturalStyle && !hasModelReference) {
+                parts.push(buildNaturalIdentityFlavor(randomNumber, age));
             }
 
             if (!hasModelReference) {
