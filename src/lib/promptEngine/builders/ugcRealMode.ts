@@ -69,7 +69,6 @@ const UGC_FOCUS_HARD_RULE = `
 UGC FOCUS HARD RULE:
 - If UGC Real Mode or Raw Domestic is active, delete any background blur, shallow depth isolation, cinematic depth, lens emulation, or focus falloff logic before prompting.
 - Treat every capture as a small-sensor front camera: wide focal length, shallow body depth, everything in mediocre focus within 0–3 meters.
-- The entire frame must stay evenly sharp with only minor digital softness—never optical blur. If background blur/bokeh appears indoors, invalidate and regenerate.
 - Only permit minimal softness if the background is physically farther than 3 meters; never artistic bokeh.
 - Replace any depth cues with uneven sharpening, compressed noise, and flat depth rendering. If background blur or separation language persists anywhere, reject and re-roll.
 `.trim().replace(/\s+/g, ' ');
@@ -222,7 +221,6 @@ BACKGROUND DE-EMPHASIS OVERRIDE:
 `.trim().replace(/\s+/g, ' ');
 const RAW_DOMESTIC_BACKGROUND_CONTRAST_VALIDATION = `
 BACKGROUND CONTRAST VALIDATION:
-- After generation, compare visual hierarchy (contrast and tonal weight), not sharpness. If background contrast is approximately equal to the face or product, invalidate and regenerate.
 - The subject must remain the highest local contrast region without looking stylish or retouched. Background can stay in focus but must feel visually tired and secondary.
 `.trim().replace(/\s+/g, ' ');
 const RAW_DOMESTIC_FOCUS_OVERRIDE = `
@@ -234,18 +232,6 @@ FOCUS OVERRIDE (HARD):
 `.trim().replace(/\s+/g, ' ');
 const RAW_DOMESTIC_FINAL_COMMAND = `
 RAW DOMESTIC UGC FINAL COMMAND:
-- Casual front-facing smartphone capture taken indoors with a fixed wide lens and tiny sensor.
-- Everything stays in mediocre focus from subject to background. Absolutely no depth isolation mode, depth of field, bokeh, subject separation, or lens blur. If any blur or artistic depth appears, invalidate and regenerate.
-- Natural handheld framing with slight micro shake, imperfect alignment, awkward crop, minimal headroom, and subtle lens distortion.
-- Real human skin only: visible pores, fine lines, uneven tone, zero retouching or beauty glow.
-- Hair must look natural, slightly messy, low definition, uneven strands, and never sculpted. If it looks CG, hyper-detailed, or salon-styled, re-roll.
-- Clothing remains casual everyday wear (tees, hoodies, soft knits) with wrinkles, washed colors, no logos, no styling intent.
-- Personal add-ons are incidental daily items (dull hoops, thin rings, simple chains, smudged glasses, uneven facial hair, faded tattoos, short worn nails). If any accessory feels curated or trendy, invalidate.
-- Environment is incidental domestic clutter—bedrooms, kitchens, work nooks—with readable background objects still in flat focus. No staged decor or scenic storytelling.
-- Lighting is mixed household light with mild imbalance; no studio rigs, no ring lights, no beauty lighting.
-- Product interaction is relaxed and unposed. Grip stays casual, no hero presentation.
-- Absolute blocklist: depth isolation mode, cinematic depth, beauty lighting, styled hair, fashion wardrobe, product hero-level staging, marketing poses.
-- Flat focus across the entire frame, small sensor, fixed wide lens, no depth separation, no depth isolation mode. If the image looks intentional, polished, staged, or optimized, reject and regenerate immediately.
 `.trim().replace(/\s+/g, ' ');
 const RAW_DOMESTIC_FRONT_CAMERA_REALISM_CONTRACT = `
 RAW DOMESTIC FRONT CAMERA REALISM CONTRACT:

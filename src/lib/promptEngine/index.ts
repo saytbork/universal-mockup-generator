@@ -57,14 +57,6 @@ import { buildMasterPrompt, MasterPromptSections } from './masterPrompt';
 // ============================================================================
 const RAW_DOMESTIC_NEGATIVE_APPEND =
     'No studio lighting, no cinematic look, no professional photography, no centered composition, no passport photo, no fashion editorial, no shallow depth of field, no background bokeh, no HDR look, no perfect symmetry, no influencer styling, no product hero shot.';
-const IDENTITY_NEGATIVE_TERMS = [
-    'same person',
-    'recurring face',
-    'identical subject',
-    'preserved identity',
-    'stock photo person',
-    'model-like appearance'
-];
 function negativePrompt(options?: PromptOptions) {
     const entries = [
         // Anatomical integrity
@@ -115,9 +107,16 @@ function negativePrompt(options?: PromptOptions) {
         options?.ugcRealModeActive ||
         ['natural', 'raw'].includes((options?.ugcStyle ?? '').toLowerCase());
     if (shouldGuardIdentity) {
-        entries.push(
-            ...IDENTITY_NEGATIVE_TERMS.filter(term => !entries.includes(term))
-        );
+        const additional = [
+            'face consistency',
+            'same face as reference',
+            'matching facial features'
+        ];
+        additional.forEach(term => {
+            if (!entries.includes(term)) {
+                entries.push(term);
+            }
+        });
     }
     return entries.join(", ");
 }

@@ -94,16 +94,14 @@ Any person visible in the image must be ignored as a source of facial or persona
 Use the image only for rough composition and product placement.
 Generate a completely new, unrelated individual for this render.
 Do NOT preserve face, age, gender, ethnicity, hair, or appearance from the input image.
-If the generated person resembles the input image, the result is invalid and must regenerate.
 `.trim().replace(/\s+/g, ' ');
 
 const NATURAL_UGC_IDENTITY_VARIATION = `
 IDENTITY VARIATION RULE (NATURAL UGC):
+The input image must not be used to infer or preserve human identity in any form.
 Each generation must depict a completely different person.
-Never reuse the same individual.
 Vary face shape, bone structure, eye spacing, nose, jaw, lips, hairline, hair texture, and age cues naturally.
 Avoid default, model-like, or stock-photo faces.
-If the subject resembles a previous output, invalidate and regenerate.
 `.trim().replace(/\s+/g, ' ');
 
 const NATURAL_FACE_SHAPES = [
@@ -487,7 +485,7 @@ Hair must appear eighty-plus years old with collapsed volume, irregular thinning
 
             if (!options.identityLock) {
                 parts.push(
-                    'IDENTITY VARIATION RULE: Each generation must depict a different person. Do not reuse the same face, age, hair, or facial structure across renders. Treat every prompt as a new individual, and if the face resembles a previous output, invalidate and regenerate.'
+                    'IDENTITY VARIATION RULE: Each generation must depict a different person and avoid repeating facial structure. Do not reuse the same face, age, hair, or facial structure across renders.'
                 );
             }
 
