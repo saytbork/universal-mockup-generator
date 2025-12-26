@@ -142,10 +142,10 @@ export async function generateImageWithGemini({
                 preserveReferenceImage: true,
                 temperature: 0.25,
                 topP: 0.9,
+                seed: crypto.randomUUID(),
             },
         } as any,
     });
 
     return response;
 }
-

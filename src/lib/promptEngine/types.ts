@@ -158,6 +158,11 @@ export interface PromptOptions {
     personDetails?: PersonDetails;
     genderPresentation?: 'masculine' | 'feminine' | 'neutral';
     identityLock?: IdentityLock;
+    identity?: {
+        faceSignature?: string;
+        facialEmbedding?: string;
+        personSeed?: string;
+    };
     gender?: string;
     ethnicity?: string;
     skinTone?: string;
@@ -174,6 +179,7 @@ export interface PromptOptions {
     selfieMode?: string;      // Unified Selfie Mode
     selfieType?: string;      // Legacy
     eyeDirection?: EyeDirectionKey;
+    seed?: string;
 
     // Product
     productAssets?: ProductAsset[];

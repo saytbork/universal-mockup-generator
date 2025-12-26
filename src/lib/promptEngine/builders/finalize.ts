@@ -37,6 +37,12 @@ export class FinalizeBuilder implements PromptBuilder {
             );
         }
 
+        if (!options.identityLock) {
+            lines.push(
+                'NEGATIVE IDENTITY CONSTRAINT: same woman, same person, identical face, repeated subject, recurring individual.'
+            );
+        }
+
         return lines.join(' ').trim().replace(/\s+/g, ' ');
     }
 }

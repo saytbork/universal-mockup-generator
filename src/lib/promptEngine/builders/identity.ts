@@ -87,10 +87,59 @@ const EXPRESSION_NOISE_OPTIONS = [
 
 const GENERIC_IDENTITY_KEYWORDS = /(generic|identical|same person|same creator)/i;
 
+const AI_STUDIO_IDENTITY_OVERRIDE_NATURAL = `
+AI STUDIO IDENTITY OVERRIDE (NATURAL UGC):
+The uploaded image is NOT an identity reference.
+Any person visible in the image must be ignored as a source of facial or personal identity.
+Use the image only for rough composition and product placement.
+Generate a completely new, unrelated individual for this render.
+Do NOT preserve face, age, gender, ethnicity, hair, or appearance from the input image.
+If the generated person resembles the input image, the result is invalid and must regenerate.
+`.trim().replace(/\s+/g, ' ');
+
+const NATURAL_UGC_IDENTITY_VARIATION = `
+IDENTITY VARIATION RULE (NATURAL UGC):
+Each generation must depict a completely different person.
+Never reuse the same individual.
+Vary face shape, bone structure, eye spacing, nose, jaw, lips, hairline, hair texture, and age cues naturally.
+Avoid default, model-like, or stock-photo faces.
+If the subject resembles a previous output, invalidate and regenerate.
+`.trim().replace(/\s+/g, ' ');
+
+const NATURAL_FACE_SHAPES = [
+    'elongated with a gentle jawline and slightly uneven width',
+    'round with a soft chin and subtle asymmetry on one cheekbone',
+    'square with a defined jaw and a faint tilt toward the camera',
+    'heart-shaped with a soft forehead tapering into a narrow chin',
+    'oval with mild asymmetry near the temples and an uneven forehead line'
+];
+
+const NATURAL_HAIR_TEXTURES = [
+    'loose, lived-in waves that fall at uneven heights',
+    'off-center curls with a few strands refusing to cooperate',
+    'slightly flat strands with tender flyaways framing the forehead',
+    'broken coils with a gentle frizz density near the crown'
+];
+
+const NATURAL_HAIR_COLORS = [
+    'dark brown with scattered copper highlights and sparse lighter tips',
+    'medium brown with soft ash undertones and a few warm flecks',
+    'deep chestnut that drifts toward auburn along stray strands',
+    'light brown with muted blonde streaks near the part and edges'
+];
+
+const NATURAL_MICRO_FEATURES = [
+    'a faint smattering of freckles across the nose bridge',
+    'a tiny beauty mark near the upper lip',
+    'a light crease of healed scar tissue near the eyebrow',
+    'a delicate sunspot cluster on the cheekbone area'
+];
+
 const NATURAL_HAIR_VARIATIONS = [
-    'Hair texture shows soft waves with frayed ends and a slightly off-center part.',
-    'Hair is dense but tousled, leaning toward uneven curls with subtle frizz at the crown.',
-    'Hair is thin along one temple with tiny flyaways and patchy density near the part.'
+    'Hair texture is loose waves with frayed ends, an off-center part, medium density, and soft flyaways along the temples.',
+    'Hair is slightly flat with uneven curls, thin-to-medium density, and a part that drifts toward one side with stray hairs escaping the silhouette.',
+    'Hair leans toward gentle coils, sparse at the crown, irregular parting, and broken strands spilling across the forehead.',
+    'Hair stays unstyled, with mid-density strands that refuse to stay aligned, asymmetrical parting, and invisible breakage near the ears.'
 ];
 
 const NATURAL_SKIN_VARIATIONS = [
@@ -107,7 +156,6 @@ const NATURAL_FACIAL_VARIATIONS = [
 
 const buildNaturalIdentityFlavor = (random: () => number, age: number): string => {
     const ageDelta = Math.round((random() - 0.5) * 10);
-    const perceivedAge = Math.max(18, Math.min(90, age + ageDelta));
     const ageDescriptor =
         ageDelta === 0
             ? `Perceived age matches ${age}-year-old cues with lived-in softness.`
@@ -189,6 +237,14 @@ const buildBodyVariation = (random: () => number): string =>
         return `${label} ${option}`;
     }).join('; ');
 
+const describeNaturalTraitBlock = (random: () => number): string => {
+    const faceShape = sample(NATURAL_FACE_SHAPES, random);
+    const texture = sample(NATURAL_HAIR_TEXTURES, random);
+    const color = sample(NATURAL_HAIR_COLORS, random);
+    const microFeature = sample(NATURAL_MICRO_FEATURES, random);
+    return `Face shape: ${faceShape}. Hair texture: ${texture}. Hair color: ${color}. Micro feature: ${microFeature}.`;
+};
+
 const buildExpressionNoise = (random: () => number): string =>
     sample(EXPRESSION_NOISE_OPTIONS, random);
 
@@ -199,7 +255,11 @@ export class IdentityBuilder implements PromptBuilder {
             hasModelReference,
             personDetails,
             contentStyle,
-        sameCreatorAcrossScenes
+            creationIntent,
+            ugcStyle,
+            ugcRealModeActive,
+            identity,
+            sameCreatorAcrossScenes
         } = options;
 
         // Don't build identity if no person or if product-only mode
@@ -207,13 +267,22 @@ export class IdentityBuilder implements PromptBuilder {
             return '';
         }
 
+        if (!options.identityLock && identity) {
+            delete identity.faceSignature;
+            delete identity.facialEmbedding;
+            delete identity.personSeed;
+        }
+
         // UGC DEGRADATION LOGIC & HELPERS
-        const isRawUgc = options.ugcRealModeActive;
+        const isRawUgc = ugcRealModeActive;
         const isUgcMode =
-            options.contentStyle === 'ugc' ||
-            options.creationIntent === 'ugc' ||
+            contentStyle === 'ugc' ||
+            creationIntent === 'ugc' ||
             isRawUgc;
-        const isNaturalStyle = options.ugcStyle === 'natural';
+        const isNaturalStyle = ugcStyle === 'natural';
+        const isRawStyle = ugcStyle === 'raw';
+        const isNaturalOrRawStyle = isNaturalStyle || isRawStyle;
+        const shouldOverrideIdentity = (isNaturalOrRawStyle || isRawUgc) && !hasModelReference;
         const identitySeed = isNaturalStyle ? createRandomIdentitySeed() : ensureIdentitySeed(options.identitySeed);
         const randomNumber = createSeededRandom(identitySeed);
 
@@ -243,6 +312,11 @@ export class IdentityBuilder implements PromptBuilder {
         const age = personDetails?.age || 30;
         const ageGroupLabel = age >= 75 ? 'elder' : 'adult';
         const isAge80Plus = age >= 80;
+
+        if (shouldOverrideIdentity) {
+            parts.push(AI_STUDIO_IDENTITY_OVERRIDE_NATURAL);
+            parts.push(NATURAL_UGC_IDENTITY_VARIATION);
+        }
 
         // 1. PHYSICAL IDENTITY (Standard or Reference Override)
         if (hasModelReference) {
@@ -335,7 +409,7 @@ Skin carries micro wrinkles around the mouth, eyes, and neck with authentic sag,
             }
 
             // Hair
-            if (!isAge80Plus && (personDetails?.hairLength || personDetails?.hairTexture || personDetails?.hairColor)) {
+            if (!isAge80Plus && !isNaturalOrRawStyle && (personDetails?.hairLength || personDetails?.hairTexture || personDetails?.hairColor)) {
                 const hairParts = [
                     personDetails?.hairLength,
                     personDetails?.hairTexture,
@@ -381,7 +455,7 @@ Hair must appear eighty-plus years old with collapsed volume, irregular thinning
 
             const shouldVaryIdentity =
                 isUgcMode &&
-                isNaturalStyle &&
+                isNaturalOrRawStyle &&
                 !hasModelReference &&
                 sameCreatorAcrossScenes !== true;
 
@@ -399,12 +473,22 @@ Hair must appear eighty-plus years old with collapsed volume, irregular thinning
                 parts.push(buildNaturalIdentityFlavor(randomNumber, age));
             }
 
+            if (isNaturalOrRawStyle && !hasModelReference) {
+                identityParts.push(describeNaturalTraitBlock(randomNumber));
+            }
+
             if (!hasModelReference) {
                 parts.push(FACIAL_STABILIZATION_BAN);
             }
 
             if (isUgcMode) {
                 parts.push(IDENTITY_CONTRACT_TEXT);
+            }
+
+            if (!options.identityLock) {
+                parts.push(
+                    'IDENTITY VARIATION RULE: Each generation must depict a different person. Do not reuse the same face, age, hair, or facial structure across renders. Treat every prompt as a new individual, and if the face resembles a previous output, invalidate and regenerate.'
+                );
             }
 
             parts.push(PERSONAL_ADDON_BASE_RULE);

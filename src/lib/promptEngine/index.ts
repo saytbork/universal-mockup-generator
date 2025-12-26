@@ -57,6 +57,14 @@ import { buildMasterPrompt, MasterPromptSections } from './masterPrompt';
 // ============================================================================
 const RAW_DOMESTIC_NEGATIVE_APPEND =
     'No studio lighting, no cinematic look, no professional photography, no centered composition, no passport photo, no fashion editorial, no shallow depth of field, no background bokeh, no HDR look, no perfect symmetry, no influencer styling, no product hero shot.';
+const IDENTITY_NEGATIVE_TERMS = [
+    'same person',
+    'recurring face',
+    'identical subject',
+    'preserved identity',
+    'stock photo person',
+    'model-like appearance'
+];
 function negativePrompt(options?: PromptOptions) {
     const entries = [
         // Anatomical integrity
@@ -103,8 +111,27 @@ function negativePrompt(options?: PromptOptions) {
     if (options?.rawDomesticUgcActive) {
         entries.push(RAW_DOMESTIC_NEGATIVE_APPEND);
     }
+    const shouldGuardIdentity =
+        options?.ugcRealModeActive ||
+        ['natural', 'raw'].includes((options?.ugcStyle ?? '').toLowerCase());
+    if (shouldGuardIdentity) {
+        entries.push(
+            ...IDENTITY_NEGATIVE_TERMS.filter(term => !entries.includes(term))
+        );
+    }
     return entries.join(", ");
 }
+
+const generateRequestSeed = (): string => {
+    if (typeof globalThis !== 'undefined') {
+        const runtimeCrypto = (globalThis as typeof globalThis & { crypto?: Crypto }).crypto;
+        if (runtimeCrypto?.randomUUID) {
+            return runtimeCrypto.randomUUID();
+        }
+    }
+    const randomComponent = Math.random().toString(36).slice(2, 10);
+    return `${Date.now().toString(36)}-${randomComponent}`;
+};
 
 const DEPTH_DETECTION_REGEX = /(depth of field|portrait mode|portrait blur|bokeh|bokeh effect|background blur|blurred background|lens blur|lens emulation|cinematic focus|cinematic blur|subject separation|background separation|subject isolation|shallow depth|shallow focus|soft background|soft focus|depth cues|depth effect|spatial depth|defocused background)/gi;
 const FOCUS_OVERRIDE_APPEND =
@@ -250,6 +277,10 @@ export class PromptEngine {
 
     build(options: PromptOptions): string {
         console.log('[PROMPT ENGINE] Starting canonical build pipeline');
+
+        if (!options.identityLock) {
+            options.seed = generateRequestSeed();
+        }
 
         // ====================================================================
         // RULE 4: MANDATORY SAFETY GUARD - Fail early
