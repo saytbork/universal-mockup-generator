@@ -1,250 +1,51 @@
 /**
- * Identity Builder - Person identity and appearance with SEMANTIC MAPPING
- * Maps UI controls to physical, observable, photographic language
+ * Identity Builder - Person identity and appearance (OPTIMIZED)
+ * Uses token-based identity control instead of semantic variations
  */
 
 import type { PromptOptions, PromptBuilder } from '../types';
 
+// ============================================================================
+// CORE CONSTANTS (KEPT)
+// ============================================================================
+
 const PERSONAL_ADDON_BASE_RULE = `
-PERSONAL ADD-ONS REALISM:
-- Accessories, piercings, glasses, facial hair, tattoos, and nails must look incidental and lived-in—common jewelry only, matte metals, slight wear, casual piercings, everyday glasses with minor glare or smudges, natural facial hair, aged tattoos, and short natural nails.
-- Nothing feels styled, trendy, or intentional. If an accessory appears curated or fashion-forward, invalidate and retry.
+PERSONAL ADD-ONS: Accessories must look incidental and worn-in. Common jewelry only, matte metals, slight wear, casual piercings, everyday glasses with minor glare, natural facial hair, aged tattoos, short natural nails. Nothing styled or trendy.
 `.trim().replace(/\s+/g, ' ');
 
-const FACIAL_MORPHOLOGY_CATEGORIES = [
-    { label: 'Face shape', options: ['narrow', 'oval', 'wide', 'angular', 'soft'] },
-    { label: 'Jawline', options: ['soft', 'rounded', 'defined', 'asymmetrical'] },
-    { label: 'Cheekbones', options: ['low', 'high', 'pronounced', 'subtle'] },
-    { label: 'Eye spacing', options: ['close', 'average', 'wide'] },
-    { label: 'Nose', options: ['narrow bridge', 'wide bridge', 'rounded tip', 'pronounced tip'] },
-    { label: 'Lips', options: ['thin', 'medium', 'uneven', 'asymmetrical'] },
-    { label: 'Facial asymmetry', options: ['subtle but visible'] }
-];
-const FACIAL_MORPHOLOGY_SELECTION_COUNT = 4;
-const FACIAL_STABILIZATION_BAN = `
-Do NOT preserve facial consistency.
-Do NOT reuse latent identity.
-Do NOT bias toward symmetry or attractiveness.
-UGC requires variation over beauty.
-`.trim();
 const IDENTITY_CONTRACT_TEXT = `
-This person must be a unique individual.
-Do not reuse or approximate any previous face or body.
-Each render represents a different real human unless identity persistence is explicitly enabled.
-Avoid average, generic, or stock-photo facial proportions.
-Distinctive features and mild asymmetry are required.
-`.trim();
-
-const CREATOR_IDENTITY_DYNAMIC_BLOCK = `
-CREATOR IDENTITY (AUTO-GENERATED):
-Each generation must depict a different real person.
-Do NOT reuse the same face, age, ethnicity, hair, expression, or overall vibe.
-The person must appear unrelated to previous generations and never resemble a recurring model.
-Fresh, lived-in identity cues are required on every render.
+This person must be a unique individual. Do not reuse or approximate any previous face or body. Each render represents a different real human. Avoid generic or stock-photo proportions.
 `.trim().replace(/\s+/g, ' ');
 
-const BODY_VARIATION_CATEGORIES = [
-    {
-        label: 'Shoulder width',
-        options: [
-            'shoulders narrow and slightly hunched, one side dipping toward the camera',
-            'broad shoulders that slope downward with mild fatigue',
-            'square shoulders leaning ever so slightly forward, creating asymmetry'
-        ]
-    },
-    {
-        label: 'Neck length',
-        options: [
-            'neck short and thick, forcing the head to tilt forward',
-            'long, lean neck that tilts slightly to one side',
-            'neck of average length but with uneven tension on either side'
-        ]
-    },
-    {
-        label: 'Posture bias',
-        options: [
-            'posture slouches toward the right with one hip slightly higher',
-            'posture upright but the left shoulder drifts lower than the right',
-            'posture carries a subtle lean, as if mid-shift between standing and sitting'
-        ]
-    },
-    {
-        label: 'Hand impression',
-        options: [
-            'hands appear compact with stubby fingers curling inward',
-            'hands feel long-fin gered with knuckles visibly pronounced',
-            'hands rest relaxed with slightly splayed fingers that are not uniform in length'
-        ]
-    }
-];
-
-const EXPRESSION_NOISE_OPTIONS = [
-    'Expression noise: eyes vary in openness while the mouth holds soft tension and the eyebrows rest unevenly.',
-    'Expression noise: eyelids settle at different heights, lips part slightly with subtle tension, and brows arch in mild asymmetry.',
-    'Expression noise: gaze drifts just off camera, mouth corners vary, and the brow line softens on one side.',
-    'Expression noise: eyelids flicker open, mouth stretches into a strained neutral, and eyebrows dip unevenly.'
-];
-
-const GENERIC_IDENTITY_KEYWORDS = /(generic|identical|same person|same creator)/i;
-
-const AI_STUDIO_IDENTITY_OVERRIDE_NATURAL = `
-AI STUDIO IDENTITY OVERRIDE (NATURAL UGC):
-The uploaded image is NOT an identity reference.
-Any person visible in the image must be ignored as a source of facial or personal identity.
-Use the image only for rough composition and product placement.
-Generate a completely new, unrelated individual for this render.
-Do NOT preserve face, age, gender, ethnicity, hair, or appearance from the input image.
+const ANTI_DOLL_CONSTRAINT = `
+The person must look like a real unedited smartphone photo of a real human. Avoid CGI, 3D render, synthetic human, mannequin, or doll-like appearance.
 `.trim().replace(/\s+/g, ' ');
 
-const NATURAL_UGC_IDENTITY_VARIATION = `
-IDENTITY VARIATION RULE (NATURAL UGC):
-The input image must not be used to infer or preserve human identity in any form.
-Each generation must depict a completely different person.
-Vary face shape, bone structure, eye spacing, nose, jaw, lips, hairline, hair texture, and age cues naturally.
-Avoid default, model-like, or stock-photo faces.
-`.trim().replace(/\s+/g, ' ');
+// ============================================================================
+// BLOCKED TERMS (CGI/Doll prevention)
+// ============================================================================
 
-const NATURAL_FACE_SHAPES = [
-    'elongated with a gentle jawline and slightly uneven width',
-    'round with a soft chin and subtle asymmetry on one cheekbone',
-    'square with a defined jaw and a faint tilt toward the camera',
-    'heart-shaped with a soft forehead tapering into a narrow chin',
-    'oval with mild asymmetry near the temples and an uneven forehead line'
+const BLOCKED_IDENTITY_TERMS = [
+    'ultra-realistic', 'cinematic', 'beauty dish', 'three-point lighting',
+    'macro lens', 'perfect symmetry', 'flawless skin', 'high-gloss retouch',
+    'editorial face', 'studio lighting', 'professional retouching',
+    'hyper-detailed', '8k', 'unreal engine', 'silky', 'glossy',
+    'beauty finish', 'cinematic hair', 'perfect waves'
 ];
 
-const NATURAL_HAIR_TEXTURES = [
-    'loose, lived-in waves that fall at uneven heights',
-    'off-center curls with a few strands refusing to cooperate',
-    'slightly flat strands with tender flyaways framing the forehead',
-    'broken coils with a gentle frizz density near the crown'
-];
-
-const NATURAL_HAIR_COLORS = [
-    'dark brown with scattered copper highlights and sparse lighter tips',
-    'medium brown with soft ash undertones and a few warm flecks',
-    'deep chestnut that drifts toward auburn along stray strands',
-    'light brown with muted blonde streaks near the part and edges'
-];
-
-const NATURAL_MICRO_FEATURES = [
-    'a faint smattering of freckles across the nose bridge',
-    'a tiny beauty mark near the upper lip',
-    'a light crease of healed scar tissue near the eyebrow',
-    'a delicate sunspot cluster on the cheekbone area'
-];
-
-const NATURAL_HAIR_VARIATIONS = [
-    'Hair texture is loose waves with frayed ends, an off-center part, medium density, and soft flyaways along the temples.',
-    'Hair is slightly flat with uneven curls, thin-to-medium density, and a part that drifts toward one side with stray hairs escaping the silhouette.',
-    'Hair leans toward gentle coils, sparse at the crown, irregular parting, and broken strands spilling across the forehead.',
-    'Hair stays unstyled, with mid-density strands that refuse to stay aligned, asymmetrical parting, and invisible breakage near the ears.'
-];
-
-const NATURAL_SKIN_VARIATIONS = [
-    'Skin tone drifts between warm beige and muted olive, with soft discoloration over the forehead and cheeks.',
-    'Skin shows a faint cool undertone on the jawline and a warm flush inside the cheeks.',
-    'Skin combines a medium bronze base with scattered warmth and light freckling toward the nose.'
-];
-
-const NATURAL_FACIAL_VARIATIONS = [
-    'Facial structure leans toward a square jaw with subtle asymmetry at the chin.',
-    'Facial structure is elongated with one cheekbone slightly higher than the other.',
-    'Facial structure is round with a gentle tilt of the head and a soft uneven brow line.'
-];
-
-const buildNaturalIdentityFlavor = (random: () => number, age: number): string => {
-    const ageDelta = Math.round((random() - 0.5) * 10);
-    const ageDescriptor =
-        ageDelta === 0
-            ? `Perceived age matches ${age}-year-old cues with lived-in softness.`
-            : `Perceived age drifts ${Math.abs(ageDelta)} years ${ageDelta > 0 ? 'older' : 'younger'} than base ${age}.`;
-    const hairDescriptor = NATURAL_HAIR_VARIATIONS[Math.floor(random() * NATURAL_HAIR_VARIATIONS.length)];
-    const skinDescriptor = NATURAL_SKIN_VARIATIONS[Math.floor(random() * NATURAL_SKIN_VARIATIONS.length)];
-    const facialDescriptor = NATURAL_FACIAL_VARIATIONS[Math.floor(random() * NATURAL_FACIAL_VARIATIONS.length)];
-    return `${ageDescriptor} ${hairDescriptor} ${skinDescriptor} ${facialDescriptor}`;
+const sanitizePart = (text: string, isUgcMode: boolean): string => {
+    if (!isUgcMode) return text;
+    let cleanText = text;
+    BLOCKED_IDENTITY_TERMS.forEach(term => {
+        const regex = new RegExp(`\\b${term}\\b`, 'gi');
+        cleanText = cleanText.replace(regex, '');
+    });
+    return cleanText.replace(/\s+/g, ' ').trim();
 };
 
-const createRandomIdentitySeed = (): string => {
-    if (typeof globalThis !== 'undefined') {
-        const runtimeCrypto = (globalThis as typeof globalThis & { crypto?: Crypto }).crypto;
-        if (runtimeCrypto?.randomUUID) {
-            return runtimeCrypto.randomUUID();
-        }
-    }
-    const randomComponent = Math.random().toString(36).slice(2, 10);
-    return `${Date.now().toString(36)}-${randomComponent}`;
-};
-
-const ensureIdentitySeed = (seed?: string): string =>
-    seed || createRandomIdentitySeed();
-
-const createSeededRandom = (seed?: string): (() => number) => {
-    if (!seed) {
-        return Math.random;
-    }
-    let hash = 0;
-    for (let i = 0; i < seed.length; i += 1) {
-        hash = (Math.imul(31, hash) + seed.charCodeAt(i)) >>> 0;
-    }
-    let state = hash || 1;
-    return () => {
-        state = (Math.imul(48271, state) + 1) % 2147483647;
-        return state / 2147483647;
-    };
-};
-
-const shuffleArray = <T,>(items: T[], random: () => number): T[] => {
-    const array = [...items];
-    for (let i = array.length - 1; i > 0; i -= 1) {
-        const j = Math.floor(random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-};
-
-const sample = <T,>(items: T[], random: () => number): T =>
-    items[Math.floor(random() * items.length)];
-
-const buildFacialMorphologyVariation = (random: () => number): string => {
-    const shuffled = shuffleArray(FACIAL_MORPHOLOGY_CATEGORIES, random);
-    const selection = shuffled
-        .slice(0, FACIAL_MORPHOLOGY_SELECTION_COUNT)
-        .filter(Boolean);
-
-    if (selection.length === 0) {
-        return 'Facial morphology variation could not be determined; please re-run.';
-    }
-
-    const descriptor = selection
-        .map(category => {
-            const label = category?.label || 'Facial trait';
-            const option = sample(category.options, random);
-            return `${label}: ${option}`;
-        })
-        .join('; ');
-    if (GENERIC_IDENTITY_KEYWORDS.test(descriptor)) {
-        return buildFacialMorphologyVariation(random);
-    }
-    return descriptor;
-};
-
-const buildBodyVariation = (random: () => number): string =>
-    BODY_VARIATION_CATEGORIES.filter(Boolean).map(category => {
-        const label = category?.label || 'Body detail';
-        const option = sample(category?.options || ['irregular detail'], random);
-        return `${label} ${option}`;
-    }).join('; ');
-
-const describeNaturalTraitBlock = (random: () => number): string => {
-    const faceShape = sample(NATURAL_FACE_SHAPES, random);
-    const texture = sample(NATURAL_HAIR_TEXTURES, random);
-    const color = sample(NATURAL_HAIR_COLORS, random);
-    const microFeature = sample(NATURAL_MICRO_FEATURES, random);
-    return `Face shape: ${faceShape}. Hair texture: ${texture}. Hair color: ${color}. Micro feature: ${microFeature}.`;
-};
-
-const buildExpressionNoise = (random: () => number): string =>
-    sample(EXPRESSION_NOISE_OPTIONS, random);
+// ============================================================================
+// IDENTITY BUILDER CLASS
+// ============================================================================
 
 export class IdentityBuilder implements PromptBuilder {
     build(options: PromptOptions): string {
@@ -254,233 +55,136 @@ export class IdentityBuilder implements PromptBuilder {
             personDetails,
             contentStyle,
             creationIntent,
-            ugcStyle,
-            ugcRealModeActive,
-            identity,
-            sameCreatorAcrossScenes
+            ugcRealModeActive
         } = options;
 
-        // Don't build identity if no person or if product-only mode
+        // Skip if no person or product-only mode
         if (!personIncluded || contentStyle === 'product') {
             return '';
         }
 
-        if (!options.identityLock && identity) {
-            delete identity.faceSignature;
-            delete identity.facialEmbedding;
-            delete identity.personSeed;
-        }
-
-        // UGC DEGRADATION LOGIC & HELPERS
-        const isRawUgc = ugcRealModeActive;
-        const isUgcMode =
-            contentStyle === 'ugc' ||
-            creationIntent === 'ugc' ||
-            isRawUgc;
-        const isNaturalStyle = ugcStyle === 'natural';
-        const isRawStyle = ugcStyle === 'raw';
-        const isNaturalOrRawStyle = isNaturalStyle || isRawStyle;
-        const shouldOverrideIdentity = (isNaturalOrRawStyle || isRawUgc) && !hasModelReference;
-        const identitySeed = isNaturalStyle ? createRandomIdentitySeed() : ensureIdentitySeed(options.identitySeed);
-        const randomNumber = createSeededRandom(identitySeed);
-
-        // Blocked terms that cause CGI/Doll look
-        const BLOCKED_IDENTITY_TERMS = [
-            'ultra-realistic', 'cinematic', 'beauty dish', 'three-point lighting',
-            'macro lens', 'perfect symmetry', 'flawless skin', 'high-gloss retouch',
-            'editorial face', 'studio lighting', 'professional retouching',
-            'perfect complexion', 'hyper-detailed', '8k', 'unreal engine',
-            'silky', 'glossy', 'voluminous', 'styled', 'sculpted', 'salon',
-            'beauty finish', 'cinematic hair', 'perfect waves', 'uniform texture',
-            'soft hair shader', 'ai smooth hair', 'portrait polish'
-        ];
-
-        // Helper to sanitize parts
-        const sanitizePart = (text: string) => {
-            if (!isUgcMode) return text;
-            let cleanText = text;
-            BLOCKED_IDENTITY_TERMS.forEach(term => {
-                const regex = new RegExp(`\\b${term}\\b`, 'gi');
-                cleanText = cleanText.replace(regex, '');
-            });
-            return cleanText.replace(/\s+/g, ' ').trim();
-        };
-
+        const isUgcMode = contentStyle === 'ugc' || creationIntent === 'ugc' || ugcRealModeActive;
         const parts: string[] = [];
         const age = personDetails?.age || 30;
         const ageGroupLabel = age >= 75 ? 'elder' : 'adult';
-        const isAge80Plus = age >= 80;
 
-        if (shouldOverrideIdentity) {
-            parts.push(AI_STUDIO_IDENTITY_OVERRIDE_NATURAL);
-            parts.push(NATURAL_UGC_IDENTITY_VARIATION);
-        }
-
-        // 1. PHYSICAL IDENTITY (Standard or Reference Override)
+        // ====================================================================
+        // MODEL REFERENCE OVERRIDE (highest priority)
+        // ====================================================================
         if (hasModelReference) {
             parts.push(`
 MODEL REFERENCE OVERRIDE:
-Use the uploaded model reference image as the single source of truth for the person's appearance.
-Do not alter or reinterpret age, gender, ethnicity, facial structure, skin texture, hair, or expression.
-Do not beautify, rejuvenate, stylize, or idealize the face.
-Match the person exactly as shown in the reference image.
-The model reference overrides any synthetic identity description.
+Use the uploaded model reference as the single source of truth for appearance.
+Do not alter age, gender, ethnicity, facial structure, skin, hair, or expression.
+Match the person exactly as shown.
             `.trim().replace(/\s+/g, ' '));
         } else {
-            // AGE ANCHOR for 70+ (CRITICAL)
+            // ================================================================
+            // AGE ANCHOR (for 70+)
+            // ================================================================
             if (age >= 70) {
                 parts.push(`
-AGE ANCHOR: The subject MUST visually read as approximately ${age} years old.
-Facial structure, skin laxity, eye area, neck, hands, posture, and overall presence must be consistent with a real ${age}-year-old ${ageGroupLabel}.
+AGE ANCHOR: Subject MUST visually read as ${age} years old.
+Facial structure, skin laxity, eye area, neck, hands, and posture must match a real ${age}-year-old ${ageGroupLabel}.
 Do NOT make the person appear younger.
-Avoid youthful facial proportions, smooth skin, or middle-aged appearance.
                 `.trim().replace(/\s+/g, ' '));
             }
 
+            // ================================================================
+            // ELDER REALISM (for 75+)
+            // ================================================================
             if (age >= 75) {
                 parts.push(`
-ELDER REALISM: Deep-set crow's feet, softened jawline definition, gentle jowls, and age spots on face and hands are expected.
-Hair should skew gray, silver, or white with visible thinning and irregular texture unless explicitly overridden.
-Hands must show visible veins and knuckle definition, and muscles should feel relaxed rather than toned.
-Skin carries micro wrinkles around the mouth, eyes, and neck with authentic sag, not harsh texture or stylized pores.
+ELDER REALISM: Deep crow's feet, softened jawline, gentle jowls, age spots on face and hands.
+Hair skews gray/silver/white with thinning and irregular texture.
+Hands show visible veins and knuckle definition.
+Skin carries micro wrinkles around mouth, eyes, and neck with authentic sag.
                 `.trim().replace(/\s+/g, ' '));
             }
 
-            // IDENTITY BLOCK - Core attributes
+            // ================================================================
+            // CORE IDENTITY ATTRIBUTES
+            // ================================================================
             const identityParts: string[] = [];
 
-            // Age - ALWAYS numeric, elder group for 75+
-            const ageLabel = `${age}-year-old ${ageGroupLabel}`;
-            identityParts.push(ageLabel);
+            // Age
+            identityParts.push(`${age}-year-old ${ageGroupLabel}`);
 
-            // Gender - use allowed selections verbatim
+            // Gender
             if (personDetails?.gender) {
-                identityParts.push(sanitizePart(personDetails.gender));
+                identityParts.push(sanitizePart(personDetails.gender, isUgcMode));
             }
 
-            // Ethnicity - inject verbatim
+            // Ethnicity
             if (personDetails?.ethnicity && personDetails.ethnicity !== 'Prefer not to specify') {
                 identityParts.push(personDetails.ethnicity);
             }
 
-            // Body Type - use the exact selection
+            // Body Type
             if (personDetails?.bodyType) {
-                identityParts.push(sanitizePart(`${personDetails.bodyType} build`));
+                identityParts.push(sanitizePart(`${personDetails.bodyType} build`, isUgcMode));
             }
 
-            // Skin Tone - inject the selected option exactly
+            // Skin Tone
             if (personDetails?.skinTone) {
-                identityParts.push(sanitizePart(personDetails.skinTone));
+                identityParts.push(sanitizePart(personDetails.skinTone, isUgcMode));
             }
 
-            // Skin Realism + Appearance - UGC Override logic
+            // Skin Realism (UGC override)
             if (isUgcMode) {
-                // FORCE RAW SKIN IN UGC MODE
-                identityParts.push('real human appearance, everyday skin texture, minor unevenness, natural asymmetry, no cosmetic retouching');
+                identityParts.push('real human appearance, everyday skin texture, natural asymmetry, no retouching');
             } else {
-                const skinDescriptor = personDetails?.skinRealism;
-                const appearanceDescriptor = personDetails?.personAppearance;
-                const appearancePieces: string[] = [];
-
-                if (skinDescriptor) {
-                    appearancePieces.push(skinDescriptor);
-                }
-                if (appearanceDescriptor) {
-                    appearancePieces.push(appearanceDescriptor);
-                }
-
-                if (appearancePieces.length > 0) {
-                    appearancePieces.push('real human presence, no stock photo, no over-retouching');
-                    const appearanceBlock = appearancePieces.filter(Boolean).join('. ');
-                    const formattedBlock = appearanceBlock.endsWith('.')
-                        ? appearanceBlock
-                        : `${appearanceBlock}.`;
-                    identityParts.push(sanitizePart(formattedBlock));
-                } else {
-                    identityParts.push('realistic skin texture appropriate for their age');
-                }
+                identityParts.push('realistic skin texture appropriate for age');
             }
 
             // Eye Color
             if (personDetails?.eyeColor) {
-                identityParts.push(sanitizePart(personDetails.eyeColor));
+                identityParts.push(sanitizePart(personDetails.eyeColor, isUgcMode));
             }
 
-            // Hair
-            if (!isAge80Plus && !isNaturalOrRawStyle && (personDetails?.hairLength || personDetails?.hairTexture || personDetails?.hairColor)) {
+            // Hair (skip for 80+ in UGC)
+            const isAge80Plus = age >= 80;
+            if (!isAge80Plus && (personDetails?.hairLength || personDetails?.hairTexture || personDetails?.hairColor)) {
                 const hairParts = [
                     personDetails?.hairLength,
                     personDetails?.hairTexture,
                     personDetails?.hairColor
                 ].filter(Boolean);
                 if (hairParts.length > 0) {
-                    identityParts.push(sanitizePart(`${hairParts.join(' ')} hair`));
+                    identityParts.push(sanitizePart(`${hairParts.join(' ')} hair`, isUgcMode));
                 }
             }
 
+            // Hair realism for 80+
             if (isAge80Plus) {
                 parts.push(`
-HAIR REALISM OVERRIDE (80+):
-Hair must appear physically aged, thinning, and irregular with uneven density and collapsed volume.
-Strands are weak, fragile, and inconsistently shaped.
-Scalp visibility is normal and expected.
-Hairline is uneven and imperfect.
-Hair does not form a clean silhouette or aesthetic shape.
-Strands rest against skin, ears, and clothing with visible compression and gravity effects.
-Flyaway hairs are sparse, random, and unintentional.
-There is no sense of styling, grooming, softness, or visual beauty.
-                `.trim().replace(/\s+/g, ' '));
-                parts.push(`
-SMARTPHONE HAIR CAPTURE:
-Fine hair edges may appear partially soft, broken, or missing due to smartphone autofocus and compression.
-Some strands may disappear or clip irregularly.
-No clean edges, no haloing, no painterly rendering.
-Hair imperfections must come from capture failure, not artistic styling.
+HAIR (80+): Physically aged, thinning, irregular density, collapsed volume.
+Strands weak and fragile, scalp visibility normal, hairline uneven.
+Captured by smartphone so fine edges may appear soft or broken.
                 `.trim().replace(/\s+/g, ' '));
             }
 
-            if (age >= 80) {
-                parts.push(`
-HAIR REALISM OVERRIDE:
-Hair must appear eighty-plus years old with collapsed volume, irregular thinning, uneven strand density, and a visibly fragile hairline. Strands cling to skin, ears, and clothing with real contact, random flyaways, and slight scalp visibility. The capture is from a casual smartphone, so fine edges fall slightly soft, some strands break or vanish from compression, and there is zero sense of salon styling or clean silhouette—reject any appearance of healthy, plush, or aesthetic hair.
-                `.trim().replace(/\s+/g, ' '));
-            }
-
-            // Join core identity
+            // Push core identity
             if (identityParts.length > 0) {
                 parts.push(identityParts.join(', '));
             }
 
             // ================================================================
-            // IDENTITY MODE CONTROL (replaces semantic variations)
-            // Uses non-semantic tokens to break latent convergence
+            // IDENTITY MODE CONTROL (token-based)
             // ================================================================
             const identityMode = options.identityMode || 'auto';
             const identityVariationToken = options.identityVariationToken;
             const identityKey = options.identityKey;
 
             if (identityMode === 'auto' && identityVariationToken) {
-                // AUTO MODE: Inject variation token (breaks convergence without describing traits)
                 parts.push(`[IDENTITY_VARIATION_TOKEN: ${identityVariationToken}]`);
-                parts.push('This must be a different individual than any previously generated person.');
-                parts.push('Do not repeat facial identity.');
+                parts.push('This must be a different individual than any previously generated person. Do not repeat facial identity.');
             } else if (identityMode === 'locked' && identityKey) {
-                // LOCKED MODE: Maintain consistency using identity key
                 parts.push(`[IDENTITY_KEY: ${identityKey}]`);
-                parts.push('Same person as previous generation.');
-                parts.push('Maintain facial identity consistency.');
+                parts.push('Same person as previous generation. Maintain facial identity consistency.');
             }
 
-            // Keep natural identity flavor for natural style (non-semantic)
-            if (isNaturalStyle && !hasModelReference) {
-                parts.push(buildNaturalIdentityFlavor(randomNumber, age));
-            }
-
-            if (!hasModelReference) {
-                parts.push(FACIAL_STABILIZATION_BAN);
-            }
-
-            // Only add identity contract if NOT locked
+            // Identity contract (only in auto mode)
             if (isUgcMode && identityMode !== 'locked') {
                 parts.push(IDENTITY_CONTRACT_TEXT);
             }
@@ -488,59 +192,53 @@ Hair must appear eighty-plus years old with collapsed volume, irregular thinning
             parts.push(PERSONAL_ADDON_BASE_RULE);
         }
 
-        // EXPRESSION
+        // ====================================================================
+        // EXPRESSION & POSE
+        // ====================================================================
         if (personDetails?.facialExpression) {
-            parts.push(`FACIAL EXPRESSION: ${sanitizePart(personDetails.facialExpression)}`);
+            parts.push(`EXPRESSION: ${sanitizePart(personDetails.facialExpression, isUgcMode)}`);
         }
 
-        // EYE DIRECTION
         if (personDetails?.eyeDirection) {
             const eyeMap: Record<string, string> = {
-                'Looking at camera': 'eyes directed straight into camera lens with focused engaging gaze',
-                'Looking at product': 'eyes clearly directed toward the product with attentive focus',
-                'Looking away naturally': 'eyes directed off-camera at natural angle, authentic candid gaze'
+                'Looking at camera': 'eyes directed at camera with focused gaze',
+                'Looking at product': 'eyes directed toward product with attentive focus',
+                'Looking away naturally': 'eyes off-camera at natural angle, candid gaze'
             };
-            const mapped = eyeMap[personDetails.eyeDirection] || personDetails.eyeDirection;
-            parts.push(sanitizePart(mapped));
+            parts.push(sanitizePart(eyeMap[personDetails.eyeDirection] || personDetails.eyeDirection, isUgcMode));
         }
 
-        // POSE
         if (personDetails?.personPose) {
-            parts.push(sanitizePart(personDetails.personPose));
+            parts.push(sanitizePart(personDetails.personPose, isUgcMode));
         }
 
-        // SCENE MOOD
         if (personDetails?.personMood) {
-            parts.push(`SCENE MOOD: ${sanitizePart(personDetails.personMood)}`);
+            parts.push(`MOOD: ${sanitizePart(personDetails.personMood, isUgcMode)}`);
         }
 
-        // WARDROBE
         if (personDetails?.wardrobeStyle) {
-            parts.push(`wearing ${sanitizePart(personDetails.wardrobeStyle)}`);
+            parts.push(`wearing ${sanitizePart(personDetails.wardrobeStyle, isUgcMode)}`);
         }
 
-        // PRODUCT INTERACTION
         if (personDetails?.productInteraction) {
-            parts.push(sanitizePart(personDetails.productInteraction));
+            parts.push(sanitizePart(personDetails.productInteraction, isUgcMode));
         }
 
-        // SELFIE TYPE
         if (personDetails?.selfieType) {
-            parts.push(sanitizePart(personDetails.selfieType));
+            parts.push(sanitizePart(personDetails.selfieType, isUgcMode));
         }
 
-        // PROPS
         if (personDetails?.personProps) {
-            parts.push(sanitizePart(personDetails.personProps));
+            parts.push(sanitizePart(personDetails.personProps, isUgcMode));
         }
 
-        // *** CRITICAL ANTI-DOLL CONSTRAINT FOR UGC ***
+        // Anti-doll constraint for UGC
         if (isUgcMode) {
-            parts.push('The person must look like a real unedited smartphone photo of a real human. Avoid CGI, 3D render, synthetic human, mannequin, doll-like appearance at all costs.');
+            parts.push(ANTI_DOLL_CONSTRAINT);
         }
 
         const result = parts.filter(Boolean).join('. ').trim();
-        console.log('[IDENTITY BUILDER OUTPUT]', result);
+        console.log('[IDENTITY BUILDER OUTPUT]', result.substring(0, 200) + '...');
         return result;
     }
 }
