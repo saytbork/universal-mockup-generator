@@ -153,6 +153,10 @@ export interface PromptOptions {
     placementStyle?: string;
     placementCamera?: string;
     sceneEnvironmentDescriptor?: string;
+    skinRealism?: string;
+    creationModeStructural?: string;
+    compositionModeStructural?: string;
+    cameraDeviceSemantic?: string;
 
     // Person
     personDetails?: PersonDetails;
@@ -197,6 +201,7 @@ export interface PromptOptions {
     heroAlignment?: string;
     heroScale?: number;
     heroShadow?: string;
+    coreSceneNarrative?: string;
 
     compositionMode?: string;
     bgColor?: string;
@@ -219,6 +224,14 @@ export interface PromptOptions {
     formulationLabStyle?: string;
     formulationExpertPreset?: string;
     formulationStory?: FormulationStoryOptions;
+    formulationName?: string;
+    formulationRole?: string;
+    formulationCustomRole?: string;
+    formulationLabVibe?: 'modern_clinical_lab' | 'r_and_d_studio' | 'apothecary_lab' | 'none';
+    formulationPreset?: string;
+    formulationExpertAttire?: ExpertAttire;
+    formulationAttire?: string;
+    formulationBadgeEnabled?: boolean;
 
     // Real Mode
     realModeActive?: boolean;
@@ -226,7 +239,7 @@ export interface PromptOptions {
     // Identity
     hasModelReference?: boolean;      // Model reference uploaded
     modelReference?: ModelReference;
-    identityLock?: PersonIdentity;
+    personIdentity?: PersonIdentity; // Renamed from duplicate identityLock
     personIncluded?: boolean;
     sameCreatorAcrossScenes?: boolean;
     identitySeed?: string;

@@ -33,11 +33,15 @@ RULES:
 - No brand-style presentation.
 
 VISUAL FIDELITY:
-- Smartphone front-camera feel.
+- Hyperrealistic and imperfect UGC photo aesthetic.
+- Basic smartphone front-camera quality.
+- Flat focus across the entire frame.
+- Everything sharp from foreground to background.
+- No background blur, no bokeh, no depth of field effects.
 - Natural domestic lighting.
 - Uneven exposure is allowed.
 - Minor imperfections are allowed.
-- Do NOT force noise, blur, or degradation.
+- Low dynamic range with small sensor characteristics.
 
 CREATOR IDENTITY:
 - Real skin texture with natural variation.
@@ -47,7 +51,8 @@ CREATOR IDENTITY:
 
 CAPTURE:
 - Handheld or casual front-camera framing.
-- Slightly imperfect framing is allowed.
+- Arm visible positioned as if holding the device (phone invisible).
+- Slightly imperfect framing and handheld wobbling are allowed.
 - Horizon does not need to be perfectly level.
 - Camera placement feels incidental, not planned.
 
@@ -103,39 +108,39 @@ export function buildMasterPrompt(
   negativePrompt: string,
   ugcStyle: 'optimized' | 'natural' | 'raw' = 'optimized'
 ): string {
-    const {
-      creationIntent,
-      creationMode,
-      ugcRealMode,
-      formulationStory,
-      ecommerceBuilder,
-      cameraFraming,
-      environmentLightingMood,
-      compositionDetails,
-      identity,
-      finalize
-    } = sections;
+  const {
+    creationIntent,
+    creationMode,
+    ugcRealMode,
+    formulationStory,
+    ecommerceBuilder,
+    cameraFraming,
+    environmentLightingMood,
+    compositionDetails,
+    identity,
+    finalize
+  } = sections;
 
   // CANONICAL ORDER - creation intent first, raw domestic UGC last
-    const candidateParts = [
-      creationIntent,     // 1. Structural context
-      creationMode,       // 2. Mode rules
-      formulationStory,   // 3. Expert credibility
-      ecommerceBuilder,   // 4. Blank space layout
-      cameraFraming,      // 5. Camera composition
-      environmentLightingMood, // 6. Scene + lighting
-      compositionDetails, // 7. Composition instructions
-      identity,           // 8. Person traits
-      finalize            // 9. Constraints + output
-    ];
+  const candidateParts = [
+    creationIntent,     // 1. Structural context
+    creationMode,       // 2. Mode rules
+    formulationStory,   // 3. Expert credibility
+    ecommerceBuilder,   // 4. Blank space layout
+    cameraFraming,      // 5. Camera composition
+    environmentLightingMood, // 6. Scene + lighting
+    compositionDetails, // 7. Composition instructions
+    identity,           // 8. Person traits
+    finalize            // 9. Constraints + output
+  ];
 
-    const cleanedParts: string[] = [];
-    for (const candidate of candidateParts) {
-      if (!candidate) continue;
-      const trimmedCandidate = candidate.trim();
-      if (trimmedCandidate.length === 0) continue;
-      cleanedParts.push(trimmedCandidate);
-    }
+  const cleanedParts: string[] = [];
+  for (const candidate of candidateParts) {
+    if (!candidate) continue;
+    const trimmedCandidate = candidate.trim();
+    if (trimmedCandidate.length === 0) continue;
+    cleanedParts.push(trimmedCandidate);
+  }
 
   const renderedParts: string[] = [];
   for (const cleanedPart of cleanedParts) {

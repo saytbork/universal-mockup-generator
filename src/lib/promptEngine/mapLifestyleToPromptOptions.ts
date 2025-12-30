@@ -12,8 +12,8 @@
  * - ALL mappings logged for debugging
  */
 
-import type { ExpertRole, Step3Values, ExpertAttire } from '@/components/LifestyleStep3';
-import type { CustomClothes, FormulationStoryOptions, IdentityLock, PromptOptions, UGCRealModeLayerSet } from './types';
+import type { ExpertRole, Step3Values, ExpertAttire } from '../../components/LifestyleStep3';
+import type { CustomClothes, FormulationStoryOptions, IdentityLock, PromptOptions, UGCRealModeLayerSet, SceneOrderChaosLevel } from './types';
 import { mapProductModeToPromptOptions } from './mapProductModeToPromptOptions';
 import { APPEARANCE_SEMANTIC_MAP } from './semanticMaps/appearance';
 
@@ -579,20 +579,20 @@ const COMPOSITION_MODE_STRUCTURAL_MAP: Record<string, string> = {
  * CAMERA ORIGIN / CAPTURE STYLE → Physical camera position, holder, distance, narrative
  */
 const SELFIE_TYPE_SEMANTIC_MAP: Record<string, string> = {
-    'Front Camera Selfie': 'front-facing smartphone camera, person holding phone at arm length, partially visible arm, short distance, slight selfie distortion, flat focus across entire frame, everything sharp foreground to background, authentic UGC testimonial feel',
-    'Mirror Selfie': 'phone reflected in mirror, camera visible in hand, person looking at mirror not lens, medium distance, flat focus on mirror and reflection, everything sharp, bathroom or bedroom aesthetic, lifestyle authenticity',
-    'Back Camera Handheld': 'rear smartphone camera held by person or another, higher quality less distortion, natural arm-extended framing, flat focus throughout, small sensor look, cleaner lifestyle aesthetic while remaining real',
-    'Third-Person Phone Shot': 'phone held by another person, subject not holding camera, casual friend or partner perspective, flat focus throughout, everything sharp, still UGC feel but not selfie, medium to full body framing possible'
+    'Front Camera Selfie': 'hyperrealistic and imperfect UGC front-camera selfie, basic phone camera quality, person holding phone at arm length, arm visible positioned as if holding the device but phone is not visible, short distance, slight natural selfie distortion, flat focus across entire frame, everything sharp foreground to background, authentic daily life look',
+    'Mirror Selfie': 'mirror selfie, phone reflected in mirror, camera held in hand, person looking at mirror reflection, medium distance, flat focus on mirror surface and reflection, everything sharp, bathroom or bedroom environment, authentic mirror selfie quality',
+    'Back Camera Handheld': 'handheld rear smartphone camera photo, basic sensor quality, arm visible in frame holding the perspective but phone invisible, natural arm-extended framing, flat focus throughout, everything sharp, authentic UGC handheld aesthetic',
+    'Third-Person Phone Shot': 'photo taken by another person using a phone, subject not holding camera, casual friend perspective, basic mobile photo quality, flat focus throughout, everything sharp, authentic lifestyle UGC feel'
 };
 
 /**
  * SELFIE EXECUTION → Physical execution style (only for Front Camera Selfie)
  */
 const SELFIE_EXECUTION_SEMANTIC_MAP: Record<string, string> = {
-    "Arm's length selfie": "arm's length front camera selfie, handheld smartphone, phone not visible in frame, flat focus across entire frame, everything sharp foreground to background, classic UGC composition",
-    'Close face selfie': 'close-up front camera selfie, intimate framing, face dominant in frame, flat focus with everything sharp, small sensor captures full scene crisp, casual handheld feel',
-    'Upper body selfie': 'front camera selfie showing head and upper torso, clean framing, flat focus across entire frame, small sensor look, everything in focus, casual creator style',
-    'Casual angled selfie': 'front camera selfie with slight tilt, imperfect angle, flat focus throughout, everything sharp, spontaneous casual composition'
+    "Arm's length selfie": "arm's length hyperrealistic selfie, basic front camera quality, arm positioned as if holding the device, flat focus across entire frame, everything sharp, authentic UGC composition",
+    'Close face selfie': 'close-up front camera selfie with natural imperfections, face dominant in frame, basic sensor look, flat focus with everything sharp, casual handheld selfie feel',
+    'Upper body selfie': 'front camera selfie showing upper torso, basic mobile quality, arm extended as if holding phone, flat focus across entire frame, everything in focus, casual daily life style',
+    'Casual angled selfie': 'imperfectly angled selfie, slight handheld tilt, basic camera sensor, flat focus throughout, everything sharp, spontaneous casual composition'
 };
 
 // ============================================================================
@@ -766,12 +766,11 @@ export function mapLifestyleToPromptOptions(
             mapped.perspective = framingOverride;
         }
 
-        // Apply Wardrobe Override (ONLY if Custom Clothes NOT active)
         if (!hasCustomClothes && macro.wardrobe) {
             console.log('[PRIORITY 3] Applying Hero Persona Wardrobe');
             wardrobeOverride = macro.wardrobe;
-            mapped.wardrobeStyle = wardrobeOverride;
-            mapped.personDetails.wardrobeStyle = wardrobeOverride;
+            mapped.wardrobeStyle = wardrobeOverride || undefined;
+            mapped.personDetails.wardrobeStyle = wardrobeOverride || undefined;
         }
     }
 
@@ -1255,7 +1254,7 @@ export function mapLifestyleToPromptOptions(
         mapped.lastBackgroundId = existingOptions.backgroundVariationId;
     }
 
-    const sceneOrderChaosValue = sceneState.sceneOrderChaos || 'Normal';
+    const sceneOrderChaosValue = (sceneState.sceneOrderChaos || 'Normal').toLowerCase() as SceneOrderChaosLevel;
     mapped.sceneOrderChaos = sceneOrderChaosValue;
     const sceneOrderChaosDescriptor = buildSceneOrderChaosDescriptor(sceneOrderChaosValue);
     if (sceneOrderChaosDescriptor) {
@@ -1340,7 +1339,7 @@ export function mapLifestyleToPromptOptions(
     mapped.formulationExpertRole = roleValue ? roleValue.trim() : '';
     mapped.formulationLabStyle = sceneState.formulationLabVibe;
     mapped.formulationExpertPreset = sceneState.formulationPreset;
-    mapped.formulationExpertAttire = sceneState.formulationAttire;
+    mapped.formulationExpertAttire = sceneState.formulationAttire as ExpertAttire;
     mapped.formulationBadgeEnabled = sceneState.formulationBadgeEnabled;
     mapped.formulationStory = buildFormulationStoryOptions(sceneState);
     (mapped as any).formulationTone =
@@ -1371,12 +1370,22 @@ export function mapLifestyleToPromptOptions(
 
         // Also ensure Step 3 value doesn't sneak in
     } else if (sceneState.selfieMode && sceneState.selfieMode !== 'None') {
-        const selfieSemantic = (
+        let selfieSemantic = (
             // @ts-ignore
             SELFIE_TYPE_SEMANTIC_MAP[sceneState.selfieMode] ||
             // @ts-ignore
             sceneState.selfieMode
         );
+
+        // Inject camera tilt for UGC Real Mode selfies
+        if (sceneState.ugcRealMode) {
+            const tilts = [6, -6, 10, -10];
+            // Use the seed for deterministic randomness if available
+            const seedNum = parseInt(sceneState.seed || '0', 10) || Math.floor(Math.random() * 1000);
+            const selectedTilt = tilts[seedNum % tilts.length];
+            selfieSemantic = `${selfieSemantic}, imperfect camera tilt of ${selectedTilt} degrees for handheld realism`.replace(/\s+/g, ' ').trim();
+            console.log('[MAP] UGC Selfie Tilt injected:', selectedTilt, 'degrees');
+        }
 
         mapped.selfieMode = selfieSemantic;
         mapped.personDetails.selfieMode = selfieSemantic;
@@ -1401,7 +1410,7 @@ export function mapLifestyleToPromptOptions(
         ];
         if (proCameras.includes(mapped.camera || '')) {
             console.log('[SAFETY] Downgrading Pro Camera in UGC Mode');
-            mapped.camera = defaultCameraLabel;
+            mapped.camera = 'Intentional smartphone camera';
         }
     }
 

@@ -167,6 +167,17 @@ export interface Step3Values {
   elderlyRealismGuardActive: boolean;
   elderlyRealismGuardLabel: string;
 
+  // Formulation Story
+  formulationExpertEnabled: boolean;
+  formulationName: string;
+  formulationRole: string;
+  formulationCustomRole: string;
+  formulationLabVibe: 'Clean Lab' | 'Moody Lab' | 'Warm Studio' | 'None';
+  formulationPreset: string;
+  formulationExpertAttire: ExpertAttire;
+  formulationAttire: string;
+  formulationBadgeEnabled: boolean;
+
   // Selfie Mode (Unified System)
   selfieMode: string;
 
@@ -225,6 +236,7 @@ export interface Step3Values {
 
   // Output
   aspectRatio: string;
+  seed: string;
 }
 
 // ============================================================================
@@ -642,7 +654,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     allowMessiness: true,
     noArtificialProps: true,
 
-    // Formulation Story
+    // Formulation Story (Legacy UI compatible)
     formulationStoryEnabled: false,
     expertRole: EXPERT_ROLE_OPTIONS[0].value,
     expertName: '',
@@ -650,6 +662,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     expertAttire: EXPERT_ATTIRE_OPTIONS[0].value,
     expertBadgePreference: BADGE_PREFERENCE_OPTIONS[0].value,
     labVibe: LAB_VIBE_OPTIONS[0],
+
+    // Formulation Story (New Prompting logic)
+    formulationExpertEnabled: false,
+    formulationName: '',
+    formulationRole: '',
+    formulationCustomRole: '',
+    formulationLabVibe: 'None',
+    formulationPreset: '',
+    formulationExpertAttire: EXPERT_ATTIRE_OPTIONS[0].value,
+    formulationAttire: '',
+    formulationBadgeEnabled: false,
 
     // Advanced Pro
     sameCreatorAcrossScenes: false,
@@ -659,6 +682,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
     // Output
     aspectRatio: '1:1 (Square)',
+
+    // Internal
+    seed: '',
   };
   enforceSingleSelectLayers(initialValues);
 
@@ -807,17 +833,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const enableEnvironment = useCallback(() => {
     console.log('[SCENE INTENT] Switching to Environment mode');
     setValues(prev => {
-      const next = {
+      const next: Step3Values = {
         ...prev,
         sceneIntent: 'environment',
         compositionMode: '',           // Clear ecommerce
         ugcRealMode: true,             // Enable environment mode
         sidePlacement: SIDE_PLACEMENT_OPTIONS[1], // Reset placement
         ecommerceBackgroundColor: '#ffffff',
-        ecommerceBackgroundMode: 'white',
+        ecommerceBackgroundMode: 'white' as const,
         ecommerceGradientStart: '#f7f7f7',
         ecommerceGradientEnd: '#d9d9d9',
-        ecommerceGradientAngle: '90',
+        ecommerceGradientAngle: '90' as const,
       };
       enforceSingleSelectLayers(next);
       return next;
@@ -834,7 +860,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const enableEcommerce = useCallback(() => {
     console.log('[SCENE INTENT] Switching to Ecommerce mode');
     setValues(prev => {
-      const next = {
+      const next: Step3Values = {
         ...prev,
         sceneIntent: 'ecommerce',
         ugcRealMode: false,            // Disable environment mode
@@ -846,10 +872,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         ugcFramingImperfections: [],
         ugcAwkwardContext: [],
         ecommerceBackgroundColor: '#ffffff',
-        ecommerceBackgroundMode: 'white',
+        ecommerceBackgroundMode: 'white' as const,
         ecommerceGradientStart: '#f7f7f7',
         ecommerceGradientEnd: '#d9d9d9',
-        ecommerceGradientAngle: '90'
+        ecommerceGradientAngle: '90' as const
       };
       enforceSingleSelectLayers(next);
       return next;
