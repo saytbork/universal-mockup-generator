@@ -230,6 +230,9 @@ export interface PromptOptions {
     personIncluded?: boolean;
     sameCreatorAcrossScenes?: boolean;
     identitySeed?: string;
+    identityMode?: 'auto' | 'locked';       // auto = different person each render, locked = same person
+    identityKey?: string;                   // Internal key for locked mode (persisted)
+    identityVariationToken?: string;        // Token for auto mode (regenerated each render)
 
     // UGC Real Mode
     ugcRealModeActive?: boolean;      // UGC Real Mode toggle

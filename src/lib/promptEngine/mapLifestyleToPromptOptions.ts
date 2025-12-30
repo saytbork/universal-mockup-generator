@@ -156,6 +156,24 @@ const generateIdentitySeed = (): string => {
 };
 
 /**
+ * Generate a non-semantic identity variation token.
+ * This token breaks latent convergence without describing traits.
+ * Format: XXXXXX-YYYYYY (alphanumeric, uppercase)
+ */
+const generateIdentityVariationToken = (): string => {
+    const timestamp = Date.now().toString(36).slice(-6);
+    const random = Math.random().toString(36).substring(2, 8);
+    return `${timestamp}-${random}`.toUpperCase();
+};
+
+/**
+ * Generate a persistent identity key for locked mode.
+ */
+const generateIdentityKey = (): string => {
+    return generateIdentitySeed();
+};
+
+/**
  * PROPS → Scene objects and lifestyle accessories
  */
 const PROPS_SEMANTIC_MAP: Record<string, string> = {
@@ -660,6 +678,24 @@ export function mapLifestyleToPromptOptions(
     mapped.sameCreatorAcrossScenes = sceneState.sameCreatorAcrossScenes;
     if (!identityContinuityRequested) {
         delete (mapped as any).identityLock;
+    }
+
+    // ========================================================================
+    // IDENTITY MODE CONTROL (auto = different person, locked = same person)
+    // ========================================================================
+    const identityMode = identityContinuityRequested ? 'locked' : 'auto';
+    mapped.identityMode = identityMode;
+
+    if (identityMode === 'auto') {
+        // Always generate NEW token for each render (breaks latent convergence)
+        mapped.identityVariationToken = generateIdentityVariationToken();
+        mapped.identityKey = undefined;
+        console.log('[MAP] Identity mode: AUTO → new token:', mapped.identityVariationToken);
+    } else {
+        // locked: persist or create identity key
+        mapped.identityKey = existingOptions.identityKey || generateIdentityKey();
+        mapped.identityVariationToken = undefined;
+        console.log('[MAP] Identity mode: LOCKED → key:', mapped.identityKey);
     }
 
     // Initialize Person Details

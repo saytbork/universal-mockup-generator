@@ -451,42 +451,38 @@ Hair must appear eighty-plus years old with collapsed volume, irregular thinning
                 parts.push(identityParts.join(', '));
             }
 
-            const shouldVaryIdentity =
-                isUgcMode &&
-                isNaturalOrRawStyle &&
-                !hasModelReference &&
-                sameCreatorAcrossScenes !== true;
+            // ================================================================
+            // IDENTITY MODE CONTROL (replaces semantic variations)
+            // Uses non-semantic tokens to break latent convergence
+            // ================================================================
+            const identityMode = options.identityMode || 'auto';
+            const identityVariationToken = options.identityVariationToken;
+            const identityKey = options.identityKey;
 
-            if (shouldVaryIdentity) {
-                const morphologyVariation = buildFacialMorphologyVariation(randomNumber);
-                const bodyVariation = buildBodyVariation(randomNumber);
-                const expressionNoise = buildExpressionNoise(randomNumber);
-                parts.push(`FACIAL MORPHOLOGY VARIATION: ${morphologyVariation}.`);
-                parts.push(`BODY VARIATION: ${bodyVariation}.`);
-                parts.push(`EXPRESSION NOISE: ${expressionNoise}.`);
-                parts.push(CREATOR_IDENTITY_DYNAMIC_BLOCK);
+            if (identityMode === 'auto' && identityVariationToken) {
+                // AUTO MODE: Inject variation token (breaks convergence without describing traits)
+                parts.push(`[IDENTITY_VARIATION_TOKEN: ${identityVariationToken}]`);
+                parts.push('This must be a different individual than any previously generated person.');
+                parts.push('Do not repeat facial identity.');
+            } else if (identityMode === 'locked' && identityKey) {
+                // LOCKED MODE: Maintain consistency using identity key
+                parts.push(`[IDENTITY_KEY: ${identityKey}]`);
+                parts.push('Same person as previous generation.');
+                parts.push('Maintain facial identity consistency.');
             }
 
+            // Keep natural identity flavor for natural style (non-semantic)
             if (isNaturalStyle && !hasModelReference) {
                 parts.push(buildNaturalIdentityFlavor(randomNumber, age));
-            }
-
-            if (isNaturalOrRawStyle && !hasModelReference) {
-                identityParts.push(describeNaturalTraitBlock(randomNumber));
             }
 
             if (!hasModelReference) {
                 parts.push(FACIAL_STABILIZATION_BAN);
             }
 
-            if (isUgcMode) {
+            // Only add identity contract if NOT locked
+            if (isUgcMode && identityMode !== 'locked') {
                 parts.push(IDENTITY_CONTRACT_TEXT);
-            }
-
-            if (!options.identityLock) {
-                parts.push(
-                    'IDENTITY VARIATION RULE: Each generation must depict a different person and avoid repeating facial structure. Do not reuse the same face, age, hair, or facial structure across renders.'
-                );
             }
 
             parts.push(PERSONAL_ADDON_BASE_RULE);
