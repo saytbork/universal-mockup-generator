@@ -579,21 +579,20 @@ const COMPOSITION_MODE_STRUCTURAL_MAP: Record<string, string> = {
  * CAMERA ORIGIN / CAPTURE STYLE → Physical camera position, holder, distance, narrative
  */
 const SELFIE_TYPE_SEMANTIC_MAP: Record<string, string> = {
-    'Front Camera Selfie': 'hyperrealistic and imperfect UGC front-camera selfie, basic phone camera quality, person holding phone at arm length, arm visible positioned as if holding the device but phone is not visible, short distance, slight natural selfie distortion, flat focus across entire frame, everything sharp foreground to background, authentic daily life look',
-    'Mirror Selfie': 'mirror selfie, phone reflected in mirror, camera held in hand, person looking at mirror reflection, medium distance, flat focus on mirror surface and reflection, everything sharp, bathroom or bedroom environment, authentic mirror selfie quality',
-    'Back Camera Handheld': 'handheld rear smartphone camera photo, basic sensor quality, arm visible in frame holding the perspective but phone invisible, natural arm-extended framing, flat focus throughout, everything sharp, authentic UGC handheld aesthetic',
-    'Third-Person Phone Shot': 'photo taken by another person using a phone, subject not holding camera, casual friend perspective, basic mobile photo quality, flat focus throughout, everything sharp, authentic lifestyle UGC feel'
+    "Front camera, arm's length": "hyperrealistic and imperfect UGC front-camera selfie, basic phone camera quality, person holding phone at arm length, arm visible positioned as if holding the device but phone is not visible, short distance, slight natural selfie distortion, flat focus across entire frame, everything sharp foreground to background, authentic daily life look",
+    "Front camera, close face": "close-up hyperrealistic front-camera selfie with natural imperfections, face dominant in frame, basic mobile sensor look, arm visible in foreground as if holding phone but phone itself is invisible, flat focus with everything sharp, casual handheld selfie feel",
+    "Front camera, upper body": "hyperrealistic front-camera selfie showing upper torso, basic mobile quality, arm extended as if holding phone but phone invisible, flat focus across entire frame, everything in focus, casual daily life style",
+    "Mirror selfie": "mirror selfie, phone reflected in mirror, camera held in hand, person looking at mirror reflection, medium distance, flat focus on mirror surface and reflection, everything sharp, bathroom or bedroom environment, authentic mirror selfie quality",
+    "Back camera handheld": "handheld rear smartphone camera photo, basic sensor quality, arm visible in frame holding the perspective but phone invisible, natural arm-extended framing, flat focus throughout, everything sharp, authentic UGC handheld aesthetic",
+    "Third-person phone shot": "photo taken by another person using a phone, subject not holding camera, casual friend perspective, basic mobile photo quality, flat focus throughout, everything sharp, authentic lifestyle UGC feel",
+    "Casual angled selfie": "imperfectly angled hyperrealistic selfie, high-angle casual perspective, arm extended upward as if holding phone but phone invisible, basic camera sensor, flat focus throughout, everything sharp, spontaneous casual composition",
+    "Friend holding phone": "candid selfie taken by a friend or second person, interaction with lens, basic phone photo quality, flat focus throughout, everything sharp, authentic UGC buddy shot",
+    "Table propped phone": "selfie taken from a phone propped on a table, slightly low angle, self-timer aesthetic, flat focus throughout frame, everything sharp, authentic home-capture vibe",
+    "Laptop webcam": "laptop webcam capture, basic low-resolution sensor look, screen glow reflection, flat focus across entire scene, authentic remote-work aesthetic"
 };
 
-/**
- * SELFIE EXECUTION → Physical execution style (only for Front Camera Selfie)
- */
-const SELFIE_EXECUTION_SEMANTIC_MAP: Record<string, string> = {
-    "Arm's length selfie": "arm's length hyperrealistic selfie, basic front camera quality, arm positioned as if holding the device, flat focus across entire frame, everything sharp, authentic UGC composition",
-    'Close face selfie': 'close-up front camera selfie with natural imperfections, face dominant in frame, basic sensor look, flat focus with everything sharp, casual handheld selfie feel',
-    'Upper body selfie': 'front camera selfie showing upper torso, basic mobile quality, arm extended as if holding phone, flat focus across entire frame, everything in focus, casual daily life style',
-    'Casual angled selfie': 'imperfectly angled selfie, slight handheld tilt, basic camera sensor, flat focus throughout, everything sharp, spontaneous casual composition'
-};
+// Deprecated - unified into SELFIE_TYPE_SEMANTIC_MAP
+const SELFIE_EXECUTION_SEMANTIC_MAP: Record<string, string> = {};
 
 // ============================================================================
 // MAIN MAPPER FUNCTION
