@@ -12,9 +12,9 @@ import type { PromptOptions, PromptBuilder } from '../types';
 
 const UGC_DEVICE_CONTRACT = `
 DEVICE: Front-facing smartphone camera only, tiny sensor, cheap glass.
-CAPTURE: Flat focus across frame, no depth separation, no bokeh, no blur.
+CAPTURE: Flat focus across entire frame, everything sharp foreground to background.
 QUALITY: Hand wobble, compression noise, clipped highlights, crushed shadows.
-FOCUS: Everything in mediocre focus 0-3m, no artistic falloff.
+FOCUS: Everything in mediocre focus 0-3m, small sensor look.
 `.trim().replace(/\s+/g, ' ');
 
 const UGC_COMPOSITION_RULES = `
