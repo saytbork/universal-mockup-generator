@@ -256,8 +256,8 @@ const isUgcMode = (options: PromptOptions): boolean => {
     return (
         options.contentStyle === 'ugc' ||
         options.creationIntent === 'ugc' ||
-        options.ugcRealModeActive ||
-        options.rawDomesticUgcActive
+        Boolean(options.ugcRealModeActive) ||
+        Boolean(options.rawDomesticUgcActive)
     );
 };
 
@@ -357,12 +357,27 @@ export class SelfieCaptureBuilder implements PromptBuilder {
         }
 
         if (isCloseFace) {
-            if (isCloseFace) {
-                const forbidden = ['medium', 'torso', 'portrait', 'lifestyle', 'rule of thirds'];
-                const combined = JSON.stringify(options).toLowerCase();
-                if (forbidden.some(k => combined.includes(k))) {
-                    throw new Error('[CLOSE_FACE_VIOLATION] Framing leakage detected');
-                }
+            const forbiddenTerms = ['medium', 'torso', 'portrait', 'lifestyle', 'rule of thirds'];
+            const relevantFields = [
+                options.cameraDistance,
+                options.cameraShot,
+                options.cameraAngle,
+                options.perspective,
+                options.framing,
+                options.personPose,
+                options.personDetails?.personPose,
+                options.creationMode,
+                options.creationIntent
+            ];
+
+            const checkString = relevantFields
+                .filter(f => typeof f === 'string' && f !== 'ugc_selfie' && f !== 'ugc')
+                .join(' ')
+                .toLowerCase();
+
+            if (forbiddenTerms.some(term => checkString.includes(term))) {
+                const leaked = forbiddenTerms.find(term => checkString.includes(term));
+                throw new Error(`[CLOSE_FACE_VIOLATION] Framing leakage detected: "${leaked}" present in photography fields. String: ${checkString}`);
             }
             return [
                 CLOSE_FACE_SELFIE_BLOCK,

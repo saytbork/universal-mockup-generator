@@ -368,6 +368,28 @@ export class PromptEngine {
             overrideTarget.cameraDeviceSemantic = 'front-facing smartphone camera';
             overrideTarget.cameraType = null;
             overrideTarget.placementCamera = null;
+
+            // Aggressive wipe of forbidden framing terms to prevent leakage violations
+            const forbiddenKeys = ['shotType', 'cameraDistance', 'cameraShot', 'cameraAngle', 'perspective', 'framing', 'personPose', 'wardrobe', 'identityBlock'];
+            const forbiddenTerms = ['lifestyle', 'portrait', 'medium', 'torso', 'rule of thirds'];
+
+            const cleanValue = (val: any) => {
+                if (typeof val !== 'string') return val;
+                let cleaned = val;
+                forbiddenTerms.forEach(term => {
+                    const regex = new RegExp(term, 'gi');
+                    cleaned = cleaned.replace(regex, '');
+                });
+                return cleaned.trim();
+            };
+
+            forbiddenKeys.forEach(key => {
+                if (overrideTarget[key]) overrideTarget[key] = cleanValue(overrideTarget[key]);
+                if (options.personDetails && (options.personDetails as any)[key]) {
+                    (options.personDetails as any)[key] = cleanValue((options.personDetails as any)[key]);
+                }
+            });
+
             if (options.personDetails) {
                 options.personDetails.personPose = undefined;
             }
