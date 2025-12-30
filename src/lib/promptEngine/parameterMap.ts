@@ -165,16 +165,16 @@ export const parameterMap: ParameterMap = {
   },
 
   selfieMode: {
-    "Front camera, arm's length": "front-facing smartphone camera, arm's length selfie, partially visible arm, natural distortion, casual framing",
-    "Front camera, close face": "front-facing smartphone camera, close-up face selfie, intimate framing, lens distortion features",
-    "Front camera, upper body": "front-facing smartphone camera, upper body selfie shot, showing outfit context",
-    "Mirror selfie": "mirror selfie with visible smartphone in hand, reflection shot, environment visible behind",
-    "Back camera handheld": "back camera handheld POV shot, one hand visible in frame holding product or interacting",
-    "Third-person phone shot": "shot of someone taking a photo with their phone, third person perspective showing the act of capturing content",
-    "Casual angled selfie": "high-angle casual selfie, playful perspective, arm extended upward",
-    "Friend holding phone": "candid selfie taken by a friend/second person, interaction with lens",
-    "Table propped phone": "selfie taken from a phone propped on a table, slightly low angle, self-timer aesthetic",
-    "Laptop webcam": "laptop webcam capture, slight low angle looking up, screen glow reflection"
+    "Front camera, arm's length": "front-facing smartphone camera, arm's length selfie, partially visible arm, natural distortion, casual framing, flat focus across entire frame, no depth separation, no portrait mode blur",
+    "Front camera, close face": "front-facing smartphone camera, close-up face selfie, intimate framing, lens distortion features, flat focus with no background blur, small sensor captures everything sharp",
+    "Front camera, upper body": "front-facing smartphone camera, upper body selfie shot, showing outfit context, flat focus across entire frame, no depth of field, no bokeh",
+    "Mirror selfie": "mirror selfie with visible smartphone in hand, reflection shot, environment visible behind, flat focus on mirror and reflection, no blur separation",
+    "Back camera handheld": "back camera handheld POV shot, one hand visible in frame holding product or interacting, flat focus, no portrait mode",
+    "Third-person phone shot": "shot of someone taking a photo with their phone, third person perspective showing the act of capturing content, flat focus throughout",
+    "Casual angled selfie": "high-angle casual selfie, playful perspective, arm extended upward, flat focus across entire frame, no background blur",
+    "Friend holding phone": "candid selfie taken by a friend/second person, interaction with lens, flat focus, no depth separation",
+    "Table propped phone": "selfie taken from a phone propped on a table, slightly low angle, self-timer aesthetic, flat focus throughout frame",
+    "Laptop webcam": "laptop webcam capture, slight low angle looking up, screen glow reflection, flat focus, no depth of field"
   },
 
   compositionMode: {

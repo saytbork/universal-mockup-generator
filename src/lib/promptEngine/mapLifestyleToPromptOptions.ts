@@ -439,20 +439,20 @@ const COMPOSITION_MODE_STRUCTURAL_MAP: Record<string, string> = {
  * CAMERA ORIGIN / CAPTURE STYLE → Physical camera position, holder, distance, narrative
  */
 const SELFIE_TYPE_SEMANTIC_MAP: Record<string, string> = {
-    'Front Camera Selfie': 'front-facing smartphone camera, person holding phone at arm length, partially visible arm, short distance, slight selfie distortion, authentic UGC testimonial feel',
-    'Mirror Selfie': 'phone reflected in mirror, camera visible in hand, person looking at mirror not lens, medium distance, bathroom or bedroom aesthetic, lifestyle authenticity',
-    'Back Camera Handheld': 'rear smartphone camera held by person or another, higher quality less distortion, natural arm-extended framing, cleaner lifestyle aesthetic while remaining real',
-    'Third-Person Phone Shot': 'phone held by another person, subject not holding camera, casual friend or partner perspective, still UGC feel but not selfie, medium to full body framing possible'
+    'Front Camera Selfie': 'front-facing smartphone camera, person holding phone at arm length, partially visible arm, short distance, slight selfie distortion, flat focus across entire frame, no depth separation, no portrait mode blur, authentic UGC testimonial feel',
+    'Mirror Selfie': 'phone reflected in mirror, camera visible in hand, person looking at mirror not lens, medium distance, flat focus on mirror and reflection, no blur separation, bathroom or bedroom aesthetic, lifestyle authenticity',
+    'Back Camera Handheld': 'rear smartphone camera held by person or another, higher quality less distortion, natural arm-extended framing, flat focus throughout, no depth of field, cleaner lifestyle aesthetic while remaining real',
+    'Third-Person Phone Shot': 'phone held by another person, subject not holding camera, casual friend or partner perspective, flat focus, no background blur, still UGC feel but not selfie, medium to full body framing possible'
 };
 
 /**
  * SELFIE EXECUTION → Physical execution style (only for Front Camera Selfie)
  */
 const SELFIE_EXECUTION_SEMANTIC_MAP: Record<string, string> = {
-    "Arm's length selfie": "arm's length front camera selfie, handheld smartphone, phone not visible in frame, classic UGC composition",
-    'Close face selfie': 'close-up front camera selfie, intimate framing, face dominant in frame, casual handheld feel',
-    'Upper body selfie': 'front camera selfie showing head and upper torso, clean framing, casual creator style',
-    'Casual angled selfie': 'front camera selfie with slight tilt, imperfect angle, spontaneous casual composition'
+    "Arm's length selfie": "arm's length front camera selfie, handheld smartphone, phone not visible in frame, flat focus across entire frame, no depth separation, no portrait mode blur, classic UGC composition",
+    'Close face selfie': 'close-up front camera selfie, intimate framing, face dominant in frame, flat focus with no background blur, small sensor captures everything sharp, casual handheld feel',
+    'Upper body selfie': 'front camera selfie showing head and upper torso, clean framing, flat focus across entire frame, no depth of field, no bokeh, casual creator style',
+    'Casual angled selfie': 'front camera selfie with slight tilt, imperfect angle, flat focus throughout, no background blur, spontaneous casual composition'
 };
 
 // ============================================================================
