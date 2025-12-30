@@ -134,7 +134,7 @@ export interface PromptOptions {
     contentStyle: 'ugc' | 'product' | '';
     creationIntent?: 'ugc' | 'product' | 'brand';
     ugcStyle?: 'optimized' | 'natural' | 'raw';
-    creationMode: 'lifestyle' | 'studio' | 'aesthetic' | 'bg-replace' | 'ecom-blank';
+    creationMode: 'lifestyle' | 'studio' | 'aesthetic' | 'bg-replace' | 'ecom-blank' | 'ugc_selfie';
     aspectRatio: string;
     camera: string;
     cameraDistance?: CameraDistanceKey;
@@ -204,6 +204,11 @@ export interface PromptOptions {
     coreSceneNarrative?: string;
 
     compositionMode?: string;
+    framing?: string;
+    allowHeadroom?: boolean;
+    allowTorso?: boolean;
+    allowEnvironmentProminence?: boolean;
+    allowSceneComposition?: boolean;
     bgColor?: string;
     bgGradient?: {
         startColor: string;
@@ -249,6 +254,7 @@ export interface PromptOptions {
 
     // UGC Real Mode
     ugcRealModeActive?: boolean;      // UGC Real Mode toggle
+    ugcSelfieDominant?: boolean;      // Derived: UGC selfie pipeline dominance
     heroPersona?: string;             // Semantic UGC persona description
     ugcCaptureSituation?: string | null; // Selected UGC capture situation
     ugcCaptureStyleBase?: string[];

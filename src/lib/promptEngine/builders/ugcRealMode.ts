@@ -150,8 +150,29 @@ export class UGCRealModeBuilder implements PromptBuilder {
         return `Background clutter (${chosen.label}): ${items.join(', ')}.`;
     }
 
+    private isSelfieCaptureActive(options: PromptOptions): boolean {
+        const selfieRaw =
+            options.selfieMode ||
+            options.personDetails?.selfieMode ||
+            options.personDetails?.selfieType ||
+            '';
+        const selfieActive =
+            String(selfieRaw).trim().length > 0 &&
+            String(selfieRaw).trim().toLowerCase() !== 'none';
+        const ugcActive =
+            options.contentStyle === 'ugc' ||
+            options.creationIntent === 'ugc' ||
+            options.ugcRealModeActive ||
+            options.rawDomesticUgcActive;
+        return ugcActive && selfieActive;
+    }
+
     build(options: PromptOptions): string {
         const { ugcRealModeActive, personDetails, personIncluded, rawDomesticUgcActive } = options;
+
+        if (options.ugcSelfieDominant) {
+            return UGC_DEVICE_CONTRACT;
+        }
 
         if (!ugcRealModeActive) return '';
 
@@ -168,6 +189,7 @@ export class UGCRealModeBuilder implements PromptBuilder {
         const cameraOperator = layers.cameraOperator?.[0];
         const hasPhysicalCapture = Boolean(captureBase || cameraOperator);
         const isPropped = captureBase === 'propped-surface' || cameraOperator === 'surface-staged';
+        const selfieCaptureActive = this.isSelfieCaptureActive(options);
 
         // Delete conflicting options
         const overrideTarget = options as any;
@@ -229,7 +251,10 @@ export class UGCRealModeBuilder implements PromptBuilder {
         // LAYER INJECTIONS
         // ====================================================================
         this.injectLayer(parts, 'Capture style', this.describeLayer(layers.captureBase, CAPTURE_STYLE_DETAILS));
-        this.injectLayer(parts, 'Camera operator', this.describeLayer(layers.cameraOperator, CAMERA_OPERATOR_DETAILS));
+        const cameraOperatorLayer = selfieCaptureActive
+            ? (layers.cameraOperator || []).filter(op => op === 'self-held' || op === 'surface-staged')
+            : layers.cameraOperator;
+        this.injectLayer(parts, 'Camera operator', this.describeLayer(cameraOperatorLayer, CAMERA_OPERATOR_DETAILS));
         this.injectLayer(parts, 'Body position', this.describeLayer(layers.bodyPhonePosition, BODY_PHONE_DETAILS));
         this.injectLayer(parts, 'Motion', this.describeLayer(layers.motionStability, MOTION_DETAILS));
         this.injectLayer(parts, 'Framing', this.describeLayer(layers.framingImperfections, FRAMING_DETAILS));
@@ -238,14 +263,16 @@ export class UGCRealModeBuilder implements PromptBuilder {
         // ====================================================================
         // HANDHELD CONSTRAINTS
         // ====================================================================
-        if (hasPhysicalCapture && !isPropped) {
-            parts.push('Arm holding phone must never be visible. Only product-holding hand may show.');
-        } else if (isPropped) {
-            parts.push('Stationary surface capture, no human arm enters frame for phone.');
+        if (!selfieCaptureActive) {
+            if (hasPhysicalCapture && !isPropped) {
+                parts.push('Arm holding phone must never be visible. Only product-holding hand may show.');
+            } else if (isPropped) {
+                parts.push('Stationary surface capture, no human arm enters frame for phone.');
+            }
         }
 
         // Mirror selfie
-        if (cameraOperator === 'mirror-shot') {
+        if (!selfieCaptureActive && cameraOperator === 'mirror-shot') {
             parts.push('Mirror selfie: Phone visible in hand, mirror smudges/streaks, overhead lighting.');
         }
 

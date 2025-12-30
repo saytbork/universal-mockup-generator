@@ -652,15 +652,28 @@ export function mapLifestyleToPromptOptions(
     // MANDATORY LOGGING - Input state
     console.log('[MAP INPUT]', JSON.stringify(sceneState, null, 2));
 
+    if (sceneState.ugcRealMode && sceneState.sceneIntent === 'ecommerce') {
+        console.error('[INVALID STATE BLOCKED] UGC Real Mode cannot run in ecommerce sceneIntent');
+        throw new Error('Invalid state: ugcRealMode + ecommerce sceneIntent');
+    }
+    if (sceneState.compositionMode === 'Ecommerce Blank Space' && sceneState.sceneIntent === 'environment') {
+        console.error('[INVALID STATE BLOCKED] Ecommerce Blank Space cannot run in environment sceneIntent');
+        throw new Error('Invalid state: Ecommerce Blank Space + environment sceneIntent');
+    }
+    if (sceneState.noPerson === false && sceneState.sceneIntent === 'ecommerce') {
+        console.error('[INVALID STATE BLOCKED] Person cannot be enabled in ecommerce sceneIntent');
+        throw new Error('Invalid state: person enabled in ecommerce sceneIntent');
+    }
+
+    if (sceneState.sceneIntent === 'ecommerce') {
+        console.log('[PRODUCT MODE ACTIVE]');
+        return mapProductModeToPromptOptions(sceneState, existingOptions);
+    }
+
     // ========================================================================
     // PRIORITY 1: PRODUCT MODE EXIT
     // ========================================================================
-    const isProductMode = sceneState.creationIntent === 'product' ||
-        sceneState.creationIntent === 'brand';
-
-    if (isProductMode) {
-        return mapProductModeToPromptOptions(sceneState, existingOptions);
-    }
+    console.log('[LIFESTYLE MODE ACTIVE]');
 
     // Initialize mapped options
     const identityContinuityRequested = sceneState.sameCreatorAcrossScenes === true;
@@ -1313,8 +1326,13 @@ export function mapLifestyleToPromptOptions(
         }
     }
 
-    mapped.sidePlacement = mapped.sidePlacement || (sceneState.sidePlacement?.toLowerCase() || 'center') as any;
-    mapped.ecommerceSidePlacementFlag = sceneState.ecommerceSidePlacementFlag;
+    if (isEcommerceSceneIntent) {
+        mapped.sidePlacement = mapped.sidePlacement || (sceneState.sidePlacement?.toLowerCase() || 'center') as any;
+        mapped.ecommerceSidePlacementFlag = sceneState.ecommerceSidePlacementFlag;
+    } else {
+        delete mapped.sidePlacement;
+        delete mapped.ecommerceSidePlacementFlag;
+    }
 
     // ========================================================================
     // OUTPUT FORMAT → Aspect Ratio
@@ -1392,6 +1410,15 @@ export function mapLifestyleToPromptOptions(
         mapped.personDetails.selfieType = selfieSemantic; // Legacy
 
         console.log('[MAP] selfieMode:', sceneState.selfieMode, '→', selfieSemantic);
+    }
+
+    if (!matchesMultiProduct && normalizedCaptureBase[0] === 'close-face') {
+        mapped.selfieMode = 'close-face';
+        mapped.selfieType = 'close-face';
+        if (mapped.personDetails) {
+            mapped.personDetails.selfieMode = 'close-face';
+            mapped.personDetails.selfieType = 'close-face';
+        }
     }
 
     // ========================================================================

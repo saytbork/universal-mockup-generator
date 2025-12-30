@@ -67,6 +67,23 @@ export function mapProductModeToPromptOptions(
 ): Partial<PromptOptions> {
     console.log('[PRODUCT MODE MAP INPUT]', sceneState);
 
+    if (sceneState.ugcRealMode) {
+        console.error('[INVALID STATE BLOCKED] UGC Real Mode cannot run in product mode');
+        throw new Error('Invalid state: ugcRealMode in product mode');
+    }
+    if (sceneState.noPerson === false) {
+        console.error('[INVALID STATE BLOCKED] Person cannot be enabled in product mode');
+        throw new Error('Invalid state: person enabled in product mode');
+    }
+    if (sceneState.selfieMode && sceneState.selfieMode !== 'None') {
+        console.error('[INVALID STATE BLOCKED] Selfie mode cannot run in product mode');
+        throw new Error('Invalid state: selfie mode in product mode');
+    }
+    if ((existingOptions.productAssets?.length || 0) > 1 && sceneState.selfieMode && sceneState.selfieMode !== 'None') {
+        console.error('[INVALID STATE BLOCKED] Selfie cannot be used with multi-product');
+        throw new Error('Invalid state: selfie + multi-product');
+    }
+
     const mapped: Partial<PromptOptions> = {
         ...existingOptions,
         ugcStyle: existingOptions.ugcStyle ?? 'optimized'
@@ -76,6 +93,34 @@ export function mapProductModeToPromptOptions(
     mapped.contentStyle = 'product';
     mapped.creationMode = 'studio'; // Product mode uses studio creation mode
     mapped.personIncluded = false;
+    mapped.sceneIntent = 'ecommerce';
+    mapped.compositionMode = sceneState.compositionMode || 'Ecommerce Blank Space';
+    mapped.personDetails = undefined;
+    mapped.identityLock = undefined;
+    mapped.personIdentity = undefined;
+    mapped.gender = undefined;
+    mapped.ethnicity = undefined;
+    mapped.skinTone = undefined;
+    mapped.hairColor = undefined;
+    mapped.hairStyle = undefined;
+    mapped.personPose = undefined;
+    mapped.personMood = undefined;
+    mapped.personAppearance = undefined;
+    mapped.productInteraction = undefined;
+    mapped.wardrobeStyle = undefined;
+    mapped.personProps = undefined;
+    mapped.microLocation = undefined;
+    mapped.personExpression = undefined;
+    mapped.selfieMode = undefined;
+    mapped.selfieType = 'None';
+    mapped.ugcRealModeActive = false;
+    mapped.ugcRealModeLayers = undefined;
+    mapped.ugcCaptureStyleBase = undefined;
+    mapped.ugcCameraOperator = undefined;
+    mapped.ugcBodyPhonePosition = undefined;
+    mapped.ugcMotionStability = undefined;
+    mapped.ugcFramingImperfections = undefined;
+    mapped.ugcAwkwardContext = undefined;
 
     // ========================================================================
     // PRODUCT COMPOSITION (Stage 4)

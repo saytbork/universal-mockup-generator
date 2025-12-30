@@ -831,23 +831,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
   // Scene Intent Handler: Enable Environment Mode
   const enableEnvironment = useCallback(() => {
-    console.log('[SCENE INTENT] Switching to Environment mode');
-    setValues(prev => {
-      const next: Step3Values = {
-        ...prev,
-        sceneIntent: 'environment',
-        compositionMode: '',           // Clear ecommerce
-        ugcRealMode: true,             // Enable environment mode
-        sidePlacement: SIDE_PLACEMENT_OPTIONS[1], // Reset placement
-        ecommerceBackgroundColor: '#ffffff',
-        ecommerceBackgroundMode: 'white' as const,
-        ecommerceGradientStart: '#f7f7f7',
-        ecommerceGradientEnd: '#d9d9d9',
-        ecommerceGradientAngle: '90' as const,
-      };
-      enforceSingleSelectLayers(next);
-      return next;
-    });
+    console.log('[SCENE INTENT CHANGE] environment');
+    setValues(prev => ({ ...prev, sceneIntent: 'environment' }));
   }, []);
 
   useEffect(() => {
@@ -858,13 +843,42 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
   // Scene Intent Handler: Enable Ecommerce Mode
   const enableEcommerce = useCallback(() => {
-    console.log('[SCENE INTENT] Switching to Ecommerce mode');
+    console.log('[SCENE INTENT CHANGE] ecommerce');
+    setValues(prev => ({ ...prev, sceneIntent: 'ecommerce' }));
+  }, []);
+
+  useEffect(() => {
+    if (values.sceneIntent === 'ecommerce') {
+      setOpenUgcLayerId(null);
+    }
     setValues(prev => {
+      if (prev.sceneIntent === 'environment') {
+        const next: Step3Values = {
+          ...prev,
+          compositionMode: '',
+          ecommerceBackgroundColor: '#ffffff',
+          ecommerceBackgroundMode: 'white' as const,
+          ecommerceGradientStart: '#f7f7f7',
+          ecommerceGradientEnd: '#d9d9d9',
+          ecommerceGradientAngle: '90' as const,
+          sidePlacement: SIDE_PLACEMENT_OPTIONS[1]
+        };
+        enforceSingleSelectLayers(next);
+        return next;
+      }
+
       const next: Step3Values = {
         ...prev,
         sceneIntent: 'ecommerce',
-        ugcRealMode: false,            // Disable environment mode
-        customEnvironment: '',         // Clear custom environment
+        ugcRealMode: false,
+        noPerson: true,
+        environment: '',
+        customEnvironment: '',
+        heroPersona: '',
+        cameraType: '',
+        shotType: '',
+        framing: '',
+        compositionMode: 'Ecommerce Blank Space',
         ugcCaptureStyleBase: [],
         ugcCameraOperator: [],
         ugcBodyPhonePosition: [],
@@ -880,8 +894,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       enforceSingleSelectLayers(next);
       return next;
     });
-    setOpenUgcLayerId(null);
-  }, []);
+  }, [values.sceneIntent]);
 
   // HARD RULE: Custom Environment → switches to Environment intent
   useEffect(() => {
@@ -890,49 +903,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       enableEnvironment();
     }
   }, [values.customEnvironment, values.sceneIntent, enableEnvironment]);
-
-  useEffect(() => {
-    if (values.sceneIntent === 'environment') {
-      if (values.compositionMode) {
-        updateValue('compositionMode', '');
-      }
-      if (values.ecommerceBackgroundColor !== '#ffffff') {
-        updateValue('ecommerceBackgroundColor', '#ffffff');
-      }
-      if (values.ecommerceBackgroundMode !== 'white') {
-        updateValue('ecommerceBackgroundMode', 'white');
-      }
-      if (values.ecommerceGradientStart !== '#f7f7f7') {
-        updateValue('ecommerceGradientStart', '#f7f7f7');
-      }
-      if (values.ecommerceGradientEnd !== '#d9d9d9') {
-        updateValue('ecommerceGradientEnd', '#d9d9d9');
-      }
-      if (values.ecommerceGradientAngle !== '90') {
-        updateValue('ecommerceGradientAngle', '90');
-      }
-      if (values.sidePlacement !== SIDE_PLACEMENT_OPTIONS[1]) {
-        updateValue('sidePlacement', SIDE_PLACEMENT_OPTIONS[1]);
-      }
-    }
-
-    if (values.sceneIntent === 'ecommerce') {
-      if (values.customEnvironment) {
-        updateValue('customEnvironment', '');
-      }
-    }
-  }, [
-    values.sceneIntent,
-    values.compositionMode,
-    values.ecommerceBackgroundColor,
-    values.ecommerceBackgroundMode,
-    values.ecommerceGradientStart,
-    values.ecommerceGradientEnd,
-    values.ecommerceGradientAngle,
-    values.sidePlacement,
-    values.customEnvironment,
-    updateValue
-  ]);
 
   useEffect(() => {
     if (
@@ -944,18 +914,25 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     }
   }, [values.compositionMode, values.ecommerceBackgroundMode, values.ecommerceBackgroundColor, updateValue]);
 
+  useEffect(() => {
+    if (values.compositionMode === 'Ecommerce Blank Space' && values.sceneIntent !== 'ecommerce') {
+      console.log('[SCENE INTENT CHANGE] ecommerce');
+      setValues(prev => ({ ...prev, sceneIntent: 'ecommerce' }));
+    }
+  }, [values.compositionMode, values.sceneIntent]);
+
   // ========================================================================
   // PRODUCT MODE VALIDATION (Stage 11)
   // ========================================================================
 
-  // Sync sceneMode with isProductMode prop
+  // Sync sceneMode with sceneIntent
   useEffect(() => {
-    setSceneMode(isProductMode ? 'product' : 'ugc');
-  }, [isProductMode]);
+    setSceneMode(values.sceneIntent === 'ecommerce' ? 'product' : 'ugc');
+  }, [values.sceneIntent]);
 
   // Block and clear UGC state when Product Mode is active
   useEffect(() => {
-    if (!isProductMode) return;
+    if (values.sceneIntent !== 'ecommerce') return;
 
     console.log('[PRODUCT MODE VALIDATION] Clearing UGC state');
 
@@ -971,7 +948,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       updateValue('creationIntent', 'product');
     }
   }, [
-    isProductMode,
+    values.sceneIntent,
     values.ugcRealMode,
     values.noPerson,
     values.creationIntent,
@@ -997,11 +974,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   }, [values.formulationStoryEnabled, values.ugcRealMode, values.heroPersona, updateValue]);
 
   useEffect(() => {
-    const shouldDisablePerson = isProductMode || values.formulationStoryEnabled;
+    const shouldDisablePerson = values.sceneIntent === 'ecommerce' || values.formulationStoryEnabled;
     if (values.noPerson !== shouldDisablePerson) {
       updateValue('noPerson', shouldDisablePerson);
     }
-  }, [isProductMode, values.formulationStoryEnabled, values.noPerson, updateValue]);
+  }, [values.sceneIntent, values.formulationStoryEnabled, values.noPerson, updateValue]);
 
   useEffect(() => {
     if (values.ugcRealMode && values.formulationStoryEnabled) {
@@ -1017,6 +994,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         <p className="text-sm text-gray-400">Define how the scene looks, feels, and behaves visually.</p>
       </div>
 
+      {isEnvironmentMode && (
+        <>
 
       {/* Creator / Person */}
       <SmoothAccordion
@@ -1025,7 +1004,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         tooltip="Define the person in your scene"
         isOpen={openAccordionId === 'creator'}
         onToggle={() => toggleSection('creator')}
-        isRequired={!isProductMode}
+        isRequired={isEnvironmentMode}
         isTouched={touchedSections.has('creator')}
       >
         <div className="flex flex-col gap-4">
@@ -1979,17 +1958,21 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         )
       }
 
+        </>
+      )}
+
       {/* ECOMMERCE IMAGE BUILDER */}
       {/* Mutually exclusive with UGC Real Mode */}
       {/* Side Placement and Background Color only render for 'Ecommerce Blank Space' */}
-      <SmoothAccordion
-        icon={Building2}
-        title="Ecommerce Image Builder"
-        tooltip="PDP, ads, bundles, hero ecommerce visuals"
-        isOpen={openAccordionId === 'bundles'}
-        onToggle={() => toggleSection('bundles')}
-      >
-        <div className="space-y-4">
+      {isEcommerceMode && (
+        <SmoothAccordion
+          icon={Building2}
+          title="Ecommerce Image Builder"
+          tooltip="PDP, ads, bundles, hero ecommerce visuals"
+          isOpen={openAccordionId === 'bundles'}
+          onToggle={() => toggleSection('bundles')}
+        >
+          <div className="space-y-4">
           {/* COMPOSITION MODE */}
           <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
             <div>
@@ -2152,17 +2135,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           )}
         </div >
       </SmoothAccordion>
+      )}
 
-      {/* Formulation Story */}
-      <SmoothAccordion
-        icon={Edit3}
-        title="Formulation Story"
-        tooltip="Align brand expert, research, and product goals"
-        isOpen={openAccordionId === 'formulationStory'}
-        onToggle={() => toggleSection('formulationStory')}
-        isActive={values.formulationStoryEnabled}
-      >
-        <div className="space-y-3">
+      {isEnvironmentMode && (
+        <SmoothAccordion
+          icon={Edit3}
+          title="Formulation Story"
+          tooltip="Align brand expert, research, and product goals"
+          isOpen={openAccordionId === 'formulationStory'}
+          onToggle={() => toggleSection('formulationStory')}
+          isActive={values.formulationStoryEnabled}
+        >
+          <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-200">Enable Formulation Story</span>
             <button
@@ -2255,8 +2239,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
             </div>
           )}
-        </div>
-      </SmoothAccordion>
+          </div>
+        </SmoothAccordion>
+      )}
 
       {/* Output Format - LAST */}
       <SmoothAccordion

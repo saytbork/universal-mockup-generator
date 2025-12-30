@@ -47,6 +47,7 @@ import { ConstraintsBuilder } from './builders/constraints';
 import { FinalizeBuilder } from './builders/finalize';
 import { SceneNarrativeBuilder } from './builders/canonicalScene';
 import { UGCRealModeBuilder } from './builders/ugcRealMode';
+import { SelfieCaptureBuilder } from './builders/selfieCapture';
 import { FormulationStoryInjectionBuilder } from './builders/formulationStoryInjection';
 import { CompositionDetailsBuilder } from './builders/compositionDetails';
 import type { PromptOptions } from './types';
@@ -136,6 +137,16 @@ const DEPTH_DETECTION_REGEX = /(depth of field|portrait mode|portrait blur|bokeh
 const FOCUS_OVERRIDE_APPEND =
     'flat focus across the entire frame, small sensor, fixed wide lens, everything sharp foreground to background.';
 
+function isUgcSelfieCaptureActive(options: PromptOptions): boolean {
+    const selfieActive = isSelfieActive(options);
+    const ugcActive =
+        options.contentStyle === 'ugc' ||
+        options.creationIntent === 'ugc' ||
+        Boolean(options.ugcRealModeActive) ||
+        Boolean(options.rawDomesticUgcActive);
+    return ugcActive && selfieActive;
+}
+
 function enforcePreflightGuards(options: PromptOptions) {
     const lock = options.identityLock;
     if (lock && options.personDetails) {
@@ -160,7 +171,10 @@ function enforcePreflightGuards(options: PromptOptions) {
 }
 
 function enforceUgcFocusGuard(prompt: string, options: PromptOptions): string {
-    const ugcActive = options.ugcRealModeActive || options.rawDomesticUgcActive;
+    const ugcActive =
+        options.ugcRealModeActive ||
+        options.rawDomesticUgcActive ||
+        isUgcSelfieCaptureActive(options);
     if (!ugcActive) {
         return prompt;
     }
@@ -192,6 +206,23 @@ function enforceUgcFocusGuard(prompt: string, options: PromptOptions): string {
     // Rejoin with negative prompt
     return `${positivePrompt}${negativePrompt}`.replace(/\s+/g, ' ').trim();
 }
+
+const isSelfieActive = (options: PromptOptions): boolean => {
+    if (
+        options.ugcCaptureStyleBase?.includes('close-face') ||
+        options.ugcRealModeLayers?.captureBase?.includes('close-face')
+    ) {
+        return true;
+    }
+
+    const selfieRaw =
+        options.selfieMode ||
+        options.personDetails?.selfieMode ||
+        options.personDetails?.selfieType ||
+        '';
+    const normalized = String(selfieRaw).trim().toLowerCase();
+    return normalized !== '' && normalized !== 'none';
+};
 
 // ============================================================================
 // VALIDATION GUARDS - Illegal combination detection
@@ -267,6 +298,7 @@ export class PromptEngine {
     // CANONICAL BUILDER ORDER
     private constraintsBuilder = new ConstraintsBuilder();    // Priority 6
     private identityBuilder = new IdentityBuilder();          // Priority 2
+    private selfieCaptureBuilder = new SelfieCaptureBuilder(); // Priority 3
     private ugcBuilder = new UGCRealModeBuilder();            // Priority 3 (DOMINANT)
     private narrativeBuilder = new SceneNarrativeBuilder();   // Priority 4
     private finalizeBuilder = new FinalizeBuilder();          // Priority 6
@@ -295,7 +327,7 @@ export class PromptEngine {
         // ====================================================================
         // RULE 4: MANDATORY SAFETY GUARD - Fail early
         // ====================================================================
-        const isSelfie = options.selfieMode && options.selfieMode !== 'None';
+        const isSelfie = isSelfieActive(options);
         const productCount = options.productAssets?.length || 0;
 
         if (isSelfie && productCount > 1) {
@@ -321,6 +353,26 @@ export class PromptEngine {
         // ====================================================================
         console.log('[PROMPT ENGINE] Step 1: Modes -', options.creationMode, options.creationIntent);
 
+        const ugcSelfieDominant = options.contentStyle === 'ugc' && isSelfie;
+        options.ugcSelfieDominant = ugcSelfieDominant;
+
+        if (ugcSelfieDominant) {
+            const overrideTarget = options as any;
+            overrideTarget.creationMode = 'ugc_selfie';
+            overrideTarget.compositionMode = null;
+            overrideTarget.sceneIntent = null;
+            overrideTarget.shotType = null;
+            overrideTarget.cameraDistance = 'extreme_close';
+            overrideTarget.personPose = null;
+            overrideTarget.camera = 'front-facing smartphone camera';
+            overrideTarget.cameraDeviceSemantic = 'front-facing smartphone camera';
+            overrideTarget.cameraType = null;
+            overrideTarget.placementCamera = null;
+            if (options.personDetails) {
+                options.personDetails.personPose = undefined;
+            }
+        }
+
         // ====================================================================
         // STEP 2: Identity
         // ====================================================================
@@ -329,13 +381,34 @@ export class PromptEngine {
             !options.hasModelReference &&
             options.contentStyle !== 'product';
 
-        const constraintsSection = this.constraintsBuilder.build(options);
         const identitySection = shouldIncludeIdentity
             ? this.identityBuilder.build(options)
             : '';
+        const selfieCaptureSection = this.selfieCaptureBuilder.build(options);
 
         console.log('[PROMPT ENGINE] Step 2: Identity -',
             shouldIncludeIdentity ? `${identitySection.length} chars` : 'SUPPRESSED');
+
+        if (ugcSelfieDominant) {
+            const ugcSection = this.ugcBuilder.build(options);
+            const finalizeSection = this.finalizeBuilder.build(options);
+            const negative = negativePrompt(options);
+            let finalPrompt = [
+                identitySection,
+                selfieCaptureSection,
+                ugcSection,
+                finalizeSection
+            ]
+                .filter(Boolean)
+                .join(' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+            finalPrompt = enforceUgcFocusGuard(finalPrompt, options);
+            finalPrompt = `${finalPrompt} Negative prompt: ${negative}`.replace(/\s+/g, ' ').trim();
+            console.log('[PROMPT ENGINE] Selfie-dominant pipeline ACTIVE');
+            console.log('[FINAL PROMPT STRING]', finalPrompt);
+            return finalPrompt;
+        }
 
         // ====================================================================
         // STEP 3: UGC Real Mode (DOMINANT MODIFIER)
@@ -347,6 +420,7 @@ export class PromptEngine {
         // ====================================================================
         // STEP 4: Canonical Scene
         // ====================================================================
+        const constraintsSection = this.constraintsBuilder.build(options);
         const narrativeSections = this.narrativeBuilder.build(options, {
             identity: identitySection,
             constraints: constraintsSection
@@ -381,6 +455,7 @@ export class PromptEngine {
             cameraFraming: narrativeSections.cameraFraming,
             environmentLightingMood: narrativeSections.environmentLightingMood,
             compositionDetails: compositionDetailsSection,
+            selfieCapture: selfieCaptureSection,
             identity: narrativeSections.identity || identitySection,
             finalize: finalizeSection
         };
@@ -430,21 +505,43 @@ export class PromptEngine {
      * Get individual components for debugging
      */
     getComponents(options: PromptOptions): Record<string, string> {
+        const ugcSelfieDominant = options.contentStyle === 'ugc' && isSelfieActive(options);
+        options.ugcSelfieDominant = ugcSelfieDominant;
+
         const shouldIncludeIdentity =
             options.personIncluded &&
             !options.hasModelReference &&
             options.contentStyle !== 'product';
 
-        const constraintsSection = this.constraintsBuilder.build(options);
         const identitySection = shouldIncludeIdentity
             ? this.identityBuilder.build(options)
             : '';
         const ugcSection = this.ugcBuilder.build(options);
+        const selfieCaptureSection = this.selfieCaptureBuilder.build(options);
+        const finalizeSection = this.finalizeBuilder.build(options);
+
+        if (ugcSelfieDominant) {
+            return {
+                Narrative: [
+                    identitySection,
+                    selfieCaptureSection,
+                    ugcSection,
+                    finalizeSection
+                ]
+                    .filter(Boolean)
+                    .join(' '),
+                Identity: identitySection,
+                UGC: ugcSection,
+                Constraints: '',
+                Finalize: finalizeSection
+            };
+        }
+
+        const constraintsSection = this.constraintsBuilder.build(options);
         const narrativeSections = this.narrativeBuilder.build(options, {
             identity: identitySection,
             constraints: constraintsSection
         });
-        const finalizeSection = this.finalizeBuilder.build(options);
         const compositionDetailsSection = this.compositionDetailsBuilder.build(options);
 
         return {
@@ -456,6 +553,7 @@ export class PromptEngine {
                 narrativeSections.ecommerceBuilder ?? '',
                 narrativeSections.cameraFraming,
                 narrativeSections.environmentLightingMood,
+                selfieCaptureSection,
                 compositionDetailsSection,
                 finalizeSection
             ]

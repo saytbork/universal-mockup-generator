@@ -11,8 +11,9 @@
  * 6. environmentLightingMood - Scene, light, atmosphere
  * 7. compositionDetails - Layout + supporting context
  * 8. identity - Person physical traits
- * 9. finalize - Constraints and output format
- * 10. ugcRealMode - DOMINANT override (always appended last when active)
+ * 9. selfieCapture - UGC selfie hard constraints (conditional)
+ * 10. finalize - Constraints and output format
+ * 11. ugcRealMode - DOMINANT override (always appended last when active)
  */
 
 const OPTIMIZED_UGC_PROMPT = '';
@@ -91,6 +92,7 @@ export type MasterPromptSections = {
   cameraFraming: string;
   environmentLightingMood: string;
   compositionDetails?: string;
+  selfieCapture?: string;
   identity?: string;
   finalize?: string;
 };
@@ -117,22 +119,38 @@ export function buildMasterPrompt(
     cameraFraming,
     environmentLightingMood,
     compositionDetails,
+    selfieCapture,
     identity,
     finalize
   } = sections;
 
+  const selfieCaptureActive = Boolean(selfieCapture && selfieCapture.trim().length > 0);
+
   // CANONICAL ORDER - creation intent first, raw domestic UGC last
-  const candidateParts = [
-    creationIntent,     // 1. Structural context
-    creationMode,       // 2. Mode rules
-    formulationStory,   // 3. Expert credibility
-    ecommerceBuilder,   // 4. Blank space layout
-    cameraFraming,      // 5. Camera composition
-    environmentLightingMood, // 6. Scene + lighting
-    compositionDetails, // 7. Composition instructions
-    identity,           // 8. Person traits
-    finalize            // 9. Constraints + output
-  ];
+  const candidateParts = selfieCaptureActive
+    ? [
+        creationIntent,     // 1. Structural context
+        creationMode,       // 2. Mode rules
+        formulationStory,   // 3. Expert credibility
+        ecommerceBuilder,   // 4. Blank space layout
+        identity,           // 5. Person traits (before selfie capture)
+        selfieCapture,      // 6. UGC selfie hard constraints
+        cameraFraming,      // 7. Camera composition
+        environmentLightingMood, // 8. Scene + lighting
+        compositionDetails, // 9. Composition instructions
+        finalize            // 10. Constraints + output
+      ]
+    : [
+        creationIntent,     // 1. Structural context
+        creationMode,       // 2. Mode rules
+        formulationStory,   // 3. Expert credibility
+        ecommerceBuilder,   // 4. Blank space layout
+        cameraFraming,      // 5. Camera composition
+        environmentLightingMood, // 6. Scene + lighting
+        compositionDetails, // 7. Composition instructions
+        identity,           // 8. Person traits
+        finalize            // 9. Constraints + output
+      ];
 
   const cleanedParts: string[] = [];
   for (const candidate of candidateParts) {
