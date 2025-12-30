@@ -1394,6 +1394,29 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </div>
                       </div>
                     </div>
+
+                    {/* SCENE ORDER & CHAOS - Only in UGC */}
+                    <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                      <div>
+                        <p className="text-xs uppercase tracking-wider text-indigo-200">SCENE ORDER & CHAOS</p>
+                        <p className="text-[11px] text-gray-400">Control how tidy or chaotic the surroundings feel.</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {SCENE_ORDER_CHAOS_OPTIONS.map(option => (
+                          <button
+                            key={option}
+                            type="button"
+                            onClick={() => {
+                              updateValue('sceneOrderChaos', option);
+                              markSectionTouched('realism');
+                            }}
+                            className={getPillClass(values.sceneOrderChaos === option)}
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </>
               )}
@@ -1695,27 +1718,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             />
           </div>
 
-          <div className="pt-3 space-y-2">
-            <div>
-              <p className="text-xs uppercase tracking-wider text-indigo-200">SCENE ORDER & CHAOS</p>
-              <p className="text-[11px] text-gray-400">Control how tidy or chaotic the surroundings feel.</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {SCENE_ORDER_CHAOS_OPTIONS.map(option => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => {
-                    updateValue('sceneOrderChaos', option);
-                    markSectionTouched('environment');
-                  }}
-                  className={getPillClass(values.sceneOrderChaos === option)}
-                >
-                  {option}
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       </SmoothAccordion>
       {/* Time & Lighting */}
@@ -1821,131 +1823,135 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         </div>
       </div>
 
-      {!isUGCMode && (
-        <SmoothAccordion
-          icon={Camera}
-          title="Camera & Framing"
-          tooltip="How the scene is captured"
-          isOpen={openAccordionId === 'camera'}
-          onToggle={() => toggleSection('camera')}
-          isTouched={touchedSections.has('camera')}
-        >
-          <div className="space-y-3">
-            <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-              <div>
-                <p className="text-xs uppercase tracking-wider text-indigo-200">CAMERA TYPE</p>
-                <p className="text-[11px] text-gray-400 mt-1">Select the capture device aesthetic</p>
+      {
+        !isUGCMode && (
+          <SmoothAccordion
+            icon={Camera}
+            title="Camera & Framing"
+            tooltip="How the scene is captured"
+            isOpen={openAccordionId === 'camera'}
+            onToggle={() => toggleSection('camera')}
+            isTouched={touchedSections.has('camera')}
+          >
+            <div className="space-y-3">
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-indigo-200">CAMERA TYPE</p>
+                  <p className="text-[11px] text-gray-400 mt-1">Select the capture device aesthetic</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {CAMERA_OPTIONS.map(option => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => { updateValue('cameraType', option.label); markSectionTouched('camera'); }}
+                      className={getPillClass(values.cameraType === option.label)}
+                      title={option.value}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {CAMERA_OPTIONS.map(option => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => { updateValue('cameraType', option.label); markSectionTouched('camera'); }}
-                    className={getPillClass(values.cameraType === option.label)}
-                    title={option.value}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </div>
 
-            <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-              <p className="text-xs uppercase tracking-wider text-indigo-200">SHOT TYPE</p>
-              <div className="flex flex-wrap items-center gap-2">
-                {SHOT_TYPE_OPTIONS.map(option => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => { updateValue('shotType', option); markSectionTouched('camera'); }}
-                    className={getPillClass(values.shotType === option)}
-                  >
-                    {option}
-                  </button>
-                ))}
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <p className="text-xs uppercase tracking-wider text-indigo-200">SHOT TYPE</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  {SHOT_TYPE_OPTIONS.map(option => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => { updateValue('shotType', option); markSectionTouched('camera'); }}
+                      className={getPillClass(values.shotType === option)}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-              <p className="text-xs uppercase tracking-wider text-indigo-200">CAMERA ANGLE</p>
-              <div className="flex flex-wrap items-center gap-2">
-                {CAMERA_ANGLE_OPTIONS.map(option => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => { updateValue('cameraAngle', option); markSectionTouched('camera'); }}
-                    className={getPillClass(values.cameraAngle === option)}
-                  >
-                    {option}
-                  </button>
-                ))}
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <p className="text-xs uppercase tracking-wider text-indigo-200">CAMERA ANGLE</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  {CAMERA_ANGLE_OPTIONS.map(option => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => { updateValue('cameraAngle', option); markSectionTouched('camera'); }}
+                      className={getPillClass(values.cameraAngle === option)}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        </SmoothAccordion>
-      )}
+          </SmoothAccordion>
+        )
+      }
       {/* BUNDLES SYSTEM - STRICTLY ISOLATED */}
       {/* Bundles are enabled ONLY when multiple products are uploaded. */}
       {/* Bundles control product grouping only. */}
       {/* Bundles must never affect modes, composition, or human presence. */}
-      {productCount > 1 && (
-        <div id="bundles" className="mt-6">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-4">
-            <div className="flex flex-col gap-1">
-              <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Bundles</p>
-              <p className="text-sm text-gray-400">
-                Quickly swap between curated packs, your own mix, or AI-recommended combos.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition border-indigo-400 bg-indigo-500/10 text-white">
-                Pre-made Bundles
-              </button>
-              <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white">
-                Custom Bundle Builder
-              </button>
-              <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white">
-                Recommended Bundles
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex flex-col gap-2">
-                <label className="text-xs uppercase tracking-[0.3em] text-gray-400">Pick a bundle</label>
-                <select className="rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none">
-                  <option value="essentials_trio">Core Essentials Trio</option>
-                  <option value="daily_duo">Daily Duo Stack</option>
-                  <option value="launch_showcase">Launch Showcase Set</option>
-                  <option value="hero_lineup">Complete Hero Lineup</option>
-                </select>
+      {
+        productCount > 1 && (
+          <div id="bundles" className="mt-6">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-4">
+              <div className="flex flex-col gap-1">
+                <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Bundles</p>
+                <p className="text-sm text-gray-400">
+                  Quickly swap between curated packs, your own mix, or AI-recommended combos.
+                </p>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-gray-900/60 p-4 space-y-3">
-                <p className="text-sm font-semibold text-white">Core Essentials Trio</p>
-                <p className="text-xs text-amber-200">Add another product to enable bundles.</p>
+              <div className="flex flex-wrap gap-2">
+                <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition border-indigo-400 bg-indigo-500/10 text-white">
+                  Pre-made Bundles
+                </button>
+                <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white">
+                  Custom Bundle Builder
+                </button>
+                <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white">
+                  Recommended Bundles
+                </button>
+              </div>
 
-                <div className="flex flex-wrap gap-3">
-                  <div className="w-28 text-center text-xs text-gray-300">
-                    <div className="relative h-28 w-full overflow-hidden rounded-xl border border-white/10 bg-black/20">
-                      <img className="h-full w-full object-cover opacity-60" />
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-[10px] font-semibold text-amber-200">
-                        Upload to fill
+              <div className="space-y-4">
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs uppercase tracking-[0.3em] text-gray-400">Pick a bundle</label>
+                  <select className="rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none">
+                    <option value="essentials_trio">Core Essentials Trio</option>
+                    <option value="daily_duo">Daily Duo Stack</option>
+                    <option value="launch_showcase">Launch Showcase Set</option>
+                    <option value="hero_lineup">Complete Hero Lineup</option>
+                  </select>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-gray-900/60 p-4 space-y-3">
+                  <p className="text-sm font-semibold text-white">Core Essentials Trio</p>
+                  <p className="text-xs text-amber-200">Add another product to enable bundles.</p>
+
+                  <div className="flex flex-wrap gap-3">
+                    <div className="w-28 text-center text-xs text-gray-300">
+                      <div className="relative h-28 w-full overflow-hidden rounded-xl border border-white/10 bg-black/20">
+                        <img className="h-full w-full object-cover opacity-60" />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-[10px] font-semibold text-amber-200">
+                          Upload to fill
+                        </div>
                       </div>
+                      <p className="mt-1 text-[11px]">Product 1</p>
                     </div>
-                    <p className="mt-1 text-[11px]">Product 1</p>
                   </div>
                 </div>
-              </div>
 
-              <button type="button" disabled className="w-full rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:bg-indigo-900/50">
-                Generate Bundle Mockup
-              </button>
+                <button type="button" disabled className="w-full rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:bg-indigo-900/50">
+                  Generate Bundle Mockup
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* ECOMMERCE IMAGE BUILDER */}
       {/* Mutually exclusive with UGC Real Mode */}

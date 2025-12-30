@@ -167,6 +167,128 @@ const PROPS_SEMANTIC_MAP: Record<string, string> = {
     'Shopping Tote': 'cloth shopping tote bag as lifestyle prop, suggesting everyday errands'
 };
 
+// ============================================================================
+// BACKGROUND VARIATION SYSTEM
+// ============================================================================
+
+/** Background variation pools per environment */
+const BACKGROUND_VARIATION_POOLS: Record<string, string[]> = {
+    'Living Room': [
+        'modern_living_couch_view',
+        'cozy_living_bookshelf',
+        'living_room_window_light',
+        'living_room_corner_plants'
+    ],
+    'Kitchen': [
+        'kitchen_countertop_morning',
+        'kitchen_island_bright',
+        'kitchen_window_herbs',
+        'kitchen_sink_area'
+    ],
+    'Bathroom': [
+        'bathroom_vanity_mirror',
+        'bathroom_shower_tiles',
+        'bathroom_sink_morning',
+        'bathroom_window_steam'
+    ],
+    'Bedroom': [
+        'bedroom_bed_morning',
+        'bedroom_dresser_mirror',
+        'bedroom_window_light',
+        'bedroom_corner_cozy'
+    ],
+    'Home Office': [
+        'office_desk_minimal',
+        'office_bookshelf_bg',
+        'office_window_light',
+        'office_corner_plants'
+    ],
+    'Café': [
+        'cafe_window_seat',
+        'cafe_counter_bar',
+        'cafe_corner_booth',
+        'cafe_outdoor_patio'
+    ],
+    'Outdoors': [
+        'outdoor_park_trees',
+        'outdoor_street_urban',
+        'outdoor_garden_green',
+        'outdoor_balcony_city'
+    ],
+    'default': [
+        'neutral_background_a',
+        'neutral_background_b',
+        'neutral_background_c'
+    ]
+};
+
+/** Background descriptor text for each variation ID */
+const BACKGROUND_DESCRIPTORS: Record<string, string> = {
+    'modern_living_couch_view': 'background shows a modern sectional sofa with subtle throw pillows and a low coffee table',
+    'cozy_living_bookshelf': 'background reveals a warm bookshelf arrangement with books and decorative objects',
+    'living_room_window_light': 'background features large windows with natural light streaming in, soft curtains visible',
+    'living_room_corner_plants': 'background shows indoor plants in ceramic pots near a corner with ambient lighting',
+    'kitchen_countertop_morning': 'background displays clean marble countertops with morning light, minimal appliances',
+    'kitchen_island_bright': 'background reveals a kitchen island with pendant lights and fresh produce',
+    'kitchen_window_herbs': 'background shows kitchen window with potted herbs and natural daylight',
+    'kitchen_sink_area': 'background features the sink area with dish rack and everyday kitchen items',
+    'bathroom_vanity_mirror': 'background shows the vanity area with mirror reflection and ambient lighting',
+    'bathroom_shower_tiles': 'background reveals tiled shower area with glass door, clean and modern',
+    'bathroom_sink_morning': 'background displays bathroom sink with toiletries and morning light',
+    'bathroom_window_steam': 'background shows frosted bathroom window with subtle steam ambiance',
+    'bedroom_bed_morning': 'background reveals unmade bed with rumpled sheets and morning atmosphere',
+    'bedroom_dresser_mirror': 'background shows bedroom dresser with mirror and personal items',
+    'bedroom_window_light': 'background features bedroom window with soft curtains and natural light',
+    'bedroom_corner_cozy': 'background displays cozy bedroom corner with throw blanket and soft textures',
+    'office_desk_minimal': 'background shows minimal desk setup with laptop and stationery',
+    'office_bookshelf_bg': 'background reveals organized bookshelf with books and plants',
+    'office_window_light': 'background features office window with city or nature view',
+    'office_corner_plants': 'background shows workspace corner with indoor plants and warm lighting',
+    'cafe_window_seat': 'background reveals café window seat with street view and ambient lighting',
+    'cafe_counter_bar': 'background shows coffee bar counter with equipment and menu boards',
+    'cafe_corner_booth': 'background displays cozy café booth with exposed brick and soft lighting',
+    'cafe_outdoor_patio': 'background features outdoor café patio with tables and string lights',
+    'outdoor_park_trees': 'background shows park setting with trees and natural greenery',
+    'outdoor_street_urban': 'background reveals urban street with buildings and pedestrians',
+    'outdoor_garden_green': 'background displays garden with flowers and lush green plants',
+    'outdoor_balcony_city': 'background shows balcony with city skyline view',
+    'neutral_background_a': 'background features soft neutral tones with subtle depth',
+    'neutral_background_b': 'background shows clean backdrop with gentle shadows',
+    'neutral_background_c': 'background displays minimal setting with natural gradation'
+};
+
+/**
+ * Select a background variation that differs from the last used one.
+ * Returns null if environment has no defined pool.
+ */
+function selectBackgroundVariation(
+    environment: string,
+    lastBackgroundId: string | null | undefined
+): string | null {
+    const pool = BACKGROUND_VARIATION_POOLS[environment] || BACKGROUND_VARIATION_POOLS['default'];
+    if (!pool || pool.length === 0) return null;
+
+    // Filter out the last used background
+    const available = lastBackgroundId
+        ? pool.filter(id => id !== lastBackgroundId)
+        : pool;
+
+    // If pool exhausted (only had one item), allow repetition
+    if (available.length === 0) {
+        return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    return available[Math.floor(Math.random() * available.length)];
+}
+
+/**
+ * Get the descriptor text for a background variation ID.
+ */
+function getBackgroundDescriptor(variationId: string | undefined): string | null {
+    if (!variationId) return null;
+    return BACKGROUND_DESCRIPTORS[variationId] || null;
+}
+
 const FORMULATION_LAB_VIBE_MAP: Record<string, FormulationStoryOptions['labVibe']> = {
     'Clean Lab': 'modern_clinical_lab',
     'Moody Lab': 'r_and_d_studio',
@@ -1073,7 +1195,31 @@ export function mapLifestyleToPromptOptions(
         console.log('[MAP] Awkward context override →', awkwardEnvironmentOverride);
     }
 
-    const sceneOrderChaosValue = isUGCRealMode ? 'Messy' : (sceneState.sceneOrderChaos || 'Normal');
+    // ========================================================================
+    // BACKGROUND VARIATION (auto mode by default)
+    // ========================================================================
+    const bgVariationMode = existingOptions.backgroundVariationMode || 'auto';
+    mapped.backgroundVariationMode = bgVariationMode;
+
+    if (bgVariationMode === 'auto' && mapped.setting) {
+        const lastBgId = existingOptions.lastBackgroundId || null;
+        const newBgId = selectBackgroundVariation(sceneState.environment || mapped.setting, lastBgId);
+        if (newBgId) {
+            mapped.backgroundVariationId = newBgId;
+            mapped.lastBackgroundId = newBgId;
+            const bgDescriptor = getBackgroundDescriptor(newBgId);
+            if (bgDescriptor) {
+                (mapped as any).backgroundVariationDescriptor = bgDescriptor;
+            }
+            console.log('[MAP] Background variation:', lastBgId, '→', newBgId);
+        }
+    } else if (bgVariationMode === 'locked' && existingOptions.backgroundVariationId) {
+        // Keep locked background
+        mapped.backgroundVariationId = existingOptions.backgroundVariationId;
+        mapped.lastBackgroundId = existingOptions.backgroundVariationId;
+    }
+
+    const sceneOrderChaosValue = sceneState.sceneOrderChaos || 'Normal';
     mapped.sceneOrderChaos = sceneOrderChaosValue;
     const sceneOrderChaosDescriptor = buildSceneOrderChaosDescriptor(sceneOrderChaosValue);
     if (sceneOrderChaosDescriptor) {

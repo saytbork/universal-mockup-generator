@@ -66,16 +66,17 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
           </div>
         </div>
         <ChevronDown
-          className={`w-4 h-4 text-gray-400 transform transition-transform duration-300 ${
-            open ? 'rotate-180 text-indigo-400' : ''
-          }`}
+          className={`w-4 h-4 text-gray-400 transform transition-transform duration-300 ${open ? 'rotate-180 text-indigo-400' : ''
+            }`}
         />
       </button>
       <div
-        className={`transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] border-t border-gray-700 overflow-hidden ${open ? 'max-h-[1200px] opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-4'}`}
+        className={`grid transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] border-t border-gray-700 ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
       >
-        <div className="p-4">
-          {children}
+        <div className="overflow-hidden">
+          <div className="p-4">
+            {children}
+          </div>
         </div>
       </div>
     </div>

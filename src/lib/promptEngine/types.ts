@@ -248,6 +248,11 @@ export interface PromptOptions {
     elderlyRealismGuardActive?: boolean;
     elderlyRealismGuardLabel?: string;
 
+    // Background Variation (internal, auto-managed)
+    backgroundVariationMode?: 'auto' | 'locked';
+    backgroundVariationId?: string;
+    lastBackgroundId?: string;
+
     // Composition
     compositionIntro?: string;
     identityBlock?: string;
