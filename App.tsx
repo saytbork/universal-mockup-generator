@@ -1111,6 +1111,7 @@ const App: React.FC = () => {
 
   // LifestyleStep3 state for PromptEngine
   const [lifestyleStep3Values, setLifestyleStep3Values] = useState<Step3Values | null>(null);
+  const [hasFirstGenerationComplete, setHasFirstGenerationComplete] = useState(false);
   const [activeTalentPreset, setActiveTalentPreset] = useState('custom');
   const [isProPhotographer, setIsProPhotographer] = useState(false);
   const [activeProPreset, setActiveProPreset] = useState<string>('custom');
@@ -4271,12 +4272,12 @@ If the model attempts to create a scene or environment, override it and force a 
         const shouldSendProductImage = generationProducts.length > 0;
         const identityInlinePart = personIdentityPackage.modelReferenceBase64
           ? {
-              inlineData: {
-                data: personIdentityPackage.modelReferenceBase64,
-                mimeType: personIdentityPackage.modelReferenceMime ?? 'image/png',
-              },
-              reference: true,
-            }
+            inlineData: {
+              data: personIdentityPackage.modelReferenceBase64,
+              mimeType: personIdentityPackage.modelReferenceMime ?? 'image/png',
+            },
+            reference: true,
+          }
           : null;
         const requestParts: any[] = [];
         requestParts.push({ text: finalPrompt });
@@ -4336,6 +4337,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
         const finalUrl = `data:image/png;base64,${encodedImage}`;
         setGeneratedImageUrl(finalUrl);
+        setHasFirstGenerationComplete(true);  // Enable Keep Same Person toggle
         void reportGalleryEntry(finalUrl);
         const galleryPlan = determineGalleryPlan();
         if (galleryPlan) {
@@ -5203,6 +5205,7 @@ If the model attempts to create a scene or environment, override it and force a 
                         onGenerate={handleGenerateClick}
                         hasModelReference={hasModelReference}
                         productCount={activeProducts.length}
+                        hasFirstGenerationComplete={hasFirstGenerationComplete}
                       />
                     );
                   })()}
@@ -5298,6 +5301,7 @@ interface SceneBuilderStepProps {
   onGenerate: () => void;
   hasModelReference: boolean;
   productCount: number;
+  hasFirstGenerationComplete: boolean;
 }
 
 const SceneBuilderStep = forwardRef<HTMLDivElement, SceneBuilderStepProps>(({
@@ -5310,19 +5314,21 @@ const SceneBuilderStep = forwardRef<HTMLDivElement, SceneBuilderStepProps>(({
   onGenerate,
   hasModelReference,
   productCount,
+  hasFirstGenerationComplete,
 }, ref) => (
-    <div
-      ref={ref}
-      className={`bg-gray-800/50 rounded-lg flex flex-col overflow-hidden ${isLocked ? 'opacity-60 pointer-events-none' : ''}`}
-    >
-      <div className="flex-grow overflow-y-auto custom-scrollbar">
-        <LifestyleStep3
+  <div
+    ref={ref}
+    className={`bg-gray-800/50 rounded-lg flex flex-col overflow-hidden ${isLocked ? 'opacity-60 pointer-events-none' : ''}`}
+  >
+    <div className="flex-grow overflow-y-auto custom-scrollbar">
+      <LifestyleStep3
         isProductMode={isProductMode}
         onValuesChange={onValuesChange}
         onCanGenerateChange={(canGenerate) => {
           // Add logic if needed
         }}
         hasModelReference={hasModelReference}
+        hasFirstGenerationComplete={hasFirstGenerationComplete}
       />
     </div>
     <div className="p-4 flex-shrink-0">

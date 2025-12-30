@@ -99,6 +99,7 @@ interface LifestyleStep3Props {
   onCanGenerateChange?: (canGenerate: boolean) => void;
   hasModelReference?: boolean;
   productCount?: number;
+  hasFirstGenerationComplete?: boolean;
 }
 
 export interface Step3Values {
@@ -530,6 +531,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   onCanGenerateChange,
   hasModelReference = false,
   productCount = 0,
+  hasFirstGenerationComplete = false,
 }: LifestyleStep3Props) => {
   const [isPro, setIsPro] = useState(false);
   const [sceneMode, setSceneMode] = useState<'ugc' | 'product'>(isProductMode ? 'product' : 'ugc');
@@ -764,9 +766,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
   // Initial Safety Check for hasModelReference
   useEffect(() => {
-    if (hasModelReference && (values.ugcRealMode || values.creatorPreset)) {
+    if (hasModelReference && (values.ugcRealMode || values.creatorPreset || values.sameCreatorAcrossScenes)) {
       setValues(prev => {
-        const newValues = { ...prev, ugcRealMode: false, creatorPreset: null };
+        const newValues = { ...prev, ugcRealMode: false, creatorPreset: null, sameCreatorAcrossScenes: false };
         ALL_UGC_LAYER_FIELDS.forEach(layer => {
           (newValues as any)[layer] = [];
         });
@@ -774,7 +776,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         return newValues;
       });
     }
-  }, [hasModelReference, values.ugcRealMode, values.creatorPreset]);
+  }, [hasModelReference, values.ugcRealMode, values.creatorPreset, values.sameCreatorAcrossScenes]);
 
   useEffect(() => {
     if (!values.ugcRealMode) {
@@ -806,17 +808,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     console.log('[SCENE INTENT] Switching to Environment mode');
     setValues(prev => {
       const next = {
-      ...prev,
-      sceneIntent: 'environment',
-      compositionMode: '',           // Clear ecommerce
-      ugcRealMode: true,             // Enable environment mode
-      sidePlacement: SIDE_PLACEMENT_OPTIONS[1], // Reset placement
-      ecommerceBackgroundColor: '#ffffff',
-      ecommerceBackgroundMode: 'white',
-      ecommerceGradientStart: '#f7f7f7',
-      ecommerceGradientEnd: '#d9d9d9',
-      ecommerceGradientAngle: '90',
-    };
+        ...prev,
+        sceneIntent: 'environment',
+        compositionMode: '',           // Clear ecommerce
+        ugcRealMode: true,             // Enable environment mode
+        sidePlacement: SIDE_PLACEMENT_OPTIONS[1], // Reset placement
+        ecommerceBackgroundColor: '#ffffff',
+        ecommerceBackgroundMode: 'white',
+        ecommerceGradientStart: '#f7f7f7',
+        ecommerceGradientEnd: '#d9d9d9',
+        ecommerceGradientAngle: '90',
+      };
       enforceSingleSelectLayers(next);
       return next;
     });
@@ -833,22 +835,22 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     console.log('[SCENE INTENT] Switching to Ecommerce mode');
     setValues(prev => {
       const next = {
-      ...prev,
-      sceneIntent: 'ecommerce',
-      ugcRealMode: false,            // Disable environment mode
-      customEnvironment: '',         // Clear custom environment
-      ugcCaptureStyleBase: [],
-      ugcCameraOperator: [],
-      ugcBodyPhonePosition: [],
-      ugcMotionStability: [],
-      ugcFramingImperfections: [],
-      ugcAwkwardContext: [],
-      ecommerceBackgroundColor: '#ffffff',
-      ecommerceBackgroundMode: 'white',
-      ecommerceGradientStart: '#f7f7f7',
-      ecommerceGradientEnd: '#d9d9d9',
-      ecommerceGradientAngle: '90'
-    };
+        ...prev,
+        sceneIntent: 'ecommerce',
+        ugcRealMode: false,            // Disable environment mode
+        customEnvironment: '',         // Clear custom environment
+        ugcCaptureStyleBase: [],
+        ugcCameraOperator: [],
+        ugcBodyPhonePosition: [],
+        ugcMotionStability: [],
+        ugcFramingImperfections: [],
+        ugcAwkwardContext: [],
+        ecommerceBackgroundColor: '#ffffff',
+        ecommerceBackgroundMode: 'white',
+        ecommerceGradientStart: '#f7f7f7',
+        ecommerceGradientEnd: '#d9d9d9',
+        ecommerceGradientAngle: '90'
+      };
       enforceSingleSelectLayers(next);
       return next;
     });
@@ -963,9 +965,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       updateValue('heroPersona', '');
     }
 
-      ALL_UGC_LAYER_FIELDS.forEach(layer => {
-        updateValue(layer, []);
-      });
+    ALL_UGC_LAYER_FIELDS.forEach(layer => {
+      updateValue(layer, []);
+    });
   }, [values.formulationStoryEnabled, values.ugcRealMode, values.heroPersona, updateValue]);
 
   useEffect(() => {
@@ -1218,6 +1220,53 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     ))}
                   </div>
                 </div>
+
+                {/* Keep Same Person Toggle - Identity Control */}
+                <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-1">
+                      <p className="text-xs uppercase tracking-wider text-indigo-200">KEEP SAME PERSON</p>
+                      {!hasFirstGenerationComplete && (
+                        <span className="text-xs text-gray-500">Available after first generation</span>
+                      )}
+                      {hasFirstGenerationComplete && (
+                        <span className="text-xs text-gray-500">
+                          {values.sameCreatorAcrossScenes
+                            ? 'Same person across generations'
+                            : 'Different person each generation'}
+                        </span>
+                      )}
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={values.sameCreatorAcrossScenes}
+                        onChange={(e) => {
+                          updateValue('sameCreatorAcrossScenes', e.target.checked);
+                          markSectionTouched('creator');
+                        }}
+                        disabled={!hasFirstGenerationComplete || hasModelReference}
+                        className="sr-only peer"
+                      />
+                      <div className={`w-11 h-6 rounded-full transition-colors relative ${!hasFirstGenerationComplete || hasModelReference
+                        ? 'bg-gray-800 cursor-not-allowed opacity-50'
+                        : values.sameCreatorAcrossScenes
+                          ? 'bg-indigo-600'
+                          : 'bg-gray-600'
+                        }`}>
+                        <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full transition-transform ${!hasFirstGenerationComplete || hasModelReference
+                          ? 'bg-gray-600'
+                          : 'bg-white'
+                          } ${values.sameCreatorAcrossScenes ? 'translate-x-5' : ''}`} />
+                      </div>
+                    </label>
+                  </div>
+                  {hasModelReference && hasFirstGenerationComplete && (
+                    <p className="text-xs text-amber-400">
+                      Model reference overrides identity control
+                    </p>
+                  )}
+                </div>
               </div>
             </>
           )}
@@ -1249,14 +1298,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   type="button"
                   role="switch"
                   aria-checked={values.ugcRealMode}
-                onClick={() => {
-              const newValue = !values.ugcRealMode;
-              updateValue('ugcRealMode', newValue);
-               if (newValue) {
-                  updateValue('formulationStoryEnabled', false);
-                  updateValue('facialExpression', 'Soft Smile');
-                  updateValue('eyeDirection', 'Looking at camera');
-                }
+                  onClick={() => {
+                    const newValue = !values.ugcRealMode;
+                    updateValue('ugcRealMode', newValue);
+                    if (newValue) {
+                      updateValue('formulationStoryEnabled', false);
+                      updateValue('facialExpression', 'Soft Smile');
+                      updateValue('eyeDirection', 'Looking at camera');
+                    }
                   }}
                   className={`relative shrink-0 h-6 w-11 rounded-full transition ${values.ugcRealMode ? 'bg-indigo-500' : 'bg-gray-600'}`}
                 >
@@ -1264,7 +1313,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </button>
               </div>
 
-            {values.ugcRealMode && (
+              {values.ugcRealMode && (
                 <>
                   <div className="rounded-lg border border-amber-400/40 bg-amber-400/10 px-3 py-2 text-[12px] text-amber-100">
                     Front-camera physics only. Background, lighting, motion, and framing are engine-controlled. Environment, lighting, and camera panels are locked while this mode is on.
@@ -1728,114 +1777,114 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         )}
       </SmoothAccordion>
 
-      
-          <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Hero personas</p>
-            <div className="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
-              {[
-                { label: 'The Busy Mom', semantic: 'busy mom managing household, natural home environment, multitasking moment, authentic daily routine' },
-                { label: 'The Fitness Enthusiast', semantic: 'fitness-focused adult after workout, casual activewear, natural indoor or outdoor setting' },
-                { label: 'The Skincare Obsessed', semantic: 'skincare-focused woman during daily routine, bathroom mirror, natural lighting' },
-                { label: 'The Minimalist', semantic: 'minimalist person in clean home environment, neutral tones, simple lifestyle' },
-                { label: 'The Trendsetter', semantic: 'trend-focused young adult in casual lifestyle moment, modern outfit, spontaneous feel' }
-              ].map(persona => (
-                <button
-                  key={persona.label}
-                  type="button"
-                  onClick={() => {
-                    updateValue('heroPersona', persona.semantic);
-                    if (persona.label === 'The Busy Mom') {
-                      updateValue('facialExpression', 'Hustle & Juggle');
-                      updateValue('appearanceLevel', 'Running Late');
-                    } else if (persona.label === 'The Fitness Enthusiast') {
-                      updateValue('facialExpression', 'Joyful & High-Energy');
-                      updateValue('appearanceLevel', 'Well-Groomed');
-                    } else if (persona.label === 'The Skincare Obsessed') {
-                      updateValue('facialExpression', 'Calm & Serene');
-                      updateValue('skinRealism', 'Raw / Real');
-                    } else if (persona.label === 'The Minimalist') {
-                      updateValue('facialExpression', 'Confident & Editorial');
-                      updateValue('appearanceLevel', 'Styled');
-                    } else if (persona.label === 'The Trendsetter') {
-                      updateValue('facialExpression', 'Playful & Candid');
-                      updateValue('appearanceLevel', 'Styled');
-                    }
-                  }}
-                  className={`w-full text-left px-3 py-2 rounded-lg border text-sm transition ${values.heroPersona === persona.label
-                    ? 'bg-indigo-600 border-indigo-500 text-white shadow-md'
-                    : 'border-gray-600 text-gray-200 hover:border-indigo-400 hover:bg-indigo-500/10'
-                    }`}
-                >
-                  {persona.label}
-                </button>
-              ))}
+
+      <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
+        <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Hero personas</p>
+        <div className="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
+          {[
+            { label: 'The Busy Mom', semantic: 'busy mom managing household, natural home environment, multitasking moment, authentic daily routine' },
+            { label: 'The Fitness Enthusiast', semantic: 'fitness-focused adult after workout, casual activewear, natural indoor or outdoor setting' },
+            { label: 'The Skincare Obsessed', semantic: 'skincare-focused woman during daily routine, bathroom mirror, natural lighting' },
+            { label: 'The Minimalist', semantic: 'minimalist person in clean home environment, neutral tones, simple lifestyle' },
+            { label: 'The Trendsetter', semantic: 'trend-focused young adult in casual lifestyle moment, modern outfit, spontaneous feel' }
+          ].map(persona => (
+            <button
+              key={persona.label}
+              type="button"
+              onClick={() => {
+                updateValue('heroPersona', persona.semantic);
+                if (persona.label === 'The Busy Mom') {
+                  updateValue('facialExpression', 'Hustle & Juggle');
+                  updateValue('appearanceLevel', 'Running Late');
+                } else if (persona.label === 'The Fitness Enthusiast') {
+                  updateValue('facialExpression', 'Joyful & High-Energy');
+                  updateValue('appearanceLevel', 'Well-Groomed');
+                } else if (persona.label === 'The Skincare Obsessed') {
+                  updateValue('facialExpression', 'Calm & Serene');
+                  updateValue('skinRealism', 'Raw / Real');
+                } else if (persona.label === 'The Minimalist') {
+                  updateValue('facialExpression', 'Confident & Editorial');
+                  updateValue('appearanceLevel', 'Styled');
+                } else if (persona.label === 'The Trendsetter') {
+                  updateValue('facialExpression', 'Playful & Candid');
+                  updateValue('appearanceLevel', 'Styled');
+                }
+              }}
+              className={`w-full text-left px-3 py-2 rounded-lg border text-sm transition ${values.heroPersona === persona.label
+                ? 'bg-indigo-600 border-indigo-500 text-white shadow-md'
+                : 'border-gray-600 text-gray-200 hover:border-indigo-400 hover:bg-indigo-500/10'
+                }`}
+            >
+              {persona.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {!isUGCMode && (
+        <SmoothAccordion
+          icon={Camera}
+          title="Camera & Framing"
+          tooltip="How the scene is captured"
+          isOpen={openAccordionId === 'camera'}
+          onToggle={() => toggleSection('camera')}
+          isTouched={touchedSections.has('camera')}
+        >
+          <div className="space-y-3">
+            <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+              <div>
+                <p className="text-xs uppercase tracking-wider text-indigo-200">CAMERA TYPE</p>
+                <p className="text-[11px] text-gray-400 mt-1">Select the capture device aesthetic</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {CAMERA_OPTIONS.map(option => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => { updateValue('cameraType', option.label); markSectionTouched('camera'); }}
+                    className={getPillClass(values.cameraType === option.label)}
+                    title={option.value}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+              <p className="text-xs uppercase tracking-wider text-indigo-200">SHOT TYPE</p>
+              <div className="flex flex-wrap items-center gap-2">
+                {SHOT_TYPE_OPTIONS.map(option => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => { updateValue('shotType', option); markSectionTouched('camera'); }}
+                    className={getPillClass(values.shotType === option)}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+              <p className="text-xs uppercase tracking-wider text-indigo-200">CAMERA ANGLE</p>
+              <div className="flex flex-wrap items-center gap-2">
+                {CAMERA_ANGLE_OPTIONS.map(option => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => { updateValue('cameraAngle', option); markSectionTouched('camera'); }}
+                    className={getPillClass(values.cameraAngle === option)}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-
-          {!isUGCMode && (
-            <SmoothAccordion
-              icon={Camera}
-              title="Camera & Framing"
-              tooltip="How the scene is captured"
-              isOpen={openAccordionId === 'camera'}
-              onToggle={() => toggleSection('camera')}
-              isTouched={touchedSections.has('camera')}
-            >
-            <div className="space-y-3">
-              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-indigo-200">CAMERA TYPE</p>
-                  <p className="text-[11px] text-gray-400 mt-1">Select the capture device aesthetic</p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {CAMERA_OPTIONS.map(option => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => { updateValue('cameraType', option.label); markSectionTouched('camera'); }}
-                      className={getPillClass(values.cameraType === option.label)}
-                      title={option.value}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-                <p className="text-xs uppercase tracking-wider text-indigo-200">SHOT TYPE</p>
-                <div className="flex flex-wrap items-center gap-2">
-                  {SHOT_TYPE_OPTIONS.map(option => (
-                    <button
-                      key={option}
-                      type="button"
-                      onClick={() => { updateValue('shotType', option); markSectionTouched('camera'); }}
-                      className={getPillClass(values.shotType === option)}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-                <p className="text-xs uppercase tracking-wider text-indigo-200">CAMERA ANGLE</p>
-                <div className="flex flex-wrap items-center gap-2">
-                  {CAMERA_ANGLE_OPTIONS.map(option => (
-                    <button
-                      key={option}
-                      type="button"
-                      onClick={() => { updateValue('cameraAngle', option); markSectionTouched('camera'); }}
-                      className={getPillClass(values.cameraAngle === option)}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-            </SmoothAccordion>
-          )}
+        </SmoothAccordion>
+      )}
       {/* BUNDLES SYSTEM - STRICTLY ISOLATED */}
       {/* Bundles are enabled ONLY when multiple products are uploaded. */}
       {/* Bundles control product grouping only. */}
