@@ -164,22 +164,33 @@ function enforceUgcFocusGuard(prompt: string, options: PromptOptions): string {
     if (!ugcActive) {
         return prompt;
     }
-    let sanitizedPrompt = prompt;
+
+    // Split positive and negative prompt (negative can have depth terms as blockers)
+    const negativeMarker = ' Negative prompt: ';
+    const negativeIndex = prompt.indexOf(negativeMarker);
+    let positivePrompt = negativeIndex >= 0 ? prompt.substring(0, negativeIndex) : prompt;
+    const negativePrompt = negativeIndex >= 0 ? prompt.substring(negativeIndex) : '';
+
+    // Only sanitize the POSITIVE prompt
     DEPTH_DETECTION_REGEX.lastIndex = 0;
-    if (DEPTH_DETECTION_REGEX.test(prompt)) {
-        console.warn('[UGC FOCUS GUARD] Removing background separation language from prompt.');
+    if (DEPTH_DETECTION_REGEX.test(positivePrompt)) {
+        console.warn('[UGC FOCUS GUARD] Removing background separation language from positive prompt.');
         DEPTH_DETECTION_REGEX.lastIndex = 0;
-        sanitizedPrompt = sanitizedPrompt.replace(DEPTH_DETECTION_REGEX, 'flat focus');
+        positivePrompt = positivePrompt.replace(DEPTH_DETECTION_REGEX, 'flat focus');
     }
-    if (!/flat focus across the entire frame/i.test(sanitizedPrompt)) {
-        sanitizedPrompt = `${sanitizedPrompt} ${FOCUS_OVERRIDE_APPEND}`;
+    if (!/flat focus across the entire frame/i.test(positivePrompt)) {
+        positivePrompt = `${positivePrompt} ${FOCUS_OVERRIDE_APPEND}`;
     }
+
+    // Check only positive prompt for remaining depth terms
     DEPTH_DETECTION_REGEX.lastIndex = 0;
-    if (DEPTH_DETECTION_REGEX.test(sanitizedPrompt)) {
+    if (DEPTH_DETECTION_REGEX.test(positivePrompt)) {
         DEPTH_DETECTION_REGEX.lastIndex = 0;
         throw new Error('UGC depth conflict detected: background separation language present. Re-run generation.');
     }
-    return sanitizedPrompt.replace(/\s+/g, ' ').trim();
+
+    // Rejoin with negative prompt
+    return `${positivePrompt}${negativePrompt}`.replace(/\s+/g, ' ').trim();
 }
 
 // ============================================================================
