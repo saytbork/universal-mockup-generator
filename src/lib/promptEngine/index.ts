@@ -134,7 +134,7 @@ const generateRequestSeed = (): string => {
 
 const DEPTH_DETECTION_REGEX = /(depth of field|portrait mode|portrait blur|bokeh|bokeh effect|background blur|blurred background|lens blur|lens emulation|cinematic focus|cinematic blur|subject separation|background separation|subject isolation|shallow depth|shallow focus|soft background|soft focus|depth cues|depth effect|spatial depth|defocused background)/gi;
 const FOCUS_OVERRIDE_APPEND =
-    'flat focus across the entire frame, small sensor, fixed wide lens, no depth separation, no portrait mode.';
+    'flat focus across the entire frame, small sensor, fixed wide lens, everything sharp foreground to background.';
 
 function enforcePreflightGuards(options: PromptOptions) {
     const lock = options.identityLock;
@@ -184,9 +184,9 @@ function enforceUgcFocusGuard(prompt: string, options: PromptOptions): string {
 
     // Check only positive prompt for remaining depth terms
     DEPTH_DETECTION_REGEX.lastIndex = 0;
-    if (DEPTH_DETECTION_REGEX.test(positivePrompt)) {
-        DEPTH_DETECTION_REGEX.lastIndex = 0;
-        throw new Error('UGC depth conflict detected: background separation language present. Re-run generation.');
+    const match = DEPTH_DETECTION_REGEX.exec(positivePrompt);
+    if (match) {
+        throw new Error(`UGC depth conflict detected: "${match[0]}" language present in positive prompt. Re-run generation.`);
     }
 
     // Rejoin with negative prompt
