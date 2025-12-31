@@ -107,6 +107,17 @@ Skin carries micro wrinkles around mouth, eyes, and neck with authentic sag.
             // ================================================================
             const identityParts: string[] = [];
 
+            // Ethnicity anchor (only when explicitly selected)
+            if (
+                personDetails?.ethnicity &&
+                personDetails.ethnicity !== 'Prefer not to specify' &&
+                personDetails.ethnicity !== 'Non-specific'
+            ) {
+                parts.push(
+                    `ETHNICITY ANCHOR: Subject MUST visually read as ${personDetails.ethnicity}. Do not drift to a different ethnicity.`
+                );
+            }
+
             // Age
             identityParts.push(`${age}-year-old ${ageGroupLabel}`);
 

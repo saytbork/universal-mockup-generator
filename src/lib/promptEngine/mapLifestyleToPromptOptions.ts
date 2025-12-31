@@ -827,8 +827,14 @@ export function mapLifestyleToPromptOptions(
             (mapped as any).genderPresentation = genderPresentation;
             mapped.personDetails.genderPresentation = genderPresentation;
         }
-        if (sceneState.ethnicity && sceneState.ethnicity !== 'Prefer not to specify') {
+        if (
+            sceneState.ethnicity &&
+            sceneState.ethnicity !== 'Prefer not to specify' &&
+            sceneState.ethnicity !== 'Non-specific'
+        ) {
             mapped.personDetails.ethnicity = sceneState.ethnicity;
+        } else {
+            delete mapped.personDetails.ethnicity;
         }
         if (sceneState.bodyType) {
             mapped.personDetails.bodyType = sceneState.bodyType;
