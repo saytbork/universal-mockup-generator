@@ -66,10 +66,8 @@ CAMERA & OPTICS (LOCKED)
 Front-facing smartphone camera ONLY.
 Tiny sensor. Cheap optics.
 
-NO depth separation.
-NO background blur.
-NO portrait mode.
-Everything equally mediocre in focus.
+Flat focus across the entire frame.
+Everything is equally mediocre in focus.
 
 Angle is imperfect and human:
 - pitch between +6° to +10° OR −6° to −10°
@@ -179,8 +177,10 @@ Arm extension implied.
     'high-angle': `
 High-angle vantage
 High-angle front camera selfie.
-Camera above eye level, angled downward across shoulders.
-Awkward tilt is present.
+Camera is clearly above forehead height, angled downward across the face and shoulders.
+Eyes sit below the horizontal centerline of the frame.
+Headroom is awkward and imperfect; slight head crop is allowed.
+Awkward tilt is present (never level).
 Arm extension implied.
 Not a mid shot. No torso framing.
 `.trim(),
@@ -201,7 +201,7 @@ Feels unstable and incidental.
 };
 
 const SELFIE_CAPTURE_BLOCKERS = `
-BLOCKED: professional framing, rule of thirds centered, cinematic look, depth separation, background blur, hero shots, studio composition.
+BLOCKED: professional framing, rule of thirds centered, cinematic look, background separation, background blur, hero shots, studio composition.
 `.trim();
 
 const SELFIE_PHYSICAL_CONTACT_BLOCK = `
@@ -237,10 +237,17 @@ premium look
 `.trim();
 
 const isSelfieActive = (options: PromptOptions): boolean => {
-    if (
-        options.ugcCaptureStyleBase?.includes('close-face') ||
-        options.ugcRealModeLayers?.captureBase?.includes('close-face')
-    ) {
+    const captureBase =
+        options.ugcCaptureStyleBase ??
+        options.ugcRealModeLayers?.captureBase ??
+        [];
+    const knownSelfieCaptureBaseIds = new Set([
+        'torso-level-handheld',
+        'high-angle',
+        'close-face',
+        'propped-surface'
+    ]);
+    if (captureBase.some(id => knownSelfieCaptureBaseIds.has(id))) {
         return true;
     }
     const selfieRaw =
@@ -312,14 +319,22 @@ export class SelfieCaptureBuilder implements PromptBuilder {
         delete overrideTarget.depthOfField;
         delete overrideTarget.lensEmulation;
         delete overrideTarget.focusFalloff;
+        delete overrideTarget.shotType;
+        delete overrideTarget.cameraDistance;
         delete overrideTarget.cameraShot;
         delete overrideTarget.cameraAngle;
         delete overrideTarget.perspective;
+        delete overrideTarget.framing;
+        delete overrideTarget.ruleOfThirds;
+        delete overrideTarget.sidePlacement;
         delete overrideTarget.compositionMode;
         delete overrideTarget.compositionModeStructural;
         delete overrideTarget.cameraDeviceSemantic;
         delete overrideTarget.cameraType;
         delete overrideTarget.placementCamera;
+        delete overrideTarget.creationModeStructural;
+        overrideTarget.allowSceneComposition = false;
+        overrideTarget.environmentOrder = 'incidental';
 
         if (isCloseFace) {
             delete overrideTarget.shotType;

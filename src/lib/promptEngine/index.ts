@@ -185,22 +185,37 @@ function enforceUgcFocusGuard(prompt: string, options: PromptOptions): string {
     let positivePrompt = negativeIndex >= 0 ? prompt.substring(0, negativeIndex) : prompt;
     const negativePrompt = negativeIndex >= 0 ? prompt.substring(negativeIndex) : '';
 
-    // Only sanitize the POSITIVE prompt
-    DEPTH_DETECTION_REGEX.lastIndex = 0;
-    if (DEPTH_DETECTION_REGEX.test(positivePrompt)) {
-        console.warn('[UGC FOCUS GUARD] Removing background separation language from positive prompt.');
-        DEPTH_DETECTION_REGEX.lastIndex = 0;
-        positivePrompt = positivePrompt.replace(DEPTH_DETECTION_REGEX, 'flat focus');
-    }
+    const allowDepthMention = (before: string, withinBlockedList: boolean): boolean => {
+        const snippet = before.toLowerCase();
+        // Allow negations like "no background blur", "no shallow depth of field", etc.
+        if (/\bno\b[\s\w-]{0,20}$/.test(snippet)) return true;
+        if (withinBlockedList) return true;
+        if (/\bblocked[:\s,]*$/.test(snippet)) return true;
+        if (snippet.includes('blocked:')) return true;
+        if (snippet.includes('blocked')) return true;
+        return false;
+    };
+
+    // Do not mutate prompt content; only enforce that any depth terms are negated/blocked.
     if (!/flat focus across the entire frame/i.test(positivePrompt)) {
         positivePrompt = `${positivePrompt} ${FOCUS_OVERRIDE_APPEND}`;
     }
 
     // Check only positive prompt for remaining depth terms
     DEPTH_DETECTION_REGEX.lastIndex = 0;
-    const match = DEPTH_DETECTION_REGEX.exec(positivePrompt);
-    if (match) {
-        throw new Error(`UGC depth conflict detected: "${match[0]}" language present in positive prompt. Re-run generation.`);
+    let match: RegExpExecArray | null = null;
+    while ((match = DEPTH_DETECTION_REGEX.exec(positivePrompt))) {
+        const offset = match.index ?? 0;
+        const before = positivePrompt.slice(Math.max(0, offset - 25), offset);
+        const prefix = positivePrompt.slice(0, offset).toLowerCase();
+        const lastBlocked = prefix.lastIndexOf('blocked:');
+        const withinBlockedList = lastBlocked !== -1 && offset - lastBlocked < 400;
+        if (allowDepthMention(before, withinBlockedList)) {
+            continue;
+        }
+        throw new Error(
+            `UGC depth conflict detected: "${match[0]}" language present in positive prompt. Re-run generation.`
+        );
     }
 
     // Rejoin with negative prompt
@@ -208,10 +223,17 @@ function enforceUgcFocusGuard(prompt: string, options: PromptOptions): string {
 }
 
 const isSelfieActive = (options: PromptOptions): boolean => {
-    if (
-        options.ugcCaptureStyleBase?.includes('close-face') ||
-        options.ugcRealModeLayers?.captureBase?.includes('close-face')
-    ) {
+    const captureBase =
+        options.ugcCaptureStyleBase ??
+        options.ugcRealModeLayers?.captureBase ??
+        [];
+    const knownSelfieCaptureBaseIds = new Set([
+        'torso-level-handheld',
+        'high-angle',
+        'close-face',
+        'propped-surface'
+    ]);
+    if (captureBase.some(id => knownSelfieCaptureBaseIds.has(id))) {
         return true;
     }
 
@@ -358,11 +380,17 @@ export class PromptEngine {
 
         if (ugcSelfieDominant) {
             const overrideTarget = options as any;
+            const isCloseFace =
+                options.ugcCaptureStyleBase?.includes('close-face') ||
+                options.ugcRealModeLayers?.captureBase?.includes('close-face');
             overrideTarget.creationMode = 'ugc_selfie';
             overrideTarget.compositionMode = null;
             overrideTarget.sceneIntent = null;
             overrideTarget.shotType = null;
-            overrideTarget.cameraDistance = 'extreme_close';
+            delete overrideTarget.cameraDistance;
+            if (isCloseFace) {
+                overrideTarget.cameraDistance = 'extreme_close';
+            }
             overrideTarget.personPose = null;
             overrideTarget.camera = 'front-facing smartphone camera';
             overrideTarget.cameraDeviceSemantic = 'front-facing smartphone camera';

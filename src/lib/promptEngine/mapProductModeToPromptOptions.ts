@@ -91,10 +91,30 @@ export function mapProductModeToPromptOptions(
 
     // Force Product Mode flags
     mapped.contentStyle = 'product';
-    mapped.creationMode = 'studio'; // Product mode uses studio creation mode
+    mapped.creationMode = 'ecom-blank';
     mapped.personIncluded = false;
     mapped.sceneIntent = 'ecommerce';
-    mapped.compositionMode = sceneState.compositionMode || 'Ecommerce Blank Space';
+    mapped.compositionMode = 'Ecommerce Blank Space';
+    mapped.ecommerceBlankSpaceMode = true;
+    if (sceneState.ecommerceBackgroundMode === 'gradient') {
+        const angle = parseInt(sceneState.ecommerceGradientAngle || '90', 10) || 90;
+        mapped.bgGradient = {
+            startColor: sceneState.ecommerceGradientStart || '#f7f7f7',
+            endColor: sceneState.ecommerceGradientEnd || '#d9d9d9',
+            angle
+        };
+        delete mapped.bgColor;
+    } else {
+        mapped.bgColor = (sceneState.ecommerceBackgroundColor || '#FFFFFF').toUpperCase();
+        delete mapped.bgGradient;
+    }
+
+    mapped.setting = '';
+    mapped.microLocation = '';
+    mapped.environmentOrder = '';
+    mapped.perspective = '';
+    mapped.productPlane = '';
+    mapped.placementStyle = undefined;
     mapped.personDetails = undefined;
     mapped.identityLock = undefined;
     mapped.personIdentity = undefined;
@@ -121,6 +141,7 @@ export function mapProductModeToPromptOptions(
     mapped.ugcMotionStability = undefined;
     mapped.ugcFramingImperfections = undefined;
     mapped.ugcAwkwardContext = undefined;
+    mapped.ugcSelfieDominant = false;
 
     // ========================================================================
     // PRODUCT COMPOSITION (Stage 4)

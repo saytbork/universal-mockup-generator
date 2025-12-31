@@ -546,14 +546,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   hasFirstGenerationComplete = false,
 }: LifestyleStep3Props) => {
   const [isPro, setIsPro] = useState(false);
-  const [sceneMode, setSceneMode] = useState<'ugc' | 'product'>(isProductMode ? 'product' : 'ugc');
-  const [openAccordionId, setOpenAccordionId] = useState<string | null>(isProductMode ? 'product-setup' : 'creator');
+  const initialSceneIntent: Step3Values['sceneIntent'] = isProductMode ? 'ecommerce' : 'environment';
+  const [openAccordionId, setOpenAccordionId] = useState<string | null>(
+    initialSceneIntent === 'ecommerce' ? 'product-setup' : 'creator'
+  );
   const [openUgcLayerId, setOpenUgcLayerId] = useState<UGCLayerField | null>(null);
   const [touchedSections, setTouchedSections] = useState<Set<string>>(new Set());
   const initialValues: Step3Values = {
     // Creator/Person
     age: 30, // Numeric age
-    noPerson: false, // UGC Rule: person MUST be present by default
+    noPerson: initialSceneIntent === 'ecommerce', // UGC Rule: person MUST be present by default
     gender: 'Female',
     skinTone: 'Medium Neutral', // Refined options
     ethnicity: 'Non-specific',
@@ -635,9 +637,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     customClothesDetail: '',
 
     // Creation Intent / Modes (simplified - removed legacy modes)
-    creationIntent: 'ugc',
+    creationIntent: initialSceneIntent === 'ecommerce' ? 'product' : 'ugc',
     creationMode: 'Lifestyle UGC',
-    compositionMode: '', // Empty = not in ecommerce mode
+    compositionMode: initialSceneIntent === 'ecommerce' ? 'Ecommerce Blank Space' : '', // Empty = not in ecommerce mode
     sidePlacement: SIDE_PLACEMENT_OPTIONS[1],
     ecommerceBackgroundColor: '#ffffff',
     ecommerceBackgroundMode: 'white',
@@ -646,7 +648,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     ecommerceGradientAngle: '90',
 
     // Scene Intent Rule - Default: Environment/Lifestyle mode active
-    sceneIntent: 'environment',
+    sceneIntent: initialSceneIntent,
 
     // Background
     preserveEnvironment: false,
@@ -924,11 +926,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // ========================================================================
   // PRODUCT MODE VALIDATION (Stage 11)
   // ========================================================================
-
-  // Sync sceneMode with sceneIntent
-  useEffect(() => {
-    setSceneMode(values.sceneIntent === 'ecommerce' ? 'product' : 'ugc');
-  }, [values.sceneIntent]);
 
   // Block and clear UGC state when Product Mode is active
   useEffect(() => {

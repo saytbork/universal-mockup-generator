@@ -660,6 +660,10 @@ export function mapLifestyleToPromptOptions(
         console.error('[INVALID STATE BLOCKED] Ecommerce Blank Space cannot run in environment sceneIntent');
         throw new Error('Invalid state: Ecommerce Blank Space + environment sceneIntent');
     }
+    if (sceneState.creationMode === 'Ecommerce Blank Space' && sceneState.sceneIntent === 'environment') {
+        console.error('[INVALID STATE BLOCKED] Ecommerce Blank Space cannot run in environment sceneIntent (creationMode)');
+        throw new Error('Invalid state: Ecommerce Blank Space + environment sceneIntent (creationMode)');
+    }
     if (sceneState.noPerson === false && sceneState.sceneIntent === 'ecommerce') {
         console.error('[INVALID STATE BLOCKED] Person cannot be enabled in ecommerce sceneIntent');
         throw new Error('Invalid state: person enabled in ecommerce sceneIntent');
@@ -723,8 +727,7 @@ export function mapLifestyleToPromptOptions(
     const isCreationModeEcommerceBlank =
         rawCreationMode === 'ecommerce blank space' || rawCreationMode === 'ecom-blank';
     const isCompositionModeEcommerceBlank = sceneState.compositionMode === 'Ecommerce Blank Space';
-    const isEcommerceBlankSpaceActive =
-        isEcommerceSceneIntent || isCreationModeEcommerceBlank || isCompositionModeEcommerceBlank;
+    const isEcommerceBlankSpaceActive = isEcommerceSceneIntent;
     const isUGCRealMode = !!sceneState.ugcRealMode;
     const personAge = sceneState.age || 0;
     const is80Plus = isUGCRealMode && personAge >= 80;
@@ -1366,7 +1369,7 @@ export function mapLifestyleToPromptOptions(
     // CONTENT STYLE & CREATION INTENT
     // ========================================================================
     mapped.creationIntent = sceneState.creationIntent;
-    mapped.contentStyle = sceneState.creationIntent === 'ugc' && personIncluded ? 'ugc' : 'product';
+    mapped.contentStyle = 'ugc';
 
     // ========================================================================
     // SELFIE MODE (Restored Logic)
@@ -1412,12 +1415,19 @@ export function mapLifestyleToPromptOptions(
         console.log('[MAP] selfieMode:', sceneState.selfieMode, '→', selfieSemantic);
     }
 
-    if (!matchesMultiProduct && normalizedCaptureBase[0] === 'close-face') {
-        mapped.selfieMode = 'close-face';
-        mapped.selfieType = 'close-face';
+    const captureBaseId = normalizedCaptureBase[0];
+    const captureBaseIsSelfie =
+        captureBaseId === 'torso-level-handheld' ||
+        captureBaseId === 'high-angle' ||
+        captureBaseId === 'close-face' ||
+        captureBaseId === 'propped-surface';
+    const uiSelfieUnset = !sceneState.selfieMode || sceneState.selfieMode === 'None';
+    if (!matchesMultiProduct && captureBaseIsSelfie && uiSelfieUnset) {
+        mapped.selfieMode = captureBaseId;
+        mapped.selfieType = captureBaseId;
         if (mapped.personDetails) {
-            mapped.personDetails.selfieMode = 'close-face';
-            mapped.personDetails.selfieType = 'close-face';
+            mapped.personDetails.selfieMode = captureBaseId;
+            mapped.personDetails.selfieType = captureBaseId;
         }
     }
 
