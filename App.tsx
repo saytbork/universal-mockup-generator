@@ -1156,6 +1156,7 @@ const App: React.FC = () => {
   const trialInputRef = useRef<HTMLInputElement>(null);
   const googleButtonRef = useRef<HTMLDivElement>(null);
   const googleInitRef = useRef(false);
+  const identityContinuityRef = useRef<{ identityKey?: string; identitySeed?: string } | null>(null);
   const uploaderRef = useRef<ImageUploaderHandle | null>(null);
   const isDevBypass = useMemo(() => {
     if (!import.meta.env.DEV) return false;
@@ -4226,6 +4227,13 @@ If the model attempts to create a scene or environment, override it and force a 
 
       try {
         // Build PromptOptions from current state
+        const shouldReuseIdentityKey =
+          !isProductPlacement &&
+          !hasModelReference &&
+          lifestyleStep3Values?.sameCreatorAcrossScenes === true &&
+          personIncluded === true &&
+          Boolean(identityContinuityRef.current?.identityKey);
+
         const basePromptOptions: any = {
           ...options,
           contentStyle: isProductPlacement ? 'product' : 'ugc',
@@ -4236,12 +4244,35 @@ If the model attempts to create a scene or environment, override it and force a 
             base64: p.base64,
             mimeType: p.mimeType,
           })),
+          ...(shouldReuseIdentityKey
+            ? {
+                identityKey: identityContinuityRef.current?.identityKey,
+                identitySeed: identityContinuityRef.current?.identitySeed,
+                identityMode: 'locked',
+              }
+            : {}),
         };
 
         // If LifestyleStep3 values exist, map them to PromptOptions
         let promptOptions = basePromptOptions;
         if (lifestyleStep3Values && !isProductPlacement) {
           promptOptions = mapLifestyleToPromptOptions(lifestyleStep3Values, basePromptOptions, hasModelReference);
+        }
+
+        // Persist continuity identity only when explicitly requested.
+        // Otherwise "locked" mode would mint a new identityKey every click → different person.
+        if (
+          !isProductPlacement &&
+          !hasModelReference &&
+          lifestyleStep3Values?.sameCreatorAcrossScenes === true &&
+          promptOptions?.identityKey
+        ) {
+          identityContinuityRef.current = {
+            identityKey: promptOptions.identityKey,
+            identitySeed: promptOptions.identitySeed,
+          };
+        } else {
+          identityContinuityRef.current = null;
         }
 
         // MANDATORY LOGS - Prove injection works
