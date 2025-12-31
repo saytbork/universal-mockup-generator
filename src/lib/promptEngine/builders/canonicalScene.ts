@@ -142,6 +142,16 @@ export class SceneNarrativeBuilder {
     }
 
     private buildCreationMode(options: PromptOptions): string {
+        // Ecommerce canvas overlay (background replacement) can coexist with environment controls.
+        // When active, it must override environment-first copy.
+        if (options.creationMode === 'bg-replace' && options.ecommerceSidePlacementFlag) {
+            return [
+                'Background replacement mode.',
+                'Remove the original environment completely and replace it with a clean neutral background (solid color or gradient).',
+                'No visible room, furniture, decor, or location cues.',
+                'Subject and product remain photorealistic and naturally lit.'
+            ].join(' ');
+        }
         if (options.sceneIntent === 'environment') {
             return 'Environment-first lifestyle composition with the product grounded in a natural space, avoiding hero or studio framing.';
         }
