@@ -353,6 +353,40 @@ export class PromptEngine {
     build(options: PromptOptions): string {
         console.log('[PROMPT ENGINE] Starting canonical build pipeline');
 
+        // Identity variation must change on every render unless explicitly locked.
+        // This prevents "same person" repeats when the user hits Generate multiple times without changing UI values.
+        const shouldRandomizeIdentity =
+            options.personIncluded === true &&
+            options.contentStyle !== 'product' &&
+            !options.hasModelReference &&
+            options.sameCreatorAcrossScenes !== true &&
+            options.identityMode !== 'locked';
+
+        if (shouldRandomizeIdentity) {
+            const timestamp = Date.now().toString(36).slice(-6);
+            const random = Math.random().toString(36).substring(2, 8);
+            options.identityVariationToken = `${timestamp}-${random}`.toUpperCase();
+            options.identityKey = undefined;
+            options.identityMode = 'auto';
+        }
+
+        if (options.sameCreatorAcrossScenes === true && !options.hasModelReference) {
+            options.identityMode = 'locked';
+            if (!options.identityKey) {
+                if (typeof globalThis !== 'undefined') {
+                    const runtimeCrypto = (globalThis as typeof globalThis & { crypto?: Crypto }).crypto;
+                    if (runtimeCrypto?.randomUUID) {
+                        options.identityKey = runtimeCrypto.randomUUID();
+                    }
+                }
+                if (!options.identityKey) {
+                    const randomComponent = Math.random().toString(36).slice(2, 10);
+                    options.identityKey = `${Date.now().toString(36)}-${randomComponent}`;
+                }
+            }
+            options.identityVariationToken = undefined;
+        }
+
         if (!options.identityLock) {
             options.seed = generateRequestSeed();
         }
