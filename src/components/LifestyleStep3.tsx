@@ -2034,11 +2034,22 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               {values.ecommerceBackgroundMode === 'white' ? (
                 <div className="space-y-2">
                   <p className="text-[11px] uppercase tracking-wide text-gray-400">Solid background color</p>
-                  <label className="relative flex items-center gap-3 rounded-xl bg-gray-800/40 p-3 cursor-pointer hover:bg-gray-800/60 transition">
-                    <div
-                      className="h-10 w-10 rounded-lg ring-1 ring-white/20"
-                      style={{ background: values.ecommerceBackgroundColor }}
-                    />
+                  <div className="flex items-center gap-3 rounded-xl bg-gray-800/40 p-2.5 hover:bg-gray-800/60 transition">
+                    <label className="relative h-10 w-10 shrink-0 cursor-pointer">
+                      <div
+                        className="h-10 w-10 rounded-full ring-1 ring-white/20"
+                        style={{ background: values.ecommerceBackgroundColor }}
+                      />
+                      <input
+                        type="color"
+                        value={values.ecommerceBackgroundColor}
+                        onChange={(e) => {
+                          updateValue('ecommerceBackgroundColor', e.target.value);
+                          markSectionTouched('ecommerce');
+                        }}
+                        className="absolute inset-0 opacity-0 cursor-pointer"
+                      />
+                    </label>
                     <input
                       type="text"
                       value={values.ecommerceBackgroundColor}
@@ -2048,44 +2059,37 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       }}
                       className="w-full bg-transparent text-sm text-gray-200 focus:outline-none"
                     />
-                    <input
-                      type="color"
-                      value={values.ecommerceBackgroundColor}
-                      onChange={(e) => {
-                        updateValue('ecommerceBackgroundColor', e.target.value);
-                        markSectionTouched('ecommerce');
-                      }}
-                      className="absolute inset-0 opacity-0 cursor-pointer"
-                    />
-                  </label>
+                  </div>
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     {[
                       { key: 'ecommerceGradientStart', label: 'Start color', value: values.ecommerceGradientStart },
                       { key: 'ecommerceGradientEnd', label: 'End color', value: values.ecommerceGradientEnd }
                     ].map(cfg => (
                       <div key={cfg.key} className="space-y-2">
                         <p className="text-[11px] uppercase tracking-wide text-gray-400">{cfg.label}</p>
-                        <label className="relative flex items-center gap-3 rounded-xl bg-gray-800/40 p-3 cursor-pointer hover:bg-gray-800/60 transition">
-                          <div
-                            className="h-10 w-10 rounded-lg ring-1 ring-white/20"
-                            style={{ background: cfg.value }}
-                          />
+                        <div className="flex items-center gap-3 rounded-xl bg-gray-800/40 p-2.5 hover:bg-gray-800/60 transition">
+                          <label className="relative h-10 w-10 shrink-0 cursor-pointer">
+                            <div
+                              className="h-10 w-10 rounded-full ring-1 ring-white/20"
+                              style={{ background: cfg.value }}
+                            />
+                            <input
+                              type="color"
+                              value={cfg.value}
+                              onChange={(e) => handleGradientColorChange(cfg.key as 'ecommerceGradientStart' | 'ecommerceGradientEnd', e.target.value)}
+                              className="absolute inset-0 opacity-0 cursor-pointer"
+                            />
+                          </label>
                           <input
                             type="text"
                             value={cfg.value}
                             onChange={(e) => handleGradientColorChange(cfg.key as 'ecommerceGradientStart' | 'ecommerceGradientEnd', e.target.value)}
                             className="w-full bg-transparent text-sm text-gray-200 focus:outline-none"
                           />
-                          <input
-                            type="color"
-                            value={cfg.value}
-                            onChange={(e) => handleGradientColorChange(cfg.key as 'ecommerceGradientStart' | 'ecommerceGradientEnd', e.target.value)}
-                            className="absolute inset-0 opacity-0 cursor-pointer"
-                          />
-                        </label>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -2109,7 +2113,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
                   <div className="relative overflow-hidden rounded-2xl border border-white/10">
                     <div
-                      className="h-24 w-full"
+                      className="h-20 w-full"
                       style={{
                         background: `linear-gradient(${values.ecommerceGradientAngle}deg, ${values.ecommerceGradientStart}, ${values.ecommerceGradientEnd})`
                       }}
