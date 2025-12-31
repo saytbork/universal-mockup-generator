@@ -27,3 +27,26 @@ test('UGC always enforces flat depth (no pro separation)', () => {
   expect(lower).toContain('no portrait mode');
 });
 
+test('UGC degrades pro camera selections to avoid depth conflicts', () => {
+  const options: PromptOptions = {
+    contentStyle: 'ugc',
+    creationIntent: 'ugc',
+    creationMode: 'lifestyle',
+    aspectRatio: '1:1',
+    camera: 'smartphone camera',
+    setting: 'Kitchen',
+    lighting: 'Natural ambient',
+    perspective: 'front',
+    environmentOrder: 'Kitchen',
+    productPlane: 'mid',
+    personIncluded: true,
+  };
+
+  (options as any).cameraType = 'DSLR / mirrorless camera';
+
+  const prompt = promptEngine.build(options);
+  const lower = prompt.toLowerCase();
+
+  expect(lower).toContain('flat focus across the entire frame');
+  expect(lower).not.toContain('captured with a professional dslr');
+});

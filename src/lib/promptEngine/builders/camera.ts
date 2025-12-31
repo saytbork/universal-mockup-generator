@@ -16,8 +16,11 @@ export function buildCamera(params: any): string {
     params.placementCamera ??
     "";
 
-  // 1️⃣ UGC Real Mode ACTIVE - Strict Degradation
-  if (params.ugcRealMode) {
+  const ugcMode = Boolean(params.ugcMode || params.ugcRealMode);
+
+  // 1️⃣ UGC MODE ACTIVE - Strict Degradation
+  // UGC cannot allow any pro-camera strings (they can include "shallow depth", etc.).
+  if (ugcMode) {
     const allowedCameras = [
       "Intentional smartphone camera",
       "Laptop webcam (pro setup)"

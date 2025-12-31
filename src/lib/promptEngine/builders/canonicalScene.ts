@@ -216,7 +216,12 @@ export class SceneNarrativeBuilder {
         const cameraText = buildCamera({
             camera: options.camera,
             cameraType: (options as any).cameraType,
-            placementCamera: (options as any).placementCamera
+            placementCamera: (options as any).placementCamera,
+            ugcMode:
+                options.contentStyle === 'ugc' ||
+                options.creationIntent === 'ugc' ||
+                Boolean(options.ugcRealModeActive) ||
+                Boolean(options.rawDomesticUgcActive)
         });
         const parts: string[] = [];
         const suppressCameraDescriptors = !!options.ugcRealModeActive;

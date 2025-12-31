@@ -255,8 +255,8 @@ const isSelfieActive = (options: PromptOptions): boolean => {
         options.personDetails?.selfieMode ||
         options.personDetails?.selfieType ||
         '';
-    const normalized = String(selfieRaw).trim();
-    return normalized.length > 0 && normalized.toLowerCase() !== 'none';
+    const normalized = String(selfieRaw).trim().toLowerCase();
+    return normalized !== '' && normalized !== 'none';
 };
 
 const isUgcMode = (options: PromptOptions): boolean => {
