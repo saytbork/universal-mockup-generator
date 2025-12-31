@@ -435,7 +435,6 @@ export class PromptEngine {
         // ====================================================================
         const shouldIncludeIdentity =
             options.personIncluded &&
-            !options.hasModelReference &&
             options.contentStyle !== 'product';
 
         const identitySection = shouldIncludeIdentity

@@ -703,7 +703,7 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     // IDENTITY MODE CONTROL (auto = different person, locked = same person)
     // ========================================================================
-    const identityMode = identityContinuityRequested ? 'locked' : 'auto';
+    const identityMode = hasModelReference ? 'locked' : identityContinuityRequested ? 'locked' : 'auto';
     mapped.identityMode = identityMode;
 
     if (identityMode === 'auto') {

@@ -58,3 +58,44 @@ test('Formulation Story uses selected person identity (no talent ref required)',
   expect(prompt).toContain('The expert is described as a medical doctor / physician (MD).');
 });
 
+test('Formulation Story respects Optional Talent Reference (model ref locks identity and injects override)', () => {
+  const mapped = mapLifestyleToPromptOptions(
+    {
+      sceneIntent: 'environment',
+      creationIntent: 'brand',
+      creationMode: 'Lifestyle UGC',
+      compositionMode: '',
+      noPerson: false,
+      sameCreatorAcrossScenes: false,
+
+      // Person identity values should not override the reference
+      age: 30,
+      gender: 'Male',
+
+      // Formulation story enabled
+      formulationStoryEnabled: true,
+      expertRole: 'doctor',
+      expertName: '',
+      expertCredentials: '',
+      expertAttire: 'white_medical_coat',
+      expertBadgePreference: 'name_only',
+      labVibe: 'Clean Lab',
+
+      // Non-critical defaults
+      ugcRealMode: false,
+      environment: 'Kitchen',
+      timeOfDay: 'Afternoon',
+      lightingStyle: 'Natural window',
+      productInteraction: 'Holding',
+      productStructure: 'single',
+      props: 'None',
+      heroPersona: ''
+    } as any,
+    {},
+    true
+  );
+
+  const prompt = promptEngine.build(mapped as any);
+  expect(prompt).toContain('MODEL REFERENCE OVERRIDE:');
+  expect(prompt).not.toContain('[IDENTITY_VARIATION_TOKEN:');
+});
