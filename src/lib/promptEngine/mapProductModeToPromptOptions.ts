@@ -96,6 +96,14 @@ export function mapProductModeToPromptOptions(
     mapped.sceneIntent = 'ecommerce';
     mapped.compositionMode = 'Ecommerce Blank Space';
     mapped.ecommerceBlankSpaceMode = true;
+    const sidePlacementRaw = (sceneState.sidePlacement || 'Center').toLowerCase();
+    const sidePlacement =
+        sidePlacementRaw.includes('left') ? 'left' :
+        sidePlacementRaw.includes('right') ? 'right' :
+        'center';
+    mapped.sidePlacement = sidePlacement;
+    mapped.ecommerceSidePlacement = sidePlacement;
+    mapped.ecommerceSidePlacementFlag = true;
     if (sceneState.ecommerceBackgroundMode === 'gradient') {
         const angle = parseInt(sceneState.ecommerceGradientAngle || '90', 10) || 90;
         mapped.bgGradient = {

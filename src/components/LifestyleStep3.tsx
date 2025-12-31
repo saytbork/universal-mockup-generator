@@ -753,7 +753,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
   const handleGradientColorChange = useCallback((key: 'ecommerceGradientStart' | 'ecommerceGradientEnd', color: string) => {
     updateValue(key, color as any);
-    markSectionTouched('bundles');
+    markSectionTouched('ecommerce');
   }, [updateValue, markSectionTouched]);
 
   const invertGradient = useCallback(() => {
@@ -761,7 +761,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     const end = values.ecommerceGradientEnd;
     updateValue('ecommerceGradientStart', end);
     updateValue('ecommerceGradientEnd', start);
-    markSectionTouched('bundles');
+    markSectionTouched('ecommerce');
   }, [values.ecommerceGradientStart, values.ecommerceGradientEnd, updateValue, markSectionTouched]);
 
   const ageSliderProgress = Math.min(Math.max(((values.age - 18) / 72) * 100, 0), 100);
@@ -834,7 +834,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // Scene Intent Handler: Enable Environment Mode
   const enableEnvironment = useCallback(() => {
     console.log('[SCENE INTENT CHANGE] environment');
-    setValues(prev => ({ ...prev, sceneIntent: 'environment' }));
+    setValues(prev => {
+      const next: Step3Values = {
+        ...prev,
+        sceneIntent: 'environment',
+        compositionMode: '',
+      };
+      enforceSingleSelectLayers(next);
+      return next;
+    });
   }, []);
 
   useEffect(() => {
@@ -846,29 +854,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // Scene Intent Handler: Enable Ecommerce Mode
   const enableEcommerce = useCallback(() => {
     console.log('[SCENE INTENT CHANGE] ecommerce');
-    setValues(prev => ({ ...prev, sceneIntent: 'ecommerce' }));
-  }, []);
-
-  useEffect(() => {
-    if (values.sceneIntent === 'ecommerce') {
-      setOpenUgcLayerId(null);
-    }
     setValues(prev => {
-      if (prev.sceneIntent === 'environment') {
-        const next: Step3Values = {
-          ...prev,
-          compositionMode: '',
-          ecommerceBackgroundColor: '#ffffff',
-          ecommerceBackgroundMode: 'white' as const,
-          ecommerceGradientStart: '#f7f7f7',
-          ecommerceGradientEnd: '#d9d9d9',
-          ecommerceGradientAngle: '90' as const,
-          sidePlacement: SIDE_PLACEMENT_OPTIONS[1]
-        };
-        enforceSingleSelectLayers(next);
-        return next;
-      }
-
       const next: Step3Values = {
         ...prev,
         sceneIntent: 'ecommerce',
@@ -887,15 +873,23 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         ugcMotionStability: [],
         ugcFramingImperfections: [],
         ugcAwkwardContext: [],
-        ecommerceBackgroundColor: '#ffffff',
-        ecommerceBackgroundMode: 'white' as const,
-        ecommerceGradientStart: '#f7f7f7',
-        ecommerceGradientEnd: '#d9d9d9',
-        ecommerceGradientAngle: '90' as const
+        ecommerceBackgroundColor: prev.ecommerceBackgroundColor || '#ffffff',
+        ecommerceBackgroundMode: (prev.ecommerceBackgroundMode || 'white') as any,
+        ecommerceGradientStart: prev.ecommerceGradientStart || '#f7f7f7',
+        ecommerceGradientEnd: prev.ecommerceGradientEnd || '#d9d9d9',
+        ecommerceGradientAngle: (prev.ecommerceGradientAngle || '90') as any,
+        sidePlacement: prev.sidePlacement || SIDE_PLACEMENT_OPTIONS[1],
+        ecommerceSidePlacementFlag: true,
       };
       enforceSingleSelectLayers(next);
       return next;
     });
+  }, []);
+
+  useEffect(() => {
+    if (values.sceneIntent === 'ecommerce') {
+      setOpenUgcLayerId(null);
+    }
   }, [values.sceneIntent]);
 
   // HARD RULE: Custom Environment → switches to Environment intent
@@ -907,14 +901,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   }, [values.customEnvironment, values.sceneIntent, enableEnvironment]);
 
   useEffect(() => {
-    if (
-      values.compositionMode === 'Ecommerce Blank Space' &&
-      values.ecommerceBackgroundMode === 'white' &&
-      values.ecommerceBackgroundColor !== '#ffffff'
-    ) {
+    if (!values.ecommerceBackgroundColor) {
       updateValue('ecommerceBackgroundColor', '#ffffff');
     }
-  }, [values.compositionMode, values.ecommerceBackgroundMode, values.ecommerceBackgroundColor, updateValue]);
+  }, [values.ecommerceBackgroundColor, updateValue]);
 
   useEffect(() => {
     if (values.compositionMode === 'Ecommerce Blank Space' && values.sceneIntent !== 'ecommerce') {
@@ -999,6 +989,23 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         <p className="text-xs uppercase tracking-widest text-indigo-300">Step 3</p>
         <h2 className="text-2xl font-bold text-gray-200">Scene Builder</h2>
         <p className="text-sm text-gray-400">Define how the scene looks, feels, and behaves visually.</p>
+      </div>
+
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col">
+            <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Mode</p>
+            <p className="text-[11px] text-gray-400">Environment vs Ecommerce canvas</p>
+          </div>
+          <div className="flex gap-2">
+            <button type="button" onClick={enableEnvironment} className={getPillClass(isEnvironmentMode)}>
+              Environment
+            </button>
+            <button type="button" onClick={enableEcommerce} className={getPillClass(isEcommerceMode)}>
+              Ecommerce
+            </button>
+          </div>
+        </div>
       </div>
 
       {isEnvironmentMode && (
@@ -1979,90 +1986,45 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         <SmoothAccordion
           icon={Building2}
           title="Ecommerce Image Builder"
-          tooltip="PDP, ads, bundles, hero ecommerce visuals"
-          isOpen={openAccordionId === 'bundles'}
-          onToggle={() => toggleSection('bundles')}
+          tooltip="Neutral background + subject placement"
+          isOpen={openAccordionId === 'ecommerce'}
+          onToggle={() => toggleSection('ecommerce')}
         >
           <div className="space-y-4">
-          {/* COMPOSITION MODE */}
           <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
             <div>
-              <p className="text-xs uppercase tracking-wider text-indigo-200">COMPOSITION MODE</p>
-              <p className="text-[11px] text-gray-400 mt-1">Select ecommerce composition style</p>
+              <p className="text-xs uppercase tracking-wider text-indigo-200">SIDE PLACEMENT</p>
+              <p className="text-[11px] text-gray-400 mt-1">Subject anchor position</p>
             </div>
-            <div className="flex flex-col gap-2">
-              {COMPOSITION_MODE_OPTIONS.map(option => (
+            <div className="flex flex-wrap gap-2">
+              {SIDE_PLACEMENT_OPTIONS.map(option => (
                 <button
                   key={option}
                   type="button"
                   onClick={() => {
-                    // Toggle: if already selected, deselect and return to Environment
-                    const newValue = values.compositionMode === option ? '' : option;
-                    if (newValue) {
-                      // Selecting an Ecommerce option → switch to Ecommerce intent
-                      enableEcommerce();
-                      updateValue('compositionMode', newValue);
-                    } else {
-                      // Deselecting → return to Environment intent
-                      enableEnvironment();
-                    }
-                    markSectionTouched('bundles');
-                    // Reset side placement when switching modes
-                    if (newValue !== 'Ecommerce Blank Space') {
-                      updateValue('sidePlacement', 'Center');
-                    }
+                    updateValue('sidePlacement', option);
+                    updateValue('ecommerceSidePlacementFlag', true);
+                    markSectionTouched('ecommerce');
                   }}
-                  className={`w-full text-left px-3 py-2 rounded-lg border text-sm transition ${values.compositionMode === option
-                    ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                    : 'border-gray-600 text-gray-300 hover:border-gray-500'
-                    }`}
+                  className={getPillClass(values.sidePlacement === option)}
                 >
-                  <span className="font-medium">{option}</span>
-                  <p className="text-[10px] text-gray-400 mt-0.5">
-                    {option === 'Ecommerce Blank Space'
-                      ? 'PDP hero, ads, editorial product shots'
-                      : 'Packs, routines, kits with multiple products'}
-                  </p>
+                  {option}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* SIDE PLACEMENT - Only for Ecommerce Blank Space */}
-          {values.compositionMode === 'Ecommerce Blank Space' && (
-            <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
-              <div>
-                <p className="text-xs uppercase tracking-wider text-indigo-200">SIDE PLACEMENT</p>
-                <p className="text-[11px] text-gray-400 mt-1">Product anchor position for copy space</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {SIDE_PLACEMENT_OPTIONS.map(option => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => { updateValue('sidePlacement', option); markSectionTouched('bundles'); }}
-                    className={getPillClass(values.sidePlacement === option)}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* BACKGROUND STYLE - Only for Ecommerce Blank Space */}
-          {values.compositionMode === 'Ecommerce Blank Space' && (
-            <div className="space-y-5 rounded-xl border border-white/10 bg-gradient-to-b from-gray-900/60 to-gray-900/30 p-4">
+          <div className="space-y-5 rounded-xl border border-white/10 bg-gradient-to-b from-gray-900/60 to-gray-900/30 p-4">
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-widest text-indigo-300">Background</p>
-                <p className="text-sm text-gray-300">Canvas style for product renders</p>
+                <p className="text-sm text-gray-300">Neutral color or gradient</p>
               </div>
               <div className="inline-flex rounded-full bg-gray-800/50 p-1">
                 {(['white', 'gradient'] as Step3Values['ecommerceBackgroundMode'][]).map(mode => (
                   <button
                     key={mode}
                     type="button"
-                    onClick={() => { updateValue('ecommerceBackgroundMode', mode); markSectionTouched('bundles'); }}
+                    onClick={() => { updateValue('ecommerceBackgroundMode', mode); markSectionTouched('ecommerce'); }}
                     className={`rounded-full px-4 py-1.5 text-xs font-medium transition ${values.ecommerceBackgroundMode === mode
                       ? 'bg-white text-black shadow'
                       : 'text-gray-300 hover:text-white'
@@ -2073,8 +2035,32 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 ))}
               </div>
               {values.ecommerceBackgroundMode === 'white' ? (
-                <div className="rounded-xl border border-white/15 bg-gray-900/60 px-3 py-3 text-sm text-gray-300">
-                  Background locked to pure #FFFFFF for PDP hero compliance. No color overrides allowed.
+                <div className="space-y-2">
+                  <p className="text-[11px] uppercase tracking-wide text-gray-400">Solid background color</p>
+                  <label className="relative flex items-center gap-3 rounded-xl bg-gray-800/40 p-3 cursor-pointer hover:bg-gray-800/60 transition">
+                    <div
+                      className="h-10 w-10 rounded-lg ring-1 ring-white/20"
+                      style={{ background: values.ecommerceBackgroundColor }}
+                    />
+                    <input
+                      type="text"
+                      value={values.ecommerceBackgroundColor}
+                      onChange={(e) => {
+                        updateValue('ecommerceBackgroundColor', e.target.value);
+                        markSectionTouched('ecommerce');
+                      }}
+                      className="w-full bg-transparent text-sm text-gray-200 focus:outline-none"
+                    />
+                    <input
+                      type="color"
+                      value={values.ecommerceBackgroundColor}
+                      onChange={(e) => {
+                        updateValue('ecommerceBackgroundColor', e.target.value);
+                        markSectionTouched('ecommerce');
+                      }}
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                    />
+                  </label>
                 </div>
               ) : (
                 <>
@@ -2109,7 +2095,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   <div className="flex items-center gap-3">
                     <select
                       value={values.ecommerceGradientAngle}
-                      onChange={(e) => { updateValue('ecommerceGradientAngle', e.target.value as Step3Values['ecommerceGradientAngle']); markSectionTouched('bundles'); }}
+                      onChange={(e) => { updateValue('ecommerceGradientAngle', e.target.value as Step3Values['ecommerceGradientAngle']); markSectionTouched('ecommerce'); }}
                       className="rounded-full bg-gray-800/60 px-3 py-1.5 text-sm text-gray-200 focus:outline-none"
                     >
                       {GRADIENT_ANGLE_OPTIONS.map(angle => (
@@ -2136,14 +2122,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </>
               )}
             </div>
-          )}
 
-          {/* Info when Bundle mode is active */}
-          {values.compositionMode === 'Product Bundle / Routine' && (
-            <div className="p-3 rounded-lg border border-amber-500/30 bg-amber-500/10">
-              <p className="text-xs text-amber-200">Bundle mode: Multiple products visible with balanced composition and clear hierarchy.</p>
-            </div>
-          )}
         </div >
       </SmoothAccordion>
       )}
