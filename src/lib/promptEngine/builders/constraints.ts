@@ -9,9 +9,21 @@ export class ConstraintsBuilder implements PromptBuilder {
         // Only add constraints when image is uploaded for lifestyle mode
         const hasUploadedImage = options.productAssets && options.productAssets.length > 0;
         const isLifestyleMode = options.contentStyle === 'ugc' || options.creationMode === 'lifestyle';
+        const isBgReplaceOverlay = options.creationMode === 'bg-replace' && options.ecommerceSidePlacementFlag === true;
 
         if (!hasUploadedImage || !isLifestyleMode) {
             return '';
+        }
+
+        if (isBgReplaceOverlay) {
+            return [
+                'CRITICAL IMAGE CONSTRAINTS (BACKGROUND REPLACEMENT):',
+                'Use the uploaded image as the primary immutable reference for the product (and person if present).',
+                'Do not redesign, reinterpret, or replace the subject or product.',
+                'Preserve pose, proportions, realism, and all product branding exactly.',
+                'Background replacement is allowed and required: remove the original environment and replace it with the selected neutral canvas.',
+                'Do not invent new text, logos, watermarks, or packaging.'
+            ].join(' ');
         }
 
         return [

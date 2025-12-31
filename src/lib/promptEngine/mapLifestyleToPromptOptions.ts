@@ -1401,6 +1401,14 @@ export function mapLifestyleToPromptOptions(
         mapped.compositionModeStructural =
             'Blank-space layout on a neutral canvas; no environment context.';
 
+        // Suppress environment-style placement hints when canvas is active
+        delete mapped.placementStyle;
+        delete mapped.productPlane;
+
+        // Scene order / chaos is an environment signal; suppress for canvas
+        delete mapped.sceneOrderChaos;
+        delete (mapped as any).sceneOrderChaosDescriptor;
+
         // Suppress environment output when canvas is active (keep person + lighting)
         mapped.setting = '';
         mapped.microLocation = '';

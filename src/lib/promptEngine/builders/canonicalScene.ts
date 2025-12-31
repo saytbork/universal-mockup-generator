@@ -255,6 +255,24 @@ export class SceneNarrativeBuilder {
             options.sceneIntent === 'ecommerce' ||
             options.creationMode === 'ecom-blank';
 
+        const isEcommerceCanvasOverlay =
+            options.creationMode === 'bg-replace' && options.ecommerceSidePlacementFlag === true;
+
+        if (isEcommerceCanvasOverlay) {
+            const bgLine = options.bgGradient
+                ? `Background: gradient ${options.bgGradient.angle ?? 90}° from ${options.bgGradient.startColor} to ${options.bgGradient.endColor}.`
+                : options.bgColor
+                  ? `Background: solid ${options.bgColor}.`
+                  : 'Background: clean neutral solid or gradient.';
+
+            return [
+                'Ecommerce canvas overlay is active.',
+                'Remove the original environment completely; no room context or location cues.',
+                bgLine,
+                'Lighting: neutral, even, studio-like; preserve subject realism and natural shadows without any environment storytelling.'
+            ].join(' ');
+        }
+
         if (isEcommerceBlankSpaceMode) {
             const text =
                 'Pure white background (#FFFFFF) with extremely neutral studio lighting, flat even illumination, and a minimal contact shadow straight under the product. No environment, no lifestyle storytelling.';

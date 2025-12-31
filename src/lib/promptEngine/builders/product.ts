@@ -16,9 +16,14 @@ export class ProductBuilder implements PromptBuilder {
         } = options;
 
         const isEcommerceBlankSpaceMode = options.ecommerceBlankSpaceMode;
+        const isEcommerceCanvasOverlay =
+            options.creationMode === 'bg-replace' && options.ecommerceSidePlacementFlag === true;
+
         let prompt = isEcommerceBlankSpaceMode
             ? this.buildEcommerceBlankProductInsertion(options)
-            : this.buildProductInsertion();
+            : isEcommerceCanvasOverlay
+              ? this.buildEcommerceCanvasProductInsertion(options)
+              : this.buildProductInsertion();
 
         if (heightNotes) {
             prompt += ` Respect real-world scale: ${heightNotes}. Adjust camera distance so the item visually matches that measurement.`;
@@ -64,6 +69,29 @@ export class ProductBuilder implements PromptBuilder {
       Preserve the exact proportions, textures, reflections, and printed graphics. Avoid any environmental, lifestyle, or storytelling context; maintain the pixel-perfect look of the asset.
     `.trim().replace(/\s+/g, ' ');
 
+    }
+
+    private buildEcommerceCanvasProductInsertion(options: PromptOptions): string {
+        const bgLine = options.bgGradient
+            ? `Replace the background with a clean gradient background at ${options.bgGradient.angle ?? 90}° from ${options.bgGradient.startColor} to ${options.bgGradient.endColor}.`
+            : options.bgColor
+              ? `Replace the background with a clean solid background color: ${options.bgColor}.`
+              : 'Replace the background with a clean neutral solid or gradient background.';
+
+        return `
+      Use the uploaded product image as the exact product. Preserve exact colors, label layout, typography, geometry, proportions, and material.
+      Do not redesign, replace, or reinterpret the product.
+
+      Background replacement (ecommerce canvas overlay):
+      Remove the original environment completely.
+      ${bgLine}
+      No visible room, furniture, decor, or location cues.
+
+      Keep the subject and product photorealistic:
+      - preserve natural edge detail and cutout integrity (no halos, no rough masking)
+      - generate physically correct contact shadows and micro-occlusion where hands touch the product
+      - maintain correct highlights and reflections on the product material
+    `.trim().replace(/\s+/g, ' ');
     }
 
     private buildProductInsertion(): string {

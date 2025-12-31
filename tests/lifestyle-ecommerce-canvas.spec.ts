@@ -41,4 +41,6 @@ test('Lifestyle ecommerce canvas coexists with environment options (bg replace +
   expect(prompt).toContain('Background gradient: linear 90°');
   expect(prompt).not.toContain('Environment:');
   expect(prompt).not.toContain('inside a kitchen');
+  expect(prompt).not.toContain('Active Insert Mode');
+  expect(prompt).not.toContain('inside this environment');
 });
