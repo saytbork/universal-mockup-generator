@@ -1353,12 +1353,63 @@ export function mapLifestyleToPromptOptions(
         }
     }
 
+    const isEcommerceCanvasActive =
+        isEnvironmentSceneIntent &&
+        sceneState.ecommerceSidePlacementFlag === true;
+
     if (isEcommerceSceneIntent) {
-        mapped.sidePlacement = mapped.sidePlacement || (sceneState.sidePlacement?.toLowerCase() || 'center') as any;
-        mapped.ecommerceSidePlacementFlag = sceneState.ecommerceSidePlacementFlag;
+        mapped.sidePlacement = (sceneState.sidePlacement?.toLowerCase() || 'center') as any;
+        mapped.ecommerceSidePlacementFlag = true;
+    } else if (isEcommerceCanvasActive) {
+        if (sceneState.ugcRealMode) {
+            console.error('[INVALID STATE BLOCKED] Ecommerce canvas cannot be used in UGC Real Mode');
+            throw new Error('Invalid state: ecommerce canvas + ugcRealMode');
+        }
+
+        const sidePlacementRaw = (sceneState.sidePlacement || 'Center').toLowerCase();
+        const sidePlacement =
+            sidePlacementRaw.includes('left') ? 'left' :
+            sidePlacementRaw.includes('right') ? 'right' :
+            'center';
+
+        mapped.sidePlacement = sidePlacement as any;
+        mapped.ecommerceSidePlacementFlag = true;
+        (mapped as any).ecommerceSidePlacement = sidePlacement;
+
+        if (sceneState.ecommerceBackgroundMode === 'gradient') {
+            const angle = parseInt(sceneState.ecommerceGradientAngle || '90', 10) || 90;
+            mapped.bgGradient = {
+                startColor: sceneState.ecommerceGradientStart || '#f7f7f7',
+                endColor: sceneState.ecommerceGradientEnd || '#d9d9d9',
+                angle
+            };
+            delete mapped.bgColor;
+        } else {
+            mapped.bgColor = (sceneState.ecommerceBackgroundColor || '#FFFFFF').toUpperCase();
+            delete mapped.bgGradient;
+        }
+
+        mapped.creationMode = 'bg-replace';
+        mapped.creationModeStructural =
+            'Background replacement mode: preserve the subject and replace the original environment with a neutral ecommerce canvas.';
+        mapped.compositionModeStructural =
+            'Blank-space layout on a neutral canvas; no environment context.';
+
+        // Suppress environment output when canvas is active (keep person + lighting)
+        mapped.setting = '';
+        mapped.microLocation = '';
+        (mapped as any).sceneEnvironment = '';
+        mapped.environmentOrder = '';
+        delete (mapped as any).sceneEnvironmentDescriptor;
+        delete (mapped as any).backgroundVariationDescriptor;
+        delete mapped.backgroundVariationId;
+        delete mapped.lastBackgroundId;
     } else {
         delete mapped.sidePlacement;
         delete mapped.ecommerceSidePlacementFlag;
+        delete (mapped as any).ecommerceSidePlacement;
+        delete mapped.bgColor;
+        delete mapped.bgGradient;
     }
 
     // ========================================================================

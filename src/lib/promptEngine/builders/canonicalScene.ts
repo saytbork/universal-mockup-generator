@@ -180,7 +180,6 @@ export class SceneNarrativeBuilder {
 
     private buildEcommerceBuilder(options: PromptOptions): string | undefined {
         if (
-            options.sceneIntent === 'environment' ||
             options.ugcRealModeActive ||
             !options.ecommerceSidePlacementFlag
         ) {

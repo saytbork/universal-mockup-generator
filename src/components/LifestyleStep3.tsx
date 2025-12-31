@@ -906,12 +906,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     }
   }, [values.ecommerceBackgroundColor, updateValue]);
 
-  useEffect(() => {
-    if (values.compositionMode === 'Ecommerce Blank Space' && values.sceneIntent !== 'ecommerce') {
-      console.log('[SCENE INTENT CHANGE] ecommerce');
-      setValues(prev => ({ ...prev, sceneIntent: 'ecommerce' }));
-    }
-  }, [values.compositionMode, values.sceneIntent]);
+  // Note: Ecommerce canvas is not a sceneIntent; do not switch modes from compositionMode.
 
   // ========================================================================
   // PRODUCT MODE VALIDATION (Stage 11)
@@ -989,23 +984,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         <p className="text-xs uppercase tracking-widest text-indigo-300">Step 3</p>
         <h2 className="text-2xl font-bold text-gray-200">Scene Builder</h2>
         <p className="text-sm text-gray-400">Define how the scene looks, feels, and behaves visually.</p>
-      </div>
-
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex flex-col">
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Mode</p>
-            <p className="text-[11px] text-gray-400">Environment vs Ecommerce canvas</p>
-          </div>
-          <div className="flex gap-2">
-            <button type="button" onClick={enableEnvironment} className={getPillClass(isEnvironmentMode)}>
-              Environment
-            </button>
-            <button type="button" onClick={enableEcommerce} className={getPillClass(isEcommerceMode)}>
-              Ecommerce
-            </button>
-          </div>
-        </div>
       </div>
 
       {isEnvironmentMode && (
@@ -1979,19 +1957,39 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         </>
       )}
 
-      {/* ECOMMERCE IMAGE BUILDER */}
-      {/* Mutually exclusive with UGC Real Mode */}
-      {/* Side Placement and Background Color only render for 'Ecommerce Blank Space' */}
-      {isEcommerceMode && (
+      {/* ECOMMERCE CANVAS (BACKGROUND REPLACEMENT) */}
+      {/* Coexists with Lifestyle controls; applies only when enabled. */}
+      {isEnvironmentMode && (
         <SmoothAccordion
           icon={Building2}
           title="Ecommerce Image Builder"
           tooltip="Neutral background + subject placement"
           isOpen={openAccordionId === 'ecommerce'}
           onToggle={() => toggleSection('ecommerce')}
-        >
-          <div className="space-y-4">
-          <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+          isActive={values.ecommerceSidePlacementFlag}
+	        >
+	          <div className="space-y-4">
+	            <div className="flex items-center justify-between">
+	              <span className="text-sm text-gray-200">Enable neutral canvas</span>
+	              <button
+	                type="button"
+	                role="switch"
+	                aria-checked={values.ecommerceSidePlacementFlag}
+	                onClick={() => {
+	                  updateValue('ecommerceSidePlacementFlag', !values.ecommerceSidePlacementFlag);
+	                  markSectionTouched('ecommerce');
+	                }}
+	                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900 ${values.ecommerceSidePlacementFlag ? 'bg-indigo-500' : 'bg-gray-600'}`}
+	              >
+	                <span
+	                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${values.ecommerceSidePlacementFlag ? 'translate-x-5' : 'translate-x-0'}`}
+	                />
+	              </button>
+	            </div>
+
+	            {values.ecommerceSidePlacementFlag && (
+	              <>
+	          <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
             <div>
               <p className="text-xs uppercase tracking-wider text-indigo-200">SIDE PLACEMENT</p>
               <p className="text-[11px] text-gray-400 mt-1">Subject anchor position</p>
@@ -2000,12 +1998,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               {SIDE_PLACEMENT_OPTIONS.map(option => (
                 <button
                   key={option}
-                  type="button"
-                  onClick={() => {
-                    updateValue('sidePlacement', option);
-                    updateValue('ecommerceSidePlacementFlag', true);
-                    markSectionTouched('ecommerce');
-                  }}
+	                  type="button"
+	                  onClick={() => {
+	                    updateValue('sidePlacement', option);
+	                    markSectionTouched('ecommerce');
+	                  }}
                   className={getPillClass(values.sidePlacement === option)}
                 >
                   {option}
@@ -2030,7 +2027,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       : 'text-gray-300 hover:text-white'
                       }`}
                   >
-                    {mode === 'white' ? 'Pure White' : 'Gradient'}
+	                    {mode === 'white' ? 'Solid' : 'Gradient'}
                   </button>
                 ))}
               </div>
@@ -2121,9 +2118,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
                 </>
               )}
-            </div>
+	            </div>
+	              </>
+	            )}
 
-        </div >
+	        </div >
       </SmoothAccordion>
       )}
 

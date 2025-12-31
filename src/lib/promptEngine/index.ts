@@ -166,7 +166,11 @@ function enforcePreflightGuards(options: PromptOptions) {
         }
     }
     if (options.creationIntent === 'ugc') {
-        if (!options.setting) {
+        const allowMissingEnvironment =
+            options.creationMode === 'bg-replace' &&
+            options.ecommerceSidePlacementFlag === true &&
+            (Boolean(options.bgColor) || Boolean(options.bgGradient));
+        if (!options.setting && !allowMissingEnvironment) {
             throw new Error('UGC environment missing or overridden. Please select or provide an environment.');
         }
     }
