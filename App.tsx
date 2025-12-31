@@ -4949,7 +4949,7 @@ If the model attempts to create a scene or environment, override it and force a 
           </header>
 
           <main className="flex flex-col gap-8">
-            {(!isSimpleMode && canUseStudioFeatures) && (
+            {(!isSimpleMode && canUseStudioFeatures && isDevBypass) && (
               <div className="rounded-3xl border border-white/5 bg-white/5 p-5 space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
