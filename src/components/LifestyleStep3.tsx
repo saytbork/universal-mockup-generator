@@ -971,11 +971,21 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   }, [values.formulationStoryEnabled, values.ugcRealMode, values.heroPersona, updateValue]);
 
   useEffect(() => {
-    const shouldDisablePerson = values.sceneIntent === 'ecommerce' || values.formulationStoryEnabled;
+    const shouldDisablePerson = values.sceneIntent === 'ecommerce';
     if (values.noPerson !== shouldDisablePerson) {
       updateValue('noPerson', shouldDisablePerson);
     }
-  }, [values.sceneIntent, values.formulationStoryEnabled, values.noPerson, updateValue]);
+  }, [values.sceneIntent, values.noPerson, updateValue]);
+
+  useEffect(() => {
+    if (!values.formulationStoryEnabled) return;
+    if (values.sceneIntent === 'ecommerce') return;
+
+    if (values.noPerson) {
+      console.log('[FORMULATION STORY] Forcing person enabled (noPerson=false)');
+      updateValue('noPerson', false);
+    }
+  }, [values.formulationStoryEnabled, values.sceneIntent, values.noPerson, updateValue]);
 
   useEffect(() => {
     if (values.ugcRealMode && values.formulationStoryEnabled) {
@@ -1007,7 +1017,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         <div className="flex flex-col gap-4">
           {isPersonDisabled ? (
             <div className="p-4 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-100 text-sm">
-              Formulation Story is enabled, so Creator / Person controls are temporarily disabled to prevent conflicting modes.
+              Creator / Person controls are disabled in Product Mode.
             </div>
           ) : (
             <>

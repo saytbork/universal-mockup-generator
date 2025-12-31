@@ -668,6 +668,10 @@ export function mapLifestyleToPromptOptions(
         console.error('[INVALID STATE BLOCKED] Person cannot be enabled in ecommerce sceneIntent');
         throw new Error('Invalid state: person enabled in ecommerce sceneIntent');
     }
+    if (sceneState.formulationStoryEnabled && sceneState.noPerson) {
+        console.error('[INVALID STATE BLOCKED] Formulation Story requires person enabled');
+        throw new Error('Invalid state: formulation story enabled with noPerson=true');
+    }
 
     if (sceneState.sceneIntent === 'ecommerce') {
         console.log('[PRODUCT MODE ACTIVE]');
