@@ -44,3 +44,36 @@ test('Lifestyle ecommerce canvas coexists with environment options (bg replace +
   expect(prompt).not.toContain('Active Insert Mode');
   expect(prompt).not.toContain('inside this environment');
 });
+
+test('Lifestyle ecommerce canvas supports solid background without requiring environment', () => {
+  const mapped = mapLifestyleToPromptOptions(
+    {
+      sceneIntent: 'environment',
+      creationIntent: 'ugc',
+      creationMode: 'Lifestyle UGC',
+      compositionMode: '',
+      noPerson: false,
+      sameCreatorAcrossScenes: false,
+      ugcRealMode: false,
+
+      environment: 'Kitchen',
+      timeOfDay: 'Afternoon',
+      lightingStyle: 'Natural window',
+
+      ecommerceSidePlacementFlag: true,
+      sidePlacement: 'Right',
+      ecommerceBackgroundMode: 'white',
+      ecommerceBackgroundColor: '#ffffff',
+      ecommerceGradientStart: '#f7f7f7',
+      ecommerceGradientEnd: '#d9d9d9',
+      ecommerceGradientAngle: '90',
+    } as any,
+    {},
+    false
+  );
+
+  const prompt = promptEngine.build(mapped as any);
+  expect(prompt).toContain('Background replacement mode');
+  expect(prompt).toContain('#FFFFFF');
+  expect(prompt).not.toContain('Environment:');
+});

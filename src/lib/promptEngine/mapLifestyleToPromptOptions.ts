@@ -1551,11 +1551,23 @@ export function mapLifestyleToPromptOptions(
     }
 
     if (isEnvironmentSceneIntent) {
-        delete mapped.bgColor;
+        const isEcommerceCanvasOverlay =
+            mapped.creationMode === 'bg-replace' &&
+            mapped.ecommerceSidePlacementFlag === true &&
+            (Boolean(mapped.bgColor) || Boolean(mapped.bgGradient));
+
+        if (!isEcommerceCanvasOverlay) {
+            delete mapped.bgColor;
+            delete mapped.bgGradient;
+        }
         delete (mapped as any).ageGroup;
         mapped.creationMode = mapped.creationMode || 'lifestyle';
-        mapped.creationModeStructural = mapped.creationModeStructural || 'Environment-first lifestyle composition keeping the product grounded within the lived-in room.';
-        mapped.cameraDeviceSemantic = mapped.cameraDeviceSemantic || 'Handheld smartphone perspective capturing natural perspective, emphasizing the surrounding environment.';
+        mapped.creationModeStructural =
+            mapped.creationModeStructural ||
+            'Environment-first lifestyle composition keeping the product grounded within the lived-in room.';
+        mapped.cameraDeviceSemantic =
+            mapped.cameraDeviceSemantic ||
+            'Handheld smartphone perspective capturing natural perspective, emphasizing the surrounding environment.';
     }
 
     // MANDATORY LOGGING - Complete output
