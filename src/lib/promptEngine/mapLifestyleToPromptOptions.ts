@@ -1148,6 +1148,17 @@ export function mapLifestyleToPromptOptions(
         (mapped as any).customEnvironment = '';
         console.log('[MAP] environment: Ecommerce Blank Space active - environment suppressed');
     } else if (!awkwardEnvironmentOverride) {
+        const ugcIndoorEnvironments = new Set([
+            'Kitchen',
+            'Living Room',
+            'Bedroom',
+            'Bathroom',
+            'Workspace',
+            'Hallway',
+            'Home Gym',
+            'Balcony / Indoor Terrace'
+        ]);
+
         const allowedEnvironmentMap: Record<string, string> = {
             'Kitchen': 'Kitchen',
             'Living Room': 'Living Room',
@@ -1171,13 +1182,22 @@ export function mapLifestyleToPromptOptions(
             'Bathroom',
             'Workspace',
             'Hallway',
-            'Balcony / Indoor Terrace',
-            'Backyard / Patio',
-            'Street Corner'
+            'Home Gym',
+            'Balcony / Indoor Terrace'
         ];
 
         const selectedEnvironment = sceneState.environment || '';
         const customEnvironmentValue = (sceneState.customEnvironment || '').trim();
+
+        if (
+            isUGCRealMode &&
+            selectedEnvironment &&
+            selectedEnvironment !== 'Custom' &&
+            !ugcIndoorEnvironments.has(selectedEnvironment)
+        ) {
+            console.error('[INVALID STATE BLOCKED] Outdoor environments are disabled in UGC');
+            throw new Error('Invalid state: outdoor environment selected in UGC');
+        }
 
         (mapped as any).selectedEnvironment = selectedEnvironment;
         (mapped as any).customEnvironment = customEnvironmentValue;

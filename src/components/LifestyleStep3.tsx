@@ -1684,23 +1684,27 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             ))}
           </div>
 
-          <p className="text-xs uppercase tracking-wider text-indigo-200 pt-2">OUTDOOR</p>
-          <div className="flex flex-wrap gap-2">
-            {ENVIRONMENT_OUTDOOR.map(env => (
-              <button
-                key={env.value}
-                type="button"
-                onClick={() => { updateValue('environment', env.value); markSectionTouched('environment'); }}
-                className={`flex items-center gap-2 rounded-full border px-2 py-1 text-xs transition ${values.environment === env.value
-                  ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                  : 'border-gray-600 text-gray-300 hover-border-gray-500'
-                  }`}
-              >
-                <env.icon className="w-4 h-4" />
-                <span>{env.value}</span>
-              </button>
-            ))}
-          </div>
+          {!values.ugcRealMode && (
+            <>
+              <p className="text-xs uppercase tracking-wider text-indigo-200 pt-2">OUTDOOR</p>
+              <div className="flex flex-wrap gap-2">
+                {ENVIRONMENT_OUTDOOR.map(env => (
+                  <button
+                    key={env.value}
+                    type="button"
+                    onClick={() => { updateValue('environment', env.value); markSectionTouched('environment'); }}
+                    className={`flex items-center gap-2 rounded-full border px-2 py-1 text-xs transition ${values.environment === env.value
+                      ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                      : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                      }`}
+                  >
+                    <env.icon className="w-4 h-4" />
+                    <span>{env.value}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
 
           {/* CUSTOM ENVIRONMENT */}
           <div className="pt-3">

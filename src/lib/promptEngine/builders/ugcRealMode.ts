@@ -13,6 +13,7 @@ import type { PromptOptions, PromptBuilder } from '../types';
 const UGC_DEVICE_CONTRACT = `
 DEVICE: Front-facing smartphone camera only, tiny sensor, cheap glass.
 CAPTURE: Flat focus across entire frame, everything sharp foreground to background.
+OPTICS LOCK: no background separation, no portrait mode, no bokeh, no shallow depth of field, no cinematic blur.
 QUALITY: Hand wobble, compression noise, clipped highlights, crushed shadows.
 FOCUS: Everything in mediocre focus 0-3m, small sensor look.
 `.trim().replace(/\s+/g, ' ');
@@ -45,6 +46,7 @@ const UGC_ENVIRONMENT_RULE = `
 BACKGROUND: Incidental domestic clutter, readable but secondary.
 Lower contrast, visually tired, no scenic framing.
 Face and product must hold highest local contrast.
+No foreground/background plane separation; background must never look like a separate “second plane”.
 `.trim().replace(/\s+/g, ' ');
 
 const UGC_VALIDATION = `

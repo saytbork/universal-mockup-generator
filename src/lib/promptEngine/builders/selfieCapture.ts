@@ -334,7 +334,6 @@ export class SelfieCaptureBuilder implements PromptBuilder {
         delete overrideTarget.placementCamera;
         delete overrideTarget.creationModeStructural;
         overrideTarget.allowSceneComposition = false;
-        overrideTarget.environmentOrder = 'incidental';
 
         if (isCloseFace) {
             delete overrideTarget.shotType;
@@ -368,7 +367,6 @@ export class SelfieCaptureBuilder implements PromptBuilder {
             };
             options.ugcCaptureStyleBase = ['close-face'];
             overrideTarget.allowSceneComposition = false;
-            overrideTarget.environmentOrder = 'incidental';
         }
 
         if (isCloseFace) {

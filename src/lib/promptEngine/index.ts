@@ -136,6 +136,8 @@ const generateRequestSeed = (): string => {
 const DEPTH_DETECTION_REGEX = /(depth of field|portrait mode|portrait blur|bokeh|bokeh effect|background blur|blurred background|lens blur|lens emulation|cinematic focus|cinematic blur|subject separation|background separation|subject isolation|shallow depth|shallow focus|soft background|soft focus|depth cues|depth effect|spatial depth|defocused background)/gi;
 const FOCUS_OVERRIDE_APPEND =
     'flat focus across the entire frame, small sensor, fixed wide lens, everything sharp foreground to background.';
+const UGC_DEPTH_LOCK_APPEND =
+    'no background separation, no portrait mode, no bokeh, no shallow depth of field, no cinematic blur.';
 
 function isUgcSelfieCaptureActive(options: PromptOptions): boolean {
     const selfieActive = isSelfieActive(options);
@@ -172,6 +174,8 @@ function enforcePreflightGuards(options: PromptOptions) {
 
 function enforceUgcFocusGuard(prompt: string, options: PromptOptions): string {
     const ugcActive =
+        options.contentStyle === 'ugc' ||
+        options.creationIntent === 'ugc' ||
         options.ugcRealModeActive ||
         options.rawDomesticUgcActive ||
         isUgcSelfieCaptureActive(options);
@@ -199,6 +203,9 @@ function enforceUgcFocusGuard(prompt: string, options: PromptOptions): string {
     // Do not mutate prompt content; only enforce that any depth terms are negated/blocked.
     if (!/flat focus across the entire frame/i.test(positivePrompt)) {
         positivePrompt = `${positivePrompt} ${FOCUS_OVERRIDE_APPEND}`;
+    }
+    if (!/no background separation/i.test(positivePrompt)) {
+        positivePrompt = `${positivePrompt} ${UGC_DEPTH_LOCK_APPEND}`;
     }
 
     // Check only positive prompt for remaining depth terms
