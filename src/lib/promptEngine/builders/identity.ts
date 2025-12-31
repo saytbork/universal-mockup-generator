@@ -10,7 +10,7 @@ import type { PromptOptions, PromptBuilder } from '../types';
 // ============================================================================
 
 const PERSONAL_ADDON_BASE_RULE = `
-PERSONAL ADD-ONS: Accessories must look incidental and worn-in. Common jewelry only, matte metals, slight wear, casual piercings, everyday glasses with minor glare, natural facial hair, aged tattoos, short natural nails. Nothing styled or trendy.
+PERSONAL ADD-ONS: Accessories must look incidental and worn-in. Common jewelry only, matte metals, slight wear, casual piercings, everyday glasses with minor glare, natural facial hair, short natural nails. Tattoos are optional and ONLY appear on exposed skin (never through clothing); if sleeves/wardrobe cover the arms, omit tattoos entirely. Nothing styled or trendy.
 `.trim().replace(/\s+/g, ' ');
 
 const IDENTITY_CONTRACT_TEXT = `
