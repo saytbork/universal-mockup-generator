@@ -106,12 +106,17 @@ export class SceneNarrativeBuilder {
         const productCopy = this.productBuilder.build(options);
         const parts: string[] = [];
 
+        const isProductMode =
+            options.creationIntent === 'product' ||
+            options.contentStyle === 'product' ||
+            options.sceneIntent === 'ecommerce';
+
         switch (options.creationIntent) {
             case 'product':
                 parts.push(
                     'Product-focused commercial image.',
                     'Clean composition designed for ecommerce and ads.',
-                    'No creator narrative.'
+                    'No narrative context.'
                 );
                 break;
             case 'brand':
@@ -122,12 +127,20 @@ export class SceneNarrativeBuilder {
                 );
                 break;
             default:
-                parts.push(
-                    'UGC-style lifestyle scene.',
-                    'Authentic, casual, real-world feeling.',
-                    'Natural imperfections, candid composition.',
-                    'Allowed creator presence.'
-                );
+                if (isProductMode) {
+                    parts.push(
+                        'Product-focused commercial image.',
+                        'Clean composition designed for ecommerce and ads.',
+                        'No narrative context.'
+                    );
+                } else {
+                    parts.push(
+                        'UGC-style lifestyle scene.',
+                        'Authentic, casual, real-world feeling.',
+                        'Natural imperfections, candid composition.',
+                        'Allowed creator presence.'
+                    );
+                }
         }
 
         if (clothingCopy) {
@@ -142,6 +155,11 @@ export class SceneNarrativeBuilder {
     }
 
     private buildCreationMode(options: PromptOptions): string {
+        const isProductMode =
+            options.creationIntent === 'product' ||
+            options.contentStyle === 'product' ||
+            options.sceneIntent === 'ecommerce';
+
         // Ecommerce canvas overlay (background replacement) can coexist with environment controls.
         // When active, it must override environment-first copy.
         if (options.creationMode === 'bg-replace' && options.ecommerceSidePlacementFlag) {
@@ -152,15 +170,23 @@ export class SceneNarrativeBuilder {
                 'Subject and product remain photorealistic and naturally lit.'
             ].join(' ');
         }
-        if (options.sceneIntent === 'environment') {
+        if (!isProductMode && options.sceneIntent === 'environment') {
             return 'Environment-first lifestyle composition with the product grounded in a natural space, avoiding hero or studio framing.';
         }
         const mode = options.creationMode;
-        const copy = creationModeCopy[mode] || creationModeCopy.lifestyle;
+        const copy = creationModeCopy[mode] || (isProductMode ? creationModeCopy.studio : creationModeCopy.lifestyle);
         return copy;
     }
 
     private buildUgcRealMode(options: PromptOptions): string {
+        const isProductMode =
+            options.creationIntent === 'product' ||
+            options.contentStyle === 'product' ||
+            options.sceneIntent === 'ecommerce';
+        if (isProductMode) {
+            return '';
+        }
+
         if (options.realModeActive) {
             return [
                 'UGC Real Mode active. Phone-like framing. Subtle real-world imperfections.',
@@ -168,7 +194,7 @@ export class SceneNarrativeBuilder {
             ].join(' ');
         }
 
-        return 'UGC Real Mode disabled. No selfie perspective. No creator narrative.';
+        return '';
     }
 
     private buildFormulationStory(options: PromptOptions): string | undefined {
@@ -213,6 +239,11 @@ export class SceneNarrativeBuilder {
     }
 
     private buildCameraFraming(options: PromptOptions, constraints?: string): string {
+        const isProductMode =
+            options.creationIntent === 'product' ||
+            options.contentStyle === 'product' ||
+            options.sceneIntent === 'ecommerce';
+
         const cameraText = buildCamera({
             camera: options.camera,
             cameraType: (options as any).cameraType,
@@ -242,7 +273,11 @@ export class SceneNarrativeBuilder {
             parts.push(constraints);
         }
 
-        if (options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
+        if (isProductMode) {
+            parts.push(
+                'Capture is professional and controlled: stabilized camera on tripod or rig, intentional framing, clean exposure, accurate color, and studio-grade lighting discipline. No motion wobble, no accidental framing, and no casual artifacts.'
+            );
+        } else if (options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
             parts.push(
                 'This scene is captured using professional-grade camera equipment only, such as DSLR or mirrorless cameras, cinema cameras, or medium format systems. Framing and shot selection are intentional and precise, with a clearly defined shot type and camera angle. The camera is fully stabilized, either on a tripod or controlled rig, with smooth, deliberate movement if any. Lighting is studio-grade or professionally controlled, producing clean exposure, accurate colors, and natural depth. The image must not resemble user-generated content in any way. Exclude all casual, handheld, selfie-based, phone-captured, webcam-style, or amateur artifacts.'
             );
@@ -255,6 +290,11 @@ export class SceneNarrativeBuilder {
     }
 
     private buildEnvironmentLightingMood(options: PromptOptions): string {
+        const isProductMode =
+            options.creationIntent === 'product' ||
+            options.contentStyle === 'product' ||
+            options.sceneIntent === 'ecommerce';
+
         const isEcommerceBlankSpaceMode =
             options.ecommerceBlankSpaceMode ||
             options.sceneIntent === 'ecommerce' ||
@@ -279,8 +319,16 @@ export class SceneNarrativeBuilder {
         }
 
         if (isEcommerceBlankSpaceMode) {
-            const text =
-                'Pure white background (#FFFFFF) with extremely neutral studio lighting, flat even illumination, and a minimal contact shadow straight under the product. No environment, no lifestyle storytelling.';
+            const bgLine = options.bgGradient
+                ? `Clean neutral gradient background (linear ${options.bgGradient.angle ?? 90}° from ${options.bgGradient.startColor} to ${options.bgGradient.endColor}).`
+                : options.bgColor
+                  ? `Clean solid background color (${options.bgColor}).`
+                  : 'Clean neutral solid or gradient background.';
+            const text = [
+                bgLine,
+                'Professional studio lighting with neutral, even illumination and a minimal contact shadow straight under the product.',
+                'No environment context or narrative.'
+            ].join(' ');
             console.log('[SCENE NARRATIVE] Ecommerce Blank Space enforced lighting:', text);
             return text;
         }
@@ -324,14 +372,14 @@ export class SceneNarrativeBuilder {
             narrativeParts.push(descriptor);
         }
 
-        if (options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
+        if (!isProductMode && options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
             narrativeParts.push(
                 'The environment is intentionally selected and professionally appropriate. Scenes take place in clean, controlled, and visually coherent settings suitable for editorial, lifestyle, or ecommerce use, such as studios, curated interiors, or well-composed outdoor locations. The environment must feel deliberate and brand-safe, with no association to casual personal spaces or accidental capture contexts. Exclude all user-generated environments or situations, including bedrooms, bathrooms, car interiors, mirrors, beds, couches, or any setting that implies a selfie, phone capture, or informal personal moment. The environment should support a polished, professional narrative without human capture artifacts.'
             );
         }
 
 
-        if (options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
+        if (!isProductMode && options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
             narrativeParts.push(
                 'Lighting is professionally designed and intentionally controlled. The scene uses studio-grade or well-managed natural lighting with balanced exposure, consistent color temperature, and soft, dimensional shadows. Illumination enhances clarity, depth, and material detail without harsh overhead light, uneven shadows, or mixed lighting sources. Exclude all phone-based lighting, on-camera flash, bathroom or ceiling lights, low-quality ambient light, or any casual, uncontrolled illumination commonly associated with user-generated content.'
             );
@@ -358,7 +406,7 @@ export class SceneNarrativeBuilder {
             );
         }
 
-        if (options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
+        if (!isProductMode && options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
             narrativeParts.push(
                 'Final quality check. The scene must present a fully professional, editorial-grade result. If any conflicting cues appear, prioritize professional camera equipment, controlled lighting, stabilized motion, and deliberate environments. Suppress or override any residual casual, handheld, selfie-based, phone-captured, webcam-like, or user-generated signals. The final image should be brand-safe, visually consistent, and suitable for commercial or editorial use.'
             );

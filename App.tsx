@@ -4234,16 +4234,39 @@ If the model attempts to create a scene or environment, override it and force a 
           personIncluded === true &&
           Boolean(identityContinuityRef.current?.identityKey);
 
-        const basePromptOptions: any = {
-          ...options,
-          contentStyle: isProductPlacement ? 'product' : 'ugc',
-          creationMode: options.creationMode || 'lifestyle',
-          personIncluded,
-          productAssets: generationProducts.map(p => ({
-            id: p.id,
-            base64: p.base64,
-            mimeType: p.mimeType,
-          })),
+	        const allowedProductCreationModes = new Set(['studio', 'aesthetic', 'bg-replace', 'ecom-blank']);
+	        const safeProductCreationMode =
+	          options.creationMode && allowedProductCreationModes.has(String(options.creationMode))
+	            ? options.creationMode
+	            : 'studio';
+
+	        const basePromptOptions: any = {
+	          ...options,
+	          contentStyle: isProductPlacement ? 'product' : 'ugc',
+	          creationIntent: isProductPlacement ? 'product' : options.creationIntent,
+	          sceneIntent: isProductPlacement ? 'ecommerce' : options.sceneIntent,
+	          creationMode: isProductPlacement
+	            ? safeProductCreationMode
+	            : (options.creationMode || 'lifestyle'),
+	          ...(isProductPlacement
+	            ? {
+	                cameraType:
+	                  options.cameraType &&
+	                  !String(options.cameraType).toLowerCase().includes('smartphone') &&
+	                  !String(options.cameraType).toLowerCase().includes('phone')
+	                    ? options.cameraType
+	                    : 'DSLR / mirrorless camera',
+	                compositionMode: undefined,
+	                compositionModeStructural: undefined,
+	                creationModeStructural: undefined,
+	              }
+	            : {}),
+	          personIncluded,
+	          productAssets: generationProducts.map(p => ({
+	            id: p.id,
+	            base64: p.base64,
+	            mimeType: p.mimeType,
+	          })),
           ...(shouldReuseIdentityKey
             ? {
                 identityKey: identityContinuityRef.current?.identityKey,
@@ -4295,7 +4318,7 @@ If the model attempts to create a scene or environment, override it and force a 
         if (!resolvedApiKey) {
           return;
         }
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string, apiVersion: 'v1beta' });
+        const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: 'v1beta' });
         const resolvedUgcStyle = (promptOptions.ugcStyle ?? 'optimized').toLowerCase();
         const naturalMode = resolvedUgcStyle === 'natural';
         const rawMode = !!promptOptions.ugcRealModeActive;

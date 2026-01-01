@@ -113,7 +113,7 @@ export class ModesBuilder implements PromptBuilder {
 
         return `
       ${backgroundLine}
-      Product and person on the ${sidePlacement} side.
+      Product on the ${sidePlacement} side.
       Large clean negative space on the ${oppositeSide} side.
       Studio lighting, minimal shadows, no props or environments.
       Preserve exact product fidelity.

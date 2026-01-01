@@ -9,7 +9,7 @@ export class CompositionDetailsBuilder implements PromptBuilder {
         }
 
         if (options.sidePlacement) {
-            parts.push(`Product and person placement: ${options.sidePlacement} side.`);
+            parts.push(`Product placement: ${options.sidePlacement} side.`);
         }
 
         if (options.ecommerceSidePlacementFlag && options.sidePlacement) {

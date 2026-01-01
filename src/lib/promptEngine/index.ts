@@ -577,6 +577,33 @@ export class PromptEngine {
         finalPrompt = enforceUgcFocusGuard(finalPrompt, options);
 
         // ====================================================================
+        // PRODUCT MODE HARD BLOCK: no lifestyle/UGC/human language in positive prompt
+        // ====================================================================
+        const isProductOnly =
+            options.contentStyle === 'product' ||
+            options.creationIntent === 'product' ||
+            options.sceneIntent === 'ecommerce';
+        if (isProductOnly) {
+            const forbidden = /\b(lifestyle|ugc|user-generated|selfie|phone|creator|person|people|human|identity|ethnicity|age|face)\b/i;
+            const negativeMarker = ' Negative prompt: ';
+            const negativeIndex = finalPrompt.indexOf(negativeMarker);
+            const positivePrompt = negativeIndex >= 0 ? finalPrompt.substring(0, negativeIndex) : finalPrompt;
+            const match = forbidden.exec(positivePrompt);
+            if (match) {
+                const matchIndex = match.index ?? 0;
+                const excerptStart = Math.max(0, matchIndex - 140);
+                const excerptEnd = Math.min(positivePrompt.length, matchIndex + 140);
+                console.error('[PRODUCT MODE BLOCK] Forbidden language detected in positive prompt', {
+                    match: match[0],
+                    excerpt: positivePrompt.slice(excerptStart, excerptEnd)
+                });
+                throw new InvalidSceneCombinationError(
+                    'Product Step 3 cannot include lifestyle, UGC, phone/selfie, or human identity language.'
+                );
+            }
+        }
+
+        // ====================================================================
         // MANDATORY DEBUG LOGGING
         // ====================================================================
         console.log('🚀 PromptEngine v2 - Build Complete:', {

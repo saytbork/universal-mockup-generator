@@ -1368,8 +1368,8 @@ export function mapLifestyleToPromptOptions(
         mapped.ecommerceSidePlacementFlag = true;
     } else if (isEcommerceCanvasActive) {
         if (sceneState.ugcRealMode) {
-            console.error('[INVALID STATE BLOCKED] Ecommerce canvas cannot be used in UGC Real Mode');
-            throw new Error('Invalid state: ecommerce canvas + ugcRealMode');
+            console.error('[INVALID STATE BLOCKED] Hero canvas cannot be used in UGC Real Mode');
+            throw new Error('Invalid state: hero canvas + ugcRealMode');
         }
 
         const sidePlacementRaw = (sceneState.sidePlacement || 'Center').toLowerCase();
@@ -1397,7 +1397,7 @@ export function mapLifestyleToPromptOptions(
 
         mapped.creationMode = 'bg-replace';
         mapped.creationModeStructural =
-            'Background replacement mode: preserve the subject and replace the original environment with a neutral ecommerce canvas.';
+            'Background replacement mode: preserve the subject and replace the original environment with a neutral hero canvas.';
         mapped.compositionModeStructural =
             'Blank-space layout on a neutral canvas; no environment context.';
 

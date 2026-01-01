@@ -213,6 +213,74 @@ export interface Step3Values {
   // Only one can be active at any time
   sceneIntent: 'environment' | 'ecommerce';
 
+  // ==========================================================================
+  // PRODUCT MODE (Ecommerce Image Builder) — Product-only controls
+  // These keys are ignored by Lifestyle/UGC mapping.
+  // ==========================================================================
+  productType?: 'Capsules' | 'Gummies' | 'Drops' | 'Powder' | 'Skincare' | 'Device' | 'Custom';
+  productTypeCustom?: string;
+  productPackaging?: 'With box' | 'Without box';
+  productScale?: 'Small handheld' | 'Medium tabletop' | 'Large object';
+  productCount?: 1 | 2 | 3;
+  productGrouping?: 'Aligned' | 'Stacked' | 'Scattered';
+
+  productCreativityLevel?: 'Off' | 'Subtle' | 'Bold' | 'Max';
+  productCreativeTheme?:
+    | 'Ingredient Color Story'
+    | 'Clinical Minimal'
+    | 'Premium Luxury'
+    | 'Fresh & Bright'
+    | 'Dark & Dramatic'
+    | 'Playful Pop'
+    | 'Tech Clean';
+  productPaletteSource?:
+    | 'Use product label colors'
+    | 'Warm neutrals'
+    | 'Cool neutrals'
+    | 'Complementary accent'
+    | 'Custom palette';
+  productPaletteA?: string;
+  productPaletteB?: string;
+  productPaletteC?: string;
+  productPropDensity?: 'None' | 'Light' | 'Medium' | 'Dense';
+  productPropsSelected?: string[];
+
+  productCameraSystem?: 'DSLR / mirrorless' | 'Macro lens' | 'Telephoto compression';
+  productCameraAngle?:
+    | 'Eye level product'
+    | '45° hero'
+    | 'Top-down flat lay'
+    | 'Low angle power'
+    | 'High angle overview'
+    | 'Detail close-up';
+  productCameraDistance?: 'Wide' | 'Standard' | 'Tight' | 'Macro';
+  productCameraRotation?: 0 | 5 | 10 | 15;
+  productFramingGuide?:
+    | 'Centered hero'
+    | 'Rule of thirds'
+    | 'Left aligned + negative space'
+    | 'Right aligned + negative space'
+    | 'Grid-ready';
+
+  productUseCase?:
+    | 'What is the product?'
+    | 'How does it work?'
+    | 'What results can I get?'
+    | 'How is it different?'
+    | 'Social proof'
+    | 'Can you back it up?';
+  productLayout?:
+    | 'Centered hero (no text)'
+    | 'Left product / right content'
+    | 'Right product / left content'
+    | 'Bottom product / top content'
+    | 'PDP square safe'
+    | 'Ad vertical safe';
+  productHeadline?: string;
+  productSubheadline?: string;
+  productBullets?: string[];
+  productBulletIcons?: string[];
+
   // Background
   preserveEnvironment: boolean;
   backgroundBlur: boolean;
@@ -583,10 +651,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     heroPersona: '', // Empty = no persona selected
 
     // Environment - UGC Rule: must have table/surface for product
-    environment: 'Kitchen', // Kitchen has table/counter surface by default
+    environment: initialSceneIntent === 'ecommerce' ? '' : 'Kitchen', // Kitchen has table/counter surface by default
     customEnvironment: '',
     sceneOrderChaos: 'Normal',
-    ecommerceSidePlacementFlag: false,
+    ecommerceSidePlacementFlag: initialSceneIntent === 'ecommerce',
 
     // Time & Lighting - simplified
     timeOfDay: 'Afternoon',
@@ -649,6 +717,38 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
     // Scene Intent Rule - Default: Environment/Lifestyle mode active
     sceneIntent: initialSceneIntent,
+
+    // ==========================================================================
+    // PRODUCT MODE DEFAULTS (only used when sceneIntent === 'ecommerce')
+    // ==========================================================================
+    productType: 'Capsules',
+    productTypeCustom: '',
+    productPackaging: 'Without box',
+    productScale: 'Medium tabletop',
+    productCount: 1,
+    productGrouping: 'Aligned',
+
+    productCreativityLevel: 'Off',
+    productCreativeTheme: 'Clinical Minimal',
+    productPaletteSource: 'Use product label colors',
+    productPaletteA: '#FFFFFF',
+    productPaletteB: '#F7F7F7',
+    productPaletteC: '#111827',
+    productPropDensity: 'None',
+    productPropsSelected: [],
+
+    productCameraSystem: 'DSLR / mirrorless',
+    productCameraAngle: '45° hero',
+    productCameraDistance: 'Standard',
+    productCameraRotation: 0,
+    productFramingGuide: 'Centered hero',
+
+    productUseCase: 'What is the product?',
+    productLayout: 'Centered hero (no text)',
+    productHeadline: '',
+    productSubheadline: '',
+    productBullets: [],
+    productBulletIcons: [],
 
     // Background
     preserveEnvironment: false,
@@ -829,28 +929,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const isEnvironmentMode = values.sceneIntent === 'environment';
   const isUGCMode = values.ugcRealMode;
 
-
-
-  // Scene Intent Handler: Enable Environment Mode
-  const enableEnvironment = useCallback(() => {
-    console.log('[SCENE INTENT CHANGE] environment');
-    setValues(prev => {
-      const next: Step3Values = {
-        ...prev,
-        sceneIntent: 'environment',
-        compositionMode: '',
-      };
-      enforceSingleSelectLayers(next);
-      return next;
-    });
-  }, []);
-
-  useEffect(() => {
-    if (values.ugcRealMode && values.sceneIntent !== 'environment') {
-      enableEnvironment();
-    }
-  }, [values.ugcRealMode, values.sceneIntent, enableEnvironment]);
-
   // Scene Intent Handler: Enable Ecommerce Mode
   const enableEcommerce = useCallback(() => {
     console.log('[SCENE INTENT CHANGE] ecommerce');
@@ -886,6 +964,36 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     });
   }, []);
 
+  // If this instance is mounted as Product Mode, lock scene intent to ecommerce.
+  useEffect(() => {
+    if (!isProductMode) return;
+    if (values.sceneIntent !== 'ecommerce') {
+      enableEcommerce();
+    }
+  }, [isProductMode, values.sceneIntent, enableEcommerce]);
+
+
+
+  // Scene Intent Handler: Enable Environment Mode
+  const enableEnvironment = useCallback(() => {
+    console.log('[SCENE INTENT CHANGE] environment');
+    setValues(prev => {
+      const next: Step3Values = {
+        ...prev,
+        sceneIntent: 'environment',
+        compositionMode: '',
+      };
+      enforceSingleSelectLayers(next);
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (values.ugcRealMode && values.sceneIntent !== 'environment') {
+      enableEnvironment();
+    }
+  }, [values.ugcRealMode, values.sceneIntent, enableEnvironment]);
+
   useEffect(() => {
     if (values.sceneIntent === 'ecommerce') {
       setOpenUgcLayerId(null);
@@ -894,17 +1002,101 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
   // HARD RULE: Custom Environment → switches to Environment intent
   useEffect(() => {
+    if (isProductMode) return;
     if (values.customEnvironment && values.sceneIntent === 'ecommerce') {
       console.log('[HARD RULE] Custom Environment set - switching to Environment intent');
       enableEnvironment();
     }
-  }, [values.customEnvironment, values.sceneIntent, enableEnvironment]);
+  }, [isProductMode, values.customEnvironment, values.sceneIntent, enableEnvironment]);
 
   useEffect(() => {
     if (!values.ecommerceBackgroundColor) {
       updateValue('ecommerceBackgroundColor', '#ffffff');
     }
   }, [values.ecommerceBackgroundColor, updateValue]);
+
+  const PRODUCT_TYPE_OPTIONS: Step3Values['productType'][] = [
+    'Capsules',
+    'Gummies',
+    'Drops',
+    'Powder',
+    'Skincare',
+    'Device',
+    'Custom'
+  ];
+
+  const PRODUCT_THEME_OPTIONS: NonNullable<Step3Values['productCreativeTheme']>[] = [
+    'Ingredient Color Story',
+    'Clinical Minimal',
+    'Premium Luxury',
+    'Fresh & Bright',
+    'Dark & Dramatic',
+    'Playful Pop',
+    'Tech Clean'
+  ];
+
+  const PRODUCT_PROP_SUGGESTIONS: Record<NonNullable<Step3Values['productType']>, string[]> = {
+    Capsules: [
+      'neutral acrylic blocks',
+      'clean glass vial shapes (no labels)',
+      'subtle powder dust (generic, unbranded)',
+      'simple botanical leaf shapes (generic)',
+      'minimal lab glass silhouettes (generic)',
+      'soft shadow cards'
+    ],
+    Gummies: [
+      'rounded acrylic blocks',
+      'color gel sheets',
+      'simple citrus slices (generic)',
+      'soft candy-like shapes (generic)',
+      'matte geometric spheres',
+      'playful color chips'
+    ],
+    Drops: [
+      'clear droppers (unbranded)',
+      'glass refraction blocks',
+      'water ripple texture',
+      'translucent acrylic',
+      'soft caustic reflections',
+      'minimal glass cylinders'
+    ],
+    Powder: [
+      'ceramic bowl (unbranded)',
+      'small scoop (unbranded)',
+      'linen texture',
+      'fine powder plume (subtle)',
+      'paper backdrop cards',
+      'matte stone slab'
+    ],
+    Skincare: [
+      'ceramic tiles',
+      'water droplets (generic)',
+      'soft steam hint (very subtle)',
+      'spa stones (minimal)',
+      'frosted acrylic',
+      'clean towels (no patterns)'
+    ],
+    Device: [
+      'brushed metal plates',
+      'grid paper (no text)',
+      'matte black acrylic',
+      'minimal geometric frames',
+      'soft technical line motifs (no text)',
+      'neutral cable shapes (generic)'
+    ],
+    Custom: [
+      'neutral acrylic blocks',
+      'paper backdrop cards',
+      'matte geometric shapes',
+      'soft shadow cards',
+      'abstract color blocks',
+      'unbranded glass shapes'
+    ]
+  };
+
+  const productSuggestedProps =
+    PRODUCT_PROP_SUGGESTIONS[(values.productType || 'Capsules') as NonNullable<Step3Values['productType']>] ||
+    PRODUCT_PROP_SUGGESTIONS.Capsules;
 
   // Note: Ecommerce canvas is not a sceneIntent; do not switch modes from compositionMode.
 
@@ -982,9 +1174,533 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       {/* Header */}
       <div className="flex flex-col gap-1">
         <p className="text-xs uppercase tracking-widest text-indigo-300">Step 3</p>
-        <h2 className="text-2xl font-bold text-gray-200">Scene Builder</h2>
-        <p className="text-sm text-gray-400">Define how the scene looks, feels, and behaves visually.</p>
+        <h2 className="text-2xl font-bold text-gray-200">{isEcommerceMode ? 'Product Builder' : 'Scene Builder'}</h2>
+        <p className="text-sm text-gray-400">
+          {isEcommerceMode
+            ? 'Product-only ecommerce controls: pro camera, controlled background, and layout-safe composition.'
+            : 'Define how the scene looks, feels, and behaves visually.'}
+        </p>
       </div>
+
+      {isEcommerceMode && (
+        <>
+          <SmoothAccordion
+            icon={Layers}
+            title="Product Setup"
+            tooltip="Define product context (product-only)"
+            isOpen={openAccordionId === 'product-setup'}
+            onToggle={() => toggleSection('product-setup')}
+            isRequired
+            isTouched={touchedSections.has('product-setup')}
+          >
+            <div className="space-y-4">
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <p className="text-xs uppercase tracking-wider text-indigo-200">PRODUCT TYPE</p>
+                <div className="flex flex-wrap gap-2">
+                  {PRODUCT_TYPE_OPTIONS.map(option => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => {
+                        updateValue('productType', option as any);
+                        markSectionTouched('product-setup');
+                      }}
+                      className={getPillClass(values.productType === option, true)}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+
+                {values.productType === 'Custom' && (
+                  <input
+                    type="text"
+                    value={values.productTypeCustom || ''}
+                    onChange={e => {
+                      updateValue('productTypeCustom', e.target.value);
+                      markSectionTouched('product-setup');
+                    }}
+                    className="mt-2 w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                    placeholder="Describe the product category (min 3 words)"
+                  />
+                )}
+                <p className="text-[11px] text-gray-400">
+                  Product Type guides props/palette suggestions only. The uploaded product asset never changes.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-2 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                  <p className="text-xs uppercase tracking-wider text-indigo-200">PACKAGING</p>
+                  <div className="flex gap-2">
+                    {(['Without box', 'With box'] as const).map(option => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => {
+                          updateValue('productPackaging', option);
+                          markSectionTouched('product-setup');
+                        }}
+                        className={getPillClass(values.productPackaging === option, true)}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                  <p className="text-xs uppercase tracking-wider text-indigo-200">PHYSICAL SCALE</p>
+                  <div className="flex flex-wrap gap-2">
+                    {(['Small handheld', 'Medium tabletop', 'Large object'] as const).map(option => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => {
+                          updateValue('productScale', option);
+                          markSectionTouched('product-setup');
+                        }}
+                        className={getPillClass(values.productScale === option, true)}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </SmoothAccordion>
+
+          <SmoothAccordion
+            icon={Sparkles}
+            title="Creativity"
+            tooltip="Packshot creative system (product-only)"
+            isOpen={openAccordionId === 'product-creativity'}
+            onToggle={() => toggleSection('product-creativity')}
+            isTouched={touchedSections.has('product-creativity')}
+          >
+            <div className="space-y-4">
+              <div className="space-y-2 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <p className="text-xs uppercase tracking-wider text-indigo-200">CREATIVITY LEVEL</p>
+                <div className="flex flex-wrap gap-2">
+                  {(['Off', 'Subtle', 'Bold', 'Max'] as const).map(level => (
+                    <button
+                      key={level}
+                      type="button"
+                      onClick={() => {
+                        updateValue('productCreativityLevel', level);
+                        markSectionTouched('product-creativity');
+                      }}
+                      className={getPillClass(values.productCreativityLevel === level, true)}
+                    >
+                      {level}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <p className="text-xs uppercase tracking-wider text-indigo-200">CREATIVE THEME</p>
+                <div className="flex flex-wrap gap-2">
+                  {PRODUCT_THEME_OPTIONS.map(theme => (
+                    <button
+                      key={theme}
+                      type="button"
+                      onClick={() => {
+                        updateValue('productCreativeTheme', theme as any);
+                        markSectionTouched('product-creativity');
+                      }}
+                      className={getPillClass(values.productCreativeTheme === theme, true)}
+                    >
+                      {theme}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <p className="text-xs uppercase tracking-wider text-indigo-200">PALETTE SOURCE</p>
+                <div className="flex flex-wrap gap-2">
+                  {(
+                    [
+                      'Use product label colors',
+                      'Warm neutrals',
+                      'Cool neutrals',
+                      'Complementary accent',
+                      'Custom palette'
+                    ] as const
+                  ).map(option => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => {
+                        updateValue('productPaletteSource', option);
+                        markSectionTouched('product-creativity');
+                      }}
+                      className={getPillClass(values.productPaletteSource === option, true)}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+
+                {values.productPaletteSource === 'Custom palette' && (
+                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {(
+                      [
+                        { key: 'productPaletteA', label: 'COLOR A' },
+                        { key: 'productPaletteB', label: 'COLOR B' },
+                        { key: 'productPaletteC', label: 'COLOR C' }
+                      ] as const
+                    ).map(cfg => (
+                      <label key={cfg.key} className="space-y-1">
+                        <span className="text-[11px] uppercase tracking-wide text-gray-400">{cfg.label}</span>
+                        <div className="relative flex items-center gap-3 rounded-xl bg-gray-800/40 p-3 cursor-pointer hover:bg-gray-800/60 transition">
+                          <div
+                            className="h-10 w-10 rounded-xl ring-1 ring-white/20"
+                            style={{ background: (values as any)[cfg.key] || '#ffffff' }}
+                          />
+                          <input
+                            type="text"
+                            value={(values as any)[cfg.key] || ''}
+                            onChange={e => {
+                              updateValue(cfg.key as any, e.target.value as any);
+                              markSectionTouched('product-creativity');
+                            }}
+                            className="w-full bg-transparent text-sm text-gray-200 focus:outline-none"
+                          />
+                          <input
+                            type="color"
+                            className="absolute inset-0 opacity-0 cursor-pointer"
+                            value={(values as any)[cfg.key] || '#ffffff'}
+                            onChange={e => {
+                              updateValue(cfg.key as any, e.target.value as any);
+                              markSectionTouched('product-creativity');
+                            }}
+                          />
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <p className="text-xs uppercase tracking-wider text-indigo-200">PROP DENSITY</p>
+                <div className="flex flex-wrap gap-2">
+                  {(['None', 'Light', 'Medium', 'Dense'] as const).map(level => (
+                    <button
+                      key={level}
+                      type="button"
+                      onClick={() => {
+                        updateValue('productPropDensity', level);
+                        markSectionTouched('product-creativity');
+                      }}
+                      className={getPillClass(values.productPropDensity === level, true)}
+                    >
+                      {level}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <p className="text-xs uppercase tracking-wider text-indigo-200">SUGGESTED PROPS</p>
+                <p className="text-[11px] text-gray-400">Optional. Product-safe suggestions based on Product Type.</p>
+                <div className="flex flex-wrap gap-2">
+                  {productSuggestedProps.map(prop => {
+                    const selected = (values.productPropsSelected || []).includes(prop);
+                    return (
+                      <button
+                        key={prop}
+                        type="button"
+                        onClick={() => {
+                          const current = values.productPropsSelected || [];
+                          const next = selected ? current.filter(x => x !== prop) : [...current, prop];
+                          updateValue('productPropsSelected', next);
+                          markSectionTouched('product-creativity');
+                        }}
+                        className={getPillClass(selected, true)}
+                      >
+                        {prop}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </SmoothAccordion>
+
+          <SmoothAccordion
+            icon={Camera}
+            title="Camera & Framing"
+            tooltip="Professional product photography controls"
+            isOpen={openAccordionId === 'product-camera'}
+            onToggle={() => toggleSection('product-camera')}
+            isTouched={touchedSections.has('product-camera')}
+          >
+            <div className="space-y-4">
+              <div className="space-y-2 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <p className="text-xs uppercase tracking-wider text-indigo-200">CAMERA SYSTEM</p>
+                <div className="flex flex-wrap gap-2">
+                  {(['DSLR / mirrorless', 'Macro lens', 'Telephoto compression'] as const).map(option => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => {
+                        updateValue('productCameraSystem', option);
+                        markSectionTouched('product-camera');
+                      }}
+                      className={getPillClass(values.productCameraSystem === option, true)}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-2 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                  <p className="text-xs uppercase tracking-wider text-indigo-200">ANGLE</p>
+                  <select
+                    value={values.productCameraAngle}
+                    onChange={e => {
+                      updateValue('productCameraAngle', e.target.value as any);
+                      markSectionTouched('product-camera');
+                    }}
+                    className="w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  >
+                    {(
+                      [
+                        'Eye level product',
+                        '45° hero',
+                        'Top-down flat lay',
+                        'Low angle power',
+                        'High angle overview',
+                        'Detail close-up'
+                      ] as const
+                    ).map(option => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                  <p className="text-xs uppercase tracking-wider text-indigo-200">DISTANCE</p>
+                  <div className="flex flex-wrap gap-2">
+                    {(['Wide', 'Standard', 'Tight', 'Macro'] as const).map(option => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => {
+                          updateValue('productCameraDistance', option);
+                          markSectionTouched('product-camera');
+                        }}
+                        className={getPillClass(values.productCameraDistance === option, true)}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-2 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                  <p className="text-xs uppercase tracking-wider text-indigo-200">ROTATION</p>
+                  <div className="flex flex-wrap gap-2">
+                    {([0, 5, 10, 15] as const).map(option => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => {
+                          updateValue('productCameraRotation', option);
+                          markSectionTouched('product-camera');
+                        }}
+                        className={getPillClass(values.productCameraRotation === option, true)}
+                      >
+                        {option}°
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                  <p className="text-xs uppercase tracking-wider text-indigo-200">FRAMING GUIDE</p>
+                  <select
+                    value={values.productFramingGuide}
+                    onChange={e => {
+                      updateValue('productFramingGuide', e.target.value as any);
+                      markSectionTouched('product-camera');
+                    }}
+                    className="w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  >
+                    {(
+                      [
+                        'Centered hero',
+                        'Rule of thirds',
+                        'Left aligned + negative space',
+                        'Right aligned + negative space',
+                        'Grid-ready'
+                      ] as const
+                    ).map(option => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+          </SmoothAccordion>
+
+          <SmoothAccordion
+            icon={Building2}
+            title="Ecommerce Image Builder"
+            tooltip="Neutral background + subject placement"
+            isOpen={openAccordionId === 'ecommerce'}
+            onToggle={() => toggleSection('ecommerce')}
+            isActive
+          >
+            <div className="space-y-4">
+              <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-indigo-200">SIDE PLACEMENT</p>
+                  <p className="text-[11px] text-gray-400 mt-1">Product anchor position</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {SIDE_PLACEMENT_OPTIONS.map(option => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => {
+                        updateValue('sidePlacement', option);
+                        updateValue('ecommerceSidePlacementFlag', true);
+                        markSectionTouched('ecommerce');
+                      }}
+                      className={getPillClass(values.sidePlacement === option, true)}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-5 rounded-xl border border-white/10 bg-gradient-to-b from-gray-900/60 to-gray-900/30 p-4">
+                <div className="space-y-1">
+                  <p className="text-xs uppercase tracking-widest text-indigo-300">Background</p>
+                  <p className="text-sm text-gray-300">Neutral color or gradient</p>
+                </div>
+
+                <div className="inline-flex rounded-full bg-gray-800/50 p-1">
+                  <button
+                    type="button"
+                    onClick={() => { updateValue('ecommerceBackgroundMode', 'white'); markSectionTouched('ecommerce'); }}
+                    className={`rounded-full px-4 py-1.5 text-xs font-medium transition ${values.ecommerceBackgroundMode === 'white' ? 'bg-white text-black shadow' : 'text-gray-300 hover:text-white'}`}
+                  >
+                    Solid
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { updateValue('ecommerceBackgroundMode', 'gradient'); markSectionTouched('ecommerce'); }}
+                    className={`rounded-full px-4 py-1.5 text-xs font-medium transition ${values.ecommerceBackgroundMode === 'gradient' ? 'bg-white text-black shadow' : 'text-gray-300 hover:text-white'}`}
+                  >
+                    Gradient
+                  </button>
+                </div>
+
+                {values.ecommerceBackgroundMode === 'white' ? (
+                  <div className="space-y-2">
+                    <p className="text-[11px] uppercase tracking-wide text-gray-400">Solid background color</p>
+                    <label className="relative flex items-center gap-3 rounded-xl bg-gray-800/40 p-3 cursor-pointer hover:bg-gray-800/60 transition">
+                      <div
+                        className="h-10 w-10 rounded-xl ring-1 ring-white/20"
+                        style={{ background: values.ecommerceBackgroundColor || '#ffffff' }}
+                      />
+                      <input
+                        type="text"
+                        className="w-full bg-transparent text-sm text-gray-200 focus:outline-none"
+                        value={values.ecommerceBackgroundColor || '#ffffff'}
+                        onChange={(e) => { updateValue('ecommerceBackgroundColor', e.target.value); markSectionTouched('ecommerce'); }}
+                      />
+                      <input
+                        type="color"
+                        className="absolute inset-0 opacity-0 cursor-pointer"
+                        value={values.ecommerceBackgroundColor || '#ffffff'}
+                        onChange={(e) => { updateValue('ecommerceBackgroundColor', e.target.value); markSectionTouched('ecommerce'); }}
+                      />
+                    </label>
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {(
+                        [
+                          { key: 'ecommerceGradientStart', label: 'Start color' },
+                          { key: 'ecommerceGradientEnd', label: 'End color' }
+                        ] as const
+                      ).map(cfg => (
+                        <div key={cfg.key} className="space-y-2">
+                          <p className="text-[11px] uppercase tracking-wide text-gray-400">{cfg.label}</p>
+                          <div className="relative flex items-center gap-3 rounded-xl bg-gray-800/40 p-3 cursor-pointer hover:bg-gray-800/60 transition">
+                            <div
+                              className="h-10 w-10 rounded-xl ring-1 ring-white/20"
+                              style={{ background: (values as any)[cfg.key] || '#ffffff' }}
+                            />
+                            <input
+                              type="text"
+                              value={(values as any)[cfg.key] || ''}
+                              onChange={(e) => { updateValue(cfg.key as any, e.target.value as any); markSectionTouched('ecommerce'); }}
+                              className="w-full bg-transparent text-sm text-gray-200 focus:outline-none"
+                            />
+                            <input
+                              type="color"
+                              className="absolute inset-0 opacity-0 cursor-pointer"
+                              value={(values as any)[cfg.key] || '#ffffff'}
+                              onChange={(e) => { updateValue(cfg.key as any, e.target.value as any); markSectionTouched('ecommerce'); }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <select
+                        value={values.ecommerceGradientAngle}
+                        onChange={(e) => { updateValue('ecommerceGradientAngle', e.target.value as any); markSectionTouched('ecommerce'); }}
+                        className="rounded-full bg-gray-800/60 px-3 py-1.5 text-sm text-gray-200 focus:outline-none"
+                      >
+                        {GRADIENT_ANGLE_OPTIONS.map(angle => (
+                          <option key={angle} value={angle}>{angle}°</option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={invertGradient}
+                        className="rounded-full bg-gray-800/60 px-3 py-1.5 text-sm text-gray-300 hover:text-white transition"
+                      >
+                        Invert
+                      </button>
+                    </div>
+
+                    <div className="relative overflow-hidden rounded-2xl border border-white/10">
+                      <div
+                        className="h-20 w-full"
+                        style={{
+                          background: `linear-gradient(${values.ecommerceGradientAngle}deg, ${values.ecommerceGradientStart}, ${values.ecommerceGradientEnd})`
+                        }}
+                      />
+                      <div className="absolute inset-0 ring-1 ring-black/5" />
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </SmoothAccordion>
+        </>
+      )}
 
       {isEnvironmentMode && (
         <>
@@ -1957,23 +2673,23 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         </>
       )}
 
-      {/* ECOMMERCE CANVAS (BACKGROUND REPLACEMENT) */}
+      {/* HERO CANVAS (BACKGROUND REPLACEMENT) */}
       {/* Coexists with Lifestyle controls; applies only when enabled. */}
       {isEnvironmentMode && (
         <SmoothAccordion
           icon={Building2}
-          title="Ecommerce Image Builder"
-          tooltip="Neutral background + subject placement"
+          title="Hero"
+          tooltip="Neutral background + placement (Lifestyle)"
           isOpen={openAccordionId === 'ecommerce'}
           onToggle={() => toggleSection('ecommerce')}
           isActive={values.ecommerceSidePlacementFlag}
-	        >
-	          <div className="space-y-4">
-	            <div className="flex items-center justify-between">
-	              <span className="text-sm text-gray-200">Enable neutral canvas</span>
-	              <button
-	                type="button"
-	                role="switch"
+		        >
+		          <div className="space-y-4">
+		            <div className="flex items-center justify-between">
+		              <span className="text-sm text-gray-200">Enable hero canvas</span>
+		              <button
+		                type="button"
+		                role="switch"
 	                aria-checked={values.ecommerceSidePlacementFlag}
 	                onClick={() => {
 	                  updateValue('ecommerceSidePlacementFlag', !values.ecommerceSidePlacementFlag);

@@ -19,7 +19,7 @@ export class FinalizeBuilder implements PromptBuilder {
 
         const intent = options.creationIntent || 'ugc';
 
-        if (intent !== 'ugc') {
+        if (intent !== 'ugc' && options.contentStyle !== 'product' && options.sceneIntent !== 'ecommerce') {
             lines.push(
                 'No lifestyle framing.',
                 'No creator narrative.',
@@ -37,7 +37,7 @@ export class FinalizeBuilder implements PromptBuilder {
             );
         }
 
-        if (!options.identityLock) {
+        if (!options.identityLock && options.contentStyle !== 'product' && options.sceneIntent !== 'ecommerce') {
             lines.push(
                 'NEGATIVE IDENTITY CONSTRAINT: same woman, same person, identical face, repeated subject, recurring individual.'
             );

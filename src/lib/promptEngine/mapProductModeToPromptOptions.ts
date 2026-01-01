@@ -10,47 +10,102 @@
 import type { Step3Values } from '@/components/LifestyleStep3';
 import type { PromptOptions } from './types';
 
-/**
- * Product Mode vocabulary - NEVER use UGC terms
- */
-const PRODUCT_VOCABULARY = {
-    // Forbidden terms (never inject these)
-    FORBIDDEN: [
-        'selfie',
-        'candid',
-        'real life mess',
-        'phone camera',
-        'ugc',
-        'creator',
-        'person',
-        'face',
-        'emotion'
-    ],
+const normalizeSidePlacement = (raw?: string): 'left' | 'center' | 'right' => {
+    const lower = String(raw || '').toLowerCase();
+    if (lower.includes('left')) return 'left';
+    if (lower.includes('right')) return 'right';
+    return 'center';
+};
 
-    // Allowed terms (premium ecommerce only)
-    ALLOWED: {
-        composition: [
-            'studio product photography',
-            'editorial flat lay',
-            'controlled lighting',
-            'premium ecommerce aesthetic',
-            'clean product studio',
-            'ingredient story composition',
-            'abstract benefit visual',
-            'routine bundle shot'
-        ],
-        lighting: [
-            'soft studio light',
-            'natural window light',
-            'controlled directional light'
-        ],
-        interaction: [
-            'hands holding product',
-            'hands pouring product',
-            'hands opening product',
-            'hands placing product',
-            'product only, no hands'
-        ]
+const clampHex = (value: string | undefined, fallback: string): string => {
+    const normalized = String(value || '').trim();
+    return /^#[0-9a-f]{6}$/i.test(normalized) ? normalized : fallback;
+};
+
+const mapProductCameraDistance = (
+    distance?: Step3Values['productCameraDistance']
+): NonNullable<PromptOptions['cameraDistance']> => {
+    switch (distance) {
+        case 'Wide':
+            return 'wide';
+        case 'Tight':
+            return 'close';
+        case 'Macro':
+            return 'macro';
+        case 'Standard':
+        default:
+            return 'medium';
+    }
+};
+
+const mapProductCameraAngle = (angle?: Step3Values['productCameraAngle']): string | undefined => {
+    switch (angle) {
+        case 'Eye level product':
+            return 'camera positioned at product eye level with a neutral perspective';
+        case '45 degree hero':
+            return '45° hero angle, slightly above the product looking down';
+        case 'Top-down flat lay':
+            return 'top-down flat lay, camera directly overhead';
+        case 'Low angle power':
+            return 'low angle view looking slightly upward at the product';
+        case 'High angle overview':
+            return 'high angle overview looking down at the product';
+        case 'Detail close-up':
+            return 'detail close-up angle emphasizing materials and label detail';
+        default:
+            return undefined;
+    }
+};
+
+const mapProductShotType = (
+    distance?: Step3Values['productCameraDistance'],
+    angle?: Step3Values['productCameraAngle']
+): string | undefined => {
+    if (angle === 'Top-down flat lay') {
+        return 'flat lay product shot with clean spacing';
+    }
+    switch (distance) {
+        case 'Wide':
+            return 'wide product composition with generous negative space';
+        case 'Standard':
+            return 'standard product framing showing the full product clearly';
+        case 'Tight':
+            return 'tight hero close-up emphasizing label and texture';
+        case 'Macro':
+            return 'macro detail close-up showing fine material detail';
+        default:
+            return undefined;
+    }
+};
+
+const mapProductFraming = (
+    framing?: Step3Values['productFramingGuide'],
+    rotationDegrees?: Step3Values['productCameraRotation']
+): { perspective?: string; forcedSidePlacement?: 'left' | 'right' } => {
+    const rotationSuffix =
+        typeof rotationDegrees === 'number' && rotationDegrees > 0
+            ? ` with an intentional ${rotationDegrees}° camera rotation`
+            : '';
+
+    switch (framing) {
+        case 'Centered hero':
+            return { perspective: `centered hero composition with clean margins${rotationSuffix}` };
+        case 'Rule of thirds':
+            return { perspective: `rule-of-thirds composition with intentional spacing${rotationSuffix}` };
+        case 'Left aligned + negative space':
+            return {
+                perspective: `product aligned left with large clean negative space to the right${rotationSuffix}`,
+                forcedSidePlacement: 'left'
+            };
+        case 'Right aligned + negative space':
+            return {
+                perspective: `product aligned right with large clean negative space to the left${rotationSuffix}`,
+                forcedSidePlacement: 'right'
+            };
+        case 'Grid-ready':
+            return { perspective: `grid-ready centered framing with consistent margins${rotationSuffix}` };
+        default:
+            return rotationSuffix ? { perspective: `intentional studio framing${rotationSuffix}` } : {};
     }
 };
 
@@ -65,7 +120,28 @@ export function mapProductModeToPromptOptions(
     sceneState: Step3Values,
     existingOptions: Partial<PromptOptions> = {}
 ): Partial<PromptOptions> {
-    console.log('[PRODUCT MODE MAP INPUT]', sceneState);
+    console.log('[PRODUCT STEP3 INPUT]', {
+        sceneIntent: sceneState.sceneIntent,
+        aspectRatio: sceneState.aspectRatio,
+        sidePlacement: sceneState.sidePlacement,
+        ecommerceBackgroundMode: sceneState.ecommerceBackgroundMode,
+        ecommerceBackgroundColor: sceneState.ecommerceBackgroundColor,
+        ecommerceGradientStart: sceneState.ecommerceGradientStart,
+        ecommerceGradientEnd: sceneState.ecommerceGradientEnd,
+        ecommerceGradientAngle: sceneState.ecommerceGradientAngle,
+        productType: sceneState.productType,
+        productTypeCustom: sceneState.productTypeCustom,
+        productCameraSystem: sceneState.productCameraSystem,
+        productCameraAngle: sceneState.productCameraAngle,
+        productCameraDistance: sceneState.productCameraDistance,
+        productCameraRotation: sceneState.productCameraRotation,
+        productFramingGuide: sceneState.productFramingGuide,
+        productCreativityLevel: sceneState.productCreativityLevel,
+        productCreativeTheme: sceneState.productCreativeTheme,
+        productPaletteSource: sceneState.productPaletteSource,
+        productPropDensity: sceneState.productPropDensity,
+        productPropsSelected: sceneState.productPropsSelected
+    });
 
     if (sceneState.ugcRealMode) {
         console.error('[INVALID STATE BLOCKED] UGC Real Mode cannot run in product mode');
@@ -85,43 +161,65 @@ export function mapProductModeToPromptOptions(
     }
 
     const mapped: Partial<PromptOptions> = {
-        ...existingOptions,
-        ugcStyle: existingOptions.ugcStyle ?? 'optimized'
+        ...existingOptions
     };
 
-    // Force Product Mode flags
+    // Force Product Mode flags (authoritative)
     mapped.contentStyle = 'product';
+    mapped.creationIntent = 'product';
     mapped.creationMode = 'ecom-blank';
     mapped.personIncluded = false;
     mapped.sceneIntent = 'ecommerce';
     mapped.compositionMode = 'Ecommerce Blank Space';
     mapped.ecommerceBlankSpaceMode = true;
-    const sidePlacementRaw = (sceneState.sidePlacement || 'Center').toLowerCase();
-    const sidePlacement =
-        sidePlacementRaw.includes('left') ? 'left' :
-        sidePlacementRaw.includes('right') ? 'right' :
-        'center';
+    mapped.addHands = false;
+
+    const sidePlacement = normalizeSidePlacement(sceneState.sidePlacement);
     mapped.sidePlacement = sidePlacement;
     mapped.ecommerceSidePlacement = sidePlacement;
     mapped.ecommerceSidePlacementFlag = true;
+
+    // Allow product camera/framing controls (product-only, pro)
+    mapped.camera = 'DSLR / mirrorless camera';
+    mapped.cameraType = 'DSLR / mirrorless camera' as any;
+    mapped.cameraDistance = mapProductCameraDistance(sceneState.productCameraDistance);
+    mapped.cameraAngle = mapProductCameraAngle(sceneState.productCameraAngle) as any;
+    mapped.cameraShot = mapProductShotType(sceneState.productCameraDistance, sceneState.productCameraAngle) as any;
+
+    const framing = mapProductFraming(sceneState.productFramingGuide, sceneState.productCameraRotation);
+    if (framing.forcedSidePlacement) {
+        mapped.sidePlacement = framing.forcedSidePlacement;
+        mapped.ecommerceSidePlacement = framing.forcedSidePlacement;
+    }
+    mapped.perspective = framing.perspective as any;
+
+    // Background (solid or gradient) controlled only by Ecommerce Image Builder inputs
     if (sceneState.ecommerceBackgroundMode === 'gradient') {
         const angle = parseInt(sceneState.ecommerceGradientAngle || '90', 10) || 90;
         mapped.bgGradient = {
-            startColor: sceneState.ecommerceGradientStart || '#f7f7f7',
-            endColor: sceneState.ecommerceGradientEnd || '#d9d9d9',
+            startColor: clampHex(sceneState.ecommerceGradientStart, '#f7f7f7'),
+            endColor: clampHex(sceneState.ecommerceGradientEnd, '#d9d9d9'),
             angle
         };
         delete mapped.bgColor;
     } else {
-        mapped.bgColor = (sceneState.ecommerceBackgroundColor || '#FFFFFF').toUpperCase();
+        mapped.bgColor = clampHex(sceneState.ecommerceBackgroundColor, '#ffffff').toUpperCase();
         delete mapped.bgGradient;
     }
 
+    // Product classification inputs (do not change product; only contextual hints)
+    (mapped as any).productType = sceneState.productType || 'Capsules';
+    (mapped as any).productTypeCustom = sceneState.productTypeCustom || '';
+    (mapped as any).productCreativityLevel = sceneState.productCreativityLevel || 'Off';
+    (mapped as any).productCreativeTheme = sceneState.productCreativeTheme || 'Clinical Minimal';
+    (mapped as any).productPaletteSource = sceneState.productPaletteSource || 'Use product label colors';
+    (mapped as any).productPropDensity = sceneState.productPropDensity || 'None';
+    (mapped as any).productPropsSelected = sceneState.productPropsSelected || [];
+
+    // Clear environment/lifestyle metadata (product mode does not use environments)
     mapped.setting = '';
     mapped.microLocation = '';
     mapped.environmentOrder = '';
-    mapped.perspective = '';
-    mapped.productPlane = '';
     mapped.placementStyle = undefined;
     mapped.personDetails = undefined;
     mapped.identityLock = undefined;
@@ -152,55 +250,6 @@ export function mapProductModeToPromptOptions(
     mapped.ugcSelfieDominant = false;
 
     // ========================================================================
-    // PRODUCT COMPOSITION (Stage 4)
-    // ========================================================================
-
-    // Composition presets map to specific prompt vocabulary
-    const compositionPresetMap: Record<string, string> = {
-        'Clean Product Studio': 'clean product studio with controlled lighting and soft shadows',
-        'Editorial Flat Lay': 'editorial flat lay composition with precise arrangement',
-        'Ingredient Story': 'ingredient story with product and natural elements',
-        'Abstract Benefit Visual': 'abstract benefit visual with conceptual styling',
-        'Routine / Bundle Shot': 'routine bundle shot showing multiple products together'
-    };
-
-    // ========================================================================
-    // ENVIRONMENT & BACKGROUND (Stage 5)
-    // ========================================================================
-
-    // Product-safe environments only
-    const environmentMap: Record<string, string> = {
-        'Solid brand color': 'solid brand color background',
-        'Soft gradient': 'soft gradient background',
-        'Bathroom shelf': 'bathroom shelf surface',
-        'Kitchen counter': 'kitchen counter surface',
-        'Studio seamless': 'studio seamless white background'
-    };
-
-    // ========================================================================
-    // PRODUCT INTERACTION (Stage 6 - NOT UGC)
-    // ========================================================================
-
-    // Hands-only interaction (editorial, not UGC)
-    const interactionMap: Record<string, string> = {
-        'No hands': 'product only composition with no hands visible',
-        'Hands holding': 'hands holding product in editorial style, no face visible',
-        'Hands pouring': 'hands pouring product in controlled demonstration, no face visible',
-        'Hands opening': 'hands opening product in clean demonstration, no face visible',
-        'Hands placing': 'hands placing product on surface, no face visible'
-    };
-
-    // ========================================================================
-    // LIGHTING (Stage 7 - Simplified)
-    // ========================================================================
-
-    const lightingMap: Record<string, string> = {
-        'Soft studio light': 'soft studio lighting with controlled highlights',
-        'Natural window light': 'natural window light for realistic product photography',
-        'Controlled directional light': 'controlled directional lighting with intentional shadows'
-    };
-
-    // ========================================================================
     // OUTPUT FORMAT (Stage 8)
     // ========================================================================
 
@@ -221,22 +270,49 @@ export function mapProductModeToPromptOptions(
     mapped.personExpression = undefined;
     mapped.personPose = undefined;
 
-    console.log('[PRODUCT MODE MAP OUTPUT]', mapped);
+    console.log('[PRODUCT STEP3 MAP OUT]', {
+        contentStyle: mapped.contentStyle,
+        creationIntent: mapped.creationIntent,
+        creationMode: mapped.creationMode,
+        sceneIntent: mapped.sceneIntent,
+        compositionMode: mapped.compositionMode,
+        ecommerceBlankSpaceMode: mapped.ecommerceBlankSpaceMode,
+        sidePlacement: mapped.sidePlacement,
+        bgColor: mapped.bgColor,
+        bgGradient: mapped.bgGradient,
+        camera: mapped.camera,
+        cameraAngle: mapped.cameraAngle,
+        cameraDistance: mapped.cameraDistance,
+        cameraShot: mapped.cameraShot,
+        perspective: mapped.perspective,
+        addHands: mapped.addHands,
+        aspectRatio: mapped.aspectRatio
+    });
 
     return mapped;
 }
 
-/**
- * Validate that no forbidden UGC terms appear in prompt
- */
 export function validateProductModePrompt(prompt: string): boolean {
-    const lowerPrompt = prompt.toLowerCase();
-
-    for (const forbidden of PRODUCT_VOCABULARY.FORBIDDEN) {
-        if (lowerPrompt.includes(forbidden.toLowerCase())) {
-            console.error(`[PRODUCT MODE VALIDATION FAILED] Forbidden term detected: "${forbidden}"`);
-            return false;
-        }
+    const forbidden = [
+        'lifestyle',
+        'ugc',
+        'user-generated',
+        'selfie',
+        'phone',
+        'creator',
+        'person',
+        'people',
+        'human',
+        'identity',
+        'ethnicity',
+        'age',
+        'face'
+    ];
+    const lower = prompt.toLowerCase();
+    const hit = forbidden.find(term => lower.includes(term));
+    if (hit) {
+        console.error(`[PRODUCT MODE VALIDATION FAILED] Forbidden term detected: "${hit}"`);
+        return false;
     }
 
     return true;

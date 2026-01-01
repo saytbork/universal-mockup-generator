@@ -82,7 +82,7 @@ export class ProductBuilder implements PromptBuilder {
       Use the uploaded product image as the exact product. Preserve exact colors, label layout, typography, geometry, proportions, and material.
       Do not redesign, replace, or reinterpret the product.
 
-      Background replacement (ecommerce canvas overlay):
+	      Background replacement (hero canvas overlay):
       Remove the original environment completely.
       ${bgLine}
       No visible room, furniture, decor, or location cues.
