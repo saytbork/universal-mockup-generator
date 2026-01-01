@@ -38,6 +38,7 @@ import {
 import { normalizeOptions } from './src/system/normalizeOptions';
 import { promptEngine } from './src/lib/promptEngine';
 import { mapLifestyleToPromptOptions } from './src/lib/promptEngine/mapLifestyleToPromptOptions';
+import { mapProductModeToPromptOptions } from './src/lib/promptEngine/mapProductModeToPromptOptions';
 import LifestyleStep3, { type Step3Values } from "@/components/LifestyleStep3";
 
 
@@ -4278,8 +4279,10 @@ If the model attempts to create a scene or environment, override it and force a 
 
         // If LifestyleStep3 values exist, map them to PromptOptions
         let promptOptions = basePromptOptions;
-        if (lifestyleStep3Values && !isProductPlacement) {
-          promptOptions = mapLifestyleToPromptOptions(lifestyleStep3Values, basePromptOptions, hasModelReference);
+        if (lifestyleStep3Values) {
+          promptOptions = isProductPlacement
+            ? mapProductModeToPromptOptions(lifestyleStep3Values, basePromptOptions)
+            : mapLifestyleToPromptOptions(lifestyleStep3Values, basePromptOptions, hasModelReference);
         }
 
         // Persist continuity identity only when explicitly requested.
