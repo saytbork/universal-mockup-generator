@@ -988,11 +988,44 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     });
   }, []);
 
+  const exitEcommerceToEnvironment = useCallback(() => {
+    console.log('[SCENE INTENT CHANGE] exit ecommerce -> environment');
+    setValues(prev => {
+      if (prev.sceneIntent !== 'ecommerce') return prev;
+      const next: Step3Values = {
+        ...prev,
+        sceneIntent: 'environment',
+        creationIntent: 'ugc',
+        ugcRealMode: false,
+        noPerson: false,
+        environment: prev.environment || 'Kitchen',
+        compositionMode: '',
+        ecommerceSidePlacementFlag: false,
+        sidePlacement: SIDE_PLACEMENT_OPTIONS[1],
+        cameraType: prev.cameraType || 'Intentional smartphone camera',
+        shotType: prev.shotType || 'Medium',
+        cameraAngle: prev.cameraAngle || 'Eye level',
+        framing: prev.framing || 'Rule of thirds',
+      };
+      enforceSingleSelectLayers(next);
+      return next;
+    });
+    setOpenAccordionId('creator');
+  }, []);
+
   useEffect(() => {
     if (values.ugcRealMode && values.sceneIntent !== 'environment') {
       enableEnvironment();
     }
   }, [values.ugcRealMode, values.sceneIntent, enableEnvironment]);
+
+  // When App toggles out of Product Placement, force this builder back to environment mode.
+  useEffect(() => {
+    if (isProductMode) return;
+    if (values.sceneIntent === 'ecommerce') {
+      exitEcommerceToEnvironment();
+    }
+  }, [isProductMode, values.sceneIntent, exitEcommerceToEnvironment]);
 
   useEffect(() => {
     if (values.sceneIntent === 'ecommerce') {
