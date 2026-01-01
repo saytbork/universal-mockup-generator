@@ -598,7 +598,7 @@ export class PromptEngine {
                     excerpt: positivePrompt.slice(excerptStart, excerptEnd)
                 });
                 throw new InvalidSceneCombinationError(
-                    'Product Step 3 cannot include lifestyle, UGC, phone/selfie, or human identity language.'
+                    `Product Step 3 cannot include lifestyle, UGC, phone/selfie, or human identity language. Found: "${match[0]}".`
                 );
             }
         }

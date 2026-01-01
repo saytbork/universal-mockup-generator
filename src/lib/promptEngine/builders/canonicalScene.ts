@@ -18,7 +18,8 @@ export interface SceneNarrativeSections {
 }
 
 const creationModeCopy: Record<string, string> = {
-    lifestyle: 'Lifestyle environment with human presence. Natural interaction with the product.',
+    // Keep lifestyle wording free of explicit "human" to avoid leaking into product-mode guards
+    lifestyle: 'Lifestyle environment with the product integrated naturally into the scene.',
     studio: 'Studio-style hero shot. Controlled lighting and composition.',
     aesthetic: 'Aesthetic-focused composition. Design-forward styling.',
     'bg-replace': 'Background replaced while preserving subject realism.',
