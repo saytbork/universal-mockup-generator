@@ -61,7 +61,9 @@ export class ProductBuilder implements PromptBuilder {
     private buildEcommerceBlankProductInsertion(options: PromptOptions): string {
         const bgLine = options.bgGradient
             ? `Place it on a ${options.bgGradient.angle ?? 90}° gradient background transitioning from ${options.bgGradient.startColor} to ${options.bgGradient.endColor}, with neutral studio lighting and a soft contact shadow.`
-            : 'Place it on a pure white background (#FFFFFF) with neutral studio lighting, flat even illumination, and only a subtle contact shadow directly beneath the product.';
+            : options.bgColor
+              ? `Place it on a pure solid background with the exact color: ${options.bgColor}, with neutral studio lighting, flat even illumination, and only a subtle contact shadow directly beneath the product.`
+              : 'Place it on a pure white background (#FFFFFF) with neutral studio lighting, flat even illumination, and only a subtle contact shadow directly beneath the product.';
 
         return `
       Use the uploaded product asset exactly as provided. Do not redesign, restyle, recolor, or reinterpret its shape, label, or material.
