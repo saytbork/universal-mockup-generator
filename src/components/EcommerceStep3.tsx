@@ -34,6 +34,7 @@ export interface EcommerceStep3Props {
   slotBaseImages: Partial<Record<EcommerceSlotKey, string | null>>;
   settings: EcommerceGenerationSettings;
   onSettingsChange: (next: EcommerceGenerationSettings) => void;
+  embedded?: boolean;
 }
 
 const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
@@ -71,6 +72,7 @@ export default function EcommerceStep3({
   slotBaseImages,
   settings,
   onSettingsChange,
+  embedded = false,
 }: EcommerceStep3Props) {
   const [activeSlot, setActiveSlot] = useState<EcommerceSlotKey | null>(selectedSlots[0] ?? null);
   const [expandedBlockIndex, setExpandedBlockIndex] = useState<number | null>(0);
@@ -95,10 +97,12 @@ export default function EcommerceStep3({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-        <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Ecommerce Image Builder</p>
-        <p className="mt-1 text-sm text-gray-300">Build PDP-style overlays and export crisp PNGs (image-only + with overlays).</p>
-      </div>
+      {!embedded && (
+        <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
+          <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Ecommerce Image Builder</p>
+          <p className="mt-1 text-sm text-gray-300">Build PDP-style overlays and export crisp PNGs (image-only + with overlays).</p>
+        </div>
+      )}
 
       <section className="rounded-2xl border border-white/10 bg-gray-900/40 p-4 space-y-3">
         <p className="text-xs uppercase tracking-[0.35em] text-gray-400">Slots</p>
@@ -190,254 +194,252 @@ export default function EcommerceStep3({
         )}
       </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <section className="rounded-2xl border border-white/10 bg-gray-900/40 p-4 space-y-4">
-          <p className="text-xs uppercase tracking-[0.35em] text-gray-400">Live Preview</p>
-          <div className="rounded-xl border border-white/10 bg-black/30 overflow-hidden">
-            {activeSpec ? (
-              <EcommerceOverlaySvg
-                baseImageUrl={activeBaseImageUrl}
-                spec={activeSpec}
-                className="w-full h-auto block"
-                ref={svgRef}
-              />
-            ) : (
-              <div className="p-6 text-sm text-gray-400">Select a slot to preview.</div>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              disabled={!activeSlot || !activeBaseImageUrl}
-              onClick={async () => {
-                if (!activeSlot || !activeBaseImageUrl) return;
-                await downloadUrlAsFile(activeBaseImageUrl, `${activeSlot}-image-only.png`);
-              }}
-              className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-gray-200 hover:bg-white/10 disabled:opacity-40"
-            >
-              <ImageIcon size={14} />
-              Export PNG (image only)
-            </button>
-            <button
-              type="button"
-              disabled={!activeSlot || !activeBaseImageUrl}
-              onClick={async () => {
-                if (!activeSlot || !activeBaseImageUrl) return;
-                const svg = svgRef.current;
-                if (!svg) return;
-                await exportSvgElementToPng(svg, { filename: `${activeSlot}-with-overlays.png`, scale: 2 });
-              }}
-              className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-indigo-500/15 px-3 py-2 text-xs text-white hover:bg-indigo-500/25 disabled:opacity-40"
-            >
-              <Download size={14} />
-              Export PNG (with overlays)
-            </button>
-          </div>
-          {!activeBaseImageUrl && activeSlot && (
-            <p className="text-xs text-gray-400">
-              Generate <span className="text-gray-200">{activeSlot}</span> to enable export.
-            </p>
-          )}
-        </section>
-
-        <section className="rounded-2xl border border-white/10 bg-gray-900/40 p-4 space-y-4">
-          <p className="text-xs uppercase tracking-[0.35em] text-gray-400">Editor</p>
-          {!activeSlot || !activeSpec ? (
-            <p className="text-sm text-gray-400">Select a slot to edit.</p>
+      <section className="rounded-2xl border border-white/10 bg-gray-900/40 p-4 space-y-4">
+        <p className="text-xs uppercase tracking-[0.35em] text-gray-400">Live Preview</p>
+        <div className="rounded-xl border border-white/10 bg-black/30 overflow-hidden">
+          {activeSpec ? (
+            <EcommerceOverlaySvg
+              baseImageUrl={activeBaseImageUrl}
+              spec={activeSpec}
+              className="w-full h-auto block"
+              ref={svgRef}
+            />
           ) : (
-            <div className="space-y-5">
-              <div className="space-y-3">
-                <p className="text-xs uppercase tracking-[0.35em] text-gray-400">Global Style</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <p className="text-[11px] text-gray-400">Font</p>
-                    <div className="flex flex-wrap gap-2">
-                      {(
-                        [
-                          {
-                            label: 'Inter',
-                            value: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-                          },
-                          {
-                            label: 'System',
-                            value: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-                          },
-                          { label: 'Serif', value: 'ui-serif, Georgia, Cambria, \"Times New Roman\", Times, serif' },
-                        ] as const
-                      ).map(font => (
-                        <Chip
-                          key={font.label}
-                          selected={activeSpec.globalStyle.fontFamily === font.value}
-                          onClick={() =>
-                            onSlotsConfigChange(
-                              updateSlotSpec(slotsConfig, activeSlot, prev => ({
-                                ...prev,
-                                globalStyle: { ...prev.globalStyle, fontFamily: font.value },
-                              }))
-                            )
-                          }
-                        >
-                          {font.label}
-                        </Chip>
-                      ))}
-                    </div>
-                  </div>
-                  <LabeledInput
-                    label="Text color"
-                    value={activeSpec.globalStyle.textColor}
-                    onChange={value => {
-                      onSlotsConfigChange(
-                        updateSlotSpec(slotsConfig, activeSlot, prev => ({
-                          ...prev,
-                          globalStyle: { ...prev.globalStyle, textColor: clampHex(value, prev.globalStyle.textColor) },
-                        }))
-                      );
-                    }}
-                    placeholder="#FFFFFF"
-                  />
-                  <LabeledInput
-                    label="Accent color"
-                    value={activeSpec.globalStyle.accentColor}
-                    onChange={value => {
-                      onSlotsConfigChange(
-                        updateSlotSpec(slotsConfig, activeSlot, prev => ({
-                          ...prev,
-                          globalStyle: { ...prev.globalStyle, accentColor: clampHex(value, prev.globalStyle.accentColor) },
-                        }))
-                      );
-                    }}
-                    placeholder="#8B5CF6"
-                  />
-                  <LabeledNumber
-                    label="Heading weight"
-                    value={activeSpec.globalStyle.headingWeight}
-                    onChange={value =>
-                      onSlotsConfigChange(
-                        updateSlotSpec(slotsConfig, activeSlot, prev => ({
-                          ...prev,
-                          globalStyle: { ...prev.globalStyle, headingWeight: Math.max(100, Math.min(900, value)) },
-                        }))
-                      )
-                    }
-                    min={100}
-                    max={900}
-                    step={50}
-                  />
-                  <LabeledNumber
-                    label="Body weight"
-                    value={activeSpec.globalStyle.bodyWeight}
-                    onChange={value =>
-                      onSlotsConfigChange(
-                        updateSlotSpec(slotsConfig, activeSlot, prev => ({
-                          ...prev,
-                          globalStyle: { ...prev.globalStyle, bodyWeight: Math.max(100, Math.min(900, value)) },
-                        }))
-                      )
-                    }
-                    min={100}
-                    max={900}
-                    step={50}
-                  />
-                  <LabeledNumber
-                    label="Radius"
-                    value={activeSpec.globalStyle.radius}
-                    onChange={value =>
-                      onSlotsConfigChange(
-                        updateSlotSpec(slotsConfig, activeSlot, prev => ({
-                          ...prev,
-                          globalStyle: { ...prev.globalStyle, radius: Math.max(0, value) },
-                        }))
-                      )
-                    }
-                    min={0}
-                    max={40}
-                    step={1}
-                  />
-                  <LabeledNumber
-                    label="Base scale"
-                    value={activeSpec.globalStyle.baseScale}
-                    onChange={value =>
-                      onSlotsConfigChange(
-                        updateSlotSpec(slotsConfig, activeSlot, prev => ({
-                          ...prev,
-                          globalStyle: { ...prev.globalStyle, baseScale: Math.max(0.6, Math.min(2, value)) },
-                        }))
-                      )
-                    }
-                    min={0.6}
-                    max={2}
-                    step={0.05}
-                  />
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs text-gray-400">Card background:</span>
-                  {(['glass', 'solid', 'none'] as const).map(mode => (
-                    <Chip
-                      key={mode}
-                      selected={activeSpec.globalStyle.cardBgStyle === mode}
-                      onClick={() =>
-                        onSlotsConfigChange(
-                          updateSlotSpec(slotsConfig, activeSlot, prev => ({
-                            ...prev,
-                            globalStyle: { ...prev.globalStyle, cardBgStyle: mode },
-                          }))
-                        )
-                      }
-                    >
-                      {mode}
-                    </Chip>
-                  ))}
-                </div>
-              </div>
+            <div className="p-6 text-sm text-gray-400">Select a slot to preview.</div>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={!activeSlot || !activeBaseImageUrl}
+            onClick={async () => {
+              if (!activeSlot || !activeBaseImageUrl) return;
+              await downloadUrlAsFile(activeBaseImageUrl, `${activeSlot}-image-only.png`);
+            }}
+            className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-gray-200 hover:bg-white/10 disabled:opacity-40"
+          >
+            <ImageIcon size={14} />
+            Export PNG (image only)
+          </button>
+          <button
+            type="button"
+            disabled={!activeSlot || !activeBaseImageUrl}
+            onClick={async () => {
+              if (!activeSlot || !activeBaseImageUrl) return;
+              const svg = svgRef.current;
+              if (!svg) return;
+              await exportSvgElementToPng(svg, { filename: `${activeSlot}-with-overlays.png`, scale: 2 });
+            }}
+            className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-indigo-500/15 px-3 py-2 text-xs text-white hover:bg-indigo-500/25 disabled:opacity-40"
+          >
+            <Download size={14} />
+            Export PNG (with overlays)
+          </button>
+        </div>
+        {!activeBaseImageUrl && activeSlot && (
+          <p className="text-xs text-gray-400">
+            Generate <span className="text-gray-200">{activeSlot}</span> to enable export.
+          </p>
+        )}
+      </section>
 
-              <div className="space-y-3">
-                <p className="text-xs uppercase tracking-[0.35em] text-gray-400">Blocks</p>
-                <div className="space-y-2">
-                  {activeSpec.blocks.map((block, idx) => {
-                    const isOpen = expandedBlockIndex === idx;
-                    return (
-                      <div key={`${block.type}-${idx}`} className="rounded-xl border border-white/10 bg-black/25 overflow-hidden">
-                        <button
-                          type="button"
-                          onClick={() => setExpandedBlockIndex(isOpen ? null : idx)}
-                          className="w-full flex items-center justify-between px-3 py-2 text-left"
-                        >
-                          <div className="text-sm text-gray-200">
-                            <span className="text-gray-400">{idx + 1}.</span> {block.type}
-                          </div>
-                          <span className="text-xs text-gray-500">{isOpen ? 'Collapse' : 'Expand'}</span>
-                        </button>
-                        {isOpen && (
-                          <div className="px-3 pb-3 space-y-3">
-                            <BlockPositionEditor
-                              block={block}
-                              onChange={nextBlock => {
-                                onSlotsConfigChange(
-                                  updateSlotSpec(slotsConfig, activeSlot, prev => ({
-                                    ...updateBlock(prev, idx, () => nextBlock as any),
-                                  }))
-                                );
-                              }}
-                            />
-                            <BlockEditor
-                              block={block}
-                              onChange={nextBlock => {
-                                onSlotsConfigChange(
-                                  updateSlotSpec(slotsConfig, activeSlot, prev => updateBlock(prev, idx, () => nextBlock as any))
-                                );
-                              }}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+      <section className="rounded-2xl border border-white/10 bg-gray-900/40 p-4 space-y-4">
+        <p className="text-xs uppercase tracking-[0.35em] text-gray-400">Editor</p>
+        {!activeSlot || !activeSpec ? (
+          <p className="text-sm text-gray-400">Select a slot to edit.</p>
+        ) : (
+          <div className="space-y-5">
+            <div className="space-y-3">
+              <p className="text-xs uppercase tracking-[0.35em] text-gray-400">Global Style</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <p className="text-[11px] text-gray-400">Font</p>
+                  <div className="flex flex-wrap gap-2">
+                    {(
+                      [
+                        {
+                          label: 'Inter',
+                          value: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+                        },
+                        {
+                          label: 'System',
+                          value: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+                        },
+                        { label: 'Serif', value: 'ui-serif, Georgia, Cambria, \"Times New Roman\", Times, serif' },
+                      ] as const
+                    ).map(font => (
+                      <Chip
+                        key={font.label}
+                        selected={activeSpec.globalStyle.fontFamily === font.value}
+                        onClick={() =>
+                          onSlotsConfigChange(
+                            updateSlotSpec(slotsConfig, activeSlot, prev => ({
+                              ...prev,
+                              globalStyle: { ...prev.globalStyle, fontFamily: font.value },
+                            }))
+                          )
+                        }
+                      >
+                        {font.label}
+                      </Chip>
+                    ))}
+                  </div>
                 </div>
+                <LabeledInput
+                  label="Text color"
+                  value={activeSpec.globalStyle.textColor}
+                  onChange={value => {
+                    onSlotsConfigChange(
+                      updateSlotSpec(slotsConfig, activeSlot, prev => ({
+                        ...prev,
+                        globalStyle: { ...prev.globalStyle, textColor: clampHex(value, prev.globalStyle.textColor) },
+                      }))
+                    );
+                  }}
+                  placeholder="#FFFFFF"
+                />
+                <LabeledInput
+                  label="Accent color"
+                  value={activeSpec.globalStyle.accentColor}
+                  onChange={value => {
+                    onSlotsConfigChange(
+                      updateSlotSpec(slotsConfig, activeSlot, prev => ({
+                        ...prev,
+                        globalStyle: { ...prev.globalStyle, accentColor: clampHex(value, prev.globalStyle.accentColor) },
+                      }))
+                    );
+                  }}
+                  placeholder="#8B5CF6"
+                />
+                <LabeledNumber
+                  label="Heading weight"
+                  value={activeSpec.globalStyle.headingWeight}
+                  onChange={value =>
+                    onSlotsConfigChange(
+                      updateSlotSpec(slotsConfig, activeSlot, prev => ({
+                        ...prev,
+                        globalStyle: { ...prev.globalStyle, headingWeight: Math.max(100, Math.min(900, value)) },
+                      }))
+                    )
+                  }
+                  min={100}
+                  max={900}
+                  step={50}
+                />
+                <LabeledNumber
+                  label="Body weight"
+                  value={activeSpec.globalStyle.bodyWeight}
+                  onChange={value =>
+                    onSlotsConfigChange(
+                      updateSlotSpec(slotsConfig, activeSlot, prev => ({
+                        ...prev,
+                        globalStyle: { ...prev.globalStyle, bodyWeight: Math.max(100, Math.min(900, value)) },
+                      }))
+                    )
+                  }
+                  min={100}
+                  max={900}
+                  step={50}
+                />
+                <LabeledNumber
+                  label="Radius"
+                  value={activeSpec.globalStyle.radius}
+                  onChange={value =>
+                    onSlotsConfigChange(
+                      updateSlotSpec(slotsConfig, activeSlot, prev => ({
+                        ...prev,
+                        globalStyle: { ...prev.globalStyle, radius: Math.max(0, value) },
+                      }))
+                    )
+                  }
+                  min={0}
+                  max={40}
+                  step={1}
+                />
+                <LabeledNumber
+                  label="Base scale"
+                  value={activeSpec.globalStyle.baseScale}
+                  onChange={value =>
+                    onSlotsConfigChange(
+                      updateSlotSpec(slotsConfig, activeSlot, prev => ({
+                        ...prev,
+                        globalStyle: { ...prev.globalStyle, baseScale: Math.max(0.6, Math.min(2, value)) },
+                      }))
+                    )
+                  }
+                  min={0.6}
+                  max={2}
+                  step={0.05}
+                />
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs text-gray-400">Card background:</span>
+                {(['glass', 'solid', 'none'] as const).map(mode => (
+                  <Chip
+                    key={mode}
+                    selected={activeSpec.globalStyle.cardBgStyle === mode}
+                    onClick={() =>
+                      onSlotsConfigChange(
+                        updateSlotSpec(slotsConfig, activeSlot, prev => ({
+                          ...prev,
+                          globalStyle: { ...prev.globalStyle, cardBgStyle: mode },
+                        }))
+                      )
+                    }
+                  >
+                    {mode}
+                  </Chip>
+                ))}
               </div>
             </div>
-          )}
-        </section>
-      </div>
+
+            <div className="space-y-3">
+              <p className="text-xs uppercase tracking-[0.35em] text-gray-400">Blocks</p>
+              <div className="space-y-2">
+                {activeSpec.blocks.map((block, idx) => {
+                  const isOpen = expandedBlockIndex === idx;
+                  return (
+                    <div key={`${block.type}-${idx}`} className="rounded-xl border border-white/10 bg-black/25 overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => setExpandedBlockIndex(isOpen ? null : idx)}
+                        className="w-full flex items-center justify-between px-3 py-2 text-left"
+                      >
+                        <div className="text-sm text-gray-200">
+                          <span className="text-gray-400">{idx + 1}.</span> {block.type}
+                        </div>
+                        <span className="text-xs text-gray-500">{isOpen ? 'Collapse' : 'Expand'}</span>
+                      </button>
+                      {isOpen && (
+                        <div className="px-3 pb-3 space-y-3">
+                          <BlockPositionEditor
+                            block={block}
+                            onChange={nextBlock => {
+                              onSlotsConfigChange(
+                                updateSlotSpec(slotsConfig, activeSlot, prev => ({
+                                  ...updateBlock(prev, idx, () => nextBlock as any),
+                                }))
+                              );
+                            }}
+                          />
+                          <BlockEditor
+                            block={block}
+                            onChange={nextBlock => {
+                              onSlotsConfigChange(
+                                updateSlotSpec(slotsConfig, activeSlot, prev => updateBlock(prev, idx, () => nextBlock as any))
+                              );
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+      </section>
     </div>
   );
 }

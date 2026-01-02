@@ -40,7 +40,7 @@ import { promptEngine } from './src/lib/promptEngine';
 import { mapLifestyleToPromptOptions } from './src/lib/promptEngine/mapLifestyleToPromptOptions';
 import { mapProductModeToPromptOptions } from './src/lib/promptEngine/mapProductModeToPromptOptions';
 import LifestyleStep3, { type Step3Values } from "@/components/LifestyleStep3";
-import EcommerceStep3, { type EcommerceGenerationSettings } from '@/components/EcommerceStep3';
+import { type EcommerceGenerationSettings } from '@/components/EcommerceStep3';
 import type { EcommerceSlotKey, EcommerceSlotsConfig } from '@/lib/ecommerceOverlay/types';
 import { loadEcommerceSlotsConfig, saveEcommerceSlotsConfig } from '@/lib/ecommerceOverlay/storage';
 import { ECOMMERCE_SLOT_REQUIRED_BLANK_SPACE } from '@/lib/ecommerceOverlay/templates';
@@ -4521,6 +4521,10 @@ If the model attempts to create a scene or environment, override it and force a 
       setImageError('Select at least one Ecommerce slot before generating.');
       return;
     }
+    if (!lifestyleStep3Values) {
+      setImageError('Open Product Builder Step 3 and confirm your product settings before generating slots.');
+      return;
+    }
 
     const creditCost = getImageCreditCost(options);
     const projectedCost = creditCost * ecommerceSelectedSlots.length;
@@ -4539,25 +4543,19 @@ If the model attempts to create a scene or environment, override it and force a 
     try {
       const allowedProductCreationModes = new Set(['studio', 'aesthetic', 'bg-replace', 'ecom-blank']);
       const safeProductCreationMode =
-        options.creationMode && allowedProductCreationModes.has(String(options.creationMode)) ? options.creationMode : 'studio';
+        options.creationMode && allowedProductCreationModes.has(String(options.creationMode))
+          ? options.creationMode
+          : 'studio';
 
       const basePromptOptions: any = {
         ...options,
-        ugcStyle: 'optimized',
         contentStyle: 'product',
         creationIntent: 'product',
         sceneIntent: 'ecommerce',
+        ugcStyle: 'optimized',
         personIncluded: false,
         addHands: false,
-        creationMode: ecommerceGenerationSettings.reserveBlankSpace ? 'ecom-blank' : safeProductCreationMode,
-        ecommerceBlankSpaceMode: ecommerceGenerationSettings.reserveBlankSpace,
-        ecommerceSidePlacementFlag: ecommerceGenerationSettings.reserveBlankSpace,
-        cameraType:
-          options.cameraType &&
-          !String(options.cameraType).toLowerCase().includes('smartphone') &&
-          !String(options.cameraType).toLowerCase().includes('phone')
-            ? options.cameraType
-            : 'DSLR / mirrorless camera',
+        creationMode: safeProductCreationMode,
         compositionMode: undefined,
         compositionModeStructural: undefined,
         creationModeStructural: undefined,
@@ -4592,17 +4590,25 @@ If the model attempts to create a scene or environment, override it and force a 
           }
         })();
 
-        const promptOptions = {
-          ...basePromptOptions,
-          sidePlacement: slotBlankDir,
-          ecommerceSidePlacement: slotBlankDir,
+        const slotSceneState: Step3Values = {
+          ...lifestyleStep3Values,
+          sceneIntent: 'ecommerce',
+          noPerson: true,
+          ugcRealMode: false,
           ecommerceSidePlacementFlag: ecommerceGenerationSettings.reserveBlankSpace,
-          ecommerceBlankSpaceMode: ecommerceGenerationSettings.reserveBlankSpace,
-          perspective: framingPerspective,
-          lighting: ecommerceGenerationSettings.reserveBlankSpace
-            ? 'neutral studio lighting with clean highlights, controlled reflections, and a minimal contact shadow; no environment context'
-            : 'soft studio lighting with clean highlights, controlled reflections, and gentle realistic shadows; product-only composition',
+          sidePlacement: slotBlankDir as any,
         };
+
+        const promptOptions: any = mapProductModeToPromptOptions(slotSceneState, basePromptOptions);
+        promptOptions.perspective = framingPerspective;
+        promptOptions.sidePlacement = slotBlankDir;
+        promptOptions.ecommerceSidePlacement = slotBlankDir;
+        promptOptions.ecommerceSidePlacementFlag = ecommerceGenerationSettings.reserveBlankSpace;
+        promptOptions.ecommerceBlankSpaceMode = ecommerceGenerationSettings.reserveBlankSpace;
+        promptOptions.ugcStyle = 'optimized';
+        promptOptions.contentStyle = 'product';
+        promptOptions.creationIntent = 'product';
+        promptOptions.sceneIntent = 'ecommerce';
 
         const finalPrompt = promptEngine.build(promptOptions);
         console.log('[ECOM SLOT]', slotKey, { promptPreview: finalPrompt.slice(0, 240) });
@@ -4689,6 +4695,7 @@ If the model attempts to create a scene or environment, override it and force a 
     runHiResPipeline,
     setShowPlanModal,
     reportGalleryEntry,
+    lifestyleStep3Values,
   ]);
 
   const generateMockup = useCallback(
@@ -5462,7 +5469,11 @@ If the model attempts to create a scene or environment, override it and force a 
                         isGenerateDisabled={isGenerateDisabled}
                         generationRestriction={generationRestrictionMessage}
                         onValuesChange={handleLifestyleStep3Change}
-                        onGenerate={isProductPlacement ? handleGenerateEcommerceClick : handleGenerateClick}
+                        onGenerate={
+                          isProductPlacement && ecommerceSelectedSlots.length > 0
+                            ? handleGenerateEcommerceClick
+                            : handleGenerateClick
+                        }
                         hasModelReference={hasModelReference}
                         productCount={activeProducts.length}
                         hasFirstGenerationComplete={hasFirstGenerationComplete}
@@ -5602,27 +5613,28 @@ const SceneBuilderStep = forwardRef<HTMLDivElement, SceneBuilderStepProps>(({
     className={`bg-gray-800/50 rounded-lg flex flex-col overflow-hidden ${isLocked ? 'opacity-60 pointer-events-none' : ''}`}
   >
     <div className="flex-grow overflow-y-auto custom-scrollbar">
-      {isProductMode ? (
-        <EcommerceStep3
-          selectedSlots={ecommerceSelectedSlots}
-          onSelectedSlotsChange={onEcommerceSelectedSlotsChange}
-          slotsConfig={ecommerceSlotsConfig}
-          onSlotsConfigChange={onEcommerceSlotsConfigChange}
-          slotBaseImages={ecommerceSlotBaseImages}
-          settings={ecommerceGenerationSettings}
-          onSettingsChange={onEcommerceGenerationSettingsChange}
-        />
-      ) : (
-        <LifestyleStep3
-          isProductMode={false}
-          onValuesChange={onValuesChange}
-          onCanGenerateChange={(canGenerate) => {
-            // Add logic if needed
-          }}
-          hasModelReference={hasModelReference}
-          hasFirstGenerationComplete={hasFirstGenerationComplete}
-        />
-      )}
+      <LifestyleStep3
+        isProductMode={isProductMode}
+        onValuesChange={onValuesChange}
+        onCanGenerateChange={(canGenerate) => {
+          // Add logic if needed
+        }}
+        hasModelReference={hasModelReference}
+        hasFirstGenerationComplete={hasFirstGenerationComplete}
+        ecommerceOverlay={
+          isProductMode
+            ? {
+                selectedSlots: ecommerceSelectedSlots,
+                onSelectedSlotsChange: onEcommerceSelectedSlotsChange,
+                slotsConfig: ecommerceSlotsConfig,
+                onSlotsConfigChange: onEcommerceSlotsConfigChange,
+                slotBaseImages: ecommerceSlotBaseImages,
+                settings: ecommerceGenerationSettings,
+                onSettingsChange: onEcommerceGenerationSettingsChange,
+              }
+            : undefined
+        }
+      />
     </div>
     <div className="p-4 flex-shrink-0">
       <button

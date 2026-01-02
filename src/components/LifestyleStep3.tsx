@@ -11,6 +11,8 @@ import {
 } from '../../constants';
 import type { UGCCaptureSituationId } from '../lib/promptEngine/ugcCaptureSituation';
 import SmoothAccordion from './SmoothAccordion';
+import EcommerceStep3, { type EcommerceGenerationSettings } from './EcommerceStep3';
+import type { EcommerceSlotKey, EcommerceSlotsConfig } from '@/lib/ecommerceOverlay/types';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -100,6 +102,15 @@ interface LifestyleStep3Props {
   hasModelReference?: boolean;
   productCount?: number;
   hasFirstGenerationComplete?: boolean;
+  ecommerceOverlay?: {
+    selectedSlots: EcommerceSlotKey[];
+    onSelectedSlotsChange: (next: EcommerceSlotKey[]) => void;
+    slotsConfig: EcommerceSlotsConfig;
+    onSlotsConfigChange: (next: EcommerceSlotsConfig) => void;
+    slotBaseImages: Partial<Record<EcommerceSlotKey, string | null>>;
+    settings: EcommerceGenerationSettings;
+    onSettingsChange: (next: EcommerceGenerationSettings) => void;
+  };
 }
 
 export interface Step3Values {
@@ -612,6 +623,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   hasModelReference = false,
   productCount = 0,
   hasFirstGenerationComplete = false,
+  ecommerceOverlay,
 }: LifestyleStep3Props) => {
   const [isPro, setIsPro] = useState(false);
   const initialSceneIntent: Step3Values['sceneIntent'] = isProductMode ? 'ecommerce' : 'environment';
@@ -1699,16 +1711,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       ))}
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      <select
-                        value={values.ecommerceGradientAngle}
-                        onChange={(e) => { updateValue('ecommerceGradientAngle', e.target.value as any); markSectionTouched('ecommerce'); }}
-                        className="rounded-full bg-gray-800/60 px-3 py-1.5 text-sm text-gray-200 focus:outline-none"
-                      >
-                        {GRADIENT_ANGLE_OPTIONS.map(angle => (
-                          <option key={angle} value={angle}>{angle}°</option>
-                        ))}
-                      </select>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {GRADIENT_ANGLE_OPTIONS.map(angle => (
+                        <button
+                          key={angle}
+                          type="button"
+                          onClick={() => { updateValue('ecommerceGradientAngle', String(angle) as any); markSectionTouched('ecommerce'); }}
+                          className={getPillClass(String(values.ecommerceGradientAngle) === String(angle), true)}
+                        >
+                          {angle}°
+                        </button>
+                      ))}
                       <button
                         type="button"
                         onClick={invertGradient}
@@ -1730,6 +1743,25 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </>
                 )}
               </div>
+
+              {ecommerceOverlay && (
+                <div className="space-y-3 rounded-xl border border-white/10 bg-gradient-to-b from-gray-900/60 to-gray-900/30 p-4">
+                  <div className="space-y-1">
+                    <p className="text-xs uppercase tracking-widest text-indigo-300">Overlays</p>
+                    <p className="text-sm text-gray-300">Text + icons are rendered by the app (not the image model).</p>
+                  </div>
+                  <EcommerceStep3
+                    embedded
+                    selectedSlots={ecommerceOverlay.selectedSlots}
+                    onSelectedSlotsChange={ecommerceOverlay.onSelectedSlotsChange}
+                    slotsConfig={ecommerceOverlay.slotsConfig}
+                    onSlotsConfigChange={ecommerceOverlay.onSlotsConfigChange}
+                    slotBaseImages={ecommerceOverlay.slotBaseImages}
+                    settings={ecommerceOverlay.settings}
+                    onSettingsChange={ecommerceOverlay.onSettingsChange}
+                  />
+                </div>
+              )}
             </div>
           </SmoothAccordion>
         </>
