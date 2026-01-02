@@ -94,7 +94,9 @@ const pricing: PricingPlan[] = [
 const paymentMethods = ['Visa', 'Mastercard', 'American Express', 'Apple Pay', 'Google Pay'];
 
 const LandingPage: React.FC = () => {
-  const [activePreview, setActivePreview] = useState<'product' | 'ugc' | 'editorial'>('product');
+  const [activePreview, setActivePreview] = useState<
+    'product' | 'ugc' | 'editorial' | 'background' | 'aesthetic'
+  >('product');
   const [selectedPlan, setSelectedPlan] = useState<CheckoutPlan | null>(null);
   const [checkoutEmail, setCheckoutEmail] = useState('');
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
@@ -117,6 +119,18 @@ const LandingPage: React.FC = () => {
       id: 'editorial',
       title: 'Lifestyle (Editorial)',
       description: 'Curated, premium lifestyle visuals for brand storytelling and campaigns.',
+      image: '/images/home/Lifestyle-editorial.webp',
+    },
+    {
+      id: 'background',
+      title: 'Background Replace',
+      description: 'Replace backgrounds cleanly while preserving product details.',
+      image: '/images/home/Background-Replace.webp',
+    },
+    {
+      id: 'aesthetic',
+      title: 'Aesthetic Builder',
+      description: 'Create premium creative directions for ecommerce visuals.',
       image: '/images/home/Aesthetic-Builder.webp',
     },
   ] as const;
