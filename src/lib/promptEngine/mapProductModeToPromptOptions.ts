@@ -22,6 +22,15 @@ const clampHex = (value: string | undefined, fallback: string): string => {
     return /^#[0-9a-f]{6}$/i.test(normalized) ? normalized : fallback;
 };
 
+const sanitizeProductCopy = (value: string): string => {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    return raw
+        .replace(/\b(lifestyle|ugc|user-generated|selfie|phone|creator|person|people|human|identity|ethnicity|age|face)\b/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+};
+
 const mapProductCameraDistance = (
     distance?: Step3Values['productCameraDistance']
 ): NonNullable<PromptOptions['cameraDistance']> => {
@@ -244,6 +253,39 @@ export function mapProductModeToPromptOptions(
     (mapped as any).productPropDensity = sceneState.productPropDensity || 'None';
     (mapped as any).productPropsSelected = sceneState.productPropsSelected || [];
 
+    // Creativity + styling descriptors must be explicit so they change the output deterministically.
+    // Keep this product-safe (no UGC/lifestyle/selfie language).
+    const creativityLevel = String(sceneState.productCreativityLevel || 'Off').trim();
+    const creativeTheme = sanitizeProductCopy(String(sceneState.productCreativeTheme || '').trim());
+    const propDensity = sanitizeProductCopy(String(sceneState.productPropDensity || '').trim());
+    const paletteSource = sanitizeProductCopy(String(sceneState.productPaletteSource || '').trim());
+    const selectedProps = (sceneState.productPropsSelected || [])
+        .map(p => sanitizeProductCopy(String(p)))
+        .filter(Boolean)
+        .slice(0, 10);
+
+    if (!ecommerceCanvasActive) {
+        const creativityParts: string[] = [];
+        if (creativityLevel && creativityLevel !== 'Off') {
+            creativityParts.push(`Creativity level: ${creativityLevel}.`);
+        }
+        if (creativeTheme) {
+            creativityParts.push(`Creative theme: ${creativeTheme}.`);
+        }
+        if (paletteSource) {
+            creativityParts.push(`Palette: ${paletteSource}.`);
+        }
+        if (propDensity) {
+            creativityParts.push(`Prop density: ${propDensity}.`);
+        }
+        if (selectedProps.length) {
+            creativityParts.push(`Props: ${selectedProps.join(', ')}.`);
+        }
+        if (creativityParts.length) {
+            mapped.compositionModeStructural = creativityParts.join(' ');
+        }
+    }
+
     // Environment is allowed ONLY when the Ecommerce background canvas is disabled.
     // This lets Product Mode place the product into a real setting (no people) using existing environment/lighting controls.
     if (ecommerceCanvasActive) {
@@ -263,6 +305,10 @@ export function mapProductModeToPromptOptions(
     }
 
     mapped.placementStyle = undefined;
+    // Ensure pro camera selection cannot be overridden by leftover UI fields.
+    // `buildCamera()` prioritizes `cameraType` over `camera`, so we must clear it in Product Step 3.
+    delete (mapped as any).cameraType;
+    delete (mapped as any).placementCamera;
     mapped.personDetails = undefined;
     mapped.identityLock = undefined;
     mapped.personIdentity = undefined;

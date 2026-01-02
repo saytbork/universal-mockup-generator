@@ -1276,7 +1276,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-3">
                 <div className="space-y-2 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
                   <p className="text-xs uppercase tracking-wider text-indigo-200">PACKAGING</p>
                   <div className="flex gap-2">
@@ -1392,7 +1392,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
 
                 {values.productPaletteSource === 'Custom palette' && (
-                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="mt-3 space-y-3">
                     {(
                       [
                         { key: 'productPaletteA', label: 'COLOR A' },
@@ -1694,30 +1694,22 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     <p className="text-xs uppercase tracking-wider text-indigo-200">BACKGROUND CANVAS</p>
                     <p className="text-[11px] text-gray-400 mt-1">Neutral background + negative space (optional)</p>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        updateValue('ecommerceSidePlacementFlag', true);
-                        updateValue('compositionMode', 'Ecommerce Blank Space');
-                        markSectionTouched('ecommerce');
-                      }}
-                      className={getPillClass(values.ecommerceSidePlacementFlag === true, true)}
-                    >
-                      On
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        updateValue('ecommerceSidePlacementFlag', false);
-                        updateValue('compositionMode', '');
-                        markSectionTouched('ecommerce');
-                      }}
-                      className={getPillClass(values.ecommerceSidePlacementFlag !== true, true)}
-                    >
-                      Off
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={values.ecommerceSidePlacementFlag}
+                    onClick={() => {
+                      const next = !values.ecommerceSidePlacementFlag;
+                      updateValue('ecommerceSidePlacementFlag', next);
+                      updateValue('compositionMode', next ? 'Ecommerce Blank Space' : '');
+                      markSectionTouched('ecommerce');
+                    }}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900 ${values.ecommerceSidePlacementFlag ? 'bg-indigo-500' : 'bg-gray-600'}`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${values.ecommerceSidePlacementFlag ? 'translate-x-5' : 'translate-x-0'}`}
+                    />
+                  </button>
                 </div>
                 {values.ecommerceSidePlacementFlag !== true && (
                   <p className="text-[11px] text-gray-400">
