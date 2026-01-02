@@ -102,6 +102,7 @@ interface LifestyleStep3Props {
   hasModelReference?: boolean;
   productCount?: number;
   hasFirstGenerationComplete?: boolean;
+  embedded?: boolean;
   ecommerceOverlay?: {
     selectedSlots: EcommerceSlotKey[];
     onSelectedSlotsChange: (next: EcommerceSlotKey[]) => void;
@@ -623,6 +624,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   hasModelReference = false,
   productCount = 0,
   hasFirstGenerationComplete = false,
+  embedded = false,
   ecommerceOverlay,
 }: LifestyleStep3Props) => {
   const [isPro, setIsPro] = useState(false);
@@ -1217,17 +1219,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     }
   }, [values.ugcRealMode, values.formulationStoryEnabled, updateValue]);
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-4 p-4">
-      {/* Header */}
-      <div className="flex flex-col gap-1">
-        <p className="text-xs uppercase tracking-widest text-indigo-300">Step 3</p>
-        <h2 className="text-2xl font-bold text-gray-200">{isEcommerceMode ? 'Product Builder' : 'Scene Builder'}</h2>
-        <p className="text-sm text-gray-400">
-          {isEcommerceMode
-            ? 'Product-only ecommerce controls: pro camera, controlled background, and layout-safe composition.'
-            : 'Define how the scene looks, feels, and behaves visually.'}
-        </p>
-      </div>
+    <div className={embedded ? 'w-full space-y-4' : 'w-full max-w-2xl mx-auto space-y-4 p-4'}>
+      {!embedded && (
+        <div className="flex flex-col gap-1">
+          <p className="text-xs uppercase tracking-widest text-indigo-300">Step 3</p>
+          <h2 className="text-2xl font-bold text-gray-200">{isEcommerceMode ? 'Product Builder' : 'Scene Builder'}</h2>
+          <p className="text-sm text-gray-400">
+            {isEcommerceMode
+              ? 'Product-only ecommerce controls: pro camera, controlled background, and layout-safe composition.'
+              : 'Define how the scene looks, feels, and behaves visually.'}
+          </p>
+        </div>
+      )}
 
       {isEcommerceMode && (
         <>

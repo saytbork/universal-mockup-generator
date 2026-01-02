@@ -7,17 +7,18 @@ const SiteFooter: React.FC = () => {
     <footer className="bg-gray-950 border-t border-white/10 text-gray-300">
       <div className="max-w-6xl mx-auto px-6 py-12 space-y-8">
         <div className="space-y-2">
-          <p className="text-xl font-semibold text-white">The fastest AI generator for product mockups & lifestyle UGC.</p>
+          <p className="text-xl font-semibold text-white">Perfect Mockup</p>
+          <p className="text-sm text-gray-400 max-w-3xl">
+            Perfect Mockup helps ecommerce brands create product mockups, lifestyle visuals and UGC-style content without photoshoots. Designed for product pages, ads, social media and launches.
+          </p>
         </div>
         <div className="grid gap-8 md:grid-cols-3 text-sm">
           <div className="space-y-2">
             <p className="text-white font-semibold">Product</p>
             <ul className="space-y-1">
-              <li><Link to="/" className="hover:text-white">Generate UGC</Link></li>
-              <li><a className="hover:text-white" href="#">Lifestyle Mode</a></li>
-              <li><a className="hover:text-white" href="#">Studio Mode</a></li>
-              <li><a className="hover:text-white" href="#">Aesthetic Mode</a></li>
-              <li><a className="hover:text-white" href="#">Background Replace</a></li>
+              <li><Link to="/app" className="hover:text-white">Start creating</Link></li>
+              <li><Link to="/" className="hover:text-white">Home</Link></li>
+              <li><Link to="/pricing" className="hover:text-white">Pricing</Link></li>
             </ul>
           </div>
           <div className="space-y-2">
@@ -33,8 +34,6 @@ const SiteFooter: React.FC = () => {
           <div className="space-y-2">
             <p className="text-white font-semibold">Company</p>
             <ul className="space-y-1">
-              <li><a className="hover:text-white" href="#">About</a></li>
-              <li><a className="hover:text-white" href="#">Affiliates</a></li>
               <li><Link to="/terms" className="hover:text-white">Terms</Link></li>
               <li><Link to="/privacy" className="hover:text-white">Privacy Policy</Link></li>
               <li><a className="hover:text-white" href="mailto:support@boostugc.app">support@boostugc.app</a></li>
@@ -42,7 +41,7 @@ const SiteFooter: React.FC = () => {
           </div>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-4 text-xs text-gray-500">
-          <p>© 2025 BoostUGC. All rights reserved.</p>
+          <p>© 2025 Perfect Mockup. All rights reserved.</p>
           <div className="flex items-center gap-3 text-gray-400">
             <a href="#" aria-label="Instagram" className="hover:text-white"><Instagram className="w-4 h-4" /></a>
             <a href="#" aria-label="Twitter" className="hover:text-white"><Twitter className="w-4 h-4" /></a>
