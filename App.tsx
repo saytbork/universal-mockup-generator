@@ -5173,7 +5173,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
       <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto relative">
-          <header className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <header className="relative mb-10 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div className="text-center lg:text-left">
               <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500">
                 Perfect Mockup
@@ -5184,8 +5184,24 @@ If the model attempts to create a scene or environment, override it and force a 
             </div>
 
             <div className="flex items-center justify-center lg:justify-end gap-3">
-              <div className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-xs text-gray-300">
-                <span className="text-gray-400">Current Mode:</span> <span className="text-white">{modeLabel}</span>
+              <div className="hidden lg:flex lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:top-2 lg:flex-col lg:items-center lg:gap-3">
+                <p className="text-[11px] uppercase tracking-[0.45em] text-indigo-200/80">Select Mode</p>
+                <div className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-black/30 p-1">
+                  <button
+                    type="button"
+                    onClick={() => handleOptionChange('contentStyle', 'ugc', 'Mode')}
+                    className={`rounded-full px-6 py-2 text-xs font-semibold tracking-wide transition ${!isProductPlacement ? 'bg-white text-black' : 'text-white/70 hover:text-white'}`}
+                  >
+                    Lifestyle
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleOptionChange('contentStyle', 'product', 'Mode')}
+                    className={`rounded-full px-6 py-2 text-xs font-semibold tracking-wide transition ${isProductPlacement ? 'bg-white text-black' : 'text-white/70 hover:text-white'}`}
+                  >
+                    Product (Studio)
+                  </button>
+                </div>
               </div>
               <button
                 type="button"
@@ -5286,33 +5302,11 @@ If the model attempts to create a scene or environment, override it and force a 
                   >
                     <div className="flex flex-col gap-3">
                       <div className="flex flex-col gap-1">
-                        <p className="text-xs uppercase tracking-widest text-indigo-300">Select Mode</p>
-                        <h2 className="text-2xl font-bold text-gray-200">{isProductPlacement ? 'Product Studio' : 'Lifestyle Mockups'}</h2>
-                        <p className="text-sm text-gray-400">
-                          {isProductPlacement
-                            ? 'Pixel-perfect product visuals for ecommerce, ads, and PDPs.'
-                            : 'Place your product in authentic or editorial environments without photoshoots.'}
-                        </p>
-                      </div>
-                      <div className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-black/20 p-1 w-fit">
-                        <button
-                          type="button"
-                          onClick={() => handleOptionChange('contentStyle', 'product', 'Mode')}
-                          className={`rounded-full px-4 py-2 text-xs font-semibold tracking-wide transition ${isProductPlacement ? 'bg-white text-black' : 'text-white/70 hover:text-white'}`}
-                        >
-                          Product (Studio)
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleOptionChange('contentStyle', 'ugc', 'Mode')}
-                          className={`rounded-full px-4 py-2 text-xs font-semibold tracking-wide transition ${!isProductPlacement ? 'bg-white text-black' : 'text-white/70 hover:text-white'}`}
-                        >
-                          Lifestyle
-                        </button>
-                      </div>
-                      <div className="flex flex-col gap-1 pt-2">
                         <p className="text-xs uppercase tracking-widest text-indigo-300">Step 1 · Assets</p>
-                        <p className="text-sm text-gray-400">Upload your product image and manage your product gallery.</p>
+                        <h2 className="text-2xl font-bold text-gray-200">Source Product</h2>
+                        <p className="text-sm text-gray-400">
+                          Upload your product image and manage your product gallery.
+                        </p>
                       </div>
                     </div>
 
