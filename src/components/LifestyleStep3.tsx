@@ -1626,7 +1626,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   <p className="text-[11px] text-gray-400 mt-1">Choose a setting to match lighting + surfaces</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {ENVIRONMENT_OPTIONS.map(option => (
+                  {[...ENVIRONMENT_INDOOR, ...ENVIRONMENT_OUTDOOR].map(option => (
                     <button
                       key={option.value}
                       type="button"
