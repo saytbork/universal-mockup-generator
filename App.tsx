@@ -5614,6 +5614,7 @@ const SceneBuilderStep = forwardRef<HTMLDivElement, SceneBuilderStepProps>(({
   >
     <div className="flex-grow overflow-y-auto custom-scrollbar">
       <LifestyleStep3
+        key={isProductMode ? 'product-step3' : 'ugc-step3'}
         isProductMode={isProductMode}
         onValuesChange={onValuesChange}
         onCanGenerateChange={(canGenerate) => {

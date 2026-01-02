@@ -297,9 +297,11 @@ export class SceneNarrativeBuilder {
             options.sceneIntent === 'ecommerce';
 
         const isEcommerceBlankSpaceMode =
-            options.ecommerceBlankSpaceMode ||
-            options.sceneIntent === 'ecommerce' ||
-            options.creationMode === 'ecom-blank';
+            Boolean(
+                options.ecommerceBlankSpaceMode ||
+                    options.creationMode === 'ecom-blank' ||
+                    options.compositionMode === 'Ecommerce Blank Space'
+            );
 
         const isEcommerceCanvasOverlay =
             options.creationMode === 'bg-replace' && options.ecommerceSidePlacementFlag === true;
@@ -352,10 +354,20 @@ export class SceneNarrativeBuilder {
         const cameraDeviceSemantic = (options as any).cameraDeviceSemantic || '';
 
         const environmentPhrase = formatEnvironmentPhrase(environmentText);
+        const backgroundLine =
+            isProductMode && !options.ecommerceBlankSpaceMode
+                ? options.bgGradient
+                    ? `Background: gradient ${options.bgGradient.angle ?? 90}° from ${options.bgGradient.startColor} to ${options.bgGradient.endColor}.`
+                    : options.bgColor
+                      ? `Background: solid ${options.bgColor}.`
+                      : ''
+                : '';
+
         const narrativeParts = [
             creationModeStructural ? `Creation: ${creationModeStructural}.` : '',
             compositionModeStructural ? `Composition: ${compositionModeStructural}.` : '',
             cameraDeviceSemantic ? `Camera: ${cameraDeviceSemantic}.` : '',
+            backgroundLine,
             environmentPhrase ? `Environment: ${environmentPhrase}.` : '',
             options.sceneOrderChaosDescriptor ? `Scene order: ${options.sceneOrderChaosDescriptor}.` : '',
             lightingText ? `Lighting: ${lightingText}.` : ''

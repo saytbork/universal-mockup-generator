@@ -251,10 +251,10 @@ export default function EcommerceStep3({
           <div className="space-y-5">
             <div className="space-y-3">
               <p className="text-xs uppercase tracking-[0.35em] text-gray-400">Global Style</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <p className="text-[11px] text-gray-400">Font</p>
-                  <div className="flex flex-wrap gap-2">
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <p className="text-[11px] text-gray-400">Font</p>
+                    <div className="flex flex-wrap gap-2">
                     {(
                       [
                         {
@@ -282,10 +282,10 @@ export default function EcommerceStep3({
                       >
                         {font.label}
                       </Chip>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-                <LabeledInput
+                  <LabeledInput
                   label="Text color"
                   value={activeSpec.globalStyle.textColor}
                   onChange={value => {
@@ -309,11 +309,11 @@ export default function EcommerceStep3({
                       }))
                     );
                   }}
-                  placeholder="#8B5CF6"
-                />
-                <LabeledNumber
-                  label="Heading weight"
-                  value={activeSpec.globalStyle.headingWeight}
+                    placeholder="#8B5CF6"
+                  />
+                  <LabeledNumber
+                    label="Heading weight"
+                    value={activeSpec.globalStyle.headingWeight}
                   onChange={value =>
                     onSlotsConfigChange(
                       updateSlotSpec(slotsConfig, activeSlot, prev => ({
@@ -323,12 +323,12 @@ export default function EcommerceStep3({
                     )
                   }
                   min={100}
-                  max={900}
-                  step={50}
-                />
-                <LabeledNumber
-                  label="Body weight"
-                  value={activeSpec.globalStyle.bodyWeight}
+                    max={900}
+                    step={50}
+                  />
+                  <LabeledNumber
+                    label="Body weight"
+                    value={activeSpec.globalStyle.bodyWeight}
                   onChange={value =>
                     onSlotsConfigChange(
                       updateSlotSpec(slotsConfig, activeSlot, prev => ({
@@ -338,12 +338,12 @@ export default function EcommerceStep3({
                     )
                   }
                   min={100}
-                  max={900}
-                  step={50}
-                />
-                <LabeledNumber
-                  label="Radius"
-                  value={activeSpec.globalStyle.radius}
+                    max={900}
+                    step={50}
+                  />
+                  <LabeledNumber
+                    label="Radius"
+                    value={activeSpec.globalStyle.radius}
                   onChange={value =>
                     onSlotsConfigChange(
                       updateSlotSpec(slotsConfig, activeSlot, prev => ({
@@ -353,12 +353,12 @@ export default function EcommerceStep3({
                     )
                   }
                   min={0}
-                  max={40}
-                  step={1}
-                />
-                <LabeledNumber
-                  label="Base scale"
-                  value={activeSpec.globalStyle.baseScale}
+                    max={40}
+                    step={1}
+                  />
+                  <LabeledNumber
+                    label="Base scale"
+                    value={activeSpec.globalStyle.baseScale}
                   onChange={value =>
                     onSlotsConfigChange(
                       updateSlotSpec(slotsConfig, activeSlot, prev => ({
@@ -368,10 +368,10 @@ export default function EcommerceStep3({
                     )
                   }
                   min={0.6}
-                  max={2}
-                  step={0.05}
-                />
-              </div>
+                    max={2}
+                    step={0.05}
+                  />
+                </div>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-xs text-gray-400">Card background:</span>
                 {(['glass', 'solid', 'none'] as const).map(mode => (
@@ -453,7 +453,7 @@ function BlockPositionEditor({
 }) {
   const width = (block as any).width ?? 0.5;
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="space-y-2">
       <LabeledNumber
         label="X (%)"
         value={Math.round(clamp01(block.position.x) * 100)}
@@ -540,7 +540,7 @@ function HeadlineEditor({ block, onChange }: { block: HeadlineBlock; onChange: (
 function BulletsEditor({ block, onChange }: { block: BulletsBlock; onChange: (next: BulletsBlock) => void }) {
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-2">
+      <div className="space-y-2">
         <LabeledNumber
           label="Font size"
           value={block.fontSize}
@@ -592,7 +592,7 @@ function BulletsEditor({ block, onChange }: { block: BulletsBlock; onChange: (ne
           </button>
         </div>
         {block.items.map((item, idx) => (
-          <div key={idx} className="grid grid-cols-5 gap-2">
+          <div key={idx} className="space-y-2">
             <LabeledInput
               label={idx === 0 ? 'Icon' : undefined}
               value={item.iconName}
@@ -602,17 +602,15 @@ function BulletsEditor({ block, onChange }: { block: BulletsBlock; onChange: (ne
                 onChange({ ...block, items: next });
               }}
             />
-            <div className="col-span-4">
-              <LabeledInput
-                label={idx === 0 ? 'Text' : undefined}
-                value={item.text}
-                onChange={value => {
-                  const next = block.items.slice();
-                  next[idx] = { ...item, text: value };
-                  onChange({ ...block, items: next });
-                }}
-              />
-            </div>
+            <LabeledInput
+              label={idx === 0 ? 'Text' : undefined}
+              value={item.text}
+              onChange={value => {
+                const next = block.items.slice();
+                next[idx] = { ...item, text: value };
+                onChange({ ...block, items: next });
+              }}
+            />
           </div>
         ))}
       </div>
@@ -631,7 +629,7 @@ function StepsEditor({ block, onChange }: { block: StepsBlock; onChange: (next: 
           </Chip>
         ))}
       </div>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="space-y-2">
         <LabeledNumber
           label="Heading size"
           value={block.headingSize}
@@ -649,7 +647,7 @@ function StepsEditor({ block, onChange }: { block: StepsBlock; onChange: (next: 
           step={1}
         />
       </div>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="space-y-2">
         <LabeledNumber
           label="Icon size"
           value={block.iconSize}
@@ -686,7 +684,7 @@ function StepsEditor({ block, onChange }: { block: StepsBlock; onChange: (next: 
         </div>
         {block.steps.map((step, idx) => (
           <div key={idx} className="rounded-lg border border-white/10 bg-black/20 p-2 space-y-2">
-            <div className="grid grid-cols-5 gap-2">
+            <div className="space-y-2">
               <LabeledInput
                 label={idx === 0 ? 'Icon' : undefined}
                 value={step.iconName}
@@ -696,17 +694,15 @@ function StepsEditor({ block, onChange }: { block: StepsBlock; onChange: (next: 
                   onChange({ ...block, steps: next });
                 }}
               />
-              <div className="col-span-4">
-                <LabeledInput
-                  label={idx === 0 ? 'Title' : undefined}
-                  value={step.title}
-                  onChange={value => {
-                    const next = block.steps.slice();
-                    next[idx] = { ...step, title: value };
-                    onChange({ ...block, steps: next });
-                  }}
-                />
-              </div>
+              <LabeledInput
+                label={idx === 0 ? 'Title' : undefined}
+                value={step.title}
+                onChange={value => {
+                  const next = block.steps.slice();
+                  next[idx] = { ...step, title: value };
+                  onChange({ ...block, steps: next });
+                }}
+              />
             </div>
             <LabeledInput
               label="Body"
@@ -735,7 +731,7 @@ function TestimonialsEditor({ block, onChange }: { block: TestimonialBlock; onCh
           Avatar: Off
         </Chip>
       </div>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="space-y-2">
         <LabeledNumber
           label="Quote size"
           value={block.quoteSize}
@@ -753,7 +749,7 @@ function TestimonialsEditor({ block, onChange }: { block: TestimonialBlock; onCh
           step={1}
         />
       </div>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="space-y-2">
         <LabeledNumber label="Stars" value={block.stars} onChange={value => onChange({ ...block, stars: value as any })} min={1} max={5} step={1} />
         <LabeledNumber label="Gap" value={block.gap} onChange={value => onChange({ ...block, gap: value })} min={8} max={28} step={1} />
       </div>
@@ -808,17 +804,15 @@ function BadgeEditor({ block, onChange }: { block: BadgeBlock; onChange: (next: 
     <div className="space-y-3">
       <LabeledInput label="Text" value={block.text} onChange={value => onChange({ ...block, text: value })} />
       <LabeledInput label="Color" value={block.color} onChange={value => onChange({ ...block, color: value })} placeholder="#8B5CF6" />
-      <div className="grid grid-cols-2 gap-2">
-        <LabeledNumber label="Size" value={block.size} onChange={value => onChange({ ...block, size: value })} min={10} max={40} step={1} />
-        <div className="space-y-1">
-          <p className="text-[11px] text-gray-400">Style</p>
-          <div className="flex flex-wrap gap-2">
-            {(['pill', 'seal', 'tag'] as const).map(kind => (
-              <Chip key={kind} selected={block.badgeStyle === kind} onClick={() => onChange({ ...block, badgeStyle: kind })}>
-                {kind}
-              </Chip>
-            ))}
-          </div>
+      <LabeledNumber label="Size" value={block.size} onChange={value => onChange({ ...block, size: value })} min={10} max={40} step={1} />
+      <div className="space-y-1">
+        <p className="text-[11px] text-gray-400">Style</p>
+        <div className="flex flex-wrap gap-2">
+          {(['pill', 'seal', 'tag'] as const).map(kind => (
+            <Chip key={kind} selected={block.badgeStyle === kind} onClick={() => onChange({ ...block, badgeStyle: kind })}>
+              {kind}
+            </Chip>
+          ))}
         </div>
       </div>
     </div>

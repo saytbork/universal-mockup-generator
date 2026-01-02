@@ -216,17 +216,22 @@ export function mapProductModeToPromptOptions(
     }
     mapped.perspective = framing.perspective as any;
 
-    // Background (solid or gradient) controlled only by Ecommerce Image Builder inputs
-    if (sceneState.ecommerceBackgroundMode === 'gradient') {
-        const angle = parseInt(sceneState.ecommerceGradientAngle || '90', 10) || 90;
-        mapped.bgGradient = {
-            startColor: clampHex(sceneState.ecommerceGradientStart, '#f7f7f7'),
-            endColor: clampHex(sceneState.ecommerceGradientEnd, '#d9d9d9'),
-            angle
-        };
-        delete mapped.bgColor;
+    // Background (solid or gradient) should only be injected when the Ecommerce background canvas toggle is enabled.
+    if (ecommerceCanvasActive) {
+        if (sceneState.ecommerceBackgroundMode === 'gradient') {
+            const angle = parseInt(sceneState.ecommerceGradientAngle || '90', 10) || 90;
+            mapped.bgGradient = {
+                startColor: clampHex(sceneState.ecommerceGradientStart, '#f7f7f7'),
+                endColor: clampHex(sceneState.ecommerceGradientEnd, '#d9d9d9'),
+                angle
+            };
+            delete mapped.bgColor;
+        } else {
+            mapped.bgColor = clampHex(sceneState.ecommerceBackgroundColor, '#ffffff').toUpperCase();
+            delete mapped.bgGradient;
+        }
     } else {
-        mapped.bgColor = clampHex(sceneState.ecommerceBackgroundColor, '#ffffff').toUpperCase();
+        delete mapped.bgColor;
         delete mapped.bgGradient;
     }
 
@@ -239,10 +244,24 @@ export function mapProductModeToPromptOptions(
     (mapped as any).productPropDensity = sceneState.productPropDensity || 'None';
     (mapped as any).productPropsSelected = sceneState.productPropsSelected || [];
 
-    // Clear environment/lifestyle metadata (product mode does not use environments)
-    mapped.setting = '';
-    mapped.microLocation = '';
-    mapped.environmentOrder = '';
+    // Environment is allowed ONLY when the Ecommerce background canvas is disabled.
+    // This lets Product Mode place the product into a real setting (no people) using existing environment/lighting controls.
+    if (ecommerceCanvasActive) {
+        mapped.setting = '';
+        mapped.environmentOrder = '';
+        mapped.microLocation = '';
+        delete (mapped as any).customEnvironment;
+    } else {
+        const resolvedEnvironment = (sceneState.customEnvironment || '').trim() || (sceneState.environment || '').trim();
+        if (resolvedEnvironment) {
+            mapped.setting = resolvedEnvironment;
+        }
+        const resolvedLighting = (sceneState.lightingStyle || '').trim();
+        if (resolvedLighting) {
+            mapped.lighting = resolvedLighting;
+        }
+    }
+
     mapped.placementStyle = undefined;
     mapped.personDetails = undefined;
     mapped.identityLock = undefined;
@@ -263,6 +282,9 @@ export function mapProductModeToPromptOptions(
     mapped.selfieMode = undefined;
     mapped.selfieType = 'None';
     mapped.ugcRealModeActive = false;
+    // Remove any raw UGC flags that downstream mappers/builders use (prevents "phone" degradation).
+    delete (mapped as any).ugcRealMode;
+    delete (mapped as any).ugcMode;
     mapped.ugcRealModeLayers = undefined;
     mapped.ugcCaptureStyleBase = undefined;
     mapped.ugcCameraOperator = undefined;

@@ -1606,6 +1606,80 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           </SmoothAccordion>
 
           <SmoothAccordion
+            icon={Home}
+            title="Environment"
+            tooltip="Place the product into a real setting (product-only)"
+            isOpen={openAccordionId === 'product-environment'}
+            onToggle={() => toggleSection('product-environment')}
+            isTouched={touchedSections.has('product-environment')}
+          >
+            <div className="space-y-4">
+              {values.ecommerceSidePlacementFlag === true && (
+                <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-amber-100 text-sm">
+                  Environment is disabled while Background Canvas is On (neutral background mode).
+                </div>
+              )}
+
+              <div className={`space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20 ${values.ecommerceSidePlacementFlag ? 'opacity-50 pointer-events-none' : ''}`}>
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-indigo-200">ENVIRONMENT</p>
+                  <p className="text-[11px] text-gray-400 mt-1">Choose a setting to match lighting + surfaces</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {ENVIRONMENT_OPTIONS.map(option => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        updateValue('environment', option.value);
+                        updateValue('customEnvironment', '');
+                        markSectionTouched('product-environment');
+                      }}
+                      className={getPillClass(values.environment === option.value && !values.customEnvironment, true)}
+                    >
+                      {option.value}
+                    </button>
+                  ))}
+                </div>
+                <label className="block space-y-1">
+                  <p className="text-[11px] uppercase tracking-wide text-gray-400">Custom environment</p>
+                  <input
+                    value={values.customEnvironment || ''}
+                    onChange={(e) => {
+                      updateValue('customEnvironment', e.target.value);
+                      markSectionTouched('product-environment');
+                    }}
+                    placeholder="e.g. modern kitchen countertop"
+                    className="w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white placeholder:text-gray-600 focus:border-indigo-400 focus:outline-none"
+                  />
+                </label>
+              </div>
+
+              <div className={`space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20 ${values.ecommerceSidePlacementFlag ? 'opacity-50 pointer-events-none' : ''}`}>
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-indigo-200">LIGHTING</p>
+                  <p className="text-[11px] text-gray-400 mt-1">Product-safe lighting style</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {LIGHTING_OPTIONS.map(option => (
+                    <button
+                      key={option.label}
+                      type="button"
+                      onClick={() => {
+                        updateValue('lightingStyle', option.value);
+                        markSectionTouched('product-environment');
+                      }}
+                      className={getPillClass(values.lightingStyle === option.value, true)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </SmoothAccordion>
+
+          <SmoothAccordion
             icon={Building2}
             title="Ecommerce Image Builder"
             tooltip="Neutral background + subject placement"
