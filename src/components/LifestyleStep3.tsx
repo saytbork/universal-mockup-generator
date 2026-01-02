@@ -2678,7 +2678,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
       <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
         <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Hero personas</p>
-        <div className="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
+        <div className="flex flex-col gap-2">
           {[
             { label: 'The Busy Mom', semantic: 'busy mom managing household, natural home environment, multitasking moment, authentic daily routine' },
             { label: 'The Fitness Enthusiast', semantic: 'fitness-focused adult after workout, casual activewear, natural indoor or outdoor setting' },

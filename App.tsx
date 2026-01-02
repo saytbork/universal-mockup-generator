@@ -5295,7 +5295,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
             <fieldset className="contents">
               <div className="grid gap-6 w-full grid-cols-1 lg:grid-cols-[420px_minmax(620px,1fr)] items-start">
-                <div className="flex flex-col gap-6 lg:max-h-[calc(100vh-230px)] lg:overflow-y-auto lg:pr-2 custom-scrollbar">
+                <div className="flex flex-col gap-6">
                   <div
                     ref={intentRef}
                     className="bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-3 overflow-hidden"
