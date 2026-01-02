@@ -1263,11 +1263,11 @@ const App: React.FC = () => {
   const currentPlan = PLAN_CONFIG[planTier];
   const modeLabel = isProductPlacement ? 'Product (Studio)' : 'Lifestyle';
   const hasWatermark = isFreeUser;
-  const hasVideoExports = planVideoLimit > 0;
   const shouldRequireLogin = !isLoggedIn;
   const loginGateActive = shouldRequireLogin;
   const planCreditLimit = isGuest ? 2 : currentPlan.creditLimit;
   const planVideoLimit = Math.floor(planCreditLimit / VIDEO_CREDIT_COST);
+  const hasVideoExports = planVideoLimit > 0;
   const canUseStudioFeatures = currentPlan.allowStudio || isTrialBypassActive;
   const canUseCaptionAssistant = false;
   const remainingCredits = Math.max(planCreditLimit - creditUsage, 0);
