@@ -1243,6 +1243,7 @@ const App: React.FC = () => {
   const contentStyleValue = hasSelectedIntent ? options.contentStyle : CONTENT_STYLE_OPTIONS[0].value;
   const isProductPlacement = contentStyleValue === 'product';
   const [lifestyleTone, setLifestyleTone] = useState<'ugc' | 'editorial'>('ugc');
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const hasModelReference = Boolean(modelReferenceFile || personIdentityPackage.modelReferenceBase64);
   useEffect(() => {
     if (!hasModelReference) {
@@ -1260,6 +1261,9 @@ const App: React.FC = () => {
   const microLocationDefault = MICRO_LOCATION_NONE_VALUE;
   const isHeroLandingMode = activeSupplementPreset === HERO_LANDING_PRESET_VALUE;
   const currentPlan = PLAN_CONFIG[planTier];
+  const modeLabel = isProductPlacement ? 'Product (Studio)' : 'Lifestyle';
+  const hasWatermark = isFreeUser;
+  const hasVideoExports = planVideoLimit > 0;
   const shouldRequireLogin = !isLoggedIn;
   const loginGateActive = shouldRequireLogin;
   const planCreditLimit = isGuest ? 2 : currentPlan.creditLimit;
@@ -1742,7 +1746,7 @@ const App: React.FC = () => {
     }
     const resolvedKey = apiKey || envApiKey;
     if (!resolvedKey) {
-      notify('Please configure your Gemini API key to continue.');
+      notify('Please add your access key to continue.');
       requireNewApiKey();
       return null;
     }
@@ -1752,7 +1756,7 @@ const App: React.FC = () => {
   const toggleSimpleMode = useCallback(() => {
     setIsSimpleMode(prev => {
       if (prev && !canUseStudioFeatures) {
-        setPlanNotice('Upgrade to Creator or Studio to unlock Studio Mode.');
+        setPlanNotice('Upgrade your plan to unlock advanced controls.');
         setShowPlanModal(true);
         return prev;
       }
@@ -5172,110 +5176,25 @@ If the model attempts to create a scene or environment, override it and force a 
           <header className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div className="text-center lg:text-left">
               <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500">
-                Universal AI Mockup Generator
+                Perfect Mockup
               </h1>
               <p className="mt-2 text-base sm:text-lg text-gray-400">
-                {isProductPlacement
-                  ? 'Studio product mockups with zero humans and zero narrative.'
-                  : 'Lifestyle simulations with creator realism and controlled composition.'}
+                Create flawless product visuals. Instantly.
               </p>
-              <div className="mt-4 flex flex-wrap items-center justify-center lg:justify-start gap-3 text-xs text-gray-400">
-                <span className="rounded-full border border-white/20 px-3 py-1 text-white/90">
-                  Plan: {currentPlan.label} {currentPlan.priceLabel ? `· ${currentPlan.priceLabel}` : ''}
-                </span>
-                <span>
-                  {remainingCredits} credits left
-                  {planVideoLimit > 0 ? ` · ${Math.max(remainingVideos, 0)} video credits left` : ''}
-                  {isTrialBypassActive ? ' · Admin bypass active' : ''}
-                </span>
-                <button
-                  onClick={() => {
-                    setPlanNotice(null);
-                    setShowPlanModal(true);
-                  }}
-                  className="inline-flex items-center justify-center rounded-full border border-white/20 px-4 py-2 text-white/80 hover:border-indigo-400 hover:text-white transition"
-                >
-                  Manage plan
-                </button>
-              </div>
-              {planNotice && <p className="mt-2 text-xs text-rose-300">{planNotice}</p>}
-              <div className="mt-4 flex flex-wrap items-center justify-center lg:justify-start gap-3">
-              {isKeySelected && isUsingStoredKey && (
-                <button
-                  onClick={handleApiKeyInvalid}
-                  className="inline-flex items-center justify-center rounded-lg border border-gray-600 px-4 py-2 text-sm font-semibold text-gray-200 hover:bg-gray-800 transition"
-                >
-                  Change API Key
-                </button>
-              )}
-              {!shouldRequireLogin && !isLoggedIn && (
-                <button
-                  onClick={() => signInWithGoogle()}
-                  className="inline-flex items-center justify-center rounded-lg border border-indigo-500/60 px-4 py-2 text-sm font-semibold text-indigo-200 hover:bg-indigo-500/10 transition"
-                >
-                  Sign in
-                </button>
-              )}
-                {/* Hide Replay guided tour until onboarding flow is revamped */}
-              </div>
             </div>
 
-            <div className="flex items-center justify-center lg:justify-end">
-              <div className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-black/20 p-1">
-                <button
-                  type="button"
-                  onClick={() => handleOptionChange('contentStyle', 'ugc', 'Mode')}
-                  className={`rounded-full px-4 py-2 text-xs font-semibold tracking-wide transition ${!isProductPlacement ? 'bg-white text-black' : 'text-white/70 hover:text-white'}`}
-                >
-                  Lifestyle
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleOptionChange('contentStyle', 'product', 'Mode')}
-                  className={`rounded-full px-4 py-2 text-xs font-semibold tracking-wide transition ${isProductPlacement ? 'bg-white text-black' : 'text-white/70 hover:text-white'}`}
-                >
-                  Product (Studio)
-                </button>
+            <div className="flex items-center justify-center lg:justify-end gap-3">
+              <div className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-xs text-gray-300">
+                <span className="text-gray-400">Current Mode:</span> <span className="text-white">{modeLabel}</span>
               </div>
-            </div>
-            {isLoggedIn && (
-              <>
-                <div className="mt-4 flex flex-col sm:flex-row gap-3 items-center justify-center text-sm text-gray-400">
-                  <span>Signed in as {userEmail}</span>
-                  <button
-                    onClick={handleLogout}
-                    className="inline-flex items-center justify-center rounded-full border border-gray-600 px-3 py-1 font-semibold text-gray-200 hover:bg-gray-800 transition"
-                  >
-                    Switch account
-                  </button>
-                </div>
-                <p className="mt-2 text-xs text-gray-400">{currentPlan.description}</p>
-              </>
-            )}
-            <div className="mt-6 flex items-center justify-center gap-4 text-xs text-gray-400">
-              <span className={isSimpleMode ? 'text-white' : ''}>Simple Mode</span>
-              <label
-                className={`relative inline-flex cursor-pointer items-center ${!canUseStudioFeatures ? 'opacity-40 cursor-not-allowed' : ''}`}
+              <button
+                type="button"
+                onClick={() => setIsAccountMenuOpen(open => !open)}
+                className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold text-white/90 hover:border-indigo-400 hover:text-white transition"
               >
-                <input
-                  type="checkbox"
-                  className="sr-only"
-                  checked={!isSimpleMode}
-                  onChange={toggleSimpleMode}
-                  disabled={!canUseStudioFeatures}
-                  aria-label="Toggle studio mode"
-                />
-                <div
-                  className={`relative h-6 w-11 rounded-full transition ${!isSimpleMode ? 'bg-indigo-500' : 'bg-gray-700'
-                    }`}
-                >
-                  <span
-                    className={`absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow transition ${!isSimpleMode ? 'translate-x-5' : ''
-                      }`}
-                  />
-                </div>
-              </label>
-              <span className={!isSimpleMode ? 'text-white' : ''}>Studio Mode</span>
+                <span className="h-6 w-6 rounded-full bg-white/10 border border-white/10" />
+                My Account
+              </button>
             </div>
           </header>
 
@@ -5365,12 +5284,36 @@ If the model attempts to create a scene or environment, override it and force a 
                     ref={intentRef}
                     className="bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-3 overflow-hidden"
                   >
-                    <div className="flex flex-col gap-1">
-                      <p className="text-xs uppercase tracking-widest text-indigo-300">Step 1 · Assets</p>
-                      <h2 className="text-2xl font-bold text-gray-200">Source Product</h2>
-                      <p className="text-sm text-gray-400">
-                        Upload your product image and manage your product gallery.
-                      </p>
+                    <div className="flex flex-col gap-3">
+                      <div className="flex flex-col gap-1">
+                        <p className="text-xs uppercase tracking-widest text-indigo-300">Select Mode</p>
+                        <h2 className="text-2xl font-bold text-gray-200">{isProductPlacement ? 'Product Studio' : 'Lifestyle Mockups'}</h2>
+                        <p className="text-sm text-gray-400">
+                          {isProductPlacement
+                            ? 'Pixel-perfect product visuals for ecommerce, ads, and PDPs.'
+                            : 'Place your product in authentic or editorial environments without photoshoots.'}
+                        </p>
+                      </div>
+                      <div className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-black/20 p-1 w-fit">
+                        <button
+                          type="button"
+                          onClick={() => handleOptionChange('contentStyle', 'product', 'Mode')}
+                          className={`rounded-full px-4 py-2 text-xs font-semibold tracking-wide transition ${isProductPlacement ? 'bg-white text-black' : 'text-white/70 hover:text-white'}`}
+                        >
+                          Product (Studio)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleOptionChange('contentStyle', 'ugc', 'Mode')}
+                          className={`rounded-full px-4 py-2 text-xs font-semibold tracking-wide transition ${!isProductPlacement ? 'bg-white text-black' : 'text-white/70 hover:text-white'}`}
+                        >
+                          Lifestyle
+                        </button>
+                      </div>
+                      <div className="flex flex-col gap-1 pt-2">
+                        <p className="text-xs uppercase tracking-widest text-indigo-300">Step 1 · Assets</p>
+                        <p className="text-sm text-gray-400">Upload your product image and manage your product gallery.</p>
+                      </div>
                     </div>
 
                     <ImageUploader
@@ -5378,7 +5321,7 @@ If the model attempts to create a scene or environment, override it and force a 
                       onImageUpload={handleImageUpload}
                       uploadedImagePreview={uploadedImagePreview}
                       disabled={!hasSelectedIntent}
-                      lockedMessage="Select Lifestyle or Product (Studio) to start."
+                      lockedMessage="Select a mode to start."
                     />
 
                     {productAssets.length > 0 && (
@@ -5475,15 +5418,15 @@ If the model attempts to create a scene or environment, override it and force a 
                         <summary className="cursor-pointer list-none">
                           <div className="flex items-center justify-between gap-3">
                             <div>
-                              <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Optional Talent Reference</p>
-                              <p className="text-sm text-gray-400 mt-1">Add your model (optional)</p>
+                              <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Optional Model Reference</p>
+                              <p className="text-sm text-gray-400 mt-1">Upload a real person (optional)</p>
                             </div>
                             <span className="text-xs text-gray-500">Expand</span>
                           </div>
                         </summary>
                         <div className="mt-4 space-y-3">
                           <p className="text-xs text-gray-400">
-                            Use a real creator to match face, hair and overall vibe.
+                            Upload a real person only if you want the visuals to resemble them. Not required for most mockups.
                           </p>
                           <ModelReferencePanel
                             onFileSelect={handleModelReferenceUpload}
@@ -5532,20 +5475,20 @@ If the model attempts to create a scene or environment, override it and force a 
                   >
                     <div className="flex flex-col gap-1">
                       <p className="text-xs uppercase tracking-widest text-indigo-300">Step 2 · Configuration</p>
-                      <h2 className="text-2xl font-bold text-gray-200">{isProductPlacement ? 'Product (Studio)' : 'Lifestyle'}</h2>
+                      <h2 className="text-2xl font-bold text-gray-200">{isProductPlacement ? 'Product Studio' : 'Lifestyle Mockups'}</h2>
                       <p className="text-sm text-gray-400">
                         {isProductPlacement
-                          ? 'Product-only configuration. No people, no narrative.'
-                          : 'Adjust your lifestyle simulation without changing the flow.'}
+                          ? 'Pixel-perfect product visuals for ecommerce, ads, and PDPs.'
+                          : 'Place your product in authentic or editorial environments without photoshoots.'}
                       </p>
                     </div>
 
                     {!isProductPlacement && (
                       <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
                         <div>
-                          <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Lifestyle Tone</p>
+                          <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Lifestyle Style</p>
                           <p className="text-sm text-gray-400 mt-1">
-                            Select the tone of your lifestyle scene. This adjusts realism and composition, not structure or features.
+                            Select the style of your lifestyle mockup.
                           </p>
                         </div>
                         <div className="flex flex-wrap gap-2">
@@ -5554,7 +5497,7 @@ If the model attempts to create a scene or environment, override it and force a 
                             onClick={() => setLifestyleTone('ugc')}
                             className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${lifestyleTone === 'ugc' ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 bg-white/5 text-gray-300 hover:border-indigo-400'}`}
                           >
-                            Raw Domestic UGC
+                            Natural UGC
                           </button>
                           <button
                             type="button"
@@ -5599,10 +5542,8 @@ If the model attempts to create a scene or environment, override it and force a 
                   >
                     <div className="flex flex-col gap-1">
                       <p className="text-xs uppercase tracking-widest text-indigo-300">Step 3 · Generate</p>
-                      <h2 className="text-2xl font-bold text-gray-200">Generate</h2>
-                      <p className="text-sm text-gray-400">
-                        {isProductPlacement ? 'Generate Product Mockup' : 'Run Simulation'}
-                      </p>
+                      <h2 className="text-2xl font-bold text-gray-200">Generate Mockup</h2>
+                      <p className="text-sm text-gray-400">Create your mockup with the current settings.</p>
                     </div>
                     {(() => {
                       const isGenerateDisabled = isImageLoading || !uploadedImageFile;
@@ -5625,9 +5566,7 @@ If the model attempts to create a scene or environment, override it and force a 
                             title={generationRestrictionMessage && isGenerateDisabled ? generationRestrictionMessage : undefined}
                             className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-900/50 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 transition shadow-lg"
                           >
-                            {isImageLoading
-                              ? 'Generating...'
-                              : (isProductPlacement ? 'Generate Product Mockup' : 'Run Simulation')}
+                            {isImageLoading ? 'Generating...' : 'Generate Mockup'}
                           </button>
                           {generationRestrictionMessage && isGenerateDisabled && (
                             <div className="mt-2 flex items-start gap-2 text-xs text-amber-300">
@@ -5644,12 +5583,12 @@ If the model attempts to create a scene or environment, override it and force a 
                 <div className="bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 relative lg:sticky lg:top-4 flex flex-col gap-6 min-h-[520px]">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Render Preview</p>
+                      <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Live Mockup Preview</p>
                       <p className="text-sm text-gray-400 mt-1">
                         {generatedImageUrl
                           ? 'Preview reflects current configuration.'
                           : hasUploadedProduct
-                            ? 'Adjust settings to preview result.'
+                            ? 'Your generated mockup will appear here.'
                             : 'Upload a source product to start.'}
                       </p>
                     </div>
@@ -5704,6 +5643,94 @@ If the model attempts to create a scene or environment, override it and force a 
           </main>
         </div >
       </div >
+
+      <div className="fixed bottom-4 left-4 right-4 z-50 flex justify-center pointer-events-none">
+        <div className="pointer-events-auto w-full max-w-xl rounded-2xl border border-white/10 bg-black/50 backdrop-blur px-4 py-3 shadow-lg">
+          <button
+            type="button"
+            onClick={() => setIsAccountMenuOpen(open => !open)}
+            className="w-full flex items-center justify-between gap-4"
+            aria-haspopup="menu"
+            aria-expanded={isAccountMenuOpen}
+          >
+            <div className="text-left">
+              <div className="text-sm text-white">
+                {modeLabel} · {remainingCredits} credits remaining · {hasWatermark ? 'Includes watermark' : 'No watermark'}
+                {!hasVideoExports && ' · No video exports on Free plan'}
+              </div>
+              <div className="text-xs text-gray-400">Plan: {currentPlan.label}</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-white/90">My Account</span>
+              <span className="h-8 w-8 rounded-full bg-white/10 border border-white/10" />
+            </div>
+          </button>
+
+          {isAccountMenuOpen && (
+            <div className="mt-3 rounded-xl border border-white/10 bg-gray-950/80 p-2 text-sm">
+              <div className="px-3 py-2">
+                <div className="text-xs uppercase tracking-widest text-gray-500">My Account</div>
+                {isLoggedIn && <div className="text-sm text-white mt-1">{userEmail}</div>}
+              </div>
+              <div className="h-px bg-white/10 my-2" />
+              <button
+                type="button"
+                onClick={() => {
+                  setPlanNotice(null);
+                  setShowPlanModal(true);
+                }}
+                className="w-full text-left rounded-lg px-3 py-2 hover:bg-white/5 text-gray-200"
+              >
+                Manage Plan
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPlanNotice(null);
+                  setShowPlanModal(true);
+                }}
+                className="w-full text-left rounded-lg px-3 py-2 hover:bg-white/5 text-gray-200"
+              >
+                Billing
+              </button>
+              <div className="rounded-lg px-3 py-2 text-gray-300">
+                <div className="text-gray-200">Credits usage</div>
+                <div className="text-xs text-gray-400 mt-1">{remainingCredits} credits remaining</div>
+                {hasWatermark && <div className="text-xs text-gray-400 mt-1">Includes watermark</div>}
+                {!hasVideoExports && <div className="text-xs text-gray-400 mt-1">No video exports on Free plan</div>}
+              </div>
+              <div className="h-px bg-white/10 my-2" />
+              {!isLoggedIn ? (
+                <button
+                  type="button"
+                  onClick={() => signInWithGoogle()}
+                  className="w-full text-left rounded-lg px-3 py-2 hover:bg-white/5 text-gray-200"
+                >
+                  Sign in
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="w-full text-left rounded-lg px-3 py-2 hover:bg-white/5 text-gray-200"
+                  >
+                    Switch Account
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="w-full text-left rounded-lg px-3 py-2 hover:bg-white/5 text-gray-200"
+                  >
+                    Log out
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
       {showAdminDevButtons && (
         <div className="fixed bottom-6 left-6 z-[999999] hidden md:flex flex-col gap-2 opacity-60 hover:opacity-100 transition">
           <button

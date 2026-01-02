@@ -94,10 +94,34 @@ const pricing: PricingPlan[] = [
 const paymentMethods = ['Visa', 'Mastercard', 'American Express', 'Apple Pay', 'Google Pay'];
 
 const LandingPage: React.FC = () => {
+  const [activePreview, setActivePreview] = useState<'product' | 'ugc' | 'editorial'>('product');
   const [selectedPlan, setSelectedPlan] = useState<CheckoutPlan | null>(null);
   const [checkoutEmail, setCheckoutEmail] = useState('');
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+
+  const previewModes = [
+    {
+      id: 'product',
+      title: 'Product (Studio)',
+      description: 'Clean, professional product mockups. No people. No distractions.',
+      image: '/images/home/Studio-Hero.webp',
+    },
+    {
+      id: 'ugc',
+      title: 'Lifestyle (UGC)',
+      description: 'Natural, real-world scenes designed to feel authentic and conversion-focused.',
+      image: '/images/home/Lifestyle-UGC.webp',
+    },
+    {
+      id: 'editorial',
+      title: 'Lifestyle (Editorial)',
+      description: 'Curated, premium lifestyle visuals for brand storytelling and campaigns.',
+      image: '/images/home/Aesthetic-Builder.webp',
+    },
+  ] as const;
+
+  const activePreviewMode = previewModes.find(mode => mode.id === activePreview) ?? previewModes[0];
 
   const handleSmoothScroll = useCallback((selector: string) => {
     return (event: React.MouseEvent) => {
@@ -168,14 +192,6 @@ const LandingPage: React.FC = () => {
       <div className="bg-gradient-to-br from-indigo-900/40 via-gray-950 to-gray-950">
         <nav className="relative z-10 max-w-6xl mx-auto px-6 py-8 flex items-center justify-between">
           <div className="text-sm font-semibold uppercase tracking-[0.3em] text-white">Perfect Mockup</div>
-          <div className="flex items-center gap-4">
-            <Link
-              to="/login"
-              className="px-5 py-2.5 text-xs uppercase tracking-widest font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-full transition shadow-lg shadow-indigo-500/20"
-            >
-              Sign in
-            </Link>
-          </div>
         </nav>
 
         <header className="relative overflow-hidden pb-16">
@@ -285,6 +301,50 @@ const LandingPage: React.FC = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </section>
+
+        <section className="bg-gray-900/40 border-y border-white/5">
+          <div className="max-w-6xl mx-auto px-6 py-16 space-y-10">
+            <div className="text-center space-y-3">
+              <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Preview</p>
+              <h2 className="text-3xl text-white font-semibold">See what you can create</h2>
+              <p className="text-gray-400 max-w-3xl mx-auto mt-3">
+                Choose Product or Lifestyle to match your goal. UGC feels authentic. Editorial feels premium.
+              </p>
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-[340px,1fr] items-start lg:items-stretch">
+              <div className="space-y-3">
+                {previewModes.map(mode => (
+                  <button
+                    key={mode.id}
+                    type="button"
+                    onClick={() => setActivePreview(mode.id)}
+                    className={`w-full text-left rounded-2xl border p-4 transition ${
+                      activePreview === mode.id
+                        ? 'border-indigo-400 bg-indigo-500/10 text-white'
+                        : 'border-white/10 bg-white/5 text-gray-300 hover:border-indigo-400'
+                    }`}
+                  >
+                    <p className="font-semibold">{mode.title}</p>
+                    <p className="text-sm text-gray-400 mt-1">{mode.description}</p>
+                  </button>
+                ))}
+              </div>
+
+              <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gray-950/40 min-h-[320px] sm:min-h-[420px] lg:min-h-0 lg:h-full">
+                <img
+                  src={activePreviewMode.image}
+                  alt={activePreviewMode.title}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
+                <div className="absolute bottom-4 left-4 right-4 rounded-2xl bg-black/60 backdrop-blur px-4 py-3 text-sm">
+                  <p className="text-white font-semibold">{activePreviewMode.title}</p>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -591,4 +651,3 @@ const LandingPage: React.FC = () => {
 };
 
 export default LandingPage;
-
