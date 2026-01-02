@@ -5288,213 +5288,156 @@ If the model attempts to create a scene or environment, override it and force a 
             <fieldset className="contents">
               <div className="grid gap-6 w-full grid-cols-1 lg:grid-cols-[420px_minmax(620px,1fr)] items-start">
                 <div className="flex flex-col gap-6">
-                  <div
-                    ref={intentRef}
-                    className="bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-3 overflow-hidden"
-                  >
-                    <div className="flex flex-col gap-3">
-                      <div className="flex flex-col gap-1">
-                        <p className="text-xs uppercase tracking-widest text-indigo-300">Step 1 · Assets</p>
-                        <h2 className="text-2xl font-bold text-gray-200">Source Product</h2>
-                        <p className="text-sm text-gray-400">
-                          Upload your product image and manage your product gallery.
-                        </p>
-                      </div>
-                    </div>
+		                  <div
+		                    ref={intentRef}
+		                    className="rounded-lg p-4 flex flex-col gap-4 transition-all bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-lg overflow-hidden"
+		                  >
+		                    <div className="flex flex-col gap-1">
+		                      <p className="text-xs uppercase tracking-widest text-indigo-600 dark:text-indigo-300">Step 1 · Assets</p>
+		                      <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-200">Source Product</h2>
+		                    </div>
 
-                    <ImageUploader
-                      ref={uploaderRef}
-                      onImageUpload={handleImageUpload}
-                      uploadedImagePreview={uploadedImagePreview}
-                      disabled={!hasSelectedIntent}
-                      lockedMessage="Select a mode to start."
-                    />
+	                    <button
+	                      type="button"
+	                      onClick={() => {
+	                        if (!hasSelectedIntent) return;
+	                        uploaderRef.current?.openFileDialog();
+	                      }}
+	                      onDrop={(event) => {
+	                        event.preventDefault();
+	                        event.stopPropagation();
+	                        if (!hasSelectedIntent) return;
+	                        const files = Array.from(event.dataTransfer.files ?? []);
+	                        if (!files.length) return;
+	                        handleImageUpload(files);
+	                      }}
+	                      onDragOver={(event) => {
+	                        event.preventDefault();
+	                        event.stopPropagation();
+	                      }}
+	                      disabled={!hasSelectedIntent}
+		                      className="relative w-full rounded-lg border border-dashed border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800/40 p-6 text-left transition hover:border-indigo-400 disabled:cursor-not-allowed disabled:opacity-60"
+		                      aria-disabled={!hasSelectedIntent}
+		                    >
+	                      <div className="flex flex-col items-center justify-center gap-3 text-gray-400">
+	                        <svg
+	                          xmlns="http://www.w3.org/2000/svg"
+	                          className="h-10 w-10"
+	                          fill="none"
+	                          viewBox="0 0 24 24"
+	                          stroke="currentColor"
+	                          aria-hidden="true"
+	                        >
+	                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+	                        </svg>
+		                        <div className="text-center">
+		                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-200">Source Product</p>
+		                          <p className="text-xs text-gray-500">Click to upload (max 5)</p>
+		                        </div>
+		                      </div>
+		                      {!hasSelectedIntent && (
+		                        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-gray-900/70 px-4 text-center text-sm text-gray-200">
+		                          Select a mode to start.
+		                        </div>
+		                      )}
+		                    </button>
 
-                    {productAssets.length > 0 && (
-                      <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                          <div className="flex items-center gap-2">
-                            <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Product gallery</p>
-                            <span className="rounded-full border border-white/20 px-2 py-0.5 text-[11px] text-white/80">
-                              {productAssets.length}
-                            </span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={handleLibraryAddClick}
-                            className="inline-flex items-center gap-2 rounded-full border border-white/20 px-3 py-1 text-[11px] text-gray-200 hover:border-indigo-400 hover:text-white transition"
-                          >
-                            + Add
-                          </button>
-                        </div>
-                        <div className="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
-                          {productAssets.map(asset => {
-                            const isActive = activeProducts.some(product => product.id === asset.id);
-                            return (
-                              <div
-                                key={asset.id}
-                                className={`flex-shrink-0 w-32 rounded-xl border p-2 ${isActive ? 'border-indigo-400 bg-indigo-500/5' : 'border-white/10 bg-black/20'}`}
-                              >
-                                <div className="relative mb-2">
-                                  <img src={asset.previewUrl} alt={asset.label} className="h-20 w-full rounded-md object-cover border border-white/10" />
-                                  <button
-                                    type="button"
-                                    onClick={() => handleProductAssetDelete(asset.id)}
-                                    className="absolute -right-1 -top-1 rounded-full bg-black/80 p-0.5 text-[9px] text-rose-300 hover:bg-rose-500/40"
-                                  >
-                                    ✕
-                                  </button>
-                                </div>
-                                <input
-                                  type="text"
-                                  value={asset.label}
-                                  onChange={event => handleProductAssetLabelChange(asset.id, event.target.value)}
-                                  className="w-full rounded-md border border-white/10 bg-black/20 px-1.5 py-0.5 text-[10px] text-white focus:border-indigo-400 focus:outline-none mb-1"
-                                  placeholder="Name"
-                                />
-                                <div className="flex gap-1">
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    step="0.1"
-                                    value={asset.heightValue ?? ''}
-                                    onChange={event => handleProductHeightChange(asset.id, event.target.value)}
-                                    className="flex-1 w-full rounded-md border border-white/10 bg-black/20 px-1 py-0.5 text-[10px] text-white focus:border-indigo-400 focus:outline-none"
-                                    placeholder="H"
-                                  />
-                                  <div className="flex items-center gap-1">
-                                    {(['cm', 'in'] as const).map(unit => (
-                                      <button
-                                        key={unit}
-                                        type="button"
-                                        onClick={() => handleProductHeightUnitChange(asset.id, unit)}
-                                        className={`rounded-md border px-1.5 py-0.5 text-[10px] transition ${asset.heightUnit === unit ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-black/20 text-gray-300 hover:border-indigo-400'}`}
-                                      >
-                                        {unit}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
-                                {productAssets.length > 1 && (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleProductAssetSelect(asset.id)}
-                                    className={`w-full mt-1 rounded-full border px-2 py-0.5 text-[10px] ${isActive ? 'border-indigo-400 text-white' : 'border-white/20 text-gray-300 hover:border-indigo-400'}`}
-                                  >
-                                    {isActive ? 'Active' : 'Use'}
-                                  </button>
-                                )}
-                              </div>
-                            );
-                          })}
-                          <button
-                            type="button"
-                            onClick={handleLibraryAddClick}
-                            className="flex-shrink-0 w-24 rounded-xl border border-dashed border-white/20 bg-black/10 p-2 flex flex-col items-center justify-center text-center hover:border-indigo-400 transition"
-                          >
-                            <span className="text-xl text-white/60">+</span>
-                            <span className="text-[10px] text-gray-500">Add</span>
-                          </button>
-                        </div>
-                      </div>
-                    )}
+	                    <div className="sr-only" aria-hidden="true">
+	                      <ImageUploader
+	                        ref={uploaderRef}
+	                        onImageUpload={handleImageUpload}
+	                        uploadedImagePreview={uploadedImagePreview}
+	                        disabled={!hasSelectedIntent}
+	                        lockedMessage="Select a mode to start."
+	                      />
+	                    </div>
 
-                    {!isProductPlacement && (
-                      <details className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                        <summary className="cursor-pointer list-none">
-                          <div className="flex items-center justify-between gap-3">
-                            <div>
-                              <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Optional Model Reference</p>
-                              <p className="text-sm text-gray-400 mt-1">Upload a real person (optional)</p>
-                            </div>
-                            <span className="text-xs text-gray-500">Expand</span>
-                          </div>
-                        </summary>
-                        <div className="mt-4 space-y-3">
-                          <p className="text-xs text-gray-400">
-                            Upload a real person only if you want the visuals to resemble them. Not required for most mockups.
-                          </p>
-                          <ModelReferencePanel
-                            onFileSelect={handleModelReferenceUpload}
-                            previewUrl={modelReferencePreview}
-                            notes={modelReferenceNotes}
+	                    {!isProductPlacement && (
+		                      <details className="border-t border-white/10 pt-3 opacity-70 hover:opacity-100 transition">
+		                        <summary className="cursor-pointer list-none flex items-center justify-between text-xs text-gray-500 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/60">
+		                          <span className="uppercase tracking-[0.35em]">Optional Model Reference</span>
+		                          <span className="text-base leading-none">+</span>
+		                        </summary>
+	                        <div className="mt-4 space-y-3">
+	                          <ModelReferencePanel
+	                            onFileSelect={handleModelReferenceUpload}
+	                            previewUrl={modelReferencePreview}
+	                            notes={modelReferenceNotes}
                             onNotesChange={setModelReferenceNotes}
                             onClear={handleClearModelReference}
                             disabled={!hasUploadedProduct}
-                            lockedMessage="Upload a source product first to attach a model."
-                          />
-                          {hasModelReference && (
-                            <div className="rounded-2xl border border-white/10 bg-black/30 p-4 space-y-2 text-sm">
-                              <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Composition Mode</p>
-                              <div className="flex flex-wrap gap-2">
-                                {(
-                                  [
-                                    { value: 'balanced', label: 'Balanced' },
+	                            lockedMessage="Upload a source product first to attach a model."
+	                          />
+	                          {hasModelReference && (
+	                            <div className="rounded-2xl border border-white/10 bg-black/30 p-4 space-y-2 text-sm">
+	                              <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Composition</p>
+	                              <div className="flex flex-wrap gap-2">
+	                                {(
+	                                  [
+	                                    { value: 'balanced', label: 'Balanced' },
                                     { value: 'product-first', label: 'Product First' },
                                     { value: 'model-first', label: 'Model First' },
                                     { value: 'fifty-fifty', label: 'Fifty / Fifty' },
-                                  ] as const
-                                ).map(option => (
-                                  <button
-                                    key={option.value}
+	                                  ] as const
+	                                ).map(option => (
+	                                  <button
+	                                    key={option.value}
                                     type="button"
                                     onClick={() => setCompositionMode(option.value)}
                                     className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${compositionMode === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 bg-white/5 text-gray-300 hover:border-indigo-400'}`}
                                   >
-                                    {option.label}
-                                  </button>
-                                ))}
-                              </div>
-                              <p className="text-[11px] text-gray-400">
-                                Control which subject leads the frame while keeping both elements physically integrated.
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </details>
-                    )}
+	                                    {option.label}
+	                                  </button>
+	                                ))}
+	                              </div>
+	                            </div>
+	                          )}
+	                        </div>
+	                      </details>
+	                    )}
                   </div>
 
-                  <div
-                    ref={uploadRef}
-                    className={`bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-3 overflow-hidden ${!hasUploadedProduct ? 'opacity-60 pointer-events-none' : ''}`}
-                  >
-                    <div className="flex flex-col gap-1">
-                      <p className="text-xs uppercase tracking-widest text-indigo-300">Step 2 · Configuration</p>
-                      <h2 className="text-2xl font-bold text-gray-200">{isProductPlacement ? 'Product Studio' : 'Lifestyle Mockups'}</h2>
-                      <p className="text-sm text-gray-400">
-                        {isProductPlacement
-                          ? 'Pixel-perfect product visuals for ecommerce, ads, and PDPs.'
-                          : 'Place your product in authentic or editorial environments without photoshoots.'}
-                      </p>
-                    </div>
+	                  <div
+	                    ref={uploadRef}
+	                    className={`rounded-lg p-4 flex flex-col gap-4 transition-all bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-lg overflow-hidden ${!hasUploadedProduct ? 'opacity-50 pointer-events-none' : ''}`}
+	                  >
+	                    <div className="flex flex-col gap-1">
+	                      <p className="text-xs uppercase tracking-widest text-indigo-600 dark:text-indigo-300">Step 2 · Configuration</p>
+	                      <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-200">{isProductPlacement ? 'Product Studio' : 'Lifestyle Mockups'}</h2>
+	                    </div>
 
-                    {!isProductPlacement && (
-                      <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Lifestyle Style</p>
-                          <p className="text-sm text-gray-400 mt-1">
-                            Select the style of your lifestyle mockup.
-                          </p>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setLifestyleTone('ugc')}
-                            className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${lifestyleTone === 'ugc' ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 bg-white/5 text-gray-300 hover:border-indigo-400'}`}
-                          >
-                            Natural UGC
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setLifestyleTone('editorial')}
-                            className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${lifestyleTone === 'editorial' ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 bg-white/5 text-gray-300 hover:border-indigo-400'}`}
-                          >
-                            Editorial Lifestyle
-                          </button>
-                        </div>
-                      </div>
-                    )}
+	                    <div className={`${hasUploadedProduct ? 'hidden' : 'block'} opacity-50 pointer-events-none`}>
+	                      <div className="rounded-lg border border-dashed border-gray-300 dark:border-gray-600 h-24 flex items-center justify-center">
+	                        <p className="text-xs uppercase tracking-widest text-gray-500">
+	                          Locked until previous step is complete
+	                        </p>
+	                      </div>
+	                    </div>
+
+	                    <div className={hasUploadedProduct ? 'block' : 'hidden'}>
+	                      {!isProductPlacement && (
+	                        <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/30 p-4 space-y-3">
+	                          <div>
+	                            <p className="text-xs uppercase tracking-[0.35em] text-indigo-600 dark:text-indigo-200">Lifestyle Style</p>
+	                          </div>
+	                          <div className="flex flex-wrap gap-2">
+	                            <button
+	                              type="button"
+	                              onClick={() => setLifestyleTone('ugc')}
+	                              className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${lifestyleTone === 'ugc' ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 bg-white/5 text-gray-300 hover:border-indigo-400'}`}
+	                            >
+	                              Natural UGC
+	                            </button>
+	                            <button
+	                              type="button"
+	                              onClick={() => setLifestyleTone('editorial')}
+	                              className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${lifestyleTone === 'editorial' ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 bg-white/5 text-gray-300 hover:border-indigo-400'}`}
+	                            >
+	                              Editorial Lifestyle
+	                            </button>
+	                          </div>
+	                        </div>
+	                      )}
 
                     <LifestyleStep3
                       key={isProductPlacement ? 'product-step3' : 'ugc-step3'}
@@ -5518,21 +5461,28 @@ If the model attempts to create a scene or environment, override it and force a 
                               onSettingsChange: setEcommerceGenerationSettings,
                             }
                           : undefined
-                      }
-                    />
-                  </div>
+	                      }
+	                    />
+	                    </div>
+	                  </div>
 
-                  <div
-                    ref={customizeRef}
-                    className={`bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-3 ${!hasUploadedProduct ? 'opacity-60 pointer-events-none' : ''}`}
-                  >
-                    <div className="flex flex-col gap-1">
-                      <p className="text-xs uppercase tracking-widest text-indigo-300">Step 3 · Generate</p>
-                      <h2 className="text-2xl font-bold text-gray-200">Generate Mockup</h2>
-                      <p className="text-sm text-gray-400">Create your mockup with the current settings.</p>
-                    </div>
-                    {(() => {
-                      const isGenerateDisabled = isImageLoading || !uploadedImageFile;
+	                  <div
+	                    ref={customizeRef}
+	                    className={`rounded-lg p-4 flex flex-col gap-4 transition-all bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-lg ${!hasUploadedProduct ? 'opacity-50 pointer-events-none' : ''}`}
+	                  >
+	                    <div className="flex flex-col gap-1">
+	                      <p className="text-xs uppercase tracking-widest text-indigo-600 dark:text-indigo-300">Step 3 · Generate</p>
+	                      <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-200">Generate Mockup</h2>
+	                    </div>
+	                    <div className={`${hasUploadedProduct ? 'hidden' : 'block'} opacity-50 pointer-events-none`}>
+	                      <div className="rounded-lg border border-dashed border-gray-300 dark:border-gray-600 h-24 flex items-center justify-center">
+	                        <p className="text-xs uppercase tracking-widest text-gray-500">
+	                          Locked until previous step is complete
+	                        </p>
+	                      </div>
+	                    </div>
+	                    {(() => {
+	                      const isGenerateDisabled = isImageLoading || !uploadedImageFile;
                       const generationRestrictionMessage = (() => {
                         if (!isGenerateDisabled) return '';
                         if (!uploadedImageFile) return 'Upload a source product photo before generating.';
@@ -5541,38 +5491,38 @@ If the model attempts to create a scene or environment, override it and force a 
                       })();
                       return (
                         <>
-                          <button
-                            type="button"
+	                          <button
+	                            type="button"
                             onClick={
                               isProductPlacement && ecommerceSelectedSlots.length > 0
                                 ? () => handleGenerateEcommerceClick()
                                 : () => handleGenerateClick()
                             }
-                            disabled={isGenerateDisabled}
-                            title={generationRestrictionMessage && isGenerateDisabled ? generationRestrictionMessage : undefined}
-                            className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-900/50 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 transition shadow-lg"
-                          >
-                            {isImageLoading ? 'Generating...' : 'Generate Mockup'}
-                          </button>
-                          {generationRestrictionMessage && isGenerateDisabled && (
-                            <div className="mt-2 flex items-start gap-2 text-xs text-amber-300">
-                              <Info size={14} />
-                              <span>{generationRestrictionMessage}</span>
-                            </div>
-                          )}
+	                            disabled={isGenerateDisabled}
+	                            title={generationRestrictionMessage && isGenerateDisabled ? generationRestrictionMessage : undefined}
+	                            className="w-full py-3 rounded-xl font-semibold transition bg-indigo-600 text-white hover:bg-indigo-500 disabled:bg-indigo-200 dark:disabled:bg-indigo-900/40 disabled:text-gray-400 disabled:cursor-not-allowed shadow-sm"
+	                          >
+	                            {isImageLoading ? 'Generating...' : 'Generate Mockup'}
+	                          </button>
+	                          {generationRestrictionMessage && isGenerateDisabled && (
+	                            <div className="mt-2 flex items-start gap-2 text-xs text-amber-600 dark:text-amber-300">
+	                              <Info size={14} />
+	                              <span>{generationRestrictionMessage}</span>
+	                            </div>
+	                          )}
                         </>
                       );
                     })()}
                   </div>
                 </div>
 
-                <div className="bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 relative lg:sticky lg:top-4 flex flex-col gap-6 min-h-[520px]">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Live Mockup Preview</p>
-                      <p className="text-sm text-gray-400 mt-1">
-                        {generatedImageUrl
-                          ? 'Preview reflects current configuration.'
+	                <div className="rounded-lg p-4 transition-all bg-gray-50 dark:bg-gray-800/30 border border-gray-200/70 dark:border-white/10 shadow-sm dark:shadow-lg opacity-70 hover:opacity-100 hover:border-indigo-400 relative lg:sticky lg:top-4 flex flex-col gap-6 min-h-[520px]">
+	                  <div className="flex items-center justify-between gap-3">
+	                    <div>
+	                      <p className="text-xs uppercase tracking-[0.35em] text-indigo-600 dark:text-indigo-200">Live Mockup Preview</p>
+	                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+	                        {generatedImageUrl
+	                          ? 'Preview reflects current configuration.'
                           : hasUploadedProduct
                             ? 'Your generated mockup will appear here.'
                             : 'Upload a source product to start.'}

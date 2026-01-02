@@ -1242,6 +1242,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             onToggle={() => toggleSection('product-setup')}
             isRequired
             isTouched={touchedSections.has('product-setup')}
+            variant="primary"
           >
             <div className="space-y-4">
               <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
@@ -1328,6 +1329,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             isOpen={openAccordionId === 'product-creativity'}
             onToggle={() => toggleSection('product-creativity')}
             isTouched={touchedSections.has('product-creativity')}
+            variant="secondary"
           >
             <div className="space-y-4">
               <div className="space-y-2 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
@@ -1488,6 +1490,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             isOpen={openAccordionId === 'product-camera'}
             onToggle={() => toggleSection('product-camera')}
             isTouched={touchedSections.has('product-camera')}
+            variant="primary"
           >
             <div className="space-y-4">
               <div className="space-y-2 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
@@ -1615,6 +1618,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             isOpen={openAccordionId === 'product-environment'}
             onToggle={() => toggleSection('product-environment')}
             isTouched={touchedSections.has('product-environment')}
+            variant="primary"
           >
             <div className="space-y-4">
               {values.ecommerceSidePlacementFlag === true && (
@@ -1689,6 +1693,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             isOpen={openAccordionId === 'ecommerce'}
             onToggle={() => toggleSection('ecommerce')}
             isActive
+            variant="secondary"
           >
             <div className="space-y-4">
               <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
@@ -1893,6 +1898,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         onToggle={() => toggleSection('creator')}
         isRequired={isEnvironmentMode}
         isTouched={touchedSections.has('creator')}
+        variant="primary"
       >
         <div className="flex flex-col gap-4">
           {isPersonDisabled ? (
@@ -2175,6 +2181,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         onToggle={() => toggleSection('realism')}
         isTouched={hasAnyUgcLayerSelection}
         isActive={values.ugcRealMode}
+        variant="expert"
       >
         <div id="ugc-real-mode">
           <div className="pt-2 pb-4 px-2">
@@ -2214,18 +2221,19 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     {RAW_DOMESTIC_CAPTURE_SECTIONS.map(section => {
                       const currentSelections = (values[section.field] as string[]) || [];
                       return (
-                        <SmoothAccordion
-                          key={section.field}
-                          icon={section.icon}
-                          title={section.title}
-                          tooltip={section.tooltip}
-                          isOpen={openUgcLayerId === section.field}
-                          onToggle={() =>
-                            setOpenUgcLayerId(prev => (prev === section.field ? null : section.field))
-                          }
-                          isTouched={currentSelections.length > 0}
-                          isActive={values.ugcRealMode}
-                        >
+	                        <SmoothAccordion
+	                          key={section.field}
+	                          icon={section.icon}
+	                          title={section.title}
+	                          tooltip={section.tooltip}
+	                          isOpen={openUgcLayerId === section.field}
+	                          onToggle={() =>
+	                            setOpenUgcLayerId(prev => (prev === section.field ? null : section.field))
+	                          }
+	                          isTouched={currentSelections.length > 0}
+	                          isActive={values.ugcRealMode}
+	                          variant="secondary"
+	                        >
                           <p className="text-xs text-gray-400">{section.description}</p>
                           <div className="mt-3 flex flex-wrap gap-3">
                             {section.options.map(option => (
@@ -2327,6 +2335,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         isOpen={openAccordionId === 'productInteraction'}
         onToggle={() => toggleSection('productInteraction')}
         isTouched={touchedSections.has('productInteraction')}
+        variant="primary"
       >
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
@@ -2366,6 +2375,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         onToggle={() => toggleSection('custom-clothes')}
         isTouched={touchedSections.has('customClothes')}
         isActive={values.customClothesEnabled}
+        variant="expert"
       >
         <div className="space-y-4">
           <div className="flex items-center justify-between rounded-lg border border-gray-700 bg-gray-900/40 px-3 py-2">
@@ -2510,6 +2520,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         isOpen={openAccordionId === 'productStructure'}
         onToggle={() => toggleSection('productStructure')}
         isTouched={touchedSections.has('productStructure')}
+        variant="secondary"
       >
         <div className="space-y-3">
           <p className="text-xs uppercase tracking-wider text-indigo-200">Group & count</p>
@@ -2543,6 +2554,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         onToggle={() => toggleSection('environment')}
         isRequired={true}
         isTouched={touchedSections.has('environment')}
+        variant="primary"
       >
         <div className="space-y-3">
           {values.ugcRealMode && (
@@ -2624,6 +2636,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         isOpen={openAccordionId === 'lighting'}
         onToggle={() => toggleSection('lighting')}
         isTouched={touchedSections.has('lighting')}
+        variant="primary"
       >
         {values.ugcRealMode ? (
           <div className="rounded-lg border border-gray-700 bg-gray-900/60 px-4 py-3 text-sm text-gray-300">
@@ -2675,60 +2688,66 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         )}
       </SmoothAccordion>
 
-
-      <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
-        <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Hero personas</p>
-        <div className="flex flex-col gap-2">
-          {[
-            { label: 'The Busy Mom', semantic: 'busy mom managing household, natural home environment, multitasking moment, authentic daily routine' },
-            { label: 'The Fitness Enthusiast', semantic: 'fitness-focused adult after workout, casual activewear, natural indoor or outdoor setting' },
-            { label: 'The Skincare Obsessed', semantic: 'skincare-focused woman during daily routine, bathroom mirror, natural lighting' },
-            { label: 'The Minimalist', semantic: 'minimalist person in clean home environment, neutral tones, simple lifestyle' },
-            { label: 'The Trendsetter', semantic: 'trend-focused young adult in casual lifestyle moment, modern outfit, spontaneous feel' }
-          ].map(persona => (
-            <button
-              key={persona.label}
-              type="button"
-              onClick={() => {
-                updateValue('heroPersona', persona.semantic);
-                if (persona.label === 'The Busy Mom') {
-                  updateValue('facialExpression', 'Hustle & Juggle');
-                  updateValue('appearanceLevel', 'Running Late');
-                } else if (persona.label === 'The Fitness Enthusiast') {
-                  updateValue('facialExpression', 'Joyful & High-Energy');
-                  updateValue('appearanceLevel', 'Well-Groomed');
-                } else if (persona.label === 'The Skincare Obsessed') {
-                  updateValue('facialExpression', 'Calm & Serene');
-                  updateValue('skinRealism', 'Raw / Real');
-                } else if (persona.label === 'The Minimalist') {
-                  updateValue('facialExpression', 'Confident & Editorial');
-                  updateValue('appearanceLevel', 'Styled');
-                } else if (persona.label === 'The Trendsetter') {
-                  updateValue('facialExpression', 'Playful & Candid');
-                  updateValue('appearanceLevel', 'Styled');
-                }
-              }}
-              className={`w-full text-left px-3 py-2 rounded-lg border text-sm transition ${values.heroPersona === persona.label
-                ? 'bg-indigo-600 border-indigo-500 text-white shadow-md'
-                : 'border-gray-600 text-gray-200 hover:border-indigo-400 hover:bg-indigo-500/10'
-                }`}
-            >
-              {persona.label}
-            </button>
-          ))}
-        </div>
-      </div>
+	      <details className="rounded-xl bg-gray-100 dark:bg-gray-900/40 border border-gray-200/50 dark:border-white/5 opacity-60 hover:opacity-100 transition overflow-hidden">
+	        <summary className="cursor-pointer list-none p-4 flex items-center justify-between text-xs uppercase tracking-widest text-gray-500">
+	          <span>Advanced · Hero Personas</span>
+	          <span className="text-xs text-gray-500">+</span>
+	        </summary>
+	        <div className="p-4 pt-0 space-y-3">
+	          <p className="text-xs uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-200">Hero personas</p>
+	          <div className="flex flex-col gap-2">
+	            {[
+	              { label: 'The Busy Mom', semantic: 'busy mom managing household, natural home environment, multitasking moment, authentic daily routine' },
+	              { label: 'The Fitness Enthusiast', semantic: 'fitness-focused adult after workout, casual activewear, natural indoor or outdoor setting' },
+	              { label: 'The Skincare Obsessed', semantic: 'skincare-focused woman during daily routine, bathroom mirror, natural lighting' },
+	              { label: 'The Minimalist', semantic: 'minimalist person in clean home environment, neutral tones, simple lifestyle' },
+	              { label: 'The Trendsetter', semantic: 'trend-focused young adult in casual lifestyle moment, modern outfit, spontaneous feel' }
+	            ].map(persona => (
+	              <button
+	                key={persona.label}
+	                type="button"
+	                onClick={() => {
+	                  updateValue('heroPersona', persona.semantic);
+	                  if (persona.label === 'The Busy Mom') {
+	                    updateValue('facialExpression', 'Hustle & Juggle');
+	                    updateValue('appearanceLevel', 'Running Late');
+	                  } else if (persona.label === 'The Fitness Enthusiast') {
+	                    updateValue('facialExpression', 'Joyful & High-Energy');
+	                    updateValue('appearanceLevel', 'Well-Groomed');
+	                  } else if (persona.label === 'The Skincare Obsessed') {
+	                    updateValue('facialExpression', 'Calm & Serene');
+	                    updateValue('skinRealism', 'Raw / Real');
+	                  } else if (persona.label === 'The Minimalist') {
+	                    updateValue('facialExpression', 'Confident & Editorial');
+	                    updateValue('appearanceLevel', 'Styled');
+	                  } else if (persona.label === 'The Trendsetter') {
+	                    updateValue('facialExpression', 'Playful & Candid');
+	                    updateValue('appearanceLevel', 'Styled');
+	                  }
+	                }}
+	                className={`w-full text-left px-3 py-2 rounded-lg border text-sm transition ${values.heroPersona === persona.label
+	                  ? 'bg-indigo-600 border-indigo-500 text-white shadow-sm'
+	                  : 'border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-200 hover:border-indigo-400 hover:bg-indigo-500/10'
+	                  }`}
+	              >
+	                {persona.label}
+	              </button>
+	            ))}
+	          </div>
+	        </div>
+	      </details>
 
       {
         !isUGCMode && (
-          <SmoothAccordion
-            icon={Camera}
-            title="Camera & Framing"
-            tooltip="How the scene is captured"
-            isOpen={openAccordionId === 'camera'}
-            onToggle={() => toggleSection('camera')}
-            isTouched={touchedSections.has('camera')}
-          >
+	          <SmoothAccordion
+	            icon={Camera}
+	            title="Camera & Framing"
+	            tooltip="How the scene is captured"
+	            isOpen={openAccordionId === 'camera'}
+	            onToggle={() => toggleSection('camera')}
+	            isTouched={touchedSections.has('camera')}
+	            variant="primary"
+	          >
             <div className="space-y-3">
               <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
                 <div>
@@ -2855,14 +2874,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       {/* HERO CANVAS (BACKGROUND REPLACEMENT) */}
       {/* Coexists with Lifestyle controls; applies only when enabled. */}
       {isEnvironmentMode && (
-        <SmoothAccordion
-          icon={Building2}
-          title="Hero"
-          tooltip="Neutral background + placement (Lifestyle)"
-          isOpen={openAccordionId === 'ecommerce'}
-          onToggle={() => toggleSection('ecommerce')}
-          isActive={values.ecommerceSidePlacementFlag}
-		        >
+	        <SmoothAccordion
+	          icon={Building2}
+	          title="Hero"
+	          tooltip="Neutral background + placement (Lifestyle)"
+	          isOpen={openAccordionId === 'ecommerce'}
+	          onToggle={() => toggleSection('ecommerce')}
+	          isActive={values.ecommerceSidePlacementFlag}
+	          variant="expert"
+			        >
 		          <div className="space-y-4">
 		            <div className="flex items-center justify-between">
 		              <span className="text-sm text-gray-200">Enable hero canvas</span>
@@ -3026,14 +3046,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       )}
 
       {isEnvironmentMode && (
-        <SmoothAccordion
-          icon={Edit3}
-          title="Formulation Story"
-          tooltip="Align brand expert, research, and product goals"
-          isOpen={openAccordionId === 'formulationStory'}
-          onToggle={() => toggleSection('formulationStory')}
-          isActive={values.formulationStoryEnabled}
-        >
+	        <SmoothAccordion
+	          icon={Edit3}
+	          title="Formulation Story"
+	          tooltip="Align brand expert, research, and product goals"
+	          isOpen={openAccordionId === 'formulationStory'}
+	          onToggle={() => toggleSection('formulationStory')}
+	          isActive={values.formulationStoryEnabled}
+	          variant="expert"
+	        >
           <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-200">Enable Formulation Story</span>
@@ -3138,6 +3159,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         tooltip="Aspect ratio for the final image"
         isOpen={openAccordionId === 'output'}
         onToggle={() => toggleSection('output')}
+        variant="secondary"
       >
         <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
           <p className="text-xs uppercase tracking-wider text-indigo-200">ASPECT RATIO</p>
