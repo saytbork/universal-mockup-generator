@@ -2,6 +2,48 @@
   color-scheme: dark;
 }
 
+:root[data-theme="light"] {
+  --app-bg: #F6F7F9;
+
+  --panel-bg: #FFFFFF;
+  --panel-muted-bg: #F1F3F6;
+  --preview-bg: #EEF1F5;
+
+  --border-default: #E5E7EB;
+  --border-subtle: #EDF0F3;
+
+  --text-primary: #111827;
+  --text-secondary: #6B7280;
+  --text-muted: #9CA3AF;
+
+  --accent-primary: #6366F1;   /* indigo suave */
+  --accent-secondary: #A78BFA; /* violeta suave */
+
+  --shadow-panel: 0 8px 24px rgba(0,0,0,0.06);
+  --radius-panel: 14px;
+}
+
+:root[data-theme="dark"] {
+  --app-bg: #0B0F19;
+
+  --panel-bg: #121826;
+  --panel-muted-bg: #0F1523;
+  --preview-bg: #0D1322;
+
+  --border-default: #1F2937;
+  --border-subtle: #111827;
+
+  --text-primary: #E5E7EB;
+  --text-secondary: #9CA3AF;
+  --text-muted: #6B7280;
+
+  --accent-primary: #8B5CF6;   /* indigo/violet en dark */
+  --accent-secondary: #A78BFA;
+
+  --shadow-panel: 0 12px 32px rgba(0,0,0,0.45);
+  --radius-panel: 14px;
+}
+
 body {
   margin: 0;
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
