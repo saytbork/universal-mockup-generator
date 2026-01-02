@@ -40,6 +40,10 @@ import { promptEngine } from './src/lib/promptEngine';
 import { mapLifestyleToPromptOptions } from './src/lib/promptEngine/mapLifestyleToPromptOptions';
 import { mapProductModeToPromptOptions } from './src/lib/promptEngine/mapProductModeToPromptOptions';
 import LifestyleStep3, { type Step3Values } from "@/components/LifestyleStep3";
+import EcommerceStep3, { type EcommerceGenerationSettings } from '@/components/EcommerceStep3';
+import type { EcommerceSlotKey, EcommerceSlotsConfig } from '@/lib/ecommerceOverlay/types';
+import { loadEcommerceSlotsConfig, saveEcommerceSlotsConfig } from '@/lib/ecommerceOverlay/storage';
+import { ECOMMERCE_SLOT_REQUIRED_BLANK_SPACE } from '@/lib/ecommerceOverlay/templates';
 
 
 
@@ -1113,6 +1117,19 @@ const App: React.FC = () => {
   // LifestyleStep3 state for PromptEngine
   const [lifestyleStep3Values, setLifestyleStep3Values] = useState<Step3Values | null>(null);
   const [hasFirstGenerationComplete, setHasFirstGenerationComplete] = useState(false);
+
+  const [ecommerceSelectedSlots, setEcommerceSelectedSlots] = useState<EcommerceSlotKey[]>([]);
+  const [ecommerceSlotsConfig, setEcommerceSlotsConfig] = useState<EcommerceSlotsConfig>(() => loadEcommerceSlotsConfig());
+  const [ecommerceSlotBaseImages, setEcommerceSlotBaseImages] = useState<Partial<Record<EcommerceSlotKey, string | null>>>({});
+  const [ecommerceGenerationSettings, setEcommerceGenerationSettings] = useState<EcommerceGenerationSettings>({
+    reserveBlankSpace: true,
+    blankSpaceDirection: 'right',
+    viewFraming: 'centered',
+  });
+
+  useEffect(() => {
+    saveEcommerceSlotsConfig(ecommerceSlotsConfig);
+  }, [ecommerceSlotsConfig]);
   const [activeTalentPreset, setActiveTalentPreset] = useState('custom');
   const [isProPhotographer, setIsProPhotographer] = useState(false);
   const [activeProPreset, setActiveProPreset] = useState<string>('custom');
@@ -4488,6 +4505,192 @@ If the model attempts to create a scene or environment, override it and force a 
     ]
   );
 
+  const handleGenerateEcommerceClick = useCallback(async () => {
+    bundleSelectionRef.current = null;
+    if (isTrialLocked) {
+      setImageError(`You reached the ${currentPlan.label} limit (${planCreditLimit} credits). Upgrade your plan to keep generating scenes.`);
+      return;
+    }
+
+    const generationProducts = activeProducts;
+    if (!generationProducts.length) {
+      setImageError("Please upload a product image first.");
+      return;
+    }
+    if (!ecommerceSelectedSlots.length) {
+      setImageError('Select at least one Ecommerce slot before generating.');
+      return;
+    }
+
+    const creditCost = getImageCreditCost(options);
+    const projectedCost = creditCost * ecommerceSelectedSlots.length;
+    if (!isTrialBypassActive && projectedCost > remainingCredits) {
+      setImageError('Not enough credits for these slots. Reduce slots or upgrade your plan.');
+      setShowPlanModal(true);
+      return;
+    }
+
+    resetOutputs();
+    setGeneratedCopy(null);
+    setCopyError(null);
+    setIsImageLoading(true);
+    setImageError(null);
+
+    try {
+      const allowedProductCreationModes = new Set(['studio', 'aesthetic', 'bg-replace', 'ecom-blank']);
+      const safeProductCreationMode =
+        options.creationMode && allowedProductCreationModes.has(String(options.creationMode)) ? options.creationMode : 'studio';
+
+      const basePromptOptions: any = {
+        ...options,
+        ugcStyle: 'optimized',
+        contentStyle: 'product',
+        creationIntent: 'product',
+        sceneIntent: 'ecommerce',
+        personIncluded: false,
+        addHands: false,
+        creationMode: ecommerceGenerationSettings.reserveBlankSpace ? 'ecom-blank' : safeProductCreationMode,
+        ecommerceBlankSpaceMode: ecommerceGenerationSettings.reserveBlankSpace,
+        ecommerceSidePlacementFlag: ecommerceGenerationSettings.reserveBlankSpace,
+        cameraType:
+          options.cameraType &&
+          !String(options.cameraType).toLowerCase().includes('smartphone') &&
+          !String(options.cameraType).toLowerCase().includes('phone')
+            ? options.cameraType
+            : 'DSLR / mirrorless camera',
+        compositionMode: undefined,
+        compositionModeStructural: undefined,
+        creationModeStructural: undefined,
+        productAssets: generationProducts.map(p => ({
+          id: p.id,
+          base64: p.base64,
+          mimeType: p.mimeType,
+        })),
+      };
+
+      const aspectRatio = options?.aspectRatio || '1:1';
+      const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
+      if (!resolvedApiKey) {
+        return;
+      }
+
+      const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: 'v1beta' });
+
+      let lastUrl: string | null = null;
+      for (const slotKey of ecommerceSelectedSlots) {
+        const slotBlankDir = ECOMMERCE_SLOT_REQUIRED_BLANK_SPACE[slotKey] ?? ecommerceGenerationSettings.blankSpaceDirection;
+
+        const framingPerspective = (() => {
+          switch (ecommerceGenerationSettings.viewFraming) {
+            case 'left-negative-space':
+              return 'product aligned left with large clean negative space to the right';
+            case 'right-negative-space':
+              return 'product aligned right with large clean negative space to the left';
+            case 'centered':
+            default:
+              return 'centered hero composition with clean margins';
+          }
+        })();
+
+        const promptOptions = {
+          ...basePromptOptions,
+          sidePlacement: slotBlankDir,
+          ecommerceSidePlacement: slotBlankDir,
+          ecommerceSidePlacementFlag: ecommerceGenerationSettings.reserveBlankSpace,
+          ecommerceBlankSpaceMode: ecommerceGenerationSettings.reserveBlankSpace,
+          perspective: framingPerspective,
+          lighting: ecommerceGenerationSettings.reserveBlankSpace
+            ? 'neutral studio lighting with clean highlights, controlled reflections, and a minimal contact shadow; no environment context'
+            : 'soft studio lighting with clean highlights, controlled reflections, and gentle realistic shadows; product-only composition',
+        };
+
+        const finalPrompt = promptEngine.build(promptOptions);
+        console.log('[ECOM SLOT]', slotKey, { promptPreview: finalPrompt.slice(0, 240) });
+
+        const seed = crypto.randomUUID();
+        const response = await ai.models.generateContent({
+          model: GEMINI_IMAGE_MODEL,
+          contents: { parts: [{ text: finalPrompt }, ...generationProducts.map(product => ({ inlineData: { data: product.base64, mimeType: product.mimeType }, reference: true }))] },
+          config: {
+            responseModalities: [Modality.IMAGE],
+            safetySettings: [],
+            generationConfig: {
+              responseMimeType: 'image/png',
+              aspectRatio,
+              preserveReferenceImage: true,
+              temperature: 0.25,
+              topP: 0.9,
+              seed,
+            },
+          },
+        });
+
+        const responseParts = response?.candidates?.[0]?.content?.parts ?? [];
+        const inlineImage = responseParts.find(part => (part as any)?.inlineData?.data) as
+          | { inlineData?: { data?: string } }
+          | undefined;
+        const encodedImage = inlineImage?.inlineData?.data;
+        if (!encodedImage) {
+          throw new Error(`Image generation failed for slot ${slotKey}.`);
+        }
+
+        const finalUrl = `data:image/png;base64,${encodedImage}`;
+        lastUrl = finalUrl;
+        setEcommerceSlotBaseImages(prev => ({ ...prev, [slotKey]: finalUrl }));
+        setGeneratedImageUrl(finalUrl);
+        void reportGalleryEntry(finalUrl);
+      }
+
+      if (lastUrl) {
+        runHiResPipeline(lastUrl);
+      }
+
+      setCreditUsage(prev => {
+        const next = prev + projectedCost;
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem(IMAGE_COUNT_KEY, String(next));
+        }
+        return next;
+      });
+    } catch (err) {
+      console.error(err);
+      let errorMessage = '';
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      } else {
+        try {
+          errorMessage = JSON.stringify(err);
+        } catch {
+          errorMessage = String(err);
+        }
+      }
+      setImageError(errorMessage);
+    } finally {
+      setIsImageLoading(false);
+      bundleSelectionRef.current = null;
+    }
+  }, [
+    activeProducts,
+    ecommerceGenerationSettings.blankSpaceDirection,
+    ecommerceGenerationSettings.reserveBlankSpace,
+    ecommerceGenerationSettings.viewFraming,
+    ecommerceSelectedSlots,
+    getActiveApiKeyOrNotify,
+    getImageCreditCost,
+    isTrialBypassActive,
+    isTrialLocked,
+    currentPlan.label,
+    planCreditLimit,
+    remainingCredits,
+    resetOutputs,
+    options,
+    runHiResPipeline,
+    setShowPlanModal,
+    reportGalleryEntry,
+  ]);
+
   const generateMockup = useCallback(
     (bundleProducts: string[]) => {
       const sanitized = bundleProducts.filter((product): product is ProductId =>
@@ -5259,10 +5462,17 @@ If the model attempts to create a scene or environment, override it and force a 
                         isGenerateDisabled={isGenerateDisabled}
                         generationRestriction={generationRestrictionMessage}
                         onValuesChange={handleLifestyleStep3Change}
-                        onGenerate={handleGenerateClick}
+                        onGenerate={isProductPlacement ? handleGenerateEcommerceClick : handleGenerateClick}
                         hasModelReference={hasModelReference}
                         productCount={activeProducts.length}
                         hasFirstGenerationComplete={hasFirstGenerationComplete}
+                        ecommerceSelectedSlots={ecommerceSelectedSlots}
+                        onEcommerceSelectedSlotsChange={setEcommerceSelectedSlots}
+                        ecommerceSlotsConfig={ecommerceSlotsConfig}
+                        onEcommerceSlotsConfigChange={setEcommerceSlotsConfig}
+                        ecommerceSlotBaseImages={ecommerceSlotBaseImages}
+                        ecommerceGenerationSettings={ecommerceGenerationSettings}
+                        onEcommerceGenerationSettingsChange={setEcommerceGenerationSettings}
                       />
                     );
                   })()}
@@ -5359,6 +5569,13 @@ interface SceneBuilderStepProps {
   hasModelReference: boolean;
   productCount: number;
   hasFirstGenerationComplete: boolean;
+  ecommerceSelectedSlots: EcommerceSlotKey[];
+  onEcommerceSelectedSlotsChange: (next: EcommerceSlotKey[]) => void;
+  ecommerceSlotsConfig: EcommerceSlotsConfig;
+  onEcommerceSlotsConfigChange: (next: EcommerceSlotsConfig) => void;
+  ecommerceSlotBaseImages: Partial<Record<EcommerceSlotKey, string | null>>;
+  ecommerceGenerationSettings: EcommerceGenerationSettings;
+  onEcommerceGenerationSettingsChange: (next: EcommerceGenerationSettings) => void;
 }
 
 const SceneBuilderStep = forwardRef<HTMLDivElement, SceneBuilderStepProps>(({
@@ -5372,21 +5589,40 @@ const SceneBuilderStep = forwardRef<HTMLDivElement, SceneBuilderStepProps>(({
   hasModelReference,
   productCount,
   hasFirstGenerationComplete,
+  ecommerceSelectedSlots,
+  onEcommerceSelectedSlotsChange,
+  ecommerceSlotsConfig,
+  onEcommerceSlotsConfigChange,
+  ecommerceSlotBaseImages,
+  ecommerceGenerationSettings,
+  onEcommerceGenerationSettingsChange,
 }, ref) => (
   <div
     ref={ref}
     className={`bg-gray-800/50 rounded-lg flex flex-col overflow-hidden ${isLocked ? 'opacity-60 pointer-events-none' : ''}`}
   >
     <div className="flex-grow overflow-y-auto custom-scrollbar">
-      <LifestyleStep3
-        isProductMode={isProductMode}
-        onValuesChange={onValuesChange}
-        onCanGenerateChange={(canGenerate) => {
-          // Add logic if needed
-        }}
-        hasModelReference={hasModelReference}
-        hasFirstGenerationComplete={hasFirstGenerationComplete}
-      />
+      {isProductMode ? (
+        <EcommerceStep3
+          selectedSlots={ecommerceSelectedSlots}
+          onSelectedSlotsChange={onEcommerceSelectedSlotsChange}
+          slotsConfig={ecommerceSlotsConfig}
+          onSlotsConfigChange={onEcommerceSlotsConfigChange}
+          slotBaseImages={ecommerceSlotBaseImages}
+          settings={ecommerceGenerationSettings}
+          onSettingsChange={onEcommerceGenerationSettingsChange}
+        />
+      ) : (
+        <LifestyleStep3
+          isProductMode={false}
+          onValuesChange={onValuesChange}
+          onCanGenerateChange={(canGenerate) => {
+            // Add logic if needed
+          }}
+          hasModelReference={hasModelReference}
+          hasFirstGenerationComplete={hasFirstGenerationComplete}
+        />
+      )}
     </div>
     <div className="p-4 flex-shrink-0">
       <button
