@@ -1122,7 +1122,7 @@ const App: React.FC = () => {
   const [ecommerceSlotsConfig, setEcommerceSlotsConfig] = useState<EcommerceSlotsConfig>(() => loadEcommerceSlotsConfig());
   const [ecommerceSlotBaseImages, setEcommerceSlotBaseImages] = useState<Partial<Record<EcommerceSlotKey, string | null>>>({});
   const [ecommerceGenerationSettings, setEcommerceGenerationSettings] = useState<EcommerceGenerationSettings>({
-    reserveBlankSpace: true,
+    reserveBlankSpace: false,
     blankSpaceDirection: 'right',
     viewFraming: 'centered',
   });

@@ -666,7 +666,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     environment: initialSceneIntent === 'ecommerce' ? '' : 'Kitchen', // Kitchen has table/counter surface by default
     customEnvironment: '',
     sceneOrderChaos: 'Normal',
-    ecommerceSidePlacementFlag: initialSceneIntent === 'ecommerce',
+    // Ecommerce canvas (neutral background + negative space) is optional and toggle-driven.
+    ecommerceSidePlacementFlag: false,
 
     // Time & Lighting - simplified
     timeOfDay: 'Afternoon',
@@ -719,7 +720,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     // Creation Intent / Modes (simplified - removed legacy modes)
     creationIntent: initialSceneIntent === 'ecommerce' ? 'product' : 'ugc',
     creationMode: 'Lifestyle UGC',
-    compositionMode: initialSceneIntent === 'ecommerce' ? 'Ecommerce Blank Space' : '', // Empty = not in ecommerce mode
+    compositionMode: '', // Toggle-driven (Ecommerce Blank Space)
     sidePlacement: SIDE_PLACEMENT_OPTIONS[1],
     ecommerceBackgroundColor: '#ffffff',
     ecommerceBackgroundMode: 'white',
@@ -948,6 +949,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       const next: Step3Values = {
         ...prev,
         sceneIntent: 'ecommerce',
+        creationIntent: 'product',
         ugcRealMode: false,
         noPerson: true,
         environment: '',
@@ -956,7 +958,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         cameraType: '',
         shotType: '',
         framing: '',
-        compositionMode: 'Ecommerce Blank Space',
+        compositionMode: '',
         ugcCaptureStyleBase: [],
         ugcCameraOperator: [],
         ugcBodyPhonePosition: [],
@@ -969,7 +971,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         ecommerceGradientEnd: prev.ecommerceGradientEnd || '#d9d9d9',
         ecommerceGradientAngle: (prev.ecommerceGradientAngle || '90') as any,
         sidePlacement: prev.sidePlacement || SIDE_PLACEMENT_OPTIONS[1],
-        ecommerceSidePlacementFlag: true,
+        ecommerceSidePlacementFlag: false,
       };
       enforceSingleSelectLayers(next);
       return next;
@@ -1504,17 +1506,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-3">
                 <div className="space-y-2 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
                   <p className="text-xs uppercase tracking-wider text-indigo-200">ANGLE</p>
-                  <select
-                    value={values.productCameraAngle}
-                    onChange={e => {
-                      updateValue('productCameraAngle', e.target.value as any);
-                      markSectionTouched('product-camera');
-                    }}
-                    className="w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-                  >
+                  <div className="flex flex-wrap gap-2">
                     {(
                       [
                         'Eye level product',
@@ -1522,14 +1517,22 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         'Top-down flat lay',
                         'Low angle power',
                         'High angle overview',
-                        'Detail close-up'
+                        'Detail close-up',
                       ] as const
                     ).map(option => (
-                      <option key={option} value={option}>
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => {
+                          updateValue('productCameraAngle', option as any);
+                          markSectionTouched('product-camera');
+                        }}
+                        className={getPillClass(values.productCameraAngle === option, true)}
+                      >
                         {option}
-                      </option>
+                      </button>
                     ))}
-                  </select>
+                  </div>
                 </div>
 
                 <div className="space-y-2 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
@@ -1552,7 +1555,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-3">
                 <div className="space-y-2 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
                   <p className="text-xs uppercase tracking-wider text-indigo-200">ROTATION</p>
                   <div className="flex flex-wrap gap-2">
@@ -1574,28 +1577,29 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                 <div className="space-y-2 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
                   <p className="text-xs uppercase tracking-wider text-indigo-200">FRAMING GUIDE</p>
-                  <select
-                    value={values.productFramingGuide}
-                    onChange={e => {
-                      updateValue('productFramingGuide', e.target.value as any);
-                      markSectionTouched('product-camera');
-                    }}
-                    className="w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-                  >
+                  <div className="flex flex-wrap gap-2">
                     {(
                       [
                         'Centered hero',
                         'Rule of thirds',
                         'Left aligned + negative space',
                         'Right aligned + negative space',
-                        'Grid-ready'
+                        'Grid-ready',
                       ] as const
                     ).map(option => (
-                      <option key={option} value={option}>
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => {
+                          updateValue('productFramingGuide', option as any);
+                          markSectionTouched('product-camera');
+                        }}
+                        className={getPillClass(values.productFramingGuide === option, true)}
+                      >
                         {option}
-                      </option>
+                      </button>
                     ))}
-                  </select>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1611,6 +1615,46 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           >
             <div className="space-y-4">
               <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-wider text-indigo-200">BACKGROUND CANVAS</p>
+                    <p className="text-[11px] text-gray-400 mt-1">Neutral background + negative space (optional)</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateValue('ecommerceSidePlacementFlag', true);
+                        updateValue('compositionMode', 'Ecommerce Blank Space');
+                        markSectionTouched('ecommerce');
+                      }}
+                      className={getPillClass(values.ecommerceSidePlacementFlag === true, true)}
+                    >
+                      On
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateValue('ecommerceSidePlacementFlag', false);
+                        updateValue('compositionMode', '');
+                        markSectionTouched('ecommerce');
+                      }}
+                      className={getPillClass(values.ecommerceSidePlacementFlag !== true, true)}
+                    >
+                      Off
+                    </button>
+                  </div>
+                </div>
+                {values.ecommerceSidePlacementFlag !== true && (
+                  <p className="text-[11px] text-gray-400">
+                    Turn this off to use Product Builder Creativity (studio/aesthetic) instead of a neutral blank-space layout.
+                  </p>
+                )}
+              </div>
+
+              {values.ecommerceSidePlacementFlag === true && (
+                <>
+                  <div className="space-y-3 p-3 rounded-lg border border-gray-700 bg-gray-800/20">
                 <div>
                   <p className="text-xs uppercase tracking-wider text-indigo-200">SIDE PLACEMENT</p>
                   <p className="text-[11px] text-gray-400 mt-1">Product anchor position</p>
@@ -1622,7 +1666,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       type="button"
                       onClick={() => {
                         updateValue('sidePlacement', option);
-                        updateValue('ecommerceSidePlacementFlag', true);
                         markSectionTouched('ecommerce');
                       }}
                       className={getPillClass(values.sidePlacement === option, true)}
@@ -1680,7 +1723,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
                 ) : (
                   <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-3">
                       {(
                         [
                           { key: 'ecommerceGradientStart', label: 'Start color' },
@@ -1743,6 +1786,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </>
                 )}
               </div>
+                </>
+              )}
 
               {ecommerceOverlay && (
                 <div className="space-y-3 rounded-xl border border-white/10 bg-gradient-to-b from-gray-900/60 to-gray-900/30 p-4">

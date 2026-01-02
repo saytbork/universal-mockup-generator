@@ -164,20 +164,43 @@ export function mapProductModeToPromptOptions(
         ...existingOptions
     };
 
+    // Prevent any UGC contracts from leaking into Product prompts.
+    // masterPrompt.ts appends UGC_CONTRACTS[ugcStyle] unconditionally.
+    mapped.ugcStyle = 'optimized';
+
+    const ecommerceCanvasActive = sceneState.ecommerceSidePlacementFlag === true;
+
     // Force Product Mode flags (authoritative)
     mapped.contentStyle = 'product';
     mapped.creationIntent = 'product';
-    mapped.creationMode = 'ecom-blank';
     mapped.personIncluded = false;
     mapped.sceneIntent = 'ecommerce';
-    mapped.compositionMode = 'Ecommerce Blank Space';
-    mapped.ecommerceBlankSpaceMode = true;
     mapped.addHands = false;
+
+    // Ecommerce blank-space is optional and must be toggle-driven.
+    // If disabled, Product mode should generate non-blank studio/aesthetic shots.
+    if (ecommerceCanvasActive) {
+        mapped.creationMode = 'ecom-blank';
+        mapped.compositionMode = 'Ecommerce Blank Space';
+        mapped.ecommerceBlankSpaceMode = true;
+        mapped.ecommerceSidePlacementFlag = true;
+        mapped.lighting =
+            'neutral studio lighting with clean highlights, controlled reflections, and a minimal contact shadow; no environment context';
+    } else {
+        mapped.creationMode =
+            sceneState.productCreativityLevel && sceneState.productCreativityLevel !== 'Off'
+                ? 'aesthetic'
+                : 'studio';
+        mapped.compositionMode = undefined;
+        mapped.ecommerceBlankSpaceMode = false;
+        mapped.ecommerceSidePlacementFlag = false;
+        mapped.lighting =
+            'soft studio lighting with clean highlights, controlled reflections, and gentle realistic shadows; product-only composition';
+    }
 
     const sidePlacement = normalizeSidePlacement(sceneState.sidePlacement);
     mapped.sidePlacement = sidePlacement;
     mapped.ecommerceSidePlacement = sidePlacement;
-    mapped.ecommerceSidePlacementFlag = true;
 
     // Allow product camera/framing controls (product-only, pro)
     mapped.camera = 'DSLR / mirrorless camera';
