@@ -68,7 +68,7 @@ export class ProductBuilder implements PromptBuilder {
         return `
       Use the uploaded product asset exactly as provided. Do not redesign, restyle, recolor, or reinterpret its shape, label, or material.
       ${bgLine}
-      Preserve the exact proportions, textures, reflections, and printed graphics. Avoid any environmental, lifestyle, or storytelling context; maintain the pixel-perfect look of the asset.
+      Preserve the exact proportions, textures, reflections, and printed graphics. Avoid any environmental or storytelling context; maintain the pixel-perfect look of the asset.
     `.trim().replace(/\s+/g, ' ');
 
     }
