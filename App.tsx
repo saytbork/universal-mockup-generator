@@ -5184,7 +5184,7 @@ If the model attempts to create a scene or environment, override it and force a 
             </div>
 
             <div className="flex items-center justify-center lg:justify-end gap-3">
-              <div className="hidden lg:flex lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:top-2 lg:flex-col lg:items-center lg:gap-3">
+              <div className="flex flex-col items-center lg:items-end gap-3">
                 <p className="text-[11px] uppercase tracking-[0.45em] text-indigo-200/80">Select Mode</p>
                 <div className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-black/30 p-1">
                   <button
@@ -5203,14 +5203,6 @@ If the model attempts to create a scene or environment, override it and force a 
                   </button>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsAccountMenuOpen(open => !open)}
-                className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold text-white/90 hover:border-indigo-400 hover:text-white transition"
-              >
-                <span className="h-6 w-6 rounded-full bg-white/10 border border-white/10" />
-                My Account
-              </button>
             </div>
           </header>
 
