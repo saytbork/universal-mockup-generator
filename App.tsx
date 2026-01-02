@@ -846,6 +846,46 @@ const scaleImageToLongEdge = async (sourceUrl: string, targetLongEdge: number): 
   return { url, width, height };
 };
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const downscaleDataUrlToJpeg = async (
+  dataUrl: string,
+  opts: { maxLongEdge: number; quality: number }
+): Promise<{ base64: string; mimeType: string }> => {
+  const img = await loadImageFromUrl(dataUrl);
+  const longEdge = Math.max(img.naturalWidth, img.naturalHeight);
+  if (!longEdge) {
+    throw new Error('Source image has invalid dimensions.');
+  }
+  const scale = Math.min(1, opts.maxLongEdge / longEdge);
+  const width = Math.max(1, Math.round(img.naturalWidth * scale));
+  const height = Math.max(1, Math.round(img.naturalHeight * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    throw new Error('Canvas context is unavailable for scaling.');
+  }
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(img, 0, 0, width, height);
+  const url = canvas.toDataURL('image/jpeg', opts.quality);
+  const [, base64] = url.split(';base64,');
+  return { base64, mimeType: 'image/jpeg' };
+};
+
+const maybeDownscaleInlineImage = async (
+  base64: string,
+  mimeType: string,
+  opts: { maxLongEdge: number; maxBase64Length: number; quality: number }
+): Promise<{ base64: string; mimeType: string }> => {
+  if (!base64) return { base64, mimeType };
+  if (base64.length <= opts.maxBase64Length) return { base64, mimeType };
+  const dataUrl = `data:${mimeType};base64,${base64}`;
+  return downscaleDataUrlToJpeg(dataUrl, { maxLongEdge: opts.maxLongEdge, quality: opts.quality });
+};
+
 const App: React.FC = () => {
   const GEMINI_DISABLED = false; // Gemini must stay enabled for direct image generation
   const location = useLocation();
@@ -4162,6 +4202,10 @@ If the model attempts to create a scene or environment, override it and force a 
   const reportGalleryEntry = useCallback(
     async (url: string) => {
       if (!url) return;
+      if (url.trim().toLowerCase().startsWith('data:')) {
+        // Data URLs are not public and exceed Firestore limits; skip gallery save.
+        return;
+      }
       const userId = userEmail || 'guest';
       const plan = planTier;
       try {
@@ -4367,12 +4411,17 @@ If the model attempts to create a scene or environment, override it and force a 
           }
         }
         if (shouldSendProductImage) {
-          generationProducts.forEach(product => {
+          for (const product of generationProducts) {
+            const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
+              maxLongEdge: 1024,
+              maxBase64Length: 1_300_000,
+              quality: 0.88,
+            });
             requestParts.push({
-              inlineData: { data: product.base64, mimeType: product.mimeType },
+              inlineData: { data: resized.base64, mimeType: resized.mimeType },
               reference: true,
             });
-          });
+          }
         }
         const payload = { parts: requestParts };
         const payloadLog = {
@@ -4385,22 +4434,41 @@ If the model attempts to create a scene or environment, override it and force a 
 
         const seed = crypto.randomUUID();
         console.log('[UGC DEBUG] seed:', seed);
-        const response = await ai.models.generateContent({
-          model: GEMINI_IMAGE_MODEL,
-          contents: payload,
-          config: {
-            responseModalities: [Modality.IMAGE],
-            safetySettings: [],
-            generationConfig: {
-              responseMimeType: 'image/png',
-              aspectRatio,
-              preserveReferenceImage: true,
-              temperature: 0.25,
-              topP: 0.9,
-              seed,
-            },
-          },
-        });
+        const generateWithRetry = async () => {
+          const maxAttempts = 2;
+          for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+              return await ai.models.generateContent({
+                model: GEMINI_IMAGE_MODEL,
+                contents: payload,
+                config: {
+                  responseModalities: [Modality.IMAGE],
+                  safetySettings: [],
+                  generationConfig: {
+                    responseMimeType: 'image/png',
+                    aspectRatio,
+                    preserveReferenceImage: true,
+                    temperature: 0.25,
+                    topP: 0.9,
+                    seed,
+                  },
+                },
+              });
+            } catch (error) {
+              const message = String((error as any)?.message ?? error);
+              const shouldRetry =
+                attempt < maxAttempts &&
+                (message.includes('Failed to fetch') ||
+                  message.includes('ERR_CONNECTION_CLOSED') ||
+                  message.includes('NetworkError'));
+              if (!shouldRetry) throw error;
+              await sleep(450 * attempt);
+            }
+          }
+          throw new Error('Image generation failed after retries.');
+        };
+
+        const response = await generateWithRetry();
 
         const responseParts = response?.candidates?.[0]?.content?.parts ?? [];
         const inlineImage = responseParts.find(part => (part as any)?.inlineData?.data) as { inlineData?: { data?: string } } | undefined;
@@ -4413,38 +4481,13 @@ If the model attempts to create a scene or environment, override it and force a 
         setGeneratedImageUrl(finalUrl);
         setHasFirstGenerationComplete(true);  // Enable Keep Same Person toggle
         void reportGalleryEntry(finalUrl);
-        const galleryPlan = determineGalleryPlan();
-        if (galleryPlan) {
-          const galleryPayload: Record<string, string> = { url: finalUrl, plan: galleryPlan };
-          if (hasModelReference) {
-            galleryPayload.compositionMode = compositionMode;
-          }
-          console.log('Sending gallery POST', galleryPayload);
-          try {
-            const response = await fetch('/api/galleryHandler?action=add', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(galleryPayload),
-            });
-            console.log('Gallery add status:', response.status);
-            if (!response.ok) {
-              console.log('Gallery add response:', await response.text());
-            }
-            if (!response.ok) {
-              const errorText = await response.text().catch(() => 'unknown error');
-              console.warn('Failed to save community gallery image', errorText);
-            }
-          } catch (err) {
-            console.warn('Failed to save community gallery image', err);
-          }
-        }
         runHiResPipeline(finalUrl);
         const newCount = creditUsage + creditCost;
         setCreditUsage(newCount);
         if (typeof window !== 'undefined') {
           window.localStorage.setItem(IMAGE_COUNT_KEY, String(newCount));
         }
-        publishFreeGallery(finalUrl, galleryPlan, compositionMode);
+        publishFreeGallery(finalUrl, determineGalleryPlan(), compositionMode);
       } catch (err) {
         console.error(err);
         let errorMessage = '';
@@ -4614,22 +4657,51 @@ If the model attempts to create a scene or environment, override it and force a 
         console.log('[ECOM SLOT]', slotKey, { promptPreview: finalPrompt.slice(0, 240) });
 
         const seed = crypto.randomUUID();
-        const response = await ai.models.generateContent({
-          model: GEMINI_IMAGE_MODEL,
-          contents: { parts: [{ text: finalPrompt }, ...generationProducts.map(product => ({ inlineData: { data: product.base64, mimeType: product.mimeType }, reference: true }))] },
-          config: {
-            responseModalities: [Modality.IMAGE],
-            safetySettings: [],
-            generationConfig: {
-              responseMimeType: 'image/png',
-              aspectRatio,
-              preserveReferenceImage: true,
-              temperature: 0.25,
-              topP: 0.9,
-              seed,
-            },
-          },
-        });
+        const productParts: any[] = [];
+        for (const product of generationProducts) {
+          const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
+            maxLongEdge: 1024,
+            maxBase64Length: 1_300_000,
+            quality: 0.88,
+          });
+          productParts.push({ inlineData: { data: resized.base64, mimeType: resized.mimeType }, reference: true });
+        }
+
+        const generateWithRetry = async () => {
+          const maxAttempts = 2;
+          for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+              return await ai.models.generateContent({
+                model: GEMINI_IMAGE_MODEL,
+                contents: { parts: [{ text: finalPrompt }, ...productParts] },
+                config: {
+                  responseModalities: [Modality.IMAGE],
+                  safetySettings: [],
+                  generationConfig: {
+                    responseMimeType: 'image/png',
+                    aspectRatio,
+                    preserveReferenceImage: true,
+                    temperature: 0.25,
+                    topP: 0.9,
+                    seed,
+                  },
+                },
+              });
+            } catch (error) {
+              const message = String((error as any)?.message ?? error);
+              const shouldRetry =
+                attempt < maxAttempts &&
+                (message.includes('Failed to fetch') ||
+                  message.includes('ERR_CONNECTION_CLOSED') ||
+                  message.includes('NetworkError'));
+              if (!shouldRetry) throw error;
+              await sleep(450 * attempt);
+            }
+          }
+          throw new Error('Image generation failed after retries.');
+        };
+
+        const response = await generateWithRetry();
 
         const responseParts = response?.candidates?.[0]?.content?.parts ?? [];
         const inlineImage = responseParts.find(part => (part as any)?.inlineData?.data) as

@@ -64,6 +64,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(400).json({ error: "Invalid imageUrl format" });
         }
 
+        // Data URLs are not supported for gallery storage (too large for Firestore and not publicly shareable).
+        if (typeof imageUrl === 'string' && imageUrl.trim().toLowerCase().startsWith('data:')) {
+          return res.status(413).json({ error: "imageUrl must be a public URL (data URLs are not supported)." });
+        }
+
         const ref = await adminDB.collection("gallery").add({
           imageUrl: imageUrl.trim(),
           userId,
