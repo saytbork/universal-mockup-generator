@@ -5342,20 +5342,113 @@ If the model attempts to create a scene or environment, override it and force a 
 		                      )}
 		                    </button>
 
-	                    <div className="sr-only" aria-hidden="true">
-	                      <ImageUploader
-	                        ref={uploaderRef}
-	                        onImageUpload={handleImageUpload}
-	                        uploadedImagePreview={uploadedImagePreview}
-	                        disabled={!hasSelectedIntent}
-	                        lockedMessage="Select a mode to start."
-	                      />
-	                    </div>
+		                    <div className="sr-only" aria-hidden="true">
+		                      <ImageUploader
+		                        ref={uploaderRef}
+		                        onImageUpload={handleImageUpload}
+		                        uploadedImagePreview={uploadedImagePreview}
+		                        disabled={!hasSelectedIntent}
+		                        lockedMessage="Select a mode to start."
+		                      />
+		                    </div>
 
-	                    {!isProductPlacement && (
-		                      <details className="border-t border-white/10 pt-3 opacity-70 hover:opacity-100 transition">
-		                        <summary className="cursor-pointer list-none flex items-center justify-between text-xs text-gray-500 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/60">
-		                          <span className="uppercase tracking-[0.35em]">Optional Model Reference</span>
+		                    {productAssets.length > 0 && (
+		                      <div className="rounded-lg border border-gray-200/70 dark:border-white/10 bg-gray-50 dark:bg-gray-800/30 p-4 space-y-3">
+		                        <div className="flex flex-wrap items-center justify-between gap-3">
+		                          <div className="flex items-center gap-2">
+		                            <p className="text-xs uppercase tracking-[0.35em] text-indigo-600 dark:text-indigo-200">Product gallery</p>
+		                            <span className="rounded-full border border-gray-300 dark:border-white/20 px-2 py-0.5 text-[11px] text-gray-700 dark:text-white/80">
+		                              {productAssets.length}
+		                            </span>
+		                          </div>
+		                          <button
+		                            type="button"
+		                            onClick={handleLibraryAddClick}
+		                            className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-white/20 px-3 py-1 text-[11px] text-gray-900 dark:text-gray-200 hover:border-indigo-400 transition"
+		                          >
+		                            + Add
+		                          </button>
+		                        </div>
+		                        <div className="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
+		                          {productAssets.map(asset => {
+		                            const isActive = activeProducts.some(product => product.id === asset.id);
+		                            return (
+		                              <div
+		                                key={asset.id}
+		                                className={`flex-shrink-0 w-32 rounded-xl border p-2 ${isActive ? 'border-indigo-400 bg-indigo-500/5' : 'border-gray-200 dark:border-white/10 bg-white dark:bg-black/20'}`}
+		                              >
+		                                <div className="relative mb-2">
+		                                  <img
+		                                    src={asset.previewUrl}
+		                                    alt={asset.label}
+		                                    className="h-20 w-full rounded-md object-cover border border-gray-200/70 dark:border-white/10"
+		                                  />
+		                                  <button
+		                                    type="button"
+		                                    onClick={() => handleProductAssetDelete(asset.id)}
+		                                    className="absolute -right-1 -top-1 rounded-full bg-black/80 p-0.5 text-[9px] text-rose-300 hover:bg-rose-500/40"
+		                                  >
+		                                    ✕
+		                                  </button>
+		                                </div>
+		                                <input
+		                                  type="text"
+		                                  value={asset.label}
+		                                  onChange={event => handleProductAssetLabelChange(asset.id, event.target.value)}
+		                                  className="w-full rounded-md border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 px-1.5 py-0.5 text-[10px] text-gray-900 dark:text-white focus:border-indigo-400 focus:outline-none mb-1"
+		                                  placeholder="Name"
+		                                />
+		                                <div className="flex gap-1">
+		                                  <input
+		                                    type="number"
+		                                    min="0"
+		                                    step="0.1"
+		                                    value={asset.heightValue ?? ''}
+		                                    onChange={event => handleProductHeightChange(asset.id, event.target.value)}
+		                                    className="flex-1 w-full rounded-md border border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 px-1 py-0.5 text-[10px] text-gray-900 dark:text-white focus:border-indigo-400 focus:outline-none"
+		                                    placeholder="H"
+		                                  />
+		                                  <div className="flex items-center gap-1">
+		                                    {(['cm', 'in'] as const).map(unit => (
+		                                      <button
+		                                        key={unit}
+		                                        type="button"
+		                                        onClick={() => handleProductHeightUnitChange(asset.id, unit)}
+		                                        className={`rounded-md border px-1.5 py-0.5 text-[10px] transition ${asset.heightUnit === unit ? 'border-indigo-400 bg-indigo-500/10 text-gray-900 dark:text-white' : 'border-gray-300 dark:border-white/10 bg-white dark:bg-black/20 text-gray-700 dark:text-gray-300 hover:border-indigo-400'}`}
+		                                      >
+		                                        {unit}
+		                                      </button>
+		                                    ))}
+		                                  </div>
+		                                </div>
+		                                {productAssets.length > 1 && (
+		                                  <button
+		                                    type="button"
+		                                    onClick={() => handleProductAssetSelect(asset.id)}
+		                                    className={`w-full mt-1 rounded-full border px-2 py-0.5 text-[10px] ${isActive ? 'border-indigo-400 text-gray-900 dark:text-white' : 'border-gray-300 dark:border-white/20 text-gray-700 dark:text-gray-300 hover:border-indigo-400'}`}
+		                                  >
+		                                    {isActive ? 'Active' : 'Use'}
+		                                  </button>
+		                                )}
+		                              </div>
+		                            );
+		                          })}
+		                          <button
+		                            type="button"
+		                            onClick={handleLibraryAddClick}
+		                            className="flex-shrink-0 w-24 rounded-xl border border-dashed border-gray-300 dark:border-white/20 bg-white/60 dark:bg-black/10 p-2 flex flex-col items-center justify-center text-center hover:border-indigo-400 transition"
+		                          >
+		                            <span className="text-xl text-gray-500 dark:text-white/60">+</span>
+		                            <span className="text-[10px] text-gray-500">Add</span>
+		                          </button>
+		                        </div>
+		                      </div>
+		                    )}
+
+		                    {!isProductPlacement && (
+			                      <details className="border-t border-white/10 pt-3 opacity-70 hover:opacity-100 transition">
+			                        <summary className="cursor-pointer list-none flex items-center justify-between text-xs text-gray-500 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/60">
+			                          <span className="uppercase tracking-[0.35em]">Optional Model Reference</span>
 		                          <span className="text-base leading-none">+</span>
 		                        </summary>
 	                        <div className="mt-4 space-y-3">
