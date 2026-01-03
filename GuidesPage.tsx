@@ -22,7 +22,7 @@ const GuidesPage: React.FC = () => {
           {guides.map(guide => (
             <div
               key={guide}
-              className="rounded-2xl border border-border bg-surfaceTint p-5"
+              className="rounded-2xl border border-borderSubtle bg-surfaceTint p-5"
             >
               <h2 className="text-2xl font-semibold">{guide}</h2>
               <p className="text-textSecondary leading-relaxed mt-2">
@@ -30,7 +30,7 @@ const GuidesPage: React.FC = () => {
               </p>
               <a
                 href="#"
-                className="inline-block bg-surface text-textPrimary px-4 py-2 rounded-apple border border-border hover:bg-surfaceElevated text-sm mt-4 transition-colors"
+                className="inline-block bg-surface text-textPrimary px-4 py-2 rounded-apple border border-borderSubtle hover:bg-surfaceElevated text-sm mt-4 transition-colors"
               >
                 Read Guide
               </a>

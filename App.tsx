@@ -1244,26 +1244,11 @@ const App: React.FC = () => {
   const isProductPlacement = contentStyleValue === 'product';
   const [lifestyleTone, setLifestyleTone] = useState<'ugc' | 'editorial'>('ugc');
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
-  const [isDarkTheme, setIsDarkTheme] = useState(() => {
-    if (typeof document === 'undefined') return true;
-    return document.documentElement.classList.contains('dark');
-  });
   const toggleTheme = useCallback(() => {
     const root = document.documentElement;
     const nextIsDark = !root.classList.contains('dark');
     root.classList.toggle('dark', nextIsDark);
     localStorage.setItem('theme', nextIsDark ? 'dark' : 'light');
-    setIsDarkTheme(nextIsDark);
-  }, []);
-  useEffect(() => {
-    const handleStorage = (event: StorageEvent) => {
-      if (event.key !== 'theme') return;
-      const next = event.newValue === 'dark';
-      document.documentElement.classList.toggle('dark', next);
-      setIsDarkTheme(next);
-    };
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
   }, []);
   const hasModelReference = Boolean(modelReferenceFile || personIdentityPackage.modelReferenceBase64);
   useEffect(() => {
@@ -1827,20 +1812,20 @@ const App: React.FC = () => {
             <div className="space-y-4">
               <ChipSelectGroup label="Age Group" options={AGE_GROUP_OPTIONS} selectedValue={options.ageGroup} onChange={(value) => handleOptionChange('ageGroup', value, 'Person Details')} disabled={personControlsDisabled} />
               {isProductPlacement && <p className="text-xs text-textMuted">Person options are disabled for product placement shots.</p>}
-              <div className={`rounded-2xl border border-border bg-bg/40 p-4 space-y-3 ${personControlsDisabled ? 'opacity-50' : ''}`}>
+              <div className={`rounded-2xl border border-borderSubtle bg-surfaceElevated p-4 space-y-3 ${personControlsDisabled ? 'opacity-50' : ''}`}>
                 <ChipSelectGroup label="Creator Preset" options={normalizedCreatorPresetOptions} selectedValue={activeTalentPreset} onChange={(value) => handlePresetSelect(value)} disabled={personControlsDisabled} />
                 {activePresetMeta?.description && <p className="text-xs text-textSecondary">{activePresetMeta.description}</p>}
                 <div className="flex flex-wrap gap-2 text-xs">
-                  <button type="button" onClick={handleSaveTalentProfile} disabled={personControlsDisabled} className="inline-flex items-center rounded-full border border-border px-3 py-1 font-semibold text-white/80 hover:border-accent hover:text-white transition disabled:opacity-60">
+                  <button type="button" onClick={handleSaveTalentProfile} disabled={personControlsDisabled} className="inline-flex items-center rounded-full border border-borderSubtle px-3 py-1 font-semibold text-textSecondary hover:border-accent hover:text-textPrimary transition disabled:opacity-60">
                     Save as My Talent
                   </button>
-                  <button type="button" onClick={handleApplySavedTalent} disabled={personControlsDisabled || !hasSavedTalent} className="inline-flex items-center rounded-full border border-border px-3 py-1 font-semibold text-white/80 hover:border-accent hover:text-white transition disabled:opacity-60">
+                  <button type="button" onClick={handleApplySavedTalent} disabled={personControlsDisabled || !hasSavedTalent} className="inline-flex items-center rounded-full border border-borderSubtle px-3 py-1 font-semibold text-textSecondary hover:border-accent hover:text-textPrimary transition disabled:opacity-60">
                     Apply saved talent
                   </button>
                 </div>
                 {talentToast === 'saved' && <p className="text-xs text-accent">Talent saved for future scenes.</p>}
                 {talentToast === 'applied' && <p className="text-xs text-accent">Saved talent applied.</p>}
-                <div className="rounded-xl border border-border bg-bg/20 px-3 py-3 space-y-2">
+                <div className="rounded-xl border border-borderSubtle bg-surfaceTint px-3 py-3 space-y-2">
                   <div className="flex items-center justify-between gap-4">
                     <div>
                       <p className="text-xs uppercase tracking-[0.3em] text-accent">Link talent across scenes</p>
@@ -1848,8 +1833,8 @@ const App: React.FC = () => {
                     </div>
                     <label className="relative inline-flex cursor-pointer items-center gap-2">
                       <input type="checkbox" className="sr-only" checked={isTalentLinkedAcrossScenes} onChange={handleTalentLinkToggle} disabled={personControlsDisabled} />
-                      <div className={`relative h-5 w-10 rounded-full transition ${isTalentLinkedAcrossScenes ? 'bg-accent' : 'bg-surfaceTint'} ${personControlsDisabled ? 'opacity-50' : ''}`}>
-                        <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-surface shadow transition ${isTalentLinkedAcrossScenes ? 'translate-x-4' : ''}`} />
+                      <div className={`relative h-5 w-10 rounded-full transition ${isTalentLinkedAcrossScenes ? 'bg-accent' : 'bg-surfaceElevated'} ${personControlsDisabled ? 'opacity-50' : ''}`}>
+                        <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-surface border border-borderSubtle transition ${isTalentLinkedAcrossScenes ? 'translate-x-4' : ''}`} />
                       </div>
                       <span className={`text-xs font-semibold ${isTalentLinkedAcrossScenes ? 'text-accent' : 'text-textMuted'}`}>
                         {isTalentLinkedAcrossScenes ? 'Active' : 'Off'}
@@ -1891,7 +1876,7 @@ const App: React.FC = () => {
                 </p>
               )}
               {!personControlsDisabled && !ugcRealSettings.isEnabled && (
-                <div className="rounded-2xl border border-border bg-bg/30 p-4 space-y-3">
+                <div className="rounded-2xl border border-borderSubtle bg-surfaceElevated p-4 space-y-3">
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="text-xs uppercase tracking-[0.3em] text-accent">Hero person presets</p>
@@ -1909,16 +1894,16 @@ const App: React.FC = () => {
                           type="button"
                           onClick={() => handleHeroPosePresetSelect(preset.value)}
                           className={`w-full rounded-xl border px-3 py-2 text-left transition ${isActive
-                            ? 'border-accent bg-accentSoft text-white'
-                            : 'border-border text-textPrimary hover-border-accent hover:text-white'
+                            ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500'
+                            : 'border-borderSubtle bg-surfaceTint text-textSecondary hover:border-accent hover:text-textPrimary'
                             }`}
                         >
                           <div className="flex items-center gap-1 relative group text-sm font-semibold">
                             <span>{preset.label}</span>
                             {preset.tooltip && (
-                              <span className="text-xs text-textSecondary cursor-pointer group-hover:text-white">
+                              <span className="text-xs text-textSecondary cursor-pointer group-hover:text-textPrimary">
                                 ⓘ
-                                <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-bg/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                                <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-surface text-textPrimary text-xs p-2 rounded-apple border border-borderSubtle shadow-sm w-44">
                                   {preset.tooltip}
                                 </div>
                               </span>
@@ -1931,7 +1916,7 @@ const App: React.FC = () => {
                   </div>
                   {selectedHeroPreset === 'custom' && (
                     <textarea
-                      className="mt-3 w-full rounded-lg border border-border bg-bg/40 px-3 py-2 text-sm text-white placeholder:text-textMuted focus:border-accent focus:outline-none"
+                      className="mt-3 w-full rounded-apple border border-borderSubtle bg-surface px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:outline-none"
                       placeholder="Describe your own hero pose or product interaction..."
                       value={customHeroDescription}
                       onChange={(event) => setCustomHeroDescription(event.target.value)}
@@ -1947,11 +1932,11 @@ const App: React.FC = () => {
               )}
               {!personControlsDisabled && renderFormulationStoryPanel('ugc')}
               {!personControlsDisabled && (
-                <div className="rounded-2xl border border-dashed border-border bg-surfaceTint p-4">
+                <div className="rounded-2xl border border-dashed border-borderSubtle bg-surfaceTint p-4">
                   <p className="text-xs uppercase tracking-[0.3em] text-accent mb-3">Prop bundles</p>
                   <div className="flex flex-wrap gap-2">
                     {PROP_BUNDLES.map(bundle => (
-                      <button key={bundle.label} type="button" onClick={() => handlePropBundleSelect(bundle.settings)} className="rounded-full border border-border px-3 py-1 text-xs text-white/80 hover:border-accent hover:text-white transition">
+                      <button key={bundle.label} type="button" onClick={() => handlePropBundleSelect(bundle.settings)} className="rounded-full border border-borderSubtle px-3 py-1 text-xs text-textSecondary hover:border-accent hover:text-textPrimary transition">
                         {bundle.label}
                       </button>
                     ))}
@@ -1959,7 +1944,7 @@ const App: React.FC = () => {
                   <p className="text-[11px] text-textSecondary mt-2">Tap any bundle to pre-fill props, micro-location, and mood.</p>
                 </div>
               )}
-              <div className="rounded-2xl border border-border bg-bg/50 p-4">
+              <div className="rounded-2xl border border-borderSubtle bg-surfaceElevated p-4">
                 <p className="text-xs uppercase tracking-[0.3em] text-accent mb-2">Talent preview</p>
                 <div className="flex flex-wrap gap-2 text-xs text-textSecondary">
                   <span className="rounded-full bg-surfaceTint px-3 py-1">{options.gender}</span>
@@ -2030,22 +2015,22 @@ const App: React.FC = () => {
 
   const renderBundlesSection = () => (
     <div id={getSectionId('Bundles')} className="mt-6">
-      <div className="rounded-2xl border border-border bg-surfaceTint p-4 space-y-4">
+      <div className="rounded-2xl border border-borderSubtle bg-surfaceTint p-4 space-y-4">
         <div className="flex flex-col gap-1">
           <p className="text-xs uppercase tracking-[0.3em] text-accent">Bundles</p>
           <p className="text-sm text-textSecondary">Quickly swap between curated packs, your own mix, or AI-recommended combos.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {BUNDLE_TABS.map(tab => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveBundleTab(tab.id)}
-              className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${activeBundleTab === tab.id ? 'border-accent bg-accentSoft text-white' : 'border-border text-textSecondary hover:border-accent hover:text-white'
-                }`}
-            >
-              {tab.label}
-            </button>
+	            <button
+	              key={tab.id}
+	              type="button"
+	              onClick={() => setActiveBundleTab(tab.id)}
+	              className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${activeBundleTab === tab.id ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary'
+	                }`}
+	            >
+	              {tab.label}
+	            </button>
           ))}
         </div>
         {activeBundleTab === 'premade' && (
@@ -2071,11 +2056,11 @@ const App: React.FC = () => {
               <>
                 <div className="flex flex-col gap-2">
                   <label className="text-xs uppercase tracking-[0.3em] text-textSecondary">Anchor product</label>
-                  <select
-                    value={recommendedBaseProduct}
-                    onChange={event => setRecommendedBaseProduct(event.target.value as ProductId)}
-                    className="rounded-lg border border-border bg-surfaceTint px-3 py-2 text-sm text-white focus:border-accent focus:outline-none"
-                  >
+	                  <select
+	                    value={recommendedBaseProduct}
+	                    onChange={event => setRecommendedBaseProduct(event.target.value as ProductId)}
+	                    className="rounded-apple border border-borderSubtle bg-surface px-3 py-2 text-sm text-textPrimary focus:border-accent focus:outline-none"
+	                  >
                     {availableProductIds.map(productId => (
                       <option key={productId} value={productId}>
                         {productMediaLibrary[productId]?.label || PRODUCT_MEDIA_LIBRARY[productId]?.label || productId}
@@ -2094,7 +2079,7 @@ const App: React.FC = () => {
           </div>
         )}
         {lastBundleSelection && lastBundleSelection.some(id => availableProductIdSet.has(id)) && (
-          <div className="rounded-2xl border border-border bg-bg/40 p-3 space-y-2">
+          <div className="rounded-2xl border border-borderSubtle bg-surfaceElevated p-3 space-y-2">
             <p className="text-xs uppercase tracking-[0.3em] text-accent">Last bundle sent</p>
             <div className="flex flex-wrap gap-2 text-xs">
               {lastBundleSelection
@@ -2102,7 +2087,7 @@ const App: React.FC = () => {
                 .map(productId => (
                   <span
                     key={`${productId}-last`}
-                    className="rounded-full border border-border px-3 py-1 text-textPrimary"
+                    className="rounded-full border border-borderSubtle px-3 py-1 text-textPrimary"
                   >
                     {productMediaLibrary[productId]?.label || PRODUCT_MEDIA_LIBRARY[productId]?.label || productId}
                   </span>
@@ -2346,7 +2331,7 @@ const App: React.FC = () => {
   }, [applyOptionsUpdate]);
 
   const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
-    <div className="rounded-2xl border border-border bg-bg/20 p-4 space-y-3">
+    <div className="rounded-2xl border border-borderSubtle bg-surfaceElevated p-4 space-y-3">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-accent">Formulation story</p>
@@ -2363,7 +2348,7 @@ const App: React.FC = () => {
             onClick={() => setFormulationExpertEnabled(prev => !prev)}
             className={`relative h-5 w-10 rounded-full transition ${formulationExpertEnabled ? 'bg-accent' : 'bg-surfaceTint'}`}
           >
-            <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-surface shadow transition ${formulationExpertEnabled ? 'translate-x-5' : ''}`} />
+            <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-surface border border-borderSubtle transition ${formulationExpertEnabled ? 'translate-x-5' : ''}`} />
           </button>
         </label>
       </div>
@@ -2376,8 +2361,8 @@ const App: React.FC = () => {
                 type="button"
                 onClick={() => handleFormulationPresetSelect(preset.value)}
                 className={`rounded-full border px-3 py-1 text-xs transition ${formulationExpertPreset === preset.value
-                  ? 'border-borderStrong bg-surfaceTint text-white'
-                  : 'border-border text-textSecondary hover:border-accent hover:text-white'
+                  ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500'
+                  : 'border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary'
                   }`}
               >
                 {preset.label}
@@ -2391,8 +2376,8 @@ const App: React.FC = () => {
                 type="button"
                 onClick={() => handleFormulationProfessionSelect(option.value)}
                 className={`rounded-full border px-3 py-1 text-xs transition ${formulationExpertProfession === option.value
-                  ? 'border-borderStrong bg-surfaceTint text-white'
-                  : 'border-border text-textSecondary hover:border-accent hover:text-white'
+                  ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500'
+                  : 'border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary'
                   }`}
               >
                 {option.label}
@@ -2407,7 +2392,7 @@ const App: React.FC = () => {
                 value={formulationExpertName}
                 onChange={event => setFormulationExpertName(event.target.value)}
                 placeholder="e.g., Dr. Sofia Reyes"
-                className="rounded-md border border-border bg-bg/20 px-2 py-1 text-sm text-white focus:border-accent focus:outline-none"
+                className="rounded-apple border border-borderSubtle bg-surface px-2 py-1 text-sm text-textPrimary focus:border-accent focus:outline-none"
               />
             </div>
             <div className="flex flex-col gap-1">
@@ -2417,7 +2402,7 @@ const App: React.FC = () => {
                 value={formulationExpertRole}
                 onChange={event => setFormulationExpertRole(event.target.value)}
                 placeholder="e.g., pulmonologist & lead formulator"
-                className="rounded-md border border-border bg-bg/20 px-2 py-1 text-sm text-white focus:border-accent focus:outline-none"
+                className="rounded-apple border border-borderSubtle bg-surface px-2 py-1 text-sm text-textPrimary focus:border-accent focus:outline-none"
               />
             </div>
           </div>
@@ -5033,14 +5018,14 @@ If the model attempts to create a scene or environment, override it and force a 
       />
 
       {showGoalWizard && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-bg/70 px-4">
-          <div className="w-full max-w-3xl rounded-3xl border border-border bg-bg p-6 md:p-10 shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-surfaceTint px-4">
+          <div className="w-full max-w-3xl rounded-3xl border border-borderSubtle bg-surface p-6 md:p-10 shadow-accent-glow space-y-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.4em] text-accent">Quick start wizard</p>
-                <h3 className="text-2xl md:text-3xl font-semibold text-white mt-2">Let’s set up your scene</h3>
+                <h3 className="text-2xl md:text-3xl font-semibold text-textPrimary mt-2">Let’s set up your scene</h3>
               </div>
-              <button onClick={handleGoalWizardSkip} className="text-sm text-textSecondary hover:text-white">Skip</button>
+              <button onClick={handleGoalWizardSkip} className="text-sm text-textSecondary hover:text-textPrimary">Skip</button>
             </div>
             <p className="text-sm text-textSecondary">Step {goalWizardStep} / 3</p>
             {goalWizardStep === 1 && (
@@ -5049,14 +5034,14 @@ If the model attempts to create a scene or environment, override it and force a 
                   <button
                     key={option.value}
                     onClick={() => handleGoalWizardSelect('goal', option.value)}
-                    className={`rounded-2xl border p-4 text-left transition ${goalWizardData.goal === option.value ? 'border-accent bg-accentSoft text-white' : 'border-border bg-surfaceTint text-textSecondary'}`}
+                    className={`rounded-2xl border p-4 text-left transition ${goalWizardData.goal === option.value ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary'}`}
                   >
                     <div className="flex items-center gap-1 relative group">
                       <span className="text-lg font-semibold">{option.label}</span>
                       {option.tooltip && (
-                        <span className="text-xs text-textSecondary cursor-pointer group-hover:text-white">
+                        <span className="text-xs text-textSecondary cursor-pointer group-hover:text-textPrimary">
                           ⓘ
-                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-bg/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-surface text-textPrimary text-xs p-2 rounded-apple border border-borderSubtle shadow-sm w-44">
                             {option.tooltip}
                           </div>
                         </span>
@@ -5073,14 +5058,14 @@ If the model attempts to create a scene or environment, override it and force a 
                   <button
                     key={option.value}
                     onClick={() => handleGoalWizardSelect('vibe', option.value)}
-                    className={`rounded-2xl border p-4 text-left transition ${goalWizardData.vibe === option.value ? 'border-accent bg-accentSoft text-white' : 'border-border bg-surfaceTint text-textSecondary'}`}
+                    className={`rounded-2xl border p-4 text-left transition ${goalWizardData.vibe === option.value ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary'}`}
                   >
                     <div className="flex items-center gap-1 relative group">
                       <span className="text-base font-semibold">{option.label}</span>
                       {option.tooltip && (
-                        <span className="text-xs text-textSecondary cursor-pointer group-hover:text-white">
+                        <span className="text-xs text-textSecondary cursor-pointer group-hover:text-textPrimary">
                           ⓘ
-                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-bg/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-surface text-textPrimary text-xs p-2 rounded-apple border border-borderSubtle shadow-sm w-44">
                             {option.tooltip}
                           </div>
                         </span>
@@ -5099,14 +5084,14 @@ If the model attempts to create a scene or environment, override it and force a 
                     <button
                       key={preset.value}
                       onClick={() => handleGoalWizardSelect('preset', preset.value)}
-                      className={`rounded-2xl border p-4 text-left transition ${goalWizardData.preset === preset.value ? 'border-accent bg-accentSoft text-white' : 'border-border bg-surfaceTint text-textSecondary'}`}
+                      className={`rounded-2xl border p-4 text-left transition ${goalWizardData.preset === preset.value ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary'}`}
                     >
                       <div className="flex items-center gap-1 relative group">
                         <span className="text-base font-semibold">{preset.label}</span>
                         {preset.tooltip && (
-                          <span className="text-xs text-textSecondary cursor-pointer group-hover:text-white">
+                          <span className="text-xs text-textSecondary cursor-pointer group-hover:text-textPrimary">
                             ⓘ
-                            <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-bg/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                            <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-surface text-textPrimary text-xs p-2 rounded-apple border border-borderSubtle shadow-sm w-44">
                               {preset.tooltip}
                             </div>
                           </span>
@@ -5117,8 +5102,8 @@ If the model attempts to create a scene or environment, override it and force a 
                   ))}
               </div>
             )}
-            <div className="flex items-center justify-between pt-4 border-t border-border">
-              <button onClick={goalWizardStep === 1 ? handleGoalWizardSkip : handleGoalWizardBack} className="text-sm text-textSecondary hover:text-white">
+            <div className="flex items-center justify-between pt-4 border-t border-borderSubtle">
+              <button onClick={goalWizardStep === 1 ? handleGoalWizardSkip : handleGoalWizardBack} className="text-sm text-textSecondary hover:text-textPrimary">
                 {goalWizardStep === 1 ? 'Skip wizard' : 'Back'}
               </button>
               {goalWizardStep < 3 ? (
@@ -5136,14 +5121,14 @@ If the model attempts to create a scene or environment, override it and force a 
       )}
 
       {showPlanModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-bg/70 px-4">
-          <div className="w-full max-w-3xl rounded-3xl border border-border bg-bg p-6 md:p-8 shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-surfaceTint px-4">
+          <div className="w-full max-w-3xl rounded-3xl border border-borderSubtle bg-surface p-6 md:p-8 shadow-accent-glow space-y-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.4em] text-accent">Manage plan</p>
-                <h3 className="text-2xl font-semibold text-white mt-1">Choose what fits your launch</h3>
+                <h3 className="text-2xl font-semibold text-textPrimary mt-1">Choose what fits your launch</h3>
               </div>
-              <button onClick={() => { setShowPlanModal(false); setPlanCodeInput(''); setPlanCodeError(null); setPlanNotice(null); }} className="text-sm text-textSecondary hover:text-white">
+              <button onClick={() => { setShowPlanModal(false); setPlanCodeInput(''); setPlanCodeError(null); setPlanNotice(null); }} className="text-sm text-textSecondary hover:text-textPrimary">
                 Close
               </button>
             </div>
@@ -5152,7 +5137,7 @@ If the model attempts to create a scene or environment, override it and force a 
                 <button
                   key={tier}
                   onClick={() => handlePlanTierSelect(tier as PlanTier)}
-                  className={`rounded-2xl border p-4 text-left transition ${planTier === tier ? 'border-accent bg-accentSoft text-white' : 'border-border bg-surfaceTint text-textSecondary'}`}
+                  className={`rounded-2xl border p-4 text-left transition ${planTier === tier ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary'}`}
                 >
                   <p className="text-lg font-semibold flex items-center justify-between">
                     <span>{config.label}</span>
@@ -5176,7 +5161,7 @@ If the model attempts to create a scene or environment, override it and force a 
                     if (planCodeError) setPlanCodeError(null);
                   }}
                   placeholder="Enter the code from your receipt"
-                  className="flex-1 rounded-lg border border-border bg-bg px-3 py-2 text-white focus:border-accent focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                  className="flex-1 rounded-apple border border-borderSubtle bg-surface px-3 py-2 text-textPrimary placeholder:text-textMuted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
                 />
                 <button
                   type="button"
@@ -5186,7 +5171,7 @@ If the model attempts to create a scene or environment, override it and force a 
                   Apply
                 </button>
               </div>
-              {planCodeError && <p className="text-xs text-red-300">{planCodeError}</p>}
+              {planCodeError && <p className="text-xs text-textMuted">{planCodeError}</p>}
             </div>
           </div>
         </div>
@@ -5204,41 +5189,42 @@ If the model attempts to create a scene or environment, override it and force a 
               </p>
             </div>
 
-	            <div className="flex items-center justify-center lg:justify-end gap-3">
-	              <button
-	                type="button"
-	                onClick={toggleTheme}
-	                className="h-10 w-10 rounded-full border border-borderSubtle bg-surface/80 backdrop-blur-md text-textSecondary hover:text-textPrimary hover:border-accent transition flex items-center justify-center"
-	                aria-label={isDarkTheme ? 'Switch to light mode' : 'Switch to dark mode'}
-	                title={isDarkTheme ? 'Light mode' : 'Dark mode'}
-	              >
-	                {isDarkTheme ? <Sun size={18} /> : <Moon size={18} />}
-	              </button>
-	              <div className="flex flex-col items-center lg:items-end gap-3">
-	                <p className="text-[11px] uppercase tracking-[0.45em] text-textSecondary">Select Mode</p>
-	                <div className="inline-flex items-center gap-1 rounded-full border border-borderSubtle bg-surface/60 backdrop-blur-md p-1">
-	                  <button
-	                    type="button"
-	                    onClick={() => handleOptionChange('contentStyle', 'ugc', 'Mode')}
-	                    className={`rounded-full px-6 py-2 text-xs font-semibold tracking-wide transition ${!isProductPlacement ? 'bg-surface-elevated text-textPrimary shadow-accent-xl' : 'text-textSecondary hover:text-textPrimary'}`}
-	                  >
-	                    Lifestyle
-	                  </button>
-	                  <button
-	                    type="button"
-	                    onClick={() => handleOptionChange('contentStyle', 'product', 'Mode')}
-	                    className={`rounded-full px-6 py-2 text-xs font-semibold tracking-wide transition ${isProductPlacement ? 'bg-surface-elevated text-textPrimary shadow-accent-xl' : 'text-textSecondary hover:text-textPrimary'}`}
-	                  >
-	                    Product (Studio)
-	                  </button>
-	                </div>
-	              </div>
-	            </div>
+		            <div className="flex items-center justify-center lg:justify-end gap-3">
+		              <button
+		                type="button"
+		                onClick={toggleTheme}
+		                className="h-10 w-10 rounded-full border border-borderSubtle bg-surface text-textSecondary hover:text-textPrimary hover:border-accent transition flex items-center justify-center"
+		                aria-label="Toggle theme"
+		                title="Toggle theme"
+		              >
+		                <Moon className="theme-icon-light" size={18} />
+		                <Sun className="theme-icon-dark" size={18} />
+		              </button>
+		              <div className="flex flex-col items-center lg:items-end gap-3">
+		                <p className="text-[11px] uppercase tracking-[0.45em] text-textSecondary">Select Mode</p>
+		                <div className="inline-flex items-center gap-4">
+		                  <button
+		                    type="button"
+		                    onClick={() => handleOptionChange('contentStyle', 'ugc', 'Mode')}
+		                    className={`text-xs font-semibold tracking-wide transition ${!isProductPlacement ? 'text-accent' : 'text-textSecondary hover:text-textPrimary'}`}
+		                  >
+		                    Lifestyle
+		                  </button>
+		                  <button
+		                    type="button"
+		                    onClick={() => handleOptionChange('contentStyle', 'product', 'Mode')}
+		                    className={`text-xs font-semibold tracking-wide transition ${isProductPlacement ? 'text-accent' : 'text-textSecondary hover:text-textPrimary'}`}
+		                  >
+		                    Product (Studio)
+		                  </button>
+		                </div>
+		              </div>
+		            </div>
           </header>
 
           <main className="flex flex-col gap-8">
             {(!isSimpleMode && canUseStudioFeatures && isDevBypass) && (
-              <div className="rounded-3xl border border-border bg-surfaceTint p-5 space-y-4">
+              <div className="rounded-3xl border border-borderSubtle bg-surfaceTint p-5 space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="text-xs uppercase tracking-[0.35em] text-accent">Storyboard</p>
@@ -5249,7 +5235,7 @@ If the model attempts to create a scene or environment, override it and force a 
                       type="button"
                       onClick={handleAddScene}
                       disabled={storyboardScenes.length >= 4}
-                      className="rounded-full border border-border px-3 py-1 text-white/80 hover:border-accent hover:text-white transition disabled:opacity-40"
+                      className="rounded-full border border-borderSubtle px-3 py-1 text-textSecondary hover:border-accent hover:text-textPrimary transition disabled:opacity-40"
                     >
                       + Add scene
                     </button>
@@ -5257,7 +5243,7 @@ If the model attempts to create a scene or environment, override it and force a 
                       type="button"
                       onClick={handleDuplicateScene}
                       disabled={storyboardScenes.length >= 4}
-                      className="rounded-full border border-border px-3 py-1 text-white/80 hover:border-accent hover:text-white transition disabled:opacity-40"
+                      className="rounded-full border border-borderSubtle px-3 py-1 text-textSecondary hover:border-accent hover:text-textPrimary transition disabled:opacity-40"
                     >
                       Duplicate
                     </button>
@@ -5267,29 +5253,29 @@ If the model attempts to create a scene or environment, override it and force a 
                   {storyboardScenes.map(scene => (
                     <div
                       key={scene.id}
-                      className={`rounded-2xl border px-4 py-3 flex items-center gap-3 ${scene.id === activeSceneId ? 'border-accent bg-accentSoft text-white' : 'border-border bg-surfaceTint text-textSecondary'}`}
+                      className={`rounded-2xl border px-4 py-3 flex items-center gap-3 ${scene.id === activeSceneId ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceTint text-textSecondary'}`}
                     >
                       <button onClick={() => handleSceneSelect(scene.id)} className="font-semibold">
                         {scene.label}
                       </button>
-                      {storyboardScenes.length > 1 && (
-                        <button
-                          onClick={() => handleDeleteScene(scene.id)}
-                          className="text-xs text-textSecondary hover:text-red-300"
-                        >
-                          Remove
-                        </button>
-                      )}
+	                      {storyboardScenes.length > 1 && (
+	                        <button
+	                          onClick={() => handleDeleteScene(scene.id)}
+	                          className="text-xs text-textSecondary hover:text-textPrimary"
+	                        >
+	                          Remove
+	                        </button>
+	                      )}
                     </div>
                   ))}
                 </div>
-                <div className="flex flex-col gap-2 rounded-2xl border border-border bg-bg/20 p-4 text-xs text-textSecondary">
+                <div className="flex flex-col gap-2 rounded-2xl border border-borderSubtle bg-surfaceElevated p-4 text-xs text-textSecondary">
                   <div className="flex items-center justify-between gap-4">
                     <div>
                       <p className="uppercase tracking-[0.3em] text-accent">Same person</p>
                       <p className="text-textSecondary mt-1">Keep a single creator across every scene automatically.</p>
                     </div>
-                    <label className={`relative inline-flex cursor-pointer items-center ${isTalentLinkedAcrossScenes ? 'text-white' : ''}`}>
+                    <label className="relative inline-flex cursor-pointer items-center">
                       <input
                         type="checkbox"
                         className="sr-only"
@@ -5298,11 +5284,11 @@ If the model attempts to create a scene or environment, override it and force a 
                         aria-label="Use the same person in all storyboard scenes"
                       />
                       <div
-                        className={`relative h-5 w-10 rounded-full transition ${isTalentLinkedAcrossScenes ? 'bg-accent' : 'bg-surfaceTint'
+                        className={`relative h-5 w-10 rounded-full transition ${isTalentLinkedAcrossScenes ? 'bg-accent' : 'bg-surfaceElevated'
                           }`}
                       >
                         <span
-                          className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-surface shadow transition ${isTalentLinkedAcrossScenes ? 'translate-x-4' : ''
+                          className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-surface border border-borderSubtle transition ${isTalentLinkedAcrossScenes ? 'translate-x-4' : ''
                             }`}
                         />
                       </div>
@@ -5318,14 +5304,14 @@ If the model attempts to create a scene or environment, override it and force a 
             <fieldset className="contents">
               <div className="grid gap-6 w-full grid-cols-1 lg:grid-cols-[420px_minmax(620px,1fr)] items-start">
                 <div className="flex flex-col gap-6">
-		                  <div
-		                    ref={intentRef}
-		                    className="rounded-lg p-4 flex flex-col gap-4 transition-all bg-surface dark:bg-surfaceTint border border-border dark:border-border shadow-sm dark:shadow-lg overflow-hidden"
-		                  >
-		                    <div className="flex flex-col gap-1">
-		                      <p className="text-xs uppercase tracking-widest text-accent dark:text-accent">Step 1 · Assets</p>
-		                      <h2 className="text-2xl font-bold text-textPrimary dark:text-textPrimary">Source Product</h2>
-		                    </div>
+			                  <div
+			                    ref={intentRef}
+			                    className="rounded-apple p-4 flex flex-col gap-4 transition-all bg-surface border border-borderSubtle overflow-hidden"
+			                  >
+			                    <div className="flex flex-col gap-1">
+			                      <p className="text-xs uppercase tracking-widest text-accent">Step 1 · Assets</p>
+			                      <h2 className="text-2xl font-bold text-textPrimary">Source Product</h2>
+			                    </div>
 
 	                    <button
 	                      type="button"
@@ -5344,11 +5330,11 @@ If the model attempts to create a scene or environment, override it and force a 
 	                      onDragOver={(event) => {
 	                        event.preventDefault();
 	                        event.stopPropagation();
-	                      }}
-	                      disabled={!hasSelectedIntent}
-		                      className="relative w-full rounded-lg border border-dashed border-borderStrong dark:border-border bg-surface dark:bg-surfaceTint p-6 text-left transition hover:border-accent disabled:cursor-not-allowed disabled:opacity-60"
-		                      aria-disabled={!hasSelectedIntent}
-		                    >
+		                      }}
+		                      disabled={!hasSelectedIntent}
+			                      className="relative w-full rounded-apple border border-dashed border-borderSubtle bg-surface p-6 text-left transition hover:border-accent disabled:cursor-not-allowed disabled:opacity-60"
+			                      aria-disabled={!hasSelectedIntent}
+			                    >
 	                      <div className="flex flex-col items-center justify-center gap-3 text-textSecondary">
 	                        <svg
 	                          xmlns="http://www.w3.org/2000/svg"
@@ -5361,16 +5347,16 @@ If the model attempts to create a scene or environment, override it and force a 
 	                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
 	                        </svg>
 		                        <div className="text-center">
-		                          <p className="text-sm font-semibold text-textPrimary dark:text-textPrimary">Source Product</p>
-		                          <p className="text-xs text-textMuted">Click to upload (max 5)</p>
-		                        </div>
-		                      </div>
-		                      {!hasSelectedIntent && (
-		                        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-bg/70 px-4 text-center text-sm text-textPrimary">
-		                          Select a mode to start.
-		                        </div>
-		                      )}
-		                    </button>
+			                          <p className="text-sm font-semibold text-textPrimary">Source Product</p>
+			                          <p className="text-xs text-textMuted">Click to upload (max 5)</p>
+			                        </div>
+			                      </div>
+			                      {!hasSelectedIntent && (
+			                        <div className="absolute inset-0 flex items-center justify-center rounded-apple bg-surfaceTint px-4 text-center text-sm text-textPrimary">
+			                          Select a mode to start.
+			                        </div>
+			                      )}
+			                    </button>
 
 		                    <div className="sr-only" aria-hidden="true">
 		                      <ImageUploader
@@ -5382,105 +5368,105 @@ If the model attempts to create a scene or environment, override it and force a 
 		                      />
 		                    </div>
 
-		                    {productAssets.length > 0 && (
-		                      <div className="rounded-lg border border-border dark:border-border bg-surfaceTint dark:bg-surfaceTint p-4 space-y-3">
-		                        <div className="flex flex-wrap items-center justify-between gap-3">
-		                          <div className="flex items-center gap-2">
-		                            <p className="text-xs uppercase tracking-[0.35em] text-accent dark:text-accent">Product gallery</p>
-		                            <span className="rounded-full border border-borderStrong dark:border-border px-2 py-0.5 text-[11px] text-textSecondary dark:text-white/80">
-		                              {productAssets.length}
-		                            </span>
-		                          </div>
-		                          <button
-		                            type="button"
-		                            onClick={handleLibraryAddClick}
-		                            className="inline-flex items-center gap-2 rounded-full border border-borderStrong dark:border-border px-3 py-1 text-[11px] text-textPrimary dark:text-textPrimary hover:border-accent transition"
-		                          >
-		                            + Add
-		                          </button>
-		                        </div>
+			                    {productAssets.length > 0 && (
+			                      <div className="rounded-apple border border-borderSubtle bg-surfaceTint p-4 space-y-3">
+			                        <div className="flex flex-wrap items-center justify-between gap-3">
+			                          <div className="flex items-center gap-2">
+			                            <p className="text-xs uppercase tracking-[0.35em] text-accent">Product gallery</p>
+			                            <span className="rounded-full border border-borderSubtle px-2 py-0.5 text-[11px] text-textSecondary">
+			                              {productAssets.length}
+			                            </span>
+			                          </div>
+			                          <button
+			                            type="button"
+			                            onClick={handleLibraryAddClick}
+			                            className="inline-flex items-center gap-2 rounded-full border border-borderSubtle px-3 py-1 text-[11px] text-textPrimary hover:border-accent transition"
+			                          >
+			                            + Add
+			                          </button>
+			                        </div>
 		                        <div className="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
 		                          {productAssets.map(asset => {
 		                            const isActive = activeProducts.some(product => product.id === asset.id);
-		                            return (
-		                              <div
-		                                key={asset.id}
-		                                className={`flex-shrink-0 w-32 rounded-xl border p-2 ${isActive ? 'border-accent bg-accent/5' : 'border-border dark:border-border bg-surface dark:bg-bg/20'}`}
-		                              >
-		                                <div className="relative mb-2">
-		                                  <img
-		                                    src={asset.previewUrl}
-		                                    alt={asset.label}
-		                                    className="h-20 w-full rounded-md object-cover border border-border dark:border-border"
-		                                  />
-		                                  <button
-		                                    type="button"
-		                                    onClick={() => handleProductAssetDelete(asset.id)}
-		                                    className="absolute -right-1 -top-1 rounded-full bg-bg/80 p-0.5 text-[9px] text-textMuted hover:bg-surfaceTint"
-		                                  >
-		                                    ✕
-		                                  </button>
-		                                </div>
-		                                <input
-		                                  type="text"
-		                                  value={asset.label}
-		                                  onChange={event => handleProductAssetLabelChange(asset.id, event.target.value)}
-		                                  className="w-full rounded-md border border-borderStrong dark:border-border bg-surface dark:bg-bg/20 px-1.5 py-0.5 text-[10px] text-textPrimary dark:text-white focus:border-accent focus:outline-none mb-1"
-		                                  placeholder="Name"
-		                                />
+			                            return (
+			                              <div
+			                                key={asset.id}
+			                                className={`flex-shrink-0 w-32 rounded-apple border p-2 ${isActive ? 'border-accent bg-accent/10' : 'border-borderSubtle bg-surface'}`}
+			                              >
+			                                <div className="relative mb-2">
+			                                  <img
+			                                    src={asset.previewUrl}
+			                                    alt={asset.label}
+			                                    className="h-20 w-full rounded-apple object-cover border border-borderSubtle"
+			                                  />
+			                                  <button
+			                                    type="button"
+			                                    onClick={() => handleProductAssetDelete(asset.id)}
+			                                    className="absolute -right-1 -top-1 rounded-full bg-surfaceTint p-0.5 text-[9px] text-textMuted hover:border-accent border border-borderSubtle"
+			                                  >
+			                                    ✕
+			                                  </button>
+			                                </div>
+			                                <input
+			                                  type="text"
+			                                  value={asset.label}
+			                                  onChange={event => handleProductAssetLabelChange(asset.id, event.target.value)}
+			                                  className="w-full rounded-apple border border-borderSubtle bg-surface px-1.5 py-0.5 text-[10px] text-textPrimary focus:border-accent focus:outline-none mb-1"
+			                                  placeholder="Name"
+			                                />
 		                                <div className="flex gap-1">
 		                                  <input
 		                                    type="number"
 		                                    min="0"
-		                                    step="0.1"
-		                                    value={asset.heightValue ?? ''}
-		                                    onChange={event => handleProductHeightChange(asset.id, event.target.value)}
-		                                    className="flex-1 w-full rounded-md border border-borderStrong dark:border-border bg-surface dark:bg-bg/20 px-1 py-0.5 text-[10px] text-textPrimary dark:text-white focus:border-accent focus:outline-none"
-		                                    placeholder="H"
-		                                  />
+			                                    step="0.1"
+			                                    value={asset.heightValue ?? ''}
+			                                    onChange={event => handleProductHeightChange(asset.id, event.target.value)}
+			                                    className="flex-1 w-full rounded-apple border border-borderSubtle bg-surface px-1 py-0.5 text-[10px] text-textPrimary focus:border-accent focus:outline-none"
+			                                    placeholder="H"
+			                                  />
 		                                  <div className="flex items-center gap-1">
 		                                    {(['cm', 'in'] as const).map(unit => (
 		                                      <button
-		                                        key={unit}
-		                                        type="button"
-		                                        onClick={() => handleProductHeightUnitChange(asset.id, unit)}
-		                                        className={`rounded-md border px-1.5 py-0.5 text-[10px] transition ${asset.heightUnit === unit ? 'border-accent bg-accentSoft text-textPrimary dark:text-white' : 'border-borderStrong dark:border-border bg-surface dark:bg-bg/20 text-textSecondary dark:text-textSecondary hover:border-accent'}`}
-		                                      >
-		                                        {unit}
-		                                      </button>
-		                                    ))}
+			                                        key={unit}
+			                                        type="button"
+			                                        onClick={() => handleProductHeightUnitChange(asset.id, unit)}
+			                                        className={`rounded-apple border px-1.5 py-0.5 text-[10px] transition ${asset.heightUnit === unit ? 'border-accent bg-accent/10 text-accent' : 'border-borderSubtle bg-surface text-textSecondary hover:border-accent'}`}
+			                                      >
+			                                        {unit}
+			                                      </button>
+			                                    ))}
 		                                  </div>
 		                                </div>
 		                                {productAssets.length > 1 && (
 		                                  <button
-		                                    type="button"
-		                                    onClick={() => handleProductAssetSelect(asset.id)}
-		                                    className={`w-full mt-1 rounded-full border px-2 py-0.5 text-[10px] ${isActive ? 'border-accent text-textPrimary dark:text-white' : 'border-borderStrong dark:border-border text-textSecondary dark:text-textSecondary hover:border-accent'}`}
-		                                  >
-		                                    {isActive ? 'Active' : 'Use'}
-		                                  </button>
+			                                    type="button"
+			                                    onClick={() => handleProductAssetSelect(asset.id)}
+			                                    className={`w-full mt-1 rounded-full border px-2 py-0.5 text-[10px] ${isActive ? 'border-accent text-accent' : 'border-borderSubtle text-textSecondary hover:border-accent'}`}
+			                                  >
+			                                    {isActive ? 'Active' : 'Use'}
+			                                  </button>
 		                                )}
 		                              </div>
 		                            );
 		                          })}
-		                          <button
-		                            type="button"
-		                            onClick={handleLibraryAddClick}
-		                            className="flex-shrink-0 w-24 rounded-xl border border-dashed border-borderStrong dark:border-border bg-surface/60 dark:bg-bg/10 p-2 flex flex-col items-center justify-center text-center hover:border-accent transition"
-		                          >
-		                            <span className="text-xl text-textMuted dark:text-white/60">+</span>
-		                            <span className="text-[10px] text-textMuted">Add</span>
-		                          </button>
+			                          <button
+			                            type="button"
+			                            onClick={handleLibraryAddClick}
+			                            className="flex-shrink-0 w-24 rounded-apple border border-dashed border-borderSubtle bg-surface p-2 flex flex-col items-center justify-center text-center hover:border-accent transition"
+			                          >
+			                            <span className="text-xl text-textMuted">+</span>
+			                            <span className="text-[10px] text-textMuted">Add</span>
+			                          </button>
 		                        </div>
 		                      </div>
 		                    )}
 
-		                    {!isProductPlacement && (
-			                      <details className="border-t border-border pt-3 opacity-70 hover:opacity-100 transition">
-			                        <summary className="cursor-pointer list-none flex items-center justify-between text-xs text-textMuted dark:text-white/40 hover:text-textSecondary dark:hover:text-white/60">
-			                          <span className="uppercase tracking-[0.35em]">Optional Model Reference</span>
-		                          <span className="text-base leading-none">+</span>
-		                        </summary>
+			                    {!isProductPlacement && (
+				                      <details className="border-t border-borderSubtle pt-3 opacity-70 hover:opacity-100 transition">
+				                        <summary className="cursor-pointer list-none flex items-center justify-between text-xs text-textMuted hover:text-textSecondary">
+				                          <span className="uppercase tracking-[0.35em]">Optional Model Reference</span>
+			                          <span className="text-base leading-none">+</span>
+			                        </summary>
 	                        <div className="mt-4 space-y-3">
 	                          <ModelReferencePanel
 	                            onFileSelect={handleModelReferenceUpload}
@@ -5490,11 +5476,11 @@ If the model attempts to create a scene or environment, override it and force a 
                             onClear={handleClearModelReference}
                             disabled={!hasUploadedProduct}
 	                            lockedMessage="Upload a source product first to attach a model."
-	                          />
-	                          {hasModelReference && (
-	                            <div className="rounded-2xl border border-border bg-bg/30 p-4 space-y-2 text-sm">
-	                              <p className="text-xs uppercase tracking-[0.3em] text-accent">Composition</p>
-	                              <div className="flex flex-wrap gap-2">
+		                          />
+		                          {hasModelReference && (
+		                            <div className="rounded-apple border border-borderSubtle bg-surfaceElevated p-4 space-y-2 text-sm">
+		                              <p className="text-xs uppercase tracking-[0.3em] text-accent">Composition</p>
+		                              <div className="flex flex-wrap gap-2">
 	                                {(
 	                                  [
 	                                    { value: 'balanced', label: 'Balanced' },
@@ -5503,14 +5489,14 @@ If the model attempts to create a scene or environment, override it and force a 
                                     { value: 'fifty-fifty', label: 'Fifty / Fifty' },
 	                                  ] as const
 	                                ).map(option => (
-	                                  <button
-	                                    key={option.value}
-                                    type="button"
-                                    onClick={() => setCompositionMode(option.value)}
-                                    className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${compositionMode === option.value ? 'border-accent bg-accentSoft text-white' : 'border-border bg-surfaceTint text-textSecondary hover:border-accent'}`}
-                                  >
-	                                    {option.label}
-	                                  </button>
+		                                  <button
+		                                    key={option.value}
+		                                    type="button"
+		                                    onClick={() => setCompositionMode(option.value)}
+		                                    className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${compositionMode === option.value ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary'}`}
+		                                  >
+		                                    {option.label}
+		                                  </button>
 	                                ))}
 	                              </div>
 	                            </div>
@@ -5520,47 +5506,47 @@ If the model attempts to create a scene or environment, override it and force a 
 	                    )}
                   </div>
 
-	                  <div
-	                    ref={uploadRef}
-	                    className={`rounded-lg p-4 flex flex-col gap-4 transition-all bg-surface dark:bg-surfaceTint border border-border dark:border-border shadow-sm dark:shadow-lg overflow-hidden ${!hasUploadedProduct ? 'opacity-50 pointer-events-none' : ''}`}
-	                  >
-	                    <div className="flex flex-col gap-1">
-	                      <p className="text-xs uppercase tracking-widest text-accent dark:text-accent">Step 2 · Configuration</p>
-	                      <h2 className="text-2xl font-bold text-textPrimary dark:text-textPrimary">{isProductPlacement ? 'Product Studio' : 'Lifestyle Mockups'}</h2>
-	                    </div>
+		                  <div
+		                    ref={uploadRef}
+		                    className={`rounded-apple p-4 flex flex-col gap-4 transition-all bg-surface border border-borderSubtle overflow-hidden ${!hasUploadedProduct ? 'opacity-50 pointer-events-none' : ''}`}
+		                  >
+		                    <div className="flex flex-col gap-1">
+		                      <p className="text-xs uppercase tracking-widest text-accent">Step 2 · Configuration</p>
+		                      <h2 className="text-2xl font-bold text-textPrimary">{isProductPlacement ? 'Product Studio' : 'Lifestyle Mockups'}</h2>
+		                    </div>
 
 	                    <div className={`${hasUploadedProduct ? 'hidden' : 'block'} opacity-50 pointer-events-none`}>
-	                      <div className="rounded-lg border border-dashed border-borderStrong dark:border-border h-24 flex items-center justify-center">
-	                        <p className="text-xs uppercase tracking-widest text-textMuted">
-	                          Locked until previous step is complete
-	                        </p>
-	                      </div>
+		                      <div className="rounded-apple border border-dashed border-borderSubtle h-24 flex items-center justify-center">
+		                        <p className="text-xs uppercase tracking-widest text-textMuted">
+		                          Locked until previous step is complete
+		                        </p>
+		                      </div>
 	                    </div>
 
 	                    <div className={hasUploadedProduct ? 'block' : 'hidden'}>
-	                      {!isProductPlacement && (
-	                        <div className="rounded-lg border border-border dark:border-border bg-surface dark:bg-surfaceTint p-4 space-y-3">
-	                          <div>
-	                            <p className="text-xs uppercase tracking-[0.35em] text-accent dark:text-accent">Lifestyle Style</p>
-	                          </div>
-	                          <div className="flex flex-wrap gap-2">
-	                            <button
-	                              type="button"
-	                              onClick={() => setLifestyleTone('ugc')}
-	                              className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${lifestyleTone === 'ugc' ? 'border-accent bg-accentSoft text-white' : 'border-border bg-surfaceTint text-textSecondary hover:border-accent'}`}
-	                            >
-	                              Natural UGC
-	                            </button>
-	                            <button
-	                              type="button"
-	                              onClick={() => setLifestyleTone('editorial')}
-	                              className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${lifestyleTone === 'editorial' ? 'border-accent bg-accentSoft text-white' : 'border-border bg-surfaceTint text-textSecondary hover:border-accent'}`}
-	                            >
-	                              Editorial Lifestyle
-	                            </button>
-	                          </div>
-	                        </div>
-	                      )}
+		                      {!isProductPlacement && (
+		                        <div className="rounded-apple border border-borderSubtle bg-surfaceTint p-4 space-y-3">
+		                          <div>
+		                            <p className="text-xs uppercase tracking-[0.35em] text-accent">Lifestyle Style</p>
+		                          </div>
+		                          <div className="flex flex-wrap gap-2">
+		                            <button
+		                              type="button"
+		                              onClick={() => setLifestyleTone('ugc')}
+		                              className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${lifestyleTone === 'ugc' ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary'}`}
+		                            >
+		                              Natural UGC
+		                            </button>
+		                            <button
+		                              type="button"
+		                              onClick={() => setLifestyleTone('editorial')}
+		                              className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${lifestyleTone === 'editorial' ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary'}`}
+		                            >
+		                              Editorial Lifestyle
+		                            </button>
+		                          </div>
+		                        </div>
+		                      )}
 
                     <LifestyleStep3
                       key={isProductPlacement ? 'product-step3' : 'ugc-step3'}
@@ -5591,14 +5577,14 @@ If the model attempts to create a scene or environment, override it and force a 
 
 	                  <div
 	                    ref={customizeRef}
-	                    className={`rounded-lg p-4 flex flex-col gap-4 transition-all bg-surface dark:bg-surfaceTint border border-border dark:border-border shadow-sm dark:shadow-lg ${!hasUploadedProduct ? 'opacity-50 pointer-events-none' : ''}`}
+	                    className={`rounded-apple p-4 flex flex-col gap-4 transition-all bg-surface border border-borderSubtle overflow-hidden ${!hasUploadedProduct ? 'opacity-50 pointer-events-none' : ''}`}
 	                  >
 	                    <div className="flex flex-col gap-1">
-	                      <p className="text-xs uppercase tracking-widest text-accent dark:text-accent">Step 3 · Generate</p>
-	                      <h2 className="text-2xl font-bold text-textPrimary dark:text-textPrimary">Generate Mockup</h2>
+	                      <p className="text-xs uppercase tracking-widest text-accent">Step 3 · Generate</p>
+	                      <h2 className="text-2xl font-bold text-textPrimary">Generate Mockup</h2>
 	                    </div>
 	                    <div className={`${hasUploadedProduct ? 'hidden' : 'block'} opacity-50 pointer-events-none`}>
-	                      <div className="rounded-lg border border-dashed border-borderStrong dark:border-border h-24 flex items-center justify-center">
+	                      <div className="rounded-apple border border-dashed border-borderSubtle h-24 flex items-center justify-center">
 	                        <p className="text-xs uppercase tracking-widest text-textMuted">
 	                          Locked until previous step is complete
 	                        </p>
@@ -5620,15 +5606,15 @@ If the model attempts to create a scene or environment, override it and force a 
                               isProductPlacement && ecommerceSelectedSlots.length > 0
                                 ? () => handleGenerateEcommerceClick()
                                 : () => handleGenerateClick()
-                            }
+	                            }
 	                            disabled={isGenerateDisabled}
 	                            title={generationRestrictionMessage && isGenerateDisabled ? generationRestrictionMessage : undefined}
-	                            className="w-full py-3 rounded-xl font-semibold transition bg-accent text-white hover:bg-accent disabled:bg-surfaceTint dark:disabled:bg-surfaceTint disabled:text-textSecondary disabled:cursor-not-allowed shadow-sm"
+	                            className="w-full py-3 rounded-apple font-semibold transition bg-accent text-white hover:bg-accent disabled:bg-surfaceTint disabled:text-textSecondary disabled:cursor-not-allowed shadow-sm"
 	                          >
 	                            {isImageLoading ? 'Generating...' : 'Generate Mockup'}
 	                          </button>
 	                          {generationRestrictionMessage && isGenerateDisabled && (
-	                            <div className="mt-2 flex items-start gap-2 text-xs text-textMuted dark:text-textMuted">
+	                            <div className="mt-2 flex items-start gap-2 text-xs text-textMuted">
 	                              <Info size={14} />
 	                              <span>{generationRestrictionMessage}</span>
 	                            </div>
@@ -5639,11 +5625,11 @@ If the model attempts to create a scene or environment, override it and force a 
                   </div>
                 </div>
 
-	                <div className="rounded-lg p-4 transition-all bg-surfaceTint dark:bg-surfaceTint border border-border dark:border-border shadow-sm dark:shadow-lg opacity-70 hover:opacity-100 hover:border-accent relative lg:sticky lg:top-4 flex flex-col gap-6 min-h-[520px]">
+	                <div className="rounded-apple p-4 transition-all bg-surface border border-borderSubtle relative lg:sticky lg:top-4 flex flex-col gap-6 min-h-[520px]">
 	                  <div className="flex items-center justify-between gap-3">
 	                    <div>
-	                      <p className="text-xs uppercase tracking-[0.35em] text-accent dark:text-accent">Live Mockup Preview</p>
-	                      <p className="text-sm text-textMuted dark:text-textSecondary mt-1">
+	                      <p className="text-xs uppercase tracking-[0.35em] text-accent">Live Mockup Preview</p>
+	                      <p className="text-sm text-textMuted mt-1">
 	                        {generatedImageUrl
 	                          ? 'Preview reflects current configuration.'
                           : hasUploadedProduct
@@ -5704,7 +5690,7 @@ If the model attempts to create a scene or environment, override it and force a 
       </div >
 
       <div className="fixed bottom-4 left-4 right-4 z-50 flex justify-center pointer-events-none">
-        <div className="pointer-events-auto w-full max-w-xl rounded-2xl border border-border bg-bg/50 backdrop-blur px-4 py-3 shadow-lg">
+        <div className="pointer-events-auto w-full max-w-xl rounded-2xl border border-borderSubtle bg-surface px-4 py-3 shadow-lg">
           <button
             type="button"
             onClick={() => setIsAccountMenuOpen(open => !open)}
@@ -5713,23 +5699,23 @@ If the model attempts to create a scene or environment, override it and force a 
             aria-expanded={isAccountMenuOpen}
           >
             <div className="text-left">
-              <div className="text-sm text-white">
+              <div className="text-sm text-textPrimary">
                 {modeLabel} · {remainingCredits} credits remaining · {hasWatermark ? 'Includes watermark' : 'No watermark'}
                 {!hasVideoExports && ' · No video exports on Free plan'}
               </div>
               <div className="text-xs text-textSecondary">Plan: {currentPlan.label}</div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-white/90">My Account</span>
-              <span className="h-8 w-8 rounded-full bg-surfaceTint border border-border" />
+              <span className="text-xs font-semibold text-textPrimary">My Account</span>
+              <span className="h-8 w-8 rounded-full bg-surfaceTint border border-borderSubtle" />
             </div>
           </button>
 
           {isAccountMenuOpen && (
-            <div className="mt-3 rounded-xl border border-border bg-bg/80 p-2 text-sm">
+            <div className="mt-3 rounded-xl border border-borderSubtle bg-surfaceTint p-2 text-sm">
               <div className="px-3 py-2">
                 <div className="text-xs uppercase tracking-widest text-textMuted">My Account</div>
-                {isLoggedIn && <div className="text-sm text-white mt-1">{userEmail}</div>}
+                {isLoggedIn && <div className="text-sm text-textPrimary mt-1">{userEmail}</div>}
               </div>
               <div className="h-px bg-surfaceTint my-2" />
               <button
@@ -5795,14 +5781,14 @@ If the model attempts to create a scene or environment, override it and force a 
           <button
             onClick={handleAddTestCredits}
             disabled={adminDevLoading}
-            className="rounded-full border border-borderStrong bg-surfaceTint px-4 py-2 text-xs font-semibold text-white/80 shadow-lg backdrop-blur hover:bg-surface/20 disabled:opacity-50"
+            className="rounded-full border border-borderSubtle bg-surfaceTint px-4 py-2 text-xs font-semibold text-textPrimary shadow-lg hover:bg-surfaceElevated disabled:opacity-50"
           >
             Add 100 Test Credits
           </button>
           <button
             onClick={handleResetAccount}
             disabled={adminDevLoading}
-            className="rounded-full border border-borderStrong bg-surfaceTint px-4 py-2 text-xs font-semibold text-white/80 shadow-lg backdrop-blur hover:bg-surface/20 disabled:opacity-50"
+            className="rounded-full border border-borderSubtle bg-surfaceTint px-4 py-2 text-xs font-semibold text-textPrimary shadow-lg hover:bg-surfaceElevated disabled:opacity-50"
           >
             Reset My Account
           </button>

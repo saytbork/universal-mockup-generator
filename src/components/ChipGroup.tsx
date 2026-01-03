@@ -15,9 +15,9 @@ const ChipGroup: React.FC<ChipGroupProps> = ({ label, options, value, disabled =
       {options.map(option => {
         const isActive = option === value;
         const baseClass =
-          'px-3 py-1.5 rounded-full text-xs font-medium border transition-colors duration-200 ease-out hover:bg-surfaceElevated hover:border-borderStrong active:scale-[0.97]';
-        const activeClass = 'bg-accent text-white border-accent shadow-accent scale-105 duration-500';
-        const inactiveClass = 'bg-surface text-textSecondary border-border';
+          'px-3 py-1.5 rounded-full text-xs font-medium border transition-colors duration-200 ease-out hover:border-accent hover:text-textPrimary active:scale-[0.97]';
+        const activeClass = 'bg-accent/10 text-accent border-accent shadow-accent-glow scale-105 duration-500';
+        const inactiveClass = 'bg-surfaceElevated text-textSecondary border-borderSubtle';
         const disabledClass = 'opacity-40 cursor-not-allowed pointer-events-none';
         return (
           <button

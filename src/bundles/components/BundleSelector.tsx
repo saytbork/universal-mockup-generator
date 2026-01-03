@@ -52,7 +52,7 @@ const BundleSelector: React.FC<BundleSelectorProps> = ({
         <select
           value={activeKey}
           onChange={event => setActiveKey(event.target.value)}
-          className="rounded-lg border border-border bg-surfaceTint px-3 py-2 text-sm text-white focus:border-accent focus:outline-none"
+          className="rounded-apple border border-borderSubtle bg-surface px-3 py-2 text-sm text-textPrimary focus:border-accent focus:outline-none"
         >
           {bundleEntries.map(([key, bundle]) => (
             <option key={key} value={key}>
@@ -63,8 +63,8 @@ const BundleSelector: React.FC<BundleSelectorProps> = ({
       </div>
 
       {activeBundle && (
-        <div className="rounded-2xl border border-border bg-surfaceTint p-4 space-y-3">
-          <p className="text-sm font-semibold text-white">{activeBundle.name}</p>
+        <div className="rounded-2xl border border-borderSubtle bg-surfaceTint p-4 space-y-3">
+          <p className="text-sm font-semibold text-textPrimary">{activeBundle.name}</p>
           {bundleDisabled && (
             <p className="text-xs text-textMuted">
               {needMoreProducts
@@ -77,7 +77,7 @@ const BundleSelector: React.FC<BundleSelectorProps> = ({
               const productMeta = slot.meta;
               return (
                 <div key={slot.id} className="w-28 text-center text-xs text-textSecondary">
-                  <div className="relative h-28 w-full overflow-hidden rounded-xl border border-border bg-bg/20">
+                  <div className="relative h-28 w-full overflow-hidden rounded-xl border border-borderSubtle bg-surfaceTint">
                     {productMeta?.imageUrl && (
                       <img
                         src={productMeta.imageUrl}

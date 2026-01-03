@@ -38,7 +38,7 @@ const ModelReferencePanel: React.FC<ModelReferencePanelProps> = ({
   const cleanedNotes = sanitizeNotes(notes);
 
   return (
-    <div className={`relative bg-surfaceTint p-6 rounded-lg shadow-lg border border-border flex flex-col gap-4 h-full ${disabled ? 'opacity-60' : ''}`}>
+    <div className={`relative bg-surfaceTint p-6 rounded-lg shadow-lg border border-borderSubtle flex flex-col gap-4 h-full ${disabled ? 'opacity-60' : ''}`}>
       <div className="flex flex-col gap-1">
         <p className="text-xs uppercase tracking-widest text-textMuted">Optional Talent Reference</p>
         <h2 className="text-2xl font-bold text-textPrimary">Add your model</h2>
@@ -47,7 +47,7 @@ const ModelReferencePanel: React.FC<ModelReferencePanelProps> = ({
         </p>
       </div>
       <label
-        className={`border-2 border-dashed border-border rounded-xl p-6 flex flex-col items-center justify-center gap-3 ${disabled ? 'cursor-not-allowed pointer-events-none' : 'cursor-pointer hover:border-accent'} transition`}
+        className={`border-2 border-dashed border-borderSubtle rounded-xl p-6 flex flex-col items-center justify-center gap-3 ${disabled ? 'cursor-not-allowed pointer-events-none' : 'cursor-pointer hover:border-accent'} transition`}
         onDragOver={(event) => {
           if (disabled) return;
           event.preventDefault();
@@ -73,9 +73,9 @@ const ModelReferencePanel: React.FC<ModelReferencePanelProps> = ({
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <p className="text-sm text-textSecondary">Model reference</p>
-            <button onClick={onClear} className="text-xs text-red-300 hover:text-red-200">Remove</button>
+            <button onClick={onClear} className="text-xs text-textSecondary hover:text-textPrimary">Remove</button>
           </div>
-          <img src={previewUrl} alt="Model reference" className="rounded-lg max-h-48 object-cover border border-border" />
+          <img src={previewUrl} alt="Model reference" className="rounded-lg max-h-48 object-cover border border-borderSubtle" />
         </div>
       )}
       <div className="flex flex-col gap-2">
@@ -84,12 +84,12 @@ const ModelReferencePanel: React.FC<ModelReferencePanelProps> = ({
           value={cleanedNotes}
           onChange={(event) => onNotesChange(sanitizeNotes(event.target.value))}
           placeholder="e.g., holding the box with both hands and smiling sleepily"
-          className="min-h-[70px] rounded-lg border border-border bg-bg px-3 py-2 text-sm text-white focus:border-accent focus:outline-none"
+          className="min-h-[70px] rounded-apple border border-borderSubtle bg-surface px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:outline-none"
           disabled={disabled}
         />
       </div>
       {disabled && (
-        <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-bg/70 text-sm text-textSecondary">
+        <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-surfaceTint text-sm text-textSecondary">
           {lockedMessage || 'Upload your product image first to link a model.'}
         </div>
       )}

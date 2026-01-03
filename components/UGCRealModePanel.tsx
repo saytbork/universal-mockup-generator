@@ -146,7 +146,7 @@ const UGCRealModePanel: React.FC<UGCRealModePanelProps> = ({
             onClearUpload={onClearClothing}
             uploadPreview={clothingPreview}
           />
-          <div className="rounded-2xl border border-border bg-bg/20 p-4 space-y-3">
+          <div className="rounded-2xl border border-borderSubtle bg-surfaceTint p-4 space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-accent">Hero personas</p>
             <div className="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
               {normalizedHeroPersonaPresets.map(preset => {
@@ -156,15 +156,15 @@ const UGCRealModePanel: React.FC<UGCRealModePanelProps> = ({
                     key={preset.id}
                     type="button"
                     onClick={() => onToggleHeroPersona(preset.id)}
-                    className={`rounded-xl border px-3 py-2 text-left transition ${isActive ? 'border-accent bg-accent/15 text-white' : 'border-border text-textPrimary hover:border-accent hover:text-white'
+                    className={`rounded-xl border px-3 py-2 text-left transition ${isActive ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textPrimary hover:border-accent'
                       }`}
                   >
                     <div className="flex items-center gap-1 relative group">
                       <span className="text-sm font-semibold">{preset.label}</span>
                       {preset.tooltip && (
-                        <span className="text-xs text-textSecondary cursor-pointer group-hover:text-white">
+                        <span className="text-xs text-textSecondary cursor-pointer group-hover:text-textPrimary">
                           ⓘ
-                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-bg/80 text-white text-xs p-2 rounded shadow-lg w-48">
+                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-surface text-textPrimary text-xs p-2 rounded-apple border border-borderSubtle shadow-sm w-48">
                             {preset.tooltip}
                           </div>
                         </span>

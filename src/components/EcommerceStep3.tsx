@@ -98,13 +98,13 @@ export default function EcommerceStep3({
   return (
     <div className="space-y-6">
       {!embedded && (
-        <div className="rounded-2xl border border-border bg-bg/30 p-4">
+        <div className="rounded-2xl border border-borderSubtle bg-surfaceTint p-4">
           <p className="text-xs uppercase tracking-[0.35em] text-accent">Ecommerce Image Builder</p>
           <p className="mt-1 text-sm text-textSecondary">Build PDP-style overlays and export crisp PNGs (image-only + with overlays).</p>
         </div>
       )}
 
-      <section className="rounded-2xl border border-border bg-bg/40 p-4 space-y-3">
+      <section className="rounded-2xl border border-borderSubtle bg-surfaceTint p-4 space-y-3">
         <p className="text-xs uppercase tracking-[0.35em] text-textSecondary">Slots</p>
         <div className="flex flex-wrap gap-2">
           {ECOMMERCE_SLOT_KEYS.map(slotKey => {
@@ -141,7 +141,7 @@ export default function EcommerceStep3({
         )}
       </section>
 
-      <section className="rounded-2xl border border-border bg-bg/40 p-4 space-y-4">
+      <section className="rounded-2xl border border-borderSubtle bg-surfaceTint p-4 space-y-4">
         <p className="text-xs uppercase tracking-[0.35em] text-textSecondary">Generation Overrides</p>
         <div className="flex flex-wrap items-center gap-2">
           <Chip selected={settings.reserveBlankSpace} onClick={() => onSettingsChange({ ...settings, reserveBlankSpace: true })}>
@@ -194,9 +194,9 @@ export default function EcommerceStep3({
         )}
       </section>
 
-      <section className="rounded-2xl border border-border bg-bg/40 p-4 space-y-4">
+      <section className="rounded-2xl border border-borderSubtle bg-surfaceTint p-4 space-y-4">
         <p className="text-xs uppercase tracking-[0.35em] text-textSecondary">Live Preview</p>
-        <div className="rounded-xl border border-border bg-bg/30 overflow-hidden">
+        <div className="rounded-xl border border-borderSubtle bg-surfaceTint overflow-hidden">
           {activeSpec ? (
             <EcommerceOverlaySvg
               baseImageUrl={activeBaseImageUrl}
@@ -216,7 +216,7 @@ export default function EcommerceStep3({
               if (!activeSlot || !activeBaseImageUrl) return;
               await downloadUrlAsFile(activeBaseImageUrl, `${activeSlot}-image-only.png`);
             }}
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-surfaceTint px-3 py-2 text-xs text-textPrimary hover:bg-surfaceTint disabled:opacity-40"
+            className="inline-flex items-center gap-2 rounded-lg border border-borderSubtle bg-surfaceTint px-3 py-2 text-xs text-textPrimary hover:bg-surfaceTint disabled:opacity-40"
           >
             <ImageIcon size={14} />
             Export PNG (image only)
@@ -230,7 +230,7 @@ export default function EcommerceStep3({
               if (!svg) return;
               await exportSvgElementToPng(svg, { filename: `${activeSlot}-with-overlays.png`, scale: 2 });
             }}
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-accent/15 px-3 py-2 text-xs text-white hover:bg-accent/25 disabled:opacity-40"
+            className="inline-flex items-center gap-2 rounded-apple border border-accent bg-accent/10 px-3 py-2 text-xs text-accent shadow-accent-glow hover:bg-accent/10 disabled:opacity-40"
           >
             <Download size={14} />
             Export PNG (with overlays)
@@ -243,7 +243,7 @@ export default function EcommerceStep3({
         )}
       </section>
 
-      <section className="rounded-2xl border border-border bg-bg/40 p-4 space-y-4">
+      <section className="rounded-2xl border border-borderSubtle bg-surfaceTint p-4 space-y-4">
         <p className="text-xs uppercase tracking-[0.35em] text-textSecondary">Editor</p>
         {!activeSlot || !activeSpec ? (
           <p className="text-sm text-textSecondary">Select a slot to edit.</p>
@@ -399,7 +399,7 @@ export default function EcommerceStep3({
                 {activeSpec.blocks.map((block, idx) => {
                   const isOpen = expandedBlockIndex === idx;
                   return (
-                    <div key={`${block.type}-${idx}`} className="rounded-xl border border-border bg-bg/25 overflow-hidden">
+                    <div key={`${block.type}-${idx}`} className="rounded-xl border border-borderSubtle bg-surfaceTint overflow-hidden">
                       <button
                         type="button"
                         onClick={() => setExpandedBlockIndex(isOpen ? null : idx)}
@@ -683,7 +683,7 @@ function StepsEditor({ block, onChange }: { block: StepsBlock; onChange: (next: 
           </button>
         </div>
         {block.steps.map((step, idx) => (
-          <div key={idx} className="rounded-lg border border-border bg-bg/20 p-2 space-y-2">
+          <div key={idx} className="rounded-lg border border-borderSubtle bg-surfaceTint p-2 space-y-2">
             <div className="space-y-2">
               <LabeledInput
                 label={idx === 0 ? 'Icon' : undefined}
@@ -773,7 +773,7 @@ function TestimonialsEditor({ block, onChange }: { block: TestimonialBlock; onCh
           </button>
         </div>
         {block.cards.map((card, idx) => (
-          <div key={idx} className="rounded-lg border border-border bg-bg/20 p-2 space-y-2">
+          <div key={idx} className="rounded-lg border border-borderSubtle bg-surfaceTint p-2 space-y-2">
             <LabeledInput
               label="Quote"
               value={card.quote}
@@ -890,7 +890,7 @@ function LabeledInput({
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-lg border border-border bg-bg/30 px-3 py-2 text-sm text-white placeholder:text-textMuted focus:border-accent focus:outline-none"
+        className="w-full rounded-apple border border-borderSubtle bg-surface px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:outline-none"
       />
     </label>
   );
@@ -921,7 +921,7 @@ function LabeledNumber({
         max={max}
         step={step}
         onChange={e => onChange(Number(e.target.value))}
-        className="w-full rounded-lg border border-border bg-bg/30 px-3 py-2 text-sm text-white focus:border-accent focus:outline-none"
+        className="w-full rounded-apple border border-borderSubtle bg-surface px-3 py-2 text-sm text-textPrimary focus:border-accent focus:outline-none"
       />
     </label>
   );

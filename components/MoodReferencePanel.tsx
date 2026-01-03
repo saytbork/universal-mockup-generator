@@ -38,7 +38,7 @@ const MoodReferencePanel: React.FC<MoodReferencePanelProps> = ({
   };
 
   return (
-    <div className={`relative bg-surfaceTint p-6 rounded-lg shadow-lg border border-border flex flex-col gap-4 h-full ${disabled ? 'opacity-60' : ''}`}>
+    <div className={`relative bg-surfaceTint p-6 rounded-lg shadow-lg border border-borderSubtle flex flex-col gap-4 h-full ${disabled ? 'opacity-60' : ''}`}>
       <div className="flex flex-col gap-1">
         <p className="text-xs uppercase tracking-widest text-textMuted">Optional Mood Boost</p>
         <h2 className="text-2xl font-bold text-textPrimary">Drop Inspiration Mood</h2>
@@ -47,7 +47,7 @@ const MoodReferencePanel: React.FC<MoodReferencePanelProps> = ({
         </p>
       </div>
       <label
-        className={`border-2 border-dashed border-border rounded-xl p-6 flex flex-col items-center justify-center gap-3 ${disabled ? 'cursor-not-allowed pointer-events-none' : 'cursor-pointer hover:border-accent'} transition`}
+        className={`border-2 border-dashed border-borderSubtle rounded-xl p-6 flex flex-col items-center justify-center gap-3 ${disabled ? 'cursor-not-allowed pointer-events-none' : 'cursor-pointer hover:border-accent'} transition`}
         onDragOver={(event) => {
           if (disabled) return;
           event.preventDefault();
@@ -79,9 +79,9 @@ const MoodReferencePanel: React.FC<MoodReferencePanelProps> = ({
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <p className="text-sm text-textSecondary">Mood preview</p>
-            <button onClick={onClear} className="text-xs text-red-300 hover:text-red-200">Clear</button>
+            <button onClick={onClear} className="text-xs text-textSecondary hover:text-textPrimary">Clear</button>
           </div>
-          <img src={previewUrl} alt="Mood reference" className="rounded-lg max-h-48 object-cover border border-border" />
+          <img src={previewUrl} alt="Mood reference" className="rounded-lg max-h-48 object-cover border border-borderSubtle" />
         </div>
       )}
       {palette.length > 0 && (
@@ -89,7 +89,7 @@ const MoodReferencePanel: React.FC<MoodReferencePanelProps> = ({
           <p className="text-sm text-textSecondary mb-2">Palette detected</p>
           <div className="flex flex-wrap gap-2">
             {palette.map((color) => (
-              <div key={color} className="flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs text-textPrimary">
+              <div key={color} className="flex items-center gap-2 rounded-full border border-borderSubtle px-3 py-1 text-xs text-textPrimary">
                 <span className="inline-block w-4 h-4 rounded-full" style={{ backgroundColor: color }} />
                 {color.toUpperCase()}
               </div>
@@ -98,12 +98,12 @@ const MoodReferencePanel: React.FC<MoodReferencePanelProps> = ({
         </div>
       )}
       {summary && (
-        <p className="text-sm text-accent bg-accentSoft border border-accent/30 rounded-lg p-3">
+        <p className="text-sm text-accent bg-accent/10 border border-accent/30 rounded-lg p-3">
           {sanitizeNotes(summary)}
         </p>
       )}
       {disabled && (
-        <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-bg/70 text-sm text-textSecondary">
+        <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-surfaceTint text-sm text-textSecondary">
           {lockedMessage || 'Upload your product image first to unlock mood suggestions.'}
         </div>
       )}

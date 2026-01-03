@@ -22,7 +22,7 @@ const Slider = ({
   <div className="flex flex-col gap-1">
     <div className="flex items-center justify-between text-xs text-textSecondary">
       <span>{label}</span>
-      <span className="text-white">{value}</span>
+      <span className="text-textPrimary">{value}</span>
     </div>
     <input
       type="range"
@@ -31,7 +31,7 @@ const Slider = ({
       value={value}
       disabled={disabled}
       onChange={event => onChange(Number(event.target.value))}
-      className="w-full accent-indigo-400"
+      className="w-full accent-accent"
     />
   </div>
 );
@@ -44,7 +44,7 @@ const BlurGrainControls: React.FC<BlurGrainControlsProps> = ({
   disabled = false,
 }) => {
   return (
-    <div className={`rounded-2xl border border-border bg-bg/30 p-4 space-y-3 ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
+    <div className={`rounded-2xl border border-borderSubtle bg-surfaceTint p-4 space-y-3 ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
       <p className="text-xs uppercase tracking-[0.3em] text-accent">Blur & grain</p>
       <Slider label="Focus blur" value={blur} onChange={onBlurChange} disabled={disabled} />
       <Slider label="Grain" value={grain} onChange={onGrainChange} disabled={disabled} />

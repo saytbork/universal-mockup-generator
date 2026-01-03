@@ -24,8 +24,8 @@ const PlanCheckoutModal: React.FC<PlanCheckoutModalProps> = ({ plan, email, onEm
   const isDisabled = Boolean(disabledReason);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-bg/70 px-4">
-      <div className="w-full max-w-lg rounded-apple bg-surface border border-border shadow-accent p-8 space-y-6 relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-surfaceTint px-4">
+      <div className="w-full max-w-lg rounded-apple bg-surface border border-borderSubtle shadow-accent-glow p-8 space-y-6 relative">
         <button onClick={onClose} className="absolute top-4 right-4 text-textMuted hover:text-textPrimary">
           <X className="w-5 h-5" />
         </button>
@@ -42,7 +42,7 @@ const PlanCheckoutModal: React.FC<PlanCheckoutModalProps> = ({ plan, email, onEm
               value={email}
               onChange={(e) => onEmailChange(e.target.value)}
               placeholder="you@brand.com"
-              className={`rounded-apple border ${isEmailValid ? 'border-border' : 'border-borderStrong'} bg-surface px-4 py-2 text-textPrimary placeholder:text-textMuted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent`}
+              className={`rounded-apple border ${isEmailValid ? 'border-borderSubtle' : 'border-borderSubtle'} bg-surface px-4 py-2 text-textPrimary placeholder:text-textMuted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent`}
             />
           </label>
           {!isEmailValid && (
@@ -57,11 +57,11 @@ const PlanCheckoutModal: React.FC<PlanCheckoutModalProps> = ({ plan, email, onEm
               value={company}
               onChange={(e) => setCompany(e.target.value)}
               placeholder="Optional"
-              className="rounded-apple border border-border bg-surface px-4 py-2 text-textPrimary placeholder:text-textMuted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+              className="rounded-apple border border-borderSubtle bg-surface px-4 py-2 text-textPrimary placeholder:text-textMuted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             />
           </label>
         </div>
-        <div className="bg-surfaceElevated border border-border rounded-apple p-4 text-sm text-textSecondary space-y-2">
+        <div className="bg-surfaceElevated border border-borderSubtle rounded-apple p-4 text-sm text-textSecondary space-y-2">
           <p className="font-semibold text-textPrimary">What&apos;s included</p>
           <ul className="space-y-1 text-textSecondary list-disc list-inside">
             {plan.highlights.map(item => (
@@ -71,14 +71,14 @@ const PlanCheckoutModal: React.FC<PlanCheckoutModalProps> = ({ plan, email, onEm
           <p className="flex items-center gap-2 text-xs text-textMuted"><ShieldCheck className="w-4 h-4" /> Powered by Stripe · instant access after payment</p>
         </div>
         {disabledReason && (
-          <p className="text-xs text-textMuted border border-borderStrong rounded-xl px-3 py-2 bg-surfaceTint">
+          <p className="text-xs text-textMuted border border-borderSubtle rounded-xl px-3 py-2 bg-surfaceTint">
             {disabledReason}
           </p>
         )}
         <button
           disabled={isDisabled}
           onClick={onConfirm}
-          className="w-full rounded-full bg-accent py-3 font-semibold text-white shadow-accent hover:bg-accent disabled:bg-surfaceTint disabled:cursor-not-allowed"
+          className="w-full rounded-full bg-accent py-3 font-semibold text-white shadow-accent-glow hover:bg-accent disabled:bg-surfaceTint disabled:cursor-not-allowed"
         >
           Continue to checkout
         </button>

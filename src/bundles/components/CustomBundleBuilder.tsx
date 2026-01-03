@@ -62,8 +62,8 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
                 key={productId}
                 className={`flex flex-col gap-2 rounded-2xl border px-3 py-3 ${
                   isChecked
-                  ? 'border-accent bg-accentSoft text-white'
-                  : 'border-border bg-bg/40 text-textSecondary'
+                  ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500'
+                  : 'border-borderSubtle bg-surfaceTint text-textSecondary'
               }`}
             >
               <div className="flex items-center gap-2 text-sm font-semibold">
@@ -71,11 +71,11 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
                   type="checkbox"
                   checked={isChecked}
                   onChange={() => toggleProduct(productId)}
-                  className="h-4 w-4 rounded border-borderStrong text-accent focus:ring-indigo-400"
+                  className="h-4 w-4 rounded border-borderSubtle text-accent focus:ring-accent"
                 />
                 {meta?.label || productId}
               </div>
-              <div className="relative h-28 w-full overflow-hidden rounded-xl bg-bg/40">
+              <div className="relative h-28 w-full overflow-hidden rounded-xl bg-surfaceTint">
                 {meta?.imageUrl && (
                   <img
                     src={meta.imageUrl}
@@ -94,7 +94,7 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
         </div>
       )}
       {filteredSelection.length > 0 && (
-        <div className="rounded-2xl border border-border bg-bg/40 p-3 space-y-2">
+        <div className="rounded-2xl border border-borderSubtle bg-surfaceTint p-3 space-y-2">
           <p className="text-xs uppercase tracking-[0.3em] text-accent">
             Selected bundle ({filteredSelection.length})
           </p>
@@ -102,7 +102,7 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
             {filteredSelection.map(productId => (
               <span
                 key={`summary-${productId}`}
-                className="rounded-full border border-border px-3 py-1 text-textPrimary"
+                className="rounded-full border border-borderSubtle px-3 py-1 text-textPrimary"
               >
                 {productMediaLibrary[productId]?.label || productId}
               </span>

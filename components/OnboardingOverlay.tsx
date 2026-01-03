@@ -82,7 +82,7 @@ const OnboardingOverlay: React.FC<OnboardingOverlayProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 pointer-events-none">
-      <div className="absolute inset-0 bg-bg/80 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-surfaceTint" />
       <div
         className="absolute border border-accent rounded-apple-xl transition-all duration-300"
         style={{
@@ -93,7 +93,7 @@ const OnboardingOverlay: React.FC<OnboardingOverlayProps> = ({
         }}
       />
       <div
-        className="absolute glass-card rounded-apple-xl border border-border p-5 text-left w-80 pointer-events-auto shadow-accent animate-fade-up"
+        className="absolute glass-card rounded-apple-xl border border-borderSubtle p-5 text-left w-80 pointer-events-auto shadow-accent-glow animate-fade-up"
         style={{
           top: cardTop,
           left: cardLeft,

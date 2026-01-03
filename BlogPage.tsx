@@ -16,13 +16,13 @@ const BlogPage: React.FC = () => {
           {posts.map(post => (
             <div
               key={post.slug}
-              className="rounded-2xl border border-border bg-surfaceTint p-6 space-y-3"
+              className="rounded-2xl border border-borderSubtle bg-surfaceTint p-6 space-y-3"
             >
               <h2 className="text-2xl font-semibold">{post.title}</h2>
               <p className="text-textSecondary leading-relaxed">{post.subtitle}</p>
               <Link
                 to={`/blog/${post.slug}`}
-                className="inline-flex items-center justify-center bg-surface text-textPrimary px-4 py-2 rounded-apple border border-border hover:bg-surfaceElevated text-sm transition-colors"
+                className="inline-flex items-center justify-center bg-surface text-textPrimary px-4 py-2 rounded-apple border border-borderSubtle hover:bg-surfaceElevated text-sm transition-colors"
               >
                 Read Article
               </Link>

@@ -38,7 +38,7 @@ class RootErrorBoundary extends React.Component<
 
     return (
       <div className="min-h-screen bg-bg text-textPrimary flex items-center justify-center px-6">
-        <div className="w-full max-w-xl rounded-apple-xl border border-border bg-surface p-8 space-y-4 shadow-accent">
+        <div className="w-full max-w-xl rounded-apple-xl border border-borderSubtle bg-surface p-8 space-y-4 shadow-accent-glow">
           <div className="text-xs uppercase tracking-[0.35em] text-accent">Perfect Mockup</div>
           <h1 className="text-2xl font-semibold">Something went wrong</h1>
           <p className="text-sm text-textSecondary">

@@ -85,7 +85,7 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
   const previewToShow = localPreview || uploadedImagePreview;
 
   return (
-    <div className={`relative flex flex-col items-center justify-center w-full p-4 bg-surface rounded-lg border-2 border-dashed border-border ${disabled ? 'opacity-60' : ''}`}>
+    <div className={`relative flex flex-col items-center justify-center w-full p-4 bg-surface rounded-lg border-2 border-dashed border-borderSubtle ${disabled ? 'opacity-60' : ''}`}>
       <h3 className="text-lg font-semibold text-textSecondary mb-4">Upload Product Image</h3>
       <div
         className={`relative w-full h-40 flex items-center justify-center rounded-md transition-all duration-300 ${isDragging ? 'bg-surfaceTint' : ''}`}
@@ -122,13 +122,13 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
       <button
         type="button"
         onClick={handleAddAnotherClick}
-        className="mt-2 inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs text-textPrimary hover:border-accent hover:text-white transition"
+        className="mt-2 inline-flex items-center gap-2 rounded-full border border-borderSubtle px-3 py-1 text-xs text-textPrimary hover:border-accent hover:text-white transition"
         disabled={disabled}
       >
         + Add another photo
       </button>
       {disabled && (
-        <div className="absolute inset-0 flex items-center justify-center bg-bg/70 rounded-lg text-sm text-textSecondary">
+        <div className="absolute inset-0 flex items-center justify-center bg-surfaceTint rounded-lg text-sm text-textSecondary">
           {lockedMessage || 'Complete the previous step to continue'}
         </div>
       )}

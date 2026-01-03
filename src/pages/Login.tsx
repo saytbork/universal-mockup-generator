@@ -35,12 +35,12 @@ export default function Login() {
   if (user) {
     return (
       <div className="min-h-screen bg-bg text-textPrimary flex items-center justify-center px-4">
-        <div className="w-full max-w-lg rounded-apple-xl bg-surface border border-border shadow-accent backdrop-blur-lg p-10 space-y-4 text-center">
+        <div className="w-full max-w-lg rounded-apple-xl bg-surface border border-borderSubtle shadow-accent-glow p-10 space-y-4 text-center">
           <h1 className="text-2xl font-semibold">You’re already signed in</h1>
           <p className="text-textSecondary">Continue to your workspace.</p>
           <a
             href="/app"
-            className="inline-flex items-center justify-center gap-2 rounded-apple bg-accent px-6 py-3 text-lg font-semibold shadow-accent hover:bg-accent transition"
+            className="inline-flex items-center justify-center gap-2 rounded-apple bg-accent px-6 py-3 text-lg font-semibold shadow-accent-glow hover:bg-accent transition"
           >
             Go to App
           </a>
@@ -55,7 +55,7 @@ export default function Login() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="w-full max-w-lg rounded-apple-xl bg-surface border border-border shadow-accent backdrop-blur-lg p-10 space-y-6"
+        className="w-full max-w-lg rounded-apple-xl bg-surface border border-borderSubtle shadow-accent-glow p-10 space-y-6"
       >
         <div className="space-y-2 text-center">
           <p className="text-xs uppercase tracking-[0.35em] text-accent">BoostUGC</p>
@@ -70,7 +70,7 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full rounded-apple border border-border bg-surface px-4 py-3 text-textPrimary placeholder:text-textMuted focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition"
+              className="w-full rounded-apple border border-borderSubtle bg-surface px-4 py-3 text-textPrimary placeholder:text-textMuted focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition"
               placeholder="you@company.com"
             />
             <Mail className="absolute right-3 top-3 h-5 w-5 text-textMuted" />
@@ -84,14 +84,14 @@ export default function Login() {
               type="text"
               value={invitationCode}
               onChange={(e) => setInvitationCode(e.target.value)}
-              className="w-full rounded-apple border border-border bg-surface px-4 py-3 text-textPrimary placeholder:text-textMuted focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition"
+              className="w-full rounded-apple border border-borderSubtle bg-surface px-4 py-3 text-textPrimary placeholder:text-textMuted focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition"
               placeholder="Enter your code"
             />
           </div>
           <button
             type="submit"
             disabled={status === "loading"}
-            className="w-full rounded-apple bg-accent py-3 text-lg font-semibold shadow-accent hover:bg-accent transition flex items-center justify-center gap-2 disabled:opacity-60"
+            className="w-full rounded-apple bg-accent py-3 text-lg font-semibold shadow-accent-glow hover:bg-accent transition flex items-center justify-center gap-2 disabled:opacity-60"
           >
             {status === "loading" ? <Loader2 className="h-5 w-5 animate-spin" /> : "Send Magic Link"}
           </button>
@@ -102,7 +102,7 @@ export default function Login() {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
-              className="flex items-center gap-3 rounded-apple border border-border bg-surfaceElevated px-4 py-3 text-textSecondary"
+              className="flex items-center gap-3 rounded-apple border border-borderSubtle bg-surfaceElevated px-4 py-3 text-textSecondary"
             >
               {status === "success" ? <CheckCircle2 className="h-5 w-5 text-accent" /> : <Loader2 className="h-5 w-5" />}
               <span className="text-sm">{message}</span>

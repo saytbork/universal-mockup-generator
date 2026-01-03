@@ -218,7 +218,7 @@ const LandingPage: React.FC = () => {
           />
           <div className="max-w-6xl mx-auto px-6 pt-6 pb-10 flex flex-col items-center text-center gap-10 relative">
             <div className="max-w-3xl space-y-6">
-              <p className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-1 text-xs uppercase tracking-widest text-accent">
+              <p className="inline-flex items-center gap-2 rounded-full border border-borderSubtle px-4 py-1 text-xs uppercase tracking-widest text-accent">
                 <ShieldCheck className="w-3.5 h-3.5" /> A visual mockup system for ecommerce brands
               </p>
               <h1 className="text-4xl sm:text-5xl font-bold text-textPrimary leading-tight">
@@ -240,7 +240,7 @@ const LandingPage: React.FC = () => {
                 ].map(item => (
                   <span
                     key={item}
-                    className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1"
+                    className="inline-flex items-center gap-2 rounded-full border border-borderSubtle px-3 py-1"
                   >
                     <CheckCircle2 className="w-4 h-4 text-accent" />
                     {item}
@@ -252,13 +252,13 @@ const LandingPage: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
                 to="/login"
-                className="inline-flex items-center justify-center rounded-full bg-accent px-8 py-4 font-semibold text-white shadow-accent hover:bg-accent transition"
+                className="inline-flex items-center justify-center rounded-full bg-accent px-8 py-4 font-semibold text-white shadow-accent-glow hover:bg-accent transition"
               >
                 Start Creating Mockups
               </Link>
               <button
                 onClick={handleSmoothScroll('#pricing')}
-                className="inline-flex items-center justify-center rounded-full border border-border px-8 py-4 font-semibold text-textSecondary hover:border-accent hover:text-textPrimary transition"
+                className="inline-flex items-center justify-center rounded-full border border-borderSubtle px-8 py-4 font-semibold text-textSecondary hover:border-accent hover:text-textPrimary transition"
               >
                 View Pricing
               </button>
@@ -296,7 +296,7 @@ const LandingPage: React.FC = () => {
             ].map(card => (
               <div
                 key={card.title}
-                className="rounded-2xl border border-border bg-surfaceTint p-6 text-left space-y-4"
+                className="rounded-2xl border border-borderSubtle bg-surfaceTint p-6 text-left space-y-4"
               >
                 <div className="space-y-2">
                   <p className="text-textPrimary text-lg font-semibold">{card.title}</p>
@@ -318,7 +318,7 @@ const LandingPage: React.FC = () => {
           </div>
         </section>
 
-        <section className="bg-surfaceTint border-y border-border">
+        <section className="bg-surfaceTint border-y border-borderSubtle">
           <div className="max-w-6xl mx-auto px-6 py-16 space-y-10">
             <div className="text-center space-y-3">
               <p className="text-xs uppercase tracking-[0.3em] text-accent">Preview</p>
@@ -337,8 +337,8 @@ const LandingPage: React.FC = () => {
                     onClick={() => setActivePreview(mode.id)}
                     className={`w-full text-left rounded-2xl border p-4 transition ${
                       activePreview === mode.id
-                        ? 'border-accent bg-accentSoft text-accent'
-                        : 'border-border bg-surfaceTint text-textSecondary hover:border-accent'
+                        ? 'border-accent bg-accent/10 text-accent'
+                        : 'border-borderSubtle bg-surfaceTint text-textSecondary hover:border-accent'
                     }`}
                   >
                     <p className="font-semibold">{mode.title}</p>
@@ -347,16 +347,16 @@ const LandingPage: React.FC = () => {
                 ))}
               </div>
 
-              <div className="relative overflow-hidden rounded-apple-xl border border-border bg-surface min-h-[320px] sm:min-h-[420px] lg:min-h-0 lg:h-full">
+              <div className="relative overflow-hidden rounded-apple-xl border border-borderSubtle bg-surface min-h-[320px] sm:min-h-[420px] lg:min-h-0 lg:h-full">
                 <img
                   src={activePreviewMode.image}
                   alt={activePreviewMode.title}
                   className="h-full w-full object-cover"
                   loading="lazy"
                 />
-                <div className="absolute bottom-4 left-4 right-4 rounded-2xl bg-surfaceTint backdrop-blur px-4 py-3 text-sm">
-                  <p className="text-textPrimary font-semibold">{activePreviewMode.title}</p>
-                </div>
+	                <div className="absolute bottom-4 left-4 right-4 rounded-2xl bg-surfaceTint px-4 py-3 text-sm">
+	                  <p className="text-textPrimary font-semibold">{activePreviewMode.title}</p>
+	                </div>
               </div>
             </div>
           </div>
@@ -384,7 +384,7 @@ const LandingPage: React.FC = () => {
             ].map((card, index) => (
               <div
                 key={card.title}
-                className="rounded-2xl border border-border bg-surfaceTint p-5 text-left transition transform hover:-translate-y-1 hover:border-accent"
+                className="rounded-2xl border border-borderSubtle bg-surfaceTint p-5 text-left transition transform hover:-translate-y-1 hover:border-accent"
                 style={{ animationDelay: `${0.1 * (index + 1)}s` }}
               >
                 <p className="text-xs uppercase tracking-widest text-textMuted">{card.title}</p>
@@ -394,7 +394,7 @@ const LandingPage: React.FC = () => {
           </div>
         </section>
 
-        <section className="bg-surfaceTint border-y border-border">
+        <section className="bg-surfaceTint border-y border-borderSubtle">
           <div className="max-w-6xl mx-auto px-6 py-16 space-y-10">
             <div className="text-center space-y-3">
               <p className="text-xs uppercase tracking-[0.3em] text-accent">Product vs lifestyle</p>
@@ -405,13 +405,13 @@ const LandingPage: React.FC = () => {
             </div>
 
             <div className="grid gap-5 md:grid-cols-2">
-              <div className="rounded-2xl border border-border bg-surfaceTint p-6 text-left space-y-3">
+              <div className="rounded-2xl border border-borderSubtle bg-surfaceTint p-6 text-left space-y-3">
                 <p className="text-textPrimary text-lg font-semibold">Product (Studio)</p>
                 <p className="text-textSecondary text-sm">
                   Use when clarity and control matter. Perfect for PDPs, marketplaces and catalogs.
                 </p>
               </div>
-              <div className="rounded-2xl border border-border bg-surfaceTint p-6 text-left space-y-3">
+              <div className="rounded-2xl border border-borderSubtle bg-surfaceTint p-6 text-left space-y-3">
                 <p className="text-textPrimary text-lg font-semibold">Lifestyle</p>
                 <p className="text-textSecondary text-sm">
                   Use when context and emotion drive conversion. Choose UGC for authenticity or Editorial for polish.
@@ -436,7 +436,7 @@ const LandingPage: React.FC = () => {
             ].map(item => (
               <div
                 key={item}
-                className="rounded-2xl border border-border bg-surfaceTint p-5 flex items-start gap-3"
+                className="rounded-2xl border border-borderSubtle bg-surfaceTint p-5 flex items-start gap-3"
               >
                 <Zap className="w-5 h-5 text-accent mt-0.5 flex-shrink-0" />
                 <p className="text-textPrimary text-sm leading-relaxed">{item}</p>
@@ -462,7 +462,7 @@ const LandingPage: React.FC = () => {
             ].map(item => (
               <div
                 key={item}
-                className="rounded-2xl border border-border bg-surfaceTint p-5 flex items-start gap-3"
+                className="rounded-2xl border border-borderSubtle bg-surfaceTint p-5 flex items-start gap-3"
               >
                 <CheckCircle2 className="w-5 h-5 text-accent mt-0.5 flex-shrink-0" />
                 <p className="text-textPrimary text-sm leading-relaxed">{item}</p>
@@ -486,7 +486,7 @@ const LandingPage: React.FC = () => {
             ].map(item => (
               <span
                 key={item.label}
-                className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2"
+                className="inline-flex items-center gap-2 rounded-full border border-borderSubtle px-4 py-2"
               >
                 {item.icon}
                 {item.label}
@@ -505,7 +505,7 @@ const LandingPage: React.FC = () => {
                 Scale your visuals as your products and campaigns grow.
               </p>
               <div className="mt-6 flex justify-center">
-                <div className="inline-flex items-center gap-3 rounded-full border border-border bg-surfaceTint px-4 py-2 shadow-accent">
+                <div className="inline-flex items-center gap-3 rounded-full border border-borderSubtle bg-surfaceTint px-4 py-2 shadow-accent-glow">
                   <span className="text-sm text-textSecondary">Billed monthly</span>
                   <label
                     className="relative inline-flex cursor-pointer items-center"
@@ -522,7 +522,7 @@ const LandingPage: React.FC = () => {
                   </label>
                   <span className="text-sm text-textSecondary">
                     Billed yearly{' '}
-                    <span className="ml-1 rounded-full bg-accentSoft px-2 py-0.5 text-xs text-accent">
+                    <span className="ml-1 rounded-full bg-accent/10 px-2 py-0.5 text-xs text-accent">
                       Save 20%
                     </span>
                   </span>
@@ -538,8 +538,8 @@ const LandingPage: React.FC = () => {
                 const baseCard =
                   'group relative rounded-apple-xl border p-6 flex flex-col gap-6 hover:scale-[1.01] transition duration-300';
                 const cardClasses = plan.featured
-                  ? `${baseCard} border-accent bg-surfaceTint shadow-accent`
-                  : `${baseCard} border-border bg-surfaceTint`;
+                  ? `${baseCard} border-accent bg-surfaceTint shadow-accent-glow`
+                  : `${baseCard} border-borderSubtle bg-surfaceTint`;
 
                 return (
                   <article key={plan.name} className={cardClasses}>
@@ -572,7 +572,7 @@ const LandingPage: React.FC = () => {
                         return (
                           <Link
                             to="/login"
-                            className="mt-auto w-full rounded-full border border-borderStrong px-4 py-3 text-sm font-semibold text-textPrimary hover:border-accent text-center"
+                            className="mt-auto w-full rounded-full border border-borderSubtle px-4 py-3 text-sm font-semibold text-textPrimary hover:border-accent text-center"
                           >
                             {plan.cta}
                           </Link>
@@ -628,7 +628,7 @@ const LandingPage: React.FC = () => {
                 {paymentMethods.map(method => (
                   <span
                     key={method}
-                    className="rounded-full border border-border bg-surfaceTint px-3 py-1 text-xs text-textSecondary"
+                    className="rounded-full border border-borderSubtle bg-surfaceTint px-3 py-1 text-xs text-textSecondary"
                   >
                     {method}
                   </span>
@@ -638,7 +638,7 @@ const LandingPage: React.FC = () => {
           </div>
         </section>
 
-        <section className="max-w-4xl mx-auto px-6 py-16 text-center border-t border-border">
+        <section className="max-w-4xl mx-auto px-6 py-16 text-center border-t border-borderSubtle">
           <p className="text-sm uppercase tracking-[0.3em] text-accent">Final CTA</p>
           <h2 className="mt-4 text-3xl text-textPrimary font-semibold">Launch products with visuals that convert</h2>
           <p className="mt-3 text-textSecondary">
@@ -647,13 +647,13 @@ const LandingPage: React.FC = () => {
           <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
             <Link
               to="/login"
-              className="inline-flex items-center justify-center rounded-full bg-accent px-8 py-4 font-semibold text-white shadow-accent hover:bg-accent transition"
+              className="inline-flex items-center justify-center rounded-full bg-accent px-8 py-4 font-semibold text-white shadow-accent-glow hover:bg-accent transition"
             >
               Start Creating Mockups
             </Link>
             <button
               onClick={handleSmoothScroll('#pricing')}
-              className="inline-flex items-center justify-center rounded-full border border-border px-8 py-4 font-semibold text-textSecondary hover:border-accent hover:text-textPrimary transition"
+              className="inline-flex items-center justify-center rounded-full border border-borderSubtle px-8 py-4 font-semibold text-textSecondary hover:border-accent hover:text-textPrimary transition"
             >
               View Pricing
             </button>

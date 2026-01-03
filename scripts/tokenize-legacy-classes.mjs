@@ -52,24 +52,22 @@ const replacements = [
   [/\btext-gray-700\b/g, 'text-textSecondary'],
 
   // Borders
-  [/\bborder-gray-200\b/g, 'border-border'],
-  [/\bborder-gray-300\b/g, 'border-borderStrong'],
-  [/\bborder-gray-400\b/g, 'border-borderStrong'],
-  [/\bborder-gray-600\b/g, 'border-border'],
-  [/\bborder-gray-700\b/g, 'border-border'],
-  [/\bborder-white\/(5|10|15|20)\b/g, 'border-border'],
-  [/\bborder-white\/30\b/g, 'border-borderStrong'],
-  [/\bborder-border\/70\b/g, 'border-border'],
+  [/\bborder-gray-200\b/g, 'border-borderSubtle'],
+  [/\bborder-gray-300\b/g, 'border-borderSubtle'],
+  [/\bborder-gray-400\b/g, 'border-borderSubtle'],
+  [/\bborder-gray-600\b/g, 'border-borderSubtle'],
+  [/\bborder-gray-700\b/g, 'border-borderSubtle'],
+  [/\bborder-white\/(5|10|15|20|30)\b/g, 'border-borderSubtle'],
 
   // Rings
-  [/\bring-white\/20\b/g, 'ring-border'],
-  [/\bring-black\/5\b/g, 'ring-border'],
+  [/\bring-white\/20\b/g, 'ring-borderSubtle'],
+  [/\bring-black\/5\b/g, 'ring-borderSubtle'],
 
   // Accent legacy indigo
   [/\btext-indigo-(100|200|300|400|500|600)\b/g, 'text-accent'],
   [/\bbg-indigo-600\b/g, 'bg-accent'],
   [/\bbg-indigo-500\b/g, 'bg-accent'],
-  [/\bbg-indigo-500\/10\b/g, 'bg-accentSoft'],
+  [/\bbg-indigo-500\/10\b/g, 'bg-accent/10'],
   [/\bborder-indigo-(400|500)\b/g, 'border-accent'],
   [/\bfocus:ring-indigo-500\b/g, 'focus:ring-accent'],
   [/\bfocus:border-indigo-500\b/g, 'focus:border-accent'],
@@ -78,23 +76,20 @@ const replacements = [
   [/\bhover:bg-indigo-700\b/g, 'hover:bg-accent'],
   [/\bhover:border-indigo-300\b/g, 'hover:border-accent'],
   [/\bhover:border-indigo-400\b/g, 'hover:border-accent'],
-  [/\bshadow-indigo-500\/40\b/g, 'shadow-accent'],
-  [/\bshadow-indigo-600\/20\b/g, 'shadow-accent'],
+  [/\bshadow-indigo-500\/40\b/g, 'shadow-accent-glow'],
+  [/\bshadow-indigo-600\/20\b/g, 'shadow-accent-glow'],
   [/\bdisabled:bg-indigo-900\/50\b/g, 'disabled:bg-surfaceTint'],
   [/\bdisabled:bg-indigo-900\/40\b/g, 'disabled:bg-surfaceTint'],
-  [/\bdark:disabled:bg-indigo-900\/40\b/g, 'dark:disabled:bg-surfaceTint'],
   [/\bdisabled:bg-indigo-200\b/g, 'disabled:bg-surfaceTint'],
   [/\bhover:bg-gray-100\b/g, 'hover:bg-surfaceElevated'],
   [/\bhover:bg-gray-800\/60\b/g, 'hover:bg-surfaceElevated'],
   [/\bpeer-checked:bg-indigo-500\b/g, 'peer-checked:bg-accent'],
-  [/\bbg-accent\/10\b/g, 'bg-accentSoft'],
-  [/\bbg-accent\/20\b/g, 'bg-accentSoft'],
   [/\bborder-accent\/40\b/g, 'border-accent'],
 
   // Non-token status palettes -> tokens
   [/\btext-amber-\d+\b/g, 'text-textMuted'],
-  [/\bborder-amber-\d+\/\d+\b/g, 'border-borderStrong'],
-  [/\bborder-amber-\d+\b/g, 'border-borderStrong'],
+  [/\bborder-amber-\d+\/\d+\b/g, 'border-borderSubtle'],
+  [/\bborder-amber-\d+\b/g, 'border-borderSubtle'],
   [/\bbg-amber-\d+\/\d+\b/g, 'bg-surfaceTint'],
   [/\bbg-amber-\d+\b/g, 'bg-surfaceTint'],
 
@@ -104,7 +99,7 @@ const replacements = [
   [/\bhover:bg-emerald-\d+\b/g, 'hover:bg-accent'],
 
   [/\btext-rose-\d+\b/g, 'text-textMuted'],
-  [/\bborder-rose-\d+\b/g, 'border-borderStrong'],
+  [/\bborder-rose-\d+\b/g, 'border-borderSubtle'],
   [/\bbg-rose-\d+\/\d+\b/g, 'bg-surfaceTint'],
   [/\bhover:bg-rose-\d+\/\d+\b/g, 'hover:bg-surfaceTint'],
 

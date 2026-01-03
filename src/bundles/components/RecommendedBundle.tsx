@@ -26,7 +26,7 @@ const RecommendedBundle: React.FC<RecommendedBundleProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-border bg-bg/50 p-4">
+      <div className="rounded-2xl border border-borderSubtle bg-surfaceTint p-4">
         <p className="text-sm font-semibold text-white">Recommended companions</p>
         <p className="text-xs text-textSecondary">Pairs perfectly with the selected hero product.</p>
         {bundleDisabled && (
@@ -38,7 +38,7 @@ const RecommendedBundle: React.FC<RecommendedBundleProps> = ({
               console.log('DEBUG productMeta (recommended):', meta);
               return (
                 <div key={product} className="w-28 text-center text-xs text-textSecondary">
-                  <div className="relative h-28 w-full overflow-hidden rounded-xl border border-border bg-bg/20">
+                  <div className="relative h-28 w-full overflow-hidden rounded-xl border border-borderSubtle bg-surfaceTint">
                     {meta?.imageUrl && (
                       <img
                         src={meta.imageUrl}

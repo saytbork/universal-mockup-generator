@@ -191,9 +191,9 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center w-full p-4 bg-surface rounded-lg border-2 border-dashed border-border">
+    <div className="flex flex-col items-center justify-center w-full p-4 bg-surface rounded-lg border-2 border-dashed border-borderSubtle">
       <h3 className="text-lg font-semibold text-textSecondary mb-4">3. Generated Mockup</h3>
-      <div className="relative w-full h-full min-h-[40rem] flex items-center justify-center rounded-md bg-bg/50">
+      <div className="relative w-full h-full min-h-[40rem] flex items-center justify-center rounded-md bg-surfaceTint">
         {isImageLoading ? (
           <div className="text-center">
             <LoadingSpinner />
@@ -202,10 +202,10 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
             </p>
           </div>
         ) : imageError ? (
-          <div className="text-center text-red-400 px-4">
-             <p className="font-semibold">Generation Failed</p>
-             <p className="text-sm">{imageError}</p>
-          </div>
+          <div className="text-center text-textMuted px-4">
+	             <p className="font-semibold">Generation Failed</p>
+	             <p className="text-sm">{imageError}</p>
+	          </div>
         ) : imageUrl ? (
           <img src={imageUrl} alt="Generated Mockup" className="max-h-full max-w-full object-contain rounded-md" />
         ) : (
@@ -220,7 +220,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
       </div>
 
       {(imageUrl || imageError) && !isImageLoading && (
-        <div className="mt-4 w-full flex flex-col gap-3 bg-bg/70 rounded-2xl px-4 py-3 border border-border">
+        <div className="mt-4 w-full flex flex-col gap-3 bg-surfaceTint rounded-2xl px-4 py-3 border border-borderSubtle">
               <div className="flex flex-col gap-3 w-full">
                 <div className="flex flex-col gap-1">
                   <label className="text-xs text-textSecondary uppercase tracking-[0.3em]">Download resolution</label>
@@ -237,10 +237,10 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
                             setDownloadError(null);
                           }}
                           disabled={!imageUrl}
-                          className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
+                          className={`rounded-apple border px-3 py-1.5 text-xs font-semibold transition ${
                             isActive
-                              ? 'border-accent bg-accentSoft text-white'
-                              : 'border-border text-white/80 hover:border-accent hover:text-white'
+                              ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500'
+                              : 'border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary'
                           } disabled:cursor-not-allowed disabled:opacity-50`}
                         >
                           {option.label} · {formatCreditLabel(cost)}
@@ -259,7 +259,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
                 <div className="flex flex-wrap items-center gap-2 text-xs text-textSecondary">
                   <button
                     onClick={onReset}
-                    className="bg-red-600 hover:bg-red-700 text-white font-semibold px-3 py-1.5 rounded-lg transition flex items-center gap-1"
+                    className="border border-borderSubtle bg-surfaceElevated text-textPrimary font-semibold px-3 py-1.5 rounded-apple transition flex items-center gap-1 hover:border-accent"
                     aria-label="Reset"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -272,7 +272,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
                     <button
                       onClick={handleDownload}
                       disabled={isProcessingDownload || !imageUrl}
-                      className="bg-accent hover:bg-accent disabled:bg-surfaceTint disabled:cursor-not-allowed text-white font-semibold px-3 py-1.5 rounded-lg transition flex items-center gap-1"
+                      className="bg-accent hover:bg-accent disabled:bg-surfaceTint disabled:cursor-not-allowed text-white font-semibold px-3 py-1.5 rounded-apple transition flex items-center gap-1"
                       aria-label="Download Image"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -286,7 +286,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
                   )}
                 </div>
                 {downloadError && (
-                  <span className="text-xs text-red-300">{downloadError}</span>
+                  <span className="text-xs text-textMuted">{downloadError}</span>
                 )}
               </div>
             </div>

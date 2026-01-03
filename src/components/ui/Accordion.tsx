@@ -15,7 +15,7 @@ export function Accordion({ title, children }: { title: string; children: ReactN
     <div className="border-b border-borderSubtle">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex justify-between items-center py-3 text-left font-semibold text-textPrimary hover:bg-surface-elevated/60"
+        className="w-full flex justify-between items-center py-3 text-left font-semibold text-textPrimary hover:bg-surfaceElevated"
       >
         <span>{title}</span>
       </button>

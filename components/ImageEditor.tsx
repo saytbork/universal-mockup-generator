@@ -15,7 +15,7 @@ const ImageEditor: React.FC<ImageEditorProps> = ({
   isEditing,
 }) => {
   return (
-    <div className="flex flex-col items-center justify-center w-full p-4 bg-surface rounded-lg border-2 border-dashed border-border">
+    <div className="flex flex-col items-center justify-center w-full p-4 bg-surface rounded-lg border-2 border-dashed border-borderSubtle">
       <h3 className="text-lg font-semibold text-textSecondary mb-4 w-full">Edit Your Mockup</h3>
       <div className="w-full space-y-4">
         <div className="flex flex-col space-y-2">
@@ -28,14 +28,14 @@ const ImageEditor: React.FC<ImageEditorProps> = ({
             value={editPrompt}
             onChange={onPromptChange}
             placeholder="e.g., make the background blurry, add a cat on the sofa"
-            className="bg-surfaceTint border border-border rounded-md p-2 text-white focus:ring-2 focus:ring-accent focus:border-accent transition duration-150 ease-in-out"
+            className="bg-surface border border-borderSubtle rounded-apple p-2 text-textPrimary placeholder:text-textMuted focus:ring-2 focus:ring-accent focus:border-accent transition duration-150 ease-in-out"
             disabled={isEditing}
           />
         </div>
         <button
           onClick={onEditImage}
           disabled={isEditing || !editPrompt}
-          className="w-full bg-accent hover:bg-accent disabled:bg-accent disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+          className="w-full bg-accent hover:bg-accent disabled:bg-accent disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-apple transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
         >
           {isEditing ? 'Applying Edit...' : 'Apply Edit'}
         </button>

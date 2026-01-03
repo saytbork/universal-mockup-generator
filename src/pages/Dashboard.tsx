@@ -129,7 +129,7 @@ export default function Dashboard() {
           initial={{ opacity: 0, scale: 0.92 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
-          className="rounded-3xl bg-surfaceTint border border-border px-8 py-6 shadow-2xl backdrop-blur-lg"
+          className="rounded-3xl bg-surface border border-borderSubtle px-8 py-6 shadow-accent-glow"
         >
           <p className="text-sm text-textSecondary">Loading your workspace...</p>
         </motion.div>
@@ -147,7 +147,7 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="flex items-center justify-between gap-4 rounded-2xl bg-surfaceTint border border-border px-6 py-5 shadow-xl backdrop-blur-lg"
+          className="flex items-center justify-between gap-4 rounded-2xl bg-surface border border-borderSubtle px-6 py-5 shadow-accent-glow"
         >
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-accent">Dashboard</p>
@@ -156,7 +156,7 @@ export default function Dashboard() {
           </div>
           <button
             onClick={() => logout()}
-            className="inline-flex items-center gap-2 rounded-full border border-border bg-surfaceTint px-4 py-2 text-sm font-medium text-textPrimary transition hover:bg-surfaceElevated"
+            className="inline-flex items-center gap-2 rounded-full border border-borderSubtle bg-surfaceTint px-4 py-2 text-sm font-medium text-textPrimary transition hover:bg-surfaceElevated"
           >
             <LogOut className="h-4 w-4" />
             Logout
@@ -170,7 +170,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: "easeOut" }}
-            className="lg:col-span-2 rounded-apple-xl bg-surfaceTint border border-border p-6 shadow-accent"
+            className="lg:col-span-2 rounded-apple-xl bg-surfaceTint border border-borderSubtle p-6 shadow-accent-glow"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-2">
@@ -189,7 +189,7 @@ export default function Dashboard() {
               </div>
               <button
                 onClick={() => startCheckout("creator")}
-                className="inline-flex items-center gap-2 rounded-full bg-surface text-textPrimary px-4 py-2 text-sm font-semibold shadow-accent transition"
+                className="inline-flex items-center gap-2 rounded-full bg-surface text-textPrimary px-4 py-2 text-sm font-semibold shadow-accent-glow transition"
               >
                 Upgrade Plan <ArrowUpRight className="h-4 w-4" />
               </button>
@@ -215,7 +215,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: "easeOut", delay: 0.05 }}
-            className="rounded-3xl bg-surfaceTint border border-border p-5 shadow-xl backdrop-blur-lg space-y-4"
+            className="rounded-3xl bg-surfaceTint border border-borderSubtle p-5 shadow-accent-glow space-y-4"
           >
             <div className="flex items-center gap-2 text-sm text-textSecondary">
               <Sparkles className="h-4 w-4 text-accent" />
@@ -231,7 +231,7 @@ export default function Dashboard() {
                 <div
                   key={item.label}
                   onClick={() => (item.action ? item.action() : (window.location.href = item.href))}
-                  className="flex items-center justify-between rounded-2xl border border-border bg-surfaceTint px-4 py-3 text-sm text-textPrimary hover:border-accent/50 hover:bg-accentSoft transition cursor-pointer"
+                  className="flex items-center justify-between rounded-2xl border border-borderSubtle bg-surfaceTint px-4 py-3 text-sm text-textPrimary hover:border-accent/50 hover:bg-accent/10 transition cursor-pointer"
                 >
                   <span className="flex items-center gap-2">
                     {item.icon}
@@ -249,7 +249,7 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
-          className="rounded-3xl bg-surfaceTint border border-border p-6 shadow-xl backdrop-blur-lg"
+          className="rounded-3xl bg-surfaceTint border border-borderSubtle p-6 shadow-accent-glow"
         >
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -265,7 +265,7 @@ export default function Dashboard() {
               {activity.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between rounded-2xl border border-border bg-surfaceTint px-4 py-3 hover:border-accent transition"
+                  className="flex items-center justify-between rounded-2xl border border-borderSubtle bg-surfaceTint px-4 py-3 hover:border-accent transition"
                 >
                   <div className="flex items-center gap-3">
                     {activityIcon(item.type)}
@@ -289,7 +289,7 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.15 }}
-          className="rounded-3xl bg-surfaceTint border border-border p-6 shadow-xl backdrop-blur-lg"
+          className="rounded-3xl bg-surfaceTint border border-borderSubtle p-6 shadow-accent-glow"
         >
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -368,8 +368,8 @@ function GallerySection({ userEmail }: { userEmail: string }) {
 
   if (error) {
     return (
-      <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
-        <p className="text-sm text-red-300">{error}</p>
+      <div className="rounded-2xl border border-borderSubtle bg-surfaceTint p-4">
+        <p className="text-sm text-textMuted">{error}</p>
       </div>
     );
   }
@@ -399,7 +399,7 @@ function GallerySection({ userEmail }: { userEmail: string }) {
         return (
           <div
             key={image.id}
-            className="group relative rounded-2xl overflow-hidden border border-border bg-surfaceTint transition hover:border-accent/50"
+            className="group relative rounded-2xl overflow-hidden border border-borderSubtle bg-surfaceTint transition hover:border-accent/50"
           >
             <img
               src={image.imageUrl}
@@ -407,7 +407,7 @@ function GallerySection({ userEmail }: { userEmail: string }) {
               className="w-full h-48 object-cover"
               loading="lazy"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition flex flex-col justify-end p-4 space-y-2">
+            <div className="absolute inset-0 bg-surfaceTint opacity-0 group-hover:opacity-100 transition flex flex-col justify-end p-4 space-y-2">
               <div className="text-xs text-textSecondary space-y-1">
                 <p>Plan: {image.plan || 'free'}</p>
                 {image.width && image.height && (

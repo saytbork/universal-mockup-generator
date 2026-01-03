@@ -35,7 +35,7 @@ const BlogArticlePage: React.FC = () => {
   return (
     <div className="bg-bg text-textPrimary min-h-screen">
       <div className="max-w-5xl mx-auto px-4 py-12 space-y-10">
-        <section className="blog-hero rounded-apple-xl border border-border bg-surfaceTint p-8 space-y-4 shadow-accent">
+        <section className="blog-hero rounded-apple-xl border border-borderSubtle bg-surfaceTint p-8 space-y-4 shadow-accent-glow">
           <Link className="text-sm text-textPrimary underline" to="/blog">
             ← Back to blog
           </Link>
@@ -44,7 +44,7 @@ const BlogArticlePage: React.FC = () => {
             <h1 className="text-4xl font-semibold leading-tight">{article.title}</h1>
             <p className="text-lg text-textPrimary max-w-3xl">{article.subtitle}</p>
           </div>
-          <figure className="rounded-apple border border-border bg-surface p-4 space-y-2">
+          <figure className="rounded-apple border border-borderSubtle bg-surface p-4 space-y-2">
             <p className="text-xs uppercase tracking-[0.35em] text-textSecondary">Hero prompt</p>
             <p className="text-sm text-textPrimary leading-relaxed">{article.heroImage.prompt}</p>
             <figcaption className="text-[11px] uppercase tracking-[0.35em] text-textMuted">
@@ -62,7 +62,7 @@ const BlogArticlePage: React.FC = () => {
                 dangerouslySetInnerHTML={{ __html: section.body }}
               />
               {section.imagePrompt ? (
-                <figure className="rounded-apple border border-border bg-surface p-4 space-y-2">
+                <figure className="rounded-apple border border-borderSubtle bg-surface p-4 space-y-2">
                   <p className="text-xs uppercase tracking-[0.35em] text-textSecondary">Image prompt</p>
                   <p className="text-sm text-textPrimary leading-relaxed">{section.imagePrompt}</p>
                   {section.imageAlt && (
@@ -74,7 +74,7 @@ const BlogArticlePage: React.FC = () => {
               ) : null}
             </article>
           ))}
-          <div className="blog-cta rounded-apple-xl border border-border bg-surfaceTint p-6 space-y-3">
+          <div className="blog-cta rounded-apple-xl border border-borderSubtle bg-surfaceTint p-6 space-y-3">
             <h3 className="text-2xl font-semibold">{article.cta.title}</h3>
             <p className="text-textPrimary leading-relaxed">{article.cta.text}</p>
             <a

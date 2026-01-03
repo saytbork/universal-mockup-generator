@@ -54,7 +54,7 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
   })();
 
   return (
-    <div className={`rounded-apple border border-border bg-surface overflow-hidden transition-colors ${containerVariantClass} ${className}`}>
+    <div className={`rounded-apple border border-borderSubtle bg-surface overflow-hidden transition-all ${containerVariantClass} ${className}`}>
       <button
         type="button"
         onClick={handleToggle}
@@ -67,7 +67,7 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
             <div className="flex items-center gap-2">
               <p className={`text-sm font-semibold ${headerTextClass}`}>{title}</p>
               {isRequired && !isTouched && (
-                <span className="text-xs text-textMuted dark:text-textMuted">*Required</span>
+                <span className="text-xs text-textMuted">*Required</span>
               )}
               {isTouched && isActive && (
                 <Check className="w-4 h-4 text-accent" />
@@ -81,14 +81,10 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
         />
       </button>
       <div
-        className={`grid transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] border-t border-border bg-surfaceElevated ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
+        className={`grid transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] border-t border-borderSubtle bg-surfaceTint ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
       >
         <div className="overflow-hidden">
-          <div className="p-4">
-            <div className="rounded-apple border border-border bg-surface p-4">
-              {children}
-            </div>
-          </div>
+          <div className="p-4">{children}</div>
         </div>
       </div>
     </div>

@@ -339,7 +339,7 @@ const getAgeCategory = (age: number) => {
 };
 
 const SECTION_GROUP_CLASS =
-  'space-y-3 rounded-apple border border-border bg-surface p-4';
+  'space-y-3 rounded-apple border border-borderSubtle bg-surfaceElevated p-4';
 const GROUP_LABEL_CLASS =
   'text-xs uppercase tracking-widest text-textMuted';
 
@@ -348,8 +348,8 @@ const getPillClass = (isActive: boolean, _fullWidth = false) => {
     'rounded-full px-3 py-1.5 text-xs sm:text-sm font-medium border transition-colors',
     'focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-bg',
   ].join(' ');
-  const active = 'bg-accent text-white border-accent shadow-accent scale-105 duration-500';
-  const inactive = 'bg-surface text-textSecondary border-border hover:bg-surfaceElevated hover:border-borderStrong hover:text-textPrimary';
+  const active = 'bg-accent/10 text-accent border-accent shadow-accent-glow scale-105 duration-500';
+  const inactive = 'bg-surfaceElevated text-textSecondary border-borderSubtle hover:border-accent hover:text-textPrimary';
   return `${base} ${isActive ? active : inactive}`.trim();
 };
 
@@ -1279,7 +1279,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       updateValue('productTypeCustom', e.target.value);
                       markSectionTouched('product-setup');
                     }}
-                    className="mt-2 w-full rounded-apple border border-borderSubtle bg-surfaceNested px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:ring-1 focus:ring-accent"
+                    className="mt-2 w-full rounded-apple border border-borderSubtle bg-surfaceElevated px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:ring-1 focus:ring-accent"
                     placeholder="Describe the product category (min 3 words)"
                   />
                 )}
@@ -1415,7 +1415,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     ).map(cfg => (
                       <label key={cfg.key} className="space-y-1">
                         <span className="text-[11px] uppercase tracking-wide text-textMuted">{cfg.label}</span>
-                        <div className="relative flex items-center gap-3 rounded-apple border border-borderSubtle bg-surfaceNested p-3 cursor-pointer transition-colors hover:border-accent">
+                        <div className="relative flex items-center gap-3 rounded-apple border border-borderSubtle bg-surfaceElevated p-3 cursor-pointer transition-colors hover:border-accent">
                           <div
                             className="h-10 w-10 rounded-apple ring-1 ring-borderSubtle"
                             style={{ background: (values as any)[cfg.key] || '#ffffff' }}
@@ -1630,7 +1630,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           >
             <div className="space-y-4">
               {values.ecommerceSidePlacementFlag === true && (
-                <div className="rounded-xl border border-borderStrong bg-surfaceTint p-3 text-textMuted text-sm">
+                <div className="rounded-xl border border-borderSubtle bg-surfaceTint p-3 text-textMuted text-sm">
                   Environment is disabled while Background Canvas is On (neutral background mode).
                 </div>
               )}
@@ -1665,7 +1665,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       markSectionTouched('product-environment');
                     }}
                     placeholder="e.g. modern kitchen countertop"
-                    className="w-full rounded-apple border border-borderSubtle bg-surfaceNested px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:outline-none"
+                    className="w-full rounded-apple border border-borderSubtle bg-surfaceElevated px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:outline-none"
                   />
                 </label>
               </div>
@@ -1720,7 +1720,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       updateValue('compositionMode', next ? 'Ecommerce Blank Space' : '');
                       markSectionTouched('ecommerce');
                     }}
-                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-bg ${values.ecommerceSidePlacementFlag ? 'bg-accent' : 'bg-surfaceMuted'}`}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-bg ${values.ecommerceSidePlacementFlag ? 'bg-accent' : 'bg-surfaceTint'}`}
                   >
                     <span
                       className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface ring-0 transition duration-200 ease-in-out ${values.ecommerceSidePlacementFlag ? 'translate-x-5' : 'translate-x-0'}`}
@@ -1758,13 +1758,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               </div>
 
-              <div className="space-y-5 rounded-apple border border-borderSubtle bg-surfaceMuted p-4">
+              <div className="space-y-5 rounded-apple border border-borderSubtle bg-surfaceTint p-4">
                 <div className="space-y-1">
                   <p className="text-xs uppercase tracking-widest text-accent">Background</p>
                   <p className="text-sm text-textSecondary">Neutral color or gradient</p>
                 </div>
 
-                <div className="inline-flex rounded-full border border-borderSubtle bg-surfaceNested p-1">
+                <div className="inline-flex rounded-full border border-borderSubtle bg-surfaceElevated p-1">
                   <button
                     type="button"
                     onClick={() => { updateValue('ecommerceBackgroundMode', 'white'); markSectionTouched('ecommerce'); }}
@@ -1784,7 +1784,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 {values.ecommerceBackgroundMode === 'white' ? (
                   <div className="space-y-2">
                     <p className="text-[11px] uppercase tracking-wide text-textMuted">Solid background color</p>
-                    <label className="relative flex items-center gap-3 rounded-apple border border-borderSubtle bg-surfaceNested p-3 cursor-pointer transition-colors hover:border-accent">
+                    <label className="relative flex items-center gap-3 rounded-apple border border-borderSubtle bg-surfaceElevated p-3 cursor-pointer transition-colors hover:border-accent">
                       <div
                         className="h-10 w-10 rounded-apple ring-1 ring-borderSubtle"
                         style={{ background: values.ecommerceBackgroundColor || '#ffffff' }}
@@ -1814,7 +1814,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     ).map(cfg => (
                       <div key={cfg.key} className="space-y-2">
                           <p className="text-[11px] uppercase tracking-wide text-textMuted">{cfg.label}</p>
-                          <div className="relative flex items-center gap-3 rounded-apple border border-borderSubtle bg-surfaceNested p-3 cursor-pointer transition-colors hover:border-accent">
+                          <div className="relative flex items-center gap-3 rounded-apple border border-borderSubtle bg-surfaceElevated p-3 cursor-pointer transition-colors hover:border-accent">
                             <div
                               className="h-10 w-10 rounded-apple ring-1 ring-borderSubtle"
                               style={{ background: (values as any)[cfg.key] || '#ffffff' }}
@@ -1850,13 +1850,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       <button
                         type="button"
                         onClick={invertGradient}
-                        className="rounded-full border border-borderSubtle bg-surfaceNested px-3 py-1.5 text-sm text-textSecondary transition-colors hover:border-accent hover:text-textPrimary"
+                        className="rounded-full border border-borderSubtle bg-surfaceElevated px-3 py-1.5 text-sm text-textSecondary transition-colors hover:border-accent hover:text-textPrimary"
                       >
                         Invert
                       </button>
                     </div>
 
-                    <div className="relative overflow-hidden rounded-apple border border-borderSubtle bg-surfaceNested">
+                    <div className="relative overflow-hidden rounded-apple border border-borderSubtle bg-surfaceElevated">
                       <div
                         className="h-20 w-full"
                         style={{
@@ -1872,7 +1872,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               )}
 
               {ecommerceOverlay && (
-                <div className="space-y-3 rounded-apple border border-borderSubtle bg-surfaceMuted p-4">
+                <div className="space-y-3 rounded-apple border border-borderSubtle bg-surfaceTint p-4">
                   <div className="space-y-1">
                     <p className="text-xs uppercase tracking-widest text-accent">Overlays</p>
                     <p className="text-sm text-textSecondary">Text + icons are rendered by the app (not the image model).</p>
@@ -1910,7 +1910,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       >
         <div className="flex flex-col gap-4">
           {isPersonDisabled ? (
-            <div className="p-4 rounded-xl border border-borderStrong bg-surfaceTint text-textMuted text-sm">
+            <div className="p-4 rounded-xl border border-borderSubtle bg-surfaceTint text-textMuted text-sm">
               Creator / Person controls are disabled in Product Mode.
             </div>
           ) : (
@@ -2144,10 +2144,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       />
                       <div
                         className={`w-11 h-6 rounded-full transition-colors relative ${!hasFirstGenerationComplete || hasModelReference
-                          ? 'bg-surfaceMuted cursor-not-allowed opacity-50'
+                          ? 'bg-surfaceTint cursor-not-allowed opacity-50'
                           : values.sameCreatorAcrossScenes
                             ? 'bg-accent'
-                            : 'bg-surfaceMuted'
+                            : 'bg-surfaceTint'
                           }`}
                       >
                         <div
@@ -2203,7 +2203,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       updateValue('eyeDirection', 'Looking at camera');
                     }
                   }}
-                  className={`relative shrink-0 h-6 w-11 rounded-full transition-colors ${values.ugcRealMode ? 'bg-accent' : 'bg-surfaceMuted'}`}
+                  className={`relative shrink-0 h-6 w-11 rounded-full transition-colors ${values.ugcRealMode ? 'bg-accent' : 'bg-surfaceTint'}`}
                 >
                   <span className={`absolute left-1 top-1 block h-4 w-4 rounded-full bg-surface transition-transform ${values.ugcRealMode ? 'translate-x-5' : 'translate-x-0'}`} />
                 </button>
@@ -2211,7 +2211,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
               {values.ugcRealMode && (
                 <>
-                  <div className="rounded-lg border border-borderStrong bg-surfaceTint px-3 py-2 text-[12px] text-textMuted">
+                  <div className="rounded-lg border border-borderSubtle bg-surfaceTint px-3 py-2 text-[12px] text-textMuted">
                     Front-camera physics only. Background, lighting, motion, and framing are engine-controlled. Environment, lighting, and camera panels are locked while this mode is on.
                   </div>
                   <div className="space-y-4">
@@ -2249,7 +2249,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </SmoothAccordion>
                       );
                     })}
-                    <div className="space-y-4 rounded-apple border border-borderSubtle bg-surfaceMuted p-4">
+                    <div className="space-y-4 rounded-apple border border-borderSubtle bg-surfaceTint p-4">
                       <p className={GROUP_LABEL_CLASS}>Visual Fidelity</p>
                       <div className="space-y-3">
                         <div className={SECTION_GROUP_CLASS}>
@@ -2356,7 +2356,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   markSectionTouched('productInteraction');
                 }}
                 placeholder="Describe what the person is naturally doing with the product"
-                className="w-full rounded-apple border border-borderSubtle bg-surfaceNested px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:ring-1 focus:ring-accent resize-none"
+                className="w-full rounded-apple border border-borderSubtle bg-surfaceElevated px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:ring-1 focus:ring-accent resize-none"
                 rows={3}
               />
             </div>
@@ -2375,7 +2375,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         variant="expert"
       >
         <div className="space-y-4">
-          <div className="flex items-center justify-between rounded-apple border border-borderSubtle bg-surfaceMuted px-3 py-2">
+          <div className="flex items-center justify-between rounded-apple border border-borderSubtle bg-surfaceTint px-3 py-2">
             <div>
               <p className="text-sm text-textPrimary">Enable outfit customization</p>
               <p className="text-[11px] text-textMuted">Describe garments with text-only controls.</p>
@@ -2388,7 +2388,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 updateValue('customClothesEnabled', !values.customClothesEnabled);
                 markSectionTouched('customClothes');
               }}
-              className={`relative h-6 w-11 rounded-full transition-colors ${values.customClothesEnabled ? 'bg-accent' : 'bg-surfaceMuted'}`}
+              className={`relative h-6 w-11 rounded-full transition-colors ${values.customClothesEnabled ? 'bg-accent' : 'bg-surfaceTint'}`}
             >
               <span className={`absolute left-1 top-1 block h-4 w-4 rounded-full bg-surface transition-transform ${values.customClothesEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
             </button>
@@ -2502,7 +2502,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     markSectionTouched('customClothes');
                   }}
                   placeholder="small embroidered logo on the chest"
-                  className="w-full rounded-apple border border-borderSubtle bg-surfaceNested px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:ring-1 focus:ring-accent"
+                  className="w-full rounded-apple border border-borderSubtle bg-surfaceElevated px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:ring-1 focus:ring-accent"
                 />
               </div>
             </div>
@@ -2555,12 +2555,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       >
         <div className="space-y-3">
           {values.ugcRealMode && (
-            <div className="rounded-lg border border-borderStrong bg-surfaceTint px-4 py-3 text-xs text-textMuted">
+            <div className="rounded-lg border border-borderSubtle bg-surfaceTint px-4 py-3 text-xs text-textMuted">
               Raw Domestic UGC still honors your environment choice—it just interprets it as incidental and unstaged. Pick any room; the engine keeps it messy, domestic, and low intent.
             </div>
           )}
           {!values.ugcRealMode && (
-            <div className="rounded-apple border border-borderSubtle bg-surfaceMuted px-3 py-2 text-[11px] text-textSecondary">
+            <div className="rounded-apple border border-borderSubtle bg-surfaceTint px-3 py-2 text-[11px] text-textSecondary">
               Environment describes location context only. Lighting, cleanliness, and overall polish remain engine-controlled—changing this won’t upgrade quality or staging.
             </div>
           )}
@@ -2613,7 +2613,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 markSectionTouched('environment');
               }}
               placeholder="e.g., cozy cabin, rooftop terrace, yoga studio..."
-              className="w-full rounded-apple border border-borderSubtle bg-surfaceNested px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:ring-1 focus:ring-accent"
+              className="w-full rounded-apple border border-borderSubtle bg-surfaceElevated px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:ring-1 focus:ring-accent"
             />
           </div>
 
@@ -2630,7 +2630,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         variant="primary"
       >
         {values.ugcRealMode ? (
-          <div className="rounded-apple border border-borderSubtle bg-surfaceMuted px-4 py-3 text-sm text-textSecondary">
+          <div className="rounded-apple border border-borderSubtle bg-surfaceTint px-4 py-3 text-sm text-textSecondary">
             Lighting is locked to indifferent domestic fixtures with mixed temperatures, clipped highlights, and crushed shadows. Turn Raw Domestic UGC off to control time or lighting.
           </div>
         ) : (
@@ -2679,7 +2679,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         )}
       </SmoothAccordion>
 
-	      <details className="rounded-apple border border-borderSubtle bg-surfaceMuted transition-colors overflow-hidden">
+	      <details className="rounded-apple border border-borderSubtle bg-surfaceTint transition-colors overflow-hidden">
 	        <summary className="cursor-pointer list-none p-4 flex items-center justify-between text-xs uppercase tracking-widest text-textMuted">
 	          <span>Advanced · Hero Personas</span>
 	          <span className="text-xs text-textMuted">+</span>
@@ -2715,14 +2715,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                    updateValue('facialExpression', 'Playful & Candid');
 	                    updateValue('appearanceLevel', 'Styled');
 	                  }
-	                }}
-	                className={`w-full text-left px-3 py-2 rounded-apple border text-sm transition-colors ${values.heroPersona === persona.label
-	                  ? 'bg-accent border-accent text-white shadow-glowActive'
-	                  : 'bg-surface border-borderSubtle text-textPrimary hover:border-accent hover:bg-surfaceElevated'
-	                  }`}
-	              >
-	                {persona.label}
-	              </button>
+		                }}
+		                className={`w-full text-left px-3 py-2 rounded-apple border text-sm transition-colors ${values.heroPersona === persona.label
+		                  ? 'bg-accent/10 border-accent text-accent shadow-accent-glow scale-105 duration-500'
+		                  : 'bg-surfaceElevated border-borderSubtle text-textPrimary hover:border-accent hover:text-accent'
+		                  }`}
+		              >
+		                {persona.label}
+		              </button>
 	            ))}
 	          </div>
 	        </div>
@@ -2800,9 +2800,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       {/* Bundles control product grouping only. */}
       {/* Bundles must never affect modes, composition, or human presence. */}
       {
-        productCount > 1 && (
-          <div id="bundles" className="mt-6">
-            <div className="rounded-apple border border-borderSubtle bg-surfaceMuted p-4 space-y-4">
+	        productCount > 1 && (
+	          <div id="bundles" className="mt-6">
+	            <div className="rounded-apple border border-borderSubtle bg-surfaceTint p-4 space-y-4">
               <div className="flex flex-col gap-1">
                 <p className="text-xs uppercase tracking-[0.3em] text-accent">Bundles</p>
                 <p className="text-sm text-textMuted">
@@ -2810,41 +2810,41 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </p>
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors border-accent bg-accent text-white">
-                  Pre-made Bundles
-                </button>
-                <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors border-borderSubtle bg-surfaceNested text-textSecondary hover:border-accent hover:text-textPrimary">
-                  Custom Bundle Builder
-                </button>
-                <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors border-borderSubtle bg-surfaceNested text-textSecondary hover:border-accent hover:text-textPrimary">
-                  Recommended Bundles
-                </button>
-              </div>
+	              <div className="flex flex-wrap gap-2">
+	                <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500">
+	                  Pre-made Bundles
+	                </button>
+	                <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary">
+	                  Custom Bundle Builder
+	                </button>
+	                <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary">
+	                  Recommended Bundles
+	                </button>
+	              </div>
 
               <div className="space-y-4">
                 <div className="flex flex-col gap-2">
-                  <label className="text-xs uppercase tracking-[0.3em] text-textMuted">Pick a bundle</label>
-                  <select className="rounded-apple border border-borderSubtle bg-surfaceNested px-3 py-2 text-sm text-textPrimary focus:border-accent focus:outline-none">
-                    <option value="essentials_trio">Core Essentials Trio</option>
+	                  <label className="text-xs uppercase tracking-[0.3em] text-textMuted">Pick a bundle</label>
+	                  <select className="rounded-apple border border-borderSubtle bg-surfaceElevated px-3 py-2 text-sm text-textPrimary focus:border-accent focus:outline-none">
+	                    <option value="essentials_trio">Core Essentials Trio</option>
                     <option value="daily_duo">Daily Duo Stack</option>
                     <option value="launch_showcase">Launch Showcase Set</option>
                     <option value="hero_lineup">Complete Hero Lineup</option>
                   </select>
                 </div>
 
-                <div className="rounded-apple border border-borderSubtle bg-surfaceNested p-4 space-y-3">
+	                <div className="rounded-apple border border-borderSubtle bg-surfaceElevated p-4 space-y-3">
                   <p className="text-sm font-semibold text-textPrimary">Core Essentials Trio</p>
                   <p className="text-xs text-textMuted">Add another product to enable bundles.</p>
 
                   <div className="flex flex-wrap gap-3">
-                    <div className="w-28 text-center text-xs text-textSecondary">
-                      <div className="relative h-28 w-full overflow-hidden rounded-apple border border-borderSubtle bg-surfaceMuted">
-                        <img className="h-full w-full object-cover opacity-60" />
-                        <div className="absolute inset-0 flex items-center justify-center bg-surfaceMuted text-[10px] font-semibold text-textMuted">
-                          Upload to fill
-                        </div>
-                      </div>
+	                    <div className="w-28 text-center text-xs text-textSecondary">
+	                      <div className="relative h-28 w-full overflow-hidden rounded-apple border border-borderSubtle bg-surfaceTint">
+	                        <img className="h-full w-full object-cover opacity-60" />
+	                        <div className="absolute inset-0 flex items-center justify-center bg-surfaceTint text-[10px] font-semibold text-textMuted">
+	                          Upload to fill
+	                        </div>
+	                      </div>
                       <p className="mt-1 text-[11px]">Product 1</p>
                     </div>
                   </div>
@@ -2885,7 +2885,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                  updateValue('ecommerceSidePlacementFlag', !values.ecommerceSidePlacementFlag);
 	                  markSectionTouched('ecommerce');
 	                }}
-	                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-bg ${values.ecommerceSidePlacementFlag ? 'bg-accent' : 'bg-surfaceMuted'}`}
+	                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-bg ${values.ecommerceSidePlacementFlag ? 'bg-accent' : 'bg-surfaceTint'}`}
 	              >
 	                <span
 	                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface ring-0 transition duration-200 ease-in-out ${values.ecommerceSidePlacementFlag ? 'translate-x-5' : 'translate-x-0'}`}
@@ -2917,12 +2917,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             </div>
           </div>
 
-          <div className="space-y-5 rounded-apple border border-borderSubtle bg-surfaceMuted p-4">
+          <div className="space-y-5 rounded-apple border border-borderSubtle bg-surfaceTint p-4">
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-widest text-accent">Background</p>
                 <p className="text-sm text-textSecondary">Neutral color or gradient</p>
               </div>
-              <div className="inline-flex rounded-full border border-borderSubtle bg-surfaceNested p-1">
+              <div className="inline-flex rounded-full border border-borderSubtle bg-surfaceElevated p-1">
                 {(['white', 'gradient'] as Step3Values['ecommerceBackgroundMode'][]).map(mode => (
                   <button
                     key={mode}
@@ -2940,7 +2940,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               {values.ecommerceBackgroundMode === 'white' ? (
                 <div className="space-y-2">
                   <p className="text-[11px] uppercase tracking-wide text-textMuted">Solid background color</p>
-                  <div className="flex items-center gap-3 rounded-apple border border-borderSubtle bg-surfaceNested p-2.5 transition-colors hover:border-accent">
+                  <div className="flex items-center gap-3 rounded-apple border border-borderSubtle bg-surfaceElevated p-2.5 transition-colors hover:border-accent">
                     <label className="relative h-10 w-10 shrink-0 cursor-pointer">
                       <div
                         className="h-10 w-10 rounded-full ring-1 ring-borderSubtle"
@@ -2976,7 +2976,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     ].map(cfg => (
                       <div key={cfg.key} className="space-y-2">
                         <p className="text-[11px] uppercase tracking-wide text-textMuted">{cfg.label}</p>
-                        <div className="flex items-center gap-3 rounded-apple border border-borderSubtle bg-surfaceNested p-2.5 transition-colors hover:border-accent">
+                        <div className="flex items-center gap-3 rounded-apple border border-borderSubtle bg-surfaceElevated p-2.5 transition-colors hover:border-accent">
                           <label className="relative h-10 w-10 shrink-0 cursor-pointer">
                             <div
                               className="h-10 w-10 rounded-full ring-1 ring-borderSubtle"
@@ -3003,7 +3003,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     <select
                       value={values.ecommerceGradientAngle}
                       onChange={(e) => { updateValue('ecommerceGradientAngle', e.target.value as Step3Values['ecommerceGradientAngle']); markSectionTouched('ecommerce'); }}
-                      className="rounded-full border border-borderSubtle bg-surfaceNested px-3 py-1.5 text-sm text-textPrimary focus:outline-none"
+                      className="rounded-full border border-borderSubtle bg-surfaceElevated px-3 py-1.5 text-sm text-textPrimary focus:outline-none"
                     >
                       {GRADIENT_ANGLE_OPTIONS.map(angle => (
                         <option key={angle} value={angle}>{angle}°</option>
@@ -3012,12 +3012,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     <button
                       type="button"
                       onClick={invertGradient}
-                      className="rounded-full border border-borderSubtle bg-surfaceNested px-3 py-1.5 text-sm text-textSecondary transition-colors hover:border-accent hover:text-textPrimary"
+                      className="rounded-full border border-borderSubtle bg-surfaceElevated px-3 py-1.5 text-sm text-textSecondary transition-colors hover:border-accent hover:text-textPrimary"
                     >
                       Invert
                     </button>
                   </div>
-                  <div className="relative overflow-hidden rounded-apple border border-borderSubtle bg-surfaceNested">
+                  <div className="relative overflow-hidden rounded-apple border border-borderSubtle bg-surfaceElevated">
                     <div
                       className="h-20 w-full"
                       style={{
@@ -3057,7 +3057,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 updateValue('formulationStoryEnabled', !values.formulationStoryEnabled);
                 markSectionTouched('formulationStory');
               }}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-bg ${values.formulationStoryEnabled ? 'bg-accent' : 'bg-surfaceMuted'}`}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-bg ${values.formulationStoryEnabled ? 'bg-accent' : 'bg-surfaceTint'}`}
             >
               <span
                 className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface ring-0 transition duration-200 ease-in-out ${values.formulationStoryEnabled ? 'translate-x-5' : 'translate-x-0'}`}
@@ -3073,7 +3073,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   type="text"
                   value={values.expertName}
                   onChange={(e) => { updateValue('expertName', e.target.value); markSectionTouched('formulationStory'); }}
-                  className="w-full rounded-apple border border-borderSubtle bg-surfaceNested px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:ring-1 focus:ring-accent"
+                  className="w-full rounded-apple border border-borderSubtle bg-surfaceElevated px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:ring-1 focus:ring-accent"
                   placeholder="The name you enter here (e.g., 'Dr. Ali M.D') will be embroidered on the medical attire."
                 />
               </div>
@@ -3084,7 +3084,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   type="text"
                   value={values.expertCredentials}
                   onChange={(e) => { updateValue('expertCredentials', e.target.value); markSectionTouched('formulationStory'); }}
-                  className="w-full rounded-apple border border-borderSubtle bg-surfaceNested px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:ring-1 focus:ring-accent"
+                  className="w-full rounded-apple border border-borderSubtle bg-surfaceElevated px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:ring-1 focus:ring-accent"
                   placeholder="e.g., Formulation Scientist, 12 years mixing botanicals"
                 />
               </div>

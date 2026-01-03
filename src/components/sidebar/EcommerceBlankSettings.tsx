@@ -17,7 +17,7 @@ export default function EcommerceBlankSettings() {
           type="color"
           value={bgColor}
           onChange={(e) => setBgColor(e.target.value)}
-          className="w-16 h-10 rounded-md bg-surface border border-border cursor-pointer"
+          className="w-16 h-10 rounded-md bg-surface border border-borderSubtle cursor-pointer"
         />
       </label>
     </div>

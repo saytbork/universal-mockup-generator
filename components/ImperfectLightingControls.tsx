@@ -31,18 +31,18 @@ const ToggleRow = ({
   value: boolean;
   onChange: (value: boolean) => void;
 }) => (
-  <label className="flex items-center justify-between gap-3 rounded-xl border border-border bg-bg/20 px-3 py-2">
+  <label className="flex items-center justify-between gap-3 rounded-xl border border-borderSubtle bg-surfaceElevated px-3 py-2">
     <div>
-      <p className="text-sm text-white">{label}</p>
+      <p className="text-sm text-textPrimary">{label}</p>
       <p className="text-[11px] text-textSecondary">{description}</p>
     </div>
     <button
       type="button"
       onClick={() => onChange(!value)}
-      className={`relative h-6 w-11 rounded-full transition ${value ? 'bg-surfaceTint' : 'bg-surfaceTint'}`}
+      className={`relative h-6 w-11 rounded-full transition ${value ? 'bg-accent' : 'bg-surfaceTint'}`}
     >
       <span
-        className={`absolute left-1 top-1 block h-4 w-4 rounded-full bg-surface shadow transition ${
+        className={`absolute left-1 top-1 block h-4 w-4 rounded-full bg-surface border border-borderSubtle transition ${
           value ? 'translate-x-5' : ''
         }`}
       />
@@ -110,16 +110,16 @@ const ImperfectLightingControls: React.FC<ImperfectLightingControlsProps> = ({
               onClick={() => onSelectOffCenter(option.id)}
               className={`rounded-full border px-3 py-1 text-xs transition ${
                 selectedOffCenterId === option.id
-                  ? 'border-borderStrong bg-surfaceTint text-white'
-                  : 'border-border text-textSecondary hover:border-accent hover:text-white'
+                  ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500'
+                  : 'border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary'
               }`}
             >
               <div className="flex items-center gap-1 relative group">
                 <span>{option.label}</span>
                 {option.tooltip && (
-                  <span className="text-xs text-textSecondary cursor-pointer group-hover:text-white">
+                  <span className="text-xs text-textSecondary cursor-pointer group-hover:text-textPrimary">
                     ⓘ
-                    <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-bg/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                    <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-surface text-textPrimary text-xs p-2 rounded-apple border border-borderSubtle shadow-sm w-44">
                       {option.tooltip}
                     </div>
                   </span>
@@ -139,16 +139,16 @@ const ImperfectLightingControls: React.FC<ImperfectLightingControlsProps> = ({
               onClick={() => onSelectFraming(option.id)}
               className={`rounded-full border px-3 py-1 text-xs transition ${
                 selectedFramingId === option.id
-                  ? 'border-borderStrong bg-surfaceTint text-white'
-                  : 'border-border text-textSecondary hover:border-accent hover:text-white'
+                  ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500'
+                  : 'border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary'
               }`}
             >
               <div className="flex items-center gap-1 relative group">
                 <span>{option.label}</span>
                 {option.tooltip && (
-                  <span className="text-xs text-textSecondary cursor-pointer group-hover:text-white">
+                  <span className="text-xs text-textSecondary cursor-pointer group-hover:text-textPrimary">
                     ⓘ
-                    <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-bg/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                    <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-surface text-textPrimary text-xs p-2 rounded-apple border border-borderSubtle shadow-sm w-44">
                       {option.tooltip}
                     </div>
                   </span>

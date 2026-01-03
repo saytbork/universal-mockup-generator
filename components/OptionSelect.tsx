@@ -21,9 +21,9 @@ const OptionSelect: React.FC<OptionSelectProps> = ({ label, options, value, onCh
         <div className="flex items-center gap-1 relative group">
           <span>{label}</span>
           {selectedOption?.tooltip && (
-            <span className="text-xs text-textSecondary cursor-pointer group-hover:text-white">
+            <span className="text-xs text-textSecondary cursor-pointer group-hover:text-textPrimary">
               ⓘ
-              <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-bg/90 text-white text-xs p-2 rounded shadow-lg w-44">
+              <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-surface text-textPrimary text-xs p-2 rounded-apple border border-borderSubtle shadow-sm w-44">
                 {selectedOption.tooltip}
               </div>
             </span>
@@ -34,7 +34,7 @@ const OptionSelect: React.FC<OptionSelectProps> = ({ label, options, value, onCh
         value={value}
         onChange={onChange}
         disabled={disabled}
-        className="bg-surfaceTint border border-border rounded-md p-2 text-white focus:ring-2 focus:ring-accent focus:border-accent transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+        className="bg-surface border border-borderSubtle rounded-apple p-2 text-textPrimary focus:ring-2 focus:ring-accent focus:border-accent transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {normalizedOptions.map((option) => (
           <option key={option.value} value={option.value} title={option.tooltip || option.label}>

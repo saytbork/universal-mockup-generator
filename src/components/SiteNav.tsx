@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { Moon, Sun } from 'lucide-react';
 
 const SiteNav: React.FC = () => {
   const [showResources, setShowResources] = useState(false);
@@ -13,37 +14,44 @@ const SiteNav: React.FC = () => {
     setIsSticky(true);
   }, []);
 
+  const toggleTheme = () => {
+    const root = document.documentElement;
+    const nextIsDark = !root.classList.contains('dark');
+    root.classList.toggle('dark', nextIsDark);
+    localStorage.setItem('theme', nextIsDark ? 'dark' : 'light');
+  };
+
   const allLinks = (
     <>
-      <Link to="/" className="hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>
+      <Link to="/" className="hover:text-textPrimary transition" onClick={() => setMobileMenuOpen(false)}>
         Home
       </Link>
-      <Link to="/use-cases" className="hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>
+      <Link to="/use-cases" className="hover:text-textPrimary transition" onClick={() => setMobileMenuOpen(false)}>
         Use Cases
       </Link>
-      <Link to="/comparisons" className="hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>
+      <Link to="/comparisons" className="hover:text-textPrimary transition" onClick={() => setMobileMenuOpen(false)}>
         Comparisons
       </Link>
-      <a href="/#pricing" className="hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>
+      <a href="/#pricing" className="hover:text-textPrimary transition" onClick={() => setMobileMenuOpen(false)}>
         Pricing
       </a>
       <div className="relative">
         <button
           type="button"
           onClick={() => setShowResources(prev => !prev)}
-          className="hover:text-white transition flex items-center gap-1"
+          className="hover:text-textPrimary transition flex items-center gap-1"
         >
           Resources <span className="text-xs">▾</span>
         </button>
         {showResources && (
-          <div className="absolute right-0 mt-2 bg-surface text-textPrimary shadow-xl rounded-lg p-4 flex-col gap-2 min-w-[180px]">
-            <Link to="/blog" className="block hover:text-black" onClick={() => { setShowResources(false); setMobileMenuOpen(false); }}>
+          <div className="absolute right-0 mt-2 bg-surface text-textPrimary shadow-accent-glow rounded-apple border border-borderSubtle p-4 flex-col gap-2 min-w-[180px]">
+            <Link to="/blog" className="block hover:text-accent" onClick={() => { setShowResources(false); setMobileMenuOpen(false); }}>
               Blog
             </Link>
-            <Link to="/guides" className="block hover:text-black" onClick={() => { setShowResources(false); setMobileMenuOpen(false); }}>
+            <Link to="/guides" className="block hover:text-accent" onClick={() => { setShowResources(false); setMobileMenuOpen(false); }}>
               Guides
             </Link>
-            <Link to="/faq" className="block hover:text-black" onClick={() => { setShowResources(false); setMobileMenuOpen(false); }}>
+            <Link to="/faq" className="block hover:text-accent" onClick={() => { setShowResources(false); setMobileMenuOpen(false); }}>
               FAQ
             </Link>
           </div>
@@ -53,14 +61,24 @@ const SiteNav: React.FC = () => {
   );
 
   return (
-    <div className={`w-full ${isSticky ? 'sticky top-0 z-40' : ''} bg-bg/90 backdrop-blur border-b border-border`}>
+    <div className={`w-full ${isSticky ? 'sticky top-0 z-40' : ''} bg-bg border-b border-borderSubtle`}>
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between text-sm text-textSecondary">
-        <Link to="/" className="flex items-center gap-2 text-white font-semibold">
-          <span className="px-3 py-1 rounded-full bg-accent/80 text-xs">BoostUGC</span>
+        <Link to="/" className="flex items-center gap-2 text-textPrimary font-semibold">
+          <span className="px-3 py-1 rounded-full bg-accent text-xs text-white">BoostUGC</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-6">
           {allLinks}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="h-9 w-9 rounded-full border border-borderSubtle bg-surface text-textSecondary hover:text-textPrimary hover:border-accent transition flex items-center justify-center"
+            aria-label="Toggle theme"
+            title="Toggle theme"
+          >
+            <Moon className="theme-icon-light" size={16} />
+            <Sun className="theme-icon-dark" size={16} />
+          </button>
           {isAuthed ? (
             <>
               <Link
@@ -71,7 +89,7 @@ const SiteNav: React.FC = () => {
               </Link>
               <Link
                 to="/app"
-                className="rounded-full border border-border px-4 py-2 font-semibold text-white hover:border-accent transition"
+                className="rounded-full border border-borderSubtle px-4 py-2 font-semibold text-textPrimary hover:border-accent transition"
               >
                 Go to App
               </Link>
@@ -86,7 +104,7 @@ const SiteNav: React.FC = () => {
               </Link>
               <Link
                 to="/login"
-                className="rounded-full border border-border px-4 py-2 font-semibold text-white hover:border-accent transition"
+                className="rounded-full border border-borderSubtle px-4 py-2 font-semibold text-textPrimary hover:border-accent transition"
               >
                 Start Now
               </Link>
@@ -107,20 +125,32 @@ const SiteNav: React.FC = () => {
       </div>
 
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-[999] bg-bg/90 backdrop-blur">
-          <div className="relative max-w-sm w-full h-full mx-auto bg-bg/95 border border-border p-6 flex flex-col gap-6">
+        <div className="md:hidden fixed inset-0 z-[999] bg-bg">
+          <div className="relative max-w-sm w-full h-full mx-auto bg-bg border border-borderSubtle p-6 flex flex-col gap-6">
             <div className="flex items-center justify-between">
-              <span className="text-white font-semibold text-lg">Menu</span>
-              <button
-                type="button"
-                className="text-textSecondary hover:text-white transition"
-                onClick={() => setMobileMenuOpen(false)}
-                aria-label="Close menu"
-              >
-                ✕
-              </button>
+              <span className="text-textPrimary font-semibold text-lg">Menu</span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  className="h-9 w-9 rounded-full border border-borderSubtle bg-surface text-textSecondary hover:text-textPrimary hover:border-accent transition flex items-center justify-center"
+                  aria-label="Toggle theme"
+                  title="Toggle theme"
+                >
+                  <Moon className="theme-icon-light" size={16} />
+                  <Sun className="theme-icon-dark" size={16} />
+                </button>
+                <button
+                  type="button"
+                  className="text-textSecondary hover:text-textPrimary transition"
+                  onClick={() => setMobileMenuOpen(false)}
+                  aria-label="Close menu"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
-            <nav className="flex flex-col gap-3 text-lg text-white">
+            <nav className="flex flex-col gap-3 text-lg text-textPrimary">
               {allLinks}
             </nav>
             <div className="flex flex-col gap-3">
@@ -135,7 +165,7 @@ const SiteNav: React.FC = () => {
                   </Link>
                   <Link
                     to="/app"
-                    className="rounded-full border border-border px-4 py-2 font-semibold text-white text-center hover:border-accent transition"
+                    className="rounded-full border border-borderSubtle px-4 py-2 font-semibold text-textPrimary text-center hover:border-accent transition"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Go to App
@@ -152,7 +182,7 @@ const SiteNav: React.FC = () => {
                   </Link>
                   <Link
                     to="/login"
-                    className="rounded-full border border-border px-4 py-2 font-semibold text-white text-center hover:border-accent transition"
+                    className="rounded-full border border-borderSubtle px-4 py-2 font-semibold text-textPrimary text-center hover:border-accent transition"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Start Now

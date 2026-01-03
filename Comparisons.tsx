@@ -59,14 +59,14 @@ const Comparisons: React.FC = () => {
       <div className="relative max-w-5xl mx-auto px-4 py-20 space-y-12">
         <div className="absolute inset-0 blur-3xl opacity-40 pointer-events-none" style={{ background: 'radial-gradient(circle at 20% 20%, var(--accent-glow), transparent 40%)' }} />
         <div className="relative space-y-4">
-          <div className="inline-flex items-center gap-2 rounded-full border border-accent bg-accentSoft px-4 py-1 text-xs uppercase tracking-[0.2em] text-accent">
+          <div className="inline-flex items-center gap-2 rounded-full border border-accent bg-accent/10 px-4 py-1 text-xs uppercase tracking-[0.2em] text-accent">
             <Sparkles className="w-4 h-4" /> Head-to-head
           </div>
           <h1 className="text-4xl font-bold">BoostUGC vs Competitors</h1>
           <p className="text-textSecondary">Why brands choose BoostUGC for photorealistic UGC.</p>
         </div>
 
-        <div className="relative overflow-hidden rounded-apple-xl border border-border bg-surfaceTint shadow-accent">
+        <div className="relative overflow-hidden rounded-apple-xl border border-borderSubtle bg-surfaceTint shadow-accent-glow">
           <div className="absolute inset-0 bg-gradient-to-br from-accentSoft via-transparent to-surfaceTint pointer-events-none" />
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-sm text-textPrimary">
@@ -102,7 +102,7 @@ const Comparisons: React.FC = () => {
             { title: 'eCommerce-first', desc: 'Defaults for mockups, UGC, and product photography that convert.', icon: <Gauge className="w-5 h-5" /> },
             { title: 'Consistency at scale', desc: 'Replace manual content with fast, repeatable AI visuals.', icon: <Star className="w-5 h-5" /> },
           ].map(card => (
-            <div key={card.title} className="rounded-2xl border border-border bg-surfaceTint p-5 space-y-2">
+            <div key={card.title} className="rounded-2xl border border-borderSubtle bg-surfaceTint p-5 space-y-2">
               <div className="inline-flex items-center gap-2 text-accent">
                 {card.icon}
                 <span className="text-sm">{card.title}</span>
@@ -115,7 +115,7 @@ const Comparisons: React.FC = () => {
         <div className="relative">
           <Link
             to="/app"
-            className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white shadow-accent hover:bg-accent transition"
+            className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white shadow-accent-glow hover:bg-accent transition"
           >
             Start Free Trial <ArrowRight className="w-4 h-4" />
           </Link>
