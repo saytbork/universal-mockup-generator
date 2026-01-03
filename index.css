@@ -1,42 +1,57 @@
 :root {
   color-scheme: light;
 
-  --accent-primary: 79 70 229;
-  --accent-glow: 79 70 229;
+  --accent-primary: #4f46e5;
+  --accent-glow: rgba(79,70,229,0.25);
+  --accent-primary-rgb: 79 70 229;
 
-  --bg: 245 245 247;
-  --surface: 255 255 255;
-  --surface-elevated: 255 255 255;
-  --border: 229 231 235;
+  --bg: #f5f5f7;
+  --surface: #ffffff;
+  --surface-elevated: #ffffff;
+  --border: #e5e7eb;
 
-  --text-primary: 29 29 31;
-  --text-secondary: 75 85 99;
-  --text-muted: 107 114 128;
+  --text-primary: #1d1d1f;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
+
+  --bg-rgb: 245 245 247;
+  --surface-rgb: 255 255 255;
+  --surface-elevated-rgb: 255 255 255;
+  --text-primary-rgb: 29 29 31;
+  --text-secondary-rgb: 75 85 99;
+  --text-muted-rgb: 107 114 128;
 }
 
 html.dark {
   color-scheme: dark;
 
-  --bg: 0 0 0;
-  --surface: 24 24 27;
-  --surface-elevated: 39 39 42;
-  --border: 255 255 255;
+  --bg: #000000;
+  --surface: #18181b;
+  --surface-elevated: #27272a;
+  --border: rgba(255,255,255,0.1);
 
-  --text-primary: 255 255 255;
-  --text-secondary: 156 163 175;
-  --text-muted: 107 114 128;
+  --text-primary: #ffffff;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+
+  --bg-rgb: 0 0 0;
+  --surface-rgb: 24 24 27;
+  --surface-elevated-rgb: 39 39 42;
+  --text-primary-rgb: 255 255 255;
+  --text-secondary-rgb: 156 163 175;
+  --text-muted-rgb: 107 114 128;
 }
 
 body {
   margin: 0;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: rgb(var(--bg));
-  color: rgb(var(--text-primary));
+  background-color: var(--bg);
+  color: var(--text-primary);
   scroll-behavior: smooth;
 }
 
 ::selection {
-  background: rgb(var(--accent-glow) / 0.25);
+  background: var(--accent-glow);
 }
 
 @keyframes fadeUp {
@@ -61,16 +76,16 @@ body {
 .delay-400 { animation-delay: 0.4s; }
 
 .glass-card {
-  border: 1px solid rgb(var(--border) / 0.10);
-  background: rgb(var(--surface) / 0.80);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
   backdrop-filter: blur(18px);
-  box-shadow: 0 20px 40px rgb(var(--accent-glow) / 0.20);
+  box-shadow: 0 20px 40px var(--accent-glow);
 }
 .chip {
   border-radius: 999px;
-  border: 1px solid rgb(var(--border) / 0.20);
-  background: rgb(var(--surface-elevated) / 0.70);
-  color: rgb(var(--text-secondary));
+  border: 1px solid var(--border);
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
   padding: 0.35rem 0.95rem;
   font-size: 0.85rem;
   font-weight: 500;
@@ -79,30 +94,75 @@ body {
   white-space: nowrap;
 }
 .chip:hover:not(:disabled) {
-  border-color: rgb(var(--accent-primary) / 0.90);
-  color: rgb(var(--text-primary));
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
 }
 .chip-active {
-  background: rgb(var(--accent-primary) / 1);
-  border-color: rgb(var(--accent-primary) / 1);
-  color: rgb(255 255 255);
-  box-shadow: 0 20px 40px rgb(var(--accent-glow) / 0.20);
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: #ffffff;
+  box-shadow: 0 20px 40px var(--accent-glow);
 }
 .chip:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
 
+/* STRICT THEME ENFORCEMENT (legacy Tailwind utility remap) */
+/* Backgrounds */
+.bg-gray-900 { background-color: var(--bg) !important; }
+.bg-gray-950 { background-color: var(--bg) !important; }
+.bg-black { background-color: var(--bg) !important; }
+.bg-white { background-color: var(--surface) !important; }
+.bg-gray-800 { background-color: var(--surface) !important; }
+.bg-gray-800\/50 { background-color: rgb(var(--surface-rgb) / 0.5) !important; }
+.bg-gray-800\/30 { background-color: rgb(var(--surface-rgb) / 0.3) !important; }
+.bg-gray-900\/60 { background-color: rgb(var(--surface-elevated-rgb) / 0.6) !important; }
+.bg-black\/20 { background-color: rgb(var(--surface-elevated-rgb) / 0.2) !important; }
+.bg-black\/30 { background-color: rgb(var(--surface-elevated-rgb) / 0.3) !important; }
+.bg-black\/50 { background-color: rgb(var(--surface-elevated-rgb) / 0.5) !important; }
+.bg-gray-700\/20 { background-color: rgb(var(--surface-elevated-rgb) / 0.2) !important; }
+
+/* Text */
+.text-white { color: var(--text-primary) !important; }
+.text-black { color: var(--text-primary) !important; }
+.text-gray-200 { color: var(--text-primary) !important; }
+.text-gray-100 { color: var(--text-primary) !important; }
+.text-gray-300 { color: var(--text-secondary) !important; }
+.text-gray-400 { color: var(--text-secondary) !important; }
+.text-gray-500 { color: var(--text-muted) !important; }
+.text-gray-600 { color: var(--text-muted) !important; }
+.text-gray-700 { color: var(--text-secondary) !important; }
+
+/* Borders */
+.border-gray-200 { border-color: var(--border) !important; }
+.border-gray-300 { border-color: var(--border) !important; }
+.border-gray-600 { border-color: var(--border) !important; }
+.border-gray-700 { border-color: var(--border) !important; }
+.border-white\/10 { border-color: var(--border) !important; }
+.border-white\/15 { border-color: var(--border) !important; }
+.border-white\/20 { border-color: var(--border) !important; }
+.border-white\/5 { border-color: var(--border) !important; }
+
+/* Accent */
+.text-indigo-200 { color: var(--accent-primary) !important; }
+.text-indigo-300 { color: var(--accent-primary) !important; }
+.text-indigo-400 { color: var(--accent-primary) !important; }
+.bg-indigo-600 { background-color: var(--accent-primary) !important; }
+.bg-indigo-500 { background-color: var(--accent-primary) !important; }
+.border-indigo-400 { border-color: var(--accent-primary) !important; }
+.border-indigo-500 { border-color: var(--accent-primary) !important; }
+
 .scene-age-slider {
   appearance: none;
   height: 12px;
   border-radius: 999px;
-  background: #1f2937;
+  background: rgb(var(--surface-elevated-rgb) / 0.8);
   transition: box-shadow 0.2s ease, background 0.2s ease;
 }
 .scene-age-slider:focus {
   outline: none;
-  box-shadow: 0 0 0 6px rgba(129, 140, 248, 0.25);
+  box-shadow: 0 0 0 6px var(--accent-glow);
 }
 .scene-age-slider:disabled {
   opacity: 0.65;
