@@ -9,7 +9,60 @@
       name="description"
       content="Create studio-ready product mockups and lifestyle visuals without photoshoots. Built for ecommerce brands, ads and product launches."
     />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      tailwind = {
+        config: {
+          darkMode: 'class',
+          theme: {
+            extend: {
+              colors: {
+                bg: 'rgb(var(--bg) / <alpha-value>)',
+                surface: 'rgb(var(--surface) / <alpha-value>)',
+                'surface-elevated': 'rgb(var(--surface-elevated) / <alpha-value>)',
+                borderSubtle: 'rgb(var(--border) / 0.10)',
+                textPrimary: 'rgb(var(--text-primary) / <alpha-value>)',
+                textSecondary: 'rgb(var(--text-secondary) / <alpha-value>)',
+                textMuted: 'rgb(var(--text-muted) / <alpha-value>)',
+                accent: 'rgb(var(--accent-primary) / <alpha-value>)',
+              },
+              borderRadius: {
+                apple: '20px',
+                'apple-xl': '36px',
+              },
+              boxShadow: {
+                'accent-xl': '0 20px 40px rgba(79,70,229,0.20)',
+              },
+              fontFamily: {
+                sans: ['\"Plus Jakarta Sans\"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                mono: ['\"JetBrains Mono\"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+              },
+            }
+          }
+        }
+      };
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var next = stored === 'dark' || stored === 'light' ? stored : (prefersDark ? 'dark' : 'light');
+          document.documentElement.classList.toggle('dark', next === 'dark');
+        } catch (e) {}
+      })();
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style type="text/tailwindcss">
+      @layer utilities {
+        .heading-lg { @apply text-2xl font-semibold tracking-tight text-textPrimary; }
+        .heading-md { @apply text-lg font-semibold tracking-tight text-textPrimary; }
+        .body { @apply text-sm text-textPrimary; }
+        .label { @apply text-xs font-medium uppercase tracking-[0.18em] text-textSecondary; }
+        .helper { @apply text-xs text-textMuted; }
+        .mono-data { @apply font-mono text-xs text-textSecondary; }
+      }
+    </style>
 
 <style>
     /* Custom scrollbar for webkit browsers */
@@ -21,22 +74,19 @@
       background: transparent;
     }
     .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #4a5568; /* gray-600 */
+      background: rgba(255,255,255,0.10);
       border-radius: 10px;
-      border: 2px solid #1a202c; /* bg-gray-800/50 -ish */
+      border: 2px solid rgba(255,255,255,0.06);
     }
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #718096; /* gray-500 */
+      background: rgba(255,255,255,0.16);
     }
     /* For Firefox */
-    .custom-scrollbar {
-      scrollbar-width: thin;
-      scrollbar-color: #4a5568 transparent;
-    }
+    .custom-scrollbar { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.16) transparent; }
   </style>
 <link rel="stylesheet" href="/index.css">
 </head>
-  <body class="bg-gray-900 text-white">
+  <body class="bg-bg text-textPrimary font-sans">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

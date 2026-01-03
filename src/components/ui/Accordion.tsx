@@ -12,10 +12,10 @@ export function Accordion({ title, children }: { title: string; children: ReactN
   }, [open]);
 
   return (
-    <div className="border-b border-gray-700">
+    <div className="border-b border-borderSubtle">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex justify-between items-center py-3 text-left font-semibold text-gray-200 hover:bg-gray-700/50"
+        className="w-full flex justify-between items-center py-3 text-left font-semibold text-textPrimary hover:bg-surface-elevated/60"
       >
         <span>{title}</span>
       </button>
@@ -24,7 +24,7 @@ export function Accordion({ title, children }: { title: string; children: ReactN
         className="transition-all duration-300 overflow-hidden"
         style={{ maxHeight: open ? height : 0 }}
       >
-        <div ref={contentRef} className="pb-4 px-2">
+        <div ref={contentRef} className="pb-4 px-2 text-textSecondary">
           {children}
         </div>
       </div>

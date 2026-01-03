@@ -1,55 +1,42 @@
 :root {
+  color-scheme: light;
+
+  --accent-primary: 79 70 229;
+  --accent-glow: 79 70 229;
+
+  --bg: 245 245 247;
+  --surface: 255 255 255;
+  --surface-elevated: 255 255 255;
+  --border: 229 231 235;
+
+  --text-primary: 29 29 31;
+  --text-secondary: 75 85 99;
+  --text-muted: 107 114 128;
+}
+
+html.dark {
   color-scheme: dark;
-}
 
-:root[data-theme="light"] {
-  --app-bg: #F6F7F9;
+  --bg: 0 0 0;
+  --surface: 24 24 27;
+  --surface-elevated: 39 39 42;
+  --border: 255 255 255;
 
-  --panel-bg: #FFFFFF;
-  --panel-muted-bg: #F1F3F6;
-  --preview-bg: #EEF1F5;
-
-  --border-default: #E5E7EB;
-  --border-subtle: #EDF0F3;
-
-  --text-primary: #111827;
-  --text-secondary: #6B7280;
-  --text-muted: #9CA3AF;
-
-  --accent-primary: #6366F1;   /* indigo suave */
-  --accent-secondary: #A78BFA; /* violeta suave */
-
-  --shadow-panel: 0 8px 24px rgba(0,0,0,0.06);
-  --radius-panel: 14px;
-}
-
-:root[data-theme="dark"] {
-  --app-bg: #0B0F19;
-
-  --panel-bg: #121826;
-  --panel-muted-bg: #0F1523;
-  --preview-bg: #0D1322;
-
-  --border-default: #1F2937;
-  --border-subtle: #111827;
-
-  --text-primary: #E5E7EB;
-  --text-secondary: #9CA3AF;
-  --text-muted: #6B7280;
-
-  --accent-primary: #8B5CF6;   /* indigo/violet en dark */
-  --accent-secondary: #A78BFA;
-
-  --shadow-panel: 0 12px 32px rgba(0,0,0,0.45);
-  --radius-panel: 14px;
+  --text-primary: 255 255 255;
+  --text-secondary: 156 163 175;
+  --text-muted: 107 114 128;
 }
 
 body {
   margin: 0;
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: #111827; /* Tailwind gray-900 */
-  color: #f9fafb; /* Tailwind gray-50 */
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: rgb(var(--bg));
+  color: rgb(var(--text-primary));
   scroll-behavior: smooth;
+}
+
+::selection {
+  background: rgb(var(--accent-glow) / 0.25);
 }
 
 @keyframes fadeUp {
@@ -74,16 +61,16 @@ body {
 .delay-400 { animation-delay: 0.4s; }
 
 .glass-card {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgb(var(--border) / 0.10);
+  background: rgb(var(--surface) / 0.80);
   backdrop-filter: blur(18px);
-  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.8);
+  box-shadow: 0 20px 40px rgb(var(--accent-glow) / 0.20);
 }
 .chip {
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(55, 65, 81, 0.6);
-  color: #f8fafc;
+  border: 1px solid rgb(var(--border) / 0.20);
+  background: rgb(var(--surface-elevated) / 0.70);
+  color: rgb(var(--text-secondary));
   padding: 0.35rem 0.95rem;
   font-size: 0.85rem;
   font-weight: 500;
@@ -92,13 +79,14 @@ body {
   white-space: nowrap;
 }
 .chip:hover:not(:disabled) {
-  background: rgba(79, 70, 229, 0.5);
-  border-color: rgba(129, 140, 248, 1);
+  border-color: rgb(var(--accent-primary) / 0.90);
+  color: rgb(var(--text-primary));
 }
 .chip-active {
-  background: rgba(99, 102, 241, 0.95);
-  border-color: rgba(129, 140, 248, 1);
-  box-shadow: 0 8px 20px -10px rgba(79, 70, 229, 0.9);
+  background: rgb(var(--accent-primary) / 1);
+  border-color: rgb(var(--accent-primary) / 1);
+  color: rgb(255 255 255);
+  box-shadow: 0 20px 40px rgb(var(--accent-glow) / 0.20);
 }
 .chip:disabled {
   opacity: 0.45;

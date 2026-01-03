@@ -4,7 +4,7 @@ import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useLocation } from 'react-router-dom';
 import { GoogleGenAI, Modality } from "@google/genai";
 import { MockupOptions, OptionCategory, Option } from './types';
-import { Info } from 'lucide-react';
+import { Info, Moon, Sun } from 'lucide-react';
 import {
   CONTENT_STYLE_OPTIONS,
   CREATION_MODE_OPTIONS,
@@ -1244,6 +1244,27 @@ const App: React.FC = () => {
   const isProductPlacement = contentStyleValue === 'product';
   const [lifestyleTone, setLifestyleTone] = useState<'ugc' | 'editorial'>('ugc');
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const [isDarkTheme, setIsDarkTheme] = useState(() => {
+    if (typeof document === 'undefined') return true;
+    return document.documentElement.classList.contains('dark');
+  });
+  const toggleTheme = useCallback(() => {
+    const root = document.documentElement;
+    const nextIsDark = !root.classList.contains('dark');
+    root.classList.toggle('dark', nextIsDark);
+    localStorage.setItem('theme', nextIsDark ? 'dark' : 'light');
+    setIsDarkTheme(nextIsDark);
+  }, []);
+  useEffect(() => {
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== 'theme') return;
+      const next = event.newValue === 'dark';
+      document.documentElement.classList.toggle('dark', next);
+      setIsDarkTheme(next);
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
   const hasModelReference = Boolean(modelReferenceFile || personIdentityPackage.modelReferenceBase64);
   useEffect(() => {
     if (!hasModelReference) {
@@ -5171,7 +5192,7 @@ If the model attempts to create a scene or environment, override it and force a 
         </div>
       )}
 
-      <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 lg:p-8">
+	      <div className="min-h-screen bg-bg text-textPrimary p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto relative">
           <header className="relative mb-10 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div className="text-center lg:text-left">
@@ -5183,27 +5204,36 @@ If the model attempts to create a scene or environment, override it and force a 
               </p>
             </div>
 
-            <div className="flex items-center justify-center lg:justify-end gap-3">
-              <div className="flex flex-col items-center lg:items-end gap-3">
-                <p className="text-[11px] uppercase tracking-[0.45em] text-indigo-200/80">Select Mode</p>
-                <div className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-black/30 p-1">
-                  <button
-                    type="button"
-                    onClick={() => handleOptionChange('contentStyle', 'ugc', 'Mode')}
-                    className={`rounded-full px-6 py-2 text-xs font-semibold tracking-wide transition ${!isProductPlacement ? 'bg-white text-black' : 'text-white/70 hover:text-white'}`}
-                  >
-                    Lifestyle
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleOptionChange('contentStyle', 'product', 'Mode')}
-                    className={`rounded-full px-6 py-2 text-xs font-semibold tracking-wide transition ${isProductPlacement ? 'bg-white text-black' : 'text-white/70 hover:text-white'}`}
-                  >
-                    Product (Studio)
-                  </button>
-                </div>
-              </div>
-            </div>
+	            <div className="flex items-center justify-center lg:justify-end gap-3">
+	              <button
+	                type="button"
+	                onClick={toggleTheme}
+	                className="h-10 w-10 rounded-full border border-borderSubtle bg-surface/80 backdrop-blur-md text-textSecondary hover:text-textPrimary hover:border-accent transition flex items-center justify-center"
+	                aria-label={isDarkTheme ? 'Switch to light mode' : 'Switch to dark mode'}
+	                title={isDarkTheme ? 'Light mode' : 'Dark mode'}
+	              >
+	                {isDarkTheme ? <Sun size={18} /> : <Moon size={18} />}
+	              </button>
+	              <div className="flex flex-col items-center lg:items-end gap-3">
+	                <p className="text-[11px] uppercase tracking-[0.45em] text-textSecondary">Select Mode</p>
+	                <div className="inline-flex items-center gap-1 rounded-full border border-borderSubtle bg-surface/60 backdrop-blur-md p-1">
+	                  <button
+	                    type="button"
+	                    onClick={() => handleOptionChange('contentStyle', 'ugc', 'Mode')}
+	                    className={`rounded-full px-6 py-2 text-xs font-semibold tracking-wide transition ${!isProductPlacement ? 'bg-surface-elevated text-textPrimary shadow-accent-xl' : 'text-textSecondary hover:text-textPrimary'}`}
+	                  >
+	                    Lifestyle
+	                  </button>
+	                  <button
+	                    type="button"
+	                    onClick={() => handleOptionChange('contentStyle', 'product', 'Mode')}
+	                    className={`rounded-full px-6 py-2 text-xs font-semibold tracking-wide transition ${isProductPlacement ? 'bg-surface-elevated text-textPrimary shadow-accent-xl' : 'text-textSecondary hover:text-textPrimary'}`}
+	                  >
+	                    Product (Studio)
+	                  </button>
+	                </div>
+	              </div>
+	            </div>
           </header>
 
           <main className="flex flex-col gap-8">
