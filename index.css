@@ -158,7 +158,11 @@ body {
   appearance: none;
   height: 12px;
   border-radius: 999px;
-  background: rgb(var(--surface-elevated-rgb) / 0.8);
+  background: linear-gradient(
+    90deg,
+    var(--accent-primary) var(--progress, 0%),
+    var(--surface-muted) var(--progress, 0%)
+  );
   transition: box-shadow 0.2s ease, background 0.2s ease;
 }
 .scene-age-slider:focus {
@@ -174,20 +178,20 @@ body {
   width: 20px;
   height: 20px;
   border-radius: 999px;
-  background: #eef2ff;
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.4);
+  background: var(--surface);
+  box-shadow: 0 0 0 4px var(--accent-glow);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .scene-age-slider::-webkit-slider-thumb:hover {
   transform: scale(1.1);
-  box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.35);
+  box-shadow: 0 0 0 6px var(--accent-glow);
 }
 .scene-age-slider::-moz-range-thumb {
   width: 20px;
   height: 20px;
   border-radius: 999px;
-  background: #eef2ff;
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.4);
+  background: var(--surface);
+  box-shadow: 0 0 0 4px var(--accent-glow);
   border: none;
 }
 .scene-age-slider::-moz-range-track {
