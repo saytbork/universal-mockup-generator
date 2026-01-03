@@ -337,7 +337,7 @@ const LandingPage: React.FC = () => {
                     onClick={() => setActivePreview(mode.id)}
                     className={`w-full text-left rounded-2xl border p-4 transition ${
                       activePreview === mode.id
-                        ? 'border-accent bg-accent/10 text-accent'
+                        ? 'bg-accent text-white border-accent'
                         : 'border-borderSubtle bg-surfaceTint text-textSecondary hover:border-accent'
                     }`}
                   >

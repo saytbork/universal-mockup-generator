@@ -17,10 +17,10 @@ const baseClass =
   'inline-flex items-center gap-1 rounded-full border transition-colors whitespace-nowrap font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg';
 
 const activeClass =
-  'bg-accent/10 text-accent border-accent shadow-accent-glow scale-105 duration-500';
+  'bg-accent text-white border-accent shadow-accent-glow scale-105 duration-500';
 
 const inactiveClass =
-  'bg-surfaceElevated text-textSecondary border-borderSubtle hover:border-accent hover:text-textPrimary';
+  'bg-surface text-textSecondary border-borderSubtle hover:border-accent hover:text-textPrimary';
 
 const disabledClass =
   'opacity-50 cursor-not-allowed pointer-events-none bg-surfaceTint text-textMuted border-borderSubtle';

@@ -16,6 +16,8 @@
   --accent-primary: #4f46e5;
   --accent-primary-rgb: 79 70 229;
   --accent-glow: rgba(79, 70, 229, 0.25);
+
+  --success: #22c55e;
 }
 
 html.dark {
@@ -36,6 +38,8 @@ html.dark {
   --accent-primary: #4f46e5;
   --accent-primary-rgb: 79 70 229;
   --accent-glow: rgba(79, 70, 229, 0.25);
+
+  --success: #22c55e;
 }
 
 body {

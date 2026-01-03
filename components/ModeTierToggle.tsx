@@ -14,7 +14,7 @@ const ModeTierToggle: React.FC<ModeTierToggleProps> = ({ modeTier, onToggle }) =
                 type="button"
                 onClick={() => onToggle('basic')}
                 className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${modeTier === 'basic'
-                        ? 'bg-accent/10 text-accent border border-accent shadow-accent-glow scale-105 duration-500'
+                        ? 'bg-accent text-white border border-accent shadow-accent-glow scale-105 duration-500'
                         : 'bg-surfaceElevated text-textSecondary border border-borderSubtle hover:border-accent hover:text-textPrimary'
                     }`}
             >
@@ -24,7 +24,7 @@ const ModeTierToggle: React.FC<ModeTierToggleProps> = ({ modeTier, onToggle }) =
                 type="button"
                 onClick={() => onToggle('pro')}
                 className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${modeTier === 'pro'
-                        ? 'bg-accent/10 text-accent border border-accent shadow-accent-glow scale-105 duration-500'
+                        ? 'bg-accent text-white border border-accent shadow-accent-glow scale-105 duration-500'
                         : 'bg-surfaceElevated text-textSecondary border border-borderSubtle hover:border-accent hover:text-textPrimary'
                     }`}
             >

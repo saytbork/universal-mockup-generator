@@ -42,7 +42,7 @@ const WardrobePanel: React.FC<WardrobePanelProps> = ({
                 border text-xs font-medium
                 ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                 ${isActive
-                                    ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500'
+                                    ? 'bg-accent text-white border-accent shadow-accent-glow scale-105 duration-500'
                                     : 'border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary'
                                 }
               `}

@@ -1894,7 +1894,7 @@ const App: React.FC = () => {
                           type="button"
                           onClick={() => handleHeroPosePresetSelect(preset.value)}
                           className={`w-full rounded-xl border px-3 py-2 text-left transition ${isActive
-                            ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500'
+                            ? 'bg-accent text-white border-accent shadow-accent-glow scale-105 duration-500'
                             : 'border-borderSubtle bg-surfaceTint text-textSecondary hover:border-accent hover:text-textPrimary'
                             }`}
                         >
@@ -2026,7 +2026,7 @@ const App: React.FC = () => {
 	              key={tab.id}
 	              type="button"
 	              onClick={() => setActiveBundleTab(tab.id)}
-	              className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${activeBundleTab === tab.id ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary'
+	              className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${activeBundleTab === tab.id ? 'bg-accent text-white border-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary'
 	                }`}
 	            >
 	              {tab.label}
@@ -2361,7 +2361,7 @@ const App: React.FC = () => {
                 type="button"
                 onClick={() => handleFormulationPresetSelect(preset.value)}
                 className={`rounded-full border px-3 py-1 text-xs transition ${formulationExpertPreset === preset.value
-                  ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500'
+                  ? 'bg-accent text-white border-accent shadow-accent-glow scale-105 duration-500'
                   : 'border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary'
                   }`}
               >
@@ -2376,7 +2376,7 @@ const App: React.FC = () => {
                 type="button"
                 onClick={() => handleFormulationProfessionSelect(option.value)}
                 className={`rounded-full border px-3 py-1 text-xs transition ${formulationExpertProfession === option.value
-                  ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500'
+                  ? 'bg-accent text-white border-accent shadow-accent-glow scale-105 duration-500'
                   : 'border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary'
                   }`}
               >
@@ -5034,7 +5034,7 @@ If the model attempts to create a scene or environment, override it and force a 
                   <button
                     key={option.value}
                     onClick={() => handleGoalWizardSelect('goal', option.value)}
-                    className={`rounded-2xl border p-4 text-left transition ${goalWizardData.goal === option.value ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary'}`}
+                    className={`rounded-2xl border p-4 text-left transition ${goalWizardData.goal === option.value ? 'bg-accent text-white border-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary'}`}
                   >
                     <div className="flex items-center gap-1 relative group">
                       <span className="text-lg font-semibold">{option.label}</span>
@@ -5058,7 +5058,7 @@ If the model attempts to create a scene or environment, override it and force a 
                   <button
                     key={option.value}
                     onClick={() => handleGoalWizardSelect('vibe', option.value)}
-                    className={`rounded-2xl border p-4 text-left transition ${goalWizardData.vibe === option.value ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary'}`}
+                    className={`rounded-2xl border p-4 text-left transition ${goalWizardData.vibe === option.value ? 'bg-accent text-white border-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary'}`}
                   >
                     <div className="flex items-center gap-1 relative group">
                       <span className="text-base font-semibold">{option.label}</span>
@@ -5084,7 +5084,7 @@ If the model attempts to create a scene or environment, override it and force a 
                     <button
                       key={preset.value}
                       onClick={() => handleGoalWizardSelect('preset', preset.value)}
-                      className={`rounded-2xl border p-4 text-left transition ${goalWizardData.preset === preset.value ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary'}`}
+                      className={`rounded-2xl border p-4 text-left transition ${goalWizardData.preset === preset.value ? 'bg-accent text-white border-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary'}`}
                     >
                       <div className="flex items-center gap-1 relative group">
                         <span className="text-base font-semibold">{preset.label}</span>
@@ -5137,7 +5137,7 @@ If the model attempts to create a scene or environment, override it and force a 
                 <button
                   key={tier}
                   onClick={() => handlePlanTierSelect(tier as PlanTier)}
-                  className={`rounded-2xl border p-4 text-left transition ${planTier === tier ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary'}`}
+                  className={`rounded-2xl border p-4 text-left transition ${planTier === tier ? 'bg-accent text-white border-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary'}`}
                 >
                   <p className="text-lg font-semibold flex items-center justify-between">
                     <span>{config.label}</span>
@@ -5253,7 +5253,7 @@ If the model attempts to create a scene or environment, override it and force a 
                   {storyboardScenes.map(scene => (
                     <div
                       key={scene.id}
-                      className={`rounded-2xl border px-4 py-3 flex items-center gap-3 ${scene.id === activeSceneId ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceTint text-textSecondary'}`}
+                      className={`rounded-2xl border px-4 py-3 flex items-center gap-3 ${scene.id === activeSceneId ? 'bg-accent text-white border-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceTint text-textSecondary'}`}
                     >
                       <button onClick={() => handleSceneSelect(scene.id)} className="font-semibold">
                         {scene.label}
@@ -5430,7 +5430,7 @@ If the model attempts to create a scene or environment, override it and force a 
 			                                        key={unit}
 			                                        type="button"
 			                                        onClick={() => handleProductHeightUnitChange(asset.id, unit)}
-			                                        className={`rounded-apple border px-1.5 py-0.5 text-[10px] transition ${asset.heightUnit === unit ? 'border-accent bg-accent/10 text-accent' : 'border-borderSubtle bg-surface text-textSecondary hover:border-accent'}`}
+			                                        className={`rounded-apple border px-1.5 py-0.5 text-[10px] transition ${asset.heightUnit === unit ? 'bg-accent text-white border-accent' : 'border-borderSubtle bg-surface text-textSecondary hover:border-accent'}`}
 			                                      >
 			                                        {unit}
 			                                      </button>
@@ -5493,7 +5493,7 @@ If the model attempts to create a scene or environment, override it and force a 
 		                                    key={option.value}
 		                                    type="button"
 		                                    onClick={() => setCompositionMode(option.value)}
-		                                    className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${compositionMode === option.value ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary'}`}
+		                                    className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${compositionMode === option.value ? 'bg-accent text-white border-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary'}`}
 		                                  >
 		                                    {option.label}
 		                                  </button>
@@ -5533,14 +5533,14 @@ If the model attempts to create a scene or environment, override it and force a 
 		                            <button
 		                              type="button"
 		                              onClick={() => setLifestyleTone('ugc')}
-		                              className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${lifestyleTone === 'ugc' ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary'}`}
+		                              className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${lifestyleTone === 'ugc' ? 'bg-accent text-white border-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary'}`}
 		                            >
 		                              Natural UGC
 		                            </button>
 		                            <button
 		                              type="button"
 		                              onClick={() => setLifestyleTone('editorial')}
-		                              className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${lifestyleTone === 'editorial' ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary'}`}
+		                              className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${lifestyleTone === 'editorial' ? 'bg-accent text-white border-accent shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary'}`}
 		                            >
 		                              Editorial Lifestyle
 		                            </button>

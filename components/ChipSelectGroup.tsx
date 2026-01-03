@@ -49,9 +49,9 @@ const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
   const chipBase =
     'rounded-full px-3 py-1.5 text-xs font-medium border transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-bg';
   const chipInactive =
-    'bg-surfaceElevated text-textSecondary border-borderSubtle hover:border-accent hover:text-textPrimary';
+    'bg-surface text-textSecondary border-borderSubtle hover:border-accent hover:text-textPrimary';
   const chipActive =
-    'bg-accent/10 text-accent border-accent shadow-accent-glow scale-105 duration-500';
+    'bg-accent text-white border-accent shadow-accent-glow scale-105 duration-500';
   const chipDisabled =
     'opacity-50 cursor-not-allowed pointer-events-none bg-surfaceTint text-textMuted border-borderSubtle';
 

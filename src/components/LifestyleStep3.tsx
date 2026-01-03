@@ -348,8 +348,8 @@ const getPillClass = (isActive: boolean, _fullWidth = false) => {
     'rounded-full px-3 py-1.5 text-xs sm:text-sm font-medium border transition-colors',
     'focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-bg',
   ].join(' ');
-  const active = 'bg-accent/10 text-accent border-accent shadow-accent-glow scale-105 duration-500';
-  const inactive = 'bg-surfaceElevated text-textSecondary border-borderSubtle hover:border-accent hover:text-textPrimary';
+  const active = 'bg-accent text-white border-accent shadow-accent-glow scale-105 duration-500';
+  const inactive = 'bg-surface text-textSecondary border-borderSubtle hover:border-accent hover:text-textPrimary';
   return `${base} ${isActive ? active : inactive}`.trim();
 };
 
@@ -2717,8 +2717,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                  }
 		                }}
 		                className={`w-full text-left px-3 py-2 rounded-apple border text-sm transition-colors ${values.heroPersona === persona.label
-		                  ? 'bg-accent/10 border-accent text-accent shadow-accent-glow scale-105 duration-500'
-		                  : 'bg-surfaceElevated border-borderSubtle text-textPrimary hover:border-accent hover:text-accent'
+		                  ? 'bg-accent border-accent text-white shadow-accent-glow scale-105 duration-500'
+		                  : 'bg-surface border-borderSubtle text-textPrimary hover:border-accent hover:text-textPrimary'
 		                  }`}
 		              >
 		                {persona.label}
@@ -2811,7 +2811,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               </div>
 
 	              <div className="flex flex-wrap gap-2">
-	                <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500">
+	                <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors bg-accent text-white border-accent shadow-accent-glow scale-105 duration-500">
 	                  Pre-made Bundles
 	                </button>
 	                <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary">

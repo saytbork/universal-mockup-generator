@@ -62,7 +62,7 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
                 key={productId}
                 className={`flex flex-col gap-2 rounded-2xl border px-3 py-3 ${
                   isChecked
-                  ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500'
+                  ? 'bg-accent text-white border-accent shadow-accent-glow scale-105 duration-500'
                   : 'border-borderSubtle bg-surfaceTint text-textSecondary'
               }`}
             >

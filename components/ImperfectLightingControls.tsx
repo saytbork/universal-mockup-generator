@@ -110,7 +110,7 @@ const ImperfectLightingControls: React.FC<ImperfectLightingControlsProps> = ({
               onClick={() => onSelectOffCenter(option.id)}
               className={`rounded-full border px-3 py-1 text-xs transition ${
                 selectedOffCenterId === option.id
-                  ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500'
+                  ? 'bg-accent text-white border-accent shadow-accent-glow scale-105 duration-500'
                   : 'border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary'
               }`}
             >
@@ -139,7 +139,7 @@ const ImperfectLightingControls: React.FC<ImperfectLightingControlsProps> = ({
               onClick={() => onSelectFraming(option.id)}
               className={`rounded-full border px-3 py-1 text-xs transition ${
                 selectedFramingId === option.id
-                  ? 'border-accent bg-accent/10 text-accent shadow-accent-glow scale-105 duration-500'
+                  ? 'bg-accent text-white border-accent shadow-accent-glow scale-105 duration-500'
                   : 'border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary'
               }`}
             >
