@@ -115,24 +115,24 @@ const UGCRealModePanel: React.FC<UGCRealModePanelProps> = ({
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">UGC Real Mode</p>
-          <p className="text-sm text-gray-400">Switch to a raw, imperfect creator workspace.</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-accent">UGC Real Mode</p>
+          <p className="text-sm text-textSecondary">Switch to a raw, imperfect creator workspace.</p>
         </div>
         <button
           type="button"
           onClick={() => onToggle(!enabled)}
           disabled={panelDisabled}
-          className={`relative h-6 w-11 rounded-full transition ${enabled ? 'bg-indigo-500' : 'bg-gray-600'
+          className={`relative h-6 w-11 rounded-full transition ${enabled ? 'bg-accent' : 'bg-surfaceTint'
             } ${panelDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
         >
           <span
-            className={`absolute left-1 top-1 block h-4 w-4 rounded-full bg-white shadow transition ${enabled ? 'translate-x-5' : ''
+            className={`absolute left-1 top-1 block h-4 w-4 rounded-full bg-surface shadow transition ${enabled ? 'translate-x-5' : ''
               }`}
           />
         </button>
       </div>
       {!enabled && (
-        <p className="text-[11px] text-gray-500">
+        <p className="text-[11px] text-textMuted">
           Turn this on to hide studio presets and embrace messy, authentic UGC aesthetics.
         </p>
       )}
@@ -146,8 +146,8 @@ const UGCRealModePanel: React.FC<UGCRealModePanelProps> = ({
             onClearUpload={onClearClothing}
             uploadPreview={clothingPreview}
           />
-          <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Hero personas</p>
+          <div className="rounded-2xl border border-border bg-bg/20 p-4 space-y-3">
+            <p className="text-xs uppercase tracking-[0.3em] text-accent">Hero personas</p>
             <div className="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
               {normalizedHeroPersonaPresets.map(preset => {
                 const isActive = selectedHeroPersonaIds.includes(preset.id);
@@ -156,21 +156,21 @@ const UGCRealModePanel: React.FC<UGCRealModePanelProps> = ({
                     key={preset.id}
                     type="button"
                     onClick={() => onToggleHeroPersona(preset.id)}
-                    className={`rounded-xl border px-3 py-2 text-left transition ${isActive ? 'border-indigo-400 bg-indigo-500/15 text-white' : 'border-white/15 text-gray-200 hover:border-indigo-400 hover:text-white'
+                    className={`rounded-xl border px-3 py-2 text-left transition ${isActive ? 'border-accent bg-accent/15 text-white' : 'border-border text-textPrimary hover:border-accent hover:text-white'
                       }`}
                   >
                     <div className="flex items-center gap-1 relative group">
                       <span className="text-sm font-semibold">{preset.label}</span>
                       {preset.tooltip && (
-                        <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
+                        <span className="text-xs text-textSecondary cursor-pointer group-hover:text-white">
                           ⓘ
-                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/80 text-white text-xs p-2 rounded shadow-lg w-48">
+                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-bg/80 text-white text-xs p-2 rounded shadow-lg w-48">
                             {preset.tooltip}
                           </div>
                         </span>
                       )}
                     </div>
-                    <p className="text-[11px] text-gray-400">{cleanDescription(preset.description)}</p>
+                    <p className="text-[11px] text-textSecondary">{cleanDescription(preset.description)}</p>
                   </button>
                 );
               })}

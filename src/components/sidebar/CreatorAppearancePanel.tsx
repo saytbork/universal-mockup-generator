@@ -24,13 +24,13 @@ export default function CreatorAppearancePanel() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wide">
+      <h3 className="text-sm font-semibold text-textSecondary uppercase tracking-wide">
         Appearance
       </h3>
 
       {/* Hair Style */}
       <div className="flex flex-col gap-2">
-        <span className="text-gray-300 text-sm">Hair Style</span>
+        <span className="text-textSecondary text-sm">Hair Style</span>
         <div className="grid grid-cols-2 gap-2">
           {hairStyles.map((style) => {
             const isActive = creator.hairStyle === style;
@@ -41,8 +41,8 @@ export default function CreatorAppearancePanel() {
                 onClick={() => setCreatorField("hairStyle", style)}
                 className={
                   isActive
-                    ? "px-3 py-2 rounded-lg bg-indigo-500 text-white"
-                    : "px-3 py-2 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600"
+                    ? "px-3 py-2 rounded-lg bg-accent text-white"
+                    : "px-3 py-2 rounded-lg bg-surfaceTint text-textSecondary hover:bg-surfaceTint"
                 }
               >
                 {style}
@@ -54,7 +54,7 @@ export default function CreatorAppearancePanel() {
 
       {/* Hair Color */}
       <div className="flex flex-col gap-2">
-        <span className="text-gray-300 text-sm">Hair Color</span>
+        <span className="text-textSecondary text-sm">Hair Color</span>
         <div className="grid grid-cols-2 gap-2">
           {hairColors.map((color) => {
             const isActive = creator.hairColor === color;
@@ -65,8 +65,8 @@ export default function CreatorAppearancePanel() {
                 onClick={() => setCreatorField("hairColor", color)}
                 className={
                   isActive
-                    ? "px-3 py-2 rounded-lg bg-indigo-500 text-white"
-                    : "px-3 py-2 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600"
+                    ? "px-3 py-2 rounded-lg bg-accent text-white"
+                    : "px-3 py-2 rounded-lg bg-surfaceTint text-textSecondary hover:bg-surfaceTint"
                 }
               >
                 {color}

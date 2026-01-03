@@ -4,11 +4,11 @@ import { Link } from 'react-router-dom';
 
 const SiteFooter: React.FC = () => {
   return (
-    <footer className="bg-gray-950 border-t border-white/10 text-gray-300">
+    <footer className="bg-bg border-t border-border text-textSecondary">
       <div className="max-w-6xl mx-auto px-6 py-12 space-y-8">
         <div className="space-y-2">
           <p className="text-xl font-semibold text-white">Perfect Mockup</p>
-          <p className="text-sm text-gray-400 max-w-3xl">
+          <p className="text-sm text-textSecondary max-w-3xl">
             Perfect Mockup helps ecommerce brands create product mockups, lifestyle visuals and UGC-style content without photoshoots. Designed for product pages, ads, social media and launches.
           </p>
         </div>
@@ -40,9 +40,9 @@ const SiteFooter: React.FC = () => {
             </ul>
           </div>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-4 text-xs text-gray-500">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-4 text-xs text-textMuted">
           <p>© 2025 Perfect Mockup. All rights reserved.</p>
-          <div className="flex items-center gap-3 text-gray-400">
+          <div className="flex items-center gap-3 text-textSecondary">
             <a href="#" aria-label="Instagram" className="hover:text-white"><Instagram className="w-4 h-4" /></a>
             <a href="#" aria-label="Twitter" className="hover:text-white"><Twitter className="w-4 h-4" /></a>
             <a href="#" aria-label="YouTube" className="hover:text-white"><Youtube className="w-4 h-4" /></a>

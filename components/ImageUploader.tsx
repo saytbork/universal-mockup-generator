@@ -85,10 +85,10 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
   const previewToShow = localPreview || uploadedImagePreview;
 
   return (
-    <div className={`relative flex flex-col items-center justify-center w-full p-4 bg-gray-800 rounded-lg border-2 border-dashed border-gray-600 ${disabled ? 'opacity-60' : ''}`}>
-      <h3 className="text-lg font-semibold text-gray-300 mb-4">Upload Product Image</h3>
+    <div className={`relative flex flex-col items-center justify-center w-full p-4 bg-surface rounded-lg border-2 border-dashed border-border ${disabled ? 'opacity-60' : ''}`}>
+      <h3 className="text-lg font-semibold text-textSecondary mb-4">Upload Product Image</h3>
       <div
-        className={`relative w-full h-40 flex items-center justify-center rounded-md transition-all duration-300 ${isDragging ? 'bg-gray-700' : ''}`}
+        className={`relative w-full h-40 flex items-center justify-center rounded-md transition-all duration-300 ${isDragging ? 'bg-surfaceTint' : ''}`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragEnter={handleDragEnter}
@@ -97,7 +97,7 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
         {previewToShow ? (
           <img src={previewToShow} alt="Product Preview" className="max-h-full max-w-full object-contain rounded-md" />
         ) : (
-          <div className="text-center text-gray-400">
+          <div className="text-center text-textSecondary">
             <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
             </svg>
@@ -118,17 +118,17 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
           onDragLeave={handleDragLeave}
         />
       </div>
-      <p className="mt-3 text-xs text-gray-400">Tip: Drop multiple files at once. The first becomes the hero; others stay in your library.</p>
+      <p className="mt-3 text-xs text-textSecondary">Tip: Drop multiple files at once. The first becomes the hero; others stay in your library.</p>
       <button
         type="button"
         onClick={handleAddAnotherClick}
-        className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-gray-200 hover:border-indigo-400 hover:text-white transition"
+        className="mt-2 inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs text-textPrimary hover:border-accent hover:text-white transition"
         disabled={disabled}
       >
         + Add another photo
       </button>
       {disabled && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-900/70 rounded-lg text-sm text-gray-300">
+        <div className="absolute inset-0 flex items-center justify-center bg-bg/70 rounded-lg text-sm text-textSecondary">
           {lockedMessage || 'Complete the previous step to continue'}
         </div>
       )}

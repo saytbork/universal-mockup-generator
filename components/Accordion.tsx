@@ -50,31 +50,31 @@ const Accordion: React.FC<AccordionProps> = ({
   };
 
   return (
-    <div className="border-b border-white/5 last:border-b-0">
+    <div className="rounded-apple border border-border bg-surface overflow-hidden">
       <button
         type="button"
         onClick={handleToggle}
-        className="w-full flex justify-between items-center py-4 px-3 text-left transition-colors duration-150 hover:bg-white/[0.02] rounded-lg group"
+        className="w-full flex justify-between items-center p-4 text-left bg-surface hover:bg-surfaceElevated transition-colors duration-150 group"
         aria-expanded={open}
       >
         <div className="flex flex-col gap-0.5">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-gray-100 tracking-wide">
+            <span className="text-sm font-semibold text-textPrimary tracking-wide">
               {title}
             </span>
             {badge !== undefined && (
-              <span className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+              <span className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-accentSoft text-accent border border-accent">
                 {badge}
               </span>
             )}
           </div>
           {subtitle && (
-            <span className="text-xs text-gray-500">{subtitle}</span>
+            <span className="text-xs text-textMuted">{subtitle}</span>
           )}
         </div>
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className={`w-4 h-4 text-gray-500 transition-transform duration-300 ease-out ${open ? 'rotate-180' : 'rotate-0'
+          className={`w-4 h-4 text-textMuted transition-transform duration-300 ease-out ${open ? 'rotate-180' : 'rotate-0'
             }`}
           fill="none"
           viewBox="0 0 24 24"
@@ -88,14 +88,16 @@ const Accordion: React.FC<AccordionProps> = ({
       {/* Animated content container - FIXED pointer-events */}
       {open && (
         <div
-          className="overflow-hidden"
+          className="overflow-hidden border-t border-border bg-surfaceElevated"
           style={{
             maxHeight: contentHeight + 32,
             transition: 'max-height 0.2s ease-out',
           }}
         >
-          <div ref={contentRef} className="px-3 pb-4 pt-1">
-            {children}
+          <div ref={contentRef} className="p-4">
+            <div className="rounded-apple border border-border bg-surface p-4">
+              {children}
+            </div>
           </div>
         </div>
       )}

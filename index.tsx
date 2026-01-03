@@ -37,23 +37,23 @@ class RootErrorBoundary extends React.Component<
     if (!this.state.error) return this.props.children;
 
     return (
-      <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center px-6">
-        <div className="w-full max-w-xl rounded-3xl border border-white/10 bg-black/40 p-8 space-y-4">
-          <div className="text-xs uppercase tracking-[0.35em] text-indigo-200">Perfect Mockup</div>
+      <div className="min-h-screen bg-bg text-textPrimary flex items-center justify-center px-6">
+        <div className="w-full max-w-xl rounded-apple-xl border border-border bg-surface p-8 space-y-4 shadow-accent">
+          <div className="text-xs uppercase tracking-[0.35em] text-accent">Perfect Mockup</div>
           <h1 className="text-2xl font-semibold">Something went wrong</h1>
-          <p className="text-sm text-gray-300">
+          <p className="text-sm text-textSecondary">
             Try refreshing the page. If you have browser extensions enabled, try an incognito window.
           </p>
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-400 transition"
+            className="inline-flex items-center justify-center rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white hover:bg-accent transition"
           >
             Reload
           </button>
           <details className="pt-2">
-            <summary className="cursor-pointer text-xs text-gray-400">Details</summary>
-            <pre className="mt-2 whitespace-pre-wrap text-xs text-gray-400">
+            <summary className="cursor-pointer text-xs text-textSecondary">Details</summary>
+            <pre className="mt-2 whitespace-pre-wrap text-xs text-textSecondary">
               {this.state.error.message}
             </pre>
           </details>
@@ -64,7 +64,7 @@ class RootErrorBoundary extends React.Component<
 }
 
 const MarketingLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="bg-gray-950 text-white min-h-screen flex flex-col">
+  <div className="bg-bg text-textPrimary min-h-screen flex flex-col">
     <SiteNav />
     <main className="flex-1">{children}</main>
     <SiteFooter />

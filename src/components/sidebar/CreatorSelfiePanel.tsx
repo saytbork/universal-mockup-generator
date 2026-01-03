@@ -12,12 +12,12 @@ export default function CreatorSelfiePanel() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wide">
+      <h3 className="text-sm font-semibold text-textSecondary uppercase tracking-wide">
         Selfie Type
       </h3>
 
       <div className="flex flex-col gap-2">
-        <span className="text-gray-300 text-sm">Selfie Style</span>
+        <span className="text-textSecondary text-sm">Selfie Style</span>
         <div className="grid grid-cols-1 gap-2">
           {selfieTypes.map((type) => {
             const isActive = creator.selfieType === type;
@@ -28,8 +28,8 @@ export default function CreatorSelfiePanel() {
                 onClick={() => setCreatorField("selfieType", type)}
                 className={
                   isActive
-                    ? "px-3 py-2 rounded-lg bg-indigo-500 text-white"
-                    : "px-3 py-2 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600"
+                    ? "px-3 py-2 rounded-lg bg-accent text-white"
+                    : "px-3 py-2 rounded-lg bg-surfaceTint text-textSecondary hover:bg-surfaceTint"
                 }
               >
                 {type}

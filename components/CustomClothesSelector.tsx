@@ -28,8 +28,8 @@ const CustomClothesSelector: React.FC<CustomClothesSelectorProps> = ({
     <div className={`space-y-3 ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Custom clothes</p>
-          <p className="text-[11px] text-gray-400">Upload a reference outfit or tap a preset to keep it raw and real.</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-accent">Custom clothes</p>
+          <p className="text-[11px] text-textSecondary">Upload a reference outfit or tap a preset to keep it raw and real.</p>
         </div>
         {uploadPreview && (
           <button
@@ -43,9 +43,9 @@ const CustomClothesSelector: React.FC<CustomClothesSelectorProps> = ({
       </div>
       <label
         htmlFor={inputId}
-        className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/20 bg-black/30 px-4 py-6 text-center text-xs text-gray-300 cursor-pointer hover:border-indigo-400"
+        className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-bg/30 px-4 py-6 text-center text-xs text-textSecondary cursor-pointer hover:border-accent"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-textSecondary" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 5v14m7-7H5" />
         </svg>
         <span>Upload clothing reference</span>
@@ -59,13 +59,13 @@ const CustomClothesSelector: React.FC<CustomClothesSelectorProps> = ({
         />
       </label>
       {uploadPreview && (
-        <div className="rounded-2xl border border-white/15 bg-black/30 p-3 text-xs text-gray-300">
-          <p className="mb-2 text-[11px] uppercase tracking-[0.3em] text-indigo-200">Reference preview</p>
+        <div className="rounded-2xl border border-border bg-bg/30 p-3 text-xs text-textSecondary">
+          <p className="mb-2 text-[11px] uppercase tracking-[0.3em] text-accent">Reference preview</p>
           <img src={uploadPreview} alt="Clothing reference" className="h-32 w-full rounded-xl object-cover" />
         </div>
       )}
       <div>
-        <p className="mb-2 text-[11px] uppercase tracking-[0.3em] text-indigo-200">Quick presets</p>
+        <p className="mb-2 text-[11px] uppercase tracking-[0.3em] text-accent">Quick presets</p>
         <div className="flex flex-wrap gap-2">
           {normalizedPresets.map(preset => {
             const isActive = selectedPresetIds.includes(preset.id);
@@ -76,16 +76,16 @@ const CustomClothesSelector: React.FC<CustomClothesSelectorProps> = ({
                 onClick={() => onTogglePreset(preset.id)}
                 className={`rounded-full border px-3 py-1 text-xs transition ${
                   isActive
-                    ? 'border-amber-300 bg-amber-500/10 text-white'
-                    : 'border-white/20 text-gray-300 hover:border-indigo-400 hover:text-white'
+                    ? 'border-borderStrong bg-surfaceTint text-white'
+                    : 'border-border text-textSecondary hover:border-accent hover:text-white'
                 }`}
               >
                 <div className="flex items-center gap-1 relative group">
                   <span>{preset.label}</span>
                   {preset.tooltip && (
-                    <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
+                    <span className="text-xs text-textSecondary cursor-pointer group-hover:text-white">
                       ⓘ
-                      <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                      <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-bg/90 text-white text-xs p-2 rounded shadow-lg w-44">
                         {preset.tooltip}
                       </div>
                     </span>

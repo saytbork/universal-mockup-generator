@@ -26,19 +26,19 @@ const RecommendedBundle: React.FC<RecommendedBundleProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-white/10 bg-gray-900/50 p-4">
+      <div className="rounded-2xl border border-border bg-bg/50 p-4">
         <p className="text-sm font-semibold text-white">Recommended companions</p>
-        <p className="text-xs text-gray-400">Pairs perfectly with the selected hero product.</p>
+        <p className="text-xs text-textSecondary">Pairs perfectly with the selected hero product.</p>
         {bundleDisabled && (
-          <p className="text-xs text-amber-200">Upload more products to view recommendations.</p>
+          <p className="text-xs text-textMuted">Upload more products to view recommendations.</p>
         )}
           <div className="mt-3 flex flex-wrap gap-3">
             {recommendedProducts.map(product => {
               const meta = productMediaLibrary[product];
               console.log('DEBUG productMeta (recommended):', meta);
               return (
-                <div key={product} className="w-28 text-center text-xs text-gray-300">
-                  <div className="relative h-28 w-full overflow-hidden rounded-xl border border-white/10 bg-black/20">
+                <div key={product} className="w-28 text-center text-xs text-textSecondary">
+                  <div className="relative h-28 w-full overflow-hidden rounded-xl border border-border bg-bg/20">
                     {meta?.imageUrl && (
                       <img
                         src={meta.imageUrl}
@@ -46,7 +46,7 @@ const RecommendedBundle: React.FC<RecommendedBundleProps> = ({
                       />
                     )}
                     {!meta?.imageUrl && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-[10px] font-semibold text-amber-200">
+                      <div className="absolute inset-0 flex items-center justify-center bg-surfaceTint text-[10px] font-semibold text-textMuted">
                         Upload to fill
                       </div>
                     )}
@@ -61,7 +61,7 @@ const RecommendedBundle: React.FC<RecommendedBundleProps> = ({
         type="button"
         onClick={() => onGenerate(recommendedProducts)}
         disabled={bundleDisabled}
-        className="w-full rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-indigo-900/50"
+        className="w-full rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent disabled:cursor-not-allowed disabled:bg-surfaceTint"
       >
         Generate Recommended Bundle Mockup
       </button>

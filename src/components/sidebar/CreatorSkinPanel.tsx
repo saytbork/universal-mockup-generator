@@ -23,12 +23,12 @@ export default function CreatorSkinPanel() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wide">
+      <h3 className="text-sm font-semibold text-textSecondary uppercase tracking-wide">
         Skin
       </h3>
 
       <div className="flex flex-col gap-2">
-        <span className="text-gray-300 text-sm">Skin Tone</span>
+        <span className="text-textSecondary text-sm">Skin Tone</span>
         <div className="grid grid-cols-2 gap-2">
           {skinTones.map((tone) => {
             const isActive = creator.skinTone === tone;
@@ -39,8 +39,8 @@ export default function CreatorSkinPanel() {
                 onClick={() => setCreatorField("skinTone", tone)}
                 className={
                   isActive
-                    ? "px-3 py-2 rounded-lg bg-indigo-500 text-white"
-                    : "px-3 py-2 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600"
+                    ? "px-3 py-2 rounded-lg bg-accent text-white"
+                    : "px-3 py-2 rounded-lg bg-surfaceTint text-textSecondary hover:bg-surfaceTint"
                 }
               >
                 {tone}
@@ -51,7 +51,7 @@ export default function CreatorSkinPanel() {
       </div>
 
       <div className="flex flex-col gap-2">
-        <span className="text-gray-300 text-sm">Skin Realism</span>
+        <span className="text-textSecondary text-sm">Skin Realism</span>
         <div className="grid grid-cols-1 gap-2">
           {skinRealismOptions.map((option) => {
             const isActive = creator.skinRealism === option;
@@ -62,8 +62,8 @@ export default function CreatorSkinPanel() {
                 onClick={() => setCreatorField("skinRealism", option)}
                 className={
                   isActive
-                    ? "px-3 py-2 rounded-lg bg-indigo-500 text-white"
-                    : "px-3 py-2 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600"
+                    ? "px-3 py-2 rounded-lg bg-accent text-white"
+                    : "px-3 py-2 rounded-lg bg-surfaceTint text-textSecondary hover:bg-surfaceTint"
                 }
               >
                 {option}

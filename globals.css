@@ -1,0 +1,174 @@
+:root {
+  color-scheme: light;
+
+  --bg: #f5f5f7;
+
+  --surface: #ffffff;
+  --surface-elevated: #ffffff;
+  --surface-tint: rgba(249, 250, 251, 0.7);
+
+  --border: #e5e7eb;
+  --border-strong: #d1d5db;
+
+  --text-primary: #1d1d1f;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
+
+  --accent: #4f46e5;
+  --accent-soft: rgba(79, 70, 229, 0.12);
+  --accent-glow: rgba(79, 70, 229, 0.25);
+
+  /* Back-compat aliases (will be removed once fully migrated) */
+  --accent-primary: var(--accent);
+  --surface-nested: var(--surface);
+  --surface-muted: var(--surface-tint);
+}
+
+html.dark {
+  color-scheme: dark;
+
+  --bg: #000000;
+
+  --surface: #18181b;
+  --surface-elevated: #27272a;
+  --surface-tint: rgba(0, 0, 0, 0.25);
+
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.18);
+
+  --text-primary: rgba(255, 255, 255, 0.92);
+  --text-secondary: rgba(255, 255, 255, 0.72);
+  --text-muted: rgba(255, 255, 255, 0.45);
+
+  --accent: #4f46e5;
+  --accent-soft: rgba(79, 70, 229, 0.18);
+  --accent-glow: rgba(79, 70, 229, 0.35);
+
+  /* Back-compat aliases (will be removed once fully migrated) */
+  --accent-primary: var(--accent);
+  --surface-nested: var(--surface);
+  --surface-muted: var(--surface-tint);
+}
+
+body {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--bg);
+  color: var(--text-primary);
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background: var(--accent-glow);
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.9s ease forwards;
+  opacity: 0;
+}
+
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+
+.glass-card {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 0 40px var(--accent-glow);
+}
+
+.chip {
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  padding: 0.35rem 0.95rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chip:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+.chip-active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 40px var(--accent-glow);
+  transform: scale(1.05);
+  transition-duration: 500ms;
+}
+.chip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Radii system (Apple) */
+.rounded-lg { border-radius: 20px !important; }
+.rounded-xl { border-radius: 20px !important; }
+.rounded-2xl { border-radius: 20px !important; }
+.rounded-3xl { border-radius: 36px !important; }
+
+/* Shadows */
+.shadow-lg { box-shadow: 0 0 40px var(--accent-glow) !important; }
+.shadow-sm { box-shadow: 0 0 40px rgba(0, 0, 0, 0.08) !important; }
+
+.scene-age-slider {
+  appearance: none;
+  height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--accent) var(--progress, 0%),
+    var(--surface-tint) var(--progress, 0%)
+  );
+  transition: box-shadow 0.2s ease, background 0.2s ease;
+}
+.scene-age-slider:focus {
+  outline: none;
+  box-shadow: 0 0 0 6px var(--accent-glow);
+}
+.scene-age-slider:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+.scene-age-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: 0 0 0 4px var(--accent-glow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.scene-age-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 6px var(--accent-glow);
+}
+.scene-age-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: 0 0 0 4px var(--accent-glow);
+  border: none;
+}
+.scene-age-slider::-moz-range-track {
+  background: transparent;
+}

@@ -44,11 +44,11 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
 
   return (
     <div className="space-y-4">
-      <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
+      <p className="text-xs uppercase tracking-[0.3em] text-textSecondary">
         Choose {minSelection} to {maxSelection} products
       </p>
       {visibleProductIds.length === 0 ? (
-        <p className="text-xs text-amber-200">
+        <p className="text-xs text-textMuted">
           Upload product photos to build your own bundle.
         </p>
       ) : (
@@ -62,8 +62,8 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
                 key={productId}
                 className={`flex flex-col gap-2 rounded-2xl border px-3 py-3 ${
                   isChecked
-                  ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                  : 'border-white/10 bg-gray-900/40 text-gray-300'
+                  ? 'border-accent bg-accentSoft text-white'
+                  : 'border-border bg-bg/40 text-textSecondary'
               }`}
             >
               <div className="flex items-center gap-2 text-sm font-semibold">
@@ -71,11 +71,11 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
                   type="checkbox"
                   checked={isChecked}
                   onChange={() => toggleProduct(productId)}
-                  className="h-4 w-4 rounded border-gray-400 text-indigo-500 focus:ring-indigo-400"
+                  className="h-4 w-4 rounded border-borderStrong text-accent focus:ring-indigo-400"
                 />
                 {meta?.label || productId}
               </div>
-              <div className="relative h-28 w-full overflow-hidden rounded-xl bg-gray-900/40">
+              <div className="relative h-28 w-full overflow-hidden rounded-xl bg-bg/40">
                 {meta?.imageUrl && (
                   <img
                     src={meta.imageUrl}
@@ -83,7 +83,7 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
                   />
                 )}
                 {!meta?.imageUrl && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-[10px] font-semibold text-amber-200">
+                  <div className="absolute inset-0 flex items-center justify-center bg-surfaceTint text-[10px] font-semibold text-textMuted">
                     Upload to fill
                   </div>
                 )}
@@ -94,15 +94,15 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
         </div>
       )}
       {filteredSelection.length > 0 && (
-        <div className="rounded-2xl border border-white/10 bg-gray-900/40 p-3 space-y-2">
-          <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">
+        <div className="rounded-2xl border border-border bg-bg/40 p-3 space-y-2">
+          <p className="text-xs uppercase tracking-[0.3em] text-accent">
             Selected bundle ({filteredSelection.length})
           </p>
           <div className="flex flex-wrap gap-2 text-xs">
             {filteredSelection.map(productId => (
               <span
                 key={`summary-${productId}`}
-                className="rounded-full border border-white/20 px-3 py-1 text-gray-100"
+                className="rounded-full border border-border px-3 py-1 text-textPrimary"
               >
                 {productMediaLibrary[productId]?.label || productId}
               </span>
@@ -111,7 +111,7 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
         </div>
       )}
       {!isValidSelection && visibleProductIds.length > 0 && (
-        <p className="text-xs text-amber-200">
+        <p className="text-xs text-textMuted">
           Select between {minSelection} and {maxSelection} products to continue.
         </p>
       )}
@@ -119,7 +119,7 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
         type="button"
         onClick={handleGenerate}
         disabled={!isValidSelection}
-        className="w-full rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-indigo-900/50"
+        className="w-full rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent disabled:cursor-not-allowed disabled:bg-surfaceTint"
       >
         Generate Custom Bundle Mockup
       </button>

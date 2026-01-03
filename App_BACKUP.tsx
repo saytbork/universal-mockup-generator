@@ -1731,44 +1731,44 @@ const App: React.FC = () => {
           >
             <div className="space-y-4">
               <ChipSelectGroup label="Age Group" options={AGE_GROUP_OPTIONS} selectedValue={options.ageGroup} onChange={(value) => handleOptionChange('ageGroup', value, 'Person Details')} disabled={personControlsDisabled} />
-              {isProductPlacement && <p className="text-xs text-gray-500">Person options are disabled for product placement shots.</p>}
-              <div className={`rounded-2xl border border-white/10 bg-gray-900/40 p-4 space-y-3 ${personControlsDisabled ? 'opacity-50' : ''}`}>
+              {isProductPlacement && <p className="text-xs text-textMuted">Person options are disabled for product placement shots.</p>}
+              <div className={`rounded-2xl border border-border bg-bg/40 p-4 space-y-3 ${personControlsDisabled ? 'opacity-50' : ''}`}>
                 <ChipSelectGroup label="Creator Preset" options={normalizedCreatorPresetOptions} selectedValue={activeTalentPreset} onChange={(value) => handlePresetSelect(value)} disabled={personControlsDisabled} />
-                {activePresetMeta?.description && <p className="text-xs text-gray-400">{activePresetMeta.description}</p>}
+                {activePresetMeta?.description && <p className="text-xs text-textSecondary">{activePresetMeta.description}</p>}
                 <div className="flex flex-wrap gap-2 text-xs">
-                  <button type="button" onClick={handleSaveTalentProfile} disabled={personControlsDisabled} className="inline-flex items-center rounded-full border border-white/20 px-3 py-1 font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition disabled:opacity-60">
+                  <button type="button" onClick={handleSaveTalentProfile} disabled={personControlsDisabled} className="inline-flex items-center rounded-full border border-border px-3 py-1 font-semibold text-white/80 hover:border-accent hover:text-white transition disabled:opacity-60">
                     Save as My Talent
                   </button>
-                  <button type="button" onClick={handleApplySavedTalent} disabled={personControlsDisabled || !hasSavedTalent} className="inline-flex items-center rounded-full border border-white/20 px-3 py-1 font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition disabled:opacity-60">
+                  <button type="button" onClick={handleApplySavedTalent} disabled={personControlsDisabled || !hasSavedTalent} className="inline-flex items-center rounded-full border border-border px-3 py-1 font-semibold text-white/80 hover:border-accent hover:text-white transition disabled:opacity-60">
                     Apply saved talent
                   </button>
                 </div>
-                {talentToast === 'saved' && <p className="text-xs text-emerald-300">Talent saved for future scenes.</p>}
-                {talentToast === 'applied' && <p className="text-xs text-emerald-300">Saved talent applied.</p>}
-                <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-3 space-y-2">
+                {talentToast === 'saved' && <p className="text-xs text-accent">Talent saved for future scenes.</p>}
+                {talentToast === 'applied' && <p className="text-xs text-accent">Saved talent applied.</p>}
+                <div className="rounded-xl border border-border bg-bg/20 px-3 py-3 space-y-2">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Link talent across scenes</p>
-                      <p className="text-xs text-gray-400">Keep this same creator for morning / afternoon / night shots.</p>
+                      <p className="text-xs uppercase tracking-[0.3em] text-accent">Link talent across scenes</p>
+                      <p className="text-xs text-textSecondary">Keep this same creator for morning / afternoon / night shots.</p>
                     </div>
                     <label className="relative inline-flex cursor-pointer items-center gap-2">
                       <input type="checkbox" className="sr-only" checked={isTalentLinkedAcrossScenes} onChange={handleTalentLinkToggle} disabled={personControlsDisabled} />
-                      <div className={`relative h-5 w-10 rounded-full transition ${isTalentLinkedAcrossScenes ? 'bg-indigo-500' : 'bg-gray-700'} ${personControlsDisabled ? 'opacity-50' : ''}`}>
-                        <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${isTalentLinkedAcrossScenes ? 'translate-x-4' : ''}`} />
+                      <div className={`relative h-5 w-10 rounded-full transition ${isTalentLinkedAcrossScenes ? 'bg-accent' : 'bg-surfaceTint'} ${personControlsDisabled ? 'opacity-50' : ''}`}>
+                        <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-surface shadow transition ${isTalentLinkedAcrossScenes ? 'translate-x-4' : ''}`} />
                       </div>
-                      <span className={`text-xs font-semibold ${isTalentLinkedAcrossScenes ? 'text-indigo-200' : 'text-gray-500'}`}>
+                      <span className={`text-xs font-semibold ${isTalentLinkedAcrossScenes ? 'text-accent' : 'text-textMuted'}`}>
                         {isTalentLinkedAcrossScenes ? 'Active' : 'Off'}
                       </span>
                     </label>
                   </div>
-                  {personControlsDisabled && <p className="text-[11px] text-gray-500">Enable people in this scene to sync the talent across your storyboard.</p>}
+                  {personControlsDisabled && <p className="text-[11px] text-textMuted">Enable people in this scene to sync the talent across your storyboard.</p>}
                   {isTalentLinkedAcrossScenes && !isActiveScenePrimary && (
-                    <p className="text-[11px] text-amber-200">
+                    <p className="text-[11px] text-textMuted">
                       Identity locked from {storyboardScenes[0]?.label || 'Scene 1'} while Same Person is active.
                     </p>
                   )}
                   {isTalentLinkedAcrossScenes && !personControlsDisabled && (
-                    <p className="text-[11px] text-indigo-200">
+                    <p className="text-[11px] text-accent">
                       Any tweak you make to the person instantly updates every other scene that still features them.
                     </p>
                   )}
@@ -1791,16 +1791,16 @@ const App: React.FC = () => {
               <ChipSelectGroup label="Eye Color" options={EYE_COLOR_OPTIONS} selectedValue={options.eyeColor} onChange={(value) => handleOptionChange('eyeColor', value, 'Person Details')} disabled={personControlsDisabled} />
               <ChipSelectGroup label="Selfie Type" options={SELFIE_TYPE_OPTIONS} selectedValue={options.selfieType} onChange={(value) => handleOptionChange('selfieType', value, 'Person Details')} disabled={personControlsDisabled} />
               {!personControlsDisabled && (
-                <p className="text-[11px] text-gray-500">
+                <p className="text-[11px] text-textMuted">
                   Tip: selfie styles mimic how the creator is actually holding the phone (mirror, arm-length, low-angle). Choose the angle you want viewers to feel.
                 </p>
               )}
               {!personControlsDisabled && !ugcRealSettings.isEnabled && (
-                <div className="rounded-2xl border border-white/15 bg-black/30 p-4 space-y-3">
+                <div className="rounded-2xl border border-border bg-bg/30 p-4 space-y-3">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Hero person presets</p>
-                      <p className="text-[11px] text-gray-400">
+                      <p className="text-xs uppercase tracking-[0.3em] text-accent">Hero person presets</p>
+                      <p className="text-[11px] text-textSecondary">
                         Quickly stage face-frame, offer-to-lens, or grounded lounge poses inspired by modern supplement shoots.
                       </p>
                     </div>
@@ -1814,29 +1814,29 @@ const App: React.FC = () => {
                           type="button"
                           onClick={() => handleHeroPosePresetSelect(preset.value)}
                           className={`w-full rounded-xl border px-3 py-2 text-left transition ${isActive
-                            ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                            : 'border-white/15 text-gray-200 hover-border-indigo-400 hover:text-white'
+                            ? 'border-accent bg-accentSoft text-white'
+                            : 'border-border text-textPrimary hover-border-accent hover:text-white'
                             }`}
                         >
                           <div className="flex items-center gap-1 relative group text-sm font-semibold">
                             <span>{preset.label}</span>
                             {preset.tooltip && (
-                              <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
+                              <span className="text-xs text-textSecondary cursor-pointer group-hover:text-white">
                                 ⓘ
-                                <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                                <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-bg/90 text-white text-xs p-2 rounded shadow-lg w-44">
                                   {preset.tooltip}
                                 </div>
                               </span>
                             )}
                           </div>
-                          <p className="text-[11px] text-gray-400 mt-1">{preset.description}</p>
+                          <p className="text-[11px] text-textSecondary mt-1">{preset.description}</p>
                         </button>
                       );
                     })}
                   </div>
                   {selectedHeroPreset === 'custom' && (
                     <textarea
-                      className="mt-3 w-full rounded-lg border border-white/15 bg-gray-900/40 px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:border-indigo-400 focus:outline-none"
+                      className="mt-3 w-full rounded-lg border border-border bg-bg/40 px-3 py-2 text-sm text-white placeholder:text-textMuted focus:border-accent focus:outline-none"
                       placeholder="Describe your own hero pose or product interaction..."
                       value={customHeroDescription}
                       onChange={(event) => setCustomHeroDescription(event.target.value)}
@@ -1844,7 +1844,7 @@ const App: React.FC = () => {
                     />
                   )}
                   {selectedHeroPreset !== 'custom' && (
-                    <p className="text-[11px] text-indigo-200">
+                    <p className="text-[11px] text-accent">
                       Pose + camera notes are baked into the prompt. You can still tweak any field above.
                     </p>
                   )}
@@ -1852,31 +1852,31 @@ const App: React.FC = () => {
               )}
               {!personControlsDisabled && renderFormulationStoryPanel('ugc')}
               {!personControlsDisabled && (
-                <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-4">
-                  <p className="text-xs uppercase tracking-[0.3em] text-indigo-200 mb-3">Prop bundles</p>
+                <div className="rounded-2xl border border-dashed border-border bg-surfaceTint p-4">
+                  <p className="text-xs uppercase tracking-[0.3em] text-accent mb-3">Prop bundles</p>
                   <div className="flex flex-wrap gap-2">
                     {PROP_BUNDLES.map(bundle => (
-                      <button key={bundle.label} type="button" onClick={() => handlePropBundleSelect(bundle.settings)} className="rounded-full border border-white/20 px-3 py-1 text-xs text-white/80 hover:border-indigo-400 hover:text-white transition">
+                      <button key={bundle.label} type="button" onClick={() => handlePropBundleSelect(bundle.settings)} className="rounded-full border border-border px-3 py-1 text-xs text-white/80 hover:border-accent hover:text-white transition">
                         {bundle.label}
                       </button>
                     ))}
                   </div>
-                  <p className="text-[11px] text-gray-400 mt-2">Tap any bundle to pre-fill props, micro-location, and mood.</p>
+                  <p className="text-[11px] text-textSecondary mt-2">Tap any bundle to pre-fill props, micro-location, and mood.</p>
                 </div>
               )}
-              <div className="rounded-2xl border border-white/10 bg-gray-900/50 p-4">
-                <p className="text-xs uppercase tracking-[0.3em] text-indigo-200 mb-2">Talent preview</p>
-                <div className="flex flex-wrap gap-2 text-xs text-gray-300">
-                  <span className="rounded-full bg-white/5 px-3 py-1">{options.gender}</span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">{options.ageGroup}</span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">{options.personMood}</span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">{options.personPose}</span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">{options.wardrobeStyle}</span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">{options.skinTone}</span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">{options.hairColor}</span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">{options.eyeColor}</span>
+              <div className="rounded-2xl border border-border bg-bg/50 p-4">
+                <p className="text-xs uppercase tracking-[0.3em] text-accent mb-2">Talent preview</p>
+                <div className="flex flex-wrap gap-2 text-xs text-textSecondary">
+                  <span className="rounded-full bg-surfaceTint px-3 py-1">{options.gender}</span>
+                  <span className="rounded-full bg-surfaceTint px-3 py-1">{options.ageGroup}</span>
+                  <span className="rounded-full bg-surfaceTint px-3 py-1">{options.personMood}</span>
+                  <span className="rounded-full bg-surfaceTint px-3 py-1">{options.personPose}</span>
+                  <span className="rounded-full bg-surfaceTint px-3 py-1">{options.wardrobeStyle}</span>
+                  <span className="rounded-full bg-surfaceTint px-3 py-1">{options.skinTone}</span>
+                  <span className="rounded-full bg-surfaceTint px-3 py-1">{options.hairColor}</span>
+                  <span className="rounded-full bg-surfaceTint px-3 py-1">{options.eyeColor}</span>
                 </div>
-                <p className="text-[11px] text-gray-400 mt-2">
+                <p className="text-[11px] text-textSecondary mt-2">
                   {options.personExpression} · {options.hairStyle} · {options.personProps}
                 </p>
               </div>
@@ -1938,10 +1938,10 @@ const App: React.FC = () => {
 
   const renderBundlesSection = () => (
     <div id={getSectionId('Bundles')} className="mt-6">
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-4">
+      <div className="rounded-2xl border border-border bg-surfaceTint p-4 space-y-4">
         <div className="flex flex-col gap-1">
-          <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Bundles</p>
-          <p className="text-sm text-gray-400">Quickly swap between curated packs, your own mix, or AI-recommended combos.</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-accent">Bundles</p>
+          <p className="text-sm text-textSecondary">Quickly swap between curated packs, your own mix, or AI-recommended combos.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {BUNDLE_TABS.map(tab => (
@@ -1949,7 +1949,7 @@ const App: React.FC = () => {
               key={tab.id}
               type="button"
               onClick={() => setActiveBundleTab(tab.id)}
-              className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${activeBundleTab === tab.id ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
+              className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${activeBundleTab === tab.id ? 'border-accent bg-accentSoft text-white' : 'border-border text-textSecondary hover:border-accent hover:text-white'
                 }`}
             >
               {tab.label}
@@ -1974,15 +1974,15 @@ const App: React.FC = () => {
         {activeBundleTab === 'recommended' && (
           <div className="space-y-4">
             {availableProductIds.length === 0 ? (
-              <p className="text-xs text-amber-200">Upload at least one product photo to view recommendations.</p>
+              <p className="text-xs text-textMuted">Upload at least one product photo to view recommendations.</p>
             ) : (
               <>
                 <div className="flex flex-col gap-2">
-                  <label className="text-xs uppercase tracking-[0.3em] text-gray-400">Anchor product</label>
+                  <label className="text-xs uppercase tracking-[0.3em] text-textSecondary">Anchor product</label>
                   <select
                     value={recommendedBaseProduct}
                     onChange={event => setRecommendedBaseProduct(event.target.value as ProductId)}
-                    className="rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                    className="rounded-lg border border-border bg-surfaceTint px-3 py-2 text-sm text-white focus:border-accent focus:outline-none"
                   >
                     {availableProductIds.map(productId => (
                       <option key={productId} value={productId}>
@@ -2002,15 +2002,15 @@ const App: React.FC = () => {
           </div>
         )}
         {lastBundleSelection && lastBundleSelection.some(id => availableProductIdSet.has(id)) && (
-          <div className="rounded-2xl border border-white/10 bg-gray-900/40 p-3 space-y-2">
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Last bundle sent</p>
+          <div className="rounded-2xl border border-border bg-bg/40 p-3 space-y-2">
+            <p className="text-xs uppercase tracking-[0.3em] text-accent">Last bundle sent</p>
             <div className="flex flex-wrap gap-2 text-xs">
               {lastBundleSelection
                 .filter(productId => availableProductIdSet.has(productId))
                 .map(productId => (
                   <span
                     key={`${productId}-last`}
-                    className="rounded-full border border-white/20 px-3 py-1 text-gray-100"
+                    className="rounded-full border border-border px-3 py-1 text-textPrimary"
                   >
                     {productMediaLibrary[productId]?.label || PRODUCT_MEDIA_LIBRARY[productId]?.label || productId}
                   </span>
@@ -2254,24 +2254,24 @@ const App: React.FC = () => {
   }, [applyOptionsUpdate]);
 
   const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
-    <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
+    <div className="rounded-2xl border border-border bg-bg/20 p-4 space-y-3">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Formulation story</p>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs uppercase tracking-[0.3em] text-accent">Formulation story</p>
+          <p className="text-xs text-textSecondary">
             {context === 'product'
               ? 'Highlight the doctor or researcher behind the formula to build trust.'
               : 'Let your UGC creator double as the doctor/scientist formulating the blend.'}
           </p>
         </div>
-        <label className="flex items-center gap-2 text-xs text-gray-400">
+        <label className="flex items-center gap-2 text-xs text-textSecondary">
           <span>{formulationExpertEnabled ? 'Active' : 'Off'}</span>
           <button
             type="button"
             onClick={() => setFormulationExpertEnabled(prev => !prev)}
-            className={`relative h-5 w-10 rounded-full transition ${formulationExpertEnabled ? 'bg-indigo-500' : 'bg-gray-700'}`}
+            className={`relative h-5 w-10 rounded-full transition ${formulationExpertEnabled ? 'bg-accent' : 'bg-surfaceTint'}`}
           >
-            <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${formulationExpertEnabled ? 'translate-x-5' : ''}`} />
+            <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-surface shadow transition ${formulationExpertEnabled ? 'translate-x-5' : ''}`} />
           </button>
         </label>
       </div>
@@ -2284,8 +2284,8 @@ const App: React.FC = () => {
                 type="button"
                 onClick={() => handleFormulationPresetSelect(preset.value)}
                 className={`rounded-full border px-3 py-1 text-xs transition ${formulationExpertPreset === preset.value
-                  ? 'border-amber-300 bg-amber-500/10 text-white'
-                  : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
+                  ? 'border-borderStrong bg-surfaceTint text-white'
+                  : 'border-border text-textSecondary hover:border-accent hover:text-white'
                   }`}
               >
                 {preset.label}
@@ -2299,8 +2299,8 @@ const App: React.FC = () => {
                 type="button"
                 onClick={() => handleFormulationProfessionSelect(option.value)}
                 className={`rounded-full border px-3 py-1 text-xs transition ${formulationExpertProfession === option.value
-                  ? 'border-amber-300 bg-amber-500/10 text-white'
-                  : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
+                  ? 'border-borderStrong bg-surfaceTint text-white'
+                  : 'border-border text-textSecondary hover:border-accent hover:text-white'
                   }`}
               >
                 {option.label}
@@ -2309,23 +2309,23 @@ const App: React.FC = () => {
           </div>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <div className="flex flex-col gap-1">
-              <label className="text-xs uppercase tracking-widest text-gray-500">Expert name</label>
+              <label className="text-xs uppercase tracking-widest text-textMuted">Expert name</label>
               <input
                 type="text"
                 value={formulationExpertName}
                 onChange={event => setFormulationExpertName(event.target.value)}
                 placeholder="e.g., Dr. Sofia Reyes"
-                className="rounded-md border border-white/10 bg-black/20 px-2 py-1 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                className="rounded-md border border-border bg-bg/20 px-2 py-1 text-sm text-white focus:border-accent focus:outline-none"
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs uppercase tracking-widest text-gray-500">Role / credentials</label>
+              <label className="text-xs uppercase tracking-widest text-textMuted">Role / credentials</label>
               <input
                 type="text"
                 value={formulationExpertRole}
                 onChange={event => setFormulationExpertRole(event.target.value)}
                 placeholder="e.g., pulmonologist & lead formulator"
-                className="rounded-md border border-white/10 bg-black/20 px-2 py-1 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                className="rounded-md border border-border bg-bg/20 px-2 py-1 text-sm text-white focus:border-accent focus:outline-none"
               />
             </div>
           </div>
@@ -2335,7 +2335,7 @@ const App: React.FC = () => {
             selectedValue={formulationLabStyle}
             onChange={value => setFormulationLabStyle(value)}
           />
-          <p className="text-[11px] text-gray-400">We’ll mention their research, lab setup, and why the formula feels trustworthy. Ensure this expert looks like a real human, photographed with natural imperfections.</p>
+          <p className="text-[11px] text-textSecondary">We’ll mention their research, lab setup, and why the formula feels trustworthy. Ensure this expert looks like a real human, photographed with natural imperfections.</p>
         </div>
       )}
     </div>
@@ -4536,36 +4536,36 @@ If the model attempts to create a scene or environment, override it and force a 
       />
 
       {showGoalWizard && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 px-4">
-          <div className="w-full max-w-3xl rounded-3xl border border-white/10 bg-gray-950 p-6 md:p-10 shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-bg/70 px-4">
+          <div className="w-full max-w-3xl rounded-3xl border border-border bg-bg p-6 md:p-10 shadow-2xl space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.4em] text-indigo-200">Quick start wizard</p>
+                <p className="text-xs uppercase tracking-[0.4em] text-accent">Quick start wizard</p>
                 <h3 className="text-2xl md:text-3xl font-semibold text-white mt-2">Let’s set up your scene</h3>
               </div>
-              <button onClick={handleGoalWizardSkip} className="text-sm text-gray-400 hover:text-white">Skip</button>
+              <button onClick={handleGoalWizardSkip} className="text-sm text-textSecondary hover:text-white">Skip</button>
             </div>
-            <p className="text-sm text-gray-400">Step {goalWizardStep} / 3</p>
+            <p className="text-sm text-textSecondary">Step {goalWizardStep} / 3</p>
             {goalWizardStep === 1 && (
               <div className="grid gap-4 md:grid-cols-2">
                 {normalizedGoalWizardGoals.map(option => (
                   <button
                     key={option.value}
                     onClick={() => handleGoalWizardSelect('goal', option.value)}
-                    className={`rounded-2xl border p-4 text-left transition ${goalWizardData.goal === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
+                    className={`rounded-2xl border p-4 text-left transition ${goalWizardData.goal === option.value ? 'border-accent bg-accentSoft text-white' : 'border-border bg-surfaceTint text-textSecondary'}`}
                   >
                     <div className="flex items-center gap-1 relative group">
                       <span className="text-lg font-semibold">{option.label}</span>
                       {option.tooltip && (
-                        <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
+                        <span className="text-xs text-textSecondary cursor-pointer group-hover:text-white">
                           ⓘ
-                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-bg/90 text-white text-xs p-2 rounded shadow-lg w-44">
                             {option.tooltip}
                           </div>
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-400 mt-2">{cleanDescription(option.description)}</p>
+                    <p className="text-sm text-textSecondary mt-2">{cleanDescription(option.description)}</p>
                   </button>
                 ))}
               </div>
@@ -4576,20 +4576,20 @@ If the model attempts to create a scene or environment, override it and force a 
                   <button
                     key={option.value}
                     onClick={() => handleGoalWizardSelect('vibe', option.value)}
-                    className={`rounded-2xl border p-4 text-left transition ${goalWizardData.vibe === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
+                    className={`rounded-2xl border p-4 text-left transition ${goalWizardData.vibe === option.value ? 'border-accent bg-accentSoft text-white' : 'border-border bg-surfaceTint text-textSecondary'}`}
                   >
                     <div className="flex items-center gap-1 relative group">
                       <span className="text-base font-semibold">{option.label}</span>
                       {option.tooltip && (
-                        <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
+                        <span className="text-xs text-textSecondary cursor-pointer group-hover:text-white">
                           ⓘ
-                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-bg/90 text-white text-xs p-2 rounded shadow-lg w-44">
                             {option.tooltip}
                           </div>
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-400 mt-2">{cleanDescription(option.description)}</p>
+                    <p className="text-sm text-textSecondary mt-2">{cleanDescription(option.description)}</p>
                   </button>
                 ))}
               </div>
@@ -4602,34 +4602,34 @@ If the model attempts to create a scene or environment, override it and force a 
                     <button
                       key={preset.value}
                       onClick={() => handleGoalWizardSelect('preset', preset.value)}
-                      className={`rounded-2xl border p-4 text-left transition ${goalWizardData.preset === preset.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
+                      className={`rounded-2xl border p-4 text-left transition ${goalWizardData.preset === preset.value ? 'border-accent bg-accentSoft text-white' : 'border-border bg-surfaceTint text-textSecondary'}`}
                     >
                       <div className="flex items-center gap-1 relative group">
                         <span className="text-base font-semibold">{preset.label}</span>
                         {preset.tooltip && (
-                          <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
+                          <span className="text-xs text-textSecondary cursor-pointer group-hover:text-white">
                             ⓘ
-                            <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                            <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-bg/90 text-white text-xs p-2 rounded shadow-lg w-44">
                               {preset.tooltip}
                             </div>
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-400 mt-2">{cleanDescription(preset.description)}</p>
+                      <p className="text-sm text-textSecondary mt-2">{cleanDescription(preset.description)}</p>
                     </button>
                   ))}
               </div>
             )}
-            <div className="flex items-center justify-between pt-4 border-t border-white/5">
-              <button onClick={goalWizardStep === 1 ? handleGoalWizardSkip : handleGoalWizardBack} className="text-sm text-gray-400 hover:text-white">
+            <div className="flex items-center justify-between pt-4 border-t border-border">
+              <button onClick={goalWizardStep === 1 ? handleGoalWizardSkip : handleGoalWizardBack} className="text-sm text-textSecondary hover:text-white">
                 {goalWizardStep === 1 ? 'Skip wizard' : 'Back'}
               </button>
               {goalWizardStep < 3 ? (
-                <button onClick={handleGoalWizardNext} className="rounded-full bg-indigo-500 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-400 transition">
+                <button onClick={handleGoalWizardNext} className="rounded-full bg-accent px-6 py-2 text-sm font-semibold text-white hover:bg-accent transition">
                   Next
                 </button>
               ) : (
-                <button onClick={handleGoalWizardComplete} className="rounded-full bg-emerald-500 px-6 py-2 text-sm font-semibold text-white hover:bg-emerald-400 transition">
+                <button onClick={handleGoalWizardComplete} className="rounded-full bg-accent px-6 py-2 text-sm font-semibold text-white hover:bg-accent transition">
                   Apply &amp; build
                 </button>
               )}
@@ -4639,14 +4639,14 @@ If the model attempts to create a scene or environment, override it and force a 
       )}
 
       {showPlanModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-          <div className="w-full max-w-3xl rounded-3xl border border-white/10 bg-gray-950 p-6 md:p-8 shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-bg/70 px-4">
+          <div className="w-full max-w-3xl rounded-3xl border border-border bg-bg p-6 md:p-8 shadow-2xl space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.4em] text-indigo-200">Manage plan</p>
+                <p className="text-xs uppercase tracking-[0.4em] text-accent">Manage plan</p>
                 <h3 className="text-2xl font-semibold text-white mt-1">Choose what fits your launch</h3>
               </div>
-              <button onClick={() => { setShowPlanModal(false); setPlanCodeInput(''); setPlanCodeError(null); setPlanNotice(null); }} className="text-sm text-gray-400 hover:text-white">
+              <button onClick={() => { setShowPlanModal(false); setPlanCodeInput(''); setPlanCodeError(null); setPlanNotice(null); }} className="text-sm text-textSecondary hover:text-white">
                 Close
               </button>
             </div>
@@ -4655,13 +4655,13 @@ If the model attempts to create a scene or environment, override it and force a 
                 <button
                   key={tier}
                   onClick={() => handlePlanTierSelect(tier as PlanTier)}
-                  className={`rounded-2xl border p-4 text-left transition ${planTier === tier ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
+                  className={`rounded-2xl border p-4 text-left transition ${planTier === tier ? 'border-accent bg-accentSoft text-white' : 'border-border bg-surfaceTint text-textSecondary'}`}
                 >
                   <p className="text-lg font-semibold flex items-center justify-between">
                     <span>{config.label}</span>
-                    <span className="text-sm text-indigo-200">{config.priceLabel}</span>
+                    <span className="text-sm text-accent">{config.priceLabel}</span>
                   </p>
-                  <p className="text-sm text-gray-400 mt-1">{config.description}</p>
+                  <p className="text-sm text-textSecondary mt-1">{config.description}</p>
                   <p className="text-xs mt-2">
                     {planTier === tier ? 'Current plan' : 'Go to checkout'}
                   </p>
@@ -4669,7 +4669,7 @@ If the model attempts to create a scene or environment, override it and force a 
               ))}
             </div>
             <div className="space-y-2 text-left">
-              <p className="text-xs uppercase tracking-[0.3em] text-gray-500">Have an upgrade code?</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-textMuted">Have an upgrade code?</p>
               <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
@@ -4679,12 +4679,12 @@ If the model attempts to create a scene or environment, override it and force a 
                     if (planCodeError) setPlanCodeError(null);
                   }}
                   placeholder="Enter the code from your receipt"
-                  className="flex-1 rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-white focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                  className="flex-1 rounded-lg border border-border bg-bg px-3 py-2 text-white focus:border-accent focus:outline-none focus:ring-1 focus:ring-indigo-400"
                 />
                 <button
                   type="button"
                   onClick={handlePlanCodeSubmit}
-                  className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400 transition"
+                  className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent transition"
                 >
                   Apply
                 </button>
@@ -4695,17 +4695,17 @@ If the model attempts to create a scene or environment, override it and force a 
         </div>
       )}
 
-      <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 lg:p-8">
+      <div className="min-h-screen bg-bg text-textPrimary p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto relative">
           <header className="text-center mb-8">
-            <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500">
+            <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-accent to-textPrimary">
               Universal AI Mockup Generator
             </h1>
-            <p className="mt-2 text-lg text-gray-400">
+            <p className="mt-2 text-lg text-textSecondary">
               Generate photo-realistic UGC-style images for your products in seconds.
             </p>
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs text-gray-400">
-              <span className="rounded-full border border-white/20 px-3 py-1 text-white/90">
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs text-textSecondary">
+              <span className="rounded-full border border-border px-3 py-1 text-white/90">
                 Plan: {currentPlan.label} {currentPlan.priceLabel ? `· ${currentPlan.priceLabel}` : ''}
               </span>
               <span>
@@ -4718,17 +4718,17 @@ If the model attempts to create a scene or environment, override it and force a 
                   setPlanNotice(null);
                   setShowPlanModal(true);
                 }}
-                className="inline-flex items-center justify-center rounded-full border border-white/20 px-4 py-2 text-white/80 hover:border-indigo-400 hover:text-white transition"
+                className="inline-flex items-center justify-center rounded-full border border-border px-4 py-2 text-white/80 hover:border-accent hover:text-white transition"
               >
                 Manage plan
               </button>
             </div>
-            {planNotice && <p className="mt-2 text-xs text-rose-300">{planNotice}</p>}
+            {planNotice && <p className="mt-2 text-xs text-textMuted">{planNotice}</p>}
             <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
               {isKeySelected && isUsingStoredKey && (
                 <button
                   onClick={handleApiKeyInvalid}
-                  className="inline-flex items-center justify-center rounded-lg border border-gray-600 px-4 py-2 text-sm font-semibold text-gray-200 hover:bg-gray-800 transition"
+                  className="inline-flex items-center justify-center rounded-lg border border-border px-4 py-2 text-sm font-semibold text-textPrimary hover:bg-surface transition"
                 >
                   Change API Key
                 </button>
@@ -4736,7 +4736,7 @@ If the model attempts to create a scene or environment, override it and force a 
               {!shouldRequireLogin && !isLoggedIn && (
                 <button
                   onClick={() => signInWithGoogle()}
-                  className="inline-flex items-center justify-center rounded-lg border border-indigo-500/60 px-4 py-2 text-sm font-semibold text-indigo-200 hover:bg-indigo-500/10 transition"
+                  className="inline-flex items-center justify-center rounded-lg border border-accent/60 px-4 py-2 text-sm font-semibold text-accent hover:bg-accentSoft transition"
                 >
                   Sign in
                 </button>
@@ -4745,19 +4745,19 @@ If the model attempts to create a scene or environment, override it and force a 
             </div>
             {isLoggedIn && (
               <>
-                <div className="mt-4 flex flex-col sm:flex-row gap-3 items-center justify-center text-sm text-gray-400">
+                <div className="mt-4 flex flex-col sm:flex-row gap-3 items-center justify-center text-sm text-textSecondary">
                   <span>Signed in as {userEmail}</span>
                   <button
                     onClick={handleLogout}
-                    className="inline-flex items-center justify-center rounded-full border border-gray-600 px-3 py-1 font-semibold text-gray-200 hover:bg-gray-800 transition"
+                    className="inline-flex items-center justify-center rounded-full border border-border px-3 py-1 font-semibold text-textPrimary hover:bg-surface transition"
                   >
                     Switch account
                   </button>
                 </div>
-                <p className="mt-2 text-xs text-gray-400">{currentPlan.description}</p>
+                <p className="mt-2 text-xs text-textSecondary">{currentPlan.description}</p>
               </>
             )}
-            <div className="mt-6 flex items-center justify-center gap-4 text-xs text-gray-400">
+            <div className="mt-6 flex items-center justify-center gap-4 text-xs text-textSecondary">
               <span className={isSimpleMode ? 'text-white' : ''}>Simple Mode</span>
               <label
                 className={`relative inline-flex cursor-pointer items-center ${!canUseStudioFeatures ? 'opacity-40 cursor-not-allowed' : ''}`}
@@ -4771,11 +4771,11 @@ If the model attempts to create a scene or environment, override it and force a 
                   aria-label="Toggle studio mode"
                 />
                 <div
-                  className={`relative h-6 w-11 rounded-full transition ${!isSimpleMode ? 'bg-indigo-500' : 'bg-gray-700'
+                  className={`relative h-6 w-11 rounded-full transition ${!isSimpleMode ? 'bg-accent' : 'bg-surfaceTint'
                     }`}
                 >
                   <span
-                    className={`absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow transition ${!isSimpleMode ? 'translate-x-5' : ''
+                    className={`absolute left-1 top-1 h-4 w-4 rounded-full bg-surface shadow transition ${!isSimpleMode ? 'translate-x-5' : ''
                       }`}
                   />
                 </div>
@@ -4786,18 +4786,18 @@ If the model attempts to create a scene or environment, override it and force a 
 
           <main className="flex flex-col gap-8">
             {(!isSimpleMode && canUseStudioFeatures) && (
-              <div className="rounded-3xl border border-white/5 bg-white/5 p-5 space-y-4">
+              <div className="rounded-3xl border border-border bg-surfaceTint p-5 space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Storyboard</p>
-                    <p className="text-sm text-gray-400">Queue variations and switch scenes without rebuilding settings.</p>
+                    <p className="text-xs uppercase tracking-[0.35em] text-accent">Storyboard</p>
+                    <p className="text-sm text-textSecondary">Queue variations and switch scenes without rebuilding settings.</p>
                   </div>
                   <div className="flex items-center gap-2 text-xs">
                     <button
                       type="button"
                       onClick={handleAddScene}
                       disabled={storyboardScenes.length >= 4}
-                      className="rounded-full border border-white/20 px-3 py-1 text-white/80 hover:border-indigo-400 hover:text-white transition disabled:opacity-40"
+                      className="rounded-full border border-border px-3 py-1 text-white/80 hover:border-accent hover:text-white transition disabled:opacity-40"
                     >
                       + Add scene
                     </button>
@@ -4805,7 +4805,7 @@ If the model attempts to create a scene or environment, override it and force a 
                       type="button"
                       onClick={handleDuplicateScene}
                       disabled={storyboardScenes.length >= 4}
-                      className="rounded-full border border-white/20 px-3 py-1 text-white/80 hover:border-indigo-400 hover:text-white transition disabled:opacity-40"
+                      className="rounded-full border border-border px-3 py-1 text-white/80 hover:border-accent hover:text-white transition disabled:opacity-40"
                     >
                       Duplicate
                     </button>
@@ -4815,7 +4815,7 @@ If the model attempts to create a scene or environment, override it and force a 
                   {storyboardScenes.map(scene => (
                     <div
                       key={scene.id}
-                      className={`rounded-2xl border px-4 py-3 flex items-center gap-3 ${scene.id === activeSceneId ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
+                      className={`rounded-2xl border px-4 py-3 flex items-center gap-3 ${scene.id === activeSceneId ? 'border-accent bg-accentSoft text-white' : 'border-border bg-surfaceTint text-textSecondary'}`}
                     >
                       <button onClick={() => handleSceneSelect(scene.id)} className="font-semibold">
                         {scene.label}
@@ -4823,7 +4823,7 @@ If the model attempts to create a scene or environment, override it and force a 
                       {storyboardScenes.length > 1 && (
                         <button
                           onClick={() => handleDeleteScene(scene.id)}
-                          className="text-xs text-gray-400 hover:text-red-300"
+                          className="text-xs text-textSecondary hover:text-red-300"
                         >
                           Remove
                         </button>
@@ -4831,11 +4831,11 @@ If the model attempts to create a scene or environment, override it and force a 
                     </div>
                   ))}
                 </div>
-                <div className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-black/20 p-4 text-xs text-gray-300">
+                <div className="flex flex-col gap-2 rounded-2xl border border-border bg-bg/20 p-4 text-xs text-textSecondary">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="uppercase tracking-[0.3em] text-indigo-200">Same person</p>
-                      <p className="text-gray-400 mt-1">Keep a single creator across every scene automatically.</p>
+                      <p className="uppercase tracking-[0.3em] text-accent">Same person</p>
+                      <p className="text-textSecondary mt-1">Keep a single creator across every scene automatically.</p>
                     </div>
                     <label className={`relative inline-flex cursor-pointer items-center ${isTalentLinkedAcrossScenes ? 'text-white' : ''}`}>
                       <input
@@ -4846,28 +4846,28 @@ If the model attempts to create a scene or environment, override it and force a 
                         aria-label="Use the same person in all storyboard scenes"
                       />
                       <div
-                        className={`relative h-5 w-10 rounded-full transition ${isTalentLinkedAcrossScenes ? 'bg-indigo-500' : 'bg-gray-700'
+                        className={`relative h-5 w-10 rounded-full transition ${isTalentLinkedAcrossScenes ? 'bg-accent' : 'bg-surfaceTint'
                           }`}
                       >
                         <span
-                          className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${isTalentLinkedAcrossScenes ? 'translate-x-4' : ''
+                          className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-surface shadow transition ${isTalentLinkedAcrossScenes ? 'translate-x-4' : ''
                             }`}
                         />
                       </div>
                     </label>
                   </div>
-                  <p className="text-[11px] text-gray-500">
+                  <p className="text-[11px] text-textMuted">
                     Toggle once and any update to this scene’s person instantly syncs to the rest.
                   </p>
                 </div>
               </div>
             )}
             <div className="grid gap-6 lg:grid-cols-3">
-              <div ref={intentRef} className="bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-4 h-full">
+              <div ref={intentRef} className="bg-surfaceTint p-6 rounded-lg shadow-lg border border-border flex flex-col gap-4 h-full">
                 <div className="flex flex-col gap-1">
-                  <p className="text-xs uppercase tracking-widest text-indigo-300">Step 1</p>
-                  <h2 className="text-2xl font-bold text-gray-200">Choose Content Intent</h2>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-xs uppercase tracking-widest text-accent">Step 1</p>
+                  <h2 className="text-2xl font-bold text-textPrimary">Choose Content Intent</h2>
+                  <p className="text-sm text-textSecondary">
                     {isProductPlacement
                       ? 'Product Placement focuses on stylized scenes with zero people so the product stays hero.'
                       : 'UGC Lifestyle enables authentic creator vibes, including people interacting with the product.'}
@@ -4880,13 +4880,13 @@ If the model attempts to create a scene or environment, override it and force a 
                   onChange={(value) => handleOptionChange('contentStyle', value, 'Content Intent')}
                 />
               </div>
-              <div ref={uploadRef} className="bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-4 h-full">
+              <div ref={uploadRef} className="bg-surfaceTint p-6 rounded-lg shadow-lg border border-border flex flex-col gap-4 h-full">
                 <div className="flex flex-col gap-1">
-                  <p className="text-xs uppercase tracking-widest text-indigo-300">Step 2</p>
-                  <h2 className="text-2xl font-bold text-gray-200">
+                  <p className="text-xs uppercase tracking-widest text-accent">Step 2</p>
+                  <h2 className="text-2xl font-bold text-textPrimary">
                     {hasUploadedProduct ? 'Product Photo Ready' : 'Add Your Product Photo'}
                   </h2>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm text-textSecondary">
                     {hasUploadedProduct
                       ? 'This product image will be reused for both UGC and Product Placement. Upload again only if you want to replace it.'
                       : 'Upload a transparent PNG, JPG, or WebP of your product to anchor every scene.'}
@@ -4900,18 +4900,18 @@ If the model attempts to create a scene or environment, override it and force a 
                   lockedMessage="Select Step 1 first to unlock uploads."
                 />
                 {productAssets.length > 0 && (
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
+                  <div className="rounded-2xl border border-border bg-surfaceTint p-4 space-y-3">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="flex items-center gap-2">
-                        <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Product library</p>
-                        <span className="rounded-full border border-white/20 px-2 py-0.5 text-[11px] text-white/80">
+                        <p className="text-xs uppercase tracking-[0.35em] text-accent">Product library</p>
+                        <span className="rounded-full border border-border px-2 py-0.5 text-[11px] text-white/80">
                           {productAssets.length}
                         </span>
                       </div>
                       <button
                         type="button"
                         onClick={handleLibraryAddClick}
-                        className="inline-flex items-center gap-2 rounded-full border border-white/20 px-3 py-1 text-[11px] text-gray-200 hover:border-indigo-400 hover:text-white transition"
+                        className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-[11px] text-textPrimary hover:border-accent hover:text-white transition"
                       >
                         + Add photo
                       </button>
@@ -4922,23 +4922,23 @@ If the model attempts to create a scene or environment, override it and force a 
                         return (
                           <div
                             key={asset.id}
-                            className={`rounded-xl border px-3 py-3 space-y-3 ${isActive ? 'border-indigo-400 bg-indigo-500/5' : 'border-white/10 bg-black/20'}`}
+                            className={`rounded-xl border px-3 py-3 space-y-3 ${isActive ? 'border-accent bg-accent/5' : 'border-border bg-bg/20'}`}
                           >
                             <div className="flex items-center gap-3">
                               <button
                                 type="button"
                                 onClick={() => handleProductAssetSelect(asset.id)}
-                                className={`flex flex-col text-left text-xs font-semibold ${isActive ? 'text-white' : 'text-gray-300'}`}
+                                className={`flex flex-col text-left text-xs font-semibold ${isActive ? 'text-white' : 'text-textSecondary'}`}
                               >
                                 <span>{asset.label || 'Untitled product'}</span>
-                                <span className="text-[10px] text-gray-400">{Math.round(asset.file.size / 1024)} KB</span>
+                                <span className="text-[10px] text-textSecondary">{Math.round(asset.file.size / 1024)} KB</span>
                               </button>
                               <div className="relative">
-                                <img src={asset.previewUrl} alt={asset.label} className="h-20 w-20 rounded-md object-cover border border-white/10" />
+                                <img src={asset.previewUrl} alt={asset.label} className="h-20 w-20 rounded-md object-cover border border-border" />
                                 <button
                                   type="button"
                                   onClick={() => handleProductAssetDelete(asset.id)}
-                                  className="absolute -right-2 -top-2 rounded-full bg-black/80 p-1 text-[10px] uppercase tracking-widest text-rose-300 hover:bg-rose-500/40"
+                                  className="absolute -right-2 -top-2 rounded-full bg-bg/80 p-1 text-[10px] uppercase tracking-widest text-textMuted hover:bg-surfaceTint"
                                 >
                                   Remove
                                 </button>
@@ -4949,23 +4949,23 @@ If the model attempts to create a scene or environment, override it and force a 
                                 type="text"
                                 value={asset.label}
                                 onChange={event => handleProductAssetLabelChange(asset.id, event.target.value)}
-                                className="flex-1 rounded-md border border-white/10 bg-black/20 px-2 py-1 text-xs text-white focus:border-indigo-400 focus:outline-none"
+                                className="flex-1 rounded-md border border-border bg-bg/20 px-2 py-1 text-xs text-white focus:border-accent focus:outline-none"
                                 placeholder="Name this product"
                               />
-                              <div className="flex flex-col gap-1 text-xs text-gray-300">
+                              <div className="flex flex-col gap-1 text-xs text-textSecondary">
                                 <input
                                   type="number"
                                   min="0"
                                   step="0.1"
                                   value={asset.heightValue ?? ''}
                                   onChange={event => handleProductHeightChange(asset.id, event.target.value)}
-                                  className="w-full rounded-md border border-white/10 bg-black/20 px-2 py-1 text-white focus:border-indigo-400 focus:outline-none"
+                                  className="w-full rounded-md border border-border bg-bg/20 px-2 py-1 text-white focus:border-accent focus:outline-none"
                                   placeholder="Height"
                                 />
                                 <select
                                   value={asset.heightUnit}
                                   onChange={event => handleProductHeightUnitChange(asset.id, event.target.value as 'cm' | 'in')}
-                                  className="rounded-md border border-white/10 bg-black/20 px-2 py-1 text-white focus:border-indigo-400 focus:outline-none"
+                                  className="rounded-md border border-border bg-bg/20 px-2 py-1 text-white focus:border-accent focus:outline-none"
                                 >
                                   <option value="cm">cm</option>
                                   <option value="in">in</option>
@@ -4975,7 +4975,7 @@ If the model attempts to create a scene or environment, override it and force a 
                                 <button
                                   type="button"
                                   onClick={() => handleProductAssetSelect(asset.id)}
-                                  className={`rounded-full border px-3 py-1 text-[11px] ${isActive ? 'border-indigo-400 text-white' : 'border-white/20 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+                                  className={`rounded-full border px-3 py-1 text-[11px] ${isActive ? 'border-accent text-white' : 'border-border text-textSecondary hover:border-accent hover:text-white'}`}
                                 >
                                   {isActive ? 'Active' : 'Use'}
                                 </button>
@@ -4987,10 +4987,10 @@ If the model attempts to create a scene or environment, override it and force a 
                       <button
                         type="button"
                         onClick={handleLibraryAddClick}
-                        className="w-full rounded-xl border border-dashed border-white/20 bg-black/10 px-3 py-3 text-left text-xs text-gray-400 hover:border-indigo-400 hover:text-white transition"
+                        className="w-full rounded-xl border border-dashed border-border bg-bg/10 px-3 py-3 text-left text-xs text-textSecondary hover:border-accent hover:text-white transition"
                       >
                         <p className="text-sm font-semibold text-white">+ Add another photo</p>
-                        <p className="text-[11px] text-gray-500">Drop a batch of files or tap to keep building your library.</p>
+                        <p className="text-[11px] text-textMuted">Drop a batch of files or tap to keep building your library.</p>
                       </button>
                     </div>
                   </div>
@@ -5012,25 +5012,25 @@ If the model attempts to create a scene or environment, override it and force a 
                   }
                 />
                 {hasModelReference && (
-                  <div className="rounded-2xl border border-white/10 bg-black/30 p-4 space-y-2 text-sm">
-                    <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Composition Mode</p>
+                  <div className="rounded-2xl border border-border bg-bg/30 p-4 space-y-2 text-sm">
+                    <p className="text-xs uppercase tracking-[0.3em] text-accent">Composition Mode</p>
                     <select
                       value={compositionMode}
                       onChange={event => setCompositionMode(event.target.value as CompositionMode)}
-                      className="w-full rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                      className="w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm text-white focus:border-accent focus:outline-none"
                     >
                       <option value="balanced">Balanced</option>
                       <option value="product-first">Product First</option>
                       <option value="model-first">Model First</option>
                       <option value="fifty-fifty">Fifty / Fifty</option>
                     </select>
-                    <p className="text-[11px] text-gray-400">
+                    <p className="text-[11px] text-textSecondary">
                       Control which subject leads the frame while keeping both elements physically integrated.
                     </p>
                   </div>
                 )}
                 {hasUploadedProduct && !personInScene && !isProductPlacement && !hasModelReference && (
-                  <p className="text-xs text-amber-300">
+                  <p className="text-xs text-textMuted">
                     Model references only apply when this scene uses UGC Lifestyle with a person selected. Switch off Product Placement and choose an age so the same talent can carry across your morning/afternoon/night shots.
                   </p>
                 )}
@@ -5040,10 +5040,10 @@ If the model attempts to create a scene or environment, override it and force a 
 
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
                 {/* Controls Column - 40% width (2 of 5 columns) */}
-                <div ref={customizeRef} className={`lg:col-span-2 bg-gray-800/50 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col max-h-[calc(100vh-12rem)] ${!hasUploadedProduct ? 'opacity-60' : ''}`}>
-                  <div className="mb-4 border-b border-gray-600 pb-3 flex-shrink-0">
-                    <p className="text-xs uppercase tracking-widest text-indigo-300">Step 3</p>
-                    <h2 className="text-2xl font-bold text-gray-200">Customize Your Mockup</h2>
+                <div ref={customizeRef} className={`lg:col-span-2 bg-surfaceTint p-6 rounded-lg shadow-lg border border-border flex flex-col max-h-[calc(100vh-12rem)] ${!hasUploadedProduct ? 'opacity-60' : ''}`}>
+                  <div className="mb-4 border-b border-border pb-3 flex-shrink-0">
+                    <p className="text-xs uppercase tracking-widest text-accent">Step 3</p>
+                    <h2 className="text-2xl font-bold text-textPrimary">Customize Your Mockup</h2>
                   </div>
 
                   <ModeTierToggle modeTier={modeTier} onToggle={setModeTier} />
@@ -5152,7 +5152,7 @@ If the model attempts to create a scene or environment, override it and force a 
                                   onChange={(value) => handleOptionChange('personExpression', value, 'Person Details')}
                                   disabled={personControlsDisabled}
                                 />
-                                <div className="rounded-xl border border-white/10 bg-black/20 p-3 space-y-3">
+                                <div className="rounded-xl border border-border bg-bg/20 p-3 space-y-3">
                                   <ChipSelectGroup
                                     label="Creator Preset"
                                     options={normalizedCreatorPresetOptions}
@@ -5162,18 +5162,18 @@ If the model attempts to create a scene or environment, override it and force a 
                                   />
                                   <div className="flex items-center justify-between gap-3">
                                     <div>
-                                      <p className="text-xs text-gray-400">Link talent across scenes</p>
+                                      <p className="text-xs text-textSecondary">Link talent across scenes</p>
                                     </div>
                                     <label className="relative inline-flex cursor-pointer items-center gap-2">
                                       <input type="checkbox" className="sr-only" checked={isTalentLinkedAcrossScenes} onChange={handleTalentLinkToggle} disabled={personControlsDisabled} />
-                                      <div className={`relative h-5 w-10 rounded-full transition ${isTalentLinkedAcrossScenes ? 'bg-indigo-500' : 'bg-gray-700'} ${personControlsDisabled ? 'opacity-50' : ''}`}>
-                                        <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${isTalentLinkedAcrossScenes ? 'translate-x-4' : ''}`} />
+                                      <div className={`relative h-5 w-10 rounded-full transition ${isTalentLinkedAcrossScenes ? 'bg-accent' : 'bg-surfaceTint'} ${personControlsDisabled ? 'opacity-50' : ''}`}>
+                                        <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-surface shadow transition ${isTalentLinkedAcrossScenes ? 'translate-x-4' : ''}`} />
                                       </div>
                                     </label>
                                   </div>
                                 </div>
                                 {personControlsDisabled && (
-                                  <p className="text-xs text-gray-500">Person options disabled for product placement.</p>
+                                  <p className="text-xs text-textMuted">Person options disabled for product placement.</p>
                                 )}
                               </div>
                             </Accordion>
@@ -5256,7 +5256,7 @@ If the model attempts to create a scene or environment, override it and force a 
                                       onChange={event =>
                                         applyOptionsUpdate(prev => ({ ...prev, bgColor: event.target.value }))
                                       }
-                                      className="h-10 w-16 rounded cursor-pointer border border-gray-600"
+                                      className="h-10 w-16 rounded cursor-pointer border border-border"
                                     />
                                   </div>
                                 </>
@@ -5290,11 +5290,11 @@ If the model attempts to create a scene or environment, override it and force a 
                                   customLabel="Custom composition"
                                   customPlaceholder="Describe the depth placement"
                                 />
-                                <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3 text-xs text-gray-300">
+                                <div className="rounded-2xl border border-border bg-bg/20 px-3 py-3 text-xs text-textSecondary">
                                   <div className="flex items-center justify-between gap-2">
                                     <div>
-                                      <p className="uppercase tracking-[0.3em] text-indigo-200">Packaging kit</p>
-                                      <p className="text-gray-400 mt-1">Keep the entire box and inserts visible in every render.</p>
+                                      <p className="uppercase tracking-[0.3em] text-accent">Packaging kit</p>
+                                      <p className="text-textSecondary mt-1">Keep the entire box and inserts visible in every render.</p>
                                     </div>
                                     <label className="relative inline-flex cursor-pointer items-center gap-2">
                                       <input
@@ -5305,30 +5305,30 @@ If the model attempts to create a scene or environment, override it and force a 
                                         aria-label="Packaging contains multiple products"
                                       />
                                       <div
-                                        className={`relative h-5 w-10 rounded-full transition ${isMultiProductPackaging ? 'bg-indigo-500' : 'bg-gray-700'
+                                        className={`relative h-5 w-10 rounded-full transition ${isMultiProductPackaging ? 'bg-accent' : 'bg-surfaceTint'
                                           }`}
                                       >
                                         <span
-                                          className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${isMultiProductPackaging ? 'translate-x-4' : ''
+                                          className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-surface shadow transition ${isMultiProductPackaging ? 'translate-x-4' : ''
                                             }`}
                                         />
                                       </div>
-                                      <span className={`text-xs font-semibold ${isMultiProductPackaging ? 'text-indigo-200' : 'text-gray-500'}`}>
+                                      <span className={`text-xs font-semibold ${isMultiProductPackaging ? 'text-accent' : 'text-textMuted'}`}>
                                         {isMultiProductPackaging ? 'Active' : 'Off'}
                                       </span>
                                     </label>
                                   </div>
                                 </div>
-                                <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-2">
+                                <div className="rounded-2xl border border-border bg-bg/20 p-4 space-y-2">
                                   <div className="flex flex-wrap items-center justify-between gap-2">
                                     <div>
-                                      <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Supplement photo modes</p>
-                                      <p className="text-[11px] text-gray-400">Preset palettes inspired by top supplement launches.</p>
+                                      <p className="text-xs uppercase tracking-[0.35em] text-accent">Supplement photo modes</p>
+                                      <p className="text-[11px] text-textSecondary">Preset palettes inspired by top supplement launches.</p>
                                     </div>
                                     <button
                                       type="button"
                                       onClick={() => handleSupplementPresetSelect('none')}
-                                      className="rounded-full border border-white/15 px-3 py-1 text-xs text-gray-300 hover:border-indigo-400 hover:text-white"
+                                      className="rounded-full border border-border px-3 py-1 text-xs text-textSecondary hover:border-accent hover:text-white"
                                     >
                                       Clear
                                     </button>
@@ -5340,17 +5340,17 @@ If the model attempts to create a scene or environment, override it and force a 
                                         type="button"
                                         onClick={() => handleSupplementPresetSelect(preset.value)}
                                         className={`rounded-full border px-3 py-1 text-xs transition ${activeSupplementPreset === preset.value
-                                          ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                                          : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
+                                          ? 'border-accent bg-accentSoft text-white'
+                                          : 'border-border text-textSecondary hover:border-accent hover:text-white'
                                           }`}
                                         title={preset.description}
                                       >
                                         <div className="flex items-center gap-1 relative group">
                                           <span>{preset.label}</span>
                                           {preset.tooltip && (
-                                            <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
+                                            <span className="text-xs text-textSecondary cursor-pointer group-hover:text-white">
                                               ⓘ
-                                              <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                                              <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-bg/90 text-white text-xs p-2 rounded shadow-lg w-44">
                                                 {preset.tooltip}
                                               </div>
                                             </span>
@@ -5361,37 +5361,37 @@ If the model attempts to create a scene or environment, override it and force a 
                                   </div>
                                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                                     <div className="flex flex-col gap-1">
-                                      <label className="text-xs uppercase tracking-widest text-gray-500">Background color</label>
+                                      <label className="text-xs uppercase tracking-widest text-textMuted">Background color</label>
                                       <input
                                         type="text"
                                         value={supplementBackgroundColor}
                                         onChange={event => setSupplementBackgroundColor(event.target.value)}
                                         placeholder="e.g., #FFB347 or pastel peach"
-                                        className="rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                                        className="rounded-lg border border-border bg-bg px-3 py-2 text-sm text-white focus:border-accent focus:outline-none"
                                       />
                                     </div>
                                     <div className="flex flex-col gap-1">
-                                      <label className="text-xs uppercase tracking-widest text-gray-500">Accent color / props</label>
+                                      <label className="text-xs uppercase tracking-widest text-textMuted">Accent color / props</label>
                                       <input
                                         type="text"
                                         value={supplementAccentColor}
                                         onChange={event => setSupplementAccentColor(event.target.value)}
                                         placeholder="e.g., teal acrylic cube"
-                                        className="rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                                        className="rounded-lg border border-border bg-bg px-3 py-2 text-sm text-white focus:border-accent focus:outline-none"
                                       />
                                     </div>
                                   </div>
                                   {isHeroLandingMode && (
                                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                                       <div className="flex flex-col gap-1">
-                                        <label className="text-xs uppercase tracking-widest text-gray-500">Product alignment</label>
+                                        <label className="text-xs uppercase tracking-widest text-textMuted">Product alignment</label>
                                         <div className="flex flex-wrap gap-2">
                                           {HERO_ALIGNMENT_OPTIONS.map(option => (
                                             <button
                                               key={option.value}
                                               type="button"
                                               onClick={() => setHeroProductAlignment(option.value)}
-                                              className={`rounded-full border px-3 py-1 text-xs transition ${heroProductAlignment === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+                                              className={`rounded-full border px-3 py-1 text-xs transition ${heroProductAlignment === option.value ? 'border-accent bg-accentSoft text-white' : 'border-border text-textSecondary hover:border-accent hover:text-white'}`}
                                             >
                                               {option.label}
                                             </button>
@@ -5399,7 +5399,7 @@ If the model attempts to create a scene or environment, override it and force a 
                                         </div>
                                       </div>
                                       <div className="flex flex-col gap-1">
-                                        <label className="text-xs uppercase tracking-widest text-gray-500">Product scale</label>
+                                        <label className="text-xs uppercase tracking-widest text-textMuted">Product scale</label>
                                         <input
                                           type="number"
                                           min="0.5"
@@ -5411,19 +5411,19 @@ If the model attempts to create a scene or environment, override it and force a 
                                             if (Number.isNaN(value)) return;
                                             setHeroProductScale(Math.max(0.3, Math.min(3, value)));
                                           }}
-                                          className="rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                                          className="rounded-lg border border-border bg-bg px-3 py-2 text-sm text-white focus:border-accent focus:outline-none"
                                         />
-                                        <p className="text-[11px] text-gray-500">1 = original sizing. Increase for bolder hero presence.</p>
+                                        <p className="text-[11px] text-textMuted">1 = original sizing. Increase for bolder hero presence.</p>
                                       </div>
                                       <div className="flex flex-col gap-1 sm:col-span-2">
-                                        <label className="text-xs uppercase tracking-widest text-gray-500">Shadow style</label>
+                                        <label className="text-xs uppercase tracking-widest text-textMuted">Shadow style</label>
                                         <div className="flex flex-wrap gap-2">
                                           {HERO_SHADOW_OPTIONS.map(option => (
                                             <button
                                               key={option.value}
                                               type="button"
                                               onClick={() => setHeroShadowStyle(option.value)}
-                                              className={`rounded-full border px-3 py-1 text-xs transition ${heroShadowStyle === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+                                              className={`rounded-full border px-3 py-1 text-xs transition ${heroShadowStyle === option.value ? 'border-accent bg-accentSoft text-white' : 'border-border text-textSecondary hover:border-accent hover:text-white'}`}
                                             >
                                               {option.label}
                                             </button>
@@ -5434,30 +5434,30 @@ If the model attempts to create a scene or environment, override it and force a 
                                   )}
                                   {renderFormulationStoryPanel('product')}
                                   <div className="flex flex-col gap-2">
-                                    <label className="text-xs uppercase tracking-widest text-gray-500">Flavor / ingredient props</label>
+                                    <label className="text-xs uppercase tracking-widest text-textMuted">Flavor / ingredient props</label>
                                     <textarea
                                       value={supplementFlavorNotes}
                                       onChange={event => setSupplementFlavorNotes(event.target.value)}
                                       placeholder="e.g., pineapple, lavender sprigs, gummy vitamins"
-                                      className="rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                                      className="rounded-lg border border-border bg-bg px-3 py-2 text-sm text-white focus:border-accent focus:outline-none"
                                       rows={2}
                                     />
                                   </div>
                                   <div className="flex flex-col gap-2">
-                                    <label className="text-xs uppercase tracking-widest text-gray-500">Custom hero cue</label>
+                                    <label className="text-xs uppercase tracking-widest text-textMuted">Custom hero cue</label>
                                     <textarea
                                       value={supplementCustomPrompt}
                                       onChange={event => setSupplementCustomPrompt(event.target.value)}
                                       placeholder="e.g., have a manicured hand toss gummies mid-air beside the bottle"
-                                      className="rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                                      className="rounded-lg border border-border bg-bg px-3 py-2 text-sm text-white focus:border-accent focus:outline-none"
                                       rows={2}
                                     />
-                                    <p className="text-[11px] text-gray-500">We append this line directly to the prompt so you can call out extra beats (hands, props, typography, etc.).</p>
+                                    <p className="text-[11px] text-textMuted">We append this line directly to the prompt so you can call out extra beats (hands, props, typography, etc.).</p>
                                   </div>
-                                  <label className="flex items-center gap-2 text-xs text-gray-300">
+                                  <label className="flex items-center gap-2 text-xs text-textSecondary">
                                     <input
                                       type="checkbox"
-                                      className="h-4 w-4 rounded border-gray-600 bg-gray-900 text-indigo-500 focus:ring-indigo-400"
+                                      className="h-4 w-4 rounded border-border bg-bg text-accent focus:ring-indigo-400"
                                       checked={includeSupplementHand}
                                       onChange={event => setIncludeSupplementHand(event.target.checked)}
                                     />
@@ -5476,11 +5476,11 @@ If the model attempts to create a scene or environment, override it and force a 
                                   selectedValue={options.placementCamera}
                                   onChange={(value) => handleOptionChange('placementCamera', value, 'Product Details')}
                                 />
-                                <div className="rounded-2xl border border-white/10 bg-gray-900/40 p-4 space-y-4">
+                                <div className="rounded-2xl border border-border bg-bg/40 p-4 space-y-4">
                                   <div className="flex items-center justify-between">
                                     <div>
-                                      <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Pro photographer mode</p>
-                                      <p className="text-xs text-gray-400">Unlock lens + lighting controls for hero product shoots.</p>
+                                      <p className="text-xs uppercase tracking-[0.3em] text-accent">Pro photographer mode</p>
+                                      <p className="text-xs text-textSecondary">Unlock lens + lighting controls for hero product shoots.</p>
                                     </div>
                                     <label className="relative inline-flex cursor-pointer items-center gap-2">
                                       <input
@@ -5490,15 +5490,15 @@ If the model attempts to create a scene or environment, override it and force a 
                                         onChange={handleProPhotographerToggle}
                                       />
                                       <div
-                                        className={`relative h-5 w-10 rounded-full transition ${isProPhotographer ? 'bg-indigo-500' : 'bg-gray-700'
+                                        className={`relative h-5 w-10 rounded-full transition ${isProPhotographer ? 'bg-accent' : 'bg-surfaceTint'
                                           }`}
                                       >
                                         <span
-                                          className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${isProPhotographer ? 'translate-x-4' : ''
+                                          className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-surface shadow transition ${isProPhotographer ? 'translate-x-4' : ''
                                             }`}
                                         />
                                       </div>
-                                      <span className={`text-xs font-semibold ${isProPhotographer ? 'text-indigo-200' : 'text-gray-500'}`}>
+                                      <span className={`text-xs font-semibold ${isProPhotographer ? 'text-accent' : 'text-textMuted'}`}>
                                         {isProPhotographer ? 'Active' : 'Off'}
                                       </span>
                                     </label>
@@ -5511,7 +5511,7 @@ If the model attempts to create a scene or environment, override it and force a 
                                             key={preset.value}
                                             type="button"
                                             onClick={() => handleProPresetSelect(preset.value)}
-                                            className={`rounded-full border px-3 py-1 text-xs transition ${activeProPreset === preset.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+                                            className={`rounded-full border px-3 py-1 text-xs transition ${activeProPreset === preset.value ? 'border-accent bg-accentSoft text-white' : 'border-border text-textSecondary hover:border-accent hover:text-white'}`}
                                           >
                                             {preset.label}
                                           </button>
@@ -5519,7 +5519,7 @@ If the model attempts to create a scene or environment, override it and force a 
                                         <button
                                           type="button"
                                           onClick={() => handleProPresetSelect('custom')}
-                                          className={`rounded-full border px-3 py-1 text-xs transition ${activeProPreset === 'custom' ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'}`}
+                                          className={`rounded-full border px-3 py-1 text-xs transition ${activeProPreset === 'custom' ? 'border-accent bg-accentSoft text-white' : 'border-border text-textSecondary hover:border-accent hover:text-white'}`}
                                         >
                                           Custom build
                                         </button>
@@ -5589,7 +5589,7 @@ If the model attempts to create a scene or environment, override it and force a 
                     <button
                       onClick={() => handleGenerateClick()}
                       disabled={isImageLoading || !uploadedImageFile}
-                      className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-900/50 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+                      className="w-full bg-accent hover:bg-accent disabled:bg-surfaceTint disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
                     >
                       {isImageLoading ? 'Generating...' : 'Generate Mockup'}
                     </button>
@@ -5650,21 +5650,21 @@ If the model attempts to create a scene or environment, override it and force a 
           <button
             onClick={handleAddTestCredits}
             disabled={adminDevLoading}
-            className="rounded-full border border-white/30 bg-white/10 px-4 py-2 text-xs font-semibold text-white/80 shadow-lg backdrop-blur hover:bg-white/20 disabled:opacity-50"
+            className="rounded-full border border-borderStrong bg-surfaceTint px-4 py-2 text-xs font-semibold text-white/80 shadow-lg backdrop-blur hover:bg-surface/20 disabled:opacity-50"
           >
             Add 100 Test Credits
           </button>
           <button
             onClick={handleResetAccount}
             disabled={adminDevLoading}
-            className="rounded-full border border-white/30 bg-white/10 px-4 py-2 text-xs font-semibold text-white/80 shadow-lg backdrop-blur hover:bg-white/20 disabled:opacity-50"
+            className="rounded-full border border-borderStrong bg-surfaceTint px-4 py-2 text-xs font-semibold text-white/80 shadow-lg backdrop-blur hover:bg-surface/20 disabled:opacity-50"
           >
             Reset My Account
           </button>
           {(adminDevMessage || adminDevError) && (
             <div className="text-[11px] leading-tight">
-              {adminDevMessage && <div className="text-emerald-300">{adminDevMessage}</div>}
-              {adminDevError && <div className="text-rose-300">{adminDevError}</div>}
+              {adminDevMessage && <div className="text-accent">{adminDevMessage}</div>}
+              {adminDevError && <div className="text-textMuted">{adminDevError}</div>}
             </div>
           )}
         </div>

@@ -21,10 +21,10 @@ const BlogArticlePage: React.FC = () => {
 
   if (!article) {
     return (
-      <div className="bg-gray-950 text-white min-h-screen flex flex-col">
+      <div className="bg-bg text-textPrimary min-h-screen flex flex-col">
         <div className="max-w-5xl mx-auto px-4 py-20">
-          <p className="text-sm text-gray-400">Article not found.</p>
-          <Link to="/blog" className="inline-flex mt-4 text-indigo-300">
+          <p className="text-sm text-textSecondary">Article not found.</p>
+          <Link to="/blog" className="inline-flex mt-4 text-accent">
             Back to blog
           </Link>
         </div>
@@ -33,21 +33,21 @@ const BlogArticlePage: React.FC = () => {
   }
 
   return (
-    <div className="bg-gray-950 text-white min-h-screen">
+    <div className="bg-bg text-textPrimary min-h-screen">
       <div className="max-w-5xl mx-auto px-4 py-12 space-y-10">
-        <section className="blog-hero rounded-3xl border border-white/10 bg-gradient-to-br from-indigo-500/30 to-purple-500/30 p-8 space-y-4">
-          <Link className="text-sm text-gray-200 underline" to="/blog">
+        <section className="blog-hero rounded-apple-xl border border-border bg-surfaceTint p-8 space-y-4 shadow-accent">
+          <Link className="text-sm text-textPrimary underline" to="/blog">
             ← Back to blog
           </Link>
           <div className="space-y-3">
-            <p className="text-xs uppercase tracking-[0.4em] text-indigo-200">Blog</p>
+            <p className="text-xs uppercase tracking-[0.4em] text-accent">Blog</p>
             <h1 className="text-4xl font-semibold leading-tight">{article.title}</h1>
-            <p className="text-lg text-gray-200 max-w-3xl">{article.subtitle}</p>
+            <p className="text-lg text-textPrimary max-w-3xl">{article.subtitle}</p>
           </div>
-          <figure className="rounded-2xl border border-white/10 bg-black/40 p-4 space-y-2">
-            <p className="text-xs uppercase tracking-[0.35em] text-gray-400">Hero prompt</p>
-            <p className="text-sm text-gray-200 leading-relaxed">{article.heroImage.prompt}</p>
-            <figcaption className="text-[11px] uppercase tracking-[0.35em] text-gray-500">
+          <figure className="rounded-apple border border-border bg-surface p-4 space-y-2">
+            <p className="text-xs uppercase tracking-[0.35em] text-textSecondary">Hero prompt</p>
+            <p className="text-sm text-textPrimary leading-relaxed">{article.heroImage.prompt}</p>
+            <figcaption className="text-[11px] uppercase tracking-[0.35em] text-textMuted">
               {article.heroImage.alt}
             </figcaption>
           </figure>
@@ -58,15 +58,15 @@ const BlogArticlePage: React.FC = () => {
             <article key={section.heading} className="space-y-3">
               <h2 className="text-2xl font-semibold">{section.heading}</h2>
               <div
-                className="space-y-2 text-gray-200 leading-relaxed"
+                className="space-y-2 text-textPrimary leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: section.body }}
               />
               {section.imagePrompt ? (
-                <figure className="rounded-2xl border border-white/10 bg-gray-900/60 p-4 space-y-2">
-                  <p className="text-xs uppercase tracking-[0.35em] text-gray-400">Image prompt</p>
-                  <p className="text-sm text-gray-200 leading-relaxed">{section.imagePrompt}</p>
+                <figure className="rounded-apple border border-border bg-surface p-4 space-y-2">
+                  <p className="text-xs uppercase tracking-[0.35em] text-textSecondary">Image prompt</p>
+                  <p className="text-sm text-textPrimary leading-relaxed">{section.imagePrompt}</p>
                   {section.imageAlt && (
-                    <figcaption className="text-[11px] uppercase tracking-[0.35em] text-gray-500">
+                    <figcaption className="text-[11px] uppercase tracking-[0.35em] text-textMuted">
                       {section.imageAlt}
                     </figcaption>
                   )}
@@ -74,11 +74,11 @@ const BlogArticlePage: React.FC = () => {
               ) : null}
             </article>
           ))}
-          <div className="blog-cta rounded-3xl border border-white/10 bg-gradient-to-br from-emerald-500/20 to-indigo-500/20 p-6 space-y-3">
+          <div className="blog-cta rounded-apple-xl border border-border bg-surfaceTint p-6 space-y-3">
             <h3 className="text-2xl font-semibold">{article.cta.title}</h3>
-            <p className="text-gray-200 leading-relaxed">{article.cta.text}</p>
+            <p className="text-textPrimary leading-relaxed">{article.cta.text}</p>
             <a
-              className="inline-flex items-center justify-center rounded-full bg-emerald-500/90 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-400"
+              className="inline-flex items-center justify-center rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white transition hover:bg-accent"
               href="/app"
             >
               {article.cta.button}

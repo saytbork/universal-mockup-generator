@@ -46,21 +46,19 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
   const containerVariantClass = (() => {
     switch (variant) {
       case 'secondary':
-        return 'bg-surfaceMuted border border-borderSubtle hover:border-accent';
       case 'expert':
-        return 'bg-surfaceMuted border border-borderSubtle hover:border-accent';
       case 'primary':
       default:
-        return 'bg-surface border border-borderSubtle';
+        return '';
     }
   })();
 
   return (
-    <div className={`rounded-apple overflow-hidden transition-colors ${containerVariantClass} ${className}`}>
+    <div className={`rounded-apple border border-border bg-surface overflow-hidden transition-colors ${containerVariantClass} ${className}`}>
       <button
         type="button"
         onClick={handleToggle}
-        className="w-full flex items-center justify-between p-4 transition-colors focus:outline-none hover:bg-surfaceElevated"
+        className="w-full flex items-center justify-between p-4 bg-surface hover:bg-surfaceElevated transition-colors focus:outline-none"
         aria-expanded={open}
       >
         <div className="flex items-center gap-3">
@@ -69,10 +67,10 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
             <div className="flex items-center gap-2">
               <p className={`text-sm font-semibold ${headerTextClass}`}>{title}</p>
               {isRequired && !isTouched && (
-                <span className="text-xs text-amber-600 dark:text-amber-400">*Required</span>
+                <span className="text-xs text-textMuted dark:text-textMuted">*Required</span>
               )}
               {isTouched && isActive && (
-                <Check className="w-4 h-4 text-green-400" />
+                <Check className="w-4 h-4 text-accent" />
               )}
             </div>
             <p className="text-xs text-textMuted opacity-80">{tooltip}</p>
@@ -83,11 +81,11 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
         />
       </button>
       <div
-        className={`grid transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] border-t border-borderSubtle ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
+        className={`grid transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] border-t border-border bg-surfaceElevated ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
       >
         <div className="overflow-hidden">
           <div className="p-4">
-            <div className="rounded-apple bg-surfaceElevated p-4">
+            <div className="rounded-apple border border-border bg-surface p-4">
               {children}
             </div>
           </div>

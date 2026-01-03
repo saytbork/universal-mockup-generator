@@ -20,7 +20,7 @@ const Slider = ({
   disabled?: boolean;
 }) => (
   <div className="flex flex-col gap-1">
-    <div className="flex items-center justify-between text-xs text-gray-400">
+    <div className="flex items-center justify-between text-xs text-textSecondary">
       <span>{label}</span>
       <span className="text-white">{value}</span>
     </div>
@@ -44,11 +44,11 @@ const BlurGrainControls: React.FC<BlurGrainControlsProps> = ({
   disabled = false,
 }) => {
   return (
-    <div className={`rounded-2xl border border-white/10 bg-black/30 p-4 space-y-3 ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
-      <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Blur & grain</p>
+    <div className={`rounded-2xl border border-border bg-bg/30 p-4 space-y-3 ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
+      <p className="text-xs uppercase tracking-[0.3em] text-accent">Blur & grain</p>
       <Slider label="Focus blur" value={blur} onChange={onBlurChange} disabled={disabled} />
       <Slider label="Grain" value={grain} onChange={onGrainChange} disabled={disabled} />
-      <p className="text-[11px] text-gray-400">Push blur/grain for raw smartphone energy.</p>
+      <p className="text-[11px] text-textSecondary">Push blur/grain for raw smartphone energy.</p>
     </div>
   );
 };

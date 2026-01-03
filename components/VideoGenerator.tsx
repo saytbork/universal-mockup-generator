@@ -40,8 +40,8 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({
   accessError,
 }) => {
   return (
-    <div className="flex flex-col items-center justify-center w-full p-4 bg-gray-800 rounded-lg border-2 border-dashed border-gray-600">
-      <h3 className="text-lg font-semibold text-gray-300 mb-4 w-full">4. Generate Video (Optional)</h3>
+    <div className="flex flex-col items-center justify-center w-full p-4 bg-surface rounded-lg border-2 border-dashed border-border">
+      <h3 className="text-lg font-semibold text-textSecondary mb-4 w-full">4. Generate Video (Optional)</h3>
       
       <div className="w-full space-y-4">
         {!hasAccess && (
@@ -58,11 +58,11 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({
                     value={accessCode}
                     onChange={(event) => onAccessCodeChange(event.target.value)}
                     placeholder="Enter access code"
-                    className="flex-1 rounded-md border border-gray-600 bg-gray-900/60 px-3 py-2 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                    className="flex-1 rounded-md border border-border bg-surfaceTint px-3 py-2 text-white text-sm focus:border-accent focus:ring-1 focus:ring-accent"
                   />
                   <button
                     onClick={onAccessSubmit}
-                    className="rounded-md bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-600 transition"
+                    className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent transition"
                   >
                     Unlock
                   </button>
@@ -75,12 +75,12 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({
           </div>
         )}
         {hasAccess && typeof remainingVideos === 'number' && planLabel && (
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-textSecondary">
             {remainingVideos} video credits left on {planLabel}
           </p>
         )}
         <div className="flex flex-col space-y-2">
-          <label htmlFor="video-prompt" className="text-sm font-medium text-gray-400">
+          <label htmlFor="video-prompt" className="text-sm font-medium text-textSecondary">
             Describe how the image should animate:
           </label>
           <input
@@ -89,24 +89,24 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({
             value={videoPrompt}
             onChange={onPromptChange}
             placeholder="e.g., steam rises from the cup, subtle wind blows"
-            className="bg-gray-700 border border-gray-600 rounded-md p-2 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 ease-in-out"
+            className="bg-surfaceTint border border-border rounded-md p-2 text-white focus:ring-2 focus:ring-accent focus:border-accent transition duration-150 ease-in-out"
           />
         </div>
 
         <button
           onClick={onGenerateVideo}
           disabled={isGenerating || !videoPrompt || !hasAccess}
-          className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-900/50 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+          className="w-full bg-accent hover:bg-accent disabled:bg-accent disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
         >
           {isVideoLoading ? 'Generating Video...' : 'Generate Video'}
         </button>
       </div>
       
-      <div className="relative w-full min-h-[10rem] flex items-center justify-center rounded-md bg-gray-900/50 mt-4">
+      <div className="relative w-full min-h-[10rem] flex items-center justify-center rounded-md bg-bg/50 mt-4">
         {isVideoLoading ? (
           <div className="text-center">
             <LoadingSpinner />
-            <p className="mt-4 text-gray-400 max-w-xs px-2">
+            <p className="mt-4 text-textSecondary max-w-xs px-2">
                 Generating video... This can take a few minutes. Please be patient.
             </p>
           </div>
@@ -124,7 +124,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({
             className="max-h-full max-w-full object-contain rounded-md"
           />
         ) : (
-          <div className="text-center text-gray-500">
+          <div className="text-center text-textMuted">
             <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.55a2.5 2.5 0 010 4.09L15 18M5 8v8a2 2 0 002 2h4a2 2 0 002-2V8a2 2 0 00-2-2H7a2 2 0 00-2 2z" />
             </svg>

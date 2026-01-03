@@ -24,18 +24,27 @@
 	                surfaceElevated: 'var(--surface-elevated)',
 	                surfaceNested: 'var(--surface-nested)',
 	                surfaceMuted: 'var(--surface-muted)',
+	                surfaceTint: 'var(--surface-tint)',
+	                'surface-elevated': 'var(--surface-elevated)',
+	                'surface-tint': 'var(--surface-tint)',
+	                border: 'var(--border)',
 	                borderSubtle: 'var(--border)',
+	                borderStrong: 'var(--border-strong)',
+	                'border-strong': 'var(--border-strong)',
 	                textPrimary: 'var(--text-primary)',
 	                textSecondary: 'var(--text-secondary)',
 	                textMuted: 'var(--text-muted)',
-	                accent: 'var(--accent-primary)',
+	                accent: 'var(--accent)',
+	                accentSoft: 'var(--accent-soft)',
+	                'accent-soft': 'var(--accent-soft)',
 	              },
 	              borderRadius: {
 	                apple: '20px',
 	                'apple-xl': '36px',
 	              },
 	              boxShadow: {
-	                glowActive: '0 0 40px rgba(79,70,229,0.25)',
+	                accent: '0 0 40px var(--accent-glow)',
+	                glowActive: '0 0 40px var(--accent-glow)',
 	              },
 	              fontFamily: {
 	                sans: ['\"Plus Jakarta Sans\"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
@@ -86,7 +95,7 @@
     /* For Firefox */
     .custom-scrollbar { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.16) transparent; }
   </style>
-<link rel="stylesheet" href="/index.css">
+<link rel="stylesheet" href="/globals.css">
 </head>
   <body class="bg-bg text-textPrimary font-sans">
     <div id="root"></div>

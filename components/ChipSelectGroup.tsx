@@ -49,13 +49,13 @@ const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
   return (
     <div className="flex flex-col space-y-3">
       <div className="flex items-center gap-2">
-        <label className="text-sm font-medium text-gray-400">{label}</label>
+        <label className="text-sm font-medium text-textSecondary">{label}</label>
         {labelTooltip && (
           <Tooltip>
             <TooltipTrigger asChild>
               <button
                 type="button"
-                className="h-6 w-6 rounded-full border border-white/20 bg-gray-700 text-xs font-semibold text-white transition hover:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="h-6 w-6 rounded-full border border-border bg-surfaceTint text-xs font-semibold text-white transition hover:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
                 aria-label={`${label} info`}
               >
                 ?
@@ -109,8 +109,8 @@ const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
                 px-3 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ease-in-out
                 border whitespace-nowrap flex-shrink-0
                 ${(customActive || isCustomValue)
-                  ? 'bg-sky-500 border-sky-400 text-white shadow-md'
-                  : 'bg-gray-700 border-gray-600 text-gray-300 hover:enabled:bg-gray-600 hover:enabled:border-gray-500'
+                  ? 'bg-accent border-accent text-white shadow-accent scale-105 duration-500'
+                  : 'bg-surface border-border text-textSecondary hover:enabled:bg-surfaceElevated hover:enabled:border-borderStrong'
                 }
                 ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
               `}
@@ -126,7 +126,7 @@ const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
             onChange={(event) => handleCustomChange(event.target.value)}
             placeholder={customPlaceholder}
             disabled={disabled}
-            className="mt-2 w-full rounded-md border border-white/20 bg-gray-800 px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 disabled:opacity-50"
+            className="mt-2 w-full rounded-apple border border-border bg-surface px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50"
           />
         )}
       </div>
