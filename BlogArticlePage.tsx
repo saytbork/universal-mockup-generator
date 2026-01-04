@@ -54,18 +54,7 @@ const BlogArticlePage: React.FC = () => {
                   (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=1000';
                 }}
               />
-              <div className="absolute top-4 right-4 group/prompt">
-                <div className="bg-black/50 backdrop-blur-md text-white px-3 py-1.5 rounded-full text-[10px] uppercase tracking-widest opacity-0 group-hover/prompt:opacity-100 transition-opacity duration-300">
-                  AI Prompt
-                </div>
-                <div className="absolute top-0 right-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white cursor-help">
-                  i
-                </div>
-                <div className="absolute top-10 right-0 w-64 bg-white p-3 rounded-xl border border-gray-200 shadow-xl opacity-0 group-hover/prompt:opacity-100 transition-opacity duration-300 pointer-events-none z-10">
-                  <p className="text-[10px] uppercase tracking-widest text-gray-500 mb-1">Generated with:</p>
-                  <p className="text-xs text-gray-900 leading-relaxed font-mono">{article.heroImage.prompt}</p>
-                </div>
-              </div>
+
             </div>
             <div className="p-4 pt-0">
               <figcaption className="text-[11px] uppercase tracking-[0.35em] text-gray-500 text-center">
@@ -83,17 +72,7 @@ const BlogArticlePage: React.FC = () => {
                 className="space-y-2 text-gray-900 leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: section.body }}
               />
-              {section.imagePrompt ? (
-                <figure className="rounded-2xl border border-gray-200 bg-white p-4 space-y-2">
-                  <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Image prompt</p>
-                  <p className="text-sm text-gray-900 leading-relaxed">{section.imagePrompt}</p>
-                  {section.imageAlt && (
-                    <figcaption className="text-[11px] uppercase tracking-[0.35em] text-gray-500">
-                      {section.imageAlt}
-                    </figcaption>
-                  )}
-                </figure>
-              ) : null}
+
             </article>
           ))}
           <div className="blog-cta rounded-3xl border border-gray-200 bg-gray-50 p-6 space-y-3">

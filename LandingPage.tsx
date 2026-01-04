@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { CheckCircle2, CreditCard, ShieldCheck, ShoppingBag, Users2, Zap, ArrowRight } from 'lucide-react';
 import PlanCheckoutModal from './components/PlanCheckoutModal';
@@ -102,6 +102,34 @@ const LandingPage: React.FC = () => {
   const [checkoutEmail, setCheckoutEmail] = useState('');
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [activeStep, setActiveStep] = useState(0);
+  const [isHoveringSteps, setIsHoveringSteps] = useState(false);
+
+  const steps = [
+    {
+      title: 'Step 1 — Upload your product',
+      description: 'Use your existing product image. No perfect photography required.',
+      icon: <ShoppingBag className="w-5 h-5" />,
+    },
+    {
+      title: 'Step 2 — Choose how it’s seen',
+      description: 'Product (Studio) or Lifestyle. UGC or Editorial when lifestyle is selected.',
+      icon: <Zap className="w-5 h-5" />,
+    },
+    {
+      title: 'Step 3 — Generate mockups',
+      description: 'Instant visuals ready for ecommerce, ads and social.',
+      icon: <Users2 className="w-5 h-5" />,
+    },
+  ];
+
+  useEffect(() => {
+    if (isHoveringSteps) return;
+    const interval = setInterval(() => {
+      setActiveStep(current => (current + 1) % steps.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [isHoveringSteps, steps.length]);
 
   const previewModes = [
     {
@@ -366,35 +394,115 @@ const LandingPage: React.FC = () => {
           </div>
         </section>
 
-        <section className="max-w-6xl mx-auto px-6 py-14 space-y-10">
-          <div className="text-center space-y-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">How it works</p>
-            <h2 className="text-3xl text-gray-900 font-semibold">From product to visuals in minutes</h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-5">
-            {[
-              {
-                title: 'Step 1 — Upload your product',
-                description: 'Use your existing product image. No perfect photography required.',
-              },
-              {
-                title: 'Step 2 — Choose how it’s seen',
-                description: 'Product (Studio) or Lifestyle. UGC or Editorial when lifestyle is selected.',
-              },
-              {
-                title: 'Step 3 — Generate mockups',
-                description: 'Instant visuals ready for ecommerce, ads and social.',
-              },
-            ].map((card, index) => (
+        <section className="bg-white border-y border-gray-100 overflow-hidden">
+          <div className="max-w-6xl mx-auto px-6 py-20 space-y-12">
+            <div className="text-center space-y-3">
+              <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">How it works</p>
+              <h2 className="text-3xl sm:text-4xl text-gray-900 font-bold tracking-tight">From product to visuals in minutes</h2>
+            </div>
+
+            <div className="grid gap-12 lg:grid-cols-2 items-center">
+              {/* Left Side: Step Cards */}
               <div
-                key={card.title}
-                className="rounded-2xl border border-gray-200 bg-gray-50 p-5 text-left transition transform hover:-translate-y-1 hover:border-indigo-600"
-                style={{ animationDelay: `${0.1 * (index + 1)}s` }}
+                className="space-y-4"
+                onMouseEnter={() => setIsHoveringSteps(true)}
+                onMouseLeave={() => setIsHoveringSteps(false)}
               >
-                <p className="text-xs uppercase tracking-widest text-gray-500">{card.title}</p>
-                <p className="mt-3 text-gray-600">{card.description}</p>
+                {steps.map((step, index) => {
+                  const isActive = activeStep === index;
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => setActiveStep(index)}
+                      className={`w-full text-left p-6 rounded-3xl border transition-all duration-500 relative overflow-hidden group ${isActive
+                        ? 'bg-white border-indigo-100 shadow-xl shadow-indigo-500/10'
+                        : 'bg-transparent border-transparent hover:bg-gray-50'
+                        }`}
+                    >
+                      {isActive && (
+                        <div className="absolute bottom-0 left-0 h-1 bg-indigo-600 animate-[progress_5s_linear_infinite]" />
+                      )}
+                      <div className="flex gap-4">
+                        <div className={`mt-1 flex-shrink-0 w-10 h-10 rounded-2xl flex items-center justify-center transition-colors duration-500 ${isActive ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-400 group-hover:bg-gray-200'
+                          }`}>
+                          {step.icon}
+                        </div>
+                        <div className="space-y-1">
+                          <h3 className={`text-lg font-bold transition-colors duration-500 ${isActive ? 'text-gray-900' : 'text-gray-500'}`}>
+                            {step.title}
+                          </h3>
+                          <p className={`text-sm leading-relaxed transition-colors duration-500 ${isActive ? 'text-gray-600' : 'text-gray-400'}`}>
+                            {step.description}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
-            ))}
+
+              {/* Right Side: Visual Sandbox */}
+              <div className="relative aspect-square sm:aspect-video lg:aspect-square bg-gray-50 rounded-[40px] border border-gray-100 overflow-hidden shadow-2xl">
+                {/* Visual Step 1: Upload */}
+                <div className={`absolute inset-0 p-8 flex flex-col items-center justify-center transition-all duration-700 ${activeStep === 0 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-95 pointer-events-none'
+                  }`}>
+                  <div className="w-full max-w-sm aspect-square bg-white border-2 border-dashed border-gray-200 rounded-3xl flex flex-col items-center justify-center gap-4 relative overflow-hidden group">
+                    <div className="w-16 h-16 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 animate-bounce">
+                      <ShoppingBag className="w-8 h-8" />
+                    </div>
+                    <p className="text-sm font-semibold text-gray-900">Drop your product photo here</p>
+                    <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    {/* Simulated pulse effect */}
+                    <div className="absolute inset-x-8 bottom-8 h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-indigo-600 w-full origin-left animate-[loading_2s_ease-in-out_infinite]" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Visual Step 2: Choose */}
+                <div className={`absolute inset-0 p-8 flex flex-col items-center justify-center transition-all duration-700 ${activeStep === 1 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-95 pointer-events-none'
+                  }`}>
+                  <div className="w-full max-w-sm space-y-6">
+                    <div className="bg-white p-4 rounded-3xl shadow-lg border border-gray-100 grid grid-cols-2 gap-3">
+                      <div className="aspect-square rounded-2xl bg-indigo-600 flex flex-col items-center justify-center text-white gap-2 border-4 border-indigo-200">
+                        <Zap className="w-8 h-8" />
+                        <span className="text-xs font-bold uppercase tracking-widest text-white/90">Lifestyle</span>
+                      </div>
+                      <div className="aspect-square rounded-2xl bg-gray-50 flex flex-col items-center justify-center text-gray-400 gap-2 grayscale">
+                        <ShoppingBag className="w-8 h-8" />
+                        <span className="text-xs font-bold uppercase tracking-widest">Studio</span>
+                      </div>
+                    </div>
+                    <div className="bg-white p-4 rounded-3xl shadow-lg border border-gray-100 flex items-center justify-between">
+                      <span className="text-xs font-bold tracking-widest uppercase text-gray-400">Atmosphere</span>
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4].map(i => <div key={i} className={`w-6 h-6 rounded-lg ${i === 1 ? 'bg-indigo-600' : 'bg-gray-100'}`} />)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Visual Step 3: Generate */}
+                <div className={`absolute inset-0 p-8 flex flex-col items-center justify-center transition-all duration-700 ${activeStep === 2 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-95 pointer-events-none'
+                  }`}>
+                  <div className="w-full max-w-sm aspect-square relative rounded-3xl overflow-hidden shadow-2xl group">
+                    <img
+                      src="/images/home/Lifestyle-UGC.webp"
+                      alt="UGC Mockup"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-6">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                        <span className="text-xs font-bold text-white uppercase tracking-widest">Visual Generated</span>
+                      </div>
+                    </div>
+                    {/* Scanner animation */}
+                    <div className="absolute inset-x-0 top-0 h-1 bg-indigo-400 shadow-[0_0_15px_rgba(129,140,248,0.8)] animate-[scan_3s_ease-in-out_infinite]" />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
