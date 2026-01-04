@@ -342,7 +342,9 @@ const LandingPage: React.FC = () => {
                     }`}
                   >
                     <p className="font-semibold">{mode.title}</p>
-                    <p className="text-sm text-gray-600 mt-1">{mode.description}</p>
+                    <p className={`text-sm mt-1 ${activePreview === mode.id ? 'text-white/80' : 'text-gray-600'}`}>
+                      {mode.description}
+                    </p>
                   </button>
                 ))}
               </div>
@@ -522,7 +524,7 @@ const LandingPage: React.FC = () => {
                   </label>
                   <span className="text-sm text-gray-600">
                     Billed yearly{' '}
-                    <span className="ml-1 rounded-full bg-indigo-600 text-white px-2 py-0.5 text-xs text-indigo-600">
+                    <span className="ml-1 rounded-full bg-indigo-600 text-white px-2 py-0.5 text-xs">
                       Save 20%
                     </span>
                   </span>
