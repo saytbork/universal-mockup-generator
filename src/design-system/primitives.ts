@@ -1,5 +1,5 @@
 export const surface = {
-  page: 'bg-bg text-gray-900',
+  page: 'bg-gray-50 text-gray-900 dark:bg-black dark:text-white',
   level1: 'bg-white border border-gray-200 rounded-2xl',
   level2: 'bg-whiteTint border border-gray-200 rounded-2xl',
   level3: 'bg-whiteTint border border-gray-200 rounded-2xl',

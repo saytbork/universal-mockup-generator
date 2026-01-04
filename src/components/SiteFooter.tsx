@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 
 const SiteFooter: React.FC = () => {
   return (
-    <footer className="bg-bg border-t border-gray-200 text-gray-600">
+    <footer className="bg-gray-50 border-t border-gray-200 text-gray-600 dark:bg-black dark:border-white/10 dark:text-white/70">
       <div className="max-w-6xl mx-auto px-6 py-12 space-y-8">
         <div className="space-y-2">
           <p className="text-xl font-semibold text-gray-900">Perfect Mockup</p>

@@ -1,4 +1,5 @@
 import React from 'react';
+import './index.css';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App';
@@ -37,7 +38,7 @@ class RootErrorBoundary extends React.Component<
     if (!this.state.error) return this.props.children;
 
     return (
-      <div className="min-h-screen bg-bg text-gray-900 flex items-center justify-center px-6">
+      <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-black dark:text-white flex items-center justify-center px-6">
         <div className="w-full max-w-xl rounded-3xl border border-gray-200 bg-white p-8 space-y-4 shadow-md shadow-md shadow-indigo-500/20">
           <div className="text-xs uppercase tracking-[0.35em] text-indigo-600">Perfect Mockup</div>
           <h1 className="text-2xl font-semibold">Something went wrong</h1>
@@ -64,7 +65,7 @@ class RootErrorBoundary extends React.Component<
 }
 
 const MarketingLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="bg-bg text-gray-900 min-h-screen flex flex-col">
+  <div className="bg-gray-50 text-gray-900 dark:bg-black dark:text-white min-h-screen flex flex-col">
     <SiteNav />
     <main className="flex-1">{children}</main>
     <SiteFooter />

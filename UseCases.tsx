@@ -47,7 +47,7 @@ const sections = [
 
 const UseCases: React.FC = () => {
   return (
-    <div className="bg-bg text-gray-900 min-h-screen">
+    <div className="bg-gray-50 text-gray-900 dark:bg-black dark:text-white min-h-screen">
       <div className="relative max-w-5xl mx-auto px-4 py-20 space-y-12">
         <div className="absolute inset-0 blur-3xl opacity-40 pointer-events-none" style={{ background: 'radial-gradient(circle at 20% 20%, var(--accent-glow), transparent 45%)' }} />
         <div className="relative space-y-4">

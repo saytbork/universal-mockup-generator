@@ -124,7 +124,7 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-bg text-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-black dark:text-white flex items-center justify-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.92 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -140,7 +140,7 @@ export default function Dashboard() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-bg text-gray-900">
+    <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-black dark:text-white">
       <div className="max-w-6xl mx-auto px-6 py-10 space-y-8">
         {/* Header */}
         <motion.div

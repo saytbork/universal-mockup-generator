@@ -1,7 +1,8 @@
 import React, { useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, CreditCard, ShieldCheck, ShoppingBag, Users2, Zap } from 'lucide-react';
+import { CheckCircle2, CreditCard, ShieldCheck, ShoppingBag, Users2, Zap, ArrowRight } from 'lucide-react';
 import PlanCheckoutModal from './components/PlanCheckoutModal';
+import { getAllBlogArticles } from './src/content/blog';
 
 type PlanMetadata = {
   plan: 'creator' | 'studio';
@@ -201,8 +202,10 @@ const LandingPage: React.FC = () => {
     }
   };
 
+  const blogArticles = getAllBlogArticles().slice(0, 4);
+
   return (
-    <div className="min-h-screen bg-bg text-gray-900">
+    <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-black dark:text-white">
       <div className="bg-gray-50">
         <nav className="relative z-10 max-w-6xl mx-auto px-6 py-8 flex items-center justify-between">
           <div className="text-sm font-semibold uppercase tracking-[0.3em] text-gray-900">Perfect Mockup</div>
@@ -335,11 +338,10 @@ const LandingPage: React.FC = () => {
                     key={mode.id}
                     type="button"
                     onClick={() => setActivePreview(mode.id)}
-                    className={`w-full text-left rounded-2xl border p-4 transition ${
-                      activePreview === mode.id
-                        ? 'bg-indigo-600 text-white border-indigo-600'
-                        : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-indigo-600'
-                    }`}
+                    className={`w-full text-left rounded-2xl border p-4 transition ${activePreview === mode.id
+                      ? 'bg-indigo-600 text-white border-indigo-600'
+                      : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-indigo-600'
+                      }`}
                   >
                     <p className="font-semibold">{mode.title}</p>
                     <p className={`text-sm mt-1 ${activePreview === mode.id ? 'text-white/80' : 'text-gray-600'}`}>
@@ -356,9 +358,9 @@ const LandingPage: React.FC = () => {
                   className="h-full w-full object-cover"
                   loading="lazy"
                 />
-	                <div className="absolute bottom-4 left-4 right-4 rounded-2xl bg-gray-50 px-4 py-3 text-sm">
-	                  <p className="text-gray-900 font-semibold">{activePreviewMode.title}</p>
-	                </div>
+                <div className="absolute bottom-4 left-4 right-4 rounded-2xl bg-gray-50 px-4 py-3 text-sm">
+                  <p className="text-gray-900 font-semibold">{activePreviewMode.title}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -497,6 +499,56 @@ const LandingPage: React.FC = () => {
           </div>
         </section>
 
+        <section className="bg-gray-50 border-y border-gray-200">
+          <div className="max-w-6xl mx-auto px-6 py-16 space-y-10">
+            <div className="text-center space-y-3">
+              <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Resources</p>
+              <h2 className="text-3xl text-gray-900 font-semibold">Latest from our Blog</h2>
+              <p className="text-gray-600 max-w-3xl mx-auto mt-3">
+                Insights, guides, and tactics to help you win with AI-driven visuals.
+              </p>
+            </div>
+
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {blogArticles.map(article => (
+                <Link
+                  key={article.slug}
+                  to={`/blog/${article.slug}`}
+                  className="group flex flex-col rounded-2xl border border-gray-200 bg-white overflow-hidden transition transform hover:-translate-y-1 hover:border-indigo-600 shadow-sm"
+                >
+                  <div className="aspect-video w-full bg-gray-100 relative overflow-hidden">
+                    <img
+                      src={article.heroImage.url || `/blog/heroes/${article.slug}.webp`}
+                      alt={article.heroImage.alt}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                  <div className="flex-1 p-5 space-y-3">
+                    <h3 className="text-lg font-semibold text-gray-900 leading-tight group-hover:text-indigo-600 transition-colors">
+                      {article.title}
+                    </h3>
+                    <p className="text-sm text-gray-600 line-clamp-3">
+                      {article.subtitle}
+                    </p>
+                    <div className="mt-auto pt-4 flex items-center gap-1 text-sm font-medium text-indigo-600">
+                      Read article <ArrowRight className="w-4 h-4" />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            <div className="text-center mt-8">
+              <Link
+                to="/blog"
+                className="inline-flex items-center justify-center rounded-full border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-gray-600 hover:border-indigo-600 hover:text-gray-900 transition shadow-sm"
+              >
+                View All Articles
+              </Link>
+            </div>
+          </div>
+        </section>
+
         <section id="pricing" className="relative isolate mt-10 px-4 py-20 sm:px-6 lg:px-8">
           <div className="absolute inset-0 -z-10 rounded-3xl bg-gray-50" />
           <div className="max-w-6xl mx-auto text-gray-900 space-y-12">
@@ -587,11 +639,10 @@ const LandingPage: React.FC = () => {
                       return (
                         <a
                           href={targetUrl || '#'}
-                          className={`mt-auto w-full rounded-full px-4 py-3 text-sm font-semibold transition text-center ${
-                            plan.featured
-                              ? 'bg-white text-gray-900 hover:bg-gray-50'
-                              : 'bg-indigo-600 text-white hover:bg-indigo-600 text-white'
-                          }`}
+                          className={`mt-auto w-full rounded-full px-4 py-3 text-sm font-semibold transition text-center ${plan.featured
+                            ? 'bg-white text-gray-900 hover:bg-gray-50'
+                            : 'bg-indigo-600 text-white hover:bg-indigo-600 text-white'
+                            }`}
                         >
                           {plan.cta}
                         </a>

@@ -14,37 +14,6 @@
     href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet">
   <script>
-    window.tailwind = window.tailwind || {};
-    window.tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            bg: 'var(--bg)',
-            surface: 'var(--surface)',
-            surfaceElevated: 'var(--surface-elevated)',
-            surfaceTint: 'var(--surface-tint)',
-            borderSubtle: 'var(--border)',
-            textPrimary: 'var(--text-primary)',
-            textSecondary: 'var(--text-secondary)',
-            textMuted: 'var(--text-muted)',
-            accent: 'var(--accent-primary)',
-            success: 'var(--success)',
-          },
-          borderRadius: {
-            apple: '20px',
-            'apple-xl': '36px',
-          },
-          boxShadow: {
-            'accent-glow': '0 18px 40px var(--accent-glow)',
-          },
-          fontFamily: {
-            sans: ['\"Plus Jakarta Sans\"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-            mono: ['\"JetBrains Mono\"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
-          },
-        },
-      },
-    };
     (function () {
       try {
         var stored = localStorage.getItem('theme');
@@ -54,17 +23,6 @@
       } catch (e) { }
     })();
   </script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style type="text/tailwindcss">
-    @layer utilities {
-        .heading-lg { @apply text-2xl font-semibold tracking-tight text-gray-900; }
-        .heading-md { @apply text-lg font-semibold tracking-tight text-gray-900; }
-        .body { @apply text-sm text-gray-900; }
-        .label { @apply text-xs font-medium uppercase tracking-[0.18em] text-gray-600; }
-        .helper { @apply text-xs text-gray-500; }
-        .mono-data { @apply font-mono text-xs text-gray-600; }
-      }
-    </style>
 
   <style>
     /* Custom scrollbar for webkit browsers */
@@ -96,7 +54,7 @@
   <link rel="stylesheet" href="/globals.css">
 </head>
 
-<body class="bg-bg text-textPrimary font-sans">
+<body class="bg-gray-50 text-gray-900 dark:bg-black dark:text-white font-sans">
   <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
 </body>

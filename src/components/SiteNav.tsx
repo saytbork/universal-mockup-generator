@@ -132,8 +132,8 @@ const SiteNav: React.FC = () => {
       </div>
 
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-[999] bg-bg">
-          <div className="relative max-w-sm w-full h-full mx-auto bg-bg border border-gray-200 p-6 flex flex-col gap-6">
+        <div className="md:hidden fixed inset-0 z-[999] bg-gray-50 dark:bg-black">
+          <div className="relative max-w-sm w-full h-full mx-auto bg-gray-50 border border-gray-200 p-6 flex flex-col gap-6 dark:bg-black dark:border-white/10">
             <div className="flex items-center justify-between">
               <span className="text-gray-900 font-semibold text-lg">Menu</span>
               <div className="flex items-center gap-2">

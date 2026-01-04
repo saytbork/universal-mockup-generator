@@ -5028,7 +5028,7 @@ If the model attempts to create a scene or environment, override it and force a 
       />
 
       {showGoalWizard && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-bg px-4">
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-gray-50 dark:bg-black px-4">
           <div className="w-full max-w-3xl rounded-3xl border border-gray-200 bg-white/10 p-6 md:p-10 shadow-md shadow-md shadow-indigo-500/20 space-y-6">
             <div className="flex items-center justify-between">
               <div>
@@ -5191,9 +5191,6 @@ If the model attempts to create a scene or environment, override it and force a 
         <div className="max-w-7xl mx-auto relative">
           <header className="relative mb-20 flex items-center justify-between">
             <div className="flex flex-col">
-              <span className="text-[10px] uppercase tracking-[0.5em] text-indigo-600 dark:text-indigo-300 font-medium mb-1">
-                Simulation System v3.0
-              </span>
               <Logo variant="appHeader" />
             </div>
 
@@ -5322,7 +5319,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
                     <div className="space-y-6">
 
-	                      <div className="bg-white rounded-xl p-8 border border-gray-200 shadow-sm text-center flex flex-col items-center justify-center min-h-[320px] relative transition-all hover:border-indigo-600/30 group dark:bg-white/5 dark:border-white/10 dark:hover:border-white/20 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+	                      <div className="bg-white rounded-xl p-8 border border-gray-200 text-center flex flex-col items-center justify-center min-h-[320px] relative transition-all hover:border-indigo-600/30 group dark:bg-white/5 dark:border-white/10 dark:hover:border-white/20 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
                         <button
                           type="button"
                           onClick={() => {
@@ -5589,12 +5586,7 @@ If the model attempts to create a scene or environment, override it and force a 
 	                  </div>
                 </div>
 
-	                <div className="rounded-xl p-4 transition-all bg-white border border-gray-200 relative lg:sticky lg:top-4 flex flex-col gap-6 min-h-[520px] dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-h-[40px]">
-                      {/* Empty header for spacing consistent with left column */}
-                    </div>
-                  </div>
+	                <div className="rounded-xl p-4 transition-all bg-white relative lg:sticky lg:top-4 flex flex-col gap-6 min-h-[520px] dark:bg-white/5 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
 
                   <GeneratedImage
                     imageUrl={generatedImageUrl}

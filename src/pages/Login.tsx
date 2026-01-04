@@ -26,7 +26,7 @@ export default function Login() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-bg text-gray-900 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-black dark:text-white flex items-center justify-center px-4">
         <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
       </div>
     );
@@ -34,7 +34,7 @@ export default function Login() {
 
   if (user) {
     return (
-      <div className="min-h-screen bg-bg text-gray-900 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-black dark:text-white flex items-center justify-center px-4">
         <div className="w-full max-w-lg rounded-3xl bg-white border border-gray-200 shadow-md shadow-md shadow-indigo-500/20 p-10 space-y-4 text-center">
           <h1 className="text-2xl font-semibold">You’re already signed in</h1>
           <p className="text-gray-600">Continue to your workspace.</p>
@@ -50,7 +50,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-bg text-gray-900 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-black dark:text-white flex items-center justify-center px-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

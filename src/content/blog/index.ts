@@ -1,4 +1,5 @@
 export type BlogHeroImage = {
+  url?: string;
   prompt: string;
   alt: string;
 };
