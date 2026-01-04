@@ -11,26 +11,26 @@ const guides = [
 
 const GuidesPage: React.FC = () => {
   return (
-    <div className="bg-bg text-textPrimary min-h-screen">
+    <div className="bg-bg text-gray-900 min-h-screen">
       <div className="max-w-5xl mx-auto px-4 py-20 space-y-12">
         <div className="space-y-3">
           <h1 className="text-4xl font-bold">Guides & Tutorials</h1>
-          <p className="text-textSecondary">Learn how to create high-converting visuals using AI.</p>
+          <p className="text-gray-600">Learn how to create high-converting visuals using AI.</p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           {guides.map(guide => (
             <div
               key={guide}
-              className="rounded-2xl border border-borderSubtle bg-surfaceTint p-5"
+              className="rounded-2xl border border-gray-200 bg-gray-50 p-5"
             >
               <h2 className="text-2xl font-semibold">{guide}</h2>
-              <p className="text-textSecondary leading-relaxed mt-2">
+              <p className="text-gray-600 leading-relaxed mt-2">
                 Step-by-step instructions coming soon. Save this guide to start faster.
               </p>
               <a
                 href="#"
-                className="inline-block bg-surface text-textPrimary px-4 py-2 rounded-apple border border-borderSubtle hover:bg-surfaceElevated text-sm mt-4 transition-colors"
+                className="inline-block bg-white text-gray-900 px-4 py-2 rounded-2xl border border-gray-200 hover:bg-gray-100 text-sm mt-4 transition-colors"
               >
                 Read Guide
               </a>

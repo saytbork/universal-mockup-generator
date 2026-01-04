@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useImperativeHandle, useState } from 'react';
+import { Plus } from 'lucide-react';
 
 interface ImageUploaderProps {
   onImageUpload: (files: File[]) => void;
   uploadedImagePreview?: string | null;
   disabled?: boolean;
   lockedMessage?: string;
+  maxFiles?: number;
 }
 
 export interface ImageUploaderHandle {
@@ -16,6 +18,7 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
   uploadedImagePreview = null,
   disabled = false,
   lockedMessage,
+  maxFiles = 5,
 }, ref) => {
   const [isDragging, setIsDragging] = useState(false);
   const [localPreview, setLocalPreview] = useState<string | null>(uploadedImagePreview);
@@ -77,7 +80,7 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
     setIsDragging(false);
   }, []);
 
-  const handleAddAnotherClick = () => {
+  const handleClick = () => {
     if (disabled) return;
     inputRef.current?.click();
   };
@@ -85,51 +88,52 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
   const previewToShow = localPreview || uploadedImagePreview;
 
   return (
-    <div className={`relative flex flex-col items-center justify-center w-full p-4 bg-surface rounded-lg border-2 border-dashed border-borderSubtle ${disabled ? 'opacity-60' : ''}`}>
-      <h3 className="text-lg font-semibold text-textSecondary mb-4">Upload Product Image</h3>
-      <div
-        className={`relative w-full h-40 flex items-center justify-center rounded-md transition-all duration-300 ${isDragging ? 'bg-surfaceTint' : ''}`}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragEnter={handleDragEnter}
-        onDragLeave={handleDragLeave}
-      >
+    <div
+      className={`relative w-full aspect-[16/10] rounded-2xl border transition-all duration-500 flex items-center justify-center overflow-hidden shadow-sm ${disabled
+        ? 'opacity-60 cursor-not-allowed'
+        : 'cursor-pointer border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 hover:border-gray-300 dark:hover:border-white/20'
+        } ${isDragging ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10' : ''}`}
+      onClick={handleClick}
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+    >
+      <div className="text-center p-6 pointer-events-none">
         {previewToShow ? (
-          <img src={previewToShow} alt="Product Preview" className="max-h-full max-w-full object-contain rounded-md" />
+          <img
+            src={previewToShow}
+            alt="Product Preview"
+            className="max-h-[160px] max-w-full object-contain rounded-lg mx-auto"
+          />
         ) : (
-          <div className="text-center text-textSecondary">
-            <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-            </svg>
-            <p>Drag & drop or click to upload</p>
-          </div>
+          <>
+            <div className="w-12 h-12 bg-gray-100 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Plus className="w-6 h-6 text-gray-400 dark:text-white/20" />
+            </div>
+            <div className="text-[12px] font-bold uppercase tracking-widest text-gray-800 dark:text-white mb-1">
+              Source Product
+            </div>
+            <div className="text-[10px] text-gray-400 dark:text-gray-500 uppercase font-medium">
+              Click to browse (Max {maxFiles})
+            </div>
+          </>
         )}
-        <input
-          type="file"
-          className={`absolute inset-0 w-full h-full opacity-0 ${disabled ? 'cursor-not-allowed pointer-events-none' : 'cursor-pointer'}`}
-          disabled={disabled}
-          multiple
-          onChange={handleFileChange}
-          ref={inputRef}
-          accept="image/png, image/jpeg, image/webp"
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-        />
       </div>
-      <p className="mt-3 text-xs text-textSecondary">Tip: Drop multiple files at once. The first becomes the hero; others stay in your library.</p>
-      <button
-        type="button"
-        onClick={handleAddAnotherClick}
-        className="mt-2 inline-flex items-center gap-2 rounded-full border border-borderSubtle px-3 py-1 text-xs text-textPrimary hover:border-accent hover:text-white transition"
+
+      <input
+        type="file"
+        className="hidden"
         disabled={disabled}
-      >
-        + Add another photo
-      </button>
-      {disabled && (
-        <div className="absolute inset-0 flex items-center justify-center bg-surfaceTint rounded-lg text-sm text-textSecondary">
-          {lockedMessage || 'Complete the previous step to continue'}
+        multiple
+        onChange={handleFileChange}
+        ref={inputRef}
+        accept="image/png, image/jpeg, image/webp"
+      />
+
+      {disabled && lockedMessage && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white/90 dark:bg-black/90 rounded-2xl text-sm text-gray-500 dark:text-gray-400">
+          {lockedMessage}
         </div>
       )}
     </div>

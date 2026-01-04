@@ -21,10 +21,10 @@ const BlogArticlePage: React.FC = () => {
 
   if (!article) {
     return (
-      <div className="bg-bg text-textPrimary min-h-screen flex flex-col">
+      <div className="bg-bg text-gray-900 min-h-screen flex flex-col">
         <div className="max-w-5xl mx-auto px-4 py-20">
-          <p className="text-sm text-textSecondary">Article not found.</p>
-          <Link to="/blog" className="inline-flex mt-4 text-accent">
+          <p className="text-sm text-gray-600">Article not found.</p>
+          <Link to="/blog" className="inline-flex mt-4 text-indigo-600">
             Back to blog
           </Link>
         </div>
@@ -33,21 +33,21 @@ const BlogArticlePage: React.FC = () => {
   }
 
   return (
-    <div className="bg-bg text-textPrimary min-h-screen">
+    <div className="bg-bg text-gray-900 min-h-screen">
       <div className="max-w-5xl mx-auto px-4 py-12 space-y-10">
-        <section className="blog-hero rounded-apple-xl border border-borderSubtle bg-surfaceTint p-8 space-y-4 shadow-accent-glow">
-          <Link className="text-sm text-textPrimary underline" to="/blog">
+        <section className="blog-hero rounded-3xl border border-gray-200 bg-gray-50 p-8 space-y-4 shadow-md shadow-indigo-500/20">
+          <Link className="text-sm text-gray-900 underline" to="/blog">
             ← Back to blog
           </Link>
           <div className="space-y-3">
-            <p className="text-xs uppercase tracking-[0.4em] text-accent">Blog</p>
+            <p className="text-xs uppercase tracking-[0.4em] text-indigo-600">Blog</p>
             <h1 className="text-4xl font-semibold leading-tight">{article.title}</h1>
-            <p className="text-lg text-textPrimary max-w-3xl">{article.subtitle}</p>
+            <p className="text-lg text-gray-900 max-w-3xl">{article.subtitle}</p>
           </div>
-          <figure className="rounded-apple border border-borderSubtle bg-surface p-4 space-y-2">
-            <p className="text-xs uppercase tracking-[0.35em] text-textSecondary">Hero prompt</p>
-            <p className="text-sm text-textPrimary leading-relaxed">{article.heroImage.prompt}</p>
-            <figcaption className="text-[11px] uppercase tracking-[0.35em] text-textMuted">
+          <figure className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 p-4 space-y-2">
+            <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Hero prompt</p>
+            <p className="text-sm text-gray-900 leading-relaxed">{article.heroImage.prompt}</p>
+            <figcaption className="text-[11px] uppercase tracking-[0.35em] text-gray-500">
               {article.heroImage.alt}
             </figcaption>
           </figure>
@@ -58,15 +58,15 @@ const BlogArticlePage: React.FC = () => {
             <article key={section.heading} className="space-y-3">
               <h2 className="text-2xl font-semibold">{section.heading}</h2>
               <div
-                className="space-y-2 text-textPrimary leading-relaxed"
+                className="space-y-2 text-gray-900 leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: section.body }}
               />
               {section.imagePrompt ? (
-                <figure className="rounded-apple border border-borderSubtle bg-surface p-4 space-y-2">
-                  <p className="text-xs uppercase tracking-[0.35em] text-textSecondary">Image prompt</p>
-                  <p className="text-sm text-textPrimary leading-relaxed">{section.imagePrompt}</p>
+                <figure className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 p-4 space-y-2">
+                  <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Image prompt</p>
+                  <p className="text-sm text-gray-900 leading-relaxed">{section.imagePrompt}</p>
                   {section.imageAlt && (
-                    <figcaption className="text-[11px] uppercase tracking-[0.35em] text-textMuted">
+                    <figcaption className="text-[11px] uppercase tracking-[0.35em] text-gray-500">
                       {section.imageAlt}
                     </figcaption>
                   )}
@@ -74,11 +74,11 @@ const BlogArticlePage: React.FC = () => {
               ) : null}
             </article>
           ))}
-          <div className="blog-cta rounded-apple-xl border border-borderSubtle bg-surfaceTint p-6 space-y-3">
+          <div className="blog-cta rounded-3xl border border-gray-200 bg-gray-50 p-6 space-y-3">
             <h3 className="text-2xl font-semibold">{article.cta.title}</h3>
-            <p className="text-textPrimary leading-relaxed">{article.cta.text}</p>
+            <p className="text-gray-900 leading-relaxed">{article.cta.text}</p>
             <a
-              className="inline-flex items-center justify-center rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white transition hover:bg-accent"
+              className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700"
               href="/app"
             >
               {article.cta.button}

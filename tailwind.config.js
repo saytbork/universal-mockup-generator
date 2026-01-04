@@ -1,5 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  content: [
+    "./*.{html,js,ts,jsx,tsx}",
+    "./src/**/*.{html,js,ts,jsx,tsx}",
+    "./components/**/*.{html,js,ts,jsx,tsx}",
+  ],
   darkMode: 'class',
   theme: {
     extend: {
@@ -12,7 +17,8 @@ export default {
         textPrimary: 'var(--text-primary)',
         textSecondary: 'var(--text-secondary)',
         textMuted: 'var(--text-muted)',
-        accent: 'rgb(var(--accent-primary-rgb) / <alpha-value>)',
+        accent: 'var(--accent-primary)',
+        accentRgb: 'rgb(var(--accent-primary-rgb) / <alpha-value>)',
         success: 'var(--success)',
       },
       borderRadius: {
@@ -25,6 +31,20 @@ export default {
       fontFamily: {
         sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+      },
+      keyframes: {
+        scaleIcon: {
+          '0%': { transform: 'scale(0.5) rotate(-45deg)', opacity: '0' },
+          '100%': { transform: 'scale(1) rotate(0)', opacity: '1' },
+        },
+        slideUp: {
+          '0%': { transform: 'translateY(10px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+      },
+      animation: {
+        'scale-icon': 'scaleIcon 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+        'slide-up': 'slideUp 0.5s ease-out',
       },
     },
   },

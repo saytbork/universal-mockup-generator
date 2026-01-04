@@ -1,62 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Product &amp; Lifestyle Mockups for Ecommerce Brands | Perfect Mockup</title>
-    <meta
-      name="description"
-      content="Create studio-ready product mockups and lifestyle visuals without photoshoots. Built for ecommerce brands, ads and product launches."
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-	    <script>
-	      tailwind = {
-	        config: {
-	          darkMode: 'class',
-	          theme: {
-	            extend: {
-	              colors: {
-	                bg: 'var(--bg)',
-	                surface: 'var(--surface)',
-	                surfaceElevated: 'var(--surface-elevated)',
-	                surfaceTint: 'var(--surface-tint)',
-	                borderSubtle: 'var(--border)',
-	                textPrimary: 'var(--text-primary)',
-	                textSecondary: 'var(--text-secondary)',
-	                textMuted: 'var(--text-muted)',
-	                accent: 'rgb(var(--accent-primary-rgb) / <alpha-value>)',
-	                success: 'var(--success)',
-	              },
-	              borderRadius: {
-	                apple: '20px',
-	                'apple-xl': '36px',
-	              },
-	              boxShadow: {
-	                'accent-glow': '0 18px 40px var(--accent-glow)',
-	              },
-	              fontFamily: {
-	                sans: ['\"Plus Jakarta Sans\"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-	                mono: ['\"JetBrains Mono\"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
-	              },
-            }
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Product &amp; Lifestyle Mockups for Ecommerce Brands | Perfect Mockup</title>
+  <meta name="description"
+    content="Create studio-ready product mockups and lifestyle visuals without photoshoots. Built for ecommerce brands, ads and product launches." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <script>
+    tailwind = {
+      config: {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              bg: 'var(--bg)',
+              surface: 'var(--surface)',
+              surfaceElevated: 'var(--surface-elevated)',
+              surfaceTint: 'var(--surface-tint)',
+              borderSubtle: 'var(--border)',
+              textPrimary: 'var(--text-primary)',
+              textSecondary: 'var(--text-secondary)',
+              textMuted: 'var(--text-muted)',
+              accent: 'var(--accent-primary)',
+              success: 'var(--success)',
+            },
+            borderRadius: {
+              apple: '20px',
+              'apple-xl': '36px',
+            },
+            boxShadow: {
+              'accent-glow': '0 18px 40px var(--accent-glow)',
+            },
+            fontFamily: {
+              sans: ['\"Plus Jakarta Sans\"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+              mono: ['\"JetBrains Mono\"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+            },
           }
         }
-      };
-      (function () {
-        try {
-          var stored = localStorage.getItem('theme');
-          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-          var next = stored === 'dark' || stored === 'light' ? stored : (prefersDark ? 'dark' : 'light');
-          document.documentElement.classList.toggle('dark', next === 'dark');
-        } catch (e) {}
-      })();
-    </script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style type="text/tailwindcss">
-      @layer utilities {
+      }
+    };
+    (function () {
+      try {
+        var stored = localStorage.getItem('theme');
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var next = stored === 'dark' || stored === 'light' ? stored : (prefersDark ? 'dark' : 'light');
+        document.documentElement.classList.toggle('dark', next === 'dark');
+      } catch (e) { }
+    })();
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style type="text/tailwindcss">
+    @layer utilities {
         .heading-lg { @apply text-2xl font-semibold tracking-tight text-textPrimary; }
         .heading-md { @apply text-lg font-semibold tracking-tight text-textPrimary; }
         .body { @apply text-sm text-textPrimary; }
@@ -66,30 +67,39 @@
       }
     </style>
 
-<style>
+  <style>
     /* Custom scrollbar for webkit browsers */
     .custom-scrollbar::-webkit-scrollbar {
       width: 8px;
       height: 8px;
     }
+
     .custom-scrollbar::-webkit-scrollbar-track {
       background: transparent;
     }
+
     .custom-scrollbar::-webkit-scrollbar-thumb {
       background: var(--border);
       border-radius: 10px;
       border: 2px solid var(--surface-tint);
     }
+
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
       background: var(--text-muted);
     }
+
     /* For Firefox */
-    .custom-scrollbar { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+    .custom-scrollbar {
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
   </style>
-<link rel="stylesheet" href="/globals.css">
+  <link rel="stylesheet" href="/globals.css">
 </head>
-  <body class="bg-bg text-textPrimary font-sans">
-    <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
-  </body>
+
+<body class="bg-bg text-textPrimary font-sans">
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
 </html>

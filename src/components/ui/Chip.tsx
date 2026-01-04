@@ -3,9 +3,9 @@ import React from 'react';
 type ChipSize = 'xs' | 'sm' | 'md';
 
 const sizeMap: Record<ChipSize, string> = {
-  xs: 'px-3 py-1.5 text-xs',
-  sm: 'px-3 py-1.5 text-xs sm:text-sm',
-  md: 'px-3.5 py-2 text-xs sm:text-sm',
+  xs: 'px-3 py-1',
+  sm: 'px-4 py-2',
+  md: 'px-4 py-2',
 };
 
 export interface ChipProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -14,16 +14,16 @@ export interface ChipProps extends React.ButtonHTMLAttributes<HTMLButtonElement>
 }
 
 const baseClass =
-  'inline-flex items-center gap-1 rounded-full border transition-colors whitespace-nowrap font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg';
+  'inline-flex items-center gap-1 rounded-xl border transition-all duration-400 whitespace-nowrap font-bold text-[10px] focus:outline-none';
 
 const activeClass =
-  'bg-accent text-white border-accent shadow-accent-glow scale-105 duration-500';
+  'border-indigo-600 bg-indigo-600 text-white shadow-lg';
 
 const inactiveClass =
-  'bg-surface text-textSecondary border-borderSubtle hover:border-accent hover:text-textPrimary';
+  'border-gray-200 dark:border-white/5 bg-white dark:bg-zinc-900/50 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-white/20';
 
 const disabledClass =
-  'opacity-50 cursor-not-allowed pointer-events-none bg-surfaceTint text-textMuted border-borderSubtle';
+  'opacity-50 cursor-not-allowed pointer-events-none bg-gray-100 dark:bg-zinc-800 text-gray-400 border-gray-200 dark:border-white/5';
 
 export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
   ({ selected = false, disabled = false, size = 'sm', className = '', children, ...props }, ref) => {

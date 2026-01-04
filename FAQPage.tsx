@@ -29,21 +29,21 @@ const faqs = [
 
 const FAQPage: React.FC = () => {
   return (
-    <div className="bg-bg text-textPrimary min-h-screen">
+    <div className="bg-bg text-gray-900 min-h-screen">
       <div className="max-w-5xl mx-auto px-4 py-20 space-y-12">
         <div className="space-y-3">
           <h1 className="text-4xl font-bold">Frequently Asked Questions</h1>
-          <p className="text-textSecondary">Everything you need to know about BoostUGC.</p>
+          <p className="text-gray-600">Everything you need to know about BoostUGC.</p>
         </div>
 
         <div className="space-y-6">
           {faqs.map(item => (
             <div
               key={item.q}
-              className="rounded-2xl border border-borderSubtle bg-surfaceTint p-5 space-y-2"
+              className="rounded-2xl border border-gray-200 bg-gray-50 p-5 space-y-2"
             >
               <h2 className="text-2xl font-semibold">{item.q}</h2>
-              <p className="text-textSecondary leading-relaxed">{item.a}</p>
+              <p className="text-gray-600 leading-relaxed">{item.a}</p>
             </div>
           ))}
         </div>

@@ -1,10 +1,10 @@
 import React from 'react';
 import { normalizeOptions } from '../src/system/normalizeOptions';
 import { Option } from '../types';
-import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { Tooltip, TooltipTrigger, TooltipContent } from '../src/components/ui/tooltip';
 
 interface ChipSelectGroupProps {
-  label: string;
+  label?: string;
   options: Option[];
   selectedValue: string;
   onChange: (value: string) => void;
@@ -13,6 +13,7 @@ interface ChipSelectGroupProps {
   customLabel?: string;
   customPlaceholder?: string;
   labelTooltip?: string;
+  compact?: boolean;
 }
 
 const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
@@ -25,6 +26,7 @@ const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
   customLabel = 'Custom',
   customPlaceholder = 'Describe your own option',
   labelTooltip,
+  compact = false,
 }) => {
   const optionValues = options.map(option => option.value);
   const isCustomValue = allowCustom && selectedValue && !optionValues.includes(selectedValue);
@@ -46,38 +48,45 @@ const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
     onChange(value);
   };
 
-  const chipBase =
-    'rounded-full px-3 py-1.5 text-xs font-medium border transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-bg';
+  // Updated chip styles to match reference design
+  const chipBase = compact
+    ? 'rounded-xl border px-3 py-1 text-[10px] font-bold transition-all duration-400'
+    : 'rounded-xl border px-4 py-2 text-[10px] font-bold transition-all duration-400';
+
   const chipInactive =
-    'bg-surface text-textSecondary border-borderSubtle hover:border-accent hover:text-textPrimary';
+    'border-gray-200 dark:border-white/5 bg-white dark:bg-zinc-900/50 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-white/20';
+
   const chipActive =
-    'bg-accent text-white border-accent shadow-accent-glow scale-105 duration-500';
+    'border-indigo-600 bg-indigo-600 text-white shadow-lg';
+
   const chipDisabled =
-    'opacity-50 cursor-not-allowed pointer-events-none bg-surfaceTint text-textMuted border-borderSubtle';
+    'opacity-50 cursor-not-allowed pointer-events-none bg-gray-100 dark:bg-zinc-800 text-gray-400 border-gray-200 dark:border-white/5';
 
   return (
     <div className="flex flex-col space-y-3">
-      <div className="flex items-center gap-2">
-        <label className="text-sm font-medium text-textSecondary">{label}</label>
-        {labelTooltip && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                className="h-6 w-6 rounded-full border border-borderSubtle bg-surface text-xs font-semibold text-textSecondary transition hover:border-accent hover:text-textPrimary focus:outline-none focus:ring-2 focus:ring-accent"
-                aria-label={`${label} info`}
-              >
-                ?
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="max-w-xs text-sm opacity-90">
-              {labelTooltip}
-            </TooltipContent>
-          </Tooltip>
-        )}
-      </div>
+      {label && (
+        <div className="flex items-center gap-2">
+          <label className="text-[10px] uppercase tracking-[0.2em] text-gray-500 dark:text-white/30 font-extrabold">{label}</label>
+          {labelTooltip && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  className="h-5 w-5 rounded-full border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 text-[10px] font-semibold text-gray-400 transition hover:border-indigo-500 hover:text-indigo-500 focus:outline-none"
+                  aria-label={`${label} info`}
+                >
+                  ?
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs text-sm opacity-90">
+                {labelTooltip}
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </div>
+      )}
       <div>
-        <div className="flex flex-nowrap lg:flex-wrap gap-2 py-2 overflow-x-auto lg:overflow-visible custom-scrollbar">
+        <div className="flex flex-wrap gap-2">
           {normalizedOptions.map((option) => {
             const tooltip = option.tooltip || null;
             const isActive = selectedValue === option.value;
@@ -120,7 +129,7 @@ const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
               disabled={disabled}
               className={`
                 ${chipBase}
-                whitespace-nowrap flex-shrink-0
+                whitespace-nowrap
                 ${(customActive || isCustomValue) ? chipActive : chipInactive}
                 ${disabled ? '' : 'cursor-pointer'}
               `}
@@ -136,7 +145,7 @@ const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
             onChange={(event) => handleCustomChange(event.target.value)}
             placeholder={customPlaceholder}
             disabled={disabled}
-            className="mt-2 w-full rounded-apple border border-borderSubtle bg-surfaceElevated px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50"
+            className="mt-3 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-gray-800 dark:text-white placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
           />
         )}
       </div>

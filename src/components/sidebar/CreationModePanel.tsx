@@ -17,7 +17,7 @@ export default function CreationModePanel() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h3 className="text-sm font-semibold text-textSecondary uppercase tracking-wide">
+      <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
         Creation Mode
       </h3>
 
@@ -32,8 +32,8 @@ export default function CreationModePanel() {
               onClick={() => setCreationMode(value)}
               className={
                 isActive
-                  ? "px-4 py-2 rounded-lg text-left bg-accent text-white"
-                  : "px-4 py-2 rounded-lg text-left bg-surfaceTint text-textSecondary hover:bg-surfaceTint"
+                  ? "px-4 py-2 rounded-lg text-left bg-indigo-600 text-white"
+                  : "px-4 py-2 rounded-lg text-left bg-gray-50 text-gray-600 hover:bg-gray-50"
               }
             >
               {label}
