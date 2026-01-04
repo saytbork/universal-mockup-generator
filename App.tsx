@@ -5,6 +5,7 @@ import { useLocation } from 'react-router-dom';
 import { GoogleGenAI, Modality } from "@google/genai";
 import { MockupOptions, OptionCategory, Option } from './types';
 import { Info, Moon, Sun } from 'lucide-react';
+import Logo from './src/components/Logo';
 import {
   CONTENT_STYLE_OPTIONS,
   CREATION_MODE_OPTIONS,
@@ -5193,9 +5194,7 @@ If the model attempts to create a scene or environment, override it and force a 
               <span className="text-[10px] uppercase tracking-[0.5em] text-indigo-600 dark:text-indigo-300 font-medium mb-1">
                 Simulation System v3.0
               </span>
-              <h1 className="text-4xl font-black tracking-tight text-gray-900 dark:text-white flex items-center">
-                MOCKUP<span className="text-indigo-600 dark:text-indigo-400 ml-1">PRO</span>
-              </h1>
+              <Logo variant="appHeader" />
             </div>
 
             <div className="flex items-center gap-8">

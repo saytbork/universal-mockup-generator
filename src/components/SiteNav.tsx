@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Moon, Sun } from 'lucide-react';
+import Logo from './Logo';
 
 const SiteNav: React.FC = () => {
   const [showResources, setShowResources] = useState(false);
@@ -69,8 +70,8 @@ const SiteNav: React.FC = () => {
   return (
     <div className={`w-full ${isSticky ? 'sticky top-0 z-40' : ''} bg-bg border-b border-gray-200`}>
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between text-sm text-gray-600">
-        <Link to="/" className="flex items-center gap-2 text-gray-900 font-semibold">
-          <span className="px-3 py-1 rounded-full bg-indigo-600 text-white text-xs text-white">BoostUGC</span>
+        <Link to="/" className="flex items-center gap-2">
+          <Logo variant="siteNav" />
         </Link>
 
         <div className="hidden md:flex items-center gap-6">
