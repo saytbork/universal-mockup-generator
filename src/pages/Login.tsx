@@ -58,7 +58,7 @@ export default function Login() {
         className="w-full max-w-lg rounded-xl bg-white border border-gray-200 shadow-md shadow-md shadow-indigo-500/20 p-10 space-y-6"
       >
         <div className="space-y-2 text-center">
-          <p className="text-xs uppercase tracking-[0.35em] text-indigo-600">BoostUGC</p>
+          <p className="text-xs uppercase tracking-[0.35em] text-indigo-600">Perfect Mockup</p>
           <h1 className="text-3xl font-bold">Access your workspace</h1>
           <p className="text-sm text-gray-600">Secure magic link sign-in. No passwords.</p>
         </div>

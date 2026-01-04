@@ -4,7 +4,7 @@ import { Sparkles, Gauge, ShieldCheck, Star, ArrowRight } from 'lucide-react';
 
 const rows = [
   {
-    tool: 'BoostUGC',
+    tool: 'Perfect Mockup',
     photorealism: 'High (Gemini 2.5 Flash Image)',
     quality: 'UGC-first, consistent',
     mockups: 'Yes, eCommerce-ready',
@@ -62,8 +62,8 @@ const Comparisons: React.FC = () => {
           <div className="inline-flex items-center gap-2 rounded-full border border-indigo-600 bg-indigo-600 text-white px-4 py-1 text-xs uppercase tracking-[0.2em] text-indigo-600">
             <Sparkles className="w-4 h-4" /> Head-to-head
           </div>
-          <h1 className="text-4xl font-bold">BoostUGC vs Competitors</h1>
-          <p className="text-gray-600">Why brands choose BoostUGC for photorealistic UGC.</p>
+          <h1 className="text-4xl font-bold">Perfect Mockup vs Competitors</h1>
+          <p className="text-gray-600">Why brands choose Perfect Mockup for photorealistic UGC.</p>
         </div>
 
         <div className="relative overflow-hidden rounded-3xl border border-gray-200 bg-gray-50 shadow-md shadow-md shadow-indigo-500/20">

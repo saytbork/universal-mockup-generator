@@ -11,7 +11,7 @@ const faqs = [
   },
   {
     q: 'Are the images photorealistic?',
-    a: 'Yes, BoostUGC uses Google Gemini 2.5 Flash Image for realistic results.',
+    a: 'Yes, Perfect Mockup uses Google Gemini 2.5 Flash Image for realistic results.',
   },
   {
     q: 'How many images does 1 credit generate?',
@@ -33,7 +33,7 @@ const FAQPage: React.FC = () => {
       <div className="max-w-5xl mx-auto px-4 py-20 space-y-12">
         <div className="space-y-3">
           <h1 className="text-4xl font-bold">Frequently Asked Questions</h1>
-          <p className="text-gray-600">Everything you need to know about BoostUGC.</p>
+          <p className="text-gray-600">Everything you need to know about Perfect Mockup.</p>
         </div>
 
         <div className="space-y-6">

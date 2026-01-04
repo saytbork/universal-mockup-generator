@@ -4,7 +4,7 @@
   "title": "Building a UGC Content Engine With AI and Firebase",
   "subtitle": "Automate content creation, storage, and delivery using AI-generated assets synced through Firebase.",
   "seo": {
-    "title": "UGC Content Engine With AI and Firebase | BoostUGC",
+    "title": "UGC Content Engine With AI and Firebase | Perfect Mockup",
     "description": "Learn how to build an automated UGC content engine using AI generation and Firebase storage, syncing, and delivery."
   },
   "heroImage": {
@@ -45,7 +45,7 @@
   ],
   "cta": {
     "title": "Build Your UGC Engine",
-    "text": "Sync AI-generated assets into your workflows with BoostUGC.",
+    "text": "Sync AI-generated assets into your workflows with Perfect Mockup.",
     "button": "Launch App"
   }
 }

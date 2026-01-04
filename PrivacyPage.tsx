@@ -6,7 +6,7 @@ const PrivacyPage: React.FC = () => {
       <div className="max-w-5xl mx-auto px-4 py-20 space-y-10">
         <div className="space-y-3">
           <h1 className="text-4xl font-bold">Privacy Policy</h1>
-          <p className="text-gray-600">How BoostUGC collects, uses, and protects your data.</p>
+          <p className="text-gray-600">How Perfect Mockup collects, uses, and protects your data.</p>
         </div>
 
         <div className="space-y-6 text-gray-600 text-sm leading-relaxed">

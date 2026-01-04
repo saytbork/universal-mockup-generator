@@ -6,7 +6,7 @@ const TermsPage: React.FC = () => {
       <div className="max-w-5xl mx-auto px-4 py-20 space-y-10">
         <div className="space-y-3">
           <h1 className="text-4xl font-bold">Terms of Service</h1>
-          <p className="text-gray-600">The rules for using BoostUGC.</p>
+          <p className="text-gray-600">The rules for using Perfect Mockup.</p>
         </div>
 
         <div className="space-y-6 text-gray-600 text-sm leading-relaxed">
@@ -42,7 +42,7 @@ const TermsPage: React.FC = () => {
 
           <section className="space-y-2">
             <h2 className="text-xl font-semibold text-gray-900">7. Liability</h2>
-            <p>BoostUGC is provided “as is.” To the fullest extent permitted by law, our liability is limited to the amounts you paid in the last 12 months.</p>
+            <p>Perfect Mockup is provided “as is.” To the fullest extent permitted by law, our liability is limited to the amounts you paid in the last 12 months.</p>
           </section>
 
           <section className="space-y-2">

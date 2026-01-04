@@ -55,7 +55,7 @@ const UseCases: React.FC = () => {
             <Sparkles className="w-4 h-4" /> Use Cases
           </div>
           <h1 className="text-4xl font-bold">How brands and creators ship high-converting visuals</h1>
-          <p className="text-gray-600">BoostUGC adapts to every workflow—Shopify, Amazon, agencies, creators, and dropshippers.</p>
+          <p className="text-gray-600">Perfect Mockup adapts to every workflow—Shopify, Amazon, agencies, creators, and dropshippers.</p>
         </div>
 
         <div className="relative grid gap-6 md:grid-cols-2">

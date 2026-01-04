@@ -8,7 +8,7 @@ const BlogPage: React.FC = () => {
     <div className="bg-gray-50 text-gray-900 dark:bg-black dark:text-white min-h-screen">
       <div className="max-w-5xl mx-auto px-4 py-20 space-y-12">
         <div className="space-y-3">
-          <h1 className="text-4xl font-bold">BoostUGC Blog</h1>
+          <h1 className="text-4xl font-bold">Perfect Mockup Blog</h1>
           <p className="text-gray-600">Guides, tutorials and AI insights for creators and brands.</p>
         </div>
 

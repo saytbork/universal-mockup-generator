@@ -34,16 +34,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       await sendEmail({
         to: email,
-        subject: 'Your BoostUGC access link',
+        subject: 'Your Perfect Mockup access link',
         html: `
     <div style="font-family: Arial, sans-serif; padding: 20px; line-height: 1.5; color: #333;">
       <h2 style="color:#6D4AFF; margin-bottom: 16px;">Access your workspace</h2>
-      <p>Click the button below to sign in to your BoostUGC workspace:</p>
+      <p>Click the button below to sign in to your Perfect Mockup workspace:</p>
 
       <p style="margin: 24px 0;">
         <a href="${magicLink}"
            style="display:inline-block; padding:12px 18px; background:#6D4AFF; color:#ffffff; text-decoration:none; border-radius:8px; font-size:16px;">
-           Sign in to BoostUGC
+           Sign in to Perfect Mockup
         </a>
       </p>
 
