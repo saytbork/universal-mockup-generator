@@ -42,11 +42,12 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
     }
   };
 
-  const headerTextClass = open ? 'text-accent ' : 'text-textPrimary/90';
   const containerVariantClass = (() => {
     switch (variant) {
       case 'secondary':
+        return 'opacity-90';
       case 'expert':
+        return 'opacity-80';
       case 'primary':
       default:
         return '';
@@ -54,38 +55,38 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
   })();
 
   return (
-    <div className={`rounded-xl border border-borderSubtle border-borderSoft bg-surfaceGlass overflow-hidden mb-2 transition-all duration-300 ${containerVariantClass} ${className}`}>
+    <div
+      className={`rounded-2xl border border-gray-200 bg-white overflow-hidden mb-4 transition-all duration-300 ${containerVariantClass} ${className}`}
+    >
       <button
         type="button"
         onClick={handleToggle}
-        className="w-full flex items-center justify-between p-4 hover:bg-surfaceTint  transition focus:outline-none"
+        className="w-full flex items-center justify-between p-4 bg-white hover:bg-gray-50 transition-colors focus:outline-none"
         aria-expanded={open}
       >
         <div className="flex items-center gap-3">
-          <Icon className="w-5 h-5 text-accent" />
+          <Icon className="w-5 h-5 text-indigo-600" />
           <div className="text-left">
             <div className="flex items-center gap-2">
-              <p className={`text-sm font-semibold ${headerTextClass}`}>{title}</p>
+              <p className="text-sm font-semibold text-gray-900">{title}</p>
               {isRequired && !isTouched && (
-                <span className="text-xs text-textMuted">*Required</span>
+                <span className="text-xs text-gray-500">*Required</span>
               )}
               {isTouched && isActive && (
-                <Check className="w-4 h-4 text-success" />
+                <Check className="w-4 h-4 text-green-500" />
               )}
             </div>
-            <p className="text-[10px] text-textMuted font-medium">{tooltip}</p>
+            <p className="text-[10px] text-gray-500 font-medium">{tooltip}</p>
           </div>
         </div>
         <ChevronDown
-          className={`w-4 h-4 text-textMuted Secondary transform transition-transform duration-300 ${open ? 'rotate-180 text-accent' : ''}`}
+          className={`w-4 h-4 text-gray-500 transform transition-transform duration-300 ${open ? 'rotate-180 text-indigo-600' : ''}`}
         />
       </button>
       <div
-        className={`transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] border-t border-borderSubtle overflow-hidden ${open ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}
+        className={`transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] border-t border-gray-200 overflow-hidden ${open ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}
       >
-        <div className="p-4 bg-surfaceSoft ">
-          {children}
-        </div>
+        <div className="p-4 bg-gray-50">{children}</div>
       </div>
     </div>
   );

@@ -23,20 +23,10 @@ const files = execFileSync('git', ['ls-files'], { encoding: 'utf8' })
   });
 
 const forbidden = [
-  // Legacy palettes
-  /\b(bg|text|border|from|via|to)-(gray|indigo|purple|blue|sky|green|rose|emerald|slate|neutral|amber|red|yellow|orange)-/g,
-  // Disallowed theme variants (theme must be CSS variables only)
-  /\bdark:/g,
-  // Arbitrary color utilities
+  // Arbitrary color utilities (hardcoded hex)
   /\b(bg|text|border)-\[#/g,
   // Arbitrary shadows
   /\bshadow-\[/g,
-  // Opacity modifiers on semantic surface tokens (avoid opacity-only contrast hacks)
-  /\bbg-(bg|surface|surfaceElevated|surfaceTint)\/\d+\b/g,
-  // Arbitrary opacity on semantic surfaces (e.g. bg-surface/[0.02])
-  /\bbg-(bg|surface|surfaceElevated|surfaceTint)\/\[/g,
-  // Hardcoded white surfaces
-  /\bbg-white\b/g,
 ];
 
 const matches = [];

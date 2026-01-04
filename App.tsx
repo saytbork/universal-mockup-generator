@@ -500,7 +500,7 @@ const DEFAULT_AGE_GROUP =
   AGE_GROUP_OPTIONS.find(option => option.label === '26-35')?.value ?? AGE_GROUP_OPTIONS[0].value;
 
 const createDefaultOptions = (): MockupOptions => ({
-  contentStyle: '',
+  contentStyle: 'ugc',
   placementStyle: PLACEMENT_STYLE_OPTIONS[0].value,
   placementCamera: PLACEMENT_CAMERA_OPTIONS[0].value,
   lighting: LIGHTING_OPTIONS[0].value,
@@ -1811,44 +1811,44 @@ const App: React.FC = () => {
           >
             <div className="space-y-4">
               <ChipSelectGroup label="Age Group" options={AGE_GROUP_OPTIONS} selectedValue={options.ageGroup} onChange={(value) => handleOptionChange('ageGroup', value, 'Person Details')} disabled={personControlsDisabled} />
-              {isProductPlacement && <p className="text-xs text-textMuted">Person options are disabled for product placement shots.</p>}
-              <div className={`rounded-2xl border border-borderSubtle bg-surfaceElevated p-4 space-y-3 ${personControlsDisabled ? 'opacity-50' : ''}`}>
+              {isProductPlacement && <p className="text-xs text-gray-500">Person options are disabled for product placement shots.</p>}
+              <div className={`rounded-2xl border border-gray-200 bg-gray-100 p-4 space-y-3 ${personControlsDisabled ? 'opacity-50' : ''}`}>
                 <ChipSelectGroup label="Creator Preset" options={normalizedCreatorPresetOptions} selectedValue={activeTalentPreset} onChange={(value) => handlePresetSelect(value)} disabled={personControlsDisabled} />
-                {activePresetMeta?.description && <p className="text-xs text-textSecondary">{activePresetMeta.description}</p>}
+                {activePresetMeta?.description && <p className="text-xs text-gray-600">{activePresetMeta.description}</p>}
                 <div className="flex flex-wrap gap-2 text-xs">
-                  <button type="button" onClick={handleSaveTalentProfile} disabled={personControlsDisabled} className="inline-flex items-center rounded-full border border-borderSubtle px-3 py-1 font-semibold text-textSecondary hover:border-accent hover:text-textPrimary transition disabled:opacity-60">
+                  <button type="button" onClick={handleSaveTalentProfile} disabled={personControlsDisabled} className="inline-flex items-center rounded-full border border-gray-200 px-3 py-1 font-semibold text-gray-600 hover:border-indigo-600 hover:text-gray-900 transition disabled:opacity-60">
                     Save as My Talent
                   </button>
-                  <button type="button" onClick={handleApplySavedTalent} disabled={personControlsDisabled || !hasSavedTalent} className="inline-flex items-center rounded-full border border-borderSubtle px-3 py-1 font-semibold text-textSecondary hover:border-accent hover:text-textPrimary transition disabled:opacity-60">
+                  <button type="button" onClick={handleApplySavedTalent} disabled={personControlsDisabled || !hasSavedTalent} className="inline-flex items-center rounded-full border border-gray-200 px-3 py-1 font-semibold text-gray-600 hover:border-indigo-600 hover:text-gray-900 transition disabled:opacity-60">
                     Apply saved talent
                   </button>
                 </div>
-                {talentToast === 'saved' && <p className="text-xs text-accent">Talent saved for future scenes.</p>}
-                {talentToast === 'applied' && <p className="text-xs text-accent">Saved talent applied.</p>}
-                <div className="rounded-xl border border-borderSubtle bg-surfaceTint px-3 py-3 space-y-2">
+                {talentToast === 'saved' && <p className="text-xs text-indigo-600">Talent saved for future scenes.</p>}
+                {talentToast === 'applied' && <p className="text-xs text-indigo-600">Saved talent applied.</p>}
+                <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 space-y-2">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.3em] text-accent">Link talent across scenes</p>
-                      <p className="text-xs text-textSecondary">Keep this same creator for morning / afternoon / night shots.</p>
+                      <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Link talent across scenes</p>
+                      <p className="text-xs text-gray-600">Keep this same creator for morning / afternoon / night shots.</p>
                     </div>
                     <label className="relative inline-flex cursor-pointer items-center gap-2">
                       <input type="checkbox" className="sr-only" checked={isTalentLinkedAcrossScenes} onChange={handleTalentLinkToggle} disabled={personControlsDisabled} />
-                      <div className={`relative h-5 w-10 rounded-full transition ${isTalentLinkedAcrossScenes ? 'bg-accent' : 'bg-surfaceElevated'} ${personControlsDisabled ? 'opacity-50' : ''}`}>
-                        <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-surface border border-borderSubtle transition ${isTalentLinkedAcrossScenes ? 'translate-x-4' : ''}`} />
+                      <div className={`relative h-5 w-10 rounded-full transition ${isTalentLinkedAcrossScenes ? 'bg-indigo-600' : 'bg-gray-100'} ${personControlsDisabled ? 'opacity-50' : ''}`}>
+                        <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white border border-gray-200 transition ${isTalentLinkedAcrossScenes ? 'translate-x-4' : ''}`} />
                       </div>
-                      <span className={`text-xs font-semibold ${isTalentLinkedAcrossScenes ? 'text-accent' : 'text-textMuted'}`}>
+                      <span className={`text-xs font-semibold ${isTalentLinkedAcrossScenes ? 'text-indigo-600' : 'text-gray-500'}`}>
                         {isTalentLinkedAcrossScenes ? 'Active' : 'Off'}
                       </span>
                     </label>
                   </div>
-                  {personControlsDisabled && <p className="text-[11px] text-textMuted">Enable people in this scene to sync the talent across your storyboard.</p>}
+                  {personControlsDisabled && <p className="text-[11px] text-gray-500">Enable people in this scene to sync the talent across your storyboard.</p>}
                   {isTalentLinkedAcrossScenes && !isActiveScenePrimary && (
-                    <p className="text-[11px] text-textMuted">
+                    <p className="text-[11px] text-gray-500">
                       Identity locked from {storyboardScenes[0]?.label || 'Scene 1'} while Same Person is active.
                     </p>
                   )}
                   {isTalentLinkedAcrossScenes && !personControlsDisabled && (
-                    <p className="text-[11px] text-accent">
+                    <p className="text-[11px] text-indigo-600">
                       Any tweak you make to the person instantly updates every other scene that still features them.
                     </p>
                   )}
@@ -1871,16 +1871,16 @@ const App: React.FC = () => {
               <ChipSelectGroup label="Eye Color" options={EYE_COLOR_OPTIONS} selectedValue={options.eyeColor} onChange={(value) => handleOptionChange('eyeColor', value, 'Person Details')} disabled={personControlsDisabled} />
               <ChipSelectGroup label="Selfie Type" options={SELFIE_TYPE_OPTIONS} selectedValue={options.selfieType} onChange={(value) => handleOptionChange('selfieType', value, 'Person Details')} disabled={personControlsDisabled} />
               {!personControlsDisabled && (
-                <p className="text-[11px] text-textMuted">
+                <p className="text-[11px] text-gray-500">
                   Tip: selfie styles mimic how the creator is actually holding the phone (mirror, arm-length, low-angle). Choose the angle you want viewers to feel.
                 </p>
               )}
               {!personControlsDisabled && !ugcRealSettings.isEnabled && (
-                <div className="rounded-2xl border border-borderSubtle bg-surfaceElevated p-4 space-y-3">
+                <div className="rounded-2xl border border-gray-200 bg-gray-100 p-4 space-y-3">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.3em] text-accent">Hero person presets</p>
-                      <p className="text-[11px] text-textSecondary">
+                      <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Hero person presets</p>
+                      <p className="text-[11px] text-gray-600">
                         Quickly stage face-frame, offer-to-lens, or grounded lounge poses inspired by modern supplement shoots.
                       </p>
                     </div>
@@ -1894,29 +1894,29 @@ const App: React.FC = () => {
                           type="button"
                           onClick={() => handleHeroPosePresetSelect(preset.value)}
                           className={`w-full rounded-xl border px-3 py-2 text-left transition ${isActive
-                            ? 'bg-accent text-white border-accent shadow-md shadow-accent-glow scale-105 duration-500'
-                            : 'border-borderSubtle bg-surfaceTint text-textSecondary hover:border-accent hover:text-textPrimary'
+                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500'
+                            : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-indigo-600 hover:text-gray-900'
                             }`}
                         >
                           <div className="flex items-center gap-1 relative group text-sm font-semibold">
                             <span>{preset.label}</span>
                             {preset.tooltip && (
-                              <span className="text-xs text-textSecondary cursor-pointer group-hover:text-textPrimary">
+                              <span className="text-xs text-gray-600 cursor-pointer group-hover:text-gray-900">
                                 ⓘ
-                                <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-surface text-textPrimary text-xs p-2 rounded-2xl border border-borderSubtle shadow-sm w-44">
+                                <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-white text-gray-900 text-xs p-2 rounded-2xl border border-gray-200 shadow-sm w-44">
                                   {preset.tooltip}
                                 </div>
                               </span>
                             )}
                           </div>
-                          <p className="text-[11px] text-textSecondary mt-1">{preset.description}</p>
+                          <p className="text-[11px] text-gray-600 mt-1">{preset.description}</p>
                         </button>
                       );
                     })}
                   </div>
                   {selectedHeroPreset === 'custom' && (
                     <textarea
-                      className="mt-3 w-full rounded-2xl border border-borderSubtle bg-surface px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:outline-none"
+                      className="mt-3 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none"
                       placeholder="Describe your own hero pose or product interaction..."
                       value={customHeroDescription}
                       onChange={(event) => setCustomHeroDescription(event.target.value)}
@@ -1924,7 +1924,7 @@ const App: React.FC = () => {
                     />
                   )}
                   {selectedHeroPreset !== 'custom' && (
-                    <p className="text-[11px] text-accent">
+                    <p className="text-[11px] text-indigo-600">
                       Pose + camera notes are baked into the prompt. You can still tweak any field above.
                     </p>
                   )}
@@ -1932,31 +1932,31 @@ const App: React.FC = () => {
               )}
               {!personControlsDisabled && renderFormulationStoryPanel('ugc')}
               {!personControlsDisabled && (
-                <div className="rounded-2xl border border-dashed border-borderSubtle bg-surfaceTint p-4">
-                  <p className="text-xs uppercase tracking-[0.3em] text-accent mb-3">Prop bundles</p>
+                <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                  <p className="text-xs uppercase tracking-[0.3em] text-indigo-600 mb-3">Prop bundles</p>
                   <div className="flex flex-wrap gap-2">
                     {PROP_BUNDLES.map(bundle => (
-                      <button key={bundle.label} type="button" onClick={() => handlePropBundleSelect(bundle.settings)} className="rounded-full border border-borderSubtle px-3 py-1 text-xs text-textSecondary hover:border-accent hover:text-textPrimary transition">
+                      <button key={bundle.label} type="button" onClick={() => handlePropBundleSelect(bundle.settings)} className="rounded-full border border-gray-200 px-3 py-1 text-xs text-gray-600 hover:border-indigo-600 hover:text-gray-900 transition">
                         {bundle.label}
                       </button>
                     ))}
                   </div>
-                  <p className="text-[11px] text-textSecondary mt-2">Tap any bundle to pre-fill props, micro-location, and mood.</p>
+                  <p className="text-[11px] text-gray-600 mt-2">Tap any bundle to pre-fill props, micro-location, and mood.</p>
                 </div>
               )}
-              <div className="rounded-2xl border border-borderSubtle bg-surfaceElevated p-4">
-                <p className="text-xs uppercase tracking-[0.3em] text-accent mb-2">Talent preview</p>
-                <div className="flex flex-wrap gap-2 text-xs text-textSecondary">
-                  <span className="rounded-full bg-surfaceTint px-3 py-1">{options.gender}</span>
-                  <span className="rounded-full bg-surfaceTint px-3 py-1">{options.ageGroup}</span>
-                  <span className="rounded-full bg-surfaceTint px-3 py-1">{options.personMood}</span>
-                  <span className="rounded-full bg-surfaceTint px-3 py-1">{options.personPose}</span>
-                  <span className="rounded-full bg-surfaceTint px-3 py-1">{options.wardrobeStyle}</span>
-                  <span className="rounded-full bg-surfaceTint px-3 py-1">{options.skinTone}</span>
-                  <span className="rounded-full bg-surfaceTint px-3 py-1">{options.hairColor}</span>
-                  <span className="rounded-full bg-surfaceTint px-3 py-1">{options.eyeColor}</span>
+              <div className="rounded-2xl border border-gray-200 bg-gray-100 p-4">
+                <p className="text-xs uppercase tracking-[0.3em] text-indigo-600 mb-2">Talent preview</p>
+                <div className="flex flex-wrap gap-2 text-xs text-gray-600">
+                  <span className="rounded-full bg-gray-50 px-3 py-1">{options.gender}</span>
+                  <span className="rounded-full bg-gray-50 px-3 py-1">{options.ageGroup}</span>
+                  <span className="rounded-full bg-gray-50 px-3 py-1">{options.personMood}</span>
+                  <span className="rounded-full bg-gray-50 px-3 py-1">{options.personPose}</span>
+                  <span className="rounded-full bg-gray-50 px-3 py-1">{options.wardrobeStyle}</span>
+                  <span className="rounded-full bg-gray-50 px-3 py-1">{options.skinTone}</span>
+                  <span className="rounded-full bg-gray-50 px-3 py-1">{options.hairColor}</span>
+                  <span className="rounded-full bg-gray-50 px-3 py-1">{options.eyeColor}</span>
                 </div>
-                <p className="text-[11px] text-textSecondary mt-2">
+                <p className="text-[11px] text-gray-600 mt-2">
                   {options.personExpression} · {options.hairStyle} · {options.personProps}
                 </p>
               </div>
@@ -2015,10 +2015,10 @@ const App: React.FC = () => {
 
   const renderBundlesSection = () => (
     <div id={getSectionId('Bundles')} className="mt-6">
-      <div className="rounded-2xl border border-borderSubtle bg-surfaceTint p-4 space-y-4">
+      <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 space-y-4">
         <div className="flex flex-col gap-1">
-          <p className="text-xs uppercase tracking-[0.3em] text-accent">Bundles</p>
-          <p className="text-sm text-textSecondary">Quickly swap between curated packs, your own mix, or AI-recommended combos.</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Bundles</p>
+          <p className="text-sm text-gray-600">Quickly swap between curated packs, your own mix, or AI-recommended combos.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {BUNDLE_TABS.map(tab => (
@@ -2026,7 +2026,7 @@ const App: React.FC = () => {
               key={tab.id}
               type="button"
               onClick={() => setActiveBundleTab(tab.id)}
-              className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${activeBundleTab === tab.id ? 'bg-accent text-white border-accent shadow-md shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary'
+              className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${activeBundleTab === tab.id ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500' : 'border-gray-200 bg-gray-100 text-gray-600 hover:border-indigo-600 hover:text-gray-900'
                 }`}
             >
               {tab.label}
@@ -2051,15 +2051,15 @@ const App: React.FC = () => {
         {activeBundleTab === 'recommended' && (
           <div className="space-y-4">
             {availableProductIds.length === 0 ? (
-              <p className="text-xs text-textMuted">Upload at least one product photo to view recommendations.</p>
+              <p className="text-xs text-gray-500">Upload at least one product photo to view recommendations.</p>
             ) : (
               <>
                 <div className="flex flex-col gap-2">
-                  <label className="text-xs uppercase tracking-[0.3em] text-textSecondary">Anchor product</label>
+                  <label className="text-xs uppercase tracking-[0.3em] text-gray-600">Anchor product</label>
                   <select
                     value={recommendedBaseProduct}
                     onChange={event => setRecommendedBaseProduct(event.target.value as ProductId)}
-                    className="rounded-2xl border border-borderSubtle bg-surface px-3 py-2 text-sm text-textPrimary focus:border-accent focus:outline-none"
+                    className="rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-600 focus:outline-none"
                   >
                     {availableProductIds.map(productId => (
                       <option key={productId} value={productId}>
@@ -2079,15 +2079,15 @@ const App: React.FC = () => {
           </div>
         )}
         {lastBundleSelection && lastBundleSelection.some(id => availableProductIdSet.has(id)) && (
-          <div className="rounded-2xl border border-borderSubtle bg-surfaceElevated p-3 space-y-2">
-            <p className="text-xs uppercase tracking-[0.3em] text-accent">Last bundle sent</p>
+          <div className="rounded-2xl border border-gray-200 bg-gray-100 p-3 space-y-2">
+            <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Last bundle sent</p>
             <div className="flex flex-wrap gap-2 text-xs">
               {lastBundleSelection
                 .filter(productId => availableProductIdSet.has(productId))
                 .map(productId => (
                   <span
                     key={`${productId}-last`}
-                    className="rounded-full border border-borderSubtle px-3 py-1 text-textPrimary"
+                    className="rounded-full border border-gray-200 px-3 py-1 text-gray-900"
                   >
                     {productMediaLibrary[productId]?.label || PRODUCT_MEDIA_LIBRARY[productId]?.label || productId}
                   </span>
@@ -2331,24 +2331,24 @@ const App: React.FC = () => {
   }, [applyOptionsUpdate]);
 
   const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
-    <div className="rounded-2xl border border-borderSubtle bg-surfaceElevated p-4 space-y-3">
+    <div className="rounded-2xl border border-gray-200 bg-gray-100 p-4 space-y-3">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-accent">Formulation story</p>
-          <p className="text-xs text-textSecondary">
+          <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Formulation story</p>
+          <p className="text-xs text-gray-600">
             {context === 'product'
               ? 'Highlight the doctor or researcher behind the formula to build trust.'
               : 'Let your UGC creator double as the doctor/scientist formulating the blend.'}
           </p>
         </div>
-        <label className="flex items-center gap-2 text-xs text-textSecondary">
+        <label className="flex items-center gap-2 text-xs text-gray-600">
           <span>{formulationExpertEnabled ? 'Active' : 'Off'}</span>
           <button
             type="button"
             onClick={() => setFormulationExpertEnabled(prev => !prev)}
-            className={`relative h-5 w-10 rounded-full transition ${formulationExpertEnabled ? 'bg-accent' : 'bg-surfaceTint'}`}
+            className={`relative h-5 w-10 rounded-full transition ${formulationExpertEnabled ? 'bg-indigo-600' : 'bg-gray-50'}`}
           >
-            <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-surface border border-borderSubtle transition ${formulationExpertEnabled ? 'translate-x-5' : ''}`} />
+            <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white border border-gray-200 transition ${formulationExpertEnabled ? 'translate-x-5' : ''}`} />
           </button>
         </label>
       </div>
@@ -2361,8 +2361,8 @@ const App: React.FC = () => {
                 type="button"
                 onClick={() => handleFormulationPresetSelect(preset.value)}
                 className={`rounded-full border px-3 py-1 text-xs transition ${formulationExpertPreset === preset.value
-                  ? 'bg-accent text-white border-accent shadow-md shadow-accent-glow scale-105 duration-500'
-                  : 'border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary'
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500'
+                  : 'border-gray-200 bg-gray-100 text-gray-600 hover:border-indigo-600 hover:text-gray-900'
                   }`}
               >
                 {preset.label}
@@ -2376,8 +2376,8 @@ const App: React.FC = () => {
                 type="button"
                 onClick={() => handleFormulationProfessionSelect(option.value)}
                 className={`rounded-full border px-3 py-1 text-xs transition ${formulationExpertProfession === option.value
-                  ? 'bg-accent text-white border-accent shadow-md shadow-accent-glow scale-105 duration-500'
-                  : 'border-borderSubtle bg-surfaceElevated text-textSecondary hover:border-accent hover:text-textPrimary'
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500'
+                  : 'border-gray-200 bg-gray-100 text-gray-600 hover:border-indigo-600 hover:text-gray-900'
                   }`}
               >
                 {option.label}
@@ -2386,23 +2386,23 @@ const App: React.FC = () => {
           </div>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <div className="flex flex-col gap-1">
-              <label className="text-xs uppercase tracking-widest text-textMuted">Expert name</label>
+              <label className="text-xs uppercase tracking-widest text-gray-500">Expert name</label>
               <input
                 type="text"
                 value={formulationExpertName}
                 onChange={event => setFormulationExpertName(event.target.value)}
                 placeholder="e.g., Dr. Sofia Reyes"
-                className="rounded-2xl border border-borderSubtle bg-surface px-2 py-1 text-sm text-textPrimary focus:border-accent focus:outline-none"
+                className="rounded-2xl border border-gray-200 bg-white px-2 py-1 text-sm text-gray-900 focus:border-indigo-600 focus:outline-none"
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs uppercase tracking-widest text-textMuted">Role / credentials</label>
+              <label className="text-xs uppercase tracking-widest text-gray-500">Role / credentials</label>
               <input
                 type="text"
                 value={formulationExpertRole}
                 onChange={event => setFormulationExpertRole(event.target.value)}
                 placeholder="e.g., pulmonologist & lead formulator"
-                className="rounded-2xl border border-borderSubtle bg-surface px-2 py-1 text-sm text-textPrimary focus:border-accent focus:outline-none"
+                className="rounded-2xl border border-gray-200 bg-white px-2 py-1 text-sm text-gray-900 focus:border-indigo-600 focus:outline-none"
               />
             </div>
           </div>
@@ -2412,7 +2412,7 @@ const App: React.FC = () => {
             selectedValue={formulationLabStyle}
             onChange={value => setFormulationLabStyle(value)}
           />
-          <p className="text-[11px] text-textSecondary">We’ll mention their research, lab setup, and why the formula feels trustworthy. Ensure this expert looks like a real human, photographed with natural imperfections.</p>
+          <p className="text-[11px] text-gray-600">We’ll mention their research, lab setup, and why the formula feels trustworthy. Ensure this expert looks like a real human, photographed with natural imperfections.</p>
         </div>
       )}
     </div>
@@ -5020,35 +5020,35 @@ If the model attempts to create a scene or environment, override it and force a 
 
       {showGoalWizard && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-bg px-4">
-          <div className="w-full max-w-3xl rounded-3xl border border-borderSubtle bg-surfaceGlass p-6 md:p-10 shadow-md shadow-accent-glow space-y-6">
+          <div className="w-full max-w-3xl rounded-3xl border border-gray-200 bg-white/10 p-6 md:p-10 shadow-md shadow-md shadow-indigo-500/20 space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.4em] text-accent">Quick start wizard</p>
-                <h3 className="text-2xl md:text-3xl font-semibold text-textPrimary mt-2">Let’s set up your scene</h3>
+                <p className="text-xs uppercase tracking-[0.4em] text-indigo-600">Quick start wizard</p>
+                <h3 className="text-2xl md:text-3xl font-semibold text-gray-900 mt-2">Let’s set up your scene</h3>
               </div>
-              <button onClick={handleGoalWizardSkip} className="text-sm text-textSecondary hover:text-textPrimary">Skip</button>
+              <button onClick={handleGoalWizardSkip} className="text-sm text-gray-600 hover:text-gray-900">Skip</button>
             </div>
-            <p className="text-sm text-textSecondary">Step {goalWizardStep} / 3</p>
+            <p className="text-sm text-gray-600">Step {goalWizardStep} / 3</p>
             {goalWizardStep === 1 && (
               <div className="grid gap-4 md:grid-cols-2">
                 {normalizedGoalWizardGoals.map(option => (
                   <button
                     key={option.value}
                     onClick={() => handleGoalWizardSelect('goal', option.value)}
-                    className={`rounded-2xl border p-4 text-left transition ${goalWizardData.goal === option.value ? 'bg-accent text-white border-accent shadow-md shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary'}`}
+                    className={`rounded-2xl border p-4 text-left transition ${goalWizardData.goal === option.value ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500' : 'border-gray-200 bg-gray-100 text-gray-600'}`}
                   >
                     <div className="flex items-center gap-1 relative group">
                       <span className="text-lg font-semibold">{option.label}</span>
                       {option.tooltip && (
-                        <span className="text-xs text-textSecondary cursor-pointer group-hover:text-textPrimary">
+                        <span className="text-xs text-gray-600 cursor-pointer group-hover:text-gray-900">
                           ⓘ
-                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-surface text-textPrimary text-xs p-2 rounded-2xl border border-borderSubtle shadow-sm w-44">
+                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-white text-gray-900 text-xs p-2 rounded-2xl border border-gray-200 shadow-sm w-44">
                             {option.tooltip}
                           </div>
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-textSecondary mt-2">{cleanDescription(option.description)}</p>
+                    <p className="text-sm text-gray-600 mt-2">{cleanDescription(option.description)}</p>
                   </button>
                 ))}
               </div>
@@ -5059,20 +5059,20 @@ If the model attempts to create a scene or environment, override it and force a 
                   <button
                     key={option.value}
                     onClick={() => handleGoalWizardSelect('vibe', option.value)}
-                    className={`rounded-2xl border p-4 text-left transition ${goalWizardData.vibe === option.value ? 'bg-accent text-white border-accent shadow-md shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary'}`}
+                    className={`rounded-2xl border p-4 text-left transition ${goalWizardData.vibe === option.value ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500' : 'border-gray-200 bg-gray-100 text-gray-600'}`}
                   >
                     <div className="flex items-center gap-1 relative group">
                       <span className="text-base font-semibold">{option.label}</span>
                       {option.tooltip && (
-                        <span className="text-xs text-textSecondary cursor-pointer group-hover:text-textPrimary">
+                        <span className="text-xs text-gray-600 cursor-pointer group-hover:text-gray-900">
                           ⓘ
-                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-surface text-textPrimary text-xs p-2 rounded-2xl border border-borderSubtle shadow-sm w-44">
+                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-white text-gray-900 text-xs p-2 rounded-2xl border border-gray-200 shadow-sm w-44">
                             {option.tooltip}
                           </div>
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-textSecondary mt-2">{cleanDescription(option.description)}</p>
+                    <p className="text-sm text-gray-600 mt-2">{cleanDescription(option.description)}</p>
                   </button>
                 ))}
               </div>
@@ -5085,34 +5085,34 @@ If the model attempts to create a scene or environment, override it and force a 
                     <button
                       key={preset.value}
                       onClick={() => handleGoalWizardSelect('preset', preset.value)}
-                      className={`rounded-2xl border p-4 text-left transition ${goalWizardData.preset === preset.value ? 'bg-accent text-white border-accent shadow-md shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary'}`}
+                      className={`rounded-2xl border p-4 text-left transition ${goalWizardData.preset === preset.value ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500' : 'border-gray-200 bg-gray-100 text-gray-600'}`}
                     >
                       <div className="flex items-center gap-1 relative group">
                         <span className="text-base font-semibold">{preset.label}</span>
                         {preset.tooltip && (
-                          <span className="text-xs text-textSecondary cursor-pointer group-hover:text-textPrimary">
+                          <span className="text-xs text-gray-600 cursor-pointer group-hover:text-gray-900">
                             ⓘ
-                            <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-surface text-textPrimary text-xs p-2 rounded-2xl border border-borderSubtle shadow-sm w-44">
+                            <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-white text-gray-900 text-xs p-2 rounded-2xl border border-gray-200 shadow-sm w-44">
                               {preset.tooltip}
                             </div>
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-textSecondary mt-2">{cleanDescription(preset.description)}</p>
+                      <p className="text-sm text-gray-600 mt-2">{cleanDescription(preset.description)}</p>
                     </button>
                   ))}
               </div>
             )}
-            <div className="flex items-center justify-between pt-4 border-t border-borderSubtle">
-              <button onClick={goalWizardStep === 1 ? handleGoalWizardSkip : handleGoalWizardBack} className="text-sm text-textSecondary hover:text-textPrimary">
+            <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+              <button onClick={goalWizardStep === 1 ? handleGoalWizardSkip : handleGoalWizardBack} className="text-sm text-gray-600 hover:text-gray-900">
                 {goalWizardStep === 1 ? 'Skip wizard' : 'Back'}
               </button>
               {goalWizardStep < 3 ? (
-                <button onClick={handleGoalWizardNext} className="rounded-full bg-accent px-6 py-2 text-sm font-semibold text-white hover:bg-accent transition">
+                <button onClick={handleGoalWizardNext} className="rounded-full bg-indigo-600 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-600 transition">
                   Next
                 </button>
               ) : (
-                <button onClick={handleGoalWizardComplete} className="rounded-full bg-accent px-6 py-2 text-sm font-semibold text-white hover:bg-accent transition">
+                <button onClick={handleGoalWizardComplete} className="rounded-full bg-indigo-600 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-600 transition">
                   Apply &amp; build
                 </button>
               )}
@@ -5122,14 +5122,14 @@ If the model attempts to create a scene or environment, override it and force a 
       )}
 
       {showPlanModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-surfaceTint px-4">
-          <div className="w-full max-w-3xl rounded-3xl border border-borderSubtle bg-surface p-6 md:p-8 shadow-md shadow-accent-glow space-y-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-50 px-4">
+          <div className="w-full max-w-3xl rounded-3xl border border-gray-200 bg-white p-6 md:p-8 shadow-md shadow-md shadow-indigo-500/20 space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.4em] text-accent">Manage plan</p>
-                <h3 className="text-2xl font-semibold text-textPrimary mt-1">Choose what fits your launch</h3>
+                <p className="text-xs uppercase tracking-[0.4em] text-indigo-600">Manage plan</p>
+                <h3 className="text-2xl font-semibold text-gray-900 mt-1">Choose what fits your launch</h3>
               </div>
-              <button onClick={() => { setShowPlanModal(false); setPlanCodeInput(''); setPlanCodeError(null); setPlanNotice(null); }} className="text-sm text-textSecondary hover:text-textPrimary">
+              <button onClick={() => { setShowPlanModal(false); setPlanCodeInput(''); setPlanCodeError(null); setPlanNotice(null); }} className="text-sm text-gray-600 hover:text-gray-900">
                 Close
               </button>
             </div>
@@ -5138,13 +5138,13 @@ If the model attempts to create a scene or environment, override it and force a 
                 <button
                   key={tier}
                   onClick={() => handlePlanTierSelect(tier as PlanTier)}
-                  className={`rounded-2xl border p-4 text-left transition ${planTier === tier ? 'bg-accent text-white border-accent shadow-md shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceElevated text-textSecondary'}`}
+                  className={`rounded-2xl border p-4 text-left transition ${planTier === tier ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500' : 'border-gray-200 bg-gray-100 text-gray-600'}`}
                 >
                   <p className="text-lg font-semibold flex items-center justify-between">
                     <span>{config.label}</span>
-                    <span className="text-sm text-accent">{config.priceLabel}</span>
+                    <span className="text-sm text-indigo-600">{config.priceLabel}</span>
                   </p>
-                  <p className="text-sm text-textSecondary mt-1">{config.description}</p>
+                  <p className="text-sm text-gray-600 mt-1">{config.description}</p>
                   <p className="text-xs mt-2">
                     {planTier === tier ? 'Current plan' : 'Go to checkout'}
                   </p>
@@ -5152,7 +5152,7 @@ If the model attempts to create a scene or environment, override it and force a 
               ))}
             </div>
             <div className="space-y-2 text-left">
-              <p className="text-xs uppercase tracking-[0.3em] text-textMuted">Have an upgrade code?</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-gray-500">Have an upgrade code?</p>
               <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
@@ -5162,57 +5162,60 @@ If the model attempts to create a scene or environment, override it and force a 
                     if (planCodeError) setPlanCodeError(null);
                   }}
                   placeholder="Enter the code from your receipt"
-                  className="flex-1 rounded-2xl border border-borderSubtle bg-surface px-3 py-2 text-textPrimary placeholder:text-textMuted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                  className="flex-1 rounded-2xl border border-gray-200 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-accent"
                 />
                 <button
                   type="button"
                   onClick={handlePlanCodeSubmit}
-                  className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent transition"
+                  className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-600 transition"
                 >
                   Apply
                 </button>
               </div>
-              {planCodeError && <p className="text-xs text-textMuted">{planCodeError}</p>}
+              {planCodeError && <p className="text-xs text-gray-500">{planCodeError}</p>}
             </div>
           </div>
         </div>
       )}
 
-      <div className="min-h-screen bg-bg text-textPrimary p-4 sm:p-6 lg:p-8">
+      <div className="min-h-screen bg-gray-50 text-gray-900 p-6 sm:p-10 lg:p-16">
         <div className="max-w-7xl mx-auto relative">
-          <header className="relative mb-12 flex items-center justify-between">
+          <header className="relative mb-20 flex items-center justify-between">
             <div className="flex flex-col">
-              <span className="text-[10px] uppercase tracking-[0.5em] text-accent font-medium mb-1">
+              <span className="text-[10px] uppercase tracking-[0.5em] text-indigo-600 font-medium mb-1">
                 Simulation System v3.0
               </span>
-              <h1 className="text-3xl font-black tracking-tight text-textPrimary flex items-center">
-                MOCKUP<span className="text-accent ml-1">PRO</span>
+              <h1 className="text-4xl font-black tracking-tight text-gray-900 flex items-center">
+                MOCKUP<span className="text-indigo-600 ml-1">PRO</span>
               </h1>
             </div>
 
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-8">
               <button
                 type="button"
                 onClick={toggleTheme}
-                className="h-10 w-10 rounded-full border border-borderSubtle bg-surface text-textSecondary hover:text-accent transition flex items-center justify-center shadow-sm overflow-hidden"
+                className="h-10 w-10 rounded-full border border-gray-200 bg-white text-gray-600 hover:text-indigo-600 transition flex items-center justify-center shadow-sm overflow-hidden"
                 aria-label="Toggle theme"
               >
                 <Moon className="theme-icon-light animate-scale-icon" size={18} />
                 <Sun className="theme-icon-dark animate-scale-icon" size={18} />
               </button>
 
-              <div className="bg-surfaceElevated p-1 rounded-full flex items-center shadow-inner">
+              <div className="relative flex items-center rounded-full bg-gray-100 p-1 shadow-inner">
+                <div
+                  className={`absolute inset-y-1 left-1 w-28 rounded-full bg-white shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] ${isProductPlacement ? 'translate-x-[112px]' : 'translate-x-0'}`}
+                />
                 <button
                   type="button"
                   onClick={() => handleOptionChange('contentStyle', 'ugc', 'Mode')}
-                  className={`px-6 py-2 rounded-full text-[10px] font-bold tracking-widest transition-all ${!isProductPlacement ? 'bg-surfaceTint text-textPrimary shadow-sm' : 'text-textMuted hover:text-textSecondary text-textMuted'}`}
+                  className={`relative z-10 w-28 px-6 py-2 rounded-full text-[10px] font-bold tracking-widest transition-colors duration-300 ${!isProductPlacement ? 'text-gray-900' : 'text-gray-500 hover:text-gray-600'}`}
                 >
                   LIFESTYLE
                 </button>
                 <button
                   type="button"
                   onClick={() => handleOptionChange('contentStyle', 'product', 'Mode')}
-                  className={`px-6 py-2 rounded-full text-[10px] font-bold tracking-widest transition-all ${isProductPlacement ? 'bg-surfaceTint text-textPrimary shadow-sm' : 'text-textMuted hover:text-textSecondary text-textMuted'}`}
+                  className={`relative z-10 w-28 px-6 py-2 rounded-full text-[10px] font-bold tracking-widest transition-colors duration-300 ${isProductPlacement ? 'text-gray-900' : 'text-gray-500 hover:text-gray-600'}`}
                 >
                   STUDIO
                 </button>
@@ -5220,20 +5223,20 @@ If the model attempts to create a scene or environment, override it and force a 
             </div>
           </header>
 
-          <main className="flex flex-col gap-8">
+          <main className="flex flex-col gap-16">
             {(!isSimpleMode && canUseStudioFeatures && isDevBypass) && (
-              <div className="rounded-3xl border border-borderSubtle bg-surfaceGlass p-5 space-y-4">
+              <div className="rounded-3xl border border-gray-200 bg-white/10 p-5 space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.35em] text-accent">Storyboard</p>
-                    <p className="text-sm text-textSecondary">Queue variations and switch scenes without rebuilding settings.</p>
+                    <p className="text-xs uppercase tracking-[0.35em] text-indigo-600">Storyboard</p>
+                    <p className="text-sm text-gray-600">Queue variations and switch scenes without rebuilding settings.</p>
                   </div>
                   <div className="flex items-center gap-2 text-xs">
                     <button
                       type="button"
                       onClick={handleAddScene}
                       disabled={storyboardScenes.length >= 4}
-                      className="rounded-full border border-borderSubtle px-3 py-1 text-textSecondary hover:border-accent hover:text-textPrimary transition disabled:opacity-40"
+                      className="rounded-full border border-gray-200 px-3 py-1 text-gray-600 hover:border-indigo-600 hover:text-gray-900 transition disabled:opacity-40"
                     >
                       + Add scene
                     </button>
@@ -5241,7 +5244,7 @@ If the model attempts to create a scene or environment, override it and force a 
                       type="button"
                       onClick={handleDuplicateScene}
                       disabled={storyboardScenes.length >= 4}
-                      className="rounded-full border border-borderSubtle px-3 py-1 text-textSecondary hover:border-accent hover:text-textPrimary transition disabled:opacity-40"
+                      className="rounded-full border border-gray-200 px-3 py-1 text-gray-600 hover:border-indigo-600 hover:text-gray-900 transition disabled:opacity-40"
                     >
                       Duplicate
                     </button>
@@ -5251,7 +5254,7 @@ If the model attempts to create a scene or environment, override it and force a 
                   {storyboardScenes.map(scene => (
                     <div
                       key={scene.id}
-                      className={`rounded-2xl border px-4 py-3 flex items-center gap-3 ${scene.id === activeSceneId ? 'bg-accent text-white border-accent shadow-md shadow-accent-glow scale-105 duration-500' : 'border-borderSubtle bg-surfaceTint text-textSecondary'}`}
+                      className={`rounded-2xl border px-4 py-3 flex items-center gap-3 ${scene.id === activeSceneId ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500' : 'border-gray-200 bg-gray-50 text-gray-600'}`}
                     >
                       <button onClick={() => handleSceneSelect(scene.id)} className="font-semibold">
                         {scene.label}
@@ -5259,7 +5262,7 @@ If the model attempts to create a scene or environment, override it and force a 
                       {storyboardScenes.length > 1 && (
                         <button
                           onClick={() => handleDeleteScene(scene.id)}
-                          className="text-xs text-textSecondary hover:text-textPrimary"
+                          className="text-xs text-gray-600 hover:text-gray-900"
                         >
                           Remove
                         </button>
@@ -5267,11 +5270,11 @@ If the model attempts to create a scene or environment, override it and force a 
                     </div>
                   ))}
                 </div>
-                <div className="flex flex-col gap-2 rounded-2xl border border-borderSubtle bg-surfaceElevated p-4 text-xs text-textSecondary">
+                <div className="flex flex-col gap-2 rounded-2xl border border-gray-200 bg-gray-100 p-4 text-xs text-gray-600">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="uppercase tracking-[0.3em] text-accent">Same person</p>
-                      <p className="text-textSecondary mt-1">Keep a single creator across every scene automatically.</p>
+                      <p className="uppercase tracking-[0.3em] text-indigo-600">Same person</p>
+                      <p className="text-gray-600 mt-1">Keep a single creator across every scene automatically.</p>
                     </div>
                     <label className="relative inline-flex cursor-pointer items-center">
                       <input
@@ -5282,17 +5285,17 @@ If the model attempts to create a scene or environment, override it and force a 
                         aria-label="Use the same person in all storyboard scenes"
                       />
                       <div
-                        className={`relative h-5 w-10 rounded-full transition ${isTalentLinkedAcrossScenes ? 'bg-accent' : 'bg-surfaceElevated'
+                        className={`relative h-5 w-10 rounded-full transition ${isTalentLinkedAcrossScenes ? 'bg-indigo-600' : 'bg-gray-50'
                           }`}
                       >
                         <span
-                          className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-surface border border-borderSubtle transition ${isTalentLinkedAcrossScenes ? 'translate-x-4' : ''
+                          className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white border border-gray-200 transition ${isTalentLinkedAcrossScenes ? 'translate-x-4' : ''
                             }`}
                         />
                       </div>
                     </label>
                   </div>
-                  <p className="text-[11px] text-textMuted">
+                  <p className="text-[11px] text-gray-500">
                     Toggle once and any update to this scene’s person instantly syncs to the rest.
                   </p>
                 </div>
@@ -5300,41 +5303,34 @@ If the model attempts to create a scene or environment, override it and force a 
             )}
 
             <fieldset className="contents">
-              <div className="grid gap-6 w-full grid-cols-1 lg:grid-cols-[420px_minmax(620px,1fr)] items-start">
+              <div className="grid gap-16 w-full grid-cols-1 lg:grid-cols-[420px_minmax(620px,1fr)] items-start">
                 <div className="flex flex-col gap-16">
                   <div
                     ref={intentRef}
                     className="flex flex-col gap-6 transition-all"
                   >
                     <div className="flex flex-col gap-1">
-                      <p className="text-[10px] uppercase tracking-[0.4em] text-accent font-bold">01 / Input Assets</p>
+                      <p className="text-[10px] uppercase tracking-[0.4em] text-indigo-600 font-bold">01 / Input Assets</p>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-6">
 
-                      <div className="bg-surface rounded-3xl p-8 border border-borderSubtle shadow-sm text-center flex flex-col items-center justify-center min-h-[320px] relative transition-all hover:border-accent/30 group">
+                      <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm text-center flex flex-col items-center justify-center min-h-[320px] relative transition-all hover:border-indigo-600/30 group">
                         <button
                           type="button"
                           onClick={() => {
-                            if (!hasSelectedIntent) return;
                             uploaderRef.current?.openFileDialog();
                           }}
-                          disabled={!hasSelectedIntent}
-                          className="flex flex-col items-center gap-4 text-textMuted group-hover:text-accent transition-colors"
+                          className="flex flex-col items-center gap-4 text-gray-500 group-hover:text-indigo-600 transition-colors"
                         >
-                          <div className="w-14 h-14 rounded-full bg-surfaceTint bg-surfaceElevated flex items-center justify-center text-2xl font-light border border-borderSubtle shadow-inner">
+                          <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-2xl font-light border border-gray-200 shadow-inner">
                             +
                           </div>
                           <div className="flex flex-col gap-1">
-                            <p className="text-xs font-bold tracking-[0.2em] text-textPrimary uppercase">Source Product</p>
-                            <p className="text-[10px] text-textMuted tracking-wider">CLICK TO BROWSE (MAX 5)</p>
+                            <p className="text-xs font-bold tracking-[0.2em] text-gray-900 uppercase">Source Product</p>
+                            <p className="text-[10px] text-gray-500 tracking-wider">CLICK TO BROWSE (MAX 5)</p>
                           </div>
                         </button>
-                        {!hasSelectedIntent && (
-                          <div className="absolute inset-0 flex items-center justify-center rounded-3xl bg-surfaceSoft bg-surfaceSoft px-4 text-center text-xs font-bold tracking-widest text-accent uppercase">
-                            Select a mode to start
-                          </div>
-                        )}
                       </div>
 
                       <div className="sr-only" aria-hidden="true">
@@ -5351,15 +5347,15 @@ If the model attempts to create a scene or environment, override it and force a 
                         <div className="space-y-3">
                           <div className="flex flex-wrap items-center justify-between gap-3">
                             <div className="flex items-center gap-2">
-                              <p className="text-xs uppercase tracking-[0.35em] text-accent">Product gallery</p>
-                              <span className="rounded-full border border-borderSubtle px-2 py-0.5 text-[11px] text-textSecondary">
+                              <p className="text-xs uppercase tracking-[0.35em] text-indigo-600">Product gallery</p>
+                              <span className="rounded-full border border-gray-200 px-2 py-0.5 text-[11px] text-gray-600">
                                 {productAssets.length}
                               </span>
                             </div>
                             <button
                               type="button"
                               onClick={handleLibraryAddClick}
-                              className="inline-flex items-center gap-2 rounded-full border border-borderSubtle px-3 py-1 text-[11px] text-textPrimary hover:border-accent transition"
+                              className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1 text-[11px] text-gray-900 hover:border-indigo-600 transition"
                             >
                               + Add
                             </button>
@@ -5370,7 +5366,7 @@ If the model attempts to create a scene or environment, override it and force a 
                               return (
                                 <div
                                   key={asset.id}
-                                  className={`flex-shrink-0 w-32 rounded-xl border p-2 transition-all ${isActive ? 'border-accent bg-accent/50 /20' : 'border-borderSubtle bg-surface hover:border-accent'}`}
+                                  className={`flex-shrink-0 w-32 rounded-md border p-2 transition-all ${isActive ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200 bg-white hover:border-indigo-600'}`}
                                 >
                                   <div className="relative mb-2">
                                     <img
@@ -5381,7 +5377,7 @@ If the model attempts to create a scene or environment, override it and force a 
                                     <button
                                       type="button"
                                       onClick={(e) => { e.stopPropagation(); handleProductAssetDelete(asset.id); }}
-                                      className="absolute -right-1 -top-1 rounded-full bg-surface p-0.5 text-[9px] text-textMuted hover:border-accent border border-borderSubtle"
+                                      className="absolute -right-1 -top-1 rounded-full bg-white p-0.5 text-[9px] text-gray-500 hover:border-indigo-600 border border-gray-200 w-4 h-4 flex items-center justify-center"
                                     >
                                       ✕
                                     </button>
@@ -5390,7 +5386,7 @@ If the model attempts to create a scene or environment, override it and force a 
                                     type="text"
                                     value={asset.label}
                                     onChange={event => handleProductAssetLabelChange(asset.id, event.target.value)}
-                                    className="w-full rounded-lg border border-borderSubtle bg-surface px-1.5 py-0.5 text-[10px] text-textPrimary focus:border-accent focus:outline-none mb-1 text-center"
+                                    className="w-full rounded-lg border border-gray-200 bg-white px-1.5 py-0.5 text-[10px] text-gray-900 focus:border-indigo-600 focus:outline-none mb-1 text-center"
                                     placeholder="Name"
                                   />
                                   <div className="flex gap-1">
@@ -5400,7 +5396,7 @@ If the model attempts to create a scene or environment, override it and force a 
                                       step="0.1"
                                       value={asset.heightValue ?? ''}
                                       onChange={event => handleProductHeightChange(asset.id, event.target.value)}
-                                      className="flex-1 w-full rounded-lg border border-borderSubtle bg-surface px-1 py-0.5 text-[10px] text-textPrimary focus:border-accent focus:outline-none"
+                                      className="flex-1 w-full rounded-lg border border-gray-200 bg-white px-1 py-0.5 text-[10px] text-gray-900 focus:border-indigo-600 focus:outline-none"
                                       placeholder="H"
                                     />
                                     <div className="flex items-center gap-1">
@@ -5409,48 +5405,46 @@ If the model attempts to create a scene or environment, override it and force a 
                                           key={unit}
                                           type="button"
                                           onClick={(e) => { e.stopPropagation(); handleProductHeightUnitChange(asset.id, unit); }}
-                                          className={`rounded-lg border px-1.5 py-0.5 text-[10px] transition ${asset.heightUnit === unit ? 'bg-accent text-white border-accent' : 'border-borderSubtle bg-surface text-textSecondary hover:border-accent'}`}
+                                          className={`rounded-lg border px-1.5 py-0.5 text-[10px] transition ${asset.heightUnit === unit ? 'bg-indigo-600 text-white border-indigo-600' : 'border-gray-200 bg-white text-gray-600 hover:border-indigo-600'}`}
                                         >
                                           {unit}
                                         </button>
                                       ))}
                                     </div>
                                   </div>
-                                  {productAssets.length > 1 && (
-                                    <button
-                                      type="button"
-                                      onClick={(e) => { e.stopPropagation(); handleProductAssetSelect(asset.id); }}
-                                      className={`w-full mt-1 rounded-full border px-2 py-0.5 text-[10px] ${isActive ? 'border-accent text-accent font-semibold' : 'border-borderSubtle text-textSecondary hover:border-accent'}`}
-                                    >
-                                      {isActive ? 'Active' : 'Use'}
-                                    </button>
-                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); handleProductAssetSelect(asset.id); }}
+                                    className={`w-full mt-1 rounded-full border px-2 py-0.5 text-[10px] ${isActive ? 'border-indigo-600 text-indigo-600 font-semibold' : 'border-gray-200 text-gray-600 hover:border-indigo-600'}`}
+                                  >
+                                    {isActive ? 'Active' : 'Use'}
+                                  </button>
                                 </div>
                               );
                             })}
                             <button
                               type="button"
                               onClick={handleLibraryAddClick}
-                              className="flex-shrink-0 w-24 rounded-xl border border-dashed border-borderSubtle bg-surface p-2 flex flex-col items-center justify-center text-center hover:border-accent transition"
+                              className="flex-shrink-0 w-24 rounded-xl border border-gray-200 bg-gray-50 p-2 flex flex-col items-center justify-center text-center hover:border-indigo-600 transition"
                             >
-                              <span className="text-xl text-textMuted">+</span>
+                              <span className="text-xl text-gray-500">+</span>
                             </button>
                           </div>
                         </div>
                       )}
 
                       {!isProductPlacement && (
-                        <details className="border-t border-borderSubtle pt-3 group">
-                          <summary className="cursor-pointer list-none flex items-center justify-between text-[11px] font-bold tracking-[0.2em] text-textMuted hover:text-accent transition-colors">
+                        <details className="border-t border-gray-200 pt-3 group">
+                          <summary className="cursor-pointer list-none flex items-center justify-between text-[11px] font-bold tracking-[0.2em] text-gray-500 hover:text-indigo-600 transition-colors">
                             <div className="flex items-center gap-3">
-                              <span className="p-1.5 rounded-lg bg-surfaceTint bg-surfaceElevated border border-borderSubtle">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-accent"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                              <span className="p-1.5 rounded-lg bg-gray-50 bg-gray-100 border border-gray-200">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                               </span>
                               <div className="flex flex-col">
                                 <span className="uppercase flex items-center gap-2">
                                   Model Reference {hasModelReference && <span className="text-success text-[14px]">✓</span>}
                                 </span>
-                                <span className="text-[9px] font-medium lowercase tracking-normal text-textMuted group-hover:text-accent">Upload model for exact facial match</span>
+                                <span className="text-[9px] font-medium lowercase tracking-normal text-gray-500 group-hover:text-indigo-600">Upload model for exact facial match</span>
                               </div>
                             </div>
                             <span className="text-xs transition-transform group-open:rotate-180">
@@ -5468,8 +5462,8 @@ If the model attempts to create a scene or environment, override it and force a 
                               lockedMessage="Upload a source product first to attach a model."
                             />
                             {hasModelReference && (
-                              <div className="rounded-xl border border-borderSubtle bg-surfaceSoft p-4 space-y-2 text-sm">
-                                <p className="text-xs uppercase tracking-[0.3em] text-accent">Composition</p>
+                              <div className="rounded-xl border border-gray-200 bg-white/50 p-4 space-y-2 text-sm">
+                                <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Composition</p>
                                 <div className="flex flex-wrap gap-2">
                                   {(
                                     [
@@ -5483,7 +5477,7 @@ If the model attempts to create a scene or environment, override it and force a 
                                       key={option.value}
                                       type="button"
                                       onClick={() => setCompositionMode(option.value)}
-                                      className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${compositionMode === option.value ? 'bg-accent text-white border-accent shadow-md shadow-accent-glow' : 'border-borderSubtle bg-surface text-textSecondary hover:border-accent'}`}
+                                      className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${compositionMode === option.value ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20' : 'border-gray-200 bg-white text-gray-600 hover:border-indigo-600'}`}
                                     >
                                       {option.label}
                                     </button>
@@ -5501,26 +5495,17 @@ If the model attempts to create a scene or environment, override it and force a 
                     ref={uploadRef}
                     className={`flex flex-col gap-6 transition-all ${!hasUploadedProduct ? 'opacity-50 pointer-events-none' : ''}`}
                   >
-                    <div className="flex flex-col gap-1">
-                      <p className="text-[10px] uppercase tracking-[0.4em] text-accent font-bold">02 / Engine Config</p>
-                    </div>
+
 
                     <div className={`${hasUploadedProduct ? 'hidden' : 'block'} opacity-50 pointer-events-none`}>
-                      <div className="rounded-2xl border border-dashed border-borderSubtle h-24 flex items-center justify-center">
-                        <p className="text-xs uppercase tracking-widest text-textMuted">
+                      <div className="rounded-2xl border border-gray-200 h-24 flex items-center justify-center">
+                        <p className="text-xs uppercase tracking-widest text-gray-500">
                           Locked until previous step is complete
                         </p>
                       </div>
                     </div>
 
                     <div className={hasUploadedProduct ? 'block' : 'hidden'}>
-                      <div className="bg-accent rounded-2xl p-6 text-white shadow-xl shadow-accent-glow relative overflow-hidden group mb-4">
-                        <div className="relative z-10">
-                          <h3 className="text-[11px] font-bold tracking-widest uppercase mb-1">UGC Simulation Mode</h3>
-                          <p className="text-[10px] text-accent tracking-wide font-medium">Using native smartphone optics for high authenticity.</p>
-                        </div>
-                        <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-white/10 to-transparent pointer-events-none"></div>
-                      </div>
 
                       <LifestyleStep3
                         key={isProductPlacement ? 'product-step3' : 'ugc-step3'}
@@ -5553,12 +5538,9 @@ If the model attempts to create a scene or environment, override it and force a 
                     ref={customizeRef}
                     className={`flex flex-col gap-6 transition-all ${!hasUploadedProduct ? 'opacity-50 pointer-events-none' : ''}`}
                   >
-                    <div className="flex flex-col gap-1">
-                      <p className="text-[10px] uppercase tracking-[0.4em] text-accent font-bold">03 / Output Format</p>
-                    </div>
                     <div className={`${hasUploadedProduct ? 'hidden' : 'block'} opacity-50 pointer-events-none`}>
-                      <div className="rounded-2xl border border-dashed border-borderSubtle h-24 flex items-center justify-center">
-                        <p className="text-xs uppercase tracking-widest text-textMuted">
+                      <div className="rounded-2xl border border-gray-200 h-24 flex items-center justify-center">
+                        <p className="text-xs uppercase tracking-widest text-gray-500">
                           Locked until previous step is complete
                         </p>
                       </div>
@@ -5582,12 +5564,12 @@ If the model attempts to create a scene or environment, override it and force a 
                             }
                             disabled={isGenerateDisabled}
                             title={generationRestrictionMessage && isGenerateDisabled ? generationRestrictionMessage : undefined}
-                            className="w-full py-3 rounded-2xl font-semibold transition bg-accent text-white hover:bg-accent disabled:bg-surfaceTint disabled:text-textSecondary disabled:cursor-not-allowed shadow-sm"
+                            className="w-full py-3 rounded-2xl font-semibold transition bg-indigo-600 text-white hover:bg-indigo-600 disabled:bg-gray-50 disabled:text-gray-600 disabled:cursor-not-allowed shadow-sm"
                           >
                             {isImageLoading ? 'Generating...' : 'Generate Mockup'}
                           </button>
                           {generationRestrictionMessage && isGenerateDisabled && (
-                            <div className="mt-2 flex items-start gap-2 text-xs text-textMuted">
+                            <div className="mt-2 flex items-start gap-2 text-xs text-gray-500">
                               <Info size={14} />
                               <span>{generationRestrictionMessage}</span>
                             </div>
@@ -5598,17 +5580,10 @@ If the model attempts to create a scene or environment, override it and force a 
                   </div>
                 </div>
 
-                <div className="rounded-2xl p-4 transition-all bg-surface border border-borderSubtle relative lg:sticky lg:top-4 flex flex-col gap-6 min-h-[520px]">
+                <div className="rounded-2xl p-4 transition-all bg-white border border-gray-200 relative lg:sticky lg:top-4 flex flex-col gap-6 min-h-[520px]">
                   <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.35em] text-accent">Live Mockup Preview</p>
-                      <p className="text-sm text-textMuted mt-1">
-                        {generatedImageUrl
-                          ? 'Preview reflects current configuration.'
-                          : hasUploadedProduct
-                            ? 'Your generated mockup will appear here.'
-                            : 'Upload a source product to start.'}
-                      </p>
+                    <div className="min-h-[40px]">
+                      {/* Empty header for spacing consistent with left column */}
                     </div>
                   </div>
 
@@ -5660,17 +5635,17 @@ If the model attempts to create a scene or environment, override it and force a 
             </fieldset>
           </main>
 
-          <div className="mt-20 border-t border-borderSubtle pt-8 pb-12">
+          <div className="mt-20 border-t border-gray-200 pt-8 pb-12">
             <div className="flex flex-wrap items-center justify-between gap-8">
-              <div className="flex items-center gap-12 text-[10px] font-black tracking-[0.3em] text-textMuted">
+              <div className="flex items-center gap-12 text-[10px] font-black tracking-[0.3em] text-gray-500">
                 <div className="flex items-center gap-2">
-                  <span className="text-accent">L-ENGINE</span> ACTIVE
+                  <span className="text-indigo-600">L-ENGINE</span> ACTIVE
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="h-1.5 w-1.5 rounded-full bg-success shadow-sm"></span>
                   SIMULATION STABLE
                 </div>
-                <div className="text-textMuted Secondary">
+                <div className="text-gray-500 Secondary">
                   READY
                 </div>
               </div>
@@ -5678,7 +5653,7 @@ If the model attempts to create a scene or environment, override it and force a 
               <div className="flex items-center gap-8">
                 <button
                   onClick={() => setIsAccountMenuOpen(true)}
-                  className="text-[10px] font-black tracking-[0.3em] text-accent hover:text-accent transition"
+                  className="text-[10px] font-black tracking-[0.3em] text-indigo-600 hover:text-indigo-600 transition"
                 >
                   MY ACCOUNT
                 </button>
@@ -5693,14 +5668,14 @@ If the model attempts to create a scene or environment, override it and force a 
           <button
             onClick={handleAddTestCredits}
             disabled={adminDevLoading}
-            className="rounded-full border border-borderSubtle bg-surfaceTint px-4 py-2 text-xs font-semibold text-textPrimary shadow-lg hover:bg-surfaceElevated disabled:opacity-50"
+            className="rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-xs font-semibold text-gray-900 shadow-lg hover:bg-gray-100 disabled:opacity-50"
           >
             Add 100 Test Credits
           </button>
           <button
             onClick={handleResetAccount}
             disabled={adminDevLoading}
-            className="rounded-full border border-borderSubtle bg-surfaceTint px-4 py-2 text-xs font-semibold text-textPrimary shadow-lg hover:bg-surfaceElevated disabled:opacity-50"
+            className="rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-xs font-semibold text-gray-900 shadow-lg hover:bg-gray-100 disabled:opacity-50"
           >
             Reset My Account
           </button>

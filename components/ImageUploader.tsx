@@ -89,10 +89,9 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
 
   return (
     <div
-      className={`relative w-full aspect-[16/10] rounded-2xl border transition-all duration-500 flex items-center justify-center overflow-hidden shadow-sm ${disabled
-        ? 'opacity-60 cursor-not-allowed'
-        : 'cursor-pointer border-borderSubtle bg-surfaceGlass hover:border-borderHover hover:border-borderHover'
-        } ${isDragging ? 'border-accent bg-accent /10' : ''}`}
+      className={`relative w-full aspect-[16/10] rounded-2xl border transition-all duration-500 flex items-center justify-center overflow-hidden shadow-sm ${
+        disabled ? 'opacity-60 cursor-not-allowed bg-gray-50 border-gray-200' : 'cursor-pointer border-gray-200 bg-white hover:border-indigo-600/30'
+      } ${isDragging ? 'border-indigo-600 bg-indigo-50' : ''}`}
       onClick={handleClick}
       onDrop={handleDrop}
       onDragOver={handleDragOver}
@@ -108,13 +107,13 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
           />
         ) : (
           <>
-            <div className="w-12 h-12 bg-surfaceTint  rounded-full flex items-center justify-center mx-auto mb-4">
-              <Plus className="w-6 h-6 text-textMuted text-textPrimary/20" />
+            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-200 shadow-inner">
+              <Plus className="w-6 h-6 text-gray-400" />
             </div>
-            <div className="text-[12px] font-bold uppercase tracking-widest text-textPrimary mb-1">
+            <div className="text-[12px] font-bold uppercase tracking-widest text-gray-900 mb-1">
               Source Product
             </div>
-            <div className="text-[10px] text-textMuted uppercase font-medium">
+            <div className="text-[10px] text-gray-500 uppercase font-medium">
               Click to browse (Max {maxFiles})
             </div>
           </>
@@ -132,7 +131,7 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
       />
 
       {disabled && lockedMessage && (
-        <div className="absolute inset-0 flex items-center justify-center bg-surfaceSoft  rounded-2xl text-sm text-textMuted">
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-50 rounded-2xl text-sm text-gray-500">
           {lockedMessage}
         </div>
       )}

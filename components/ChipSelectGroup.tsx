@@ -48,31 +48,34 @@ const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
     onChange(value);
   };
 
-  // Updated chip styles to match reference design
   const chipBase = compact
-    ? 'rounded-xl border px-3 py-1 text-[10px] font-bold transition-all duration-400'
-    : 'rounded-xl border px-4 py-2 text-[10px] font-bold transition-all duration-400';
+    ? 'rounded-full px-3 py-1.5 text-xs font-medium border transition-colors focus:outline-none'
+    : 'rounded-full px-3 py-1.5 text-xs sm:text-sm font-medium border transition-colors focus:outline-none';
 
   const chipInactive =
-    'border-borderSubtle border-borderSoft bg-surfaceSoft text-textMuted hover:border-borderHover hover:border-borderHover';
+    'bg-gray-100 text-gray-700 border-gray-300 hover:border-indigo-400 hover:text-gray-900 ' +
+    'dark:bg-gray-800/60 dark:text-gray-300 dark:border-gray-600 dark:hover:border-indigo-400 dark:hover:text-white';
 
   const chipActive =
-    'border-accent bg-accent text-white shadow-lg';
+    'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-500 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white';
 
   const chipDisabled =
-    'opacity-50 cursor-not-allowed pointer-events-none bg-surfaceElevated text-textMuted border-borderSubtle border-borderSoft';
+    'opacity-50 cursor-not-allowed pointer-events-none bg-gray-50 text-gray-400 border-gray-200 ' +
+    'dark:bg-gray-900/40 dark:text-gray-500 dark:border-gray-700';
 
   return (
     <div className="flex flex-col space-y-3">
       {label && (
         <div className="flex items-center gap-2">
-          <label className="text-[10px] uppercase tracking-[0.2em] text-textMuted text-textPrimary/30 font-extrabold">{label}</label>
+          <label className="text-[10px] uppercase tracking-[0.2em] text-gray-500 font-extrabold">
+            {label}
+          </label>
           {labelTooltip && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
                   type="button"
-                  className="h-5 w-5 rounded-full border border-borderSubtle bg-surface text-[10px] font-semibold text-textMuted transition hover:border-accent hover:text-accent focus:outline-none"
+                  className="h-5 w-5 rounded-full border border-gray-200 bg-white text-[10px] font-semibold text-gray-500 transition hover:border-indigo-600 hover:text-indigo-600 focus:outline-none dark:bg-gray-900/40 dark:border-gray-700"
                   aria-label={`${label} info`}
                 >
                   ?
@@ -138,14 +141,14 @@ const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
             </button>
           )}
         </div>
-        {allowCustom && customActive && (
+          {allowCustom && customActive && (
           <input
             type="text"
             value={customDraft}
             onChange={(event) => handleCustomChange(event.target.value)}
             placeholder={customPlaceholder}
             disabled={disabled}
-            className="mt-3 w-full rounded-xl border border-borderSubtle bg-surface px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50"
+            className="mt-3 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white disabled:opacity-50 dark:bg-gray-900/40 dark:border-gray-700 dark:focus:ring-offset-black"
           />
         )}
       </div>
