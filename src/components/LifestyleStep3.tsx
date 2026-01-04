@@ -1338,7 +1338,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	            isOpen={openAccordionId === 'product-creativity'}
 	            onToggle={() => toggleSection('product-creativity')}
 	            isTouched={touchedSections.has('product-creativity')}
-	            iconClassName="text-accent"
+	            iconClassName="text-indigo-600 dark:text-indigo-300"
 	            variant="secondary"
 	          >
             <div className="space-y-4">
@@ -2486,10 +2486,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                        type="button"
 	                        onClick={() => { updateValue('facialExpression', 'Joyful & High-Energy'); markSectionTouched('creator'); }}
 	                        className={`h-9 rounded-full border text-xs font-medium transition-colors ${values.facialExpression === 'Joyful & High-Energy'
-	                          ? 'bg-indigo-600 text-white/10 text-indigo-700 border-indigo-200'
+	                          ? 'bg-indigo-600 text-white border-indigo-600'
 	                          : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'
 	                          } dark:border-white/10 ${values.facialExpression === 'Joyful & High-Energy'
-	                            ? 'dark:bg-indigo-500/20 dark:text-indigo-200 dark:border-indigo-400/30'
+	                            ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
 	                            : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
 	                          }`}
 	                      >
