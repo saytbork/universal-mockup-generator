@@ -14,7 +14,8 @@
     href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet">
   <script>
-    tailwind.config = {
+    window.tailwind = window.tailwind || {};
+    window.tailwind.config = {
       darkMode: 'class',
       theme: {
         extend: {
@@ -41,8 +42,8 @@
             sans: ['\"Plus Jakarta Sans\"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
             mono: ['\"JetBrains Mono\"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
           },
-        }
-      }
+        },
+      },
     };
     (function () {
       try {

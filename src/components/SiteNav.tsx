@@ -68,7 +68,7 @@ const SiteNav: React.FC = () => {
   );
 
   return (
-    <div className={`w-full ${isSticky ? 'sticky top-0 z-40' : ''} bg-bg border-b border-gray-200`}>
+    <div className={`w-full ${isSticky ? 'sticky top-0 z-40' : ''} bg-white border-b border-gray-200 dark:bg-black dark:border-white/10`}>
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between text-sm text-gray-600">
         <Link to="/" className="flex items-center gap-2">
           <Logo variant="siteNav" />
