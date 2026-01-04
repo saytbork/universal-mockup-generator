@@ -40,7 +40,7 @@ const ModelReferencePanel: React.FC<ModelReferencePanelProps> = ({
     <div className="relative">
       {!previewUrl ? (
         <label
-          className={`flex flex-col items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white p-6 hover:border-indigo-600 transition cursor-pointer ${disabled ? 'opacity-50 pointer-events-none' : ''} dark:bg-white/5 dark:border-white/10 dark:hover:border-white/20 dark:text-white/70 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]`}
+          className={`flex flex-col items-center justify-center gap-2 rounded-md border border-gray-200 bg-white p-6 hover:border-indigo-600 transition cursor-pointer ${disabled ? 'opacity-50 pointer-events-none' : ''} dark:bg-white/5 dark:border-white/10 dark:hover:border-white/20 dark:text-white/70 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]`}
           onDragOver={(event) => {
             if (disabled) return;
             event.preventDefault();
@@ -73,20 +73,20 @@ const ModelReferencePanel: React.FC<ModelReferencePanelProps> = ({
           <img
             src={previewUrl}
             alt="Model reference"
-            className="rounded-2xl h-32 w-full object-cover border border-gray-200 dark:border-white/10"
+            className="rounded-lg h-32 w-full object-cover border border-gray-200 dark:border-white/10"
           />
           <textarea
             value={cleanedNotes}
             onChange={(event) => onNotesChange(sanitizeNotes(event.target.value))}
             placeholder="e.g., holding product with both hands"
-            className="min-h-[60px] rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none dark:bg-black/20 dark:border-white/10 dark:text-white dark:placeholder:text-white/40 dark:focus:border-white/30"
+            className="min-h-[60px] rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none dark:bg-black/20 dark:border-white/10 dark:text-white dark:placeholder:text-white/40 dark:focus:border-white/30"
             disabled={disabled}
           />
         </div>
       )}
       {disabled && (
-        <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-gray-50 text-sm text-gray-500 dark:bg-black/40 dark:text-white/60 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
-          {lockedMessage || 'Upload product first'}
+        <div className="absolute inset-0 flex items-center justify-center rounded-md bg-gray-50 text-sm text-gray-500 dark:bg-black/40 dark:text-white/60 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+          {lockedMessage || 'Upload a source product first'}
         </div>
       )}
     </div>

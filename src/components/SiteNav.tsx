@@ -18,7 +18,13 @@ const SiteNav: React.FC = () => {
     const root = document.documentElement;
     const nextIsDark = !root.classList.contains('dark');
     root.classList.toggle('dark', nextIsDark);
-    localStorage.setItem('theme', nextIsDark ? 'dark' : 'light');
+    document.body.classList.toggle('dark', nextIsDark);
+    root.style.colorScheme = nextIsDark ? 'dark' : 'light';
+    try {
+      localStorage.setItem('theme', nextIsDark ? 'dark' : 'light');
+    } catch {
+      // ignore
+    }
   };
 
   const allLinks = (

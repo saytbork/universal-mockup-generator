@@ -89,7 +89,7 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
 
   return (
     <div
-      className={`relative w-full aspect-[16/10] rounded-2xl border transition-all duration-500 flex items-center justify-center overflow-hidden shadow-sm ${
+      className={`relative w-full aspect-[16/10] rounded-xl border transition-all duration-500 flex items-center justify-center overflow-hidden shadow-sm ${
         disabled
           ? 'opacity-60 cursor-not-allowed bg-gray-50 border-gray-200 dark:bg-white/5 dark:border-white/10'
           : 'cursor-pointer border-gray-200 bg-white hover:border-indigo-600/30 dark:bg-white/5 dark:border-white/10 dark:hover:border-white/20 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]'
@@ -133,7 +133,7 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
       />
 
       {disabled && lockedMessage && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-50 rounded-2xl text-sm text-gray-500 dark:bg-black/40 dark:text-white/60 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+        <div className="absolute inset-0 flex items-center justify-center bg-white rounded-xl text-sm text-gray-500 dark:bg-black/40 dark:text-white/60 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
           {lockedMessage}
         </div>
       )}

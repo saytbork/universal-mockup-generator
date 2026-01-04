@@ -1242,14 +1242,20 @@ const App: React.FC = () => {
   const canUseMood = hasUploadedProduct;
   const contentStyleValue = hasSelectedIntent ? options.contentStyle : CONTENT_STYLE_OPTIONS[0].value;
   const isProductPlacement = contentStyleValue === 'product';
-  const [lifestyleTone, setLifestyleTone] = useState<'ugc' | 'editorial'>('ugc');
-  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
-  const toggleTheme = useCallback(() => {
-    const root = document.documentElement;
-    const nextIsDark = !root.classList.contains('dark');
-    root.classList.toggle('dark', nextIsDark);
-    localStorage.setItem('theme', nextIsDark ? 'dark' : 'light');
-  }, []);
+	  const [lifestyleTone, setLifestyleTone] = useState<'ugc' | 'editorial'>('ugc');
+	  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+	  const toggleTheme = useCallback(() => {
+	    const root = document.documentElement;
+	    const nextIsDark = !root.classList.contains('dark');
+	    root.classList.toggle('dark', nextIsDark);
+	    document.body.classList.toggle('dark', nextIsDark);
+	    root.style.colorScheme = nextIsDark ? 'dark' : 'light';
+	    try {
+	      localStorage.setItem('theme', nextIsDark ? 'dark' : 'light');
+	    } catch {
+	      // ignore
+	    }
+	  }, []);
   const hasModelReference = Boolean(modelReferenceFile || personIdentityPackage.modelReferenceBase64);
   useEffect(() => {
     if (!hasModelReference) {
@@ -5225,7 +5231,7 @@ If the model attempts to create a scene or environment, override it and force a 
             </div>
           </header>
 
-          <main className="flex flex-col gap-16">
+	          <main className="flex flex-col gap-6">
             {(!isSimpleMode && canUseStudioFeatures && isDevBypass) && (
               <div className="rounded-3xl border border-gray-200 bg-white/10 p-5 space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -5305,8 +5311,8 @@ If the model attempts to create a scene or environment, override it and force a 
             )}
 
             <fieldset className="contents">
-              <div className="grid gap-16 w-full grid-cols-1 lg:grid-cols-[420px_minmax(620px,1fr)] items-start">
-                <div className="flex flex-col gap-16">
+	              <div className="grid gap-6 w-full grid-cols-1 lg:grid-cols-[420px_minmax(620px,1fr)] items-start">
+	                <div className="flex flex-col gap-6">
                   <div
                     ref={intentRef}
                     className="flex flex-col gap-6 transition-all"
@@ -5317,7 +5323,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
                     <div className="space-y-6">
 
-                      <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm text-center flex flex-col items-center justify-center min-h-[320px] relative transition-all hover:border-indigo-600/30 group dark:bg-white/5 dark:border-white/10 dark:hover:border-white/20 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+	                      <div className="bg-white rounded-xl p-8 border border-gray-200 shadow-sm text-center flex flex-col items-center justify-center min-h-[320px] relative transition-all hover:border-indigo-600/30 group dark:bg-white/5 dark:border-white/10 dark:hover:border-white/20 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
                         <button
                           type="button"
                           onClick={() => {
@@ -5365,11 +5371,11 @@ If the model attempts to create a scene or environment, override it and force a 
                           <div className="flex gap-3 overflow-x-auto py-2 custom-scrollbar">
                             {productAssets.map(asset => {
                               const isActive = activeProducts.some(product => product.id === asset.id);
-                              return (
-                                <div
-                                  key={asset.id}
-                                  className={`flex-shrink-0 w-32 rounded-md border p-2 transition-all ${isActive ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-500/20 dark:border-indigo-400/60' : 'border-gray-200 bg-white hover:border-indigo-600 dark:bg-white/5 dark:border-white/10 dark:hover:border-white/20 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]'}`}
-                                >
+	                              return (
+	                                <div
+	                                  key={asset.id}
+	                                  className={`flex-shrink-0 w-32 rounded-md border p-2 transition-all bg-white dark:bg-indigo-500/20 ${isActive ? 'border-indigo-600 dark:border-indigo-400/60' : 'border-gray-200 hover:border-indigo-600 dark:border-white/10 dark:hover:border-white/30'}`}
+	                                >
                                   <div className="relative mb-2">
                                     <img
                                       src={asset.previewUrl}
@@ -5414,15 +5420,15 @@ If the model attempts to create a scene or environment, override it and force a 
                                       ))}
                                     </div>
                                   </div>
-                                  <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); handleProductAssetSelect(asset.id); }}
-                                    className={`w-full mt-1 rounded-full border px-2 py-0.5 text-[10px] ${isActive ? 'border-indigo-600 text-indigo-600 font-semibold dark:border-indigo-400/60 dark:text-indigo-300' : 'border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:text-white/60 dark:hover:border-white/30'}`}
-                                  >
-                                    {isActive ? 'Active' : 'Use'}
-                                  </button>
-                                </div>
-                              );
+	                                  <button
+	                                    type="button"
+	                                    onClick={(e) => { e.stopPropagation(); handleProductAssetSelect(asset.id); }}
+	                                    className={`flex items-center justify-center px-6 rounded-full text-xs font-medium border transition-colors py-0.5 mt-3 mx-auto ${isActive ? 'bg-indigo-600 text-white border-indigo-600 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white' : 'border-gray-200 bg-white text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-black/20 dark:text-white/60 dark:hover:border-white/30'}`}
+	                                  >
+	                                    {isActive ? 'Active' : 'Use'}
+	                                  </button>
+	                                </div>
+	                              );
                             })}
                             <button
                               type="button"
@@ -5435,13 +5441,13 @@ If the model attempts to create a scene or environment, override it and force a 
                         </div>
                       )}
 
-                      {!isProductPlacement && (
-                        <details className="border-t border-gray-200 pt-3 group">
-                          <summary className="cursor-pointer list-none flex items-center justify-between text-[11px] font-bold tracking-[0.2em] text-gray-500 hover:text-indigo-600 transition-colors">
-                            <div className="flex items-center gap-3">
-                              <span className="p-1.5 rounded-lg bg-gray-50 bg-gray-100 border border-gray-200">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                              </span>
+	                      {!isProductPlacement && (
+	                        <details className="border border-gray-200 pt-3 group bg-white p-4 rounded-lg dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+	                          <summary className="cursor-pointer list-none flex items-center justify-between text-[11px] font-bold tracking-[0.2em] text-gray-500 hover:text-indigo-600 transition-colors">
+	                            <div className="flex items-center gap-3">
+	                              <span className="p-1.5 rounded-lg bg-gray-100 border border-gray-200 dark:bg-black/20 dark:border-white/10">
+	                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+	                              </span>
                               <div className="flex flex-col">
                                 <span className="uppercase flex items-center gap-2">
                                   Model Reference {hasModelReference && <span className="text-success text-[14px]">✓</span>}
@@ -5493,72 +5499,74 @@ If the model attempts to create a scene or environment, override it and force a 
                     </div>
                   </div>
 
-                  <div
-                    ref={uploadRef}
-                    className={`flex flex-col gap-6 transition-all ${!hasUploadedProduct ? 'opacity-50 pointer-events-none' : ''}`}
-                  >
+		                  <div
+		                    ref={uploadRef}
+		                    className="flex flex-col gap-6 transition-all"
+		                  >
+		                    <div className="flex flex-col gap-1">
+		                      <p className="text-[10px] uppercase tracking-[0.4em] text-indigo-600 font-bold">
+		                        02 / {isProductPlacement ? 'Product Studio' : 'Build Your Character'}
+		                      </p>
+		                    </div>
+		                    {!hasUploadedProduct && (
+		                      <div className="rounded-lg border border-gray-200 bg-white/70 px-3 py-2 text-[11px] text-gray-500 dark:bg-black/20 dark:border-white/10 dark:text-white/50">
+		                        Locked until previous step is complete
+		                      </div>
+	                    )}
+	                    <div className={hasUploadedProduct ? '' : 'opacity-50 pointer-events-none select-none'}>
+	                      <LifestyleStep3
+	                        key={isProductPlacement ? 'product-step3' : 'ugc-step3'}
+	                        embedded
+	                        isProductMode={isProductPlacement}
+	                        onValuesChange={handleLifestyleStep3Change}
+	                        onCanGenerateChange={() => {
+	                          // UI-only refactor: generation logic unchanged.
+	                        }}
+	                        hasModelReference={hasModelReference}
+	                        hasFirstGenerationComplete={hasFirstGenerationComplete}
+	                        ecommerceOverlay={
+	                          isProductPlacement
+	                            ? {
+	                              selectedSlots: ecommerceSelectedSlots,
+	                              onSelectedSlotsChange: setEcommerceSelectedSlots,
+	                              slotsConfig: ecommerceSlotsConfig,
+	                              onSlotsConfigChange: setEcommerceSlotsConfig,
+	                              slotBaseImages: ecommerceSlotBaseImages,
+	                              settings: ecommerceGenerationSettings,
+	                              onSettingsChange: setEcommerceGenerationSettings,
+	                            }
+	                            : undefined
+	                        }
+	                      />
+	                    </div>
+	                  </div>
 
-
-                    <div className={`${hasUploadedProduct ? 'hidden' : 'block'} opacity-50 pointer-events-none`}>
-                      <div className="rounded-2xl border border-gray-200 h-24 flex items-center justify-center">
-                        <p className="text-xs uppercase tracking-widest text-gray-500">
-                          Locked until previous step is complete
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className={hasUploadedProduct ? 'block' : 'hidden'}>
-
-                      <LifestyleStep3
-                        key={isProductPlacement ? 'product-step3' : 'ugc-step3'}
-                        embedded
-                        isProductMode={isProductPlacement}
-                        onValuesChange={handleLifestyleStep3Change}
-                        onCanGenerateChange={() => {
-                          // UI-only refactor: generation logic unchanged.
-                        }}
-                        hasModelReference={hasModelReference}
-                        hasFirstGenerationComplete={hasFirstGenerationComplete}
-                        ecommerceOverlay={
-                          isProductPlacement
-                            ? {
-                              selectedSlots: ecommerceSelectedSlots,
-                              onSelectedSlotsChange: setEcommerceSelectedSlots,
-                              slotsConfig: ecommerceSlotsConfig,
-                              onSlotsConfigChange: setEcommerceSlotsConfig,
-                              slotBaseImages: ecommerceSlotBaseImages,
-                              settings: ecommerceGenerationSettings,
-                              onSettingsChange: setEcommerceGenerationSettings,
-                            }
-                            : undefined
-                        }
-                      />
-                    </div>
-                  </div>
-
-                  <div
-                    ref={customizeRef}
-                    className={`flex flex-col gap-6 transition-all ${!hasUploadedProduct ? 'opacity-50 pointer-events-none' : ''}`}
-                  >
-                    <div className={`${hasUploadedProduct ? 'hidden' : 'block'} opacity-50 pointer-events-none`}>
-                      <div className="rounded-2xl border border-gray-200 h-24 flex items-center justify-center">
-                        <p className="text-xs uppercase tracking-widest text-gray-500">
-                          Locked until previous step is complete
-                        </p>
-                      </div>
-                    </div>
-                    {(() => {
-                      const isGenerateDisabled = isImageLoading || !uploadedImageFile;
+		                  <div
+		                    ref={customizeRef}
+		                    className="flex flex-col gap-6 transition-all"
+		                  >
+		                    <div className="flex flex-col gap-1">
+		                      <p className="text-[10px] uppercase tracking-[0.4em] text-indigo-600 font-bold">
+		                        03 / Generate
+		                      </p>
+		                    </div>
+		                    {!hasUploadedProduct && (
+		                      <div className="rounded-lg border border-gray-200 bg-white/70 px-3 py-2 text-[11px] text-gray-500 dark:bg-black/20 dark:border-white/10 dark:text-white/50">
+		                        Locked until previous step is complete
+		                      </div>
+	                    )}
+	                    {(() => {
+	                      const isGenerateDisabled = isImageLoading || !uploadedImageFile;
                       const generationRestrictionMessage = (() => {
                         if (!isGenerateDisabled) return '';
                         if (!uploadedImageFile) return 'Upload a source product photo before generating.';
                         if (isImageLoading) return 'Generation is in progress; please wait.';
                         return '';
                       })();
-                      return (
-                        <>
-                          <button
-                            type="button"
+	                      return (
+	                        <div className={hasUploadedProduct ? '' : 'opacity-50 pointer-events-none select-none'}>
+	                          <button
+	                            type="button"
                             onClick={
                               isProductPlacement && ecommerceSelectedSlots.length > 0
                                 ? () => handleGenerateEcommerceClick()
@@ -5566,23 +5574,23 @@ If the model attempts to create a scene or environment, override it and force a 
                             }
                             disabled={isGenerateDisabled}
                             title={generationRestrictionMessage && isGenerateDisabled ? generationRestrictionMessage : undefined}
-                            className="w-full py-3 rounded-2xl font-semibold transition bg-indigo-600 text-white hover:bg-indigo-600 disabled:bg-gray-50 disabled:text-gray-600 disabled:cursor-not-allowed shadow-sm"
-                          >
-                            {isImageLoading ? 'Generating...' : 'Generate Mockup'}
-                          </button>
-                          {generationRestrictionMessage && isGenerateDisabled && (
+	                            className="w-full py-3 rounded-xl font-semibold transition bg-indigo-600 text-white hover:bg-indigo-600 disabled:bg-gray-50 disabled:text-gray-600 disabled:cursor-not-allowed shadow-sm"
+	                          >
+	                            {isImageLoading ? 'Generating...' : 'Generate Mockup'}
+	                          </button>
+	                          {generationRestrictionMessage && isGenerateDisabled && (
                             <div className="mt-2 flex items-start gap-2 text-xs text-gray-500">
                               <Info size={14} />
                               <span>{generationRestrictionMessage}</span>
                             </div>
                           )}
-                        </>
-                      );
-                    })()}
-                  </div>
+	                        </div>
+	                      );
+	                    })()}
+	                  </div>
                 </div>
 
-                <div className="rounded-2xl p-4 transition-all bg-white border border-gray-200 relative lg:sticky lg:top-4 flex flex-col gap-6 min-h-[520px] dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+	                <div className="rounded-xl p-4 transition-all bg-white border border-gray-200 relative lg:sticky lg:top-4 flex flex-col gap-6 min-h-[520px] dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-h-[40px]">
                       {/* Empty header for spacing consistent with left column */}

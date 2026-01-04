@@ -192,7 +192,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
 
   return (
     <div className="flex flex-col w-full">
-      <div className="relative w-full min-h-[40rem] flex items-center justify-center rounded-2xl bg-gray-50 border border-gray-200 overflow-hidden dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+      <div className="relative w-full min-h-[40rem] flex items-center justify-center rounded-xl bg-white border border-gray-200 overflow-hidden dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
         {isImageLoading ? (
           <div className="text-center">
             <LoadingSpinner />
@@ -217,7 +217,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
       </div>
 
       {(imageUrl || imageError) && !isImageLoading && (
-        <div className="mt-4 w-full flex flex-col gap-3 bg-gray-50 rounded-2xl px-4 py-3 border border-gray-200 dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+        <div className="mt-4 w-full flex flex-col gap-3 bg-white rounded-xl px-4 py-3 border border-gray-200 dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
           <div className="flex flex-col gap-3 w-full">
             <div className="flex flex-col gap-1">
               <label className="text-xs text-gray-500 uppercase tracking-[0.3em] dark:text-white/40">Download resolution</label>
@@ -234,7 +234,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
                         setDownloadError(null);
                       }}
                       disabled={!imageUrl}
-                      className={`rounded-2xl border px-3 py-1.5 text-xs font-semibold transition ${isActive
+                      className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition ${isActive
                           ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-500/20 scale-105 duration-500 dark:bg-indigo-500 dark:border-indigo-500'
                           : 'border-gray-200 bg-white text-gray-600 hover:border-indigo-600 hover:text-gray-900 dark:border-white/10 dark:bg-black/20 dark:text-white/60 dark:hover:border-white/30 dark:hover:text-white'
                         } disabled:cursor-not-allowed disabled:opacity-50`}
@@ -255,7 +255,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
             <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600 dark:text-white/60">
               <button
                 onClick={onReset}
-                className="border border-gray-200 bg-white text-gray-900 font-semibold px-3 py-1.5 rounded-2xl transition flex items-center gap-1 hover:border-indigo-600 dark:border-white/10 dark:bg-black/20 dark:text-white dark:hover:border-white/30 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]"
+                className="border border-gray-200 bg-white text-gray-900 font-semibold px-3 py-1.5 rounded-xl transition flex items-center gap-1 hover:border-indigo-600 dark:border-white/10 dark:bg-black/20 dark:text-white dark:hover:border-white/30 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]"
                 aria-label="Reset"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

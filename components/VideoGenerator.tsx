@@ -40,12 +40,12 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({
   accessError,
 }) => {
   return (
-    <div className="w-full rounded-2xl border border-gray-200 bg-gray-50 p-4 dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+    <div className="w-full rounded-xl border border-gray-200 bg-white p-4 dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
       <h3 className="text-sm font-semibold text-gray-900 mb-4 w-full dark:text-white">Generate Video (Optional)</h3>
       
       <div className="w-full space-y-4">
         {!hasAccess && (
-          <div className="rounded-2xl border border-gray-200 bg-white p-4 space-y-2 dark:bg-black/20 dark:border-white/10">
+          <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-2 dark:bg-black/20 dark:border-white/10">
             <p className="text-sm text-gray-900 font-medium dark:text-white">Video access locked</p>
             <p className="text-xs text-gray-600 dark:text-white/60">
               {lockMessage ?? 'Enter the access code provided to your team to unlock video generation.'}
@@ -58,11 +58,11 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({
                     value={accessCode}
                     onChange={(event) => onAccessCodeChange(event.target.value)}
                     placeholder="Enter access code"
-                    className="flex-1 rounded-2xl border border-gray-200 bg-white px-3 py-2 text-gray-900 text-sm placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white dark:bg-black/20 dark:border-white/10 dark:text-white dark:placeholder:text-white/40 dark:focus:border-white/30 dark:focus:ring-offset-black"
+                    className="flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 text-sm placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white dark:bg-black/20 dark:border-white/10 dark:text-white dark:placeholder:text-white/40 dark:focus:border-white/30 dark:focus:ring-offset-black"
                   />
                   <button
                     onClick={onAccessSubmit}
-                    className="rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 transition"
+                    className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 transition"
                   >
                     Unlock
                   </button>
@@ -89,20 +89,20 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({
             value={videoPrompt}
             onChange={onPromptChange}
             placeholder="e.g., steam rises from the cup, subtle wind blows"
-            className="rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white transition dark:bg-black/20 dark:border-white/10 dark:text-white dark:placeholder:text-white/40 dark:focus:border-white/30 dark:focus:ring-offset-black"
+            className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white transition dark:bg-black/20 dark:border-white/10 dark:text-white dark:placeholder:text-white/40 dark:focus:border-white/30 dark:focus:ring-offset-black"
           />
         </div>
 
         <button
           onClick={onGenerateVideo}
           disabled={isGenerating || !videoPrompt || !hasAccess}
-          className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-2xl transition dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:disabled:bg-white/10 dark:disabled:text-white/40"
+          className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-xl transition dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:disabled:bg-white/10 dark:disabled:text-white/40"
         >
           {isVideoLoading ? 'Generating Video...' : 'Generate Video'}
         </button>
       </div>
       
-      <div className="relative w-full min-h-[10rem] flex items-center justify-center rounded-2xl bg-gray-50 border border-gray-200 mt-4 overflow-hidden dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+      <div className="relative w-full min-h-[10rem] flex items-center justify-center rounded-xl bg-white border border-gray-200 mt-4 overflow-hidden dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
         {isVideoLoading ? (
           <div className="text-center">
             <LoadingSpinner />
