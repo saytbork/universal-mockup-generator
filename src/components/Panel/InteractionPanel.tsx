@@ -42,7 +42,7 @@ const InteractionPanel: React.FC<InteractionPanelProps> = ({
                 border text-sm font-medium
                 ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                 ${isActive
-                                    ? 'bg-accent text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500'
+                                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500'
                                     : 'border-gray-200 bg-whiteTint text-gray-600 hover:border-indigo-600 hover:text-gray-900'
                                 }
               `}

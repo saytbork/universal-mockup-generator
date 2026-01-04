@@ -51,7 +51,7 @@ const UseCases: React.FC = () => {
       <div className="relative max-w-5xl mx-auto px-4 py-20 space-y-12">
         <div className="absolute inset-0 blur-3xl opacity-40 pointer-events-none" style={{ background: 'radial-gradient(circle at 20% 20%, var(--accent-glow), transparent 45%)' }} />
         <div className="relative space-y-4">
-          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-600 bg-accent px-4 py-1 text-xs uppercase tracking-[0.2em] text-indigo-600">
+          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-600 bg-indigo-600 px-4 py-1 text-xs uppercase tracking-[0.2em] text-indigo-600">
             <Sparkles className="w-4 h-4" /> Use Cases
           </div>
           <h1 className="text-4xl font-bold">How brands and creators ship high-converting visuals</h1>
@@ -84,7 +84,7 @@ const UseCases: React.FC = () => {
         <div className="relative">
           <Link
             to="/app"
-            className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white shadow-md shadow-md shadow-indigo-500/20 hover:bg-accent transition"
+            className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-md shadow-md shadow-indigo-500/20 hover:bg-indigo-600 transition"
           >
             Start Free Trial <ArrowRight className="w-4 h-4" />
           </Link>

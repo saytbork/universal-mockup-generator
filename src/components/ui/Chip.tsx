@@ -17,7 +17,7 @@ const baseClass =
   'inline-flex items-center gap-1 rounded-xl border transition-all duration-400 whitespace-nowrap font-bold text-[10px] focus:outline-none';
 
 const activeClass =
-  'border-indigo-600 bg-accent text-white shadow-lg';
+  'border-indigo-600 bg-indigo-600 text-white shadow-lg';
 
 const inactiveClass =
   'border-gray-200 border-borderSoft bg-whiteSoft text-gray-500 hover:border-borderHover hover:border-borderHover';

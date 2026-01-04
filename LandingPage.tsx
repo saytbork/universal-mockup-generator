@@ -252,7 +252,7 @@ const LandingPage: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
                 to="/login"
-                className="inline-flex items-center justify-center rounded-full bg-accent px-8 py-4 font-semibold text-white shadow-md shadow-md shadow-indigo-500/20 hover:bg-accent transition"
+                className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-8 py-4 font-semibold text-white shadow-md shadow-md shadow-indigo-500/20 hover:bg-indigo-600 transition"
               >
                 Start Creating Mockups
               </Link>
@@ -337,7 +337,7 @@ const LandingPage: React.FC = () => {
                     onClick={() => setActivePreview(mode.id)}
                     className={`w-full text-left rounded-2xl border p-4 transition ${
                       activePreview === mode.id
-                        ? 'bg-accent text-white border-indigo-600'
+                        ? 'bg-indigo-600 text-white border-indigo-600'
                         : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-indigo-600'
                     }`}
                   >
@@ -517,12 +517,12 @@ const LandingPage: React.FC = () => {
                       checked={billingCycle === 'yearly'}
                       onChange={handleBillingToggle}
                     />
-                    <div className="h-6 w-12 rounded-full bg-gray-50 transition peer-checked:bg-accent" />
+                    <div className="h-6 w-12 rounded-full bg-gray-50 transition peer-checked:bg-indigo-600" />
                     <span className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow transition peer-checked:translate-x-6" />
                   </label>
                   <span className="text-sm text-gray-600">
                     Billed yearly{' '}
-                    <span className="ml-1 rounded-full bg-accent px-2 py-0.5 text-xs text-indigo-600">
+                    <span className="ml-1 rounded-full bg-indigo-600 px-2 py-0.5 text-xs text-indigo-600">
                       Save 20%
                     </span>
                   </span>
@@ -544,7 +544,7 @@ const LandingPage: React.FC = () => {
                 return (
                   <article key={plan.name} className={cardClasses}>
                     {plan.badge && (
-                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-white">
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-indigo-600 px-3 py-1 text-xs font-semibold text-white">
                         {plan.badge}
                       </span>
                     )}
@@ -588,7 +588,7 @@ const LandingPage: React.FC = () => {
                           className={`mt-auto w-full rounded-full px-4 py-3 text-sm font-semibold transition text-center ${
                             plan.featured
                               ? 'bg-white text-gray-900 hover:bg-gray-50'
-                              : 'bg-accent text-white hover:bg-accent'
+                              : 'bg-indigo-600 text-white hover:bg-indigo-600'
                           }`}
                         >
                           {plan.cta}
@@ -647,7 +647,7 @@ const LandingPage: React.FC = () => {
           <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
             <Link
               to="/login"
-              className="inline-flex items-center justify-center rounded-full bg-accent px-8 py-4 font-semibold text-white shadow-md shadow-md shadow-indigo-500/20 hover:bg-accent transition"
+              className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-8 py-4 font-semibold text-white shadow-md shadow-md shadow-indigo-500/20 hover:bg-indigo-600 transition"
             >
               Start Creating Mockups
             </Link>

@@ -198,7 +198,7 @@ export default function Dashboard() {
               <a
                 href="/app/generator"
                 className={`inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition ${user.credits > 0
-                  ? "bg-accent text-white hover:bg-accent"
+                  ? "bg-indigo-600 text-white hover:bg-indigo-600"
                   : "bg-whiteTint text-gray-600 cursor-not-allowed"
                   }`}
               >
@@ -231,7 +231,7 @@ export default function Dashboard() {
                 <div
                   key={item.label}
                   onClick={() => (item.action ? item.action() : (window.location.href = item.href))}
-                  className="flex items-center justify-between rounded-2xl border border-gray-200 bg-whiteTint px-4 py-3 text-sm text-gray-900 hover:border-indigo-600/50 hover:bg-accent transition cursor-pointer"
+                  className="flex items-center justify-between rounded-2xl border border-gray-200 bg-whiteTint px-4 py-3 text-sm text-gray-900 hover:border-indigo-600/50 hover:bg-indigo-600 transition cursor-pointer"
                 >
                   <span className="flex items-center gap-2">
                     {item.icon}
@@ -381,7 +381,7 @@ function GallerySection({ userEmail }: { userEmail: string }) {
         <p className="text-sm text-gray-600">No images generated yet</p>
         <a
           href="/app/generator"
-          className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent transition"
+          className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-600 transition"
         >
           <Wand2 className="h-4 w-4" />
           Generate Your First Image
@@ -417,7 +417,7 @@ function GallerySection({ userEmail }: { userEmail: string }) {
               </div>
               <button
                 onClick={() => handleDownload(image.imageUrl, `ugc-image-${image.id}.png`)}
-                className="w-full rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-white hover:bg-accent transition"
+                className="w-full rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-600 transition"
               >
                 Download
               </button>

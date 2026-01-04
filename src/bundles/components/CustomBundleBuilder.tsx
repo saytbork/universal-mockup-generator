@@ -62,7 +62,7 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
                 key={productId}
                 className={`flex flex-col gap-2 rounded-2xl border px-3 py-3 ${
                   isChecked
-                  ? 'bg-accent text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500'
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500'
                   : 'border-gray-200 bg-whiteTint text-gray-600'
               }`}
             >
@@ -119,7 +119,7 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
         type="button"
         onClick={handleGenerate}
         disabled={!isValidSelection}
-        className="w-full rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent disabled:cursor-not-allowed disabled:bg-whiteTint"
+        className="w-full rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-600 disabled:cursor-not-allowed disabled:bg-whiteTint"
       >
         Generate Custom Bundle Mockup
       </button>

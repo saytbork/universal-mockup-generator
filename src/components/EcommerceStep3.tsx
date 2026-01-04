@@ -230,7 +230,7 @@ export default function EcommerceStep3({
               if (!svg) return;
               await exportSvgElementToPng(svg, { filename: `${activeSlot}-with-overlays.png`, scale: 2 });
             }}
-            className="inline-flex items-center gap-2 rounded-2xl border border-indigo-600 bg-accent px-3 py-2 text-xs text-indigo-600 shadow-md shadow-md shadow-indigo-500/20 hover:bg-accent disabled:opacity-40"
+            className="inline-flex items-center gap-2 rounded-2xl border border-indigo-600 bg-indigo-600 px-3 py-2 text-xs text-indigo-600 shadow-md shadow-md shadow-indigo-500/20 hover:bg-indigo-600 disabled:opacity-40"
           >
             <Download size={14} />
             Export PNG (with overlays)

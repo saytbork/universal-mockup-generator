@@ -45,7 +45,7 @@ const Accordion: React.FC<AccordionProps> = ({
               {title}
             </span>
               {badge !== undefined && (
-                <span className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-accent text-white border border-indigo-600">
+                <span className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-indigo-600 text-white border border-indigo-600">
                   {badge}
                 </span>
             )}

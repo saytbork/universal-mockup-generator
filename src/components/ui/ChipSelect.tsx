@@ -21,7 +21,7 @@ const getChipTextSize = (label: string) => {
 const getChipClassName = (isSelected: boolean, label: string, isDisabled: boolean) => {
   const base = `rounded-xl px-4 py-2 text-[10px] font-bold border transition-all duration-400 focus:outline-none`;
   const inactive = 'border-gray-200 border-borderSoft bg-whiteSoft text-gray-500 hover:border-borderHover hover:border-borderHover';
-  const active = 'border-indigo-600 bg-accent text-white shadow-lg';
+  const active = 'border-indigo-600 bg-indigo-600 text-white shadow-lg';
   const disabled = 'opacity-50 cursor-not-allowed pointer-events-none bg-whiteElevated text-gray-500 border-gray-200 border-borderSoft';
   return [base, isDisabled ? disabled : (isSelected ? active : inactive)].join(' ');
 };

@@ -122,7 +122,7 @@ const UGCRealModePanel: React.FC<UGCRealModePanelProps> = ({
           type="button"
           onClick={() => onToggle(!enabled)}
           disabled={panelDisabled}
-          className={`relative h-6 w-11 rounded-full transition ${enabled ? 'bg-accent' : 'bg-whiteTint'
+          className={`relative h-6 w-11 rounded-full transition ${enabled ? 'bg-indigo-600' : 'bg-whiteTint'
             } ${panelDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
         >
           <span
@@ -156,7 +156,7 @@ const UGCRealModePanel: React.FC<UGCRealModePanelProps> = ({
                     key={preset.id}
                     type="button"
                     onClick={() => onToggleHeroPersona(preset.id)}
-                    className={`rounded-xl border px-3 py-2 text-left transition ${isActive ? 'bg-accent text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500' : 'border-gray-200 bg-whiteTint text-gray-900 hover:border-indigo-600'
+                    className={`rounded-xl border px-3 py-2 text-left transition ${isActive ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500' : 'border-gray-200 bg-whiteTint text-gray-900 hover:border-indigo-600'
                       }`}
                   >
                     <div className="flex items-center gap-1 relative group">

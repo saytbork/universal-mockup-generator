@@ -78,7 +78,7 @@ const PlanCheckoutModal: React.FC<PlanCheckoutModalProps> = ({ plan, email, onEm
         <button
           disabled={isDisabled}
           onClick={onConfirm}
-          className="w-full rounded-full bg-accent py-3 font-semibold text-white shadow-md shadow-md shadow-indigo-500/20 hover:bg-accent disabled:bg-whiteTint disabled:cursor-not-allowed"
+          className="w-full rounded-full bg-indigo-600 py-3 font-semibold text-white shadow-md shadow-md shadow-indigo-500/20 hover:bg-indigo-600 disabled:bg-whiteTint disabled:cursor-not-allowed"
         >
           Continue to checkout
         </button>

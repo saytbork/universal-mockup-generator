@@ -91,7 +91,7 @@ export default function CreatorPresetPanel() {
               onClick={() => applyPreset(p)}
               className={
                 isActive
-                  ? "px-4 py-2 rounded-lg text-left bg-accent text-white"
+                  ? "px-4 py-2 rounded-lg text-left bg-indigo-600 text-white"
                   : "px-4 py-2 rounded-lg text-left bg-whiteTint text-gray-600 hover:bg-whiteTint"
               }
             >
@@ -107,7 +107,7 @@ export default function CreatorPresetPanel() {
           onClick={toggleLinkTalent}
           className={
             linkTalent
-              ? "w-10 h-6 rounded-full bg-accent relative"
+              ? "w-10 h-6 rounded-full bg-indigo-600 relative"
               : "w-10 h-6 rounded-full bg-whiteTint relative"
           }
         >

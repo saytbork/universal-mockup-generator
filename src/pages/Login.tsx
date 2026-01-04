@@ -40,7 +40,7 @@ export default function Login() {
           <p className="text-gray-600">Continue to your workspace.</p>
           <a
             href="/app"
-            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-accent px-6 py-3 text-lg font-semibold shadow-md shadow-md shadow-indigo-500/20 hover:bg-accent transition"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-6 py-3 text-lg font-semibold shadow-md shadow-md shadow-indigo-500/20 hover:bg-indigo-600 transition"
           >
             Go to App
           </a>
@@ -91,7 +91,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={status === "loading"}
-            className="w-full rounded-2xl bg-accent py-3 text-lg font-semibold shadow-md shadow-md shadow-indigo-500/20 hover:bg-accent transition flex items-center justify-center gap-2 disabled:opacity-60"
+            className="w-full rounded-2xl bg-indigo-600 py-3 text-lg font-semibold shadow-md shadow-md shadow-indigo-500/20 hover:bg-indigo-600 transition flex items-center justify-center gap-2 disabled:opacity-60"
           >
             {status === "loading" ? <Loader2 className="h-5 w-5 animate-spin" /> : "Send Magic Link"}
           </button>

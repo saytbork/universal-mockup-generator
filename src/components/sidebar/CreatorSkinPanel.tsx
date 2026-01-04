@@ -39,7 +39,7 @@ export default function CreatorSkinPanel() {
                 onClick={() => setCreatorField("skinTone", tone)}
                 className={
                   isActive
-                    ? "px-3 py-2 rounded-lg bg-accent text-white"
+                    ? "px-3 py-2 rounded-lg bg-indigo-600 text-white"
                     : "px-3 py-2 rounded-lg bg-whiteTint text-gray-600 hover:bg-whiteTint"
                 }
               >
@@ -62,7 +62,7 @@ export default function CreatorSkinPanel() {
                 onClick={() => setCreatorField("skinRealism", option)}
                 className={
                   isActive
-                    ? "px-3 py-2 rounded-lg bg-accent text-white"
+                    ? "px-3 py-2 rounded-lg bg-indigo-600 text-white"
                     : "px-3 py-2 rounded-lg bg-whiteTint text-gray-600 hover:bg-whiteTint"
                 }
               >

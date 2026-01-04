@@ -70,7 +70,7 @@ const SiteNav: React.FC = () => {
     <div className={`w-full ${isSticky ? 'sticky top-0 z-40' : ''} bg-bg border-b border-gray-200`}>
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between text-sm text-gray-600">
         <Link to="/" className="flex items-center gap-2 text-gray-900 font-semibold">
-          <span className="px-3 py-1 rounded-full bg-accent text-xs text-white">BoostUGC</span>
+          <span className="px-3 py-1 rounded-full bg-indigo-600 text-xs text-white">BoostUGC</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-6">
@@ -89,7 +89,7 @@ const SiteNav: React.FC = () => {
             <>
               <Link
                 to="/dashboard"
-                className="rounded-full bg-accent px-4 py-2 font-semibold text-white hover:bg-accent transition"
+                className="rounded-full bg-indigo-600 px-4 py-2 font-semibold text-white hover:bg-indigo-600 transition"
               >
                 Dashboard
               </Link>
@@ -104,7 +104,7 @@ const SiteNav: React.FC = () => {
             <>
               <Link
                 to="/login"
-                className="rounded-full bg-accent px-4 py-2 font-semibold text-white hover:bg-accent transition"
+                className="rounded-full bg-indigo-600 px-4 py-2 font-semibold text-white hover:bg-indigo-600 transition"
               >
                 Login
               </Link>
@@ -164,7 +164,7 @@ const SiteNav: React.FC = () => {
                 <>
                   <Link
                     to="/dashboard"
-                    className="rounded-full bg-accent px-4 py-2 font-semibold text-white text-center hover:bg-accent transition"
+                    className="rounded-full bg-indigo-600 px-4 py-2 font-semibold text-white text-center hover:bg-indigo-600 transition"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Dashboard
@@ -181,7 +181,7 @@ const SiteNav: React.FC = () => {
                 <>
                   <Link
                     to="/login"
-                    className="rounded-full bg-accent px-4 py-2 font-semibold text-white text-center hover:bg-accent transition"
+                    className="rounded-full bg-indigo-600 px-4 py-2 font-semibold text-white text-center hover:bg-indigo-600 transition"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Login

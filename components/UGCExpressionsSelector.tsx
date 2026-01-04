@@ -43,7 +43,7 @@ const UGCExpressionsSelector: React.FC<UGCExpressionsSelectorProps> = ({
               type="button"
               onClick={() => onSelect(isActive ? null : preset.id)}
               className={`rounded-xl border px-3 py-2 text-left text-sm transition ${
-                isActive ? 'bg-accent text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500' : 'border-gray-200 bg-whiteTint text-gray-900 hover:border-indigo-600'
+                isActive ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500' : 'border-gray-200 bg-whiteTint text-gray-900 hover:border-indigo-600'
               }`}
             >
               <div className="flex items-center gap-1 relative group">
