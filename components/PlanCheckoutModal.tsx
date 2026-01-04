@@ -24,61 +24,61 @@ const PlanCheckoutModal: React.FC<PlanCheckoutModalProps> = ({ plan, email, onEm
   const isDisabled = Boolean(disabledReason);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-md shadow-indigo-500/20 p-8 space-y-6 relative">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-gray-900">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-surfaceTint px-4">
+      <div className="w-full max-w-lg rounded-2xl bg-surfaceGlass border border-borderSubtle shadow-md shadow-accent-glow p-8 space-y-6 relative">
+        <button onClick={onClose} className="absolute top-4 right-4 text-textMuted hover:text-textPrimary">
           <X className="w-5 h-5" />
         </button>
         <div className="space-y-2">
-          <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Secure Checkout</p>
-          <h2 className="text-2xl text-gray-900 font-semibold">{plan.name}</h2>
-          <p className="text-4xl font-bold text-gray-900">{plan.price}<span className="text-base text-gray-600 font-medium"> {plan.cadence}</span></p>
+          <p className="text-xs uppercase tracking-[0.3em] text-accent">Secure Checkout</p>
+          <h2 className="text-2xl text-textPrimary font-semibold">{plan.name}</h2>
+          <p className="text-4xl font-bold text-textPrimary">{plan.price}<span className="text-base text-textSecondary font-medium"> {plan.cadence}</span></p>
         </div>
-        <div className="space-y-3 text-sm text-gray-600">
+        <div className="space-y-3 text-sm text-textSecondary">
           <label className="flex flex-col gap-1">
-            <span className="text-xs uppercase tracking-widest text-gray-500">Work email</span>
+            <span className="text-xs uppercase tracking-widest text-textMuted">Work email</span>
             <input
               type="email"
               value={email}
               onChange={(e) => onEmailChange(e.target.value)}
               placeholder="you@brand.com"
-              className={`rounded-2xl border ${isEmailValid ? 'border-gray-200' : 'border-gray-200'} bg-white px-4 py-2 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-500`}
+              className={`rounded-2xl border ${isEmailValid ? 'border-borderSubtle' : 'border-borderSubtle'} bg-surface px-4 py-2 text-textPrimary placeholder:text-textMuted Muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent`}
             />
           </label>
           {!isEmailValid && (
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-textMuted">
               Optional, but use a valid email if you want Stripe to pre-fill it.
             </p>
           )}
           <label className="flex flex-col gap-1">
-            <span className="text-xs uppercase tracking-widest text-gray-500">Company / brand</span>
+            <span className="text-xs uppercase tracking-widest text-textMuted">Company / brand</span>
             <input
               type="text"
               value={company}
               onChange={(e) => setCompany(e.target.value)}
               placeholder="Optional"
-              className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 px-4 py-2 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="rounded-2xl border border-borderSubtle bg-surface px-4 py-2 text-textPrimary placeholder:text-textMuted Muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             />
           </label>
         </div>
-        <div className="bg-gray-100 border border-gray-200 rounded-2xl p-4 text-sm text-gray-600 space-y-2">
-          <p className="font-semibold text-gray-900">What&apos;s included</p>
-          <ul className="space-y-1 text-gray-600 list-disc list-inside">
+        <div className="bg-surfaceTint border border-borderSubtle rounded-2xl p-4 text-sm text-textSecondary space-y-2">
+          <p className="font-semibold text-textPrimary">What&apos;s included</p>
+          <ul className="space-y-1 text-textSecondary list-disc list-inside">
             {plan.highlights.map(item => (
               <li key={item}>{item}</li>
             ))}
           </ul>
-          <p className="flex items-center gap-2 text-xs text-gray-500"><ShieldCheck className="w-4 h-4" /> Powered by Stripe · instant access after payment</p>
+          <p className="flex items-center gap-2 text-xs text-textMuted"><ShieldCheck className="w-4 h-4" /> Powered by Stripe · instant access after payment</p>
         </div>
         {disabledReason && (
-          <p className="text-xs text-gray-500 border border-gray-200 rounded-xl px-3 py-2 bg-gray-50">
+          <p className="text-xs text-textMuted border border-borderSubtle rounded-xl px-3 py-2 bg-surfaceTint">
             {disabledReason}
           </p>
         )}
         <button
           disabled={isDisabled}
           onClick={onConfirm}
-          className="w-full rounded-full bg-indigo-600 py-3 font-semibold text-white shadow-md shadow-indigo-500/20 hover:bg-indigo-700 disabled:bg-gray-50 disabled:cursor-not-allowed"
+          className="w-full rounded-full bg-accent py-3 font-semibold text-white shadow-md shadow-accent-glow hover:bg-accent disabled:bg-surfaceTint disabled:cursor-not-allowed"
         >
           Continue to checkout
         </button>

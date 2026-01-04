@@ -12,7 +12,7 @@ export default function SidePlacementPanel() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+      <h3 className="text-sm font-semibold text-textSecondary uppercase tracking-wide">
         Side Placement
       </h3>
 
@@ -26,8 +26,8 @@ export default function SidePlacementPanel() {
               onClick={() => setSidePlacement(side.value)}
               className={
                 isActive
-                  ? "px-4 py-2 rounded-lg text-center bg-indigo-600 text-white"
-                  : "px-4 py-2 rounded-lg text-center bg-gray-50 text-gray-600 hover:bg-gray-50"
+                  ? "px-4 py-2 rounded-lg text-center bg-accent text-white"
+                  : "px-4 py-2 rounded-lg text-center bg-surfaceTint text-textSecondary hover:bg-surfaceTint"
               }
             >
               {side.label}

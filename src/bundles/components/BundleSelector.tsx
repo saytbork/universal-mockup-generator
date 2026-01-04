@@ -48,11 +48,11 @@ const BundleSelector: React.FC<BundleSelectorProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-2">
-        <label className="text-xs uppercase tracking-[0.3em] text-gray-600">Pick a bundle</label>
+        <label className="text-xs uppercase tracking-[0.3em] text-textSecondary">Pick a bundle</label>
         <select
           value={activeKey}
           onChange={event => setActiveKey(event.target.value)}
-          className="rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-600 focus:outline-none"
+          className="rounded-2xl border border-borderSubtle bg-surface px-3 py-2 text-sm text-textPrimary focus:border-accent focus:outline-none"
         >
           {bundleEntries.map(([key, bundle]) => (
             <option key={key} value={key}>
@@ -63,10 +63,10 @@ const BundleSelector: React.FC<BundleSelectorProps> = ({
       </div>
 
       {activeBundle && (
-        <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 space-y-3">
-          <p className="text-sm font-semibold text-gray-900">{activeBundle.name}</p>
+        <div className="rounded-2xl border border-borderSubtle bg-surfaceTint p-4 space-y-3">
+          <p className="text-sm font-semibold text-textPrimary">{activeBundle.name}</p>
           {bundleDisabled && (
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-textMuted">
               {needMoreProducts
                 ? 'Add another product to enable bundles.'
                 : 'Upload matching product photos to use this bundle.'}
@@ -76,8 +76,8 @@ const BundleSelector: React.FC<BundleSelectorProps> = ({
             {slotProducts.map(slot => {
               const productMeta = slot.meta;
               return (
-                <div key={slot.id} className="w-28 text-center text-xs text-gray-600">
-                  <div className="relative h-28 w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
+                <div key={slot.id} className="w-28 text-center text-xs text-textSecondary">
+                  <div className="relative h-28 w-full overflow-hidden rounded-xl border border-borderSubtle bg-surfaceTint">
                     {productMeta?.imageUrl && (
                       <img
                         src={productMeta.imageUrl}
@@ -85,7 +85,7 @@ const BundleSelector: React.FC<BundleSelectorProps> = ({
                       />
                     )}
                     {!productMeta?.imageUrl && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-gray-50 text-[10px] font-semibold text-gray-500">
+                      <div className="absolute inset-0 flex items-center justify-center bg-surfaceTint text-[10px] font-semibold text-textMuted">
                         Upload to fill
                       </div>
                     )}
@@ -102,7 +102,7 @@ const BundleSelector: React.FC<BundleSelectorProps> = ({
         type="button"
         onClick={handleGenerate}
         disabled={!activeBundle || bundleDisabled}
-        className="w-full rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-gray-50"
+        className="w-full rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent disabled:cursor-not-allowed disabled:bg-surfaceTint"
       >
         Generate Bundle Mockup
       </button>

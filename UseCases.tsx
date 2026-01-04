@@ -47,32 +47,32 @@ const sections = [
 
 const UseCases: React.FC = () => {
   return (
-    <div className="bg-bg text-gray-900 min-h-screen">
+    <div className="bg-bg text-textPrimary min-h-screen">
       <div className="relative max-w-5xl mx-auto px-4 py-20 space-y-12">
         <div className="absolute inset-0 blur-3xl opacity-40 pointer-events-none" style={{ background: 'radial-gradient(circle at 20% 20%, var(--accent-glow), transparent 45%)' }} />
         <div className="relative space-y-4">
-          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-600 bg-indigo-50 px-4 py-1 text-xs uppercase tracking-[0.2em] text-indigo-600">
+          <div className="inline-flex items-center gap-2 rounded-full border border-accent bg-accent px-4 py-1 text-xs uppercase tracking-[0.2em] text-accent">
             <Sparkles className="w-4 h-4" /> Use Cases
           </div>
           <h1 className="text-4xl font-bold">How brands and creators ship high-converting visuals</h1>
-          <p className="text-gray-600">BoostUGC adapts to every workflow—Shopify, Amazon, agencies, creators, and dropshippers.</p>
+          <p className="text-textSecondary">BoostUGC adapts to every workflow—Shopify, Amazon, agencies, creators, and dropshippers.</p>
         </div>
 
         <div className="relative grid gap-6 md:grid-cols-2">
           {sections.map(section => (
-            <div key={section.title} className="rounded-2xl border border-gray-200 bg-gray-50 p-5 space-y-3">
-              <div className="flex items-center gap-2 text-indigo-600 text-sm">
+            <div key={section.title} className="rounded-2xl border border-borderSubtle bg-surfaceTint p-5 space-y-3">
+              <div className="flex items-center gap-2 text-accent text-sm">
                 {section.title.includes('Shopify') && <ShoppingBag className="w-5 h-5" />}
                 {section.title.includes('Amazon') && <Truck className="w-5 h-5" />}
                 {section.title.includes('Creators') && <Users2 className="w-5 h-5" />}
                 {section.title.includes('Agencies') && <Building2 className="w-5 h-5" />}
                 {!['Shopify', 'Amazon', 'Creators', 'Agencies'].some(label => section.title.includes(label)) && <Sparkles className="w-5 h-5" />}
-                <span className="font-semibold text-gray-900">{section.title}</span>
+                <span className="font-semibold text-textPrimary">{section.title}</span>
               </div>
-              <ul className="space-y-2 text-gray-600 text-sm">
+              <ul className="space-y-2 text-textSecondary text-sm">
                 {section.bullets.map(b => (
                   <li key={b} className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-indigo-600 mt-0.5" />
+                    <CheckCircle2 className="w-4 h-4 text-accent mt-0.5" />
                     <span>{b}</span>
                   </li>
                 ))}
@@ -84,7 +84,7 @@ const UseCases: React.FC = () => {
         <div className="relative">
           <Link
             to="/app"
-            className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-md shadow-indigo-500/20 hover:bg-indigo-700 transition"
+            className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white shadow-md shadow-accent-glow hover:bg-accent transition"
           >
             Start Free Trial <ArrowRight className="w-4 h-4" />
           </Link>

@@ -341,12 +341,12 @@ const getAgeCategory = (age: number) => {
 const SECTION_GROUP_CLASS =
   'space-y-3 animate-slide-up';
 const GROUP_LABEL_CLASS =
-  'text-[10px] uppercase tracking-[0.2em] text-gray-500 dark:text-white/30 font-extrabold mb-1';
+  'text-[10px] uppercase tracking-[0.2em] text-textMuted text-textPrimary/30 font-extrabold mb-1';
 
 const getPillClass = (isActive: boolean, _fullWidth = false) => {
   const base = 'rounded-xl border px-4 py-2 text-[10px] font-bold transition-all duration-400';
-  const active = 'border-indigo-600 bg-indigo-600 text-white shadow-lg';
-  const inactive = 'border-gray-200 dark:border-white/5 bg-white dark:bg-zinc-900/50 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-white/20';
+  const active = 'border-accent bg-accent text-white shadow-lg';
+  const inactive = 'border-borderSubtle border-borderSoft bg-surfaceSoft text-textMuted hover:border-borderHover hover:border-borderHover';
   return `${base} ${isActive ? active : inactive}`.trim();
 };
 
@@ -1227,9 +1227,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     <div className={embedded ? 'w-full space-y-4' : 'w-full max-w-2xl mx-auto space-y-4 p-4'}>
       {!embedded && (
         <div className="flex flex-col gap-1">
-          <p className="text-xs uppercase tracking-widest text-indigo-600">Step 3</p>
-          <h2 className="text-2xl font-bold text-gray-900">{isEcommerceMode ? 'Product Builder' : 'Scene Builder'}</h2>
-          <p className="text-sm text-gray-500">
+          <p className="text-xs uppercase tracking-widest text-accent">Step 3</p>
+          <h2 className="text-2xl font-bold text-textPrimary">{isEcommerceMode ? 'Product Builder' : 'Scene Builder'}</h2>
+          <p className="text-sm text-textMuted">
             {isEcommerceMode
               ? 'Product-only ecommerce controls: pro camera, controlled background, and layout-safe composition.'
               : 'Define how the scene looks, feels, and behaves visually.'}
@@ -1276,11 +1276,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       updateValue('productTypeCustom', e.target.value);
                       markSectionTouched('product-setup');
                     }}
-                    className="mt-2 w-full rounded-2xl border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                    className="mt-2 w-full rounded-2xl border border-borderSubtle bg-surfaceTint px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:ring-1 focus:ring-accent"
                     placeholder="Describe the product category (min 3 words)"
                   />
                 )}
-                <p className="text-[11px] text-gray-500">
+                <p className="text-[11px] text-textMuted">
                   Product Type guides props/palette suggestions only. The uploaded product asset never changes.
                 </p>
               </div>
@@ -1411,8 +1411,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       ] as const
                     ).map(cfg => (
                       <label key={cfg.key} className="space-y-1">
-                        <span className="text-[11px] uppercase tracking-wide text-gray-500">{cfg.label}</span>
-                        <div className="relative flex items-center gap-3 rounded-2xl border border-gray-200 bg-gray-100 p-3 cursor-pointer transition-colors hover:border-indigo-600">
+                        <span className="text-[11px] uppercase tracking-wide text-textMuted">{cfg.label}</span>
+                        <div className="relative flex items-center gap-3 rounded-2xl border border-borderSubtle bg-surfaceTint p-3 cursor-pointer transition-colors hover:border-accent">
                           <div
                             className="h-10 w-10 rounded-2xl ring-1 ring-borderSubtle"
                             style={{ background: (values as any)[cfg.key] || '#ffffff' }}
@@ -1424,7 +1424,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               updateValue(cfg.key as any, e.target.value as any);
                               markSectionTouched('product-creativity');
                             }}
-                            className="w-full bg-transparent text-sm text-gray-900 focus:outline-none"
+                            className="w-full bg-transparent text-sm text-textPrimary focus:outline-none"
                           />
                           <input
                             type="color"
@@ -1463,7 +1463,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
               <div className={SECTION_GROUP_CLASS}>
                 <p className={GROUP_LABEL_CLASS}>SUGGESTED PROPS</p>
-                <p className="text-[11px] text-gray-500">Optional. Product-safe suggestions based on Product Type.</p>
+                <p className="text-[11px] text-textMuted">Optional. Product-safe suggestions based on Product Type.</p>
                 <div className="flex flex-wrap gap-2">
                   {productSuggestedProps.map(prop => {
                     const selected = (values.productPropsSelected || []).includes(prop);
@@ -1627,7 +1627,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           >
             <div className="space-y-4">
               {values.ecommerceSidePlacementFlag === true && (
-                <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 text-gray-500 text-sm">
+                <div className="rounded-xl border border-borderSubtle bg-surfaceTint p-3 text-textMuted text-sm">
                   Environment is disabled while Background Canvas is On (neutral background mode).
                 </div>
               )}
@@ -1635,7 +1635,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               <div className={`${SECTION_GROUP_CLASS} ${values.ecommerceSidePlacementFlag ? 'opacity-50 pointer-events-none' : ''}`}>
                 <div>
                   <p className={GROUP_LABEL_CLASS}>ENVIRONMENT</p>
-                  <p className="text-[11px] text-gray-500 mt-1">Choose a setting to match lighting + surfaces</p>
+                  <p className="text-[11px] text-textMuted mt-1">Choose a setting to match lighting + surfaces</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {[...ENVIRONMENT_INDOOR, ...ENVIRONMENT_OUTDOOR].map(option => (
@@ -1654,7 +1654,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   ))}
                 </div>
                 <label className="block space-y-1">
-                  <p className="text-[11px] uppercase tracking-wide text-gray-500">Custom environment</p>
+                  <p className="text-[11px] uppercase tracking-wide text-textMuted">Custom environment</p>
                   <input
                     value={values.customEnvironment || ''}
                     onChange={(e) => {
@@ -1662,7 +1662,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       markSectionTouched('product-environment');
                     }}
                     placeholder="e.g. modern kitchen countertop"
-                    className="w-full rounded-2xl border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none"
+                    className="w-full rounded-2xl border border-borderSubtle bg-surfaceTint px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:outline-none"
                   />
                 </label>
               </div>
@@ -1670,7 +1670,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               <div className={`${SECTION_GROUP_CLASS} ${values.ecommerceSidePlacementFlag ? 'opacity-50 pointer-events-none' : ''}`}>
                 <div>
                   <p className={GROUP_LABEL_CLASS}>LIGHTING</p>
-                  <p className="text-[11px] text-gray-500 mt-1">Product-safe lighting style</p>
+                  <p className="text-[11px] text-textMuted mt-1">Product-safe lighting style</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {LIGHTING_OPTIONS.map(option => (
@@ -1705,7 +1705,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className={GROUP_LABEL_CLASS}>BACKGROUND CANVAS</p>
-                    <p className="text-[11px] text-gray-500 mt-1">Neutral background + negative space (optional)</p>
+                    <p className="text-[11px] text-textMuted mt-1">Neutral background + negative space (optional)</p>
                   </div>
                   <button
                     type="button"
@@ -1717,15 +1717,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       updateValue('compositionMode', next ? 'Ecommerce Blank Space' : '');
                       markSectionTouched('ecommerce');
                     }}
-                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white ${values.ecommerceSidePlacementFlag ? 'bg-indigo-600' : 'bg-gray-50'}`}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-white ${values.ecommerceSidePlacementFlag ? 'bg-accent' : 'bg-surfaceTint'}`}
                   >
                     <span
-                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white ring-0 transition duration-200 ease-in-out ${values.ecommerceSidePlacementFlag ? 'translate-x-5' : 'translate-x-0'}`}
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface ring-0 transition duration-200 ease-in-out ${values.ecommerceSidePlacementFlag ? 'translate-x-5' : 'translate-x-0'}`}
                     />
                   </button>
                 </div>
                 {values.ecommerceSidePlacementFlag !== true && (
-                  <p className="text-[11px] text-gray-500">
+                  <p className="text-[11px] text-textMuted">
                     Turn this off to use Product Builder Creativity (studio/aesthetic) instead of a neutral blank-space layout.
                   </p>
                 )}
@@ -1736,7 +1736,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   <div className={SECTION_GROUP_CLASS}>
                     <div>
                       <p className={GROUP_LABEL_CLASS}>SIDE PLACEMENT</p>
-                      <p className="text-[11px] text-gray-500 mt-1">Product anchor position</p>
+                      <p className="text-[11px] text-textMuted mt-1">Product anchor position</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {SIDE_PLACEMENT_OPTIONS.map(option => (
@@ -1755,24 +1755,24 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     </div>
                   </div>
 
-                  <div className="space-y-5 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                  <div className="space-y-5 rounded-2xl border border-borderSubtle bg-surfaceTint p-4">
                     <div className="space-y-1">
-                      <p className="text-xs uppercase tracking-widest text-indigo-600">Background</p>
-                      <p className="text-sm text-gray-600">Neutral color or gradient</p>
+                      <p className="text-xs uppercase tracking-widest text-accent">Background</p>
+                      <p className="text-sm text-textSecondary">Neutral color or gradient</p>
                     </div>
 
-                    <div className="inline-flex rounded-full border border-gray-200 bg-gray-100 p-1">
+                    <div className="inline-flex rounded-full border border-borderSubtle bg-surfaceTint p-1">
                       <button
                         type="button"
                         onClick={() => { updateValue('ecommerceBackgroundMode', 'white'); markSectionTouched('ecommerce'); }}
-                        className={`rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${values.ecommerceBackgroundMode === 'white' ? 'bg-white text-gray-900' : 'text-gray-600 hover:text-gray-900'}`}
+                        className={`rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${values.ecommerceBackgroundMode === 'white' ? 'bg-surface text-textPrimary' : 'text-textSecondary hover:text-textPrimary'}`}
                       >
                         Solid
                       </button>
                       <button
                         type="button"
                         onClick={() => { updateValue('ecommerceBackgroundMode', 'gradient'); markSectionTouched('ecommerce'); }}
-                        className={`rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${values.ecommerceBackgroundMode === 'gradient' ? 'bg-white text-gray-900' : 'text-gray-600 hover:text-gray-900'}`}
+                        className={`rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${values.ecommerceBackgroundMode === 'gradient' ? 'bg-surface text-textPrimary' : 'text-textSecondary hover:text-textPrimary'}`}
                       >
                         Gradient
                       </button>
@@ -1780,15 +1780,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                     {values.ecommerceBackgroundMode === 'white' ? (
                       <div className="space-y-2">
-                        <p className="text-[11px] uppercase tracking-wide text-gray-500">Solid background color</p>
-                        <label className="relative flex items-center gap-3 rounded-2xl border border-gray-200 bg-gray-100 p-3 cursor-pointer transition-colors hover:border-indigo-600">
+                        <p className="text-[11px] uppercase tracking-wide text-textMuted">Solid background color</p>
+                        <label className="relative flex items-center gap-3 rounded-2xl border border-borderSubtle bg-surfaceTint p-3 cursor-pointer transition-colors hover:border-accent">
                           <div
                             className="h-10 w-10 rounded-2xl ring-1 ring-borderSubtle"
                             style={{ background: values.ecommerceBackgroundColor || '#ffffff' }}
                           />
                           <input
                             type="text"
-                            className="w-full bg-transparent text-sm text-gray-900 focus:outline-none"
+                            className="w-full bg-transparent text-sm text-textPrimary focus:outline-none"
                             value={values.ecommerceBackgroundColor || '#ffffff'}
                             onChange={(e) => { updateValue('ecommerceBackgroundColor', e.target.value); markSectionTouched('ecommerce'); }}
                           />
@@ -1810,8 +1810,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             ] as const
                           ).map(cfg => (
                             <div key={cfg.key} className="space-y-2">
-                              <p className="text-[11px] uppercase tracking-wide text-gray-500">{cfg.label}</p>
-                              <div className="relative flex items-center gap-3 rounded-2xl border border-gray-200 bg-gray-100 p-3 cursor-pointer transition-colors hover:border-indigo-600">
+                              <p className="text-[11px] uppercase tracking-wide text-textMuted">{cfg.label}</p>
+                              <div className="relative flex items-center gap-3 rounded-2xl border border-borderSubtle bg-surfaceTint p-3 cursor-pointer transition-colors hover:border-accent">
                                 <div
                                   className="h-10 w-10 rounded-2xl ring-1 ring-borderSubtle"
                                   style={{ background: (values as any)[cfg.key] || '#ffffff' }}
@@ -1820,7 +1820,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   type="text"
                                   value={(values as any)[cfg.key] || ''}
                                   onChange={(e) => { updateValue(cfg.key as any, e.target.value as any); markSectionTouched('ecommerce'); }}
-                                  className="w-full bg-transparent text-sm text-gray-900 focus:outline-none"
+                                  className="w-full bg-transparent text-sm text-textPrimary focus:outline-none"
                                 />
                                 <input
                                   type="color"
@@ -1847,13 +1847,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           <button
                             type="button"
                             onClick={invertGradient}
-                            className="rounded-full border border-gray-200 bg-gray-100 px-3 py-1.5 text-sm text-gray-600 transition-colors hover:border-indigo-600 hover:text-gray-900"
+                            className="rounded-full border border-borderSubtle bg-surfaceTint px-3 py-1.5 text-sm text-textSecondary transition-colors hover:border-accent hover:text-textPrimary"
                           >
                             Invert
                           </button>
                         </div>
 
-                        <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-gray-100">
+                        <div className="relative overflow-hidden rounded-2xl border border-borderSubtle bg-surfaceTint">
                           <div
                             className="h-20 w-full"
                             style={{
@@ -1869,10 +1869,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               )}
 
               {ecommerceOverlay && (
-                <div className="space-y-3 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                <div className="space-y-3 rounded-2xl border border-borderSubtle bg-surfaceTint p-4">
                   <div className="space-y-1">
-                    <p className="text-xs uppercase tracking-widest text-indigo-600">Overlays</p>
-                    <p className="text-sm text-gray-600">Text + icons are rendered by the app (not the image model).</p>
+                    <p className="text-xs uppercase tracking-widest text-accent">Overlays</p>
+                    <p className="text-sm text-textSecondary">Text + icons are rendered by the app (not the image model).</p>
                   </div>
                   <EcommerceStep3
                     embedded
@@ -1894,9 +1894,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       {isEnvironmentMode && (
         <>
           {/* UGC Simulation Mode Card - Purple in BOTH modes */}
-          <div className="mb-6 p-6 rounded-2xl bg-indigo-600 shadow-xl shadow-indigo-600/20 text-white">
+          <div className="mb-6 p-6 rounded-2xl bg-accent shadow-xl shadow-indigo-600/20 text-white">
             <p className="text-[14px] font-extrabold mb-1">UGC Simulation Mode</p>
-            <p className="text-[10px] text-indigo-100 font-medium">
+            <p className="text-[10px] text-accent font-medium">
               Using native smartphone optics for high authenticity.
             </p>
           </div>
@@ -1914,7 +1914,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           >
             <div className="flex flex-col gap-4">
               {isPersonDisabled ? (
-                <div className="p-4 rounded-xl border border-gray-200 bg-gray-50 text-gray-500 text-sm">
+                <div className="p-4 rounded-xl border border-borderSubtle bg-surfaceTint text-textMuted text-sm">
                   Creator / Person controls are disabled in Product Mode.
                 </div>
               ) : (
@@ -1922,7 +1922,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   <div className={SECTION_GROUP_CLASS}>
                     <div className="flex items-center justify-between">
                       <p className={GROUP_LABEL_CLASS}>AGE</p>
-                      <p className="text-sm font-medium text-gray-900">{values.age}</p>
+                      <p className="text-sm font-medium text-textPrimary">{values.age}</p>
                     </div>
                     <input
                       type="range"
@@ -2037,7 +2037,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       {values.hairState === 'natural' && (
                         <>
                           <div className="space-y-1.5">
-                            <p className="text-xs text-gray-500">Length</p>
+                            <p className="text-xs text-textMuted">Length</p>
                             <div className="flex flex-wrap items-center gap-2">
                               {HAIR_LENGTH_OPTIONS.map(option => (
                                 <button
@@ -2053,7 +2053,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           </div>
 
                           <div className="space-y-1.5">
-                            <p className="text-xs text-gray-500">Texture</p>
+                            <p className="text-xs text-textMuted">Texture</p>
                             <div className="flex flex-wrap items-center gap-2">
                               {HAIR_TEXTURE_OPTIONS.map(option => (
                                 <button
@@ -2069,7 +2069,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           </div>
 
                           <div className="space-y-1.5">
-                            <p className="text-xs text-gray-500">Color</p>
+                            <p className="text-xs text-textMuted">Color</p>
                             <div className="flex flex-wrap items-center gap-2">
                               {HAIR_COLOR_OPTIONS.map(option => (
                                 <button
@@ -2125,10 +2125,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <div className="flex flex-col gap-1">
                           <p className={GROUP_LABEL_CLASS}>KEEP SAME PERSON</p>
                           {!hasFirstGenerationComplete && (
-                            <span className="text-xs text-gray-500">Available after first generation</span>
+                            <span className="text-xs text-textMuted">Available after first generation</span>
                           )}
                           {hasFirstGenerationComplete && (
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-textMuted">
                               {values.sameCreatorAcrossScenes
                                 ? 'Same person across generations'
                                 : 'Different person each generation'}
@@ -2148,20 +2148,20 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           />
                           <div
                             className={`w-11 h-6 rounded-full transition-colors relative ${!hasFirstGenerationComplete || hasModelReference
-                              ? 'bg-gray-50 cursor-not-allowed opacity-50'
+                              ? 'bg-surfaceTint cursor-not-allowed opacity-50'
                               : values.sameCreatorAcrossScenes
-                                ? 'bg-indigo-600'
-                                : 'bg-gray-50'
+                                ? 'bg-accent'
+                                : 'bg-surfaceTint'
                               }`}
                           >
                             <div
-                              className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${values.sameCreatorAcrossScenes ? 'translate-x-5' : ''}`}
+                              className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-surface transition-transform ${values.sameCreatorAcrossScenes ? 'translate-x-5' : ''}`}
                             />
                           </div>
                         </label>
                       </div>
                       {hasModelReference && hasFirstGenerationComplete && (
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-textMuted">
                           Model reference overrides identity control
                         </p>
                       )}
@@ -2189,8 +2189,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 <div className="space-y-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
-                      <p className="text-xs uppercase tracking-wider text-indigo-600">Raw domestic capture</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-xs uppercase tracking-wider text-accent">Raw domestic capture</p>
+                      <p className="text-sm text-textMuted">
                         Locks every pro control and simulates a bored creator using the front camera at home. You only pick the capture geometry.
                       </p>
                     </div>
@@ -2207,15 +2207,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           updateValue('eyeDirection', 'Looking at camera');
                         }
                       }}
-                      className={`relative shrink-0 h-6 w-11 rounded-full transition-colors ${values.ugcRealMode ? 'bg-indigo-600' : 'bg-gray-50'}`}
+                      className={`relative shrink-0 h-6 w-11 rounded-full transition-colors ${values.ugcRealMode ? 'bg-accent' : 'bg-surfaceTint'}`}
                     >
-                      <span className={`absolute left-1 top-1 block h-4 w-4 rounded-full bg-white transition-transform ${values.ugcRealMode ? 'translate-x-5' : 'translate-x-0'}`} />
+                      <span className={`absolute left-1 top-1 block h-4 w-4 rounded-full bg-surface transition-transform ${values.ugcRealMode ? 'translate-x-5' : 'translate-x-0'}`} />
                     </button>
                   </div>
 
                   {values.ugcRealMode && (
                     <>
-                      <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-[12px] text-gray-500">
+                      <div className="rounded-lg border border-borderSubtle bg-surfaceTint px-3 py-2 text-[12px] text-textMuted">
                         Front-camera physics only. Background, lighting, motion, and framing are engine-controlled. Environment, lighting, and camera panels are locked while this mode is on.
                       </div>
                       <div className="space-y-4">
@@ -2235,7 +2235,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               isActive={values.ugcRealMode}
                               variant="secondary"
                             >
-                              <p className="text-xs text-gray-500">{section.description}</p>
+                              <p className="text-xs text-textMuted">{section.description}</p>
                               <div className="mt-3 flex flex-wrap gap-3">
                                 {section.options.map(option => (
                                   <div key={option.id} className="flex flex-col gap-1 max-w-[220px]">
@@ -2246,14 +2246,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     >
                                       {option.label}
                                     </button>
-                                    <p className="text-[10px] text-gray-500">{option.detail}</p>
+                                    <p className="text-[10px] text-textMuted">{option.detail}</p>
                                   </div>
                                 ))}
                               </div>
                             </SmoothAccordion>
                           );
                         })}
-                        <div className="space-y-4 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                        <div className="space-y-4 rounded-2xl border border-borderSubtle bg-surfaceTint p-4">
                           <p className={GROUP_LABEL_CLASS}>Visual Fidelity</p>
                           <div className="space-y-3">
                             <div className={SECTION_GROUP_CLASS}>
@@ -2300,7 +2300,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <div className={SECTION_GROUP_CLASS}>
                           <div>
                             <p className={GROUP_LABEL_CLASS}>SCENE ORDER & CHAOS</p>
-                            <p className="text-[11px] text-gray-500">Control how tidy or chaotic the surroundings feel.</p>
+                            <p className="text-[11px] text-textMuted">Control how tidy or chaotic the surroundings feel.</p>
                           </div>
                           <div className="flex flex-wrap gap-2">
                             {SCENE_ORDER_CHAOS_OPTIONS.map(option => (
@@ -2360,7 +2360,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       markSectionTouched('productInteraction');
                     }}
                     placeholder="Describe what the person is naturally doing with the product"
-                    className="w-full rounded-2xl border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500 resize-none"
+                    className="w-full rounded-2xl border border-borderSubtle bg-surfaceTint px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:ring-1 focus:ring-accent resize-none"
                     rows={3}
                   />
                 </div>
@@ -2379,10 +2379,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             variant="expert"
           >
             <div className="space-y-4">
-              <div className="flex items-center justify-between rounded-2xl border border-gray-200 bg-gray-50 px-3 py-2">
+              <div className="flex items-center justify-between rounded-2xl border border-borderSubtle bg-surfaceTint px-3 py-2">
                 <div>
-                  <p className="text-sm text-gray-900">Enable outfit customization</p>
-                  <p className="text-[11px] text-gray-500">Describe garments with text-only controls.</p>
+                  <p className="text-sm text-textPrimary">Enable outfit customization</p>
+                  <p className="text-[11px] text-textMuted">Describe garments with text-only controls.</p>
                 </div>
                 <button
                   type="button"
@@ -2392,16 +2392,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     updateValue('customClothesEnabled', !values.customClothesEnabled);
                     markSectionTouched('customClothes');
                   }}
-                  className={`relative h-6 w-11 rounded-full transition-colors ${values.customClothesEnabled ? 'bg-indigo-600' : 'bg-gray-50'}`}
+                  className={`relative h-6 w-11 rounded-full transition-colors ${values.customClothesEnabled ? 'bg-accent' : 'bg-surfaceTint'}`}
                 >
-                  <span className={`absolute left-1 top-1 block h-4 w-4 rounded-full bg-white transition-transform ${values.customClothesEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                  <span className={`absolute left-1 top-1 block h-4 w-4 rounded-full bg-surface transition-transform ${values.customClothesEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
                 </button>
               </div>
 
               {values.customClothesEnabled && (
                 <div className="space-y-3">
                   <div>
-                    <label className="text-[11px] uppercase tracking-wider text-gray-500">Garment type</label>
+                    <label className="text-[11px] uppercase tracking-wider text-textMuted">Garment type</label>
                     <div className="flex flex-wrap gap-2 mt-2">
                       {CUSTOM_CLOTHES_GARMENTS.map(option => (
                         <button
@@ -2420,7 +2420,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
 
                   <div>
-                    <label className="text-[11px] uppercase tracking-wider text-gray-500">Primary color</label>
+                    <label className="text-[11px] uppercase tracking-wider text-textMuted">Primary color</label>
                     <div className="flex flex-wrap gap-2 mt-2">
                       {CUSTOM_CLOTHES_COLORS.map(option => (
                         <button
@@ -2439,7 +2439,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
 
                   <div>
-                    <label className="text-[11px] uppercase tracking-wider text-gray-500">Fit</label>
+                    <label className="text-[11px] uppercase tracking-wider text-textMuted">Fit</label>
                     <div className="flex flex-wrap gap-2 mt-2">
                       {CUSTOM_CLOTHES_FITS.map(option => (
                         <button
@@ -2458,7 +2458,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
 
                   <div>
-                    <label className="text-[11px] uppercase tracking-wider text-gray-500">Style</label>
+                    <label className="text-[11px] uppercase tracking-wider text-textMuted">Style</label>
                     <div className="flex flex-wrap gap-2 mt-2">
                       {CUSTOM_CLOTHES_STYLES.map(option => (
                         <button
@@ -2477,7 +2477,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
 
                   <div>
-                    <label className="text-[11px] uppercase tracking-wider text-gray-500">Material</label>
+                    <label className="text-[11px] uppercase tracking-wider text-textMuted">Material</label>
                     <div className="flex flex-wrap gap-2 mt-2">
                       {CUSTOM_CLOTHES_MATERIALS.map(option => (
                         <button
@@ -2496,7 +2496,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
 
                   <div>
-                    <label className="text-[11px] uppercase tracking-wider text-gray-500">Custom detail (optional)</label>
+                    <label className="text-[11px] uppercase tracking-wider text-textMuted">Custom detail (optional)</label>
                     <input
                       type="text"
                       maxLength={100}
@@ -2506,7 +2506,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         markSectionTouched('customClothes');
                       }}
                       placeholder="small embroidered logo on the chest"
-                      className="w-full rounded-2xl border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                      className="w-full rounded-2xl border border-borderSubtle bg-surfaceTint px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:ring-1 focus:ring-accent"
                     />
                   </div>
                 </div>
@@ -2524,7 +2524,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             variant="secondary"
           >
             <div className="space-y-3">
-              <p className="text-xs uppercase tracking-wider text-indigo-600">Group & count</p>
+              <p className="text-xs uppercase tracking-wider text-accent">Group & count</p>
               <div className="flex flex-wrap gap-2">
                 {PRODUCT_STRUCTURE_OPTIONS.map(option => (
                   <button
@@ -2538,7 +2538,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   >
                     <span className="flex flex-col text-left">
                       <span>{option.label}</span>
-                      <span className="text-[10px] text-gray-500">{option.description}</span>
+                      <span className="text-[10px] text-textMuted">{option.description}</span>
                     </span>
                   </button>
                 ))}
@@ -2559,17 +2559,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           >
             <div className="space-y-3">
               {values.ugcRealMode && (
-                <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-xs text-gray-500">
+                <div className="rounded-lg border border-borderSubtle bg-surfaceTint px-4 py-3 text-xs text-textMuted">
                   Raw Domestic UGC still honors your environment choice—it just interprets it as incidental and unstaged. Pick any room; the engine keeps it messy, domestic, and low intent.
                 </div>
               )}
               {!values.ugcRealMode && (
-                <div className="rounded-2xl border border-gray-200 bg-gray-50 px-3 py-2 text-[11px] text-gray-600">
+                <div className="rounded-2xl border border-borderSubtle bg-surfaceTint px-3 py-2 text-[11px] text-textSecondary">
                   Environment describes location context only. Lighting, cleanliness, and overall polish remain engine-controlled—changing this won’t upgrade quality or staging.
                 </div>
               )}
 
-              <p className="text-xs uppercase tracking-wider text-indigo-600">INDOOR</p>
+              <p className="text-xs uppercase tracking-wider text-accent">INDOOR</p>
               <div className="flex flex-wrap gap-2">
                 {ENVIRONMENT_INDOOR.map(env => (
                   <button
@@ -2586,7 +2586,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
               {!values.ugcRealMode && (
                 <>
-                  <p className="text-xs uppercase tracking-wider text-indigo-600 pt-2">OUTDOOR</p>
+                  <p className="text-xs uppercase tracking-wider text-accent pt-2">OUTDOOR</p>
                   <div className="flex flex-wrap gap-2">
                     {ENVIRONMENT_OUTDOOR.map(env => (
                       <button
@@ -2605,7 +2605,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
               {/* CUSTOM ENVIRONMENT */}
               <div className="pt-3">
-                <p className="text-xs uppercase tracking-wider text-indigo-600 mb-2">CUSTOM ENVIRONMENT</p>
+                <p className="text-xs uppercase tracking-wider text-accent mb-2">CUSTOM ENVIRONMENT</p>
                 <input
                   type="text"
                   value={values.customEnvironment}
@@ -2617,7 +2617,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     markSectionTouched('environment');
                   }}
                   placeholder="e.g., cozy cabin, rooftop terrace, yoga studio..."
-                  className="w-full rounded-2xl border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-2xl border border-borderSubtle bg-surfaceTint px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:ring-1 focus:ring-accent"
                 />
               </div>
 
@@ -2634,7 +2634,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             variant="primary"
           >
             {values.ugcRealMode ? (
-              <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+              <div className="rounded-2xl border border-borderSubtle bg-surfaceTint px-4 py-3 text-sm text-textSecondary">
                 Lighting is locked to indifferent domestic fixtures with mixed temperatures, clipped highlights, and crushed shadows. Turn Raw Domestic UGC off to control time or lighting.
               </div>
             ) : (
@@ -2642,8 +2642,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 {/* TIME OF DAY */}
                 <div className={SECTION_GROUP_CLASS}>
                   <div>
-                    <p className="text-xs uppercase tracking-wider text-indigo-600">TIME OF DAY</p>
-                    <p className="text-[11px] text-gray-500 mt-1">Set the temporal context</p>
+                    <p className="text-xs uppercase tracking-wider text-accent">TIME OF DAY</p>
+                    <p className="text-[11px] text-textMuted mt-1">Set the temporal context</p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     {TIME_OF_DAY_OPTIONS.map(option => (
@@ -2662,8 +2662,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 {/* LIGHTING STYLE */}
                 <div className={SECTION_GROUP_CLASS}>
                   <div>
-                    <p className="text-xs uppercase tracking-wider text-indigo-600">LIGHTING STYLE</p>
-                    <p className="text-[11px] text-gray-500 mt-1">Select the lighting quality</p>
+                    <p className="text-xs uppercase tracking-wider text-accent">LIGHTING STYLE</p>
+                    <p className="text-[11px] text-textMuted mt-1">Select the lighting quality</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {LIGHTING_OPTIONS.map(option => (
@@ -2683,13 +2683,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             )}
           </SmoothAccordion>
 
-          <details className="rounded-2xl border border-gray-200 bg-gray-50 transition-colors overflow-hidden">
-            <summary className="cursor-pointer list-none p-4 flex items-center justify-between text-xs uppercase tracking-widest text-gray-500">
+          <details className="rounded-2xl border border-borderSubtle bg-surfaceTint transition-colors overflow-hidden">
+            <summary className="cursor-pointer list-none p-4 flex items-center justify-between text-xs uppercase tracking-widest text-textMuted">
               <span>Advanced · Hero Personas</span>
-              <span className="text-xs text-gray-500">+</span>
+              <span className="text-xs text-textMuted">+</span>
             </summary>
             <div className="p-4 pt-0 space-y-3">
-              <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Hero personas</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-accent">Hero personas</p>
               <div className="flex flex-col gap-2">
                 {[
                   { label: 'The Busy Mom', semantic: 'busy mom managing household, natural home environment, multitasking moment, authentic daily routine' },
@@ -2721,8 +2721,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       }
                     }}
                     className={`w-full text-left px-3 py-2 rounded-2xl border text-sm transition-colors ${values.heroPersona === persona.label
-                      ? 'bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-500/20 scale-105 duration-500'
-                      : 'bg-white border-gray-200 text-gray-900 hover:border-indigo-600 hover:text-gray-900'
+                      ? 'bg-accent border-accent text-white shadow-md shadow-accent-glow scale-105 duration-500'
+                      : 'bg-surface border-borderSubtle text-textPrimary hover:border-accent hover:text-textPrimary'
                       }`}
                   >
                     {persona.label}
@@ -2746,8 +2746,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 <div className="space-y-3">
                   <div className={SECTION_GROUP_CLASS}>
                     <div>
-                      <p className="text-xs uppercase tracking-wider text-indigo-600">CAMERA TYPE</p>
-                      <p className="text-[11px] text-gray-500 mt-1">Select the capture device aesthetic</p>
+                      <p className="text-xs uppercase tracking-wider text-accent">CAMERA TYPE</p>
+                      <p className="text-[11px] text-textMuted mt-1">Select the capture device aesthetic</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {CAMERA_OPTIONS.map(option => (
@@ -2765,7 +2765,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
 
                   <div className={SECTION_GROUP_CLASS}>
-                    <p className="text-xs uppercase tracking-wider text-indigo-600">SHOT TYPE</p>
+                    <p className="text-xs uppercase tracking-wider text-accent">SHOT TYPE</p>
                     <div className="flex flex-wrap items-center gap-2">
                       {SHOT_TYPE_OPTIONS.map(option => (
                         <button
@@ -2781,7 +2781,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
 
                   <div className={SECTION_GROUP_CLASS}>
-                    <p className="text-xs uppercase tracking-wider text-indigo-600">CAMERA ANGLE</p>
+                    <p className="text-xs uppercase tracking-wider text-accent">CAMERA ANGLE</p>
                     <div className="flex flex-wrap items-center gap-2">
                       {CAMERA_ANGLE_OPTIONS.map(option => (
                         <button
@@ -2806,30 +2806,30 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           {
             productCount > 1 && (
               <div id="bundles" className="mt-6">
-                <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 space-y-4">
+                <div className="rounded-2xl border border-borderSubtle bg-surfaceTint p-4 space-y-4">
                   <div className="flex flex-col gap-1">
-                    <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Bundles</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-xs uppercase tracking-[0.3em] text-accent">Bundles</p>
+                    <p className="text-sm text-textMuted">
                       Quickly swap between curated packs, your own mix, or AI-recommended combos.
                     </p>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-500/20 scale-105 duration-500">
+                    <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors bg-accent text-white border-accent shadow-md shadow-accent-glow scale-105 duration-500">
                       Pre-made Bundles
                     </button>
-                    <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors border-gray-200 bg-gray-100 text-gray-600 hover:border-indigo-600 hover:text-gray-900">
+                    <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors border-borderSubtle bg-surfaceTint text-textSecondary hover:border-accent hover:text-textPrimary">
                       Custom Bundle Builder
                     </button>
-                    <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors border-gray-200 bg-gray-100 text-gray-600 hover:border-indigo-600 hover:text-gray-900">
+                    <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors border-borderSubtle bg-surfaceTint text-textSecondary hover:border-accent hover:text-textPrimary">
                       Recommended Bundles
                     </button>
                   </div>
 
                   <div className="space-y-4">
                     <div className="flex flex-col gap-2">
-                      <label className="text-xs uppercase tracking-[0.3em] text-gray-500">Pick a bundle</label>
-                      <select className="rounded-2xl border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-900 focus:border-indigo-600 focus:outline-none">
+                      <label className="text-xs uppercase tracking-[0.3em] text-textMuted">Pick a bundle</label>
+                      <select className="rounded-2xl border border-borderSubtle bg-surfaceTint px-3 py-2 text-sm text-textPrimary focus:border-accent focus:outline-none">
                         <option value="essentials_trio">Core Essentials Trio</option>
                         <option value="daily_duo">Daily Duo Stack</option>
                         <option value="launch_showcase">Launch Showcase Set</option>
@@ -2837,15 +2837,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       </select>
                     </div>
 
-                    <div className="rounded-2xl border border-gray-200 bg-gray-100 p-4 space-y-3">
-                      <p className="text-sm font-semibold text-gray-900">Core Essentials Trio</p>
-                      <p className="text-xs text-gray-500">Add another product to enable bundles.</p>
+                    <div className="rounded-2xl border border-borderSubtle bg-surfaceTint p-4 space-y-3">
+                      <p className="text-sm font-semibold text-textPrimary">Core Essentials Trio</p>
+                      <p className="text-xs text-textMuted">Add another product to enable bundles.</p>
 
                       <div className="flex flex-wrap gap-3">
-                        <div className="w-28 text-center text-xs text-gray-600">
-                          <div className="relative h-28 w-full overflow-hidden rounded-2xl border border-gray-200 bg-gray-50">
+                        <div className="w-28 text-center text-xs text-textSecondary">
+                          <div className="relative h-28 w-full overflow-hidden rounded-2xl border border-borderSubtle bg-surfaceTint">
                             <img className="h-full w-full object-cover opacity-60" />
-                            <div className="absolute inset-0 flex items-center justify-center bg-gray-50 text-[10px] font-semibold text-gray-500">
+                            <div className="absolute inset-0 flex items-center justify-center bg-surfaceTint text-[10px] font-semibold text-textMuted">
                               Upload to fill
                             </div>
                           </div>
@@ -2854,7 +2854,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       </div>
                     </div>
 
-                    <button type="button" disabled className="w-full rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:bg-gray-50">
+                    <button type="button" disabled className="w-full rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white disabled:bg-surfaceTint">
                       Generate Bundle Mockup
                     </button>
                   </div>
@@ -2880,7 +2880,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         >
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-900">Enable hero canvas</span>
+              <span className="text-sm text-textPrimary">Enable hero canvas</span>
               <button
                 type="button"
                 role="switch"
@@ -2889,10 +2889,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   updateValue('ecommerceSidePlacementFlag', !values.ecommerceSidePlacementFlag);
                   markSectionTouched('ecommerce');
                 }}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white ${values.ecommerceSidePlacementFlag ? 'bg-indigo-600' : 'bg-gray-50'}`}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-white ${values.ecommerceSidePlacementFlag ? 'bg-accent' : 'bg-surfaceTint'}`}
               >
                 <span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white ring-0 transition duration-200 ease-in-out ${values.ecommerceSidePlacementFlag ? 'translate-x-5' : 'translate-x-0'}`}
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface ring-0 transition duration-200 ease-in-out ${values.ecommerceSidePlacementFlag ? 'translate-x-5' : 'translate-x-0'}`}
                 />
               </button>
             </div>
@@ -2901,8 +2901,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               <>
                 <div className={SECTION_GROUP_CLASS}>
                   <div>
-                    <p className="text-xs uppercase tracking-wider text-indigo-600">SIDE PLACEMENT</p>
-                    <p className="text-[11px] text-gray-500 mt-1">Subject anchor position</p>
+                    <p className="text-xs uppercase tracking-wider text-accent">SIDE PLACEMENT</p>
+                    <p className="text-[11px] text-textMuted mt-1">Subject anchor position</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {SIDE_PLACEMENT_OPTIONS.map(option => (
@@ -2921,20 +2921,20 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
                 </div>
 
-                <div className="space-y-5 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                <div className="space-y-5 rounded-2xl border border-borderSubtle bg-surfaceTint p-4">
                   <div className="space-y-1">
-                    <p className="text-xs uppercase tracking-widest text-indigo-600">Background</p>
-                    <p className="text-sm text-gray-600">Neutral color or gradient</p>
+                    <p className="text-xs uppercase tracking-widest text-accent">Background</p>
+                    <p className="text-sm text-textSecondary">Neutral color or gradient</p>
                   </div>
-                  <div className="inline-flex rounded-full border border-gray-200 bg-gray-100 p-1">
+                  <div className="inline-flex rounded-full border border-borderSubtle bg-surfaceTint p-1">
                     {(['white', 'gradient'] as Step3Values['ecommerceBackgroundMode'][]).map(mode => (
                       <button
                         key={mode}
                         type="button"
                         onClick={() => { updateValue('ecommerceBackgroundMode', mode); markSectionTouched('ecommerce'); }}
                         className={`rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${values.ecommerceBackgroundMode === mode
-                          ? 'bg-white text-gray-900'
-                          : 'text-gray-600 hover:text-gray-900'
+                          ? 'bg-surface text-textPrimary'
+                          : 'text-textSecondary hover:text-textPrimary'
                           }`}
                       >
                         {mode === 'white' ? 'Solid' : 'Gradient'}
@@ -2943,8 +2943,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
                   {values.ecommerceBackgroundMode === 'white' ? (
                     <div className="space-y-2">
-                      <p className="text-[11px] uppercase tracking-wide text-gray-500">Solid background color</p>
-                      <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-gray-100 p-2.5 transition-colors hover:border-indigo-600">
+                      <p className="text-[11px] uppercase tracking-wide text-textMuted">Solid background color</p>
+                      <div className="flex items-center gap-3 rounded-2xl border border-borderSubtle bg-surfaceTint p-2.5 transition-colors hover:border-accent">
                         <label className="relative h-10 w-10 shrink-0 cursor-pointer">
                           <div
                             className="h-10 w-10 rounded-full ring-1 ring-borderSubtle"
@@ -2967,7 +2967,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             updateValue('ecommerceBackgroundColor', e.target.value);
                             markSectionTouched('ecommerce');
                           }}
-                          className="w-full bg-transparent text-sm text-gray-900 focus:outline-none"
+                          className="w-full bg-transparent text-sm text-textPrimary focus:outline-none"
                         />
                       </div>
                     </div>
@@ -2979,8 +2979,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           { key: 'ecommerceGradientEnd', label: 'End color', value: values.ecommerceGradientEnd }
                         ].map(cfg => (
                           <div key={cfg.key} className="space-y-2">
-                            <p className="text-[11px] uppercase tracking-wide text-gray-500">{cfg.label}</p>
-                            <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-gray-100 p-2.5 transition-colors hover:border-indigo-600">
+                            <p className="text-[11px] uppercase tracking-wide text-textMuted">{cfg.label}</p>
+                            <div className="flex items-center gap-3 rounded-2xl border border-borderSubtle bg-surfaceTint p-2.5 transition-colors hover:border-accent">
                               <label className="relative h-10 w-10 shrink-0 cursor-pointer">
                                 <div
                                   className="h-10 w-10 rounded-full ring-1 ring-borderSubtle"
@@ -2997,7 +2997,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 type="text"
                                 value={cfg.value}
                                 onChange={(e) => handleGradientColorChange(cfg.key as 'ecommerceGradientStart' | 'ecommerceGradientEnd', e.target.value)}
-                                className="w-full bg-transparent text-sm text-gray-900 focus:outline-none"
+                                className="w-full bg-transparent text-sm text-textPrimary focus:outline-none"
                               />
                             </div>
                           </div>
@@ -3007,7 +3007,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <select
                           value={values.ecommerceGradientAngle}
                           onChange={(e) => { updateValue('ecommerceGradientAngle', e.target.value as Step3Values['ecommerceGradientAngle']); markSectionTouched('ecommerce'); }}
-                          className="rounded-full border border-gray-200 bg-gray-100 px-3 py-1.5 text-sm text-gray-900 focus:outline-none"
+                          className="rounded-full border border-borderSubtle bg-surfaceTint px-3 py-1.5 text-sm text-textPrimary focus:outline-none"
                         >
                           {GRADIENT_ANGLE_OPTIONS.map(angle => (
                             <option key={angle} value={angle}>{angle}°</option>
@@ -3016,12 +3016,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <button
                           type="button"
                           onClick={invertGradient}
-                          className="rounded-full border border-gray-200 bg-gray-100 px-3 py-1.5 text-sm text-gray-600 transition-colors hover:border-indigo-600 hover:text-gray-900"
+                          className="rounded-full border border-borderSubtle bg-surfaceTint px-3 py-1.5 text-sm text-textSecondary transition-colors hover:border-accent hover:text-textPrimary"
                         >
                           Invert
                         </button>
                       </div>
-                      <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-gray-100">
+                      <div className="relative overflow-hidden rounded-2xl border border-borderSubtle bg-surfaceTint">
                         <div
                           className="h-20 w-full"
                           style={{
@@ -3052,7 +3052,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         >
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-900">Enable Formulation Story</span>
+              <span className="text-sm text-textPrimary">Enable Formulation Story</span>
               <button
                 type="button"
                 role="switch"
@@ -3061,10 +3061,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   updateValue('formulationStoryEnabled', !values.formulationStoryEnabled);
                   markSectionTouched('formulationStory');
                 }}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white ${values.formulationStoryEnabled ? 'bg-indigo-600' : 'bg-gray-50'}`}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-white ${values.formulationStoryEnabled ? 'bg-accent' : 'bg-surfaceTint'}`}
               >
                 <span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white ring-0 transition duration-200 ease-in-out ${values.formulationStoryEnabled ? 'translate-x-5' : 'translate-x-0'}`}
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface ring-0 transition duration-200 ease-in-out ${values.formulationStoryEnabled ? 'translate-x-5' : 'translate-x-0'}`}
                 />
               </button>
             </div>
@@ -3072,29 +3072,29 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             {values.formulationStoryEnabled && (
               <div className="space-y-3">
                 <div className={SECTION_GROUP_CLASS}>
-                  <label className="text-xs uppercase tracking-wider text-indigo-600">Expert Name</label>
+                  <label className="text-xs uppercase tracking-wider text-accent">Expert Name</label>
                   <input
                     type="text"
                     value={values.expertName}
                     onChange={(e) => { updateValue('expertName', e.target.value); markSectionTouched('formulationStory'); }}
-                    className="w-full rounded-2xl border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                    className="w-full rounded-2xl border border-borderSubtle bg-surfaceTint px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:ring-1 focus:ring-accent"
                     placeholder="The name you enter here (e.g., 'Dr. Ali M.D') will be embroidered on the medical attire."
                   />
                 </div>
 
                 <div className={SECTION_GROUP_CLASS}>
-                  <label className="text-xs uppercase tracking-wider text-indigo-600">Expert Credentials</label>
+                  <label className="text-xs uppercase tracking-wider text-accent">Expert Credentials</label>
                   <input
                     type="text"
                     value={values.expertCredentials}
                     onChange={(e) => { updateValue('expertCredentials', e.target.value); markSectionTouched('formulationStory'); }}
-                    className="w-full rounded-2xl border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                    className="w-full rounded-2xl border border-borderSubtle bg-surfaceTint px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:ring-1 focus:ring-accent"
                     placeholder="e.g., Formulation Scientist, 12 years mixing botanicals"
                   />
                 </div>
 
                 <div className={SECTION_GROUP_CLASS}>
-                  <p className="text-xs uppercase tracking-wider text-indigo-600">Expert Role</p>
+                  <p className="text-xs uppercase tracking-wider text-accent">Expert Role</p>
                   <div className="flex flex-wrap gap-2">
                     {EXPERT_ROLE_OPTIONS.map(option => (
                       <button
@@ -3110,7 +3110,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
 
                 <div className={SECTION_GROUP_CLASS}>
-                  <p className="text-xs uppercase tracking-wider text-indigo-600">Medical Attire</p>
+                  <p className="text-xs uppercase tracking-wider text-accent">Medical Attire</p>
                   <div className="flex flex-wrap gap-2">
                     {EXPERT_ATTIRE_OPTIONS.map(option => (
                       <button
@@ -3126,7 +3126,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
 
                 <div className={SECTION_GROUP_CLASS}>
-                  <p className="text-xs uppercase tracking-wider text-indigo-600">Lab Vibe</p>
+                  <p className="text-xs uppercase tracking-wider text-accent">Lab Vibe</p>
                   <div className="flex flex-wrap gap-2">
                     {LAB_VIBE_OPTIONS.map(option => (
                       <button
@@ -3157,7 +3157,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         variant="secondary"
       >
         <div className={SECTION_GROUP_CLASS}>
-          <p className="text-xs uppercase tracking-wider text-indigo-600">ASPECT RATIO</p>
+          <p className="text-xs uppercase tracking-wider text-accent">ASPECT RATIO</p>
           <div className="flex flex-wrap items-center gap-2">
             {ASPECT_RATIO_OPTIONS.map(option => (
               <button

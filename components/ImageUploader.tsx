@@ -91,8 +91,8 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
     <div
       className={`relative w-full aspect-[16/10] rounded-2xl border transition-all duration-500 flex items-center justify-center overflow-hidden shadow-sm ${disabled
         ? 'opacity-60 cursor-not-allowed'
-        : 'cursor-pointer border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 hover:border-gray-300 dark:hover:border-white/20'
-        } ${isDragging ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10' : ''}`}
+        : 'cursor-pointer border-borderSubtle bg-surfaceGlass hover:border-borderHover hover:border-borderHover'
+        } ${isDragging ? 'border-accent bg-accent /10' : ''}`}
       onClick={handleClick}
       onDrop={handleDrop}
       onDragOver={handleDragOver}
@@ -108,13 +108,13 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
           />
         ) : (
           <>
-            <div className="w-12 h-12 bg-gray-100 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Plus className="w-6 h-6 text-gray-400 dark:text-white/20" />
+            <div className="w-12 h-12 bg-surfaceTint  rounded-full flex items-center justify-center mx-auto mb-4">
+              <Plus className="w-6 h-6 text-textMuted text-textPrimary/20" />
             </div>
-            <div className="text-[12px] font-bold uppercase tracking-widest text-gray-800 dark:text-white mb-1">
+            <div className="text-[12px] font-bold uppercase tracking-widest text-textPrimary mb-1">
               Source Product
             </div>
-            <div className="text-[10px] text-gray-400 dark:text-gray-500 uppercase font-medium">
+            <div className="text-[10px] text-textMuted uppercase font-medium">
               Click to browse (Max {maxFiles})
             </div>
           </>
@@ -132,7 +132,7 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
       />
 
       {disabled && lockedMessage && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white/90 dark:bg-black/90 rounded-2xl text-sm text-gray-500 dark:text-gray-400">
+        <div className="absolute inset-0 flex items-center justify-center bg-surfaceSoft  rounded-2xl text-sm text-textMuted">
           {lockedMessage}
         </div>
       )}

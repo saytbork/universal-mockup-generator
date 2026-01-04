@@ -24,11 +24,11 @@ const SliderControl: React.FC<SliderControlProps> = ({
   };
 
   const wrapperClass = `mb-4 ${disabled ? 'opacity-40 cursor-not-allowed' : ''}`;
-  const printClass = 'text-xs font-medium text-gray-600';
-  const valueClass = 'text-xs text-gray-600';
-  const trackClass = 'w-full h-1.5 rounded-full bg-gray-50';
+  const printClass = 'text-xs font-medium text-textSecondary';
+  const valueClass = 'text-xs text-textSecondary';
+  const trackClass = 'w-full h-1.5 rounded-full bg-surfaceTint';
   const inputClass =
-    'appearance-none w-full h-1.5 bg-transparent cursor-pointer focus:ring-2 focus:ring-indigo-500 transition-all duration-200 ease-out';
+    'appearance-none w-full h-1.5 bg-transparent cursor-pointer focus:ring-2 focus:ring-accent transition-all duration-200 ease-out';
 
   return (
     <div className={wrapperClass}>

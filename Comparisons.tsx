@@ -55,22 +55,22 @@ const rows = [
 
 const Comparisons: React.FC = () => {
   return (
-    <div className="bg-bg text-gray-900 min-h-screen">
+    <div className="bg-bg text-textPrimary min-h-screen">
       <div className="relative max-w-5xl mx-auto px-4 py-20 space-y-12">
         <div className="absolute inset-0 blur-3xl opacity-40 pointer-events-none" style={{ background: 'radial-gradient(circle at 20% 20%, var(--accent-glow), transparent 40%)' }} />
         <div className="relative space-y-4">
-          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-600 bg-indigo-50 px-4 py-1 text-xs uppercase tracking-[0.2em] text-indigo-600">
+          <div className="inline-flex items-center gap-2 rounded-full border border-accent bg-accent px-4 py-1 text-xs uppercase tracking-[0.2em] text-accent">
             <Sparkles className="w-4 h-4" /> Head-to-head
           </div>
           <h1 className="text-4xl font-bold">BoostUGC vs Competitors</h1>
-          <p className="text-gray-600">Why brands choose BoostUGC for photorealistic UGC.</p>
+          <p className="text-textSecondary">Why brands choose BoostUGC for photorealistic UGC.</p>
         </div>
 
-        <div className="relative overflow-hidden rounded-3xl border border-gray-200 bg-gray-50 shadow-md shadow-indigo-500/20">
+        <div className="relative overflow-hidden rounded-3xl border border-borderSubtle bg-surfaceTint shadow-md shadow-accent-glow">
           <div className="absolute inset-0 bg-gradient-to-br from-accentSoft via-transparent to-surfaceTint pointer-events-none" />
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-sm text-gray-900">
-              <thead className="bg-gray-50 text-gray-900">
+            <table className="w-full border-collapse text-sm text-textPrimary">
+              <thead className="bg-surfaceTint text-textPrimary">
                 <tr>
                   <th className="px-5 py-4 text-left">Tool</th>
                   <th className="px-5 py-4 text-left">Photorealism</th>
@@ -82,13 +82,13 @@ const Comparisons: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-border">
                 {rows.map(row => (
-                  <tr key={row.tool} className="hover:bg-gray-50 transition">
-                    <td className="px-5 py-4 font-semibold text-gray-900">{row.tool}</td>
-                    <td className="px-5 py-4 text-gray-900">{row.photorealism}</td>
-                    <td className="px-5 py-4 text-gray-900">{row.quality}</td>
-                    <td className="px-5 py-4 text-gray-900">{row.mockups}</td>
-                    <td className="px-5 py-4 text-gray-900">{row.focus}</td>
-                    <td className="px-5 py-4 text-gray-900">{row.price}</td>
+                  <tr key={row.tool} className="hover:bg-surfaceTint transition">
+                    <td className="px-5 py-4 font-semibold text-textPrimary">{row.tool}</td>
+                    <td className="px-5 py-4 text-textPrimary">{row.photorealism}</td>
+                    <td className="px-5 py-4 text-textPrimary">{row.quality}</td>
+                    <td className="px-5 py-4 text-textPrimary">{row.mockups}</td>
+                    <td className="px-5 py-4 text-textPrimary">{row.focus}</td>
+                    <td className="px-5 py-4 text-textPrimary">{row.price}</td>
                   </tr>
                 ))}
               </tbody>
@@ -102,12 +102,12 @@ const Comparisons: React.FC = () => {
             { title: 'eCommerce-first', desc: 'Defaults for mockups, UGC, and product photography that convert.', icon: <Gauge className="w-5 h-5" /> },
             { title: 'Consistency at scale', desc: 'Replace manual content with fast, repeatable AI visuals.', icon: <Star className="w-5 h-5" /> },
           ].map(card => (
-            <div key={card.title} className="rounded-2xl border border-gray-200 bg-gray-50 p-5 space-y-2">
-              <div className="inline-flex items-center gap-2 text-indigo-600">
+            <div key={card.title} className="rounded-2xl border border-borderSubtle bg-surfaceTint p-5 space-y-2">
+              <div className="inline-flex items-center gap-2 text-accent">
                 {card.icon}
                 <span className="text-sm">{card.title}</span>
               </div>
-              <p className="text-gray-600 text-sm leading-relaxed">{card.desc}</p>
+              <p className="text-textSecondary text-sm leading-relaxed">{card.desc}</p>
             </div>
           ))}
         </div>
@@ -115,7 +115,7 @@ const Comparisons: React.FC = () => {
         <div className="relative">
           <Link
             to="/app"
-            className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-md shadow-indigo-500/20 hover:bg-indigo-700 transition"
+            className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white shadow-md shadow-accent-glow hover:bg-accent transition"
           >
             Start Free Trial <ArrowRight className="w-4 h-4" />
           </Link>

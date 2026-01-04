@@ -31,18 +31,18 @@ const ToggleRow = ({
   value: boolean;
   onChange: (value: boolean) => void;
 }) => (
-  <label className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-100 px-3 py-2">
+  <label className="flex items-center justify-between gap-3 rounded-xl border border-borderSubtle bg-surfaceTint px-3 py-2">
     <div>
-      <p className="text-sm text-gray-900">{label}</p>
-      <p className="text-[11px] text-gray-600">{description}</p>
+      <p className="text-sm text-textPrimary">{label}</p>
+      <p className="text-[11px] text-textSecondary">{description}</p>
     </div>
     <button
       type="button"
       onClick={() => onChange(!value)}
-      className={`relative h-6 w-11 rounded-full transition ${value ? 'bg-indigo-600' : 'bg-gray-50'}`}
+      className={`relative h-6 w-11 rounded-full transition ${value ? 'bg-accent' : 'bg-surfaceTint'}`}
     >
       <span
-        className={`absolute left-1 top-1 block h-4 w-4 rounded-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 transition ${
+        className={`absolute left-1 top-1 block h-4 w-4 rounded-full bg-surfaceGlass border border-borderSubtle transition ${
           value ? 'translate-x-5' : ''
         }`}
       />
@@ -101,7 +101,7 @@ const ImperfectLightingControls: React.FC<ImperfectLightingControlsProps> = ({
         onChange={onTiltedPhoneToggle}
       />
       <div>
-        <p className="text-xs uppercase tracking-[0.3em] text-indigo-600 mb-2">Off-center composition</p>
+        <p className="text-xs uppercase tracking-[0.3em] text-accent mb-2">Off-center composition</p>
         <div className="flex flex-wrap gap-2">
           {normalizedOffCenterOptions.map(option => (
             <button
@@ -110,16 +110,16 @@ const ImperfectLightingControls: React.FC<ImperfectLightingControlsProps> = ({
               onClick={() => onSelectOffCenter(option.id)}
               className={`rounded-full border px-3 py-1 text-xs transition ${
                 selectedOffCenterId === option.id
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-500/20 scale-105 duration-500'
-                  : 'border-gray-200 bg-gray-100 text-gray-600 hover:border-indigo-600 hover:text-gray-900'
+                  ? 'bg-accent text-white border-accent shadow-md shadow-accent-glow scale-105 duration-500'
+                  : 'border-borderSubtle bg-surfaceTint text-textSecondary hover:border-accent hover:text-textPrimary'
               }`}
             >
               <div className="flex items-center gap-1 relative group">
                 <span>{option.label}</span>
                 {option.tooltip && (
-                  <span className="text-xs text-gray-600 cursor-pointer group-hover:text-gray-900">
+                  <span className="text-xs text-textSecondary cursor-pointer group-hover:text-textPrimary">
                     ⓘ
-                    <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-white text-gray-900 text-xs p-2 rounded-2xl border border-gray-200 shadow-sm w-44">
+                    <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-surface text-textPrimary text-xs p-2 rounded-2xl border border-borderSubtle shadow-sm w-44">
                       {option.tooltip}
                     </div>
                   </span>
@@ -130,7 +130,7 @@ const ImperfectLightingControls: React.FC<ImperfectLightingControlsProps> = ({
         </div>
       </div>
       <div>
-        <p className="text-xs uppercase tracking-[0.3em] text-indigo-600 mb-2">Spontaneous framing</p>
+        <p className="text-xs uppercase tracking-[0.3em] text-accent mb-2">Spontaneous framing</p>
         <div className="flex flex-wrap gap-2">
           {normalizedFramingOptions.map(option => (
             <button
@@ -139,16 +139,16 @@ const ImperfectLightingControls: React.FC<ImperfectLightingControlsProps> = ({
               onClick={() => onSelectFraming(option.id)}
               className={`rounded-full border px-3 py-1 text-xs transition ${
                 selectedFramingId === option.id
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-500/20 scale-105 duration-500'
-                  : 'border-gray-200 bg-gray-100 text-gray-600 hover:border-indigo-600 hover:text-gray-900'
+                  ? 'bg-accent text-white border-accent shadow-md shadow-accent-glow scale-105 duration-500'
+                  : 'border-borderSubtle bg-surfaceTint text-textSecondary hover:border-accent hover:text-textPrimary'
               }`}
             >
               <div className="flex items-center gap-1 relative group">
                 <span>{option.label}</span>
                 {option.tooltip && (
-                  <span className="text-xs text-gray-600 cursor-pointer group-hover:text-gray-900">
+                  <span className="text-xs text-textSecondary cursor-pointer group-hover:text-textPrimary">
                     ⓘ
-                    <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-white text-gray-900 text-xs p-2 rounded-2xl border border-gray-200 shadow-sm w-44">
+                    <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-surface text-textPrimary text-xs p-2 rounded-2xl border border-borderSubtle shadow-sm w-44">
                       {option.tooltip}
                     </div>
                   </span>

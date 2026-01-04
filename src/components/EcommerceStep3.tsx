@@ -98,14 +98,14 @@ export default function EcommerceStep3({
   return (
     <div className="space-y-6">
       {!embedded && (
-        <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-          <p className="text-xs uppercase tracking-[0.35em] text-indigo-600">Ecommerce Image Builder</p>
-          <p className="mt-1 text-sm text-gray-600">Build PDP-style overlays and export crisp PNGs (image-only + with overlays).</p>
+        <div className="rounded-2xl border border-borderSubtle bg-surfaceTint p-4">
+          <p className="text-xs uppercase tracking-[0.35em] text-accent">Ecommerce Image Builder</p>
+          <p className="mt-1 text-sm text-textSecondary">Build PDP-style overlays and export crisp PNGs (image-only + with overlays).</p>
         </div>
       )}
 
-      <section className="rounded-2xl border border-gray-200 bg-gray-50 p-4 space-y-3">
-        <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Slots</p>
+      <section className="rounded-2xl border border-borderSubtle bg-surfaceTint p-4 space-y-3">
+        <p className="text-xs uppercase tracking-[0.35em] text-textSecondary">Slots</p>
         <div className="flex flex-wrap gap-2">
           {ECOMMERCE_SLOT_KEYS.map(slotKey => {
             const selected = selectedSlots.includes(slotKey);
@@ -126,7 +126,7 @@ export default function EcommerceStep3({
         </div>
         {selectedSlots.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 pt-2">
-            <span className="text-xs text-gray-600">Editing:</span>
+            <span className="text-xs text-textSecondary">Editing:</span>
             {selectedSlots.map(slotKey => (
               <Chip
                 key={`active-${slotKey}`}
@@ -141,8 +141,8 @@ export default function EcommerceStep3({
         )}
       </section>
 
-      <section className="rounded-2xl border border-gray-200 bg-gray-50 p-4 space-y-4">
-        <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Generation Overrides</p>
+      <section className="rounded-2xl border border-borderSubtle bg-surfaceTint p-4 space-y-4">
+        <p className="text-xs uppercase tracking-[0.35em] text-textSecondary">Generation Overrides</p>
         <div className="flex flex-wrap items-center gap-2">
           <Chip selected={settings.reserveBlankSpace} onClick={() => onSettingsChange({ ...settings, reserveBlankSpace: true })}>
             Reserve Blank Space: On
@@ -152,7 +152,7 @@ export default function EcommerceStep3({
           </Chip>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-gray-600">Blank space:</span>
+          <span className="text-xs text-textSecondary">Blank space:</span>
           {(['left', 'center', 'right'] as const).map(dir => (
             <Chip
               key={dir}
@@ -163,13 +163,13 @@ export default function EcommerceStep3({
             </Chip>
           ))}
           {requiredDir && (
-            <span className="text-xs text-gray-600">
-              (template suggests: <span className="text-gray-900">{requiredDir}</span>)
+            <span className="text-xs text-textSecondary">
+              (template suggests: <span className="text-textPrimary">{requiredDir}</span>)
             </span>
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-gray-600">View framing:</span>
+          <span className="text-xs text-textSecondary">View framing:</span>
           {(
             [
               { key: 'centered', label: 'Centered' },
@@ -187,16 +187,16 @@ export default function EcommerceStep3({
           ))}
         </div>
         {overlayWarning && (
-          <div className="flex items-start gap-2 text-xs text-gray-500">
+          <div className="flex items-start gap-2 text-xs text-textMuted">
             <AlertTriangle size={14} />
             <span>{overlayWarning}</span>
           </div>
         )}
       </section>
 
-      <section className="rounded-2xl border border-gray-200 bg-gray-50 p-4 space-y-4">
-        <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Live Preview</p>
-        <div className="rounded-xl border border-gray-200 bg-gray-50 overflow-hidden">
+      <section className="rounded-2xl border border-borderSubtle bg-surfaceTint p-4 space-y-4">
+        <p className="text-xs uppercase tracking-[0.35em] text-textSecondary">Live Preview</p>
+        <div className="rounded-xl border border-borderSubtle bg-surfaceTint overflow-hidden">
           {activeSpec ? (
             <EcommerceOverlaySvg
               baseImageUrl={activeBaseImageUrl}
@@ -205,7 +205,7 @@ export default function EcommerceStep3({
               ref={svgRef}
             />
           ) : (
-            <div className="p-6 text-sm text-gray-600">Select a slot to preview.</div>
+            <div className="p-6 text-sm text-textSecondary">Select a slot to preview.</div>
           )}
         </div>
         <div className="flex flex-wrap gap-2">
@@ -216,7 +216,7 @@ export default function EcommerceStep3({
               if (!activeSlot || !activeBaseImageUrl) return;
               await downloadUrlAsFile(activeBaseImageUrl, `${activeSlot}-image-only.png`);
             }}
-            className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-900 hover:bg-gray-50 disabled:opacity-40"
+            className="inline-flex items-center gap-2 rounded-lg border border-borderSubtle bg-surfaceTint px-3 py-2 text-xs text-textPrimary hover:bg-surfaceTint disabled:opacity-40"
           >
             <ImageIcon size={14} />
             Export PNG (image only)
@@ -230,30 +230,30 @@ export default function EcommerceStep3({
               if (!svg) return;
               await exportSvgElementToPng(svg, { filename: `${activeSlot}-with-overlays.png`, scale: 2 });
             }}
-            className="inline-flex items-center gap-2 rounded-2xl border border-indigo-600 bg-indigo-50 px-3 py-2 text-xs text-indigo-600 shadow-md shadow-indigo-500/20 hover:bg-indigo-50 disabled:opacity-40"
+            className="inline-flex items-center gap-2 rounded-2xl border border-accent bg-accent px-3 py-2 text-xs text-accent shadow-md shadow-accent-glow hover:bg-accent disabled:opacity-40"
           >
             <Download size={14} />
             Export PNG (with overlays)
           </button>
         </div>
         {!activeBaseImageUrl && activeSlot && (
-          <p className="text-xs text-gray-600">
-            Generate <span className="text-gray-900">{activeSlot}</span> to enable export.
+          <p className="text-xs text-textSecondary">
+            Generate <span className="text-textPrimary">{activeSlot}</span> to enable export.
           </p>
         )}
       </section>
 
-      <section className="rounded-2xl border border-gray-200 bg-gray-50 p-4 space-y-4">
-        <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Editor</p>
+      <section className="rounded-2xl border border-borderSubtle bg-surfaceTint p-4 space-y-4">
+        <p className="text-xs uppercase tracking-[0.35em] text-textSecondary">Editor</p>
         {!activeSlot || !activeSpec ? (
-          <p className="text-sm text-gray-600">Select a slot to edit.</p>
+          <p className="text-sm text-textSecondary">Select a slot to edit.</p>
         ) : (
           <div className="space-y-5">
             <div className="space-y-3">
-              <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Global Style</p>
+              <p className="text-xs uppercase tracking-[0.35em] text-textSecondary">Global Style</p>
                 <div className="space-y-3">
                   <div className="space-y-1">
-                    <p className="text-[11px] text-gray-600">Font</p>
+                    <p className="text-[11px] text-textSecondary">Font</p>
                     <div className="flex flex-wrap gap-2">
                     {(
                       [
@@ -373,7 +373,7 @@ export default function EcommerceStep3({
                   />
                 </div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs text-gray-600">Card background:</span>
+                <span className="text-xs text-textSecondary">Card background:</span>
                 {(['glass', 'solid', 'none'] as const).map(mode => (
                   <Chip
                     key={mode}
@@ -394,21 +394,21 @@ export default function EcommerceStep3({
             </div>
 
             <div className="space-y-3">
-              <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Blocks</p>
+              <p className="text-xs uppercase tracking-[0.35em] text-textSecondary">Blocks</p>
               <div className="space-y-2">
                 {activeSpec.blocks.map((block, idx) => {
                   const isOpen = expandedBlockIndex === idx;
                   return (
-                    <div key={`${block.type}-${idx}`} className="rounded-xl border border-gray-200 bg-gray-50 overflow-hidden">
+                    <div key={`${block.type}-${idx}`} className="rounded-xl border border-borderSubtle bg-surfaceTint overflow-hidden">
                       <button
                         type="button"
                         onClick={() => setExpandedBlockIndex(isOpen ? null : idx)}
                         className="w-full flex items-center justify-between px-3 py-2 text-left"
                       >
-                        <div className="text-sm text-gray-900">
-                          <span className="text-gray-600">{idx + 1}.</span> {block.type}
+                        <div className="text-sm text-textPrimary">
+                          <span className="text-textSecondary">{idx + 1}.</span> {block.type}
                         </div>
-                        <span className="text-xs text-gray-500">{isOpen ? 'Collapse' : 'Expand'}</span>
+                        <span className="text-xs text-textMuted">{isOpen ? 'Collapse' : 'Expand'}</span>
                       </button>
                       {isOpen && (
                         <div className="px-3 pb-3 space-y-3">
@@ -577,7 +577,7 @@ function BulletsEditor({ block, onChange }: { block: BulletsBlock; onChange: (ne
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Items</p>
+          <p className="text-xs uppercase tracking-[0.35em] text-textSecondary">Items</p>
           <button
             type="button"
             onClick={() =>
@@ -586,7 +586,7 @@ function BulletsEditor({ block, onChange }: { block: BulletsBlock; onChange: (ne
                 items: [...block.items, { iconName: 'Check', text: 'New bullet' }],
               })
             }
-            className="text-xs text-indigo-600 hover:text-indigo-600"
+            className="text-xs text-accent hover:text-accent"
           >
             + Add
           </button>
@@ -622,7 +622,7 @@ function StepsEditor({ block, onChange }: { block: StepsBlock; onChange: (next: 
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs text-gray-600">Layout:</span>
+        <span className="text-xs text-textSecondary">Layout:</span>
         {(['col', 'row'] as const).map(layout => (
           <Chip key={layout} selected={block.layout === layout} onClick={() => onChange({ ...block, layout })}>
             {layout}
@@ -668,7 +668,7 @@ function StepsEditor({ block, onChange }: { block: StepsBlock; onChange: (next: 
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Steps</p>
+          <p className="text-xs uppercase tracking-[0.35em] text-textSecondary">Steps</p>
           <button
             type="button"
             onClick={() =>
@@ -677,13 +677,13 @@ function StepsEditor({ block, onChange }: { block: StepsBlock; onChange: (next: 
                 steps: [...block.steps, { iconName: 'Check', title: `Step ${block.steps.length + 1}`, body: 'Describe the step.' }],
               })
             }
-            className="text-xs text-indigo-600 hover:text-indigo-600"
+            className="text-xs text-accent hover:text-accent"
           >
             + Add
           </button>
         </div>
         {block.steps.map((step, idx) => (
-          <div key={idx} className="rounded-lg border border-gray-200 bg-gray-50 p-2 space-y-2">
+          <div key={idx} className="rounded-lg border border-borderSubtle bg-surfaceTint p-2 space-y-2">
             <div className="space-y-2">
               <LabeledInput
                 label={idx === 0 ? 'Icon' : undefined}
@@ -763,17 +763,17 @@ function TestimonialsEditor({ block, onChange }: { block: TestimonialBlock; onCh
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Cards</p>
+          <p className="text-xs uppercase tracking-[0.35em] text-textSecondary">Cards</p>
           <button
             type="button"
             onClick={() => onChange({ ...block, cards: [...block.cards, { quote: '“New quote”', name: 'Name' }] })}
-            className="text-xs text-indigo-600 hover:text-indigo-600"
+            className="text-xs text-accent hover:text-accent"
           >
             + Add
           </button>
         </div>
         {block.cards.map((card, idx) => (
-          <div key={idx} className="rounded-lg border border-gray-200 bg-gray-50 p-2 space-y-2">
+          <div key={idx} className="rounded-lg border border-borderSubtle bg-surfaceTint p-2 space-y-2">
             <LabeledInput
               label="Quote"
               value={card.quote}
@@ -806,7 +806,7 @@ function BadgeEditor({ block, onChange }: { block: BadgeBlock; onChange: (next: 
       <LabeledInput label="Color" value={block.color} onChange={value => onChange({ ...block, color: value })} placeholder="#8B5CF6" />
       <LabeledNumber label="Size" value={block.size} onChange={value => onChange({ ...block, size: value })} min={10} max={40} step={1} />
       <div className="space-y-1">
-        <p className="text-[11px] text-gray-600">Style</p>
+        <p className="text-[11px] text-textSecondary">Style</p>
         <div className="flex flex-wrap gap-2">
           {(['pill', 'seal', 'tag'] as const).map(kind => (
             <Chip key={kind} selected={block.badgeStyle === kind} onClick={() => onChange({ ...block, badgeStyle: kind })}>
@@ -822,7 +822,7 @@ function BadgeEditor({ block, onChange }: { block: BadgeBlock; onChange: (next: 
 function AlignChips({ value, onChange }: { value: 'left' | 'center' | 'right'; onChange: (next: 'left' | 'center' | 'right') => void }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-xs text-gray-600">Align:</span>
+      <span className="text-xs text-textSecondary">Align:</span>
       {(['left', 'center', 'right'] as const).map(align => (
         <Chip key={align} selected={value === align} onClick={() => onChange(align)}>
           {align}
@@ -885,12 +885,12 @@ function LabeledInput({
 }) {
   return (
     <label className="space-y-1 block">
-      {label && <p className="text-[11px] text-gray-600">{label}</p>}
+      {label && <p className="text-[11px] text-textSecondary">{label}</p>}
       <input
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none"
+        className="w-full rounded-2xl border border-borderSubtle bg-surface px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted focus:border-accent focus:outline-none"
       />
     </label>
   );
@@ -913,7 +913,7 @@ function LabeledNumber({
 }) {
   return (
     <label className="space-y-1 block">
-      <p className="text-[11px] text-gray-600">{label}</p>
+      <p className="text-[11px] text-textSecondary">{label}</p>
       <input
         type="number"
         value={Number.isFinite(value) ? value : 0}
@@ -921,7 +921,7 @@ function LabeledNumber({
         max={max}
         step={step}
         onChange={e => onChange(Number(e.target.value))}
-        className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-600 focus:outline-none"
+        className="w-full rounded-2xl border border-borderSubtle bg-surface px-3 py-2 text-sm text-textPrimary focus:border-accent focus:outline-none"
       />
     </label>
   );

@@ -6,8 +6,12 @@
   --surface: #ffffff;
   --surface-elevated: #ffffff;
   --surface-tint: #f9fafb;
+  --surface-glass: #ffffff;
+  --surface-soft: rgba(255, 255, 255, 0.5);
 
   --border: #e5e7eb;
+  --border-soft: rgba(0, 0, 0, 0.05);
+  --border-hover: #d1d5db;
 
   --text-primary: #1d1d1f;
   --text-secondary: #4b5563;
@@ -25,11 +29,15 @@ html.dark {
 
   --bg: #000000;
 
-  --surface: #18181b;
-  --surface-elevated: #27272a;
+  --surface: #121212;
+  --surface-elevated: #1a1a1a;
   --surface-tint: #0b0b0f;
+  --surface-glass: rgba(255, 255, 255, 0.05);
+  --surface-soft: rgba(0, 0, 0, 0.5);
 
   --border: rgba(255, 255, 255, 0.1);
+  --border-soft: rgba(255, 255, 255, 0.05);
+  --border-hover: rgba(255, 255, 255, 0.2);
 
   --text-primary: #ffffff;
   --text-secondary: #9ca3af;

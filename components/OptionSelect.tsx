@@ -17,13 +17,13 @@ const OptionSelect: React.FC<OptionSelectProps> = ({ label, options, value, onCh
 
   return (
     <div className="flex flex-col space-y-2">
-      <label className="text-sm font-medium text-gray-600">
+      <label className="text-sm font-medium text-textSecondary">
         <div className="flex items-center gap-1 relative group">
           <span>{label}</span>
           {selectedOption?.tooltip && (
-            <span className="text-xs text-gray-600 cursor-pointer group-hover:text-gray-900">
+            <span className="text-xs text-textSecondary cursor-pointer group-hover:text-textPrimary">
               ⓘ
-              <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-white text-gray-900 text-xs p-2 rounded-2xl border border-gray-200 shadow-sm w-44">
+              <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-surface text-textPrimary text-xs p-2 rounded-2xl border border-borderSubtle shadow-sm w-44">
                 {selectedOption.tooltip}
               </div>
             </span>
@@ -34,7 +34,7 @@ const OptionSelect: React.FC<OptionSelectProps> = ({ label, options, value, onCh
         value={value}
         onChange={onChange}
         disabled={disabled}
-        className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-2 text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-600 transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+        className="bg-surfaceGlass border border-borderSubtle rounded-2xl p-2 text-textPrimary focus:ring-2 focus:ring-accent focus:border-accent transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {normalizedOptions.map((option) => (
           <option key={option.value} value={option.value} title={option.tooltip || option.label}>

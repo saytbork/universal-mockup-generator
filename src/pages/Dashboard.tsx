@@ -45,16 +45,16 @@ const formatTimeAgo = (timestamp: number) => {
 const activityIcon = (type: ActivityItem["type"]) => {
   switch (type) {
     case "login":
-      return <Shield className="h-4 w-4 text-indigo-600" />;
+      return <Shield className="h-4 w-4 text-accent" />;
     case "image":
-      return <ImageIcon className="h-4 w-4 text-indigo-600" />;
+      return <ImageIcon className="h-4 w-4 text-accent" />;
     case "invite":
-      return <Gift className="h-4 w-4 text-indigo-600" />;
+      return <Gift className="h-4 w-4 text-accent" />;
     case "upgrade":
-      return <ArrowUpRight className="h-4 w-4 text-gray-500" />;
+      return <ArrowUpRight className="h-4 w-4 text-textMuted" />;
     case "logout":
     default:
-      return <Clock className="h-4 w-4 text-gray-600" />;
+      return <Clock className="h-4 w-4 text-textSecondary" />;
   }
 };
 
@@ -124,14 +124,14 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-bg text-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-bg text-textPrimary flex items-center justify-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.92 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
-          className="rounded-3xl bg-white border border-gray-200 px-8 py-6 shadow-md shadow-indigo-500/20"
+          className="rounded-3xl bg-surface border border-borderSubtle px-8 py-6 shadow-md shadow-accent-glow"
         >
-          <p className="text-sm text-gray-600">Loading your workspace...</p>
+          <p className="text-sm text-textSecondary">Loading your workspace...</p>
         </motion.div>
       </div>
     );
@@ -140,23 +140,23 @@ export default function Dashboard() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-bg text-gray-900">
+    <div className="min-h-screen bg-bg text-textPrimary">
       <div className="max-w-6xl mx-auto px-6 py-10 space-y-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="flex items-center justify-between gap-4 rounded-2xl bg-white border border-gray-200 px-6 py-5 shadow-md shadow-indigo-500/20"
+          className="flex items-center justify-between gap-4 rounded-2xl bg-surface border border-borderSubtle px-6 py-5 shadow-md shadow-accent-glow"
         >
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Dashboard</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-accent">Dashboard</p>
             <h1 className="text-2xl font-semibold">Welcome back</h1>
-            <p className="text-sm text-gray-600">{user.email}</p>
+            <p className="text-sm text-textSecondary">{user.email}</p>
           </div>
           <button
             onClick={() => logout()}
-            className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-900 transition hover:bg-gray-100"
+            className="inline-flex items-center gap-2 rounded-full border border-borderSubtle bg-surfaceTint px-4 py-2 text-sm font-medium text-textPrimary transition hover:bg-surfaceTint"
           >
             <LogOut className="h-4 w-4" />
             Logout
@@ -170,26 +170,26 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: "easeOut" }}
-            className="lg:col-span-2 rounded-3xl bg-gray-50 border border-gray-200 p-6 shadow-md shadow-indigo-500/20"
+            className="lg:col-span-2 rounded-3xl bg-surfaceTint border border-borderSubtle p-6 shadow-md shadow-accent-glow"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-2">
-                <p className="text-sm text-indigo-600 flex items-center gap-2">
+                <p className="text-sm text-accent flex items-center gap-2">
                   <Zap className="h-4 w-4" /> Credits Available
                 </p>
                 <h2 className="text-4xl font-bold">{creditsLabel}</h2>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-textSecondary">
                   Plan: {user.plan || "free"} {user.plan === "free" ? "– 2 credits included" : ""}
                 </p>
                 {user.inviteUsed && (
-                  <p className="text-xs text-indigo-600 flex items-center gap-2">
+                  <p className="text-xs text-accent flex items-center gap-2">
                     <Sparkles className="h-4 w-4" /> Welcome gift applied (+20 credits)
                   </p>
                 )}
               </div>
               <button
                 onClick={() => startCheckout("creator")}
-                className="inline-flex items-center gap-2 rounded-full bg-white text-gray-900 px-4 py-2 text-sm font-semibold shadow-md shadow-indigo-500/20 transition"
+                className="inline-flex items-center gap-2 rounded-full bg-surface text-textPrimary px-4 py-2 text-sm font-semibold shadow-md shadow-accent-glow transition"
               >
                 Upgrade Plan <ArrowUpRight className="h-4 w-4" />
               </button>
@@ -198,14 +198,14 @@ export default function Dashboard() {
               <a
                 href="/app/generator"
                 className={`inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition ${user.credits > 0
-                  ? "bg-indigo-600 text-white hover:bg-indigo-700"
-                  : "bg-gray-50 text-gray-600 cursor-not-allowed"
+                  ? "bg-accent text-white hover:bg-accent"
+                  : "bg-surfaceTint text-textSecondary cursor-not-allowed"
                   }`}
               >
                 <Wand2 className="h-4 w-4" /> Generate an Image
               </a>
               {user.credits <= 0 && (
-                <span className="text-xs text-gray-500">You have no credits left. Upgrade your plan to continue.</span>
+                <span className="text-xs text-textMuted">You have no credits left. Upgrade your plan to continue.</span>
               )}
             </div>
           </motion.div>
@@ -215,10 +215,10 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: "easeOut", delay: 0.05 }}
-            className="rounded-3xl bg-gray-50 border border-gray-200 p-5 shadow-md shadow-indigo-500/20 space-y-4"
+            className="rounded-3xl bg-surfaceTint border border-borderSubtle p-5 shadow-md shadow-accent-glow space-y-4"
           >
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Sparkles className="h-4 w-4 text-indigo-600" />
+            <div className="flex items-center gap-2 text-sm text-textSecondary">
+              <Sparkles className="h-4 w-4 text-accent" />
               Quick Actions
             </div>
             <div className="space-y-3">
@@ -231,13 +231,13 @@ export default function Dashboard() {
                 <div
                   key={item.label}
                   onClick={() => (item.action ? item.action() : (window.location.href = item.href))}
-                  className="flex items-center justify-between rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 hover:border-indigo-600/50 hover:bg-indigo-50 transition cursor-pointer"
+                  className="flex items-center justify-between rounded-2xl border border-borderSubtle bg-surfaceTint px-4 py-3 text-sm text-textPrimary hover:border-accent/50 hover:bg-accent transition cursor-pointer"
                 >
                   <span className="flex items-center gap-2">
                     {item.icon}
                     {item.label}
                   </span>
-                  <ArrowUpRight className="h-4 w-4 text-gray-600" />
+                  <ArrowUpRight className="h-4 w-4 text-textSecondary" />
                 </div>
               ))}
             </div>
@@ -249,32 +249,32 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
-          className="rounded-3xl bg-gray-50 border border-gray-200 p-6 shadow-md shadow-indigo-500/20"
+          className="rounded-3xl bg-surfaceTint border border-borderSubtle p-6 shadow-md shadow-accent-glow"
         >
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-xs uppercase tracking-[0.25em] text-indigo-600">Recent Activity</p>
+              <p className="text-xs uppercase tracking-[0.25em] text-accent">Recent Activity</p>
               <h3 className="text-lg font-semibold">Latest events</h3>
             </div>
-            <Clock className="h-5 w-5 text-indigo-600" />
+            <Clock className="h-5 w-5 text-accent" />
           </div>
           {activity.length === 0 ? (
-            <p className="text-sm text-gray-600">No activity yet.</p>
+            <p className="text-sm text-textSecondary">No activity yet.</p>
           ) : (
             <div className="space-y-3 max-h-72 overflow-auto pr-1 custom-scrollbar">
               {activity.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 hover:border-indigo-600 transition"
+                  className="flex items-center justify-between rounded-2xl border border-borderSubtle bg-surfaceTint px-4 py-3 hover:border-accent transition"
                 >
                   <div className="flex items-center gap-3">
                     {activityIcon(item.type)}
                     <div>
                       <p className="text-sm font-medium capitalize">{item.type}</p>
-                      <p className="text-xs text-gray-600">{formatTimeAgo(item.timestamp)}</p>
+                      <p className="text-xs text-textSecondary">{formatTimeAgo(item.timestamp)}</p>
                     </div>
                   </div>
-                  <span className="text-xs text-gray-600">
+                  <span className="text-xs text-textSecondary">
                     {item.type === "invite" && "+20 credits"}
                     {item.type === "image" && (item.meta?.delta ?? -1)}
                   </span>
@@ -289,14 +289,14 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.15 }}
-          className="rounded-3xl bg-gray-50 border border-gray-200 p-6 shadow-md shadow-indigo-500/20"
+          className="rounded-3xl bg-surfaceTint border border-borderSubtle p-6 shadow-md shadow-accent-glow"
         >
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-xs uppercase tracking-[0.25em] text-indigo-600">My Gallery</p>
+              <p className="text-xs uppercase tracking-[0.25em] text-accent">My Gallery</p>
               <h3 className="text-lg font-semibold">Your Generated Images</h3>
             </div>
-            <ImageIcon className="h-5 w-5 text-indigo-600" />
+            <ImageIcon className="h-5 w-5 text-accent" />
           </div>
           <GallerySection userEmail={user.email} />
         </motion.div>
@@ -361,15 +361,15 @@ function GallerySection({ userEmail }: { userEmail: string }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-sm text-gray-600">Loading your gallery...</p>
+        <p className="text-sm text-textSecondary">Loading your gallery...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-        <p className="text-sm text-gray-500">{error}</p>
+      <div className="rounded-2xl border border-borderSubtle bg-surfaceTint p-4">
+        <p className="text-sm text-textMuted">{error}</p>
       </div>
     );
   }
@@ -377,11 +377,11 @@ function GallerySection({ userEmail }: { userEmail: string }) {
   if (images.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 space-y-3">
-        <ImageIcon className="h-12 w-12 text-gray-500" />
-        <p className="text-sm text-gray-600">No images generated yet</p>
+        <ImageIcon className="h-12 w-12 text-textMuted" />
+        <p className="text-sm text-textSecondary">No images generated yet</p>
         <a
           href="/app/generator"
-          className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition"
+          className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent transition"
         >
           <Wand2 className="h-4 w-4" />
           Generate Your First Image
@@ -399,7 +399,7 @@ function GallerySection({ userEmail }: { userEmail: string }) {
         return (
           <div
             key={image.id}
-            className="group relative rounded-2xl overflow-hidden border border-gray-200 bg-gray-50 transition hover:border-indigo-600/50"
+            className="group relative rounded-2xl overflow-hidden border border-borderSubtle bg-surfaceTint transition hover:border-accent/50"
           >
             <img
               src={image.imageUrl}
@@ -407,8 +407,8 @@ function GallerySection({ userEmail }: { userEmail: string }) {
               className="w-full h-48 object-cover"
               loading="lazy"
             />
-            <div className="absolute inset-0 bg-gray-50 opacity-0 group-hover:opacity-100 transition flex flex-col justify-end p-4 space-y-2">
-              <div className="text-xs text-gray-600 space-y-1">
+            <div className="absolute inset-0 bg-surfaceTint opacity-0 group-hover:opacity-100 transition flex flex-col justify-end p-4 space-y-2">
+              <div className="text-xs text-textSecondary space-y-1">
                 <p>Plan: {image.plan || 'free'}</p>
                 {image.width && image.height && (
                   <p>Size: {image.width}×{image.height}</p>
@@ -417,7 +417,7 @@ function GallerySection({ userEmail }: { userEmail: string }) {
               </div>
               <button
                 onClick={() => handleDownload(image.imageUrl, `ugc-image-${image.id}.png`)}
-                className="w-full rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition"
+                className="w-full rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-white hover:bg-accent transition"
               >
                 Download
               </button>

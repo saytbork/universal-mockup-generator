@@ -191,25 +191,25 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center w-full p-4 bg-white rounded-lg border-2 border-dashed border-gray-200">
-      <h3 className="text-lg font-semibold text-gray-600 mb-4">3. Generated Mockup</h3>
-      <div className="relative w-full h-full min-h-[40rem] flex items-center justify-center rounded-md bg-gray-50">
+    <div className="flex flex-col items-center justify-center w-full p-4 bg-surface rounded-lg border-2 border-dashed border-borderSubtle">
+      <h3 className="text-lg font-semibold text-textSecondary mb-4">3. Generated Mockup</h3>
+      <div className="relative w-full h-full min-h-[40rem] flex items-center justify-center rounded-md bg-surfaceTint">
         {isImageLoading ? (
           <div className="text-center">
             <LoadingSpinner />
-            <p className="mt-4 text-gray-600">
+            <p className="mt-4 text-textSecondary">
               Generating Image...
             </p>
           </div>
         ) : imageError ? (
-          <div className="text-center text-gray-500 px-4">
+          <div className="text-center text-textMuted px-4">
 	             <p className="font-semibold">Generation Failed</p>
 	             <p className="text-sm">{imageError}</p>
 	          </div>
         ) : imageUrl ? (
           <img src={imageUrl} alt="Generated Mockup" className="max-h-full max-w-full object-contain rounded-md" />
         ) : (
-          <div className="text-center text-gray-500">
+          <div className="text-center text-textMuted">
             <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14" />
             </svg>
@@ -220,10 +220,10 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
       </div>
 
       {(imageUrl || imageError) && !isImageLoading && (
-        <div className="mt-4 w-full flex flex-col gap-3 bg-gray-50 rounded-2xl px-4 py-3 border border-gray-200">
+        <div className="mt-4 w-full flex flex-col gap-3 bg-surfaceTint rounded-2xl px-4 py-3 border border-borderSubtle">
               <div className="flex flex-col gap-3 w-full">
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs text-gray-600 uppercase tracking-[0.3em]">Download resolution</label>
+                  <label className="text-xs text-textSecondary uppercase tracking-[0.3em]">Download resolution</label>
                   <div className="flex flex-wrap items-center gap-2">
                     {DOWNLOAD_RESOLUTION_OPTIONS.map(option => {
                       const isActive = downloadResolution === option.value;
@@ -239,8 +239,8 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
                           disabled={!imageUrl}
                           className={`rounded-2xl border px-3 py-1.5 text-xs font-semibold transition ${
                             isActive
-                              ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-500/20 scale-105 duration-500'
-                              : 'border-gray-200 bg-gray-100 text-gray-600 hover:border-indigo-600 hover:text-gray-900'
+                              ? 'bg-accent text-white border-accent shadow-md shadow-accent-glow scale-105 duration-500'
+                              : 'border-borderSubtle bg-surfaceTint text-textSecondary hover:border-accent hover:text-textPrimary'
                           } disabled:cursor-not-allowed disabled:opacity-50`}
                         >
                           {option.label} · {formatCreditLabel(cost)}
@@ -249,17 +249,17 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
                     })}
                   </div>
                   {showHiResStatus && (
-                    <span className="text-[11px] text-gray-600">
+                    <span className="text-[11px] text-textSecondary">
                       {isHiResProcessing
                         ? 'Preparing 4K / 2K masters…'
                         : hiResError ?? 'High-resolution exports ready.'}
                     </span>
                   )}
                 </div>
-                <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                <div className="flex flex-wrap items-center gap-2 text-xs text-textSecondary">
                   <button
                     onClick={onReset}
-                    className="border border-gray-200 bg-gray-100 text-gray-900 font-semibold px-3 py-1.5 rounded-2xl transition flex items-center gap-1 hover:border-indigo-600"
+                    className="border border-borderSubtle bg-surfaceTint text-textPrimary font-semibold px-3 py-1.5 rounded-2xl transition flex items-center gap-1 hover:border-accent"
                     aria-label="Reset"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -272,7 +272,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
                     <button
                       onClick={handleDownload}
                       disabled={isProcessingDownload || !imageUrl}
-                      className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-50 disabled:cursor-not-allowed text-white font-semibold px-3 py-1.5 rounded-2xl transition flex items-center gap-1"
+                      className="bg-accent hover:bg-accent disabled:bg-surfaceTint disabled:cursor-not-allowed text-white font-semibold px-3 py-1.5 rounded-2xl transition flex items-center gap-1"
                       aria-label="Download Image"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -282,11 +282,11 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
                     </button>
                   )}
                   {isFreeUser && (
-                    <span className="px-2 py-1 rounded-full bg-gray-50 text-gray-500">Watermark applied on Free plan</span>
+                    <span className="px-2 py-1 rounded-full bg-surfaceTint text-textMuted">Watermark applied on Free plan</span>
                   )}
                 </div>
                 {downloadError && (
-                  <span className="text-xs text-gray-500">{downloadError}</span>
+                  <span className="text-xs text-textMuted">{downloadError}</span>
                 )}
               </div>
             </div>
