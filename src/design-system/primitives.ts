@@ -1,8 +1,8 @@
 export const surface = {
-  page: 'bg-bg text-textPrimary',
-  level1: 'bg-surface border border-borderSubtle rounded-2xl',
-  level2: 'bg-surfaceTint border border-borderSubtle rounded-2xl',
-  level3: 'bg-surfaceTint border border-borderSubtle rounded-2xl',
+  page: 'bg-bg text-gray-900',
+  level1: 'bg-white border border-gray-200 rounded-2xl',
+  level2: 'bg-whiteTint border border-gray-200 rounded-2xl',
+  level3: 'bg-whiteTint border border-gray-200 rounded-2xl',
 } as const;
 
 export const text = {

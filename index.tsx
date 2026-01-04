@@ -37,11 +37,11 @@ class RootErrorBoundary extends React.Component<
     if (!this.state.error) return this.props.children;
 
     return (
-      <div className="min-h-screen bg-bg text-textPrimary flex items-center justify-center px-6">
-        <div className="w-full max-w-xl rounded-3xl border border-borderSubtle bg-surface p-8 space-y-4 shadow-md shadow-accent-glow">
-          <div className="text-xs uppercase tracking-[0.35em] text-accent">Perfect Mockup</div>
+      <div className="min-h-screen bg-bg text-gray-900 flex items-center justify-center px-6">
+        <div className="w-full max-w-xl rounded-3xl border border-gray-200 bg-white p-8 space-y-4 shadow-md shadow-md shadow-indigo-500/20">
+          <div className="text-xs uppercase tracking-[0.35em] text-indigo-600">Perfect Mockup</div>
           <h1 className="text-2xl font-semibold">Something went wrong</h1>
-          <p className="text-sm text-textSecondary">
+          <p className="text-sm text-gray-600">
             Try refreshing the page. If you have browser extensions enabled, try an incognito window.
           </p>
           <button
@@ -52,8 +52,8 @@ class RootErrorBoundary extends React.Component<
             Reload
           </button>
           <details className="pt-2">
-            <summary className="cursor-pointer text-xs text-textSecondary">Details</summary>
-            <pre className="mt-2 whitespace-pre-wrap text-xs text-textSecondary">
+            <summary className="cursor-pointer text-xs text-gray-600">Details</summary>
+            <pre className="mt-2 whitespace-pre-wrap text-xs text-gray-600">
               {this.state.error.message}
             </pre>
           </details>
@@ -64,7 +64,7 @@ class RootErrorBoundary extends React.Component<
 }
 
 const MarketingLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="bg-bg text-textPrimary min-h-screen flex flex-col">
+  <div className="bg-bg text-gray-900 min-h-screen flex flex-col">
     <SiteNav />
     <main className="flex-1">{children}</main>
     <SiteFooter />

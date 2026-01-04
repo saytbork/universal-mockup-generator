@@ -44,11 +44,11 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
 
   return (
     <div className="space-y-4">
-      <p className="text-xs uppercase tracking-[0.3em] text-textSecondary">
+      <p className="text-xs uppercase tracking-[0.3em] text-gray-600">
         Choose {minSelection} to {maxSelection} products
       </p>
       {visibleProductIds.length === 0 ? (
-        <p className="text-xs text-textMuted">
+        <p className="text-xs text-gray-500">
           Upload product photos to build your own bundle.
         </p>
       ) : (
@@ -62,8 +62,8 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
                 key={productId}
                 className={`flex flex-col gap-2 rounded-2xl border px-3 py-3 ${
                   isChecked
-                  ? 'bg-accent text-white border-accent shadow-md shadow-accent-glow scale-105 duration-500'
-                  : 'border-borderSubtle bg-surfaceTint text-textSecondary'
+                  ? 'bg-accent text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500'
+                  : 'border-gray-200 bg-whiteTint text-gray-600'
               }`}
             >
               <div className="flex items-center gap-2 text-sm font-semibold">
@@ -71,11 +71,11 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
                   type="checkbox"
                   checked={isChecked}
                   onChange={() => toggleProduct(productId)}
-                  className="h-4 w-4 rounded border-borderSubtle text-accent focus:ring-accent"
+                  className="h-4 w-4 rounded border-gray-200 text-indigo-600 focus:ring-indigo-500"
                 />
                 {meta?.label || productId}
               </div>
-              <div className="relative h-28 w-full overflow-hidden rounded-xl bg-surfaceTint">
+              <div className="relative h-28 w-full overflow-hidden rounded-xl bg-whiteTint">
                 {meta?.imageUrl && (
                   <img
                     src={meta.imageUrl}
@@ -83,7 +83,7 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
                   />
                 )}
                 {!meta?.imageUrl && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-surfaceTint text-[10px] font-semibold text-textMuted">
+                  <div className="absolute inset-0 flex items-center justify-center bg-whiteTint text-[10px] font-semibold text-gray-500">
                     Upload to fill
                   </div>
                 )}
@@ -94,15 +94,15 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
         </div>
       )}
       {filteredSelection.length > 0 && (
-        <div className="rounded-2xl border border-borderSubtle bg-surfaceTint p-3 space-y-2">
-          <p className="text-xs uppercase tracking-[0.3em] text-accent">
+        <div className="rounded-2xl border border-gray-200 bg-whiteTint p-3 space-y-2">
+          <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">
             Selected bundle ({filteredSelection.length})
           </p>
           <div className="flex flex-wrap gap-2 text-xs">
             {filteredSelection.map(productId => (
               <span
                 key={`summary-${productId}`}
-                className="rounded-full border border-borderSubtle px-3 py-1 text-textPrimary"
+                className="rounded-full border border-gray-200 px-3 py-1 text-gray-900"
               >
                 {productMediaLibrary[productId]?.label || productId}
               </span>
@@ -111,7 +111,7 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
         </div>
       )}
       {!isValidSelection && visibleProductIds.length > 0 && (
-        <p className="text-xs text-textMuted">
+        <p className="text-xs text-gray-500">
           Select between {minSelection} and {maxSelection} products to continue.
         </p>
       )}
@@ -119,7 +119,7 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
         type="button"
         onClick={handleGenerate}
         disabled={!isValidSelection}
-        className="w-full rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent disabled:cursor-not-allowed disabled:bg-surfaceTint"
+        className="w-full rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent disabled:cursor-not-allowed disabled:bg-whiteTint"
       >
         Generate Custom Bundle Mockup
       </button>

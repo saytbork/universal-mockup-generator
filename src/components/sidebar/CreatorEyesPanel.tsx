@@ -16,12 +16,12 @@ export default function CreatorEyesPanel() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h3 className="text-sm font-semibold text-textSecondary uppercase tracking-wide">
+      <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
         Eyes
       </h3>
 
       <div className="flex flex-col gap-2">
-        <span className="text-textSecondary text-sm">Eye Color</span>
+        <span className="text-gray-600 text-sm">Eye Color</span>
         <div className="grid grid-cols-2 gap-2">
           {eyeColors.map((color) => {
             const isActive = creator.eyeColor === color;
@@ -33,7 +33,7 @@ export default function CreatorEyesPanel() {
                 className={
                   isActive
                     ? "px-3 py-2 rounded-lg bg-accent text-white"
-                    : "px-3 py-2 rounded-lg bg-surfaceTint text-textSecondary hover:bg-surfaceTint"
+                    : "px-3 py-2 rounded-lg bg-whiteTint text-gray-600 hover:bg-whiteTint"
                 }
               >
                 {color}

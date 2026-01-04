@@ -32,31 +32,31 @@ const Accordion: React.FC<AccordionProps> = ({
   };
 
   return (
-    <div className="rounded-2xl border border-borderSubtle bg-surface overflow-hidden transition-all">
+    <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden transition-all">
       <button
         type="button"
         onClick={handleToggle}
-        className="w-full flex justify-between items-center p-4 text-left bg-surface hover:bg-surfaceElevated transition-colors focus:outline-none"
+        className="w-full flex justify-between items-center p-4 text-left bg-white hover:bg-whiteElevated transition-colors focus:outline-none"
         aria-expanded={open}
       >
         <div className="flex flex-col gap-0.5">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-textPrimary tracking-wide">
+            <span className="text-sm font-semibold text-gray-900 tracking-wide">
               {title}
             </span>
               {badge !== undefined && (
-                <span className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-accent text-white border border-accent">
+                <span className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-accent text-white border border-indigo-600">
                   {badge}
                 </span>
             )}
           </div>
           {subtitle && (
-            <span className="text-xs text-textMuted">{subtitle}</span>
+            <span className="text-xs text-gray-500">{subtitle}</span>
           )}
         </div>
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className={`w-4 h-4 text-textMuted transition-transform duration-300 ease-out ${open ? 'rotate-180' : 'rotate-0'
+          className={`w-4 h-4 text-gray-500 transition-transform duration-300 ease-out ${open ? 'rotate-180' : 'rotate-0'
             }`}
           fill="none"
           viewBox="0 0 24 24"
@@ -68,7 +68,7 @@ const Accordion: React.FC<AccordionProps> = ({
       </button>
 
       <div
-        className={`grid transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] border-t border-borderSubtle bg-surfaceTint ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
+        className={`grid transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] border-t border-gray-200 bg-whiteTint ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
       >
         <div className="overflow-hidden">
           <div className="p-4">{children}</div>

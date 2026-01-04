@@ -77,7 +77,7 @@ export default function CreatorPresetPanel() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h3 className="text-sm font-semibold text-textSecondary uppercase tracking-wide">
+      <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
         Creator Presets
       </h3>
 
@@ -92,7 +92,7 @@ export default function CreatorPresetPanel() {
               className={
                 isActive
                   ? "px-4 py-2 rounded-lg text-left bg-accent text-white"
-                  : "px-4 py-2 rounded-lg text-left bg-surfaceTint text-textSecondary hover:bg-surfaceTint"
+                  : "px-4 py-2 rounded-lg text-left bg-whiteTint text-gray-600 hover:bg-whiteTint"
               }
             >
               {p}
@@ -108,19 +108,19 @@ export default function CreatorPresetPanel() {
           className={
             linkTalent
               ? "w-10 h-6 rounded-full bg-accent relative"
-              : "w-10 h-6 rounded-full bg-surfaceTint relative"
+              : "w-10 h-6 rounded-full bg-whiteTint relative"
           }
         >
           <div
             className={
               linkTalent
-                ? "w-5 h-5 bg-surface rounded-full absolute right-1 top-0.5"
-                : "w-5 h-5 bg-surface rounded-full absolute left-1 top-0.5"
+                ? "w-5 h-5 bg-white rounded-full absolute right-1 top-0.5"
+                : "w-5 h-5 bg-white rounded-full absolute left-1 top-0.5"
             }
           />
         </button>
 
-        <span className="text-textSecondary text-sm">Link Talent Across Scenes</span>
+        <span className="text-gray-600 text-sm">Link Talent Across Scenes</span>
       </div>
     </div>
   );

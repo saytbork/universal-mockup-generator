@@ -25,7 +25,7 @@ const WardrobePanel: React.FC<WardrobePanelProps> = ({
 }) => {
     return (
         <div className="space-y-3">
-            <p className="text-xs uppercase tracking-widest text-textSecondary mb-2">
+            <p className="text-xs uppercase tracking-widest text-gray-600 mb-2">
                 Wardrobe Style
             </p>
             <div className="grid grid-cols-3 gap-2">
@@ -42,8 +42,8 @@ const WardrobePanel: React.FC<WardrobePanelProps> = ({
                 border text-xs font-medium
                 ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                 ${isActive
-                                    ? 'bg-accent text-white border-accent shadow-md shadow-accent-glow scale-105 duration-500'
-                                    : 'border-borderSubtle bg-surfaceTint text-textSecondary hover:border-accent hover:text-textPrimary'
+                                    ? 'bg-accent text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500'
+                                    : 'border-gray-200 bg-whiteTint text-gray-600 hover:border-indigo-600 hover:text-gray-900'
                                 }
               `}
                         >

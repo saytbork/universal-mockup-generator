@@ -10,14 +10,14 @@ export interface ChipGroupProps {
 
 const ChipGroup: React.FC<ChipGroupProps> = ({ label, options, value, disabled = false, onChange }) => (
   <div className="space-y-3 animate-slide-up">
-    {label && <p className="text-[10px] uppercase tracking-[0.2em] text-textMuted text-textPrimary/30 font-extrabold mb-1">{label}</p>}
+    {label && <p className="text-[10px] uppercase tracking-[0.2em] text-gray-500 text-gray-900/30 font-extrabold mb-1">{label}</p>}
     <div className="flex flex-wrap gap-2">
       {options.map(option => {
         const isActive = option === value;
         const baseClass =
           'rounded-xl border px-4 py-2 text-[10px] font-bold transition-all duration-400';
-        const activeClass = 'border-accent bg-accent text-white shadow-lg';
-        const inactiveClass = 'border-borderSubtle border-borderSoft bg-surfaceSoft text-textMuted hover:border-borderHover hover:border-borderHover';
+        const activeClass = 'border-indigo-600 bg-accent text-white shadow-lg';
+        const inactiveClass = 'border-gray-200 border-borderSoft bg-whiteSoft text-gray-500 hover:border-borderHover hover:border-borderHover';
         const disabledClass = 'opacity-40 cursor-not-allowed pointer-events-none';
         return (
           <button

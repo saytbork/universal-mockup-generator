@@ -24,13 +24,13 @@ export default function CreatorAppearancePanel() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h3 className="text-sm font-semibold text-textSecondary uppercase tracking-wide">
+      <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
         Appearance
       </h3>
 
       {/* Hair Style */}
       <div className="flex flex-col gap-2">
-        <span className="text-textSecondary text-sm">Hair Style</span>
+        <span className="text-gray-600 text-sm">Hair Style</span>
         <div className="grid grid-cols-2 gap-2">
           {hairStyles.map((style) => {
             const isActive = creator.hairStyle === style;
@@ -42,7 +42,7 @@ export default function CreatorAppearancePanel() {
                 className={
                   isActive
                     ? "px-3 py-2 rounded-lg bg-accent text-white"
-                    : "px-3 py-2 rounded-lg bg-surfaceTint text-textSecondary hover:bg-surfaceTint"
+                    : "px-3 py-2 rounded-lg bg-whiteTint text-gray-600 hover:bg-whiteTint"
                 }
               >
                 {style}
@@ -54,7 +54,7 @@ export default function CreatorAppearancePanel() {
 
       {/* Hair Color */}
       <div className="flex flex-col gap-2">
-        <span className="text-textSecondary text-sm">Hair Color</span>
+        <span className="text-gray-600 text-sm">Hair Color</span>
         <div className="grid grid-cols-2 gap-2">
           {hairColors.map((color) => {
             const isActive = creator.hairColor === color;
@@ -66,7 +66,7 @@ export default function CreatorAppearancePanel() {
                 className={
                   isActive
                     ? "px-3 py-2 rounded-lg bg-accent text-white"
-                    : "px-3 py-2 rounded-lg bg-surfaceTint text-textSecondary hover:bg-surfaceTint"
+                    : "px-3 py-2 rounded-lg bg-whiteTint text-gray-600 hover:bg-whiteTint"
                 }
               >
                 {color}
