@@ -2067,326 +2067,293 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                  </div>
 	                </div>
 
-	                {/* PRO (reveals below BASIC) */}
-	                <div
-	                  className={`rounded-xl border border-gray-200 bg-white p-4 space-y-8 dark:border-white/10 dark:bg-white/5 ${isPro ? '' : 'hidden'}`}
-	                >
-	                  {/* Identity */}
-	                  <div className="space-y-4">
-	                    <p className="text-[11px] font-semibold text-gray-500 dark:text-white/50">Identity</p>
+                        {/* PRO (reveals below BASIC) */}
+                        <div
+                          className={`rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5 ${isPro ? '' : 'hidden'}`}
+                          data-person-pro-wrapper
+                        >
+                          <div className="border-t border-gray-100 px-4 py-3 bg-white">
+                            <p className="text-[10px] uppercase tracking-[0.2em] text-indigo-600 font-extrabold">
+                              Advanced identity controls
+                            </p>
+                          </div>
+                          <div className="px-4 py-4 space-y-6">
+                            {/* SECTION 1 – Extended Identity */}
+                            <section className="space-y-4">
+                              <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500">SECTION 1 – EXTENDED IDENTITY</p>
 
-	                    <div className="space-y-2">
-	                      <span className="text-xs text-gray-600 dark:text-white/60">Gender</span>
-	                      <div className="flex flex-wrap gap-2">
-	                        {GENDER_OPTIONS.map(option => {
-	                          const active = values.gender === (option as any);
-	                          return (
-	                            <button
-	                              key={option}
-	                              type="button"
-	                              onClick={() => { updateValue('gender', option as any); markSectionTouched('creator'); }}
-	                              className={`px-3 h-8 rounded-full border text-xs transition-colors ${active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'} dark:border-white/10 ${active ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white' : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'}`}
-	                            >
-	                              {option}
-	                            </button>
-	                          );
-	                        })}
-	                      </div>
-	                    </div>
+                              <div className="space-y-2">
+                                <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400">GENDER</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {(['Trans', 'Non-binary', 'Gender non-conforming'] as const).map(option => (
+                                    <button
+                                      key={option}
+                                      type="button"
+                                      onClick={() => { updateValue('gender', option as any); markSectionTouched('creator'); }}
+                                      className="px-3 h-8 rounded-full border border-gray-200 bg-white text-xs font-semibold text-gray-600 transition-colors hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30"
+                                    >
+                                      {option}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
 
-	                    <div className="space-y-2">
-	                      <span className="text-xs text-gray-600 dark:text-white/60">Ethnicity</span>
-	                      <div className="flex flex-wrap gap-2">
-	                        {ETHNICITY_OPTIONS.map(option => {
-	                          const active = values.ethnicity === option;
-	                          return (
-	                            <button
-	                              key={option}
-	                              type="button"
-	                              onClick={() => { updateValue('ethnicity', option); markSectionTouched('creator'); }}
-	                              className={`px-3 h-8 rounded-full border text-xs transition-colors ${active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'} dark:border-white/10 ${active ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white' : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'}`}
-	                            >
-	                              {option}
-	                            </button>
-	                          );
-	                        })}
-	                      </div>
-	                    </div>
-	                  </div>
+                              <div className="space-y-2">
+                                <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400">ETHNICITY</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {(['Asian', 'Middle Eastern', 'South Asian', 'Mixed'] as const).map(option => (
+                                    <button
+                                      key={option}
+                                      type="button"
+                                      onClick={() => { updateValue('ethnicity', option); markSectionTouched('creator'); }}
+                                      className="px-3 h-8 rounded-full border border-gray-200 bg-white text-xs font-semibold text-gray-600 transition-colors hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30"
+                                    >
+                                      {option}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            </section>
 
-	                  {/* Skin & eyes */}
-	                  <div className="space-y-4">
-	                    <p className="text-[11px] font-semibold text-gray-500 dark:text-white/50">Skin &amp; eyes</p>
+                            <div className="border-t border-gray-100"></div>
 
-	                    <div className="space-y-2">
-	                      <span className="text-xs text-gray-600 dark:text-white/60">Skin tone</span>
-	                      <div className="flex flex-wrap gap-2">
-	                        {SKIN_TONE_OPTIONS.map(option => {
-	                          const active = values.skinTone === option;
-	                          return (
-	                            <button
-	                              key={option}
-	                              type="button"
-	                              onClick={() => { updateValue('skinTone', option); markSectionTouched('creator'); }}
-	                              className={`px-3 h-8 rounded-full border text-xs transition-colors ${active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'} dark:border-white/10 ${active ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white' : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'}`}
-	                            >
-	                              {option}
-	                            </button>
-	                          );
-	                        })}
-	                      </div>
-	                    </div>
+                            {/* SECTION 2 – Physical Appearance */}
+                            <section className="space-y-4 pt-4">
+                              <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500">SECTION 2 – PHYSICAL APPEARANCE</p>
 
-	                    <div className="space-y-2">
-	                      <span className="text-xs text-gray-600 dark:text-white/60">Eye color</span>
-	                      <div className="flex gap-2 flex-wrap">
-	                        {EYE_COLOR_OPTIONS.map(option => {
-	                          const active = values.eyeColor === option;
-	                          return (
-	                            <button
-	                              key={option}
-	                              type="button"
-	                              onClick={() => { updateValue('eyeColor', option); markSectionTouched('creator'); }}
-	                              className={`h-8 px-3 rounded-full border text-xs transition-colors ${active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'} dark:border-white/10 ${active ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white' : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'}`}
-	                            >
-	                              {option}
-	                            </button>
-	                          );
-	                        })}
-	                      </div>
-	                    </div>
-	                  </div>
+                              <div className="space-y-2">
+                                <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400">SKIN TONE</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {SKIN_TONE_OPTIONS.map(option => (
+                                    <button
+                                      key={option}
+                                      type="button"
+                                      onClick={() => { updateValue('skinTone', option); markSectionTouched('creator'); }}
+                                      className="px-3 h-8 rounded-full border border-gray-200 bg-white text-xs font-semibold text-gray-600 transition-colors hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30"
+                                    >
+                                      {option}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
 
-	                  {/* Body */}
-	                  <div className="space-y-4">
-	                    <p className="text-[11px] font-semibold text-gray-500 dark:text-white/50">Body</p>
+                              <div className="space-y-2">
+                                <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400">EYE COLOR</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {EYE_COLOR_OPTIONS.map(option => (
+                                    <button
+                                      key={option}
+                                      type="button"
+                                      onClick={() => { updateValue('eyeColor', option); markSectionTouched('creator'); }}
+                                      className="px-3 h-8 rounded-full border border-gray-200 bg-white text-xs font-semibold text-gray-600 transition-colors hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30"
+                                    >
+                                      {option}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
 
-	                    <div className="space-y-2">
-	                      <span className="text-xs text-gray-600 dark:text-white/60">Body type</span>
-	                      <div className="flex flex-wrap gap-2">
-	                        {BODY_TYPE_OPTIONS.map(option => {
-	                          const active = values.bodyType === option;
-	                          return (
-	                            <button
-	                              key={option}
-	                              type="button"
-	                              onClick={() => { updateValue('bodyType', option as any); markSectionTouched('creator'); }}
-	                              className={`px-3 h-8 rounded-full border text-xs transition-colors ${active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'} dark:border-white/10 ${active ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white' : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'}`}
-	                            >
-	                              {option}
-	                            </button>
-	                          );
-	                        })}
-	                      </div>
-	                    </div>
-	                  </div>
+                              <div className="space-y-2">
+                                <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400">BODY TYPE</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {BODY_TYPE_OPTIONS.map(option => (
+                                    <button
+                                      key={option}
+                                      type="button"
+                                      onClick={() => { updateValue('bodyType', option as Step3Values['bodyType']); markSectionTouched('creator'); }}
+                                      className="px-3 h-8 rounded-full border border-gray-200 bg-white text-xs font-semibold text-gray-600 transition-colors hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30"
+                                    >
+                                      {option}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            </section>
 
-	                  {/* Hair */}
-	                  <div className="space-y-4">
-	                    <p className="text-[11px] font-semibold text-gray-500 dark:text-white/50">Hair</p>
+                            <div className="border-t border-gray-100"></div>
 
-	                    <div className="space-y-4">
-	                      <div className="flex items-center justify-between">
-	                        <div>
-	                          <p className="text-xs text-gray-600 dark:text-white/60">Hair</p>
-	                          <p className="text-[11px] text-gray-400 dark:text-white/40">
-	                            {values.hairState === 'bald' ? 'Bald' : 'Has hair'}
-	                          </p>
-	                        </div>
-	                        <button
-	                          type="button"
-	                          onClick={() => {
-	                            updateValue('hairState', values.hairState === 'bald' ? 'natural' : 'bald');
-	                            markSectionTouched('creator');
-	                          }}
-	                          className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${values.hairState === 'bald'
-	                            ? 'bg-amber-500/10 text-amber-700 border-amber-200'
-	                            : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-600 hover:text-gray-900'
-	                            } dark:border-white/10 ${values.hairState === 'bald'
-	                              ? 'dark:bg-amber-500/10 dark:text-amber-200 dark:border-amber-400/30'
-	                              : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30 dark:hover:text-white'
-	                            }`}
-	                        >
-	                          {values.hairState === 'bald' ? 'Has hair' : 'Bald'}
-	                        </button>
-	                      </div>
+                            {/* SECTION 3 – Hair Details */}
+                            <section className="space-y-4 pt-4">
+                              <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500">SECTION 3 – HAIR DETAILS</p>
 
-	                      {values.hairState === 'natural' && (
-	                        <div className="space-y-6">
-	                          <div className="space-y-2">
-	                            <span className="text-xs text-gray-600 dark:text-white/60">Hair length</span>
-	                            <div className="flex flex-wrap gap-2">
-	                              {[...HAIR_LENGTH_OPTIONS, 'Custom'].map(option => {
-	                                const active = values.hairLength === option;
-	                                return (
-	                                  <button
-	                                    key={option}
-	                                    type="button"
-	                                    onClick={() => {
-	                                      updateValue('hairLength', option);
-	                                      if (option !== 'Custom' && values.hairLengthCustom) {
-	                                        updateValue('hairLengthCustom', '');
-	                                      }
-	                                      markSectionTouched('creator');
-	                                    }}
-	                                    className={`px-3 h-8 rounded-full border text-xs transition-colors ${active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'} dark:border-white/10 ${active ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white' : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'}`}
-	                                  >
-	                                    {option}
-	                                  </button>
-	                                );
-	                              })}
-	                            </div>
-	                            {values.hairLength === 'Custom' && (
-	                              <input
-	                                value={values.hairLengthCustom}
-	                                onChange={(event) => {
-	                                  updateValue('hairLengthCustom', event.target.value);
-	                                  markSectionTouched('creator');
-	                                }}
-	                                placeholder="Describe hair length..."
-	                                className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
-	                              />
-	                            )}
-	                          </div>
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-xs text-gray-600">Hair</p>
+                                    <p className="text-[11px] text-gray-400">
+                                      {values.hairState === 'bald' ? 'Bald' : 'Has hair'}
+                                    </p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      updateValue('hairState', values.hairState === 'bald' ? 'natural' : 'bald');
+                                      markSectionTouched('creator');
+                                    }}
+                                    className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${values.hairState === 'bald'
+                                      ? 'bg-amber-500/10 text-amber-700 border-amber-200'
+                                      : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-600 hover:text-gray-900'
+                                      } dark:border-white/10 ${values.hairState === 'bald'
+                                      ? 'dark:bg-amber-500/10 dark:text-amber-200 dark:border-amber-400/30'
+                                      : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30 dark:hover:text-white'
+                                    }`}
+                                  >
+                                    {values.hairState === 'bald' ? 'Has hair' : 'Bald'}
+                                  </button>
+                                </div>
 
-	                          <div className="space-y-2">
-	                            <span className="text-xs text-gray-600 dark:text-white/60">Hair texture</span>
-	                            <div className="flex flex-wrap gap-2">
-	                              {[...HAIR_TEXTURE_OPTIONS, 'Custom'].map(option => {
-	                                const active = values.hairTexture === option;
-	                                return (
-	                                  <button
-	                                    key={option}
-	                                    type="button"
-	                                    onClick={() => {
-	                                      updateValue('hairTexture', option);
-	                                      if (option !== 'Custom' && values.hairTextureCustom) {
-	                                        updateValue('hairTextureCustom', '');
-	                                      }
-	                                      markSectionTouched('creator');
-	                                    }}
-	                                    className={`px-3 h-8 rounded-full border text-xs transition-colors ${active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'} dark:border-white/10 ${active ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white' : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'}`}
-	                                  >
-	                                    {option}
-	                                  </button>
-	                                );
-	                              })}
-	                            </div>
-	                            {values.hairTexture === 'Custom' && (
-	                              <input
-	                                value={values.hairTextureCustom}
-	                                onChange={(event) => {
-	                                  updateValue('hairTextureCustom', event.target.value);
-	                                  markSectionTouched('creator');
-	                                }}
-	                                placeholder="Describe hair texture..."
-	                                className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
-	                              />
-	                            )}
-	                          </div>
+                                {values.hairState === 'natural' && (
+                                  <div className="space-y-3">
+                                    <div className="space-y-2">
+                                      <p className="text-xs text-gray-500">Length (advanced)</p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {(['Buzzcut', 'Chin-length', 'Very long'] as const).map(option => (
+                                          <button
+                                            key={option}
+                                            type="button"
+                                            onClick={() => {
+                                              updateValue('hairLength', option);
+                                              if (option !== 'Custom') {
+                                                updateValue('hairLengthCustom', '');
+                                              }
+                                              markSectionTouched('creator');
+                                            }}
+                                            className="px-3 h-8 rounded-full border border-gray-200 bg-white text-xs font-semibold text-gray-600 transition-colors hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30"
+                                          >
+                                            {option}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </div>
 
-	                          <div className="space-y-2">
-	                            <span className="text-xs text-gray-600 dark:text-white/60">Hair color</span>
-	                            <div className="flex flex-wrap gap-2">
-	                              {HAIR_COLOR_OPTIONS.map(option => {
-	                                const active = values.hairColor === option;
-	                                return (
-	                                  <button
-	                                    key={option}
-	                                    type="button"
-	                                    onClick={() => { updateValue('hairColor', option); markSectionTouched('creator'); }}
-	                                    className={`px-3 h-8 rounded-full border text-xs transition-colors ${active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'} dark:border-white/10 ${active ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white' : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'}`}
-	                                  >
-	                                    {option}
-	                                  </button>
-	                                );
-	                              })}
-	                            </div>
-	                          </div>
-	                        </div>
-	                      )}
-	                    </div>
-	                  </div>
+                                    <div className="space-y-2">
+                                      <p className="text-xs text-gray-500">Texture</p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {[...HAIR_TEXTURE_OPTIONS, 'Custom'].map(option => (
+                                          <button
+                                            key={option}
+                                            type="button"
+                                            onClick={() => {
+                                              updateValue('hairTexture', option);
+                                              if (option !== 'Custom' && values.hairTextureCustom) {
+                                                updateValue('hairTextureCustom', '');
+                                              }
+                                              markSectionTouched('creator');
+                                            }}
+                                            className="px-3 h-8 rounded-full border border-gray-200 bg-white text-xs font-semibold text-gray-600 transition-colors hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30"
+                                          >
+                                            {option}
+                                          </button>
+                                        ))}
+                                      </div>
+                                      {values.hairTexture === 'Custom' && (
+                                        <input
+                                          value={values.hairTextureCustom}
+                                          onChange={(event) => {
+                                            updateValue('hairTextureCustom', event.target.value);
+                                            markSectionTouched('creator');
+                                          }}
+                                          placeholder="Describe hair texture..."
+                                          className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40 dark:focus:border-white/30"
+                                        />
+                                      )}
+                                    </div>
 
-	                  {/* Expression & gaze */}
-	                  <div className="space-y-4">
-	                    <p className="text-[11px] font-semibold text-gray-500 dark:text-white/50">Expression &amp; gaze</p>
+                                    <div className="space-y-2">
+                                      <p className="text-xs text-gray-500">Color</p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {HAIR_COLOR_OPTIONS.map(option => (
+                                          <button
+                                            key={option}
+                                            type="button"
+                                            onClick={() => { updateValue('hairColor', option); markSectionTouched('creator'); }}
+                                            className="px-3 h-8 rounded-full border border-gray-200 bg-white text-xs font-semibold text-gray-600 transition-colors hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30"
+                                          >
+                                            {option}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </section>
 
-	                    <div className="space-y-2">
-	                      <span className="text-xs text-gray-600 dark:text-white/60">Advanced facial expressions</span>
-	                      <div className="flex flex-wrap gap-2">
-	                        {EXPRESSION_OPTIONS.slice(2).map(option => {
-	                          const active = values.facialExpression === option;
-	                          return (
-	                            <button
-	                              key={option}
-	                              type="button"
-	                              onClick={() => { updateValue('facialExpression', option); markSectionTouched('creator'); }}
-	                              className={`px-3 h-8 rounded-full border text-xs transition-colors ${active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'} dark:border-white/10 ${active ? 'dark:bg-indigo-500 dark:border-indigo-500' : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'}`}
-	                            >
-	                              {option}
-	                            </button>
-	                          );
-	                        })}
-	                      </div>
-	                    </div>
+                            <div className="border-t border-gray-100"></div>
 
-	                    <div className="space-y-2">
-	                      <span className="text-xs text-gray-600 dark:text-white/60">Eye direction</span>
-	                      <div className="flex flex-wrap gap-2">
-	                        {EYE_DIRECTION_OPTIONS.map(option => {
-	                          const active = values.eyeDirection === option;
-	                          return (
-	                            <button
-	                              key={option}
-	                              type="button"
-	                              onClick={() => { updateValue('eyeDirection', option); markSectionTouched('creator'); }}
-	                              className={`px-3 h-8 rounded-full border text-xs transition-colors ${active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'} dark:border-white/10 ${active ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white' : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'}`}
-	                            >
-	                              {option}
-	                            </button>
-	                          );
-	                        })}
-	                      </div>
-	                    </div>
-	                  </div>
+                            {/* SECTION 4 – Emotional Nuance */}
+                            <section className="space-y-3 pt-4">
+                              <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500">SECTION 4 – EMOTIONAL NUANCE</p>
+                              <div className="space-y-2">
+                                <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400">ADVANCED FACIAL EXPRESSIONS</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {['Confident & Editorial', 'Playful & Candid', 'Hustle & Juggle', 'Stressed but Determined'].map(option => (
+                                    <button
+                                      key={option}
+                                      type="button"
+                                      onClick={() => { updateValue('facialExpression', option); markSectionTouched('creator'); }}
+                                      className="px-3 h-8 rounded-full border border-gray-200 bg-white text-xs font-semibold text-gray-600 transition-colors hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30"
+                                    >
+                                      {option}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            </section>
 
-	                  {/* Continuity */}
-	                  <div className="space-y-4">
-	                    <p className="text-[11px] font-semibold text-gray-500 dark:text-white/50">Continuity</p>
-	                    {(() => {
-	                      const disabled = !hasFirstGenerationComplete || hasModelReference;
-	                      return (
-	                        <div className={`flex items-center justify-between ${disabled ? 'opacity-50' : ''}`}>
-	                          <div>
-	                            <p className="text-xs text-gray-600 dark:text-white/60">Keep same person</p>
-	                            <p className="text-[11px] text-gray-400 dark:text-white/40">
-	                              {hasModelReference
-	                                ? 'Disabled while Model Reference is active'
-	                                : hasFirstGenerationComplete
-	                                  ? (values.sameCreatorAcrossScenes ? 'Same person across generations' : 'Different person each generation')
-	                                  : 'Available after first generation'}
-	                            </p>
-	                          </div>
-	                          <button
-	                            type="button"
-	                            role="switch"
-	                            aria-checked={values.sameCreatorAcrossScenes}
-	                            disabled={disabled}
-	                            onClick={() => {
-	                              if (disabled) return;
-	                              updateValue('sameCreatorAcrossScenes', !values.sameCreatorAcrossScenes);
-	                              markSectionTouched('creator');
-	                            }}
-	                            className={`relative h-5 w-10 rounded-full border transition-colors ${values.sameCreatorAcrossScenes ? 'bg-indigo-600 border-indigo-600' : 'bg-gray-200 border-gray-200'} dark:border-white/10 ${values.sameCreatorAcrossScenes ? 'dark:bg-indigo-500 dark:border-indigo-500' : 'dark:bg-white/10'}`}
-	                          >
-	                            <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white transition-transform ${values.sameCreatorAcrossScenes ? 'translate-x-4' : ''} dark:border-white/10`} />
-	                          </button>
-	                        </div>
-	                      );
-	                    })()}
-	                  </div>
-	                </div>
+                            <div className="border-t border-gray-100"></div>
+
+                            {/* SECTION 5 – Gaze & Persistence */}
+                            <section className="space-y-4 pt-4">
+                              <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500">SECTION 5 – GAZE &amp; PERSISTENCE</p>
+
+                              <div className="space-y-3">
+                                <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400">EYE DIRECTION</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {EYE_DIRECTION_OPTIONS.map(option => (
+                                    <button
+                                      key={option}
+                                      type="button"
+                                      onClick={() => { updateValue('eyeDirection', option); markSectionTouched('creator'); }}
+                                      className="px-3 h-8 rounded-full border border-gray-200 bg-white text-xs font-semibold text-gray-600 transition-colors hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30"
+                                    >
+                                      {option}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-xs text-gray-600 dark:text-white/60">Keep same person</p>
+                                  <p className="text-[11px] text-gray-400 dark:text-white/40">
+                                    {hasModelReference
+                                      ? 'Disabled while Model Reference is active'
+                                      : hasFirstGenerationComplete
+                                        ? (values.sameCreatorAcrossScenes ? 'Same person across generations' : 'Different person each generation')
+                                        : 'Available after first generation'}
+                                  </p>
+                                </div>
+                                <button
+                                  type="button"
+                                  role="switch"
+                                  aria-checked={values.sameCreatorAcrossScenes}
+                                  disabled={!hasFirstGenerationComplete || hasModelReference}
+                                  onClick={() => {
+                                    if (!hasFirstGenerationComplete || hasModelReference) return;
+                                    updateValue('sameCreatorAcrossScenes', !values.sameCreatorAcrossScenes);
+                                    markSectionTouched('creator');
+                                  }}
+                                  className={`relative h-5 w-10 rounded-full border transition-colors ${values.sameCreatorAcrossScenes ? 'bg-indigo-600 border-indigo-600' : 'bg-gray-200 border-gray-200'} dark:border-white/10 ${values.sameCreatorAcrossScenes ? 'dark:bg-indigo-500 dark:border-indigo-500' : 'dark:bg-white/10'}`}
+                                >
+                                  <span
+                                    className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white transition-transform ${values.sameCreatorAcrossScenes ? 'translate-x-4' : ''} dark:border-white/10`}
+                                  />
+                                </button>
+                              </div>
+                            </section>
+                          </div>
+                        </div>
 	              </div>
 	            )}
 	          </SmoothAccordion>
