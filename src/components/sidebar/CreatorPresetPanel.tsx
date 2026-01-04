@@ -107,7 +107,7 @@ export default function CreatorPresetPanel() {
           onClick={toggleLinkTalent}
           className={
             linkTalent
-              ? "w-10 h-6 rounded-full bg-indigo-600 relative"
+              ? "w-10 h-6 rounded-full bg-indigo-600 text-white relative"
               : "w-10 h-6 rounded-full bg-whiteTint relative"
           }
         >

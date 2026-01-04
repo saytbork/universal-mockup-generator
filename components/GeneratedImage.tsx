@@ -268,7 +268,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
                 <button
                   onClick={handleDownload}
                   disabled={isProcessingDownload || !imageUrl}
-                  className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-semibold px-3 py-1.5 rounded-2xl transition flex items-center gap-1 dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:disabled:bg-white/10 dark:disabled:text-white/40"
+                  className="bg-indigo-600 text-white hover:bg-indigo-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-semibold px-3 py-1.5 rounded-2xl transition flex items-center gap-1 dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:disabled:bg-white/10 dark:disabled:text-white/40"
                   aria-label="Download Image"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">

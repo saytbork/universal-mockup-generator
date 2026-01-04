@@ -61,7 +61,7 @@ const RecommendedBundle: React.FC<RecommendedBundleProps> = ({
         type="button"
         onClick={() => onGenerate(recommendedProducts)}
         disabled={bundleDisabled}
-        className="w-full rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-600 disabled:cursor-not-allowed disabled:bg-whiteTint"
+        className="w-full rounded-xl bg-indigo-600 text-white px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-600 text-white disabled:cursor-not-allowed disabled:bg-whiteTint"
       >
         Generate Recommended Bundle Mockup
       </button>

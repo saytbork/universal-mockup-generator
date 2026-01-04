@@ -41,7 +41,7 @@ const ToggleRow = ({
       onClick={() => onChange(!value)}
       className={`relative h-6 w-11 rounded-full border border-gray-200 transition dark:border-gray-700 ${
         value
-          ? 'bg-indigo-600 border-indigo-600 dark:bg-indigo-500 dark:border-indigo-500'
+          ? 'bg-indigo-600 text-white border-indigo-600 dark:bg-indigo-500 dark:border-indigo-500'
           : 'bg-gray-200 dark:bg-gray-700'
       }`}
     >

@@ -35,7 +35,7 @@ const ImageEditor: React.FC<ImageEditorProps> = ({
         <button
           onClick={onEditImage}
           disabled={isEditing || !editPrompt}
-          className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-xl transition dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:disabled:bg-white/10 dark:disabled:text-white/40"
+          className="w-full bg-indigo-600 text-white hover:bg-indigo-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-xl transition dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:disabled:bg-white/10 dark:disabled:text-white/40"
         >
           {isEditing ? 'Applying Edit...' : 'Apply Edit'}
         </button>

@@ -122,7 +122,7 @@ const UGCRealModePanel: React.FC<UGCRealModePanelProps> = ({
           type="button"
           onClick={() => onToggle(!enabled)}
           disabled={panelDisabled}
-          className={`relative h-6 w-11 rounded-full transition ${enabled ? 'bg-indigo-600' : 'bg-whiteTint'
+          className={`relative h-6 w-11 rounded-full transition ${enabled ? 'bg-indigo-600 text-white' : 'bg-whiteTint'
             } ${panelDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
         >
           <span

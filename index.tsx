@@ -47,7 +47,7 @@ class RootErrorBoundary extends React.Component<
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-600 transition"
+            className="inline-flex items-center justify-center rounded-full bg-indigo-600 text-white px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-600 text-white transition"
           >
             Reload
           </button>

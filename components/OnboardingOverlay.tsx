@@ -106,7 +106,7 @@ const OnboardingOverlay: React.FC<OnboardingOverlayProps> = ({
           <button onClick={onSkip} className="text-gray-600 hover:text-gray-900 transition">Skip</button>
           <button
             onClick={onNext}
-            className="rounded-full bg-indigo-600 px-4 py-1.5 text-white font-semibold hover:bg-indigo-600 transition"
+            className="rounded-full bg-indigo-600 text-white px-4 py-1.5 text-white font-semibold hover:bg-indigo-600 text-white transition"
           >
             {currentStep === steps.length ? 'Got it' : 'Next'}
           </button>

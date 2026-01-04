@@ -1840,7 +1840,7 @@ const App: React.FC = () => {
                     <label className="relative inline-flex cursor-pointer items-center gap-2">
                       <input type="checkbox" className="sr-only" checked={isTalentLinkedAcrossScenes} onChange={handleTalentLinkToggle} disabled={personControlsDisabled} />
                       <div
-                        className={`relative h-5 w-10 rounded-full border border-gray-200 transition ${isTalentLinkedAcrossScenes ? 'bg-indigo-600 border-indigo-600' : 'bg-gray-200'} ${personControlsDisabled ? 'opacity-50' : ''} dark:border-white/10 ${isTalentLinkedAcrossScenes ? 'dark:bg-indigo-500 dark:border-indigo-500' : 'dark:bg-white/10'}`}
+                        className={`relative h-5 w-10 rounded-full border border-gray-200 transition ${isTalentLinkedAcrossScenes ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-gray-200'} ${personControlsDisabled ? 'opacity-50' : ''} dark:border-white/10 ${isTalentLinkedAcrossScenes ? 'dark:bg-indigo-500 dark:border-indigo-500' : 'dark:bg-white/10'}`}
                       >
                         <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white border border-gray-200 transition ${isTalentLinkedAcrossScenes ? 'translate-x-4' : ''} dark:border-white/10`} />
                       </div>
@@ -2354,7 +2354,7 @@ const App: React.FC = () => {
           <button
             type="button"
             onClick={() => setFormulationExpertEnabled(prev => !prev)}
-            className={`relative h-5 w-10 rounded-full transition ${formulationExpertEnabled ? 'bg-indigo-600' : 'bg-gray-50'}`}
+            className={`relative h-5 w-10 rounded-full transition ${formulationExpertEnabled ? 'bg-indigo-600 text-white' : 'bg-gray-50'}`}
           >
             <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white border border-gray-200 transition ${formulationExpertEnabled ? 'translate-x-5' : ''}`} />
           </button>
@@ -5116,11 +5116,11 @@ If the model attempts to create a scene or environment, override it and force a 
                 {goalWizardStep === 1 ? 'Skip wizard' : 'Back'}
               </button>
               {goalWizardStep < 3 ? (
-                <button onClick={handleGoalWizardNext} className="rounded-full bg-indigo-600 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-600 transition">
+                <button onClick={handleGoalWizardNext} className="rounded-full bg-indigo-600 text-white px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-600 text-white transition">
                   Next
                 </button>
               ) : (
-                <button onClick={handleGoalWizardComplete} className="rounded-full bg-indigo-600 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-600 transition">
+                <button onClick={handleGoalWizardComplete} className="rounded-full bg-indigo-600 text-white px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-600 text-white transition">
                   Apply &amp; build
                 </button>
               )}
@@ -5170,12 +5170,12 @@ If the model attempts to create a scene or environment, override it and force a 
                     if (planCodeError) setPlanCodeError(null);
                   }}
                   placeholder="Enter the code from your receipt"
-                  className="flex-1 rounded-2xl border border-gray-200 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-accent"
+                  className="flex-1 rounded-2xl border border-gray-200 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 />
                 <button
                   type="button"
                   onClick={handlePlanCodeSubmit}
-                  className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-600 transition"
+                  className="rounded-lg bg-indigo-600 text-white px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-600 text-white transition"
                 >
                   Apply
                 </button>
@@ -5293,7 +5293,7 @@ If the model attempts to create a scene or environment, override it and force a 
                         aria-label="Use the same person in all storyboard scenes"
                       />
                       <div
-                        className={`relative h-5 w-10 rounded-full transition ${isTalentLinkedAcrossScenes ? 'bg-indigo-600' : 'bg-gray-50'
+                        className={`relative h-5 w-10 rounded-full transition ${isTalentLinkedAcrossScenes ? 'bg-indigo-600 text-white' : 'bg-gray-50'
                           }`}
                       >
                         <span
@@ -5574,7 +5574,7 @@ If the model attempts to create a scene or environment, override it and force a 
                             }
                             disabled={isGenerateDisabled}
                             title={generationRestrictionMessage && isGenerateDisabled ? generationRestrictionMessage : undefined}
-	                            className="w-full py-3 rounded-xl font-semibold transition bg-indigo-600 text-white hover:bg-indigo-600 disabled:bg-gray-50 disabled:text-gray-600 disabled:cursor-not-allowed shadow-sm"
+	                            className="w-full py-3 rounded-xl font-semibold transition bg-indigo-600 text-white hover:bg-indigo-600 text-white disabled:bg-gray-50 disabled:text-gray-600 disabled:cursor-not-allowed shadow-sm"
 	                          >
 	                            {isImageLoading ? 'Generating...' : 'Generate Mockup'}
 	                          </button>

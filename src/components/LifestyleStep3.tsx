@@ -1721,7 +1721,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       updateValue('compositionMode', next ? 'Ecommerce Blank Space' : '');
                       markSectionTouched('ecommerce');
                     }}
-                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border border-gray-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white ${values.ecommerceSidePlacementFlag ? 'bg-indigo-600 border-indigo-600' : 'bg-gray-200'}`}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border border-gray-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white ${values.ecommerceSidePlacementFlag ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-gray-200'}`}
                   >
                     <span
                       className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white border border-gray-200 ring-0 transition duration-200 ease-in-out ${values.ecommerceSidePlacementFlag ? 'translate-x-5' : 'translate-x-0'}`}
@@ -1898,7 +1898,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       {isEnvironmentMode && (
         <>
           {/* UGC Simulation Mode Card - Purple in BOTH modes */}
-          <div className="mb-6 p-6 rounded-2xl bg-indigo-600 shadow-xl shadow-indigo-600/20 text-white">
+          <div className="mb-6 p-6 rounded-2xl bg-indigo-600 text-white shadow-xl shadow-indigo-600/20 text-white">
             <p className="text-[14px] font-extrabold mb-1">UGC Simulation Mode</p>
             <p className="text-[10px] text-white/70 font-medium">
               Using native smartphone optics for high authenticity.
@@ -2054,7 +2054,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                        type="button"
 	                        onClick={() => { updateValue('facialExpression', 'Joyful & High-Energy'); markSectionTouched('creator'); }}
 	                        className={`h-9 rounded-full border text-xs font-medium transition-colors ${values.facialExpression === 'Joyful & High-Energy'
-	                          ? 'bg-indigo-600/10 text-indigo-700 border-indigo-200'
+	                          ? 'bg-indigo-600 text-white/10 text-indigo-700 border-indigo-200'
 	                          : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'
 	                          } dark:border-white/10 ${values.facialExpression === 'Joyful & High-Energy'
 	                            ? 'dark:bg-indigo-500/20 dark:text-indigo-200 dark:border-indigo-400/30'
@@ -2344,7 +2344,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     updateValue('sameCreatorAcrossScenes', !values.sameCreatorAcrossScenes);
                                     markSectionTouched('creator');
                                   }}
-                                  className={`relative h-5 w-10 rounded-full border transition-colors ${values.sameCreatorAcrossScenes ? 'bg-indigo-600 border-indigo-600' : 'bg-gray-200 border-gray-200'} dark:border-white/10 ${values.sameCreatorAcrossScenes ? 'dark:bg-indigo-500 dark:border-indigo-500' : 'dark:bg-white/10'}`}
+                                  className={`relative h-5 w-10 rounded-full border transition-colors ${values.sameCreatorAcrossScenes ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-gray-200 border-gray-200'} dark:border-white/10 ${values.sameCreatorAcrossScenes ? 'dark:bg-indigo-500 dark:border-indigo-500' : 'dark:bg-white/10'}`}
                                 >
                                   <span
                                     className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white transition-transform ${values.sameCreatorAcrossScenes ? 'translate-x-4' : ''} dark:border-white/10`}
@@ -2424,7 +2424,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           updateValue('eyeDirection', 'Looking at camera');
                         }
                       }}
-                      className={`relative shrink-0 h-6 w-11 rounded-full border border-gray-200 transition-colors ${values.ugcRealMode ? 'bg-indigo-600 border-indigo-600' : 'bg-gray-200'}`}
+                      className={`relative shrink-0 h-6 w-11 rounded-full border border-gray-200 transition-colors ${values.ugcRealMode ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-gray-200'}`}
                     >
                       <span className={`absolute left-1 top-1 block h-4 w-4 rounded-full bg-white border border-gray-200 transition-transform ${values.ugcRealMode ? 'translate-x-5' : 'translate-x-0'}`} />
                     </button>
@@ -2609,7 +2609,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     updateValue('customClothesEnabled', !values.customClothesEnabled);
                     markSectionTouched('customClothes');
                   }}
-                  className={`relative h-6 w-11 rounded-full transition-colors border border-gray-200 ${values.customClothesEnabled ? 'bg-indigo-600 border-indigo-600' : 'bg-gray-200'}`}
+                  className={`relative h-6 w-11 rounded-full transition-colors border border-gray-200 ${values.customClothesEnabled ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-gray-200'}`}
                 >
                   <span className={`absolute left-1 top-1 block h-4 w-4 rounded-full bg-white border border-gray-200 transition-transform ${values.customClothesEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
                 </button>
@@ -2906,7 +2906,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       }
                     }}
                     className={`w-full text-left px-3 py-2 rounded-2xl border text-sm transition-colors ${values.heroPersona === persona.label
-                      ? 'bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-500/20 scale-105 duration-500'
+                      ? 'bg-indigo-600 text-white border-indigo-600 text-white shadow-md shadow-indigo-500/20 scale-105 duration-500'
                       : 'bg-white border-gray-200 text-gray-900 hover:border-indigo-600 hover:text-gray-900'
                       }`}
                   >
@@ -3039,7 +3039,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       </div>
                     </div>
 
-                    <button type="button" disabled className="w-full rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:bg-white">
+                    <button type="button" disabled className="w-full rounded-xl bg-indigo-600 text-white px-4 py-2 text-sm font-semibold text-white disabled:bg-white">
                       Generate Bundle Mockup
                     </button>
                   </div>
@@ -3074,7 +3074,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   updateValue('ecommerceSidePlacementFlag', !values.ecommerceSidePlacementFlag);
                   markSectionTouched('ecommerce');
                 }}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border border-gray-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white ${values.ecommerceSidePlacementFlag ? 'bg-indigo-600 border-indigo-600' : 'bg-gray-200'}`}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border border-gray-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white ${values.ecommerceSidePlacementFlag ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-gray-200'}`}
               >
                 <span
                   className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white border border-gray-200 ring-0 transition duration-200 ease-in-out ${values.ecommerceSidePlacementFlag ? 'translate-x-5' : 'translate-x-0'}`}
@@ -3246,7 +3246,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   updateValue('formulationStoryEnabled', !values.formulationStoryEnabled);
                   markSectionTouched('formulationStory');
                 }}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border border-gray-200 transition-colors duration-200 ease-in-out focus:outline-none ${values.formulationStoryEnabled ? 'bg-indigo-600 border-indigo-600' : 'bg-gray-200'}`}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border border-gray-200 transition-colors duration-200 ease-in-out focus:outline-none ${values.formulationStoryEnabled ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-gray-200'}`}
               >
                 <span
                   className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white border border-gray-200 ring-0 transition duration-200 ease-in-out ${values.formulationStoryEnabled ? 'translate-x-5' : 'translate-x-0'}`}
