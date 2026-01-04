@@ -192,14 +192,14 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
 
   return (
     <div className="flex flex-col w-full">
-      <div className="relative w-full min-h-[40rem] flex items-center justify-center rounded-2xl bg-gray-50 border border-gray-200 overflow-hidden">
+      <div className="relative w-full min-h-[40rem] flex items-center justify-center rounded-2xl bg-gray-50 border border-gray-200 overflow-hidden dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
         {isImageLoading ? (
           <div className="text-center">
             <LoadingSpinner />
-            <p className="mt-4 text-gray-600">Generating image…</p>
+            <p className="mt-4 text-gray-600 dark:text-white/60">Generating image…</p>
           </div>
         ) : imageError ? (
-          <div className="text-center text-gray-500 px-4">
+          <div className="text-center text-gray-500 px-4 dark:text-white/60">
             <p className="font-semibold">Generation Failed</p>
             <p className="text-sm">{imageError}</p>
           </div>
@@ -210,17 +210,17 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
             className="max-h-full max-w-full object-contain rounded-xl"
           />
         ) : (
-          <div className="text-center text-gray-500">
+          <div className="text-center text-gray-500 dark:text-white/40">
             <p>Your generated mockup will appear here</p>
           </div>
         )}
       </div>
 
       {(imageUrl || imageError) && !isImageLoading && (
-        <div className="mt-4 w-full flex flex-col gap-3 bg-gray-50 rounded-2xl px-4 py-3 border border-gray-200">
+        <div className="mt-4 w-full flex flex-col gap-3 bg-gray-50 rounded-2xl px-4 py-3 border border-gray-200 dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
           <div className="flex flex-col gap-3 w-full">
             <div className="flex flex-col gap-1">
-              <label className="text-xs text-gray-500 uppercase tracking-[0.3em]">Download resolution</label>
+              <label className="text-xs text-gray-500 uppercase tracking-[0.3em] dark:text-white/40">Download resolution</label>
               <div className="flex flex-wrap items-center gap-2">
                 {DOWNLOAD_RESOLUTION_OPTIONS.map(option => {
                   const isActive = downloadResolution === option.value;
@@ -235,8 +235,8 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
                       }}
                       disabled={!imageUrl}
                       className={`rounded-2xl border px-3 py-1.5 text-xs font-semibold transition ${isActive
-                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-500/20 scale-105 duration-500'
-                          : 'border-gray-200 bg-white text-gray-600 hover:border-indigo-600 hover:text-gray-900'
+                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-500/20 scale-105 duration-500 dark:bg-indigo-500 dark:border-indigo-500'
+                          : 'border-gray-200 bg-white text-gray-600 hover:border-indigo-600 hover:text-gray-900 dark:border-white/10 dark:bg-black/20 dark:text-white/60 dark:hover:border-white/30 dark:hover:text-white'
                         } disabled:cursor-not-allowed disabled:opacity-50`}
                     >
                       {option.label} · {formatCreditLabel(cost)}
@@ -245,17 +245,17 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
                 })}
               </div>
               {showHiResStatus && (
-                <span className="text-[11px] text-gray-600">
+                <span className="text-[11px] text-gray-600 dark:text-white/50">
                   {isHiResProcessing
                     ? 'Preparing 4K / 2K masters…'
                     : hiResError ?? 'High-resolution exports ready.'}
                 </span>
               )}
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600 dark:text-white/60">
               <button
                 onClick={onReset}
-                className="border border-gray-200 bg-white text-gray-900 font-semibold px-3 py-1.5 rounded-2xl transition flex items-center gap-1 hover:border-indigo-600"
+                className="border border-gray-200 bg-white text-gray-900 font-semibold px-3 py-1.5 rounded-2xl transition flex items-center gap-1 hover:border-indigo-600 dark:border-white/10 dark:bg-black/20 dark:text-white dark:hover:border-white/30 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]"
                 aria-label="Reset"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -268,7 +268,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
                 <button
                   onClick={handleDownload}
                   disabled={isProcessingDownload || !imageUrl}
-                  className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-semibold px-3 py-1.5 rounded-2xl transition flex items-center gap-1"
+                  className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-semibold px-3 py-1.5 rounded-2xl transition flex items-center gap-1 dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:disabled:bg-white/10 dark:disabled:text-white/40"
                   aria-label="Download Image"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -278,13 +278,13 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
                 </button>
               )}
               {isFreeUser && (
-                <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-500">
+                <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-white/50">
                   Watermark applied on Free plan
                 </span>
               )}
             </div>
             {downloadError && (
-              <span className="text-xs text-gray-500">{downloadError}</span>
+              <span className="text-xs text-gray-500 dark:text-white/50">{downloadError}</span>
             )}
           </div>
         </div>

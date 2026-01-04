@@ -345,8 +345,12 @@ const GROUP_LABEL_CLASS =
 
 const getPillClass = (isActive: boolean, fullWidth = false) => {
   const base = `rounded-full px-4 py-2 text-xs font-semibold border transition-colors ${fullWidth ? 'w-full text-center' : ''}`;
-  const active = 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-500/20';
-  const inactive = 'bg-white text-gray-600 border-gray-200 hover:border-indigo-600';
+  const active =
+    'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-500/20 ' +
+    'dark:bg-indigo-500 dark:border-indigo-500';
+  const inactive =
+    'bg-white text-gray-600 border-gray-200 hover:border-indigo-600 ' +
+    'dark:bg-white/5 dark:text-white/60 dark:border-white/10 dark:hover:border-white/30 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]';
   return `${base} ${isActive ? active : inactive}`.trim();
 };
 
