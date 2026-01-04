@@ -40,7 +40,7 @@ const FAQPage: React.FC = () => {
           {faqs.map(item => (
             <div
               key={item.q}
-              className="rounded-2xl border border-gray-200 bg-whiteTint p-5 space-y-2"
+              className="rounded-2xl border border-gray-200 bg-gray-50 p-5 space-y-2"
             >
               <h2 className="text-2xl font-semibold">{item.q}</h2>
               <p className="text-gray-600 leading-relaxed">{item.a}</p>

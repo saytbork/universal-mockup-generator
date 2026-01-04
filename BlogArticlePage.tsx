@@ -35,7 +35,7 @@ const BlogArticlePage: React.FC = () => {
   return (
     <div className="bg-bg text-gray-900 min-h-screen">
       <div className="max-w-5xl mx-auto px-4 py-12 space-y-10">
-        <section className="blog-hero rounded-3xl border border-gray-200 bg-whiteTint p-8 space-y-4 shadow-md shadow-md shadow-indigo-500/20">
+        <section className="blog-hero rounded-3xl border border-gray-200 bg-gray-50 p-8 space-y-4 shadow-md shadow-md shadow-indigo-500/20">
           <Link className="text-sm text-gray-900 underline" to="/blog">
             ← Back to blog
           </Link>
@@ -74,7 +74,7 @@ const BlogArticlePage: React.FC = () => {
               ) : null}
             </article>
           ))}
-          <div className="blog-cta rounded-3xl border border-gray-200 bg-whiteTint p-6 space-y-3">
+          <div className="blog-cta rounded-3xl border border-gray-200 bg-gray-50 p-6 space-y-3">
             <h3 className="text-2xl font-semibold">{article.cta.title}</h3>
             <p className="text-gray-900 leading-relaxed">{article.cta.text}</p>
             <a

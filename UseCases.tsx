@@ -60,7 +60,7 @@ const UseCases: React.FC = () => {
 
         <div className="relative grid gap-6 md:grid-cols-2">
           {sections.map(section => (
-            <div key={section.title} className="rounded-2xl border border-gray-200 bg-whiteTint p-5 space-y-3">
+            <div key={section.title} className="rounded-2xl border border-gray-200 bg-gray-50 p-5 space-y-3">
               <div className="flex items-center gap-2 text-indigo-600 text-sm">
                 {section.title.includes('Shopify') && <ShoppingBag className="w-5 h-5" />}
                 {section.title.includes('Amazon') && <Truck className="w-5 h-5" />}

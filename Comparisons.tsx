@@ -66,11 +66,11 @@ const Comparisons: React.FC = () => {
           <p className="text-gray-600">Why brands choose BoostUGC for photorealistic UGC.</p>
         </div>
 
-        <div className="relative overflow-hidden rounded-3xl border border-gray-200 bg-whiteTint shadow-md shadow-md shadow-indigo-500/20">
+        <div className="relative overflow-hidden rounded-3xl border border-gray-200 bg-gray-50 shadow-md shadow-md shadow-indigo-500/20">
           <div className="absolute inset-0 bg-gradient-to-br from-accentSoft via-transparent to-surfaceTint pointer-events-none" />
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-sm text-gray-900">
-              <thead className="bg-whiteTint text-gray-900">
+              <thead className="bg-gray-50 text-gray-900">
                 <tr>
                   <th className="px-5 py-4 text-left">Tool</th>
                   <th className="px-5 py-4 text-left">Photorealism</th>
@@ -82,7 +82,7 @@ const Comparisons: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-border">
                 {rows.map(row => (
-                  <tr key={row.tool} className="hover:bg-whiteTint transition">
+                  <tr key={row.tool} className="hover:bg-gray-50 transition">
                     <td className="px-5 py-4 font-semibold text-gray-900">{row.tool}</td>
                     <td className="px-5 py-4 text-gray-900">{row.photorealism}</td>
                     <td className="px-5 py-4 text-gray-900">{row.quality}</td>
@@ -102,7 +102,7 @@ const Comparisons: React.FC = () => {
             { title: 'eCommerce-first', desc: 'Defaults for mockups, UGC, and product photography that convert.', icon: <Gauge className="w-5 h-5" /> },
             { title: 'Consistency at scale', desc: 'Replace manual content with fast, repeatable AI visuals.', icon: <Star className="w-5 h-5" /> },
           ].map(card => (
-            <div key={card.title} className="rounded-2xl border border-gray-200 bg-whiteTint p-5 space-y-2">
+            <div key={card.title} className="rounded-2xl border border-gray-200 bg-gray-50 p-5 space-y-2">
               <div className="inline-flex items-center gap-2 text-indigo-600">
                 {card.icon}
                 <span className="text-sm">{card.title}</span>

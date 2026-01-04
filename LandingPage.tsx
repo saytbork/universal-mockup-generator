@@ -203,7 +203,7 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-bg text-gray-900">
-      <div className="bg-whiteTint">
+      <div className="bg-gray-50">
         <nav className="relative z-10 max-w-6xl mx-auto px-6 py-8 flex items-center justify-between">
           <div className="text-sm font-semibold uppercase tracking-[0.3em] text-gray-900">Perfect Mockup</div>
         </nav>
@@ -296,7 +296,7 @@ const LandingPage: React.FC = () => {
             ].map(card => (
               <div
                 key={card.title}
-                className="rounded-2xl border border-gray-200 bg-whiteTint p-6 text-left space-y-4"
+                className="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-left space-y-4"
               >
                 <div className="space-y-2">
                   <p className="text-gray-900 text-lg font-semibold">{card.title}</p>
@@ -318,7 +318,7 @@ const LandingPage: React.FC = () => {
           </div>
         </section>
 
-        <section className="bg-whiteTint border-y border-gray-200">
+        <section className="bg-gray-50 border-y border-gray-200">
           <div className="max-w-6xl mx-auto px-6 py-16 space-y-10">
             <div className="text-center space-y-3">
               <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Preview</p>
@@ -338,7 +338,7 @@ const LandingPage: React.FC = () => {
                     className={`w-full text-left rounded-2xl border p-4 transition ${
                       activePreview === mode.id
                         ? 'bg-accent text-white border-indigo-600'
-                        : 'border-gray-200 bg-whiteTint text-gray-600 hover:border-indigo-600'
+                        : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-indigo-600'
                     }`}
                   >
                     <p className="font-semibold">{mode.title}</p>
@@ -354,7 +354,7 @@ const LandingPage: React.FC = () => {
                   className="h-full w-full object-cover"
                   loading="lazy"
                 />
-	                <div className="absolute bottom-4 left-4 right-4 rounded-2xl bg-whiteTint px-4 py-3 text-sm">
+	                <div className="absolute bottom-4 left-4 right-4 rounded-2xl bg-gray-50 px-4 py-3 text-sm">
 	                  <p className="text-gray-900 font-semibold">{activePreviewMode.title}</p>
 	                </div>
               </div>
@@ -384,7 +384,7 @@ const LandingPage: React.FC = () => {
             ].map((card, index) => (
               <div
                 key={card.title}
-                className="rounded-2xl border border-gray-200 bg-whiteTint p-5 text-left transition transform hover:-translate-y-1 hover:border-indigo-600"
+                className="rounded-2xl border border-gray-200 bg-gray-50 p-5 text-left transition transform hover:-translate-y-1 hover:border-indigo-600"
                 style={{ animationDelay: `${0.1 * (index + 1)}s` }}
               >
                 <p className="text-xs uppercase tracking-widest text-gray-500">{card.title}</p>
@@ -394,7 +394,7 @@ const LandingPage: React.FC = () => {
           </div>
         </section>
 
-        <section className="bg-whiteTint border-y border-gray-200">
+        <section className="bg-gray-50 border-y border-gray-200">
           <div className="max-w-6xl mx-auto px-6 py-16 space-y-10">
             <div className="text-center space-y-3">
               <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Product vs lifestyle</p>
@@ -405,13 +405,13 @@ const LandingPage: React.FC = () => {
             </div>
 
             <div className="grid gap-5 md:grid-cols-2">
-              <div className="rounded-2xl border border-gray-200 bg-whiteTint p-6 text-left space-y-3">
+              <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-left space-y-3">
                 <p className="text-gray-900 text-lg font-semibold">Product (Studio)</p>
                 <p className="text-gray-600 text-sm">
                   Use when clarity and control matter. Perfect for PDPs, marketplaces and catalogs.
                 </p>
               </div>
-              <div className="rounded-2xl border border-gray-200 bg-whiteTint p-6 text-left space-y-3">
+              <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-left space-y-3">
                 <p className="text-gray-900 text-lg font-semibold">Lifestyle</p>
                 <p className="text-gray-600 text-sm">
                   Use when context and emotion drive conversion. Choose UGC for authenticity or Editorial for polish.
@@ -436,7 +436,7 @@ const LandingPage: React.FC = () => {
             ].map(item => (
               <div
                 key={item}
-                className="rounded-2xl border border-gray-200 bg-whiteTint p-5 flex items-start gap-3"
+                className="rounded-2xl border border-gray-200 bg-gray-50 p-5 flex items-start gap-3"
               >
                 <Zap className="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" />
                 <p className="text-gray-900 text-sm leading-relaxed">{item}</p>
@@ -462,7 +462,7 @@ const LandingPage: React.FC = () => {
             ].map(item => (
               <div
                 key={item}
-                className="rounded-2xl border border-gray-200 bg-whiteTint p-5 flex items-start gap-3"
+                className="rounded-2xl border border-gray-200 bg-gray-50 p-5 flex items-start gap-3"
               >
                 <CheckCircle2 className="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" />
                 <p className="text-gray-900 text-sm leading-relaxed">{item}</p>
@@ -496,7 +496,7 @@ const LandingPage: React.FC = () => {
         </section>
 
         <section id="pricing" className="relative isolate mt-10 px-4 py-20 sm:px-6 lg:px-8">
-          <div className="absolute inset-0 -z-10 rounded-3xl bg-whiteTint" />
+          <div className="absolute inset-0 -z-10 rounded-3xl bg-gray-50" />
           <div className="max-w-6xl mx-auto text-gray-900 space-y-12">
             <div className="text-center space-y-4">
               <p className="text-sm uppercase tracking-[0.4em] text-indigo-600">Pricing</p>
@@ -505,7 +505,7 @@ const LandingPage: React.FC = () => {
                 Scale your visuals as your products and campaigns grow.
               </p>
               <div className="mt-6 flex justify-center">
-                <div className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-whiteTint px-4 py-2 shadow-md shadow-md shadow-indigo-500/20">
+                <div className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 shadow-md shadow-md shadow-indigo-500/20">
                   <span className="text-sm text-gray-600">Billed monthly</span>
                   <label
                     className="relative inline-flex cursor-pointer items-center"
@@ -517,7 +517,7 @@ const LandingPage: React.FC = () => {
                       checked={billingCycle === 'yearly'}
                       onChange={handleBillingToggle}
                     />
-                    <div className="h-6 w-12 rounded-full bg-whiteTint transition peer-checked:bg-accent" />
+                    <div className="h-6 w-12 rounded-full bg-gray-50 transition peer-checked:bg-accent" />
                     <span className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow transition peer-checked:translate-x-6" />
                   </label>
                   <span className="text-sm text-gray-600">
@@ -538,8 +538,8 @@ const LandingPage: React.FC = () => {
                 const baseCard =
                   'group relative rounded-3xl border p-6 flex flex-col gap-6 hover:scale-[1.01] transition duration-300';
                 const cardClasses = plan.featured
-                  ? `${baseCard} border-indigo-600 bg-whiteTint shadow-md shadow-md shadow-indigo-500/20`
-                  : `${baseCard} border-gray-200 bg-whiteTint`;
+                  ? `${baseCard} border-indigo-600 bg-gray-50 shadow-md shadow-md shadow-indigo-500/20`
+                  : `${baseCard} border-gray-200 bg-gray-50`;
 
                 return (
                   <article key={plan.name} className={cardClasses}>
@@ -587,7 +587,7 @@ const LandingPage: React.FC = () => {
                           href={targetUrl || '#'}
                           className={`mt-auto w-full rounded-full px-4 py-3 text-sm font-semibold transition text-center ${
                             plan.featured
-                              ? 'bg-white text-gray-900 hover:bg-whiteTint'
+                              ? 'bg-white text-gray-900 hover:bg-gray-50'
                               : 'bg-accent text-white hover:bg-accent'
                           }`}
                         >
@@ -628,7 +628,7 @@ const LandingPage: React.FC = () => {
                 {paymentMethods.map(method => (
                   <span
                     key={method}
-                    className="rounded-full border border-gray-200 bg-whiteTint px-3 py-1 text-xs text-gray-600"
+                    className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-600"
                   >
                     {method}
                   </span>
