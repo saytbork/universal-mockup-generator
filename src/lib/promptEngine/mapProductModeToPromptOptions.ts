@@ -7,7 +7,7 @@
  * NO UGC terminology allowed.
  */
 
-import type { Step3Values } from '@/components/LifestyleStep3';
+import type { ProductStudioStep3Values } from '@/lib/productStudio/state';
 import type { PromptOptions } from './types';
 
 const normalizeSidePlacement = (raw?: string): 'left' | 'center' | 'right' => {
@@ -32,7 +32,7 @@ const sanitizeProductCopy = (value: string): string => {
 };
 
 const mapProductCameraDistance = (
-    distance?: Step3Values['productCameraDistance']
+    distance?: ProductStudioStep3Values['productCameraDistance']
 ): NonNullable<PromptOptions['cameraDistance']> => {
     switch (distance) {
         case 'Wide':
@@ -47,7 +47,7 @@ const mapProductCameraDistance = (
     }
 };
 
-const mapProductCameraAngle = (angle?: Step3Values['productCameraAngle']): string | undefined => {
+const mapProductCameraAngle = (angle?: ProductStudioStep3Values['productCameraAngle']): string | undefined => {
     switch (angle) {
         case 'Eye level product':
             return 'camera positioned at product eye level with a neutral perspective';
@@ -67,8 +67,8 @@ const mapProductCameraAngle = (angle?: Step3Values['productCameraAngle']): strin
 };
 
 const mapProductShotType = (
-    distance?: Step3Values['productCameraDistance'],
-    angle?: Step3Values['productCameraAngle']
+    distance?: ProductStudioStep3Values['productCameraDistance'],
+    angle?: ProductStudioStep3Values['productCameraAngle']
 ): string | undefined => {
     if (angle === 'Top-down flat lay') {
         return 'flat lay product shot with clean spacing';
@@ -88,8 +88,8 @@ const mapProductShotType = (
 };
 
 const mapProductFraming = (
-    framing?: Step3Values['productFramingGuide'],
-    rotationDegrees?: Step3Values['productCameraRotation']
+    framing?: ProductStudioStep3Values['productFramingGuide'],
+    rotationDegrees?: ProductStudioStep3Values['productCameraRotation']
 ): { perspective?: string; forcedSidePlacement?: 'left' | 'right' } => {
     const rotationSuffix =
         typeof rotationDegrees === 'number' && rotationDegrees > 0
@@ -126,7 +126,7 @@ const mapProductFraming = (
  * - Never reference people/faces/emotions
  */
 export function mapProductModeToPromptOptions(
-    sceneState: Step3Values,
+    sceneState: ProductStudioStep3Values,
     existingOptions: Partial<PromptOptions> = {}
 ): Partial<PromptOptions> {
     console.log('[PRODUCT STEP3 INPUT]', {
