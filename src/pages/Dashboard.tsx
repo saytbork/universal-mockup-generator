@@ -129,7 +129,7 @@ export default function Dashboard() {
           initial={{ opacity: 0, scale: 0.92 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
-          className="rounded-3xl bg-white border border-gray-200 px-8 py-6 shadow-md shadow-md shadow-indigo-500/20"
+          className="rounded-xl bg-white border border-gray-200 px-8 py-6 shadow-md shadow-md shadow-indigo-500/20"
         >
           <p className="text-sm text-gray-600">Loading your workspace...</p>
         </motion.div>
@@ -147,7 +147,7 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="flex items-center justify-between gap-4 rounded-2xl bg-white border border-gray-200 px-6 py-5 shadow-md shadow-md shadow-indigo-500/20"
+          className="flex items-center justify-between gap-4 rounded-xl bg-white border border-gray-200 px-6 py-5 shadow-md shadow-md shadow-indigo-500/20"
         >
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Dashboard</p>
@@ -170,7 +170,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: "easeOut" }}
-            className="lg:col-span-2 rounded-3xl bg-whiteTint border border-gray-200 p-6 shadow-md shadow-md shadow-indigo-500/20"
+            className="lg:col-span-2 rounded-xl bg-whiteTint border border-gray-200 p-6 shadow-md shadow-md shadow-indigo-500/20"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-2">
@@ -197,7 +197,7 @@ export default function Dashboard() {
             <div className="mt-6 flex flex-wrap gap-3">
               <a
                 href="/app/generator"
-                className={`inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition ${user.credits > 0
+                className={`inline-flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${user.credits > 0
                   ? "bg-indigo-600 text-white hover:bg-indigo-600 text-white"
                   : "bg-whiteTint text-gray-600 cursor-not-allowed"
                   }`}
@@ -215,7 +215,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: "easeOut", delay: 0.05 }}
-            className="rounded-3xl bg-whiteTint border border-gray-200 p-5 shadow-md shadow-md shadow-indigo-500/20 space-y-4"
+            className="rounded-xl bg-whiteTint border border-gray-200 p-5 shadow-md shadow-md shadow-indigo-500/20 space-y-4"
           >
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Sparkles className="h-4 w-4 text-indigo-600" />
@@ -231,7 +231,7 @@ export default function Dashboard() {
                 <div
                   key={item.label}
                   onClick={() => (item.action ? item.action() : (window.location.href = item.href))}
-                  className="flex items-center justify-between rounded-2xl border border-gray-200 bg-whiteTint px-4 py-3 text-sm text-gray-900 hover:border-indigo-600/50 hover:bg-indigo-600 text-white transition cursor-pointer"
+                  className="flex items-center justify-between rounded-xl border border-gray-200 bg-whiteTint px-4 py-3 text-sm text-gray-900 hover:border-indigo-600/50 hover:bg-indigo-600 text-white transition cursor-pointer"
                 >
                   <span className="flex items-center gap-2">
                     {item.icon}
@@ -249,7 +249,7 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
-          className="rounded-3xl bg-whiteTint border border-gray-200 p-6 shadow-md shadow-md shadow-indigo-500/20"
+          className="rounded-xl bg-whiteTint border border-gray-200 p-6 shadow-md shadow-md shadow-indigo-500/20"
         >
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -265,7 +265,7 @@ export default function Dashboard() {
               {activity.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between rounded-2xl border border-gray-200 bg-whiteTint px-4 py-3 hover:border-indigo-600 transition"
+                  className="flex items-center justify-between rounded-xl border border-gray-200 bg-whiteTint px-4 py-3 hover:border-indigo-600 transition"
                 >
                   <div className="flex items-center gap-3">
                     {activityIcon(item.type)}
@@ -289,7 +289,7 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.15 }}
-          className="rounded-3xl bg-whiteTint border border-gray-200 p-6 shadow-md shadow-md shadow-indigo-500/20"
+          className="rounded-xl bg-whiteTint border border-gray-200 p-6 shadow-md shadow-md shadow-indigo-500/20"
         >
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -368,7 +368,7 @@ function GallerySection({ userEmail }: { userEmail: string }) {
 
   if (error) {
     return (
-      <div className="rounded-2xl border border-gray-200 bg-whiteTint p-4">
+      <div className="rounded-xl border border-gray-200 bg-whiteTint p-4">
         <p className="text-sm text-gray-500">{error}</p>
       </div>
     );
@@ -399,7 +399,7 @@ function GallerySection({ userEmail }: { userEmail: string }) {
         return (
           <div
             key={image.id}
-            className="group relative rounded-2xl overflow-hidden border border-gray-200 bg-whiteTint transition hover:border-indigo-600/50"
+            className="group relative rounded-xl overflow-hidden border border-gray-200 bg-whiteTint transition hover:border-indigo-600/50"
           >
             <img
               src={image.imageUrl}

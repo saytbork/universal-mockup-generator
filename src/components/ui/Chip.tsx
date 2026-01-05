@@ -11,6 +11,7 @@ const sizeMap: Record<ChipSize, string> = {
 export interface ChipProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   selected?: boolean;
   size?: ChipSize;
+  tone?: 'default' | 'warm';
 }
 
 const baseClass =
@@ -22,15 +23,25 @@ const activeClass =
 const inactiveClass =
   'border-gray-200 border-borderSoft bg-whiteSoft text-gray-500 hover:border-borderHover hover:border-borderHover';
 
+const warmActiveClass =
+  'border-orange-500 bg-orange-500 text-white shadow-lg';
+
+const warmInactiveClass =
+  'border-orange-200 bg-orange-50/50 text-orange-700 hover:border-orange-300';
+
 const disabledClass =
   'opacity-50 cursor-not-allowed pointer-events-none bg-whiteElevated text-gray-500 border-gray-200 border-borderSoft';
 
 export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
-  ({ selected = false, disabled = false, size = 'sm', className = '', children, ...props }, ref) => {
+  ({ selected = false, disabled = false, size = 'sm', tone = 'default', className = '', children, ...props }, ref) => {
     const classes = [
       baseClass,
       sizeMap[size],
-      disabled ? disabledClass : (selected ? activeClass : inactiveClass),
+      disabled
+        ? disabledClass
+        : (tone === 'warm'
+          ? (selected ? warmActiveClass : warmInactiveClass)
+          : (selected ? activeClass : inactiveClass)),
       disabled ? '' : 'cursor-pointer',
       className,
     ]

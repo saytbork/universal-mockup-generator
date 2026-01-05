@@ -71,7 +71,7 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
   if (ui === 'tokens') {
     return (
       <div
-        className={`rounded-2xl border border-gray-200 bg-white overflow-hidden transition-all ${containerVariantClass} ${className} dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]`}
+        className={`rounded-xl border border-gray-200 bg-white overflow-hidden transition-all ${containerVariantClass} ${className} dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]`}
       >
         <button
           type="button"

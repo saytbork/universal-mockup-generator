@@ -1,6 +1,7 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { CheckCircle2, CreditCard, ShieldCheck, ShoppingBag, Users2, Zap, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 import PlanCheckoutModal from './components/PlanCheckoutModal';
 import { getAllBlogArticles } from './src/content/blog';
 
@@ -35,7 +36,7 @@ type CheckoutPlan = {
   metadata?: PlanMetadata;
 };
 
-const getEnv = (key: string) => import.meta.env[key as keyof ImportMetaEnv] as string | undefined;
+const getEnv = (key: string) => (import.meta as any).env?.[key] as string | undefined;
 const DEFAULT_CREATOR_LINK = 'https://buy.stripe.com/14A28tb1Sgr0b2Y5HBeIw02';
 const DEFAULT_CREATOR_YEARLY_LINK = 'https://buy.stripe.com/fZu5kF3zq1w62wsc5ZeIw00';
 const DEFAULT_STUDIO_LINK = 'https://buy.stripe.com/7sYfZj1ricaKdb6da3eIw01';
@@ -233,76 +234,120 @@ const LandingPage: React.FC = () => {
   const blogArticles = getAllBlogArticles().slice(0, 4);
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-black dark:text-white">
-      <div className="bg-gray-50">
-        <nav className="relative z-10 max-w-6xl mx-auto px-6 py-8 flex items-center justify-between">
-          <div className="text-sm font-semibold uppercase tracking-[0.3em] text-gray-900">Perfect Mockup</div>
-        </nav>
-
-        <header className="relative overflow-hidden pb-16">
-          <div
-            className="absolute inset-0 opacity-30 pointer-events-none"
-            style={{
-              background:
-                'radial-gradient(circle at 20% 20%, var(--accent-glow), transparent 55%)',
+    <div className="min-h-screen bg-white text-gray-900 dark:bg-black dark:text-white transition-colors duration-500 overflow-x-hidden">
+      <header className="relative min-h-[85vh] flex flex-col justify-center overflow-hidden border-b border-gray-100 dark:border-white/5 bg-white dark:bg-black">
+        {/* Animated Gradient Background */}
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(99,102,241,0.08),transparent_50%)] animate-pulse" />
+          <motion.div
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.5, 0.3],
+              x: [0, 100, 0],
+              y: [0, -50, 0],
             }}
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+            className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-indigo-500/10 blur-[120px] rounded-full"
           />
-          <div className="max-w-6xl mx-auto px-6 pt-6 pb-10 flex flex-col items-center text-center gap-10 relative">
-            <div className="max-w-3xl space-y-6">
-              <p className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-1 text-xs uppercase tracking-widest text-indigo-600">
-                <ShieldCheck className="w-3.5 h-3.5" /> A visual mockup system for ecommerce brands
-              </p>
-              <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 leading-tight">
-                Product &amp; Lifestyle Mockups for Ecommerce Brands
-              </h1>
-              <p className="text-lg text-gray-600">
-                Create studio-ready product visuals and lifestyle scenes without photoshoots. From clean product shots to
-                UGC-style content, fully controlled.
-              </p>
-              <p className="text-sm text-gray-600">
-                No freelancers. No creative chaos. Just visuals built to convert.
-              </p>
-              <div className="flex flex-wrap justify-center gap-3 text-sm text-gray-600">
-                {[
-                  'Built for ecommerce, not designers',
-                  'Product and lifestyle visuals in one system',
-                  'Ready for PDPs, ads and launches',
-                  'Consistent results at scale',
-                ].map(item => (
-                  <span
-                    key={item}
-                    className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1"
-                  >
-                    <CheckCircle2 className="w-4 h-4 text-indigo-600" />
-                    {item}
-                  </span>
-                ))}
+          <motion.div
+            animate={{
+              scale: [1, 1.3, 1],
+              opacity: [0.2, 0.4, 0.2],
+              x: [0, -120, 0],
+              y: [0, 80, 0],
+            }}
+            transition={{
+              duration: 25,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+            className="absolute -bottom-[10%] -right-[10%] w-[50%] h-[50%] bg-blue-500/10 blur-[120px] rounded-full"
+          />
+        </div>
+
+        {/* Minimalist Background Grid */}
+        <div className="absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.07]">
+          <div className="h-full w-full" style={{ backgroundImage: 'radial-gradient(#6366f1 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+        </div>
+
+        <div className="relative z-10 max-w-6xl mx-auto px-6 py-20 flex flex-col items-center">
+          {/* Factual Trust Row */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="flex flex-wrap justify-center gap-x-8 gap-y-3 mb-12"
+          >
+            {[
+              "Built for ecommerce product pages",
+              "Product Mode and UGC Mode separated",
+              "Consistent outputs at scale"
+            ].map(statement => (
+              <div key={statement} className="flex items-center gap-2 text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+                <CheckCircle2 className="w-3.5 h-3.5 text-indigo-500/50" />
+                {statement}
               </div>
-            </div>
+            ))}
+          </motion.div>
 
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link
-                to="/login"
-                className="inline-flex items-center justify-center rounded-full bg-indigo-600 text-white px-8 py-4 font-semibold text-white shadow-md shadow-md shadow-indigo-500/20 hover:bg-indigo-600 text-white transition"
-              >
-                Start Creating Mockups
-              </Link>
-              <button
-                onClick={handleSmoothScroll('#pricing')}
-                className="inline-flex items-center justify-center rounded-full border border-gray-200 px-8 py-4 font-semibold text-gray-600 hover:border-indigo-600 hover:text-gray-900 transition"
-              >
-                View Pricing
-              </button>
-            </div>
+          {/* SaaS Headline & Mechanism */}
+          <div className="max-w-4xl mx-auto text-center space-y-8">
+            <motion.h1
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1, ease: [0.23, 1, 0.32, 1] }}
+              className="text-5xl sm:text-7xl font-bold text-gray-900 dark:text-white leading-[1.05] tracking-tight"
+            >
+              Create Ecommerce-Ready Product <br className="hidden md:block" />
+              <span className="text-indigo-600 dark:text-indigo-400">
+                & UGC Visuals in Minutes.
+              </span>
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1, delay: 0.4 }}
+              className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed font-medium"
+            >
+              Generate consistent product shots and controlled UGC-style visuals for product pages, ads, and conversion funnels. No photoshoots. No agencies. No guessing.
+            </motion.p>
           </div>
-        </header>
-      </div>
 
-      <main>
-        <section className="max-w-6xl mx-auto px-6 py-14 space-y-10">
+          {/* Focused Production CTAs */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-12 w-full"
+          >
+            <Link
+              to="/login"
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-indigo-600 text-white px-10 py-5 font-bold text-sm transition-all hover:bg-indigo-700 shadow-xl shadow-indigo-600/20 hover:shadow-indigo-600/30 hover:-translate-y-0.5 active:scale-[0.98]"
+            >
+              Create Your First Product Shot
+              <ArrowRight className="ml-2 w-4 h-4" />
+            </Link>
+            <button
+              onClick={handleSmoothScroll('#pricing')}
+              className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-5 font-bold text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors group"
+            >
+              View Plans
+              <div className="w-0 group-hover:w-full h-0.5 bg-indigo-600 dark:bg-indigo-400 transition-all duration-300 absolute bottom-4" />
+            </button>
+          </motion.div>
+        </div>
+      </header>
+
+      <section className="bg-gray-50/50 dark:bg-white/[0.02] border-b border-gray-100 dark:border-white/5">
+        <div className="max-w-6xl mx-auto px-6 py-24 space-y-10">
           <div className="text-center space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">What you can create</p>
-            <h2 className="text-3xl text-gray-900 font-semibold">Create the visuals your product needs to sell</h2>
+            <h2 className="text-3xl text-gray-900 dark:text-white font-semibold">Create the visuals your product needs to sell</h2>
           </div>
 
           <div className="grid gap-5 md:grid-cols-3">
@@ -327,18 +372,18 @@ const LandingPage: React.FC = () => {
             ].map(card => (
               <div
                 key={card.title}
-                className="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-left space-y-4"
+                className="rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 p-6 text-left space-y-4 hover:bg-indigo-50/30 dark:hover:bg-indigo-500/5 transition-colors duration-300"
               >
                 <div className="space-y-2">
-                  <p className="text-gray-900 text-lg font-semibold">{card.title}</p>
-                  <p className="text-gray-600 text-sm leading-relaxed">{card.description}</p>
+                  <p className="text-gray-900 dark:text-white text-lg font-semibold">{card.title}</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{card.description}</p>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-xs uppercase tracking-widest text-gray-500">Use for</p>
-                  <ul className="space-y-2 text-sm text-gray-900">
+                  <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-500">Use for</p>
+                  <ul className="space-y-2 text-sm text-gray-900 dark:text-gray-300">
                     {card.uses.map(item => (
                       <li key={item} className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-indigo-600 mt-0.5 flex-shrink-0" />
+                        <CheckCircle2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400 mt-0.5 flex-shrink-0" />
                         <span>{item}</span>
                       </li>
                     ))}
@@ -347,480 +392,610 @@ const LandingPage: React.FC = () => {
               </div>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section className="bg-gray-50 border-y border-gray-200">
-          <div className="max-w-6xl mx-auto px-6 py-16 space-y-10">
-            <div className="text-center space-y-3">
-              <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Preview</p>
-              <h2 className="text-3xl text-gray-900 font-semibold">See what you can create</h2>
-              <p className="text-gray-600 max-w-3xl mx-auto mt-3">
-                Choose Product or Lifestyle to match your goal. UGC feels authentic. Editorial feels premium.
-              </p>
-            </div>
-
-            <div className="grid gap-6 lg:grid-cols-[340px,1fr] items-start lg:items-stretch">
-              <div className="space-y-3">
-                {previewModes.map(mode => (
-                  <button
-                    key={mode.id}
-                    type="button"
-                    onClick={() => setActivePreview(mode.id)}
-                    className={`w-full text-left rounded-2xl border p-4 transition ${activePreview === mode.id
-                      ? 'bg-indigo-600 text-white border-indigo-600'
-                      : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-indigo-600'
-                      }`}
-                  >
-                    <p className="font-semibold">{mode.title}</p>
-                    <p className={`text-sm mt-1 ${activePreview === mode.id ? 'text-white/80' : 'text-gray-600'}`}>
-                      {mode.description}
-                    </p>
-                  </button>
-                ))}
-              </div>
-
-              <div className="relative overflow-hidden rounded-3xl border border-gray-200 bg-white min-h-[320px] sm:min-h-[420px] lg:min-h-0 lg:h-full">
-                <img
-                  src={activePreviewMode.image}
-                  alt={activePreviewMode.title}
-                  className="h-full w-full object-cover"
-                  loading="lazy"
-                />
-                <div className="absolute bottom-4 left-4 right-4 rounded-2xl bg-gray-50 px-4 py-3 text-sm">
-                  <p className="text-gray-900 font-semibold">{activePreviewMode.title}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="bg-white border-y border-gray-100 overflow-hidden">
-          <div className="max-w-6xl mx-auto px-6 py-20 space-y-12">
-            <div className="text-center space-y-3">
-              <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">How it works</p>
-              <h2 className="text-3xl sm:text-4xl text-gray-900 font-bold tracking-tight">From product to visuals in minutes</h2>
-            </div>
-
-            <div className="grid gap-12 lg:grid-cols-2 items-center">
-              {/* Left Side: Step Cards */}
-              <div
-                className="space-y-4"
-                onMouseEnter={() => setIsHoveringSteps(true)}
-                onMouseLeave={() => setIsHoveringSteps(false)}
-              >
-                {steps.map((step, index) => {
-                  const isActive = activeStep === index;
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => setActiveStep(index)}
-                      className={`w-full text-left p-6 rounded-3xl border transition-all duration-500 relative overflow-hidden group ${isActive
-                        ? 'bg-white border-indigo-100 shadow-xl shadow-indigo-500/10'
-                        : 'bg-transparent border-transparent hover:bg-gray-50'
-                        }`}
-                    >
-                      {isActive && (
-                        <div className="absolute bottom-0 left-0 h-1 bg-indigo-600 animate-[progress_5s_linear_infinite]" />
-                      )}
-                      <div className="flex gap-4">
-                        <div className={`mt-1 flex-shrink-0 w-10 h-10 rounded-2xl flex items-center justify-center transition-colors duration-500 ${isActive ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-400 group-hover:bg-gray-200'
-                          }`}>
-                          {step.icon}
-                        </div>
-                        <div className="space-y-1">
-                          <h3 className={`text-lg font-bold transition-colors duration-500 ${isActive ? 'text-gray-900' : 'text-gray-500'}`}>
-                            {step.title}
-                          </h3>
-                          <p className={`text-sm leading-relaxed transition-colors duration-500 ${isActive ? 'text-gray-600' : 'text-gray-400'}`}>
-                            {step.description}
-                          </p>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Right Side: Visual Sandbox */}
-              <div className="relative aspect-square sm:aspect-video lg:aspect-square bg-gray-50 rounded-[40px] border border-gray-100 overflow-hidden shadow-2xl">
-                {/* Visual Step 1: Upload */}
-                <div className={`absolute inset-0 p-8 flex flex-col items-center justify-center transition-all duration-700 ${activeStep === 0 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-95 pointer-events-none'
-                  }`}>
-                  <div className="w-full max-w-sm aspect-square bg-white border-2 border-dashed border-gray-200 rounded-3xl flex flex-col items-center justify-center gap-4 relative overflow-hidden group">
-                    <div className="w-16 h-16 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 animate-bounce">
-                      <ShoppingBag className="w-8 h-8" />
-                    </div>
-                    <p className="text-sm font-semibold text-gray-900">Drop your product photo here</p>
-                    <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    {/* Simulated pulse effect */}
-                    <div className="absolute inset-x-8 bottom-8 h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-indigo-600 w-full origin-left animate-[loading_2s_ease-in-out_infinite]" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Visual Step 2: Choose */}
-                <div className={`absolute inset-0 p-8 flex flex-col items-center justify-center transition-all duration-700 ${activeStep === 1 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-95 pointer-events-none'
-                  }`}>
-                  <div className="w-full max-w-sm space-y-6">
-                    <div className="bg-white p-4 rounded-3xl shadow-lg border border-gray-100 grid grid-cols-2 gap-3">
-                      <div className="aspect-square rounded-2xl bg-indigo-600 flex flex-col items-center justify-center text-white gap-2 border-4 border-indigo-200">
-                        <Zap className="w-8 h-8" />
-                        <span className="text-xs font-bold uppercase tracking-widest text-white/90">Lifestyle</span>
-                      </div>
-                      <div className="aspect-square rounded-2xl bg-gray-50 flex flex-col items-center justify-center text-gray-400 gap-2 grayscale">
-                        <ShoppingBag className="w-8 h-8" />
-                        <span className="text-xs font-bold uppercase tracking-widest">Studio</span>
-                      </div>
-                    </div>
-                    <div className="bg-white p-4 rounded-3xl shadow-lg border border-gray-100 flex items-center justify-between">
-                      <span className="text-xs font-bold tracking-widest uppercase text-gray-400">Atmosphere</span>
-                      <div className="flex gap-1">
-                        {[1, 2, 3, 4].map(i => <div key={i} className={`w-6 h-6 rounded-lg ${i === 1 ? 'bg-indigo-600' : 'bg-gray-100'}`} />)}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Visual Step 3: Generate */}
-                <div className={`absolute inset-0 p-8 flex flex-col items-center justify-center transition-all duration-700 ${activeStep === 2 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-95 pointer-events-none'
-                  }`}>
-                  <div className="w-full max-w-sm aspect-square relative rounded-3xl overflow-hidden shadow-2xl group">
-                    <img
-                      src="/images/home/Lifestyle-UGC.webp"
-                      alt="UGC Mockup"
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-6">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                        <span className="text-xs font-bold text-white uppercase tracking-widest">Visual Generated</span>
-                      </div>
-                    </div>
-                    {/* Scanner animation */}
-                    <div className="absolute inset-x-0 top-0 h-1 bg-indigo-400 shadow-[0_0_15px_rgba(129,140,248,0.8)] animate-[scan_3s_ease-in-out_infinite]" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="bg-gray-50 border-y border-gray-200">
-          <div className="max-w-6xl mx-auto px-6 py-16 space-y-10">
-            <div className="text-center space-y-3">
-              <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Product vs lifestyle</p>
-              <h2 className="text-3xl text-gray-900 font-semibold">Two modes. One visual system.</h2>
-              <p className="text-gray-600 max-w-3xl mx-auto mt-3">
-                Product and Lifestyle never mix. You always control the intent before generating.
-              </p>
-            </div>
-
-            <div className="grid gap-5 md:grid-cols-2">
-              <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-left space-y-3">
-                <p className="text-gray-900 text-lg font-semibold">Product (Studio)</p>
-                <p className="text-gray-600 text-sm">
-                  Use when clarity and control matter. Perfect for PDPs, marketplaces and catalogs.
-                </p>
-              </div>
-              <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-left space-y-3">
-                <p className="text-gray-900 text-lg font-semibold">Lifestyle</p>
-                <p className="text-gray-600 text-sm">
-                  Use when context and emotion drive conversion. Choose UGC for authenticity or Editorial for polish.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="max-w-6xl mx-auto px-6 py-14 space-y-10">
+      <section className="bg-white dark:bg-black border-b border-gray-100 dark:border-white/5">
+        <div className="max-w-6xl mx-auto px-6 py-16 space-y-10">
           <div className="text-center space-y-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Why brands use Perfect Mockup</p>
-            <h2 className="text-3xl text-gray-900 font-semibold">Built for product brands that move fast</h2>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            {[
-              'Faster launches without photoshoots',
-              'Consistent visuals across channels',
-              'No dependency on freelancers',
-              'Clear separation between product and lifestyle visuals',
-              'Scales from one SKU to full catalogs',
-            ].map(item => (
-              <div
-                key={item}
-                className="rounded-2xl border border-gray-200 bg-gray-50 p-5 flex items-start gap-3"
-              >
-                <Zap className="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" />
-                <p className="text-gray-900 text-sm leading-relaxed">{item}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="max-w-6xl mx-auto px-6 py-14 space-y-10">
-          <div className="text-center space-y-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Why Perfect Mockup is different</p>
-            <h2 className="text-3xl text-gray-900 font-semibold">Not another image generator</h2>
+            <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Preview</p>
+            <h2 className="text-3xl text-gray-900 font-semibold">See what you can create</h2>
             <p className="text-gray-600 max-w-3xl mx-auto mt-3">
-              Perfect Mockup is a visual decision system, not a random generator.
+              Choose Product or Lifestyle to match your goal. UGC feels authentic. Editorial feels premium.
             </p>
           </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            {[
-              'Intent comes before generation',
-              'Product and lifestyle are never confused',
-              'Visuals are designed for commerce outcomes',
-              'Built specifically for ecommerce workflows',
-            ].map(item => (
-              <div
-                key={item}
-                className="rounded-2xl border border-gray-200 bg-gray-50 p-5 flex items-start gap-3"
-              >
-                <CheckCircle2 className="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" />
-                <p className="text-gray-900 text-sm leading-relaxed">{item}</p>
-              </div>
-            ))}
-          </div>
-        </section>
 
-        <section className="max-w-6xl mx-auto px-6 py-14 space-y-10">
-          <div className="text-center space-y-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Who it’s for</p>
-            <h2 className="text-3xl text-gray-900 font-semibold">Designed for ecommerce teams</h2>
-          </div>
-          <div className="flex flex-wrap justify-center gap-3 text-sm text-gray-600">
-            {[
-              { label: 'DTC brands', icon: <ShoppingBag className="w-4 h-4" /> },
-              { label: 'Ecommerce founders', icon: <Zap className="w-4 h-4" /> },
-              { label: 'Marketing teams', icon: <Users2 className="w-4 h-4" /> },
-              { label: 'Performance marketers', icon: <Zap className="w-4 h-4" /> },
-              { label: 'Agencies working with product brands', icon: <Users2 className="w-4 h-4" /> },
-            ].map(item => (
-              <span
-                key={item.label}
-                className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2"
-              >
-                {item.icon}
-                {item.label}
-              </span>
-            ))}
-          </div>
-        </section>
-
-        <section className="bg-gray-50 border-y border-gray-200">
-          <div className="max-w-6xl mx-auto px-6 py-16 space-y-10">
-            <div className="text-center space-y-3">
-              <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Resources</p>
-              <h2 className="text-3xl text-gray-900 font-semibold">Latest from our Blog</h2>
-              <p className="text-gray-600 max-w-3xl mx-auto mt-3">
-                Insights, guides, and tactics to help you win with AI-driven visuals.
-              </p>
-            </div>
-
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {blogArticles.map(article => (
-                <Link
-                  key={article.slug}
-                  to={`/blog/${article.slug}`}
-                  className="group flex flex-col rounded-2xl border border-gray-200 bg-white overflow-hidden transition transform hover:-translate-y-1 hover:border-indigo-600 shadow-sm"
+          <div className="grid gap-6 lg:grid-cols-[340px,1fr] items-start lg:items-stretch">
+            <div className="space-y-3">
+              {previewModes.map(mode => (
+                <button
+                  key={mode.id}
+                  type="button"
+                  onClick={() => setActivePreview(mode.id)}
+                  className={`w-full text-left rounded-xl border p-4 transition-all duration-300 ${activePreview === mode.id
+                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-500/20'
+                    : 'border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/10'
+                    }`}
                 >
-                  <div className="aspect-video w-full bg-gray-100 relative overflow-hidden">
-                    <img
-                      src={article.heroImage.url || `/blog/heroes/${article.slug}.webp`}
-                      alt={article.heroImage.alt}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-                  <div className="flex-1 p-5 space-y-3">
-                    <h3 className="text-lg font-semibold text-gray-900 leading-tight group-hover:text-indigo-600 transition-colors">
-                      {article.title}
-                    </h3>
-                    <p className="text-sm text-gray-600 line-clamp-3">
-                      {article.subtitle}
-                    </p>
-                    <div className="mt-auto pt-4 flex items-center gap-1 text-sm font-medium text-indigo-600">
-                      Read article <ArrowRight className="w-4 h-4" />
-                    </div>
-                  </div>
-                </Link>
+                  <p className={`font-semibold transition-colors ${activePreview === mode.id ? 'text-white' : 'text-gray-900 dark:text-white'}`}>{mode.title}</p>
+                  <p className={`text-sm mt-1 transition-colors ${activePreview === mode.id ? 'text-white/80' : 'text-gray-600 dark:text-gray-400'}`}>
+                    {mode.description}
+                  </p>
+                </button>
               ))}
             </div>
 
-            <div className="text-center mt-8">
-              <Link
-                to="/blog"
-                className="inline-flex items-center justify-center rounded-full border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-gray-600 hover:border-indigo-600 hover:text-gray-900 transition shadow-sm"
-              >
-                View All Articles
-              </Link>
+            <div className="relative overflow-hidden rounded-xl border border-gray-100 bg-white min-h-[320px] sm:min-h-[420px] lg:min-h-0 lg:h-full">
+              <img
+                src={activePreviewMode.image}
+                alt={activePreviewMode.title}
+                className="h-full w-full object-cover"
+                loading="lazy"
+              />
+              <div className="absolute bottom-4 left-4 right-4 rounded-xl bg-white/90 backdrop-blur-sm border border-gray-100 px-4 py-3 text-sm">
+                <p className="text-gray-900 font-semibold">{activePreviewMode.title}</p>
+              </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section id="pricing" className="relative isolate mt-10 px-4 py-20 sm:px-6 lg:px-8">
-          <div className="absolute inset-0 -z-10 rounded-3xl bg-gray-50" />
-          <div className="max-w-6xl mx-auto text-gray-900 space-y-12">
-            <div className="text-center space-y-4">
-              <p className="text-sm uppercase tracking-[0.4em] text-indigo-600">Pricing</p>
-              <h2 className="text-3xl sm:text-4xl font-extrabold">Plans built for launch velocity</h2>
-              <p className="text-base text-gray-600 max-w-2xl mx-auto">
-                Scale your visuals as your products and campaigns grow.
-              </p>
-              <div className="mt-6 flex justify-center">
-                <div className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 shadow-md shadow-md shadow-indigo-500/20">
-                  <span className="text-sm text-gray-600">Billed monthly</span>
-                  <label
-                    className="relative inline-flex cursor-pointer items-center"
-                    aria-label="Toggle between monthly and annual billing"
+      <section className="bg-indigo-50/20 dark:bg-indigo-500/[0.02] border-b border-gray-100 dark:border-white/5 overflow-hidden">
+        <div className="max-w-6xl mx-auto px-6 py-20 space-y-12">
+          <div className="text-center space-y-3">
+            <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">How it works</p>
+            <h2 className="text-3xl sm:text-4xl text-gray-900 font-bold tracking-tight">From product to visuals in minutes</h2>
+          </div>
+
+          <div className="grid gap-12 lg:grid-cols-2 items-center">
+            {/* Left Side: Step Cards */}
+            <div
+              className="space-y-4"
+              onMouseEnter={() => setIsHoveringSteps(true)}
+              onMouseLeave={() => setIsHoveringSteps(false)}
+            >
+              {steps.map((step, index) => {
+                const isActive = activeStep === index;
+                return (
+                  <button
+                    key={index}
+                    onClick={() => setActiveStep(index)}
+                    className={`w-full text-left p-6 rounded-xl border transition-all duration-500 relative overflow-hidden group ${isActive
+                      ? 'bg-white dark:bg-white/10 border-indigo-100 dark:border-indigo-500/30'
+                      : 'bg-transparent border-transparent hover:bg-gray-50 dark:hover:bg-white/5'
+                      }`}
                   >
-                    <input
-                      type="checkbox"
-                      className="sr-only peer"
-                      checked={billingCycle === 'yearly'}
-                      onChange={handleBillingToggle}
-                    />
-                    <div className="h-6 w-12 rounded-full bg-gray-50 transition peer-checked:bg-indigo-600 text-white" />
-                    <span className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow transition peer-checked:translate-x-6" />
-                  </label>
-                  <span className="text-sm text-gray-600">
-                    Billed yearly{' '}
-                    <span className="ml-1 rounded-full bg-indigo-600 text-white px-2 py-0.5 text-xs">
-                      Save 20%
-                    </span>
-                  </span>
+                    {isActive && (
+                      <div className="absolute bottom-0 left-0 h-1 bg-indigo-600 animate-[progress_5s_linear_infinite]" />
+                    )}
+                    <div className="flex gap-4">
+                      <div className={`mt-1 flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-500 ${isActive ? 'bg-indigo-600 text-white' : 'bg-gray-100 dark:bg-white/5 text-gray-400 dark:text-gray-500 group-hover:bg-gray-200 dark:group-hover:bg-white/10'
+                        }`}>
+                        {step.icon}
+                      </div>
+                      <div className="space-y-1">
+                        <h3 className={`text-lg font-bold transition-colors duration-500 ${isActive ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}>
+                          {step.title}
+                        </h3>
+                        <p className={`text-sm leading-relaxed transition-colors duration-500 ${isActive ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'}`}>
+                          {step.description}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Right Side: Visual Sandbox */}
+            <div className="relative aspect-square sm:aspect-video lg:aspect-square bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10 overflow-hidden shadow-inner">
+              {/* Visual Step 1: Upload */}
+              <div className={`absolute inset-0 p-8 flex flex-col items-center justify-center transition-all duration-700 ${activeStep === 0 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-95 pointer-events-none'
+                }`}>
+                <div className="w-full max-w-sm aspect-square bg-white border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center gap-4 relative overflow-hidden group">
+                  <div className="w-16 h-16 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 animate-bounce">
+                    <ShoppingBag className="w-8 h-8" />
+                  </div>
+                  <p className="text-sm font-semibold text-gray-900">Drop your product photo here</p>
+                  <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  {/* Simulated pulse effect */}
+                  <div className="absolute inset-x-8 bottom-8 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-indigo-600 w-full origin-left animate-[loading_2s_ease-in-out_infinite]" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Visual Step 2: Choose */}
+              <div className={`absolute inset-0 p-8 flex flex-col items-center justify-center transition-all duration-700 ${activeStep === 1 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-95 pointer-events-none'
+                }`}>
+                <div className="w-full max-w-sm space-y-6">
+                  <div className="bg-white p-4 rounded-xl border border-gray-100 grid grid-cols-2 gap-3">
+                    <div className="aspect-square rounded-2xl bg-indigo-600 flex flex-col items-center justify-center text-white gap-2 border-4 border-indigo-200">
+                      <Zap className="w-8 h-8" />
+                      <span className="text-xs font-bold uppercase tracking-widest text-white/90">Lifestyle</span>
+                    </div>
+                    <div className="aspect-square rounded-2xl bg-gray-50 flex flex-col items-center justify-center text-gray-400 gap-2 grayscale">
+                      <ShoppingBag className="w-8 h-8" />
+                      <span className="text-xs font-bold uppercase tracking-widest">Studio</span>
+                    </div>
+                  </div>
+                  <div className="bg-white p-4 rounded-xl border border-gray-100 flex items-center justify-between">
+                    <span className="text-xs font-bold tracking-widest uppercase text-gray-400">Atmosphere</span>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4].map(i => <div key={i} className={`w-6 h-6 rounded-lg ${i === 1 ? 'bg-indigo-600' : 'bg-gray-100'}`} />)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Visual Step 3: Generate */}
+              <div className={`absolute inset-0 p-8 flex flex-col items-center justify-center transition-all duration-700 ${activeStep === 2 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-95 pointer-events-none'
+                }`}>
+                <div className="w-full max-w-sm aspect-square relative rounded-xl overflow-hidden group">
+                  <img
+                    src="/images/home/Lifestyle-UGC.webp"
+                    alt="UGC Mockup"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-6">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                      <span className="text-xs font-bold text-white uppercase tracking-widest">Visual Generated</span>
+                    </div>
+                  </div>
+                  {/* Scanner animation */}
+                  <div className="absolute inset-x-0 top-0 h-1 bg-indigo-400 shadow-[0_0_15px_rgba(129,140,248,0.8)] animate-[scan_3s_ease-in-out_infinite]" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Bento: Product vs Lifestyle */}
+      <section className="bg-white dark:bg-black py-24 border-b border-gray-100 dark:border-white/5 overflow-hidden">
+        <div className="max-w-6xl mx-auto px-6 space-y-16">
+          <div className="text-center space-y-4">
+            <span className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50">
+              Core Philosophy
+            </span>
+            <h2 className="text-4xl md:text-5xl text-gray-900 font-bold tracking-tight">Two modes. One visual system.</h2>
+            <p className="text-gray-500 max-w-2xl mx-auto text-lg leading-relaxed">
+              Product and Lifestyle never mix. You always control the intent before generating.
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-12 gap-6 h-full lg:h-[480px]">
+            {/* Studio Mode Card */}
+            <div className="lg:col-span-12 xl:col-span-5 bg-gray-900 rounded-xl overflow-hidden relative group border border-gray-800">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
+              <img
+                src="/images/home/Studio-Hero.webp"
+                alt="Studio Mode"
+                className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute inset-x-0 bottom-0 p-8 z-20 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+                  <span className="text-[10px] text-indigo-300 font-bold uppercase tracking-[0.2em]">PDP Ready</span>
+                </div>
+                <h3 className="text-2xl font-bold text-white">Product (Studio)</h3>
+                <p className="text-gray-400 text-sm leading-relaxed max-w-sm">
+                  Use when clarity and control matter. Perfect for marketplaces, catalogs, and clean e-commerce listings.
+                </p>
+              </div>
+            </div>
+
+            {/* Lifestyle Mode Card */}
+            <div className="lg:col-span-12 xl:col-span-7 bg-indigo-600 rounded-xl overflow-hidden relative group border border-indigo-500">
+              <div className="absolute inset-0 bg-gradient-to-tr from-indigo-900/60 to-indigo-500/20 z-10" />
+              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
+              <img
+                src="/images/home/Lifestyle-UGC.webp"
+                alt="Lifestyle Mode"
+                className="absolute inset-0 w-full h-full object-cover opacity-50 blur-[2px] group-hover:blur-0 transition-all duration-700"
+              />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85%] aspect-video bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl z-20 overflow-hidden group/mini">
+                <div className="absolute inset-0 p-6 flex flex-col gap-4">
+                  <div className="flex justify-between items-start">
+                    <div className="px-3 py-1.5 bg-white rounded-lg text-gray-900 text-[10px] font-bold inline-flex items-center gap-2 shadow-sm">
+                      <Users2 className="w-3.5 h-3.5 text-indigo-600" />
+                      AI Intent Analysis
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="text-[10px] text-white/60 font-medium font-mono">Control: UGC Alpha</span>
+                      <div className="flex gap-0.5">
+                        {[1, 2, 3, 4, 5].map(i => <div key={i} className="w-1 h-3 bg-indigo-400 rounded-full" />)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 grid grid-cols-2 gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
+                    <div className="space-y-2">
+                      {[
+                        { label: 'Person', value: 'Woman, 25-30' },
+                        { label: 'Expression', value: 'Natural Smile' },
+                        { label: 'Action', value: 'Holding Product' }
+                      ].map(tag => (
+                        <div key={tag.label} className="bg-black/20 border border-white/10 p-2 rounded-lg backdrop-blur-sm">
+                          <p className="text-[8px] text-white/40 uppercase font-bold tracking-widest">{tag.label}</p>
+                          <p className="text-[10px] text-white font-medium">{tag.value}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="space-y-2 translate-y-4">
+                      {[
+                        { label: 'Lighting', value: 'Golden Hour' },
+                        { label: 'Focus', value: 'Product First' },
+                        { label: 'Mood', value: 'Authentic' }
+                      ].map(tag => (
+                        <div key={tag.label} className="bg-indigo-500/20 border border-indigo-400/20 p-2 rounded-lg backdrop-blur-sm">
+                          <p className="text-[8px] text-white/40 uppercase font-bold tracking-widest">{tag.label}</p>
+                          <p className="text-[10px] text-white font-medium">{tag.value}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="absolute inset-x-0 bottom-0 p-8 z-30 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                  <span className="text-[10px] text-white/80 font-bold uppercase tracking-[0.2em]">Conversion Focus</span>
+                </div>
+                <h3 className="text-2xl font-bold text-white">Lifestyle (UGC & Editorial)</h3>
+                <p className="text-indigo-100 text-sm leading-relaxed max-w-md">
+                  Use when context and emotion drive conversion. Choose UGC for authenticity or Editorial for brand polish.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Bento: The Advantage Grid */}
+      <section className="bg-gray-50/50 dark:bg-white/[0.02] py-24 border-b border-gray-100 dark:border-white/5">
+        <div className="max-w-6xl mx-auto px-6 space-y-16">
+          <div className="text-center space-y-4">
+            <span className="text-indigo-600 text-xs font-bold uppercase tracking-[0.2em]">Why Perfect Mockup</span>
+            <h2 className="text-3xl md:text-4xl text-gray-900 font-bold tracking-tight">Built for brands that move at the speed of social</h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 md:grid-rows-2 gap-4 h-auto lg:h-[600px]">
+            {/* Feature 1: Fast Launches */}
+            <div className="md:row-span-2 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10 p-8 flex flex-col justify-between group hover:bg-gray-50 dark:hover:bg-white/10 transition-all duration-500 ease-out">
+              <div className="space-y-4">
+                <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 transition-transform duration-500 group-hover:scale-110">
+                  <Zap className="w-6 h-6" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Faster launches without photoshoots</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+                  Stop waiting for studio availability and retouching. Generate launching-ready visuals for new SKUs in minutes.
+                </p>
+              </div>
+              <div className="pt-8 opacity-20 group-hover:opacity-100 transition-opacity duration-500">
+                <div className="space-y-2">
+                  <div className="h-1 bg-indigo-100 dark:bg-indigo-900/30 w-full rounded-full overflow-hidden">
+                    <div className="h-full bg-indigo-600 dark:bg-indigo-400 w-[80%] animate-[loading_3s_infinite]" />
+                  </div>
+                  <div className="flex justify-between text-[10px] font-bold text-indigo-600/50 dark:text-indigo-400/50 uppercase">
+                    <span>Studio Session</span>
+                    <span>0m 22s</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {pricing.map(plan => {
-                const isYearly = billingCycle === 'yearly';
-                const cadenceLabel = isYearly ? plan.yearlyCaption : plan.monthlyCaption;
-                const displayedPrice = isYearly ? plan.yearlyPrice : plan.monthlyPrice;
-                const baseCard =
-                  'group relative rounded-3xl border p-6 flex flex-col gap-6 hover:scale-[1.01] transition duration-300';
-                const cardClasses = plan.featured
-                  ? `${baseCard} border-indigo-600 bg-gray-50 shadow-md shadow-md shadow-indigo-500/20`
-                  : `${baseCard} border-gray-200 bg-gray-50`;
+            {/* Feature 2: Consistency */}
+            <div className="md:col-span-2 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10 p-8 group hover:bg-gray-50 dark:hover:bg-white/10 transition-all duration-500 ease-out overflow-hidden relative">
+              <div className="relative z-10 space-y-2">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Consistent visuals across all channels</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm max-w-md">
+                  Maintain a unified brand language whether you are launching on Amazon, Shopify or TikTok.
+                </p>
+              </div>
+              <div className="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-indigo-50/50 dark:from-indigo-900/20 to-transparent flex items-center justify-center">
+                <div className="grid grid-cols-2 gap-2 rotate-12 scale-125 opacity-40 dark:opacity-20">
+                  {[1, 2, 3, 4].map(i => <div key={i} className="w-12 h-12 bg-gray-100 dark:bg-white/10 rounded-lg border border-gray-200 dark:border-white/20" />)}
+                </div>
+              </div>
+            </div>
 
-                return (
-                  <article key={plan.name} className={cardClasses}>
-                    {plan.badge && (
-                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-indigo-600 text-white px-3 py-1 text-xs font-semibold text-white">
-                        {plan.badge}
-                      </span>
-                    )}
-                    <header className="space-y-2">
-                      <p className="text-base font-semibold">{plan.name}</p>
-                      <div aria-live="polite" className="flex items-baseline gap-1 text-4xl font-bold text-gray-900">
+            {/* Feature 3: Different by Design */}
+            <div className="bg-gray-900 dark:bg-gray-900/50 rounded-xl p-8 flex flex-col justify-between group relative overflow-hidden border border-gray-800 dark:border-white/10">
+              <div className="absolute top-0 right-0 p-4">
+                <CheckCircle2 className="w-6 h-6 text-indigo-400 opacity-20 group-hover:opacity-100 transition-opacity" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-bold text-white">Visual Decision System</h3>
+                <p className="text-indigo-200/60 text-sm leading-tight">
+                  Not just another random generator. Every pixel is driven by visual intent.
+                </p>
+              </div>
+              <div className="pt-6">
+                <span className="text-xs font-bold text-white uppercase tracking-widest bg-white/10 px-3 py-1 rounded-full border border-white/10">Architecture</span>
+              </div>
+            </div>
+
+            {/* Feature 4: Scalability */}
+            <div className="bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10 p-8 flex flex-col justify-between group hover:bg-gray-50 dark:hover:bg-white/10 transition-all duration-500 ease-out">
+              <div className="space-y-2">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Scales at infinite speed</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">
+                  From your first MVP to 500+ SKUs. Our visual system handles catalogs without overhead.
+                </p>
+              </div>
+              <div className="flex gap-1 group-hover:gap-1.5 transition-all">
+                {[1, 2, 3, 4, 5].map(i => <div key={i} className="h-6 w-1 space-y-1 bg-indigo-100 dark:bg-indigo-900/50 rounded-full group-hover:bg-indigo-600 dark:group-hover:bg-indigo-400 transition-colors" />)}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Sophisticated Audience Cluster */}
+      <section className="bg-white dark:bg-black py-24 border-b border-gray-100 dark:border-white/5">
+        <div className="max-w-6xl mx-auto px-6 space-y-12">
+          <div className="text-center space-y-4">
+            <span className="text-indigo-600 text-[10px] font-bold uppercase tracking-[0.3em]">Perfect for Teams</span>
+            <h2 className="text-3xl font-bold text-gray-900">Designed for the modern ecommerce ecosystem</h2>
+          </div>
+
+          <div className="flex flex-wrap justify-center items-center gap-4 max-w-4xl mx-auto">
+            {[
+              { label: 'DTC Brands', weight: 'font-extrabold', size: 'text-2xl', color: 'text-indigo-600', bg: 'bg-indigo-50 border-indigo-100' },
+              { label: 'Founders', weight: 'font-semibold', size: 'text-xl', color: 'text-gray-900', bg: 'bg-gray-50 border-gray-200' },
+              { label: 'Marketing Teams', weight: 'font-bold', size: 'text-lg', color: 'text-indigo-600/80', bg: 'bg-indigo-50/50 border-indigo-100/50' },
+              { label: 'Creative Agencies', weight: 'font-medium', size: 'text-2xl', color: 'text-gray-900', bg: 'bg-gray-50 border-gray-200' },
+              { label: 'Performance Marketers', weight: 'font-bold', size: 'text-xl', color: 'text-indigo-600', bg: 'bg-indigo-50 border-indigo-100' },
+              { label: 'UX Designers', weight: 'font-normal', size: 'text-lg', color: 'text-gray-400', bg: 'bg-transparent border-gray-100' },
+              { label: 'Store Managers', weight: 'font-semibold', size: 'text-lg', color: 'text-gray-900', bg: 'bg-gray-50 border-gray-200' },
+            ].map((item, i) => (
+              <div
+                key={item.label}
+                className={`px-6 py-4 rounded-full border transition-all hover:scale-105 cursor-default flex items-center gap-3 ${item.bg} ${item.color} ${item.weight} ${item.size}`}
+                style={{ animationDelay: `${i * 0.1}s` }}
+              >
+                {item.label}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-indigo-50/50 dark:bg-white/5 border-y border-indigo-100 dark:border-white/10">
+        <div className="max-w-6xl mx-auto px-6 py-24 space-y-10">
+          <div className="text-center space-y-3">
+            <p className="text-xs uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-400">Resources</p>
+            <h2 className="text-3xl text-gray-900 dark:text-white font-semibold">Latest from our Blog</h2>
+            <p className="text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mt-3">
+              Insights, guides, and tactics to help you win with AI-driven visuals.
+            </p>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {blogArticles.map(article => (
+              <Link
+                key={article.slug}
+                to={`/blog/${article.slug}`}
+                className="group flex flex-col rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:bg-gray-50 dark:hover:bg-white/10"
+              >
+                <div className="aspect-video w-full bg-gray-100 dark:bg-black/20 relative overflow-hidden">
+                  <img
+                    src={article.heroImage.url || `/blog/heroes/${article.slug}.webp`}
+                    alt={article.heroImage.alt}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                </div>
+                <div className="flex-1 p-5 space-y-3">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white leading-tight transition-colors duration-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                    {article.title}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
+                    {article.subtitle}
+                  </p>
+                  <div className="mt-auto pt-4 flex items-center gap-1 text-sm font-medium text-indigo-600 dark:text-indigo-400">
+                    Read article <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          <div className="text-center mt-8">
+            <Link
+              to="/blog"
+              className="inline-flex items-center justify-center rounded-full border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 px-6 py-3 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/10 transition-all duration-300"
+            >
+              View All Articles
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section id="pricing" className="bg-white dark:bg-black relative isolate py-24 px-6 border-b border-gray-100 dark:border-white/5">
+        <div className="max-w-6xl mx-auto space-y-16">
+          <div className="text-center space-y-4">
+            <span className="text-indigo-600 text-[10px] font-bold uppercase tracking-[0.3em]">Scalable Pricing</span>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight">Plans built for launch velocity</h2>
+            <p className="text-gray-500 max-w-2xl mx-auto text-lg leading-relaxed">
+              Scale your visuals as your products and campaigns grow. No hidden fees.
+            </p>
+
+            <div className="mt-8 flex justify-center">
+              <div className="relative inline-flex items-center p-1 bg-gray-100/50 rounded-full border border-gray-200/50 min-w-[420px] isolation-auto h-12">
+                {/* Sliding background */}
+                <div
+                  className={`absolute inset-y-1 w-[calc(50%-4px)] rounded-full transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) shadow-md ${billingCycle === 'monthly' ? 'left-1 bg-white' : 'left-[50%] bg-indigo-600'
+                    }`}
+                />
+                <button
+                  onClick={() => billingCycle === 'yearly' && handleBillingToggle()}
+                  className={`flex-1 relative z-10 px-6 h-full rounded-full text-[12px] font-bold transition-colors duration-300 flex items-center justify-center whitespace-nowrap ${billingCycle === 'monthly' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                  Billed monthly
+                </button>
+                <button
+                  onClick={() => billingCycle === 'monthly' && handleBillingToggle()}
+                  className={`flex-1 relative z-10 px-6 h-full rounded-full text-[12px] font-bold transition-colors duration-300 flex items-center justify-center gap-3 whitespace-nowrap ${billingCycle === 'yearly' ? 'text-white' : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                  Billed yearly
+                  <span className={`px-2 py-0.5 rounded-md text-[10px] uppercase font-black tracking-wider transition-all duration-300 ${billingCycle === 'yearly' ? 'bg-white/20 text-white' : 'bg-indigo-100 text-indigo-600 shadow-sm'
+                    }`}>
+                    Save 20%
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+            {pricing.map(plan => {
+              const isYearly = billingCycle === 'yearly';
+              const cadenceLabel = isYearly ? plan.yearlyCaption : plan.monthlyCaption;
+              const displayedPrice = isYearly ? plan.yearlyPrice : plan.monthlyPrice;
+              const isFeatured = plan.featured;
+
+              return (
+                <article
+                  key={plan.name}
+                  className={`relative rounded-xl p-8 flex flex-col gap-8 transition-all duration-500 ease-out border ${isFeatured
+                    ? 'bg-gray-900 border-gray-800 scale-[1.02] z-10'
+                    : 'bg-white dark:bg-white/5 border-gray-100 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/10'
+                    }`}
+                >
+                  {isFeatured && (
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full ring-4 ring-white">
+                      Most Popular
+                    </div>
+                  )}
+
+                  <header className="space-y-4">
+                    <p className={`text-sm font-bold uppercase tracking-widest ${isFeatured ? 'text-indigo-400' : 'text-gray-500'}`}>
+                      {plan.name}
+                    </p>
+                    <div className="flex items-baseline gap-1">
+                      <span className={`text-5xl font-extrabold tracking-tight ${isFeatured ? 'text-white' : 'text-gray-900'}`}>
                         {displayedPrice}
-                        <span className="text-base font-medium text-gray-600">USD</span>
-                      </div>
-                      <p className="text-sm text-gray-600">{cadenceLabel}</p>
-                      <p className="sr-only">
-                        {displayedPrice} {cadenceLabel}
-                      </p>
-                    </header>
-                    <ul className="space-y-3 text-sm text-gray-900">
-                      {plan.highlights.map(item => (
-                        <li key={item} className="flex items-start gap-2">
-                          <CheckCircle2 className="w-4 h-4 text-indigo-600 mt-0.5 flex-shrink-0" />
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
+                      </span>
+                      <span className={`text-sm font-medium ${isFeatured ? 'text-gray-400' : 'text-gray-500'}`}>
+                        / {isYearly ? 'year' : 'mo'}
+                      </span>
+                    </div>
+                    <p className={`text-xs font-medium leading-relaxed ${isFeatured ? 'text-indigo-200/50' : 'text-gray-400'}`}>
+                      {cadenceLabel}
+                    </p>
+                  </header>
+
+                  <ul className="space-y-4 flex-1">
+                    {plan.highlights.map(item => (
+                      <li key={item} className="flex items-start gap-3">
+                        <CheckCircle2 className={`w-5 h-5 mt-0.5 flex-shrink-0 ${isFeatured ? 'text-indigo-400' : 'text-indigo-600'}`} />
+                        <span className={`text-sm ${isFeatured ? 'text-gray-300' : 'text-gray-600'}`}>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className="pt-4 mt-auto">
                     {(() => {
+                      const targetUrl = isYearly
+                        ? plan.yearlyUrl || plan.monthlyUrl || plan.checkoutUrl
+                        : plan.monthlyUrl || plan.checkoutUrl || plan.yearlyUrl;
+
                       if (plan.isFree) {
                         return (
                           <Link
                             to="/login"
-                            className="mt-auto w-full rounded-full border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-900 hover:border-indigo-600 text-center"
+                            className="block w-full text-center px-6 py-4 rounded-xl border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white font-bold text-sm hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
                           >
                             {plan.cta}
                           </Link>
                         );
                       }
-                      const isYearly = billingCycle === 'yearly';
-                      const targetUrl = isYearly
-                        ? plan.yearlyUrl || plan.monthlyUrl || plan.checkoutUrl
-                        : plan.monthlyUrl || plan.checkoutUrl || plan.yearlyUrl;
+
                       return (
                         <a
                           href={targetUrl || '#'}
-                          className={`mt-auto w-full rounded-full px-4 py-3 text-sm font-semibold transition text-center ${plan.featured
-                            ? 'bg-white text-gray-900 hover:bg-gray-50'
-                            : 'bg-indigo-600 text-white hover:bg-indigo-600 text-white'
+                          className={`block w-full text-center px-6 py-4 rounded-xl font-bold text-sm transition ${isFeatured
+                            ? 'bg-white text-gray-900 hover:bg-gray-100'
+                            : 'bg-indigo-600 text-white hover:bg-indigo-700'
                             }`}
                         >
                           {plan.cta}
                         </a>
                       );
                     })()}
-                  </article>
-                );
-              })}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          <p className="text-center text-sm text-gray-600">
+            1 credit equals 1 image generation in Fast Mode. PRO mode consumes 3 credits per execution.
+          </p>
+
+          {selectedPlan && (
+            <PlanCheckoutModal
+              plan={selectedPlan}
+              email={checkoutEmail}
+              onEmailChange={setCheckoutEmail}
+              onClose={handleCloseCheckout}
+              onConfirm={handleConfirmCheckout}
+              disabledReason={
+                !selectedPlan.checkoutUrl
+                  ? 'Stripe payment link missing. Configure VITE_STRIPE_LINK variables.'
+                  : checkoutError
+              }
+            />
+          )}
+
+          <div className="flex flex-col items-center gap-3 text-sm text-gray-600">
+            <div className="inline-flex items-center gap-2 text-gray-600 font-medium">
+              <CreditCard className="w-4 h-4 text-indigo-600" />
+              Payments processed by Stripe
             </div>
-
-            <p className="text-center text-sm text-gray-600">
-              1 credit equals 1 image generation in Fast Mode. PRO mode consumes 3 credits per execution.
-            </p>
-
-            {selectedPlan && (
-              <PlanCheckoutModal
-                plan={selectedPlan}
-                email={checkoutEmail}
-                onEmailChange={setCheckoutEmail}
-                onClose={handleCloseCheckout}
-                onConfirm={handleConfirmCheckout}
-                disabledReason={
-                  !selectedPlan.checkoutUrl
-                    ? 'Stripe payment link missing. Configure VITE_STRIPE_LINK variables.'
-                    : checkoutError
-                }
-              />
-            )}
-
-            <div className="flex flex-col items-center gap-3 text-sm text-gray-600">
-              <div className="inline-flex items-center gap-2 text-gray-600 font-medium">
-                <CreditCard className="w-4 h-4 text-indigo-600" />
-                Payments processed by Stripe
-              </div>
-              <div className="flex flex-wrap justify-center gap-2">
-                {paymentMethods.map(method => (
-                  <span
-                    key={method}
-                    className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-600"
-                  >
-                    {method}
-                  </span>
-                ))}
-              </div>
+            <div className="flex flex-wrap justify-center gap-2">
+              {paymentMethods.map(method => (
+                <span
+                  key={method}
+                  className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-600"
+                >
+                  {method}
+                </span>
+              ))}
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section className="max-w-4xl mx-auto px-6 py-16 text-center border-t border-gray-200">
-          <p className="text-sm uppercase tracking-[0.3em] text-indigo-600">Final CTA</p>
-          <h2 className="mt-4 text-3xl text-gray-900 font-semibold">Launch products with visuals that convert</h2>
-          <p className="mt-3 text-gray-600">
-            Create product and lifestyle mockups ready for ecommerce, ads and social. No photoshoots required.
+      <section className="bg-gray-900 dark:bg-white/[0.03] py-24 text-center">
+        <div className="max-w-4xl mx-auto px-6">
+          <h2 className="text-4xl md:text-5xl text-white font-bold tracking-tight">
+            Launch Products with Visuals That Convert
+          </h2>
+          <p className="mt-6 text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
+            Create ecommerce-ready product and lifestyle mockups for ads, product pages, and social. No photoshoots required.
           </p>
-          <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
+          <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4">
             <Link
               to="/login"
-              className="inline-flex items-center justify-center rounded-full bg-indigo-600 text-white px-8 py-4 font-semibold text-white shadow-md shadow-md shadow-indigo-500/20 hover:bg-indigo-600 text-white transition"
+              className="inline-flex items-center justify-center rounded-xl bg-indigo-600 text-white px-10 py-5 font-bold text-sm transition-all hover:bg-indigo-700 shadow-xl shadow-indigo-600/20 hover:shadow-indigo-600/30 hover:-translate-y-0.5 active:scale-[0.98]"
             >
               Start Creating Mockups
+              <ArrowRight className="ml-2 w-4 h-4" />
             </Link>
             <button
               onClick={handleSmoothScroll('#pricing')}
-              className="inline-flex items-center justify-center rounded-full border border-gray-200 px-8 py-4 font-semibold text-gray-600 hover:border-indigo-600 hover:text-gray-900 transition"
+              className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-10 py-5 font-bold text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-all"
             >
               View Pricing
             </button>
           </div>
-        </section>
-      </main>
+        </div>
+      </section>
     </div>
   );
 };

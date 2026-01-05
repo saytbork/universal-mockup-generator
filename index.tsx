@@ -17,7 +17,8 @@ import TermsPage from './TermsPage';
 import Login from './src/pages/Login';
 import Dashboard from './src/pages/Dashboard';
 import BlogArticlePage from './BlogArticlePage';
-import { TooltipProvider } from '@/components/ui/tooltip';
+import GuideArticlePage from './GuideArticlePage';
+import { TooltipProvider } from './src/components/ui/tooltip';
 
 class RootErrorBoundary extends React.Component<
   React.PropsWithChildren,
@@ -39,7 +40,7 @@ class RootErrorBoundary extends React.Component<
 
     return (
       <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-black dark:text-white flex items-center justify-center px-6">
-        <div className="w-full max-w-xl rounded-3xl border border-gray-200 bg-white p-8 space-y-4 shadow-md shadow-md shadow-indigo-500/20">
+        <div className="w-full max-w-xl rounded-xl border border-gray-200 bg-white p-8 space-y-4 shadow-md shadow-md shadow-indigo-500/20">
           <div className="text-xs uppercase tracking-[0.35em] text-indigo-600">Perfect Mockup</div>
           <h1 className="text-2xl font-semibold">Something went wrong</h1>
           <p className="text-sm text-gray-600">
@@ -96,6 +97,7 @@ root.render(
             <Route path="/blog" element={<MarketingLayout><BlogPage /></MarketingLayout>} />
             <Route path="/blog/:slug" element={<MarketingLayout><BlogArticlePage /></MarketingLayout>} />
             <Route path="/guides" element={<MarketingLayout><GuidesPage /></MarketingLayout>} />
+            <Route path="/guides/:slug" element={<MarketingLayout><GuideArticlePage /></MarketingLayout>} />
             <Route path="/faq" element={<MarketingLayout><FAQPage /></MarketingLayout>} />
             <Route path="/privacy" element={<MarketingLayout><PrivacyPage /></MarketingLayout>} />
             <Route path="/terms" element={<MarketingLayout><TermsPage /></MarketingLayout>} />

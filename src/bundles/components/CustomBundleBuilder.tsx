@@ -52,49 +52,48 @@ const CustomBundleBuilder: React.FC<CustomBundleBuilderProps> = ({
           Upload product photos to build your own bundle.
         </p>
       ) : (
-          <div className="grid gap-3 sm:grid-cols-3">
-            {visibleProductIds.map(productId => {
-              const meta = productMediaLibrary[productId];
-              console.log('DEBUG productMeta (custom):', meta);
-              const isChecked = filteredSelection.includes(productId);
+        <div className="grid gap-3 sm:grid-cols-3">
+          {visibleProductIds.map(productId => {
+            const meta = productMediaLibrary[productId];
+            console.log('DEBUG productMeta (custom):', meta);
+            const isChecked = filteredSelection.includes(productId);
             return (
               <label
                 key={productId}
-                className={`flex flex-col gap-2 rounded-2xl border px-3 py-3 ${
-                  isChecked
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500'
-                  : 'border-gray-200 bg-whiteTint text-gray-600'
-              }`}
-            >
-              <div className="flex items-center gap-2 text-sm font-semibold">
-                <input
-                  type="checkbox"
-                  checked={isChecked}
-                  onChange={() => toggleProduct(productId)}
-                  className="h-4 w-4 rounded border-gray-200 text-indigo-600 focus:ring-indigo-500"
-                />
-                {meta?.label || productId}
-              </div>
-              <div className="relative h-28 w-full overflow-hidden rounded-xl bg-whiteTint">
-                {meta?.imageUrl && (
-                  <img
-                    src={meta.imageUrl}
-                    className="h-full w-full object-cover"
+                className={`flex flex-col gap-2 rounded-xl border px-3 py-3 ${isChecked
+                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500'
+                    : 'border-gray-200 bg-whiteTint text-gray-600'
+                  }`}
+              >
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={() => toggleProduct(productId)}
+                    className="h-4 w-4 rounded border-gray-200 text-indigo-600 focus:ring-indigo-500"
                   />
-                )}
-                {!meta?.imageUrl && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-whiteTint text-[10px] font-semibold text-gray-500">
-                    Upload to fill
-                  </div>
-                )}
-              </div>
-            </label>
-          );
-        })}
+                  {meta?.label || productId}
+                </div>
+                <div className="relative h-28 w-full overflow-hidden rounded-xl bg-whiteTint">
+                  {meta?.imageUrl && (
+                    <img
+                      src={meta.imageUrl}
+                      className="h-full w-full object-cover"
+                    />
+                  )}
+                  {!meta?.imageUrl && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-whiteTint text-[10px] font-semibold text-gray-500">
+                      Upload to fill
+                    </div>
+                  )}
+                </div>
+              </label>
+            );
+          })}
         </div>
       )}
       {filteredSelection.length > 0 && (
-        <div className="rounded-2xl border border-gray-200 bg-whiteTint p-3 space-y-2">
+        <div className="rounded-xl border border-gray-200 bg-whiteTint p-3 space-y-2">
           <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">
             Selected bundle ({filteredSelection.length})
           </p>

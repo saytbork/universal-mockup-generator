@@ -51,7 +51,7 @@ const SiteNav: React.FC = () => {
           Resources <span className="text-xs">▾</span>
         </button>
         {showResources && (
-          <div className="absolute right-0 mt-2 bg-white text-gray-900 shadow-md shadow-md shadow-indigo-500/20 rounded-2xl border border-gray-200 p-4 flex-col gap-2 min-w-[180px]">
+          <div className="absolute right-0 mt-2 bg-white text-gray-900 shadow-md shadow-md shadow-indigo-500/20 rounded-xl border border-gray-200 p-4 flex-col gap-2 min-w-[180px]">
             <Link to="/blog" className="block hover:text-indigo-600" onClick={() => { setShowResources(false); setMobileMenuOpen(false); }}>
               Blog
             </Link>

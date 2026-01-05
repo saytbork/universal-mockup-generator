@@ -56,11 +56,7 @@ const BlogArticlePage: React.FC = () => {
               />
 
             </div>
-            <div className="p-4 pt-0">
-              <figcaption className="text-[11px] uppercase tracking-[0.35em] text-gray-500 text-center">
-                {article.heroImage.alt}
-              </figcaption>
-            </div>
+
           </figure>
         </section>
 

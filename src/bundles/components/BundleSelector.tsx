@@ -52,7 +52,7 @@ const BundleSelector: React.FC<BundleSelectorProps> = ({
         <select
           value={activeKey}
           onChange={event => setActiveKey(event.target.value)}
-          className="rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-600 focus:outline-none"
+          className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-600 focus:outline-none"
         >
           {bundleEntries.map(([key, bundle]) => (
             <option key={key} value={key}>
@@ -63,7 +63,7 @@ const BundleSelector: React.FC<BundleSelectorProps> = ({
       </div>
 
       {activeBundle && (
-        <div className="rounded-2xl border border-gray-200 bg-whiteTint p-4 space-y-3">
+        <div className="rounded-xl border border-gray-200 bg-whiteTint p-4 space-y-3">
           <p className="text-sm font-semibold text-gray-900">{activeBundle.name}</p>
           {bundleDisabled && (
             <p className="text-xs text-gray-500">

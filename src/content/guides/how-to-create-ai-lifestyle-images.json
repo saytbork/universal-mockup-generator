@@ -1,0 +1,35 @@
+{
+    "id": "guide-lifestyle-002",
+    "slug": "how-to-create-ai-lifestyle-images",
+    "title": "How to Create AI Lifestyle Images that Convert",
+    "subtitle": "A technical deep dive into crafting high-end lifestyle visuals for your brand using the Perfect Mockup visual system.",
+    "category": "Strategy",
+    "seo": {
+        "title": "How to Create AI Lifestyle Images | Ecommerce Visual Guide",
+        "description": "Learn the best practices for generating professional AI lifestyle photography for your product launches and campaigns."
+    },
+    "heroImage": {
+        "url": "/images/guides/lifestyle-hero.png",
+        "prompt": "Premium lifestyle photo of a luxury watch on a wooden table in a high-end cafe, bokeh background, cinematic lighting, editorial style",
+        "alt": "Professional AI lifestyle photography"
+    },
+    "sections": [
+        {
+            "heading": "The Power of Contextual Imagery",
+            "body": "Lifestyle images show your product in action, helping customers visualize it in their own lives. With AI, you can move your product from a kitchen counter to a mountain peak in seconds. This flexibility allows for rapid A/B testing of different creative directions to find what resonates most with your audience."
+        },
+        {
+            "heading": "Choosing Between UGC and Editorial",
+            "body": "Not all lifestyle images are equal. 'Editorial' mode provides a polished, high-contrast look suitable for homepages and magazines. 'UGC' mode is raw and relatable. Decide your goal first: are you building brand prestige (Editorial) or building trust (UGC)?"
+        },
+        {
+            "heading": "Refining the Composition",
+            "body": "Use the composition controls to place your product. Whether it's a 'Fifty-Fifty' split between the model and the product or a 'Product-First' approach, ensuring the visual hierarchy is clear is essential for sales."
+        }
+    ],
+    "cta": {
+        "title": "Scale your brand's visual storytelling.",
+        "text": "Join thousands of founders using AI to create high-end lifestyle content.",
+        "button": "Generate Lifestyle Visuals"
+    }
+}

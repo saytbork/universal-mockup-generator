@@ -98,13 +98,13 @@ export default function EcommerceStep3({
   return (
     <div className="space-y-6">
       {!embedded && (
-        <div className="rounded-2xl border border-gray-200 bg-whiteTint p-4">
+        <div className="rounded-xl border border-gray-200 bg-whiteTint p-4">
           <p className="text-xs uppercase tracking-[0.35em] text-indigo-600">Ecommerce Image Builder</p>
           <p className="mt-1 text-sm text-gray-600">Build PDP-style overlays and export crisp PNGs (image-only + with overlays).</p>
         </div>
       )}
 
-      <section className="rounded-2xl border border-gray-200 bg-whiteTint p-4 space-y-3">
+      <section className="rounded-xl border border-gray-200 bg-whiteTint p-4 space-y-3">
         <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Slots</p>
         <div className="flex flex-wrap gap-2">
           {ECOMMERCE_SLOT_KEYS.map(slotKey => {
@@ -141,7 +141,7 @@ export default function EcommerceStep3({
         )}
       </section>
 
-      <section className="rounded-2xl border border-gray-200 bg-whiteTint p-4 space-y-4">
+      <section className="rounded-xl border border-gray-200 bg-whiteTint p-4 space-y-4">
         <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Generation Overrides</p>
         <div className="flex flex-wrap items-center gap-2">
           <Chip selected={settings.reserveBlankSpace} onClick={() => onSettingsChange({ ...settings, reserveBlankSpace: true })}>
@@ -194,7 +194,7 @@ export default function EcommerceStep3({
         )}
       </section>
 
-      <section className="rounded-2xl border border-gray-200 bg-whiteTint p-4 space-y-4">
+      <section className="rounded-xl border border-gray-200 bg-whiteTint p-4 space-y-4">
         <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Live Preview</p>
         <div className="rounded-xl border border-gray-200 bg-whiteTint overflow-hidden">
           {activeSpec ? (
@@ -230,7 +230,7 @@ export default function EcommerceStep3({
               if (!svg) return;
               await exportSvgElementToPng(svg, { filename: `${activeSlot}-with-overlays.png`, scale: 2 });
             }}
-            className="inline-flex items-center gap-2 rounded-2xl border border-indigo-600 bg-indigo-600 text-white px-3 py-2 text-xs text-indigo-600 shadow-md shadow-md shadow-indigo-500/20 hover:bg-indigo-600 text-white disabled:opacity-40"
+            className="inline-flex items-center gap-2 rounded-xl border border-indigo-600 bg-indigo-600 text-white px-3 py-2 text-xs text-indigo-600 shadow-md shadow-md shadow-indigo-500/20 hover:bg-indigo-600 text-white disabled:opacity-40"
           >
             <Download size={14} />
             Export PNG (with overlays)
@@ -243,7 +243,7 @@ export default function EcommerceStep3({
         )}
       </section>
 
-      <section className="rounded-2xl border border-gray-200 bg-whiteTint p-4 space-y-4">
+      <section className="rounded-xl border border-gray-200 bg-whiteTint p-4 space-y-4">
         <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Editor</p>
         {!activeSlot || !activeSpec ? (
           <p className="text-sm text-gray-600">Select a slot to edit.</p>
@@ -251,10 +251,10 @@ export default function EcommerceStep3({
           <div className="space-y-5">
             <div className="space-y-3">
               <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Global Style</p>
-                <div className="space-y-3">
-                  <div className="space-y-1">
-                    <p className="text-[11px] text-gray-600">Font</p>
-                    <div className="flex flex-wrap gap-2">
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <p className="text-[11px] text-gray-600">Font</p>
+                  <div className="flex flex-wrap gap-2">
                     {(
                       [
                         {
@@ -282,10 +282,10 @@ export default function EcommerceStep3({
                       >
                         {font.label}
                       </Chip>
-                      ))}
-                    </div>
+                    ))}
                   </div>
-                  <LabeledInput
+                </div>
+                <LabeledInput
                   label="Text color"
                   value={activeSpec.globalStyle.textColor}
                   onChange={value => {
@@ -309,11 +309,11 @@ export default function EcommerceStep3({
                       }))
                     );
                   }}
-                    placeholder="#8B5CF6"
-                  />
-                  <LabeledNumber
-                    label="Heading weight"
-                    value={activeSpec.globalStyle.headingWeight}
+                  placeholder="#8B5CF6"
+                />
+                <LabeledNumber
+                  label="Heading weight"
+                  value={activeSpec.globalStyle.headingWeight}
                   onChange={value =>
                     onSlotsConfigChange(
                       updateSlotSpec(slotsConfig, activeSlot, prev => ({
@@ -323,12 +323,12 @@ export default function EcommerceStep3({
                     )
                   }
                   min={100}
-                    max={900}
-                    step={50}
-                  />
-                  <LabeledNumber
-                    label="Body weight"
-                    value={activeSpec.globalStyle.bodyWeight}
+                  max={900}
+                  step={50}
+                />
+                <LabeledNumber
+                  label="Body weight"
+                  value={activeSpec.globalStyle.bodyWeight}
                   onChange={value =>
                     onSlotsConfigChange(
                       updateSlotSpec(slotsConfig, activeSlot, prev => ({
@@ -338,12 +338,12 @@ export default function EcommerceStep3({
                     )
                   }
                   min={100}
-                    max={900}
-                    step={50}
-                  />
-                  <LabeledNumber
-                    label="Radius"
-                    value={activeSpec.globalStyle.radius}
+                  max={900}
+                  step={50}
+                />
+                <LabeledNumber
+                  label="Radius"
+                  value={activeSpec.globalStyle.radius}
                   onChange={value =>
                     onSlotsConfigChange(
                       updateSlotSpec(slotsConfig, activeSlot, prev => ({
@@ -353,12 +353,12 @@ export default function EcommerceStep3({
                     )
                   }
                   min={0}
-                    max={40}
-                    step={1}
-                  />
-                  <LabeledNumber
-                    label="Base scale"
-                    value={activeSpec.globalStyle.baseScale}
+                  max={40}
+                  step={1}
+                />
+                <LabeledNumber
+                  label="Base scale"
+                  value={activeSpec.globalStyle.baseScale}
                   onChange={value =>
                     onSlotsConfigChange(
                       updateSlotSpec(slotsConfig, activeSlot, prev => ({
@@ -368,10 +368,10 @@ export default function EcommerceStep3({
                     )
                   }
                   min={0.6}
-                    max={2}
-                    step={0.05}
-                  />
-                </div>
+                  max={2}
+                  step={0.05}
+                />
+              </div>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-xs text-gray-600">Card background:</span>
                 {(['glass', 'solid', 'none'] as const).map(mode => (
@@ -890,7 +890,7 @@ function LabeledInput({
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none"
+        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none"
       />
     </label>
   );
@@ -921,7 +921,7 @@ function LabeledNumber({
         max={max}
         step={step}
         onChange={e => onChange(Number(e.target.value))}
-        className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-600 focus:outline-none"
+        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-600 focus:outline-none"
       />
     </label>
   );

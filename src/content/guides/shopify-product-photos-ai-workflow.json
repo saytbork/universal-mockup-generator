@@ -1,0 +1,35 @@
+{
+    "id": "guide-shopify-003",
+    "slug": "shopify-product-photos-ai-workflow",
+    "title": "Shopify Product Photos: The Ultimate AI Workflow",
+    "subtitle": "Streamline your Shopify store updates by automating your product photography workflow with AI.",
+    "category": "Ecommerce",
+    "seo": {
+        "title": "Shopify AI Product Photography Workflow | Guide",
+        "description": "Automate your Shopify store visuals. Learn how to use AI to generate consistent, professional product photos from home."
+    },
+    "heroImage": {
+        "url": "/images/guides/shopify-hero.png",
+        "prompt": "Clean ecommerce product page mockup showing a Shopify store interface with high-quality AI product photos, minimalist design",
+        "alt": "Shopify store with AI product photos"
+    },
+    "sections": [
+        {
+            "heading": "Eliminating the Photoshoot Bottleneck",
+            "body": "For Shopify owners, adding new products often means a delay of days or weeks for photography. With Perfect Mockup, you can go from a prototype to a live, professional product page in under 5 minutes. This speed allows for faster market testing and more frequent catalog refreshes."
+        },
+        {
+            "heading": "Batch Generation for Consistency",
+            "body": "Consistency is key to a professional-looking store. Use our 'Presets' feature to ensure every product on your collection page has the same lighting, shadow style, and background. This unified look builds brand authority and reduces bounce rates."
+        },
+        {
+            "heading": "Optimizing for Mobile Shoppers",
+            "body": "Most Shopify traffic is mobile. Ensure your generated visuals are cropped correctly for vertical scrolling. Our system supports multiple aspect ratios (1:1, 4:5, 9:16) to ensure your product looks stunning on every device."
+        }
+    ],
+    "cta": {
+        "title": "Update your Shopify store today.",
+        "text": "Start generating professional photos that match your store's aesthetic perfectly.",
+        "button": "Start Shopify Prep"
+    }
+}
