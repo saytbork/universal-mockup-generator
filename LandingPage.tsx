@@ -743,7 +743,7 @@ const LandingPage: React.FC = () => {
                     </div>
                   </div>
                   {/* Scanner animation */}
-                  <div className="absolute inset-x-0 top-0 h-1 bg-indigo-400 shadow-[0_0_15px_rgba(129,140,248,0.8)] animate-[scan_3s_ease-in-out_infinite]" />
+                  <div className="absolute inset-x-0 top-0 h-1 bg-indigo-400 shadow-lg shadow-indigo-400/50 animate-[scan_3s_ease-in-out_infinite]" />
                 </div>
               </div>
             </div>
@@ -873,7 +873,7 @@ const LandingPage: React.FC = () => {
               whileHover="animate"
               whileInView="animate"
               viewport={{ once: true, amount: 0.5 }}
-              className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 p-8 flex flex-col justify-between group min-h-[320px] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]"
+              className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 p-8 flex flex-col justify-between group min-h-[320px] shadow-sm"
             >
               <div className="space-y-4">
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white">From Weeks to Minutes</h3>
@@ -890,7 +890,7 @@ const LandingPage: React.FC = () => {
               whileHover="animate"
               whileInView="animate"
               viewport={{ once: true, amount: 0.5 }}
-              className="md:col-span-2 bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 p-8 flex flex-col md:flex-row gap-8 items-center min-h-[320px] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]"
+              className="md:col-span-2 bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 p-8 flex flex-col md:flex-row gap-8 items-center min-h-[320px] shadow-sm"
             >
               <div className="flex-1 space-y-4">
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-white">One Visual System. Every Channel.</h3>
@@ -934,7 +934,7 @@ const LandingPage: React.FC = () => {
               whileHover="animate"
               whileInView="animate"
               viewport={{ once: true, amount: 0.5 }}
-              className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 p-8 flex flex-col justify-between min-h-[320px] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]"
+              className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 p-8 flex flex-col justify-between min-h-[320px] shadow-sm"
             >
               <div className="space-y-4">
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white">Built to Scale With Your Catalog</h3>
