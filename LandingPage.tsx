@@ -95,6 +95,205 @@ const pricing: PricingPlan[] = [
 
 const paymentMethods = ['Visa', 'Mastercard', 'American Express', 'Apple Pay', 'Google Pay'];
 
+// --- Advantage Grid Animation Components ---
+
+const WeeksToMinutes = () => {
+  const steps = ["Studio booking", "Talent", "Shoot", "Retouch", "Revisions"];
+  return (
+    <div className="relative h-24 w-full overflow-hidden flex flex-col justify-center">
+      <div className="relative h-full">
+        {steps.map((step, i) => (
+          <motion.div
+            key={step}
+            variants={{
+              initial: { opacity: 0.2, y: 0 },
+              animate: {
+                opacity: 0,
+                y: -30,
+                transition: { delay: i * 0.08, duration: 0.2, ease: [0.4, 0, 0.2, 1] }
+              }
+            }}
+            className="text-[10px] uppercase font-bold tracking-widest text-gray-400 dark:text-gray-500 mb-1"
+          >
+            {step}
+          </motion.div>
+        ))}
+        <motion.div
+          className="absolute inset-x-0 top-0 pt-2"
+          variants={{
+            initial: { opacity: 0, y: 20 },
+            animate: {
+              opacity: 1,
+              y: 0,
+              transition: { delay: 0.5, duration: 0.3, ease: "easeOut" }
+            }
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 whitespace-nowrap">Generate → Launch-Ready</span>
+            <div className="flex-1 h-0.5 bg-gray-100 dark:bg-white/10 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full bg-indigo-600 dark:bg-indigo-400"
+                variants={{
+                  initial: { width: "0%" },
+                  animate: { width: "100%", transition: { delay: 0.6, duration: 0.4 } }
+                }}
+              />
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+};
+
+const VisualSystem = () => {
+  const channels = ["PDP", "Ads", "Amazon", "Social"];
+  return (
+    <div className="relative w-full h-48 flex items-center justify-center pointer-events-none">
+      {/* Center Node */}
+      <motion.div
+        className="w-20 h-20 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] font-bold text-white text-center p-2 z-10 shadow-xl shadow-indigo-600/40"
+        variants={{
+          initial: { scale: 0.8, opacity: 0 },
+          animate: { scale: 1, opacity: 1, transition: { duration: 0.4, ease: "easeOut" } }
+        }}
+      >
+        Visual<br />System
+      </motion.div>
+
+      {/* Channels */}
+      {channels.map((name, i) => {
+        const positions = [
+          { x: -85, y: -50 },
+          { x: 85, y: -50 },
+          { x: -85, y: 50 },
+          { x: 85, y: 50 }
+        ];
+        const pos = positions[i];
+        return (
+          <React.Fragment key={name}>
+            <motion.div
+              className="absolute bg-white dark:bg-white/10 border border-gray-100 dark:border-white/20 px-3 py-1.5 rounded-lg text-[10px] font-black tracking-tighter shadow-sm"
+              style={{ x: pos.x, y: pos.y }}
+              variants={{
+                initial: { opacity: 0, scale: 0.8 },
+                animate: {
+                  opacity: 1,
+                  scale: 1,
+                  transition: { delay: 0.4 + i * 0.08, duration: 0.3, ease: "easeOut" },
+                  color: "#6366f1"
+                }
+              }}
+            >
+              {name}
+            </motion.div>
+            <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible">
+              <motion.line
+                x1="50%" y1="50%"
+                x2={`calc(50% + ${pos.x}px)`} y2={`calc(50% + ${pos.y}px)`}
+                stroke="#6366f1"
+                strokeWidth="1.5"
+                strokeDasharray="4 4"
+                variants={{
+                  initial: { pathLength: 0, opacity: 0 },
+                  animate: {
+                    pathLength: 1,
+                    opacity: 0.3,
+                    transition: { delay: 0.3 + i * 0.08, duration: 0.5 }
+                  }
+                }}
+              />
+            </svg>
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+};
+
+const AntiRandomness = () => (
+  <div className="relative w-full h-32 flex items-center justify-center overflow-hidden">
+    <div className="relative">
+      <motion.div
+        className="text-5xl font-extrabold text-white/5 italic tracking-tighter"
+        variants={{
+          initial: { opacity: 0.5 },
+          animate: { opacity: 0, transition: { delay: 0.5, duration: 0.2 } }
+        }}
+      >
+        RANDOM
+        <motion.div
+          className="absolute top-1/2 left-[-10%] w-[120%] h-0.5 bg-red-500/30"
+          variants={{
+            initial: { scaleX: 0 },
+            animate: { scaleX: 1, transition: { delay: 0.2, duration: 0.3 } }
+          }}
+        />
+      </motion.div>
+      <motion.div
+        className="absolute inset-0 flex items-center justify-center text-indigo-400 font-bold tracking-widest text-3xl"
+        variants={{
+          initial: { opacity: 0, scale: 0.9, filter: "blur(12px)" },
+          animate: {
+            opacity: 1,
+            scale: 1,
+            filter: "blur(0px)",
+            transition: { delay: 0.8, duration: 0.4, ease: "easeOut" }
+          }
+        }}
+      >
+        SYSTEM
+        <motion.div
+          className="absolute inset-0 bg-indigo-500/10 blur-3xl rounded-full"
+          variants={{
+            initial: { opacity: 0 },
+            animate: { opacity: 1, transition: { delay: 1.0, duration: 0.6 } }
+          }}
+        />
+      </motion.div>
+    </div>
+  </div>
+);
+
+const ScaleCatalog = () => (
+  <div className="relative h-24 w-full flex items-center justify-center overflow-hidden bg-gray-50 dark:bg-black/20 rounded-xl border border-gray-100 dark:border-white/5 shadow-inner">
+    <div className="flex flex-col items-center">
+      <motion.div
+        className="text-2xl font-bold text-gray-300 dark:text-gray-700"
+        variants={{
+          initial: { opacity: 1, y: 0 },
+          animate: { opacity: 0, y: -25, transition: { delay: 0.4, duration: 0.2 } }
+        }}
+      >
+        1 SKU
+      </motion.div>
+      <motion.div
+        className="absolute text-2xl font-bold text-gray-400"
+        variants={{
+          initial: { opacity: 0, y: 25 },
+          animate: {
+            opacity: [0, 1, 0],
+            y: [25, 0, -25],
+            transition: { delay: 0.55, duration: 0.4, times: [0, 0.5, 1] }
+          }
+        }}
+      >
+        10 SKUs
+      </motion.div>
+      <motion.div
+        className="absolute text-2xl font-bold text-indigo-600 dark:text-indigo-400"
+        variants={{
+          initial: { opacity: 0, y: 20 },
+          animate: { opacity: 1, y: 0, transition: { delay: 0.9, duration: 0.3, ease: "easeOut" } }
+        }}
+      >
+        100 SKUs
+      </motion.div>
+    </div>
+  </div>
+);
+
 const LandingPage: React.FC = () => {
   const [activePreview, setActivePreview] = useState<
     'product' | 'ugc' | 'editorial' | 'background' | 'aesthetic'
@@ -295,16 +494,16 @@ const LandingPage: React.FC = () => {
           </motion.div>
 
           {/* SaaS Headline & Mechanism */}
-          <div className="max-w-4xl mx-auto text-center space-y-8">
+          <div className="max-w-6xl mx-auto text-center space-y-8">
             <motion.h1
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 1, ease: [0.23, 1, 0.32, 1] }}
               className="text-5xl sm:text-7xl font-bold text-gray-900 dark:text-white leading-[1.05] tracking-tight"
             >
-              Create Ecommerce-Ready Product <br className="hidden md:block" />
+              Create Ecommerce-Ready Product Visuals <br className="hidden md:block" />
               <span className="text-indigo-600 dark:text-indigo-400">
-                & UGC Visuals in Minutes.
+                & Controlled UGC in Minutes.
               </span>
             </motion.h1>
 
@@ -654,81 +853,103 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Bento: The Advantage Grid */}
-      <section className="bg-gray-50/50 dark:bg-white/[0.02] py-24 border-b border-gray-100 dark:border-white/5">
+      {/* Why Perfect Mockup: Advantage Grid */}
+      <section className="bg-gray-50/50 dark:bg-white/[0.02] py-24 border-b border-gray-100 dark:border-white/5 overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 space-y-16">
           <div className="text-center space-y-4">
-            <span className="text-indigo-600 text-xs font-bold uppercase tracking-[0.2em]">Why Perfect Mockup</span>
-            <h2 className="text-3xl md:text-4xl text-gray-900 font-bold tracking-tight">Built for brands that move at the speed of social</h2>
+            <span className="text-indigo-600 dark:text-indigo-400 text-[10px] font-bold uppercase tracking-[0.3em]">Why Perfect Mockup</span>
+            <h2 className="text-4xl md:text-5xl text-gray-900 dark:text-white font-bold tracking-tight">
+              Built as a Visual System, Not a Generator
+            </h2>
+            <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto text-lg leading-relaxed font-medium">
+              Designed for ecommerce teams that need speed, consistency, and control.
+            </p>
           </div>
 
-          <div className="grid md:grid-cols-3 md:grid-rows-2 gap-4 h-auto lg:h-[600px]">
-            {/* Feature 1: Fast Launches */}
-            <div className="md:row-span-2 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10 p-8 flex flex-col justify-between group hover:bg-gray-50 dark:hover:bg-white/10 transition-all duration-500 ease-out">
+          <div className="grid md:grid-cols-3 gap-6">
+            {/* Card 1: Time */}
+            <motion.div
+              initial="initial"
+              whileHover="animate"
+              whileInView="animate"
+              viewport={{ once: true, amount: 0.5 }}
+              className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 p-8 flex flex-col justify-between group min-h-[320px] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]"
+            >
               <div className="space-y-4">
-                <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 transition-transform duration-500 group-hover:scale-110">
-                  <Zap className="w-6 h-6" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Faster launches without photoshoots</h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">From Weeks to Minutes</h3>
                 <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
-                  Stop waiting for studio availability and retouching. Generate launching-ready visuals for new SKUs in minutes.
+                  Skip studios, scheduling, talent, and retouching. Generate launch-ready visuals the moment your product is ready.
                 </p>
               </div>
-              <div className="pt-8 opacity-20 group-hover:opacity-100 transition-opacity duration-500">
-                <div className="space-y-2">
-                  <div className="h-1 bg-indigo-100 dark:bg-indigo-900/30 w-full rounded-full overflow-hidden">
-                    <div className="h-full bg-indigo-600 dark:bg-indigo-400 w-[80%] animate-[loading_3s_infinite]" />
-                  </div>
-                  <div className="flex justify-between text-[10px] font-bold text-indigo-600/50 dark:text-indigo-400/50 uppercase">
-                    <span>Studio Session</span>
-                    <span>0m 22s</span>
-                  </div>
+              <WeeksToMinutes />
+            </motion.div>
+
+            {/* Card 2: System (Large) */}
+            <motion.div
+              initial="initial"
+              whileHover="animate"
+              whileInView="animate"
+              viewport={{ once: true, amount: 0.5 }}
+              className="md:col-span-2 bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 p-8 flex flex-col md:flex-row gap-8 items-center min-h-[320px] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]"
+            >
+              <div className="flex-1 space-y-4">
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">One Visual System. Every Channel.</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+                  The same product logic drives visuals across product pages, ads, marketplaces, and paid social, so nothing drifts off-spec.
+                </p>
+                <div className="pt-6 border-t border-gray-100 dark:border-white/10">
+                  <p className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.2em]">Change the rules once. Update everything.</p>
                 </div>
               </div>
-            </div>
-
-            {/* Feature 2: Consistency */}
-            <div className="md:col-span-2 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10 p-8 group hover:bg-gray-50 dark:hover:bg-white/10 transition-all duration-500 ease-out overflow-hidden relative">
-              <div className="relative z-10 space-y-2">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Consistent visuals across all channels</h3>
-                <p className="text-gray-500 dark:text-gray-400 text-sm max-w-md">
-                  Maintain a unified brand language whether you are launching on Amazon, Shopify or TikTok.
-                </p>
+              <div className="flex-1 w-full flex items-center justify-center">
+                <VisualSystem />
               </div>
-              <div className="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-indigo-50/50 dark:from-indigo-900/20 to-transparent flex items-center justify-center">
-                <div className="grid grid-cols-2 gap-2 rotate-12 scale-125 opacity-40 dark:opacity-20">
-                  {[1, 2, 3, 4].map(i => <div key={i} className="w-12 h-12 bg-gray-100 dark:bg-white/10 rounded-lg border border-gray-200 dark:border-white/20" />)}
+            </motion.div>
+
+            {/* Card 3: Control (Large Dark) */}
+            <motion.div
+              initial="initial"
+              whileHover="animate"
+              whileInView="animate"
+              viewport={{ once: true, amount: 0.5 }}
+              className="md:col-span-2 bg-gray-900 dark:bg-white/[0.03] rounded-2xl p-8 flex flex-col md:flex-row gap-8 items-center min-h-[320px] border border-gray-800 dark:border-white/10 shadow-2xl"
+            >
+              <div className="flex-1 space-y-4">
+                <div className="inline-flex px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[9px] font-bold uppercase tracking-widest mb-2">
+                  SYSTEM CORE
                 </div>
-              </div>
-            </div>
-
-            {/* Feature 3: Different by Design */}
-            <div className="bg-gray-900 dark:bg-gray-900/50 rounded-xl p-8 flex flex-col justify-between group relative overflow-hidden border border-gray-800 dark:border-white/10">
-              <div className="absolute top-0 right-0 p-4">
-                <CheckCircle2 className="w-6 h-6 text-indigo-400 opacity-20 group-hover:opacity-100 transition-opacity" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-lg font-bold text-white">Visual Decision System</h3>
-                <p className="text-indigo-200/60 text-sm leading-tight">
-                  Not just another random generator. Every pixel is driven by visual intent.
+                <h3 className="text-2xl font-bold text-white">Decisions In. Not Randomness Out.</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  Perfect Mockup uses structured inputs, strict modes, and composition rules so every image matches its ecommerce use case.
                 </p>
               </div>
-              <div className="pt-6">
-                <span className="text-xs font-bold text-white uppercase tracking-widest bg-white/10 px-3 py-1 rounded-full border border-white/10">Architecture</span>
+              <div className="flex-1 w-full flex items-center justify-center">
+                <AntiRandomness />
               </div>
-            </div>
+            </motion.div>
 
-            {/* Feature 4: Scalability */}
-            <div className="bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10 p-8 flex flex-col justify-between group hover:bg-gray-50 dark:hover:bg-white/10 transition-all duration-500 ease-out">
-              <div className="space-y-2">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Scales at infinite speed</h3>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">
-                  From your first MVP to 500+ SKUs. Our visual system handles catalogs without overhead.
+            {/* Card 4: Scale */}
+            <motion.div
+              initial="initial"
+              whileHover="animate"
+              whileInView="animate"
+              viewport={{ once: true, amount: 0.5 }}
+              className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 p-8 flex flex-col justify-between min-h-[320px] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]"
+            >
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Built to Scale With Your Catalog</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+                  From your first SKU to hundreds of products, generate consistent visuals without increasing production overhead.
                 </p>
               </div>
-              <div className="flex gap-1 group-hover:gap-1.5 transition-all">
-                {[1, 2, 3, 4, 5].map(i => <div key={i} className="h-6 w-1 space-y-1 bg-indigo-100 dark:bg-indigo-900/50 rounded-full group-hover:bg-indigo-600 dark:group-hover:bg-indigo-400 transition-colors" />)}
-              </div>
-            </div>
+              <ScaleCatalog />
+            </motion.div>
+          </div>
+
+          <div className="max-w-3xl mx-auto text-center">
+            <p className="text-xs font-medium text-gray-500/80 dark:text-gray-400/50 uppercase tracking-widest">
+              Product visuals and UGC-style visuals are generated using separate modes to keep outputs ecommerce-safe.
+            </p>
           </div>
         </div>
       </section>
