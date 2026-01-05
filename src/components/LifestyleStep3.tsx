@@ -13,6 +13,7 @@ import type { UGCCaptureSituationId } from '../lib/promptEngine/ugcCaptureSituat
 import SmoothAccordion from './SmoothAccordion';
 import EcommerceStep3, { type EcommerceGenerationSettings } from './EcommerceStep3';
 import type { EcommerceSlotKey, EcommerceSlotsConfig } from '@/lib/ecommerceOverlay/types';
+import { Chip } from './ui/Chip';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -233,6 +234,7 @@ export interface Step3Values {
   productTypeCustom?: string;
   productPackaging?: 'With box' | 'Without box';
   productScale?: 'Small handheld' | 'Medium tabletop' | 'Large object';
+  handsHolding: boolean;
   productCount?: 1 | 2 | 3;
   productGrouping?: 'Aligned' | 'Stacked' | 'Scattered';
 
@@ -749,6 +751,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     productTypeCustom: '',
     productPackaging: 'Without box',
     productScale: 'Medium tabletop',
+    handsHolding: false,
     productCount: 1,
     productGrouping: 'Aligned',
 
@@ -815,6 +818,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   enforceSingleSelectLayers(initialValues);
 
   const [values, setValues] = useState<Step3Values>(initialValues);
+  const [activePaletteSlot, setActivePaletteSlot] = useState<'productPaletteA' | 'productPaletteB' | 'productPaletteC'>(
+    'productPaletteA'
+  );
 
   const toggleSection = (section: string) => {
     setOpenAccordionId(openAccordionId === section ? null : section);
@@ -1258,17 +1264,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 <p className={GROUP_LABEL_CLASS}>PRODUCT TYPE</p>
                 <div className="flex flex-wrap gap-2">
                   {PRODUCT_TYPE_OPTIONS.map(option => (
-                    <button
+                    <Chip
                       key={option}
-                      type="button"
                       onClick={() => {
                         updateValue('productType', option as any);
                         markSectionTouched('product-setup');
                       }}
-                      className={getPillClass(values.productType === option, true)}
+                      selected={values.productType === option}
                     >
                       {option}
-                    </button>
+                    </Chip>
                   ))}
                 </div>
 
@@ -1294,17 +1299,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   <p className={GROUP_LABEL_CLASS}>PACKAGING</p>
                   <div className="flex gap-2">
                     {(['Without box', 'With box'] as const).map(option => (
-                      <button
+                      <Chip
                         key={option}
-                        type="button"
                         onClick={() => {
                           updateValue('productPackaging', option);
                           markSectionTouched('product-setup');
                         }}
-                        className={getPillClass(values.productPackaging === option, true)}
+                        selected={values.productPackaging === option}
                       >
                         {option}
-                      </button>
+                      </Chip>
                     ))}
                   </div>
                 </div>
@@ -1313,18 +1317,40 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   <p className={GROUP_LABEL_CLASS}>PHYSICAL SCALE</p>
                   <div className="flex flex-wrap gap-2">
                     {(['Small handheld', 'Medium tabletop', 'Large object'] as const).map(option => (
-                      <button
+                      <Chip
                         key={option}
-                        type="button"
                         onClick={() => {
                           updateValue('productScale', option);
                           markSectionTouched('product-setup');
                         }}
-                        className={getPillClass(values.productScale === option, true)}
+                        selected={values.productScale === option}
                       >
                         {option}
-                      </button>
+                      </Chip>
                     ))}
+                  </div>
+                </div>
+
+                <div className={SECTION_GROUP_CLASS}>
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className={GROUP_LABEL_CLASS}>HANDS HOLDING (CROPPED ONLY)</p>
+                      <p className="text-[11px] text-gray-500 mt-1">Optional. Cropped hand or wrist only.</p>
+                    </div>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={values.handsHolding}
+                      onClick={() => {
+                        updateValue('handsHolding', !values.handsHolding);
+                        markSectionTouched('product-setup');
+                      }}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border border-gray-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white ${values.handsHolding ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-gray-200'}`}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white border border-gray-200 ring-0 transition duration-200 ease-in-out ${values.handsHolding ? 'translate-x-5' : 'translate-x-0'}`}
+                      />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1346,17 +1372,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 <p className={GROUP_LABEL_CLASS}>CREATIVITY LEVEL</p>
                 <div className="flex flex-wrap gap-2">
                   {(['Off', 'Subtle', 'Bold', 'Max'] as const).map(level => (
-                    <button
+                    <Chip
                       key={level}
-                      type="button"
                       onClick={() => {
                         updateValue('productCreativityLevel', level);
                         markSectionTouched('product-creativity');
                       }}
-                      className={getPillClass(values.productCreativityLevel === level, true)}
+                      selected={values.productCreativityLevel === level}
                     >
                       {level}
-                    </button>
+                    </Chip>
                   ))}
                 </div>
               </div>
@@ -1365,17 +1390,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 <p className={GROUP_LABEL_CLASS}>CREATIVE THEME</p>
                 <div className="flex flex-wrap gap-2">
                   {PRODUCT_THEME_OPTIONS.map(theme => (
-                    <button
+                    <Chip
                       key={theme}
-                      type="button"
                       onClick={() => {
                         updateValue('productCreativeTheme', theme as any);
                         markSectionTouched('product-creativity');
                       }}
-                      className={getPillClass(values.productCreativeTheme === theme, true)}
+                      selected={values.productCreativeTheme === theme}
                     >
                       {theme}
-                    </button>
+                    </Chip>
                   ))}
                 </div>
               </div>
@@ -1392,57 +1416,56 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       'Custom palette'
                     ] as const
                   ).map(option => (
-                    <button
+                    <Chip
                       key={option}
-                      type="button"
                       onClick={() => {
                         updateValue('productPaletteSource', option);
                         markSectionTouched('product-creativity');
                       }}
-                      className={getPillClass(values.productPaletteSource === option, true)}
+                      selected={values.productPaletteSource === option}
                     >
                       {option}
-                    </button>
+                    </Chip>
                   ))}
                 </div>
 
                 {values.productPaletteSource === 'Custom palette' && (
                   <div className="mt-3 space-y-3">
-                    {(
-                      [
-                        { key: 'productPaletteA', label: 'COLOR A' },
-                        { key: 'productPaletteB', label: 'COLOR B' },
-                        { key: 'productPaletteC', label: 'COLOR C' }
-                      ] as const
-                    ).map(cfg => (
-                      <label key={cfg.key} className="space-y-1">
-                        <span className="text-[11px] uppercase tracking-wide text-gray-500">{cfg.label}</span>
-                        <div className="relative flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 cursor-pointer transition-colors hover:border-indigo-600">
-                          <div
-                            className="h-10 w-10 rounded-xl ring-1 ring-borderSubtle"
-                            style={{ background: (values as any)[cfg.key] || '#ffffff' }}
-                          />
-                          <input
-                            type="text"
-                            value={(values as any)[cfg.key] || ''}
-                            onChange={e => {
-                              updateValue(cfg.key as any, e.target.value as any);
-                              markSectionTouched('product-creativity');
-                            }}
-                            className="w-full bg-transparent text-sm text-gray-900 focus:outline-none"
-                          />
-                          <input
-                            type="color"
-                            className="absolute inset-0 opacity-0 cursor-pointer"
-                            value={(values as any)[cfg.key] || '#ffffff'}
-                            onChange={e => {
-                              updateValue(cfg.key as any, e.target.value as any);
-                              markSectionTouched('product-creativity');
-                            }}
-                          />
-                        </div>
-                      </label>
-                    ))}
+                    <div className="flex flex-wrap gap-2">
+                      {(
+                        [
+                          { key: 'productPaletteA', label: 'Color A' },
+                          { key: 'productPaletteB', label: 'Color B' },
+                          { key: 'productPaletteC', label: 'Color C' }
+                        ] as const
+                      ).map(cfg => (
+                        <Chip
+                          key={cfg.key}
+                          selected={activePaletteSlot === cfg.key}
+                          onClick={() => setActivePaletteSlot(cfg.key)}
+                        >
+                          {cfg.label}
+                        </Chip>
+                      ))}
+                    </div>
+                    <label className="inline-flex items-center gap-3">
+                      <span className="text-[11px] uppercase tracking-wide text-gray-500">Pick color</span>
+                      <span className="relative h-7 w-7 rounded-md border border-gray-200">
+                        <span
+                          className="absolute inset-0 rounded-md"
+                          style={{ background: (values as any)[activePaletteSlot] || '#ffffff' }}
+                        />
+                        <input
+                          type="color"
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                          value={(values as any)[activePaletteSlot] || '#ffffff'}
+                          onChange={e => {
+                            updateValue(activePaletteSlot as any, e.target.value as any);
+                            markSectionTouched('product-creativity');
+                          }}
+                        />
+                      </span>
+                    </label>
                   </div>
                 )}
               </div>
@@ -1451,17 +1474,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 <p className={GROUP_LABEL_CLASS}>PROP DENSITY</p>
                 <div className="flex flex-wrap gap-2">
                   {(['None', 'Light', 'Medium', 'Dense'] as const).map(level => (
-                    <button
+                    <Chip
                       key={level}
-                      type="button"
                       onClick={() => {
                         updateValue('productPropDensity', level);
                         markSectionTouched('product-creativity');
                       }}
-                      className={getPillClass(values.productPropDensity === level, true)}
+                      selected={values.productPropDensity === level}
                     >
                       {level}
-                    </button>
+                    </Chip>
                   ))}
                 </div>
               </div>
@@ -1473,19 +1495,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   {productSuggestedProps.map(prop => {
                     const selected = (values.productPropsSelected || []).includes(prop);
                     return (
-                      <button
+                      <Chip
                         key={prop}
-                        type="button"
                         onClick={() => {
                           const current = values.productPropsSelected || [];
                           const next = selected ? current.filter(x => x !== prop) : [...current, prop];
                           updateValue('productPropsSelected', next);
                           markSectionTouched('product-creativity');
                         }}
-                        className={getPillClass(selected, true)}
+                        selected={selected}
                       >
                         {prop}
-                      </button>
+                      </Chip>
                     );
                   })}
                 </div>
@@ -1507,17 +1528,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 <p className={GROUP_LABEL_CLASS}>CAMERA SYSTEM</p>
                 <div className="flex flex-wrap gap-2">
                   {(['DSLR / mirrorless', 'Macro lens', 'Telephoto compression'] as const).map(option => (
-                    <button
+                    <Chip
                       key={option}
-                      type="button"
                       onClick={() => {
                         updateValue('productCameraSystem', option);
                         markSectionTouched('product-camera');
                       }}
-                      className={getPillClass(values.productCameraSystem === option, true)}
+                      selected={values.productCameraSystem === option}
                     >
                       {option}
-                    </button>
+                    </Chip>
                   ))}
                 </div>
               </div>
@@ -1536,17 +1556,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         'Detail close-up',
                       ] as const
                     ).map(option => (
-                      <button
+                      <Chip
                         key={option}
-                        type="button"
                         onClick={() => {
                           updateValue('productCameraAngle', option as any);
                           markSectionTouched('product-camera');
                         }}
-                        className={getPillClass(values.productCameraAngle === option, true)}
+                        selected={values.productCameraAngle === option}
                       >
                         {option}
-                      </button>
+                      </Chip>
                     ))}
                   </div>
                 </div>
@@ -1555,17 +1574,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   <p className={GROUP_LABEL_CLASS}>DISTANCE</p>
                   <div className="flex flex-wrap gap-2">
                     {(['Wide', 'Standard', 'Tight', 'Macro'] as const).map(option => (
-                      <button
+                      <Chip
                         key={option}
-                        type="button"
                         onClick={() => {
                           updateValue('productCameraDistance', option);
                           markSectionTouched('product-camera');
                         }}
-                        className={getPillClass(values.productCameraDistance === option, true)}
+                        selected={values.productCameraDistance === option}
                       >
                         {option}
-                      </button>
+                      </Chip>
                     ))}
                   </div>
                 </div>
@@ -1576,17 +1594,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   <p className={GROUP_LABEL_CLASS}>ROTATION</p>
                   <div className="flex flex-wrap gap-2">
                     {([0, 5, 10, 15] as const).map(option => (
-                      <button
+                      <Chip
                         key={option}
-                        type="button"
                         onClick={() => {
                           updateValue('productCameraRotation', option);
                           markSectionTouched('product-camera');
                         }}
-                        className={getPillClass(values.productCameraRotation === option, true)}
+                        selected={values.productCameraRotation === option}
                       >
                         {option}°
-                      </button>
+                      </Chip>
                     ))}
                   </div>
                 </div>
@@ -1603,17 +1620,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         'Grid-ready',
                       ] as const
                     ).map(option => (
-                      <button
+                      <Chip
                         key={option}
-                        type="button"
                         onClick={() => {
                           updateValue('productFramingGuide', option as any);
                           markSectionTouched('product-camera');
                         }}
-                        className={getPillClass(values.productFramingGuide === option, true)}
+                        selected={values.productFramingGuide === option}
                       >
                         {option}
-                      </button>
+                      </Chip>
                     ))}
                   </div>
                 </div>
@@ -1644,18 +1660,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {[...ENVIRONMENT_INDOOR, ...ENVIRONMENT_OUTDOOR].map(option => (
-                    <button
+                    <Chip
                       key={option.value}
-                      type="button"
                       onClick={() => {
                         updateValue('environment', option.value);
                         updateValue('customEnvironment', '');
                         markSectionTouched('product-environment');
                       }}
-                      className={getPillClass(values.environment === option.value && !values.customEnvironment, true)}
+                      selected={values.environment === option.value && !values.customEnvironment}
                     >
                       {option.value}
-                    </button>
+                    </Chip>
                   ))}
                 </div>
                 <label className="block space-y-1">
@@ -1679,17 +1694,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {LIGHTING_OPTIONS.map(option => (
-                    <button
+                    <Chip
                       key={option.label}
-                      type="button"
                       onClick={() => {
                         updateValue('lightingStyle', option.value);
                         markSectionTouched('product-environment');
                       }}
-                      className={getPillClass(values.lightingStyle === option.value, true)}
+                      selected={values.lightingStyle === option.value}
                     >
                       {option.label}
-                    </button>
+                    </Chip>
                   ))}
                 </div>
               </div>
@@ -1745,57 +1759,48 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {SIDE_PLACEMENT_OPTIONS.map(option => (
-                        <button
+                        <Chip
                           key={option}
-                          type="button"
                           onClick={() => {
                             updateValue('sidePlacement', option);
                             markSectionTouched('ecommerce');
                           }}
-                          className={getPillClass(values.sidePlacement === option, true)}
+                          selected={values.sidePlacement === option}
                         >
                           {option}
-                        </button>
+                        </Chip>
                       ))}
                     </div>
                   </div>
 
-                  <div className="space-y-5 rounded-xl border border-gray-200 bg-white p-4">
-                    <div className="space-y-1">
-                      <p className="text-xs uppercase tracking-widest text-indigo-600">Background</p>
-                      <p className="text-sm text-gray-600">Neutral color or gradient</p>
-                    </div>
+                <div className="space-y-5 rounded-xl border border-gray-200 bg-white p-4">
+                  <div className="space-y-1">
+                    <p className="text-xs uppercase tracking-widest text-indigo-600">Background</p>
+                    <p className="text-sm text-gray-600">Neutral color or gradient</p>
+                  </div>
 
-                    <div className="inline-flex rounded-full border border-gray-200 bg-white p-1">
-                      <button
-                        type="button"
-                        onClick={() => { updateValue('ecommerceBackgroundMode', 'white'); markSectionTouched('ecommerce'); }}
-                        className={`rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${values.ecommerceBackgroundMode === 'white' ? 'bg-white text-gray-900' : 'text-gray-600 hover:text-gray-900'}`}
-                      >
-                        Solid
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => { updateValue('ecommerceBackgroundMode', 'gradient'); markSectionTouched('ecommerce'); }}
-                        className={`rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${values.ecommerceBackgroundMode === 'gradient' ? 'bg-white text-gray-900' : 'text-gray-600 hover:text-gray-900'}`}
-                      >
-                        Gradient
-                      </button>
-                    </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Chip
+                      selected={values.ecommerceBackgroundMode === 'white'}
+                      onClick={() => { updateValue('ecommerceBackgroundMode', 'white'); markSectionTouched('ecommerce'); }}
+                    >
+                      Solid
+                    </Chip>
+                    <Chip
+                      selected={values.ecommerceBackgroundMode === 'gradient'}
+                      onClick={() => { updateValue('ecommerceBackgroundMode', 'gradient'); markSectionTouched('ecommerce'); }}
+                    >
+                      Gradient
+                    </Chip>
+                  </div>
 
                     {values.ecommerceBackgroundMode === 'white' ? (
-                      <div className="space-y-2">
+                      <div className="flex items-center gap-3">
                         <p className="text-[11px] uppercase tracking-wide text-gray-500">Solid background color</p>
-                        <label className="relative flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 cursor-pointer transition-colors hover:border-indigo-600">
-                          <div
-                            className="h-10 w-10 rounded-xl ring-1 ring-borderSubtle"
+                        <label className="relative h-7 w-7 rounded-md border border-gray-200">
+                          <span
+                            className="absolute inset-0 rounded-md"
                             style={{ background: values.ecommerceBackgroundColor || '#ffffff' }}
-                          />
-                          <input
-                            type="text"
-                            className="w-full bg-transparent text-sm text-gray-900 focus:outline-none"
-                            value={values.ecommerceBackgroundColor || '#ffffff'}
-                            onChange={(e) => { updateValue('ecommerceBackgroundColor', e.target.value); markSectionTouched('ecommerce'); }}
                           />
                           <input
                             type="color"
@@ -1814,18 +1819,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               { key: 'ecommerceGradientEnd', label: 'End color' }
                             ] as const
                           ).map(cfg => (
-                            <div key={cfg.key} className="space-y-2">
+                            <div key={cfg.key} className="flex items-center gap-3">
                               <p className="text-[11px] uppercase tracking-wide text-gray-500">{cfg.label}</p>
-                              <div className="relative flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 cursor-pointer transition-colors hover:border-indigo-600">
-                                <div
-                                  className="h-10 w-10 rounded-xl ring-1 ring-borderSubtle"
+                              <label className="relative h-7 w-7 rounded-md border border-gray-200">
+                                <span
+                                  className="absolute inset-0 rounded-md"
                                   style={{ background: (values as any)[cfg.key] || '#ffffff' }}
-                                />
-                                <input
-                                  type="text"
-                                  value={(values as any)[cfg.key] || ''}
-                                  onChange={(e) => { updateValue(cfg.key as any, e.target.value as any); markSectionTouched('ecommerce'); }}
-                                  className="w-full bg-transparent text-sm text-gray-900 focus:outline-none"
                                 />
                                 <input
                                   type="color"
@@ -1833,29 +1832,24 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   value={(values as any)[cfg.key] || '#ffffff'}
                                   onChange={(e) => { updateValue(cfg.key as any, e.target.value as any); markSectionTouched('ecommerce'); }}
                                 />
-                              </div>
+                              </label>
                             </div>
                           ))}
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">
                           {GRADIENT_ANGLE_OPTIONS.map(angle => (
-                            <button
+                            <Chip
                               key={angle}
-                              type="button"
                               onClick={() => { updateValue('ecommerceGradientAngle', String(angle) as any); markSectionTouched('ecommerce'); }}
-                              className={getPillClass(String(values.ecommerceGradientAngle) === String(angle), true)}
+                              selected={String(values.ecommerceGradientAngle) === String(angle)}
                             >
                               {angle}°
-                            </button>
+                            </Chip>
                           ))}
-                          <button
-                            type="button"
-                            onClick={invertGradient}
-                            className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-600 transition-colors hover:border-indigo-600 hover:text-gray-900"
-                          >
+                          <Chip selected={false} onClick={invertGradient}>
                             Invert
-                          </button>
+                          </Chip>
                         </div>
 
                         <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white">
@@ -2802,20 +2796,36 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               <p className="text-xs uppercase tracking-wider text-indigo-600">Group & count</p>
               <div className="flex flex-wrap gap-2">
                 {PRODUCT_STRUCTURE_OPTIONS.map(option => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => {
-                      updateValue('productStructure', option.value as Step3Values['productStructure']);
-                      markSectionTouched('productStructure');
-                    }}
-                    className={getPillClass(values.productStructure === option.value)}
-                  >
-                    <span className="flex flex-col text-left">
-                      <span>{option.label}</span>
-                      <span className="text-[10px] text-gray-500">{option.description}</span>
-                    </span>
-                  </button>
+                  isProductMode ? (
+                    <Chip
+                      key={option.value}
+                      selected={values.productStructure === option.value}
+                      onClick={() => {
+                        updateValue('productStructure', option.value as Step3Values['productStructure']);
+                        markSectionTouched('productStructure');
+                      }}
+                    >
+                      <span className="flex flex-col text-left">
+                        <span>{option.label}</span>
+                        <span className="text-[10px] text-gray-500">{option.description}</span>
+                      </span>
+                    </Chip>
+                  ) : (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        updateValue('productStructure', option.value as Step3Values['productStructure']);
+                        markSectionTouched('productStructure');
+                      }}
+                      className={getPillClass(values.productStructure === option.value)}
+                    >
+                      <span className="flex flex-col text-left">
+                        <span>{option.label}</span>
+                        <span className="text-[10px] text-gray-500">{option.description}</span>
+                      </span>
+                    </button>
+                  )
                 ))}
               </div>
             </div>
@@ -3776,14 +3786,24 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           <p className="text-xs uppercase tracking-wider text-indigo-600">ASPECT RATIO</p>
           <div className="flex flex-wrap items-center gap-2">
             {ASPECT_RATIO_OPTIONS.map(option => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => { updateValue('aspectRatio', option); markSectionTouched('output'); }}
-                className={getPillClass(values.aspectRatio === option)}
-              >
-                {option}
-              </button>
+              isProductMode ? (
+                <Chip
+                  key={option}
+                  selected={values.aspectRatio === option}
+                  onClick={() => { updateValue('aspectRatio', option); markSectionTouched('output'); }}
+                >
+                  {option}
+                </Chip>
+              ) : (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => { updateValue('aspectRatio', option); markSectionTouched('output'); }}
+                  className={getPillClass(values.aspectRatio === option)}
+                >
+                  {option}
+                </button>
+              )
             ))}
           </div>
         </div>

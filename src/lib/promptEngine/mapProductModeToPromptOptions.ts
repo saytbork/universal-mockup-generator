@@ -140,6 +140,7 @@ export function mapProductModeToPromptOptions(
         ecommerceGradientAngle: sceneState.ecommerceGradientAngle,
         productType: sceneState.productType,
         productTypeCustom: sceneState.productTypeCustom,
+        handsHolding: sceneState.handsHolding,
         productCameraSystem: sceneState.productCameraSystem,
         productCameraAngle: sceneState.productCameraAngle,
         productCameraDistance: sceneState.productCameraDistance,
@@ -184,7 +185,7 @@ export function mapProductModeToPromptOptions(
     mapped.creationIntent = 'product';
     mapped.personIncluded = false;
     mapped.sceneIntent = 'ecommerce';
-    mapped.addHands = false;
+    mapped.addHands = sceneState.handsHolding === true;
 
     // Ecommerce blank-space is optional and must be toggle-driven.
     // If disabled, Product mode should generate non-blank studio/aesthetic shots.

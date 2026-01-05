@@ -10,6 +10,7 @@ export type ProductStudioStep3Values = {
   ecommerceGradientAngle?: string;
   productType?: string;
   productTypeCustom?: string;
+  handsHolding?: boolean;
   productCameraSystem?: string;
   productCameraAngle?: string;
   productCameraDistance?: string;
