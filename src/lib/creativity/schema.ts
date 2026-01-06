@@ -16,7 +16,13 @@
  * WITHOUT breaking determinism.
  */
 
-import type { SceneType } from './schema';
+// SceneType imported from premiumStudio
+export type SceneType =
+    | 'studio_branding'
+    | 'editorial_product'
+    | 'lifestyle_real'
+    | 'ugc_phone'
+    | 'bundle_hero';
 
 // ============================================================================
 // CREATIVE MODES
@@ -145,6 +151,7 @@ export type BrandSignal =
     | 'clean'
     | 'natural'
     | 'scientific'
+    | 'clinical'
     | 'vibrant'
     | 'editorial'
     | 'bold'
