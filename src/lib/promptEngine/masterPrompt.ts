@@ -95,6 +95,7 @@ export type MasterPromptSections = {
   selfieCapture?: string;
   identity?: string;
   finalize?: string;
+  sceneStructure?: string;
 };
 
 /**
@@ -121,7 +122,8 @@ export function buildMasterPrompt(
     compositionDetails,
     selfieCapture,
     identity,
-    finalize
+    finalize,
+    sceneStructure
   } = sections;
 
   const selfieCaptureActive = Boolean(selfieCapture && selfieCapture.trim().length > 0);
@@ -129,28 +131,30 @@ export function buildMasterPrompt(
   // CANONICAL ORDER - creation intent first, raw domestic UGC last
   const candidateParts = selfieCaptureActive
     ? [
-        creationIntent,     // 1. Structural context
-        creationMode,       // 2. Mode rules
-        formulationStory,   // 3. Expert credibility
-        ecommerceBuilder,   // 4. Blank space layout
-        identity,           // 5. Person traits (before selfie capture)
-        selfieCapture,      // 6. UGC selfie hard constraints
-        cameraFraming,      // 7. Camera composition
-        environmentLightingMood, // 8. Scene + lighting
-        compositionDetails, // 9. Composition instructions
-        finalize            // 10. Constraints + output
-      ]
+      sceneStructure,     // 0. PHYSICAL STRUCTURE (Foundational)
+      creationIntent,     // 1. Structural context
+      creationMode,       // 2. Mode rules
+      formulationStory,   // 3. Expert credibility
+      ecommerceBuilder,   // 4. Blank space layout
+      identity,           // 5. Person traits (before selfie capture)
+      selfieCapture,      // 6. UGC selfie hard constraints
+      cameraFraming,      // 7. Camera composition
+      environmentLightingMood, // 8. Scene + lighting
+      compositionDetails, // 9. Composition instructions
+      finalize            // 10. Constraints + output
+    ]
     : [
-        creationIntent,     // 1. Structural context
-        creationMode,       // 2. Mode rules
-        formulationStory,   // 3. Expert credibility
-        ecommerceBuilder,   // 4. Blank space layout
-        cameraFraming,      // 5. Camera composition
-        environmentLightingMood, // 6. Scene + lighting
-        compositionDetails, // 7. Composition instructions
-        identity,           // 8. Person traits
-        finalize            // 9. Constraints + output
-      ];
+      sceneStructure,     // 0. PHYSICAL STRUCTURE (Foundational)
+      creationIntent,     // 1. Structural context
+      creationMode,       // 2. Mode rules
+      formulationStory,   // 3. Expert credibility
+      ecommerceBuilder,   // 4. Blank space layout
+      cameraFraming,      // 5. Camera composition
+      environmentLightingMood, // 6. Scene + lighting
+      compositionDetails, // 7. Composition instructions
+      identity,           // 8. Person traits
+      finalize            // 9. Constraints + output
+    ];
 
   const cleanedParts: string[] = [];
   for (const candidate of candidateParts) {

@@ -50,6 +50,9 @@ import { UGCRealModeBuilder } from './builders/ugcRealMode';
 import { SelfieCaptureBuilder } from './builders/selfieCapture';
 import { FormulationStoryInjectionBuilder } from './builders/formulationStoryInjection';
 import { CompositionDetailsBuilder } from './builders/compositionDetails';
+import { SceneStructureBuilder } from './builders/sceneStructure';
+import { VisualGrammarBuilder } from './builders/visualGrammar';
+import { PromptSanitizer } from './sanitizer';
 import type { PromptOptions } from './types';
 import { buildMasterPrompt, MasterPromptSections } from './masterPrompt';
 
@@ -337,6 +340,8 @@ export class PromptEngine {
     private finalizeBuilder = new FinalizeBuilder();          // Priority 6
     private formulationStoryInjectionBuilder = new FormulationStoryInjectionBuilder();
     private compositionDetailsBuilder = new CompositionDetailsBuilder();
+    private sceneStructureBuilder = new SceneStructureBuilder(); // NEW: Structure Layer
+    private visualGrammarBuilder = new VisualGrammarBuilder();   // Priority 1.5: Grammar Layer
 
     /**
      * Build complete prompt from options
@@ -577,7 +582,7 @@ export class PromptEngine {
         finalPrompt = enforceUgcFocusGuard(finalPrompt, options);
 
         // ====================================================================
-        // PRODUCT MODE HARD BLOCK: no lifestyle/UGC/human language in positive prompt
+        // PRODUCT MODE HUMAN EXCLUSION (Legacy) -> Still valid
         // ====================================================================
         const isProductOnly =
             options.contentStyle === 'product' ||
@@ -600,6 +605,20 @@ export class PromptEngine {
                 throw new InvalidSceneCombinationError(
                     `Product Step 3 cannot include lifestyle, UGC, phone/selfie, or human identity language. Found: "${match[0]}".`
                 );
+            }
+        }
+
+        // ====================================================================
+        // NEW: SANITIZER & INTEGRITY ASSERTION
+        // ====================================================================
+        if (isProductOnly) {
+            const sanitizer = new PromptSanitizer(); // Instantiate here or as class property
+            finalPrompt = sanitizer.sanitize(finalPrompt);
+            try {
+                sanitizer.assertIntegrity(finalPrompt, options);
+            } catch (e: any) {
+                console.error('[PROMPT INTEGRITY FAILURE]', e.message);
+                throw e; // Hard fail as requested
             }
         }
 

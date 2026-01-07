@@ -275,9 +275,10 @@ export interface PromptOptions {
     backgroundVariationId?: string;
     lastBackgroundId?: string;
 
-    // Composition
     compositionIntro?: string;
     identityBlock?: string;
+    sceneStructure?: import('../../../types').SceneStructure;
+    colorSystem?: import('../../../types').ColorSystem;
 }
 
 export interface PromptBuilder {

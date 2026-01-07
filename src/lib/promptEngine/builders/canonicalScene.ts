@@ -231,10 +231,9 @@ export class SceneNarrativeBuilder {
             options.sidePlacement === 'center'
                 ? 'Maintain even negative space on both sides so copy can wrap naturally.'
                 : options.sidePlacement
-                ? `Reserve large, clean negative space on the ${
-                      options.sidePlacement === 'left' ? 'right' : 'left'
-                  } side for text overlays.`
-                : '';
+                    ? `Reserve large, clean negative space on the ${options.sidePlacement === 'left' ? 'right' : 'left'
+                    } side for text overlays.`
+                    : '';
 
         return [placement, copySpace].filter(Boolean).join(' ');
     }
@@ -258,14 +257,26 @@ export class SceneNarrativeBuilder {
         const parts: string[] = [];
         const suppressCameraDescriptors = !!options.ugcRealModeActive;
 
-        if (cameraText) {
-            parts.push(`Camera: ${cameraText}.`);
-        }
-        if (!suppressCameraDescriptors && options.cameraAngle) {
-            parts.push(`Camera angle: ${options.cameraAngle}.`);
-        }
-        if (!suppressCameraDescriptors && options.perspective) {
-            parts.push(`Framing: ${options.perspective}.`);
+        if (options.sceneStructure?.cameraLock) {
+            const lock = options.sceneStructure.cameraLock;
+            if (lock === 'top_down_flatlay') {
+                parts.push('Camera: Top-down flatlay perspective (0 degrees). Directly overhead alignment. No angle, no tilt.');
+            } else if (lock === 'eye_level_pedestal') {
+                parts.push('Camera: Eye-level perspective (90 degrees). Straight-on view of the pedestal. Low horizon line.');
+            } else if (lock === 'slightly_elevated_editorial') {
+                parts.push('Camera: Slightly elevated editorial angle (15-30 degrees). Minimalist architectural framing.');
+            }
+            parts.push('Camera Alignment: Strictly axis-aligned. No dutch angles, no wide-angle distortion.');
+        } else {
+            if (cameraText) {
+                parts.push(`Camera: ${cameraText}.`);
+            }
+            if (!suppressCameraDescriptors && options.cameraAngle) {
+                parts.push(`Camera angle: ${options.cameraAngle}.`);
+            }
+            if (!suppressCameraDescriptors && options.perspective) {
+                parts.push(`Framing: ${options.perspective}.`);
+            }
         }
         if (!suppressCameraDescriptors && options.cameraShot) {
             parts.push(`Shot type: ${options.cameraShot}.`);
@@ -299,8 +310,8 @@ export class SceneNarrativeBuilder {
         const isEcommerceBlankSpaceMode =
             Boolean(
                 options.ecommerceBlankSpaceMode ||
-                    options.creationMode === 'ecom-blank' ||
-                    options.compositionMode === 'Ecommerce Blank Space'
+                options.creationMode === 'ecom-blank' ||
+                options.compositionMode === 'Ecommerce Blank Space'
             );
 
         const isEcommerceCanvasOverlay =
@@ -310,8 +321,8 @@ export class SceneNarrativeBuilder {
             const bgLine = options.bgGradient
                 ? `Background: gradient ${options.bgGradient.angle ?? 90}° from ${options.bgGradient.startColor} to ${options.bgGradient.endColor}.`
                 : options.bgColor
-                  ? `Background: solid ${options.bgColor}.`
-                  : 'Background: clean neutral solid or gradient.';
+                    ? `Background: solid ${options.bgColor}.`
+                    : 'Background: clean neutral solid or gradient.';
 
             return [
                 'Ecommerce canvas overlay is active.',
@@ -325,8 +336,8 @@ export class SceneNarrativeBuilder {
             const bgLine = options.bgGradient
                 ? `Clean neutral gradient background (linear ${options.bgGradient.angle ?? 90}° from ${options.bgGradient.startColor} to ${options.bgGradient.endColor}).`
                 : options.bgColor
-                  ? `Clean solid background color (${options.bgColor}).`
-                  : 'Clean neutral solid or gradient background.';
+                    ? `Clean solid background color (${options.bgColor}).`
+                    : 'Clean neutral solid or gradient background.';
             const text = [
                 bgLine,
                 'Professional studio lighting with neutral, even illumination and a minimal contact shadow straight under the product.',
@@ -359,8 +370,8 @@ export class SceneNarrativeBuilder {
                 ? options.bgGradient
                     ? `Background: gradient ${options.bgGradient.angle ?? 90}° from ${options.bgGradient.startColor} to ${options.bgGradient.endColor}.`
                     : options.bgColor
-                      ? `Background: solid ${options.bgColor}.`
-                      : ''
+                        ? `Background: solid ${options.bgColor}.`
+                        : ''
                 : '';
 
         const narrativeParts = [
