@@ -59,9 +59,9 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
   const containerVariantClass = (() => {
     switch (variant) {
       case 'secondary':
-        return 'opacity-90';
+        return '';
       case 'expert':
-        return 'opacity-80';
+        return '';
       case 'primary':
       default:
         return '';

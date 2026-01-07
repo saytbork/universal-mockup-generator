@@ -54,3 +54,15 @@ export {
 // Prompt Injection
 export type { LifestyleInjection } from './injection';
 export { injectLifestyleIntent, injectRawDomesticUGC } from './injection';
+
+// Enforcement (camera, depth, hands)
+export type { CameraType as EnforcedCameraType, DepthStyle, SceneType as EnforcedSceneType } from './enforcement';
+export {
+    enforceCamera,
+    enforceDepth,
+    UGC_FORBIDDEN_KEYWORDS,
+    stripForbiddenFromPrompt,
+    getMaxHands,
+    getHandsConstraint
+} from './enforcement';
+

@@ -1,0 +1,829 @@
+/**
+ * PRODUCT STUDIO STORE
+ * Zustand store with complete defaults - v2
+ */
+
+import { create } from 'zustand';
+import type {
+    ProductStudioState,
+    ProductAsset,
+    ProductDefinition,
+    ProductType,
+    PhysicalDefinition,
+    CapsulesPhysical,
+    GummiesPhysical,
+    DropsPhysical,
+    PowderPhysical,
+    SkincarePhysical,
+    DevicePhysical,
+    CustomPhysical,
+    EnvironmentMacro,
+    MicroPlace,
+    Lighting,
+    BundleDefinition,
+    BundleModeV2,
+    BundleLayout,
+    BundleSpacing,
+    PrebuiltBundle,
+    SceneType,
+    PresetTier,
+    CompositionMode,
+    SurfaceBase,
+    ProductScale,
+    ProductSpacing,
+    LightStyle,
+    NegativeSpace,
+    BrandPreset,
+    BrandPresetId,
+} from './types';
+
+
+// ============================================================================
+// DEFAULT PHYSICAL BY TYPE
+// ============================================================================
+
+const DEFAULT_COLOR = { hex: '#FFFFFF', semanticName: 'white' };
+
+const DEFAULT_CAPSULES: CapsulesPhysical = {
+    capsuleStyle: 'veggie',
+    capsuleContentColor: { hex: '#F5DEB3', semanticName: 'beige' },
+    quantity: 2,
+    layout: 'grouped',
+    glassOfWater: false,
+    spoon: false,
+};
+
+const DEFAULT_GUMMIES: GummiesPhysical = {
+    gummyColor: { hex: '#FF6B6B', semanticName: 'coral' },
+    shape: 'bear',
+    quantity: 5,
+    bowl: false,
+    plate: false,
+};
+
+const DEFAULT_DROPS: DropsPhysical = {
+    liquidColorMode: 'amber',
+    liquidCustomColor: DEFAULT_COLOR,
+    dropperState: 'closed',
+    interactionMode: 'sublingual',
+    glass: false,
+    teaCup: false,
+    minimalSpoon: false,
+};
+
+const DEFAULT_POWDER: PowderPhysical = {
+    powderColor: { hex: '#98FB98', semanticName: 'pale green' },
+    texture: 'fine',
+    presentation: 'in-scoop',
+    mixMode: 'water',
+    cupOrMug: true,
+    scoop: true,
+    spoon: false,
+};
+
+const DEFAULT_SKINCARE: SkincarePhysical = {
+    subtype: 'serum',
+    texture: 'glossy',
+    color: { hex: '#E6E6FA', semanticName: 'lavender' },
+    dispersion: 'drop',
+    towel: false,
+    sink: false,
+    minimalSurfaceOnly: true,
+};
+
+const DEFAULT_DEVICE: DevicePhysical = {
+    material: 'plastic',
+    color: DEFAULT_COLOR,
+    scale: 'medium',
+};
+
+const DEFAULT_CUSTOM: CustomPhysical = {
+    material: 'mixed',
+    color: DEFAULT_COLOR,
+    scale: 'medium',
+    propsAutoBlocked: true,
+};
+
+export function getDefaultPhysical(type: ProductType): PhysicalDefinition {
+    switch (type) {
+        case 'capsules':
+            return { kind: 'capsules', v: { ...DEFAULT_CAPSULES } };
+        case 'gummies':
+            return { kind: 'gummies', v: { ...DEFAULT_GUMMIES } };
+        case 'drops':
+            return { kind: 'drops', v: { ...DEFAULT_DROPS } };
+        case 'powder':
+            return { kind: 'powder', v: { ...DEFAULT_POWDER } };
+        case 'skincare':
+            return { kind: 'skincare', v: { ...DEFAULT_SKINCARE } };
+        case 'device':
+            return { kind: 'device', v: { ...DEFAULT_DEVICE } };
+        case 'custom':
+            return { kind: 'custom', v: { ...DEFAULT_CUSTOM } };
+        case 'dummy':
+        default:
+            return { kind: 'dummy', v: {} };
+    }
+}
+
+// ============================================================================
+// DEFAULT MICRO PLACE BY ENVIRONMENT
+// ============================================================================
+
+export function getDefaultMicroPlace(env: EnvironmentMacro): MicroPlace {
+    const map: Record<EnvironmentMacro, MicroPlace> = {
+        'kitchen': 'countertop',
+        'living-room': 'coffee-table',
+        'bedroom': 'nightstand',
+        'bathroom': 'vanity',
+        'workspace': 'desk-surface',
+        'hallway': 'console-table',
+        'home-gym': 'bench',
+        'balcony-indoor-terrace': 'table',
+        'urban-exterior': 'concrete-ledge',
+        'natural-exterior': 'rock',
+        'parking-lot': 'car-hood',
+        'backyard-patio': 'outdoor-table',
+        'street-corner': 'sidewalk-edge',
+        'studio': 'neutral-surface',
+        'custom': 'neutral-surface',
+    };
+    return map[env] || 'neutral-surface';
+}
+
+// ============================================================================
+// ENVIRONMENT + LIGHTING COMPATIBILITY
+// ============================================================================
+
+const NIGHT_MODE_ENVS: EnvironmentMacro[] = ['urban-exterior', 'street-corner', 'parking-lot'];
+const FLASH_PHOTO_ENVS: EnvironmentMacro[] = ['urban-exterior', 'street-corner', 'parking-lot'];
+const RING_LIGHT_ENVS: EnvironmentMacro[] = ['studio', 'workspace', 'kitchen', 'living-room', 'bedroom', 'bathroom'];
+
+export function enforceValidLighting(lighting: Lighting, env: EnvironmentMacro): Lighting {
+    if (lighting === 'night-mode' && !NIGHT_MODE_ENVS.includes(env)) {
+        return 'clinical-softbox';
+    }
+    if (lighting === 'flash-photo' && !FLASH_PHOTO_ENVS.includes(env)) {
+        return 'clinical-softbox';
+    }
+    if (lighting === 'ring-light' && !RING_LIGHT_ENVS.includes(env)) {
+        return 'clinical-softbox';
+    }
+    if (lighting === 'golden-hour' && env === 'bathroom') {
+        return 'natural-light';
+    }
+    return lighting;
+}
+
+// ============================================================================
+// PRODUCT TYPE ENVIRONMENT CONSTRAINTS
+// ============================================================================
+
+const POWDER_BLOCKED_ENVS: EnvironmentMacro[] = ['bedroom'];
+const SKINCARE_PREFERRED_ENVS: EnvironmentMacro[] = ['bathroom', 'studio'];
+const DROPS_OPEN_BLOCKED_ENVS: EnvironmentMacro[] = ['street-corner', 'parking-lot', 'urban-exterior'];
+
+export function enforceValidEnvironment(
+    env: EnvironmentMacro,
+    productType: ProductType,
+    dropsState?: string
+): EnvironmentMacro {
+    if (productType === 'powder' && POWDER_BLOCKED_ENVS.includes(env)) {
+        return 'kitchen';
+    }
+    if (productType === 'skincare' && !SKINCARE_PREFERRED_ENVS.includes(env) && env !== 'studio') {
+        return 'bathroom';
+    }
+    if (productType === 'drops' && dropsState === 'open-resting' && DROPS_OPEN_BLOCKED_ENVS.includes(env)) {
+        return 'kitchen';
+    }
+    return env;
+}
+
+// ============================================================================
+// PRE-BUILT BUNDLES
+// ============================================================================
+
+export const PREBUILT_BUNDLES: PrebuiltBundle[] = [
+    {
+        id: 'essentials_trio',
+        name: 'Core Essentials Trio',
+        minProducts: 3,
+        maxProducts: 3,
+        layout: 'pyramid',
+        spacing: 'compact',
+    },
+    {
+        id: 'daily_duo',
+        name: 'Daily Duo Stack',
+        minProducts: 2,
+        maxProducts: 2,
+        layout: 'lineal',
+        spacing: 'airy',
+    },
+    {
+        id: 'launch_showcase',
+        name: 'Launch Showcase Set',
+        minProducts: 3,
+        maxProducts: 4,
+        layout: 'organic-cluster',
+        spacing: 'airy',
+    },
+    {
+        id: 'hero_lineup',
+        name: 'Complete Hero Lineup',
+        minProducts: 3,
+        maxProducts: 5,
+        layout: 'lineal',
+        spacing: 'compact',
+    },
+];
+
+// ============================================================================
+// BRAND PRESETS (LOOK SYSTEMS)
+// ============================================================================
+
+export const BRAND_PRESETS: BrandPreset[] = [
+    {
+        id: 'ag1-style',
+        label: 'AG1 Style',
+        description: 'Functional, clinical, premium trust.',
+        config: {
+            creativityLevel: 1, // Subtle
+            composition: 'centered',
+            surface: 'stone',
+            scale: 'balanced',
+            spacing: 'airy', // Explicitly airy per spec
+            lightStyle: 'clinical',
+            creativeTheme: 'clinical-minimal',
+            paletteSource: 'brand',
+            propDensity: 'none',
+            bundle: { enabled: false, mode: 'off', layout: 'lineal', spacing: 'compact', primaryProductId: null, secondaryProductIds: [], selectedBundleId: null },
+        },
+    },
+    {
+        id: 'ritual-style',
+        label: 'Ritual Style',
+        description: 'Bright, editorial, lifestyle-clean.',
+        config: {
+            creativityLevel: 1,
+            composition: 'thirds',
+            surface: 'acrylic',
+            scale: 'balanced',
+            spacing: 'balanced',
+            lightStyle: 'soft',
+            creativeTheme: 'fresh-bright',
+            paletteSource: 'warm-neutral',
+            propDensity: 'low',
+            bundle: { enabled: false, mode: 'off', layout: 'lineal', spacing: 'compact', primaryProductId: null, secondaryProductIds: [], selectedBundleId: null },
+        },
+    },
+    {
+        id: 'olly-style',
+        label: 'OLLY Style',
+        description: 'Playful, bold, retail-first.',
+        config: {
+            creativityLevel: 2, // Bold
+            composition: 'asymmetrical',
+            surface: 'abstract', // color-block
+            scale: 'balanced',
+            spacing: 'compact',
+            lightStyle: 'contrast', // bright-even mapped to contrast or clinical? brightness is usually clinical, mood is playful. Let's go contrast for pop.
+            creativeTheme: 'playful-pop',
+            paletteSource: 'custom',
+            propDensity: 'medium', // dense
+            // Bundle: user said "duo". We'll handle this in logic or just set enabled if products exist.
+            // We can't strictly force bundle in config if we don't know product count, BUT we can set intent.
+            // For safety, we default bundle OFF in static config, and handle smart logic in action.
+        },
+    },
+    {
+        id: 'luxury-minimal',
+        label: 'Luxury Minimal',
+        description: 'High-end DTC, slow, dramatic.',
+        config: {
+            creativityLevel: 1,
+            composition: 'centered',
+            surface: 'stone', // dark-stone -> stone
+            scale: 'dominant', // large
+            spacing: 'airy',
+            lightStyle: 'shadow-play', // dramatic
+            creativeTheme: 'premium-clean', // or dark-dramatic? Spec says premium-luxury -> premium-clean.
+            paletteSource: 'cool-neutral',
+            propDensity: 'none',
+            bundle: { enabled: false, mode: 'off', layout: 'lineal', spacing: 'compact', primaryProductId: null, secondaryProductIds: [], selectedBundleId: null },
+        },
+    },
+];
+
+
+export function getRecommendedBundle(productCount: number): PrebuiltBundle | null {
+    if (productCount === 2) return PREBUILT_BUNDLES.find(b => b.id === 'daily_duo') || null;
+    if (productCount === 3) return PREBUILT_BUNDLES.find(b => b.id === 'essentials_trio') || null;
+    if (productCount >= 4) return PREBUILT_BUNDLES.find(b => b.id === 'hero_lineup') || null;
+    return null;
+}
+
+export function canUseBundle(bundle: PrebuiltBundle, productCount: number): boolean {
+    return productCount >= bundle.minProducts && productCount <= bundle.maxProducts;
+}
+
+// ============================================================================
+// DEFAULT STATE
+// ============================================================================
+
+const DEFAULT_DEFINITION: ProductDefinition = {
+    type: 'dummy',
+    color: DEFAULT_COLOR,
+    physical: { kind: 'dummy', v: {} },
+};
+
+const DEFAULT_BUNDLE: BundleDefinition = {
+    enabled: false,
+    mode: 'off',
+    selectedBundleId: null,
+    primaryProductId: null,
+    secondaryProductIds: [],
+    layout: 'lineal',
+    spacing: 'compact',
+};
+
+export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
+    products: [],
+    activeProductId: null,
+
+    definition: DEFAULT_DEFINITION,
+
+    // Scene Type
+    sceneType: 'studio-branding',
+
+    // Creativity
+    creativityLevel: 1,
+    creativeTheme: 'clinical-minimal',
+    paletteSource: 'warm-neutral',
+    propDensity: 'none',
+    selectedProps: [],
+
+    // Creativity V1
+    composition: 'centered',
+    surface: 'neutral',
+    scale: 'dominant',
+    spacing: 'balanced',
+    lightStyle: 'soft',
+    negativeSpace: 'none',
+
+    // Camera
+    cameraSystem: 'dslr',
+    angle: '45',
+    distance: 'medium',
+    rotation: 'none',
+    framing: 'centered',
+
+    // Environment
+    environmentMacro: 'studio',
+    microPlace: 'neutral-surface',
+    customEnvironmentText: '',
+    customMicroPlaceText: '',
+    lighting: 'clinical-softbox',
+
+    // Ecommerce
+    ecommerceMode: false,
+    blankSpaceEnabled: false,
+    blankSpaceSide: 'right',
+    aspectRatio: '1:1',
+
+    // Bundle
+    bundle: DEFAULT_BUNDLE,
+
+    // Preset
+    presetTier: 'basic',
+};
+
+// ============================================================================
+// STORE ACTIONS
+// ============================================================================
+
+type ProductStudioActions = {
+    // Products
+    addProduct: (product: ProductAsset) => void;
+    removeProduct: (id: string) => void;
+    setActiveProduct: (id: string | null) => void;
+    updateProductName: (id: string, name: string) => void;
+
+    // Definition
+    setProductType: (type: ProductType) => void;
+    setProductColor: (hex: string, semanticName: string) => void;
+    setPhysicalProperty: (key: string, value: any) => void;
+    setPhysicalColor: (colorKey: string, hex: string) => void;
+    setPhysicalColorName: (colorKey: string, name: string) => void;
+    updatePhysical: <K extends PhysicalDefinition['kind']>(
+        kind: K,
+        updates: Partial<Extract<PhysicalDefinition, { kind: K }>['v']>
+    ) => void;
+
+    // Scene Type
+    setSceneType: (sceneType: SceneType) => void;
+
+    // Creativity
+    setCreativityLevel: (level: 0 | 1 | 2 | 3) => void;
+    setCreativeTheme: (theme: ProductStudioState['creativeTheme']) => void;
+    setPaletteSource: (source: ProductStudioState['paletteSource']) => void;
+    setPropDensity: (density: ProductStudioState['propDensity']) => void;
+    setSelectedProps: (props: string[]) => void;
+    setComposition: (composition: CompositionMode) => void;
+    setSurface: (surface: SurfaceBase) => void;
+    setScale: (scale: ProductScale) => void;
+    setSpacing: (spacing: ProductSpacing) => void;
+    setLightStyle: (style: LightStyle) => void;
+    setNegativeSpace: (space: NegativeSpace) => void;
+
+    // Camera
+    setCameraSystem: (system: ProductStudioState['cameraSystem']) => void;
+    setAngle: (angle: ProductStudioState['angle']) => void;
+    setDistance: (distance: ProductStudioState['distance']) => void;
+    setRotation: (rotation: ProductStudioState['rotation']) => void;
+    setFraming: (framing: ProductStudioState['framing']) => void;
+
+    // Environment
+    setEnvironmentMacro: (env: EnvironmentMacro) => void;
+    setMicroPlace: (place: MicroPlace) => void;
+    setCustomEnvironmentText: (text: string) => void;
+    setCustomMicroPlaceText: (text: string) => void;
+    setLighting: (lighting: Lighting) => void;
+
+    // Ecommerce
+    setBlankSpaceEnabled: (enabled: boolean) => void;
+    setBlankSpaceSide: (side: ProductStudioState['blankSpaceSide']) => void;
+    setAspectRatio: (ratio: ProductStudioState['aspectRatio']) => void;
+
+    // Bundles v2
+    setBundleEnabled: (enabled: boolean) => void;
+    setBundleMode: (mode: BundleModeV2) => void;
+    selectPrebuiltBundle: (bundleId: string) => void;
+    setBundleLayout: (layout: BundleLayout) => void;
+    setBundleSpacing: (spacing: BundleSpacing) => void;
+    applyRecommendedBundle: () => void;
+
+    // Preset
+    setPresetTier: (tier: PresetTier) => void;
+    applyBasicPreset: () => void;
+    applyProPreset: () => void;
+    applyBrandPreset: (presetId: BrandPresetId) => void;
+
+    // Reset
+    reset: () => void;
+};
+
+// ============================================================================
+// CREATE STORE
+// ============================================================================
+
+export const useProductStudioStore = create<ProductStudioState & ProductStudioActions>((set, get) => ({
+    ...DEFAULT_PRODUCT_STUDIO_STATE,
+
+    // Products
+    addProduct: (product) =>
+        set((state) => {
+            if (state.products.length >= 5) {
+                console.warn('[ProductStudio] Max 5 products');
+                return state;
+            }
+            const newProducts = [...state.products, product];
+            return {
+                products: newProducts,
+                activeProductId: state.activeProductId ?? product.id,
+                bundle: newProducts.length < 2 ? { ...state.bundle, enabled: false } : state.bundle,
+            };
+        }),
+
+    removeProduct: (id) =>
+        set((state) => {
+            const filtered = state.products.filter((p) => p.id !== id);
+            return {
+                products: filtered,
+                activeProductId: state.activeProductId === id ? (filtered[0]?.id ?? null) : state.activeProductId,
+                bundle: filtered.length < 2 ? { ...state.bundle, enabled: false } : state.bundle,
+            };
+        }),
+
+    setActiveProduct: (id) => set({ activeProductId: id }),
+
+    updateProductName: (id, name) =>
+        set((state) => ({
+            products: state.products.map((p) => (p.id === id ? { ...p, name } : p)),
+        })),
+
+    // Definition
+    setProductType: (type) =>
+        set((state) => ({
+            definition: {
+                ...state.definition,
+                type,
+                physical: getDefaultPhysical(type),
+            },
+        })),
+
+    setProductColor: (hex, semanticName) =>
+        set((state) => ({
+            definition: {
+                ...state.definition,
+                color: { hex, semanticName },
+            },
+        })),
+
+    updatePhysical: (kind, updates) =>
+        set((state) => {
+            if (state.definition.physical.kind !== kind) return state;
+            return {
+                definition: {
+                    ...state.definition,
+                    physical: {
+                        ...state.definition.physical,
+                        v: { ...state.definition.physical.v, ...updates },
+                    } as PhysicalDefinition,
+                },
+            };
+        }),
+
+    setPhysicalProperty: (key, value) =>
+        set((state) => ({
+            definition: {
+                ...state.definition,
+                physical: {
+                    ...state.definition.physical,
+                    v: { ...state.definition.physical.v, [key]: value },
+                } as PhysicalDefinition,
+            },
+        })),
+
+    setPhysicalColor: (colorKey, hex) =>
+        set((state) => {
+            const currentV = state.definition.physical.v as any;
+            const currentColor = currentV[colorKey] || { hex: '#FFFFFF', semanticName: '' };
+            return {
+                definition: {
+                    ...state.definition,
+                    physical: {
+                        ...state.definition.physical,
+                        v: {
+                            ...currentV,
+                            [colorKey]: { ...currentColor, hex },
+                        },
+                    } as PhysicalDefinition,
+                },
+            };
+        }),
+
+    setPhysicalColorName: (colorKey, name) =>
+        set((state) => {
+            const currentV = state.definition.physical.v as any;
+            const currentColor = currentV[colorKey] || { hex: '#FFFFFF', semanticName: '' };
+            return {
+                definition: {
+                    ...state.definition,
+                    physical: {
+                        ...state.definition.physical,
+                        v: {
+                            ...currentV,
+                            [colorKey]: { ...currentColor, semanticName: name },
+                        },
+                    } as PhysicalDefinition,
+                },
+            };
+        }),
+
+    // Scene Type
+    setSceneType: (sceneType) =>
+        set((state) => {
+            let newBundle = state.bundle;
+            // lifestyle-real forces bundle off
+            if (sceneType === 'lifestyle-real' && state.bundle.enabled) {
+                newBundle = { ...state.bundle, enabled: false };
+            }
+            // blankSpaceEnabled forces studio
+            const effectiveSceneType = state.blankSpaceEnabled ? 'studio-branding' : sceneType;
+            return {
+                sceneType: effectiveSceneType,
+                bundle: newBundle,
+                // studio forces neutral-surface
+                microPlace: effectiveSceneType === 'studio-branding' ? 'neutral-surface' : state.microPlace,
+            };
+        }),
+
+    // Creativity
+    setCreativityLevel: (level) => set({ creativityLevel: level }),
+    setCreativeTheme: (theme) => set({ creativeTheme: theme }),
+    setPaletteSource: (source) => set({ paletteSource: source }),
+    setPropDensity: (density) =>
+        set((state) => {
+            // Basic tier limits propDensity
+            if (state.presetTier === 'basic' && density === 'medium') {
+                return { propDensity: 'low' };
+            }
+            return { propDensity: density };
+        }),
+    setSelectedProps: (props) => set({ selectedProps: props }),
+    setComposition: (composition) => set({ composition }),
+    setSurface: (surface) => set({ surface }),
+    setScale: (scale) => set({ scale }),
+    setSpacing: (spacing) => set({ spacing }),
+    setLightStyle: (lightStyle) => set({ lightStyle }),
+    setNegativeSpace: (negativeSpace) => set({ negativeSpace }),
+
+    // Camera
+    setCameraSystem: (system) => set({ cameraSystem: system }),
+    setAngle: (angle) => set({ angle }),
+    setDistance: (distance) => set({ distance }),
+    setRotation: (rotation) => set({ rotation }),
+    setFraming: (framing) => set({ framing }),
+
+    // Environment
+    setEnvironmentMacro: (env) =>
+        set((state) => {
+            const validEnv = enforceValidEnvironment(
+                env,
+                state.definition.type,
+                state.definition.physical.kind === 'drops' ? state.definition.physical.v.dropperState : undefined
+            );
+            const validLighting = enforceValidLighting(state.lighting, validEnv);
+            return {
+                environmentMacro: validEnv,
+                microPlace: getDefaultMicroPlace(validEnv),
+                lighting: validLighting,
+            };
+        }),
+    setMicroPlace: (place) => set({ microPlace: place }),
+    setCustomEnvironmentText: (text) => set({ customEnvironmentText: text }),
+    setCustomMicroPlaceText: (text) => set({ customMicroPlaceText: text }),
+    setLighting: (lighting) =>
+        set((state) => ({
+            lighting: enforceValidLighting(lighting, state.environmentMacro),
+        })),
+
+    // Ecommerce
+    setBlankSpaceEnabled: (enabled) =>
+        set((state) => ({
+            blankSpaceEnabled: enabled,
+            sceneType: enabled ? 'studio-branding' : state.sceneType,
+            microPlace: enabled ? 'neutral-surface' : state.microPlace,
+        })),
+    setBlankSpaceSide: (side) => set({ blankSpaceSide: side }),
+    setAspectRatio: (ratio) => set({ aspectRatio: ratio }),
+
+    // Bundles v2
+    setBundleEnabled: (enabled) =>
+        set((state) => {
+            if (enabled && state.products.length < 2) {
+                console.warn('[ProductStudio] Cannot enable bundle with < 2 products');
+                return state;
+            }
+            if (enabled && state.sceneType === 'lifestyle-real') {
+                console.warn('[ProductStudio] Cannot enable bundle in lifestyle-real mode');
+                return state;
+            }
+            const primaryId = state.products[0]?.id || null;
+            const secondaryIds = state.products.slice(1).map(p => p.id);
+            return {
+                bundle: {
+                    ...state.bundle,
+                    enabled,
+                    primaryProductId: enabled ? primaryId : null,
+                    secondaryProductIds: enabled ? secondaryIds : [],
+                },
+            };
+        }),
+
+    setBundleMode: (mode) =>
+        set((state) => {
+            // Basic tier restricts bundle modes
+            if (state.presetTier === 'basic' && mode !== 'off' && mode !== 'hero') {
+                return { bundle: { ...state.bundle, mode: 'hero' } };
+            }
+            return { bundle: { ...state.bundle, mode } };
+        }),
+
+    selectPrebuiltBundle: (bundleId) =>
+        set((state) => {
+            const bundle = PREBUILT_BUNDLES.find(b => b.id === bundleId);
+            if (!bundle) return state;
+            if (!canUseBundle(bundle, state.products.length)) {
+                console.warn(`[ProductStudio] Cannot use ${bundleId}: need ${bundle.minProducts}-${bundle.maxProducts} products`);
+                return state;
+            }
+            const primaryId = state.products[0]?.id || null;
+            const secondaryIds = state.products.slice(1, bundle.maxProducts).map(p => p.id);
+            return {
+                bundle: {
+                    ...state.bundle,
+                    enabled: true,
+                    mode: 'hero',
+                    selectedBundleId: bundleId,
+                    primaryProductId: primaryId,
+                    secondaryProductIds: secondaryIds,
+                    layout: bundle.layout,
+                    spacing: bundle.spacing,
+                },
+            };
+        }),
+
+    setBundleLayout: (layout) =>
+        set((state) => ({
+            bundle: { ...state.bundle, layout },
+        })),
+
+    setBundleSpacing: (spacing) =>
+        set((state) => ({
+            bundle: { ...state.bundle, spacing },
+        })),
+
+    applyRecommendedBundle: () =>
+        set((state) => {
+            const recommended = getRecommendedBundle(state.products.length);
+            if (!recommended) return state;
+            const primaryId = state.products[0]?.id || null;
+            const secondaryIds = state.products.slice(1).map(p => p.id);
+            return {
+                bundle: {
+                    ...state.bundle,
+                    enabled: true,
+                    mode: 'hero',
+                    selectedBundleId: recommended.id,
+                    primaryProductId: primaryId,
+                    secondaryProductIds: secondaryIds,
+                    layout: recommended.layout,
+                    spacing: recommended.spacing,
+                },
+            };
+        }),
+
+    // Preset
+    setPresetTier: (tier) =>
+        set((state) => {
+            if (tier === 'basic') {
+                // Apply basic tier restrictions
+                return {
+                    presetTier: tier,
+                    sceneType: 'studio-branding',
+                    propDensity: state.propDensity === 'medium' ? 'low' : state.propDensity,
+                    bundle: state.bundle.mode !== 'off' && state.bundle.mode !== 'hero'
+                        ? { ...state.bundle, mode: 'hero' }
+                        : state.bundle,
+                };
+            }
+            return { presetTier: tier };
+        }),
+
+    applyBasicPreset: () =>
+        set({
+            presetTier: 'basic',
+            sceneType: 'studio-branding',
+            creativityLevel: 1,
+            creativeTheme: 'clinical-minimal',
+            propDensity: 'none',
+            blankSpaceEnabled: true,
+        }),
+
+    applyProPreset: () =>
+        set({
+            presetTier: 'pro',
+            creativityLevel: 2,
+            creativeTheme: 'premium-clean',
+            propDensity: 'low',
+        }),
+
+    applyBrandPreset: (presetId) =>
+        set((state) => {
+            const preset = BRAND_PRESETS.find((p) => p.id === presetId);
+            if (!preset) return state;
+
+            const newState = { ...state, ...preset.config };
+
+            // Handle specific OLLY bundle logic if applicable
+            if (presetId === 'olly-style') {
+                // Try to apply "Duo" if available
+                if (state.products.length >= 2) {
+                    // We can reuse selectPrebuiltBundle logic effectively
+                    const duo = PREBUILT_BUNDLES.find(b => b.id === 'daily_duo');
+                    if (duo) {
+                        const primaryId = state.products[0]?.id || null;
+                        const secondaryIds = state.products.slice(1, duo.maxProducts).map(p => p.id);
+                        newState.bundle = {
+                            ...state.bundle,
+                            enabled: true,
+                            mode: 'hero',
+                            selectedBundleId: 'daily_duo',
+                            primaryProductId: primaryId,
+                            secondaryProductIds: secondaryIds,
+                            layout: duo.layout,
+                            spacing: duo.spacing
+                        };
+                    }
+                }
+            }
+
+            return newState;
+        }),
+
+    // Reset
+    reset: () => set(DEFAULT_PRODUCT_STUDIO_STATE),
+}));

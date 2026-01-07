@@ -45,6 +45,8 @@ import { type EcommerceGenerationSettings } from '@/components/EcommerceStep3';
 import type { EcommerceSlotKey, EcommerceSlotsConfig } from '@/lib/ecommerceOverlay/types';
 import { loadEcommerceSlotsConfig, saveEcommerceSlotsConfig } from '@/lib/ecommerceOverlay/storage';
 import { ECOMMERCE_SLOT_REQUIRED_BLANK_SPACE } from '@/lib/ecommerceOverlay/templates';
+// PHASE 2: ProductStudio direct generation
+import { useProductStudioStore, generateProductJobs, validatePrompt } from '@/lib/productStudio';
 
 
 
@@ -1066,6 +1068,35 @@ const App: React.FC = () => {
       }
       return next;
     });
+  }, [productAssets]);
+
+  // PHASE 5: Sync productAssets to ProductStudioStore for Product mode
+  useEffect(() => {
+    const store = useProductStudioStore.getState();
+    const currentProducts = store.products;
+
+    // Only sync if products have changed
+    const productIds = productAssets.map(a => a.id);
+    const currentIds = currentProducts.map(p => p.id);
+    const needsSync = productIds.length !== currentIds.length ||
+      !productIds.every((id, i) => id === currentIds[i]);
+
+    if (needsSync) {
+      // Reset and rebuild products in store
+      store.reset();
+      productAssets.forEach(asset => {
+        if (asset.base64 && asset.mimeType) {
+          store.addProduct({
+            id: asset.id,
+            name: asset.label || 'Product',
+            imageUrl: asset.previewUrl || '',
+            base64: asset.base64,
+            mimeType: asset.mimeType,
+          });
+        }
+      });
+      console.log('[PRODUCT STUDIO SYNC] Products synced:', store.products.length);
+    }
   }, [productAssets]);
   useEffect(() => {
     if (!availableProductIds.length) return;
@@ -4359,10 +4390,53 @@ If the model attempts to create a scene or environment, override it and force a 
 
         // If LifestyleStep3 values exist, map them to PromptOptions
         let promptOptions = basePromptOptions;
-        if (lifestyleStep3Values) {
-          promptOptions = isProductPlacement
-            ? mapProductModeToPromptOptions(lifestyleStep3Values, basePromptOptions)
-            : mapLifestyleToPromptOptions(lifestyleStep3Values, basePromptOptions, hasModelReference);
+        let finalPrompt: string;
+
+        // PHASE 2: PRODUCT MODE - Use ProductStudioStore directly, bypass legacy mapper
+        if (isProductPlacement) {
+          // Read directly from ProductStudioStore - SINGLE SOURCE OF TRUTH
+          const productState = useProductStudioStore.getState();
+          console.log('[PRODUCT STUDIO STATE]', productState);
+
+          // Generate jobs using Product-only builders
+          const jobs = generateProductJobs(productState);
+
+          if (jobs.length === 0) {
+            setImageError('No products to generate. Please upload product images first.');
+            setIsImageLoading(false);
+            return;
+          }
+
+          // Use first job's prompt (single product or bundle)
+          finalPrompt = jobs[0].prompt;
+
+          // PHASE 7: HARDBLOCK VALIDATION - Check forbidden terms
+          try {
+            validatePrompt(finalPrompt);
+          } catch (validationError) {
+            console.error('[PROMPT BLOCKED]', validationError);
+            setImageError(`Generation blocked: ${(validationError as Error).message}`);
+            setIsImageLoading(false);
+            return;
+          }
+
+          console.log('[FINAL PRODUCT PROMPT]', finalPrompt);
+
+          // Product mode uses minimal prompt options
+          promptOptions = {
+            ...basePromptOptions,
+            contentStyle: 'product',
+            creationIntent: 'product',
+            sceneIntent: 'ecommerce',
+            personIncluded: false,
+            aspectRatio: productState.aspectRatio,
+          };
+        } else if (lifestyleStep3Values) {
+          // LIFESTYLE/UGC MODE - Use legacy mapper (unchanged)
+          promptOptions = mapLifestyleToPromptOptions(lifestyleStep3Values, basePromptOptions, hasModelReference);
+          finalPrompt = promptEngine.build(promptOptions);
+        } else {
+          finalPrompt = promptEngine.build(promptOptions);
         }
 
         // Persist continuity identity only when explicitly requested.
@@ -4384,9 +4458,6 @@ If the model attempts to create a scene or environment, override it and force a 
         // MANDATORY LOGS - Prove injection works
         console.log('[SCENESTATE]', lifestyleStep3Values);
         console.log('[PROMPT OPTIONS FROM MAP]', promptOptions);
-
-        // Use PromptEngine to build final prompt
-        const finalPrompt = promptEngine.build(promptOptions);
 
         const promptHash = await computePromptHash(finalPrompt);
         console.log('[UGC DEBUG] promptHash:', promptHash);
@@ -5351,15 +5422,15 @@ If the model attempts to create a scene or environment, override it and force a 
                         <div className="space-y-3">
                           <div className="flex flex-wrap items-center justify-between gap-3">
                             <div className="flex items-center gap-2">
-                              <p className="text-xs uppercase tracking-[0.35em] text-indigo-600">Product gallery</p>
-                              <span className="rounded-full border border-gray-200 px-2 py-0.5 text-[11px] text-gray-600">
+                              <p className="text-xs uppercase tracking-[0.35em] text-gray-500 font-medium">Product gallery</p>
+                              <span className="rounded-full bg-gray-100 border border-gray-200 px-2 py-0.5 text-[11px] text-gray-600">
                                 {productAssets.length}
                               </span>
                             </div>
                             <button
                               type="button"
                               onClick={handleLibraryAddClick}
-                              className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1 text-[11px] text-gray-900 hover:border-indigo-600 transition"
+                              className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-1.5 text-[11px] text-gray-700 font-medium hover:border-indigo-600 hover:text-indigo-600 transition"
                             >
                               + Add
                             </button>
@@ -5370,18 +5441,18 @@ If the model attempts to create a scene or environment, override it and force a 
                               return (
                                 <div
                                   key={asset.id}
-                                  className={`flex-shrink-0 w-32 rounded-md border p-2 transition-all bg-white dark:bg-indigo-500/20 ${isActive ? 'border-indigo-600 dark:border-indigo-400/60' : 'border-gray-200 hover:border-indigo-600 dark:border-white/10 dark:hover:border-white/30'}`}
+                                  className={`flex-shrink-0 w-40 rounded-xl p-4 transition-all bg-white border ${isActive ? 'border-gray-200 ring-2 ring-gray-100' : 'border-gray-200 hover:border-gray-300'}`}
                                 >
-                                  <div className="relative mb-2">
+                                  <div className="relative mb-3">
                                     <img
                                       src={asset.previewUrl}
                                       alt={asset.label}
-                                      className="h-20 w-full rounded-lg object-contain border border-transparent"
+                                      className="h-24 w-full rounded-lg object-contain bg-gray-50"
                                     />
                                     <button
                                       type="button"
                                       onClick={(e) => { e.stopPropagation(); handleProductAssetDelete(asset.id); }}
-                                      className="absolute -right-1 -top-1 rounded-full bg-white p-0.5 text-[9px] text-gray-500 hover:border-indigo-600 border border-gray-200 w-4 h-4 flex items-center justify-center dark:bg-black/40 dark:text-white/60 dark:border-white/10 dark:hover:border-white/30 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]"
+                                      className="absolute -right-2 -top-2 rounded-full bg-white border border-gray-200 p-0.5 text-[9px] text-gray-400 hover:text-gray-600 hover:border-gray-400 w-5 h-5 flex items-center justify-center transition"
                                     >
                                       ✕
                                     </button>
@@ -5390,8 +5461,8 @@ If the model attempts to create a scene or environment, override it and force a 
                                     type="text"
                                     value={asset.label}
                                     onChange={event => handleProductAssetLabelChange(asset.id, event.target.value)}
-                                    className="w-full rounded-lg border border-gray-200 bg-white px-1.5 py-0.5 text-[10px] text-gray-900 focus:border-indigo-600 focus:outline-none mb-1 text-center dark:bg-black/20 dark:border-white/10 dark:text-white dark:placeholder:text-white/40 dark:focus:border-white/30"
-                                    placeholder="Name"
+                                    className="w-full rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-[11px] text-gray-900 focus:border-indigo-600 focus:outline-none mb-2 text-center placeholder:text-gray-400"
+                                    placeholder="Product name"
                                   />
                                   <div className="flex gap-1">
                                     <input
@@ -5400,16 +5471,16 @@ If the model attempts to create a scene or environment, override it and force a 
                                       step="0.1"
                                       value={asset.heightValue ?? ''}
                                       onChange={event => handleProductHeightChange(asset.id, event.target.value)}
-                                      className="flex-1 w-full rounded-lg border border-gray-200 bg-white px-1 py-0.5 text-[10px] text-gray-900 focus:border-indigo-600 focus:outline-none dark:bg-black/20 dark:border-white/10 dark:text-white dark:placeholder:text-white/40 dark:focus:border-white/30"
+                                      className="flex-1 w-full rounded-lg border border-gray-200 bg-white px-2 py-1 text-[10px] text-gray-900 focus:border-indigo-600 focus:outline-none placeholder:text-gray-400"
                                       placeholder="H"
                                     />
-                                    <div className="flex items-center gap-1">
+                                    <div className="flex items-center gap-0.5">
                                       {(['cm', 'in'] as const).map(unit => (
                                         <button
                                           key={unit}
                                           type="button"
                                           onClick={(e) => { e.stopPropagation(); handleProductHeightUnitChange(asset.id, unit); }}
-                                          className={`rounded-lg border px-1.5 py-0.5 text-[10px] transition ${asset.heightUnit === unit ? 'bg-indigo-600 text-white border-indigo-600 dark:bg-indigo-500 dark:border-indigo-500' : 'border-gray-200 bg-white text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-black/20 dark:text-white/60 dark:hover:border-white/30'}`}
+                                          className={`rounded-lg px-2 py-1 text-[10px] font-medium transition ${asset.heightUnit === unit ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                                         >
                                           {unit}
                                         </button>
@@ -5419,7 +5490,7 @@ If the model attempts to create a scene or environment, override it and force a 
                                   <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); handleProductAssetSelect(asset.id); }}
-                                    className={`flex items-center justify-center px-6 rounded-full text-xs font-medium border transition-colors py-0.5 mt-3 mx-auto ${isActive ? 'bg-indigo-600 text-white border-indigo-600 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white' : 'border-gray-200 bg-white text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-black/20 dark:text-white/60 dark:hover:border-white/30'}`}
+                                    className={`w-full flex items-center justify-center rounded-full text-xs font-medium transition-all py-2 mt-3 ${isActive ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-indigo-600 hover:text-indigo-600'}`}
                                   >
                                     {isActive ? 'Active' : 'Use'}
                                   </button>
@@ -5429,9 +5500,9 @@ If the model attempts to create a scene or environment, override it and force a 
                             <button
                               type="button"
                               onClick={handleLibraryAddClick}
-                              className="flex-shrink-0 w-24 rounded-xl border border-gray-200 bg-gray-50 p-2 flex flex-col items-center justify-center text-center hover:border-indigo-600 transition dark:bg-white/5 dark:border-white/10 dark:hover:border-white/20 dark:text-white/70 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]"
+                              className="flex-shrink-0 w-28 min-h-[180px] rounded-xl bg-gray-50 border-2 border-dashed border-gray-200 p-3 flex flex-col items-center justify-center text-center hover:border-indigo-400 hover:bg-indigo-50 transition"
                             >
-                              <span className="text-xl text-gray-500 dark:text-white/60">+</span>
+                              <span className="text-2xl text-gray-400">+</span>
                             </button>
                           </div>
                         </div>
@@ -5514,6 +5585,7 @@ If the model attempts to create a scene or environment, override it and force a 
                         key={isProductPlacement ? 'product-step3' : 'ugc-step3'}
                         embedded
                         isProductMode={isProductPlacement}
+                        productCount={productAssets.length}
                         onValuesChange={handleLifestyleStep3Change}
                         onCanGenerateChange={() => {
                           // UI-only refactor: generation logic unchanged.
@@ -5662,7 +5734,7 @@ If the model attempts to create a scene or environment, override it and force a 
             </div>
           </div>
         </div>
-      </div>
+      </div >
 
       {showAdminDevButtons && (
         <div className="fixed bottom-6 right-6 z-[999999] hidden md:flex flex-col gap-2 opacity-60 hover:opacity-100 transition">
@@ -5681,7 +5753,8 @@ If the model attempts to create a scene or environment, override it and force a 
             Reset My Account
           </button>
         </div>
-      )}
+      )
+      }
     </>
   );
 };
