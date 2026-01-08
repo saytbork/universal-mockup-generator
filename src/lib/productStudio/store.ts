@@ -4,6 +4,7 @@
  */
 
 import { create } from 'zustand';
+import { extractDominantColors } from './colorExtractor';
 import type {
     ProductStudioState,
     ProductAsset,
@@ -992,3 +993,45 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     // Reset
     reset: () => set(DEFAULT_PRODUCT_STUDIO_STATE),
 }));
+
+// ============================================================================
+// ASYNC HELPER: Add Product with Palette Extraction
+// This is the ONLY entry point for adding products in the app
+// ============================================================================
+
+/**
+ * Add a product with automatic palette extraction from the image.
+ * RULE: Color extraction happens ONCE at product creation time.
+ * RULE: If user hasn't touched colors, palette is used. Otherwise, user choice wins.
+ */
+export async function addProductWithPalette(
+    product: Omit<ProductAsset, 'palette'>
+): Promise<void> {
+    const store = useProductStudioStore.getState();
+
+    // Extract palette from product image
+    const imageSource = product.base64 || product.imageUrl;
+    let palette: ProductAsset['palette'] = undefined;
+
+    if (imageSource) {
+        try {
+            const colors = await extractDominantColors(imageSource);
+            palette = {
+                dominant: colors.dominant,
+                secondary: colors.secondary,
+            };
+            console.log('[addProductWithPalette] Extracted palette:', palette);
+        } catch (error) {
+            console.warn('[addProductWithPalette] Failed to extract palette:', error);
+        }
+    }
+
+    // Create enriched product asset
+    const enrichedProduct: ProductAsset = {
+        ...product,
+        palette,
+    };
+
+    // Add to store (store handles auto-setting colors if at defaults)
+    store.addProduct(enrichedProduct);
+}

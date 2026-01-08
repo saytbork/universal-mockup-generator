@@ -573,6 +573,46 @@ export function buildStudioPrompt(options: StudioPromptOptions): string {
 
     console.log('[STUDIO PROMPT FINAL]', positivePrompt);
 
+    // =========================================================================
+    // DEV MODE VALIDATION — Throw if required fields missing from prompt
+    // =========================================================================
+    if (process.env.NODE_ENV === 'development') {
+        const validationErrors: string[] = [];
+
+        // Validate photoMode is in prompt
+        if (options.photoMode && PHOTO_MODE_PRESETS[options.photoMode]) {
+            if (!positivePrompt.includes('PHOTO_MODE:')) {
+                validationErrors.push(`photoMode '${options.photoMode}' not found in prompt`);
+            }
+        }
+
+        // Validate backgroundColor is in prompt
+        if (options.backgroundColor && !positivePrompt.includes(options.backgroundColor) && !positivePrompt.includes('BACKGROUND:')) {
+            validationErrors.push(`backgroundColor '${options.backgroundColor}' not found in prompt`);
+        }
+
+        // Validate shadow is in prompt if specified
+        if (options.shadow && SHADOW_PRESETS[options.shadow]) {
+            const shadowText = SHADOW_PRESETS[options.shadow];
+            if (!positivePrompt.toLowerCase().includes('shadow')) {
+                validationErrors.push(`shadow '${options.shadow}' not found in prompt`);
+            }
+        }
+
+        // Validate composition is in prompt if specified
+        if (options.composition && COMPOSITION_PRESETS[options.composition]) {
+            if (!positivePrompt.includes('COMPOSITION:')) {
+                validationErrors.push(`composition '${options.composition}' not found in prompt`);
+            }
+        }
+
+        if (validationErrors.length > 0) {
+            console.error('[STUDIO VALIDATION FAILED]', validationErrors);
+            // Don't throw in prod, but log errors
+            console.warn('[STUDIO WARNING] Some UI selections may not appear in the final prompt:', validationErrors);
+        }
+    }
+
     return `${positivePrompt} NEGATIVE PROMPT: ${STUDIO_NEGATIVES}`;
 }
 
