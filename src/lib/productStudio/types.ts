@@ -21,6 +21,22 @@ export type ProductAsset = {
 };
 
 // ============================================================================
+// ENVIRONMENT CONTEXT — SINGLE SOURCE OF TRUTH
+// ============================================================================
+
+/**
+ * CANONICAL environment representation.
+ * Rules:
+ * - null = Studio mode (no environment allowed)
+ * - macro required for Lifestyle/UGC
+ * - micro optional refinement
+ */
+export interface EnvironmentContext {
+    macro?: string | null;  // Kitchen, Bathroom, Living Room, etc.
+    micro?: string | null;  // Countertop, Sink, Mirror, etc.
+}
+
+// ============================================================================
 // PRODUCT TYPES
 // ============================================================================
 
@@ -320,13 +336,28 @@ export type ProductStudioState = {
     palette: BrandPalette;
 
     // ========================================================================
-    // 4️⃣ SCENE & SURFACE (PHYSICAL CONTEXT)
+    // 4️⃣ ENVIRONMENT — SINGLE SOURCE OF TRUTH
     // ========================================================================
-    sceneType: SceneType;  // Legacy - maps from mode
+    /**
+     * CANONICAL environment field.
+     * null = Studio mode (no environment)
+     * { macro, micro } = Lifestyle/UGC
+     */
+    environmentContext: EnvironmentContext | null;
+
+    // DEPRECATED LEGACY FIELDS — DO NOT USE
+    // These exist only for backward compatibility, will be removed
+    /** @deprecated Use environmentContext instead */
+    sceneType: SceneType;
+    /** @deprecated Use environmentContext instead */
     surface: SurfaceBase;
+    /** @deprecated Use environmentContext.macro instead */
     environmentMacro: EnvironmentMacro;
+    /** @deprecated Use environmentContext.micro instead */
     microPlace: MicroPlace;
+    /** @deprecated Use environmentContext.macro instead */
     customEnvironmentText: string;
+    /** @deprecated Use environmentContext.micro instead */
     customMicroPlaceText: string;
     ambientLighting: Lighting;
 

@@ -673,6 +673,30 @@ export function mapLifestyleToPromptOptions(
         throw new Error('Invalid state: formulation story enabled with noPerson=true');
     }
 
+    // ========================================================================
+    // DEV VALIDATION: Environment Mode Rules (Phase 6)
+    // ========================================================================
+    if (process.env.NODE_ENV === 'development') {
+        const envContext = sceneState.environmentContext;
+        const isStudioMode = sceneState.sceneIntent === 'ecommerce' || sceneState.creationMode === 'studio';
+
+        if (isStudioMode && envContext !== null && envContext !== undefined) {
+            console.error('[ENV][INVALID] Studio mode cannot have environment:', envContext);
+        }
+
+        if (!isStudioMode && (!envContext || !envContext.macro)) {
+            console.warn('[ENV][WARN] Lifestyle/UGC mode requires environmentContext.macro');
+        }
+
+        // Warn on legacy field usage
+        if (sceneState.environment && sceneState.environment !== '') {
+            console.warn('[PROMPT][ENV][LEGACY FIELD IGNORED] sceneState.environment detected, use environmentContext instead');
+        }
+        if ((sceneState as any).setting && (sceneState as any).setting !== '') {
+            console.warn('[PROMPT][ENV][LEGACY FIELD IGNORED] sceneState.setting detected, use environmentContext instead');
+        }
+    }
+
     if (sceneState.sceneIntent === 'ecommerce') {
         console.log('[PRODUCT MODE ACTIVE]');
         return mapProductModeToPromptOptions(sceneState, existingOptions);

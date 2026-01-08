@@ -38,6 +38,7 @@ import type {
     BrandPresetId,
     ProductMode,
     BrandPalette,
+    EnvironmentContext,
 } from './types';
 
 
@@ -373,7 +374,10 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     // 3️⃣ BRAND & PALETTE (SINGLE COLOR AUTHORITY)
     palette: DEFAULT_PALETTE,
 
-    // 4️⃣ SCENE & SURFACE
+    // 4️⃣ ENVIRONMENT — CANONICAL (null = Studio mode)
+    environmentContext: null,
+
+    // LEGACY FIELDS — DO NOT USE
     sceneType: 'studio-branding',
     surface: 'neutral',
     environmentMacro: 'studio',
@@ -506,10 +510,18 @@ type ProductStudioActions = {
     setRotation: (rotation: ProductStudioState['rotation']) => void;
     setFraming: (framing: ProductStudioState['framing']) => void;
 
-    // Environment
+    // Environment — CANONICAL SETTER
+    /** Only use this for environment changes */
+    setEnvironmentContext: (ctx: EnvironmentContext | null) => void;
+
+    // DEPRECATED LEGACY SETTERS — DO NOT USE
+    /** @deprecated Use setEnvironmentContext instead */
     setEnvironmentMacro: (env: EnvironmentMacro) => void;
+    /** @deprecated Use setEnvironmentContext instead */
     setMicroPlace: (place: MicroPlace) => void;
+    /** @deprecated Use setEnvironmentContext instead */
     setCustomEnvironmentText: (text: string) => void;
+    /** @deprecated Use setEnvironmentContext instead */
     setCustomMicroPlaceText: (text: string) => void;
     setLighting: (lighting: Lighting) => void;
 
@@ -772,12 +784,22 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setRotation: (rotation) => set({ rotation }),
     setFraming: (framing) => set({ framing }),
 
-    // Environment
-    // 3️⃣ UI LOCKING: Studio/Environment MUTUAL EXCLUSIVITY
-    // If ANY real environment is selected, Studio Creative is disabled (mode !== 'studio')
-    // Helper: Real environments = anything except 'studio'
+    // Environment — CANONICAL SETTER
+    setEnvironmentContext: (ctx) => {
+        set((state) => {
+            if (state.mode === 'studio' && ctx !== null) {
+                console.warn('[ENV][INVALID] Studio mode cannot have environment, forcing null');
+                return { environmentContext: null };
+            }
+            console.log('[ENV][SET]', ctx);
+            return { environmentContext: ctx };
+        });
+    },
+
+    // DEPRECATED LEGACY SETTERS — WARN AND SYNC
     setEnvironmentMacro: (env) =>
         set((state) => {
+            console.warn('[ENV][LEGACY WRITE BLOCKED] setEnvironmentMacro is deprecated, use setEnvironmentContext');
             // Real environment detection
             const isRealEnvironment = env !== 'studio';
 
