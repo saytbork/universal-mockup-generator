@@ -1786,10 +1786,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       ═══════════════════════════════════════════════════════════ */}
                   <div className={SECTION_GROUP_CLASS}>
                     <p className={GROUP_LABEL_CLASS}>BACKGROUND</p>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-white rounded-xl border border-gray-200 p-3">
-                        <p className="text-[10px] uppercase tracking-[0.1em] text-gray-400 mb-2">Background</p>
-                        <div className="flex items-center gap-2">
+                    <div className="flex gap-4">
+                      {/* Background Color */}
+                      <div className="flex items-center gap-3">
+                        <div className="relative">
                           <input
                             type="color"
                             value={productStore.backgroundColor || '#ffffff'}
@@ -1797,15 +1797,19 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               productStore.setBackgroundColor(e.target.value);
                               markSectionTouched('product-setup');
                             }}
-                            className="w-10 h-10 rounded-lg border-2 border-gray-200 cursor-pointer appearance-none"
-                            style={{ WebkitAppearance: 'none' }}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                           />
-                          <span className="text-xs text-gray-600 font-mono uppercase">{productStore.backgroundColor || '#FFFFFF'}</span>
+                          <div
+                            className="w-9 h-9 rounded-full border-2 border-gray-200 cursor-pointer transition-all duration-200 hover:scale-110 hover:border-gray-400"
+                            style={{ backgroundColor: productStore.backgroundColor || '#ffffff' }}
+                          />
                         </div>
+                        <span className="text-[11px] text-gray-500 font-medium">Background</span>
                       </div>
-                      <div className="bg-white rounded-xl border border-gray-200 p-3">
-                        <p className="text-[10px] uppercase tracking-[0.1em] text-gray-400 mb-2">Accent</p>
-                        <div className="flex items-center gap-2">
+
+                      {/* Accent Color */}
+                      <div className="flex items-center gap-3">
+                        <div className="relative">
                           <input
                             type="color"
                             value={productStore.accentColor || '#6366f1'}
@@ -1813,11 +1817,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               productStore.setAccentColor(e.target.value);
                               markSectionTouched('product-setup');
                             }}
-                            className="w-10 h-10 rounded-lg border-2 border-gray-200 cursor-pointer appearance-none"
-                            style={{ WebkitAppearance: 'none' }}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                           />
-                          <span className="text-xs text-gray-600 font-mono uppercase">{productStore.accentColor || '#6366F1'}</span>
+                          <div
+                            className="w-9 h-9 rounded-full border-2 border-gray-200 cursor-pointer transition-all duration-200 hover:scale-110 hover:border-gray-400"
+                            style={{ backgroundColor: productStore.accentColor || '#6366f1' }}
+                          />
                         </div>
+                        <span className="text-[11px] text-gray-500 font-medium">Accent</span>
                       </div>
                     </div>
                   </div>
@@ -1928,8 +1935,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       markSectionTouched('product-setup');
                                     }}
                                     className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.lens === lens
-                                        ? 'bg-indigo-600 text-white border-indigo-600'
-                                        : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                                      ? 'bg-indigo-600 text-white border-indigo-600'
+                                      : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
                                       }`}
                                     style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
                                   >
@@ -1954,8 +1961,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       markSectionTouched('product-setup');
                                     }}
                                     className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.lightingRig === rig
-                                        ? 'bg-indigo-600 text-white border-indigo-600'
-                                        : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                                      ? 'bg-indigo-600 text-white border-indigo-600'
+                                      : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
                                       }`}
                                     style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
                                   >
@@ -1979,8 +1986,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       markSectionTouched('product-setup');
                                     }}
                                     className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.finish === finish
-                                        ? 'bg-indigo-600 text-white border-indigo-600'
-                                        : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                                      ? 'bg-indigo-600 text-white border-indigo-600'
+                                      : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
                                       }`}
                                     style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
                                   >
