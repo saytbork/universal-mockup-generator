@@ -1149,15 +1149,35 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     // ENVIRONMENT → Scene Context (Restored Full Logic)
     // ========================================================================
-    if (isEcommerceBlankSpaceActive) {
+
+    // CANONICAL SOURCE: environmentContext
+    // Rule: If environmentContext === null → Studio mode, no environment
+    // Rule: If environmentContext.macro → use that as environment source
+    const envContext = sceneState.environmentContext;
+
+    if (envContext === null) {
+        // Studio mode: HARD NULL - no environment allowed
         (mapped as any).selectedEnvironment = '';
         (mapped as any).customEnvironment = '';
         mapped.setting = '';
         mapped.microLocation = '';
         (mapped as any).sceneEnvironment = '';
+        mapped.environmentOrder = '';
+        console.log('[MAP] environmentContext === null (Studio mode) - environment fully suppressed');
+    } else if (envContext && envContext.macro) {
+        // Lifestyle/UGC: Use environmentContext as source of truth
+        const macro = envContext.macro;
+        const micro = envContext.micro || macro;
+
+        mapped.setting = macro;
+        mapped.microLocation = micro;
+        (mapped as any).sceneEnvironment = macro;
+        mapped.environmentOrder = macro;
+        (mapped as any).selectedEnvironment = macro;
         (mapped as any).customEnvironment = '';
-        console.log('[MAP] environment: Ecommerce Blank Space active - environment suppressed');
-    } else if (!awkwardEnvironmentOverride) {
+
+        console.log('[MAP] environmentContext:', { macro, micro }, '→ setting:', mapped.setting);
+    } else if (isEcommerceBlankSpaceActive) {
         const ugcIndoorEnvironments = new Set([
             'Kitchen',
             'Living Room',

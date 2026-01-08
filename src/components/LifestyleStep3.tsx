@@ -149,7 +149,13 @@ export interface Step3Values {
   creatorPreset: string | null;
   heroPersona: string; // Semantic persona description for prompt
 
-  // Environment
+  // Environment — CANONICAL SOURCE OF TRUTH
+  environmentContext?: {
+    macro?: string;  // Kitchen, Bathroom, Bedroom, etc.
+    micro?: string;  // Countertop, Sink, Mirror, etc.
+  } | null;  // null = Studio mode (no environment)
+
+  // LEGACY (deprecated - migrate to environmentContext)
   environment: string;
   customEnvironment: string;
   sceneOrderChaos: 'Clean' | 'Normal' | 'Messy' | 'Chaotic' | 'Randomized Chaos';
@@ -756,7 +762,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     creatorPreset: null,
     heroPersona: '', // Empty = no persona selected
 
-    // Environment - UGC Rule: must have table/surface for product
+    // Environment - CANONICAL SOURCE (environmentContext)
+    // null = Studio/Ecommerce mode (no environment)
+    environmentContext: initialSceneIntent === 'ecommerce' ? null : { macro: 'Kitchen', micro: 'Countertop' },
+
+    // LEGACY - kept for backward compatibility
     environment: initialSceneIntent === 'ecommerce' ? '' : 'Kitchen', // Kitchen has table/counter surface by default
     customEnvironment: '',
     sceneOrderChaos: 'Normal',
@@ -1139,6 +1149,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     setValues(prev => {
       const newValues = { ...prev, [key]: value };
 
+      // CANONICAL SYNC: When legacy environment is updated, sync to environmentContext
+      if (key === 'environment' && value) {
+        newValues.environmentContext = { macro: value as string, micro: 'Countertop' };
+        console.log('[STEP3] Synced environment to environmentContext:', newValues.environmentContext);
+      }
+
       if (key === 'ugcRealMode' && value === false) {
         ALL_UGC_LAYER_FIELDS.forEach(layer => {
           (newValues as any)[layer] = [];
@@ -1308,6 +1324,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         creationIntent: 'product',
         ugcRealMode: false,
         noPerson: true,
+        environmentContext: null,  // Studio/Ecommerce = no environment
         environment: '',
         customEnvironment: '',
         heroPersona: '',
@@ -1368,6 +1385,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         creationIntent: 'ugc',
         ugcRealMode: false,
         noPerson: false,
+        environmentContext: { macro: prev.environment || 'Kitchen', micro: 'Countertop' },  // Restore environment
         environment: prev.environment || 'Kitchen',
         compositionMode: '',
         ecommerceSidePlacementFlag: false,
