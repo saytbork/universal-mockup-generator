@@ -1720,6 +1720,26 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </button>
                       ))}
                     </div>
+
+                    {/* Ingredient Input — Only visible when Ingredient Stack is selected */}
+                    {productStore.photoMode === 'Ingredient Stack' && (
+                      <div className="mt-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <label className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold block mb-1">
+                          Ingredients to show
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. turmeric, ginger, vitamin C capsules"
+                          value={productStore.props || ''}
+                          onChange={(e) => {
+                            productStore.setProps(e.target.value);
+                            markSectionTouched('product-setup');
+                          }}
+                          className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 placeholder:text-gray-400"
+                        />
+                        <p className="text-[9px] text-gray-400 mt-1">These ingredients will appear as props around your product</p>
+                      </div>
+                    )}
                   </div>
 
                   {/* ═══════════════════════════════════════════════════════════
