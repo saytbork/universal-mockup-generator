@@ -410,6 +410,9 @@ export interface StudioPromptOptions {
 
     // Optional Interaction
     interaction?: string;
+
+    // Props / Ingredients (optional, primarily for Ingredient Stack)
+    suggestedProps?: string;
 }
 
 export function buildStudioPrompt(options: StudioPromptOptions): string {
@@ -447,9 +450,21 @@ export function buildStudioPrompt(options: StudioPromptOptions): string {
     }
 
     // =========================================================================
-    // BACKGROUND (palette-aware)
+    // PROPS / INGREDIENTS (Injected after Photo Mode)
     // =========================================================================
-    if (hasPalette) {
+    if (options.suggestedProps) {
+        parts.push(`PROPS/INGREDIENTS: ${options.suggestedProps}. Arranged naturally around the product.`);
+    }
+
+    // =========================================================================
+    // BACKGROUND (Explicit overrides palette)
+    // =========================================================================
+    if (options.backgroundColor) {
+        const bgText = options.gradientStart && options.gradientEnd
+            ? `Custom studio background. Primary: ${options.backgroundColor}. Gradient from ${options.gradientStart} to ${options.gradientEnd}.`
+            : `Custom studio background. Primary color: ${options.backgroundColor}. No physical walls, no rooms, no scenery.`;
+        parts.push(`BACKGROUND: ${bgText}`);
+    } else if (hasPalette) {
         const bgLines: string[] = [
             'BACKGROUND:',
             'Generate a custom studio background using the extracted palette.',
@@ -458,11 +473,6 @@ export function buildStudioPrompt(options: StudioPromptOptions): string {
         bgLines.push('Subtle gradients or accents may use the Secondary and Accent colors.');
         bgLines.push('Background must remain abstract and studio-safe. No walls. No rooms. No scenery.');
         parts.push(bgLines.join(' '));
-    } else if (options.backgroundColor) {
-        const bgText = options.gradientStart && options.gradientEnd
-            ? `Custom studio background. Primary: ${options.backgroundColor}. Gradient from ${options.gradientStart} to ${options.gradientEnd}.`
-            : `Custom studio background. Primary color: ${options.backgroundColor}. No physical walls, no rooms, no scenery.`;
-        parts.push(`BACKGROUND: ${bgText}`);
     }
 
     // =========================================================================

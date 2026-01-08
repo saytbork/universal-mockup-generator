@@ -1652,10 +1652,10 @@ export function mapLifestyleToPromptOptions(
         (mapped as any).studioFinish = sceneState.studioFinish;
     }
     if (sceneState.studioBackgroundColor) {
-        (mapped as any).heroBackground = sceneState.studioBackgroundColor;
+        (mapped as any).backgroundColor = sceneState.studioBackgroundColor;
     }
     if (sceneState.studioAccentColor) {
-        (mapped as any).paletteColor1 = sceneState.studioAccentColor;
+        (mapped as any).paletteColor3 = sceneState.studioAccentColor;
     }
     console.log('[MAP] Product Studio fields injected:', {
         photoMode: sceneState.studioPhotoMode,

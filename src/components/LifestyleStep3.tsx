@@ -1870,9 +1870,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       ═══════════════════════════════════════════════════════════ */}
                   <div className={SECTION_GROUP_CLASS}>
                     <p className={GROUP_LABEL_CLASS}>BACKGROUND</p>
-                    <div className="flex gap-4">
+                    <div className="flex gap-6">
                       {/* Background Color */}
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         <div className="relative">
                           <input
                             type="color"
@@ -1888,11 +1888,21 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             style={{ backgroundColor: productStore.backgroundColor || '#ffffff' }}
                           />
                         </div>
-                        <span className="text-[11px] text-gray-500 font-medium">Background</span>
+                        <input
+                          type="text"
+                          value={productStore.backgroundColor || '#ffffff'}
+                          onChange={(e) => {
+                            productStore.setBackgroundColor(e.target.value);
+                            markSectionTouched('product-setup');
+                          }}
+                          placeholder="#ffffff"
+                          className="w-20 px-2 py-1 text-xs font-mono bg-white border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        />
+                        <span className="text-[10px] text-gray-400">BG</span>
                       </div>
 
                       {/* Accent Color */}
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         <div className="relative">
                           <input
                             type="color"
@@ -1908,7 +1918,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             style={{ backgroundColor: productStore.accentColor || '#6366f1' }}
                           />
                         </div>
-                        <span className="text-[11px] text-gray-500 font-medium">Accent</span>
+                        <input
+                          type="text"
+                          value={productStore.accentColor || '#6366f1'}
+                          onChange={(e) => {
+                            productStore.setAccentColor(e.target.value);
+                            markSectionTouched('product-setup');
+                          }}
+                          placeholder="#6366f1"
+                          className="w-20 px-2 py-1 text-xs font-mono bg-white border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        />
+                        <span className="text-[10px] text-gray-400">Accent</span>
                       </div>
                     </div>
                   </div>
