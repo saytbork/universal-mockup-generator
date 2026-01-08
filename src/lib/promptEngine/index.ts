@@ -53,6 +53,7 @@ import { CompositionDetailsBuilder } from './builders/compositionDetails';
 import { SceneStructureBuilder } from './builders/sceneStructure';
 import { VisualGrammarBuilder } from './builders/visualGrammar';
 import { PromptSanitizer } from './sanitizer';
+import { buildStudioPrompt, PRODUCT_STUDIO_CANONICAL_PROMPT } from './studioPresets';
 import type { PromptOptions } from './types';
 import { buildMasterPrompt, MasterPromptSections } from './masterPrompt';
 
@@ -421,9 +422,97 @@ export class PromptEngine {
         enforcePreflightGuards(options);
 
         // ====================================================================
+        // CLEANUP INSTRUMENTATION — TEMPORARY (remove after usage mapping)
+        // ====================================================================
+        console.log('[CLEANUP-INSTRUMENT] ===== BUILD CALL START =====');
+        console.log('[CLEANUP-INSTRUMENT] creationMode:', options.creationMode);
+        console.log('[CLEANUP-INSTRUMENT] contentStyle:', options.contentStyle);
+        console.log('[CLEANUP-INSTRUMENT] sceneType:', (options as any).sceneType);
+        console.log('[CLEANUP-INSTRUMENT] setting/environment:', options.setting);
+        console.log('[CLEANUP-INSTRUMENT] microLocation:', options.microLocation);
+        console.log('[CLEANUP-INSTRUMENT] ugcRealModeActive:', options.ugcRealModeActive);
+        console.log('[CLEANUP-INSTRUMENT] brandLook:', (options as any).brandLook);
+        console.log('[CLEANUP-INSTRUMENT] editorialStyle:', (options as any).editorialStyle);
+        console.log('[CLEANUP-INSTRUMENT] personIncluded:', options.personIncluded);
+
+        // ====================================================================
         // STEP 1: Modes (handled in narrativeBuilder.buildCreationIntent/Mode)
         // ====================================================================
         console.log('[PROMPT ENGINE] Step 1: Modes -', options.creationMode, options.creationIntent);
+
+        // ====================================================================
+        // STUDIO MODE FAST-PATH (MEGA PROMPT V2)
+        // ====================================================================
+        if (options.creationMode === 'studio') {
+            console.log('[CLEANUP-INSTRUMENT] BRANCH: 🟢 STUDIO FAST-PATH');
+            console.log('[PROMPT ENGINE] Studio Mode FAST-PATH activated');
+
+            // MUTUAL EXCLUSIVITY GUARD: Studio mode must not have environment data
+            if (options.setting && options.setting !== '' && options.setting !== 'studio') {
+                console.warn('[STUDIO GUARD] Environment detected in Studio mode - clearing:', options.setting);
+                (options as any).setting = '';
+                (options as any).environment = '';
+                (options as any).microLocation = '';
+            }
+
+            // Log which Studio options are being used
+            console.log('[CLEANUP-INSTRUMENT] Studio options:', {
+                photoMode: (options as any).photoMode || (options as any).studioPhotoMode,
+                surface: (options as any).studioSurface,
+                composition: (options as any).studioComposition,
+                lighting: (options as any).studioLighting,
+                hasPalette: !!((options as any).paletteColor1 || (options as any).paletteColor2),
+            });
+
+            const studioPrompt = buildStudioPrompt({
+                // Photo Mode
+                photoMode: (options as any).photoMode || (options as any).studioPhotoMode,
+
+                // Auto Palette Extraction
+                paletteColor1: (options as any).paletteColor1,
+                paletteColor2: (options as any).paletteColor2,
+                paletteColor3: (options as any).paletteColor3,
+
+                // Background (fallback if no palette)
+                backgroundColor: (options as any).heroBackground || options.bgColor,
+                gradientStart: options.bgGradient?.startColor,
+                gradientEnd: options.bgGradient?.endColor,
+
+                // Surface
+                surface: (options as any).studioSurface,
+                surfaceHarmonizeWithPalette: (options as any).surfaceHarmonizeWithPalette,
+
+                // Composition
+                composition: (options as any).studioComposition,
+                scale: (options as any).studioScale,
+                spacing: (options as any).studioSpacing,
+                negativeSpace: (options as any).studioNegativeSpace,
+
+                // Camera
+                lens: (options as any).studioLens,
+                angle: (options as any).studioAngle,
+                distance: (options as any).studioDistance,
+                framing: (options as any).studioFraming,
+
+                // Lighting & Finish
+                lighting: (options as any).studioLighting,
+                finish: (options as any).studioFinish,
+                shadow: (options as any).studioShadow || (options as any).heroShadow,
+
+                // Optional Interaction
+                interaction: (options as any).studioInteraction
+            });
+
+            // Prepend the canonical prompt as the authoritative root contract
+            const finalStudioPrompt = `${PRODUCT_STUDIO_CANONICAL_PROMPT}\n\n---\n\nGENERATION INSTRUCTIONS:\n${studioPrompt}`;
+
+            console.log('[CLEANUP-INSTRUMENT] ===== BUILD CALL END (Studio) =====');
+            console.log('[FINAL PROMPT STRING]', finalStudioPrompt);
+            return finalStudioPrompt;
+        }
+
+        // If we reach here, we're in LEGACY branch
+        console.log('[CLEANUP-INSTRUMENT] BRANCH: 🟡 LEGACY PIPELINE');
 
         const ugcSelfieDominant = options.contentStyle === 'ugc' && isSelfie;
         options.ugcSelfieDominant = ugcSelfieDominant;
@@ -546,6 +635,8 @@ export class PromptEngine {
         // ====================================================================
         const negative = negativePrompt(options);
         const masterSections: MasterPromptSections = {
+            sceneStructure: this.sceneStructureBuilder.build(options),
+            visualGrammar: this.visualGrammarBuilder.build(options),
             creationIntent: narrativeSections.creationIntent,
             creationMode: narrativeSections.creationMode,
             ugcRealMode: ugcSection || narrativeSections.ugcRealMode,
@@ -619,6 +710,45 @@ export class PromptEngine {
             } catch (e: any) {
                 console.error('[PROMPT INTEGRITY FAILURE]', e.message);
                 throw e; // Hard fail as requested
+            }
+        }
+
+        // ====================================================================
+        // STUDIO MODE ISOLATION GUARD (for sceneType-based Studio access)
+        // ====================================================================
+        // Note: creationMode === 'studio' is handled by the fast-path above.
+        // This guard catches sceneType === 'studio_packshot' which may bypass the fast-path.
+        const isStudioPackshotType = (options as any).sceneType === 'studio_packshot';
+
+        if (isStudioPackshotType) {
+            console.log('[STUDIO GUARD] Active (sceneType) - Enforcing strict product isolation');
+
+            // 1. POSITIVE INJECTION: Prepend explicit Studio context
+            const studioPositiveInjection =
+                'Studio setting. ' +
+                'No real environment. ' +
+                'No lifestyle context. ' +
+                'No home, kitchen, bathroom, vanity, counter, or room. ' +
+                'Abstract studio backdrop or clean gradient only. ';
+
+            // Insert after the first sentence of the prompt
+            const periodIndex = finalPrompt.indexOf('. ');
+            if (periodIndex > 0) {
+                finalPrompt = finalPrompt.substring(0, periodIndex + 2) + studioPositiveInjection + finalPrompt.substring(periodIndex + 2);
+            } else {
+                finalPrompt = studioPositiveInjection + finalPrompt;
+            }
+
+            // 2. NEGATIVE INJECTION: Append extended anti-lifestyle negatives
+            const studioNegativeExtension =
+                ', no lifestyle scene, no home environment, no routine depiction, ' +
+                'no daily-use context, no bathroom, no kitchen, no vanity, no counter, ' +
+                'no morning routine, no wellness context, no product in use, no person using product';
+
+            const negativeMarkerIdx = finalPrompt.indexOf('Negative prompt: ');
+            if (negativeMarkerIdx >= 0) {
+                // Append to existing negative
+                finalPrompt = finalPrompt + studioNegativeExtension;
             }
         }
 

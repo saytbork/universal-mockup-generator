@@ -17,6 +17,13 @@ export type {
     CustomPhysical,
     PhysicalDefinition,
     ProductDefinition,
+    // 1️⃣ MODE
+    ProductMode,
+    ModeLocks,
+    // 3️⃣ BRAND & PALETTE
+    PaletteSourceType,
+    BrandPalette,
+    // Scene
     SceneType,
     EnvironmentMacro,
     MicroPlace,
@@ -41,6 +48,9 @@ export type {
     ProductGenerationJob,
     GeneratedProductImage,
 } from './types';
+
+// MODE Lock Rules (Canonical)
+export { MODE_LOCK_RULES } from './types';
 
 // Store
 export {

@@ -109,7 +109,71 @@ export type ProductDefinition = {
 };
 
 // ============================================================================
-// SCENE TYPE
+// 1️⃣ MODE (ROOT BLOCKER)
+// ============================================================================
+
+export type ProductMode = 'studio' | 'editorial' | 'lifestyle-real' | 'ugc' | 'ecommerce';
+
+/**
+ * MODE LOCK RULES (CANONICAL)
+ * Each mode enables/disables specific capabilities
+ */
+export type ModeLocks = {
+    allowEnvironment: boolean;
+    allowPersons: boolean;
+    allowCreativeProps: boolean;
+    allowScenicBackground: boolean;
+};
+
+export const MODE_LOCK_RULES: Record<ProductMode, ModeLocks> = {
+    'studio': {
+        allowEnvironment: false,
+        allowPersons: false,
+        allowCreativeProps: true,
+        allowScenicBackground: false,
+    },
+    'editorial': {
+        allowEnvironment: true,
+        allowPersons: false,
+        allowCreativeProps: true,
+        allowScenicBackground: true,
+    },
+    'lifestyle-real': {
+        allowEnvironment: true,
+        allowPersons: true,
+        allowCreativeProps: true,
+        allowScenicBackground: true,
+    },
+    'ugc': {
+        allowEnvironment: true,
+        allowPersons: true,
+        allowCreativeProps: true,
+        allowScenicBackground: true,
+    },
+    'ecommerce': {
+        allowEnvironment: false,
+        allowPersons: false,
+        allowCreativeProps: false,
+        allowScenicBackground: false,
+    },
+};
+
+// ============================================================================
+// 3️⃣ BRAND & PALETTE (SINGLE COLOR AUTHORITY)
+// ============================================================================
+
+export type PaletteSourceType = 'auto' | 'brand-preset' | 'custom';
+
+export type BrandPalette = {
+    source: PaletteSourceType;
+    primaryColor: string | null;
+    secondaryColor: string | null;
+    accentColor: string | null;
+    brandPresetId: string | null;
+};
+
+// ============================================================================
+// SCENE TYPE (Legacy - maps to MODE)
 // ============================================================================
 
 export type SceneType = 'studio-branding' | 'editorial-product' | 'lifestyle-real' | 'ugc-phone';
@@ -234,50 +298,73 @@ export type ProductStudioState = {
     products: ProductAsset[];
     activeProductId: string | null;
 
+    // ========================================================================
+    // 1️⃣ MODE (ROOT BLOCKER)
+    // ========================================================================
+    mode: ProductMode;
+
+    // ========================================================================
+    // 2️⃣ PRODUCT DEFINITION (PHYSICAL, NOT CREATIVE)
+    // ========================================================================
     definition: ProductDefinition;
+    handsHolding: boolean;
 
-    // Scene Type
-    sceneType: SceneType;
+    // ========================================================================
+    // 3️⃣ BRAND & PALETTE (SINGLE COLOR AUTHORITY)
+    // ========================================================================
+    palette: BrandPalette;
 
-    // Creativity
+    // ========================================================================
+    // 4️⃣ SCENE & SURFACE (PHYSICAL CONTEXT)
+    // ========================================================================
+    sceneType: SceneType;  // Legacy - maps from mode
+    surface: SurfaceBase;
+    environmentMacro: EnvironmentMacro;
+    microPlace: MicroPlace;
+    customEnvironmentText: string;
+    customMicroPlaceText: string;
+    ambientLighting: Lighting;
+
+    // ========================================================================
+    // 5️⃣ CREATIVE DIRECTION (AESTHETICS ONLY)
+    // ========================================================================
     creativityLevel: 0 | 1 | 2 | 3;
     creativeTheme: CreativeTheme;
-    paletteSource: PaletteSource;
     propDensity: PropDensity;
     selectedProps: string[];
-
-    // Creativity V1 New Fields
+    negativeSpace: NegativeSpace;
     composition: CompositionMode;
-    surface: SurfaceBase;
     scale: ProductScale;
     spacing: ProductSpacing;
     lightStyle: LightStyle;
-    negativeSpace: NegativeSpace;
 
-    // Camera
+    // ========================================================================
+    // 6️⃣ CAMERA & FRAMING (OPTICS EXCLUSIVE)
+    // ========================================================================
     cameraSystem: CameraSystem;
     angle: CameraAngle;
     distance: CameraDistance;
     rotation: CameraRotation;
     framing: CameraFraming;
 
-    // Environment
-    environmentMacro: EnvironmentMacro;
-    microPlace: MicroPlace;
-    customEnvironmentText: string;
-    customMicroPlaceText: string;
-    lighting: Lighting;
-
-    // Ecommerce
-    ecommerceMode: boolean;
+    // ========================================================================
+    // 7️⃣ OUTPUT & EXPORT
+    // ========================================================================
+    aspectRatio: AspectRatio;
     blankSpaceEnabled: boolean;
     blankSpaceSide: BlankSpaceSide;
-    aspectRatio: AspectRatio;
 
-    // Bundle
+    // ========================================================================
+    // BUNDLE (Sub-system)
+    // ========================================================================
     bundle: BundleDefinition;
 
-    // Preset
+    // ========================================================================
+    // LEGACY (To be removed)
+    // ========================================================================
+    ecommerceMode: boolean;
+    paletteSource: PaletteSource;
+    lighting: Lighting;
     presetTier: PresetTier;
 };
 

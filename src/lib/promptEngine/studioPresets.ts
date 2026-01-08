@@ -1,0 +1,739 @@
+/**
+ * Studio Presets - MEGA PROMPT V2 Definitions
+ * 
+ * Deterministic text blocks for Studio-only image generation.
+ * NO lifestyle. NO real-world environments. Product-only.
+ */
+
+// =============================================================================
+// BASE STUDIO BLOCK (ALWAYS INCLUDED)
+// =============================================================================
+export const BASE_STUDIO = `
+STUDIO MODE. PRODUCT-ONLY IMAGE.
+Controlled studio environment. No real-world location. No lifestyle context.
+Abstract, editorial, or neutral composition. The product is the only subject.
+Clean geometry. Premium commercial quality. High clarity. Sharp focus.
+`.trim().replace(/\n/g, ' ');
+
+// =============================================================================
+// PHOTO / COMPOSITION MODE PRESETS
+// =============================================================================
+export const PHOTO_MODE_PRESETS: Record<string, string> = {
+    'Clear': `Clean studio composition with neutral lighting and minimal visual noise.`,
+    'Color Pop Hero': `High-impact hero composition with strong contrast and bold color emphasis.`,
+    'Ingredient Stack': `Ingredients or material elements arranged around the product in a clean, controlled layout. No environment context.`,
+    'Acrylic Blocks': `Clear or tinted acrylic blocks used as compositional pedestals or framing elements. Controlled reflections and clean geometry.`,
+    'Foam & Texture': `Subtle foam, liquid, or tactile textures used as abstract visual elements. No narrative meaning.`,
+    'Candy Gradient Lab': `Smooth gradient studio background with controlled color transitions. Modern, abstract aesthetic.`,
+    'Golden Mist Aura': `Soft atmospheric mist with controlled golden highlights. Studio-only ambience.`,
+    'Splash Shot': `High-speed liquid splash frozen in motion interacting with the product. Splash must not obscure the product.`,
+    'Hero Landing Page': `Hero landing page composition. Clean centered layout. Strong visual hierarchy. Product as the primary focal point.`
+};
+
+// =============================================================================
+// SURFACE / BASE PRESETS
+// =============================================================================
+export const SURFACE_PRESETS: Record<string, string> = {
+    'Neutral Surface': `Product placed on a neutral matte surface.`,
+    'Acrylic Pedestal': `Product displayed on a clear acrylic pedestal with subtle reflections.`,
+    'Reflective Block': `Product on a reflective geometric block creating mirror-like surface reflections.`,
+    'Abstract Editorial Base': `Product on an abstract editorial base with clean sculptural forms.`,
+    'Floating': `Product appears floating with no visible surface, only shadow beneath.`,
+    'Gradient Floor': `Product on a gradient floor surface that transitions to the background.`
+};
+
+// =============================================================================
+// COMPOSITION PRESETS
+// =============================================================================
+export const COMPOSITION_PRESETS: Record<string, string> = {
+    'Centered Hero': `Product centered in frame as the dominant hero element.`,
+    'Rule of Thirds': `Product positioned using rule of thirds for editorial balance.`,
+    'Asymmetrical Editorial': `Product placed asymmetrically for dynamic editorial composition.`,
+    'Flat Lay': `Top-down flat lay composition with product as focal point.`,
+    'Pedestal Hero': `Product elevated on pedestal with strong vertical presence.`
+};
+
+export const SCALE_PRESETS: Record<string, string> = {
+    'Full Frame': `Product fills 80-90% of frame height.`,
+    'Hero': `Product fills 60-70% of frame height with breathing room.`,
+    'Contextual': `Product fills 40-50% of frame with significant negative space.`,
+    'Minimal': `Product fills 20-30% of frame for maximum negative space.`
+};
+
+export const SPACING_PRESETS: Record<string, string> = {
+    'Tight': `Minimal margins, product close to frame edges.`,
+    'Balanced': `Equal spacing on all sides.`,
+    'Asymmetric': `Intentional uneven spacing for editorial effect.`,
+    'Generous': `Large margins with substantial breathing room.`
+};
+
+export const NEGATIVE_SPACE_PRESETS: Record<string, string> = {
+    'None': `Minimal negative space, product dominant.`,
+    'Left': `Negative space intentionally left for text overlay.`,
+    'Right': `Negative space intentionally right for text overlay.`,
+    'Top': `Negative space intentionally at top for headline placement.`,
+    'Bottom': `Negative space at bottom for copy placement.`
+};
+
+// =============================================================================
+// CAMERA PRESETS
+// =============================================================================
+export const LENS_PRESETS: Record<string, string> = {
+    '100mm Macro Prime': `Shot with a 100mm macro lens for extreme detail and compression.`,
+    '50mm Product Prime': `Shot with a 50mm product lens for natural perspective and minimal distortion.`,
+    'Tilt-Shift Hero': `Tilt-shift lens effect for controlled focus and hero emphasis.`,
+    'Ultra-Wide Stylized': `Ultra-wide stylized lens with controlled distortion.`,
+    '70-200mm Compression': `70–200mm compression for premium isolation and depth separation.`,
+    '35mm Anamorphic Glow': `35mm anamorphic lens with subtle cinematic glow.`
+};
+
+export const CAMERA_ANGLE_PRESETS: Record<string, string> = {
+    'Eye Level': `Camera at eye level, straight-on perspective.`,
+    'Elevated 45': `Camera elevated at 45 degrees looking down.`,
+    'Low Angle': `Low angle looking up to emphasize stature.`,
+    'Top Down': `Directly overhead bird's eye view.`,
+    'Three-Quarter': `Three-quarter angle for dimensional depth.`
+};
+
+export const CAMERA_DISTANCE_PRESETS: Record<string, string> = {
+    'Macro': `Extreme close-up macro distance for texture detail.`,
+    'Close': `Close distance for product focus.`,
+    'Medium': `Medium distance showing full product with context.`,
+    'Wide': `Wide shot with environmental breathing room.`
+};
+
+export const CAMERA_FRAMING_PRESETS: Record<string, string> = {
+    'Full Product': `Full product visible in frame, no cropping.`,
+    'Partial Crop': `Intentional partial crop for editorial effect.`,
+    'Detail Focus': `Focus on specific product detail or feature.`,
+    'Environmental': `Product framed with surrounding abstract elements.`
+};
+
+// =============================================================================
+// LIGHTING RIG PRESETS
+// =============================================================================
+export const LIGHTING_PRESETS: Record<string, string> = {
+    'Three-Point Beauty': `Three-point studio lighting with beauty dish key light. Controlled highlights. Clean reflections. Studio-grade contrast.`,
+    'Softbox Wrap': `Softbox wrap lighting with even diffusion and minimal shadow. Controlled highlights. Clean reflections.`,
+    'Hard Edge Gels': `Hard edge lighting with colored gels and sharp contrast. Studio-grade contrast.`,
+    'Backlit Acrylic': `Backlit acrylic lighting with clean rim highlights. Controlled highlights.`,
+    'High-Speed Splash': `High-speed splash lighting optimized for frozen motion. Studio-grade contrast.`,
+    'Gradient Cyclorama': `Gradient cyclorama lighting with smooth falloff. Controlled highlights.`,
+    'Prism Spotlight Duo': `Prism spotlight duo creating controlled light separation. Studio-grade contrast.`
+};
+
+// =============================================================================
+// FINISH / TREATMENT PRESETS
+// =============================================================================
+export const FINISH_PRESETS: Record<string, string> = {
+    'High-Gloss Commercial': `High-gloss commercial retouch with clean highlights.`,
+    'Matte Editorial': `Matte editorial finish with reduced contrast.`,
+    'Film Grain Luxury': `Subtle film grain for premium editorial texture.`,
+    'Clinical Lab Polish': `Clinical lab polish with ultra-clean surfaces and neutral tones.`,
+    'Hyperreal CGI Blend': `Hyperreal blend with enhanced sharpness and controlled realism.`,
+    'Vibrant Color Pop': `Vibrant color-enhanced commercial finish.`
+};
+
+// =============================================================================
+// SHADOW STYLE PRESETS
+// =============================================================================
+export const SHADOW_PRESETS: Record<string, string> = {
+    'Soft Drop': `Soft studio drop shadow beneath the product.`,
+    'Hard Drop': `Hard-edged studio shadow with defined contrast.`,
+    'Floating': `Floating shadow effect with subtle separation from the surface.`,
+    'Contact': `Contact shadow where product meets surface.`,
+    'None': ``
+};
+
+// =============================================================================
+// OPTIONAL INTERACTION (HAND ONLY)
+// =============================================================================
+export const INTERACTION_PRESETS: Record<string, string> = {
+    'None': ``,
+    'Cropped Hand': `Cropped manicured hand interacting with the product. Hand only, no face, no body.`,
+    'Holding': `Hand holding the product with precision grip. Hand only.`,
+    'Presenting': `Hand presenting the product from side. Hand only.`,
+    'Applying': `Hand applying or opening the product. Hand only.`
+};
+
+// =============================================================================
+// STUDIO NEGATIVES (ALWAYS LAST)
+// =============================================================================
+export const STUDIO_NEGATIVES = `
+No people. No faces. No lifestyle scenes.
+No real-world environments or locations.
+No text. No logos. No brand names. No labeled props.
+No real-world context. No storytelling elements.
+`.trim().replace(/\n/g, ' ');
+
+// =============================================================================
+// STUDIO RANDOM POOLS (SAFE TO RANDOMIZE)
+// =============================================================================
+export const STUDIO_RANDOM_POOLS = {
+    photoMode: Object.keys(PHOTO_MODE_PRESETS),
+    surface: Object.keys(SURFACE_PRESETS),
+    composition: Object.keys(COMPOSITION_PRESETS),
+    scale: Object.keys(SCALE_PRESETS),
+    spacing: Object.keys(SPACING_PRESETS),
+    negativeSpace: Object.keys(NEGATIVE_SPACE_PRESETS),
+    lens: Object.keys(LENS_PRESETS),
+    angle: Object.keys(CAMERA_ANGLE_PRESETS),
+    distance: Object.keys(CAMERA_DISTANCE_PRESETS),
+    framing: Object.keys(CAMERA_FRAMING_PRESETS),
+    lighting: Object.keys(LIGHTING_PRESETS),
+    finish: Object.keys(FINISH_PRESETS),
+    shadow: Object.keys(SHADOW_PRESETS),
+    interaction: Object.keys(INTERACTION_PRESETS)
+};
+
+// =============================================================================
+// 1️⃣ STUDIO DEFAULTS — GOLDEN PATH
+// =============================================================================
+// A new user must generate a high-quality Studio image without touching any controls.
+// Defaults apply ONLY when the user has not explicitly selected a value.
+
+export const STUDIO_DEFAULTS = {
+    photoMode: 'Hero Landing Page',
+    surface: 'Neutral Surface',
+    composition: 'Centered Hero',
+    scale: 'Hero',
+    spacing: 'Balanced',
+    negativeSpace: 'None',
+    lens: '50mm Product Prime',
+    angle: 'Three-Quarter',
+    distance: 'Medium',
+    framing: 'Full Product',
+    lighting: 'Softbox Wrap',
+    finish: 'High-Gloss Commercial',
+    shadow: 'Soft Drop',
+    interaction: 'None',
+} as const;
+
+export type StudioDefaultsType = typeof STUDIO_DEFAULTS;
+
+/**
+ * Apply golden path defaults to Studio options.
+ * Only fills in undefined/empty fields. Never overrides user selections.
+ */
+export function applyStudioDefaults(options: Partial<StudioDefaultsType>): StudioDefaultsType {
+    return {
+        photoMode: options.photoMode || STUDIO_DEFAULTS.photoMode,
+        surface: options.surface || STUDIO_DEFAULTS.surface,
+        composition: options.composition || STUDIO_DEFAULTS.composition,
+        scale: options.scale || STUDIO_DEFAULTS.scale,
+        spacing: options.spacing || STUDIO_DEFAULTS.spacing,
+        negativeSpace: options.negativeSpace || STUDIO_DEFAULTS.negativeSpace,
+        lens: options.lens || STUDIO_DEFAULTS.lens,
+        angle: options.angle || STUDIO_DEFAULTS.angle,
+        distance: options.distance || STUDIO_DEFAULTS.distance,
+        framing: options.framing || STUDIO_DEFAULTS.framing,
+        lighting: options.lighting || STUDIO_DEFAULTS.lighting,
+        finish: options.finish || STUDIO_DEFAULTS.finish,
+        shadow: options.shadow || STUDIO_DEFAULTS.shadow,
+        interaction: options.interaction || STUDIO_DEFAULTS.interaction,
+    };
+}
+
+// =============================================================================
+// 2️⃣ AUTO PALETTE — INTELLIGENT FALLBACKS
+// =============================================================================
+// Palette extraction must NEVER fail.
+
+export const NEUTRAL_WARM_GRAY_FALLBACK = {
+    primary: '#E5E5E5',
+    secondary: '#BDBDBD',
+    accent: '#8A8A8A',
+} as const;
+
+/**
+ * Generate tints from a monochrome color.
+ * If label is detected and MONOCHROME:
+ * - Primary = detected label color
+ * - Secondary = auto-generated lighter tint
+ * - Accent = auto-generated darker tint (or lighter if primary is very dark)
+ */
+export function generateMonochromePalette(hexColor: string): { primary: string; secondary: string; accent: string } {
+    const hex = hexColor.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+
+    // Calculate luminance (0-255 scale)
+    const luminance = (r * 0.299 + g * 0.587 + b * 0.114);
+    const isVeryDark = luminance < 30;
+    const isVeryLight = luminance > 225;
+
+    // Lighter tint (mix with white)
+    const lighterR = Math.min(255, Math.round(r + (255 - r) * 0.4));
+    const lighterG = Math.min(255, Math.round(g + (255 - g) * 0.4));
+    const lighterB = Math.min(255, Math.round(b + (255 - b) * 0.4));
+
+    // For very dark colors, make accent lighter instead of darker
+    // For very light colors, make accent darker
+    let accentR: number, accentG: number, accentB: number;
+
+    if (isVeryDark) {
+        // Very dark: accent is lighter (mix with gray)
+        accentR = Math.min(255, Math.round(r + (128 - r) * 0.5));
+        accentG = Math.min(255, Math.round(g + (128 - g) * 0.5));
+        accentB = Math.min(255, Math.round(b + (128 - b) * 0.5));
+    } else if (isVeryLight) {
+        // Very light: accent is darker
+        accentR = Math.max(0, Math.round(r * 0.6));
+        accentG = Math.max(0, Math.round(g * 0.6));
+        accentB = Math.max(0, Math.round(b * 0.6));
+    } else {
+        // Normal: accent is darker
+        accentR = Math.round(r * 0.6);
+        accentG = Math.round(g * 0.6);
+        accentB = Math.round(b * 0.6);
+    }
+
+    return {
+        primary: hexColor,
+        secondary: `#${lighterR.toString(16).padStart(2, '0')}${lighterG.toString(16).padStart(2, '0')}${lighterB.toString(16).padStart(2, '0')}`,
+        accent: `#${accentR.toString(16).padStart(2, '0')}${accentG.toString(16).padStart(2, '0')}${accentB.toString(16).padStart(2, '0')}`,
+    };
+}
+
+/**
+ * Ensure palette colors exist with intelligent fallbacks.
+ * Order: extracted colors → monochrome tints → neutral warm gray
+ */
+export function ensurePaletteWithFallbacks(
+    color1?: string,
+    color2?: string,
+    color3?: string
+): { primary: string; secondary: string; accent: string } {
+    // Case 1: All colors provided
+    if (color1 && color2 && color3) {
+        return { primary: color1, secondary: color2, accent: color3 };
+    }
+
+    // Case 2: Only one color (monochrome) - generate tints
+    if (color1 && !color2 && !color3) {
+        return generateMonochromePalette(color1);
+    }
+
+    // Case 3: Partial colors - fill missing
+    if (color1) {
+        const mono = generateMonochromePalette(color1);
+        return {
+            primary: color1,
+            secondary: color2 || mono.secondary,
+            accent: color3 || mono.accent,
+        };
+    }
+
+    // Case 4: No colors - use neutral warm gray fallback
+    return NEUTRAL_WARM_GRAY_FALLBACK;
+}
+
+// =============================================================================
+// 4️⃣ CATEGORY SMART PRESETS — SHORTCUTS ONLY
+// =============================================================================
+// These are PRESET SHORTCUTS. They simply pre-fill existing Studio controls.
+// No new creationMode. No new prompt logic. Just value assignment.
+
+export const CATEGORY_PRESETS = {
+    SUPPLEMENT: {
+        photoMode: 'Hero Landing Page',
+        finish: 'Clinical Lab Polish',
+    },
+    SUPPLEMENT_INGREDIENT: {
+        photoMode: 'Ingredient Stack',
+        finish: 'Clinical Lab Polish',
+    },
+    SKINCARE: {
+        photoMode: 'Acrylic Blocks',
+        lighting: 'Softbox Wrap',
+        finish: 'Matte Editorial',
+    },
+    BEVERAGE: {
+        photoMode: 'Splash Shot',
+        lighting: 'Backlit Acrylic',
+        finish: 'Vibrant Color Pop',
+    },
+} as const;
+
+export type CategoryPresetKey = keyof typeof CATEGORY_PRESETS;
+
+/**
+ * Apply a category preset shortcut.
+ * Merges preset values with existing options (preset wins for specified fields).
+ */
+export function applyCategoryPreset(
+    presetKey: CategoryPresetKey,
+    currentOptions: Record<string, string>
+): Record<string, string> {
+    const preset = CATEGORY_PRESETS[presetKey];
+    return { ...currentOptions, ...preset };
+}
+
+// =============================================================================
+// HELPER: BUILD STUDIO PROMPT
+// =============================================================================
+export interface StudioPromptOptions {
+    // Photo Mode
+    photoMode?: string;
+
+    // Auto Palette Extraction (extracted from product label)
+    paletteColor1?: string; // Primary color
+    paletteColor2?: string; // Secondary color
+    paletteColor3?: string; // Accent color
+
+    // Background (optional override, defaults to palette)
+    backgroundColor?: string;
+    gradientStart?: string;
+    gradientEnd?: string;
+
+    // Surface
+    surface?: string;
+    surfaceHarmonizeWithPalette?: boolean;
+
+    // Composition
+    composition?: string;
+    scale?: string;
+    spacing?: string;
+    negativeSpace?: string;
+
+    // Camera
+    lens?: string;
+    angle?: string;
+    distance?: string;
+    framing?: string;
+
+    // Lighting & Finish
+    lighting?: string;
+    finish?: string;
+    shadow?: string;
+
+    // Optional Interaction
+    interaction?: string;
+}
+
+export function buildStudioPrompt(options: StudioPromptOptions): string {
+    const parts: string[] = [BASE_STUDIO];
+
+    // =========================================================================
+    // AUTO PALETTE EXTRACTION (if palette colors provided)
+    // =========================================================================
+    const hasPalette = options.paletteColor1 || options.paletteColor2 || options.paletteColor3;
+    if (hasPalette) {
+        const paletteLines: string[] = [
+            'AUTO PALETTE EXTRACTION:',
+            'Extract up to three dominant colors directly from the uploaded product label.',
+            'Ignore text, logos, and fine typography. Use only primary fill colors.',
+            'If fewer than three colors exist, use only those available.',
+            'PALETTE:'
+        ];
+        if (options.paletteColor1) {
+            paletteLines.push(`Primary Color: ${options.paletteColor1}`);
+        }
+        if (options.paletteColor2) {
+            paletteLines.push(`Secondary Color: ${options.paletteColor2}`);
+        }
+        if (options.paletteColor3) {
+            paletteLines.push(`Accent Color: ${options.paletteColor3}`);
+        }
+        parts.push(paletteLines.join(' '));
+    }
+
+    // =========================================================================
+    // PHOTO MODE
+    // =========================================================================
+    if (options.photoMode && PHOTO_MODE_PRESETS[options.photoMode]) {
+        parts.push(`PHOTO_MODE: ${PHOTO_MODE_PRESETS[options.photoMode]}`);
+    }
+
+    // =========================================================================
+    // BACKGROUND (palette-aware)
+    // =========================================================================
+    if (hasPalette) {
+        const bgLines: string[] = [
+            'BACKGROUND:',
+            'Generate a custom studio background using the extracted palette.',
+            'Primary background uses the Primary Color.'
+        ];
+        bgLines.push('Subtle gradients or accents may use the Secondary and Accent colors.');
+        bgLines.push('Background must remain abstract and studio-safe. No walls. No rooms. No scenery.');
+        parts.push(bgLines.join(' '));
+    } else if (options.backgroundColor) {
+        const bgText = options.gradientStart && options.gradientEnd
+            ? `Custom studio background. Primary: ${options.backgroundColor}. Gradient from ${options.gradientStart} to ${options.gradientEnd}.`
+            : `Custom studio background. Primary color: ${options.backgroundColor}. No physical walls, no rooms, no scenery.`;
+        parts.push(`BACKGROUND: ${bgText}`);
+    }
+
+    // =========================================================================
+    // SURFACE (palette-harmonized)
+    // =========================================================================
+    if (options.surface && SURFACE_PRESETS[options.surface]) {
+        let surfaceText = SURFACE_PRESETS[options.surface];
+        if (hasPalette && options.surfaceHarmonizeWithPalette !== false) {
+            surfaceText += ' Surface color harmonizes naturally with the extracted palette.';
+        }
+        parts.push(`SURFACE: ${surfaceText}`);
+    } else if (hasPalette) {
+        parts.push('SURFACE: Surface color harmonizes naturally with the extracted palette.');
+    }
+
+    // =========================================================================
+    // COMPOSITION
+    // =========================================================================
+    const compositionParts: string[] = [];
+    if (options.composition && COMPOSITION_PRESETS[options.composition]) {
+        compositionParts.push(COMPOSITION_PRESETS[options.composition]);
+    }
+    if (options.scale && SCALE_PRESETS[options.scale]) {
+        compositionParts.push(SCALE_PRESETS[options.scale]);
+    }
+    if (options.spacing && SPACING_PRESETS[options.spacing]) {
+        compositionParts.push(SPACING_PRESETS[options.spacing]);
+    }
+    if (options.negativeSpace && NEGATIVE_SPACE_PRESETS[options.negativeSpace]) {
+        compositionParts.push(NEGATIVE_SPACE_PRESETS[options.negativeSpace]);
+    }
+    if (compositionParts.length > 0) {
+        parts.push(`COMPOSITION: ${compositionParts.join(' ')}`);
+    }
+
+    // =========================================================================
+    // CAMERA
+    // =========================================================================
+    const cameraParts: string[] = [];
+    if (options.lens && LENS_PRESETS[options.lens]) {
+        cameraParts.push(LENS_PRESETS[options.lens]);
+    }
+    if (options.angle && CAMERA_ANGLE_PRESETS[options.angle]) {
+        cameraParts.push(CAMERA_ANGLE_PRESETS[options.angle]);
+    }
+    if (options.distance && CAMERA_DISTANCE_PRESETS[options.distance]) {
+        cameraParts.push(CAMERA_DISTANCE_PRESETS[options.distance]);
+    }
+    if (options.framing && CAMERA_FRAMING_PRESETS[options.framing]) {
+        cameraParts.push(CAMERA_FRAMING_PRESETS[options.framing]);
+    }
+    if (cameraParts.length > 0) {
+        parts.push(`CAMERA: ${cameraParts.join(' ')}`);
+    }
+
+    // =========================================================================
+    // LIGHTING
+    // =========================================================================
+    if (options.lighting && LIGHTING_PRESETS[options.lighting]) {
+        parts.push(`LIGHTING: Professional studio lighting. ${LIGHTING_PRESETS[options.lighting]}`);
+    }
+
+    // =========================================================================
+    // FINISH
+    // =========================================================================
+    if (options.finish && FINISH_PRESETS[options.finish]) {
+        parts.push(`FINISH: ${FINISH_PRESETS[options.finish]}`);
+    }
+    // =========================================================================
+    // SHADOW
+    // =========================================================================
+    if (options.shadow && SHADOW_PRESETS[options.shadow]) {
+        parts.push(SHADOW_PRESETS[options.shadow]);
+    }
+
+    // =========================================================================
+    // OPTIONAL INTERACTION
+    // =========================================================================
+    if (options.interaction && INTERACTION_PRESETS[options.interaction]) {
+        parts.push(`OPTIONAL INTERACTION: ${INTERACTION_PRESETS[options.interaction]}`);
+    }
+
+    // =========================================================================
+    // QUALITY (always included)
+    // =========================================================================
+    parts.push('QUALITY: Ultra-high resolution. Premium commercial photography. Sharp product edges. Accurate materials. No distortion. No artifacts.');
+
+    // =========================================================================
+    // FINAL ASSEMBLY
+    // =========================================================================
+    const positivePrompt = parts.join(' ').replace(/\s+/g, ' ').trim();
+    return `${positivePrompt} NEGATIVE PROMPT: ${STUDIO_NEGATIVES}`;
+}
+
+// =============================================================================
+// PRODUCT_STUDIO_CANONICAL_PROMPT — FREEZE-READY v1.0
+// =============================================================================
+// UX · UI · Prompt Engine · Deterministic · Autosuficiente
+// =============================================================================
+
+export const PRODUCT_STUDIO_CANONICAL_PROMPT = `
+1️⃣ DEFINICIÓN DE ROL DEL MOTOR (ROOT)
+Actuás como un motor de generación visual determinístico, especializado en product assets multi-funnel.
+No sos creativo libre.
+No improvisás.
+No inferís intenciones.
+Ejecutás únicamente lo que se define en este prompt y en el estado estructurado que lo acompaña.
+Si una instrucción no está explícitamente habilitada, no la aplicás.
+Esto no es texto decorativo. Es contrato de ejecución.
+
+2️⃣ PRINCIPIO FUNDAMENTAL (ROOT LAW)
+Cada decisión visual existe en un solo bloque lógico.
+Ningún bloque puede sobrescribir, reinterpretar o duplicar decisiones de otro.
+Si detectás conflicto entre bloques:
+- priorizás el bloque de menor índice
+- bloqueás el resto
+Esto define todo el sistema. Si esto se rompe, todo se rompe.
+
+3️⃣ ORDEN DE EJECUCIÓN (INMUTABLE)
+1. MODE
+2. PRODUCT DEFINITION
+3. BRAND & PALETTE
+4. SCENE & SURFACE
+5. CREATIVE DIRECTION
+6. CAMERA & FRAMING
+7. OUTPUT (solo hints no visuales)
+
+Reglas duras:
+- No alteres el orden
+- No saltees bloques
+- No reinyectes información previa
+- No permitas overrides tardíos
+
+4️⃣ DEFINICIÓN DE MODOS (SEMÁNTICA CERRADA)
+
+STUDIO:
+- Producto como único sujeto
+- Fondo abstracto únicamente
+- Prohibido: personas, ambientes reales, paredes, habitaciones, escenarios
+
+EDITORIAL:
+- Producto como sujeto principal
+- Estilización permitida
+- Fondo abstracto o gráfico
+- Prohibido: ambientes reales, personas
+
+LIFESTYLE:
+- Producto como sujeto principal
+- Ambiente real obligatorio
+- Personas NO incluidas por defecto
+- El entorno contextualiza, no domina
+
+UGC:
+- Persona como sujeto principal
+- Producto visible como prueba
+- Ambiente real obligatorio
+- Cámara phone / handheld
+- Imperfección natural
+- Prohibido: estética de estudio, iluminación artificial de set
+
+ECOMMERCE:
+- Producto como sujeto único
+- Fondo neutral o canvas limpio
+- Composición pensada para overlays
+- Prohibido: props creativos, ambientes, personas
+
+5️⃣ PRODUCT DEFINITION (FÍSICO, NO ESTÉTICO)
+Definís qué es el producto, nunca su estética.
+Incluye exclusivamente:
+- Tipo de producto
+- Packaging
+- Escala física
+- Cantidad
+- Bundle mode
+- Manos (solo si está habilitado, siempre cropped)
+
+Reglas duras:
+- El asset subido nunca se altera
+- No se inventan variaciones
+- No se estiliza en este bloque
+
+6️⃣ BRAND & PALETTE (ÚNICA FUENTE DE COLOR)
+
+AUTO PALETTE EXTRACTION (CANÓNICO):
+Use only primary fill colors from the uploaded product.
+Ignore shadows, reflections, gradients, highlights.
+Do not infer missing colors.
+If fewer than three colors exist, use only those available.
+
+Primary Color:
+Secondary Color:
+Accent Color:
+
+Reglas:
+- Ningún otro bloque puede: elegir colores, sugerir paletas, modificar tonos
+- Todo fondo, prop abstracto o acento debe armonizar naturalmente con esta paleta
+- Nunca fuerces contraste artificial
+
+7️⃣ SCENE & SURFACE (CONTEXTO FÍSICO)
+
+Studio / Editorial:
+- Fondo abstracto generado desde la paleta
+- Prohibido: paredes, habitaciones, scenery
+- Permitido: gradientes sutiles, geometría abstracta, contraste studio-grade
+
+Lifestyle / UGC:
+- Ambiente real coherente con el producto
+- Superficies reales
+- Iluminación ambiental creíble
+- El entorno no compite con el sujeto principal
+
+8️⃣ CREATIVE DIRECTION (ESTÉTICA CONTROLADA)
+
+Permitido:
+- Nivel de creatividad
+- Tema visual
+- Densidad de props (si el modo lo permite)
+- Intención de espacio negativo
+
+Prohibido:
+- cambiar paleta
+- cambiar cámara
+- introducir ambiente no habilitado
+- alterar escala física
+
+9️⃣ CAMERA & FRAMING (ÓPTICA EXCLUSIVA)
+
+Autoridad total sobre:
+- sistema de cámara
+- ángulo
+- distancia
+- rotación
+- encuadre
+
+Reglas:
+- UGC = phone / handheld
+- Studio / Ecommerce = cámara limpia y estable
+- No mezclar reglas ópticas entre modos
+
+🔟 OUTPUT (NO VISUAL)
+- No altera la generación
+- Solo adapta encuadre final
+- Overlays se renderizan fuera del modelo
+
+1️⃣1️⃣ NEGATIVE RULES GLOBALES (SIEMPRE ACTIVAS)
+No logos.
+No text.
+No labels.
+No watermarks.
+No UI elements.
+No mockups.
+No brand names.
+No fake packaging.
+No scenery unless explicitly enabled by MODE.
+
+1️⃣2️⃣ VALIDACIÓN FINAL (BLOQUEANTE)
+
+Antes de generar:
+- ¿El modo permite lo solicitado?
+- ¿Existe una sola fuente de color?
+- ¿La cámara se definió una sola vez?
+- ¿El producto sigue siendo el asset original?
+- ¿No hay mezcla de reglas entre modos?
+
+Si cualquiera falla → abort generation.
+
+1️⃣3️⃣ RESULTADO GARANTIZADO
+- Outputs consistentes
+- Sin imágenes híbridas
+- Sin overrides invisibles
+- Determinismo alto
+- Escalable a presets y automation
+- Compatible con ads, PDP, landing, social
+`.trim();

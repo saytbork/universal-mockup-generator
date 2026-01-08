@@ -35,6 +35,8 @@ import type {
     NegativeSpace,
     BrandPreset,
     BrandPresetId,
+    ProductMode,
+    BrandPalette,
 } from './types';
 
 
@@ -348,56 +350,94 @@ const DEFAULT_BUNDLE: BundleDefinition = {
     spacing: 'compact',
 };
 
+const DEFAULT_PALETTE: BrandPalette = {
+    source: 'auto',
+    primaryColor: null,
+    secondaryColor: null,
+    accentColor: null,
+    brandPresetId: null,
+};
+
 export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     products: [],
     activeProductId: null,
 
+    // 1️⃣ MODE (ROOT BLOCKER)
+    mode: 'studio',
+
+    // 2️⃣ PRODUCT DEFINITION
     definition: DEFAULT_DEFINITION,
+    handsHolding: false,
 
-    // Scene Type
+    // 3️⃣ BRAND & PALETTE (SINGLE COLOR AUTHORITY)
+    palette: DEFAULT_PALETTE,
+
+    // 4️⃣ SCENE & SURFACE
     sceneType: 'studio-branding',
+    surface: 'neutral',
+    environmentMacro: 'studio',
+    microPlace: 'neutral-surface',
+    customEnvironmentText: '',
+    customMicroPlaceText: '',
+    ambientLighting: 'clinical-softbox',
 
-    // Creativity
+    // 5️⃣ CREATIVE DIRECTION
     creativityLevel: 1,
     creativeTheme: 'clinical-minimal',
-    paletteSource: 'warm-neutral',
     propDensity: 'none',
     selectedProps: [],
-
-    // Creativity V1
+    negativeSpace: 'none',
     composition: 'centered',
-    surface: 'neutral',
     scale: 'dominant',
     spacing: 'balanced',
     lightStyle: 'soft',
-    negativeSpace: 'none',
 
-    // Camera
+    // 6️⃣ CAMERA & FRAMING
     cameraSystem: 'dslr',
     angle: '45',
     distance: 'medium',
     rotation: 'none',
     framing: 'centered',
 
-    // Environment
-    environmentMacro: 'studio',
-    microPlace: 'neutral-surface',
-    customEnvironmentText: '',
-    customMicroPlaceText: '',
-    lighting: 'clinical-softbox',
-
-    // Ecommerce
-    ecommerceMode: false,
+    // 7️⃣ OUTPUT & EXPORT
+    aspectRatio: '1:1',
     blankSpaceEnabled: false,
     blankSpaceSide: 'right',
-    aspectRatio: '1:1',
 
-    // Bundle
+    // BUNDLE (Sub-system)
     bundle: DEFAULT_BUNDLE,
 
-    // Preset
+    // LEGACY (To be removed)
+    ecommerceMode: false,
+    paletteSource: 'warm-neutral',
+    lighting: 'clinical-softbox',
     presetTier: 'basic',
 };
+
+// ============================================================================
+// CLEANUP INSTRUMENTATION — TEMPORARY (remove after usage mapping)
+// ============================================================================
+// Track which fields are READ (called via getters/actions)
+// This helps identify dead fields that are never accessed
+
+const CLEANUP_READ_TRACKER: Record<string, number> = {};
+
+export function trackFieldRead(fieldName: string): void {
+    if (typeof window !== 'undefined' && (window as any).__DEV_MODE__) {
+        CLEANUP_READ_TRACKER[fieldName] = (CLEANUP_READ_TRACKER[fieldName] || 0) + 1;
+        console.log(`[CLEANUP-INSTRUMENT] FIELD READ: ${fieldName} (count: ${CLEANUP_READ_TRACKER[fieldName]})`);
+    }
+}
+
+export function getReadTrackerReport(): Record<string, number> {
+    return { ...CLEANUP_READ_TRACKER };
+}
+
+// Expose to window for dev console access
+if (typeof window !== 'undefined') {
+    (window as any).__CLEANUP_READ_TRACKER__ = CLEANUP_READ_TRACKER;
+    (window as any).__getCleanupReport__ = getReadTrackerReport;
+}
 
 // ============================================================================
 // STORE ACTIONS
@@ -410,7 +450,10 @@ type ProductStudioActions = {
     setActiveProduct: (id: string | null) => void;
     updateProductName: (id: string, name: string) => void;
 
-    // Definition
+    // 1️⃣ MODE (ROOT BLOCKER)
+    setMode: (mode: ProductMode) => void;
+
+    // 2️⃣ PRODUCT DEFINITION
     setProductType: (type: ProductType) => void;
     setProductColor: (hex: string, semanticName: string) => void;
     setPhysicalProperty: (key: string, value: any) => void;
@@ -420,8 +463,12 @@ type ProductStudioActions = {
         kind: K,
         updates: Partial<Extract<PhysicalDefinition, { kind: K }>['v']>
     ) => void;
+    setHandsHolding: (enabled: boolean) => void;
 
-    // Scene Type
+    // 3️⃣ BRAND & PALETTE
+    setPalette: (updates: Partial<BrandPalette>) => void;
+
+    // Scene Type (Legacy)
     setSceneType: (sceneType: SceneType) => void;
 
     // Creativity
@@ -513,7 +560,39 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             products: state.products.map((p) => (p.id === id ? { ...p, name } : p)),
         })),
 
-    // Definition
+    // ========================================================================
+    // 1️⃣ MODE (ROOT BLOCKER)
+    // ========================================================================
+    setMode: (mode) =>
+        set((state) => {
+            // Apply lock rules based on mode
+            const updates: Partial<ProductStudioState> = { mode };
+
+            // Clear environment if mode doesn't allow it
+            if (mode === 'studio' || mode === 'ecommerce') {
+                updates.environmentMacro = 'studio';
+                updates.microPlace = 'neutral-surface';
+            }
+
+            // Map mode to sceneType (legacy compatibility)
+            const modeToSceneType: Record<typeof mode, SceneType> = {
+                'studio': 'studio-branding',
+                'editorial': 'editorial-product',
+                'lifestyle-real': 'lifestyle-real',
+                'ugc': 'ugc-phone',
+                'ecommerce': 'studio-branding',
+            };
+            updates.sceneType = modeToSceneType[mode];
+
+            console.log(`[ProductStudio] MODE set to: ${mode}`);
+            return updates;
+        }),
+
+    // ========================================================================
+    // 2️⃣ PRODUCT DEFINITION
+    // ========================================================================
+    setHandsHolding: (enabled) => set({ handsHolding: enabled }),
+
     setProductType: (type) =>
         set((state) => ({
             definition: {
@@ -592,7 +671,15 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             };
         }),
 
-    // Scene Type
+    // ========================================================================
+    // 3️⃣ BRAND & PALETTE (SINGLE COLOR AUTHORITY)
+    // ========================================================================
+    setPalette: (updates) =>
+        set((state) => ({
+            palette: { ...state.palette, ...updates },
+        })),
+
+    // Scene Type (Legacy)
     setSceneType: (sceneType) =>
         set((state) => {
             let newBundle = state.bundle;
@@ -638,19 +725,36 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setFraming: (framing) => set({ framing }),
 
     // Environment
+    // 3️⃣ UI LOCKING: Studio/Environment MUTUAL EXCLUSIVITY
+    // If ANY real environment is selected, Studio Creative is disabled (mode !== 'studio')
+    // Helper: Real environments = anything except 'studio'
     setEnvironmentMacro: (env) =>
         set((state) => {
+            // Real environment detection
+            const isRealEnvironment = env !== 'studio';
+
+            // Validate environment
             const validEnv = enforceValidEnvironment(
                 env,
                 state.definition.type,
                 state.definition.physical.kind === 'drops' ? state.definition.physical.v.dropperState : undefined
             );
             const validLighting = enforceValidLighting(state.lighting, validEnv);
-            return {
+
+            // MUTUAL EXCLUSIVITY: if real environment selected, disable Studio mode
+            const updates: Partial<ProductStudioState> = {
                 environmentMacro: validEnv,
                 microPlace: getDefaultMicroPlace(validEnv),
                 lighting: validLighting,
             };
+
+            if (isRealEnvironment && state.mode === 'studio') {
+                updates.mode = 'lifestyle-real';
+                updates.sceneType = 'lifestyle-real';
+                console.log('[ProductStudio] UI LOCK: Real environment selected → Studio Creative disabled');
+            }
+
+            return updates;
         }),
     setMicroPlace: (place) => set({ microPlace: place }),
     setCustomEnvironmentText: (text) => set({ customEnvironmentText: text }),
