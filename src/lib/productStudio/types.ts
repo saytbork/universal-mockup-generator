@@ -360,6 +360,22 @@ export type ProductStudioState = {
     bundle: BundleDefinition;
 
     // ========================================================================
+    // PRODUCT STUDIO UI CONTROLS (NEW)
+    // ========================================================================
+    photoMode: string;
+    backgroundColor: string;
+    accentColor: string;
+    alignment: 'left' | 'center' | 'right';
+    shadow: 'soft-drop' | 'hard-drop' | 'floating';
+    props: string;
+    customHeroCue: string;
+    interaction: 'none' | 'cropped-hand';
+    proMode: boolean;
+    lens: string;
+    lightingRig: string;
+    finish: string;
+
+    // ========================================================================
     // LEGACY (To be removed)
     // ========================================================================
     ecommerceMode: boolean;

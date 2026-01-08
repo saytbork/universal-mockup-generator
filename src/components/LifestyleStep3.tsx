@@ -1617,6 +1617,262 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </p>
               </div>
 
+              {/* ============================================================
+                   PRODUCT STUDIO CONTROLS (Studio Mode Only)
+                   ============================================================ */}
+              {productStore.sceneType === 'studio-branding' && (
+                <>
+                  {/* PHOTO MODE */}
+                  <div className={SECTION_GROUP_CLASS}>
+                    <p className={GROUP_LABEL_CLASS}>PHOTO MODE</p>
+                    <select
+                      value={productStore.photoMode}
+                      onChange={(e) => {
+                        productStore.setPhotoMode(e.target.value);
+                        markSectionTouched('product-setup');
+                      }}
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                    >
+                      {[
+                        'Hero Landing Page', 'Clear', 'Color Pop Hero', 'Ingredient Stack',
+                        'Tile & Spa', 'Foam & Texture', 'Routine Carousel', 'Pastel Picnic',
+                        'Face Pop Close-Up', 'Sunrise Wellness Counter', 'Clinical Lab Counter',
+                        'Golden Mist Aura', 'Outdoor Energy Boost', 'Crown Wellness Vanity',
+                        'Candy Gradient Lab'
+                      ].map(mode => (
+                        <option key={mode} value={mode}>{mode}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* BACKGROUND & PALETTE */}
+                  <div className={SECTION_GROUP_CLASS}>
+                    <p className={GROUP_LABEL_CLASS}>BACKGROUND</p>
+                    <div className="flex gap-4">
+                      <div className="flex-1">
+                        <label className="text-[11px] text-gray-500 mb-1 block">Background Color</label>
+                        <input
+                          type="color"
+                          value={productStore.backgroundColor || '#ffffff'}
+                          onChange={(e) => {
+                            productStore.setBackgroundColor(e.target.value);
+                            markSectionTouched('product-setup');
+                          }}
+                          className="w-full h-10 rounded-lg border border-gray-200 cursor-pointer"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-[11px] text-gray-500 mb-1 block">Accent Color</label>
+                        <input
+                          type="color"
+                          value={productStore.accentColor || '#6366f1'}
+                          onChange={(e) => {
+                            productStore.setAccentColor(e.target.value);
+                            markSectionTouched('product-setup');
+                          }}
+                          className="w-full h-10 rounded-lg border border-gray-200 cursor-pointer"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* PRODUCT ALIGNMENT */}
+                  <div className={SECTION_GROUP_CLASS}>
+                    <p className={GROUP_LABEL_CLASS}>PRODUCT ALIGNMENT</p>
+                    <div className="flex gap-2">
+                      {(['left', 'center', 'right'] as const).map(align => (
+                        <Chip
+                          key={align}
+                          onClick={() => {
+                            productStore.setAlignment(align);
+                            markSectionTouched('product-setup');
+                          }}
+                          selected={productStore.alignment === align}
+                        >
+                          {align.charAt(0).toUpperCase() + align.slice(1)}
+                        </Chip>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* SHADOW STYLE */}
+                  <div className={SECTION_GROUP_CLASS}>
+                    <p className={GROUP_LABEL_CLASS}>SHADOW STYLE</p>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { key: 'soft-drop', label: 'Soft drop shadow' },
+                        { key: 'hard-drop', label: 'Hard drop shadow' },
+                        { key: 'floating', label: 'Floating shadow' }
+                      ].map(({ key, label }) => (
+                        <Chip
+                          key={key}
+                          onClick={() => {
+                            productStore.setShadow(key as 'soft-drop' | 'hard-drop' | 'floating');
+                            markSectionTouched('product-setup');
+                          }}
+                          selected={productStore.shadow === key}
+                        >
+                          {label}
+                        </Chip>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* FLAVOR / INGREDIENT PROPS */}
+                  <div className={SECTION_GROUP_CLASS}>
+                    <p className={GROUP_LABEL_CLASS}>FLAVOR / INGREDIENT PROPS</p>
+                    <input
+                      type="text"
+                      value={productStore.props}
+                      onChange={(e) => {
+                        productStore.setProps(e.target.value);
+                        markSectionTouched('product-setup');
+                      }}
+                      placeholder="e.g., pineapple, lavender sprigs, gummy vitamins"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  {/* CUSTOM HERO CUE */}
+                  <div className={SECTION_GROUP_CLASS}>
+                    <p className={GROUP_LABEL_CLASS}>CUSTOM HERO CUE</p>
+                    <textarea
+                      value={productStore.customHeroCue}
+                      onChange={(e) => {
+                        productStore.setCustomHeroCue(e.target.value);
+                        markSectionTouched('product-setup');
+                      }}
+                      rows={2}
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500 resize-none"
+                      placeholder="This line is appended directly to the generation prompt."
+                    />
+                    <p className="text-[11px] text-gray-500 mt-1">
+                      Appended directly to the prompt for custom control.
+                    </p>
+                  </div>
+
+                  {/* INTERACTION */}
+                  <div className={SECTION_GROUP_CLASS}>
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className={GROUP_LABEL_CLASS}>PRODUCT INTERACTION</p>
+                        <p className="text-[11px] text-gray-500 mt-1">Include cropped hand interacting with product</p>
+                      </div>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={productStore.interaction === 'cropped-hand'}
+                        onClick={() => {
+                          productStore.setInteraction(productStore.interaction === 'none' ? 'cropped-hand' : 'none');
+                          markSectionTouched('product-setup');
+                        }}
+                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border border-gray-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${productStore.interaction === 'cropped-hand' ? 'bg-indigo-600 border-indigo-600' : 'bg-gray-200'}`}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white border border-gray-200 ring-0 transition duration-200 ease-in-out ${productStore.interaction === 'cropped-hand' ? 'translate-x-5' : 'translate-x-0'}`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* PRO PHOTOGRAPHER MODE */}
+                  <div className={SECTION_GROUP_CLASS}>
+                    <div className="flex items-center justify-between gap-3 mb-3">
+                      <div>
+                        <p className={GROUP_LABEL_CLASS}>PRO PHOTOGRAPHER MODE</p>
+                        <p className="text-[11px] text-gray-500 mt-1">Advanced lens, lighting, and finish controls</p>
+                      </div>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={productStore.proMode}
+                        onClick={() => {
+                          productStore.setProMode(!productStore.proMode);
+                          markSectionTouched('product-setup');
+                        }}
+                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border border-gray-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${productStore.proMode ? 'bg-indigo-600 border-indigo-600' : 'bg-gray-200'}`}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white border border-gray-200 ring-0 transition duration-200 ease-in-out ${productStore.proMode ? 'translate-x-5' : 'translate-x-0'}`}
+                        />
+                      </button>
+                    </div>
+
+                    {/* PRO MODE SUB-CONTROLS */}
+                    {productStore.proMode && (
+                      <div className="space-y-3 pl-2 border-l-2 border-indigo-200">
+                        {/* LENS */}
+                        <div>
+                          <label className="text-[11px] text-gray-500 mb-1 block">Lens</label>
+                          <select
+                            value={productStore.lens}
+                            onChange={(e) => {
+                              productStore.setLens(e.target.value);
+                              markSectionTouched('product-setup');
+                            }}
+                            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                          >
+                            {[
+                              '100mm Macro Prime', '50mm Product Prime', 'Tilt-Shift Hero',
+                              'Ultra-Wide Stylized', 'Cinema Zoom', '70-200mm Compression',
+                              '35mm Anamorphic Glow'
+                            ].map(lens => (
+                              <option key={lens} value={lens}>{lens}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* LIGHTING RIG */}
+                        <div>
+                          <label className="text-[11px] text-gray-500 mb-1 block">Lighting Rig</label>
+                          <select
+                            value={productStore.lightingRig}
+                            onChange={(e) => {
+                              productStore.setLightingRig(e.target.value);
+                              markSectionTouched('product-setup');
+                            }}
+                            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                          >
+                            {[
+                              '3-Point Beauty Dish', 'Softbox Wrap', 'Hard Edge Gels',
+                              'Backlit Acrylic', 'High-Speed Splash Rig', 'Gradient Cyclorama',
+                              'Prism Spotlight Duo'
+                            ].map(rig => (
+                              <option key={rig} value={rig}>{rig}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* FINISH / TREATMENT */}
+                        <div>
+                          <label className="text-[11px] text-gray-500 mb-1 block">Finish / Treatment</label>
+                          <select
+                            value={productStore.finish}
+                            onChange={(e) => {
+                              productStore.setFinish(e.target.value);
+                              markSectionTouched('product-setup');
+                            }}
+                            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                          >
+                            {[
+                              'High-Gloss Retouch', 'Film Grain Lux', 'Matte Editorial',
+                              'Hyperreal CGI Blend', 'Clinical Lab Polish', 'Vibrant Lifestyle Pop'
+                            ].map(finish => (
+                              <option key={finish} value={finish}>{finish}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* STUDIO HELPER TEXT */}
+                  <p className="text-[11px] text-amber-600 bg-amber-50 rounded-lg px-3 py-2">
+                    Studio uses abstract sets. Environments disable Studio.
+                  </p>
+                </>
+              )}
+
               <div className={SECTION_GROUP_CLASS}>
                 <p className={GROUP_LABEL_CLASS}>PRODUCT TYPE</p>
                 <div className="flex flex-wrap gap-2">

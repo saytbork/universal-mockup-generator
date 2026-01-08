@@ -407,6 +407,20 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     // BUNDLE (Sub-system)
     bundle: DEFAULT_BUNDLE,
 
+    // PRODUCT STUDIO UI CONTROLS (NEW)
+    photoMode: 'Hero Landing Page',
+    backgroundColor: '',
+    accentColor: '',
+    alignment: 'center',
+    shadow: 'soft-drop',
+    props: '',
+    customHeroCue: '',
+    interaction: 'none',
+    proMode: false,
+    lens: '50mm Product Prime',
+    lightingRig: 'Softbox Wrap',
+    finish: 'High-Gloss Retouch',
+
     // LEGACY (To be removed)
     ecommerceMode: false,
     paletteSource: 'warm-neutral',
@@ -516,6 +530,20 @@ type ProductStudioActions = {
     applyBasicPreset: () => void;
     applyProPreset: () => void;
     applyBrandPreset: (presetId: BrandPresetId) => void;
+
+    // Product Studio UI Controls (NEW)
+    setPhotoMode: (mode: string) => void;
+    setBackgroundColor: (color: string) => void;
+    setAccentColor: (color: string) => void;
+    setAlignment: (alignment: 'left' | 'center' | 'right') => void;
+    setShadow: (shadow: 'soft-drop' | 'hard-drop' | 'floating') => void;
+    setProps: (props: string) => void;
+    setCustomHeroCue: (cue: string) => void;
+    setInteraction: (interaction: 'none' | 'cropped-hand') => void;
+    setProMode: (enabled: boolean) => void;
+    setLens: (lens: string) => void;
+    setLightingRig: (rig: string) => void;
+    setFinish: (finish: string) => void;
 
     // Reset
     reset: () => void;
@@ -927,6 +955,20 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
 
             return newState;
         }),
+
+    // Product Studio UI Controls (NEW)
+    setPhotoMode: (mode) => set({ photoMode: mode }),
+    setBackgroundColor: (color) => set({ backgroundColor: color }),
+    setAccentColor: (color) => set({ accentColor: color }),
+    setAlignment: (alignment) => set({ alignment }),
+    setShadow: (shadow) => set({ shadow }),
+    setProps: (props) => set({ props }),
+    setCustomHeroCue: (cue) => set({ customHeroCue: cue }),
+    setInteraction: (interaction) => set({ interaction }),
+    setProMode: (enabled) => set({ proMode: enabled }),
+    setLens: (lens) => set({ lens }),
+    setLightingRig: (rig) => set({ lightingRig: rig }),
+    setFinish: (finish) => set({ finish }),
 
     // Reset
     reset: () => set(DEFAULT_PRODUCT_STUDIO_STATE),
