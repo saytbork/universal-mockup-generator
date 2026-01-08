@@ -1730,28 +1730,54 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                   {/* ═══════════════════════════════════════════════════════════
                       3. COMPOSITION — How is it framed?
-                      Always visible
+                      Basic: Centered, Left + space, Right + space
                       ═══════════════════════════════════════════════════════════ */}
                   <div className={SECTION_GROUP_CLASS}>
-                    <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">PRODUCT ALIGNMENT</p>
-                    <div className="inline-flex rounded-xl border border-gray-200 overflow-hidden">
-                      {(['left', 'center', 'right'] as const).map((align, idx) => (
-                        <button
-                          key={align}
+                    <p className={GROUP_LABEL_CLASS}>COMPOSITION</p>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { key: 'centered', label: 'Centered' },
+                        { key: 'left-space', label: 'Left + space' },
+                        { key: 'right-space', label: 'Right + space' }
+                      ].map(({ key, label }) => (
+                        <Chip
+                          key={key}
                           onClick={() => {
-                            productStore.setAlignment(align);
+                            productStore.setAlignment(key as any);
                             markSectionTouched('product-setup');
                           }}
-                          className={`px-5 py-2 text-[10px] font-bold transition-all duration-300 ${productStore.alignment === align
-                              ? 'bg-indigo-600 text-white'
-                              : 'bg-white text-gray-500 hover:bg-gray-50'
-                            } ${idx > 0 ? 'border-l border-gray-200' : ''}`}
-                          style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
+                          selected={productStore.alignment === key || (key === 'centered' && productStore.alignment === 'center')}
                         >
-                          {align.charAt(0).toUpperCase() + align.slice(1)}
-                        </button>
+                          {label}
+                        </Chip>
                       ))}
                     </div>
+
+                    {/* ADVANCED COMPOSITION — Pro only extension */}
+                    {productStore.presetTier === 'pro' && (
+                      <div className="mt-3 pt-3 border-t border-gray-100">
+                        <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">ADVANCED</p>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            { key: 'rule-of-thirds', label: 'Rule of thirds' },
+                            { key: 'asymmetrical', label: 'Asymmetrical' },
+                            { key: 'flat-lay', label: 'Flat lay' },
+                            { key: 'pedestal', label: 'Pedestal' }
+                          ].map(({ key, label }) => (
+                            <Chip
+                              key={key}
+                              onClick={() => {
+                                productStore.setAlignment(key as any);
+                                markSectionTouched('product-setup');
+                              }}
+                              selected={productStore.alignment === key}
+                            >
+                              {label}
+                            </Chip>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* ═══════════════════════════════════════════════════════════
@@ -1759,7 +1785,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       Background + Shadow always visible
                       ═══════════════════════════════════════════════════════════ */}
                   <div className={SECTION_GROUP_CLASS}>
-                    <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">BACKGROUND</p>
+                    <p className={GROUP_LABEL_CLASS}>BACKGROUND</p>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="bg-white rounded-xl border border-gray-200 p-3">
                         <p className="text-[10px] uppercase tracking-[0.1em] text-gray-400 mb-2">Background</p>
@@ -1797,95 +1823,61 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
 
                   <div className={SECTION_GROUP_CLASS}>
-                    <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">SHADOW STYLE</p>
+                    <p className={GROUP_LABEL_CLASS}>SHADOW STYLE</p>
                     <div className="flex flex-wrap gap-2">
                       {[
-                        { key: 'soft-drop', label: 'Soft drop shadow' },
-                        { key: 'hard-drop', label: 'Hard drop shadow' },
-                        { key: 'floating', label: 'Floating shadow' }
+                        { key: 'soft-drop', label: 'Soft' },
+                        { key: 'hard-drop', label: 'Hard' },
+                        { key: 'floating', label: 'Floating' }
                       ].map(({ key, label }) => (
-                        <button
+                        <Chip
                           key={key}
                           onClick={() => {
                             productStore.setShadow(key as 'soft-drop' | 'hard-drop' | 'floating');
                             markSectionTouched('product-setup');
                           }}
-                          className={`px-4 py-2 rounded-xl text-[10px] font-bold border transition-all duration-300 ${productStore.shadow === key
-                              ? 'bg-indigo-600 text-white border-indigo-600'
-                              : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
-                            }`}
-                          style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
+                          selected={productStore.shadow === key}
                         >
                           {label}
-                        </button>
+                        </Chip>
                       ))}
                     </div>
                   </div>
 
                   {/* ═══════════════════════════════════════════════════════════
-                      5. PRO ONLY — Advanced Styling
-                      Hidden in Basic mode
+                      5. PRO ONLY — Advanced Controls
+                      Hidden in Basic mode, revealed progressively in Pro
                       ═══════════════════════════════════════════════════════════ */}
                   {productStore.presetTier === 'pro' && (
                     <>
-                      {/* FLAVOR / INGREDIENT PROPS */}
-                      <div className={SECTION_GROUP_CLASS}>
-                        <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">FLAVOR / INGREDIENT PROPS</p>
-                        <input
-                          type="text"
-                          value={productStore.props}
-                          onChange={(e) => {
-                            productStore.setProps(e.target.value);
-                            markSectionTouched('product-setup');
-                          }}
-                          placeholder="e.g., pineapple, lavender sprigs, gummy vitamins"
-                          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
-                        />
-                      </div>
-
-                      {/* CUSTOM HERO CUE */}
-                      <div className={SECTION_GROUP_CLASS}>
-                        <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">CUSTOM HERO CUE</p>
-                        <textarea
-                          value={productStore.customHeroCue}
-                          onChange={(e) => {
-                            productStore.setCustomHeroCue(e.target.value);
-                            markSectionTouched('product-setup');
-                          }}
-                          rows={2}
-                          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 resize-none"
-                          placeholder="Custom instruction appended to prompt..."
-                        />
-                        <p className="text-[11px] text-gray-500 mt-1">Appended directly to generation prompt.</p>
-                      </div>
-
-                      {/* PRODUCT INTERACTION — Merged control (replaces both old toggles) */}
+                      {/* PRODUCT INTERACTION — Single unified control */}
                       <div className={SECTION_GROUP_CLASS}>
                         <div className="flex items-center justify-between gap-3">
                           <div>
-                            <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500">PRODUCT INTERACTION</p>
-                            <p className="text-[11px] text-gray-500 mt-0.5">Cropped hand holding product</p>
+                            <p className={GROUP_LABEL_CLASS}>PRODUCT INTERACTION</p>
                           </div>
-                          <button
-                            type="button"
-                            role="switch"
-                            aria-checked={productStore.interaction === 'cropped-hand' || values.handsHolding}
-                            onClick={() => {
-                              const newValue = productStore.interaction === 'none' && !values.handsHolding;
-                              productStore.setInteraction(newValue ? 'cropped-hand' : 'none');
-                              updateValue('handsHolding', newValue);
-                              markSectionTouched('product-setup');
-                            }}
-                            className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${productStore.interaction === 'cropped-hand' || values.handsHolding ? 'bg-indigo-600' : 'bg-gray-200'
-                              }`}
-                            style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                          >
-                            <span
-                              className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white ring-0 transition-all duration-300 mt-0.5 ml-0.5 ${productStore.interaction === 'cropped-hand' || values.handsHolding ? 'translate-x-5' : 'translate-x-0'
-                                }`}
-                              style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                            />
-                          </button>
+                          <div className="flex gap-2">
+                            <Chip
+                              onClick={() => {
+                                productStore.setInteraction('none');
+                                updateValue('handsHolding', false);
+                                markSectionTouched('product-setup');
+                              }}
+                              selected={productStore.interaction === 'none' && !values.handsHolding}
+                            >
+                              None
+                            </Chip>
+                            <Chip
+                              onClick={() => {
+                                productStore.setInteraction('cropped-hand');
+                                updateValue('handsHolding', true);
+                                markSectionTouched('product-setup');
+                              }}
+                              selected={productStore.interaction === 'cropped-hand' || values.handsHolding}
+                            >
+                              Cropped hand only
+                            </Chip>
+                          </div>
                         </div>
                       </div>
 
@@ -1893,8 +1885,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       <div className={SECTION_GROUP_CLASS}>
                         <div className="flex items-center justify-between gap-3 mb-3">
                           <div>
-                            <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500">PRO PHOTOGRAPHER MODE</p>
-                            <p className="text-[11px] text-gray-500 mt-0.5">Lens, lighting & finish controls</p>
+                            <p className={GROUP_LABEL_CLASS}>PRO PHOTOGRAPHER MODE</p>
                           </div>
                           <button
                             type="button"
@@ -1916,14 +1907,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           </button>
                         </div>
 
-                        {/* PRO MODE SUB-CONTROLS */}
                         <div
                           className={`overflow-hidden transition-all duration-500 ${productStore.proMode ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
                             }`}
                           style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
                         >
                           <div className="space-y-4 pl-3 border-l-2 border-indigo-300">
-                            {/* LENS */}
                             <div>
                               <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LENS</p>
                               <div className="flex flex-wrap gap-2">
@@ -1950,7 +1939,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               </div>
                             </div>
 
-                            {/* LIGHTING RIG */}
                             <div>
                               <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LIGHTING RIG</p>
                               <div className="flex flex-wrap gap-2">
@@ -1977,7 +1965,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               </div>
                             </div>
 
-                            {/* FINISH / TREATMENT */}
                             <div>
                               <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">FINISH / TREATMENT</p>
                               <div className="flex flex-wrap gap-2">
@@ -2002,6 +1989,58 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 ))}
                               </div>
                             </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* CREATIVE DIRECTION — All creativity controls unified */}
+                      <div className={SECTION_GROUP_CLASS}>
+                        <p className={GROUP_LABEL_CLASS}>CREATIVE DIRECTION</p>
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">CREATIVITY LEVEL</p>
+                            <div className="flex gap-2">
+                              {([0, 1, 2, 3] as const).map(level => (
+                                <Chip
+                                  key={level}
+                                  onClick={() => {
+                                    productStore.setCreativityLevel(level);
+                                    markSectionTouched('product-setup');
+                                  }}
+                                  selected={productStore.creativityLevel === level}
+                                >
+                                  {level === 0 ? 'Locked' : level === 1 ? 'Low' : level === 2 ? 'Medium' : 'High'}
+                                </Chip>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div>
+                            <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">PROPS</p>
+                            <input
+                              type="text"
+                              value={productStore.props}
+                              onChange={(e) => {
+                                productStore.setProps(e.target.value);
+                                markSectionTouched('product-setup');
+                              }}
+                              placeholder="e.g., pineapple, lavender sprigs"
+                              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
+                            />
+                          </div>
+
+                          <div>
+                            <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">CUSTOM HERO CUE</p>
+                            <textarea
+                              value={productStore.customHeroCue}
+                              onChange={(e) => {
+                                productStore.setCustomHeroCue(e.target.value);
+                                markSectionTouched('product-setup');
+                              }}
+                              rows={2}
+                              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 resize-none"
+                              placeholder="Custom instruction appended to prompt..."
+                            />
                           </div>
                         </div>
                       </div>
