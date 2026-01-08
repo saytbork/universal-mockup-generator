@@ -1595,7 +1595,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               )}
 
-              {/* PRESET TIER */}
+              {/* PRESET TIER — Always visible first */}
               <div className={SECTION_GROUP_CLASS}>
                 <p className={GROUP_LABEL_CLASS}>PRESET TIER</p>
                 <div className="flex gap-2">
@@ -1619,21 +1619,27 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
               {/* ============================================================
                    PRODUCT STUDIO CONTROLS (Studio Mode Only)
-                   Premium UI - All Chips, No Dropdowns
+                   Basic/Pro Visibility System
                    ============================================================ */}
               {productStore.sceneType === 'studio-branding' && (
                 <>
-                  {/* PHOTO MODE — Chip Grid */}
+                  {/* ═══════════════════════════════════════════════════════════
+                      1. PHOTO MODE — What am I making?
+                      Basic: 4 options | Pro: All options
+                      ═══════════════════════════════════════════════════════════ */}
                   <div className={SECTION_GROUP_CLASS}>
                     <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">PHOTO MODE</p>
                     <div className="flex flex-wrap gap-2">
-                      {[
-                        'Hero Landing Page', 'Clear', 'Color Pop Hero', 'Ingredient Stack',
-                        'Tile & Spa', 'Foam & Texture', 'Routine Carousel', 'Pastel Picnic',
-                        'Face Pop Close-Up', 'Sunrise Wellness Counter', 'Clinical Lab Counter',
-                        'Golden Mist Aura', 'Outdoor Energy Boost', 'Crown Wellness Vanity',
-                        'Candy Gradient Lab'
-                      ].map(mode => (
+                      {(productStore.presetTier === 'basic'
+                        ? ['Hero Landing Page', 'Clear', 'Color Pop Hero', 'Ingredient Stack']
+                        : [
+                          'Hero Landing Page', 'Clear', 'Color Pop Hero', 'Ingredient Stack',
+                          'Tile & Spa', 'Foam & Texture', 'Routine Carousel', 'Pastel Picnic',
+                          'Face Pop Close-Up', 'Sunrise Wellness Counter', 'Clinical Lab Counter',
+                          'Golden Mist Aura', 'Outdoor Energy Boost', 'Crown Wellness Vanity',
+                          'Candy Gradient Lab'
+                        ]
+                      ).map(mode => (
                         <button
                           key={mode}
                           onClick={() => {
@@ -1641,8 +1647,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             markSectionTouched('product-setup');
                           }}
                           className={`px-4 py-2 rounded-xl text-[10px] font-bold border transition-all duration-300 ${productStore.photoMode === mode
-                              ? 'bg-indigo-600 text-white border-indigo-600 '
-                              : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                            ? 'bg-indigo-600 text-white border-indigo-600'
+                            : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
                             }`}
                           style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
                         >
@@ -1652,46 +1658,80 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     </div>
                   </div>
 
-                  {/* BACKGROUND — Premium Color Cards */}
+                  {/* ═══════════════════════════════════════════════════════════
+                      2. PRODUCT CONTEXT — What is the product?
+                      Always visible in both Basic and Pro
+                      ═══════════════════════════════════════════════════════════ */}
                   <div className={SECTION_GROUP_CLASS}>
-                    <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">BACKGROUND</p>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-white rounded-xl border border-gray-200 p-3 ">
-                        <p className="text-[10px] uppercase tracking-[0.1em] text-gray-400 mb-2">Background</p>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="color"
-                            value={productStore.backgroundColor || '#ffffff'}
-                            onChange={(e) => {
-                              productStore.setBackgroundColor(e.target.value);
-                              markSectionTouched('product-setup');
-                            }}
-                            className="w-10 h-10 rounded-lg border-2 border-gray-200 cursor-pointer appearance-none"
-                            style={{ WebkitAppearance: 'none' }}
-                          />
-                          <span className="text-xs text-gray-600 font-mono uppercase">{productStore.backgroundColor || '#FFFFFF'}</span>
-                        </div>
-                      </div>
-                      <div className="bg-white rounded-xl border border-gray-200 p-3 ">
-                        <p className="text-[10px] uppercase tracking-[0.1em] text-gray-400 mb-2">Accent</p>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="color"
-                            value={productStore.accentColor || '#6366f1'}
-                            onChange={(e) => {
-                              productStore.setAccentColor(e.target.value);
-                              markSectionTouched('product-setup');
-                            }}
-                            className="w-10 h-10 rounded-lg border-2 border-gray-200 cursor-pointer appearance-none"
-                            style={{ WebkitAppearance: 'none' }}
-                          />
-                          <span className="text-xs text-gray-600 font-mono uppercase">{productStore.accentColor || '#6366F1'}</span>
-                        </div>
-                      </div>
+                    <p className={GROUP_LABEL_CLASS}>PRODUCT TYPE</p>
+                    <div className="flex flex-wrap gap-2">
+                      {PRODUCT_TYPE_OPTIONS.map(option => (
+                        <Chip
+                          key={option}
+                          onClick={() => {
+                            updateValue('productType', option as any);
+                            markSectionTouched('product-setup');
+                          }}
+                          selected={values.productType === option}
+                        >
+                          {option}
+                        </Chip>
+                      ))}
+                    </div>
+                    {values.productType === 'Custom' && (
+                      <input
+                        type="text"
+                        value={values.productTypeCustom || ''}
+                        onChange={e => {
+                          updateValue('productTypeCustom', e.target.value);
+                          markSectionTouched('product-setup');
+                        }}
+                        className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                        placeholder="Describe the product category (min 3 words)"
+                      />
+                    )}
+                  </div>
+
+                  <div className={SECTION_GROUP_CLASS}>
+                    <p className={GROUP_LABEL_CLASS}>PACKAGING</p>
+                    <div className="flex gap-2">
+                      {(['Without box', 'With box'] as const).map(option => (
+                        <Chip
+                          key={option}
+                          onClick={() => {
+                            updateValue('productPackaging', option);
+                            markSectionTouched('product-setup');
+                          }}
+                          selected={values.productPackaging === option}
+                        >
+                          {option}
+                        </Chip>
+                      ))}
                     </div>
                   </div>
 
-                  {/* PRODUCT ALIGNMENT — Segmented Chips */}
+                  <div className={SECTION_GROUP_CLASS}>
+                    <p className={GROUP_LABEL_CLASS}>PHYSICAL SCALE</p>
+                    <div className="flex flex-wrap gap-2">
+                      {(['Small handheld', 'Medium tabletop', 'Large object'] as const).map(option => (
+                        <Chip
+                          key={option}
+                          onClick={() => {
+                            updateValue('productScale', option);
+                            markSectionTouched('product-setup');
+                          }}
+                          selected={values.productScale === option}
+                        >
+                          {option}
+                        </Chip>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* ═══════════════════════════════════════════════════════════
+                      3. COMPOSITION — How is it framed?
+                      Always visible
+                      ═══════════════════════════════════════════════════════════ */}
                   <div className={SECTION_GROUP_CLASS}>
                     <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">PRODUCT ALIGNMENT</p>
                     <div className="inline-flex rounded-xl border border-gray-200 overflow-hidden">
@@ -1714,7 +1754,48 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     </div>
                   </div>
 
-                  {/* SHADOW STYLE — Chips */}
+                  {/* ═══════════════════════════════════════════════════════════
+                      4. APPEARANCE — How does it look?
+                      Background + Shadow always visible
+                      ═══════════════════════════════════════════════════════════ */}
+                  <div className={SECTION_GROUP_CLASS}>
+                    <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">BACKGROUND</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-white rounded-xl border border-gray-200 p-3">
+                        <p className="text-[10px] uppercase tracking-[0.1em] text-gray-400 mb-2">Background</p>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={productStore.backgroundColor || '#ffffff'}
+                            onChange={(e) => {
+                              productStore.setBackgroundColor(e.target.value);
+                              markSectionTouched('product-setup');
+                            }}
+                            className="w-10 h-10 rounded-lg border-2 border-gray-200 cursor-pointer appearance-none"
+                            style={{ WebkitAppearance: 'none' }}
+                          />
+                          <span className="text-xs text-gray-600 font-mono uppercase">{productStore.backgroundColor || '#FFFFFF'}</span>
+                        </div>
+                      </div>
+                      <div className="bg-white rounded-xl border border-gray-200 p-3">
+                        <p className="text-[10px] uppercase tracking-[0.1em] text-gray-400 mb-2">Accent</p>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={productStore.accentColor || '#6366f1'}
+                            onChange={(e) => {
+                              productStore.setAccentColor(e.target.value);
+                              markSectionTouched('product-setup');
+                            }}
+                            className="w-10 h-10 rounded-lg border-2 border-gray-200 cursor-pointer appearance-none"
+                            style={{ WebkitAppearance: 'none' }}
+                          />
+                          <span className="text-xs text-gray-600 font-mono uppercase">{productStore.accentColor || '#6366F1'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className={SECTION_GROUP_CLASS}>
                     <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">SHADOW STYLE</p>
                     <div className="flex flex-wrap gap-2">
@@ -1730,7 +1811,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             markSectionTouched('product-setup');
                           }}
                           className={`px-4 py-2 rounded-xl text-[10px] font-bold border transition-all duration-300 ${productStore.shadow === key
-                              ? 'bg-indigo-600 text-white border-indigo-600 '
+                              ? 'bg-indigo-600 text-white border-indigo-600'
                               : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
                             }`}
                           style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
@@ -1741,181 +1822,191 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     </div>
                   </div>
 
-                  {/* FLAVOR / INGREDIENT PROPS — Premium Input */}
-                  <div className={SECTION_GROUP_CLASS}>
-                    <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">FLAVOR / INGREDIENT PROPS</p>
-                    <input
-                      type="text"
-                      value={productStore.props}
-                      onChange={(e) => {
-                        productStore.setProps(e.target.value);
-                        markSectionTouched('product-setup');
-                      }}
-                      placeholder="e.g., pineapple, lavender sprigs, gummy vitamins"
-                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
-                    />
-                  </div>
-
-                  {/* CUSTOM HERO CUE — Premium Textarea */}
-                  <div className={SECTION_GROUP_CLASS}>
-                    <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">CUSTOM HERO CUE</p>
-                    <textarea
-                      value={productStore.customHeroCue}
-                      onChange={(e) => {
-                        productStore.setCustomHeroCue(e.target.value);
-                        markSectionTouched('product-setup');
-                      }}
-                      rows={2}
-                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 resize-none"
-                      placeholder="Custom instruction appended to prompt..."
-                    />
-                    <p className="text-[11px] text-gray-500 mt-1">Appended directly to generation prompt.</p>
-                  </div>
-
-                  {/* INTERACTION — iOS Toggle */}
-                  <div className={SECTION_GROUP_CLASS}>
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500">PRODUCT INTERACTION</p>
-                        <p className="text-[11px] text-gray-500 mt-0.5">Cropped hand holding product</p>
+                  {/* ═══════════════════════════════════════════════════════════
+                      5. PRO ONLY — Advanced Styling
+                      Hidden in Basic mode
+                      ═══════════════════════════════════════════════════════════ */}
+                  {productStore.presetTier === 'pro' && (
+                    <>
+                      {/* FLAVOR / INGREDIENT PROPS */}
+                      <div className={SECTION_GROUP_CLASS}>
+                        <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">FLAVOR / INGREDIENT PROPS</p>
+                        <input
+                          type="text"
+                          value={productStore.props}
+                          onChange={(e) => {
+                            productStore.setProps(e.target.value);
+                            markSectionTouched('product-setup');
+                          }}
+                          placeholder="e.g., pineapple, lavender sprigs, gummy vitamins"
+                          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
+                        />
                       </div>
-                      <button
-                        type="button"
-                        role="switch"
-                        aria-checked={productStore.interaction === 'cropped-hand'}
-                        onClick={() => {
-                          productStore.setInteraction(productStore.interaction === 'none' ? 'cropped-hand' : 'none');
-                          markSectionTouched('product-setup');
-                        }}
-                        className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${productStore.interaction === 'cropped-hand' ? 'bg-indigo-600' : 'bg-gray-200'
-                          }`}
-                        style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                      >
-                        <span
-                          className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white  ring-0 transition-all duration-300 mt-0.5 ml-0.5 ${productStore.interaction === 'cropped-hand' ? 'translate-x-5' : 'translate-x-0'
+
+                      {/* CUSTOM HERO CUE */}
+                      <div className={SECTION_GROUP_CLASS}>
+                        <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">CUSTOM HERO CUE</p>
+                        <textarea
+                          value={productStore.customHeroCue}
+                          onChange={(e) => {
+                            productStore.setCustomHeroCue(e.target.value);
+                            markSectionTouched('product-setup');
+                          }}
+                          rows={2}
+                          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 resize-none"
+                          placeholder="Custom instruction appended to prompt..."
+                        />
+                        <p className="text-[11px] text-gray-500 mt-1">Appended directly to generation prompt.</p>
+                      </div>
+
+                      {/* PRODUCT INTERACTION — Merged control (replaces both old toggles) */}
+                      <div className={SECTION_GROUP_CLASS}>
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500">PRODUCT INTERACTION</p>
+                            <p className="text-[11px] text-gray-500 mt-0.5">Cropped hand holding product</p>
+                          </div>
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={productStore.interaction === 'cropped-hand' || values.handsHolding}
+                            onClick={() => {
+                              const newValue = productStore.interaction === 'none' && !values.handsHolding;
+                              productStore.setInteraction(newValue ? 'cropped-hand' : 'none');
+                              updateValue('handsHolding', newValue);
+                              markSectionTouched('product-setup');
+                            }}
+                            className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${productStore.interaction === 'cropped-hand' || values.handsHolding ? 'bg-indigo-600' : 'bg-gray-200'
+                              }`}
+                            style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
+                          >
+                            <span
+                              className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white ring-0 transition-all duration-300 mt-0.5 ml-0.5 ${productStore.interaction === 'cropped-hand' || values.handsHolding ? 'translate-x-5' : 'translate-x-0'
+                                }`}
+                              style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
+                            />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* PRO PHOTOGRAPHER MODE */}
+                      <div className={SECTION_GROUP_CLASS}>
+                        <div className="flex items-center justify-between gap-3 mb-3">
+                          <div>
+                            <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500">PRO PHOTOGRAPHER MODE</p>
+                            <p className="text-[11px] text-gray-500 mt-0.5">Lens, lighting & finish controls</p>
+                          </div>
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={productStore.proMode}
+                            onClick={() => {
+                              productStore.setProMode(!productStore.proMode);
+                              markSectionTouched('product-setup');
+                            }}
+                            className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${productStore.proMode ? 'bg-indigo-600' : 'bg-gray-200'
+                              }`}
+                            style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
+                          >
+                            <span
+                              className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white ring-0 transition-all duration-300 mt-0.5 ml-0.5 ${productStore.proMode ? 'translate-x-5' : 'translate-x-0'
+                                }`}
+                              style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
+                            />
+                          </button>
+                        </div>
+
+                        {/* PRO MODE SUB-CONTROLS */}
+                        <div
+                          className={`overflow-hidden transition-all duration-500 ${productStore.proMode ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
                             }`}
                           style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                        />
-                      </button>
-                    </div>
-                  </div>
+                        >
+                          <div className="space-y-4 pl-3 border-l-2 border-indigo-300">
+                            {/* LENS */}
+                            <div>
+                              <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LENS</p>
+                              <div className="flex flex-wrap gap-2">
+                                {[
+                                  '100mm Macro Prime', '50mm Product Prime', 'Tilt-Shift Hero',
+                                  'Ultra-Wide Stylized', 'Cinema Zoom', '70-200mm Compression',
+                                  '35mm Anamorphic Glow'
+                                ].map(lens => (
+                                  <button
+                                    key={lens}
+                                    onClick={() => {
+                                      productStore.setLens(lens);
+                                      markSectionTouched('product-setup');
+                                    }}
+                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.lens === lens
+                                        ? 'bg-indigo-600 text-white border-indigo-600'
+                                        : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                                      }`}
+                                    style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
+                                  >
+                                    {lens}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
 
-                  {/* PRO PHOTOGRAPHER MODE — Master Toggle + Sub-controls */}
-                  <div className={SECTION_GROUP_CLASS}>
-                    <div className="flex items-center justify-between gap-3 mb-3">
-                      <div>
-                        <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500">PRO PHOTOGRAPHER MODE</p>
-                        <p className="text-[11px] text-gray-500 mt-0.5">Lens, lighting & finish controls</p>
-                      </div>
-                      <button
-                        type="button"
-                        role="switch"
-                        aria-checked={productStore.proMode}
-                        onClick={() => {
-                          productStore.setProMode(!productStore.proMode);
-                          markSectionTouched('product-setup');
-                        }}
-                        className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${productStore.proMode ? 'bg-indigo-600' : 'bg-gray-200'
-                          }`}
-                        style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                      >
-                        <span
-                          className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white  ring-0 transition-all duration-300 mt-0.5 ml-0.5 ${productStore.proMode ? 'translate-x-5' : 'translate-x-0'
-                            }`}
-                          style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                        />
-                      </button>
-                    </div>
+                            {/* LIGHTING RIG */}
+                            <div>
+                              <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LIGHTING RIG</p>
+                              <div className="flex flex-wrap gap-2">
+                                {[
+                                  '3-Point Beauty Dish', 'Softbox Wrap', 'Hard Edge Gels',
+                                  'Backlit Acrylic', 'High-Speed Splash Rig', 'Gradient Cyclorama',
+                                  'Prism Spotlight Duo'
+                                ].map(rig => (
+                                  <button
+                                    key={rig}
+                                    onClick={() => {
+                                      productStore.setLightingRig(rig);
+                                      markSectionTouched('product-setup');
+                                    }}
+                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.lightingRig === rig
+                                        ? 'bg-indigo-600 text-white border-indigo-600'
+                                        : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                                      }`}
+                                    style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
+                                  >
+                                    {rig}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
 
-                    {/* PRO MODE SUB-CONTROLS — Chip Grids */}
-                    <div
-                      className={`overflow-hidden transition-all duration-500 ${productStore.proMode ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
-                        }`}
-                      style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                    >
-                      <div className="space-y-4 pl-3 border-l-2 border-indigo-300">
-                        {/* LENS */}
-                        <div>
-                          <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LENS</p>
-                          <div className="flex flex-wrap gap-2">
-                            {[
-                              '100mm Macro Prime', '50mm Product Prime', 'Tilt-Shift Hero',
-                              'Ultra-Wide Stylized', 'Cinema Zoom', '70-200mm Compression',
-                              '35mm Anamorphic Glow'
-                            ].map(lens => (
-                              <button
-                                key={lens}
-                                onClick={() => {
-                                  productStore.setLens(lens);
-                                  markSectionTouched('product-setup');
-                                }}
-                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.lens === lens
-                                    ? 'bg-indigo-600 text-white border-indigo-600 '
-                                    : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
-                                  }`}
-                                style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                              >
-                                {lens}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* LIGHTING RIG */}
-                        <div>
-                          <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LIGHTING RIG</p>
-                          <div className="flex flex-wrap gap-2">
-                            {[
-                              '3-Point Beauty Dish', 'Softbox Wrap', 'Hard Edge Gels',
-                              'Backlit Acrylic', 'High-Speed Splash Rig', 'Gradient Cyclorama',
-                              'Prism Spotlight Duo'
-                            ].map(rig => (
-                              <button
-                                key={rig}
-                                onClick={() => {
-                                  productStore.setLightingRig(rig);
-                                  markSectionTouched('product-setup');
-                                }}
-                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.lightingRig === rig
-                                    ? 'bg-indigo-600 text-white border-indigo-600 '
-                                    : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
-                                  }`}
-                                style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                              >
-                                {rig}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* FINISH / TREATMENT */}
-                        <div>
-                          <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">FINISH / TREATMENT</p>
-                          <div className="flex flex-wrap gap-2">
-                            {[
-                              'High-Gloss Retouch', 'Film Grain Lux', 'Matte Editorial',
-                              'Hyperreal CGI Blend', 'Clinical Lab Polish', 'Vibrant Lifestyle Pop'
-                            ].map(finish => (
-                              <button
-                                key={finish}
-                                onClick={() => {
-                                  productStore.setFinish(finish);
-                                  markSectionTouched('product-setup');
-                                }}
-                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.finish === finish
-                                    ? 'bg-indigo-600 text-white border-indigo-600 '
-                                    : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
-                                  }`}
-                                style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                              >
-                                {finish}
-                              </button>
-                            ))}
+                            {/* FINISH / TREATMENT */}
+                            <div>
+                              <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">FINISH / TREATMENT</p>
+                              <div className="flex flex-wrap gap-2">
+                                {[
+                                  'High-Gloss Retouch', 'Film Grain Lux', 'Matte Editorial',
+                                  'Hyperreal CGI Blend', 'Clinical Lab Polish', 'Vibrant Lifestyle Pop'
+                                ].map(finish => (
+                                  <button
+                                    key={finish}
+                                    onClick={() => {
+                                      productStore.setFinish(finish);
+                                      markSectionTouched('product-setup');
+                                    }}
+                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.finish === finish
+                                        ? 'bg-indigo-600 text-white border-indigo-600'
+                                        : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                                      }`}
+                                    style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
+                                  >
+                                    {finish}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
+                    </>
+                  )}
 
                   {/* STUDIO WARNING */}
                   <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
@@ -1925,101 +2016,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
                 </>
               )}
-
-              <div className={SECTION_GROUP_CLASS}>
-                <p className={GROUP_LABEL_CLASS}>PRODUCT TYPE</p>
-                <div className="flex flex-wrap gap-2">
-                  {PRODUCT_TYPE_OPTIONS.map(option => (
-                    <Chip
-                      key={option}
-                      onClick={() => {
-                        updateValue('productType', option as any);
-                        markSectionTouched('product-setup');
-                      }}
-                      selected={values.productType === option}
-                    >
-                      {option}
-                    </Chip>
-                  ))}
-                </div>
-
-                {values.productType === 'Custom' && (
-                  <input
-                    type="text"
-                    value={values.productTypeCustom || ''}
-                    onChange={e => {
-                      updateValue('productTypeCustom', e.target.value);
-                      markSectionTouched('product-setup');
-                    }}
-                    className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
-                    placeholder="Describe the product category (min 3 words)"
-                  />
-                )}
-                <p className="text-[11px] text-gray-500">
-                  Product Type guides props/palette suggestions only. The uploaded product asset never changes.
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <div className={SECTION_GROUP_CLASS}>
-                  <p className={GROUP_LABEL_CLASS}>PACKAGING</p>
-                  <div className="flex gap-2">
-                    {(['Without box', 'With box'] as const).map(option => (
-                      <Chip
-                        key={option}
-                        onClick={() => {
-                          updateValue('productPackaging', option);
-                          markSectionTouched('product-setup');
-                        }}
-                        selected={values.productPackaging === option}
-                      >
-                        {option}
-                      </Chip>
-                    ))}
-                  </div>
-                </div>
-
-                <div className={SECTION_GROUP_CLASS}>
-                  <p className={GROUP_LABEL_CLASS}>PHYSICAL SCALE</p>
-                  <div className="flex flex-wrap gap-2">
-                    {(['Small handheld', 'Medium tabletop', 'Large object'] as const).map(option => (
-                      <Chip
-                        key={option}
-                        onClick={() => {
-                          updateValue('productScale', option);
-                          markSectionTouched('product-setup');
-                        }}
-                        selected={values.productScale === option}
-                      >
-                        {option}
-                      </Chip>
-                    ))}
-                  </div>
-                </div>
-
-                <div className={SECTION_GROUP_CLASS}>
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className={GROUP_LABEL_CLASS}>HANDS HOLDING (CROPPED ONLY)</p>
-                      <p className="text-[11px] text-gray-500 mt-1">Optional. Cropped hand or wrist only.</p>
-                    </div>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={values.handsHolding}
-                      onClick={() => {
-                        updateValue('handsHolding', !values.handsHolding);
-                        markSectionTouched('product-setup');
-                      }}
-                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border border-gray-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white ${values.handsHolding ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-gray-200'}`}
-                    >
-                      <span
-                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white border border-gray-200 ring-0 transition duration-200 ease-in-out ${values.handsHolding ? 'translate-x-5' : 'translate-x-0'}`}
-                      />
-                    </button>
-                  </div>
-                </div>
-              </div>
             </div>
           </SmoothAccordion>
 
