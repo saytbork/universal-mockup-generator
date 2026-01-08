@@ -46,7 +46,7 @@ const UGC_ENVIRONMENT_RULE = `
 BACKGROUND: Incidental domestic clutter, readable but secondary.
 Lower contrast, visually tired, no scenic framing.
 Face and product must hold highest local contrast.
-No foreground/background plane separation; background must never look like a separate “second plane”.
+No foreground/background plane separation; background must never look like a separate "second plane".
 `.trim().replace(/\s+/g, ' ');
 
 const UGC_VALIDATION = `
@@ -57,6 +57,179 @@ If no, reject immediately.
 const BLOCKED_VOCABULARY = `
 BLOCKED: "hero shot", "editorial", "studio", "commercial", "luxury", "premium", "perfectly composed", "balanced lighting", "soft lighting", "portrait", "showcase".
 `.trim().replace(/\s+/g, ' ');
+
+// ============================================================================
+// UGC_SELFIE_CLOSE_FACE_CANONICAL_PROMPT — FREEZE-READY v1.0
+// ============================================================================
+// MODE: LIFESTYLE UGC — REAL FRONT-CAMERA SELFIE (LOCKED)
+// ============================================================================
+
+export const UGC_SELFIE_CLOSE_FACE_CANONICAL_PROMPT = `
+MODE: LIFESTYLE UGC — REAL FRONT-CAMERA SELFIE (LOCKED)
+
+This image is a real, imperfect, front-facing smartphone selfie.
+Not a portrait. Not editorial. Not commercial. Not studio.
+Captured accidentally in a real daily moment.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CLOSE-FACE FRAMING (ABSOLUTE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Camera distance: 10–20 cm from the face.
+The phone is inches away from the face.
+The FACE dominates the frame (75–90% of image area).
+
+MANDATORY IMPERFECTION:
+- At least ONE of the following MUST be cropped:
+  - top of forehead
+  - side of cheek
+  - bottom of chin
+
+No full head visible.
+No shoulders.
+No chest.
+No torso.
+If shoulders or torso are visible → INVALID IMAGE.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SINGLE-HAND LOCK (CRITICAL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+The product is held by EXACTLY ONE HAND.
+
+Only one hand may touch the product.
+Exactly one set of fingers is allowed.
+
+The second hand (phone hand) MUST NOT appear in frame.
+No assisting hand.
+No support hand.
+No stabilizing hand.
+No extra fingers entering the frame.
+
+If more than one hand or more than one finger set is visible → INVALID IMAGE.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+HAND + PRODUCT PHYSICS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+The product is held close to the face.
+Distance between product and face: less than 5 cm.
+
+Grip characteristics:
+- Grip may look awkward or imperfect.
+- Fingers may be partially cropped.
+- Full hand visibility is NOT required.
+- The product does NOT need to look stable.
+
+DO NOT add a second hand to stabilize the product.
+
+CONTACT SHADOW ENFORCEMENT:
+Where fingers touch the product, there MUST be:
+- dark contact shadows
+- occlusion at fingertips
+- compression shadows where skin presses the object
+
+Fingers must visually press into the product.
+No air gaps.
+No floating fingers.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CAMERA & OPTICS (LOCKED)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Front-facing smartphone camera ONLY.
+Tiny sensor. Cheap optics.
+
+Flat focus across the entire frame.
+No background separation.
+No portrait mode.
+No bokeh.
+No cinematic blur.
+
+Angle is imperfect and human:
+- slight pitch (+6° to +10° or −6° to −10°)
+- never perfectly level
+- never symmetrical
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LIGHTING (REAL DOMESTIC ONLY)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Lighting is accidental and imperfect.
+Mixed color temperatures allowed.
+Uneven illumination allowed.
+
+NO fill light.
+NO beauty lighting.
+NO studio balance.
+Harsh highlights and ugly shadows are acceptable.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ENVIRONMENT (LIFESTYLE CONTEXT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Real lived-in domestic environment.
+Unstyled.
+Uncontrolled.
+Nothing staged for the camera.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ABSOLUTE BLOCKERS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BLOCKED:
+- two hands holding product
+- assisting hand
+- support hand
+- second hand entering frame
+- product presentation
+- product demo
+- hero shot
+- editorial look
+- commercial photography
+- studio lighting
+- centered composition
+- rule of thirds
+- clean shadows
+- floating objects
+- perfect symmetry
+- cinematic look
+- premium look
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL VALIDATION CHECK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Ask:
+"Does this look like a cramped, awkward, badly framed front-camera selfie,
+taken inches from the face, with ONE hand holding the product imperfectly,
+ugly lighting, and real physical contact?"
+
+If the answer is NO → REJECT AND REGENERATE.
+`.trim();
+
+export const UGC_SELFIE_CLOSE_FACE_NEGATIVE = `
+two hands holding product,
+both hands visible,
+assisting hand,
+support hand,
+second hand entering frame,
+extra fingers near product,
+floating fingers,
+finger duplication,
+deformed hands,
+extra fingers,
+missing fingers,
+distorted limbs,
+studio lighting,
+professional photography,
+cinematic blur,
+portrait mode,
+bokeh,
+centered composition,
+product hero shot,
+editorial styling,
+CGI human,
+plastic skin,
+fake realism,
+invented packaging,
+redrawn label,
+logos,
+text,
+watermarks
+`.trim().replace(/\n/g, ', ');
 
 // ============================================================================
 // CAPTURE STYLE DETAILS
