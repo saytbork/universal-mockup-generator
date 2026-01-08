@@ -1569,29 +1569,31 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             variant="primary"
           >
             <div className="space-y-4">
-              {/* SCENE TYPE */}
-              <div className={SECTION_GROUP_CLASS}>
-                <p className={GROUP_LABEL_CLASS}>SCENE TYPE</p>
-                <div className="flex flex-wrap gap-2">
-                  {(['studio-branding', 'editorial-product', 'lifestyle-real', 'ugc-phone'] as const).map(type => (
-                    <Chip
-                      key={type}
-                      onClick={() => {
-                        productStore.setSceneType(type);
-                        markSectionTouched('product-setup');
-                      }}
-                      selected={productStore.sceneType === type}
-                    >
-                      {type === 'studio-branding' ? 'Studio' :
-                        type === 'editorial-product' ? 'Editorial' :
-                          type === 'lifestyle-real' ? 'Lifestyle Real' : 'UGC'}
-                    </Chip>
-                  ))}
+              {/* SCENE TYPE — Hidden in Product Studio (product-only mode) */}
+              {!isProductMode && (
+                <div className={SECTION_GROUP_CLASS}>
+                  <p className={GROUP_LABEL_CLASS}>SCENE TYPE</p>
+                  <div className="flex flex-wrap gap-2">
+                    {(['studio-branding', 'editorial-product', 'lifestyle-real', 'ugc-phone'] as const).map(type => (
+                      <Chip
+                        key={type}
+                        onClick={() => {
+                          productStore.setSceneType(type);
+                          markSectionTouched('product-setup');
+                        }}
+                        selected={productStore.sceneType === type}
+                      >
+                        {type === 'studio-branding' ? 'Studio' :
+                          type === 'editorial-product' ? 'Editorial' :
+                            type === 'lifestyle-real' ? 'Lifestyle Real' : 'UGC'}
+                      </Chip>
+                    ))}
+                  </div>
+                  <p className="text-[11px] text-gray-500 mt-1">
+                    Studio: neutral background. Editorial: stylized. Lifestyle Real: full environment. UGC: phone capture.
+                  </p>
                 </div>
-                <p className="text-[11px] text-gray-500 mt-1">
-                  Studio: neutral background. Editorial: stylized. Lifestyle Real: full environment. UGC: phone capture.
-                </p>
-              </div>
+              )}
 
               {/* PRESET TIER */}
               <div className={SECTION_GROUP_CLASS}>
