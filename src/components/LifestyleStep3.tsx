@@ -1641,7 +1641,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             markSectionTouched('product-setup');
                           }}
                           className={`px-4 py-2 rounded-xl text-[10px] font-bold border transition-all duration-300 ${productStore.photoMode === mode
-                              ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg'
+                              ? 'bg-indigo-600 text-white border-indigo-600 '
                               : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
                             }`}
                           style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
@@ -1656,7 +1656,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   <div className={SECTION_GROUP_CLASS}>
                     <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">BACKGROUND</p>
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-white rounded-xl border border-gray-200 p-3 shadow-sm">
+                      <div className="bg-white rounded-xl border border-gray-200 p-3 ">
                         <p className="text-[10px] uppercase tracking-[0.1em] text-gray-400 mb-2">Background</p>
                         <div className="flex items-center gap-2">
                           <input
@@ -1672,7 +1672,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           <span className="text-xs text-gray-600 font-mono uppercase">{productStore.backgroundColor || '#FFFFFF'}</span>
                         </div>
                       </div>
-                      <div className="bg-white rounded-xl border border-gray-200 p-3 shadow-sm">
+                      <div className="bg-white rounded-xl border border-gray-200 p-3 ">
                         <p className="text-[10px] uppercase tracking-[0.1em] text-gray-400 mb-2">Accent</p>
                         <div className="flex items-center gap-2">
                           <input
@@ -1730,7 +1730,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             markSectionTouched('product-setup');
                           }}
                           className={`px-4 py-2 rounded-xl text-[10px] font-bold border transition-all duration-300 ${productStore.shadow === key
-                              ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg'
+                              ? 'bg-indigo-600 text-white border-indigo-600 '
                               : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
                             }`}
                           style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
@@ -1792,7 +1792,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
                       >
                         <span
-                          className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-lg ring-0 transition-all duration-300 mt-0.5 ml-0.5 ${productStore.interaction === 'cropped-hand' ? 'translate-x-5' : 'translate-x-0'
+                          className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white  ring-0 transition-all duration-300 mt-0.5 ml-0.5 ${productStore.interaction === 'cropped-hand' ? 'translate-x-5' : 'translate-x-0'
                             }`}
                           style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
                         />
@@ -1820,7 +1820,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
                       >
                         <span
-                          className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-lg ring-0 transition-all duration-300 mt-0.5 ml-0.5 ${productStore.proMode ? 'translate-x-5' : 'translate-x-0'
+                          className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white  ring-0 transition-all duration-300 mt-0.5 ml-0.5 ${productStore.proMode ? 'translate-x-5' : 'translate-x-0'
                             }`}
                           style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
                         />
@@ -1850,7 +1850,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   markSectionTouched('product-setup');
                                 }}
                                 className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.lens === lens
-                                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
+                                    ? 'bg-indigo-600 text-white border-indigo-600 '
                                     : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
                                   }`}
                                 style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
@@ -1877,7 +1877,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   markSectionTouched('product-setup');
                                 }}
                                 className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.lightingRig === rig
-                                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
+                                    ? 'bg-indigo-600 text-white border-indigo-600 '
                                     : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
                                   }`}
                                 style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
@@ -1903,7 +1903,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   markSectionTouched('product-setup');
                                 }}
                                 className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.finish === finish
-                                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
+                                    ? 'bg-indigo-600 text-white border-indigo-600 '
                                     : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
                                   }`}
                                 style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
