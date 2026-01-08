@@ -96,6 +96,7 @@ export type MasterPromptSections = {
   identity?: string;
   finalize?: string;
   sceneStructure?: string;
+  visualGrammar?: string;
 };
 
 /**
@@ -123,7 +124,8 @@ export function buildMasterPrompt(
     selfieCapture,
     identity,
     finalize,
-    sceneStructure
+    sceneStructure,
+    visualGrammar
   } = sections;
 
   const selfieCaptureActive = Boolean(selfieCapture && selfieCapture.trim().length > 0);
@@ -131,7 +133,8 @@ export function buildMasterPrompt(
   // CANONICAL ORDER - creation intent first, raw domestic UGC last
   const candidateParts = selfieCaptureActive
     ? [
-      sceneStructure,     // 0. PHYSICAL STRUCTURE (Foundational)
+      sceneStructure,     // 0. PHYSICAL STRUCTURE
+      visualGrammar,      // 0.5 VISUAL GRAMMAR (Semantics)
       creationIntent,     // 1. Structural context
       creationMode,       // 2. Mode rules
       formulationStory,   // 3. Expert credibility
@@ -144,7 +147,8 @@ export function buildMasterPrompt(
       finalize            // 10. Constraints + output
     ]
     : [
-      sceneStructure,     // 0. PHYSICAL STRUCTURE (Foundational)
+      sceneStructure,     // 0. PHYSICAL STRUCTURE
+      visualGrammar,      // 0.5 VISUAL GRAMMAR (Semantics)
       creationIntent,     // 1. Structural context
       creationMode,       // 2. Mode rules
       formulationStory,   // 3. Expert credibility

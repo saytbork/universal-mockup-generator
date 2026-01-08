@@ -13,6 +13,11 @@ export type ProductAsset = {
     imageUrl: string;
     base64?: string;
     mimeType?: string;
+    // Extracted palette from product image
+    palette?: {
+        dominant: string;    // Primary color extracted from product
+        secondary: string;   // Secondary color extracted from product
+    };
 };
 
 // ============================================================================

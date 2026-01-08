@@ -551,9 +551,28 @@ export function buildStudioPrompt(options: StudioPromptOptions): string {
     parts.push('QUALITY: Ultra-high resolution. Premium commercial photography. Sharp product edges. Accurate materials. No distortion. No artifacts.');
 
     // =========================================================================
+    // DEBUG LOGGING (MANDATORY - per user requirement)
+    // =========================================================================
+    console.table({
+        photoMode: options.photoMode,
+        backgroundColor: options.backgroundColor,
+        accentColor: options.paletteColor1,
+        composition: options.composition,
+        shadowStyle: options.shadow,
+        props: (options as any).suggestedProps || (options as any).props,
+        lens: options.lens,
+        lightingRig: options.lighting,
+        finish: options.finish,
+        interaction: options.interaction,
+    });
+
+    // =========================================================================
     // FINAL ASSEMBLY
     // =========================================================================
     const positivePrompt = parts.join(' ').replace(/\s+/g, ' ').trim();
+
+    console.log('[STUDIO PROMPT FINAL]', positivePrompt);
+
     return `${positivePrompt} NEGATIVE PROMPT: ${STUDIO_NEGATIVES}`;
 }
 

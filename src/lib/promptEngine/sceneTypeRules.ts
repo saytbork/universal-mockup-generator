@@ -20,17 +20,25 @@ export interface SceneTypeRules {
 
 export const SCENE_TYPE_RULES: Record<SceneType, SceneTypeRules> = {
     studio_packshot: {
-        description: 'Clean studio packshot photography. Commercial product hero shot with controlled lighting and clean background.',
+        description: 'Clean studio packshot photography. Commercial product hero shot with controlled lighting and clean background. Studio setting. No real environment. No lifestyle context.',
         allowsEnvironment: false,
         allowsHands: false,
         allowsAdvancedCreativity: false,
         allowedLightingStyles: ['studio key light', 'soft box', 'beauty dish', 'natural soft light', 'gradient lighting', 'rim light', 'product lighting', 'soft studio light', 'studio soft light'],
-        blockedLightingStyles: ['ring light', 'phone flash', 'harsh sunlight', 'candlelight', 'neon'],
+        blockedLightingStyles: ['ring light', 'phone flash', 'harsh sunlight', 'candlelight', 'neon', 'window light', 'golden hour'],
         requiredSections: ['product', 'lighting', 'camera'],
-        prohibitedSections: ['environment', 'person', 'hands', 'lifestyle'],
+        prohibitedSections: ['environment', 'person', 'hands', 'lifestyle', 'routine', 'wellness'],
         imperfectionLevel: 'none',
         realismLevel: 'commercial',
-        negativePromptAdditions: ['hands', 'people', 'environment', 'lifestyle cues', 'phone camera artifacts', 'amateur photography', 'cluttered background']
+        negativePromptAdditions: [
+            'hands', 'people', 'person', 'environment', 'lifestyle cues', 'lifestyle scene',
+            'phone camera artifacts', 'amateur photography', 'cluttered background',
+            'home environment', 'kitchen', 'bathroom', 'vanity', 'counter', 'countertop',
+            'routine', 'morning routine', 'daily use', 'wellness routine',
+            'bedroom', 'living room', 'any room environment',
+            'nature', 'outdoor', 'indoor real space',
+            'product in use', 'person using product', 'usage context'
+        ]
     },
     editorial_product: {
         description: 'Editorial product photography with artistic styling and curated composition.',

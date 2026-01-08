@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { SceneStructure, ColorSystem } from '../../types';
+import type { SceneStructure, ColorSystem, VisualGrammar } from '../../types';
 
 interface CreatorScene {
   type: string;
@@ -91,6 +91,7 @@ interface CreatorStore {
   linkTalent: boolean;
   setPreset: (preset: string) => void;
   setCreationMode: (mode: string) => void;
+  setEnvironment: (environment: string, microLocation?: string) => void;
   setSidePlacement: (side: string) => void;
   setBgColor: (color: string) => void;
   toggleLinkTalent: () => void;
@@ -121,7 +122,22 @@ export const useCreatorStore = create<CreatorStore>((set) => ({
   bgColor: '#FFFFFF',
   linkTalent: false,
   setPreset: (preset) => set({ preset }),
-  setCreationMode: (mode) => set({ creationMode: mode }),
+  // MUTUAL EXCLUSIVITY: Setting creation mode to 'studio' clears environment
+  setCreationMode: (mode) => set((state) => ({
+    creationMode: mode,
+    creator: mode === 'studio' ? {
+      ...state.creator,
+      scene: { ...state.creator.scene, environment: '', microLocation: '' }
+    } : state.creator
+  })),
+  // MUTUAL EXCLUSIVITY: Setting environment disables studio mode
+  setEnvironment: (environment, microLocation = '') => set((state) => ({
+    creationMode: environment ? 'lifestyle' : state.creationMode,
+    creator: {
+      ...state.creator,
+      scene: { ...state.creator.scene, environment, microLocation }
+    }
+  })),
   setSidePlacement: (side) => set({ sidePlacement: side }),
   setBgColor: (color) => set({ bgColor: color }),
   toggleLinkTalent: () => set((state) => ({ linkTalent: !state.linkTalent })),

@@ -564,11 +564,30 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 return state;
             }
             const newProducts = [...state.products, product];
-            return {
+
+            // Auto-set background/accent colors from product palette if at defaults
+            const updates: Partial<ProductStudioState> = {
                 products: newProducts,
                 activeProductId: state.activeProductId ?? product.id,
                 bundle: newProducts.length < 2 ? { ...state.bundle, enabled: false } : state.bundle,
             };
+
+            // Auto-populate colors from product palette if user hasn't touched them
+            if (product.palette) {
+                const isBackgroundDefault = state.backgroundColor === '#ffffff' || state.backgroundColor === '#FFFFFF';
+                const isAccentDefault = state.accentColor === '#6366f1' || state.accentColor === '#6366F1';
+
+                if (isBackgroundDefault && product.palette.dominant) {
+                    updates.backgroundColor = product.palette.dominant;
+                    console.log('[ProductStudio] Auto-set backgroundColor from palette:', product.palette.dominant);
+                }
+                if (isAccentDefault && product.palette.secondary) {
+                    updates.accentColor = product.palette.secondary;
+                    console.log('[ProductStudio] Auto-set accentColor from palette:', product.palette.secondary);
+                }
+            }
+
+            return { ...state, ...updates };
         }),
 
     removeProduct: (id) =>

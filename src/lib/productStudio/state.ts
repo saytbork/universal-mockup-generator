@@ -17,6 +17,11 @@ export interface ProductAsset {
   mimeType: string;
   heightValue?: number;
   heightUnit: 'cm' | 'in';
+  // Extracted palette from product image
+  palette?: {
+    dominant: string;    // Primary color extracted from product
+    secondary: string;   // Secondary color extracted from product
+  };
 }
 
 // ============================================================================
