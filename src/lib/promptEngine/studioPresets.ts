@@ -558,182 +558,295 @@ export function buildStudioPrompt(options: StudioPromptOptions): string {
 }
 
 // =============================================================================
-// PRODUCT_STUDIO_CANONICAL_PROMPT — FREEZE-READY v1.0
+// PRODUCT_STUDIO_CANONICAL_PROMPT — FREEZE-READY v2.0
 // =============================================================================
-// UX · UI · Prompt Engine · Deterministic · Autosuficiente
+// Uses template variables: {PALETTE_A}, {PALETTE_B}, {PALETTE_C}, {SURFACE_OPTION},
+// {COMPOSITION}, {SCALE}, {SPACING}, {NEGATIVE_SPACE}, {LENS}, {ANGLE}, {DISTANCE},
+// {FRAMING}, {LIGHTING_RIG}, {FINISH}, {SHADOW}, {INTERACTION}, {ASPECT_RATIO}
 // =============================================================================
 
 export const PRODUCT_STUDIO_CANONICAL_PROMPT = `
-1️⃣ DEFINICIÓN DE ROL DEL MOTOR (ROOT)
-Actuás como un motor de generación visual determinístico, especializado en product assets multi-funnel.
-No sos creativo libre.
-No improvisás.
-No inferís intenciones.
-Ejecutás únicamente lo que se define en este prompt y en el estado estructurado que lo acompaña.
-Si una instrucción no está explícitamente habilitada, no la aplicás.
-Esto no es texto decorativo. Es contrato de ejecución.
+PRODUCT STUDIO MODE — CANONICAL PROMPT (LOCKED)
 
-2️⃣ PRINCIPIO FUNDAMENTAL (ROOT LAW)
-Cada decisión visual existe en un solo bloque lógico.
-Ningún bloque puede sobrescribir, reinterpretar o duplicar decisiones de otro.
-Si detectás conflicto entre bloques:
-- priorizás el bloque de menor índice
-- bloqueás el resto
-Esto define todo el sistema. Si esto se rompe, todo se rompe.
+This is a PRODUCT STUDIO render.
+A controlled, abstract studio image of a real, existing physical product.
+This is NOT lifestyle.
+This is NOT UGC.
+This is NOT editorial.
+This is NOT a scene.
+This is NOT storytelling.
 
-3️⃣ ORDEN DE EJECUCIÓN (INMUTABLE)
-1. MODE
-2. PRODUCT DEFINITION
-3. BRAND & PALETTE
-4. SCENE & SURFACE
-5. CREATIVE DIRECTION
-6. CAMERA & FRAMING
-7. OUTPUT (solo hints no visuales)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ROOT RULES (NON-NEGOTIABLE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Product-only image.
+- No people.
+- No faces.
+- No hands unless explicitly enabled.
+- No lifestyle context.
+- No rooms.
+- No kitchens.
+- No bathrooms.
+- No bedrooms.
+- No outdoor environments.
+- No real-world setting.
+- No props unless explicitly allowed.
+- No storytelling.
+- No scene narrative.
 
-Reglas duras:
-- No alteres el orden
-- No saltees bloques
-- No reinyectes información previa
-- No permitas overrides tardíos
+If any of the above appear → INVALID IMAGE.
 
-4️⃣ DEFINICIÓN DE MODOS (SEMÁNTICA CERRADA)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PRODUCT IDENTITY LOCK (ABSOLUTE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+The product packaging, label, typography, colors, layout, proportions,
+materials, and branding MUST remain EXACTLY as provided in the reference image.
 
-STUDIO:
-- Producto como único sujeto
-- Fondo abstracto únicamente
-- Prohibido: personas, ambientes reales, paredes, habitaciones, escenarios
+DO NOT:
+- redesign the label
+- reinterpret typography
+- adjust or enhance colors
+- simplify graphics
+- modernize branding
+- invent missing details
+- clean or optimize the label
+- change layout or proportions
+- replace text or symbols
 
-EDITORIAL:
-- Producto como sujeto principal
-- Estilización permitida
-- Fondo abstracto o gráfico
-- Prohibido: ambientes reales, personas
+This is a photographic render of an existing physical product.
+Any alteration of the label or packaging is INVALID.
 
-LIFESTYLE:
-- Producto como sujeto principal
-- Ambiente real obligatorio
-- Personas NO incluidas por defecto
-- El entorno contextualiza, no domina
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PALETTE AUTHORITY (AUTO)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Extract up to THREE dominant colors directly from the product label.
+Use only primary fill colors.
 
-UGC:
-- Persona como sujeto principal
-- Producto visible como prueba
-- Ambiente real obligatorio
-- Cámara phone / handheld
-- Imperfección natural
-- Prohibido: estética de estudio, iluminación artificial de set
+Primary Color: {PALETTE_A}
+Secondary Color: {PALETTE_B}
+Accent Color: {PALETTE_C}
 
-ECOMMERCE:
-- Producto como sujeto único
-- Fondo neutral o canvas limpio
-- Composición pensada para overlays
-- Prohibido: props creativos, ambientes, personas
+Rules:
+- If the label is monochrome:
+  - Primary = label color
+  - Secondary = lighter tint of the same hue
+  - Accent = darker tint of the same hue
+- If contrast between product and background fails AA:
+  - Adjust luminosity ONLY, never hue
+- If no label colors are detectable:
+  - Use warm neutral gray system
 
-5️⃣ PRODUCT DEFINITION (FÍSICO, NO ESTÉTICO)
-Definís qué es el producto, nunca su estética.
-Incluye exclusivamente:
-- Tipo de producto
-- Packaging
-- Escala física
-- Cantidad
-- Bundle mode
-- Manos (solo si está habilitado, siempre cropped)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BACKGROUND (ABSTRACT ONLY)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Generate a custom studio background using the extracted palette.
+Background must remain abstract and studio-safe.
 
-Reglas duras:
-- El asset subido nunca se altera
-- No se inventan variaciones
-- No se estiliza en este bloque
+- No walls
+- No rooms
+- No scenery
+- No environment
+- No depth cues suggesting a place
 
-6️⃣ BRAND & PALETTE (ÚNICA FUENTE DE COLOR)
+Primary background uses Primary Color.
+Secondary gradients or subtle accents may use Secondary and Accent colors.
 
-AUTO PALETTE EXTRACTION (CANÓNICO):
-Use only primary fill colors from the uploaded product.
-Ignore shadows, reflections, gradients, highlights.
-Do not infer missing colors.
-If fewer than three colors exist, use only those available.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SURFACE (STUDIO BASE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Use the selected studio surface:
+{SURFACE_OPTION}
 
-Primary Color:
-Secondary Color:
-Accent Color:
+Surface color and material harmonize naturally with the extracted palette.
+Surface exists only to support the product physically.
+No storytelling texture.
+No environmental clues.
 
-Reglas:
-- Ningún otro bloque puede: elegir colores, sugerir paletas, modificar tonos
-- Todo fondo, prop abstracto o acento debe armonizar naturalmente con esta paleta
-- Nunca fuerces contraste artificial
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPOSITION & SCALE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Composition: {COMPOSITION}
+Scale: {SCALE}
+Spacing: {SPACING}
+Negative Space: {NEGATIVE_SPACE}
 
-7️⃣ SCENE & SURFACE (CONTEXTO FÍSICO)
+Rules:
+- Product is the sole subject
+- Product dominates the frame
+- No accidental cropping
+- No decorative imbalance
+- No text layout assumptions
 
-Studio / Editorial:
-- Fondo abstracto generado desde la paleta
-- Prohibido: paredes, habitaciones, scenery
-- Permitido: gradientes sutiles, geometría abstracta, contraste studio-grade
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CAMERA SYSTEM (LOCKED)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Lens: {LENS}
+Angle: {ANGLE}
+Distance: {DISTANCE}
+Framing: {FRAMING}
 
-Lifestyle / UGC:
-- Ambiente real coherente con el producto
-- Superficies reales
-- Iluminación ambiental creíble
-- El entorno no compite con el sujeto principal
+Rules:
+- Professional camera system
+- Clean optics
+- No smartphone artifacts
+- No cinematic blur abuse
+- Depth of field must feel realistic and controlled
 
-8️⃣ CREATIVE DIRECTION (ESTÉTICA CONTROLADA)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LIGHTING (STUDIO-GRADE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Lighting setup: {LIGHTING_RIG}
 
-Permitido:
-- Nivel de creatividad
-- Tema visual
-- Densidad de props (si el modo lo permite)
-- Intención de espacio negativo
+Lighting rules:
+- Controlled highlights
+- Clean reflections
+- Studio-grade contrast
+- No accidental shadows
+- No domestic lighting
+- No mixed temperature chaos
 
-Prohibido:
-- cambiar paleta
-- cambiar cámara
-- introducir ambiente no habilitado
-- alterar escala física
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINISH / TREATMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Finish style: {FINISH}
 
-9️⃣ CAMERA & FRAMING (ÓPTICA EXCLUSIVA)
+Rules:
+- Commercial-grade clarity
+- No plastic look
+- No CGI look
+- No over-retouching
+- Texture must remain realistic
 
-Autoridad total sobre:
-- sistema de cámara
-- ángulo
-- distancia
-- rotación
-- encuadre
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SHADOW BEHAVIOR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Shadow type: {SHADOW}
 
-Reglas:
-- UGC = phone / handheld
-- Studio / Ecommerce = cámara limpia y estable
-- No mezclar reglas ópticas entre modos
+Rules:
+- Shadows must obey physics
+- No floating products
+- Contact shadows required unless explicitly disabled
 
-🔟 OUTPUT (NO VISUAL)
-- No altera la generación
-- Solo adapta encuadre final
-- Overlays se renderizan fuera del modelo
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+INTERACTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Interaction mode: {INTERACTION}
 
-1️⃣1️⃣ NEGATIVE RULES GLOBALES (SIEMPRE ACTIVAS)
-No logos.
-No text.
-No labels.
-No watermarks.
-No UI elements.
-No mockups.
-No brand names.
-No fake packaging.
-No scenery unless explicitly enabled by MODE.
+Rules:
+- If Interaction = None:
+  - No hands
+  - No human presence
+- If Interaction = Cropped Hand:
+  - Only one hand
+  - No face
+  - No body
+  - No lifestyle cues
 
-1️⃣2️⃣ VALIDACIÓN FINAL (BLOQUEANTE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+QUALITY & OUTPUT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- High resolution
+- Sharp focus
+- Commercial-ready
+- Brand-safe
+- No ambiguity
+- No stylization drift
 
-Antes de generar:
-- ¿El modo permite lo solicitado?
-- ¿Existe una sola fuente de color?
-- ¿La cámara se definió una sola vez?
-- ¿El producto sigue siendo el asset original?
-- ¿No hay mezcla de reglas entre modos?
+Aspect Ratio: {ASPECT_RATIO}
 
-Si cualquiera falla → abort generation.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ABSOLUTE BLOCKERS (GLOBAL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BLOCKED:
+people,
+faces,
+eyes,
+skin,
+hands (unless explicitly enabled),
+lifestyle scenes,
+UGC,
+editorial narrative,
+rooms,
+kitchens,
+bathrooms,
+bedrooms,
+outdoor environments,
+real-world locations,
+storytelling,
+label redesign,
+rebranded packaging,
+ai-generated label,
+improved typography,
+modernized branding,
+invented graphics,
+text,
+logos,
+watermarks,
+signatures,
+captions,
+CGI look,
+plastic materials,
+floating objects,
+incorrect proportions,
+distorted product,
+warped label,
+blurred label,
+cinematic look,
+dramatic storytelling,
+product demo,
+product usage
 
-1️⃣3️⃣ RESULTADO GARANTIZADO
-- Outputs consistentes
-- Sin imágenes híbridas
-- Sin overrides invisibles
-- Determinismo alto
-- Escalable a presets y automation
-- Compatible con ads, PDP, landing, social
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL VALIDATION (FAIL CHECK)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Ask:
+"Is this a clean, abstract, studio-controlled render of the EXACT product provided,
+with ZERO label changes, ZERO people, ZERO environment,
+and full respect of the selected studio options?"
+
+If the answer is NO → REJECT AND REGENERATE.
 `.trim();
+
+// =============================================================================
+// PRODUCT_STUDIO_NEGATIVE — Always appended
+// =============================================================================
+
+export const PRODUCT_STUDIO_NEGATIVE = `
+people,
+faces,
+eyes,
+skin,
+hands,
+lifestyle scenes,
+UGC,
+editorial narrative,
+rooms,
+kitchens,
+bathrooms,
+bedrooms,
+outdoor environments,
+real-world locations,
+storytelling,
+label redesign,
+rebranded packaging,
+ai-generated label,
+improved typography,
+modernized branding,
+invented graphics,
+text,
+logos,
+watermarks,
+signatures,
+captions,
+CGI look,
+plastic materials,
+floating objects,
+incorrect proportions,
+distorted product,
+warped label,
+blurred label,
+cinematic look,
+dramatic storytelling,
+product demo,
+product usage
+`.trim().replace(/\n/g, ', ');
