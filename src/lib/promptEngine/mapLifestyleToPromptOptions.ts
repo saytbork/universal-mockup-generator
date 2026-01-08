@@ -1375,8 +1375,8 @@ export function mapLifestyleToPromptOptions(
         const sidePlacementRaw = (sceneState.sidePlacement || 'Center').toLowerCase();
         const sidePlacement =
             sidePlacementRaw.includes('left') ? 'left' :
-            sidePlacementRaw.includes('right') ? 'right' :
-            'center';
+                sidePlacementRaw.includes('right') ? 'right' :
+                    'center';
 
         mapped.sidePlacement = sidePlacement as any;
         mapped.ecommerceSidePlacementFlag = true;
@@ -1569,6 +1569,57 @@ export function mapLifestyleToPromptOptions(
             mapped.cameraDeviceSemantic ||
             'Handheld smartphone perspective capturing natural perspective, emphasizing the surrounding environment.';
     }
+
+    // ========================================================================
+    // PRODUCT STUDIO FIELDS → Pass to PromptEngine
+    // ========================================================================
+    if (sceneState.studioPhotoMode) {
+        (mapped as any).photoMode = sceneState.studioPhotoMode;
+        (mapped as any).studioPhotoMode = sceneState.studioPhotoMode;
+    }
+    if (sceneState.studioAlignment) {
+        (mapped as any).studioComposition = sceneState.studioAlignment;
+    }
+    if (sceneState.studioShadow) {
+        (mapped as any).studioShadow = sceneState.studioShadow;
+    }
+    if (sceneState.studioProps) {
+        (mapped as any).studioProps = sceneState.studioProps;
+        (mapped as any).suggestedProps = sceneState.studioProps;
+    }
+    if (sceneState.studioCustomHeroCue) {
+        (mapped as any).studioCustomHeroCue = sceneState.studioCustomHeroCue;
+        (mapped as any).customHeroCue = sceneState.studioCustomHeroCue;
+    }
+    if (sceneState.studioInteraction) {
+        (mapped as any).studioInteraction = sceneState.studioInteraction;
+    }
+    if (sceneState.studioLens) {
+        (mapped as any).studioLens = sceneState.studioLens;
+    }
+    if (sceneState.studioLightingRig) {
+        (mapped as any).studioLightingRig = sceneState.studioLightingRig;
+    }
+    if (sceneState.studioFinish) {
+        (mapped as any).studioFinish = sceneState.studioFinish;
+    }
+    if (sceneState.studioBackgroundColor) {
+        (mapped as any).heroBackground = sceneState.studioBackgroundColor;
+    }
+    if (sceneState.studioAccentColor) {
+        (mapped as any).paletteColor1 = sceneState.studioAccentColor;
+    }
+    console.log('[MAP] Product Studio fields injected:', {
+        photoMode: sceneState.studioPhotoMode,
+        alignment: sceneState.studioAlignment,
+        shadow: sceneState.studioShadow,
+        props: sceneState.studioProps,
+        lens: sceneState.studioLens,
+        lightingRig: sceneState.studioLightingRig,
+        finish: sceneState.studioFinish,
+        backgroundColor: sceneState.studioBackgroundColor,
+        accentColor: sceneState.studioAccentColor,
+    });
 
     // MANDATORY LOGGING - Complete output
     console.log('[MAP OUTPUT]', JSON.stringify(mapped, null, 2));

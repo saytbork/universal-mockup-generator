@@ -323,6 +323,21 @@ export interface Step3Values {
   // Output
   aspectRatio: string;
   seed: string;
+
+  // ==========================================================================
+  // PRODUCT STUDIO FIELDS — Injected into prompt engine
+  // ==========================================================================
+  studioPhotoMode?: string;
+  studioAlignment?: string;
+  studioShadow?: string;
+  studioProps?: string;
+  studioCustomHeroCue?: string;
+  studioInteraction?: string;
+  studioLens?: string;
+  studioLightingRig?: string;
+  studioFinish?: string;
+  studioBackgroundColor?: string;
+  studioAccentColor?: string;
 }
 
 // ============================================================================
@@ -1197,6 +1212,37 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       onValuesChange(values);
     }
   }, [values, onValuesChange]);
+
+  // PHASE 3.5: Sync productStore values to Step3Values for prompt injection
+  useEffect(() => {
+    setValues(prev => ({
+      ...prev,
+      studioPhotoMode: productStore.photoMode,
+      studioAlignment: productStore.alignment,
+      studioShadow: productStore.shadow,
+      studioProps: productStore.props,
+      studioCustomHeroCue: productStore.customHeroCue,
+      studioInteraction: productStore.interaction,
+      studioLens: productStore.lens,
+      studioLightingRig: productStore.lightingRig,
+      studioFinish: productStore.finish,
+      studioBackgroundColor: productStore.backgroundColor,
+      studioAccentColor: productStore.accentColor,
+    }));
+  }, [
+    productStore.photoMode,
+    productStore.alignment,
+    productStore.shadow,
+    productStore.props,
+    productStore.customHeroCue,
+    productStore.interaction,
+    productStore.lens,
+    productStore.lightingRig,
+    productStore.finish,
+    productStore.backgroundColor,
+    productStore.accentColor,
+  ]);
+
 
   // PHASE 7: STRIX VALIDATION (Hard Block)
   const validationResult = validateProductStudioState(productStore);
