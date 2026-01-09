@@ -927,6 +927,9 @@ const App: React.FC = () => {
     };
   }
   const [options, setOptions] = useState<MockupOptions>(() => syncCharacterFields(cloneOptions(initialSceneRef.current!.options)));
+  const hasSelectedIntent = Boolean(options.contentStyle);
+  const contentStyleValue = hasSelectedIntent ? options.contentStyle : CONTENT_STYLE_OPTIONS[0].value;
+  const isProductPlacement = contentStyleValue === 'product';
   const applyOptionsUpdate = useCallback(
     (updater: React.SetStateAction<MockupOptions>) => {
       setOptions(prev => {
@@ -1280,11 +1283,8 @@ const App: React.FC = () => {
   const [trialCodeInput, setTrialCodeInput] = useState('');
   const [trialCodeError, setTrialCodeError] = useState<string | null>(null);
   const isTrialBypassActive = hasTrialBypass || isDevBypass;
-  const hasSelectedIntent = Boolean(options.contentStyle);
   const hasUploadedProduct = activeProducts.length > 0 || productAssets.length > 0;
   const canUseMood = hasUploadedProduct;
-  const contentStyleValue = hasSelectedIntent ? options.contentStyle : CONTENT_STYLE_OPTIONS[0].value;
-  const isProductPlacement = contentStyleValue === 'product';
   const [lifestyleTone, setLifestyleTone] = useState<'ugc' | 'editorial'>('ugc');
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const toggleTheme = useCallback(() => {
