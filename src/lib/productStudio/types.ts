@@ -401,7 +401,7 @@ export type ProductStudioState = {
     photoMode: string;
     backgroundColor: string;
     accentColor: string;
-    alignment: 'left' | 'center' | 'right';
+    alignment: 'left' | 'center' | 'right' | 'centered' | 'left-space' | 'right-space';
     shadow: 'soft-drop' | 'hard-drop' | 'floating';
     props: string;
     customHeroCue: string;

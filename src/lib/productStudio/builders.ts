@@ -401,7 +401,18 @@ function buildAccentColor(state: ProductStudioState): string {
 
 function buildAlignment(state: ProductStudioState): string {
     if (!state.alignment) return '';
-    return `ALIGNMENT: ${state.alignment}`;
+
+    const alignment = String(state.alignment);
+    const map: Record<string, string> = {
+        'center': 'product centered in frame',
+        'centered': 'product centered in frame',
+        'left': 'product aligned left in frame',
+        'right': 'product aligned right in frame',
+        'left-space': 'product aligned left, intentional negative space on right for overlays',
+        'right-space': 'product aligned right, intentional negative space on left for overlays',
+    };
+
+    return `ALIGNMENT: ${map[alignment] || alignment}`;
 }
 
 function buildCustomHeroCue(state: ProductStudioState): string {
@@ -646,9 +657,6 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     // 1. Product Definition (Source of Truth)
     segments.push(buildProductDescription(state.definition, product.name));
 
-    // 2. Scene Type (Defines Logic) - Explicitly first in list but logically secondary to product
-    segments.push(buildSceneType(state));
-
     // 3. Environment + Micro Place (When allowed)
     if (!state.blankSpaceEnabled) {
         const environment = buildEnvironment(state);
@@ -723,9 +731,6 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     if (primary) {
         segments.push(buildProductDescription(state.definition, primary.name));
     }
-
-    // 2. Scene Type
-    segments.push(buildSceneType(state));
 
     // 9. Bundle Logic (If Applicable) - Placed early to define subject
     segments.push(buildBundleComposition(state));

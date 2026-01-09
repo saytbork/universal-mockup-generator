@@ -1018,6 +1018,24 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
     // PHASE 3: Sync Product controls to ProductStudioStore when in Product mode
     if (isProductMode) {
+      // Some Product Studio actions are NOT 1:1 mapped to `ProductStudioState` keys.
+      // Handle them explicitly so the prompt builders receive the correct canonical state.
+      if (key === 'productType') {
+        const typeMap: Record<string, ProductType> = {
+          'Capsules': 'capsules',
+          'Gummies': 'gummies',
+          'Drops': 'drops',
+          'Powder': 'powder',
+          'Skincare': 'skincare',
+          'Device': 'device',
+          'Custom': 'custom',
+        };
+        const mappedType = typeMap[value as string];
+        if (mappedType) {
+          productStore.setProductType(mappedType);
+        }
+      }
+
       const productKeyMap: Record<string, keyof ProductStudioState> = {
         'productCreativityLevel': 'creativityLevel',
         'productCreativeTheme': 'creativeTheme',
@@ -1129,20 +1147,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             'Right': 'right',
           };
           mappedValue = sideMap[value as string] ?? 'right';
-        } else if (key === 'productType') {
-          const typeMap: Record<string, ProductType> = {
-            'Capsules': 'capsules',
-            'Gummies': 'gummies',
-            'Drops': 'drops',
-            'Powder': 'powder',
-            'Skincare': 'skincare',
-            'Device': 'device',
-            'Custom': 'custom',
-          };
-          const mappedType = typeMap[value as string];
-          if (mappedType) {
-            productStore.setProductType(mappedType);
-          }
         } else if (key === 'aspectRatio') {
           const ratioMap: Record<string, '1:1' | '4:5' | '16:9'> = {
             '1:1 (Square)': '1:1',
