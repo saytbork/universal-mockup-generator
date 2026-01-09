@@ -4412,7 +4412,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
           // PHASE 7: HARDBLOCK VALIDATION - Check forbidden terms
           try {
-            validatePrompt(finalPrompt);
+            validatePrompt(finalPrompt, { allowHands: productState.interaction !== 'none' || productState.handsHolding === true });
           } catch (validationError) {
             console.error('[PROMPT BLOCKED]', validationError);
             setImageError(`Generation blocked: ${(validationError as Error).message}`);

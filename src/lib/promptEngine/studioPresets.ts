@@ -24,9 +24,17 @@ export const PHOTO_MODE_PRESETS: Record<string, string> = {
     'Ingredient Stack': `Ingredients or material elements arranged around the product in a clean, controlled layout. No environment context.`,
     'Acrylic Blocks': `Clear or tinted acrylic blocks used as compositional pedestals or framing elements. Controlled reflections and clean geometry.`,
     'Foam & Texture': `Subtle foam, liquid, or tactile textures used as abstract visual elements. No narrative meaning.`,
+    'Tile & Spa': `Spa-clean studio arrangement with tiled or minimal grid textures as abstract design elements. Studio-only, no real room context.`,
+    'Routine Carousel': `Series-ready studio framing with consistent spacing and repeatable layout for carousel/sequence output.`,
+    'Pastel Picnic': `Soft pastel studio color story with gentle gradients and clean abstract surfaces. No real-world picnic scene.`,
+    'Face Pop Close-Up': `Tight hero crop emphasizing label/packaging details while keeping full product visible; high clarity, studio-only.`,
+    'Sunrise Wellness Counter': `Warm sunrise color palette and soft gradient lighting as an abstract studio mood; no real kitchen/counter environment.`,
+    'Clinical Lab Counter': `Clinical laboratory-inspired studio styling: sterile, minimal, ultra-clean surfaces; no real lab environment.`,
     'Candy Gradient Lab': `Smooth gradient studio background with controlled color transitions. Modern, abstract aesthetic.`,
     'Golden Mist Aura': `Soft atmospheric mist with controlled golden highlights. Studio-only ambience.`,
+    'Crown Wellness Vanity': `Premium vanity-inspired studio styling with clean reflective accents; studio-only, no real bathroom.`,
     'Splash Shot': `High-speed liquid splash frozen in motion interacting with the product. Splash must not obscure the product.`,
+    'Outdoor Energy Boost': `Bright energetic studio palette and crisp highlights to evoke outdoors without depicting a real location.`,
     'Hero Landing Page': `Hero landing page composition. Clean centered layout. Strong visual hierarchy. Product as the primary focal point.`
 };
 

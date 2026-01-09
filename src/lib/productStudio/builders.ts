@@ -54,9 +54,14 @@ const FORBIDDEN_TERMS = [
     'ugc', 'user-generated', 'candid', 'hand', 'hands', 'face',
 ];
 
-export function validatePrompt(prompt: string): void {
+export function validatePrompt(prompt: string, options?: { allowHands?: boolean }): void {
     const lower = prompt.toLowerCase();
     for (const term of FORBIDDEN_TERMS) {
+        // Product Studio can optionally allow a cropped hand interaction.
+        // When allowed, we only relax the "hand(s)" filter; people/faces/bodies remain blocked.
+        if (options?.allowHands === true && (term === 'hand' || term === 'hands')) {
+            continue;
+        }
         const regex = new RegExp(`\\b${term}\\b`, 'i');
         if (regex.test(lower)) {
             console.error(`[PROMPT BLOCKED] "${term}" found in: ...${prompt.slice(0, 100)}...`);
@@ -421,6 +426,15 @@ function buildCustomHeroCue(state: ProductStudioState): string {
     return `HERO_CUE: ${cue}`;
 }
 
+function buildInteraction(state: ProductStudioState): string {
+    const allowHands = state.interaction !== 'none' || state.handsHolding === true;
+    if (!allowHands) return '';
+
+    const key = state.interaction === 'cropped-hand' || state.handsHolding === true ? 'Cropped Hand' : 'None';
+    const preset = INTERACTION_PRESETS[key];
+    return preset ? `INTERACTION: ${preset}` : '';
+}
+
 // ============================================================================
 // CAMERA BUILDER (Step 8)
 // ============================================================================
@@ -627,7 +641,13 @@ function buildAspectRatio(state: ProductStudioState): string {
     return map[state.aspectRatio];
 }
 
-function buildNegativeConstraints(): string {
+function buildNegativeConstraints(state: ProductStudioState): string {
+    const allowHands = state.interaction !== 'none' || state.handsHolding === true;
+
+    if (allowHands) {
+        return 'no people, no faces, no bodies, allow a single cropped hand only (no full hand), no digital devices, no user content, product only, clean composition, commercial standard, high resolution, sharp focus';
+    }
+
     return 'no living subjects, no biological forms, no digital devices, no user content, product only, inanimate objects only, clean composition, commercial standard, high resolution, sharp focus';
 }
 
@@ -664,7 +684,10 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     }
 
     // 4. Composition & Art Direction (Key for Olly/AG1)
-    segments.push(buildComposition(state));
+    // In Ecommerce Blank Space mode, composition is governed by `buildEcommerce()`.
+    if (!state.blankSpaceEnabled) {
+        segments.push(buildComposition(state));
+    }
     // 4b. Photo Mode (NEW)
     segments.push(buildPhotoMode(state));
     // 4c. Background (NEW - Hex Support)
@@ -675,7 +698,9 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     segments.push(buildLens(state));
     segments.push(buildFinish(state));
     segments.push(buildAccentColor(state));
-    segments.push(buildAlignment(state));
+    if (!state.blankSpaceEnabled) {
+        segments.push(buildAlignment(state));
+    }
     segments.push(buildCustomHeroCue(state));
 
     // 5. Creativity System (Includes Props)
@@ -687,30 +712,27 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     // 6. Props (Handled in Creativity)
 
     // 7. Lighting (Product Safe)
-    if (!state.blankSpaceEnabled) {
-        segments.push(buildLighting(state));
-    }
+    segments.push(buildLighting(state));
 
     // 8. Camera & Framing
     segments.push(buildCamera(state));
 
-    // 9. Bundle Logic (N/A)
+    // 9. Interaction (optional cropped hand)
+    segments.push(buildInteraction(state));
+
+    // 9b. Ecommerce (Blank Space mode)
+    if (state.blankSpaceEnabled) {
+        segments.push(buildEcommerce(state));
+    }
 
     // 10. Negative Constraints (Strict)
-    segments.push(buildNegativeConstraints());
+    segments.push(buildNegativeConstraints(state));
 
     // 11. Final Quality Bar
     segments.push(buildQualityBar());
 
     // Aspect ratio technical
     segments.push(buildAspectRatio(state));
-
-    // Ecommerce - now merged into composition and negative space
-    // keeping blank space enforcement if needed
-    if (state.blankSpaceEnabled) {
-        // Double down on white background if strictly needed for ecommerce
-        segments.push('neutral seamless background');
-    }
 
     const finalPrompt = segments.filter(Boolean).join(', ');
     console.log('2. Generated Prompt Parts:', segments);
@@ -742,7 +764,9 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     }
 
     // 4. Composition
-    segments.push(buildComposition(state));
+    if (!state.blankSpaceEnabled) {
+        segments.push(buildComposition(state));
+    }
     // 4b. Photo Mode (NEW)
     segments.push(buildPhotoMode(state));
     // 4c. Background (NEW - Hex Support)
@@ -757,15 +781,13 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     }
 
     // 7. Lighting
-    if (!state.blankSpaceEnabled) {
-        segments.push(buildLighting(state));
-    }
+    segments.push(buildLighting(state));
 
     // 8. Camera
     segments.push(buildCamera(state));
 
     // 10. Negative Constraints
-    segments.push(buildNegativeConstraints());
+    segments.push(buildNegativeConstraints(state));
 
     // 11. Final Quality Bar
     segments.push(buildQualityBar());
@@ -773,7 +795,7 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     segments.push(buildAspectRatio(state));
 
     if (state.blankSpaceEnabled) {
-        segments.push('neutral seamless background');
+        segments.push(buildEcommerce(state));
     }
 
     return segments.filter(Boolean).join(', ');
@@ -812,7 +834,7 @@ export function generateProductJobs(state: ProductStudioState): ProductGeneratio
         validateBundleState(state);
 
         const prompt = assembleBundlePrompt(state);
-        validatePrompt(prompt);
+        validatePrompt(prompt, { allowHands: state.interaction !== 'none' || state.handsHolding === true });
 
         console.log(`[FINAL PRODUCT PROMPT] Bundle:`, prompt);
 
@@ -832,7 +854,7 @@ export function generateProductJobs(state: ProductStudioState): ProductGeneratio
 
     for (const product of state.products) {
         const prompt = assembleSingleProductPrompt(state, product);
-        validatePrompt(prompt);
+        validatePrompt(prompt, { allowHands: state.interaction !== 'none' || state.handsHolding === true });
 
         console.log(`[FINAL PRODUCT PROMPT] ${product.name}:`, prompt);
 
@@ -856,7 +878,7 @@ export function generateProductJobs(state: ProductStudioState): ProductGeneratio
 export function generatePreviewPrompt(state: ProductStudioState): string | null {
     if (state.bundle.enabled) {
         const prompt = assembleBundlePrompt(state);
-        validatePrompt(prompt);
+        validatePrompt(prompt, { allowHands: state.interaction !== 'none' || state.handsHolding === true });
         return prompt;
     }
 
@@ -864,7 +886,7 @@ export function generatePreviewPrompt(state: ProductStudioState): string | null 
     if (!activeProduct) return null;
 
     const prompt = assembleSingleProductPrompt(state, activeProduct);
-    validatePrompt(prompt);
+    validatePrompt(prompt, { allowHands: state.interaction !== 'none' || state.handsHolding === true });
 
     return prompt;
 }
