@@ -20,6 +20,7 @@ type GenerateImageParams = {
     model: string;
     prompt: string;
     aspectRatio: string;
+    preserveReferenceImage?: boolean;
     products: ActiveProduct[];
     personIdentityPackage?: PersonIdentityPackage;
     modelReferenceFile?: File | null;
@@ -45,6 +46,7 @@ export async function generateImageWithGemini({
     model,
     prompt,
     aspectRatio,
+    preserveReferenceImage = true,
     products,
     personIdentityPackage,
     modelReferenceFile,
@@ -153,7 +155,7 @@ export async function generateImageWithGemini({
             generationConfig: {
                 responseMimeType: "image/png",
                 aspectRatio,
-                preserveReferenceImage: true,
+                preserveReferenceImage,
                 temperature: 0.25,
                 topP: 0.9,
                 seed,

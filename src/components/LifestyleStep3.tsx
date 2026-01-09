@@ -967,7 +967,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         productStore.setFraming(value as ProductStudioState['framing']);
         break;
       case 'environmentMacro':
-        productStore.setEnvironmentMacro(value as EnvironmentMacro);
+        {
+          const macro = value as EnvironmentMacro;
+          productStore.setEnvironmentContext(macro === 'studio' ? null : { macro, micro: 'countertop' });
+        }
         break;
       case 'microPlace':
         productStore.setMicroPlace(value as ProductStudioState['microPlace']);
@@ -1481,23 +1484,24 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     'backyard-patio', 'street-corner', 'custom'
   ];
 
-  const MICRO_PLACE_MAPPING: Record<EnvironmentMacro, MicroPlace[]> = {
-    'kitchen': ['countertop', 'kitchen-island', 'sink-ledge', 'dining-table'],
-    'living-room': ['coffee-table', 'side-table', 'shelf', 'console-table'],
-    'bedroom': ['nightstand', 'dresser-top', 'vanity', 'bed-side'],
-    'bathroom': ['sink-ledge', 'shower-shelf', 'vanity'],
-    'workspace': ['desk-surface', 'keyboard-side', 'notebook-area'],
-    'hallway': ['console-table', 'shelf'],
-    'home-gym': ['mat-edge', 'water-bottle-side', 'bench'],
-    'balcony-indoor-terrace': ['table', 'railing-ledge', 'chair-armrest'],
-    'urban-exterior': ['concrete-ledge', 'stairs', 'low-wall', 'sidewalk-edge', 'urban-bench'],
-    'natural-exterior': ['rock', 'wooden-surface', 'picnic-table'],
-    'parking-lot': ['car-hood', 'trunk-edge'],
-    'backyard-patio': ['outdoor-table', 'chair-armrest'],
-    'street-corner': ['concrete-ledge', 'urban-bench'],
-    'studio': ['neutral-surface'],
-    'custom': ['custom']
-  } as any;
+  const PRODUCT_ENVIRONMENT_MICRO_OPTIONS: MicroPlace[] = [
+    'countertop',
+    'kitchen-island',
+    'sink-ledge',
+    'dining-table',
+  ];
+
+  const PRODUCT_ENVIRONMENT_LIGHTING_OPTIONS: Array<{ label: string; value: ProductStudioState['lighting'] }> = [
+    { label: 'Natural Light', value: 'natural-light' },
+    { label: 'Sunny Day', value: 'sunny-day' },
+    { label: 'Golden Hour', value: 'golden-hour' },
+    { label: 'Overcast', value: 'overcast' },
+    { label: 'Cozy Indoors', value: 'cozy-indoors' },
+    { label: 'Ring Light', value: 'ring-light' },
+    { label: 'Mood Lighting', value: 'mood-lighting' },
+    { label: 'Night Mode', value: 'night-mode' },
+    { label: 'Flash Photo', value: 'flash-photo' },
+  ];
 
 
   const PRODUCT_PROP_SUGGESTIONS: Record<NonNullable<Step3Values['productType']>, string[]> = {
@@ -1734,6 +1738,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       ).map(mode => (
                         <button
                           key={mode}
+                          title={mode}
                           onClick={() => {
                             productStore.setPhotoMode(mode);
                             markSectionTouched('product-setup');
@@ -1784,7 +1789,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             updateValue('productType', option as any);
                             markSectionTouched('product-setup');
                           }}
-                          selected={values.productType === option}
+                          selected={
+                            ({
+                              Capsules: 'capsules',
+                              Gummies: 'gummies',
+                              Drops: 'drops',
+                              Powder: 'powder',
+                              Skincare: 'skincare',
+                              Device: 'device',
+                              Custom: 'custom',
+                            } as const)[option] === productStore.definition.type
+                          }
                         >
                           {option}
                         </Chip>
@@ -1814,7 +1829,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             updateValue('productPackaging', option);
                             markSectionTouched('product-setup');
                           }}
-                          selected={values.productPackaging === option}
+                          selected={
+                            option === 'With box'
+                              ? productStore.packagingMode === 'with-box'
+                              : productStore.packagingMode === 'without-box'
+                          }
                         >
                           {option}
                         </Chip>
@@ -1832,7 +1851,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             updateValue('productScale', option);
                             markSectionTouched('product-setup');
                           }}
-                          selected={values.productScale === option}
+                          selected={
+                            (option === 'Small handheld' && productStore.physicalScaleLabel === 'small-handheld') ||
+                            (option === 'Medium tabletop' && productStore.physicalScaleLabel === 'medium-tabletop') ||
+                            (option === 'Large object' && productStore.physicalScaleLabel === 'large-object')
+                          }
                         >
                           {option}
                         </Chip>
@@ -3303,82 +3326,132 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           </SmoothAccordion>
 
 
-          {/* ENVIRONMENT ACCORDION - Only show if not Studio */}
-          {productStore.sceneType !== 'studio-branding' && (
-            <SmoothAccordion
-              icon={MapPin}
-              title="Environment"
-              tooltip="Define the scene setting"
-              isOpen={openAccordionId === 'product-environment'}
-              onToggle={() => toggleSection('product-environment')}
-              isTouched={touchedSections.has('product-environment')}
-              variant="primary"
-            >
-              <div className="space-y-4">
-                <div className={SECTION_GROUP_CLASS}>
-                  <p className={GROUP_LABEL_CLASS}>MACRO ENVIRONMENT</p>
-                  <div className="flex flex-wrap gap-2">
-                    {ENVIRONMENT_MACRO_OPTIONS.map(env => (
-                      <Chip
-                        key={env}
-                        onClick={() => {
-                          productStore.setEnvironmentMacro(env);
-                          markSectionTouched('product-environment');
-                        }}
-                        selected={productStore.environmentMacro === env}
-                      >
-                        {env.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                      </Chip>
-                    ))}
-                  </div>
+          {/* PRODUCT STUDIO — ENVIRONMENT (single source of truth: productStore.environmentContext) */}
+          <SmoothAccordion
+            icon={MapPin}
+            title="Environment"
+            tooltip="Place the product into a real setting (product-only)"
+            isOpen={openAccordionId === 'product-environment'}
+            onToggle={() => toggleSection('product-environment')}
+            isTouched={touchedSections.has('product-environment')}
+            variant="primary"
+          >
+            {(() => {
+              const selectedMacro =
+                (productStore.environmentContext?.macro as EnvironmentMacro | null | undefined)
+                ?? (productStore.environmentMacro && productStore.environmentMacro !== 'studio' ? productStore.environmentMacro : null);
 
-                  {productStore.environmentMacro === 'custom' && (
-                    <input
-                      type="text"
-                      value={productStore.customEnvironmentText || ''}
-                      onChange={e => {
-                        productStore.setCustomEnvironmentText(e.target.value);
-                        markSectionTouched('product-environment');
-                      }}
-                      className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
-                      placeholder="Describe the environment..."
-                    />
+              const selectedMicro =
+                (productStore.environmentContext?.micro as MicroPlace | null | undefined)
+                ?? (productStore.microPlace && productStore.microPlace !== 'neutral-surface' ? productStore.microPlace : null);
+
+              const isDisabled = Boolean(values.ecommerceSidePlacementFlag || productStore.blankSpaceEnabled);
+
+              return (
+                <div className="space-y-4">
+                  {isDisabled && (
+                    <div className="rounded-xl border border-gray-200 bg-white p-3 text-gray-500 text-sm">
+                      Environment is disabled while Background Canvas is On (neutral background mode).
+                    </div>
                   )}
-                </div>
 
-                <div className={SECTION_GROUP_CLASS}>
-                  <p className={GROUP_LABEL_CLASS}>MICRO PLACE</p>
-                  <div className="flex flex-wrap gap-2">
-                    {(MICRO_PLACE_MAPPING[productStore.environmentMacro] || []).map(place => (
-                      <Chip
-                        key={place}
-                        onClick={() => {
-                          productStore.setMicroPlace(place);
-                          markSectionTouched('product-environment');
-                        }}
-                        selected={productStore.microPlace === place}
-                      >
-                        {place.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                      </Chip>
-                    ))}
+                  <div className={isDisabled ? 'opacity-50 pointer-events-none' : ''}>
+                    <div className={SECTION_GROUP_CLASS}>
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className={GROUP_LABEL_CLASS}>MACRO ENVIRONMENT</p>
+                          <p className="text-[11px] text-gray-500 mt-1">Choose a setting to match lighting + surfaces</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            productStore.setEnvironmentContext(null);
+                            markSectionTouched('product-environment');
+                          }}
+                          className="text-[11px] font-semibold text-gray-500 hover:text-gray-900"
+                        >
+                          Clear
+                        </button>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {ENVIRONMENT_MACRO_OPTIONS.map(env => (
+                          <Chip
+                            key={env}
+                            onClick={() => {
+                              productStore.setEnvironmentContext({ macro: env, micro: 'countertop' });
+                              markSectionTouched('product-environment');
+                            }}
+                            selected={selectedMacro === env}
+                          >
+                            {env === 'custom'
+                              ? 'Custom'
+                              : env.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                            }
+                          </Chip>
+                        ))}
+                      </div>
+
+                      {selectedMacro === 'custom' && (
+                        <label className="block space-y-1 mt-3">
+                          <p className="text-[11px] uppercase tracking-wide text-gray-500">Custom environment</p>
+                          <input
+                            value={productStore.customEnvironmentText || ''}
+                            onChange={(e) => {
+                              productStore.setCustomEnvironmentText(e.target.value);
+                              markSectionTouched('product-environment');
+                            }}
+                            placeholder="e.g. modern kitchen countertop"
+                            className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none"
+                          />
+                        </label>
+                      )}
+                    </div>
+
+                    <div className={SECTION_GROUP_CLASS}>
+                      <p className={GROUP_LABEL_CLASS}>MICRO PLACE</p>
+                      <div className="flex flex-wrap gap-2">
+                        {PRODUCT_ENVIRONMENT_MICRO_OPTIONS.map(place => (
+                          <Chip
+                            key={place}
+                            onClick={() => {
+                              const macro = (selectedMacro ?? 'kitchen') as EnvironmentMacro;
+                              productStore.setEnvironmentContext({ macro, micro: place });
+                              markSectionTouched('product-environment');
+                            }}
+                            selected={selectedMicro === place}
+                          >
+                            {place.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                          </Chip>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className={SECTION_GROUP_CLASS}>
+                      <div>
+                        <p className={GROUP_LABEL_CLASS}>LIGHTING</p>
+                        <p className="text-[11px] text-gray-500 mt-1">Product-safe lighting style</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {PRODUCT_ENVIRONMENT_LIGHTING_OPTIONS.map(option => (
+                          <Chip
+                            key={option.value}
+                            onClick={() => {
+                              productStore.setLighting(option.value);
+                              markSectionTouched('product-environment');
+                            }}
+                            selected={productStore.lighting === option.value}
+                          >
+                            {option.label}
+                          </Chip>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-
-                  {productStore.microPlace === 'custom' && (
-                    <input
-                      type="text"
-                      value={productStore.customMicroPlaceText || ''}
-                      onChange={e => {
-                        productStore.setCustomMicroPlaceText(e.target.value);
-                        markSectionTouched('product-environment');
-                      }}
-                      className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
-                      placeholder="Describe the placement surface..."
-                    />
-                  )}
                 </div>
-              </div>
-            </SmoothAccordion>
-          )}
+              );
+            })()}
+          </SmoothAccordion>
 
           <SmoothAccordion
             icon={Camera}
@@ -3498,79 +3571,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       </Chip>
                     ))}
                   </div>
-                </div>
-              </div>
-            </div>
-          </SmoothAccordion>
-
-          <SmoothAccordion
-            icon={Home}
-            title="Environment"
-            tooltip="Place the product into a real setting (product-only)"
-            isOpen={openAccordionId === 'product-environment'}
-            onToggle={() => toggleSection('product-environment')}
-            isTouched={touchedSections.has('product-environment')}
-            variant="primary"
-          >
-            <div className="space-y-4">
-              {values.ecommerceSidePlacementFlag === true && (
-                <div className="rounded-xl border border-gray-200 bg-white p-3 text-gray-500 text-sm">
-                  Environment is disabled while Background Canvas is On (neutral background mode).
-                </div>
-              )}
-
-              <div className={`${SECTION_GROUP_CLASS} ${values.ecommerceSidePlacementFlag ? 'opacity-50 pointer-events-none' : ''}`}>
-                <div>
-                  <p className={GROUP_LABEL_CLASS}>ENVIRONMENT</p>
-                  <p className="text-[11px] text-gray-500 mt-1">Choose a setting to match lighting + surfaces</p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {[...ENVIRONMENT_INDOOR, ...ENVIRONMENT_OUTDOOR].map(option => (
-                    <Chip
-                      key={option.value}
-                      onClick={() => {
-                        updateValue('environment', option.value);
-                        updateValue('customEnvironment', '');
-                        markSectionTouched('product-environment');
-                      }}
-                      selected={values.environment === option.value && !values.customEnvironment}
-                    >
-                      {option.value}
-                    </Chip>
-                  ))}
-                </div>
-                <label className="block space-y-1">
-                  <p className="text-[11px] uppercase tracking-wide text-gray-500">Custom environment</p>
-                  <input
-                    value={values.customEnvironment || ''}
-                    onChange={(e) => {
-                      updateValue('customEnvironment', e.target.value);
-                      markSectionTouched('product-environment');
-                    }}
-                    placeholder="e.g. modern kitchen countertop"
-                    className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none"
-                  />
-                </label>
-              </div>
-
-              <div className={`${SECTION_GROUP_CLASS} ${values.ecommerceSidePlacementFlag ? 'opacity-50 pointer-events-none' : ''}`}>
-                <div>
-                  <p className={GROUP_LABEL_CLASS}>LIGHTING</p>
-                  <p className="text-[11px] text-gray-500 mt-1">Product-safe lighting style</p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {LIGHTING_OPTIONS.map(option => (
-                    <Chip
-                      key={option.label}
-                      onClick={() => {
-                        updateValue('lightingStyle', option.value);
-                        markSectionTouched('product-environment');
-                      }}
-                      selected={values.lightingStyle === option.value}
-                    >
-                      {option.label}
-                    </Chip>
-                  ))}
                 </div>
               </div>
             </div>

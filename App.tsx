@@ -1093,8 +1093,8 @@ const App: React.FC = () => {
 
     let canceled = false;
     (async () => {
-      // Reset and rebuild products in store (with palette extraction)
-      store.reset();
+      // Rebuild products in store (with palette extraction) WITHOUT wiping user-selected settings.
+      store.resetProducts();
       for (const asset of productAssets) {
         if (canceled) return;
         if (!asset.base64 || !asset.mimeType) continue;
@@ -4551,7 +4551,8 @@ If the model attempts to create a scene or environment, override it and force a 
                   generationConfig: {
                     responseMimeType: 'image/png',
                     aspectRatio,
-                    preserveReferenceImage: true,
+                    // Product Studio forces a fixed output ratio; reference preservation can override ratio.
+                    preserveReferenceImage: !isProductPlacement,
                     temperature: 0.25,
                     topP: 0.9,
                     seed,
@@ -4784,7 +4785,8 @@ If the model attempts to create a scene or environment, override it and force a 
                   generationConfig: {
                     responseMimeType: 'image/png',
                     aspectRatio,
-                    preserveReferenceImage: true,
+                    // Product Studio forces a fixed output ratio; reference preservation can override ratio.
+                    preserveReferenceImage: !isProductPlacement,
                     temperature: 0.25,
                     topP: 0.9,
                     seed,
@@ -4935,7 +4937,8 @@ If the model attempts to create a scene or environment, override it and force a 
           generationConfig: {
             responseMimeType: 'image/png',
             aspectRatio,
-            preserveReferenceImage: true,
+            // Product Studio forces a fixed output ratio; reference preservation can override ratio.
+            preserveReferenceImage: !isProductPlacement,
             temperature: 0.25,
             topP: 0.9,
           },

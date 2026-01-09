@@ -571,6 +571,8 @@ type ProductStudioActions = {
     setFinish: (finish: string) => void;
 
     // Reset
+    /** Clears only `products` (and disables bundle), preserving all user-selected settings. */
+    resetProducts: () => void;
     reset: () => void;
 };
 
@@ -815,12 +817,47 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     // Environment — CANONICAL SETTER
     setEnvironmentContext: (ctx) => {
         set((state) => {
-            if (state.mode === 'studio' && ctx !== null) {
-                console.warn('[ENV][INVALID] Studio mode cannot have environment, forcing null');
-                return { environmentContext: null };
+            if (ctx === null) {
+                return {
+                    environmentContext: null,
+                    environmentMacro: 'studio',
+                    microPlace: 'neutral-surface',
+                    customEnvironmentText: '',
+                    customMicroPlaceText: '',
+                    mode: 'studio',
+                    sceneType: 'studio-branding',
+                };
             }
-            console.log('[ENV][SET]', ctx);
-            return { environmentContext: ctx };
+
+            if (state.blankSpaceEnabled) {
+                // Neutral background mode intentionally disables environments.
+                return {
+                    environmentContext: null,
+                    environmentMacro: 'studio',
+                    microPlace: 'neutral-surface',
+                };
+            }
+
+            const requestedMacro = (ctx.macro ?? 'kitchen') as EnvironmentMacro;
+            const validatedMacro = enforceValidEnvironment(
+                requestedMacro,
+                state.definition.type,
+                state.definition.physical.kind === 'drops' ? state.definition.physical.v.dropperState : undefined
+            );
+
+            const requestedMicro = (ctx.micro ?? getDefaultMicroPlace(validatedMacro)) as MicroPlace;
+            const validatedMicro = requestedMicro || getDefaultMicroPlace(validatedMacro);
+
+            const validatedLighting = enforceValidLighting(state.lighting, validatedMacro);
+
+            return {
+                environmentContext: { macro: validatedMacro, micro: validatedMicro },
+                environmentMacro: validatedMacro,
+                microPlace: validatedMicro,
+                lighting: validatedLighting,
+                mode: validatedMacro === 'studio' ? 'studio' : 'lifestyle-real',
+                sceneType: validatedMacro === 'studio' ? 'studio-branding' : 'lifestyle-real',
+            };
         });
     },
 
@@ -868,6 +905,8 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             blankSpaceEnabled: enabled,
             sceneType: enabled ? 'studio-branding' : state.sceneType,
             microPlace: enabled ? 'neutral-surface' : state.microPlace,
+            environmentContext: enabled ? null : state.environmentContext,
+            environmentMacro: enabled ? 'studio' : state.environmentMacro,
         })),
     setBlankSpaceSide: (side) => set({ blankSpaceSide: side }),
     setAspectRatio: (ratio) => set({ aspectRatio: ratio }),
@@ -1043,6 +1082,20 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setLens: (lens) => set({ lens }),
     setLightingRig: (rig) => set({ lightingRig: rig }),
     setFinish: (finish) => set({ finish }),
+
+    resetProducts: () =>
+        set((state) => ({
+            products: [],
+            activeProductId: null,
+            bundle: {
+                ...state.bundle,
+                enabled: false,
+                mode: 'off',
+                selectedBundleId: null,
+                primaryProductId: null,
+                secondaryProductIds: [],
+            },
+        })),
 
     // Reset
     reset: () => set(DEFAULT_PRODUCT_STUDIO_STATE),

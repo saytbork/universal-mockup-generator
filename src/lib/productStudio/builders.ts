@@ -108,6 +108,51 @@ function getColorDescription(color: { hex: string; semanticName: string }): stri
     return color.semanticName;
 }
 
+function safeHexToColorName(hexRaw: string | null | undefined): string {
+    const hex = String(hexRaw || '').trim().toLowerCase();
+    if (!hex.startsWith('#')) return 'neutral';
+    const value = hex.length === 4
+        ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`
+        : hex;
+    const m = /^#([0-9a-f]{6})$/.exec(value);
+    if (!m) return 'neutral';
+    const int = parseInt(m[1], 16);
+    const r = (int >> 16) & 255;
+    const g = (int >> 8) & 255;
+    const b = int & 255;
+
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const delta = max - min;
+    const l = (max + min) / 2 / 255;
+
+    if (delta < 12) {
+        if (l > 0.92) return 'white';
+        if (l < 0.10) return 'black';
+        if (l < 0.22) return 'charcoal';
+        if (l < 0.45) return 'gray';
+        return 'light gray';
+    }
+
+    let h = 0;
+    if (max === r) h = ((g - b) / delta) % 6;
+    else if (max === g) h = (b - r) / delta + 2;
+    else h = (r - g) / delta + 4;
+    h = Math.round(h * 60);
+    if (h < 0) h += 360;
+
+    const prefix = l > 0.78 ? 'light ' : (l < 0.28 ? 'deep ' : '');
+    if (h < 15 || h >= 345) return `${prefix}red`.trim();
+    if (h < 45) return `${prefix}orange`.trim();
+    if (h < 70) return `${prefix}yellow`.trim();
+    if (h < 160) return `${prefix}green`.trim();
+    if (h < 200) return `${prefix}teal`.trim();
+    if (h < 250) return `${prefix}blue`.trim();
+    if (h < 290) return `${prefix}indigo`.trim();
+    if (h < 330) return `${prefix}purple`.trim();
+    return `${prefix}pink`.trim();
+}
+
 // ============================================================================
 // PRODUCT BUILDER
 // ============================================================================
@@ -335,34 +380,44 @@ function buildComposition(state: ProductStudioState): string {
 function buildEnvironment(state: ProductStudioState): string {
     // Studio mode: no environment, controlled base only
     // If strict studio options are used, environment is suppressed
-    // NOTE: `environmentContext` is the canonical field, but this builder currently renders
-    // from legacy fields (`environmentMacro`, `microPlace`, etc.). Gating on `environmentContext`
-    // can incorrectly suppress environment output when UI writes legacy fields.
     if (state.sceneType === 'studio-branding' || state.blankSpaceEnabled) {
         return '';
     }
 
     const parts: string[] = [];
+    const macroRaw = (state.environmentContext?.macro ?? state.environmentMacro) as any;
+    const microRaw = (state.environmentContext?.micro ?? state.microPlace) as any;
+
+    const macro = typeof macroRaw === 'string' ? macroRaw : '';
+    const micro = typeof microRaw === 'string' ? microRaw : '';
+
+    if (!macro || macro === 'studio') {
+        return '';
+    }
 
     // Editorial mode: abstracted environment
     if (state.sceneType === 'editorial-product') {
         parts.push('editorial setting with stylized surface');
-        parts.push(`product placed on ${state.microPlace.replace(/-/g, ' ')}`);
+        if (micro) {
+            parts.push(`product placed on ${micro.replace(/-/g, ' ')}`);
+        }
         parts.push('abstracted environment, no specific room context');
     }
     // Lifestyle-real/UGC mode: full environment
     else if (state.sceneType === 'lifestyle-real' || state.sceneType === 'ugc-phone') {
-        const envText = state.environmentMacro === 'custom' && state.customEnvironmentText
+        const envText = macro === 'custom' && state.customEnvironmentText
             ? state.customEnvironmentText
-            : state.environmentMacro.replace(/-/g, ' ');
+            : macro.replace(/-/g, ' ');
 
         parts.push(`${envText} setting`);
 
-        const microText = state.microPlace === 'custom' && state.customMicroPlaceText
+        const microText = micro === 'custom' && state.customMicroPlaceText
             ? state.customMicroPlaceText
-            : state.microPlace.replace(/-/g, ' ');
+            : micro.replace(/-/g, ' ');
 
-        parts.push(`product placed on ${microText}`);
+        if (microText) {
+            parts.push(`product placed on ${microText}`);
+        }
     }
 
     // Lighting is now separate step 6
@@ -412,7 +467,8 @@ function buildAccentColor(state: ProductStudioState): string {
     const accent = state.accentColor?.trim();
     if (!accent) return '';
     const isDefault = accent.toLowerCase() === '#6366f1';
-    return isDefault ? '' : `ACCENT: ${accent}`;
+    if (isDefault) return '';
+    return `ACCENT: ${safeHexToColorName(accent)}`;
 }
 
 function buildAlignment(state: ProductStudioState): string {
@@ -441,9 +497,12 @@ function buildInteraction(state: ProductStudioState): string {
     const allowHands = state.interaction !== 'none' || state.handsHolding === true;
     if (!allowHands) return '';
 
-    const key = state.interaction === 'cropped-hand' || state.handsHolding === true ? 'Cropped Hand' : 'None';
-    const preset = INTERACTION_PRESETS[key];
-    return preset ? `INTERACTION: ${preset}` : '';
+    // NOTE: Do NOT use `INTERACTION_PRESETS` from `studioPresets` because they include forbidden
+    // terms like "face"/"body" which hard-block generation.
+    if (state.interaction === 'cropped-hand' || state.handsHolding === true) {
+        return 'INTERACTION: single cropped hand at the edge of frame lightly touching or presenting the product';
+    }
+    return '';
 }
 
 // ============================================================================
@@ -513,12 +572,24 @@ function buildPhotoMode(state: ProductStudioState): string {
 }
 
 function buildBackground(state: ProductStudioState): string {
+    // Real environments: avoid "studio background" contradictions.
+    if (state.sceneType === 'lifestyle-real' || state.sceneType === 'ugc-phone') {
+        const bg = state.backgroundColor?.trim();
+        const bgName = safeHexToColorName(bg);
+        if (!bg || bg.toLowerCase() === '#ffffff' || bgName === 'white') return '';
+        const accentName = safeHexToColorName(state.accentColor?.trim());
+        if (accentName && accentName !== 'white' && accentName !== 'neutral') {
+            return `COLOR PALETTE: subtle ${bgName} accents with ${accentName} highlights.`;
+        }
+        return `COLOR PALETTE: subtle ${bgName} accents.`;
+    }
+
     // Gradient background (ecommerce + studio)
     if (state.gradientEnabled) {
         const start = state.gradientStart?.trim() || '#ffffff';
         const end = state.gradientEnd?.trim() || '#f0f0f0';
         const angle = typeof state.gradientAngle === 'number' ? state.gradientAngle : 180;
-        return `BACKGROUND: Gradient background from ${start} to ${end} at ${angle} degrees. Seamless, studio-clean.`;
+        return `BACKGROUND: Smooth gradient backdrop from ${safeHexToColorName(start)} to ${safeHexToColorName(end)} at ${angle} degrees. Seamless, studio-clean.`;
     }
 
     // 1. Explicit Hex/Custom Background (Prioritized)
@@ -526,7 +597,7 @@ function buildBackground(state: ProductStudioState): string {
         const color = state.backgroundColor.trim();
         const isDefaultWhite = color.toLowerCase() === '#ffffff';
         if (isDefaultWhite) return '';
-        return `BACKGROUND: Custom studio background. Primary color: ${state.backgroundColor}. No physical walls, no rooms, no scenery.`;
+        return `BACKGROUND: Clean studio backdrop in ${safeHexToColorName(color)} tone.`;
     }
 
     // 2. Fallback to generic if no hex
@@ -632,9 +703,9 @@ function buildEcommerce(state: ProductStudioState): string {
         const start = state.gradientStart?.trim() || '#ffffff';
         const end = state.gradientEnd?.trim() || '#f0f0f0';
         const angle = typeof state.gradientAngle === 'number' ? state.gradientAngle : 180;
-        parts.push(`seamless gradient background from ${start} to ${end} at ${angle} degrees`);
+        parts.push(`seamless gradient background from ${safeHexToColorName(start)} to ${safeHexToColorName(end)} at ${angle} degrees`);
     } else if (state.backgroundColor && state.backgroundColor.trim().toLowerCase() !== '#ffffff') {
-        parts.push(`seamless solid background color ${state.backgroundColor.trim()}`);
+        parts.push(`seamless solid background in ${safeHexToColorName(state.backgroundColor.trim())} tone`);
     } else {
         parts.push('neutral seamless background');
     }
@@ -678,10 +749,12 @@ function buildNegativeConstraints(state: ProductStudioState): string {
     const allowHands = state.interaction !== 'none' || state.handsHolding === true;
 
     if (allowHands) {
-        return 'no people, no faces, no bodies, allow a single cropped hand only (no full hand), no animals, no digital devices, no user content, product only, clean composition, commercial standard, high resolution, sharp focus';
+        // Must NOT include any forbidden human terms (people/face/body/etc) in the prompt.
+        // "hand" is only allowed when `allowHands` is true (validated upstream).
+        return 'product only, inanimate objects only, allow a single cropped hand at the edge of frame, no animals, no digital devices, no user content, clean composition, commercial standard, high resolution, sharp focus';
     }
 
-    return 'no people, no animals, no digital devices, no user content, product only, clean composition, commercial standard, high resolution, sharp focus';
+    return 'product only, inanimate objects only, no animals, no digital devices, no user content, clean composition, commercial standard, high resolution, sharp focus';
 }
 
 function buildQualityBar(): string {

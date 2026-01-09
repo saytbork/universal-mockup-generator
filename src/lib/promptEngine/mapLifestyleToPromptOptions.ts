@@ -1007,7 +1007,7 @@ export function mapLifestyleToPromptOptions(
     const creationModeStructural = isEnvironmentSceneIntent
         ? 'Environment-first lifestyle composition keeping the product grounded within the lived-in room.'
         : isEcommerceBlankSpaceActive
-            ? 'Ecommerce blank-space layout with pure white background (#FFFFFF), heavy negative space for UX overlays, and no environmental narrative.'
+            ? 'Ecommerce blank-space layout with pure white background, heavy negative space for UX overlays, and no environmental narrative.'
             : CREATION_MODE_STRUCTURAL_MAP[creationModeKey] || CREATION_MODE_STRUCTURAL_MAP['Lifestyle UGC'];
 
     // Map to internal creation mode
@@ -1368,7 +1368,7 @@ export function mapLifestyleToPromptOptions(
         mapped.lighting =
             wantsGradientBackground
                 ? 'Gradient ecommerce backdrop with even studio lighting and gentle reflections.'
-                : 'Pure white background (#FFFFFF) with neutral studio lighting, flat even illumination, and only a subtle contact shadow directly beneath the product.';
+                : 'Pure white background with neutral studio lighting, flat even illumination, and only a subtle contact shadow directly beneath the product.';
         (mapped as any).timeLightingContext = mapped.lighting;
         console.log('[MAP] Ecommerce Blank Space lighting enforced:', mapped.lighting);
     } else {

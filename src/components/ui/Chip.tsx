@@ -48,8 +48,12 @@ export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
       .filter(Boolean)
       .join(' ');
 
+    const inferredTitle =
+      props.title ??
+      (typeof children === 'string' ? children : undefined);
+
     return (
-      <button type="button" ref={ref} className={classes} disabled={disabled} {...props}>
+      <button type="button" ref={ref} className={classes} disabled={disabled} title={inferredTitle} {...props}>
         {children}
       </button>
     );
