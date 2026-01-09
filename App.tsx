@@ -1069,10 +1069,12 @@ const App: React.FC = () => {
       }
       return next;
     });
-  }, [productAssets]);
+  }, [isProductPlacement, productAssets]);
 
   // PHASE 5: Sync productAssets to ProductStudioStore for Product mode
   useEffect(() => {
+    if (!isProductPlacement) return;
+
     const store = useProductStudioStore.getState();
     const currentProducts = store.products;
 
