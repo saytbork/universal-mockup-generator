@@ -26,6 +26,23 @@ import type {
     PropDensity,
 } from './types';
 
+import {
+    BASE_STUDIO,
+    PHOTO_MODE_PRESETS,
+    SURFACE_PRESETS,
+    COMPOSITION_PRESETS,
+    SCALE_PRESETS,
+    SPACING_PRESETS,
+    NEGATIVE_SPACE_PRESETS,
+    LENS_PRESETS,
+    CAMERA_ANGLE_PRESETS,
+    CAMERA_DISTANCE_PRESETS,
+    LIGHTING_PRESETS,
+    FINISH_PRESETS,
+    SHADOW_PRESETS,
+    INTERACTION_PRESETS,
+} from '../promptEngine/studioPresets';
+
 // ============================================================================
 // FORBIDDEN TERMS VALIDATION
 // ============================================================================
@@ -301,8 +318,9 @@ function buildComposition(state: ProductStudioState): string {
 
 function buildEnvironment(state: ProductStudioState): string {
     // Studio mode: no environment, controlled base only
-    if (state.sceneType === 'studio-branding' || state.blankSpaceEnabled) {
-        return 'controlled studio base surface';
+    // If strict studio options are used, environment is suppressed
+    if (state.sceneType === 'studio-branding' || state.blankSpaceEnabled || state.environmentContext === null) {
+        return '';
     }
 
     const parts: string[] = [];
@@ -407,13 +425,52 @@ function buildSceneType(state: ProductStudioState): string {
 // CREATIVITY BUILDER
 // ============================================================================
 
+// ============================================================================
+// NEW BUILDERS (Synced with Studio Presets)
+// ============================================================================
+
+function buildPhotoMode(state: ProductStudioState): string {
+    if (state.photoMode && PHOTO_MODE_PRESETS[state.photoMode]) {
+        return `PHOTO_MODE: ${PHOTO_MODE_PRESETS[state.photoMode]}`;
+    }
+    return '';
+}
+
+function buildBackground(state: ProductStudioState): string {
+    // 1. Explicit Hex/Custom Background (Prioritized)
+    if (state.backgroundColor) {
+        return `BACKGROUND: Custom studio background. Primary color: ${state.backgroundColor}. No physical walls, no rooms, no scenery.`;
+    }
+
+    // 2. Fallback to generic if no hex
+    return '';
+}
+
+function buildShadow(state: ProductStudioState): string {
+    if (state.shadow && SHADOW_PRESETS[state.shadow]) {
+        return SHADOW_PRESETS[state.shadow];
+    }
+    return '';
+}
+
+// ============================================================================
+// CREATIVITY BUILDER
+// ============================================================================
+
 function buildCreativity(state: ProductStudioState): string {
     if (state.blankSpaceEnabled) return '';
 
-    // Creativity Level 0 = Off
-    if (state.creativityLevel === 0) return '';
-
     const parts: string[] = [];
+
+    // 0. Props Injection (Ingredient Stack Support)
+    // Only inject props if in Ingredient Stack mode OR if density is explicitly set
+    const isIngredientStack = state.photoMode === 'Ingredient Stack';
+    if (state.props && (isIngredientStack || state.propDensity !== 'none')) {
+        parts.push(`PROPS/INGREDIENTS: ${state.props}. Arranged naturally around the product.`);
+    }
+
+    // Creativity Level 0Check = Off
+    if (state.creativityLevel === 0 && !isIngredientStack) return parts.join(' ');
 
     // 1. Creative Theme (Expanded)
     const themeMap: Record<CreativeTheme, string> = {
@@ -553,8 +610,14 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
 
     // 4. Composition & Art Direction (Key for Olly/AG1)
     segments.push(buildComposition(state));
+    // 4b. Photo Mode (NEW)
+    segments.push(buildPhotoMode(state));
+    // 4c. Background (NEW - Hex Support)
+    segments.push(buildBackground(state));
+    // 4d. Shadow (NEW)
+    segments.push(buildShadow(state));
 
-    // 5. Creativity System
+    // 5. Creativity System (Includes Props)
     if (!state.blankSpaceEnabled) {
         const creativity = buildCreativity(state);
         if (creativity) segments.push(creativity);
@@ -617,6 +680,12 @@ function assembleBundlePrompt(state: ProductStudioState): string {
 
     // 4. Composition
     segments.push(buildComposition(state));
+    // 4b. Photo Mode (NEW)
+    segments.push(buildPhotoMode(state));
+    // 4c. Background (NEW - Hex Support)
+    segments.push(buildBackground(state));
+    // 4d. Shadow (NEW)
+    segments.push(buildShadow(state));
 
     // 5. Creativity
     if (!state.blankSpaceEnabled) {
