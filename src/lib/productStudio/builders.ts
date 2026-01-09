@@ -684,7 +684,7 @@ function buildNegativeConstraints(state: ProductStudioState): string {
 }
 
 function buildQualityBar(): string {
-    return 'real ecommerce hero image, premium supplement or skincare brand campaign, ultra clean, high resolution, commercial-ready, no ambiguity, art-directed, brand-safe';
+    return 'real ecommerce hero image, premium supplement or skincare brand campaign, ultra clean, high resolution, commercial-ready, no ambiguity, art-directed, brand-safe, inanimate objects only';
 }
 
 /**
@@ -759,9 +759,6 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
         segments.push(buildEcommerce(state));
     }
 
-    // 10. Negative Constraints (Strict)
-    segments.push(buildNegativeConstraints(state));
-
     // 11. Final Quality Bar
     segments.push(buildQualityBar());
 
@@ -823,8 +820,6 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     segments.push(buildCamera(state));
 
     // 10. Negative Constraints
-    segments.push(buildNegativeConstraints(state));
-
     // 11. Final Quality Bar
     segments.push(buildQualityBar());
 

@@ -1064,7 +1064,12 @@ export async function addProductWithPalette(
     const store = useProductStudioStore.getState();
 
     // Extract palette from product image
-    const imageSource = product.base64 || product.imageUrl;
+    const imageSource =
+        product.base64
+            ? (product.base64.startsWith('data:')
+                ? product.base64
+                : `data:${product.mimeType || 'image/png'};base64,${product.base64}`)
+            : product.imageUrl;
     let palette: ProductAsset['palette'] = undefined;
 
     if (imageSource) {
