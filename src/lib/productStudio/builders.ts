@@ -687,6 +687,18 @@ function buildQualityBar(): string {
     return 'real ecommerce hero image, premium supplement or skincare brand campaign, ultra clean, high resolution, commercial-ready, no ambiguity, art-directed, brand-safe, inanimate objects only';
 }
 
+function buildIntegrityConstraints(): string {
+    // Keep this free of forbidden human terms.
+    return [
+        'single product only (unless bundle mode)',
+        'product must be fully assembled and physically plausible',
+        'no duplicates of the product',
+        'no broken, warped, melted, or deformed objects',
+        'no floating parts, no separated components',
+        'no partial or missing parts (cap, dropper, lid, label must be aligned and intact)',
+    ].join(', ');
+}
+
 /**
  * FINAL PROMPT ASSEMBLY ORDER (MANDATORY):
  * 1. Scene Type
@@ -762,6 +774,9 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     // 11. Final Quality Bar
     segments.push(buildQualityBar());
 
+    // 11b. Integrity / Artifact Guards
+    segments.push(buildIntegrityConstraints());
+
     // Aspect ratio technical
     segments.push(buildAspectRatio(state));
 
@@ -823,6 +838,9 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     // 11. Final Quality Bar
     segments.push(buildQualityBar());
 
+    // 11b. Integrity / Artifact Guards
+    segments.push(buildIntegrityConstraints());
+
     segments.push(buildAspectRatio(state));
 
     if (state.blankSpaceEnabled) {
@@ -836,9 +854,22 @@ function assembleBundlePrompt(state: ProductStudioState): string {
 // NEGATIVE PROMPT
 // ============================================================================
 
-function buildNegativePrompt(): string {
+function buildNegativePrompt(state: ProductStudioState): string {
+    const allowHands = state.interaction !== 'none' || state.handsHolding === true;
+    const humanNegatives = allowHands
+        ? ['person', 'people', 'face', 'body', 'full hand', 'multiple hands']
+        : ['person', 'people', 'face', 'body', 'hand', 'hands'];
+
     return [
-        'blurry', 'low quality', 'distorted', 'watermark', 'text overlay',
+        ...humanNegatives,
+        // Quality / artifacts
+        'blurry', 'low quality', 'distorted', 'warped', 'deformed', 'melted', 'glitched',
+        'broken object', 'broken glass', 'cracked', 'shattered', 'fragmented',
+        'floating parts', 'separated parts', 'disconnected components', 'disembodied cap', 'detached dropper',
+        'duplicate product', 'multiple bottles', 'extra caps', 'extra droppers',
+        'cropped product', 'cut off', 'missing parts', 'tilted horizon',
+        // Styling / safety
+        'watermark', 'text overlay',
         'cartoon', 'illustration', 'drawing', 'anime',
         'oversaturated', 'underexposed', 'overexposed',
     ].join(', ');
@@ -873,7 +904,7 @@ export function generateProductJobs(state: ProductStudioState): ProductGeneratio
             productId: state.bundle.primaryProductId!,
             productName: `Bundle: ${state.bundle.mode}`,
             prompt,
-            negativePrompt: buildNegativePrompt(),
+            negativePrompt: buildNegativePrompt(state),
             aspectRatio: state.aspectRatio,
             bundleId: state.bundle.selectedBundleId || 'custom',
             sceneType: state.sceneType,
@@ -893,7 +924,7 @@ export function generateProductJobs(state: ProductStudioState): ProductGeneratio
             productId: product.id,
             productName: product.name,
             prompt,
-            negativePrompt: buildNegativePrompt(),
+            negativePrompt: buildNegativePrompt(state),
             aspectRatio: state.aspectRatio,
             sceneType: state.sceneType,
         });
