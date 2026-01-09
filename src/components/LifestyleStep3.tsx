@@ -922,7 +922,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const productStore = useProductStudioStore();
 
   // Derived state for Environment (Strict Rule: Studio = No Environment, Lifestyle = Always Environment)
-  const isEnvironmentMode = !isProductMode || productStore.sceneType !== 'studio-branding';
+  // Product Studio must NEVER show Lifestyle/UGC sections.
+  // Keep all "environment/lifestyle" UI strictly disabled when `isProductMode` is true.
+  const isEnvironmentMode = !isProductMode;
+
+  // HARD LOCK: Product Studio is always studio-branding (no lifestyle/ugc scene types).
+  useEffect(() => {
+    if (!isProductMode) return;
+    if (productStore.sceneType !== 'studio-branding' || productStore.mode !== 'studio') {
+      productStore.setMode('studio');
+    }
+  }, [isProductMode, productStore.mode, productStore.sceneType, productStore]);
 
   // Sync Product UI controls to ProductStudioStore when isProductMode === true
   const updateProductStudioValue = useCallback(<K extends keyof ProductStudioState>(
@@ -1040,28 +1050,28 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           const themeMap: Record<string, CreativeTheme> = {
             'Clinical Minimal': 'clinical-minimal',
             'Premium Luxury': 'premium-clean',
-            'Ingredient Color Story': 'clinical-minimal',
-            'Fresh & Bright': 'premium-clean',
-            'Dark & Dramatic': 'bold-graphic',
-            'Playful Pop': 'bold-graphic',
-            'Tech Clean': 'clinical-minimal',
+            'Ingredient Color Story': 'ingredient-color',
+            'Fresh & Bright': 'fresh-bright',
+            'Dark & Dramatic': 'dark-dramatic',
+            'Playful Pop': 'playful-pop',
+            'Tech Clean': 'tech-clean',
           };
           mappedValue = themeMap[value as string] ?? 'clinical-minimal';
         } else if (key === 'productPaletteSource') {
           const paletteMap: Record<string, PaletteSource> = {
             'Use product label colors': 'brand',
-            'Warm neutrals': 'neutral',
-            'Cool neutrals': 'neutral',
-            'Complementary accent': 'brand',
-            'Custom palette': 'brand',
+            'Warm neutrals': 'warm-neutral',
+            'Cool neutrals': 'cool-neutral',
+            'Complementary accent': 'complementary',
+            'Custom palette': 'custom',
           };
-          mappedValue = paletteMap[value as string] ?? 'neutral';
+          mappedValue = paletteMap[value as string] ?? 'warm-neutral';
         } else if (key === 'productPropDensity') {
           const densityMap: Record<string, PropDensity> = {
             'None': 'none',
             'Light': 'low',
             'Medium': 'medium',
-            'Dense': 'medium',
+            'Dense': 'dense',
           };
           mappedValue = densityMap[value as string] ?? 'none';
         } else if (key === 'productCameraSystem') {
@@ -2080,8 +2090,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">FINISH / TREATMENT</p>
                               <div className="flex flex-wrap gap-2">
                                 {[
-                                  'High-Gloss Retouch', 'Film Grain Lux', 'Matte Editorial',
-                                  'Hyperreal CGI Blend', 'Clinical Lab Polish', 'Vibrant Lifestyle Pop'
+                                  'High-Gloss Commercial', 'Film Grain Luxury', 'Matte Editorial',
+                                  'Hyperreal CGI Blend', 'Clinical Lab Polish', 'Vibrant Color Pop'
                                 ].map(finish => (
                                   <button
                                     key={finish}

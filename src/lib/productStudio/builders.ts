@@ -319,7 +319,10 @@ function buildComposition(state: ProductStudioState): string {
 function buildEnvironment(state: ProductStudioState): string {
     // Studio mode: no environment, controlled base only
     // If strict studio options are used, environment is suppressed
-    if (state.sceneType === 'studio-branding' || state.blankSpaceEnabled || state.environmentContext === null) {
+    // NOTE: `environmentContext` is the canonical field, but this builder currently renders
+    // from legacy fields (`environmentMacro`, `microPlace`, etc.). Gating on `environmentContext`
+    // can incorrectly suppress environment output when UI writes legacy fields.
+    if (state.sceneType === 'studio-branding' || state.blankSpaceEnabled) {
         return '';
     }
 
@@ -355,6 +358,11 @@ function buildEnvironment(state: ProductStudioState): string {
 // ============================================================================
 
 function buildLighting(state: ProductStudioState): string {
+    // Studio branding uses lighting rigs (preset-driven)
+    if (state.sceneType === 'studio-branding' && state.lightingRig && LIGHTING_PRESETS[state.lightingRig]) {
+        return `LIGHTING_RIG: ${LIGHTING_PRESETS[state.lightingRig]}`;
+    }
+
     const lightingMap: Record<string, string> = {
         'natural-light': 'soft natural lighting',
         'sunny-day': 'bright sunny daylight',
@@ -369,6 +377,37 @@ function buildLighting(state: ProductStudioState): string {
     };
 
     return `${lightingMap[state.lighting] || 'professional lighting'}, soft shadows, controlled highlights, clean reflections, no harsh cinematic contrast`;
+}
+
+function buildLens(state: ProductStudioState): string {
+    if (!state.lens) return '';
+    const preset = LENS_PRESETS[state.lens];
+    return preset ? `LENS: ${preset}` : `LENS: ${state.lens}`;
+}
+
+function buildFinish(state: ProductStudioState): string {
+    if (!state.finish) return '';
+    const preset = FINISH_PRESETS[state.finish];
+    return preset ? `FINISH: ${preset}` : `FINISH: ${state.finish}`;
+}
+
+function buildAccentColor(state: ProductStudioState): string {
+    // Only inject if user deviated from default accent
+    const accent = state.accentColor?.trim();
+    if (!accent) return '';
+    const isDefault = accent.toLowerCase() === '#6366f1';
+    return isDefault ? '' : `ACCENT: ${accent}`;
+}
+
+function buildAlignment(state: ProductStudioState): string {
+    if (!state.alignment) return '';
+    return `ALIGNMENT: ${state.alignment}`;
+}
+
+function buildCustomHeroCue(state: ProductStudioState): string {
+    const cue = state.customHeroCue?.trim();
+    if (!cue) return '';
+    return `HERO_CUE: ${cue}`;
 }
 
 // ============================================================================
@@ -430,15 +469,17 @@ function buildSceneType(state: ProductStudioState): string {
 // ============================================================================
 
 function buildPhotoMode(state: ProductStudioState): string {
-    if (state.photoMode && PHOTO_MODE_PRESETS[state.photoMode]) {
-        return `PHOTO_MODE: ${PHOTO_MODE_PRESETS[state.photoMode]}`;
-    }
-    return '';
+    if (!state.photoMode) return '';
+    const preset = PHOTO_MODE_PRESETS[state.photoMode];
+    return preset ? `PHOTO_MODE: ${preset}` : `PHOTO_MODE: ${state.photoMode}`;
 }
 
 function buildBackground(state: ProductStudioState): string {
     // 1. Explicit Hex/Custom Background (Prioritized)
     if (state.backgroundColor) {
+        const color = state.backgroundColor.trim();
+        const isDefaultWhite = color.toLowerCase() === '#ffffff';
+        if (isDefaultWhite) return '';
         return `BACKGROUND: Custom studio background. Primary color: ${state.backgroundColor}. No physical walls, no rooms, no scenery.`;
     }
 
@@ -447,10 +488,16 @@ function buildBackground(state: ProductStudioState): string {
 }
 
 function buildShadow(state: ProductStudioState): string {
-    if (state.shadow && SHADOW_PRESETS[state.shadow]) {
-        return SHADOW_PRESETS[state.shadow];
-    }
-    return '';
+    if (!state.shadow) return '';
+
+    const shadowKeyMap: Record<ProductStudioState['shadow'], keyof typeof SHADOW_PRESETS> = {
+        'soft-drop': 'Soft Drop',
+        'hard-drop': 'Hard Drop',
+        'floating': 'Floating',
+    };
+
+    const presetKey = shadowKeyMap[state.shadow];
+    return presetKey ? (SHADOW_PRESETS[presetKey] || '') : '';
 }
 
 // ============================================================================
@@ -616,6 +663,12 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     segments.push(buildBackground(state));
     // 4d. Shadow (NEW)
     segments.push(buildShadow(state));
+    // 4e. Studio Styling (NEW)
+    segments.push(buildLens(state));
+    segments.push(buildFinish(state));
+    segments.push(buildAccentColor(state));
+    segments.push(buildAlignment(state));
+    segments.push(buildCustomHeroCue(state));
 
     // 5. Creativity System (Includes Props)
     if (!state.blankSpaceEnabled) {
@@ -651,7 +704,12 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
         segments.push('neutral seamless background');
     }
 
-    return segments.filter(Boolean).join(', ');
+    const finalPrompt = segments.filter(Boolean).join(', ');
+    console.log('2. Generated Prompt Parts:', segments);
+    console.log('3. FINAL PROMPT:', finalPrompt);
+    console.groupEnd();
+
+    return finalPrompt;
 }
 
 function assembleBundlePrompt(state: ProductStudioState): string {

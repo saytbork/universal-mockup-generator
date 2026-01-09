@@ -1,23 +1,11 @@
 import React from 'react';
 import './index.css';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import App from './App';
-import LandingPage from './LandingPage';
 import { AuthProvider } from './src/contexts/AuthContext';
-import UseCases from './UseCases';
-import Comparisons from './Comparisons';
-import BlogPage from './BlogPage';
-import GuidesPage from './GuidesPage';
-import FAQPage from './FAQPage';
-import SiteNav from './src/components/SiteNav';
-import SiteFooter from './src/components/SiteFooter';
-import PrivacyPage from './PrivacyPage';
-import TermsPage from './TermsPage';
 import Login from './src/pages/Login';
 import Dashboard from './src/pages/Dashboard';
-import BlogArticlePage from './BlogArticlePage';
-import GuideArticlePage from './GuideArticlePage';
 import { TooltipProvider } from './src/components/ui/tooltip';
 
 class RootErrorBoundary extends React.Component<
@@ -65,14 +53,6 @@ class RootErrorBoundary extends React.Component<
   }
 }
 
-const MarketingLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="bg-gray-50 text-gray-900 dark:bg-black dark:text-white min-h-screen flex flex-col">
-    <SiteNav />
-    <main className="flex-1">{children}</main>
-    <SiteFooter />
-  </div>
-);
-
 const rootElement = document.getElementById('root');
 if (!rootElement) {
   throw new Error("Could not find root element to mount to");
@@ -91,20 +71,12 @@ root.render(
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<MarketingLayout><LandingPage /></MarketingLayout>} />
-            <Route path="/use-cases" element={<MarketingLayout><UseCases /></MarketingLayout>} />
-            <Route path="/comparisons" element={<MarketingLayout><Comparisons /></MarketingLayout>} />
-            <Route path="/blog" element={<MarketingLayout><BlogPage /></MarketingLayout>} />
-            <Route path="/blog/:slug" element={<MarketingLayout><BlogArticlePage /></MarketingLayout>} />
-            <Route path="/guides" element={<MarketingLayout><GuidesPage /></MarketingLayout>} />
-            <Route path="/guides/:slug" element={<MarketingLayout><GuideArticlePage /></MarketingLayout>} />
-            <Route path="/faq" element={<MarketingLayout><FAQPage /></MarketingLayout>} />
-            <Route path="/privacy" element={<MarketingLayout><PrivacyPage /></MarketingLayout>} />
-            <Route path="/terms" element={<MarketingLayout><TermsPage /></MarketingLayout>} />
             <Route path="/app" element={<AppWithTooltips />} />
             <Route path="/app/generator" element={<AppWithTooltips />} />
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/" element={<Navigate to="/app" replace />} />
+            <Route path="*" element={<Navigate to="/app" replace />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>

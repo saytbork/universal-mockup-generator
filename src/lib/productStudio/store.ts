@@ -414,8 +414,8 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
 
     // PRODUCT STUDIO UI CONTROLS (NEW)
     photoMode: 'Hero Landing Page',
-    backgroundColor: '',
-    accentColor: '',
+    backgroundColor: '#ffffff',
+    accentColor: '#6366f1',
     alignment: 'center',
     shadow: 'soft-drop',
     props: '',
@@ -424,7 +424,7 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     proMode: false,
     lens: '50mm Product Prime',
     lightingRig: 'Softbox Wrap',
-    finish: 'High-Gloss Retouch',
+    finish: 'High-Gloss Commercial',
 
     // LEGACY (To be removed)
     ecommerceMode: false,
