@@ -68,6 +68,8 @@ type UGCRealModeSettings = {
   framingId: string;
 };
 
+const PRODUCT_DEFAULT_ASPECT_RATIO = '4:3' as const;
+
 const createDefaultUGCRealSettings = (): UGCRealModeSettings => ({
   isEnabled: false,
   selectedHeroPersonaIds: [],
@@ -4406,7 +4408,8 @@ If the model attempts to create a scene or environment, override it and force a 
         // PHASE 2: PRODUCT MODE - Use ProductStudioStore directly, bypass legacy mapper
         if (isProductPlacement) {
           // Read directly from ProductStudioStore - SINGLE SOURCE OF TRUTH
-          const productState = useProductStudioStore.getState();
+          const productStateRaw = useProductStudioStore.getState();
+          const productState = { ...productStateRaw, aspectRatio: PRODUCT_DEFAULT_ASPECT_RATIO as any };
           console.log('[PRODUCT STUDIO STATE]', productState);
 
           // Generate jobs using Product-only builders
@@ -4440,7 +4443,7 @@ If the model attempts to create a scene or environment, override it and force a 
             creationIntent: 'product',
             sceneIntent: 'ecommerce',
             personIncluded: false,
-            aspectRatio: productState.aspectRatio,
+            aspectRatio: PRODUCT_DEFAULT_ASPECT_RATIO,
           };
         } else if (lifestyleStep3Values) {
           // LIFESTYLE/UGC MODE - Use legacy mapper (unchanged)
@@ -4477,7 +4480,7 @@ If the model attempts to create a scene or environment, override it and force a 
         // MANDATORY LOG - Final prompt string MUST show injected values
         console.log('[FINAL PROMPT STRING]', finalPrompt);
 
-        const aspectRatio = options?.aspectRatio || '1:1';
+        const aspectRatio = isProductPlacement ? PRODUCT_DEFAULT_ASPECT_RATIO : (options?.aspectRatio || '1:1');
 
         const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
         if (!resolvedApiKey) {
@@ -4710,7 +4713,7 @@ If the model attempts to create a scene or environment, override it and force a 
         })),
       };
 
-      const aspectRatio = options?.aspectRatio || '1:1';
+      const aspectRatio = isProductPlacement ? PRODUCT_DEFAULT_ASPECT_RATIO : (options?.aspectRatio || '1:1');
       const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
       if (!resolvedApiKey) {
         return;
@@ -4917,7 +4920,7 @@ If the model attempts to create a scene or environment, override it and force a 
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string, apiVersion: 'v1beta' });
       const base64Image = generatedImageUrl.split(',')[1];
 
-      const aspectRatio = options?.aspectRatio || '1:1';
+      const aspectRatio = isProductPlacement ? PRODUCT_DEFAULT_ASPECT_RATIO : (options?.aspectRatio || '1:1');
       const response = await ai.models.generateContent({
         model: GEMINI_IMAGE_MODEL, // maintain this but enforce insert behavior through the prompt and config above
         contents: {

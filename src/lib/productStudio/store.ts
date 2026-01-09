@@ -407,7 +407,7 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     framing: 'centered',
 
     // 7️⃣ OUTPUT & EXPORT
-    aspectRatio: '1:1',
+    aspectRatio: '4:3',
     blankSpaceEnabled: false,
     blankSpaceSide: 'right',
 
