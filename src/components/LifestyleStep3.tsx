@@ -1212,16 +1212,26 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
   const handleGradientColorChange = useCallback((key: 'ecommerceGradientStart' | 'ecommerceGradientEnd', color: string) => {
     updateValue(key, color as any);
+    if (isProductMode) {
+      productStore.setGradientEnabled(true);
+      if (key === 'ecommerceGradientStart') productStore.setGradientStart(color);
+      if (key === 'ecommerceGradientEnd') productStore.setGradientEnd(color);
+    }
     markSectionTouched('ecommerce');
-  }, [updateValue, markSectionTouched]);
+  }, [updateValue, markSectionTouched, isProductMode, productStore]);
 
   const invertGradient = useCallback(() => {
-    const start = values.ecommerceGradientStart;
-    const end = values.ecommerceGradientEnd;
+    const start = isProductMode ? productStore.gradientStart : values.ecommerceGradientStart;
+    const end = isProductMode ? productStore.gradientEnd : values.ecommerceGradientEnd;
     updateValue('ecommerceGradientStart', end);
     updateValue('ecommerceGradientEnd', start);
+    if (isProductMode) {
+      productStore.setGradientEnabled(true);
+      productStore.setGradientStart(end);
+      productStore.setGradientEnd(start);
+    }
     markSectionTouched('ecommerce');
-  }, [values.ecommerceGradientStart, values.ecommerceGradientEnd, updateValue, markSectionTouched]);
+  }, [isProductMode, productStore, values.ecommerceGradientStart, values.ecommerceGradientEnd, updateValue, markSectionTouched]);
 
   const ageSliderProgress = Math.min(Math.max(((values.age - 18) / 72) * 100, 0), 100);
   const ageSliderLabel = getAgeCategory(values.age);
@@ -3610,43 +3620,66 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                     <div className="flex flex-wrap gap-2">
                       <Chip
-                        selected={values.ecommerceBackgroundMode === 'white'}
-                        onClick={() => { updateValue('ecommerceBackgroundMode', 'white'); markSectionTouched('ecommerce'); }}
+                        selected={isProductMode ? productStore.gradientEnabled === false : values.ecommerceBackgroundMode === 'white'}
+                        onClick={() => {
+                          updateValue('ecommerceBackgroundMode', 'white');
+                          if (isProductMode) {
+                            productStore.setGradientEnabled(false);
+                          }
+                          markSectionTouched('ecommerce');
+                        }}
                       >
                         Solid
                       </Chip>
                       <Chip
-                        selected={values.ecommerceBackgroundMode === 'gradient'}
-                        onClick={() => { updateValue('ecommerceBackgroundMode', 'gradient'); markSectionTouched('ecommerce'); }}
+                        selected={isProductMode ? productStore.gradientEnabled === true : values.ecommerceBackgroundMode === 'gradient'}
+                        onClick={() => {
+                          updateValue('ecommerceBackgroundMode', 'gradient');
+                          if (isProductMode) {
+                            productStore.setGradientEnabled(true);
+                          }
+                          markSectionTouched('ecommerce');
+                        }}
                       >
                         Gradient
                       </Chip>
                     </div>
 
-                    {values.ecommerceBackgroundMode === 'white' ? (
+                    {(isProductMode ? productStore.gradientEnabled === false : values.ecommerceBackgroundMode === 'white') ? (
                       <div className="flex items-center gap-4">
                         {/* Circular color swatch */}
                         <label className="relative">
                           <span
                             className="block h-10 w-10 rounded-full border-2 border-gray-200 cursor-pointer "
-                            style={{ background: values.ecommerceBackgroundColor || '#ffffff' }}
+                            style={{ background: (isProductMode ? productStore.backgroundColor : values.ecommerceBackgroundColor) || '#ffffff' }}
                           />
                           <input
                             type="color"
                             className="absolute inset-0 opacity-0 cursor-pointer"
-                            value={values.ecommerceBackgroundColor || '#ffffff'}
-                            onChange={(e) => { updateValue('ecommerceBackgroundColor', e.target.value); markSectionTouched('ecommerce'); }}
+                            value={(isProductMode ? productStore.backgroundColor : values.ecommerceBackgroundColor) || '#ffffff'}
+                            onChange={(e) => {
+                              updateValue('ecommerceBackgroundColor', e.target.value);
+                              if (isProductMode) {
+                                productStore.setGradientEnabled(false);
+                                productStore.setBackgroundColor(e.target.value);
+                              }
+                              markSectionTouched('ecommerce');
+                            }}
                           />
                         </label>
                         {/* HEX input */}
                         <div className="flex-1">
                           <input
                             type="text"
-                            value={(values.ecommerceBackgroundColor || '#FFFFFF').toUpperCase()}
+                            value={(((isProductMode ? productStore.backgroundColor : values.ecommerceBackgroundColor) || '#FFFFFF') as string).toUpperCase()}
                             onChange={e => {
                               const hex = e.target.value.toUpperCase();
                               if (/^#[0-9A-F]{0,6}$/i.test(hex) || hex === '') {
                                 updateValue('ecommerceBackgroundColor', hex);
+                                if (isProductMode) {
+                                  productStore.setGradientEnabled(false);
+                                  productStore.setBackgroundColor(hex);
+                                }
                                 markSectionTouched('ecommerce');
                               }
                             }}
@@ -3654,6 +3687,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               const hex = e.target.value.toUpperCase();
                               if (!/^#[0-9A-F]{6}$/i.test(hex)) {
                                 updateValue('ecommerceBackgroundColor', '#FFFFFF');
+                                if (isProductMode) {
+                                  productStore.setGradientEnabled(false);
+                                  productStore.setBackgroundColor('#FFFFFF');
+                                }
                               }
                             }}
                             placeholder="#FFFFFF"
@@ -3676,24 +3713,51 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               <label className="relative">
                                 <span
                                   className="block h-10 w-10 rounded-full border-2 border-gray-200 cursor-pointer "
-                                  style={{ background: (values as any)[cfg.key] || '#ffffff' }}
+                                  style={{
+                                    background: (
+                                      isProductMode
+                                        ? (cfg.key === 'ecommerceGradientStart' ? productStore.gradientStart : productStore.gradientEnd)
+                                        : (values as any)[cfg.key]
+                                    ) || '#ffffff'
+                                  }}
                                 />
                                 <input
                                   type="color"
                                   className="absolute inset-0 opacity-0 cursor-pointer"
-                                  value={(values as any)[cfg.key] || '#ffffff'}
-                                  onChange={(e) => { updateValue(cfg.key as any, e.target.value as any); markSectionTouched('ecommerce'); }}
+                                  value={(
+                                    isProductMode
+                                      ? (cfg.key === 'ecommerceGradientStart' ? productStore.gradientStart : productStore.gradientEnd)
+                                      : (values as any)[cfg.key]
+                                  ) || '#ffffff'}
+                                  onChange={(e) => {
+                                    updateValue(cfg.key as any, e.target.value as any);
+                                    if (isProductMode) {
+                                      productStore.setGradientEnabled(true);
+                                      if (cfg.key === 'ecommerceGradientStart') productStore.setGradientStart(e.target.value);
+                                      if (cfg.key === 'ecommerceGradientEnd') productStore.setGradientEnd(e.target.value);
+                                    }
+                                    markSectionTouched('ecommerce');
+                                  }}
                                 />
                               </label>
                               {/* HEX input */}
                               <div className="flex-1">
                                 <input
                                   type="text"
-                                  value={((values as any)[cfg.key] || '#FFFFFF').toUpperCase()}
+                                  value={(((
+                                    isProductMode
+                                      ? (cfg.key === 'ecommerceGradientStart' ? productStore.gradientStart : productStore.gradientEnd)
+                                      : (values as any)[cfg.key]
+                                  ) || '#FFFFFF') as string).toUpperCase()}
                                   onChange={e => {
                                     const hex = e.target.value.toUpperCase();
                                     if (/^#[0-9A-F]{0,6}$/i.test(hex) || hex === '') {
                                       updateValue(cfg.key as any, hex as any);
+                                      if (isProductMode) {
+                                        productStore.setGradientEnabled(true);
+                                        if (cfg.key === 'ecommerceGradientStart') productStore.setGradientStart(hex);
+                                        if (cfg.key === 'ecommerceGradientEnd') productStore.setGradientEnd(hex);
+                                      }
                                       markSectionTouched('ecommerce');
                                     }
                                   }}
@@ -3701,6 +3765,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     const hex = e.target.value.toUpperCase();
                                     if (!/^#[0-9A-F]{6}$/i.test(hex)) {
                                       updateValue(cfg.key as any, '#FFFFFF' as any);
+                                      if (isProductMode) {
+                                        productStore.setGradientEnabled(true);
+                                        if (cfg.key === 'ecommerceGradientStart') productStore.setGradientStart('#FFFFFF');
+                                        if (cfg.key === 'ecommerceGradientEnd') productStore.setGradientEnd('#FFFFFF');
+                                      }
                                     }
                                   }}
                                   placeholder="#FFFFFF"
@@ -3715,8 +3784,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           {GRADIENT_ANGLE_OPTIONS.map(angle => (
                             <Chip
                               key={angle}
-                              onClick={() => { updateValue('ecommerceGradientAngle', String(angle) as any); markSectionTouched('ecommerce'); }}
-                              selected={String(values.ecommerceGradientAngle) === String(angle)}
+                              onClick={() => {
+                                updateValue('ecommerceGradientAngle', String(angle) as any);
+                                if (isProductMode) {
+                                  productStore.setGradientEnabled(true);
+                                  productStore.setGradientAngle(angle);
+                                }
+                                markSectionTouched('ecommerce');
+                              }}
+                              selected={isProductMode ? productStore.gradientAngle === angle : String(values.ecommerceGradientAngle) === String(angle)}
                             >
                               {angle}°
                             </Chip>
@@ -3730,7 +3806,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           <div
                             className="h-20 w-full"
                             style={{
-                              background: `linear-gradient(${values.ecommerceGradientAngle}deg, ${values.ecommerceGradientStart}, ${values.ecommerceGradientEnd})`
+                              background: isProductMode
+                                ? `linear-gradient(${productStore.gradientAngle}deg, ${productStore.gradientStart}, ${productStore.gradientEnd})`
+                                : `linear-gradient(${values.ecommerceGradientAngle}deg, ${values.ecommerceGradientStart}, ${values.ecommerceGradientEnd})`
                             }}
                           />
                           <div className="absolute inset-0 ring-1 ring-borderSubtle" />

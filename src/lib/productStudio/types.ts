@@ -403,6 +403,10 @@ export type ProductStudioState = {
     accentColor: string;
     alignment: 'left' | 'center' | 'right' | 'centered' | 'left-space' | 'right-space';
     shadow: 'soft-drop' | 'hard-drop' | 'floating';
+    gradientEnabled: boolean;
+    gradientStart: string;
+    gradientEnd: string;
+    gradientAngle: number;
     props: string;
     customHeroCue: string;
     interaction: 'none' | 'cropped-hand';

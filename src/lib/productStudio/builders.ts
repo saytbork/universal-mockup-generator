@@ -500,6 +500,14 @@ function buildPhotoMode(state: ProductStudioState): string {
 }
 
 function buildBackground(state: ProductStudioState): string {
+    // Gradient background (ecommerce + studio)
+    if (state.gradientEnabled) {
+        const start = state.gradientStart?.trim() || '#ffffff';
+        const end = state.gradientEnd?.trim() || '#f0f0f0';
+        const angle = typeof state.gradientAngle === 'number' ? state.gradientAngle : 180;
+        return `BACKGROUND: Gradient background from ${start} to ${end} at ${angle} degrees. Seamless, studio-clean.`;
+    }
+
     // 1. Explicit Hex/Custom Background (Prioritized)
     if (state.backgroundColor) {
         const color = state.backgroundColor.trim();
@@ -604,8 +612,19 @@ function buildEcommerce(state: ProductStudioState): string {
     const parts: string[] = [];
 
     parts.push('ECOMMERCE COMPOSITION (STRICT)');
-    parts.push('neutral seamless background');
     parts.push('asymmetrical product placement');
+
+    // Background directive (solid/gradient)
+    if (state.gradientEnabled) {
+        const start = state.gradientStart?.trim() || '#ffffff';
+        const end = state.gradientEnd?.trim() || '#f0f0f0';
+        const angle = typeof state.gradientAngle === 'number' ? state.gradientAngle : 180;
+        parts.push(`seamless gradient background from ${start} to ${end} at ${angle} degrees`);
+    } else if (state.backgroundColor && state.backgroundColor.trim().toLowerCase() !== '#ffffff') {
+        parts.push(`seamless solid background color ${state.backgroundColor.trim()}`);
+    } else {
+        parts.push('neutral seamless background');
+    }
 
     // Handle bundle positioning with ecommerce
     if (state.bundle.enabled) {
@@ -691,7 +710,9 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     // 4b. Photo Mode (NEW)
     segments.push(buildPhotoMode(state));
     // 4c. Background (NEW - Hex Support)
-    segments.push(buildBackground(state));
+    if (!state.blankSpaceEnabled) {
+        segments.push(buildBackground(state));
+    }
     // 4d. Shadow (NEW)
     segments.push(buildShadow(state));
     // 4e. Studio Styling (NEW)
@@ -770,7 +791,9 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     // 4b. Photo Mode (NEW)
     segments.push(buildPhotoMode(state));
     // 4c. Background (NEW - Hex Support)
-    segments.push(buildBackground(state));
+    if (!state.blankSpaceEnabled) {
+        segments.push(buildBackground(state));
+    }
     // 4d. Shadow (NEW)
     segments.push(buildShadow(state));
 

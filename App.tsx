@@ -47,6 +47,7 @@ import { loadEcommerceSlotsConfig, saveEcommerceSlotsConfig } from '@/lib/ecomme
 import { ECOMMERCE_SLOT_REQUIRED_BLANK_SPACE } from '@/lib/ecommerceOverlay/templates';
 // PHASE 2: ProductStudio direct generation
 import { useProductStudioStore, generateProductJobs, validatePrompt } from '@/lib/productStudio';
+import { addProductWithPalette } from '@/lib/productStudio/store';
 
 
 
@@ -1081,22 +1082,30 @@ const App: React.FC = () => {
     const needsSync = productIds.length !== currentIds.length ||
       !productIds.every((id, i) => id === currentIds[i]);
 
-    if (needsSync) {
-      // Reset and rebuild products in store
+    if (!needsSync) return;
+
+    let canceled = false;
+    (async () => {
+      // Reset and rebuild products in store (with palette extraction)
       store.reset();
-      productAssets.forEach(asset => {
-        if (asset.base64 && asset.mimeType) {
-          store.addProduct({
-            id: asset.id,
-            name: asset.label || 'Product',
-            imageUrl: asset.previewUrl || '',
-            base64: asset.base64,
-            mimeType: asset.mimeType,
-          });
-        }
-      });
-      console.log('[PRODUCT STUDIO SYNC] Products synced:', store.products.length);
-    }
+      for (const asset of productAssets) {
+        if (canceled) return;
+        if (!asset.base64 || !asset.mimeType) continue;
+        await addProductWithPalette({
+          id: asset.id,
+          name: asset.label || 'Product',
+          imageUrl: asset.previewUrl || '',
+          base64: asset.base64,
+          mimeType: asset.mimeType,
+        });
+      }
+      if (canceled) return;
+      console.log('[PRODUCT STUDIO SYNC] Products synced:', useProductStudioStore.getState().products.length);
+    })();
+
+    return () => {
+      canceled = true;
+    };
   }, [productAssets]);
   useEffect(() => {
     if (!availableProductIds.length) return;

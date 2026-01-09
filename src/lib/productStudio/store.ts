@@ -418,6 +418,10 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     accentColor: '#6366f1',
     alignment: 'center',
     shadow: 'soft-drop',
+    gradientEnabled: false,
+    gradientStart: '#ffffff',
+    gradientEnd: '#f0f0f0',
+    gradientAngle: 180,
     props: '',
     customHeroCue: '',
     interaction: 'none',
@@ -550,6 +554,10 @@ type ProductStudioActions = {
     setAccentColor: (color: string) => void;
     setAlignment: (alignment: ProductStudioState['alignment']) => void;
     setShadow: (shadow: 'soft-drop' | 'hard-drop' | 'floating') => void;
+    setGradientEnabled: (enabled: boolean) => void;
+    setGradientStart: (color: string) => void;
+    setGradientEnd: (color: string) => void;
+    setGradientAngle: (angle: number) => void;
     setProps: (props: string) => void;
     setCustomHeroCue: (cue: string) => void;
     setInteraction: (interaction: 'none' | 'cropped-hand') => void;
@@ -589,6 +597,12 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             if (product.palette) {
                 const isBackgroundDefault = state.backgroundColor === '#ffffff' || state.backgroundColor === '#FFFFFF';
                 const isAccentDefault = state.accentColor === '#6366f1' || state.accentColor === '#6366F1';
+                const isGradientStartDefault = state.gradientStart === '#ffffff' || state.gradientStart === '#FFFFFF';
+                const isGradientEndDefault =
+                    state.gradientEnd === '#f0f0f0' ||
+                    state.gradientEnd === '#F0F0F0' ||
+                    state.gradientEnd === '#ffffff' ||
+                    state.gradientEnd === '#FFFFFF';
 
                 if (isBackgroundDefault && product.palette.dominant) {
                     updates.backgroundColor = product.palette.dominant;
@@ -597,6 +611,14 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 if (isAccentDefault && product.palette.secondary) {
                     updates.accentColor = product.palette.secondary;
                     console.log('[ProductStudio] Auto-set accentColor from palette:', product.palette.secondary);
+                }
+                if (isGradientStartDefault && product.palette.dominant) {
+                    updates.gradientStart = product.palette.dominant;
+                    console.log('[ProductStudio] Auto-set gradientStart from palette:', product.palette.dominant);
+                }
+                if (isGradientEndDefault && product.palette.secondary) {
+                    updates.gradientEnd = product.palette.secondary;
+                    console.log('[ProductStudio] Auto-set gradientEnd from palette:', product.palette.secondary);
                 }
             }
 
@@ -1004,6 +1026,10 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setAccentColor: (color) => set({ accentColor: color }),
     setAlignment: (alignment) => set({ alignment }),
     setShadow: (shadow) => set({ shadow }),
+    setGradientEnabled: (enabled) => set({ gradientEnabled: enabled }),
+    setGradientStart: (color) => set({ gradientStart: color }),
+    setGradientEnd: (color) => set({ gradientEnd: color }),
+    setGradientAngle: (angle) => set({ gradientAngle: angle }),
     setProps: (props) => set({ props }),
     setCustomHeroCue: (cue) => set({ customHeroCue: cue }),
     setInteraction: (interaction) => set({ interaction }),
