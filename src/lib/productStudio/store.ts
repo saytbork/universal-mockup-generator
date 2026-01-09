@@ -370,6 +370,8 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     // 2️⃣ PRODUCT DEFINITION
     definition: DEFAULT_DEFINITION,
     handsHolding: false,
+    packagingMode: 'without-box',
+    physicalScaleLabel: 'medium-tabletop',
 
     // 3️⃣ BRAND & PALETTE (SINGLE COLOR AUTHORITY)
     palette: DEFAULT_PALETTE,
@@ -487,6 +489,8 @@ type ProductStudioActions = {
         updates: Partial<Extract<PhysicalDefinition, { kind: K }>['v']>
     ) => void;
     setHandsHolding: (enabled: boolean) => void;
+    setPackagingMode: (mode: ProductStudioState['packagingMode']) => void;
+    setPhysicalScaleLabel: (scale: ProductStudioState['physicalScaleLabel']) => void;
 
     // 3️⃣ BRAND & PALETTE
     setPalette: (updates: Partial<BrandPalette>) => void;
@@ -674,6 +678,8 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     // 2️⃣ PRODUCT DEFINITION
     // ========================================================================
     setHandsHolding: (enabled) => set({ handsHolding: enabled }),
+    setPackagingMode: (mode) => set({ packagingMode: mode }),
+    setPhysicalScaleLabel: (scale) => set({ physicalScaleLabel: scale }),
 
     setProductType: (type) =>
         set((state) => ({

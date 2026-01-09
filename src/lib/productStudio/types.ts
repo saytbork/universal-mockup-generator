@@ -329,6 +329,8 @@ export type ProductStudioState = {
     // ========================================================================
     definition: ProductDefinition;
     handsHolding: boolean;
+    packagingMode: 'without-box' | 'with-box';
+    physicalScaleLabel: 'small-handheld' | 'medium-tabletop' | 'large-object';
 
     // ========================================================================
     // 3️⃣ BRAND & PALETTE (SINGLE COLOR AUTHORITY)

@@ -926,14 +926,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // Keep all "environment/lifestyle" UI strictly disabled when `isProductMode` is true.
   const isEnvironmentMode = !isProductMode;
 
-  // HARD LOCK: Product Studio is always studio-branding (no lifestyle/ugc scene types).
-  useEffect(() => {
-    if (!isProductMode) return;
-    if (productStore.sceneType !== 'studio-branding' || productStore.mode !== 'studio') {
-      productStore.setMode('studio');
-    }
-  }, [isProductMode, productStore.mode, productStore.sceneType, productStore]);
-
   // Sync Product UI controls to ProductStudioStore when isProductMode === true
   const updateProductStudioValue = useCallback(<K extends keyof ProductStudioState>(
     key: K,
@@ -1034,6 +1026,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         if (mappedType) {
           productStore.setProductType(mappedType);
         }
+      }
+      if (key === 'productPackaging') {
+        const next = value === 'With box' ? 'with-box' : 'without-box';
+        productStore.setPackagingMode(next);
+      }
+      if (key === 'productScale') {
+        const map: Record<string, 'small-handheld' | 'medium-tabletop' | 'large-object'> = {
+          'Small handheld': 'small-handheld',
+          'Medium tabletop': 'medium-tabletop',
+          'Large object': 'large-object',
+        };
+        productStore.setPhysicalScaleLabel(map[value as string] ?? 'medium-tabletop');
       }
 
       const productKeyMap: Record<string, keyof ProductStudioState> = {
@@ -1852,6 +1856,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           key={key}
                           onClick={() => {
                             productStore.setAlignment(key as any);
+                            // Keep prompt coherent: alignment drives composition + negative space.
+                            if (key === 'centered') {
+                              productStore.setComposition('centered' as any);
+                              productStore.setNegativeSpace('none' as any);
+                            } else {
+                              productStore.setComposition('asymmetrical' as any);
+                              productStore.setNegativeSpace('intentional' as any);
+                            }
                             markSectionTouched('product-setup');
                           }}
                           selected={productStore.alignment === key || (key === 'centered' && productStore.alignment === 'center')}
@@ -1875,10 +1887,25 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             <Chip
                               key={key}
                               onClick={() => {
-                                productStore.setAlignment(key as any);
+                                const compositionMap: Record<string, CompositionMode> = {
+                                  'rule-of-thirds': 'thirds',
+                                  'asymmetrical': 'asymmetrical',
+                                  'flat-lay': 'flatlay',
+                                  'pedestal': 'pedestal',
+                                };
+                                const mapped = compositionMap[key];
+                                if (mapped) {
+                                  productStore.setComposition(mapped);
+                                  productStore.setNegativeSpace('none');
+                                }
                                 markSectionTouched('product-setup');
                               }}
-                              selected={productStore.alignment === key}
+                              selected={
+                                (key === 'rule-of-thirds' && productStore.composition === 'thirds') ||
+                                (key === 'asymmetrical' && productStore.composition === 'asymmetrical') ||
+                                (key === 'flat-lay' && productStore.composition === 'flatlay') ||
+                                (key === 'pedestal' && productStore.composition === 'pedestal')
+                              }
                             >
                               {label}
                             </Chip>

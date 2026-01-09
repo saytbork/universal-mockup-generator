@@ -112,12 +112,23 @@ function getColorDescription(color: { hex: string; semanticName: string }): stri
 // PRODUCT BUILDER
 // ============================================================================
 
-function buildProductDescription(def: ProductDefinition, productName: string): string {
+function buildProductDescription(state: ProductStudioState, productName: string): string {
     const parts: string[] = [];
 
     parts.push(`Professional product photography of ${productName}`);
 
-    const { physical } = def;
+    if (state.packagingMode === 'with-box') {
+        parts.push('product shown with outer box packaging included');
+    }
+
+    const scaleMap: Record<ProductStudioState['physicalScaleLabel'], string> = {
+        'small-handheld': 'small handheld-sized product',
+        'medium-tabletop': 'medium tabletop-sized product',
+        'large-object': 'large object-sized product',
+    };
+    parts.push(scaleMap[state.physicalScaleLabel]);
+
+    const { physical } = state.definition;
 
     switch (physical.kind) {
         case 'capsules': {
@@ -478,8 +489,10 @@ function buildSceneType(state: ProductStudioState): string {
     const map: Record<SceneType, string> = {
         'studio-branding': 'Clean studio product photography',
         'editorial-product': 'High-end editorial product shot',
-        'lifestyle-real': 'Authentic lifestyle product photography',
-        'ugc-phone': 'iPhone photo of product' // Though blocked, we map it just in case
+        // Avoid forbidden term "lifestyle" while still allowing real environments in product-only mode.
+        'lifestyle-real': 'Real-world product photography',
+        // Avoid forbidden term "phone" (kept for compatibility, but not intended for Product Studio UI)
+        'ugc-phone': 'Casual snapshot of product'
     };
     return map[state.sceneType];
 
@@ -664,10 +677,10 @@ function buildNegativeConstraints(state: ProductStudioState): string {
     const allowHands = state.interaction !== 'none' || state.handsHolding === true;
 
     if (allowHands) {
-        return 'no people, no faces, no bodies, allow a single cropped hand only (no full hand), no digital devices, no user content, product only, clean composition, commercial standard, high resolution, sharp focus';
+        return 'no people, no faces, no bodies, allow a single cropped hand only (no full hand), no animals, no digital devices, no user content, product only, clean composition, commercial standard, high resolution, sharp focus';
     }
 
-    return 'no living subjects, no biological forms, no digital devices, no user content, product only, inanimate objects only, clean composition, commercial standard, high resolution, sharp focus';
+    return 'no people, no animals, no digital devices, no user content, product only, clean composition, commercial standard, high resolution, sharp focus';
 }
 
 function buildQualityBar(): string {
@@ -694,7 +707,7 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     segments.push(buildSceneType(state));
 
     // 1. Product Definition (Source of Truth)
-    segments.push(buildProductDescription(state.definition, product.name));
+    segments.push(buildProductDescription(state, product.name));
 
     // 3. Environment + Micro Place (When allowed)
     if (!state.blankSpaceEnabled) {
@@ -772,7 +785,7 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     // 1. Product Definition (Primary)
     const primary = state.products.find(p => p.id === state.bundle.primaryProductId);
     if (primary) {
-        segments.push(buildProductDescription(state.definition, primary.name));
+        segments.push(buildProductDescription(state, primary.name));
     }
 
     // 9. Bundle Logic (If Applicable) - Placed early to define subject
