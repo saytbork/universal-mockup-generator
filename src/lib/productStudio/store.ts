@@ -845,15 +845,16 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 state.definition.physical.kind === 'drops' ? state.definition.physical.v.dropperState : undefined
             );
 
-            const requestedMicro = (ctx.micro ?? getDefaultMicroPlace(validatedMacro)) as MicroPlace;
-            const validatedMicro = requestedMicro || getDefaultMicroPlace(validatedMacro);
+            const hasMicro = Object.prototype.hasOwnProperty.call(ctx, 'micro');
+            const requestedMicro = (hasMicro ? ctx.micro : undefined) as unknown as MicroPlace | null | undefined;
+            const validatedMicro = requestedMicro ? requestedMicro : null;
 
             const validatedLighting = enforceValidLighting(state.lighting, validatedMacro);
 
             return {
                 environmentContext: { macro: validatedMacro, micro: validatedMicro },
                 environmentMacro: validatedMacro,
-                microPlace: validatedMicro,
+                microPlace: validatedMicro ?? 'neutral-surface',
                 lighting: validatedLighting,
                 mode: validatedMacro === 'studio' ? 'studio' : 'lifestyle-real',
                 sceneType: validatedMacro === 'studio' ? 'studio-branding' : 'lifestyle-real',

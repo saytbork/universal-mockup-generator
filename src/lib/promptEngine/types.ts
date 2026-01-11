@@ -182,6 +182,8 @@ export interface PromptOptions {
     personExpression?: string;
     selfieMode?: string;      // Unified Selfie Mode
     selfieType?: string;      // Legacy
+    personCount?: 'single' | 'couple';
+    coupleSex?: 'same' | 'different';
     eyeDirection?: EyeDirectionKey;
     seed?: string;
 

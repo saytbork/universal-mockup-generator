@@ -385,8 +385,11 @@ function buildEnvironment(state: ProductStudioState): string {
     }
 
     const parts: string[] = [];
-    const macroRaw = (state.environmentContext?.macro ?? state.environmentMacro) as any;
-    const microRaw = (state.environmentContext?.micro ?? state.microPlace) as any;
+    const hasCtx = state.environmentContext !== null;
+    const macroRaw = (hasCtx ? (state.environmentContext?.macro ?? '') : state.environmentMacro) as any;
+    const microRaw = (hasCtx && Object.prototype.hasOwnProperty.call(state.environmentContext as any, 'micro'))
+        ? ((state.environmentContext as any)?.micro ?? '')
+        : state.microPlace;
 
     const macro = typeof macroRaw === 'string' ? macroRaw : '';
     const micro = typeof microRaw === 'string' ? microRaw : '';

@@ -16,7 +16,24 @@ export function buildCamera(params: any): string {
     params.placementCamera ??
     "";
 
-  const ugcMode = Boolean(params.ugcMode || params.ugcRealMode);
+  const selfieRaw =
+    params.selfieMode ||
+    params.personDetails?.selfieMode ||
+    params.personDetails?.selfieType ||
+    params.selfieType ||
+    "";
+  const selfieActive = /\bselfie\b/i.test(String(selfieRaw)) || /\bfront\b/i.test(String(selfieRaw));
+  const ugcMode = Boolean(params.ugcMode || params.ugcRealMode) || selfieActive;
+
+  // Selfie: force front-facing smartphone characteristics (prevents pro-camera DOF blur).
+  if (selfieActive) {
+    delete params.camera;
+    delete params.cameraType;
+    delete params.placementCamera;
+    return uniqueParts([
+      "front-facing smartphone camera selfie, wide fixed lens, small sensor, flat focus across the entire frame, no portrait mode blur",
+    ]);
+  }
 
   // 1️⃣ UGC MODE ACTIVE - Strict Degradation
   // UGC cannot allow any pro-camera strings (they can include "shallow depth", etc.).

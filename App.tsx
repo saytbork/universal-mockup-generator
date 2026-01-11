@@ -502,6 +502,16 @@ const HERO_SHADOW_TEXT: Record<HeroLandingShadowStyle, string> = {
   floating: 'Make it feel like the product floats with a faint contact glow instead of a traditional shadow.',
 };
 
+const PERSON_COUNT_OPTIONS: Option[] = [
+  { label: 'Single', value: 'single', tooltip: 'One person in the scene.' },
+  { label: 'Couple', value: 'couple', tooltip: 'Two people in the scene.' },
+];
+
+const COUPLE_SEX_OPTIONS: Option[] = [
+  { label: 'Same sex', value: 'same', tooltip: 'Two people of the same sex.' },
+  { label: 'Different sex', value: 'different', tooltip: 'Two people of different sexes.' },
+];
+
 const DEFAULT_AGE_GROUP =
   AGE_GROUP_OPTIONS.find(option => option.label === '26-35')?.value ?? AGE_GROUP_OPTIONS[0].value;
 
@@ -556,6 +566,8 @@ const createDefaultOptions = (): MockupOptions => ({
   creationMode: 'lifestyle',
   sidePlacement: 'right',
   bgColor: '#FFFFFF',
+  personCount: 'single',
+  coupleSex: 'different',
 });
 import ImageUploader, { ImageUploaderHandle } from './components/ImageUploader';
 import GeneratedImage from './components/GeneratedImage';
@@ -1862,6 +1874,22 @@ const App: React.FC = () => {
           >
             <div className="space-y-4">
               <ChipSelectGroup label="Age Group" options={AGE_GROUP_OPTIONS} selectedValue={options.ageGroup} onChange={(value) => handleOptionChange('ageGroup', value, 'Person Details')} disabled={personControlsDisabled} />
+              <ChipSelectGroup
+                label="People"
+                options={PERSON_COUNT_OPTIONS}
+                selectedValue={options.personCount ?? 'single'}
+                onChange={(value) => handleOptionChange('personCount', value, 'Person Details')}
+                disabled={personControlsDisabled}
+              />
+              {(options.personCount ?? 'single') === 'couple' && (
+                <ChipSelectGroup
+                  label="Couple"
+                  options={COUPLE_SEX_OPTIONS}
+                  selectedValue={options.coupleSex ?? 'different'}
+                  onChange={(value) => handleOptionChange('coupleSex', value, 'Person Details')}
+                  disabled={personControlsDisabled}
+                />
+              )}
               {isProductPlacement && <p className="text-xs text-gray-500">Person options are disabled for product placement shots.</p>}
               <div className={`rounded-2xl border border-gray-200 bg-gray-100 p-4 space-y-3 ${personControlsDisabled ? 'opacity-50' : ''} dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]`}>
                 <ChipSelectGroup label="Creator Preset" options={normalizedCreatorPresetOptions} selectedValue={activeTalentPreset} onChange={(value) => handlePresetSelect(value)} disabled={personControlsDisabled} />

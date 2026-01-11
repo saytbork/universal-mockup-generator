@@ -48,6 +48,102 @@ const sanitizePart = (text: string, isUgcMode: boolean): string => {
 // ============================================================================
 
 export class IdentityBuilder implements PromptBuilder {
+    private hashToken(input: string): number {
+        // FNV-1a 32-bit
+        let hash = 0x811c9dc5;
+        for (let i = 0; i < input.length; i++) {
+            hash ^= input.charCodeAt(i);
+            hash = Math.imul(hash, 0x01000193);
+        }
+        return hash >>> 0;
+    }
+
+    private pick<T>(arr: T[], seed: number, offset: number): T {
+        const idx = (seed + offset) % arr.length;
+        return arr[idx];
+    }
+
+    private buildFaceSignature(seedKey: string): string {
+        const seed = this.hashToken(seedKey);
+
+        const faceShape = [
+            'oval face',
+            'round face',
+            'square face',
+            'heart-shaped face',
+            'long face',
+            'diamond-shaped face',
+        ];
+        const jaw = [
+            'soft jawline',
+            'defined jawline',
+            'strong jawline',
+            'tapered jawline',
+            'broad jaw',
+            'narrow jaw',
+        ];
+        const cheekbones = [
+            'subtle cheekbones',
+            'high cheekbones',
+            'pronounced cheekbones',
+            'flat cheekbones',
+        ];
+        const eyes = [
+            'almond-shaped eyes',
+            'round eyes',
+            'deep-set eyes',
+            'wide-set eyes',
+            'close-set eyes',
+            'hooded eyelids',
+        ];
+        const brows = [
+            'straight brows',
+            'arched brows',
+            'thick brows',
+            'thin brows',
+            'soft natural brows',
+        ];
+        const nose = [
+            'straight nose bridge',
+            'slightly curved nose bridge',
+            'prominent nose bridge',
+            'small nose',
+            'wide nose',
+            'narrow nose',
+        ];
+        const lips = [
+            'thin lips',
+            'full lips',
+            'wide mouth',
+            'narrow mouth',
+            'defined cupid’s bow',
+        ];
+        const forehead = [
+            'low forehead',
+            'average forehead',
+            'high forehead',
+        ];
+        const hairline = [
+            'straight hairline',
+            'widow’s peak hairline',
+            'rounded hairline',
+            'slightly receding hairline',
+        ];
+
+        const parts = [
+            this.pick(faceShape, seed, 1),
+            this.pick(jaw, seed, 2),
+            this.pick(cheekbones, seed, 3),
+            this.pick(eyes, seed, 4),
+            this.pick(brows, seed, 5),
+            this.pick(nose, seed, 6),
+            this.pick(lips, seed, 7),
+            this.pick(forehead, seed, 8),
+            this.pick(hairline, seed, 9),
+        ];
+        return parts.join(', ');
+    }
+
     build(options: PromptOptions): string {
         const {
             personIncluded,
@@ -187,11 +283,36 @@ Captured by smartphone so fine edges may appear soft or broken.
             const identityVariationToken = options.identityVariationToken;
             const identityKey = options.identityKey;
 
+            const personCount = (options as any).personCount as 'single' | 'couple' | undefined;
+            const coupleSex = (options as any).coupleSex as 'same' | 'different' | undefined;
+
+            if (personCount === 'couple') {
+                const sexText =
+                    coupleSex === 'same'
+                        ? 'same-gender couple'
+                        : coupleSex === 'different'
+                            ? 'mixed-gender couple'
+                            : 'couple';
+                parts.push(`Two people in frame: ${sexText}. Both must look like real distinct individuals.`);
+            }
+
             if (identityMode === 'auto' && identityVariationToken) {
                 parts.push(`[IDENTITY_VARIATION_TOKEN: ${identityVariationToken}]`);
+                if (personCount === 'couple') {
+                    parts.push(`FACE SIGNATURE A: ${this.buildFaceSignature(`${identityVariationToken}-A`)}`);
+                    parts.push(`FACE SIGNATURE B: ${this.buildFaceSignature(`${identityVariationToken}-B`)}`);
+                } else {
+                    parts.push(`FACE SIGNATURE: ${this.buildFaceSignature(identityVariationToken)}`);
+                }
                 parts.push('This must be a different individual than any previously generated person. Do not repeat facial identity.');
             } else if (identityMode === 'locked' && identityKey) {
                 parts.push(`[IDENTITY_KEY: ${identityKey}]`);
+                if (personCount === 'couple') {
+                    parts.push(`FACE SIGNATURE A: ${this.buildFaceSignature(`${identityKey}-A`)}`);
+                    parts.push(`FACE SIGNATURE B: ${this.buildFaceSignature(`${identityKey}-B`)}`);
+                } else {
+                    parts.push(`FACE SIGNATURE: ${this.buildFaceSignature(identityKey)}`);
+                }
                 parts.push('Same person as previous generation. Maintain facial identity consistency.');
             }
 

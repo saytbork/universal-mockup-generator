@@ -3379,7 +3379,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           <Chip
                             key={env}
                             onClick={() => {
-                              productStore.setEnvironmentContext({ macro: env, micro: 'countertop' });
+                              productStore.setEnvironmentContext({ macro: env, micro: null });
                               markSectionTouched('product-environment');
                             }}
                             selected={selectedMacro === env}
@@ -3411,6 +3411,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     <div className={SECTION_GROUP_CLASS}>
                       <p className={GROUP_LABEL_CLASS}>MICRO PLACE</p>
                       <div className="flex flex-wrap gap-2">
+                        <Chip
+                          onClick={() => {
+                            const macro = (selectedMacro ?? 'kitchen') as EnvironmentMacro;
+                            productStore.setEnvironmentContext({ macro, micro: null });
+                            markSectionTouched('product-environment');
+                          }}
+                          selected={!selectedMicro}
+                        >
+                          Optional
+                        </Chip>
                         {PRODUCT_ENVIRONMENT_MICRO_OPTIONS.map(place => (
                           <Chip
                             key={place}

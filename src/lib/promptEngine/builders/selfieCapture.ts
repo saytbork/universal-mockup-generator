@@ -10,13 +10,15 @@ UGC SELFIE CAPTURE (FRONT CAMERA — HARD CONSTRAINT):
 This image must be captured using a front-facing smartphone camera.
 One arm is extended holding the phone. The phone itself is NOT visible, but the framing clearly indicates an outstretched arm.
 
-Camera quality is basic and limited:
-- small front sensor
-- flat depth
-- no background separation
-- no cinematic blur
-- no bokeh
-- no shallow depth of field
+	Camera quality is basic and limited:
+	- small front sensor
+	- flat depth
+	- no background separation
+	- no cinematic blur
+	- no bokeh
+	- no shallow depth of field
+	- NO portrait mode blur
+	- background must NOT be defocused
 
 Angle must be imperfect and human:
 - pitch between +6° to +10° OR −6° to −10°

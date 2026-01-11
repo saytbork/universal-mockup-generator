@@ -52,6 +52,8 @@ export interface MockupOptions {
   creationMode?: string;
   sidePlacement?: string;
   bgColor?: string;
+  personCount?: 'single' | 'couple';
+  coupleSex?: 'same' | 'different';
 }
 
 export type OptionCategory = keyof MockupOptions;
