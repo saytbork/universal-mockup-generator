@@ -469,11 +469,14 @@ if (typeof window !== 'undefined') {
 // ============================================================================
 
 type ProductStudioActions = {
+    // Products (mutable metadata)
+    updateProductName: (id: string, name: string) => void;
+    updateProductHeight: (id: string, heightValue: number | null, heightUnit: 'cm' | 'in') => void;
     // Products
     addProduct: (product: ProductAsset) => void;
     removeProduct: (id: string) => void;
     setActiveProduct: (id: string | null) => void;
-    updateProductName: (id: string, name: string) => void;
+    // updateProductName / updateProductHeight are above (metadata sync)
 
     // 1️⃣ MODE (ROOT BLOCKER)
     setMode: (mode: ProductMode) => void;
@@ -646,6 +649,11 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     updateProductName: (id, name) =>
         set((state) => ({
             products: state.products.map((p) => (p.id === id ? { ...p, name } : p)),
+        })),
+
+    updateProductHeight: (id, heightValue, heightUnit) =>
+        set((state) => ({
+            products: state.products.map((p) => (p.id === id ? { ...p, heightValue, heightUnit } : p)),
         })),
 
     // ========================================================================
@@ -893,8 +901,28 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             return updates;
         }),
     setMicroPlace: (place) => set({ microPlace: place }),
-    setCustomEnvironmentText: (text) => set({ customEnvironmentText: text }),
-    setCustomMicroPlaceText: (text) => set({ customMicroPlaceText: text }),
+    setCustomEnvironmentText: (text) =>
+        set((state) => {
+            const trimmed = String(text || '').trim();
+            const updates: Partial<ProductStudioState> = { customEnvironmentText: text };
+            if (trimmed) {
+                updates.environmentContext = { macro: 'custom', micro: state.environmentContext?.micro ?? null };
+                updates.environmentMacro = 'custom';
+                updates.mode = 'lifestyle-real';
+                updates.sceneType = 'lifestyle-real';
+            }
+            return updates;
+        }),
+    setCustomMicroPlaceText: (text) =>
+        set((state) => {
+            const trimmed = String(text || '').trim();
+            const updates: Partial<ProductStudioState> = { customMicroPlaceText: text };
+            if (trimmed) {
+                updates.environmentContext = { macro: state.environmentContext?.macro ?? state.environmentMacro, micro: 'custom' };
+                updates.microPlace = 'custom';
+            }
+            return updates;
+        }),
     setLighting: (lighting) =>
         set((state) => ({
             lighting: enforceValidLighting(lighting, state.environmentMacro),

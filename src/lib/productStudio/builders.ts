@@ -157,10 +157,19 @@ function safeHexToColorName(hexRaw: string | null | undefined): string {
 // PRODUCT BUILDER
 // ============================================================================
 
-function buildProductDescription(state: ProductStudioState, productName: string): string {
+function buildProductDescription(state: ProductStudioState, product: ProductAsset): string {
     const parts: string[] = [];
 
-    parts.push(`Professional product photography of ${productName}`);
+    parts.push(`Professional product photography of ${product.name}`);
+
+    // Optional: incorporate known physical height (from Product Gallery) to guide scale realism.
+    const heightValueRaw = (product as any)?.heightValue as number | null | undefined;
+    const heightUnit = ((product as any)?.heightUnit as 'cm' | 'in' | undefined) ?? 'cm';
+    if (typeof heightValueRaw === 'number' && Number.isFinite(heightValueRaw) && heightValueRaw > 0) {
+        const cm = heightUnit === 'in' ? heightValueRaw * 2.54 : heightValueRaw;
+        const rounded = Math.round(cm * 10) / 10;
+        parts.push(`approximately ${rounded} cm tall`);
+    }
 
     if (state.packagingMode === 'with-box') {
         parts.push('product shown with outer box packaging included');
@@ -796,7 +805,7 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     segments.push(buildSceneType(state));
 
     // 1. Product Definition (Source of Truth)
-    segments.push(buildProductDescription(state, product.name));
+    segments.push(buildProductDescription(state, product));
 
     // 3. Environment + Micro Place (When allowed)
     if (!state.blankSpaceEnabled) {
@@ -874,7 +883,7 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     // 1. Product Definition (Primary)
     const primary = state.products.find(p => p.id === state.bundle.primaryProductId);
     if (primary) {
-        segments.push(buildProductDescription(state, primary.name));
+        segments.push(buildProductDescription(state, primary));
     }
 
     // 9. Bundle Logic (If Applicable) - Placed early to define subject

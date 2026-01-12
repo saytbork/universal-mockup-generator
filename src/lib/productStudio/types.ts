@@ -13,6 +13,8 @@ export type ProductAsset = {
     imageUrl: string;
     base64?: string;
     mimeType?: string;
+    heightValue?: number | null;
+    heightUnit?: 'cm' | 'in';
     // Extracted palette from product image
     palette?: {
         dominant: string;    // Primary color extracted from product

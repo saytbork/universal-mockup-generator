@@ -200,18 +200,24 @@ const pickPersonDetails = (options: MockupOptions): PersonDetails => ({
   pose: options.personPose ?? options.pose,
 });
 
-const buildActiveProductFromAsset = (asset: ProductAsset): ActiveProduct | null => {
-  if (!asset.base64 || !asset.mimeType) {
-    return null;
-  }
-  return {
-    id: asset.id,
-    base64: asset.base64,
-    mimeType: asset.mimeType,
-    name: asset.label || 'Product',
-    heightCm: asset.heightValue ?? undefined,
-  };
-};
+	const buildActiveProductFromAsset = (asset: ProductAsset): ActiveProduct | null => {
+	  if (!asset.base64 || !asset.mimeType) {
+	    return null;
+	  }
+	  const heightCm = (() => {
+	    if (asset.heightValue === null || asset.heightValue === undefined) return undefined;
+	    const value = Number(asset.heightValue);
+	    if (!Number.isFinite(value) || value <= 0) return undefined;
+	    return asset.heightUnit === 'in' ? value * 2.54 : value;
+	  })();
+	  return {
+	    id: asset.id,
+	    base64: asset.base64,
+	    mimeType: asset.mimeType,
+	    name: asset.label || 'Product',
+	    heightCm,
+	  };
+	};
 
 const createPersonIdentityPackage = (options: MockupOptions, overrides?: Partial<PersonIdentityPackage>): PersonIdentityPackage => ({
   identityLock: overrides?.identityLock ?? false,
@@ -1110,14 +1116,16 @@ const App: React.FC = () => {
       for (const asset of productAssets) {
         if (canceled) return;
         if (!asset.base64 || !asset.mimeType) continue;
-        await addProductWithPalette({
-          id: asset.id,
-          name: asset.label || 'Product',
-          imageUrl: asset.previewUrl || '',
-          base64: asset.base64,
-          mimeType: asset.mimeType,
-        });
-      }
+	        await addProductWithPalette({
+	          id: asset.id,
+	          name: asset.label || 'Product',
+	          imageUrl: asset.previewUrl || '',
+	          base64: asset.base64,
+	          mimeType: asset.mimeType,
+	          heightValue: asset.heightValue,
+	          heightUnit: asset.heightUnit,
+	        });
+	      }
       if (canceled) return;
       console.log('[PRODUCT STUDIO SYNC] Products synced:', useProductStudioStore.getState().products.length);
     })();
@@ -1126,6 +1134,27 @@ const App: React.FC = () => {
       canceled = true;
     };
   }, [productAssets]);
+
+  // Keep ProductStudioStore metadata (name + height) in sync without resetting user settings.
+  useEffect(() => {
+    if (!isProductPlacement) return;
+    const store = useProductStudioStore.getState();
+    for (const asset of productAssets) {
+      const product = store.products.find(p => p.id === asset.id);
+      if (!product) continue;
+      const nextName = asset.label || 'Product';
+      if (product.name !== nextName) {
+        store.updateProductName(asset.id, nextName);
+      }
+      const nextHeightValue = asset.heightValue ?? null;
+      const nextHeightUnit = asset.heightUnit ?? 'cm';
+      const currentHeightValue = (product as any).heightValue ?? null;
+      const currentHeightUnit = (product as any).heightUnit ?? 'cm';
+      if (currentHeightValue !== nextHeightValue || currentHeightUnit !== nextHeightUnit) {
+        store.updateProductHeight(asset.id, nextHeightValue, nextHeightUnit);
+      }
+    }
+  }, [isProductPlacement, productAssets]);
   useEffect(() => {
     if (!availableProductIds.length) return;
     if (!availableProductIds.includes(recommendedBaseProduct)) {
@@ -4414,12 +4443,13 @@ If the model attempts to create a scene or environment, override it and force a 
               creationModeStructural: undefined,
             }
             : {}),
-          personIncluded,
-          productAssets: generationProducts.map(p => ({
-            id: p.id,
-            base64: p.base64,
-            mimeType: p.mimeType,
-          })),
+	          personIncluded,
+	          productAssets: generationProducts.map(p => ({
+	            id: p.id,
+	            base64: p.base64,
+	            mimeType: p.mimeType,
+	            heightCm: p.heightCm,
+	          })),
           ...(shouldReuseIdentityKey
             ? {
               identityKey: identityContinuityRef.current?.identityKey,
