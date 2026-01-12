@@ -283,8 +283,8 @@ Captured by smartphone so fine edges may appear soft or broken.
             const identityVariationToken = options.identityVariationToken;
             const identityKey = options.identityKey;
 
-            const personCount = (options as any).personCount as 'single' | 'couple' | undefined;
-            const coupleSex = (options as any).coupleSex as 'same' | 'different' | undefined;
+            const personCount = options.personCount;
+            const coupleSex = options.coupleSex;
 
             if (personCount === 'couple') {
                 const sexText =

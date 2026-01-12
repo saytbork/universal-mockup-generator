@@ -123,6 +123,8 @@ export interface Step3Values {
   // Creator/Person
   age: number; // Numeric age (18-90)
   noPerson: boolean;
+  personCount: 'single' | 'couple';
+  coupleSex: 'same' | 'different';
   gender: 'Female' | 'Male' | 'Trans' | 'Non-binary' | 'Trans woman' | 'Trans man' | 'Gender non-conforming';
   skinTone: string; // Now 7 refined options
   ethnicity: string;
@@ -736,6 +738,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     // Creator/Person
     age: 30, // Numeric age
     noPerson: initialSceneIntent === 'ecommerce', // UGC Rule: person MUST be present by default
+    personCount: 'single',
+    coupleSex: 'different',
     gender: 'Female',
     skinTone: 'Medium Neutral', // Refined options
     ethnicity: 'Non-specific',
@@ -4402,6 +4406,80 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             Male
                           </button>
                         </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <span className="text-xs font-semibold text-gray-900 dark:text-white">People</span>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              updateValue('personCount', 'single');
+                              markSectionTouched('creator');
+                            }}
+                            className={`h-9 rounded-full text-xs font-medium border transition-colors ${values.personCount === 'single'
+                              ? 'bg-indigo-600 text-white border-indigo-600'
+                              : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'
+                              } dark:border-white/10 ${values.personCount === 'single'
+                                ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
+                                : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
+                              }`}
+                          >
+                            Single
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              updateValue('personCount', 'couple');
+                              markSectionTouched('creator');
+                            }}
+                            className={`h-9 rounded-full text-xs font-medium border transition-colors ${values.personCount === 'couple'
+                              ? 'bg-indigo-600 text-white border-indigo-600'
+                              : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'
+                              } dark:border-white/10 ${values.personCount === 'couple'
+                                ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
+                                : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
+                              }`}
+                          >
+                            Couple
+                          </button>
+                        </div>
+                        {values.personCount === 'couple' && (
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                updateValue('coupleSex', 'same');
+                                markSectionTouched('creator');
+                              }}
+                              className={`h-9 rounded-full text-xs font-medium border transition-colors ${values.coupleSex === 'same'
+                                ? 'bg-indigo-600 text-white border-indigo-600'
+                                : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'
+                                } dark:border-white/10 ${values.coupleSex === 'same'
+                                  ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
+                                  : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
+                                }`}
+                            >
+                              Same sex
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                updateValue('coupleSex', 'different');
+                                markSectionTouched('creator');
+                              }}
+                              className={`h-9 rounded-full text-xs font-medium border transition-colors ${values.coupleSex === 'different'
+                                ? 'bg-indigo-600 text-white border-indigo-600'
+                                : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'
+                                } dark:border-white/10 ${values.coupleSex === 'different'
+                                  ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
+                                  : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
+                                }`}
+                            >
+                              Different sex
+                            </button>
+                          </div>
+                        )}
                       </div>
 
                       <div className="space-y-2">

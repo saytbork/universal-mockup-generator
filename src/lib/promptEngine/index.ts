@@ -374,6 +374,41 @@ export class PromptEngine {
             options.identityVariationToken = `${timestamp}-${random}`.toUpperCase();
             options.identityKey = undefined;
             options.identityMode = 'auto';
+
+            // IMPORTANT: When Same Person is OFF, enforce strong identity diversity by removing
+            // identity-anchoring traits so the model can't converge on the same persona.
+            // (Age is kept because it's often user-intent; mood/pose can remain.)
+            if (options.personDetails) {
+                const {
+                    age,
+                    personMood,
+                    personPose,
+                    wardrobeStyle,
+                    productInteraction,
+                    personProps,
+                    selfieMode,
+                    selfieType,
+                } = options.personDetails as any;
+
+                options.personDetails = {
+                    ...(typeof age === 'number' ? { age } : {}),
+                    ...(personMood ? { personMood } : {}),
+                    ...(personPose ? { personPose } : {}),
+                    ...(wardrobeStyle ? { wardrobeStyle } : {}),
+                    ...(productInteraction ? { productInteraction } : {}),
+                    ...(personProps ? { personProps } : {}),
+                    ...(selfieMode ? { selfieMode } : {}),
+                    ...(selfieType ? { selfieType } : {}),
+                } as any;
+            }
+
+            // Clear legacy top-level trait fields too (mapper duplicates these).
+            (options as any).gender = undefined;
+            (options as any).ethnicity = undefined;
+            (options as any).skinTone = undefined;
+            (options as any).hairColor = undefined;
+            (options as any).hairStyle = undefined;
+            (options as any).eyeColor = undefined;
         }
 
         if (options.sameCreatorAcrossScenes === true && !options.hasModelReference) {
