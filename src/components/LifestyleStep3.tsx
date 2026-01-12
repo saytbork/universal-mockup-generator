@@ -3948,33 +3948,119 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         />
                       </div>
 
-                      <div className="space-y-2">
-                        <span className="text-xs text-gray-600 dark:text-white/60">Gender</span>
-                        <div className="grid grid-cols-2 gap-2">
-                          {(['Female', 'Male'] as const).map(option => {
-                            const active = values.gender === option;
-                            return (
-                              <button
-                                key={option}
-                                type="button"
-                                onClick={() => { updateValue('gender', option); markSectionTouched('creator'); }}
-                                className={`h-9 rounded-full text-xs font-medium border transition-colors ${active
-                                  ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-                                  : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-                                  }`}
-                              >
-                                {option}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
+	                      <div className="space-y-2">
+	                        <span className="text-xs text-gray-600 dark:text-white/60">Gender</span>
+	                        <div className="grid grid-cols-2 gap-2">
+	                          {(['Female', 'Male'] as const).map(option => {
+	                            const active = values.gender === option;
+	                            return (
+	                              <button
+	                                key={option}
+	                                type="button"
+	                                onClick={() => { updateValue('gender', option); markSectionTouched('creator'); }}
+	                                title={option}
+	                                className={`h-9 rounded-full text-xs font-medium border transition-colors ${active
+	                                  ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
+	                                  : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
+	                                  }`}
+	                              >
+	                                {option}
+	                              </button>
+	                            );
+	                          })}
+	                        </div>
+	                      </div>
 
-                      <div className="space-y-2">
-                        <span className="text-xs text-gray-600 dark:text-white/60">Ethnicity</span>
-                        <div className="flex flex-wrap gap-2">
-                          {(
-                            [
+	                      <div className="space-y-2">
+	                        <div className="flex items-center justify-between gap-3">
+	                          <div>
+	                            <span className="text-xs text-gray-600 dark:text-white/60">People</span>
+	                            <p className="text-[11px] text-gray-400 dark:text-white/40">
+	                              Choose single creator or a couple.
+	                            </p>
+	                          </div>
+	                        </div>
+	                        <div className="grid grid-cols-2 gap-2">
+	                          <button
+	                            type="button"
+	                            onClick={() => {
+	                              updateValue('personCount', 'single');
+	                              markSectionTouched('creator');
+	                            }}
+	                            title="Single person in frame"
+	                            className={`h-9 rounded-full text-xs font-medium border transition-colors ${values.personCount === 'single'
+	                              ? 'bg-indigo-600 text-white border-indigo-600'
+	                              : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'
+	                              } dark:border-white/10 ${values.personCount === 'single'
+	                                ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
+	                                : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
+	                              }`}
+	                          >
+	                            Single
+	                          </button>
+	                          <button
+	                            type="button"
+	                            onClick={() => {
+	                              updateValue('personCount', 'couple');
+	                              markSectionTouched('creator');
+	                            }}
+	                            title="Two people in frame (couple)"
+	                            className={`h-9 rounded-full text-xs font-medium border transition-colors ${values.personCount === 'couple'
+	                              ? 'bg-indigo-600 text-white border-indigo-600'
+	                              : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'
+	                              } dark:border-white/10 ${values.personCount === 'couple'
+	                                ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
+	                                : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
+	                              }`}
+	                          >
+	                            Couple
+	                          </button>
+	                        </div>
+	                        {values.personCount === 'couple' && (
+	                          <div className="grid grid-cols-2 gap-2">
+	                            <button
+	                              type="button"
+	                              onClick={() => {
+	                                updateValue('coupleSex', 'same');
+	                                markSectionTouched('creator');
+	                              }}
+	                              title="Couple: same sex"
+	                              className={`h-9 rounded-full text-xs font-medium border transition-colors ${values.coupleSex === 'same'
+	                                ? 'bg-indigo-600 text-white border-indigo-600'
+	                                : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'
+	                                } dark:border-white/10 ${values.coupleSex === 'same'
+	                                  ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
+	                                  : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
+	                                }`}
+	                            >
+	                              Same sex
+	                            </button>
+	                            <button
+	                              type="button"
+	                              onClick={() => {
+	                                updateValue('coupleSex', 'different');
+	                                markSectionTouched('creator');
+	                              }}
+	                              title="Couple: different sex"
+	                              className={`h-9 rounded-full text-xs font-medium border transition-colors ${values.coupleSex === 'different'
+	                                ? 'bg-indigo-600 text-white border-indigo-600'
+	                                : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'
+	                                } dark:border-white/10 ${values.coupleSex === 'different'
+	                                  ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
+	                                  : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
+	                                }`}
+	                            >
+	                              Different sex
+	                            </button>
+	                          </div>
+	                        )}
+	                      </div>
+
+	                      <div className="space-y-2">
+	                        <span className="text-xs text-gray-600 dark:text-white/60">Ethnicity</span>
+	                        <div className="flex flex-wrap gap-2">
+	                          {(
+	                            [
                               'Non-specific',
                               'White / European descent',
                               'Black / African descent',
@@ -4317,21 +4403,26 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </div>
                       </div>
 
-                      <div className={`flex items-center justify-between pt-4 ${(!hasFirstGenerationComplete || hasModelReference) ? 'opacity-50' : ''}`}>
-                        <div>
-                          <p className="text-xs text-gray-600 dark:text-white/60">Keep same person</p>
-                          <p className="text-[11px] text-gray-400 dark:text-white/40">Available after first generation</p>
-                        </div>
-                        <button
-                          type="button"
-                          role="switch"
-                          aria-checked={values.sameCreatorAcrossScenes}
-                          disabled={!hasFirstGenerationComplete || hasModelReference}
-                          onClick={() => {
-                            if (!hasFirstGenerationComplete || hasModelReference) return;
-                            updateValue('sameCreatorAcrossScenes', !values.sameCreatorAcrossScenes);
-                            markSectionTouched('creator');
-                          }}
+	                      <div className={`flex items-center justify-between pt-4 ${(!hasFirstGenerationComplete || hasModelReference) ? 'opacity-50' : ''}`}>
+	                        <div>
+	                          <p className="text-xs text-gray-600 dark:text-white/60">Keep same person</p>
+	                          <p className="text-[11px] text-gray-400 dark:text-white/40">Locks identity across renders (available after first generation)</p>
+	                        </div>
+	                        <button
+	                          type="button"
+	                          role="switch"
+	                          aria-checked={values.sameCreatorAcrossScenes}
+	                          disabled={!hasFirstGenerationComplete || hasModelReference}
+	                          title={
+	                            hasModelReference
+	                              ? 'Disabled when using a model reference'
+	                              : (!hasFirstGenerationComplete ? 'Available after first generation' : (values.sameCreatorAcrossScenes ? 'ON: keep same person' : 'OFF: randomize person every render'))
+	                          }
+	                          onClick={() => {
+	                            if (!hasFirstGenerationComplete || hasModelReference) return;
+	                            updateValue('sameCreatorAcrossScenes', !values.sameCreatorAcrossScenes);
+	                            markSectionTouched('creator');
+	                          }}
                           className={`relative h-5 w-10 rounded-full border transition-colors ${values.sameCreatorAcrossScenes
                             ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500'
                             : 'bg-gray-200 border-gray-200 dark:border-white/10 dark:bg-white/10'

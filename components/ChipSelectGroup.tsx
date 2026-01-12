@@ -53,15 +53,15 @@ const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
     : 'rounded-full px-3 py-1.5 text-xs sm:text-sm font-medium border transition-colors focus:outline-none';
 
   const chipInactive =
-    'bg-gray-100 text-gray-700 border-gray-300 hover:border-indigo-400 hover:text-gray-900 ' +
-    'dark:bg-gray-800/60 dark:text-gray-300 dark:border-gray-600 dark:hover:border-indigo-400 dark:hover:text-white';
+    'bg-white text-gray-600 border-gray-200 hover:border-gray-400 ' +
+    'dark:bg-white/5 dark:text-white/60 dark:border-white/10 dark:hover:border-white/30';
 
   const chipActive =
     'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-500 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white';
 
   const chipDisabled =
     'opacity-50 cursor-not-allowed pointer-events-none bg-gray-50 text-gray-400 border-gray-200 ' +
-    'dark:bg-gray-900/40 dark:text-gray-500 dark:border-gray-700';
+    'dark:bg-white/5 dark:text-white/30 dark:border-white/10';
 
   return (
     <div className="flex flex-col space-y-3">
@@ -90,27 +90,29 @@ const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
       )}
       <div>
         <div className="flex flex-wrap gap-2">
-          {normalizedOptions.map((option) => {
-            const tooltip = option.tooltip || null;
-            const isActive = selectedValue === option.value;
-            const normalizedLabel = option.label;
+	          {normalizedOptions.map((option) => {
+	            const tooltip = option.tooltip || null;
+	            const isActive = selectedValue === option.value;
+	            const normalizedLabel = option.label;
+	            const nativeTitle = tooltip || normalizedLabel;
 
-            return (
-              <Tooltip key={option.value}>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    disabled={disabled}
-                    className={[
-                      chipBase,
-                      disabled ? chipDisabled : (isActive ? chipActive : chipInactive),
-                      disabled ? '' : 'cursor-pointer',
-                    ].join(' ')}
-                    onClick={() => onChange(option.value)}
-                  >
-                    {normalizedLabel}
-                  </button>
-                </TooltipTrigger>
+	            return (
+	              <Tooltip key={option.value}>
+	                <TooltipTrigger asChild>
+	                  <button
+	                    type="button"
+	                    disabled={disabled}
+	                    title={nativeTitle}
+	                    className={[
+	                      chipBase,
+	                      disabled ? chipDisabled : (isActive ? chipActive : chipInactive),
+	                      disabled ? '' : 'cursor-pointer',
+	                    ].join(' ')}
+	                    onClick={() => onChange(option.value)}
+	                  >
+	                    {normalizedLabel}
+	                  </button>
+	                </TooltipTrigger>
 
                 {tooltip && (
                   <TooltipContent side="right" className="max-w-xs text-sm opacity-90">

@@ -4580,7 +4580,7 @@ If the model attempts to create a scene or environment, override it and force a 
                     responseMimeType: 'image/png',
                     aspectRatio,
                     // Product Studio forces a fixed output ratio; reference preservation can override ratio.
-                    preserveReferenceImage: !isProductPlacement,
+                    preserveReferenceImage: false,
                     temperature: 0.25,
                     topP: 0.9,
                     seed,
@@ -4794,7 +4794,7 @@ If the model attempts to create a scene or environment, override it and force a 
 	                    responseMimeType: 'image/png',
 	                    aspectRatio,
 	                    // Product Studio forces a fixed output ratio; reference preservation can override ratio.
-	                    preserveReferenceImage: !isProductPlacement,
+		                    preserveReferenceImage: false,
 	                    temperature: 0.25,
 	                    topP: 0.9,
 	                    seed,
@@ -4943,7 +4943,7 @@ If the model attempts to create a scene or environment, override it and force a 
             responseMimeType: 'image/png',
             aspectRatio,
             // Product Studio forces a fixed output ratio; reference preservation can override ratio.
-            preserveReferenceImage: !isProductPlacement,
+            preserveReferenceImage: false,
             temperature: 0.25,
             topP: 0.9,
           },

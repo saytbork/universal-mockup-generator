@@ -46,7 +46,7 @@ export async function generateImageWithGemini({
     model,
     prompt,
     aspectRatio,
-    preserveReferenceImage = true,
+    preserveReferenceImage = false,
     products,
     personIdentityPackage,
     modelReferenceFile,

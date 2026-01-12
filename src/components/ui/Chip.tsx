@@ -1,4 +1,5 @@
 import React from 'react';
+import { Tooltip, TooltipContent, TooltipTrigger } from './tooltip';
 
 type ChipSize = 'xs' | 'sm' | 'md';
 
@@ -12,6 +13,7 @@ export interface ChipProps extends React.ButtonHTMLAttributes<HTMLButtonElement>
   selected?: boolean;
   size?: ChipSize;
   tone?: 'default' | 'warm';
+  tooltip?: string;
 }
 
 const baseClass =
@@ -21,7 +23,7 @@ const activeClass =
   'border-indigo-600 bg-indigo-600 text-white shadow-lg';
 
 const inactiveClass =
-  'border-gray-200 border-borderSoft bg-whiteSoft text-gray-500 hover:border-borderHover hover:border-borderHover';
+  'border-gray-200 bg-white text-gray-600 hover:border-gray-400 dark:bg-white/5 dark:text-white/60 dark:border-white/10 dark:hover:border-white/30';
 
 const warmActiveClass =
   'border-orange-500 bg-orange-500 text-white shadow-lg';
@@ -30,10 +32,10 @@ const warmInactiveClass =
   'border-orange-200 bg-orange-50/50 text-orange-700 hover:border-orange-300';
 
 const disabledClass =
-  'opacity-50 cursor-not-allowed pointer-events-none bg-whiteElevated text-gray-500 border-gray-200 border-borderSoft';
+  'opacity-50 cursor-not-allowed pointer-events-none bg-gray-50 text-gray-400 border-gray-200 dark:bg-white/5 dark:text-white/30 dark:border-white/10';
 
 export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
-  ({ selected = false, disabled = false, size = 'sm', tone = 'default', className = '', children, ...props }, ref) => {
+  ({ selected = false, disabled = false, size = 'sm', tone = 'default', tooltip, className = '', children, ...props }, ref) => {
     const classes = [
       baseClass,
       sizeMap[size],
@@ -49,13 +51,25 @@ export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
       .join(' ');
 
     const inferredTitle =
+      tooltip ??
       props.title ??
       (typeof children === 'string' ? children : undefined);
 
-    return (
+    const button = (
       <button type="button" ref={ref} className={classes} disabled={disabled} title={inferredTitle} {...props}>
         {children}
       </button>
+    );
+
+    if (!tooltip) return button;
+
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>{button}</TooltipTrigger>
+        <TooltipContent side="top" className="max-w-xs text-sm opacity-90">
+          {tooltip}
+        </TooltipContent>
+      </Tooltip>
     );
   }
 );
