@@ -184,6 +184,7 @@ export interface PromptOptions {
     selfieType?: string;      // Legacy
     personCount?: 'single' | 'couple';
     coupleSex?: 'same' | 'different';
+    secondaryPersonDetails?: Partial<PersonDetails>;
     eyeDirection?: EyeDirectionKey;
     seed?: string;
 

@@ -285,6 +285,7 @@ Captured by smartphone so fine edges may appear soft or broken.
 
             const personCount = options.personCount;
             const coupleSex = options.coupleSex;
+            const secondaryPersonDetails = (options as any).secondaryPersonDetails as Partial<PersonDetails> | undefined;
 
             if (personCount === 'couple') {
                 const sexText =
@@ -314,6 +315,26 @@ Captured by smartphone so fine edges may appear soft or broken.
                     }
                 } else {
                     parts.push('PRIMARY PERSON and SECONDARY PERSON must have clearly different facial features and identity.');
+                }
+
+                if (secondaryPersonDetails && Object.keys(secondaryPersonDetails).length) {
+                    const secondaryBits: string[] = [];
+                    if (secondaryPersonDetails.gender) secondaryBits.push(`gender ${sanitizePart(String(secondaryPersonDetails.gender), isUgcMode)}`);
+                    if (secondaryPersonDetails.ethnicity) secondaryBits.push(sanitizePart(String(secondaryPersonDetails.ethnicity), isUgcMode));
+                    if (secondaryPersonDetails.skinTone) secondaryBits.push(sanitizePart(String(secondaryPersonDetails.skinTone), isUgcMode));
+                    if (secondaryPersonDetails.eyeColor) secondaryBits.push(sanitizePart(String(secondaryPersonDetails.eyeColor), isUgcMode));
+                    if (secondaryPersonDetails.bodyType) secondaryBits.push(sanitizePart(String(secondaryPersonDetails.bodyType), isUgcMode));
+                    const hairBits = [
+                        secondaryPersonDetails.hairLength,
+                        secondaryPersonDetails.hairTexture,
+                        secondaryPersonDetails.hairColor,
+                    ]
+                        .map(v => (v ? String(v) : ''))
+                        .filter(Boolean);
+                    if (hairBits.length) secondaryBits.push(sanitizePart(`${hairBits.join(' ')} hair`, isUgcMode));
+                    if (secondaryBits.length) {
+                        parts.push(`SECONDARY PERSON DETAILS: ${secondaryBits.join(', ')}.`);
+                    }
                 }
             }
 

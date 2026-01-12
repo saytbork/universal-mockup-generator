@@ -748,6 +748,28 @@ export function mapLifestyleToPromptOptions(
     mapped.personIncluded = personIncluded;
     mapped.personCount = sceneState.personCount || 'single';
     mapped.coupleSex = sceneState.coupleSex || 'different';
+    // Optional: explicit overrides for secondary person (Person B) when Couple is enabled.
+    const secondaryDetails = (() => {
+        if ((sceneState as any).personCount !== 'couple') return null;
+        if ((sceneState as any).editSecondaryPerson !== true) return null;
+        const details: any = {};
+        const pick = (key: string, targetKey: string = key) => {
+            const value = String(((sceneState as any)[key] ?? '')).trim();
+            if (value) details[targetKey] = value;
+        };
+        pick('secondaryGender', 'gender');
+        pick('secondaryEthnicity', 'ethnicity');
+        pick('secondarySkinTone', 'skinTone');
+        pick('secondaryEyeColor', 'eyeColor');
+        pick('secondaryBodyType', 'bodyType');
+        pick('secondaryHairLength', 'hairLength');
+        pick('secondaryHairTexture', 'hairTexture');
+        pick('secondaryHairColor', 'hairColor');
+        return Object.keys(details).length ? details : null;
+    })();
+    if (secondaryDetails) {
+        (mapped as any).secondaryPersonDetails = secondaryDetails;
+    }
 
     const sceneIntent = sceneState.sceneIntent || 'environment';
     mapped.sceneIntent = sceneIntent;

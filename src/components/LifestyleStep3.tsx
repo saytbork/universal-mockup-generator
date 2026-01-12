@@ -125,6 +125,15 @@ export interface Step3Values {
   noPerson: boolean;
   personCount: 'single' | 'couple';
   coupleSex: 'same' | 'different';
+  editSecondaryPerson: boolean;
+  secondaryGender: string;
+  secondaryEthnicity: string;
+  secondarySkinTone: string;
+  secondaryEyeColor: string;
+  secondaryBodyType: string;
+  secondaryHairLength: string;
+  secondaryHairTexture: string;
+  secondaryHairColor: string;
   gender: 'Female' | 'Male' | 'Trans' | 'Non-binary' | 'Trans woman' | 'Trans man' | 'Gender non-conforming';
   skinTone: string; // Now 7 refined options
   ethnicity: string;
@@ -734,16 +743,25 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const [openUgcLayerId, setOpenUgcLayerId] = useState<UGCLayerField | null>(null);
   const [touchedSections, setTouchedSections] = useState<Set<string>>(new Set());
   // Removed duplicate isCreatorPro declaration here, managed near top.
-  const initialValues: Step3Values = {
-    // Creator/Person
-    age: 30, // Numeric age
-    noPerson: initialSceneIntent === 'ecommerce', // UGC Rule: person MUST be present by default
-    personCount: 'single',
-    coupleSex: 'different',
-    gender: 'Female',
-    skinTone: 'Medium Neutral', // Refined options
-    ethnicity: 'Non-specific',
-    bodyType: 'Average',
+	  const initialValues: Step3Values = {
+	    // Creator/Person
+	    age: 30, // Numeric age
+	    noPerson: initialSceneIntent === 'ecommerce', // UGC Rule: person MUST be present by default
+	    personCount: 'single',
+	    coupleSex: 'different',
+	    editSecondaryPerson: false,
+	    secondaryGender: '',
+	    secondaryEthnicity: '',
+	    secondarySkinTone: '',
+	    secondaryEyeColor: '',
+	    secondaryBodyType: '',
+	    secondaryHairLength: '',
+	    secondaryHairTexture: '',
+	    secondaryHairColor: '',
+	    gender: 'Female',
+	    skinTone: 'Medium Neutral', // Refined options
+	    ethnicity: 'Non-specific',
+	    bodyType: 'Average',
     hair: 'Medium', // DEPRECATED
 
     // NEW: 3D Hair system
@@ -4058,7 +4076,200 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                            </button>
 	                          </div>
 	                        )}
+	                        {values.personCount === 'couple' && (
+	                          <div className="pt-2">
+	                            <div className="flex items-center justify-between gap-3">
+	                              <div>
+	                                <p className="text-xs text-gray-600 dark:text-white/60">Advanced</p>
+	                                <p className="text-[11px] text-gray-400 dark:text-white/40">
+	                                  Edit Person B explicitly (otherwise it’s auto-derived).
+	                                </p>
+	                              </div>
+	                              <button
+	                                type="button"
+	                                role="switch"
+	                                aria-checked={values.editSecondaryPerson}
+	                                title={values.editSecondaryPerson ? 'Editing Person B is enabled' : 'Enable editing Person B'}
+	                                onClick={() => {
+	                                  const next = !values.editSecondaryPerson;
+	                                  updateValue('editSecondaryPerson', next);
+	                                  markSectionTouched('creator');
+	                                  if (next) {
+	                                    // Best-effort defaults for Person B.
+	                                    const primary = String(values.gender || '').toLowerCase();
+	                                    const derivedGender =
+	                                      values.coupleSex === 'same'
+	                                        ? values.gender
+	                                        : (primary.includes('female') ? 'Male' : primary.includes('male') ? 'Female' : '');
+	                                    if (!values.secondaryGender && derivedGender) updateValue('secondaryGender', derivedGender as any);
+	                                    if (!values.secondaryEthnicity && values.ethnicity) updateValue('secondaryEthnicity', values.ethnicity as any);
+	                                    if (!values.secondarySkinTone && values.skinTone) updateValue('secondarySkinTone', values.skinTone as any);
+	                                    if (!values.secondaryEyeColor && values.eyeColor) updateValue('secondaryEyeColor', values.eyeColor as any);
+	                                    if (!values.secondaryHairColor && values.hairColor) updateValue('secondaryHairColor', values.hairColor as any);
+	                                    if (!values.secondaryHairLength && values.hairLength) updateValue('secondaryHairLength', values.hairLength as any);
+	                                    if (!values.secondaryHairTexture && values.hairTexture) updateValue('secondaryHairTexture', values.hairTexture as any);
+	                                    if (!values.secondaryBodyType && values.bodyType) updateValue('secondaryBodyType', values.bodyType as any);
+	                                  }
+	                                }}
+	                                className={`relative h-5 w-10 rounded-full border transition-colors ${values.editSecondaryPerson
+	                                  ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500'
+	                                  : 'bg-gray-200 border-gray-200 dark:border-white/10 dark:bg-white/10'
+	                                  }`}
+	                              >
+	                                <span
+	                                  className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white transition-transform ${values.editSecondaryPerson ? 'translate-x-4' : ''} dark:border-white/10`}
+	                                />
+	                              </button>
+	                            </div>
+	                          </div>
+	                        )}
 	                      </div>
+
+	                      {values.personCount === 'couple' && values.editSecondaryPerson && (
+	                        <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-4 dark:bg-black/20 dark:border-white/10">
+	                          <p className="text-[11px] uppercase tracking-[0.3em] text-gray-400 font-semibold dark:text-white/40">
+	                            Person B (Secondary)
+	                          </p>
+	                          <div className="space-y-2">
+	                            <span className="text-xs text-gray-600 dark:text-white/60">Gender</span>
+	                            <div className="grid grid-cols-2 gap-2">
+	                              {(['Female', 'Male'] as const).map(option => {
+	                                const active = values.secondaryGender === option;
+	                                return (
+	                                  <button
+	                                    key={option}
+	                                    type="button"
+	                                    onClick={() => { updateValue('secondaryGender', option); markSectionTouched('creator'); }}
+	                                    title={`Person B: ${option}`}
+	                                    className={`h-9 rounded-full text-xs font-medium border transition-colors ${active
+	                                      ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
+	                                      : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
+	                                      }`}
+	                                  >
+	                                    {option}
+	                                  </button>
+	                                );
+	                              })}
+	                            </div>
+	                          </div>
+	                          <div className="space-y-2">
+	                            <span className="text-xs text-gray-600 dark:text-white/60">Ethnicity</span>
+	                            <div className="flex flex-wrap gap-2">
+	                              {(
+	                                [
+	                                  'Non-specific',
+	                                  'White / European descent',
+	                                  'Black / African descent',
+	                                  'Latino / Hispanic',
+	                                ] as const
+	                              ).map(option => {
+	                                const active = values.secondaryEthnicity === option;
+	                                return (
+	                                  <button
+	                                    key={option}
+	                                    type="button"
+	                                    onClick={() => { updateValue('secondaryEthnicity', option); markSectionTouched('creator'); }}
+	                                    className={`px-3 h-8 rounded-full border text-xs transition-colors ${active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'} dark:border-white/10 ${active ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white' : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'}`}
+	                                  >
+	                                    {option}
+	                                  </button>
+	                                );
+	                              })}
+	                            </div>
+	                          </div>
+	                          <div className="space-y-2">
+	                            <span className="text-xs text-gray-600 dark:text-white/60">Skin tone</span>
+	                            <div className="flex flex-wrap gap-2">
+	                              {SKIN_TONE_OPTIONS.map(option => {
+	                                const active = values.secondarySkinTone === option;
+	                                return (
+	                                  <button
+	                                    key={option}
+	                                    type="button"
+	                                    onClick={() => { updateValue('secondarySkinTone', option); markSectionTouched('creator'); }}
+	                                    className={`px-3 h-8 rounded-full border text-xs transition-colors ${active
+	                                      ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
+	                                      : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
+	                                      }`}
+	                                  >
+	                                    {option}
+	                                  </button>
+	                                );
+	                              })}
+	                            </div>
+	                          </div>
+	                          <div className="space-y-2">
+	                            <span className="text-xs text-gray-600 dark:text-white/60">Eye color</span>
+	                            <div className="flex gap-2 flex-wrap">
+	                              {EYE_COLOR_OPTIONS.map(option => {
+	                                const active = values.secondaryEyeColor === option;
+	                                return (
+	                                  <button
+	                                    key={option}
+	                                    type="button"
+	                                    onClick={() => { updateValue('secondaryEyeColor', option); markSectionTouched('creator'); }}
+	                                    className={`h-8 px-3 rounded-full border text-xs transition-colors ${active
+	                                      ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
+	                                      : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
+	                                      }`}
+	                                  >
+	                                    {option}
+	                                  </button>
+	                                );
+	                              })}
+	                            </div>
+	                          </div>
+	                          <div className="space-y-2">
+	                            <span className="text-xs text-gray-600 dark:text-white/60">Hair</span>
+	                            <div className="grid grid-cols-3 gap-2">
+	                              {(['Short', 'Shoulder', 'Long'] as const).map(option => {
+	                                const active = values.secondaryHairLength === option;
+	                                return (
+	                                  <button
+	                                    key={option}
+	                                    type="button"
+	                                    onClick={() => { updateValue('secondaryHairLength', option); markSectionTouched('creator'); }}
+	                                    className={`px-3 h-8 rounded-full border text-xs transition-colors ${active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'} dark:border-white/10 ${active ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white' : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'}`}
+	                                  >
+	                                    {option}
+	                                  </button>
+	                                );
+	                              })}
+	                            </div>
+	                            <div className="flex flex-wrap gap-2">
+	                              {[...HAIR_TEXTURE_OPTIONS, 'Custom'].map(option => {
+	                                const active = values.secondaryHairTexture === option;
+	                                const label = option === 'Coily/Kinky' ? 'Coily / Kinky' : option;
+	                                return (
+	                                  <button
+	                                    key={option}
+	                                    type="button"
+	                                    onClick={() => { updateValue('secondaryHairTexture', option); markSectionTouched('creator'); }}
+	                                    className={`px-3 h-8 rounded-full border text-xs transition-colors ${active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'} dark:border-white/10 ${active ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white' : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'}`}
+	                                  >
+	                                    {label}
+	                                  </button>
+	                                );
+	                              })}
+	                            </div>
+	                            <div className="flex flex-wrap gap-2">
+	                              {HAIR_COLOR_OPTIONS.map(option => {
+	                                const active = values.secondaryHairColor === option;
+	                                return (
+	                                  <button
+	                                    key={option}
+	                                    type="button"
+	                                    onClick={() => { updateValue('secondaryHairColor', option); markSectionTouched('creator'); }}
+	                                    className={`px-3 h-8 rounded-full border text-xs transition-colors ${active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'} dark:border-white/10 ${active ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white' : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'}`}
+	                                  >
+	                                    {option}
+	                                  </button>
+	                                );
+	                              })}
+	                            </div>
+	                          </div>
+	                        </div>
+	                      )}
 
 	                      <div className="space-y-2">
 	                        <span className="text-xs text-gray-600 dark:text-white/60">Ethnicity</span>
