@@ -761,15 +761,26 @@ function buildNegativeConstraints(state: ProductStudioState): string {
     const allowHands = state.interaction !== 'none' || state.handsHolding === true;
 
     if (allowHands) {
-        // Must NOT include any forbidden human terms (people/face/body/etc) in the prompt.
+        // Must NOT include forbidden human terms ("people", "person", "face", "body", "human", etc).
         // "hand" is only allowed when `allowHands` is true (validated upstream).
-        return 'product only, inanimate objects only, allow a single cropped hand at the edge of frame, no animals, no digital devices, no user content, clean composition, commercial standard, high resolution, sharp focus';
+        return [
+            'product only',
+            'single cropped hand and partial forearm at the edge of frame is allowed',
+            'no heads, no torsos, no full figure',
+            'hand must be anatomically correct (five fingers), realistic proportions, no deformities',
+            'no animals, no digital devices, no user content',
+            'clean composition, commercial standard, high resolution, sharp focus',
+        ].join(', ');
     }
 
     return 'product only, inanimate objects only, no animals, no digital devices, no user content, clean composition, commercial standard, high resolution, sharp focus';
 }
 
-function buildQualityBar(): string {
+function buildQualityBar(state: ProductStudioState): string {
+    const allowHands = state.interaction !== 'none' || state.handsHolding === true;
+    if (allowHands) {
+        return 'real ecommerce hero image, premium supplement or skincare brand campaign, ultra clean, high resolution, commercial-ready, no ambiguity, art-directed, brand-safe, product with a single cropped hand only';
+    }
     return 'real ecommerce hero image, premium supplement or skincare brand campaign, ultra clean, high resolution, commercial-ready, no ambiguity, art-directed, brand-safe, inanimate objects only';
 }
 
@@ -858,7 +869,7 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     }
 
     // 11. Final Quality Bar
-    segments.push(buildQualityBar());
+    segments.push(buildQualityBar(state));
 
     // 11b. Integrity / Artifact Guards
     segments.push(buildIntegrityConstraints());
@@ -922,7 +933,7 @@ function assembleBundlePrompt(state: ProductStudioState): string {
 
     // 10. Negative Constraints
     // 11. Final Quality Bar
-    segments.push(buildQualityBar());
+    segments.push(buildQualityBar(state));
 
     // 11b. Integrity / Artifact Guards
     segments.push(buildIntegrityConstraints());
