@@ -3949,7 +3949,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       </div>
 
 	                      <div className="space-y-2">
-	                        <span className="text-xs text-gray-600 dark:text-white/60">Gender</span>
+	                        <span className="text-xs text-gray-600 dark:text-white/60">
+	                          {values.personCount === 'couple' ? 'Primary gender' : 'Gender'}
+	                        </span>
 	                        <div className="grid grid-cols-2 gap-2">
 	                          {(['Female', 'Male'] as const).map(option => {
 	                            const active = values.gender === option;
@@ -3976,7 +3978,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                          <div>
 	                            <span className="text-xs text-gray-600 dark:text-white/60">People</span>
 	                            <p className="text-[11px] text-gray-400 dark:text-white/40">
-	                              Choose single creator or a couple.
+	                              {values.personCount === 'couple'
+	                                ? 'Primary person settings apply to Person A; Person B is derived automatically (distinct identity).'
+	                                : 'Choose single creator or a couple.'}
 	                            </p>
 	                          </div>
 	                        </div>

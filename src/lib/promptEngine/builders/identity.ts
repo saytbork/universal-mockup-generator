@@ -294,6 +294,27 @@ Captured by smartphone so fine edges may appear soft or broken.
                             ? 'mixed-gender couple'
                             : 'couple';
                 parts.push(`Two people in frame: ${sexText}. Both must look like real distinct individuals.`);
+
+                // Avoid contradictions: if UI provides a single-person gender, treat it as PRIMARY only.
+                // Secondary gender is derived from coupleSex when possible.
+                const primaryGender = personDetails?.gender;
+                const primaryGenderText = primaryGender ? sanitizePart(String(primaryGender), isUgcMode) : '';
+                if (primaryGenderText) {
+                    const otherGender = (() => {
+                        if (coupleSex !== 'different') return primaryGenderText;
+                        const g = primaryGenderText.toLowerCase();
+                        if (g.includes('female') || g.includes('woman')) return 'Male';
+                        if (g.includes('male') || g.includes('man')) return 'Female';
+                        return ''; // non-binary/other → don't force
+                    })();
+                    if (otherGender) {
+                        parts.push(`PRIMARY PERSON: ${primaryGenderText}. SECONDARY PERSON: ${sanitizePart(otherGender, isUgcMode)}. Secondary must have clearly different facial features.`);
+                    } else {
+                        parts.push(`PRIMARY PERSON: ${primaryGenderText}. SECONDARY PERSON: distinct individual with different facial features.`);
+                    }
+                } else {
+                    parts.push('PRIMARY PERSON and SECONDARY PERSON must have clearly different facial features and identity.');
+                }
             }
 
             if (identityMode === 'auto' && identityVariationToken) {

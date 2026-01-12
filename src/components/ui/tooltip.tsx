@@ -74,15 +74,16 @@ export const Tooltip: React.FC<React.PropsWithChildren<unknown>> = ({ children }
 type TooltipTriggerProps = {
   children: React.ReactElement;
   asChild?: boolean;
+  openOnClick?: boolean;
 };
 
-export const TooltipTrigger: React.FC<TooltipTriggerProps> = ({ children, asChild = false }) => {
+export const TooltipTrigger: React.FC<TooltipTriggerProps> = ({ children, asChild = false, openOnClick = true }) => {
   const context = useContext(TooltipContext);
   if (!context) {
     return null;
   }
 
-  const handleOpen = (event: React.MouseEvent<HTMLElement> | React.FocusEvent<HTMLElement>) => {
+  const handleOpen = (event: React.MouseEvent<HTMLElement> | React.FocusEvent<HTMLElement> | React.TouchEvent<HTMLElement>) => {
     context.open(event.currentTarget);
   };
 
@@ -107,6 +108,24 @@ export const TooltipTrigger: React.FC<TooltipTriggerProps> = ({ children, asChil
     onBlur: (event: React.FocusEvent<HTMLElement>) => {
       handleClose();
       child.props.onBlur?.(event);
+    },
+    onTouchStart: (event: React.TouchEvent<HTMLElement>) => {
+      if (openOnClick) {
+        // Mobile: no hover, so open on touch.
+        handleOpen(event);
+      }
+      child.props.onTouchStart?.(event);
+    },
+    onClick: (event: React.MouseEvent<HTMLElement>) => {
+      if (openOnClick) {
+        // Toggle so a second tap closes.
+        if (context.isOpen) {
+          handleClose();
+        } else {
+          handleOpen(event);
+        }
+      }
+      child.props.onClick?.(event);
     },
   };
 
