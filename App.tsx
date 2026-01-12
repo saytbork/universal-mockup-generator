@@ -4681,31 +4681,27 @@ If the model attempts to create a scene or environment, override it and force a 
     ]
   );
 
-  const handleGenerateEcommerceClick = useCallback(async () => {
-    bundleSelectionRef.current = null;
-    if (isTrialLocked) {
-      setImageError(`You reached the ${currentPlan.label} limit (${planCreditLimit} credits). Upgrade your plan to keep generating scenes.`);
-      return;
-    }
+	  const handleGenerateEcommerceClick = useCallback(async () => {
+	    bundleSelectionRef.current = null;
+	    if (isTrialLocked) {
+	      setImageError(`You reached the ${currentPlan.label} limit (${planCreditLimit} credits). Upgrade your plan to keep generating scenes.`);
+	      return;
+	    }
 
-    const generationProducts = activeProducts;
-    if (!generationProducts.length) {
-      setImageError("Please upload a product image first.");
-      return;
-    }
-    if (!ecommerceSelectedSlots.length) {
-      setImageError('Select at least one Ecommerce slot before generating.');
-      return;
-    }
-    if (!lifestyleStep3Values) {
-      setImageError('Open Product Builder Step 3 and confirm your product settings before generating slots.');
-      return;
-    }
+	    const generationProducts = activeProducts;
+	    if (!generationProducts.length) {
+	      setImageError("Please upload a product image first.");
+	      return;
+	    }
+	    if (!ecommerceSelectedSlots.length) {
+	      setImageError('Select at least one Ecommerce slot before generating.');
+	      return;
+	    }
 
-    const creditCost = getImageCreditCost(options);
-    const projectedCost = creditCost * ecommerceSelectedSlots.length;
-    if (!isTrialBypassActive && projectedCost > remainingCredits) {
-      setImageError('Not enough credits for these slots. Reduce slots or upgrade your plan.');
+	    const creditCost = getImageCreditCost(options);
+	    const projectedCost = creditCost * ecommerceSelectedSlots.length;
+	    if (!isTrialBypassActive && projectedCost > remainingCredits) {
+	      setImageError('Not enough credits for these slots. Reduce slots or upgrade your plan.');
       setShowPlanModal(true);
       return;
     }
@@ -4714,84 +4710,68 @@ If the model attempts to create a scene or environment, override it and force a 
     setGeneratedCopy(null);
     setCopyError(null);
     setIsImageLoading(true);
-    setImageError(null);
+	    setImageError(null);
 
-    try {
-      const allowedProductCreationModes = new Set(['studio', 'aesthetic', 'bg-replace', 'ecom-blank']);
-      const safeProductCreationMode =
-        options.creationMode && allowedProductCreationModes.has(String(options.creationMode))
-          ? options.creationMode
-          : 'studio';
+	    try {
+	      // Ecommerce overlays are a Product Studio feature; build prompts from the ProductStudioStore
+	      // (not from legacy PromptEngine mapping), so all selected Product Studio options inject.
+	      const baseProductStateRaw = useProductStudioStore.getState();
+	      console.log('[PRODUCT STUDIO STATE][ECOM]', baseProductStateRaw);
 
-      const basePromptOptions: any = {
-        ...options,
-        contentStyle: 'product',
-        creationIntent: 'product',
-        sceneIntent: 'ecommerce',
-        ugcStyle: 'optimized',
-        personIncluded: false,
-        addHands: false,
-        creationMode: safeProductCreationMode,
-        compositionMode: undefined,
-        compositionModeStructural: undefined,
-        creationModeStructural: undefined,
-        productAssets: generationProducts.map(p => ({
-          id: p.id,
-          base64: p.base64,
-          mimeType: p.mimeType,
-        })),
-      };
-
-      const aspectRatio = isProductPlacement ? PRODUCT_DEFAULT_ASPECT_RATIO : (options?.aspectRatio || '1:1');
-      const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
-      if (!resolvedApiKey) {
-        return;
-      }
+	      // Product Studio: force fixed output ratio (user request).
+	      const aspectRatio = PRODUCT_DEFAULT_ASPECT_RATIO;
+	      const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
+	      if (!resolvedApiKey) {
+	        return;
+	      }
 
       const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: 'v1beta' });
 
-      let lastUrl: string | null = null;
-      for (const slotKey of ecommerceSelectedSlots) {
-        const slotBlankDir = ECOMMERCE_SLOT_REQUIRED_BLANK_SPACE[slotKey] ?? ecommerceGenerationSettings.blankSpaceDirection;
+	      let lastUrl: string | null = null;
+	      for (const slotKey of ecommerceSelectedSlots) {
+	        const requiredBlankDir = ECOMMERCE_SLOT_REQUIRED_BLANK_SPACE[slotKey] ?? 'right';
+	        const reserveBlankSpace = ecommerceGenerationSettings.reserveBlankSpace;
 
-        const framingPerspective = (() => {
-          switch (ecommerceGenerationSettings.viewFraming) {
-            case 'left-negative-space':
-              return 'product aligned left with large clean negative space to the right';
-            case 'right-negative-space':
-              return 'product aligned right with large clean negative space to the left';
-            case 'centered':
-            default:
-              return 'centered hero composition with clean margins';
-          }
-        })();
+	        const slotProductState: any = {
+	          ...baseProductStateRaw,
+	          // Enforce studio-safe ecommerce builder; overlay rendering is handled in-app.
+	          mode: 'studio',
+	          sceneType: 'studio-branding',
+	          aspectRatio,
+	          // Slot-based blank-space control
+	          blankSpaceEnabled: reserveBlankSpace && requiredBlankDir !== 'center',
+	          blankSpaceSide:
+	            requiredBlankDir === 'left' || requiredBlankDir === 'right'
+	              ? requiredBlankDir
+	              : (baseProductStateRaw as any).blankSpaceSide ?? 'right',
+	          // Center "blank space" is represented via internal breathing room, not side-placement.
+	          negativeSpace: reserveBlankSpace && requiredBlankDir === 'center' ? 'intentional' : (baseProductStateRaw as any).negativeSpace,
+	          spacing: reserveBlankSpace && requiredBlankDir === 'center' ? 'airy' : (baseProductStateRaw as any).spacing,
+	        };
 
-        const slotSceneState: Step3Values = {
-          ...lifestyleStep3Values,
-          sceneIntent: 'ecommerce',
-          noPerson: true,
-          ugcRealMode: false,
-          ecommerceSidePlacementFlag: ecommerceGenerationSettings.reserveBlankSpace,
-          sidePlacement: slotBlankDir as any,
-        };
+	        const jobs = generateProductJobs(slotProductState);
+	        if (!jobs.length) {
+	          throw new Error(`No Product Studio jobs generated for slot ${slotKey}.`);
+	        }
+	        const finalPrompt = jobs[0].prompt;
 
-        const promptOptions: any = mapProductModeToPromptOptions(slotSceneState, basePromptOptions);
-        promptOptions.perspective = framingPerspective;
-        promptOptions.sidePlacement = slotBlankDir;
-        promptOptions.ecommerceSidePlacement = slotBlankDir;
-        promptOptions.ecommerceSidePlacementFlag = ecommerceGenerationSettings.reserveBlankSpace;
-        promptOptions.ecommerceBlankSpaceMode = ecommerceGenerationSettings.reserveBlankSpace;
-        promptOptions.ugcStyle = 'optimized';
-        promptOptions.contentStyle = 'product';
-        promptOptions.creationIntent = 'product';
-        promptOptions.sceneIntent = 'ecommerce';
+	        try {
+	          validatePrompt(finalPrompt, {
+	            allowHands: slotProductState.interaction !== 'none' || slotProductState.handsHolding === true,
+	          });
+	        } catch (validationError) {
+	          console.error('[PROMPT BLOCKED][ECOM]', validationError);
+	          throw validationError;
+	        }
 
-        const finalPrompt = promptEngine.build(promptOptions);
-        console.log('[ECOM SLOT]', slotKey, { promptPreview: finalPrompt.slice(0, 240) });
+	        console.log('[ECOM SLOT]', slotKey, {
+	          blankSpace: slotProductState.blankSpaceEnabled ? slotProductState.blankSpaceSide : 'off',
+	          promptPreview: finalPrompt.slice(0, 240),
+	        });
 
-        const seed = crypto.randomUUID();
-        const productParts: any[] = [];
-        for (const product of generationProducts) {
+	        const seed = crypto.randomUUID();
+	        const productParts: any[] = [];
+	        for (const product of generationProducts) {
           const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
             maxLongEdge: 1024,
             maxBase64Length: 1_300_000,
@@ -4804,24 +4784,24 @@ If the model attempts to create a scene or environment, override it and force a 
           const maxAttempts = 2;
           for (let attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
-              return await ai.models.generateContent({
-                model: GEMINI_IMAGE_MODEL,
-                contents: { parts: [{ text: finalPrompt }, ...productParts] },
-                config: {
-                  responseModalities: [Modality.IMAGE],
-                  safetySettings: [],
-                  generationConfig: {
-                    responseMimeType: 'image/png',
-                    aspectRatio,
-                    // Product Studio forces a fixed output ratio; reference preservation can override ratio.
-                    preserveReferenceImage: !isProductPlacement,
-                    temperature: 0.25,
-                    topP: 0.9,
-                    seed,
-                  },
-                },
-              });
-            } catch (error) {
+	              return await ai.models.generateContent({
+	                model: GEMINI_IMAGE_MODEL,
+	                contents: { parts: [{ text: finalPrompt }, ...productParts] },
+	                config: {
+	                  responseModalities: [Modality.IMAGE],
+	                  safetySettings: [],
+	                  generationConfig: {
+	                    responseMimeType: 'image/png',
+	                    aspectRatio,
+	                    // Product Studio forces a fixed output ratio; reference preservation can override ratio.
+	                    preserveReferenceImage: !isProductPlacement,
+	                    temperature: 0.25,
+	                    topP: 0.9,
+	                    seed,
+	                  },
+	                },
+	              });
+	            } catch (error) {
               const message = String((error as any)?.message ?? error);
               const shouldRetry =
                 attempt < maxAttempts &&
@@ -4883,26 +4863,23 @@ If the model attempts to create a scene or environment, override it and force a 
       setIsImageLoading(false);
       bundleSelectionRef.current = null;
     }
-  }, [
-    activeProducts,
-    ecommerceGenerationSettings.blankSpaceDirection,
-    ecommerceGenerationSettings.reserveBlankSpace,
-    ecommerceGenerationSettings.viewFraming,
-    ecommerceSelectedSlots,
-    getActiveApiKeyOrNotify,
-    getImageCreditCost,
-    isTrialBypassActive,
+	  }, [
+	    activeProducts,
+	    ecommerceGenerationSettings.reserveBlankSpace,
+	    ecommerceSelectedSlots,
+	    getActiveApiKeyOrNotify,
+	    getImageCreditCost,
+	    isTrialBypassActive,
     isTrialLocked,
     currentPlan.label,
     planCreditLimit,
     remainingCredits,
     resetOutputs,
     options,
-    runHiResPipeline,
-    setShowPlanModal,
-    reportGalleryEntry,
-    lifestyleStep3Values,
-  ]);
+	    runHiResPipeline,
+	    setShowPlanModal,
+	    reportGalleryEntry,
+	  ]);
 
   const generateMockup = useCallback(
     (bundleProducts: string[]) => {
