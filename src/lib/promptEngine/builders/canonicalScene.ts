@@ -135,12 +135,28 @@ export class SceneNarrativeBuilder {
                         'No narrative context.'
                     );
                 } else {
-                    parts.push(
-                        'UGC-style lifestyle scene.',
-                        'Authentic, casual, real-world feeling.',
-                        'Natural imperfections, candid composition.',
-                        'Allowed creator presence.'
-                    );
+                    const ugcStyle = String(options.ugcStyle || 'optimized').toLowerCase();
+                    const isUgcReal =
+                        Boolean(options.realModeActive) ||
+                        Boolean(options.ugcRealModeActive) ||
+                        Boolean(options.rawDomesticUgcActive);
+                    const wantsUgcLook = isUgcReal || ugcStyle === 'raw' || ugcStyle === 'natural';
+
+                    if (wantsUgcLook) {
+                        parts.push(
+                            'UGC-style lifestyle scene.',
+                            'Authentic, casual, real-world feeling.',
+                            'Natural imperfections are acceptable.',
+                            'Allowed creator presence.'
+                        );
+                    } else {
+                        parts.push(
+                            'High-end lifestyle campaign photo.',
+                            'Professional advertising/editorial quality with clean, intentional styling.',
+                            'Spotless environment: no crumbs, stains, dust, fingerprints, clutter, or random mess.',
+                            'Art-directed but natural: curated props only, brand-safe, premium look.'
+                        );
+                    }
                 }
         }
 

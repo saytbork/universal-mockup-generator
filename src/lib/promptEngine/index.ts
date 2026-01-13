@@ -181,13 +181,13 @@ function enforcePreflightGuards(options: PromptOptions) {
 }
 
 function enforceUgcFocusGuard(prompt: string, options: PromptOptions): string {
-    const ugcActive =
-        options.contentStyle === 'ugc' ||
-        options.creationIntent === 'ugc' ||
-        options.ugcRealModeActive ||
-        options.rawDomesticUgcActive ||
+    // Depth/DoF conflicts ("bokeh") are only blocked for Raw Domestic UGC / selfie capture modes.
+    // Editorial / optimized lifestyle may legitimately use shallow depth of field.
+    const requiresUgcDepthLock =
+        Boolean(options.ugcRealModeActive) ||
+        Boolean(options.rawDomesticUgcActive) ||
         isUgcSelfieCaptureActive(options);
-    if (!ugcActive) {
+    if (!requiresUgcDepthLock) {
         return prompt;
     }
 

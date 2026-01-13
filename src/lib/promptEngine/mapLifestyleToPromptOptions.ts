@@ -721,6 +721,7 @@ export function mapLifestyleToPromptOptions(
         identitySeed,
         ugcStyle: existingOptions.ugcStyle ?? 'optimized'
     };
+    const ugcStyleKey = String(mapped.ugcStyle ?? 'optimized').toLowerCase();
     mapped.sameCreatorAcrossScenes = sceneState.sameCreatorAcrossScenes;
     if (!identityContinuityRequested) {
         delete (mapped as any).identityLock;
@@ -924,7 +925,12 @@ export function mapLifestyleToPromptOptions(
             mapped.personDetails.personAppearance = appearanceDescriptor;
         }
 
-        const skinDescriptor = mapSkinRealism(sceneState.skinRealism);
+        const normalizedSkinRealism = normalizeKey(sceneState.skinRealism);
+        const editorialSkinRealism =
+            ugcStyleKey === 'optimized' && !sceneState.ugcRealMode && (normalizedSkinRealism === 'raw' || normalizedSkinRealism === 'natural')
+                ? 'soft-retouch'
+                : sceneState.skinRealism;
+        const skinDescriptor = mapSkinRealism(editorialSkinRealism);
         if (skinDescriptor) {
             mapped.personDetails.skinRealism = skinDescriptor;
         }
@@ -1176,7 +1182,9 @@ export function mapLifestyleToPromptOptions(
         const defaultCameraLabel = 'Intentional smartphone camera';
         const cameraDevice = (sceneState as any).cameraType || defaultCameraLabel;
         const cameraDeviceSemantic = CAMERA_DEVICE_SEMANTIC_MAP[cameraDevice] || CAMERA_DEVICE_SEMANTIC_MAP[defaultCameraLabel];
-        const effectiveCameraSemantic = isEnvironmentSceneIntent
+        const shouldForceEnvironmentSmartphone =
+            isEnvironmentSceneIntent && (ugcStyleKey === 'natural' || ugcStyleKey === 'raw');
+        const effectiveCameraSemantic = shouldForceEnvironmentSmartphone
             ? 'Handheld smartphone perspective capturing natural perspective, emphasizing the surrounding environment.'
             : cameraDeviceSemantic;
         mapped.camera = cameraDevice;
@@ -1381,7 +1389,9 @@ export function mapLifestyleToPromptOptions(
         mapped.lastBackgroundId = existingOptions.backgroundVariationId;
     }
 
-    const sceneOrderChaosValue = (sceneState.sceneOrderChaos || 'Normal').toLowerCase() as SceneOrderChaosLevel;
+    const sceneOrderChaosValue = (!sceneState.ugcRealMode && ugcStyleKey === 'optimized'
+        ? 'clean'
+        : (sceneState.sceneOrderChaos || 'Normal').toLowerCase()) as SceneOrderChaosLevel;
     mapped.sceneOrderChaos = sceneOrderChaosValue;
     const sceneOrderChaosDescriptor = buildSceneOrderChaosDescriptor(sceneOrderChaosValue);
     if (sceneOrderChaosDescriptor) {
