@@ -781,6 +781,11 @@ export function mapLifestyleToPromptOptions(
     const isCompositionModeEcommerceBlank = sceneState.compositionMode === 'Ecommerce Blank Space';
     const isEcommerceBlankSpaceActive = isEcommerceSceneIntent;
     const isUGCRealMode = !!sceneState.ugcRealMode;
+    if (isUGCRealMode) {
+        mapped.personCount = 'single';
+        mapped.coupleSex = undefined;
+        (mapped as any).secondaryPersonDetails = undefined;
+    }
     const personAge = sceneState.age || 0;
     const is80Plus = isUGCRealMode && personAge >= 80;
     const is85Plus = isUGCRealMode && personAge >= 85;
@@ -1158,7 +1163,7 @@ export function mapLifestyleToPromptOptions(
         mapped.rawDomesticUgcActive = true;
         mapped.camera = 'Front-facing smartphone camera with tiny sensor limitations';
         mapped.cameraDeviceSemantic =
-            'Front-facing phone camera with tiny sensor, face-priority autofocus hunting, limited dynamic range, clipped highlights, crushed shadows, wobbling handheld geometry.';
+            'Front-facing phone camera with tiny sensor, flat focus across the entire frame, no background blur, no portrait mode, limited dynamic range, clipped highlights, crushed shadows, wobbling handheld geometry.';
         console.log('[MAP] camera: raw domestic front camera enforced');
     } else {
         const defaultCameraLabel = 'Intentional smartphone camera';

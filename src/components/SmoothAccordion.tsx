@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Check, ChevronDown } from 'lucide-react';
+import { Check, ChevronDown, HelpCircle } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 interface SmoothAccordionProps {
   title: string;
@@ -84,6 +85,22 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
             <div className="text-left">
               <div className="flex items-center gap-2">
                 <p className={`text-sm font-semibold text-gray-900 dark:text-white ${titleClassName}`}>{title}</p>
+                {tooltip ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={(event) => event.stopPropagation()}
+                        className="inline-flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 dark:text-white/40 dark:hover:text-white/70"
+                        aria-label={`${title} help`}
+                        title="Help"
+                      >
+                        <HelpCircle className="w-4 h-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">{tooltip}</TooltipContent>
+                  </Tooltip>
+                ) : null}
                 {isRequired && !isTouched && (
                   <span className="text-xs text-gray-500 dark:text-white/50">*Required</span>
                 )}
@@ -124,6 +141,22 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
           <div className="text-left">
             <div className="flex items-center gap-2">
               <p className={`text-sm font-semibold text-gray-900 dark:text-white ${titleClassName}`}>{title}</p>
+              {tooltip ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      onClick={(event) => event.stopPropagation()}
+                      className="inline-flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 dark:text-white/40 dark:hover:text-white/70"
+                      aria-label={`${title} help`}
+                      title="Help"
+                    >
+                      <HelpCircle className="w-4 h-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">{tooltip}</TooltipContent>
+                </Tooltip>
+              ) : null}
               {isRequired && !isTouched && (
                 <span className="text-xs text-gray-500 dark:text-white/50">*Required</span>
               )}

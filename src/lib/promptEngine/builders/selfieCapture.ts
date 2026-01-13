@@ -214,7 +214,7 @@ IMPERFECTIONS (LOW): Subtle phone flaws only: mild sensor noise, slight white-ba
 IMPERFECTIONS (MEDIUM): Noticeable phone flaws: JPEG compression blocks, oversharpen halos, uneven white balance, clipped highlights, crushed shadows, minor motion blur.
 `.trim(),
     high: `
-IMPERFECTIONS (HIGH): Strong, ugly phone flaws: heavy compression artifacts, aggressive oversharpen halos, slight missed autofocus, rolling-shutter wobble, fingerprint haze on lens, harsh mixed lighting.
+IMPERFECTIONS (HIGH): Strong, ugly phone flaws: heavy compression artifacts, aggressive oversharpen halos, rolling-shutter wobble, fingerprint haze on lens, harsh mixed lighting.
 `.trim()
 };
 

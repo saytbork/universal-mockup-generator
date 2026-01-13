@@ -3998,7 +3998,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                          <div>
 	                            <span className="text-xs text-gray-600 dark:text-white/60">People</span>
 	                            <p className="text-[11px] text-gray-400 dark:text-white/40">
-	                              {values.personCount === 'couple'
+	                              {values.ugcRealMode
+	                                ? 'Raw Domestic UGC is single-person only. Couple is disabled.'
+	                                : values.personCount === 'couple'
 	                                ? 'Primary person settings apply to Person A; Person B is derived automatically (distinct identity).'
 	                                : 'Choose single creator or a couple.'}
 	                            </p>
@@ -4024,17 +4026,23 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                          </button>
 	                          <button
 	                            type="button"
+	                            disabled={values.ugcRealMode}
 	                            onClick={() => {
+	                              if (values.ugcRealMode) return;
 	                              updateValue('personCount', 'couple');
 	                              markSectionTouched('creator');
 	                            }}
-	                            title="Two people in frame (couple)"
+	                            title={values.ugcRealMode ? 'Disabled in Raw Domestic UGC' : 'Two people in frame (couple)'}
 	                            className={`h-9 rounded-full text-xs font-medium border transition-colors ${values.personCount === 'couple'
 	                              ? 'bg-indigo-600 text-white border-indigo-600'
-	                              : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'
+	                              : values.ugcRealMode
+	                                ? 'bg-white border-gray-200 text-gray-400 opacity-50 cursor-not-allowed'
+	                                : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'
 	                              } dark:border-white/10 ${values.personCount === 'couple'
 	                                ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-	                                : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
+	                                : values.ugcRealMode
+	                                  ? 'dark:bg-white/5 dark:text-white/40 dark:border-white/10 opacity-50 cursor-not-allowed'
+	                                  : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
 	                              }`}
 	                          >
 	                            Couple
@@ -4718,6 +4726,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                       <div className="space-y-2">
                         <span className="text-xs font-semibold text-gray-900 dark:text-white">People</span>
+                        {values.ugcRealMode && (
+                          <p className="text-[11px] text-gray-500 dark:text-white/40">
+                            Raw Domestic UGC is single-person only. Couple is disabled.
+                          </p>
+                        )}
                         <div className="grid grid-cols-2 gap-2">
                           <button
                             type="button"
@@ -4737,16 +4750,23 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           </button>
                           <button
                             type="button"
+                            disabled={values.ugcRealMode}
                             onClick={() => {
+                              if (values.ugcRealMode) return;
                               updateValue('personCount', 'couple');
                               markSectionTouched('creator');
                             }}
+                            title={values.ugcRealMode ? 'Disabled in Raw Domestic UGC' : 'Two people in frame (couple)'}
                             className={`h-9 rounded-full text-xs font-medium border transition-colors ${values.personCount === 'couple'
                               ? 'bg-indigo-600 text-white border-indigo-600'
-                              : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'
+                              : values.ugcRealMode
+                                ? 'bg-white border-gray-200 text-gray-400 opacity-50 cursor-not-allowed'
+                                : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'
                               } dark:border-white/10 ${values.personCount === 'couple'
                                 ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-                                : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
+                                : values.ugcRealMode
+                                  ? 'dark:bg-white/5 dark:text-white/40 dark:border-white/10 opacity-50 cursor-not-allowed'
+                                  : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
                               }`}
                           >
                             Couple
@@ -5216,6 +5236,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           updateValue('ugcRealMode', newValue);
                           if (newValue) {
                             updateValue('ugcImperfectionLevel', 'high');
+                            updateValue('personCount', 'single');
+                            updateValue('editSecondaryPerson', false);
                             updateValue('formulationStoryEnabled', false);
                             updateValue('facialExpression', 'Soft Smile');
                             updateValue('eyeDirection', 'Looking at camera');
@@ -5245,15 +5267,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   type="button"
                                   onClick={() => updateValue('ugcImperfectionLevel', level)}
                                   className={getPillClass(values.ugcImperfectionLevel === level)}
-                                  title={level === 'high' ? 'Heaviest compression/noise, slight autofocus miss, harsh mixed lighting' : level === 'medium' ? 'Noticeable compression/noise, minor motion blur' : 'Subtle imperfections only'}
+                                  title={level === 'high' ? 'Heaviest compression/noise, rolling shutter wobble, harsh mixed lighting' : level === 'medium' ? 'Noticeable compression/noise, minor motion blur' : 'Subtle imperfections only'}
                                 >
-                                  {level.toUpperCase()}
+                                  {level === 'low' ? 'Low' : level === 'medium' ? 'Medium' : 'High'}
                                 </button>
                               ))}
                             </div>
                           </div>
                           <p className="text-[11px] text-gray-500">
-                            Tip: use <span className="font-semibold">HIGH</span> to match real “random selfie” ugliness. Use <span className="font-semibold">LOW</span> if it gets too messy.
+                            Tip: use <span className="font-semibold">High</span> to match real “random selfie” ugliness. Use <span className="font-semibold">Low</span> if it gets too messy.
                           </p>
                         </div>
                         <div className="space-y-4">

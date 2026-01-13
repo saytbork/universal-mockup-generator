@@ -64,7 +64,7 @@ IMPERFECTIONS (MEDIUM): Include 2–3 obvious phone-capture flaws: visible JPEG 
 Avoid any cinematic or professional look.
 `.trim().replace(/\s+/g, ' '),
     high: `
-IMPERFECTIONS (HIGH): Include 3–5 strong phone-capture flaws: heavy JPEG compression artifacts, aggressive oversharpening halos, autofocus hunting (slightly missed focus), rolling-shutter wobble, fingerprint haze on lens, harsh mixed lighting, blown highlights and shadow crush.
+IMPERFECTIONS (HIGH): Include 3–5 strong phone-capture flaws: heavy JPEG compression artifacts, aggressive oversharpening halos, rolling-shutter wobble, fingerprint haze on lens, harsh mixed lighting, blown highlights and shadow crush.
 Must feel like a low-quality, unflattering domestic capture.
 `.trim().replace(/\s+/g, ' ')
 };
