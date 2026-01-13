@@ -264,6 +264,17 @@ Skin carries micro wrinkles around mouth, eyes, and neck with authentic sag.
                 const build = sanitizePart(`${personDetails.bodyType} build`, isUgcMode);
                 identityParts.push(build);
                 parts.push(`BUILD ANCHOR: Subject must have a ${build}. Do not drift to a very different build.`);
+
+                const bodyTypeKey = String(personDetails.bodyType).trim().toLowerCase();
+                const physiqueAnchor =
+                    bodyTypeKey === 'slim'
+                        ? 'PHYSIQUE DETAILS: Slim figure. Narrow waist and shoulders, lean arms and neck. Face is not round or full.'
+                        : bodyTypeKey === 'curvy'
+                            ? 'PHYSIQUE DETAILS: Curvy figure. Noticeable hip/waist curve, fuller thighs/arms. Face has gentle softness.'
+                            : bodyTypeKey === 'plus size' || bodyTypeKey === 'plus-size' || bodyTypeKey === 'plus'
+                                ? 'PHYSIQUE DETAILS: Plus-size figure. Fuller midsection and arms, thicker neck, softer jawline, fuller cheeks. Do NOT render a thin frame.'
+                                : 'PHYSIQUE DETAILS: Average figure. Balanced proportions, neither extremely thin nor plus-size.';
+                parts.push(physiqueAnchor);
             }
 
             // Skin Tone
