@@ -549,6 +549,11 @@ const RAW_DOMESTIC_CAPTURE_SECTIONS: UGCLayerSection[] = [
         detail: 'Camera above eye level with awkward tilt.'
       },
       {
+        id: 'low-angle',
+        label: 'Low-angle (from below)',
+        detail: 'Camera below face level pointing upward. Unflattering and obvious.'
+      },
+      {
         id: 'close-face',
         label: 'Close face framing',
         detail: 'Tight, imperfect facial crop. Feels too close.'

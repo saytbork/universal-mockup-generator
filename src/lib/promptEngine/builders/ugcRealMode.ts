@@ -252,6 +252,7 @@ watermarks
 const CAPTURE_STYLE_DETAILS: Record<string, string> = {
     'torso-level-handheld': 'Phone at torso height, slight downward tilt, relaxed grip.',
     'high-angle': 'Phone overhead looking down, casual selfie tilt.',
+    'low-angle': 'Phone held low looking up, unflattering under-chin angle, awkward.',
     'close-face': 'Phone inches from face, cheeks/nose/forehead dominate, cramped.',
     'propped-surface': 'Phone resting on counter, wobbling between breaths.'
 };

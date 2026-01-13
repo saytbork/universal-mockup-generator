@@ -156,6 +156,9 @@ CAPTURE: Torso-level handheld front-camera selfie. Camera around torso/upper-che
     'high-angle': `
 CAPTURE: Obvious high-angle front-camera selfie. Camera clearly above forehead height angled downward. Headroom awkward; slight head crop allowed. Noticeable random tilt/roll (±6–15°). Arm extension implied.
 `.trim(),
+    'low-angle': `
+CAPTURE: Obvious low-angle front-camera selfie. Camera clearly below face level angled upward. Unflattering under-chin angle is visible. Noticeable random tilt/roll (±6–15°). Arm extension implied.
+`.trim(),
     'close-face': `
 CAPTURE: Close front-camera selfie. Framing too tight and imperfect; crop forehead/cheek/chin. Phone inches from face. Noticeable random tilt/roll (±6–15°).
 `.trim(),
@@ -226,6 +229,7 @@ const isSelfieActive = (options: PromptOptions): boolean => {
     const knownSelfieCaptureBaseIds = new Set([
         'torso-level-handheld',
         'high-angle',
+        'low-angle',
         'close-face',
         'propped-surface'
     ]);
@@ -255,9 +259,11 @@ export class SelfieCaptureBuilder implements PromptBuilder {
         const rand = (min: number, max: number) => min + Math.random() * (max - min);
         const signed = (min: number, max: number) => (Math.random() < 0.5 ? -1 : 1) * rand(min, max);
         const isHighAngle = modeId === 'high-angle';
-        // High-angle should be clearly obvious; other modes still "noticeable" but less extreme.
-        const pitchDeg = Number(signed(isHighAngle ? 18 : 6, isHighAngle ? 35 : 15).toFixed(1));
-        const rollDeg = Number(signed(isHighAngle ? 8 : 4, isHighAngle ? 18 : 14).toFixed(1));
+        const isLowAngle = modeId === 'low-angle';
+        const pitchMagnitude = rand(isHighAngle || isLowAngle ? 18 : 6, isHighAngle || isLowAngle ? 35 : 15);
+        const pitchSign = isHighAngle ? 1 : isLowAngle ? -1 : (Math.random() < 0.5 ? -1 : 1);
+        const pitchDeg = Number((pitchSign * pitchMagnitude).toFixed(1));
+        const rollDeg = Number(signed(isHighAngle || isLowAngle ? 8 : 4, isHighAngle || isLowAngle ? 18 : 14).toFixed(1));
         return { pitchDeg, rollDeg };
     }
 
@@ -286,6 +292,9 @@ export class SelfieCaptureBuilder implements PromptBuilder {
         }
         if (normalized.includes('high-angle') || normalized.includes('overhead') || normalized.includes('above') || normalized.includes('angled')) {
             return 'high-angle';
+        }
+        if (normalized.includes('low-angle') || normalized.includes('from below') || normalized.includes('below') || normalized.includes('bottom-up')) {
+            return 'low-angle';
         }
         if (normalized.includes('upper body') || normalized.includes("arm's length") || normalized.includes('arm length') || normalized.includes('torso')) {
             return 'torso-level-handheld';
