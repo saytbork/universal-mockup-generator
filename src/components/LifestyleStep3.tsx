@@ -3972,22 +3972,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                        <span className="text-xs text-gray-600 dark:text-white/60">
 	                          {values.personCount === 'couple' ? 'Primary gender' : 'Gender'}
 	                        </span>
-	                        <div className="grid grid-cols-2 gap-2">
+	                        <div className="flex flex-wrap gap-2">
 	                          {(['Female', 'Male'] as const).map(option => {
 	                            const active = values.gender === option;
 	                            return (
-	                              <button
+	                              <Chip
 	                                key={option}
-	                                type="button"
 	                                onClick={() => { updateValue('gender', option); markSectionTouched('creator'); }}
-	                                title={option}
-	                                className={`h-9 rounded-full text-xs font-medium border transition-colors ${active
-	                                  ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-	                                  : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-	                                  }`}
+	                                selected={active}
+	                                size="md"
 	                              >
 	                                {option}
-	                              </button>
+	                              </Chip>
 	                            );
 	                          })}
 	                        </div>
@@ -4006,84 +4002,55 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                            </p>
 	                          </div>
 	                        </div>
-	                        <div className="grid grid-cols-2 gap-2">
-	                          <button
-	                            type="button"
+	                        <div className="flex flex-wrap gap-2">
+	                          <Chip
 	                            onClick={() => {
 	                              updateValue('personCount', 'single');
 	                              markSectionTouched('creator');
 	                            }}
-	                            title="Single person in frame"
-	                            className={`h-9 rounded-full text-xs font-medium border transition-colors ${values.personCount === 'single'
-	                              ? 'bg-indigo-600 text-white border-indigo-600'
-	                              : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'
-	                              } dark:border-white/10 ${values.personCount === 'single'
-	                                ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-	                                : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-	                              }`}
+	                            selected={values.personCount === 'single'}
+	                            size="md"
 	                          >
 	                            Single
-	                          </button>
-	                          <button
-	                            type="button"
+	                          </Chip>
+	                          <Chip
 	                            disabled={values.ugcRealMode}
 	                            onClick={() => {
 	                              if (values.ugcRealMode) return;
 	                              updateValue('personCount', 'couple');
 	                              markSectionTouched('creator');
 	                            }}
-	                            title={values.ugcRealMode ? 'Disabled in Raw Domestic UGC' : 'Two people in frame (couple)'}
-	                            className={`h-9 rounded-full text-xs font-medium border transition-colors ${values.personCount === 'couple'
-	                              ? 'bg-indigo-600 text-white border-indigo-600'
-	                              : values.ugcRealMode
-	                                ? 'bg-white border-gray-200 text-gray-400 opacity-50 cursor-not-allowed'
-	                                : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'
-	                              } dark:border-white/10 ${values.personCount === 'couple'
-	                                ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-	                                : values.ugcRealMode
-	                                  ? 'dark:bg-white/5 dark:text-white/40 dark:border-white/10 opacity-50 cursor-not-allowed'
-	                                  : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-	                              }`}
+	                            selected={values.personCount === 'couple'}
+	                            size="md"
+	                            tooltip={values.ugcRealMode ? 'Disabled in Raw Domestic UGC' : undefined}
 	                          >
 	                            Couple
-	                          </button>
+	                          </Chip>
 	                        </div>
 	                        {values.personCount === 'couple' && (
-	                          <div className="grid grid-cols-2 gap-2">
-	                            <button
-	                              type="button"
+	                          <div className="flex flex-wrap gap-2">
+	                            <Chip
 	                              onClick={() => {
 	                                updateValue('coupleSex', 'same');
 	                                markSectionTouched('creator');
 	                              }}
-	                              title="Couple: same sex"
-	                              className={`h-9 rounded-full text-xs font-medium border transition-colors ${values.coupleSex === 'same'
-	                                ? 'bg-indigo-600 text-white border-indigo-600'
-	                                : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'
-	                                } dark:border-white/10 ${values.coupleSex === 'same'
-	                                  ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-	                                  : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-	                                }`}
+	                              selected={values.coupleSex === 'same'}
+	                              size="md"
+	                              tooltip="Couple: same sex"
 	                            >
 	                              Same sex
-	                            </button>
-	                            <button
-	                              type="button"
+	                            </Chip>
+	                            <Chip
 	                              onClick={() => {
 	                                updateValue('coupleSex', 'different');
 	                                markSectionTouched('creator');
 	                              }}
-	                              title="Couple: different sex"
-	                              className={`h-9 rounded-full text-xs font-medium border transition-colors ${values.coupleSex === 'different'
-	                                ? 'bg-indigo-600 text-white border-indigo-600'
-	                                : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'
-	                                } dark:border-white/10 ${values.coupleSex === 'different'
-	                                  ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-	                                  : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-	                                }`}
+	                              selected={values.coupleSex === 'different'}
+	                              size="md"
+	                              tooltip="Couple: different sex"
 	                            >
 	                              Different sex
-	                            </button>
+	                            </Chip>
 	                          </div>
 	                        )}
 	                        {values.personCount === 'couple' && (
@@ -4706,21 +4673,21 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                       <div className="space-y-2">
                         <span className="text-xs font-semibold text-gray-900 dark:text-white">Gender</span>
-                        <div className="grid grid-cols-2 gap-2">
-                          <button
-                            type="button"
+                        <div className="flex flex-wrap gap-2">
+                          <Chip
+                            selected={values.gender === 'Female'}
                             onClick={() => { updateValue('gender', 'Female' as any); markSectionTouched('creator'); }}
-                            className={`h-9 rounded-full text-xs font-medium border transition-colors ${values.gender === 'Female' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'} dark:border-white/10 ${values.gender === 'Female' ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white' : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'}`}
+                            size="md"
                           >
                             Female
-                          </button>
-                          <button
-                            type="button"
+                          </Chip>
+                          <Chip
+                            selected={values.gender === 'Male'}
                             onClick={() => { updateValue('gender', 'Male' as any); markSectionTouched('creator'); }}
-                            className={`h-9 rounded-full text-xs font-medium border transition-colors ${values.gender === 'Male' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'} dark:border-white/10 ${values.gender === 'Male' ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white' : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'}`}
+                            size="md"
                           >
                             Male
-                          </button>
+                          </Chip>
                         </div>
                       </div>
 
@@ -4731,81 +4698,55 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             Raw Domestic UGC is single-person only. Couple is disabled.
                           </p>
                         )}
-                        <div className="grid grid-cols-2 gap-2">
-                          <button
-                            type="button"
+                        <div className="flex flex-wrap gap-2">
+                          <Chip
+                            selected={values.personCount === 'single'}
                             onClick={() => {
                               updateValue('personCount', 'single');
                               markSectionTouched('creator');
                             }}
-                            className={`h-9 rounded-full text-xs font-medium border transition-colors ${values.personCount === 'single'
-                              ? 'bg-indigo-600 text-white border-indigo-600'
-                              : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'
-                              } dark:border-white/10 ${values.personCount === 'single'
-                                ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-                                : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-                              }`}
+                            size="md"
                           >
                             Single
-                          </button>
-                          <button
-                            type="button"
+                          </Chip>
+                          <Chip
+                            selected={values.personCount === 'couple'}
                             disabled={values.ugcRealMode}
                             onClick={() => {
                               if (values.ugcRealMode) return;
                               updateValue('personCount', 'couple');
                               markSectionTouched('creator');
                             }}
-                            title={values.ugcRealMode ? 'Disabled in Raw Domestic UGC' : 'Two people in frame (couple)'}
-                            className={`h-9 rounded-full text-xs font-medium border transition-colors ${values.personCount === 'couple'
-                              ? 'bg-indigo-600 text-white border-indigo-600'
-                              : values.ugcRealMode
-                                ? 'bg-white border-gray-200 text-gray-400 opacity-50 cursor-not-allowed'
-                                : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'
-                              } dark:border-white/10 ${values.personCount === 'couple'
-                                ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-                                : values.ugcRealMode
-                                  ? 'dark:bg-white/5 dark:text-white/40 dark:border-white/10 opacity-50 cursor-not-allowed'
-                                  : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-                              }`}
+                            tooltip={values.ugcRealMode ? 'Disabled in Raw Domestic UGC' : undefined}
+                            size="md"
                           >
                             Couple
-                          </button>
+                          </Chip>
                         </div>
                         {values.personCount === 'couple' && (
-                          <div className="grid grid-cols-2 gap-2">
-                            <button
-                              type="button"
+                          <div className="flex flex-wrap gap-2">
+                            <Chip
+                              selected={values.coupleSex === 'same'}
                               onClick={() => {
                                 updateValue('coupleSex', 'same');
                                 markSectionTouched('creator');
                               }}
-                              className={`h-9 rounded-full text-xs font-medium border transition-colors ${values.coupleSex === 'same'
-                                ? 'bg-indigo-600 text-white border-indigo-600'
-                                : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'
-                                } dark:border-white/10 ${values.coupleSex === 'same'
-                                  ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-                                  : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-                                }`}
+                              tooltip="Couple: same sex"
+                              size="md"
                             >
                               Same sex
-                            </button>
-                            <button
-                              type="button"
+                            </Chip>
+                            <Chip
+                              selected={values.coupleSex === 'different'}
                               onClick={() => {
                                 updateValue('coupleSex', 'different');
                                 markSectionTouched('creator');
                               }}
-                              className={`h-9 rounded-full text-xs font-medium border transition-colors ${values.coupleSex === 'different'
-                                ? 'bg-indigo-600 text-white border-indigo-600'
-                                : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'
-                                } dark:border-white/10 ${values.coupleSex === 'different'
-                                  ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-                                  : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-                                }`}
+                              tooltip="Couple: different sex"
+                              size="md"
                             >
                               Different sex
-                            </button>
+                            </Chip>
                           </div>
                         )}
                       </div>
