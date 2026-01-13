@@ -186,6 +186,12 @@ Product must touch skin. Fingers compress slightly against the product.
 Contact shadows MUST exist between fingers and object.
 Micro-occlusion at finger contact points.
 Product cannot float. Hands cannot be symmetrical or posed.
+
+HANDS (CRITICAL):
+The product is held by EXACTLY ONE HAND.
+Only the product-holding hand may be visible.
+The phone-holding hand MUST NOT appear in frame.
+If two hands are visible → INVALID IMAGE.
 `.trim();
 
 const CLOSE_FACE_BLOCKERS = `
@@ -245,11 +251,13 @@ const isUgcMode = (options: PromptOptions): boolean => {
 };
 
 export class SelfieCaptureBuilder implements PromptBuilder {
-    private getNoticeableAngle(): { pitchDeg: number; rollDeg: number } {
+    private getNoticeableAngle(modeId: string): { pitchDeg: number; rollDeg: number } {
         const rand = (min: number, max: number) => min + Math.random() * (max - min);
         const signed = (min: number, max: number) => (Math.random() < 0.5 ? -1 : 1) * rand(min, max);
-        const pitchDeg = Number(signed(6, 15).toFixed(1));
-        const rollDeg = Number(signed(4, 14).toFixed(1));
+        const isHighAngle = modeId === 'high-angle';
+        // High-angle should be clearly obvious; other modes still "noticeable" but less extreme.
+        const pitchDeg = Number(signed(isHighAngle ? 18 : 6, isHighAngle ? 35 : 15).toFixed(1));
+        const rollDeg = Number(signed(isHighAngle ? 8 : 4, isHighAngle ? 18 : 14).toFixed(1));
         return { pitchDeg, rollDeg };
     }
 
@@ -298,7 +306,7 @@ export class SelfieCaptureBuilder implements PromptBuilder {
             options.ugcRealModeLayers?.captureBase?.includes('close-face') ||
             selectedModeId === 'close-face';
         const selectedMode = SELFIE_POSITION_MODES[selectedModeId] || SELFIE_POSITION_MODES['torso-level-handheld'];
-        const { pitchDeg, rollDeg } = this.getNoticeableAngle();
+        const { pitchDeg, rollDeg } = this.getNoticeableAngle(selectedModeId);
         const angleDirective = `ANGLE: noticeable random pitch ${pitchDeg}°, roll ${rollDeg}° (never level).`;
 
         delete overrideTarget.backgroundBlur;

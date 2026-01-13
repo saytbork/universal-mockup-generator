@@ -787,6 +787,11 @@ export function mapLifestyleToPromptOptions(
         mapped.personCount = 'single';
         mapped.coupleSex = undefined;
         (mapped as any).secondaryPersonDetails = undefined;
+        // UGC selfie rule: never show two hands (phone hand must not appear).
+        if (personIncluded && (sceneState.productInteraction || '').trim().toLowerCase() === 'holding') {
+            mapped.productInteraction = 'holding the product with exactly one hand (only that hand visible)';
+            mapped.personDetails.productInteraction = 'holding the product with exactly one hand (only that hand visible)';
+        }
     }
     const personAge = sceneState.age || 0;
     const is80Plus = isUGCRealMode && personAge >= 80;
