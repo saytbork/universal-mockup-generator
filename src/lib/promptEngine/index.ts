@@ -192,8 +192,10 @@ function enforceUgcFocusGuard(prompt: string, options: PromptOptions): string {
     }
 
     // Split positive and negative prompt (negative can have depth terms as blockers)
-    const negativeMarker = ' Negative prompt: ';
-    const negativeIndex = prompt.indexOf(negativeMarker);
+    // NOTE: legacy builders sometimes emit `Negative prompt:` without leading spaces/newlines.
+    const negativeMarkerRegex = /\bNegative prompt:\s*/i;
+    const negativeMatch = negativeMarkerRegex.exec(prompt);
+    const negativeIndex = negativeMatch ? negativeMatch.index : -1;
     let positivePrompt = negativeIndex >= 0 ? prompt.substring(0, negativeIndex) : prompt;
     const negativePrompt = negativeIndex >= 0 ? prompt.substring(negativeIndex) : '';
 

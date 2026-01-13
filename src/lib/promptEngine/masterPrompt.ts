@@ -38,7 +38,7 @@ VISUAL FIDELITY:
 - Basic smartphone front-camera quality.
 - Flat focus across the entire frame.
 - Everything sharp from foreground to background.
-- No background blur, no bokeh, no depth of field effects.
+- No background blur, no depth of field effects.
 - Natural domestic lighting.
 - Uneven exposure is allowed.
 - Minor imperfections are allowed.

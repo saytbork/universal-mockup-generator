@@ -5255,12 +5255,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           Pro controls are locked. The system handles everything automatically.
                         </p>
                         <div className="rounded-2xl border border-gray-200 bg-white p-4 space-y-2">
-                          <div className="flex items-start justify-between gap-3">
-                            <div>
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="min-w-0">
                               <p className="text-[10px] uppercase tracking-[0.2em] text-gray-500 font-extrabold">IMPERFECTION LEVEL</p>
                               <p className="text-[11px] text-gray-500 mt-1">How “ugly” the phone capture looks (noise/compression/focus mistakes).</p>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex flex-wrap justify-end gap-2">
                               {(['low', 'medium', 'high'] as const).map(level => (
                                 <button
                                   key={level}
@@ -5287,18 +5287,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   <p className="text-xs uppercase tracking-wider text-gray-500">{section.title}</p>
                                   <p className="text-xs text-gray-500 mt-1">{section.description}</p>
                                 </div>
-                                <div className="flex flex-wrap gap-3">
+                                <div className="flex flex-wrap gap-2">
                                   {section.options.map(option => (
-                                    <div key={option.id} className="flex flex-col gap-1 max-w-[220px]">
-                                      <button
-                                        type="button"
-                                        onClick={() => toggleUGCLayerSelection(section.field, option.id)}
-                                        className={getPillClass(currentSelections.includes(option.id))}
-                                      >
-                                        {option.label}
-                                      </button>
-                                      <p className="text-[10px] text-gray-500">{option.detail}</p>
-                                    </div>
+                                    <Chip
+                                      key={option.id}
+                                      selected={currentSelections.includes(option.id)}
+                                      tooltip={option.detail}
+                                      onClick={() => toggleUGCLayerSelection(section.field, option.id)}
+                                      size="md"
+                                    >
+                                      {option.label}
+                                    </Chip>
                                   ))}
                                 </div>
                               </div>

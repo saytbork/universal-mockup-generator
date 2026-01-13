@@ -7,7 +7,7 @@ import type { PromptBuilder, PromptOptions } from '../types';
 const UGC_SELFIE_CAPTURE_BLOCK = `
 UGC SELFIE CAPTURE (FRONT CAMERA — HARD CONSTRAINT):
 
-Front-facing smartphone camera only (tiny sensor). Flat focus across entire frame; NO background blur / bokeh / portrait mode.
+Front-facing smartphone camera only (tiny sensor). Flat focus across entire frame; no background blur, no portrait mode blur.
 Framing is accidental and imperfect; never level, never centered, never symmetrical.
 `.trim();
 

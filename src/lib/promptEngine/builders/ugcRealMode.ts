@@ -13,7 +13,7 @@ import type { PromptOptions, PromptBuilder } from '../types';
 const UGC_DEVICE_CONTRACT = `
 DEVICE: Front-facing smartphone camera only, tiny sensor, cheap glass.
 CAPTURE: Flat focus across entire frame, everything sharp foreground to background.
-OPTICS LOCK: no background separation, no portrait mode, no bokeh, no shallow depth of field, no cinematic blur.
+OPTICS LOCK: no background separation, no portrait mode, no shallow depth of field, no cinematic blur.
 QUALITY: Hand wobble, compression noise, clipped highlights, crushed shadows.
 FOCUS: Everything in mediocre focus 0-3m, small sensor look.
 `.trim().replace(/\s+/g, ' ');
@@ -154,7 +154,6 @@ Tiny sensor. Cheap optics.
 Flat focus across the entire frame.
 No background separation.
 No portrait mode.
-No bokeh.
 No cinematic blur.
 
 Angle is imperfect and human:
