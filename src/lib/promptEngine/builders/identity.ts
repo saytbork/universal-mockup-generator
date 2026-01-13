@@ -366,6 +366,9 @@ Captured by smartphone so fine edges may appear soft or broken.
 
                 if (secondaryPersonDetails && Object.keys(secondaryPersonDetails).length) {
                     const secondaryBits: string[] = [];
+                    if (typeof (secondaryPersonDetails as any).age === 'number') {
+                        secondaryBits.push(`${(secondaryPersonDetails as any).age}-year-old adult`);
+                    }
                     if (secondaryPersonDetails.gender) secondaryBits.push(`gender ${sanitizePart(String(secondaryPersonDetails.gender), isUgcMode)}`);
                     if (secondaryPersonDetails.ethnicity) secondaryBits.push(sanitizePart(String(secondaryPersonDetails.ethnicity), isUgcMode));
                     if (secondaryPersonDetails.skinTone) secondaryBits.push(sanitizePart(String(secondaryPersonDetails.skinTone), isUgcMode));

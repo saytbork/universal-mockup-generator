@@ -760,6 +760,11 @@ export function mapLifestyleToPromptOptions(
             const value = String(((sceneState as any)[key] ?? '')).trim();
             if (value) details[targetKey] = value;
         };
+        const pickNumber = (key: string, targetKey: string = key) => {
+            const value = (sceneState as any)[key];
+            if (typeof value === 'number' && Number.isFinite(value)) details[targetKey] = value;
+        };
+        pickNumber('secondaryAge', 'age');
         pick('secondaryGender', 'gender');
         pick('secondaryEthnicity', 'ethnicity');
         pick('secondarySkinTone', 'skinTone');
@@ -1179,7 +1184,7 @@ export function mapLifestyleToPromptOptions(
             'Front-facing phone camera with tiny sensor, flat focus across the entire frame, no background blur, no portrait mode, limited dynamic range, clipped highlights, crushed shadows, wobbling handheld geometry.';
         console.log('[MAP] camera: raw domestic front camera enforced');
     } else {
-        const defaultCameraLabel = 'Intentional smartphone camera';
+        const defaultCameraLabel = 'DSLR / mirrorless camera';
         const cameraDevice = (sceneState as any).cameraType || defaultCameraLabel;
         const cameraDeviceSemantic = CAMERA_DEVICE_SEMANTIC_MAP[cameraDevice] || CAMERA_DEVICE_SEMANTIC_MAP[defaultCameraLabel];
         const shouldForceEnvironmentSmartphone =

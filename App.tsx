@@ -4526,7 +4526,7 @@ If the model attempts to create a scene or environment, override it and force a 
         // MANDATORY LOG - Final prompt string MUST show injected values
         console.log('[FINAL PROMPT STRING]', finalPrompt);
 
-        const aspectRatio = isProductPlacement ? PRODUCT_DEFAULT_ASPECT_RATIO : (options?.aspectRatio || '1:1');
+        const aspectRatio = isProductPlacement ? PRODUCT_DEFAULT_ASPECT_RATIO : (promptOptions?.aspectRatio || '1:1');
 
         const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
         if (!resolvedApiKey) {
@@ -4971,7 +4971,7 @@ If the model attempts to create a scene or environment, override it and force a 
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string, apiVersion: 'v1beta' });
       const base64Image = generatedImageUrl.split(',')[1];
 
-      const aspectRatio = isProductPlacement ? PRODUCT_DEFAULT_ASPECT_RATIO : (options?.aspectRatio || '1:1');
+      const aspectRatio = isProductPlacement ? PRODUCT_DEFAULT_ASPECT_RATIO : (promptOptions?.aspectRatio || '1:1');
       const response = await ai.models.generateContent({
         model: GEMINI_IMAGE_MODEL, // maintain this but enforce insert behavior through the prompt and config above
         contents: {

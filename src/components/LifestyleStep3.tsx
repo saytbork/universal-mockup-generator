@@ -99,7 +99,7 @@ export interface SceneState {
     labVibe: string;
   };
 
-  outputFormat: '1:1' | '4:5' | '9:16';
+  outputFormat: '1:1' | '4:5' | '9:16' | '16:9';
 }
 interface LifestyleStep3Props {
   isProductMode?: boolean;
@@ -127,6 +127,7 @@ export interface Step3Values {
   personCount: 'single' | 'couple';
   coupleSex: 'same' | 'different';
   editSecondaryPerson: boolean;
+  secondaryAge: number;
   secondaryGender: string;
   secondaryEthnicity: string;
   secondarySkinTone: string;
@@ -648,7 +649,7 @@ const CAMERA_ANGLE_OPTIONS = [
 const PRODUCT_INTERACTION_OPTIONS = INTERACTION_OPTIONS;
 
 // ASPECT RATIO - Output Format
-const ASPECT_RATIO_OPTIONS = ['1:1 (Square)', '4:5 (Portrait)', '9:16 (Story)'];
+const ASPECT_RATIO_OPTIONS = ['1:1 (Square)', '4:5 (Portrait)', '9:16 (Story)', '16:9 (Landscape)'];
 
 const GRADIENT_ANGLE_OPTIONS: Array<'45' | '90' | '180'> = ['45', '90', '180'];
 
@@ -757,6 +758,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	    personCount: 'single',
 	    coupleSex: 'different',
 	    editSecondaryPerson: false,
+        secondaryAge: 30,
 	    secondaryGender: '',
 	    secondaryEthnicity: '',
 	    secondarySkinTone: '',
@@ -808,7 +810,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
     // Camera
     shotType: 'Medium',
-    cameraType: 'Intentional smartphone camera',
+    cameraType: 'DSLR / mirrorless camera',
     cameraAngle: 'Eye level',
     framing: 'Rule of thirds',
 
@@ -1185,10 +1187,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           };
           mappedValue = sideMap[value as string] ?? 'right';
         } else if (key === 'aspectRatio') {
-          const ratioMap: Record<string, '1:1' | '4:5' | '16:9'> = {
+          const ratioMap: Record<string, '1:1' | '4:5' | '9:16' | '16:9'> = {
             '1:1 (Square)': '1:1',
             '4:5 (Portrait)': '4:5',
-            '9:16 (Story)': '16:9',
+            '9:16 (Story)': '9:16',
+            '16:9 (Landscape)': '16:9',
           };
           mappedValue = ratioMap[value as string] ?? '1:1';
         }
@@ -3936,7 +3939,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
-                          <span className="text-xs text-gray-600 dark:text-white/60">Age</span>
+                          <span className="text-xs text-gray-600 dark:text-white/60">
+                            {values.personCount === 'couple' ? 'Age (Person A)' : 'Age'}
+                          </span>
                           <span className="text-sm font-medium text-gray-900 dark:text-white">{values.age}</span>
                         </div>
                         <input
@@ -3950,6 +3955,28 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           style={{ ['--progress' as any]: `${ageSliderProgress}%` }}
                         />
                       </div>
+
+                      {values.personCount === 'couple' && (
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-gray-600 dark:text-white/60">Age (Person B)</span>
+                            <span className="text-sm font-medium text-gray-900 dark:text-white">{values.secondaryAge}</span>
+                          </div>
+                          <input
+                            type="range"
+                            min={18}
+                            max={90}
+                            step={1}
+                            value={values.secondaryAge}
+                            onChange={(event) => { updateValue('secondaryAge', Number(event.target.value)); markSectionTouched('creator'); }}
+                            className="scene-age-slider w-full"
+                            style={{ ['--progress' as any]: `${Math.round(((values.secondaryAge - 18) / (90 - 18)) * 100)}%` }}
+                          />
+                          <p className="text-[11px] text-gray-400 dark:text-white/40">
+                            Person B defaults to Person A unless changed.
+                          </p>
+                        </div>
+                      )}
 
 	                      <div className="space-y-2">
 	                        <span className="text-xs text-gray-600 dark:text-white/60">
@@ -3972,19 +3999,19 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                        </div>
 	                      </div>
 
-	                      <div className="space-y-2">
-	                        <div className="flex items-center justify-between gap-3">
-	                          <div>
-	                            <span className="text-xs text-gray-600 dark:text-white/60">People</span>
-	                            <p className="text-[11px] text-gray-400 dark:text-white/40">
-	                              {values.ugcRealMode
-	                                ? 'Raw Domestic UGC is single-person only. Couple is disabled.'
-	                                : values.personCount === 'couple'
-	                                ? 'Primary person settings apply to Person A; Person B is derived automatically (distinct identity).'
-	                                : 'Choose single creator or a couple.'}
-	                            </p>
-	                          </div>
-	                        </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <span className="text-xs text-gray-600 dark:text-white/60">Person count</span>
+                            <p className="text-[11px] text-gray-400 dark:text-white/40">
+                              {values.ugcRealMode
+                                ? 'Raw Domestic UGC is single-person only. Couple is disabled.'
+                                : values.personCount === 'couple'
+                                ? 'Primary person settings apply to Person A; Person B is derived automatically (distinct identity).'
+                                : 'Choose single creator or a couple.'}
+                            </p>
+                          </div>
+                        </div>
 	                        <div className="flex flex-wrap gap-2">
 	                          <Chip
 	                            onClick={() => {
@@ -4079,26 +4106,36 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                          <p className="text-[11px] uppercase tracking-[0.3em] text-gray-400 font-semibold dark:text-white/40">
 	                            Person B (Secondary)
 	                          </p>
+                              <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                  <span className="text-xs text-gray-600 dark:text-white/60">Age</span>
+                                  <span className="text-sm font-medium text-gray-900 dark:text-white">{values.secondaryAge}</span>
+                                </div>
+                                <input
+                                  type="range"
+                                  min={18}
+                                  max={90}
+                                  step={1}
+                                  value={values.secondaryAge}
+                                  onChange={(event) => { updateValue('secondaryAge', Number(event.target.value)); markSectionTouched('creator'); }}
+                                  className="scene-age-slider w-full"
+                                  style={{ ['--progress' as any]: `${Math.round(((values.secondaryAge - 18) / (90 - 18)) * 100)}%` }}
+                                />
+                              </div>
 	                          <div className="space-y-2">
 	                            <span className="text-xs text-gray-600 dark:text-white/60">Gender</span>
-	                            <div className="grid grid-cols-2 gap-2">
-	                              {(['Female', 'Male'] as const).map(option => {
-	                                const active = values.secondaryGender === option;
-	                                return (
-	                                  <button
-	                                    key={option}
-	                                    type="button"
-	                                    onClick={() => { updateValue('secondaryGender', option); markSectionTouched('creator'); }}
-	                                    title={`Person B: ${option}`}
-	                                    className={`h-9 rounded-full text-xs font-medium border transition-colors ${active
-	                                      ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-	                                      : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-	                                      }`}
-	                                  >
-	                                    {option}
-	                                  </button>
-	                                );
-	                              })}
+	                            <div className="flex flex-wrap gap-2">
+	                              {(['Female', 'Male'] as const).map(option => (
+	                                <Chip
+	                                  key={option}
+	                                  onClick={() => { updateValue('secondaryGender', option); markSectionTouched('creator'); }}
+	                                  selected={values.secondaryGender === option}
+	                                  tooltip={`Person B: ${option}`}
+	                                  size="md"
+	                                >
+	                                  {option}
+	                                </Chip>
+	                              ))}
 	                            </div>
 	                          </div>
 	                          <div className="space-y-2">
@@ -5586,7 +5623,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <p className="text-[11px] text-gray-500 mt-1">Select the capture device aesthetic</p>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        {CAMERA_OPTIONS.map(option => (
+                        {CAMERA_OPTIONS
+                          .filter(option =>
+                            option.label !== 'Intentional smartphone camera' &&
+                            option.label !== 'Laptop webcam (pro setup)'
+                          )
+                          .map(option => (
                           <button
                             key={option.value}
                             type="button"
