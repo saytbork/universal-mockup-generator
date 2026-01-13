@@ -15,6 +15,7 @@ import SmoothAccordion from './SmoothAccordion';
 import EcommerceStep3, { type EcommerceGenerationSettings } from './EcommerceStep3';
 import type { EcommerceSlotKey, EcommerceSlotsConfig } from '@/lib/ecommerceOverlay/types';
 import { Chip } from './ui/Chip';
+import { Toggle } from './ui/Toggle';
 import { useProductStudioStore, PREBUILT_BUNDLES, BRAND_PRESETS } from '@/lib/productStudio/store';
 import type { ProductStudioState, CameraAngle, CameraDistance, CameraRotation, CameraFraming, CreativeTheme, PaletteSource, PropDensity, BlankSpaceSide, EnvironmentMacro, Lighting, ProductType, MicroPlace, CompositionMode, SurfaceBase, ProductScale, ProductSpacing, LightStyle, NegativeSpace } from '@/lib/productStudio/types';
 import { validateProductStudioState } from '@/lib/productStudio/validator';
@@ -2101,24 +2102,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           <div>
                             <p className={GROUP_LABEL_CLASS}>PRO PHOTOGRAPHER MODE</p>
                           </div>
-                          <button
-                            type="button"
-                            role="switch"
-                            aria-checked={productStore.proMode}
-                            onClick={() => {
-                              productStore.setProMode(!productStore.proMode);
+                          <Toggle
+                            checked={productStore.proMode}
+                            onCheckedChange={(next) => {
+                              productStore.setProMode(next);
                               markSectionTouched('product-setup');
                             }}
-                            className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${productStore.proMode ? 'bg-indigo-600' : 'bg-gray-200'
-                              }`}
-                            style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                          >
-                            <span
-                              className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white ring-0 transition-all duration-300 mt-0.5 ml-0.5 ${productStore.proMode ? 'translate-x-5' : 'translate-x-0'
-                                }`}
-                              style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                            />
-                          </button>
+                            aria-label="Pro photographer mode"
+                          />
                         </div>
 
                         <div
@@ -3242,20 +3233,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               <div className={SECTION_GROUP_CLASS}>
                 <div className="flex items-center justify-between">
                   <p className={GROUP_LABEL_CLASS}>BUNDLE MODE</p>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={productStore.bundle.enabled}
-                    onClick={() => {
-                      productStore.setBundleEnabled(!productStore.bundle.enabled);
+                  <Toggle
+                    checked={productStore.bundle.enabled}
+                    onCheckedChange={(next) => {
+                      productStore.setBundleEnabled(next);
                       markSectionTouched('productStructure');
                     }}
-                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border border-gray-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${productStore.bundle.enabled ? 'bg-indigo-600 border-indigo-600' : 'bg-gray-200'}`}
-                  >
-                    <span
-                      className={`pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${productStore.bundle.enabled ? 'translate-x-5' : 'translate-x-1'} translate-y-1`}
-                    />
-                  </button>
+                    aria-label="Bundle mode"
+                  />
                 </div>
 
                 <div className="flex flex-wrap gap-2 mt-2">
@@ -3631,22 +3616,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     <p className={GROUP_LABEL_CLASS}>BACKGROUND CANVAS</p>
                     <p className="text-[11px] text-gray-500 mt-1">Neutral background + negative space (optional)</p>
                   </div>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={values.ecommerceSidePlacementFlag}
-                    onClick={() => {
-                      const next = !values.ecommerceSidePlacementFlag;
+                  <Toggle
+                    checked={values.ecommerceSidePlacementFlag}
+                    onCheckedChange={(next) => {
                       updateValue('ecommerceSidePlacementFlag', next);
                       updateValue('compositionMode', next ? 'Ecommerce Blank Space' : '');
                       markSectionTouched('ecommerce');
                     }}
-                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border border-gray-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white ${values.ecommerceSidePlacementFlag ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-gray-200'}`}
-                  >
-                    <span
-                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white border border-gray-200 ring-0 transition duration-200 ease-in-out ${values.ecommerceSidePlacementFlag ? 'translate-x-5' : 'translate-x-0'}`}
-                    />
-                  </button>
+                    aria-label="Background canvas"
+                  />
                 </div>
                 {values.ecommerceSidePlacementFlag !== true && (
                   <p className="text-[11px] text-gray-500">
@@ -4067,17 +4045,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                                  Edit Person B explicitly (otherwise it’s auto-derived).
 	                                </p>
 	                              </div>
-	                              <button
-	                                type="button"
-	                                role="switch"
-	                                aria-checked={values.editSecondaryPerson}
+	                              <Toggle
+	                                checked={values.editSecondaryPerson}
 	                                title={values.editSecondaryPerson ? 'Editing Person B is enabled' : 'Enable editing Person B'}
-	                                onClick={() => {
-	                                  const next = !values.editSecondaryPerson;
+	                                aria-label="Enable editing Person B"
+	                                onCheckedChange={(next) => {
 	                                  updateValue('editSecondaryPerson', next);
 	                                  markSectionTouched('creator');
 	                                  if (next) {
-	                                    // Best-effort defaults for Person B.
 	                                    const primary = String(values.gender || '').toLowerCase();
 	                                    const derivedGender =
 	                                      values.coupleSex === 'same'
@@ -4093,15 +4068,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                                    if (!values.secondaryBodyType && values.bodyType) updateValue('secondaryBodyType', values.bodyType as any);
 	                                  }
 	                                }}
-	                                className={`relative h-5 w-10 rounded-full border transition-colors ${values.editSecondaryPerson
-	                                  ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500'
-	                                  : 'bg-gray-200 border-gray-200 dark:border-white/10 dark:bg-white/10'
-	                                  }`}
-	                              >
-	                                <span
-	                                  className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white transition-transform ${values.editSecondaryPerson ? 'translate-x-4' : ''} dark:border-white/10`}
-	                                />
-	                              </button>
+	                              />
 	                            </div>
 	                          </div>
 	                        )}
@@ -4605,30 +4572,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                          <p className="text-xs text-gray-600 dark:text-white/60">Keep same person</p>
 	                          <p className="text-[11px] text-gray-400 dark:text-white/40">Locks identity across renders (available after first generation)</p>
 	                        </div>
-	                        <button
-	                          type="button"
-	                          role="switch"
-	                          aria-checked={values.sameCreatorAcrossScenes}
+	                        <Toggle
+	                          checked={values.sameCreatorAcrossScenes}
 	                          disabled={!hasFirstGenerationComplete || hasModelReference}
-	                          title={
-	                            hasModelReference
-	                              ? 'Disabled when using a model reference'
-	                              : (!hasFirstGenerationComplete ? 'Available after first generation' : (values.sameCreatorAcrossScenes ? 'ON: keep same person' : 'OFF: randomize person every render'))
-	                          }
-	                          onClick={() => {
+	                          onCheckedChange={(next) => {
 	                            if (!hasFirstGenerationComplete || hasModelReference) return;
-	                            updateValue('sameCreatorAcrossScenes', !values.sameCreatorAcrossScenes);
+	                            updateValue('sameCreatorAcrossScenes', next);
 	                            markSectionTouched('creator');
 	                          }}
-                          className={`relative h-5 w-10 rounded-full border transition-colors ${values.sameCreatorAcrossScenes
-                            ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500'
-                            : 'bg-gray-200 border-gray-200 dark:border-white/10 dark:bg-white/10'
-                            }`}
-                        >
-                          <span
-                            className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white transition-transform ${values.sameCreatorAcrossScenes ? 'translate-x-4' : ''} dark:border-white/10`}
-                          />
-                        </button>
+	                          aria-label="Keep same person"
+	                        />
                       </div>
                     </section>
                   </>
@@ -5093,22 +5046,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     : 'Available after first generation'}
                               </p>
                             </div>
-                            <button
-                              type="button"
-                              role="switch"
-                              aria-checked={values.sameCreatorAcrossScenes}
+                            <Toggle
+                              checked={values.sameCreatorAcrossScenes}
                               disabled={!hasFirstGenerationComplete || hasModelReference}
-                              onClick={() => {
-                                if (!hasFirstGenerationComplete || hasModelReference) return;
-                                updateValue('sameCreatorAcrossScenes', !values.sameCreatorAcrossScenes);
+                              aria-label="Keep same person"
+                              onCheckedChange={(next) => {
+                                updateValue('sameCreatorAcrossScenes', next);
                                 markSectionTouched('creator');
                               }}
-                              className={`relative h-5 w-10 rounded-full border transition-colors ${values.sameCreatorAcrossScenes ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-gray-200 border-gray-200'} dark:border-white/10 ${values.sameCreatorAcrossScenes ? 'dark:bg-indigo-500 dark:border-indigo-500' : 'dark:bg-white/10'}`}
-                            >
-                              <span
-                                className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white transition-transform ${values.sameCreatorAcrossScenes ? 'translate-x-4' : ''} dark:border-white/10`}
-                              />
-                            </button>
+                            />
                           </div>
                         </section>
                       </div>
@@ -5173,12 +5119,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <p className="text-sm font-medium text-gray-900">Raw Domestic UGC</p>
                         <p className="text-xs text-gray-500">Careless front-camera capture at home</p>
                       </div>
-                      <button
-                        type="button"
-                        role="switch"
-                        aria-checked={values.ugcRealMode}
-                        onClick={() => {
-                          const newValue = !values.ugcRealMode;
+                      <Toggle
+                        checked={values.ugcRealMode}
+                        aria-label="Enable Raw Domestic UGC"
+                        onCheckedChange={(newValue) => {
                           updateValue('ugcRealMode', newValue);
                           if (newValue) {
                             updateValue('ugcImperfectionLevel', 'high');
@@ -5189,10 +5133,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             updateValue('eyeDirection', 'Looking at camera');
                           }
                         }}
-                        className={`relative shrink-0 h-6 w-11 rounded-full transition-colors ${values.ugcRealMode ? 'bg-indigo-600' : 'bg-gray-300'}`}
-                      >
-                        <span className={`absolute top-0.5 left-0.5 block h-5 w-5 rounded-full bg-white shadow transition-transform ${values.ugcRealMode ? 'translate-x-5' : 'translate-x-0'}`} />
-                      </button>
+                      />
                     </div>
 
                     {values.ugcRealMode && (
@@ -5315,18 +5256,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     <p className="text-sm text-gray-900">Enable outfit customization</p>
                     <p className="text-[11px] text-gray-500">Describe garments with text-only controls.</p>
                   </div>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={values.customClothesEnabled}
-                    onClick={() => {
-                      updateValue('customClothesEnabled', !values.customClothesEnabled);
+                  <Toggle
+                    checked={values.customClothesEnabled}
+                    aria-label="Enable outfit customization"
+                    onCheckedChange={(next) => {
+                      updateValue('customClothesEnabled', next);
                       markSectionTouched('customClothes');
                     }}
-                    className={`relative h-6 w-11 rounded-full transition-colors border border-gray-200 ${values.customClothesEnabled ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-gray-200'}`}
-                  >
-                    <span className={`absolute left-1 top-1 block h-4 w-4 rounded-full bg-white border border-gray-200 transition-transform ${values.customClothesEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
-                  </button>
+                  />
                 </div>
 
                 {values.customClothesEnabled && (
@@ -5782,20 +5719,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-900">Enable hero canvas</span>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={values.ecommerceSidePlacementFlag}
-                  onClick={() => {
-                    updateValue('ecommerceSidePlacementFlag', !values.ecommerceSidePlacementFlag);
+                <Toggle
+                  checked={values.ecommerceSidePlacementFlag}
+                  aria-label="Enable hero canvas"
+                  onCheckedChange={(next) => {
+                    updateValue('ecommerceSidePlacementFlag', next);
                     markSectionTouched('ecommerce');
                   }}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border border-gray-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white ${values.ecommerceSidePlacementFlag ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-gray-200'}`}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white border border-gray-200 ring-0 transition duration-200 ease-in-out ${values.ecommerceSidePlacementFlag ? 'translate-x-5' : 'translate-x-0'}`}
-                  />
-                </button>
+                />
               </div>
 
               {values.ecommerceSidePlacementFlag && (
@@ -5956,20 +5887,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-900">Enable Formulation Story</span>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={values.formulationStoryEnabled}
-                  onClick={() => {
-                    updateValue('formulationStoryEnabled', !values.formulationStoryEnabled);
+                <Toggle
+                  checked={values.formulationStoryEnabled}
+                  aria-label="Enable formulation story"
+                  onCheckedChange={(next) => {
+                    updateValue('formulationStoryEnabled', next);
                     markSectionTouched('formulationStory');
                   }}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border border-gray-200 transition-colors duration-200 ease-in-out focus:outline-none ${values.formulationStoryEnabled ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-gray-200'}`}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white border border-gray-200 ring-0 transition duration-200 ease-in-out ${values.formulationStoryEnabled ? 'translate-x-5' : 'translate-x-0'}`}
-                  />
-                </button>
+                />
               </div>
 
               {values.formulationStoryEnabled && (
