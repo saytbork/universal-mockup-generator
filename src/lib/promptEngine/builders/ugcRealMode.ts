@@ -449,7 +449,7 @@ export class UGCRealModeBuilder implements PromptBuilder {
             ? (layers.cameraOperator || []).filter(op => op === 'self-held' || op === 'surface-staged')
             : layers.cameraOperator;
         this.injectLayer(parts, 'Camera operator', this.describeLayer(cameraOperatorLayer, CAMERA_OPERATOR_DETAILS));
-        this.injectLayer(parts, 'Body position', this.describeLayer(layers.bodyPhonePosition, BODY_PHONE_DETAILS));
+        this.injectLayer(parts, 'Phone position', this.describeLayer(layers.bodyPhonePosition, BODY_PHONE_DETAILS));
         this.injectLayer(parts, 'Motion', this.describeLayer(layers.motionStability, MOTION_DETAILS));
         this.injectLayer(parts, 'Framing', this.describeLayer(layers.framingImperfections, FRAMING_DETAILS));
         this.injectLayer(parts, 'Context', this.describeLayer(layers.awkwardContext, AWKWARD_CONTEXT_DETAILS));

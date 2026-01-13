@@ -67,14 +67,14 @@ function negativePrompt(options?: PromptOptions) {
         // Anatomical integrity
         "deformed hands", "extra fingers", "missing fingers", "long fingers",
         "broken fingers", "distorted limbs", "extra limbs", "extra arms",
-        "extra legs", "mutated body", "mangled hands", "disconnected arms",
+        "extra legs", "mutated anatomy", "mangled hands", "disconnected arms",
 
         // Face integrity
         "blurry face", "distorted face", "face artifacts", "asymmetric face",
         "doll-like face", "cut-off head",
 
-        // Body integrity
-        "cut-off body", "partial person", "double body",
+        // Torso integrity
+        "cut-off torso", "partial person", "duplicate torso",
 
         // Skin issues
         "overexposed skin", "underexposed skin", "grainy skin texture",
@@ -140,8 +140,8 @@ const generateRequestSeed = (): string => {
 const DEPTH_DETECTION_REGEX = /(depth of field|portrait mode|portrait blur|bokeh|bokeh effect|background blur|blurred background|lens blur|lens emulation|cinematic focus|cinematic blur|subject separation|background separation|subject isolation|shallow depth|shallow focus|soft background|soft focus|depth cues|depth effect|spatial depth|defocused background)/gi;
 const FOCUS_OVERRIDE_APPEND =
     'flat focus across the entire frame, small sensor, fixed wide lens, everything sharp foreground to background.';
-const UGC_DEPTH_LOCK_APPEND =
-    'no background separation, no portrait mode, no bokeh, no shallow depth of field, no cinematic blur.';
+const UGC_FOCUS_LOCK_APPEND =
+    'uniform focus across the entire frame with no dramatic focus falloff.';
 
 function isUgcSelfieCaptureActive(options: PromptOptions): boolean {
     const selfieActive = isSelfieActive(options);
@@ -214,8 +214,8 @@ function enforceUgcFocusGuard(prompt: string, options: PromptOptions): string {
     if (!/flat focus across the entire frame/i.test(positivePrompt)) {
         positivePrompt = `${positivePrompt} ${FOCUS_OVERRIDE_APPEND}`;
     }
-    if (!/no background separation/i.test(positivePrompt)) {
-        positivePrompt = `${positivePrompt} ${UGC_DEPTH_LOCK_APPEND}`;
+    if (!/uniform focus across the entire frame/i.test(positivePrompt)) {
+        positivePrompt = `${positivePrompt} ${UGC_FOCUS_LOCK_APPEND}`;
     }
 
     // Check only positive prompt for remaining depth terms

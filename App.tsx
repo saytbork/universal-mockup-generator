@@ -5281,38 +5281,41 @@ If the model attempts to create a scene or environment, override it and force a 
       )}
 
       {showPlanModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-50 px-4">
-          <div className="w-full max-w-3xl rounded-xl border border-gray-200 bg-white p-6 md:p-8 shadow-md shadow-md shadow-indigo-500/20 space-y-6">
-            <div className="flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm px-4">
+          <div className="w-full max-w-5xl rounded-3xl border border-gray-200 bg-white/95 p-8 md:p-10 shadow-xl shadow-indigo-500/20 space-y-8">
+            <div className="flex items-start justify-between gap-6">
               <div>
                 <p className="text-xs uppercase tracking-[0.4em] text-indigo-600">Manage plan</p>
-                <h3 className="text-2xl font-semibold text-gray-900 mt-1">Choose what fits your launch</h3>
+                <h3 className="text-3xl font-semibold text-gray-900 mt-2 leading-tight">Choose what fits your launch</h3>
               </div>
               <button onClick={() => { setShowPlanModal(false); setPlanCodeInput(''); setPlanCodeError(null); setPlanNotice(null); }} className="text-sm text-gray-600 hover:text-gray-900">
                 Close
               </button>
             </div>
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid gap-5 md:grid-cols-2">
               {Object.entries(PLAN_CONFIG).map(([tier, config]) => (
                 <button
                   key={tier}
                   onClick={() => handlePlanTierSelect(tier as PlanTier)}
-                  className={`rounded-xl border p-4 text-left transition ${planTier === tier ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500' : 'border-gray-200 bg-gray-100 text-gray-600'}`}
+                  className={`rounded-2xl border p-6 text-left transition-all duration-300 ${planTier === tier
+                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-500/25'
+                    : 'border-gray-200 bg-white text-gray-900 hover:border-indigo-600 hover:bg-indigo-50/40'
+                    }`}
                 >
-                  <p className="text-lg font-semibold flex items-center justify-between">
+                  <p className="text-xl font-semibold flex items-center justify-between">
                     <span>{config.label}</span>
-                    <span className={`text-sm ${planTier === tier ? 'text-white' : 'text-indigo-600'}`}>{config.priceLabel}</span>
+                    <span className={`text-base font-semibold ${planTier === tier ? 'text-white' : 'text-indigo-600'}`}>{config.priceLabel}</span>
                   </p>
-                  <p className={`text-sm mt-1 ${planTier === tier ? 'text-indigo-100' : 'text-gray-600'}`}>{config.description}</p>
-                  <p className="text-xs mt-2">
+                  <p className={`text-sm mt-3 leading-relaxed ${planTier === tier ? 'text-indigo-100' : 'text-gray-600'}`}>{config.description}</p>
+                  <p className={`text-xs mt-4 font-medium ${planTier === tier ? 'text-white/90' : 'text-gray-600'}`}>
                     {planTier === tier ? 'Current plan' : 'Go to checkout'}
                   </p>
                 </button>
               ))}
             </div>
-            <div className="space-y-2 text-left">
-              <p className="text-xs uppercase tracking-[0.3em] text-gray-500">Have an upgrade code?</p>
-              <div className="flex flex-col sm:flex-row gap-2">
+            <div className="space-y-3 text-left pt-2">
+              <p className="text-xs uppercase tracking-[0.35em] text-gray-500">Have an upgrade code?</p>
+              <div className="flex flex-col sm:flex-row gap-3">
                 <input
                   type="text"
                   value={planCodeInput}
@@ -5321,12 +5324,12 @@ If the model attempts to create a scene or environment, override it and force a 
                     if (planCodeError) setPlanCodeError(null);
                   }}
                   placeholder="Enter the code from your receipt"
-                  className="flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 />
                 <button
                   type="button"
                   onClick={handlePlanCodeSubmit}
-                  className="rounded-xl bg-indigo-600 text-white px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-600 text-white transition"
+                  className="rounded-2xl bg-indigo-600 text-white px-6 py-3 text-sm font-semibold hover:bg-indigo-700 transition"
                 >
                   Apply
                 </button>

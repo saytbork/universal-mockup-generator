@@ -73,7 +73,7 @@ export class ModesBuilder implements PromptBuilder {
 
     private buildLifestyle(): string {
         return `
-      Photorealistic lifestyle UGC with real people and natural environments.
+      Photorealistic lifestyle UGC with real human subjects and natural environments.
       Natural lighting, real skin texture and shadows.
       Avoid perfect studio look.
     `.trim().replace(/\s+/g, ' ');

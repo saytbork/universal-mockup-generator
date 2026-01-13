@@ -10,7 +10,7 @@ import { validateInput, checkHardFails, type ValidationResult } from './validati
 import { buildProductSetupSection, buildCompositionSection, buildEnvironmentSection, buildLightingSection, buildCreativitySection, buildCameraSection, buildEcommerceSection, buildNegativePrompt, detectUnauthorizedObjects } from './handlers';
 
 const PROMPT_HEADER = 'High-resolution product photography.';
-const CONSTRAINTS_SECTION = `CONSTRAINTS: No extra props beyond those explicitly listed. No people unless explicitly allowed. No branding additions. No invented environments. No stylistic drift from scene type rules.`;
+const CONSTRAINTS_SECTION = `CONSTRAINTS: No extra props beyond those explicitly listed. No humans unless explicitly allowed. No branding additions. No invented environments. No stylistic drift from scene type rules.`;
 
 export class DeterministicPromptBuilder {
     validate(input: Partial<DeterministicPromptInput>): ValidationResult {

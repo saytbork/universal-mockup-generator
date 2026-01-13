@@ -23,7 +23,10 @@ export function buildCamera(params: any): string {
     params.selfieType ||
     "";
   const selfieActive = /\bselfie\b/i.test(String(selfieRaw)) || /\bfront\b/i.test(String(selfieRaw));
-  const ugcMode = Boolean(params.ugcMode || params.ugcRealMode) || selfieActive;
+  const ugcRealActive =
+    Boolean(params.ugcRealMode || params.ugcRealModeActive || params.rawDomesticUgcActive) ||
+    Boolean(params.ugcRealModeLayers);
+  const ugcMode = Boolean(params.ugcMode || params.ugcRealMode) || ugcRealActive || selfieActive;
 
   // Selfie: force front-facing smartphone characteristics (prevents pro-camera DOF blur).
   if (selfieActive) {
@@ -32,6 +35,16 @@ export function buildCamera(params: any): string {
     delete params.placementCamera;
     return uniqueParts([
       "front-facing smartphone camera selfie, wide fixed lens, small sensor, flat focus across the entire frame, no portrait mode blur",
+    ]);
+  }
+
+  // Raw Domestic / UGC Real Mode: must never inject rear-camera language (selfieCapture will handle specifics).
+  if (ugcRealActive) {
+    delete params.camera;
+    delete params.cameraType;
+    delete params.placementCamera;
+    return uniqueParts([
+      "front-facing smartphone camera, tiny sensor, wide fixed lens, flat focus across the entire frame, no portrait mode blur",
     ]);
   }
 
@@ -51,7 +64,7 @@ export function buildCamera(params: any): string {
     if (!isAllowed) {
       camera =
         parameterMap.cameraType?.["Intentional smartphone camera"] ??
-        "captured with the phone’s rear camera for deliberate framing, stabilized handheld realism";
+        "captured with a smartphone camera for deliberate framing, stabilized handheld realism";
     }
   }
 

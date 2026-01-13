@@ -26,13 +26,13 @@ import { APPEARANCE_SEMANTIC_MAP } from './semanticMaps/appearance';
  */
 const POSE_SEMANTIC_MAP: Record<string, string> = {
     'Relaxed Portrait': 'relaxed upright portrait stance, shoulders natural and level, weight evenly balanced on both feet, spine straight but not rigid',
-    'Dynamic Mid-Action': 'dynamic mid-action pose with body in motion, natural momentum visible in limbs, weight shifted to one side',
+    'Dynamic Mid-Action': 'dynamic mid-action pose with physique in motion, natural momentum visible in limbs, weight shifted to one side',
     'Over-the-Shoulder': 'over-the-shoulder pose with back partially visible to camera, head turned toward lens, one shoulder prominent',
-    'Leaned-In Close': 'leaning forward into frame, shoulders pushed forward, upper body closer to camera, intimate proximity to lens',
+    'Leaned-In Close': 'leaning forward into frame, shoulders pushed forward, upper torso closer to camera, intimate proximity to lens',
     'Hands-Only Crop': 'cropped composition showing only hands and forearms, fingers visible in tactile interaction',
     'Face Frame Hero': 'hands positioned near face, fingers framing chin or cheeks, face as central focal point',
-    'Grounded Lounge': 'grounded seated or reclined position, body low and relaxed, weight supported by surface',
-    'Offer-to-Lens Reach': 'arm extended toward camera lens, product held outward, body leaning slightly forward in offering gesture'
+    'Grounded Lounge': 'grounded seated or reclined position, posture low and relaxed, weight supported by surface',
+    'Offer-to-Lens Reach': 'arm extended toward camera lens, product held outward, posture leaning slightly forward in offering gesture'
 };
 
 const normalizeKey = (value?: string) =>
@@ -368,8 +368,8 @@ const buildFormulationStoryOptions = (sceneState: Step3Values): FormulationStory
  * CAMERA DEVICE → Physical capture characteristics and lens behavior
  */
 const CAMERA_DEVICE_SEMANTIC_MAP: Record<string, string> = {
-    'Intentional smartphone camera': 'captured with a modern smartphone’s rear camera, stabilized grip, intentional framing, no selfie distortion',
-    'DSLR / mirrorless camera': 'captured with a professional DSLR or mirrorless body using premium glass, shallow depth of field, and crisp subject separation',
+    'Intentional smartphone camera': 'captured with a modern smartphone camera, stabilized grip, intentional framing, no selfie distortion',
+    'DSLR / mirrorless camera': 'captured with a professional DSLR or mirrorless camera using premium glass, shallow depth of field, and crisp subject separation',
     'Cinema camera rig': 'captured on a cinema camera with controlled rigs, smooth motion, and filmic dynamic range',
     'Medium format studio camera': 'captured on a medium-format studio system with tethered capture for ultra-sharp detail and tonal accuracy',
     'Laptop webcam (pro setup)': 'captured through a laptop webcam in a professional setting, flat lighting, slight compression, intentional composition'
@@ -383,7 +383,7 @@ const SHOT_TYPE_SEMANTIC_MAP: Record<string, string> = {
     'Close': 'tight close-up showing face and upper shoulders with minimal background, focused on expression and product proximity',
     'Medium': 'medium framing from mid-torso up, balanced view of face, hands, and immediate environment',
     'Wide': 'wide framing capturing the person within their surroundings, showing more of the room or setting for context',
-    'Full body': 'full-body framing from head to toe, including ground contact and environmental elements around the subject'
+    'Full body': 'full-length framing from head to toe, including ground contact and environmental elements around the subject'
 };
 
 /**

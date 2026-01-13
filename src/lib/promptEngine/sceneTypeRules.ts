@@ -31,7 +31,7 @@ export const SCENE_TYPE_RULES: Record<SceneType, SceneTypeRules> = {
         imperfectionLevel: 'none',
         realismLevel: 'commercial',
         negativePromptAdditions: [
-            'hands', 'people', 'person', 'environment', 'lifestyle cues', 'lifestyle scene',
+            'hands', 'humans', 'person', 'environment', 'lifestyle cues', 'lifestyle scene',
             'phone camera artifacts', 'amateur photography', 'cluttered background',
             'home environment', 'kitchen', 'bathroom', 'vanity', 'counter', 'countertop',
             'routine', 'morning routine', 'daily use', 'wellness routine',
@@ -51,7 +51,7 @@ export const SCENE_TYPE_RULES: Record<SceneType, SceneTypeRules> = {
         prohibitedSections: ['person', 'hands', 'ugc_artifacts'],
         imperfectionLevel: 'minimal',
         realismLevel: 'editorial',
-        negativePromptAdditions: ['hands', 'people', 'phone camera', 'amateur photography', 'messy scene', 'cluttered']
+        negativePromptAdditions: ['hands', 'humans', 'phone camera', 'amateur photography', 'messy scene', 'cluttered']
     },
     lifestyle_product: {
         description: 'Lifestyle product photography showing product in natural, real-world context.',
@@ -90,7 +90,7 @@ export const SCENE_TYPE_RULES: Record<SceneType, SceneTypeRules> = {
         prohibitedSections: ['environment', 'person', 'hands', 'lifestyle', 'creativity'],
         imperfectionLevel: 'none',
         realismLevel: 'commercial',
-        negativePromptAdditions: ['environment', 'lifestyle', 'hands', 'people', 'complex background', 'shadows on background', 'cluttered']
+        negativePromptAdditions: ['environment', 'lifestyle', 'hands', 'humans', 'complex background', 'shadows on background', 'cluttered']
     },
     bundle_kit: {
         description: 'Bundle or kit photography showing multiple products together in organized arrangement.',
@@ -103,7 +103,7 @@ export const SCENE_TYPE_RULES: Record<SceneType, SceneTypeRules> = {
         prohibitedSections: ['person', 'hands'],
         imperfectionLevel: 'minimal',
         realismLevel: 'editorial',
-        negativePromptAdditions: ['hands', 'people', 'single product only', 'cluttered arrangement', 'overlapping products']
+        negativePromptAdditions: ['hands', 'humans', 'single product only', 'cluttered arrangement', 'overlapping products']
     }
 };
 

@@ -3,10 +3,10 @@ import { ParameterMap } from "./parameterMap.types";
 
 export const cameraPresets = {
   cameraAngles: {
-    fullBody: { label: "Full Body Shot", description: "Shows full outfit and action.", prompt: "full body shot" },
+    fullBody: { label: "Full Length Shot", description: "Shows full outfit and action.", prompt: "full length shot" },
     closeUp: { label: "Close Up", description: "Intimate and detailed.", prompt: "close up" },
     extremeCloseUp: { label: "Extreme Close Up", description: "Micro detail.", prompt: "extreme close up" },
-    extremeLongShot: { label: "Extreme Long Shot", description: "Full body with environment.", prompt: "extreme long shot" },
+    extremeLongShot: { label: "Extreme Long Shot", description: "Full length with environment.", prompt: "extreme long shot" },
     highAngleShot: { label: "High Angle Shot", description: "Vulnerable or small.", prompt: "high angle shot" },
     lowAngleShot: { label: "Low Angle Shot", description: "Powerful and imposing.", prompt: "low angle shot" },
     birdsEyeView: { label: "Bird's Eye View", description: "Top-down view.", prompt: "bird's eye view" },
@@ -31,7 +31,7 @@ export const cameraPresets = {
 
 export const parameterMap: ParameterMap = {
   cameraAngles: {
-    fullBody: "full body shot of the subject, showing outfit, posture and action",
+    fullBody: "full length shot of the subject, showing outfit, posture and action",
     closeUp: "tight close up of the subject's face",
     extremeCloseUp: "extreme close up of a specific facial feature",
     extremeLongShot: "extreme long shot showing the subject within the full environment",
@@ -137,8 +137,8 @@ export const parameterMap: ParameterMap = {
   },
 
   cameraType: {
-    "Intentional smartphone camera": "captured with the phone’s rear camera for deliberate framing, stabilized handheld realism, and subtle computational processing",
-    "DSLR / mirrorless camera": "captured with a professional DSLR or mirrorless body using high-quality optics and shallow depth of field",
+    "Intentional smartphone camera": "captured with a modern smartphone camera for deliberate framing, stabilized handheld realism, and subtle computational processing",
+    "DSLR / mirrorless camera": "captured with a professional DSLR or mirrorless camera using high-quality optics and shallow depth of field",
     "Cinema camera rig": "captured on a cinema camera rig with smooth motion, filmic color science, and controlled dynamic range",
     "Medium format studio camera": "captured on a medium-format studio system with tethered capture for ultra-sharp commercial detail",
     "Laptop webcam (pro setup)": "captured through a laptop webcam in an intentional professional context such as a remote consultation"
@@ -167,7 +167,7 @@ export const parameterMap: ParameterMap = {
   selfieMode: {
     "Front camera, arm's length": "front-facing smartphone camera, arm's length selfie, partially visible arm, natural distortion, casual framing, flat focus across entire frame, everything sharp foreground to background",
     "Front camera, close face": "front-facing smartphone camera, close-up face selfie, intimate framing, lens distortion features, flat focus with everything sharp, small sensor captures full scene crisp",
-    "Front camera, upper body": "front-facing smartphone camera, upper body selfie shot, showing outfit context, flat focus across entire frame, small sensor look, everything in focus",
+    "Front camera, upper body": "front-facing smartphone camera, upper torso selfie shot, showing outfit context, flat focus across entire frame, small sensor look, everything in focus",
     "Mirror selfie": "mirror selfie with visible smartphone in hand, reflection shot, environment visible behind, flat focus on mirror and reflection, everything sharp",
     "Back camera handheld": "back camera handheld POV shot, one hand visible in frame holding product or interacting, flat focus throughout, small sensor look",
     "Third-person phone shot": "shot of someone taking a photo with their phone, third person perspective showing the act of capturing content, flat focus throughout",

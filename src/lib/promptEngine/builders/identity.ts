@@ -14,7 +14,7 @@ PERSONAL ADD-ONS: Accessories must look incidental and worn-in. Common jewelry o
 `.trim().replace(/\s+/g, ' ');
 
 const IDENTITY_CONTRACT_TEXT = `
-This person must be a unique individual. Do not reuse or approximate any previous face or body. Each render represents a different real human. Avoid generic or stock-photo proportions.
+This subject must be a unique individual. Do not reuse or approximate any previous face or physique. Each render represents a different real human. Avoid generic or stock-photo proportions.
 `.trim().replace(/\s+/g, ' ');
 
 const ANTI_DOLL_CONSTRAINT = `
@@ -176,9 +176,20 @@ Match the person exactly as shown.
             `.trim().replace(/\s+/g, ' '));
         } else {
             // ================================================================
-            // AGE ANCHOR (for 70+)
+            // AGE ANCHOR (for 45+; stronger for 50+)
             // ================================================================
-            if (age >= 70) {
+            if (age >= 50 && age < 70) {
+                parts.push(`
+AGE ANCHOR: Subject MUST visually read as ${age} years old.
+Facial features must match a real ${age}-year-old adult: age-appropriate skin texture, subtle to moderate facial lines (forehead, crow's feet, smile lines), and mature facial structure.
+Do NOT make the subject appear youthful (no teen/20s look).
+                `.trim().replace(/\s+/g, ' '));
+            } else if (age >= 45 && age < 50) {
+                parts.push(`
+AGE ANCHOR: Subject MUST visually read as ${age} years old.
+Avoid a youthful teen/20s appearance; include age-appropriate skin texture and subtle facial lines.
+                `.trim().replace(/\s+/g, ' '));
+            } else if (age >= 70) {
                 parts.push(`
 AGE ANCHOR: Subject MUST visually read as ${age} years old.
 Facial structure, skin laxity, eye area, neck, hands, and posture must match a real ${age}-year-old ${ageGroupLabel}.
@@ -214,6 +225,27 @@ Skin carries micro wrinkles around mouth, eyes, and neck with authentic sag.
                 );
             }
 
+            // Gender anchor
+            if (personDetails?.gender) {
+                parts.push(
+                    `GENDER ANCHOR: Subject MUST visually read as ${sanitizePart(String(personDetails.gender), isUgcMode)}. Do not drift.`
+                );
+            }
+
+            // Skin tone anchor
+            if (personDetails?.skinTone) {
+                parts.push(
+                    `SKIN TONE ANCHOR: Subject MUST visually match ${sanitizePart(String(personDetails.skinTone), isUgcMode)}. Do not drift to a different skin tone.`
+                );
+            }
+
+            // Eye color anchor
+            if (personDetails?.eyeColor) {
+                parts.push(
+                    `EYE COLOR ANCHOR: Eyes MUST be ${sanitizePart(String(personDetails.eyeColor), isUgcMode)}. Do not drift.`
+                );
+            }
+
             // Age
             identityParts.push(`${age}-year-old ${ageGroupLabel}`);
 
@@ -229,7 +261,9 @@ Skin carries micro wrinkles around mouth, eyes, and neck with authentic sag.
 
             // Body Type
             if (personDetails?.bodyType) {
-                identityParts.push(sanitizePart(`${personDetails.bodyType} build`, isUgcMode));
+                const build = sanitizePart(`${personDetails.bodyType} build`, isUgcMode);
+                identityParts.push(build);
+                parts.push(`BUILD ANCHOR: Subject must have a ${build}. Do not drift to a very different build.`);
             }
 
             // Skin Tone
@@ -258,7 +292,9 @@ Skin carries micro wrinkles around mouth, eyes, and neck with authentic sag.
                     personDetails?.hairColor
                 ].filter(Boolean);
                 if (hairParts.length > 0) {
-                    identityParts.push(sanitizePart(`${hairParts.join(' ')} hair`, isUgcMode));
+                    const hairText = sanitizePart(`${hairParts.join(' ')} hair`, isUgcMode);
+                    identityParts.push(hairText);
+                    parts.push(`HAIR ANCHOR: Hair MUST match: ${hairText}. Do not drift to a different hair length/texture/color.`);
                 }
             }
 
@@ -294,7 +330,7 @@ Captured by smartphone so fine edges may appear soft or broken.
                         : coupleSex === 'different'
                             ? 'mixed-gender couple'
                             : 'couple';
-                parts.push(`Two people in frame: ${sexText}. Both must look like real distinct individuals.`);
+                parts.push(`Two subjects in frame: ${sexText}. Both must look like real distinct individuals.`);
 
                 // Avoid contradictions: if UI provides a single-person gender, treat it as PRIMARY only.
                 // Secondary gender is derived from coupleSex when possible.
@@ -346,7 +382,7 @@ Captured by smartphone so fine edges may appear soft or broken.
                 } else {
                     parts.push(`FACE SIGNATURE: ${this.buildFaceSignature(identityVariationToken)}`);
                 }
-                parts.push('This must be a different individual than any previously generated person. Do not repeat facial identity.');
+                parts.push('This must be a different individual than any previously generated subject. Do not repeat facial identity.');
             } else if (identityMode === 'locked' && identityKey) {
                 parts.push(`[IDENTITY_KEY: ${identityKey}]`);
                 if (personCount === 'couple') {
@@ -355,7 +391,7 @@ Captured by smartphone so fine edges may appear soft or broken.
                 } else {
                     parts.push(`FACE SIGNATURE: ${this.buildFaceSignature(identityKey)}`);
                 }
-                parts.push('Same person as previous generation. Maintain facial identity consistency.');
+                parts.push('Same subject as previous generation. Maintain facial identity consistency.');
             }
 
             // Identity contract (only in auto mode)

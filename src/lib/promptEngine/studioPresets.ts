@@ -158,7 +158,7 @@ export const SHADOW_PRESETS: Record<string, string> = {
 // =============================================================================
 export const INTERACTION_PRESETS: Record<string, string> = {
     'None': ``,
-    'Cropped Hand': `Cropped manicured hand interacting with the product. Hand only, no face, no body.`,
+    'Cropped Hand': `Cropped manicured hand interacting with the product. Hand only, no head, no torso.`,
     'Holding': `Hand holding the product with precision grip. Hand only.`,
     'Presenting': `Hand presenting the product from side. Hand only.`,
     'Applying': `Hand applying or opening the product. Hand only.`
@@ -168,7 +168,7 @@ export const INTERACTION_PRESETS: Record<string, string> = {
 // STUDIO NEGATIVES (ALWAYS LAST)
 // =============================================================================
 export const STUDIO_NEGATIVES = `
-No people. No faces. No lifestyle scenes.
+No living subjects. No heads. No lifestyle scenes.
 No real-world environments or locations.
 No text. No logos. No brand names. No labeled props.
 No real-world context. No storytelling elements.
@@ -657,8 +657,8 @@ This is NOT storytelling.
 ROOT RULES (NON-NEGOTIABLE)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 - Product-only image.
-- No people.
-- No faces.
+- No living subjects.
+- No heads.
 - No hands unless explicitly enabled.
 - No lifestyle context.
 - No rooms.
@@ -815,8 +815,8 @@ Rules:
   - No human presence
 - If Interaction = Cropped Hand:
   - Only one hand
-  - No face
-  - No body
+  - No head
+  - No torso
   - No lifestyle cues
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -835,8 +835,8 @@ Aspect Ratio: {ASPECT_RATIO}
 ABSOLUTE BLOCKERS (GLOBAL)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 BLOCKED:
-people,
-faces,
+living subjects,
+heads,
 eyes,
 skin,
 hands (unless explicitly enabled),
@@ -878,7 +878,7 @@ FINAL VALIDATION (FAIL CHECK)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Ask:
 "Is this a clean, abstract, studio-controlled render of the EXACT product provided,
-with ZERO label changes, ZERO people, ZERO environment,
+with ZERO label changes, ZERO living subjects, ZERO environment,
 and full respect of the selected studio options?"
 
 If the answer is NO → REJECT AND REGENERATE.
@@ -889,8 +889,8 @@ If the answer is NO → REJECT AND REGENERATE.
 // =============================================================================
 
 export const PRODUCT_STUDIO_NEGATIVE = `
-people,
-faces,
+living subjects,
+heads,
 eyes,
 skin,
 hands,

@@ -35,7 +35,7 @@ export class ConstraintsBuilder implements PromptBuilder {
             'Do not modify branding. Do not rotate or mirror the product.',
             'The uploaded image is the ground truth reference.',
             'Only enhance lighting, background softness and lifestyle realism.',
-            'Do not invent new people, products, text or environments.',
+            'Do not invent new humans, products, text or environments.',
         ].join(' ');
     }
 }
