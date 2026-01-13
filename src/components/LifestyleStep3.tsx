@@ -189,6 +189,7 @@ export interface Step3Values {
 
   // Realism
   ugcRealMode: boolean;
+  ugcImperfectionLevel: 'low' | 'medium' | 'high';
   ugcCaptureSituation: UGCCaptureSituationId | null;
   ugcCaptureStyleBase: string[];
   ugcCameraOperator: string[];
@@ -812,6 +813,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
     // Realism
     ugcRealMode: false,
+    ugcImperfectionLevel: 'medium',
     ugcCaptureSituation: null,
     ugcCaptureStyleBase: [],
     ugcCameraOperator: [],
@@ -5213,6 +5215,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           const newValue = !values.ugcRealMode;
                           updateValue('ugcRealMode', newValue);
                           if (newValue) {
+                            updateValue('ugcImperfectionLevel', 'high');
                             updateValue('formulationStoryEnabled', false);
                             updateValue('facialExpression', 'Soft Smile');
                             updateValue('eyeDirection', 'Looking at camera');
@@ -5229,6 +5232,30 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <p className="text-xs text-gray-500 mt-2 mb-4">
                           Pro controls are locked. The system handles everything automatically.
                         </p>
+                        <div className="rounded-2xl border border-gray-200 bg-white p-4 space-y-2">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="text-[10px] uppercase tracking-[0.2em] text-gray-500 font-extrabold">IMPERFECTION LEVEL</p>
+                              <p className="text-[11px] text-gray-500 mt-1">How “ugly” the phone capture looks (noise/compression/focus mistakes).</p>
+                            </div>
+                            <div className="flex gap-2">
+                              {(['low', 'medium', 'high'] as const).map(level => (
+                                <button
+                                  key={level}
+                                  type="button"
+                                  onClick={() => updateValue('ugcImperfectionLevel', level)}
+                                  className={getPillClass(values.ugcImperfectionLevel === level)}
+                                  title={level === 'high' ? 'Heaviest compression/noise, slight autofocus miss, harsh mixed lighting' : level === 'medium' ? 'Noticeable compression/noise, minor motion blur' : 'Subtle imperfections only'}
+                                >
+                                  {level.toUpperCase()}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <p className="text-[11px] text-gray-500">
+                            Tip: use <span className="font-semibold">HIGH</span> to match real “random selfie” ugliness. Use <span className="font-semibold">LOW</span> if it gets too messy.
+                          </p>
+                        </div>
                         <div className="space-y-4">
                           {RAW_DOMESTIC_CAPTURE_SECTIONS.map(section => {
                             const currentSelections = (values[section.field] as string[]) || [];

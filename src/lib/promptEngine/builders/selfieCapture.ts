@@ -206,6 +206,18 @@ const SELFIE_CAPTURE_BLOCKERS = `
 BLOCKED: professional framing, rule of thirds centered, cinematic look, background separation, background blur, hero shots, studio composition.
 `.trim();
 
+const SELFIE_IMPERFECTION_LEVEL_RULES: Record<'low' | 'medium' | 'high', string> = {
+    low: `
+IMPERFECTIONS (LOW): Subtle phone flaws only: mild sensor noise, slight white-balance mismatch, light compression.
+`.trim(),
+    medium: `
+IMPERFECTIONS (MEDIUM): Noticeable phone flaws: JPEG compression blocks, oversharpen halos, uneven white balance, clipped highlights, crushed shadows, minor motion blur.
+`.trim(),
+    high: `
+IMPERFECTIONS (HIGH): Strong, ugly phone flaws: heavy compression artifacts, aggressive oversharpen halos, slight missed autofocus, rolling-shutter wobble, fingerprint haze on lens, harsh mixed lighting.
+`.trim()
+};
+
 const SELFIE_PHYSICAL_CONTACT_BLOCK = `
 SELFIE PHYSICAL CONTACT (HARD CONSTRAINT):
 Product must touch skin. Fingers compress slightly against the product.
@@ -394,11 +406,20 @@ export class SelfieCaptureBuilder implements PromptBuilder {
                 const leaked = forbiddenTerms.find(term => checkString.includes(term));
                 throw new Error(`[CLOSE_FACE_VIOLATION] Framing leakage detected: "${leaked}" present in photography fields. String: ${checkString}`);
             }
+
+            const imperfectionLevel =
+                (options.ugcImperfectionLevel as 'low' | 'medium' | 'high' | undefined) ||
+                (options.rawDomesticUgcActive ? 'high' : 'medium');
             return [
                 CLOSE_FACE_SELFIE_BLOCK,
+                SELFIE_IMPERFECTION_LEVEL_RULES[imperfectionLevel],
                 CLOSE_FACE_BLOCKERS
             ].join('\n\n').trim();
         }
+
+        const imperfectionLevel =
+            (options.ugcImperfectionLevel as 'low' | 'medium' | 'high' | undefined) ||
+            (options.rawDomesticUgcActive ? 'high' : 'medium');
 
         const productInteraction = String(options.personDetails?.productInteraction || '').toLowerCase();
         const hasProductAssets = (options.productAssets?.length || 0) > 0;
@@ -407,6 +428,7 @@ export class SelfieCaptureBuilder implements PromptBuilder {
         return [
             UGC_SELFIE_CAPTURE_BLOCK,
             selectedMode,
+            SELFIE_IMPERFECTION_LEVEL_RULES[imperfectionLevel],
             needsContactBlock ? SELFIE_PHYSICAL_CONTACT_BLOCK : '',
             SELFIE_CAPTURE_BLOCKERS
         ].join('\n\n').trim();

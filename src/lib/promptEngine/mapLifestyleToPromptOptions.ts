@@ -1077,8 +1077,10 @@ export function mapLifestyleToPromptOptions(
         mapped.ugcRealModeActive = true;
         mapped.realModeActive = true;
         mapped.ugcCaptureSituation = sceneState.ugcCaptureSituation || null;
+        mapped.ugcImperfectionLevel = sceneState.ugcImperfectionLevel || 'high';
     } else {
         mapped.ugcCaptureSituation = null;
+        mapped.ugcImperfectionLevel = undefined;
     }
 
     let normalizedCaptureBase = normalizeSingleSelectLayer(sceneState.ugcCaptureStyleBase, 'ugcCaptureStyleBase');

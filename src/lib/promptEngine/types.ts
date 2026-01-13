@@ -129,6 +129,8 @@ export interface UGCRealModeLayerSet {
     awkwardContext?: string[];
 }
 
+export type UGCImperfectionLevel = 'low' | 'medium' | 'high';
+
 export interface PromptOptions {
     // Core
     contentStyle: 'ugc' | 'product' | '';
@@ -260,6 +262,7 @@ export interface PromptOptions {
     ugcSelfieDominant?: boolean;      // Derived: UGC selfie pipeline dominance
     heroPersona?: string;             // Semantic UGC persona description
     ugcCaptureSituation?: string | null; // Selected UGC capture situation
+    ugcImperfectionLevel?: UGCImperfectionLevel;
     ugcCaptureStyleBase?: string[];
     ugcCameraOperator?: string[];
     ugcBodyPhonePosition?: string[];

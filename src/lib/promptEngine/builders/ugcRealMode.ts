@@ -54,6 +54,21 @@ VALIDATION: Does this look like a careless front-camera selfie at home with no i
 If no, reject immediately.
 `.trim().replace(/\s+/g, ' ');
 
+const UGC_IMPERFECTION_LEVEL_RULES: Record<'low' | 'medium' | 'high', string> = {
+    low: `
+IMPERFECTIONS (LOW): Include 1–2 subtle capture flaws only: mild sensor noise, slightly uneven white balance, light JPEG compression.
+Keep the image readable and not stylized.
+`.trim().replace(/\s+/g, ' '),
+    medium: `
+IMPERFECTIONS (MEDIUM): Include 2–3 obvious phone-capture flaws: visible JPEG compression blocks, oversharpening halos, uneven white balance, clipped highlights, crushed shadows, minor motion blur.
+Avoid any cinematic or professional look.
+`.trim().replace(/\s+/g, ' '),
+    high: `
+IMPERFECTIONS (HIGH): Include 3–5 strong phone-capture flaws: heavy JPEG compression artifacts, aggressive oversharpening halos, autofocus hunting (slightly missed focus), rolling-shutter wobble, fingerprint haze on lens, harsh mixed lighting, blown highlights and shadow crush.
+Must feel like a low-quality, unflattering domestic capture.
+`.trim().replace(/\s+/g, ' ')
+};
+
 const BLOCKED_VOCABULARY = `
 BLOCKED: "hero shot", "editorial", "studio", "commercial", "luxury", "premium", "perfectly composed", "balanced lighting", "soft lighting", "portrait", "showcase".
 `.trim().replace(/\s+/g, ' ');
@@ -375,6 +390,9 @@ export class UGCRealModeBuilder implements PromptBuilder {
 
         const tiltAngle = this.getRandomTiltAngle();
         const parts: string[] = [];
+        const imperfectionLevel =
+            (options.ugcImperfectionLevel as 'low' | 'medium' | 'high' | undefined) ||
+            (rawDomesticUgcActive ? 'high' : 'medium');
 
         // ====================================================================
         // CORE RULES (consolidated)
@@ -383,6 +401,7 @@ export class UGCRealModeBuilder implements PromptBuilder {
         parts.push(UGC_COMPOSITION_RULES);
         parts.push(`Camera tilt: ${tiltAngle}° off-level, handheld wobble.`);
         parts.push(UGC_LIGHTING_RULES);
+        parts.push(UGC_IMPERFECTION_LEVEL_RULES[imperfectionLevel]);
         parts.push(UGC_APPEARANCE_RULES);
         parts.push(UGC_PRODUCT_RULE);
         parts.push(UGC_ENVIRONMENT_RULE);
