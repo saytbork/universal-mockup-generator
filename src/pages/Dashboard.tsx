@@ -321,8 +321,8 @@ function GallerySection({ userEmail }: { userEmail: string }) {
         const { listPublicGallery } = await import('../services/galleryService');
         const allImages = await listPublicGallery();
 
-        const currentUserEmail = userEmail;
-        const userId = userEmail;
+        const currentUserEmail = String(userEmail || '').trim().toLowerCase();
+        const userId = currentUserEmail;
 
         const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
         const userImages = allImages.filter(img => {
@@ -333,18 +333,64 @@ function GallerySection({ userEmail }: { userEmail: string }) {
             null;
           const createdAtMs = createdDate ? createdDate.getTime() : 0;
           const isMine =
-            img.userId === userId ||
-            (img.userId === 'guest' && userId === currentUserEmail);
+            String(img.userId || '').trim().toLowerCase() === userId ||
+            (String(img.userId || '').trim().toLowerCase() === 'guest' && userId === currentUserEmail);
           return isMine && createdAtMs >= thirtyDaysAgo;
         });
 
-        const sorted = [...userImages].sort((a, b) => {
+        const LOCAL_GALLERY_CACHE_KEY = 'ugc-free-gallery';
+        let localImages: GalleryImage[] = [];
+        try {
+          const stored = window.localStorage.getItem(LOCAL_GALLERY_CACHE_KEY);
+          const parsed = stored ? JSON.parse(stored) : [];
+          if (Array.isArray(parsed)) {
+            localImages = parsed
+              .filter(item => item && typeof item.imageUrl === 'string')
+              .map(item => ({
+                id: String(item.id || `local-${Math.random().toString(36).slice(2)}`),
+                imageUrl: String(item.imageUrl),
+                userId: String(item.userId || '').trim().toLowerCase(),
+                plan: String(item.plan || 'free'),
+                createdAt: typeof item.createdAt === 'number' ? item.createdAt : Date.now(),
+                width: item.width,
+                height: item.height,
+                modelReferenceUsed: item.modelReferenceUsed,
+                productsUsed: item.productsUsed,
+              }))
+              .filter(img => img.userId === userId)
+              .filter(img => {
+                const createdAtMs =
+                  typeof img.createdAt === 'number'
+                    ? img.createdAt
+                    : (typeof (img.createdAt as any)?.seconds === 'number' ? (img.createdAt as any).seconds * 1000 : 0);
+                return createdAtMs >= thirtyDaysAgo;
+              });
+          }
+        } catch (err) {
+          console.warn('Unable to load local gallery cache', err);
+        }
+
+        const merged = [...userImages, ...localImages];
+        const seen = new Set<string>();
+        const deduped = merged.filter(img => {
+          const key = String(img.imageUrl || '');
+          if (!key) return false;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+
+        const sorted = [...deduped].sort((a, b) => {
           const aDate =
             a.createdAt?.toDate?.() ||
-            new Date((a.createdAt as any)?.seconds * 1000 || 0);
+            (typeof (a.createdAt as any)?.seconds === 'number' ? new Date((a.createdAt as any).seconds * 1000) : null) ||
+            (typeof (a.createdAt as any) === 'number' ? new Date(a.createdAt as any) : null) ||
+            new Date(0);
           const bDate =
             b.createdAt?.toDate?.() ||
-            new Date((b.createdAt as any)?.seconds * 1000 || 0);
+            (typeof (b.createdAt as any)?.seconds === 'number' ? new Date((b.createdAt as any).seconds * 1000) : null) ||
+            (typeof (b.createdAt as any) === 'number' ? new Date(b.createdAt as any) : null) ||
+            new Date(0);
           return bDate.getTime() - aDate.getTime();
         });
 
@@ -414,7 +460,11 @@ function GallerySection({ userEmail }: { userEmail: string }) {
   return (
     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
       {images.map((image) => {
-        const createdDate = image.createdAt?.toDate?.() || new Date(image.createdAt?.seconds * 1000 || Date.now());
+        const createdDate =
+          image.createdAt?.toDate?.() ||
+          (typeof (image.createdAt as any)?.seconds === 'number' ? new Date((image.createdAt as any).seconds * 1000) : null) ||
+          (typeof (image.createdAt as any) === 'number' ? new Date(image.createdAt as any) : null) ||
+          new Date();
         const dateStr = createdDate.toLocaleDateString();
 
         return (

@@ -4275,35 +4275,48 @@ If the model attempts to create a scene or environment, override it and force a 
     [contentStyleValue, isSimpleMode, modelReferenceFile]
   );
 
-  const publishFreeGallery = useCallback(
-    (imageUrl: string, plan?: string, compositionMode?: string) => {
-      if (typeof window === 'undefined') return;
-      try {
-        const key = LOCAL_GALLERY_CACHE_KEY;
-        const stored = window.localStorage.getItem(key);
-        const parsed = stored ? JSON.parse(stored) : [];
-        const existing = Array.isArray(parsed) ? parsed : [];
-        const generateId = () => {
-          if (window.crypto?.randomUUID) {
-            return window.crypto.randomUUID();
-          }
-          return `local-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
-        };
-        const entry = {
-          id: generateId(),
-          imageUrl,
-          plan: plan ? plan.toLowerCase() : 'free',
-          compositionMode,
-          createdAt: Date.now(),
-        };
-        const next = [entry, ...existing].slice(0, 20);
-        window.localStorage.setItem(key, JSON.stringify(next));
-      } catch (err) {
-        console.warn('Failed to publish to gallery', err);
-      }
-    },
-    []
-  );
+  const publishFreeGallery = useCallback((entry: {
+    imageUrl: string;
+    userId: string;
+    plan?: string;
+    compositionMode?: string;
+    createdAt?: number;
+  }) => {
+    if (typeof window === 'undefined') return;
+    const imageUrl = String(entry.imageUrl || '').trim();
+    const userId = String(entry.userId || '').trim().toLowerCase();
+    if (!imageUrl || !userId) return;
+    if (imageUrl.toLowerCase().startsWith('data:')) return;
+
+    try {
+      const key = LOCAL_GALLERY_CACHE_KEY;
+      const stored = window.localStorage.getItem(key);
+      const parsed = stored ? JSON.parse(stored) : [];
+      const existing = Array.isArray(parsed) ? parsed : [];
+      const generateId = () => {
+        if (window.crypto?.randomUUID) {
+          return window.crypto.randomUUID();
+        }
+        return `local-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
+      };
+
+      const nextEntry = {
+        id: generateId(),
+        imageUrl,
+        userId,
+        plan: entry.plan ? String(entry.plan).toLowerCase() : 'free',
+        compositionMode: entry.compositionMode,
+        createdAt: typeof entry.createdAt === 'number' ? entry.createdAt : Date.now(),
+      };
+
+      const next = [nextEntry, ...existing]
+        .filter(item => item && typeof item.imageUrl === 'string' && typeof item.userId === 'string')
+        .slice(0, 120);
+      window.localStorage.setItem(key, JSON.stringify(next));
+    } catch (err) {
+      console.warn('Failed to publish to local gallery cache', err);
+    }
+  }, []);
 
   const getImageDimensions = useCallback((url: string): Promise<{ width: number; height: number }> => {
     return new Promise((resolve, reject) => {
@@ -4323,7 +4336,7 @@ If the model attempts to create a scene or environment, override it and force a 
       if (!url) return;
       const safeEmail = String(userEmail || '').trim();
       if (!safeEmail) return;
-      const userId = safeEmail;
+      const userId = safeEmail.toLowerCase();
       const plan = planTier;
       try {
         // If we only have a data URL, upload it to Firebase Storage first to get a stable public URL.
@@ -4335,7 +4348,7 @@ If the model attempts to create a scene or environment, override it and force a 
         }
 
         const { width, height } = await getImageDimensions(url);
-        await fetch('/api/galleryHandler?action=add', {
+        const response = await fetch('/api/galleryHandler?action=add', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -4350,11 +4363,27 @@ If the model attempts to create a scene or environment, override it and force a 
             },
           }),
         });
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          throw new Error(data?.error || `Gallery add failed (${response.status})`);
+        }
+        publishFreeGallery({
+          imageUrl: finalPublicUrl,
+          userId,
+          plan,
+          compositionMode,
+        });
       } catch (error) {
         console.warn('Failed to report gallery entry', error);
+        publishFreeGallery({
+          imageUrl: url,
+          userId,
+          plan,
+          compositionMode,
+        });
       }
     },
-    [userEmail, planTier, modelReferenceFile, productAssets.length, getImageDimensions]
+    [userEmail, planTier, modelReferenceFile, productAssets.length, getImageDimensions, publishFreeGallery, compositionMode]
   );
 
   const determineGalleryPlan = useCallback(() => {
