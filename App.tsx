@@ -46,6 +46,7 @@ import type { EcommerceSlotKey, EcommerceSlotsConfig } from '@/lib/ecommerceOver
 import { loadEcommerceSlotsConfig, saveEcommerceSlotsConfig } from '@/lib/ecommerceOverlay/storage';
 import { ECOMMERCE_SLOT_REQUIRED_BLANK_SPACE } from '@/lib/ecommerceOverlay/templates';
 import { PLAN_CONFIG, type PlanTier } from './src/constants/planConfig';
+import { addLocalGalleryEntry, pruneLocalGallery } from './src/services/localGallery';
 // PHASE 2: ProductStudio direct generation
 import { useProductStudioStore, generateProductJobs, validatePrompt } from '@/lib/productStudio';
 import { addProductWithPalette } from '@/lib/productStudio/store';
@@ -4630,6 +4631,19 @@ If the model attempts to create a scene or environment, override it and force a 
         const finalUrl = `data:image/png;base64,${encodedImage}`;
         setGeneratedImageUrl(finalUrl);
         setHasFirstGenerationComplete(true);  // Enable Keep Same Person toggle
+        try {
+          const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
+          void addLocalGalleryEntry({
+            userId: galleryUserId,
+            imageUrl: finalUrl,
+            createdAt: Date.now(),
+            plan: planTier,
+            aspectRatio,
+          });
+          void pruneLocalGallery(galleryUserId, 30, 120);
+        } catch (e) {
+          console.warn('Local gallery save failed', e);
+        }
         void reportGalleryEntry(finalUrl);
         runHiResPipeline(finalUrl);
         const newCount = creditUsage + creditCost;
@@ -4847,6 +4861,19 @@ If the model attempts to create a scene or environment, override it and force a 
         lastUrl = finalUrl;
         setEcommerceSlotBaseImages(prev => ({ ...prev, [slotKey]: finalUrl }));
         setGeneratedImageUrl(finalUrl);
+        try {
+          const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
+          void addLocalGalleryEntry({
+            userId: galleryUserId,
+            imageUrl: finalUrl,
+            createdAt: Date.now(),
+            plan: planTier,
+            aspectRatio,
+          });
+          void pruneLocalGallery(galleryUserId, 30, 120);
+        } catch (e) {
+          console.warn('Local gallery save failed', e);
+        }
         void reportGalleryEntry(finalUrl);
       }
 
@@ -4968,18 +4995,31 @@ If the model attempts to create a scene or environment, override it and force a 
       });
 
       const responseParts = response?.candidates?.[0]?.content?.parts ?? [];
-      for (const part of responseParts) {
-        if ('inlineData' in part && (part as any).inlineData?.data) {
-          const editedUrl = `data:image/png;base64,${(part as any).inlineData.data}`;
-          setGeneratedImageUrl(editedUrl);
-          void reportGalleryEntry(editedUrl);
-          runHiResPipeline(editedUrl);
-          if (editOptions?.clearManual) {
-            setEditPrompt('');
-          }
-          return;
-        }
-      }
+	      for (const part of responseParts) {
+	        if ('inlineData' in part && (part as any).inlineData?.data) {
+	          const editedUrl = `data:image/png;base64,${(part as any).inlineData.data}`;
+	          setGeneratedImageUrl(editedUrl);
+	          try {
+	            const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
+	            void addLocalGalleryEntry({
+	              userId: galleryUserId,
+	              imageUrl: editedUrl,
+	              createdAt: Date.now(),
+	              plan: planTier,
+	              aspectRatio,
+	            });
+	            void pruneLocalGallery(galleryUserId, 30, 120);
+	          } catch (e) {
+	            console.warn('Local gallery save failed', e);
+	          }
+	          void reportGalleryEntry(editedUrl);
+	          runHiResPipeline(editedUrl);
+	          if (editOptions?.clearManual) {
+	            setEditPrompt('');
+	          }
+	          return;
+	        }
+	      }
 
       throw new Error("Image edit failed or returned no images.");
     } catch (err) {

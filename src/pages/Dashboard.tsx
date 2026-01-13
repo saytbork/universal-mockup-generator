@@ -16,6 +16,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import type { GalleryImage } from "../services/galleryService";
 import { PLAN_CONFIG, type PlanTier } from "../constants/planConfig";
+import { listLocalGalleryEntries } from "../services/localGallery";
 
 type ActivityItem = {
   id: string;
@@ -435,7 +436,25 @@ function GallerySection({ userEmail }: { userEmail: string }) {
           console.warn('Unable to load local gallery cache', err);
         }
 
-        const merged = [...userImages, ...localImages];
+        let indexedDbImages: GalleryImage[] = [];
+        try {
+          const indexed = await listLocalGalleryEntries(userId, 30);
+          indexedDbImages = indexed.map(entry => ({
+            id: entry.id,
+            imageUrl: entry.imageUrl,
+            userId: entry.userId,
+            plan: entry.plan || 'free',
+            createdAt: entry.createdAt,
+            width: entry.width,
+            height: entry.height,
+            modelReferenceUsed: undefined,
+            productsUsed: undefined,
+          }));
+        } catch (err) {
+          console.warn('Unable to load IndexedDB gallery cache', err);
+        }
+
+        const merged = [...userImages, ...localImages, ...indexedDbImages];
         const seen = new Set<string>();
         const deduped = merged.filter(img => {
           const key = String(img.imageUrl || '');

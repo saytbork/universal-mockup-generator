@@ -124,13 +124,13 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({
             className="max-h-full max-w-full object-contain rounded-xl"
           />
         ) : (
-          <div className="text-center text-gray-500 dark:text-white/40">
-            <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.55a2.5 2.5 0 010 4.09L15 18M5 8v8a2 2 0 002 2h4a2 2 0 002-2V8a2 2 0 00-2-2H7a2 2 0 00-2 2z" />
-            </svg>
-            <p>Your generated video will appear here</p>
-          </div>
-        )}
+	          <div className="text-center text-gray-500 dark:text-white/40">
+	            <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+	              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.55a 2.5 2.5 0 010 4.09L15 18M5 8v8a2 2 0 002 2h4a2 2 0 002-2V8a2 2 0 00-2-2H7a2 2 0 00-2 2z" />
+	            </svg>
+	            <p>Your generated video will appear here</p>
+	          </div>
+	        )}
       </div>
     </div>
   );
