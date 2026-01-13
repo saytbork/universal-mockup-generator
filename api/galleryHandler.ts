@@ -1,5 +1,5 @@
 // @ts-ignore – TS needs this because admin.mjs is ESM
-import admin, { adminDB, FieldValue } from "../server/firebase/admin.mjs";
+import admin, { adminDB, adminStorage, FieldValue } from "../server/firebase/admin.mjs";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 type GalleryMeta = {
@@ -57,22 +57,64 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
         if (!plan) return res.status(400).json({ error: "Missing plan" });
 
-        // Validate imageUrl is a valid URL
-        try {
-          new URL(imageUrl);
-        } catch {
-          return res.status(400).json({ error: "Invalid imageUrl format" });
-        }
+        const normalizedUserId = String(userId).trim().toLowerCase();
+        const rawImageUrl = String(imageUrl).trim();
+        const isDataUrl = rawImageUrl.toLowerCase().startsWith('data:');
 
-        // Data URLs are not supported for gallery storage (too large for Firestore and not publicly shareable).
-        if (typeof imageUrl === 'string' && imageUrl.trim().toLowerCase().startsWith('data:')) {
-          return res.status(413).json({ error: "imageUrl must be a public URL (data URLs are not supported)." });
+        // If the client only has a base64 data URL (common when generation happens client-side),
+        // upload it to Firebase Storage using Admin SDK to bypass client auth restrictions.
+        let finalImageUrl = rawImageUrl;
+        if (isDataUrl) {
+          const match = /^data:([^;]+);base64,(.+)$/i.exec(rawImageUrl);
+          if (!match) {
+            return res.status(400).json({ error: "Invalid data URL format" });
+          }
+          const mimeType = match[1] || 'image/png';
+          const base64Data = match[2] || '';
+          const buffer = Buffer.from(base64Data, 'base64');
+
+          // Keep payload limits reasonable for serverless; if this is too large, require a public URL.
+          const maxBytes = 6 * 1024 * 1024; // 6MB
+          if (buffer.byteLength > maxBytes) {
+            return res.status(413).json({
+              error: "Generated image payload too large to store. Please enable Storage uploads or reduce output size."
+            });
+          }
+
+          const ext = mimeType.includes('jpeg') ? 'jpg' : mimeType.includes('webp') ? 'webp' : 'png';
+          const timestamp = Date.now();
+          const safeUserPath = normalizedUserId.replace(/[^a-z0-9@._-]+/g, '_');
+          const storagePath = `gallery/${safeUserPath}/${timestamp}.${ext}`;
+
+          const file = adminStorage.file(storagePath);
+          await file.save(buffer, {
+            resumable: false,
+            contentType: mimeType,
+            metadata: {
+              metadata: {
+                userId: normalizedUserId,
+                source: 'galleryHandler',
+                uploadedAt: new Date(timestamp).toISOString(),
+              }
+            }
+          });
+
+          // Make it publicly readable for dashboard listing + downloads.
+          await file.makePublic();
+          finalImageUrl = `https://storage.googleapis.com/${adminStorage.name}/${storagePath}`;
+        } else {
+          // Validate URL
+          try {
+            new URL(rawImageUrl);
+          } catch {
+            return res.status(400).json({ error: "Invalid imageUrl format" });
+          }
         }
 
         const ref = await adminDB.collection("gallery").add({
-          imageUrl: imageUrl.trim(),
-          userId,
-          plan,
+          imageUrl: finalImageUrl,
+          userId: normalizedUserId,
+          plan: String(plan).trim().toLowerCase(),
           createdAt: FieldValue.serverTimestamp(),
           width: meta?.width,
           height: meta?.height,
@@ -81,7 +123,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
 
         console.log(`✅ Gallery entry created: ${ref.id}`);
-        return res.status(201).json({ id: ref.id });
+        return res.status(201).json({ id: ref.id, imageUrl: finalImageUrl });
       }
 
       case "list": {

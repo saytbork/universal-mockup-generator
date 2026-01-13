@@ -4339,20 +4339,12 @@ If the model attempts to create a scene or environment, override it and force a 
       const userId = safeEmail.toLowerCase();
       const plan = planTier;
       try {
-        // If we only have a data URL, upload it to Firebase Storage first to get a stable public URL.
-        let finalPublicUrl = url;
-        if (url.trim().toLowerCase().startsWith('data:')) {
-          const { uploadImageWithRetry } = await import('./src/services/storageService');
-          const upload = await uploadImageWithRetry(url, userId);
-          finalPublicUrl = upload.url;
-        }
-
         const { width, height } = await getImageDimensions(url);
         const response = await fetch('/api/galleryHandler?action=add', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            imageUrl: finalPublicUrl,
+            imageUrl: url,
             userId,
             plan,
             meta: {
@@ -4367,8 +4359,10 @@ If the model attempts to create a scene or environment, override it and force a 
           const data = await response.json().catch(() => ({}));
           throw new Error(data?.error || `Gallery add failed (${response.status})`);
         }
+        const payload = await response.json().catch(() => ({} as any));
+        const storedImageUrl = typeof payload?.imageUrl === 'string' ? payload.imageUrl : null;
         publishFreeGallery({
-          imageUrl: finalPublicUrl,
+          imageUrl: storedImageUrl || url,
           userId,
           plan,
           compositionMode,
