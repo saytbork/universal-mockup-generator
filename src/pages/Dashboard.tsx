@@ -14,8 +14,8 @@ import {
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import type { GalleryImage } from "../services/galleryService";
+import { PLAN_CONFIG, type PlanTier } from "../constants/planConfig";
 
 type ActivityItem = {
   id: string;
@@ -65,8 +65,8 @@ export default function Dashboard() {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const priceCreator = import.meta.env.VITE_STRIPE_PRICE_CREATOR as string | undefined;
-  const priceStudio = import.meta.env.VITE_STRIPE_PRICE_STUDIO as string | undefined;
+  const [showPlanModal, setShowPlanModal] = useState(false);
+  const [planNotice, setPlanNotice] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -102,26 +102,40 @@ export default function Dashboard() {
     return `${credits} credits`;
   }, [user]);
 
-  const startCheckout = async (plan: "creator" | "studio") => {
+  const openPlanModal = () => {
+    setPlanNotice(null);
+    setShowPlanModal(true);
+  };
+
+  const currentPlanTier: PlanTier = useMemo(() => {
+    const raw = String(user?.plan || "free").trim().toLowerCase();
+    if (raw === "creator" || raw === "studio" || raw === "free") return raw;
+    return "free";
+  }, [user?.plan]);
+
+  const handlePlanTierSelect = (tier: PlanTier) => {
+    if (tier === currentPlanTier) return;
+    if (tier === "free") {
+      setPlanNotice("To downgrade, cancel the subscription from your Stripe receipt or contact support.");
+      return;
+    }
+    const targetUrl = PLAN_CONFIG[tier].stripeUrl;
+    if (!targetUrl) {
+      setPlanNotice("Checkout is not configured yet.");
+      return;
+    }
+    const email = String(user?.email || "").trim();
+    if (!email) {
+      setPlanNotice("Please sign in to continue.");
+      return;
+    }
     try {
-      const priceId = plan === "creator" ? priceCreator : priceStudio;
-      if (!priceId) {
-        // Fallback for misconfigured env: send user to pricing page instead of dead-ending.
-        navigate("/pricing");
-        return;
-      }
-      const res = await axios.post("/api/stripe/create-checkout-session", {
-        userId: user?.email,
-        priceId,
-      });
-      if (res.data?.url) {
-        window.location.href = res.data.url;
-      } else {
-        alert("Unable to start checkout.");
-      }
+      const url = new URL(targetUrl);
+      url.searchParams.set("prefilled_email", email);
+      window.open(url.toString(), "_blank", "noopener,noreferrer");
     } catch (err) {
-      console.error("checkout error", err);
-      alert("Unable to start checkout.");
+      console.error(err);
+      setPlanNotice("Could not open checkout. Please try again.");
     }
   };
 
@@ -144,6 +158,57 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-black dark:text-white">
+      {showPlanModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-50 px-4">
+          <div className="w-full max-w-3xl rounded-xl border border-gray-200 bg-white p-6 md:p-8 shadow-md shadow-indigo-500/20 space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.4em] text-indigo-600">Manage plan</p>
+                <h3 className="text-2xl font-semibold text-gray-900 mt-1">Choose what fits your launch</h3>
+              </div>
+              <button
+                onClick={() => {
+                  setShowPlanModal(false);
+                  setPlanNotice(null);
+                }}
+                className="text-sm text-gray-600 hover:text-gray-900"
+              >
+                Close
+              </button>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              {(Object.keys(PLAN_CONFIG) as PlanTier[]).map((tier) => {
+                const config = PLAN_CONFIG[tier];
+                const isCurrent = currentPlanTier === tier;
+                return (
+                  <button
+                    key={tier}
+                    onClick={() => handlePlanTierSelect(tier)}
+                    disabled={isCurrent}
+                    className={`rounded-xl border p-4 text-left transition ${isCurrent
+                      ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-500/20 scale-105 duration-500"
+                      : "border-gray-200 bg-gray-100 text-gray-600 hover:border-indigo-600 hover:text-gray-900"
+                      }`}
+                  >
+                    <p className="text-lg font-semibold flex items-center justify-between">
+                      <span>{config.label}</span>
+                      <span className="text-sm font-medium">{config.priceLabel}</span>
+                    </p>
+                    <p className={`text-sm mt-2 ${isCurrent ? "text-white/90" : "text-gray-600"}`}>
+                      {config.description}
+                    </p>
+                    <p className="text-xs mt-2">
+                      {isCurrent ? "Current plan" : "Go to checkout"}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+            {planNotice && <p className="text-xs text-gray-500">{planNotice}</p>}
+          </div>
+        </div>
+      )}
+
       <div className="max-w-6xl mx-auto px-6 py-10 space-y-8">
         {/* Header */}
         <motion.div
@@ -191,7 +256,7 @@ export default function Dashboard() {
                 )}
               </div>
               <button
-                onClick={() => startCheckout("creator")}
+                onClick={openPlanModal}
                 className="inline-flex items-center gap-2 rounded-full bg-indigo-600 text-white px-4 py-2 text-sm font-semibold transition hover:bg-indigo-700"
               >
                 Upgrade Plan <ArrowUpRight className="h-4 w-4" />
@@ -229,7 +294,7 @@ export default function Dashboard() {
                 { label: "Create UGC Image", href: "/app/generator", icon: <ImageIcon className="h-4 w-4" /> },
                 { label: "Product Upload", href: "/app/generator?mode=upload", icon: <UploadCloud className="h-4 w-4" /> },
                 { label: "Hero Mode Generator", href: "/app/generator?hero=true", icon: <Shield className="h-4 w-4" /> },
-                { label: "Upgrade Plan", href: "#upgrade", icon: <ArrowUpRight className="h-4 w-4" />, action: () => startCheckout("creator") },
+                { label: "Upgrade Plan", href: "#upgrade", icon: <ArrowUpRight className="h-4 w-4" />, action: openPlanModal },
               ].map((item) => (
                 <div
                   key={item.label}

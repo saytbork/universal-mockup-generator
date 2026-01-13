@@ -45,6 +45,7 @@ import { type EcommerceGenerationSettings } from '@/components/EcommerceStep3';
 import type { EcommerceSlotKey, EcommerceSlotsConfig } from '@/lib/ecommerceOverlay/types';
 import { loadEcommerceSlotsConfig, saveEcommerceSlotsConfig } from '@/lib/ecommerceOverlay/storage';
 import { ECOMMERCE_SLOT_REQUIRED_BLANK_SPACE } from '@/lib/ecommerceOverlay/templates';
+import { PLAN_CONFIG, type PlanTier } from './src/constants/planConfig';
 // PHASE 2: ProductStudio direct generation
 import { useProductStudioStore, generateProductJobs, validatePrompt } from '@/lib/productStudio';
 import { addProductWithPalette } from '@/lib/productStudio/store';
@@ -647,49 +648,7 @@ const normalizeGeminiModel = (raw?: string) => raw || '';
 const GEMINI_IMAGE_MODEL = normalizeGeminiModel('gemini-2.5-flash-image') || 'gemini-2.5-flash-image';
 const GOOGLE_MODEL = import.meta.env.VITE_GOOGLE_MODEL ?? '';
 
-type PlanTier = 'free' | 'creator' | 'studio';
-
-const PLAN_CONFIG: Record<
-  PlanTier,
-  {
-    label: string;
-    description: string;
-    creditLimit: number;
-    allowStudio: boolean;
-    allowCaption: boolean;
-    priceLabel: string;
-    stripeUrl?: string;
-  }
-> = {
-  free: {
-    label: 'Free',
-    description: '2 credits · watermark · comunidad · sin videos',
-    creditLimit: 2,
-    allowStudio: false,
-    allowCaption: false,
-    priceLabel: '$0',
-  },
-  creator: {
-    label: 'Creator',
-    description: '20 credits + 2 videos/mes · sin marca · soporte standard',
-    creditLimit: 20,
-    allowStudio: true,
-    allowCaption: true,
-    priceLabel: '$19/mo',
-    stripeUrl: 'https://buy.stripe.com/14A28tb1Sgr0b2Y5HBeIw02',
-  },
-  studio: {
-    label: 'Studio',
-    description: '60 credits + 6 videos/mes · sin marca · soporte priority',
-    creditLimit: 60,
-    allowStudio: true,
-    allowCaption: true,
-    priceLabel: '$29/mo',
-    stripeUrl: 'https://buy.stripe.com/7sYfZj1ricaKdb6da3eIw01',
-  },
-};
-
-const VIDEO_CREDIT_COST = 15;
+ const VIDEO_CREDIT_COST = 15;
 
 const PLAN_UNLOCK_CODES: Record<string, PlanTier> = {
   CREATOR15: 'creator',
