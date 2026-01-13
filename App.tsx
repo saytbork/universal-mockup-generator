@@ -4321,19 +4321,25 @@ If the model attempts to create a scene or environment, override it and force a 
   const reportGalleryEntry = useCallback(
     async (url: string) => {
       if (!url) return;
-      if (url.trim().toLowerCase().startsWith('data:')) {
-        // Data URLs are not public and exceed Firestore limits; skip gallery save.
-        return;
-      }
-      const userId = userEmail || 'guest';
+      const safeEmail = String(userEmail || '').trim();
+      if (!safeEmail) return;
+      const userId = safeEmail;
       const plan = planTier;
       try {
+        // If we only have a data URL, upload it to Firebase Storage first to get a stable public URL.
+        let finalPublicUrl = url;
+        if (url.trim().toLowerCase().startsWith('data:')) {
+          const { uploadImageWithRetry } = await import('./src/services/storageService');
+          const upload = await uploadImageWithRetry(url, userId);
+          finalPublicUrl = upload.url;
+        }
+
         const { width, height } = await getImageDimensions(url);
         await fetch('/api/galleryHandler?action=add', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            imageUrl: url,
+            imageUrl: finalPublicUrl,
             userId,
             plan,
             meta: {
@@ -4649,7 +4655,7 @@ If the model attempts to create a scene or environment, override it and force a 
         if (typeof window !== 'undefined') {
           window.localStorage.setItem(IMAGE_COUNT_KEY, String(newCount));
         }
-        publishFreeGallery(finalUrl, determineGalleryPlan(), compositionMode);
+        // Avoid localStorage gallery (data URLs exceed quota); dashboard uses Firestore gallery history.
       } catch (err) {
         console.error(err);
         let errorMessage = '';

@@ -15,6 +15,7 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import type { GalleryImage } from "../services/galleryService";
 
 type ActivityItem = {
   id: string;
@@ -26,7 +27,7 @@ type ActivityItem = {
 
 type UserInfo = {
   email: string;
-  credits: number;
+  credits?: number;
   plan: string;
   inviteUsed?: boolean;
 };
@@ -97,7 +98,8 @@ export default function Dashboard() {
 
   const creditsLabel = useMemo(() => {
     if (!user) return "0";
-    return `${user.credits} credits`;
+    const credits = Number(user.credits ?? 0);
+    return `${credits} credits`;
   }, [user]);
 
   const startCheckout = async (plan: "creator" | "studio") => {
@@ -129,7 +131,7 @@ export default function Dashboard() {
           initial={{ opacity: 0, scale: 0.92 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
-          className="rounded-xl bg-white border border-gray-200 px-8 py-6 shadow-md shadow-md shadow-indigo-500/20"
+          className="rounded-xl bg-white border border-gray-200 px-8 py-6"
         >
           <p className="text-sm text-gray-600">Loading your workspace...</p>
         </motion.div>
@@ -147,7 +149,7 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="flex items-center justify-between gap-4 rounded-xl bg-white border border-gray-200 px-6 py-5 shadow-md shadow-md shadow-indigo-500/20"
+          className="flex items-center justify-between gap-4 rounded-xl bg-white border border-gray-200 px-6 py-5"
         >
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Dashboard</p>
@@ -156,7 +158,7 @@ export default function Dashboard() {
           </div>
           <button
             onClick={() => logout()}
-            className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-whiteTint px-4 py-2 text-sm font-medium text-gray-900 transition hover:bg-whiteTint"
+            className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-900 transition hover:border-indigo-600 hover:bg-indigo-50"
           >
             <LogOut className="h-4 w-4" />
             Logout
@@ -170,7 +172,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: "easeOut" }}
-            className="lg:col-span-2 rounded-xl bg-whiteTint border border-gray-200 p-6 shadow-md shadow-md shadow-indigo-500/20"
+            className="lg:col-span-2 rounded-xl bg-white border border-gray-200 p-6"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-2">
@@ -189,7 +191,7 @@ export default function Dashboard() {
               </div>
               <button
                 onClick={() => startCheckout("creator")}
-                className="inline-flex items-center gap-2 rounded-full bg-white text-gray-900 px-4 py-2 text-sm font-semibold shadow-md shadow-md shadow-indigo-500/20 transition"
+                className="inline-flex items-center gap-2 rounded-full bg-indigo-600 text-white px-4 py-2 text-sm font-semibold transition hover:bg-indigo-700"
               >
                 Upgrade Plan <ArrowUpRight className="h-4 w-4" />
               </button>
@@ -197,14 +199,14 @@ export default function Dashboard() {
             <div className="mt-6 flex flex-wrap gap-3">
               <a
                 href="/app/generator"
-                className={`inline-flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${user.credits > 0
-                  ? "bg-indigo-600 text-white hover:bg-indigo-600 text-white"
-                  : "bg-whiteTint text-gray-600 cursor-not-allowed"
+                className={`inline-flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${Number(user.credits ?? 0) > 0
+                  ? "bg-indigo-600 text-white hover:bg-indigo-700"
+                  : "bg-gray-100 text-gray-400 cursor-not-allowed"
                   }`}
               >
                 <Wand2 className="h-4 w-4" /> Generate an Image
               </a>
-              {user.credits <= 0 && (
+              {Number(user.credits ?? 0) <= 0 && (
                 <span className="text-xs text-gray-500">You have no credits left. Upgrade your plan to continue.</span>
               )}
             </div>
@@ -215,7 +217,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: "easeOut", delay: 0.05 }}
-            className="rounded-xl bg-whiteTint border border-gray-200 p-5 shadow-md shadow-md shadow-indigo-500/20 space-y-4"
+            className="rounded-xl bg-white border border-gray-200 p-5 space-y-4"
           >
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Sparkles className="h-4 w-4 text-indigo-600" />
@@ -231,13 +233,13 @@ export default function Dashboard() {
                 <div
                   key={item.label}
                   onClick={() => (item.action ? item.action() : (window.location.href = item.href))}
-                  className="flex items-center justify-between rounded-xl border border-gray-200 bg-whiteTint px-4 py-3 text-sm text-gray-900 hover:border-indigo-600/50 hover:bg-indigo-600 text-white transition cursor-pointer"
+                  className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 transition cursor-pointer hover:border-indigo-600 hover:bg-indigo-50"
                 >
                   <span className="flex items-center gap-2">
                     {item.icon}
                     {item.label}
                   </span>
-                  <ArrowUpRight className="h-4 w-4 text-gray-600" />
+                  <ArrowUpRight className="h-4 w-4 text-indigo-600" />
                 </div>
               ))}
             </div>
@@ -249,7 +251,7 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
-          className="rounded-xl bg-whiteTint border border-gray-200 p-6 shadow-md shadow-md shadow-indigo-500/20"
+          className="rounded-xl bg-white border border-gray-200 p-6"
         >
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -265,7 +267,7 @@ export default function Dashboard() {
               {activity.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between rounded-xl border border-gray-200 bg-whiteTint px-4 py-3 hover:border-indigo-600 transition"
+                  className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 hover:border-indigo-600 transition"
                 >
                   <div className="flex items-center gap-3">
                     {activityIcon(item.type)}
@@ -289,7 +291,7 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.15 }}
-          className="rounded-xl bg-whiteTint border border-gray-200 p-6 shadow-md shadow-md shadow-indigo-500/20"
+          className="rounded-xl bg-white border border-gray-200 p-6"
         >
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -307,7 +309,7 @@ export default function Dashboard() {
 
 // Gallery Section Component
 function GallerySection({ userEmail }: { userEmail: string }) {
-  const [images, setImages] = useState<any[]>([]);
+  const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -321,14 +323,32 @@ function GallerySection({ userEmail }: { userEmail: string }) {
         const currentUserEmail = userEmail;
         const userId = userEmail;
 
-        const userImages = allImages.filter(img =>
-          img.userId === userId ||
-          (img.userId === 'guest' && userId === currentUserEmail)
-        );
+        const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+        const userImages = allImages.filter(img => {
+          const createdDate =
+            img.createdAt?.toDate?.() ||
+            (typeof (img.createdAt as any)?.seconds === 'number' ? new Date((img.createdAt as any).seconds * 1000) : null) ||
+            (typeof (img.createdAt as any) === 'number' ? new Date(img.createdAt as any) : null) ||
+            null;
+          const createdAtMs = createdDate ? createdDate.getTime() : 0;
+          const isMine =
+            img.userId === userId ||
+            (img.userId === 'guest' && userId === currentUserEmail);
+          return isMine && createdAtMs >= thirtyDaysAgo;
+        });
+
+        const sorted = [...userImages].sort((a, b) => {
+          const aDate =
+            a.createdAt?.toDate?.() ||
+            new Date((a.createdAt as any)?.seconds * 1000 || 0);
+          const bDate =
+            b.createdAt?.toDate?.() ||
+            new Date((b.createdAt as any)?.seconds * 1000 || 0);
+          return bDate.getTime() - aDate.getTime();
+        });
 
         if (mounted) {
-          setImages(userImages);
-          console.log(`📸 Mostrando ${userImages.length} imágenes en el dashboard`);
+          setImages(sorted);
         }
       } catch (err: any) {
         console.error('Failed to load user gallery:', err);
@@ -368,7 +388,7 @@ function GallerySection({ userEmail }: { userEmail: string }) {
 
   if (error) {
     return (
-      <div className="rounded-xl border border-gray-200 bg-whiteTint p-4">
+      <div className="rounded-xl border border-gray-200 bg-white p-4">
         <p className="text-sm text-gray-500">{error}</p>
       </div>
     );
@@ -381,7 +401,7 @@ function GallerySection({ userEmail }: { userEmail: string }) {
         <p className="text-sm text-gray-600">No images generated yet</p>
         <a
           href="/app/generator"
-          className="inline-flex items-center gap-2 rounded-full bg-indigo-600 text-white px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-600 text-white transition"
+          className="inline-flex items-center gap-2 rounded-full bg-indigo-600 text-white px-4 py-2 text-sm font-semibold transition hover:bg-indigo-700"
         >
           <Wand2 className="h-4 w-4" />
           Generate Your First Image
@@ -399,7 +419,7 @@ function GallerySection({ userEmail }: { userEmail: string }) {
         return (
           <div
             key={image.id}
-            className="group relative rounded-xl overflow-hidden border border-gray-200 bg-whiteTint transition hover:border-indigo-600/50"
+            className="rounded-xl overflow-hidden border border-gray-200 bg-white transition hover:border-indigo-600"
           >
             <img
               src={image.imageUrl}
@@ -407,17 +427,17 @@ function GallerySection({ userEmail }: { userEmail: string }) {
               className="w-full h-48 object-cover"
               loading="lazy"
             />
-            <div className="absolute inset-0 bg-whiteTint opacity-0 group-hover:opacity-100 transition flex flex-col justify-end p-4 space-y-2">
+            <div className="p-4 space-y-2">
               <div className="text-xs text-gray-600 space-y-1">
-                <p>Plan: {image.plan || 'free'}</p>
-                {image.width && image.height && (
-                  <p>Size: {image.width}×{image.height}</p>
-                )}
-                <p>Created: {dateStr}</p>
+                <p className="font-medium text-gray-900">Created: {dateStr}</p>
+                <p className="text-gray-600">Plan: {image.plan || 'free'}</p>
+                {image.width && image.height ? (
+                  <p className="text-gray-600">Size: {image.width}×{image.height}</p>
+                ) : null}
               </div>
               <button
                 onClick={() => handleDownload(image.imageUrl, `ugc-image-${image.id}.png`)}
-                className="w-full rounded-lg bg-indigo-600 text-white px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-600 text-white transition"
+                className="w-full rounded-xl bg-indigo-600 text-white px-3 py-2 text-sm font-semibold transition hover:bg-indigo-700"
               >
                 Download
               </button>
