@@ -1,7 +1,7 @@
 
 
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { GoogleGenAI, Modality } from "@google/genai";
 import { MockupOptions, OptionCategory, Option } from './types';
 import { Info, Moon, Sun } from 'lucide-react';
@@ -1329,7 +1329,6 @@ const App: React.FC = () => {
   const hasUploadedProduct = activeProducts.length > 0 || productAssets.length > 0;
   const canUseMood = hasUploadedProduct;
   const [lifestyleTone, setLifestyleTone] = useState<'ugc' | 'editorial'>('ugc');
-  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const toggleTheme = useCallback(() => {
     const root = document.documentElement;
     const nextIsDark = !root.classList.contains('dark');
@@ -5776,12 +5775,12 @@ If the model attempts to create a scene or environment, override it and force a 
               </div>
 
               <div className="flex items-center gap-8">
-                <button
-                  onClick={() => setIsAccountMenuOpen(true)}
+                <Link
+                  to="/dashboard"
                   className="text-[10px] font-black tracking-[0.3em] text-indigo-600 hover:text-indigo-600 transition"
                 >
                   MY ACCOUNT
-                </button>
+                </Link>
               </div>
             </div>
           </div>
