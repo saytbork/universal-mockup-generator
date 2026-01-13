@@ -4,9 +4,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './tooltip';
 type ChipSize = 'xs' | 'sm' | 'md';
 
 const sizeMap: Record<ChipSize, string> = {
-  xs: 'h-7 px-3',
-  sm: 'h-8 px-4',
-  md: 'h-9 px-5',
+  xs: 'px-3 py-1',
+  sm: 'px-4 py-2',
+  md: 'px-4 py-2',
 };
 
 export interface ChipProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -17,16 +17,16 @@ export interface ChipProps extends React.ButtonHTMLAttributes<HTMLButtonElement>
 }
 
 const baseClass =
-  'inline-flex items-center justify-center gap-1 rounded-full border transition-colors duration-200 whitespace-nowrap font-semibold text-xs leading-none normal-case focus:outline-none';
+  'inline-flex max-w-full items-center gap-1 rounded-xl border transition-all duration-300 whitespace-nowrap font-bold text-[10px] focus:outline-none min-w-0';
 
 const activeClass =
-  'border-indigo-600 bg-indigo-600 text-white shadow-sm shadow-indigo-500/20';
+  'border-indigo-600 bg-indigo-600 text-white shadow-lg';
 
 const inactiveClass =
-  'border-gray-200 bg-white text-gray-600 hover:border-indigo-600 dark:bg-white/5 dark:text-white/60 dark:border-white/10 dark:hover:border-white/30';
+  'border-gray-200 bg-white text-gray-600 hover:border-gray-400 dark:bg-white/5 dark:text-white/60 dark:border-white/10 dark:hover:border-white/30';
 
 const warmActiveClass =
-  'border-orange-500 bg-orange-500 text-white shadow-sm shadow-orange-500/20';
+  'border-orange-500 bg-orange-500 text-white shadow-lg';
 
 const warmInactiveClass =
   'border-orange-200 bg-orange-50/50 text-orange-700 hover:border-orange-300 dark:bg-orange-500/10 dark:text-orange-200 dark:border-orange-500/30 dark:hover:border-orange-500/50';
@@ -57,7 +57,7 @@ export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
 
     const button = (
       <button type="button" ref={ref} className={classes} disabled={disabled} title={inferredTitle} {...props}>
-        {children}
+        {typeof children === 'string' ? <span className="truncate max-w-full">{children}</span> : children}
       </button>
     );
 

@@ -399,7 +399,18 @@ Captured by smartphone so fine edges may appear soft or broken.
         }
 
         if (personDetails?.selfieType) {
-            parts.push(sanitizePart(personDetails.selfieType, isUgcMode));
+            const rawSelfieType = String(personDetails.selfieType || '').trim();
+            const normalized = rawSelfieType.toLowerCase();
+            const captureIds = new Set([
+                'torso-level-handheld',
+                'high-angle',
+                'close-face',
+                'propped-surface',
+            ]);
+            // In UGC we avoid leaking internal capture IDs into the prompt.
+            if (!isUgcMode || !captureIds.has(normalized)) {
+                parts.push(sanitizePart(rawSelfieType, isUgcMode));
+            }
         }
 
         if (personDetails?.personProps) {

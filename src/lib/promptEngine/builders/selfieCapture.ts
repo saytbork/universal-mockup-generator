@@ -7,27 +7,8 @@ import type { PromptBuilder, PromptOptions } from '../types';
 const UGC_SELFIE_CAPTURE_BLOCK = `
 UGC SELFIE CAPTURE (FRONT CAMERA — HARD CONSTRAINT):
 
-This image must be captured using a front-facing smartphone camera.
-One arm is extended holding the phone. The phone itself is NOT visible, but the framing clearly indicates an outstretched arm.
-
-	Camera quality is basic and limited:
-	- small front sensor
-	- flat depth
-	- no background separation
-	- no cinematic blur
-	- no bokeh
-	- no shallow depth of field
-	- NO portrait mode blur
-	- background must NOT be defocused
-
-Angle must be imperfect and human:
-- pitch between +6° to +10° OR −6° to −10°
-- never level
-- never centered
-- never symmetrical
-
-This is a careless, domestic selfie.
-The framing feels accidental, slightly awkward, and unplanned.
+Front-facing smartphone camera only (tiny sensor). Flat focus across entire frame; NO background blur / bokeh / portrait mode.
+Framing is accidental and imperfect; never level, never centered, never symmetrical.
 `.trim();
 
 const CLOSE_FACE_SELFIE_BLOCK = `
@@ -170,35 +151,16 @@ If the answer is NO → REJECT AND REGENERATE.
 
 const SELFIE_POSITION_MODES: Record<string, string> = {
     'torso-level-handheld': `
-Torso-level handheld
-Torso-level handheld selfie.
-Camera held at torso height with slight downward drift.
-Never centered.
-Arm extension implied.
+CAPTURE: Torso-level handheld front-camera selfie. Camera around torso/upper-chest height with slight downward drift. Never centered. Noticeable random tilt/roll (±6–15°). Arm extension implied.
 `.trim(),
     'high-angle': `
-High-angle vantage
-High-angle front camera selfie.
-Camera is clearly above forehead height, angled downward across the face and shoulders.
-Eyes sit below the horizontal centerline of the frame.
-Headroom is awkward and imperfect; slight head crop is allowed.
-Awkward tilt is present (never level).
-Arm extension implied.
-Not a mid shot. No torso framing.
+CAPTURE: Obvious high-angle front-camera selfie. Camera clearly above forehead height angled downward. Headroom awkward; slight head crop allowed. Noticeable random tilt/roll (±6–15°). Arm extension implied.
 `.trim(),
     'close-face': `
-Close face framing
-Close front-camera selfie.
-Framing is too tight and imperfect.
-Crops part of forehead, cheek, or chin.
-Feels uncomfortably close.
+CAPTURE: Close front-camera selfie. Framing too tight and imperfect; crop forehead/cheek/chin. Phone inches from face. Noticeable random tilt/roll (±6–15°).
 `.trim(),
     'propped-surface': `
-Propped on surface
-Front camera propped on a domestic surface.
-Subtle wobble from breathing.
-Angle is imperfect and slightly tilted.
-Feels unstable and incidental.
+CAPTURE: Front camera propped on a domestic surface. Slight wobble from breathing; framing drifts. Noticeable random tilt/roll (±6–15°). Feels incidental and unstable.
 `.trim()
 };
 
@@ -283,6 +245,14 @@ const isUgcMode = (options: PromptOptions): boolean => {
 };
 
 export class SelfieCaptureBuilder implements PromptBuilder {
+    private getNoticeableAngle(): { pitchDeg: number; rollDeg: number } {
+        const rand = (min: number, max: number) => min + Math.random() * (max - min);
+        const signed = (min: number, max: number) => (Math.random() < 0.5 ? -1 : 1) * rand(min, max);
+        const pitchDeg = Number(signed(6, 15).toFixed(1));
+        const rollDeg = Number(signed(4, 14).toFixed(1));
+        return { pitchDeg, rollDeg };
+    }
+
     private resolveSelfiePositionId(options: PromptOptions): string {
         const captureBase =
             options.ugcRealModeLayers?.captureBase?.[0] ||
@@ -328,6 +298,8 @@ export class SelfieCaptureBuilder implements PromptBuilder {
             options.ugcRealModeLayers?.captureBase?.includes('close-face') ||
             selectedModeId === 'close-face';
         const selectedMode = SELFIE_POSITION_MODES[selectedModeId] || SELFIE_POSITION_MODES['torso-level-handheld'];
+        const { pitchDeg, rollDeg } = this.getNoticeableAngle();
+        const angleDirective = `ANGLE: noticeable random pitch ${pitchDeg}°, roll ${rollDeg}° (never level).`;
 
         delete overrideTarget.backgroundBlur;
         delete overrideTarget.depthOfField;
@@ -412,6 +384,7 @@ export class SelfieCaptureBuilder implements PromptBuilder {
                 (options.rawDomesticUgcActive ? 'high' : 'medium');
             return [
                 CLOSE_FACE_SELFIE_BLOCK,
+                angleDirective,
                 SELFIE_IMPERFECTION_LEVEL_RULES[imperfectionLevel],
                 CLOSE_FACE_BLOCKERS
             ].join('\n\n').trim();
@@ -428,6 +401,7 @@ export class SelfieCaptureBuilder implements PromptBuilder {
         return [
             UGC_SELFIE_CAPTURE_BLOCK,
             selectedMode,
+            angleDirective,
             SELFIE_IMPERFECTION_LEVEL_RULES[imperfectionLevel],
             needsContactBlock ? SELFIE_PHYSICAL_CONTACT_BLOCK : '',
             SELFIE_CAPTURE_BLOCKERS

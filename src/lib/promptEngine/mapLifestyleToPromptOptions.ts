@@ -649,8 +649,10 @@ export function mapLifestyleToPromptOptions(
     existingOptions: Partial<PromptOptions> = {},
     hasModelReference: boolean = false
 ): Partial<PromptOptions> {
-    // MANDATORY LOGGING - Input state
-    console.log('[MAP INPUT]', JSON.stringify(sceneState, null, 2));
+    // Logging (dev only)
+    if (process.env.NODE_ENV === 'development') {
+        console.log('[MAP INPUT]', JSON.stringify(sceneState, null, 2));
+    }
 
     if (sceneState.ugcRealMode && sceneState.sceneIntent === 'ecommerce') {
         console.error('[INVALID STATE BLOCKED] UGC Real Mode cannot run in ecommerce sceneIntent');
@@ -1688,20 +1690,20 @@ export function mapLifestyleToPromptOptions(
     if (sceneState.studioAccentColor) {
         (mapped as any).paletteColor3 = sceneState.studioAccentColor;
     }
-    console.log('[MAP] Product Studio fields injected:', {
-        photoMode: sceneState.studioPhotoMode,
-        alignment: sceneState.studioAlignment,
-        shadow: sceneState.studioShadow,
-        props: sceneState.studioProps,
-        lens: sceneState.studioLens,
-        lightingRig: sceneState.studioLightingRig,
-        finish: sceneState.studioFinish,
-        backgroundColor: sceneState.studioBackgroundColor,
-        accentColor: sceneState.studioAccentColor,
-    });
-
-    // MANDATORY LOGGING - Complete output
-    console.log('[MAP OUTPUT]', JSON.stringify(mapped, null, 2));
+    if (process.env.NODE_ENV === 'development') {
+        console.log('[MAP] Product Studio fields injected:', {
+            photoMode: sceneState.studioPhotoMode,
+            alignment: sceneState.studioAlignment,
+            shadow: sceneState.studioShadow,
+            props: sceneState.studioProps,
+            lens: sceneState.studioLens,
+            lightingRig: sceneState.studioLightingRig,
+            finish: sceneState.studioFinish,
+            backgroundColor: sceneState.studioBackgroundColor,
+            accentColor: sceneState.studioAccentColor,
+        });
+        console.log('[MAP OUTPUT]', JSON.stringify(mapped, null, 2));
+    }
 
     return mapped;
 }
