@@ -106,7 +106,8 @@ export default function Dashboard() {
     try {
       const priceId = plan === "creator" ? priceCreator : priceStudio;
       if (!priceId) {
-        alert("Pricing configuration missing. Please set price IDs.");
+        // Fallback for misconfigured env: send user to pricing page instead of dead-ending.
+        navigate("/pricing");
         return;
       }
       const res = await axios.post("/api/stripe/create-checkout-session", {
