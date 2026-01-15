@@ -441,8 +441,9 @@ function buildEnvironment(state: ProductStudioState): string {
 // ============================================================================
 
 function buildLighting(state: ProductStudioState): string {
-    // Studio branding uses lighting rigs (preset-driven)
-    if (state.sceneType === 'studio-branding' && state.lightingRig && LIGHTING_PRESETS[state.lightingRig]) {
+    // Pro photographer mode uses lighting rigs (preset-driven) across scene types.
+    // This keeps the control decisive and prevents "it does nothing" confusion.
+    if (state.proMode && state.lightingRig && LIGHTING_PRESETS[state.lightingRig]) {
         return `LIGHTING_RIG: ${LIGHTING_PRESETS[state.lightingRig]}`;
     }
 
@@ -463,12 +464,14 @@ function buildLighting(state: ProductStudioState): string {
 }
 
 function buildLens(state: ProductStudioState): string {
+    if (!state.proMode) return '';
     if (!state.lens) return '';
     const preset = LENS_PRESETS[state.lens];
     return preset ? `LENS: ${preset}` : `LENS: ${state.lens}`;
 }
 
 function buildFinish(state: ProductStudioState): string {
+    if (!state.proMode) return '';
     if (!state.finish) return '';
     const preset = FINISH_PRESETS[state.finish];
     return preset ? `FINISH: ${preset}` : `FINISH: ${state.finish}`;

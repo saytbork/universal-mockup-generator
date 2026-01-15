@@ -121,10 +121,13 @@ export const CAMERA_FRAMING_PRESETS: Record<string, string> = {
 // LIGHTING RIG PRESETS
 // =============================================================================
 export const LIGHTING_PRESETS: Record<string, string> = {
+    // Aliases to match UI labels (keep existing keys for backward compatibility).
+    '3-Point Beauty Dish': `Three-point studio lighting with beauty dish key light. Controlled highlights. Clean reflections. Studio-grade contrast.`,
     'Three-Point Beauty': `Three-point studio lighting with beauty dish key light. Controlled highlights. Clean reflections. Studio-grade contrast.`,
     'Softbox Wrap': `Softbox wrap lighting with even diffusion and minimal shadow. Controlled highlights. Clean reflections.`,
     'Hard Edge Gels': `Hard edge lighting with colored gels and sharp contrast. Studio-grade contrast.`,
     'Backlit Acrylic': `Backlit acrylic lighting with clean rim highlights. Controlled highlights.`,
+    'High-Speed Splash Rig': `High-speed splash lighting optimized for frozen motion. Studio-grade contrast.`,
     'High-Speed Splash': `High-speed splash lighting optimized for frozen motion. Studio-grade contrast.`,
     'Gradient Cyclorama': `Gradient cyclorama lighting with smooth falloff. Controlled highlights.`,
     'Prism Spotlight Duo': `Prism spotlight duo creating controlled light separation. Studio-grade contrast.`
