@@ -27,6 +27,7 @@ export function buildCamera(params: any): string {
     Boolean(params.ugcRealMode || params.ugcRealModeActive || params.rawDomesticUgcActive) ||
     Boolean(params.ugcRealModeLayers);
   const ugcMode = Boolean(params.ugcMode || params.ugcRealMode) || ugcRealActive || selfieActive;
+  const hasProductAssets = Array.isArray(params.productAssets) && params.productAssets.length > 0;
 
   // Selfie: force front-facing smartphone characteristics (prevents pro-camera DOF blur).
   if (selfieActive) {
@@ -68,12 +69,17 @@ export function buildCamera(params: any): string {
     }
   }
 
+  const focusLock =
+    hasProductAssets && !ugcRealActive
+      ? "Focus priority: lock focus on the product (not the face). Product label must be tack sharp and fully readable. Avoid portrait mode blur or shallow depth-of-field that blurs the product; keep both the face and the product within depth of field."
+      : "";
+
   // Prevent duplication in mapped styling
   delete params.camera;
   delete params.cameraType;
   delete params.placementCamera;
 
-  return uniqueParts([camera]);
+  return uniqueParts([camera, focusLock]);
 }
 
 // Helper to check against parameter map values since 'camera' string is the mapped description

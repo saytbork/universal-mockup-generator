@@ -1113,7 +1113,8 @@ export function mapLifestyleToPromptOptions(
 
     if (isEnvironmentSceneIntent) {
         mapped.placementStyle = 'Lifestyle placement with the product integrated in the environment, not hero-focused.';
-        mapped.productPlane = 'Mid-ground contextual placement within the room or space.';
+        mapped.productPlane =
+            'Mid-ground contextual placement within the room or space. Keep the product and label tack sharp and fully readable; keep both the face and the product within depth of field. Do not blur or defocus the product.';
         mapped.placementCamera = sceneState.cameraType || mapped.placementCamera;
     }
 

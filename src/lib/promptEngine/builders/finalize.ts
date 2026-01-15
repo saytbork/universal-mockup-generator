@@ -14,7 +14,8 @@ export class FinalizeBuilder implements PromptBuilder {
             'No floating limbs.',
             'No invented labels or product redesign.',
             'No hallucinated packaging.',
-            'Product geometry, material and label must remain exact.'
+            'Product geometry, material and label must remain exact.',
+            'Never let the product be out of focus: no blurry product, no soft focus on the product, and no depth-of-field that blurs the label.'
         ];
 
         const intent = options.creationIntent || 'ugc';
