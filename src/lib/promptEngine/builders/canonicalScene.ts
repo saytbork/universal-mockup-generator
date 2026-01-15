@@ -105,6 +105,7 @@ export class SceneNarrativeBuilder {
     private buildCreationIntent(options: PromptOptions): string {
         const clothingCopy = this.clothingBuilder.build(options);
         const productCopy = this.productBuilder.build(options);
+        const ritualCopy = this.buildRitualMode(options);
         const parts: string[] = [];
 
         const isProductMode =
@@ -164,11 +165,40 @@ export class SceneNarrativeBuilder {
             parts.push(clothingCopy);
         }
 
+        if (ritualCopy) {
+            parts.push(ritualCopy);
+        }
+
         if (productCopy) {
             parts.push(productCopy);
         }
 
         return parts.filter(Boolean).join(' ');
+    }
+
+    private buildRitualMode(options: PromptOptions): string {
+        if (!options.ritualModeActive) return '';
+        const activities = Array.isArray(options.ritualActivities) ? options.ritualActivities : [];
+        const custom = String(options.ritualCustom || '').trim();
+        const all = [...activities, ...(custom ? [custom] : [])]
+            .map(item => item.trim())
+            .filter(Boolean);
+        const ritualList = all.length ? all.join(', ') : 'meditation, yoga, breathwork, or a wellness routine';
+
+        if (options.ritualHideProduct) {
+            return [
+                'RITUAL MODE: Lifestyle ritual scene.',
+                `Depict a wellness ritual such as ${ritualList}.`,
+                'CRITICAL: No product visible anywhere in frame (no packaging, no bottles, no labels).',
+                'Focus on the environment, action, and lifestyle moment.'
+            ].join(' ');
+        }
+
+        return [
+            'RITUAL MODE: Lifestyle ritual scene.',
+            `Depict a wellness ritual such as ${ritualList}.`,
+            'If a product appears, it must be incidental and secondary (never a hero packshot).'
+        ].join(' ');
     }
 
     private buildCreationMode(options: PromptOptions): string {

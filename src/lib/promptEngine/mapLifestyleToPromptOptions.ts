@@ -730,6 +730,20 @@ export function mapLifestyleToPromptOptions(
         identitySeed,
         ugcStyle: existingOptions.ugcStyle ?? 'optimized'
     };
+
+    // Ritual Mode (Lifestyle-only)
+    if ((sceneState as any).ritualModeEnabled === true) {
+        (mapped as any).ritualModeActive = true;
+        (mapped as any).ritualHideProduct = Boolean((sceneState as any).ritualHideProduct);
+        const activities = Array.isArray((sceneState as any).ritualActivities) ? (sceneState as any).ritualActivities : [];
+        (mapped as any).ritualActivities = activities.filter((v: any) => typeof v === 'string' && v.trim());
+        (mapped as any).ritualCustom = String((sceneState as any).ritualCustom ?? '').trim() || undefined;
+    } else {
+        (mapped as any).ritualModeActive = false;
+        (mapped as any).ritualHideProduct = false;
+        (mapped as any).ritualActivities = [];
+        (mapped as any).ritualCustom = undefined;
+    }
     const ugcStyleKey = String(mapped.ugcStyle ?? 'optimized').toLowerCase();
     mapped.sameCreatorAcrossScenes = sceneState.sameCreatorAcrossScenes;
     if (!identityContinuityRequested) {

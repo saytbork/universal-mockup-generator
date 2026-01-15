@@ -230,6 +230,12 @@ export interface PromptOptions {
     sceneIntent?: 'environment' | 'ecommerce';
     ecommerceBlankSpaceMode?: boolean;
 
+    // Ritual Mode (Lifestyle-only)
+    ritualModeActive?: boolean;
+    ritualHideProduct?: boolean;
+    ritualActivities?: string[];
+    ritualCustom?: string;
+
     formulationExpertEnabled?: boolean;
     formulationExpertName?: string;
     formulationExpertRole?: string;

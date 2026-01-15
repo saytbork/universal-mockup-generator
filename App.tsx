@@ -1412,6 +1412,10 @@ const App: React.FC = () => {
   const [trialCodeError, setTrialCodeError] = useState<string | null>(null);
   const isTrialBypassActive = hasTrialBypass || isDevBypass;
   const hasUploadedProduct = activeProducts.length > 0 || productAssets.length > 0;
+  const ritualNoProductMode =
+    !isProductPlacement &&
+    lifestyleStep3Values?.ritualModeEnabled === true &&
+    lifestyleStep3Values?.ritualHideProduct === true;
   const canUseMood = hasUploadedProduct;
   const [lifestyleTone, setLifestyleTone] = useState<'ugc' | 'editorial'>('ugc');
   const toggleTheme = useCallback(() => {
@@ -4507,8 +4511,9 @@ If the model attempts to create a scene or environment, override it and force a 
         setImageError(`You reached the ${currentPlan.label} limit (${planCreditLimit} credits). Upgrade your plan to keep generating scenes.`);
         return;
       }
-      const generationProducts = overrideActiveList?.length ? overrideActiveList : activeProducts;
-      if (!generationProducts.length) {
+      const generationProductsRaw = overrideActiveList?.length ? overrideActiveList : activeProducts;
+      const generationProducts = ritualNoProductMode ? [] : generationProductsRaw;
+      if (!generationProducts.length && !ritualNoProductMode) {
         setImageError("Please upload a product image first.");
         return;
       }
@@ -4565,7 +4570,7 @@ If the model attempts to create a scene or environment, override it and force a 
             }
             : {}),
 	          personIncluded,
-	          productAssets: generationProducts.map(p => ({
+          productAssets: (ritualNoProductMode ? [] : generationProducts).map(p => ({
 	            id: p.id,
 	            base64: p.base64,
 	            mimeType: p.mimeType,
@@ -5872,21 +5877,21 @@ If the model attempts to create a scene or environment, override it and force a 
                         03 / Generate
                       </p>
                     </div>
-                    {!hasUploadedProduct && (
+                    {!hasUploadedProduct && !ritualNoProductMode && (
                       <div className="rounded-lg border border-gray-200 bg-white/70 px-3 py-2 text-[11px] text-gray-500 dark:bg-black/20 dark:border-white/10 dark:text-white/50">
                         Locked until previous step is complete
                       </div>
                     )}
                     {(() => {
-	                      const isGenerateDisabled = isImageLoading || !hasUploadedProduct;
+	                      const isGenerateDisabled = isImageLoading || (!hasUploadedProduct && !ritualNoProductMode);
 	                      const generationRestrictionMessage = (() => {
 	                        if (!isGenerateDisabled) return '';
-	                        if (!hasUploadedProduct) return 'Upload a source product photo before generating.';
+	                        if (!hasUploadedProduct && !ritualNoProductMode) return 'Upload a source product photo before generating.';
 	                        if (isImageLoading) return 'Generation is in progress; please wait.';
 	                        return '';
 	                      })();
                       return (
-                        <div className={hasUploadedProduct ? '' : 'opacity-50 pointer-events-none select-none'}>
+                        <div className={hasUploadedProduct || ritualNoProductMode ? '' : 'opacity-50 pointer-events-none select-none'}>
                           <button
                             type="button"
                             onClick={

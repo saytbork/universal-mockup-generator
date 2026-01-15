@@ -219,6 +219,12 @@ export interface Step3Values {
   // Selfie Mode (Unified System)
   selfieMode: string;
 
+  // Ritual Mode (Lifestyle-only)
+  ritualModeEnabled: boolean;
+  ritualHideProduct: boolean;
+  ritualActivities: string[];
+  ritualCustom: string;
+
   // Wardrobe
   wardrobe: string;
 
@@ -518,6 +524,25 @@ const normalizeHexColor = (value: string) => {
   if (!v.startsWith('#') && v.length === 6 && /^[0-9a-fA-F]+$/.test(v)) return `#${v.toUpperCase()}`;
   return value;
 };
+
+const RITUAL_ACTIVITY_OPTIONS = [
+  'Meditation',
+  'Breathwork',
+  'Yoga',
+  'Running',
+  'Strength training',
+  'Stretching',
+  'Morning routine',
+  'Journaling',
+  'Hydration / water intake',
+  'Smoothie prep',
+  'Meal prep',
+  'Nature walk',
+  'Cold plunge',
+  'Sauna',
+  'Skincare routine',
+  'Sleep wind-down',
+];
 
 type UGCLayerField =
   | 'ugcCaptureStyleBase'
@@ -867,6 +892,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
     // Selfie
     selfieMode: 'None',
+
+    // Ritual Mode
+    ritualModeEnabled: false,
+    ritualHideProduct: false,
+    ritualActivities: [],
+    ritualCustom: '',
 
     // Wardrobe
     wardrobe: '',
@@ -5666,6 +5697,104 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
               </div>
             </SmoothAccordion>
+
+            {/* Ritual Mode (Lifestyle-only) */}
+            {!isProductMode && (
+              <SmoothAccordion
+                icon={Sparkles}
+                title="Ritual Mode"
+                tooltip="Lifestyle rituals + optional product-free renders"
+                isOpen={openAccordionId === 'ritual'}
+                onToggle={() => toggleSection('ritual')}
+                isTouched={touchedSections.has('ritual')}
+                isActive={values.ritualModeEnabled}
+                variant="primary"
+              >
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900">Ritual Mode</p>
+                      <p className="text-xs text-gray-500">Generate wellness / lifestyle rituals. Optionally hide the product completely.</p>
+                    </div>
+                    <Toggle
+                      checked={values.ritualModeEnabled}
+                      aria-label="Enable Ritual Mode"
+                      onCheckedChange={(next) => {
+                        updateValue('ritualModeEnabled', next);
+                        if (!next) {
+                          updateValue('ritualHideProduct', false);
+                          updateValue('ritualActivities', []);
+                          updateValue('ritualCustom', '');
+                        }
+                        markSectionTouched('ritual');
+                      }}
+                    />
+                  </div>
+
+                  {values.ritualModeEnabled && (
+                    <>
+                      <div className="rounded-2xl border border-gray-200 bg-white p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-[11px] uppercase tracking-wider text-gray-500">Hide product (lifestyle-only)</p>
+                            <p className="text-[11px] text-gray-500">No product visible in the final image. Product upload becomes optional.</p>
+                          </div>
+                          <Toggle
+                            checked={values.ritualHideProduct}
+                            aria-label="Hide product in Ritual Mode"
+                            onCheckedChange={(next) => {
+                              updateValue('ritualHideProduct', next);
+                              markSectionTouched('ritual');
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className={SECTION_GROUP_CLASS}>
+                        <p className={GROUP_LABEL_CLASS}>RITUAL ACTIVITIES</p>
+                        <p className="text-[11px] text-gray-500">Pick one or more.</p>
+                        <div className="flex flex-wrap gap-2">
+                          {RITUAL_ACTIVITY_OPTIONS.map(option => {
+                            const active = values.ritualActivities.includes(option);
+                            return (
+                              <button
+                                key={option}
+                                type="button"
+                                onClick={() => {
+                                  const next = active
+                                    ? values.ritualActivities.filter(item => item !== option)
+                                    : [...values.ritualActivities, option];
+                                  updateValue('ritualActivities', next);
+                                  markSectionTouched('ritual');
+                                }}
+                                className={getPillClass(active)}
+                              >
+                                {option}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div className={SECTION_GROUP_CLASS}>
+                        <p className={GROUP_LABEL_CLASS}>CUSTOM RITUAL (OPTIONAL)</p>
+                        <input
+                          type="text"
+                          value={values.ritualCustom}
+                          onChange={(e) => {
+                            updateValue('ritualCustom', e.target.value.replace(/[\r\n]/g, ''));
+                            markSectionTouched('ritual');
+                          }}
+                          maxLength={120}
+                          placeholder="e.g., pilates class, post-run stretching, cold brew + supplements..."
+                          className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              </SmoothAccordion>
+            )}
             {/* Time & Lighting */}
             <SmoothAccordion
               icon={Sun}
