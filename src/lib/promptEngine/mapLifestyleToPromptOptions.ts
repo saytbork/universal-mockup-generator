@@ -933,7 +933,11 @@ export function mapLifestyleToPromptOptions(
 
         const normalizedSkinRealism = normalizeKey(sceneState.skinRealism);
         const editorialSkinRealism =
-            ugcStyleKey === 'optimized' && !sceneState.ugcRealMode && (normalizedSkinRealism === 'raw' || normalizedSkinRealism === 'natural')
+            // For older ages, avoid auto-upgrading to soft retouch (it collapses perceived age).
+            ugcStyleKey === 'optimized' &&
+                !sceneState.ugcRealMode &&
+                personAge < 60 &&
+                (normalizedSkinRealism === 'raw' || normalizedSkinRealism === 'natural')
                 ? 'soft-retouch'
                 : sceneState.skinRealism;
         const skinDescriptor = mapSkinRealism(editorialSkinRealism);

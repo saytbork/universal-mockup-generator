@@ -6,7 +6,10 @@ function buildClothingSentence(clothes: CustomClothes): string {
         return "";
     }
     const garmentType = clothes.garmentType || "";
-    const primaryColor = clothes.primaryColor || "";
+    const primaryColorRaw = clothes.primaryColor || "";
+    const primaryColor = /^#[0-9a-f]{6}$/i.test(primaryColorRaw.trim())
+        ? `custom color ${primaryColorRaw.trim().toUpperCase()}`
+        : primaryColorRaw;
     const fit = clothes.fit || "";
     const style = clothes.style || "";
     const material = clothes.material || "";

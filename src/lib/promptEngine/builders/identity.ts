@@ -179,7 +179,14 @@ Match the person exactly as shown.
             // ================================================================
             // AGE ANCHOR (for 45+; stronger for 50+)
             // ================================================================
-            if (age >= 50 && age < 70) {
+            if (age >= 60 && age < 70) {
+                parts.push(`
+AGE ANCHOR: Subject MUST visually read as ${age} years old (late 60s realism).
+Facial features must match a real ${age}-year-old adult: visible forehead lines, crow's feet, smile lines, mild under-eye hollows, and slight skin laxity around jaw/neck.
+Hands and neck MUST show age-appropriate texture (fine lines, subtle age spots, visible tendons/veins).
+Do NOT make the subject appear youthful, botoxed, facelifted, or heavily beautified. Avoid "anti-aging" smoothing.
+                `.trim().replace(/\s+/g, ' '));
+            } else if (age >= 50 && age < 60) {
                 parts.push(`
 AGE ANCHOR: Subject MUST visually read as ${age} years old.
 Facial features must match a real ${age}-year-old adult: age-appropriate skin texture, subtle to moderate facial lines (forehead, crow's feet, smile lines), and mature facial structure.
@@ -196,6 +203,12 @@ AGE ANCHOR: Subject MUST visually read as ${age} years old.
 Facial structure, skin laxity, eye area, neck, hands, and posture must match a real ${age}-year-old ${ageGroupLabel}.
 Do NOT make the person appear younger.
                 `.trim().replace(/\s+/g, ' '));
+            }
+
+            if (age >= 55) {
+                parts.push(
+                    `NEGATIVE AGE CONSTRAINT: Do NOT render a younger-looking person (no 20s/30s/40s face, no youthful skin, no teen proportions). Age visibility must remain dominant.`
+                );
             }
 
             // ================================================================

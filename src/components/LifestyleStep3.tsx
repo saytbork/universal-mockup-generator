@@ -510,6 +510,15 @@ const CUSTOM_CLOTHES_FITS = ['regular', 'slim', 'oversized'];
 const CUSTOM_CLOTHES_STYLES = ['casual', 'streetwear', 'business casual', 'sporty'];
 const CUSTOM_CLOTHES_MATERIALS = ['cotton', 'denim', 'knit', 'wool'];
 
+const isHexColor = (value: string) => /^#[0-9a-fA-F]{6}$/.test(value.trim());
+const normalizeHexColor = (value: string) => {
+  const v = value.trim();
+  if (!v) return '';
+  if (v.startsWith('#') && v.length === 7 && /^[0-9a-fA-F]+$/.test(v.slice(1))) return v.toUpperCase();
+  if (!v.startsWith('#') && v.length === 6 && /^[0-9a-fA-F]+$/.test(v)) return `#${v.toUpperCase()}`;
+  return value;
+};
+
 type UGCLayerField =
   | 'ugcCaptureStyleBase'
   | 'ugcCameraOperator'
@@ -5440,6 +5449,49 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             {option}
                           </button>
                         ))}
+                      </div>
+                      <div className="mt-3 flex flex-wrap items-center gap-3 rounded-2xl border border-gray-200 bg-white px-3 py-2">
+                        <div className="min-w-0">
+                          <p className="text-[11px] uppercase tracking-wider text-gray-500">Custom color</p>
+                          <p className="text-[11px] text-gray-500">Pick any hex color (e.g. #FFAA00).</p>
+                        </div>
+                        <div className="ml-auto flex items-center gap-2">
+                          <input
+                            type="color"
+                            aria-label="Custom clothes color picker"
+                            value={isHexColor(values.customClothesPrimaryColor) ? values.customClothesPrimaryColor : '#000000'}
+                            onChange={(e) => {
+                              updateValue('customClothesPrimaryColor', e.target.value.toUpperCase());
+                              markSectionTouched('customClothes');
+                            }}
+                            className="h-9 w-9 cursor-pointer rounded-lg border border-gray-200 bg-white p-0"
+                          />
+                          <input
+                            type="text"
+                            inputMode="text"
+                            maxLength={7}
+                            placeholder="#000000"
+                            value={isHexColor(values.customClothesPrimaryColor) ? values.customClothesPrimaryColor : ''}
+                            onChange={(e) => {
+                              const next = normalizeHexColor(e.target.value);
+                              updateValue('customClothesPrimaryColor', next);
+                              markSectionTouched('customClothes');
+                            }}
+                            className="w-[110px] rounded-xl border border-gray-200 bg-white px-2 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                          />
+                          {isHexColor(values.customClothesPrimaryColor) && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                updateValue('customClothesPrimaryColor', '');
+                                markSectionTouched('customClothes');
+                              }}
+                              className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:border-indigo-600"
+                            >
+                              Clear
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
 

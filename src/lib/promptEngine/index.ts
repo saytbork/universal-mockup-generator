@@ -299,6 +299,12 @@ function validateSemanticCombinations(options: PromptOptions): ValidationWarning
             message: `⚠️ AGE INTEGRITY: Age ${age} with smooth/editorial skin may reduce age visibility.`
         });
     }
+    if (age >= 60 && (skinRealism.includes('soft retouch') || skinRealism.includes('smooth'))) {
+        warnings.push({
+            type: 'age-integrity',
+            message: `⚠️ AGE INTEGRITY: Age ${age} with soft retouch may reduce age visibility. Consider Natural/Raw.`
+        });
+    }
 
     // GUARD 4: Product Mode + person descriptors
     if (options.contentStyle === 'product' && options.personIncluded) {
