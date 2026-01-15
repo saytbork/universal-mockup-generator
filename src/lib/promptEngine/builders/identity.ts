@@ -164,6 +164,9 @@ export class IdentityBuilder implements PromptBuilder {
         const parts: string[] = [];
         const age = personDetails?.age || 30;
         const ageGroupLabel = age >= 75 ? 'elder' : 'adult';
+        const personCount = options.personCount;
+        const isCouple = personCount === 'couple';
+        const primarySubjectNoun = isCouple ? 'PRIMARY SUBJECT' : 'Subject';
 
         // ====================================================================
         // MODEL REFERENCE OVERRIDE (highest priority)
@@ -181,25 +184,25 @@ Match the person exactly as shown.
             // ================================================================
             if (age >= 60 && age < 70) {
                 parts.push(`
-AGE ANCHOR: Subject MUST visually read as ${age} years old (late 60s realism).
+AGE ANCHOR: ${primarySubjectNoun} MUST visually read as ${age} years old (late 60s realism).
 Facial features must match a real ${age}-year-old adult: visible forehead lines, crow's feet, smile lines, mild under-eye hollows, and slight skin laxity around jaw/neck.
 Hands and neck MUST show age-appropriate texture (fine lines, subtle age spots, visible tendons/veins).
 Do NOT make the subject appear youthful, botoxed, facelifted, or heavily beautified. Avoid "anti-aging" smoothing.
                 `.trim().replace(/\s+/g, ' '));
             } else if (age >= 50 && age < 60) {
                 parts.push(`
-AGE ANCHOR: Subject MUST visually read as ${age} years old.
+AGE ANCHOR: ${primarySubjectNoun} MUST visually read as ${age} years old.
 Facial features must match a real ${age}-year-old adult: age-appropriate skin texture, subtle to moderate facial lines (forehead, crow's feet, smile lines), and mature facial structure.
 Do NOT make the subject appear youthful (no teen/20s look).
                 `.trim().replace(/\s+/g, ' '));
             } else if (age >= 45 && age < 50) {
                 parts.push(`
-AGE ANCHOR: Subject MUST visually read as ${age} years old.
+AGE ANCHOR: ${primarySubjectNoun} MUST visually read as ${age} years old.
 Avoid a youthful teen/20s appearance; include age-appropriate skin texture and subtle facial lines.
                 `.trim().replace(/\s+/g, ' '));
             } else if (age >= 70) {
                 parts.push(`
-AGE ANCHOR: Subject MUST visually read as ${age} years old.
+AGE ANCHOR: ${primarySubjectNoun} MUST visually read as ${age} years old.
 Facial structure, skin laxity, eye area, neck, hands, and posture must match a real ${age}-year-old ${ageGroupLabel}.
 Do NOT make the person appear younger.
                 `.trim().replace(/\s+/g, ' '));
@@ -207,7 +210,7 @@ Do NOT make the person appear younger.
 
             if (age >= 55) {
                 parts.push(
-                    `NEGATIVE AGE CONSTRAINT: Do NOT render a younger-looking person (no 20s/30s/40s face, no youthful skin, no teen proportions). Age visibility must remain dominant.`
+                    `NEGATIVE AGE CONSTRAINT: ${primarySubjectNoun} must NOT render younger (no 20s/30s/40s face, no youthful skin, no teen proportions). Age visibility must remain dominant.`
                 );
             }
 
@@ -216,7 +219,7 @@ Do NOT make the person appear younger.
             // ================================================================
             if (age >= 75) {
                 parts.push(`
-ELDER REALISM: Deep crow's feet, softened jawline, gentle jowls, age spots on face and hands.
+ELDER REALISM (${primarySubjectNoun}): Deep crow's feet, softened jawline, gentle jowls, age spots on face and hands.
 Hair skews gray/silver/white with thinning and irregular texture.
 Hands show visible veins and knuckle definition.
 Skin carries micro wrinkles around mouth, eyes, and neck with authentic sag.
@@ -349,6 +352,13 @@ Captured by smartphone so fine edges may appear soft or broken.
             const secondaryPersonDetails = (options as any).secondaryPersonDetails as Partial<PersonDetails> | undefined;
 
             if (personCount === 'couple') {
+                const secondaryAge =
+                    typeof (secondaryPersonDetails as any)?.age === 'number' &&
+                    Number.isFinite((secondaryPersonDetails as any).age)
+                        ? Number((secondaryPersonDetails as any).age)
+                        : null;
+                const secondaryHairColorSpecified = Boolean(secondaryPersonDetails?.hairColor);
+
                 const sexText =
                     coupleSex === 'same'
                         ? 'same-gender couple'
@@ -356,6 +366,43 @@ Captured by smartphone so fine edges may appear soft or broken.
                             ? 'mixed-gender couple'
                             : 'couple';
                 parts.push(`Two subjects in frame: ${sexText}. Both must look like real distinct individuals.`);
+
+                if (typeof secondaryAge === 'number') {
+                    parts.push(
+                        `AGE DIFFERENCE: PRIMARY SUBJECT must read as ${age}. SECONDARY SUBJECT must read as ${secondaryAge}. Make the age difference visually obvious.`
+                    );
+
+                    const secondaryAgeGroupLabel = secondaryAge >= 75 ? 'elder' : 'adult';
+                    if (secondaryAge >= 70) {
+                        parts.push(
+                            `SECONDARY AGE ANCHOR: SECONDARY SUBJECT MUST visually read as ${secondaryAge} years old. Facial structure, skin laxity, eye area, neck, and hands must match a real ${secondaryAge}-year-old ${secondaryAgeGroupLabel}. Do NOT make the secondary subject appear younger.`
+                        );
+                    } else if (secondaryAge >= 60) {
+                        parts.push(
+                            `SECONDARY AGE ANCHOR: SECONDARY SUBJECT MUST visually read as ${secondaryAge} years old. Include visible forehead lines, crow's feet, smile lines, mild under-eye hollows, and slight skin laxity around jaw/neck. Do NOT beautify or rejuvenate the secondary subject.`
+                        );
+                    } else if (secondaryAge >= 45) {
+                        parts.push(
+                            `SECONDARY AGE ANCHOR: SECONDARY SUBJECT MUST visually read as ${secondaryAge} years old. Avoid a youthful teen/20s appearance; include age-appropriate skin texture and subtle facial lines.`
+                        );
+                    }
+
+                    if (secondaryAge >= 55) {
+                        parts.push(
+                            `SECONDARY NEGATIVE AGE CONSTRAINT: SECONDARY SUBJECT must NOT render younger (no 20s/30s/40s face, no youthful skin). Age visibility must remain dominant.`
+                        );
+                    }
+
+                    if (secondaryAge >= 75) {
+                        parts.push(
+                            `ELDER REALISM (SECONDARY SUBJECT): Deep crow's feet, softened jawline, gentle jowls, age spots on face and hands. Hands show visible veins and knuckle definition. Skin carries micro wrinkles around mouth, eyes, and neck with authentic sag. ${
+                                secondaryHairColorSpecified
+                                    ? 'Do not override explicitly selected hair color.'
+                                    : 'Hair skews gray/silver/white with thinning and irregular texture unless explicitly specified.'
+                            }`
+                        );
+                    }
+                }
 
                 // Avoid contradictions: if UI provides a single-person gender, treat it as PRIMARY only.
                 // Secondary gender is derived from coupleSex when possible.
