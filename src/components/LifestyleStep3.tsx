@@ -1237,8 +1237,26 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
       // CANONICAL SYNC: When legacy environment is updated, sync to environmentContext
       if (key === 'environment' && value) {
-        newValues.environmentContext = { macro: value as string, micro: 'Countertop' };
+        const nextEnvironment = String(value as string).trim();
+        if (nextEnvironment === 'Custom') {
+          const custom = String(newValues.customEnvironment || '').trim();
+          newValues.environmentContext = { macro: custom || 'Custom', micro: 'Countertop' };
+        } else {
+          newValues.environmentContext = { macro: nextEnvironment, micro: 'Countertop' };
+        }
         console.log('[STEP3] Synced environment to environmentContext:', newValues.environmentContext);
+      }
+
+      if (key === 'customEnvironment') {
+        const custom = String(value as string).trim();
+        if (custom) {
+          newValues.environment = 'Custom';
+          newValues.environmentContext = { macro: custom, micro: 'Countertop' };
+        } else if (newValues.environment === 'Custom') {
+          newValues.environment = 'Kitchen';
+          newValues.environmentContext = { macro: 'Kitchen', micro: 'Countertop' };
+        }
+        console.log('[STEP3] Synced customEnvironment to environmentContext:', newValues.environmentContext);
       }
 
       if (key === 'ugcRealMode' && value === false) {
