@@ -760,10 +760,12 @@ export function mapLifestyleToPromptOptions(
     mapped.personIncluded = personIncluded;
     mapped.personCount = sceneState.personCount || 'single';
     mapped.coupleSex = sceneState.coupleSex || 'different';
-    // Optional: explicit overrides for secondary person (Person B) when Couple is enabled.
+    // Secondary person (Person B) handling for Couple:
+    // - Age is honored whenever it differs from Person A (even if Advanced is OFF).
+    // - The rest of Person B attributes require Advanced (editSecondaryPerson) to avoid unintended overrides.
     const secondaryDetails = (() => {
         if ((sceneState as any).personCount !== 'couple') return null;
-        if ((sceneState as any).editSecondaryPerson !== true) return null;
+        const isExplicit = (sceneState as any).editSecondaryPerson === true;
         const details: any = {};
         const pick = (key: string, targetKey: string = key) => {
             const value = String(((sceneState as any)[key] ?? '')).trim();
@@ -773,7 +775,18 @@ export function mapLifestyleToPromptOptions(
             const value = (sceneState as any)[key];
             if (typeof value === 'number' && Number.isFinite(value)) details[targetKey] = value;
         };
-        pickNumber('secondaryAge', 'age');
+        const primaryAge = typeof (sceneState as any).age === 'number' ? (sceneState as any).age : null;
+        const secondaryAge = (sceneState as any).secondaryAge;
+        if (typeof secondaryAge === 'number' && Number.isFinite(secondaryAge)) {
+            if (primaryAge === null || secondaryAge !== primaryAge) {
+                details.age = secondaryAge;
+            }
+        }
+
+        if (!isExplicit) {
+            return Object.keys(details).length ? details : null;
+        }
+
         pick('secondaryGender', 'gender');
         pick('secondaryEthnicity', 'ethnicity');
         pick('secondarySkinTone', 'skinTone');
