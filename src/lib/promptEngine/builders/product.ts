@@ -68,6 +68,7 @@ export class ProductBuilder implements PromptBuilder {
         return `
       Use the uploaded product asset exactly as provided. Do not redesign, restyle, recolor, or reinterpret its shape, label, or material.
       ${bgLine}
+      Focus must prioritize the product: the product and its label are tack sharp, high-clarity, and fully readable. Do not blur the product.
       Preserve the exact proportions, textures, reflections, and printed graphics. Avoid any environmental or storytelling context; maintain the pixel-perfect look of the asset.
     `.trim().replace(/\s+/g, ' ');
 
@@ -93,6 +94,7 @@ export class ProductBuilder implements PromptBuilder {
       - preserve natural edge detail and cutout integrity (no halos, no rough masking)
       - generate physically correct contact shadows and micro-occlusion where hands touch the product
       - maintain correct highlights and reflections on the product material
+      - keep the product and label tack sharp, in focus, and fully readable (no blur on the product)
     `.trim().replace(/\s+/g, ' ');
     }
 
@@ -109,6 +111,8 @@ export class ProductBuilder implements PromptBuilder {
       - exact proportions.
       
       Do not redesign, replace, or reinterpret the product.
+
+      Focus: the product is on the primary focus plane and must be tack sharp. The label must be crisp and fully readable. Do not let the product fall out of focus or into the background.
       
       Integrate it physically into the environment using "Active Insert Mode":
       - match lighting to the room,
