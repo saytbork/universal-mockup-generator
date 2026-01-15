@@ -1146,6 +1146,11 @@ export function mapLifestyleToPromptOptions(
             : null;
 
     const productInteractionLabel = (sceneState.productInteraction || '').trim();
+    const normalizedPoseKey = normalizeKey(sceneState.pose);
+    const foregroundProductFocusRequested =
+        !sceneState.ugcRealMode &&
+        isEnvironmentSceneIntent &&
+        (productInteractionLabel === 'Presenting' || normalizedPoseKey === 'offer-to-lens-reach');
     const captureBaseSelection = normalizedCaptureBase[0];
     const operatorSelection = normalizedCameraOperator[0];
     const hasProppedSurface = captureBaseSelection === PROPPED_SURFACE_ID;
@@ -1217,12 +1222,29 @@ export function mapLifestyleToPromptOptions(
         const cameraDeviceSemantic = CAMERA_DEVICE_SEMANTIC_MAP[cameraDevice] || CAMERA_DEVICE_SEMANTIC_MAP[defaultCameraLabel];
         const shouldForceEnvironmentSmartphone =
             isEnvironmentSceneIntent && (ugcStyleKey === 'natural' || ugcStyleKey === 'raw');
-        const effectiveCameraSemantic = shouldForceEnvironmentSmartphone
+        let effectiveCameraSemantic = shouldForceEnvironmentSmartphone
             ? 'Handheld smartphone perspective capturing natural perspective, emphasizing the surrounding environment.'
             : cameraDeviceSemantic;
+        if (foregroundProductFocusRequested) {
+            // Avoid semantics that encourage focusing on the face/background when the product must be foreground.
+            effectiveCameraSemantic = effectiveCameraSemantic
+                .replace(/shallow depth of field/gi, 'controlled depth of field')
+                .replace(/crisp subject separation/gi, 'crisp overall clarity');
+            effectiveCameraSemantic +=
+                ' Focus priority: lock focus on the product in the foreground; the product label must be tack sharp and fully readable.';
+        }
         mapped.camera = cameraDevice;
         mapped.cameraDeviceSemantic = effectiveCameraSemantic;
         console.log('[MAP] camera:', cameraDevice, '→', effectiveCameraSemantic);
+    }
+
+    // For environment-first scenes, the default is mid-ground contextual placement.
+    // However, if the user is explicitly presenting the product toward camera, force product-forward framing.
+    if (foregroundProductFocusRequested) {
+        mapped.placementStyle =
+            'Product-forward placement: the product is the primary hero in the foreground while the environment remains visible as context.';
+        mapped.productPlane =
+            'Foreground product-first placement closest to the camera lens; product and label must be tack sharp and fully readable; do not let the product fall into the background.';
     }
 
     if (!sceneState.ugcRealMode) {
