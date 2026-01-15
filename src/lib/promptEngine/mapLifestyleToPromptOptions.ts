@@ -44,6 +44,14 @@ const normalizeKey = (value?: string) =>
             .replace(/-+/g, '-')
         : '';
 
+const OUTDOOR_ENVIRONMENT_LABELS = new Set([
+    'Urban Exterior',
+    'Natural Exterior',
+    'Parking Lot',
+    'Backyard / Patio',
+    'Street Corner',
+]);
+
 function buildCustomClothesDescriptor(sceneState: Step3Values): CustomClothes | undefined {
     if (!sceneState.customClothesEnabled) {
         return undefined;
@@ -1251,12 +1259,32 @@ export function mapLifestyleToPromptOptions(
         const macro = envContext.macro;
         const micro = envContext.micro || macro;
 
+        const allowedMacroSet = new Set([
+            'Kitchen',
+            'Living Room',
+            'Bedroom',
+            'Bathroom',
+            'Workspace',
+            'Hallway',
+            'Home Gym',
+            'Balcony / Indoor Terrace',
+            'Urban Exterior',
+            'Natural Exterior',
+            'Parking Lot',
+            'Backyard / Patio',
+            'Street Corner',
+        ]);
+        const isCustomMacro = !allowedMacroSet.has(macro);
+
         mapped.setting = macro;
-        mapped.microLocation = micro;
+        // Avoid leaking indoor defaults (e.g. Countertop) into outdoor/custom environments.
+        // If user didn't provide a meaningful micro-location, prefer leaving it blank.
+        mapped.microLocation =
+            isCustomMacro && (micro === 'Countertop' || micro === macro) ? '' : micro;
         (mapped as any).sceneEnvironment = macro;
         mapped.environmentOrder = macro;
-        (mapped as any).selectedEnvironment = macro;
-        (mapped as any).customEnvironment = '';
+        (mapped as any).selectedEnvironment = isCustomMacro ? 'Custom' : macro;
+        (mapped as any).customEnvironment = isCustomMacro ? macro : '';
 
         console.log('[MAP] environmentContext:', { macro, micro }, '→ setting:', mapped.setting);
     } else if (isEcommerceBlankSpaceActive) {
@@ -1385,7 +1413,11 @@ export function mapLifestyleToPromptOptions(
 
     if (bgVariationMode === 'auto' && mapped.setting) {
         const lastBgId = existingOptions.lastBackgroundId || null;
-        const newBgId = selectBackgroundVariation(sceneState.environment || mapped.setting, lastBgId);
+        const envKey =
+            (sceneState.environment || '').trim() === 'Custom'
+                ? mapped.setting
+                : (sceneState.environment || mapped.setting);
+        const newBgId = selectBackgroundVariation(envKey, lastBgId);
         if (newBgId) {
             mapped.backgroundVariationId = newBgId;
             mapped.lastBackgroundId = newBgId;
@@ -1433,7 +1465,36 @@ export function mapLifestyleToPromptOptions(
         console.log('[MAP] Ecommerce Blank Space lighting enforced:', mapped.lighting);
     } else {
         const timeSemantic = TIME_SEMANTIC_MAP[sceneState.timeOfDay] || TIME_SEMANTIC_MAP['Midday'];
-        const lightingSemantic = LIGHTING_SEMANTIC_MAP[sceneState.lightingStyle] || LIGHTING_SEMANTIC_MAP['Natural window'];
+        const lightingStyleLabel = sceneState.lightingStyle || 'Natural window';
+        const looksOutdoor = (() => {
+            const s = String(mapped.setting || '').trim();
+            if (!s) return false;
+            if (OUTDOOR_ENVIRONMENT_LABELS.has(s)) return true;
+            const lower = s.toLowerCase();
+            return (
+                lower.includes('park') ||
+                lower.includes('beach') ||
+                lower.includes('street') ||
+                lower.includes('rooftop') ||
+                lower.includes('patio') ||
+                lower.includes('garden') ||
+                lower.includes('trail') ||
+                lower.includes('lake') ||
+                lower.includes('mountain') ||
+                lower.includes('forest')
+            );
+        })();
+
+        let lightingSemantic =
+            LIGHTING_SEMANTIC_MAP[lightingStyleLabel] || LIGHTING_SEMANTIC_MAP['Natural window'];
+        if (looksOutdoor) {
+            lightingSemantic = lightingSemantic
+                .replace(/natural window light/gi, 'natural sunlight')
+                .replace(/window light/gi, 'sunlight')
+                .replace(/indoor artificial/gi, 'artificial lighting')
+                .replace(/inside/gi, 'outdoors');
+        }
+
         mapped.lighting = `${timeSemantic}, ${lightingSemantic}`;
         (mapped as any).timeLightingContext = mapped.lighting;
         console.log('[MAP] lighting:', sceneState.timeOfDay, '+', sceneState.lightingStyle, '→', mapped.lighting);
