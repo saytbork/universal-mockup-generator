@@ -5,7 +5,7 @@
  * Each input is production-ready and demonstrates premium quality.
  */
 
-import type { PremiumStudioInput } from '../../src/lib/premiumStudio/schema';
+import type { PremiumStudioInput } from './schema';
 
 // ============================================================================
 // STUDIO / BRANDING (3 renders)

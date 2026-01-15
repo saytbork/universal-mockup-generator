@@ -5,6 +5,7 @@ interface AccordionProps {
   children: React.ReactNode;
   isOpen?: boolean;
   onToggle?: () => void;
+  disabled?: boolean;
   /** Optional subtitle shown below the title */
   subtitle?: string;
   /** Badge to show next to title (e.g., count) */
@@ -16,6 +17,7 @@ const Accordion: React.FC<AccordionProps> = ({
   children,
   isOpen,
   onToggle,
+  disabled = false,
   subtitle,
   badge
 }) => {
@@ -24,6 +26,7 @@ const Accordion: React.FC<AccordionProps> = ({
   const open = typeof isOpen === 'boolean' ? isOpen : internalOpen;
 
   const handleToggle = () => {
+    if (disabled) return;
     if (onToggle) {
       onToggle();
     } else {
@@ -36,6 +39,7 @@ const Accordion: React.FC<AccordionProps> = ({
       <button
         type="button"
         onClick={handleToggle}
+        disabled={disabled}
         className="w-full flex justify-between items-center p-4 text-left bg-white hover:bg-whiteElevated transition-colors focus:outline-none"
         aria-expanded={open}
       >

@@ -12,7 +12,7 @@ const presets = [
 
 // Simple preset definitions for now.
 // Can be expanded later.
-const presetValues = {
+const presetValues: Record<string, Record<string, string>> = {
   "Beauty Creator": {
     hairStyle: "Loose Waves",
     hairColor: "Golden Blonde",
@@ -62,7 +62,7 @@ export default function CreatorPresetPanel() {
   const linkTalent = useCreatorStore((s) => s.linkTalent);
   const toggleLinkTalent = useCreatorStore((s) => s.toggleLinkTalent);
 
-  const applyPreset = (presetName) => {
+  const applyPreset = (presetName: string) => {
     setPreset(presetName);
 
     if (presetName === "Custom Build") return;
@@ -71,7 +71,7 @@ export default function CreatorPresetPanel() {
     if (!values) return;
 
     Object.entries(values).forEach(([key, value]) => {
-      setCreatorField(key, value);
+      setCreatorField(key as any, value);
     });
   };
 

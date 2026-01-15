@@ -509,12 +509,23 @@ function buildInteraction(state: ProductStudioState): string {
     const allowHands = state.interaction !== 'none' || state.handsHolding === true;
     if (!allowHands) return '';
 
-    // NOTE: Do NOT use `INTERACTION_PRESETS` from `studioPresets` because they include forbidden
-    // terms like "face"/"body" which hard-block generation.
-    if (state.interaction === 'cropped-hand' || state.handsHolding === true) {
-        return 'INTERACTION: single cropped hand at the edge of frame lightly touching or presenting the product';
+    // Keep wording strictly "hand-only" (no heads/torso) and avoid any "lifestyle/people" phrasing.
+    switch (state.interaction) {
+        case 'cropped-hand':
+            return 'INTERACTION: single cropped hand at the edge of frame lightly touching or presenting the product; hand only, no arms, no body';
+        case 'holding':
+            return 'INTERACTION: single cropped hand holding the product with a natural grip; hand only, no arms, no body';
+        case 'presenting':
+            return 'INTERACTION: single cropped hand presenting the product from the side; hand only, no arms, no body';
+        case 'applying':
+            return 'INTERACTION: single cropped hand opening, dispensing, or applying the product; hand only, no arms, no body';
+        default:
+            // Back-compat: if an older UI path toggles handsHolding without a specific interaction.
+            if (state.handsHolding === true) {
+                return 'INTERACTION: single cropped hand at the edge of frame lightly presenting the product; hand only, no arms, no body';
+            }
+            return '';
     }
-    return '';
 }
 
 // ============================================================================

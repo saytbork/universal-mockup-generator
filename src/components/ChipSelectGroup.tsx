@@ -1,1 +1,1 @@
-export { default } from '../components/ChipSelectGroup';
+export { default } from '../../components/ChipSelectGroup';

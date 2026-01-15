@@ -56,11 +56,6 @@ function validateProductEnvironment(state: ProductStudioState): string[] {
         errors.push(`The "${niceEnv}" environment is not suitable for ${productType} products.`);
     }
 
-    // Micro Place check
-    if (!state.microPlace) {
-        errors.push('A specific placement (Micro Place) is required.');
-    }
-
     return errors;
 }
 

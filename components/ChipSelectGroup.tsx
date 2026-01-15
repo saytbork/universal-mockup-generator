@@ -33,6 +33,8 @@ const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
   const [customDraft, setCustomDraft] = React.useState(isCustomValue ? selectedValue : '');
   const [customActive, setCustomActive] = React.useState(isCustomValue);
   const normalizedOptions = normalizeOptions(options);
+  const selectedOption = normalizedOptions.find(option => option.value === selectedValue) ?? null;
+  const selectedHint = selectedOption?.tooltip ?? null;
 
   React.useEffect(() => {
     if (isCustomValue) {
@@ -87,7 +89,7 @@ const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
             </Tooltip>
           )}
         </div>
-      )}
+        )}
       <div>
         <div className="flex flex-wrap gap-2">
 	          {normalizedOptions.map((option) => {
@@ -143,6 +145,14 @@ const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
             </button>
           )}
         </div>
+        {selectedHint && !customActive && !isCustomValue && (
+          <p className="mt-1 text-[11px] text-gray-500 dark:text-white/60">{selectedHint}</p>
+        )}
+        {allowCustom && (customActive || isCustomValue) && (
+          <p className="mt-1 text-[11px] text-gray-500 dark:text-white/60">
+            Custom selection: type any description and it will be used as-is.
+          </p>
+        )}
           {allowCustom && customActive && (
           <input
             type="text"

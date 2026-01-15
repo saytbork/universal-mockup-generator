@@ -71,7 +71,7 @@ function generateCombinations(
     axes: VariationAxis[],
     axisValues: Record<VariationAxis, string[]>
 ): Record<VariationAxis, string>[] {
-    if (axes.length === 0) return [{}];
+    if (axes.length === 0) return [{} as Record<VariationAxis, string>];
 
     const [first, ...rest] = axes;
     const values = axisValues[first] || VARIATION_VALUES[first];

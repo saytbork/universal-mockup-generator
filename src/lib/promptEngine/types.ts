@@ -98,6 +98,7 @@ export type BadgePreference = 'name_only' | 'name_and_badge';
 
 export interface FormulationStoryOptions {
     professionalFocus?: ProfessionalFocus;
+    expertPreset?: 'respiratory_doctor' | 'clinical_researcher' | 'herbal_formulator' | 'custom';
     expertName?: string;
     roleCredentials?: string;
     labVibe?: 'modern_clinical_lab' | 'r_and_d_studio' | 'apothecary_lab' | 'none';
@@ -139,6 +140,7 @@ export interface PromptOptions {
     creationMode: 'lifestyle' | 'studio' | 'aesthetic' | 'bg-replace' | 'ecom-blank' | 'ugc_selfie';
     aspectRatio: string;
     camera: string;
+    cameraType?: string;
     cameraDistance?: CameraDistanceKey;
     cameraAngle?: CameraAngleKey;
     cameraShot?: CameraShotKey;
@@ -285,6 +287,7 @@ export interface PromptOptions {
     identityBlock?: string;
     sceneStructure?: import('../../../types').SceneStructure;
     colorSystem?: import('../../../types').ColorSystem;
+    visualGrammar?: import('../../../types').VisualGrammar;
 }
 
 export interface PromptBuilder {

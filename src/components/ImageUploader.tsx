@@ -1,1 +1,1 @@
-export { default, type ImageUploaderHandle } from '../components/ImageUploader';
+export { default, type ImageUploaderHandle } from '../../components/ImageUploader';

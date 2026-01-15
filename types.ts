@@ -2,12 +2,15 @@ import type { EyeDirectionKey } from './src/lib/promptEngine/parameterMap.types'
 
 export interface MockupOptions {
   contentStyle: string;
+  creationIntent?: 'ugc' | 'product' | 'brand';
+  sceneIntent?: 'environment' | 'ecommerce';
   placementStyle: string;
   placementCamera: string;
   lighting: string;
   setting: string;
   ageGroup: string;
   camera: string;
+  cameraType?: string;
   cameraShot: string;
   cameraAngle: string;
   cameraDistance: string;

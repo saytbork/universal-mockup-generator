@@ -1,7 +1,9 @@
 import { LABEL_MAP } from './labelMap';
 import { TOOLTIP_MAP } from './tooltipMap';
 
-export function normalizeOption<OptionType extends { label: string; value: string; tooltip?: string }>(option: OptionType): OptionType {
+export function normalizeOption<OptionType extends { label: string; value: string; tooltip?: string }>(
+  option: OptionType
+): OptionType & { tooltip?: string } {
   const cleanLabel = LABEL_MAP[option.value] || LABEL_MAP[option.label] || option.label;
   const findTooltip = (): string | undefined => {
     const entry = TOOLTIP_MAP[cleanLabel];
@@ -29,6 +31,8 @@ export function normalizeOption<OptionType extends { label: string; value: strin
   };
 }
 
-export function normalizeOptions<OptionType extends { label: string; value: string; tooltip?: string }>(options: OptionType[]): OptionType[] {
-  return options.map(o => normalizeOption(o));
+export function normalizeOptions<OptionType extends { label: string; value: string }>(
+  options: OptionType[]
+): Array<OptionType & { tooltip?: string }> {
+  return options.map(option => normalizeOption(option));
 }

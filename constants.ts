@@ -259,7 +259,7 @@ export type PropBundle = {
   settings: Partial<MockupOptions>;
 };
 
-const getOptionValueByLabel = (options: Option[], label: string, fallbackIndex = 0) =>
+export const getOptionValueByLabel = (options: Option[], label: string, fallbackIndex = 0) =>
   options.find(option => option.label === label)?.value ?? options[fallbackIndex].value;
 
 export const PROP_BUNDLES: PropBundle[] = [

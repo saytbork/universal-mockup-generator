@@ -71,7 +71,7 @@ const HUMAN_REALISM_GUARD =
 
 const shouldApplyHumanRealismGuard = (options: PromptOptions): boolean => {
     const isNonUGC = !options.ugcRealModeActive && options.contentStyle !== 'ugc';
-    return isNonUGC && (options.creationMode === 'lifestyle' || options.formulationExpertEnabled);
+    return isNonUGC && (options.creationMode === 'lifestyle' || Boolean(options.formulationExpertEnabled));
 };
 
 export class SceneNarrativeBuilder {

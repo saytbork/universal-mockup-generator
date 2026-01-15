@@ -443,7 +443,8 @@ const FACIAL_EXPRESSION_MAP: Record<string, string> = {
     'Confident & Editorial': 'confident, editorial-style expression, composed, self-assured, professional presence',
     'Playful & Candid': 'playful, candid facial expression, spontaneous and natural, real-life moment',
     'Hustle & Juggle': 'busy, focused expression, multitasking energy, real-life hustle moment',
-    'Stressed but Determined': 'slightly stressed but determined expression, visible effort with inner strength'
+    'Stressed but Determined': 'slightly stressed but determined expression, visible effort with inner strength',
+    'Relieved / Recovered': 'relieved, recovered expression with a soft exhale, unclenched jaw, shoulders dropped, slight tired smile, calmer eyes'
 };
 
 const SKIN_REALISM_SEMANTIC_MAP: Record<string, string> = {
@@ -779,7 +780,7 @@ export function mapLifestyleToPromptOptions(
         (mapped as any).secondaryPersonDetails = secondaryDetails;
     }
 
-    const sceneIntent = sceneState.sceneIntent || 'environment';
+    const sceneIntent = sceneState.sceneIntent as 'environment' | 'ecommerce';
     mapped.sceneIntent = sceneIntent;
     const isEnvironmentSceneIntent = sceneIntent === 'environment';
     const isEcommerceSceneIntent = sceneIntent === 'ecommerce';
@@ -947,6 +948,8 @@ export function mapLifestyleToPromptOptions(
         mapped.personDetails.facialExpression = expressionSemantic;
 
         const eyeDirectionLabel = sceneState.eyeDirection || 'Looking at camera';
+        // Expose the UI label for legacy/lifestyle builders that read top-level eyeDirection.
+        mapped.eyeDirection = eyeDirectionLabel as any;
         mapped.personDetails.eyeDirection =
             EYE_DIRECTION_SEMANTIC_MAP[eyeDirectionLabel] || eyeDirectionLabel as any;
         if (sceneState.productInteraction) {

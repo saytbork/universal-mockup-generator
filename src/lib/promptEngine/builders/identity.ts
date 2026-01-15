@@ -3,7 +3,7 @@
  * Uses token-based identity control instead of semantic variations
  */
 
-import type { PromptOptions, PromptBuilder } from '../types';
+import type { PromptOptions, PromptBuilder, PersonDetails } from '../types';
 
 // ============================================================================
 // CORE CONSTANTS (KEPT)
@@ -159,7 +159,8 @@ export class IdentityBuilder implements PromptBuilder {
             return '';
         }
 
-        const isUgcMode = contentStyle === 'ugc' || creationIntent === 'ugc' || ugcRealModeActive;
+        const isUgcMode =
+            contentStyle === 'ugc' || creationIntent === 'ugc' || Boolean(ugcRealModeActive);
         const parts: string[] = [];
         const age = personDetails?.age || 30;
         const ageGroupLabel = age >= 75 ? 'elder' : 'adult';

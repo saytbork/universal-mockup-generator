@@ -214,7 +214,7 @@ export function mapProductModeToPromptOptions(
 
     // Allow product camera/framing controls (product-only, pro)
     mapped.camera = 'DSLR / mirrorless camera';
-    mapped.cameraType = 'DSLR / mirrorless camera' as any;
+    mapped.cameraType = 'DSLR / mirrorless camera';
     mapped.cameraDistance = mapProductCameraDistance(sceneState.productCameraDistance);
     mapped.cameraAngle = mapProductCameraAngle(sceneState.productCameraAngle) as any;
     mapped.cameraShot = mapProductShotType(sceneState.productCameraDistance, sceneState.productCameraAngle) as any;
@@ -350,7 +350,8 @@ export function mapProductModeToPromptOptions(
         '4:5 (Portrait)': '4:5',
         '9:16 (Story)': '9:16'
     };
-    mapped.aspectRatio = aspectRatioMap[sceneState.aspectRatio] || '1:1';
+    const aspectRatioKey = sceneState.aspectRatio ?? '1:1 (Square)';
+    mapped.aspectRatio = aspectRatioMap[aspectRatioKey] || '1:1';
 
     // ========================================================================
     // VALIDATION - Block all UGC state (Stage 11)

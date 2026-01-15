@@ -19,9 +19,10 @@ import {
   PERSON_PROP_OPTIONS, MICRO_LOCATION_OPTIONS, MICRO_LOCATION_NONE_VALUE, PERSON_EXPRESSION_OPTIONS, HAIR_STYLE_OPTIONS,
   CREATOR_PRESETS, PROP_BUNDLES, PRO_LENS_OPTIONS, PRO_LIGHTING_RIG_OPTIONS, PRO_POST_TREATMENT_OPTIONS, PRO_LOOK_PRESETS, PRODUCT_PLANE_OPTIONS, SUPPLEMENT_PHOTO_PRESETS, HERO_PERSON_PRESETS, HERO_PERSON_DESCRIPTION_PRESETS,
   HAIR_COLOR_OPTIONS, EYE_COLOR_OPTIONS, SKIN_TONE_OPTIONS, HeroLandingAlignment, HeroLandingShadowStyle, DOWNLOAD_CREDIT_CONFIG, HIGH_RES_UNAVAILABLE_MESSAGE, SKIN_REALISM_OPTIONS,
-  COMPOSITION_MODE_OPTIONS, SIDE_PLACEMENT_OPTIONS,
-  CAMERA_SHOT_OPTIONS, CAMERA_ANGLE_OPTIONS, CAMERA_DISTANCE_OPTIONS
-} from './constants';
+	  COMPOSITION_MODE_OPTIONS, SIDE_PLACEMENT_OPTIONS,
+	  CAMERA_SHOT_OPTIONS, CAMERA_ANGLE_OPTIONS, CAMERA_DISTANCE_OPTIONS,
+	  getOptionValueByLabel
+	} from './constants';
 import type { CreatorPreset, DownloadResolution, HeroPosePreset, PropBundle, ProLookPreset, SupplementPhotoPreset } from './constants';
 import BundleSelector from './src/bundles/components/BundleSelector';
 import CustomBundleBuilder from './src/bundles/components/CustomBundleBuilder';
@@ -583,9 +584,10 @@ import VideoGenerator from './components/VideoGenerator';
 import Accordion from './components/Accordion';
 import ImageEditor from './components/ImageEditor';
 import ModelReferencePanel from './components/ModelReferencePanel';
+import ChipSelectGroup from './components/ChipSelectGroup';
 
 import OnboardingOverlay from './components/OnboardingOverlay';
-import ModeTierToggle, { ModeTier } from './components/ModeTierToggle';
+import ModeTierToggle from './components/ModeTierToggle';
 
 import { useAuth } from './src/contexts/AuthContext';
 
@@ -617,6 +619,123 @@ const describeAgeGroup = (ageGroup: string, gender: string) => {
     default:
       return `a ${genderNoun} aged ${ageGroup}`;
   }
+  };
+
+type MoodSuggestion = {
+  moodLabel: string;
+  lightingLabel: string;
+  settingLabel: string;
+  placementStyleLabel: string;
+  placementCameraLabel: string;
+};
+
+const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
+  const clean = hex.replace('#', '').trim();
+  if (clean.length !== 6) return null;
+  const value = Number.parseInt(clean, 16);
+  if (Number.isNaN(value)) return null;
+  return {
+    r: (value >> 16) & 0xff,
+    g: (value >> 8) & 0xff,
+    b: value & 0xff,
+  };
+};
+
+const rgbToHex = (r: number, g: number, b: number) =>
+  `#${[r, g, b]
+    .map(channel => Math.max(0, Math.min(255, Math.round(channel))).toString(16).padStart(2, '0'))
+    .join('')
+    .toUpperCase()}`;
+
+const extractPaletteFromImage = async (file: File, maxColors = 6): Promise<string[]> => {
+  const bitmap = await createImageBitmap(file);
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    throw new Error('Canvas context unavailable.');
+  }
+
+  const targetSize = 48;
+  canvas.width = targetSize;
+  canvas.height = targetSize;
+  ctx.drawImage(bitmap, 0, 0, targetSize, targetSize);
+
+  const { data } = ctx.getImageData(0, 0, targetSize, targetSize);
+  const counts = new Map<string, number>();
+  const step = 4;
+  for (let i = 0; i < data.length; i += step) {
+    const alpha = data[i + 3] ?? 0;
+    if (alpha < 200) continue;
+    const r = data[i] ?? 0;
+    const g = data[i + 1] ?? 0;
+    const b = data[i + 2] ?? 0;
+
+    const quant = (value: number) => Math.round(value / 32) * 32;
+    const color = rgbToHex(quant(r), quant(g), quant(b));
+    counts.set(color, (counts.get(color) ?? 0) + 1);
+  }
+
+  const palette = [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, maxColors)
+    .map(([color]) => color);
+
+  if (!palette.length) {
+    throw new Error('No palette colors detected.');
+  }
+  return palette;
+};
+
+const deriveMoodSuggestions = (palette: string[]): MoodSuggestion => {
+  const rgbs = palette.map(hexToRgb).filter(Boolean) as Array<{ r: number; g: number; b: number }>;
+  const avg = rgbs.reduce(
+    (acc, rgb) => ({ r: acc.r + rgb.r, g: acc.g + rgb.g, b: acc.b + rgb.b }),
+    { r: 0, g: 0, b: 0 }
+  );
+  const count = Math.max(1, rgbs.length);
+  const r = avg.r / count;
+  const g = avg.g / count;
+  const b = avg.b / count;
+  const brightness = (r + g + b) / 3;
+  const warmth = r - b;
+
+  if (brightness < 90) {
+    return {
+      moodLabel: 'Moody & Cinematic',
+      lightingLabel: 'Mood Lighting',
+      settingLabel: 'Boutique Hotel',
+      placementStyleLabel: 'Luxury Editorial',
+      placementCameraLabel: 'Cinema Camera',
+    };
+  }
+
+  if (warmth > 35) {
+    return {
+      moodLabel: 'Warm & Cozy',
+      lightingLabel: 'Golden Hour',
+      settingLabel: 'Living Room',
+      placementStyleLabel: 'Nature Elements',
+      placementCameraLabel: 'Cinema Camera',
+    };
+  }
+
+  if (warmth < -35) {
+    return {
+      moodLabel: 'Cool & Clean',
+      lightingLabel: 'Overcast',
+      settingLabel: 'Home Office',
+      placementStyleLabel: 'On-White Studio',
+      placementCameraLabel: 'Macro Lens',
+    };
+  }
+
+  return {
+    moodLabel: 'Bright & Natural',
+    lightingLabel: 'Natural Light',
+    settingLabel: 'Kitchen',
+    placementStyleLabel: 'Lifestyle Flatlay',
+    placementCameraLabel: 'Product Tabletop Rig',
+  };
 };
 
 const LOCAL_STORAGE_KEY = 'ugc-product-mockup-generator-api-key';
@@ -659,7 +778,7 @@ const PLAN_UNLOCK_CODES: Record<string, PlanTier> = {
 };
 const TESTER_UPGRADE_CODE = import.meta.env.VITE_TESTER_CODE || '713371';
 
-const PERSON_FIELD_KEYS: OptionCategory[] = [
+const PERSON_FIELD_KEYS = [
   'ageGroup',
   'personAppearance',
   'personMood',
@@ -688,16 +807,22 @@ const PERSON_FIELD_KEYS: OptionCategory[] = [
   'customMicroLocation',
   'expression',
   'hairstyle',
-] as OptionCategory[];
+] as const satisfies readonly (keyof MockupOptions)[];
+
+type PersonFieldKey = (typeof PERSON_FIELD_KEYS)[number];
+
+const isPersonFieldKey = (key: OptionCategory): key is PersonFieldKey =>
+  (PERSON_FIELD_KEYS as readonly string[]).includes(key);
 
 const applyPersonProfileToOptions = (
   base: MockupOptions,
   profile: Partial<MockupOptions>
 ): MockupOptions => {
-  const updated = { ...base };
+  const updated: MockupOptions = { ...base };
   PERSON_FIELD_KEYS.forEach(key => {
-    if (profile[key] !== undefined) {
-      updated[key] = profile[key] as string;
+    const nextValue = profile[key];
+    if (nextValue !== undefined) {
+      updated[key] = nextValue;
     }
   });
   return updated;
@@ -1023,19 +1148,18 @@ const App: React.FC = () => {
   }, [normalizedProductAssets]);
   useEffect(() => {
     setActiveProducts(prev => {
-      const next = prev
-        .map(product => {
-          const asset = productAssets.find(assetItem => assetItem.id === product.id);
-          if (!asset) return null;
-          return {
-            ...product,
-            name: asset.label || product.name,
-            heightCm: asset.heightValue ?? undefined,
-            base64: asset.base64 ?? product.base64,
-            mimeType: asset.mimeType ?? product.mimeType,
-          };
-        })
-        .filter((item): item is ActiveProduct => Boolean(item));
+      const next = prev.flatMap(product => {
+        const asset = productAssets.find(assetItem => assetItem.id === product.id);
+        if (!asset) return [];
+        const updatedProduct: ActiveProduct = {
+          ...product,
+          name: asset.label || product.name,
+          base64: asset.base64 ?? product.base64,
+          mimeType: asset.mimeType ?? product.mimeType,
+          ...(asset.heightValue != null ? { heightCm: asset.heightValue } : {}),
+        };
+        return [updatedProduct];
+      });
       const isSame =
         next.length === prev.length &&
         next.every((item, index) => item.name === prev[index]?.name && item.heightCm === prev[index]?.heightCm);
@@ -1093,7 +1217,7 @@ const App: React.FC = () => {
     return () => {
       canceled = true;
     };
-  }, [productAssets]);
+  }, [isProductPlacement, productAssets]);
 
   // Keep ProductStudioStore metadata (name + height) in sync without resetting user settings.
   useEffect(() => {
@@ -1241,7 +1365,7 @@ const App: React.FC = () => {
   const [adminDevError, setAdminDevError] = useState<string | null>(null);
   const [adminDevLoading, setAdminDevLoading] = useState(false);
   const [isSimpleMode, setIsSimpleMode] = useState(true);
-  const [modeTier, setModeTier] = useState<ModeTier>('basic');
+  // modeTier removed (unused)
   const [showGoalWizard, setShowGoalWizard] = useState(false);
   const [goalWizardStep, setGoalWizardStep] = useState(1);
   const [goalWizardData, setGoalWizardData] = useState({
@@ -1728,16 +1852,22 @@ const App: React.FC = () => {
     setCopyError(null);
   }, [generatedImageUrl]);
 
-  useEffect(() => {
-    if (activeProductAsset) {
-      setUploadedImageFile(activeProductAsset.file);
-      setUploadedImagePreview(activeProductAsset.previewUrl);
-    } else {
-      setUploadedImageFile(null);
-      setUploadedImagePreview(null);
-      setIsMultiProductPackaging(false);
-    }
-  }, [activeProductAsset]);
+	  useEffect(() => {
+	    if (activeProductAsset) {
+	      setUploadedImageFile(activeProductAsset.file);
+	      setUploadedImagePreview(activeProductAsset.previewUrl);
+	      return;
+	    }
+	    // Avoid false "no upload" states during mode switches; fall back to first asset if available.
+	    if (productAssets.length) {
+	      setUploadedImageFile(productAssets[0].file);
+	      setUploadedImagePreview(productAssets[0].previewUrl);
+	      return;
+	    }
+	    setUploadedImageFile(null);
+	    setUploadedImagePreview(null);
+	    setIsMultiProductPackaging(false);
+	  }, [activeProductAsset, productAssets]);
 
   useEffect(() => {
     if (!isProductPlacement) return;
@@ -2508,7 +2638,9 @@ const App: React.FC = () => {
   );
 
   const handleCustomClothesUpload = useCallback(
-    (file: File) => {
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
       const previewUrl = URL.createObjectURL(file);
       persistUgcRealSettings(prev => {
         if (prev.clothingPreview && prev.clothingPreview !== previewUrl) {
@@ -3342,7 +3474,7 @@ const App: React.FC = () => {
 
     applyOptionsUpdate(() => newOptions);
     setSelectedCategories(updatedSelectedCategories);
-    if (PERSON_FIELD_KEYS.includes(category)) {
+    if (isPersonFieldKey(category)) {
       const updatedDetails = pickPersonDetails(newOptions);
       setPersonIdentityPackage(prev => {
         const updatedPackage = clonePersonIdentityPackage({
@@ -3393,7 +3525,7 @@ const App: React.FC = () => {
       requiredCategories = ['ageGroup'];
     }
 
-    if (PERSON_FIELD_KEYS.includes(category) && activeTalentPreset !== 'custom') {
+    if (isPersonFieldKey(category) && activeTalentPreset !== 'custom') {
       setActiveTalentPreset('custom');
     }
   };
@@ -4499,20 +4631,45 @@ If the model attempts to create a scene or environment, override it and force a 
           finalPrompt = promptEngine.build(promptOptions);
         }
 
-        // Persist continuity identity only when explicitly requested.
-        // Otherwise "locked" mode would mint a new identityKey every click → different person.
-        if (
+        const keepSamePersonAcrossRenders =
           !isProductPlacement &&
           !hasModelReference &&
           lifestyleStep3Values?.sameCreatorAcrossScenes === true &&
-          promptOptions?.identityKey
-        ) {
+          personIncluded === true;
+
+        // If the user wants the same person, force reuse of the previously-minted identity
+        // (prevents accidental reminting that makes the person change when the toggle is ON).
+        if (keepSamePersonAcrossRenders && identityContinuityRef.current?.identityKey) {
+          promptOptions = {
+            ...promptOptions,
+            identityMode: 'locked',
+            identityVariationToken: undefined,
+            identityKey: identityContinuityRef.current.identityKey,
+            identitySeed: identityContinuityRef.current.identitySeed ?? promptOptions.identitySeed,
+          };
+        }
+
+        // Product mode safety: force the model to keep the referenced product visible.
+        if (isProductPlacement) {
+          finalPrompt = [
+            finalPrompt,
+            'CRITICAL: The product shown in the reference image(s) MUST appear in the final image, clearly visible and not cropped out.',
+            'Do NOT generate an empty scene/background; never omit the product.',
+          ].join(' ');
+        } else if (isProPhotographer) {
+          const proBits = [options.proLens, options.proLightingRig, options.proPostTreatment].filter(Boolean);
+          if (proBits.length) {
+            finalPrompt = `${finalPrompt} PRO PHOTOGRAPHER OVERRIDES: ${proBits.join(' ')}.`;
+          }
+        }
+
+        // Persist continuity identity only when explicitly requested.
+        // Otherwise "locked" mode would mint a new identityKey every click → different person.
+        if (keepSamePersonAcrossRenders && promptOptions?.identityKey) {
           identityContinuityRef.current = {
             identityKey: promptOptions.identityKey,
             identitySeed: promptOptions.identitySeed,
           };
-        } else {
-          identityContinuityRef.current = null;
         }
 
         // MANDATORY LOGS - Prove injection works
@@ -4526,7 +4683,7 @@ If the model attempts to create a scene or environment, override it and force a 
         // MANDATORY LOG - Final prompt string MUST show injected values
         console.log('[FINAL PROMPT STRING]', finalPrompt);
 
-        const aspectRatio = isProductPlacement ? PRODUCT_DEFAULT_ASPECT_RATIO : (promptOptions?.aspectRatio || '1:1');
+	      const aspectRatio = isProductPlacement ? PRODUCT_DEFAULT_ASPECT_RATIO : (options.aspectRatio || '1:1');
 
         const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
         if (!resolvedApiKey) {
@@ -4536,7 +4693,7 @@ If the model attempts to create a scene or environment, override it and force a 
         const resolvedUgcStyle = (promptOptions.ugcStyle ?? 'optimized').toLowerCase();
         const naturalMode = resolvedUgcStyle === 'natural';
         const rawMode = !!promptOptions.ugcRealModeActive;
-        const shouldIncludeHumanImage = !(naturalMode || rawMode);
+        const shouldIncludeHumanImage = personIncluded && !(naturalMode || rawMode);
         const shouldSendProductImage = generationProducts.length > 0;
         const identityInlinePart = personIdentityPackage.modelReferenceBase64
           ? {
@@ -4588,23 +4745,23 @@ If the model attempts to create a scene or environment, override it and force a 
           const maxAttempts = 2;
           for (let attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
-              return await ai.models.generateContent({
-                model: GEMINI_IMAGE_MODEL,
-                contents: payload,
-                config: {
-                  responseModalities: [Modality.IMAGE],
-                  safetySettings: [],
-                  generationConfig: {
-                    responseMimeType: 'image/png',
-                    aspectRatio,
-                    // Product Studio forces a fixed output ratio; reference preservation can override ratio.
-                    preserveReferenceImage: false,
-                    temperature: 0.25,
-                    topP: 0.9,
-                    seed,
-                  },
-                },
-              });
+		              return await ai.models.generateContent({
+		                model: GEMINI_IMAGE_MODEL,
+		                contents: payload,
+		                config: {
+		                  responseModalities: [Modality.IMAGE],
+		                  safetySettings: [],
+	                  generationConfig: {
+	                    responseMimeType: 'image/png',
+	                    aspectRatio,
+	                    // Product Studio forces a fixed output ratio; reference preservation can override ratio.
+	                    preserveReferenceImage: isProductPlacement,
+	                    temperature: 0.25,
+	                    topP: 0.9,
+	                    seed,
+	                  },
+	                } as any,
+	              });
             } catch (error) {
               const message = String((error as any)?.message ?? error);
               const shouldRetry =
@@ -4821,16 +4978,16 @@ If the model attempts to create a scene or environment, override it and force a 
 	                config: {
 	                  responseModalities: [Modality.IMAGE],
 	                  safetySettings: [],
-	                  generationConfig: {
-	                    responseMimeType: 'image/png',
-	                    aspectRatio,
-	                    // Product Studio forces a fixed output ratio; reference preservation can override ratio.
-		                    preserveReferenceImage: false,
-	                    temperature: 0.25,
-	                    topP: 0.9,
-	                    seed,
-	                  },
-	                },
+		                  generationConfig: {
+		                    responseMimeType: 'image/png',
+		                    aspectRatio,
+		                    // Product Studio forces a fixed output ratio; reference preservation can override ratio.
+			                    preserveReferenceImage: true,
+		                    temperature: 0.25,
+		                    topP: 0.9,
+		                    seed,
+		                  },
+	                } as any,
 	              });
 	            } catch (error) {
               const message = String((error as any)?.message ?? error);
@@ -4971,7 +5128,7 @@ If the model attempts to create a scene or environment, override it and force a 
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string, apiVersion: 'v1beta' });
       const base64Image = generatedImageUrl.split(',')[1];
 
-      const aspectRatio = isProductPlacement ? PRODUCT_DEFAULT_ASPECT_RATIO : (promptOptions?.aspectRatio || '1:1');
+      const aspectRatio = isProductPlacement ? PRODUCT_DEFAULT_ASPECT_RATIO : (options.aspectRatio || '1:1');
       const response = await ai.models.generateContent({
         model: GEMINI_IMAGE_MODEL, // maintain this but enforce insert behavior through the prompt and config above
         contents: {
@@ -4980,19 +5137,19 @@ If the model attempts to create a scene or environment, override it and force a 
             { text: prompt.trim() },
           ],
         },
-        config: {
-          responseModalities: [Modality.IMAGE],
-          safetySettings: [],
-          generationConfig: {
-            responseMimeType: 'image/png',
-            aspectRatio,
-            // Product Studio forces a fixed output ratio; reference preservation can override ratio.
-            preserveReferenceImage: false,
-            temperature: 0.25,
-            topP: 0.9,
-          },
-        },
-      });
+	        config: {
+	          responseModalities: [Modality.IMAGE],
+	          safetySettings: [],
+	          generationConfig: {
+	            responseMimeType: 'image/png',
+	            aspectRatio,
+	            // Product Studio forces a fixed output ratio; reference preservation can override ratio.
+	            preserveReferenceImage: isProductPlacement,
+	            temperature: 0.25,
+	            topP: 0.9,
+	          },
+	        } as any,
+	      });
 
       const responseParts = response?.candidates?.[0]?.content?.parts ?? [];
 	      for (const part of responseParts) {
@@ -5114,7 +5271,7 @@ If the model attempts to create a scene or environment, override it and force a 
       }
 
       if (operation.error) {
-        throw new Error(operation.error.message || 'Video generation failed with an unknown error.');
+        throw new Error((operation.error as any)?.message || 'Video generation failed with an unknown error.');
       }
 
       const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
@@ -5640,6 +5797,14 @@ If the model attempts to create a scene or environment, override it and force a 
                                     </button>
                                   ))}
                                 </div>
+                                <p className="text-[11px] text-gray-500">
+                                  {{
+                                    balanced: 'Balanced share between product and person.',
+                                    'product-first': 'Product is the hero; person supports the story.',
+                                    'model-first': 'Person is the hero; product is secondary but visible.',
+                                    'fifty-fifty': 'Equal emphasis on person and product.',
+                                  }[compositionMode] ?? ''}
+                                </p>
                               </div>
                             )}
                           </div>
@@ -5706,13 +5871,13 @@ If the model attempts to create a scene or environment, override it and force a 
                       </div>
                     )}
                     {(() => {
-                      const isGenerateDisabled = isImageLoading || !uploadedImageFile;
-                      const generationRestrictionMessage = (() => {
-                        if (!isGenerateDisabled) return '';
-                        if (!uploadedImageFile) return 'Upload a source product photo before generating.';
-                        if (isImageLoading) return 'Generation is in progress; please wait.';
-                        return '';
-                      })();
+	                      const isGenerateDisabled = isImageLoading || !hasUploadedProduct;
+	                      const generationRestrictionMessage = (() => {
+	                        if (!isGenerateDisabled) return '';
+	                        if (!hasUploadedProduct) return 'Upload a source product photo before generating.';
+	                        if (isImageLoading) return 'Generation is in progress; please wait.';
+	                        return '';
+	                      })();
                       return (
                         <div className={hasUploadedProduct ? '' : 'opacity-50 pointer-events-none select-none'}>
                           <button

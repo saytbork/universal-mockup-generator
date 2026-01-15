@@ -349,11 +349,12 @@ export class UGCRealModeBuilder implements PromptBuilder {
         const selfieActive =
             String(selfieRaw).trim().length > 0 &&
             String(selfieRaw).trim().toLowerCase() !== 'none';
-        const ugcActive =
+        const ugcActive = Boolean(
             options.contentStyle === 'ugc' ||
             options.creationIntent === 'ugc' ||
             options.ugcRealModeActive ||
-            options.rawDomesticUgcActive;
+            options.rawDomesticUgcActive
+        );
         return ugcActive && selfieActive;
     }
 

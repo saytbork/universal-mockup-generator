@@ -413,7 +413,7 @@ export type ProductStudioState = {
     gradientAngle: number;
     props: string;
     customHeroCue: string;
-    interaction: 'none' | 'cropped-hand';
+    interaction: 'none' | 'cropped-hand' | 'holding' | 'presenting' | 'applying';
     proMode: boolean;
     lens: string;
     lightingRig: string;

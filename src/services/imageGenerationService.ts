@@ -50,6 +50,8 @@ export async function generateImageWithGemini({
     products,
     personIdentityPackage,
     modelReferenceFile,
+    ugcStyle,
+    ugcRealModeActive,
 }: GenerateImageParams) {
     // In development, use local backend to bypass OAuth2 restrictions
     const isDevelopment = import.meta.env.DEV || window.location.hostname === 'localhost';

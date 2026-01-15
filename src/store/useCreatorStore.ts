@@ -69,6 +69,13 @@ interface Creator {
   camera: CreatorCamera;
   talent: CreatorTalent;
   story: CreatorStory;
+  // Legacy/flat fields referenced by sidebar panels
+  hairStyle: string;
+  hairColor: string;
+  eyeColor: string;
+  skinTone: string;
+  skinRealism: string;
+  selfieType: string;
   proMode: boolean;
   sceneStructure?: SceneStructure;
   colorSystem?: ColorSystem;
@@ -84,6 +91,7 @@ export type ScenePresetId =
 interface CreatorStore {
   creator: Creator;
   setCreator: (creator: Creator) => void;
+  setCreatorField: (field: keyof Pick<Creator, 'hairStyle' | 'hairColor' | 'eyeColor' | 'skinTone' | 'skinRealism' | 'selfieType'>, value: string) => void;
   preset: string;
   creationMode: string;
   sidePlacement: string;
@@ -110,12 +118,26 @@ const defaultCreator: Creator = {
   camera: { lighting: '', shot: '', depth: '', lens: '', distance: 'Medium', angle: '', focus: '' },
   talent: { image: '', notes: '' },
   story: { mood: '', narrativeStyle: '', text: '' },
+  hairStyle: '',
+  hairColor: '',
+  eyeColor: '',
+  skinTone: '',
+  skinRealism: '',
+  selfieType: 'None',
   proMode: false,
 };
 
 export const useCreatorStore = create<CreatorStore>((set) => ({
   creator: defaultCreator,
   setCreator: (creator) => set({ creator }),
+  setCreatorField: (field, value) =>
+    set((state) => ({
+      creator: {
+        ...state.creator,
+        [field]: value,
+        ...(field === 'skinTone' ? { person: { ...state.creator.person, skinTone: value } } : {}),
+      } as Creator,
+    })),
   preset: 'custom',
   creationMode: 'lifestyle',
   sidePlacement: 'right',

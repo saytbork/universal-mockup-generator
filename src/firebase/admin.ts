@@ -1,9 +1,13 @@
 import * as admin from "firebase-admin";
 
 if (!admin.apps.length) {
+  const serviceAccountRaw = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+  if (!serviceAccountRaw) {
+    throw new Error("Missing FIREBASE_SERVICE_ACCOUNT_KEY env var.");
+  }
   admin.initializeApp({
     credential: admin.credential.cert(
-      JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
+      JSON.parse(serviceAccountRaw)
     ),
     storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "boostugc-6d83f.firebasestorage.app"
   });

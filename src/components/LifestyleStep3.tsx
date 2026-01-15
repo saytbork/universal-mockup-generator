@@ -19,6 +19,7 @@ import { Toggle } from './ui/Toggle';
 import { useProductStudioStore, PREBUILT_BUNDLES, BRAND_PRESETS } from '@/lib/productStudio/store';
 import type { ProductStudioState, CameraAngle, CameraDistance, CameraRotation, CameraFraming, CreativeTheme, PaletteSource, PropDensity, BlankSpaceSide, EnvironmentMacro, Lighting, ProductType, MicroPlace, CompositionMode, SurfaceBase, ProductScale, ProductSpacing, LightStyle, NegativeSpace } from '@/lib/productStudio/types';
 import { validateProductStudioState } from '@/lib/productStudio/validator';
+import { normalizeOption } from '../system/normalizeOptions';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -669,11 +670,11 @@ const COMPOSITION_MODE_V1_OPTIONS = [
 ];
 
 const SURFACE_BASE_OPTIONS = [
-  { value: 'neutral', label: 'Neutral Surface' },
-  { value: 'pedestal', label: 'Geometric Pedestal' },
-  { value: 'acrylic', label: 'Reflective Acrylic' },
-  { value: 'stone', label: 'Natural Stone' },
-  { value: 'abstract', label: 'Abstract Editorial' },
+  { value: 'neutral', label: 'Neutral Surface', description: 'Clean tabletop base that keeps attention on the pack.' },
+  { value: 'pedestal', label: 'Geometric Pedestal', description: 'Structured hero lift for a premium, elevated feel.' },
+  { value: 'acrylic', label: 'Reflective Acrylic', description: 'Modern reflections and highlights for a studio polish.' },
+  { value: 'stone', label: 'Natural Stone', description: 'Organic, tactile surface that adds grounded luxury.' },
+  { value: 'abstract', label: 'Abstract Editorial', description: 'Stylized base elements for a fashion/editorial vibe.' },
 ];
 
 const PRODUCT_SCALE_OPTIONS: { value: ProductScale; label: string }[] = [
@@ -689,10 +690,10 @@ const PRODUCT_SPACING_OPTIONS: { value: ProductSpacing; label: string }[] = [
 ];
 
 const LIGHT_STYLE_OPTIONS_V1 = [
-  { value: 'soft', label: 'Soft Diffused' },
-  { value: 'clinical', label: 'Crisp Clinical' },
-  { value: 'contrast', label: 'High Contrast' },
-  { value: 'shadow-play', label: 'Kind Gentle Shadow' },
+  { value: 'soft', label: 'Soft Diffused', description: 'Even, flattering light with smooth transitions and minimal harshness.' },
+  { value: 'clinical', label: 'Crisp Clinical', description: 'Clean, high-clarity lighting that reads “lab/studio” and product-forward.' },
+  { value: 'contrast', label: 'High Contrast', description: 'Punchier shadows and highlights for bold, dramatic separation.' },
+  { value: 'shadow-play', label: 'Kind Gentle Shadow', description: 'Artful shadow shaping without looking harsh or overly stylized.' },
 ];
 
 const NEGATIVE_SPACE_OPTIONS: { value: NegativeSpace; label: string }[] = [
@@ -731,6 +732,27 @@ const PROP_DENSITY_OPTIONS: { value: PropDensity; label: string }[] = [
 // ============================================================================
 // HELPER COMPONENTS
 // ============================================================================
+type LabeledOption = { value: string; label: string; description?: string };
+
+const SelectedOptionFooter: React.FC<{ options: LabeledOption[]; selectedValue: string | null | undefined }> = ({
+  options,
+  selectedValue,
+}) => {
+  if (!selectedValue) return null;
+  const selected = options.find(option => option.value === selectedValue);
+  if (!selected?.description) return null;
+  return <p className="text-[11px] text-gray-500 mt-1">{selected.description}</p>;
+};
+
+const SelectedTooltipFooter: React.FC<{ selectedValue: string | null | undefined }> = ({ selectedValue }) => {
+  if (!selectedValue) return null;
+  const normalized = normalizeOption({ label: selectedValue, value: selectedValue });
+  if (!normalized.tooltip) return null;
+  return <p className="text-[11px] text-gray-500 mt-1">{normalized.tooltip}</p>;
+};
+
+const footerOptionsFromLabelValue = (options: Array<{ label: string; value: string }>): LabeledOption[] =>
+  options.map(option => ({ value: option.label, label: option.label, description: option.value }));
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
@@ -1001,7 +1023,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       case 'environmentMacro':
         {
           const macro = value as EnvironmentMacro;
-          productStore.setEnvironmentContext(macro === 'studio' ? null : { macro, micro: 'countertop' });
+          // Micro place is optional; do not auto-select a micro location when choosing a macro environment.
+          productStore.setEnvironmentContext(macro === 'studio' ? null : { macro, micro: null });
         }
         break;
       case 'microPlace':
@@ -1500,7 +1523,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     }
   }, [values.ecommerceBackgroundColor, updateValue]);
 
-  const PRODUCT_TYPE_OPTIONS: Step3Values['productType'][] = [
+  const PRODUCT_TYPE_OPTIONS: Array<NonNullable<Step3Values['productType']>> = [
     'Capsules',
     'Gummies',
     'Drops',
@@ -2085,16 +2108,24 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             >
                               None
                             </Chip>
-                            <Chip
-                              onClick={() => {
-                                productStore.setInteraction('cropped-hand');
-                                updateValue('handsHolding', true);
-                                markSectionTouched('product-setup');
-                              }}
-                              selected={productStore.interaction === 'cropped-hand' || values.handsHolding}
-                            >
-                              Cropped hand only
-                            </Chip>
+                              {([
+                              { key: 'cropped-hand', label: 'Cropped hand' },
+                              { key: 'holding', label: 'Holding' },
+                              { key: 'presenting', label: 'Presenting' },
+                              { key: 'applying', label: 'Applying / Opening' },
+                            ] as const).map(({ key, label }) => (
+                              <Chip
+                                key={key}
+                                onClick={() => {
+                                  productStore.setInteraction(key);
+                                  updateValue('handsHolding', true);
+                                  markSectionTouched('product-setup');
+                                }}
+                                selected={productStore.interaction === key}
+                              >
+                                {label}
+                              </Chip>
+                            ))}
                           </div>
                         </div>
                       </div>
@@ -3022,9 +3053,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </div>
                       ))}
                     </div>
-                    <p className="text-[11px] text-gray-500 mt-1">
-                      {COMPOSITION_MODE_V1_OPTIONS.find(o => o.value === productStore.composition)?.description}
-                    </p>
+                    <SelectedOptionFooter options={COMPOSITION_MODE_V1_OPTIONS} selectedValue={productStore.composition} />
                   </div>
 
                   {/* SURFACE / BASE */}
@@ -3044,6 +3073,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </Chip>
                       ))}
                     </div>
+                    <SelectedOptionFooter options={SURFACE_BASE_OPTIONS} selectedValue={productStore.surface} />
                   </div>
 
                   {/* SCALE & SPACING */}
@@ -3065,6 +3095,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           </button>
                         ))}
                       </div>
+                      <SelectedOptionFooter
+                        options={[
+                          { value: 'dominant', label: 'Dominant', description: 'Product fills the frame and reads as the hero.' },
+                          { value: 'balanced', label: 'Balanced', description: 'Natural scale with room for accents and styling.' },
+                          { value: 'oversized', label: 'Oversized', description: 'Bigger-than-life hero emphasis for impact.' },
+                        ]}
+                        selectedValue={productStore.scale}
+                      />
                     </div>
                     <div className={SECTION_GROUP_CLASS}>
                       <p className={GROUP_LABEL_CLASS}>SPACING</p>
@@ -3083,6 +3121,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           </button>
                         ))}
                       </div>
+                      <SelectedOptionFooter
+                        options={[
+                          { value: 'compact', label: 'Compact', description: 'Tighter composition with minimal breathing room.' },
+                          { value: 'balanced', label: 'Balanced', description: 'Comfortable spacing that still feels product-first.' },
+                          { value: 'airy', label: 'Airy', description: 'More breathing room for a premium, spacious layout.' },
+                        ]}
+                        selectedValue={productStore.spacing}
+                      />
                     </div>
                   </div>
 
@@ -3103,6 +3149,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </Chip>
                       ))}
                     </div>
+                    <SelectedOptionFooter options={LIGHT_STYLE_OPTIONS_V1} selectedValue={productStore.lightStyle} />
                   </div>
 
                   {/* NEGATIVE SPACE */}
@@ -3122,9 +3169,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </Chip>
                       ))}
                     </div>
-                    <p className="text-[11px] text-gray-500 mt-1">
-                      Allocates breathing room or copy space without forcing a white background.
-                    </p>
+                    <SelectedOptionFooter
+                      options={[
+                        { value: 'none', label: 'None', description: 'Fills the frame with the product and set dressing.' },
+                        { value: 'subtle', label: 'Subtle', description: 'A little breathing room without feeling empty.' },
+                        { value: 'intentional', label: 'Intentional', description: 'Clear copy/CTA room with a deliberate layout.' },
+                        { value: 'heavy', label: 'Heavy', description: 'Lots of open space for strong typography or ads.' },
+                      ]}
+                      selectedValue={productStore.negativeSpace}
+                    />
                   </div>
 
                   {/* CREATIVE THEME */}
@@ -3144,6 +3197,19 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </Chip>
                       ))}
                     </div>
+                    <SelectedOptionFooter
+                      options={[
+                        { value: 'clinical-minimal', label: 'Clinical Minimal', description: 'Clean, lab-like minimalism with restrained styling.' },
+                        { value: 'ingredient-color', label: 'Ingredient Color Story', description: 'Uses ingredient cues and color to tell the product story.' },
+                        { value: 'premium-clean', label: 'Premium Luxury', description: 'High-end, polished look with luxury-grade restraint.' },
+                        { value: 'fresh-bright', label: 'Fresh & Bright', description: 'Light, uplifting palette and crisp highlights.' },
+                        { value: 'dark-dramatic', label: 'Dark & Dramatic', description: 'Moody tones with dramatic contrast and depth.' },
+                        { value: 'playful-pop', label: 'Playful Pop', description: 'Bold, energetic styling with fun accent color.' },
+                        { value: 'tech-clean', label: 'Tech Clean', description: 'Modern, precise, slightly futuristic cleanliness.' },
+                        { value: 'bold-graphic', label: 'Bold Graphic', description: 'Strong shapes and high-impact, graphic composition.' },
+                      ]}
+                      selectedValue={productStore.creativeTheme}
+                    />
                   </div>
 
                   {/* PALETTE SOURCE */}
@@ -3163,6 +3229,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </Chip>
                       ))}
                     </div>
+                    <SelectedOptionFooter
+                      options={[
+                        { value: 'brand', label: 'Product Label Colors', description: 'Pulls tones from the pack/label for brand consistency.' },
+                        { value: 'warm-neutral', label: 'Warm Neutrals', description: 'Creams, sands, and warm grays for softness and warmth.' },
+                        { value: 'cool-neutral', label: 'Cool Neutrals', description: 'Cool grays and whites for a crisp, modern feel.' },
+                        { value: 'complementary', label: 'Complementary Accent', description: 'Adds an accent color that contrasts the pack tastefully.' },
+                        { value: 'custom', label: 'Custom Palette', description: 'Use your own palette (manual colors).' },
+                      ]}
+                      selectedValue={productStore.paletteSource}
+                    />
 
                     {productStore.paletteSource === 'custom' && (
                       <div className="mt-3 space-y-4">
@@ -3190,6 +3266,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </Chip>
                       ))}
                     </div>
+                    <SelectedOptionFooter
+                      options={[
+                        { value: 'none', label: 'None', description: 'No supporting props; product stays the only subject.' },
+                        { value: 'low', label: 'Light', description: 'A few subtle props for context without distraction.' },
+                        { value: 'medium', label: 'Medium', description: 'Balanced styling with clear supporting elements.' },
+                        { value: 'dense', label: 'Dense', description: 'Full set styling; maximal context and texture.' },
+                      ]}
+                      selectedValue={productStore.propDensity}
+                    />
                   </div>
 
                   {/* SUGGESTED PROPS */}
@@ -3835,11 +3920,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 updateValue('ecommerceGradientAngle', String(angle) as any);
                                 if (isProductMode) {
                                   productStore.setGradientEnabled(true);
-                                  productStore.setGradientAngle(angle);
+                                  productStore.setGradientAngle(Number(angle));
                                 }
                                 markSectionTouched('ecommerce');
                               }}
-                              selected={isProductMode ? productStore.gradientAngle === angle : String(values.ecommerceGradientAngle) === String(angle)}
+                              selected={isProductMode ? productStore.gradientAngle === Number(angle) : String(values.ecommerceGradientAngle) === String(angle)}
                             >
                               {angle}°
                             </Chip>
@@ -4562,7 +4647,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <span className="text-xs text-gray-600 dark:text-white/60">Facial expression (advanced)</span>
                         <div className="flex flex-wrap gap-2">
                           {(
-                            ['Confident & Editorial', 'Playful & Candid', 'Hustle & Juggle', 'Stressed but Determined'] as const
+                            [
+                              'Confident & Editorial',
+                              'Playful & Candid',
+                              'Hustle & Juggle',
+                              'Stressed but Determined',
+                              'Relieved / Recovered',
+                            ] as const
                           ).map(option => {
                             const active = values.facialExpression === option;
                             return (
@@ -5260,6 +5351,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     </button>
                   ))}
                 </div>
+                <SelectedOptionFooter
+                  options={[
+                    { value: 'Holding', label: 'Holding', description: 'Simple hero hold—product is visible and stable in-hand.' },
+                    { value: 'Using', label: 'Using', description: 'Natural usage moment (apply, drink, spray, etc.).' },
+                    { value: 'Presenting', label: 'Presenting', description: 'Creator displays the product clearly toward camera.' },
+                    { value: 'Unboxing / Open Box', label: 'Unboxing / Open Box', description: 'Packaging interaction—opening or reveal moment.' },
+                  ]}
+                  selectedValue={values.productInteraction}
+                />
                 {values.productInteraction === 'Using' && (
                   <div className="mt-2">
                     <textarea
@@ -5530,6 +5630,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </button>
                       ))}
                     </div>
+                    <SelectedOptionFooter
+                      options={[
+                        { value: 'Morning', label: 'Morning', description: 'Fresh, day-start energy with softer daylight.' },
+                        { value: 'Midday', label: 'Midday', description: 'Bright, clean light with higher clarity and contrast.' },
+                        { value: 'Evening', label: 'Evening', description: 'Warm, cozy mood with softer falloff and ambience.' },
+                        { value: 'Night', label: 'Night', description: 'Low-light atmosphere with practicals, lamps, or city glow.' },
+                      ]}
+                      selectedValue={values.timeOfDay}
+                    />
                   </div>
 
                   {/* LIGHTING STYLE */}
@@ -5551,6 +5660,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </button>
                       ))}
                     </div>
+                    <SelectedOptionFooter options={footerOptionsFromLabelValue(LIGHTING_OPTIONS)} selectedValue={values.lightingStyle} />
                   </div>
                 </div>
               )}
@@ -5640,6 +5750,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           </button>
                         ))}
                       </div>
+                      <SelectedOptionFooter
+                        options={footerOptionsFromLabelValue(
+                          CAMERA_OPTIONS.filter(option =>
+                            option.label !== 'Intentional smartphone camera' &&
+                            option.label !== 'Laptop webcam (pro setup)'
+                          )
+                        )}
+                        selectedValue={values.cameraType}
+                      />
                     </div>
 
                     <div className={SECTION_GROUP_CLASS}>
@@ -5656,6 +5775,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           </button>
                         ))}
                       </div>
+                      <SelectedOptionFooter
+                        options={[
+                          { value: 'Extreme close-up', label: 'Extreme close-up', description: 'Ultra-tight detail shot (texture, label, hands).' },
+                          { value: 'Close', label: 'Close', description: 'Tight framing with clear subject focus and some context.' },
+                          { value: 'Medium', label: 'Medium', description: 'Balanced framing—subject plus environment reads naturally.' },
+                          { value: 'Wide', label: 'Wide', description: 'More environment and story; subject is smaller in frame.' },
+                          { value: 'Full body', label: 'Full body', description: 'Shows full figure and action with the product.' },
+                        ]}
+                        selectedValue={values.shotType}
+                      />
                     </div>
 
                     <div className={SECTION_GROUP_CLASS}>
@@ -5672,6 +5801,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           </button>
                         ))}
                       </div>
+                      <SelectedOptionFooter
+                        options={[
+                          { value: 'Eye level', label: 'Eye level', description: 'Natural, most realistic perspective.' },
+                          { value: 'Slightly above eye level', label: 'Slightly above eye level', description: 'Flattering, casual “friend taking photo” vibe.' },
+                          { value: 'Slightly below eye level', label: 'Slightly below eye level', description: 'Slightly more heroic presence; can feel more posed.' },
+                          { value: 'High angle', label: 'High angle', description: 'Looks down on the scene; lighter, more playful feel.' },
+                          { value: 'Low angle', label: 'Low angle', description: 'Looks up; stronger, more dramatic stance.' },
+                          { value: 'Top-down', label: 'Top-down', description: 'Flatlay / overhead perspective for routines and surfaces.' },
+                          { value: 'Bottom-up', label: 'Bottom-up', description: 'Upward perspective; use sparingly for stylized impact.' },
+                        ]}
+                        selectedValue={values.cameraAngle}
+                      />
                     </div>
                   </div>
                 </SmoothAccordion>

@@ -50,6 +50,8 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
     if (files.length) {
       emitUpload(files);
     }
+    // Allow selecting the same file again (otherwise onChange won't fire).
+    e.target.value = '';
   };
 
   const handleDrop = useCallback((e: React.DragEvent<HTMLElement>) => {
@@ -82,6 +84,9 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
 
   const handleClick = () => {
     if (disabled) return;
+    if (inputRef.current) {
+      inputRef.current.value = '';
+    }
     inputRef.current?.click();
   };
 

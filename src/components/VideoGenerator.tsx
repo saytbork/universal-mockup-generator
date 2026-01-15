@@ -1,1 +1,1 @@
-export { default } from '../components/VideoGenerator';
+export { default } from '../../components/VideoGenerator';
