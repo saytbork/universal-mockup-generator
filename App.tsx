@@ -4724,10 +4724,11 @@ If the model attempts to create a scene or environment, override it and force a 
         }
         if (shouldSendProductImage) {
           for (const product of generationProducts) {
+            // Higher-fidelity reference helps avoid warped labels/typography on the product.
             const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
-              maxLongEdge: 1024,
-              maxBase64Length: 1_300_000,
-              quality: 0.88,
+              maxLongEdge: 1536,
+              maxBase64Length: 2_400_000,
+              quality: 0.92,
             });
             requestParts.push({
               inlineData: { data: resized.base64, mimeType: resized.mimeType },
@@ -4760,7 +4761,7 @@ If the model attempts to create a scene or environment, override it and force a 
 	                    responseMimeType: 'image/png',
 	                    aspectRatio,
 	                    // Product Studio forces a fixed output ratio; reference preservation can override ratio.
-	                    preserveReferenceImage: isProductPlacement,
+	                    preserveReferenceImage: isProductPlacement || shouldSendProductImage,
 	                    temperature: 0.25,
 	                    topP: 0.9,
 	                    seed,
@@ -4966,9 +4967,9 @@ If the model attempts to create a scene or environment, override it and force a 
 	        const productParts: any[] = [];
 	        for (const product of generationProducts) {
           const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
-            maxLongEdge: 1024,
-            maxBase64Length: 1_300_000,
-            quality: 0.88,
+            maxLongEdge: 1536,
+            maxBase64Length: 2_400_000,
+            quality: 0.92,
           });
           productParts.push({ inlineData: { data: resized.base64, mimeType: resized.mimeType }, reference: true });
         }

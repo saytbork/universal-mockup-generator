@@ -113,6 +113,7 @@ export class ProductBuilder implements PromptBuilder {
       Do not redesign, replace, or reinterpret the product.
 
       Focus: the product is on the primary focus plane and must be tack sharp. The label must be crisp and fully readable. Do not let the product fall out of focus or into the background.
+      Typography fidelity: preserve the label artwork and printed text exactly from the reference product. Do not redraw, re-typeset, or re-render the label typography.
       
       Integrate it physically into the environment using "Active Insert Mode":
       - match lighting to the room,
