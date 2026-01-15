@@ -1536,7 +1536,8 @@ export function mapLifestyleToPromptOptions(
     const aspectRatioMap: Record<string, string> = {
         '1:1 (Square)': '1:1',
         '4:5 (Portrait)': '4:5',
-        '9:16 (Story)': '9:16'
+        '9:16 (Story)': '9:16',
+        '16:9 (Landscape)': '16:9'
     };
     mapped.aspectRatio = aspectRatioMap[sceneState.aspectRatio] || '1:1';
     console.log('[MAP] aspectRatio:', sceneState.aspectRatio, '→', mapped.aspectRatio);

@@ -1387,6 +1387,7 @@ const App: React.FC = () => {
   const googleButtonRef = useRef<HTMLDivElement>(null);
   const googleInitRef = useRef(false);
   const identityContinuityRef = useRef<{ identityKey?: string; identitySeed?: string } | null>(null);
+  const lastAspectRatioRef = useRef<string>('1:1');
   const uploaderRef = useRef<ImageUploaderHandle | null>(null);
   const isDevBypass = useMemo(() => {
     if (!import.meta.env.DEV) return false;
@@ -2771,10 +2772,10 @@ const App: React.FC = () => {
     setFourKVariant(null);
     setTwoKVariant(null);
     try {
+      const twoK = await scaleImageToLongEdge(sourceUrl, 2048);
+      setTwoKVariant(twoK);
       const fourK = await scaleImageToLongEdge(sourceUrl, 3840);
       setFourKVariant(fourK);
-      const twoK = await scaleImageToLongEdge(fourK.url, 2048);
-      setTwoKVariant(twoK);
     } catch (error) {
       console.error('Local upscale failed.', error);
       setHiResError(HIGH_RES_UNAVAILABLE_MESSAGE);
@@ -4683,7 +4684,11 @@ If the model attempts to create a scene or environment, override it and force a 
         // MANDATORY LOG - Final prompt string MUST show injected values
         console.log('[FINAL PROMPT STRING]', finalPrompt);
 
-	      const aspectRatio = isProductPlacement ? PRODUCT_DEFAULT_ASPECT_RATIO : (options.aspectRatio || '1:1');
+	      const aspectRatio =
+	        isProductPlacement
+	          ? PRODUCT_DEFAULT_ASPECT_RATIO
+	          : (promptOptions.aspectRatio || options.aspectRatio || '1:1');
+	      lastAspectRatioRef.current = aspectRatio;
 
         const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
         if (!resolvedApiKey) {
@@ -5128,7 +5133,8 @@ If the model attempts to create a scene or environment, override it and force a 
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string, apiVersion: 'v1beta' });
       const base64Image = generatedImageUrl.split(',')[1];
 
-      const aspectRatio = isProductPlacement ? PRODUCT_DEFAULT_ASPECT_RATIO : (options.aspectRatio || '1:1');
+      const aspectRatio =
+        isProductPlacement ? PRODUCT_DEFAULT_ASPECT_RATIO : (lastAspectRatioRef.current || options.aspectRatio || '1:1');
       const response = await ai.models.generateContent({
         model: GEMINI_IMAGE_MODEL, // maintain this but enforce insert behavior through the prompt and config above
         contents: {
@@ -5908,7 +5914,7 @@ If the model attempts to create a scene or environment, override it and force a 
                 <div className="rounded-xl p-4 transition-all bg-white relative lg:sticky lg:top-4 flex flex-col gap-6 min-h-[520px] dark:bg-white/5 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
 
                   <GeneratedImage
-                    imageUrl={generatedImageUrl}
+                    imageUrl={twoKVariant?.url ?? generatedImageUrl}
                     fourKVariant={fourKVariant}
                     twoKVariant={twoKVariant}
                     isHiResProcessing={isPreparingHiRes}
