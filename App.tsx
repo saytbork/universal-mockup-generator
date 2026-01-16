@@ -48,7 +48,6 @@ import { loadEcommerceSlotsConfig, saveEcommerceSlotsConfig } from '@/lib/ecomme
 import { ECOMMERCE_SLOT_REQUIRED_BLANK_SPACE } from '@/lib/ecommerceOverlay/templates';
 import { PLAN_CONFIG, type PlanTier } from './src/constants/planConfig';
 import { addLocalGalleryEntry, pruneLocalGallery } from './src/services/localGallery';
-import { enforceAspectRatioDataUrl } from '@/lib/images/enforceAspectRatio';
 // PHASE 2: ProductStudio direct generation
 import { useProductStudioStore, generateProductJobs, validatePrompt } from '@/lib/productStudio';
 import { addProductWithPalette } from '@/lib/productStudio/store';
@@ -4732,9 +4731,9 @@ If the model attempts to create a scene or environment, override it and force a 
           for (const product of generationProducts) {
             // Higher-fidelity reference helps avoid warped labels/typography on the product.
             const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
-              maxLongEdge: 1536,
-              maxBase64Length: 2_400_000,
-              quality: 0.92,
+              maxLongEdge: 2048,
+              maxBase64Length: 4_000_000,
+              quality: 0.96,
             });
             requestParts.push({
               inlineData: { data: resized.base64, mimeType: resized.mimeType },
@@ -4798,14 +4797,13 @@ If the model attempts to create a scene or environment, override it and force a 
         }
 
         const finalUrl = `data:image/png;base64,${encodedImage}`;
-        const aspectCorrectedUrl = await enforceAspectRatioDataUrl(finalUrl, aspectRatio);
-        setGeneratedImageUrl(aspectCorrectedUrl);
+        setGeneratedImageUrl(finalUrl);
         setHasFirstGenerationComplete(true);  // Enable Keep Same Person toggle
         try {
           const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
           void addLocalGalleryEntry({
             userId: galleryUserId,
-            imageUrl: aspectCorrectedUrl,
+            imageUrl: finalUrl,
             createdAt: Date.now(),
             plan: planTier,
             aspectRatio,
@@ -4814,8 +4812,8 @@ If the model attempts to create a scene or environment, override it and force a 
         } catch (e) {
           console.warn('Local gallery save failed', e);
         }
-        void reportGalleryEntry(aspectCorrectedUrl);
-        runHiResPipeline(aspectCorrectedUrl);
+        void reportGalleryEntry(finalUrl);
+        runHiResPipeline(finalUrl);
         const newCount = creditUsage + creditCost;
         setCreditUsage(newCount);
         if (typeof window !== 'undefined') {
@@ -4974,9 +4972,9 @@ If the model attempts to create a scene or environment, override it and force a 
 	        const productParts: any[] = [];
 	        for (const product of generationProducts) {
           const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
-            maxLongEdge: 1536,
-            maxBase64Length: 2_400_000,
-            quality: 0.92,
+            maxLongEdge: 2048,
+            maxBase64Length: 4_000_000,
+            quality: 0.96,
           });
           productParts.push({ inlineData: { data: resized.base64, mimeType: resized.mimeType }, reference: true });
         }
@@ -5028,15 +5026,14 @@ If the model attempts to create a scene or environment, override it and force a 
         }
 
         const finalUrl = `data:image/png;base64,${encodedImage}`;
-        const aspectCorrectedUrl = await enforceAspectRatioDataUrl(finalUrl, aspectRatio);
-        lastUrl = aspectCorrectedUrl;
-        setEcommerceSlotBaseImages(prev => ({ ...prev, [slotKey]: aspectCorrectedUrl }));
-        setGeneratedImageUrl(aspectCorrectedUrl);
+        lastUrl = finalUrl;
+        setEcommerceSlotBaseImages(prev => ({ ...prev, [slotKey]: finalUrl }));
+        setGeneratedImageUrl(finalUrl);
         try {
           const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
           void addLocalGalleryEntry({
             userId: galleryUserId,
-            imageUrl: aspectCorrectedUrl,
+            imageUrl: finalUrl,
             createdAt: Date.now(),
             plan: planTier,
             aspectRatio,
@@ -5045,7 +5042,7 @@ If the model attempts to create a scene or environment, override it and force a 
         } catch (e) {
           console.warn('Local gallery save failed', e);
         }
-        void reportGalleryEntry(aspectCorrectedUrl);
+        void reportGalleryEntry(finalUrl);
       }
 
       if (lastUrl) {
@@ -5170,13 +5167,12 @@ If the model attempts to create a scene or environment, override it and force a 
 	      for (const part of responseParts) {
 	        if ('inlineData' in part && (part as any).inlineData?.data) {
 	          const editedUrl = `data:image/png;base64,${(part as any).inlineData.data}`;
-	          const aspectCorrectedUrl = await enforceAspectRatioDataUrl(editedUrl, aspectRatio);
-	          setGeneratedImageUrl(aspectCorrectedUrl);
+	          setGeneratedImageUrl(editedUrl);
 	          try {
 	            const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
 	            void addLocalGalleryEntry({
 	              userId: galleryUserId,
-	              imageUrl: aspectCorrectedUrl,
+	              imageUrl: editedUrl,
 	              createdAt: Date.now(),
 	              plan: planTier,
 	              aspectRatio,
@@ -5185,8 +5181,8 @@ If the model attempts to create a scene or environment, override it and force a 
 	          } catch (e) {
 	            console.warn('Local gallery save failed', e);
 	          }
-	          void reportGalleryEntry(aspectCorrectedUrl);
-	          runHiResPipeline(aspectCorrectedUrl);
+	          void reportGalleryEntry(editedUrl);
+	          runHiResPipeline(editedUrl);
 	          if (editOptions?.clearManual) {
 	            setEditPrompt('');
 	          }

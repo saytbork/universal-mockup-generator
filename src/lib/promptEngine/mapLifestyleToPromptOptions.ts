@@ -1272,7 +1272,7 @@ export function mapLifestyleToPromptOptions(
         mapped.placementStyle =
             'Product-forward placement: the product is the primary hero in the foreground while the environment remains visible as context.';
         mapped.productPlane =
-            'Foreground product-first placement closest to the camera lens; product and label must be tack sharp and fully readable; do not let the product fall into the background.';
+            'Foreground product-first placement closest to the camera lens; product and label must be tack sharp and fully readable; do not let the product fall into the background. Scale requirement: product must be large enough that label text reads clearly (avoid tiny product-in-frame compositions).';
     }
 
     if (!sceneState.ugcRealMode) {
