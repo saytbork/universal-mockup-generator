@@ -737,6 +737,7 @@ export function mapLifestyleToPromptOptions(
         (mapped as any).ritualHideProduct = Boolean((sceneState as any).ritualHideProduct);
         (mapped as any).ritualNoObjects = Boolean((sceneState as any).ritualNoObjects);
         (mapped as any).ritualCoupleStaging = String((sceneState as any).ritualCoupleStaging ?? '').trim() || undefined;
+        (mapped as any).ritualPosture = String((sceneState as any).ritualPosture ?? '').trim() || undefined;
         const activities = Array.isArray((sceneState as any).ritualActivities) ? (sceneState as any).ritualActivities : [];
         (mapped as any).ritualActivities = activities.filter((v: any) => typeof v === 'string' && v.trim());
         (mapped as any).ritualCustom = String((sceneState as any).ritualCustom ?? '').trim() || undefined;
@@ -745,6 +746,7 @@ export function mapLifestyleToPromptOptions(
         (mapped as any).ritualHideProduct = false;
         (mapped as any).ritualNoObjects = false;
         (mapped as any).ritualCoupleStaging = undefined;
+        (mapped as any).ritualPosture = undefined;
         (mapped as any).ritualActivities = [];
         (mapped as any).ritualCustom = undefined;
     }

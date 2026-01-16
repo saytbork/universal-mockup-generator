@@ -189,6 +189,13 @@ export class SceneNarrativeBuilder {
         const noObjects = options.ritualNoObjects === true;
         const isCouple = options.personCount === 'couple';
         const coupleStaging = String(options.ritualCoupleStaging || '').trim();
+        const posture = String(options.ritualPosture || '').trim();
+        const postureCopy =
+            posture && posture !== 'Auto'
+                ? isCouple
+                    ? `POSTURE: Both subjects are ${posture.toLowerCase()} (coordinated, not mirrored).`
+                    : `POSTURE: Subject is ${posture.toLowerCase()}.`
+                : '';
         const coupleStagingCopy = (() => {
             if (!isCouple) return '';
             switch (coupleStaging) {
@@ -274,6 +281,10 @@ export class SceneNarrativeBuilder {
                 noObjects
                     ? 'Show a sleep wind-down action: dim bedside lamp, gentle stretching; no books/devices visible.'
                     : 'Show a sleep wind-down action: dim bedside lamp, reading a book, stretching, or setting an alarm; cozy bedroom mood.',
+            'digestive relief':
+                noObjects
+                    ? 'Show a digestive relief moment: gentle belly breathing, hands resting on abdomen, slow exhale, relaxed posture; no props.'
+                    : 'Show a digestive relief moment: gentle belly breathing, hands resting on abdomen, slow exhale, relaxed posture; calm comfortable setting.',
         };
 
         const normalizedRituals = activities.map(normalize);
@@ -302,6 +313,7 @@ export class SceneNarrativeBuilder {
                 actionCopy,
                 coupleRitualCopy,
                 coupleStagingCopy,
+                postureCopy,
                 ...constraintLines,
                 'CRITICAL: No product visible anywhere in frame (no packaging, no bottles, no labels).',
                 'Focus on the environment, action, and lifestyle moment.'
@@ -314,6 +326,7 @@ export class SceneNarrativeBuilder {
             actionCopy,
             coupleRitualCopy,
             coupleStagingCopy,
+            postureCopy,
             ...constraintLines,
             'If a product appears, it must be incidental and secondary (never a hero packshot).'
         ].join(' ');
