@@ -185,10 +185,56 @@ export class SceneNarrativeBuilder {
             .filter(Boolean);
         const ritualList = all.length ? all.join(', ') : 'meditation, yoga, breathwork, or a wellness routine';
 
+        const normalize = (value: string) => value.trim().toLowerCase();
+        const actionHintsByRitual: Record<string, string> = {
+            'meditation':
+                'Show a clear meditation posture (seated cross-legged or on a chair), relaxed shoulders, eyes softly closed or half-open, hands resting on knees; include a yoga mat or cushion.',
+            'breathwork':
+                'Show an obvious breathwork action: seated posture, one hand on belly and one on chest, slow exhale, timer/phone nearby, calm focused gaze.',
+            'yoga':
+                'Show a recognizable yoga pose (sun salutation, downward dog, warrior pose) with a yoga mat clearly visible; body posture must read as actively practicing.',
+            'running':
+                'Show a running moment (mid-run on a path) or a pre/post-run action (tying running shoes, stretching calves) with athletic wear and outdoor context.',
+            'strength training':
+                'Show a clear strength training action: dumbbells/kettlebell, squat/lunge/press, or resistance bands; visible exertion and proper form.',
+            'stretching':
+                'Show a visible stretching action (hamstring stretch, quad stretch, shoulder stretch) with a mat or floor space; body position must read as actively stretching.',
+            'morning routine':
+                'Show a morning routine action: making coffee/tea, opening curtains, journaling at a table, or preparing breakfast; warm morning light and tidy setting.',
+            'journaling':
+                'Show an obvious journaling action: notebook open, pen in hand, writing mid-sentence at a table; include a drink mug and soft morning/afternoon light.',
+            'hydration / water intake':
+                'Show a hydration action: person actively drinking water or filling a glass; water bottle or glass visible; natural casual moment.',
+            'smoothie prep':
+                'Show smoothie prep action: blender on counter, ingredients visible, pouring into a glass; hands mid-action.',
+            'meal prep':
+                'Show meal prep action: chopping vegetables, assembling bowls, using cutting board; kitchen counter with ingredients in-use (tidy but active).',
+            'nature walk':
+                'Show an outdoor nature walk action: walking on a trail/park path, casual pace; environment clearly outdoors and green.',
+            'cold plunge':
+                'Show a cold plunge action: stepping into a cold tub, visible steam/cold breath, towel nearby; the action must read as cold immersion.',
+            'sauna':
+                'Show a sauna action: warm wood sauna setting, towel, subtle sweat/steam; relaxing seated posture in a sauna-like environment.',
+            'skincare routine':
+                'Show a skincare action: applying serum/cream in front of a bathroom mirror or vanity; hands touching face, towel/robe context; action must be clearly skincare.',
+            'sleep wind-down':
+                'Show a sleep wind-down action: dim bedside lamp, reading a book, stretching, or setting an alarm; cozy bedroom mood.',
+        };
+
+        const normalizedRituals = activities.map(normalize);
+        const actionHints = normalizedRituals
+            .map(key => actionHintsByRitual[key])
+            .filter(Boolean);
+
+        const actionCopy = actionHints.length
+            ? `RITUAL ACTION (must be clearly visible): ${actionHints.join(' ')}`
+            : 'RITUAL ACTION (must be clearly visible): Show a clear, recognizable wellness/lifestyle action with appropriate props and body posture (avoid generic standing portraits).';
+
         if (options.ritualHideProduct) {
             return [
                 'RITUAL MODE: Lifestyle ritual scene.',
                 `Depict a wellness ritual such as ${ritualList}.`,
+                actionCopy,
                 'CRITICAL: No product visible anywhere in frame (no packaging, no bottles, no labels).',
                 'Focus on the environment, action, and lifestyle moment.'
             ].join(' ');
@@ -197,6 +243,7 @@ export class SceneNarrativeBuilder {
         return [
             'RITUAL MODE: Lifestyle ritual scene.',
             `Depict a wellness ritual such as ${ritualList}.`,
+            actionCopy,
             'If a product appears, it must be incidental and secondary (never a hero packshot).'
         ].join(' ');
     }

@@ -15,6 +15,17 @@ export class ProductBuilder implements PromptBuilder {
             productMaterial,
         } = options;
 
+        // Ritual Mode can optionally generate product-free lifestyle images.
+        // When enabled, we must not inject any product-related copy.
+        if (options.ritualModeActive && options.ritualHideProduct) {
+            return '';
+        }
+
+        // If no product assets are present, avoid referencing an uploaded product.
+        if (!Array.isArray(productAssets) || productAssets.length === 0) {
+            return '';
+        }
+
         const isEcommerceBlankSpaceMode = options.ecommerceBlankSpaceMode;
         const isEcommerceCanvasOverlay =
             options.creationMode === 'bg-replace' && options.ecommerceSidePlacementFlag === true;
@@ -32,6 +43,10 @@ export class ProductBuilder implements PromptBuilder {
         if (isEcommerceBlankSpaceMode) {
             return prompt;
         }
+
+        // Prevent "portrait mode" blur where face is sharp but the product is not.
+        prompt +=
+            ' Focus plane must include both the product and the person’s face/hands: keep the product tack sharp and fully readable while maintaining natural overall sharpness (avoid shallow depth of field, bokeh, and portrait mode blur).';
 
         const mappedMaterial = productMaterial
             ? parameterMap.productMaterial?.[productMaterial] ?? productMaterial

@@ -5701,7 +5701,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             {/* Ritual Mode (Lifestyle-only) */}
             {!isProductMode && (
               <SmoothAccordion
-                icon={Sparkles}
+                icon={Activity}
                 title="Ritual Mode"
                 tooltip="Lifestyle rituals + optional product-free renders"
                 isOpen={openAccordionId === 'ritual'}

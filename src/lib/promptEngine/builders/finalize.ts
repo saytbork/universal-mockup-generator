@@ -6,17 +6,30 @@ import type { PromptOptions, PromptBuilder } from '../types';
 
 export class FinalizeBuilder implements PromptBuilder {
     build(options: PromptOptions): string {
+        const ritualHideProduct = options.ritualModeActive && options.ritualHideProduct === true;
+
         const lines: string[] = [
             'Final render must be high resolution, photorealistic and free of watermarks or text.',
             'No text, no logos, no watermarks.',
             'No CGI look or plastic skin.',
             'No distorted hands, fingers or wrists.',
             'No floating limbs.',
-            'No invented labels or product redesign.',
-            'No hallucinated packaging.',
-            'Product geometry, material and label must remain exact.',
-            'Never let the product be out of focus: no blurry product, no soft focus on the product, and no depth-of-field that blurs the label.'
         ];
+
+        if (ritualHideProduct) {
+            lines.push(
+                'CRITICAL: No product visible anywhere in frame (no packaging, no bottles, no jars, no labels, no supplement containers).',
+                'Do not include any brand packaging, product hero, or close-up packshot.',
+                'Make the ritual action clearly visible and central.'
+            );
+        } else {
+            lines.push(
+                'No invented labels or product redesign.',
+                'No hallucinated packaging.',
+                'Product geometry, material and label must remain exact.',
+                'Never let the product be out of focus: no blurry product, no soft focus on the product, and no depth-of-field that blurs the label.'
+            );
+        }
 
         const intent = options.creationIntent || 'ugc';
 
