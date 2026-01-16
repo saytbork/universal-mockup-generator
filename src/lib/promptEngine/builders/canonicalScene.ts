@@ -187,6 +187,30 @@ export class SceneNarrativeBuilder {
 
         const normalize = (value: string) => value.trim().toLowerCase();
         const noObjects = options.ritualNoObjects === true;
+        const isCouple = options.personCount === 'couple';
+        const coupleStaging = String(options.ritualCoupleStaging || '').trim();
+        const coupleStagingCopy = (() => {
+            if (!isCouple) return '';
+            switch (coupleStaging) {
+                case 'Together (one behind the other)':
+                    return 'COUPLE STAGING: Together with one person slightly behind the other (stacked depth), both clearly visible.';
+                case 'Facing each other':
+                    return 'COUPLE STAGING: Facing each other, interacting naturally while performing the ritual.';
+                case 'Separated (different areas)':
+                    return 'COUPLE STAGING: Separated within the same environment (different areas), both performing the ritual simultaneously; keep both clearly visible.';
+                case 'Together (side-by-side)':
+                default:
+                    return 'COUPLE STAGING: Together side-by-side, both clearly visible.';
+            }
+        })();
+
+        const coupleRitualCopy = isCouple
+            ? [
+                'COUPLE RITUAL: Both subjects must be actively performing the ritual.',
+                'They should be coordinated and similar (same ritual theme), but not identical: vary micro-poses, timing, gaze, or hand placement so it feels natural and not mirrored.',
+                'Both actions must be readable in-frame at the same time.'
+            ].join(' ')
+            : '';
         const actionHintsByRitual: Record<string, string> = {
             'meditation':
                 noObjects
@@ -276,6 +300,8 @@ export class SceneNarrativeBuilder {
                 'RITUAL MODE: Lifestyle ritual scene.',
                 `Depict a wellness ritual such as ${ritualList}.`,
                 actionCopy,
+                coupleRitualCopy,
+                coupleStagingCopy,
                 ...constraintLines,
                 'CRITICAL: No product visible anywhere in frame (no packaging, no bottles, no labels).',
                 'Focus on the environment, action, and lifestyle moment.'
@@ -286,6 +312,8 @@ export class SceneNarrativeBuilder {
             'RITUAL MODE: Lifestyle ritual scene.',
             `Depict a wellness ritual such as ${ritualList}.`,
             actionCopy,
+            coupleRitualCopy,
+            coupleStagingCopy,
             ...constraintLines,
             'If a product appears, it must be incidental and secondary (never a hero packshot).'
         ].join(' ');

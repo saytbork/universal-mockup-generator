@@ -223,6 +223,7 @@ export interface Step3Values {
   ritualModeEnabled: boolean;
   ritualHideProduct: boolean;
   ritualNoObjects: boolean;
+  ritualCoupleStaging: string;
   ritualActivities: string[];
   ritualCustom: string;
 
@@ -543,6 +544,13 @@ const RITUAL_ACTIVITY_OPTIONS = [
   'Sauna',
   'Skincare routine',
   'Sleep wind-down',
+];
+
+const RITUAL_COUPLE_STAGING_OPTIONS = [
+  'Together (side-by-side)',
+  'Together (one behind the other)',
+  'Facing each other',
+  'Separated (different areas)',
 ];
 
 type UGCLayerField =
@@ -898,6 +906,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     ritualModeEnabled: false,
     ritualHideProduct: false,
     ritualNoObjects: false,
+    ritualCoupleStaging: 'Together (side-by-side)',
     ritualActivities: [],
     ritualCustom: '',
 
@@ -5726,6 +5735,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         if (!next) {
                           updateValue('ritualHideProduct', false);
                           updateValue('ritualNoObjects', false);
+                          updateValue('ritualCoupleStaging', 'Together (side-by-side)');
                           updateValue('ritualActivities', []);
                           updateValue('ritualCustom', '');
                         }
@@ -5769,6 +5779,28 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           />
                         </div>
                       </div>
+
+                      {values.personCount === 'couple' && (
+                        <div className={SECTION_GROUP_CLASS}>
+                          <p className={GROUP_LABEL_CLASS}>COUPLE STAGING</p>
+                          <p className="text-[11px] text-gray-500">How the couple is positioned in the frame.</p>
+                          <div className="flex flex-wrap gap-2">
+                            {RITUAL_COUPLE_STAGING_OPTIONS.map(option => (
+                              <button
+                                key={option}
+                                type="button"
+                                onClick={() => {
+                                  updateValue('ritualCoupleStaging', option);
+                                  markSectionTouched('ritual');
+                                }}
+                                className={getPillClass(values.ritualCoupleStaging === option)}
+                              >
+                                {option}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
                       <div className={SECTION_GROUP_CLASS}>
                         <p className={GROUP_LABEL_CLASS}>RITUAL ACTIVITIES</p>

@@ -234,6 +234,7 @@ export interface PromptOptions {
     ritualModeActive?: boolean;
     ritualHideProduct?: boolean;
     ritualNoObjects?: boolean;
+    ritualCoupleStaging?: string;
     ritualActivities?: string[];
     ritualCustom?: string;
 
