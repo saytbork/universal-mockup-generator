@@ -5,7 +5,44 @@
 import type { SceneType } from '../sceneTypes';
 import { getNegativePromptAdditions } from '../sceneTypeRules';
 
-const BASE_NEGATIVE = ['deformed hands', 'extra fingers', 'missing fingers', 'distorted limbs', 'extra limbs', 'mutated anatomy', 'mangled hands', 'blurry face', 'distorted face', 'asymmetric face', 'doll-like face', 'warped product', 'deformed bottle', 'incorrect label', 'fake reflections', 'warped text', 'blurry label', 'ai-generated label', 'incorrect logo', 'watermark', 'signature', 'caption', 'ai artifacts', 'floating objects', 'duplicate objects', 'cartoon style', '3d render'];
+const BASE_NEGATIVE = [
+    'deformed hands',
+    'extra fingers',
+    'missing fingers',
+    'distorted limbs',
+    'extra limbs',
+    'mutated anatomy',
+    'mangled hands',
+    'blurry face',
+    'distorted face',
+    'asymmetric face',
+    'doll-like face',
+    'warped product',
+    'deformed bottle',
+    'incorrect label',
+    'fake reflections',
+    'warped text',
+    'blurry label',
+    'ai-generated label',
+    'incorrect logo',
+    'watermark',
+    'signature',
+    'caption',
+    'ai artifacts',
+    'floating objects',
+    'duplicate objects',
+    'cartoon style',
+    '3d render',
+    // Focus/optics guardrails (product must not go soft/defocused).
+    'portrait mode',
+    'bokeh',
+    'shallow depth of field',
+    'background blur',
+    'lens blur',
+    'defocused product',
+    'out of focus product',
+    'blurry product',
+];
 
 const SCENE_NEGATIVE: Record<SceneType, string[]> = {
     studio_packshot: ['hands', 'humans', 'person', 'environment', 'lifestyle', 'phone camera', 'amateur', 'cluttered', 'busy background'],

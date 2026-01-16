@@ -486,9 +486,9 @@ const WARDROBE_SEMANTIC_MAP: Record<string, string> = {
  * PRODUCT INTERACTION → Physical hand and body relationship to product
  */
 const INTERACTION_SEMANTIC_MAP: Record<string, string> = {
-    'Holding': 'hands naturally gripping product with relaxed fingers, product stable in palm or between hands',
-    'Using': 'hands actively using product in natural application, demonstrating real product function',
-    'Presenting': 'product extended toward camera with natural wrist motion, label visible without forced styling',
+    'Holding': 'hands naturally holding the product in the FOREGROUND, closer to the camera lens than the face. Product is the primary subject; label faces camera and stays fully readable. Do not place the product behind the person.',
+    'Using': 'hands actively using the product while keeping the product in the FOREGROUND and fully readable. Product remains the primary subject; no blur or defocus on the product/label.',
+    'Presenting': 'product extended toward camera with natural wrist motion, held closest to lens. Product is the primary subject; label faces camera and stays fully readable without forced styling.',
     'Unboxing / Open Box': 'hands opening packaging or revealing the product inside with natural curiosity',
     'Showing to Camera': 'product held outward toward camera lens, hand angled to display product label or design',
     'Unboxing': 'hands in process of opening product packaging, revealing contents with natural excitement',
@@ -730,6 +730,9 @@ export function mapLifestyleToPromptOptions(
         identitySeed,
         ugcStyle: existingOptions.ugcStyle ?? 'optimized'
     };
+    const hasUploadedProductAsset = (existingOptions.productAssets?.length ?? 0) > 0;
+    const ritualHideProductRequested =
+        (sceneState as any).ritualModeEnabled === true && Boolean((sceneState as any).ritualHideProduct);
 
     // Ritual Mode (Lifestyle-only)
     if ((sceneState as any).ritualModeEnabled === true) {
@@ -1170,8 +1173,12 @@ export function mapLifestyleToPromptOptions(
     const normalizedPoseKey = normalizeKey(sceneState.pose);
     const foregroundProductFocusRequested =
         !sceneState.ugcRealMode &&
+        hasUploadedProductAsset &&
+        !ritualHideProductRequested &&
         isEnvironmentSceneIntent &&
-        (productInteractionLabel === 'Presenting' || normalizedPoseKey === 'offer-to-lens-reach');
+        (productInteractionLabel === 'Presenting' ||
+            productInteractionLabel === 'Holding' ||
+            normalizedPoseKey === 'offer-to-lens-reach');
     const captureBaseSelection = normalizedCaptureBase[0];
     const operatorSelection = normalizedCameraOperator[0];
     const hasProppedSurface = captureBaseSelection === PROPPED_SURFACE_ID;
