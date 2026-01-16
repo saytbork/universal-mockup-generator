@@ -735,12 +735,14 @@ export function mapLifestyleToPromptOptions(
     if ((sceneState as any).ritualModeEnabled === true) {
         (mapped as any).ritualModeActive = true;
         (mapped as any).ritualHideProduct = Boolean((sceneState as any).ritualHideProduct);
+        (mapped as any).ritualNoObjects = Boolean((sceneState as any).ritualNoObjects);
         const activities = Array.isArray((sceneState as any).ritualActivities) ? (sceneState as any).ritualActivities : [];
         (mapped as any).ritualActivities = activities.filter((v: any) => typeof v === 'string' && v.trim());
         (mapped as any).ritualCustom = String((sceneState as any).ritualCustom ?? '').trim() || undefined;
     } else {
         (mapped as any).ritualModeActive = false;
         (mapped as any).ritualHideProduct = false;
+        (mapped as any).ritualNoObjects = false;
         (mapped as any).ritualActivities = [];
         (mapped as any).ritualCustom = undefined;
     }

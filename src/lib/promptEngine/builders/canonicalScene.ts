@@ -186,39 +186,70 @@ export class SceneNarrativeBuilder {
         const ritualList = all.length ? all.join(', ') : 'meditation, yoga, breathwork, or a wellness routine';
 
         const normalize = (value: string) => value.trim().toLowerCase();
+        const noObjects = options.ritualNoObjects === true;
         const actionHintsByRitual: Record<string, string> = {
             'meditation':
-                'Show a clear meditation posture (seated cross-legged or on a chair), relaxed shoulders, eyes softly closed or half-open, hands resting on knees; include a yoga mat or cushion.',
+                noObjects
+                    ? 'Show a clear meditation posture (seated cross-legged or on a chair), relaxed shoulders, hands resting on knees; empty hands, no props.'
+                    : 'Show a clear meditation posture (seated cross-legged or on a chair), relaxed shoulders, hands resting on knees; keep the setting minimal and calm.',
             'breathwork':
-                'Show an obvious breathwork action: seated posture, one hand on belly and one on chest, slow exhale, timer/phone nearby, calm focused gaze.',
+                noObjects
+                    ? 'Show an obvious breathwork action: seated posture, one hand on belly and one on chest, slow exhale; no props, empty hands.'
+                    : 'Show an obvious breathwork action: seated posture, one hand on belly and one on chest, slow exhale, calm focused breathing.',
             'yoga':
-                'Show a recognizable yoga pose (sun salutation, downward dog, warrior pose) with a yoga mat clearly visible; body posture must read as actively practicing.',
+                noObjects
+                    ? 'Show a recognizable yoga pose (sun salutation, downward dog, warrior pose); body posture must read as actively practicing; no props.'
+                    : 'Show a recognizable yoga pose (sun salutation, downward dog, warrior pose); body posture must read as actively practicing.',
             'running':
-                'Show a running moment (mid-run on a path) or a pre/post-run action (tying running shoes, stretching calves) with athletic wear and outdoor context.',
+                noObjects
+                    ? 'Show a running moment (mid-run on a path) with athletic wear and outdoor context; no handheld items.'
+                    : 'Show a running moment (mid-run on a path) or a pre/post-run action (tying running shoes, stretching calves) with athletic wear and outdoor context.',
             'strength training':
-                'Show a clear strength training action: dumbbells/kettlebell, squat/lunge/press, or resistance bands; visible exertion and proper form.',
+                noObjects
+                    ? 'Show a clear strength training action using bodyweight only (squats, lunges, push-ups) with visible exertion and proper form; no equipment.'
+                    : 'Show a clear strength training action: dumbbells/kettlebell, squat/lunge/press, or resistance bands; visible exertion and proper form.',
             'stretching':
-                'Show a visible stretching action (hamstring stretch, quad stretch, shoulder stretch) with a mat or floor space; body position must read as actively stretching.',
+                noObjects
+                    ? 'Show a visible stretching action (hamstring stretch, quad stretch, shoulder stretch); body position must read as actively stretching; no props.'
+                    : 'Show a visible stretching action (hamstring stretch, quad stretch, shoulder stretch); body position must read as actively stretching.',
             'morning routine':
-                'Show a morning routine action: making coffee/tea, opening curtains, journaling at a table, or preparing breakfast; warm morning light and tidy setting.',
+                noObjects
+                    ? 'Show a morning routine action without props: opening curtains, stretching, or preparing to leave the house; warm morning light; no items in hands.'
+                    : 'Show a morning routine action: making coffee/tea, opening curtains, journaling at a table, or preparing breakfast; warm morning light and tidy setting.',
             'journaling':
-                'Show an obvious journaling action: notebook open, pen in hand, writing mid-sentence at a table; include a drink mug and soft morning/afternoon light.',
+                noObjects
+                    ? 'Show a reflective journaling moment without props: seated posture, thoughtful pause, hands relaxed; no notebook/pen.'
+                    : 'Show an obvious journaling action: notebook open, pen in hand, writing mid-sentence at a table; soft morning/afternoon light.',
             'hydration / water intake':
-                'Show a hydration action: person actively drinking water or filling a glass; water bottle or glass visible; natural casual moment.',
+                noObjects
+                    ? 'Show a hydration-focused lifestyle moment without props: post-workout breathing and reset; no bottles or cups.'
+                    : 'Show a hydration action: person actively drinking water or filling a glass; natural casual moment.',
             'smoothie prep':
-                'Show smoothie prep action: blender on counter, ingredients visible, pouring into a glass; hands mid-action.',
+                noObjects
+                    ? 'Show a wellness kitchen moment without props: moving through the kitchen, preparing for a routine; no blender, no food items.'
+                    : 'Show smoothie prep action: blender on counter, ingredients visible, pouring into a glass; hands mid-action.',
             'meal prep':
-                'Show meal prep action: chopping vegetables, assembling bowls, using cutting board; kitchen counter with ingredients in-use (tidy but active).',
+                noObjects
+                    ? 'Show a wellness kitchen routine without props: moving through a tidy kitchen, setting intentions; no food items, no tools.'
+                    : 'Show meal prep action: chopping vegetables, assembling bowls, using cutting board; kitchen counter with ingredients in-use (tidy but active).',
             'nature walk':
-                'Show an outdoor nature walk action: walking on a trail/park path, casual pace; environment clearly outdoors and green.',
+                'Show an outdoor nature walk action: walking on a trail/park path, casual pace; environment clearly outdoors and green; no handheld items.',
             'cold plunge':
-                'Show a cold plunge action: stepping into a cold tub, visible steam/cold breath, towel nearby; the action must read as cold immersion.',
+                noObjects
+                    ? 'Show a cold plunge action: stepping into a cold tub, visible cold breath; no props.'
+                    : 'Show a cold plunge action: stepping into a cold tub, visible cold breath; the action must read as cold immersion.',
             'sauna':
-                'Show a sauna action: warm wood sauna setting, towel, subtle sweat/steam; relaxing seated posture in a sauna-like environment.',
+                noObjects
+                    ? 'Show a sauna action: warm wood sauna setting, subtle sweat/steam; relaxing seated posture; no props.'
+                    : 'Show a sauna action: warm wood sauna setting, subtle sweat/steam; relaxing seated posture in a sauna-like environment.',
             'skincare routine':
-                'Show a skincare action: applying serum/cream in front of a bathroom mirror or vanity; hands touching face, towel/robe context; action must be clearly skincare.',
+                noObjects
+                    ? 'Show a skincare-style self-care moment without products: gentle face massage at a mirror; no bottles, no jars.'
+                    : 'Show a skincare action: applying a simple routine in front of a bathroom mirror or vanity; hands touching face; action must be clearly skincare.',
             'sleep wind-down':
-                'Show a sleep wind-down action: dim bedside lamp, reading a book, stretching, or setting an alarm; cozy bedroom mood.',
+                noObjects
+                    ? 'Show a sleep wind-down action: dim bedside lamp, gentle stretching; no books/devices visible.'
+                    : 'Show a sleep wind-down action: dim bedside lamp, reading a book, stretching, or setting an alarm; cozy bedroom mood.',
         };
 
         const normalizedRituals = activities.map(normalize);
@@ -230,11 +261,22 @@ export class SceneNarrativeBuilder {
             ? `RITUAL ACTION (must be clearly visible): ${actionHints.join(' ')}`
             : 'RITUAL ACTION (must be clearly visible): Show a clear, recognizable wellness/lifestyle action with appropriate props and body posture (avoid generic standing portraits).';
 
+        const constraintLines: string[] = [
+            'Ritual must respect selected facial expression and eye direction settings.',
+        ];
+        if (noObjects) {
+            constraintLines.push(
+                'CRITICAL: No props or objects in frame. No handheld items. No food, drinks, bottles, cups, books, phones, tools, equipment, candles, plants, appliances, or accessories.',
+                'Only people and the environment/architecture. Empty hands.'
+            );
+        }
+
         if (options.ritualHideProduct) {
             return [
                 'RITUAL MODE: Lifestyle ritual scene.',
                 `Depict a wellness ritual such as ${ritualList}.`,
                 actionCopy,
+                ...constraintLines,
                 'CRITICAL: No product visible anywhere in frame (no packaging, no bottles, no labels).',
                 'Focus on the environment, action, and lifestyle moment.'
             ].join(' ');
@@ -244,6 +286,7 @@ export class SceneNarrativeBuilder {
             'RITUAL MODE: Lifestyle ritual scene.',
             `Depict a wellness ritual such as ${ritualList}.`,
             actionCopy,
+            ...constraintLines,
             'If a product appears, it must be incidental and secondary (never a hero packshot).'
         ].join(' ');
     }

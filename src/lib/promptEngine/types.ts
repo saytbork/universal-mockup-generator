@@ -233,6 +233,7 @@ export interface PromptOptions {
     // Ritual Mode (Lifestyle-only)
     ritualModeActive?: boolean;
     ritualHideProduct?: boolean;
+    ritualNoObjects?: boolean;
     ritualActivities?: string[];
     ritualCustom?: string;
 

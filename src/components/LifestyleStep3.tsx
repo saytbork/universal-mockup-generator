@@ -222,6 +222,7 @@ export interface Step3Values {
   // Ritual Mode (Lifestyle-only)
   ritualModeEnabled: boolean;
   ritualHideProduct: boolean;
+  ritualNoObjects: boolean;
   ritualActivities: string[];
   ritualCustom: string;
 
@@ -896,6 +897,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     // Ritual Mode
     ritualModeEnabled: false,
     ritualHideProduct: false,
+    ritualNoObjects: false,
     ritualActivities: [],
     ritualCustom: '',
 
@@ -5723,6 +5725,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         updateValue('ritualModeEnabled', next);
                         if (!next) {
                           updateValue('ritualHideProduct', false);
+                          updateValue('ritualNoObjects', false);
                           updateValue('ritualActivities', []);
                           updateValue('ritualCustom', '');
                         }
@@ -5744,6 +5747,23 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             aria-label="Hide product in Ritual Mode"
                             onCheckedChange={(next) => {
                               updateValue('ritualHideProduct', next);
+                              markSectionTouched('ritual');
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="rounded-2xl border border-gray-200 bg-white p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-[11px] uppercase tracking-wider text-gray-500">No objects (people + environment only)</p>
+                            <p className="text-[11px] text-gray-500">Avoid props and handheld items; focus on people and the environment.</p>
+                          </div>
+                          <Toggle
+                            checked={values.ritualNoObjects}
+                            aria-label="Disable objects in Ritual Mode"
+                            onCheckedChange={(next) => {
+                              updateValue('ritualNoObjects', next);
                               markSectionTouched('ritual');
                             }}
                           />
