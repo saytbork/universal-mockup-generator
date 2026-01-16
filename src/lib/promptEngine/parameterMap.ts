@@ -138,7 +138,7 @@ export const parameterMap: ParameterMap = {
 
   cameraType: {
     "Intentional smartphone camera": "captured with a modern smartphone camera for deliberate framing, stabilized handheld realism, and subtle computational processing",
-    "DSLR / mirrorless camera": "captured with a professional DSLR or mirrorless camera using high-quality optics and shallow depth of field",
+    "DSLR / mirrorless camera": "captured with a professional DSLR or mirrorless camera using high-quality optics, deep depth of field (f/8–f/11), and crisp detail",
     "Cinema camera rig": "captured on a cinema camera rig with smooth motion, filmic color science, and controlled dynamic range",
     "Medium format studio camera": "captured on a medium-format studio system with tethered capture for ultra-sharp commercial detail",
     "Laptop webcam (pro setup)": "captured through a laptop webcam in an intentional professional context such as a remote consultation"

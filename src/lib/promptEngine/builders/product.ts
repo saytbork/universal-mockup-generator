@@ -44,9 +44,9 @@ export class ProductBuilder implements PromptBuilder {
             return prompt;
         }
 
-        // Prevent "portrait mode" blur where face is sharp but the product is not.
+        // Product-first optics lock: the product must never be the blurred element.
         prompt +=
-            ' Focus plane must include both the product and the person’s face/hands: keep the product tack sharp and fully readable while maintaining natural overall sharpness (avoid shallow depth of field, bokeh, and portrait mode blur).';
+            ' FOCUS PRIORITY: lock focus on the product. The product must be the sharpest object in the frame and the label must be fully readable. Use deep depth of field (f/8–f/11) or focus stacking. Absolutely no portrait mode, bokeh, or shallow depth-of-field that blurs the product (if anything is softer, it must be the background or the face—not the product).';
 
         const mappedMaterial = productMaterial
             ? parameterMap.productMaterial?.[productMaterial] ?? productMaterial

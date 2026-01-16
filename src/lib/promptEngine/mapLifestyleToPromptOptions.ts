@@ -377,7 +377,7 @@ const buildFormulationStoryOptions = (sceneState: Step3Values): FormulationStory
  */
 const CAMERA_DEVICE_SEMANTIC_MAP: Record<string, string> = {
     'Intentional smartphone camera': 'captured with a modern smartphone camera, stabilized grip, intentional framing, no selfie distortion',
-    'DSLR / mirrorless camera': 'captured with a professional DSLR or mirrorless camera using premium glass, shallow depth of field, and crisp subject separation',
+    'DSLR / mirrorless camera': 'captured with a professional DSLR or mirrorless camera using premium glass, deep depth of field (f/8–f/11), and crisp detail',
     'Cinema camera rig': 'captured on a cinema camera with controlled rigs, smooth motion, and filmic dynamic range',
     'Medium format studio camera': 'captured on a medium-format studio system with tethered capture for ultra-sharp detail and tonal accuracy',
     'Laptop webcam (pro setup)': 'captured through a laptop webcam in a professional setting, flat lighting, slight compression, intentional composition'

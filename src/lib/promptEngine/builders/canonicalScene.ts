@@ -341,6 +341,7 @@ export class SceneNarrativeBuilder {
             camera: options.camera,
             cameraType: (options as any).cameraType,
             placementCamera: (options as any).placementCamera,
+            productAssets: options.productAssets,
             ugcMode:
                 options.contentStyle === 'ugc' ||
                 options.creationIntent === 'ugc' ||

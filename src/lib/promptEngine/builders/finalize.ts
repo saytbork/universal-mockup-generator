@@ -27,6 +27,7 @@ export class FinalizeBuilder implements PromptBuilder {
                 'No invented labels or product redesign.',
                 'No hallucinated packaging.',
                 'Product geometry, material and label must remain exact.',
+                'OPTICS LOCK: The product must be tack sharp and the sharpest object in the frame. Use deep depth of field (f/8–f/11) or focus stacking; absolutely no portrait mode, bokeh, or shallow depth-of-field that blurs the product or label.',
                 'Never let the product be out of focus: no blurry product, no soft focus on the product, and no depth-of-field that blurs the label.'
             );
         }
