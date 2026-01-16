@@ -34,6 +34,7 @@ export class ConstraintsBuilder implements PromptBuilder {
             'Preserve the exact uploaded product shape, proportions, colors, label layout, text and typography.',
             'Do not modify branding. Do not rotate or mirror the product.',
             'The uploaded image is the ground truth reference.',
+            'CONTACT REALISM: If the product is held, it must be physically integrated with correct occlusion at fingers/palm and realistic contact shadows. Never look pasted, cut out, or sticker-like.',
             'Only enhance lighting, background softness and lifestyle realism.',
             'Do not invent new humans, products, text or environments.',
         ].join(' ');

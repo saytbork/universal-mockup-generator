@@ -145,6 +145,8 @@ export class ProductBuilder implements PromptBuilder {
       - match color temperature and contrast,
       - generate accurate shadow casting under the jar/bottle,
       - apply micro-occlusion where the hand touches the product,
+      - HAND CONTACT INTEGRATION: fingers must wrap around the product with realistic grip pressure; subtle skin compression; correct occlusion where fingers overlap the product; realistic contact shadows from fingers onto the product surface,
+      - EDGE INTEGRATION: no cutout/halo edges, no sticker-like overlay, no pasted look; match grain/sharpness/noise between product and hand,
       - generate correct reflections on glass, plastic, or metal,
       - preserve the exact design, size, colors, and branding of the uploaded product.
     `.trim().replace(/\s+/g, ' ');

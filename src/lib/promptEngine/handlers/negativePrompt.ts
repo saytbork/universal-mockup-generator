@@ -42,6 +42,14 @@ const BASE_NEGATIVE = [
     'defocused product',
     'out of focus product',
     'blurry product',
+    // Anti-composite / anti-paste failures.
+    'pasted',
+    'sticker',
+    'cutout',
+    'halo',
+    'poor occlusion',
+    'no contact shadow',
+    'floating product',
 ];
 
 const SCENE_NEGATIVE: Record<SceneType, string[]> = {
