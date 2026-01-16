@@ -50,6 +50,8 @@ const BASE_NEGATIVE = [
     'poor occlusion',
     'no contact shadow',
     'floating product',
+    'product in background',
+    'tiny product',
 ];
 
 const SCENE_NEGATIVE: Record<SceneType, string[]> = {

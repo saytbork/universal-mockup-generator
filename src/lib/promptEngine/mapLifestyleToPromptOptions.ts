@@ -1268,11 +1268,11 @@ export function mapLifestyleToPromptOptions(
 
     // For environment-first scenes, the default is mid-ground contextual placement.
     // However, if the user is explicitly presenting the product toward camera, force product-forward framing.
-    if (foregroundProductFocusRequested) {
+    if (foregroundProductFocusRequested || (hasUploadedProductAsset && !ritualHideProductRequested)) {
         mapped.placementStyle =
             'Product-forward placement: the product is the primary hero in the foreground while the environment remains visible as context.';
         mapped.productPlane =
-            'Foreground product-first placement closest to the camera lens; product and label must be tack sharp and fully readable; do not let the product fall into the background. Scale requirement: product must be large enough that label text reads clearly (avoid tiny product-in-frame compositions).';
+            'Foreground product-first placement closest to the camera lens; product and label must be tack sharp and fully readable; do not let the product fall into the background. Scale requirement: product must be large enough that label text reads clearly (avoid tiny product-in-frame compositions). The product sits closer to the camera than the face; the face must not obscure or dominate the product.';
     }
 
     if (!sceneState.ugcRealMode) {

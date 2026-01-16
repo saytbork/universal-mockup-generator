@@ -49,6 +49,8 @@ export class ProductBuilder implements PromptBuilder {
             ' FOCUS PRIORITY: lock focus on the product. The product must be the sharpest object in the frame and the label must be fully readable. Use deep depth of field (f/8–f/11) or focus stacking. Absolutely no portrait mode, bokeh, or shallow depth-of-field that blurs the product (if anything is softer, it must be the background or the face—not the product).';
         prompt +=
             ' SCALE RULE: Keep the product large enough that the label text is readable at a glance. Do not make the product small in the frame; avoid full-body-wide shots that shrink the product.';
+        prompt +=
+            ' PLACEMENT RULE: Product must be physically closer to the camera than the face/body. Do not place the product behind the person. The face must not occlude the product.';
 
         const mappedMaterial = productMaterial
             ? parameterMap.productMaterial?.[productMaterial] ?? productMaterial
