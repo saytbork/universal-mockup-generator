@@ -607,6 +607,11 @@ function buildPhotoMode(state: ProductStudioState): string {
 }
 
 function buildBackground(state: ProductStudioState): string {
+    // Photo-mode hard rule: Clear means absolute pure white.
+    if (state.photoMode === 'Clear') {
+        return 'BACKGROUND: Pure solid white #FFFFFF seamless studio backdrop. Absolutely no tint, no beige/green cast, no gradient.';
+    }
+
     // Real environments: avoid "studio background" contradictions.
     if (state.sceneType === 'lifestyle-real' || state.sceneType === 'ugc-phone') {
         const bg = normalizeHexOrEmpty(state.backgroundColor);
@@ -628,19 +633,17 @@ function buildBackground(state: ProductStudioState): string {
     }
 
     // 1. Explicit Hex/Custom Background (Prioritized)
-    {
-        const color = normalizeHexOrEmpty(state.backgroundColor);
-        const isDefaultWhite = !!color && color.toLowerCase() === '#ffffff';
-        if (isDefaultWhite) {
-            return 'BACKGROUND: Pure solid white #FFFFFF seamless studio backdrop. Absolutely no tint, no beige/green cast, no gradient.';
-        }
-        if (color) {
-            return `BACKGROUND: Clean seamless studio backdrop in ${safeHexToColorName(color)} tone.`;
-        }
-    }
+    // 1. Explicit background color only when user chose a non-white, or explicitly locked to white.
+    // If the user never touched background and it remains default white, defer to PHOTO_MODE styling.
+    const color = normalizeHexOrEmpty(state.backgroundColor);
+    if (!color) return '';
 
-    // 2. Fallback to generic if no hex
-    return 'BACKGROUND: Pure solid white #FFFFFF seamless studio backdrop. Absolutely no tint, no beige/green cast, no gradient.';
+    const isWhite = color.toLowerCase() === '#ffffff';
+    if (isWhite && !state.colorLocks?.background) return '';
+    if (isWhite) {
+        return 'BACKGROUND: Pure solid white #FFFFFF seamless studio backdrop. Absolutely no tint, no beige/green cast, no gradient.';
+    }
+    return `BACKGROUND: Clean seamless studio backdrop in ${safeHexToColorName(color)} tone.`;
 }
 
 function buildShadow(state: ProductStudioState): string {

@@ -1107,6 +1107,9 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setPhotoMode: (mode) =>
         set((state) => {
             const nextMode = String(mode ?? '');
+            const active = state.products.find(p => p.id === state.activeProductId) ?? state.products[0];
+            const palette = active?.palette;
+
             // "Clear" means: pure white, no set dressing, no creative styling blocks.
             if (nextMode === 'Clear') {
                 return {
@@ -1122,7 +1125,42 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     colorLocks: { ...state.colorLocks, background: true },
                 };
             }
-            return { photoMode: nextMode };
+
+            const next: Partial<ProductStudioState> = { photoMode: nextMode };
+
+            // Photo-mode defaults (only when user hasn't explicitly locked those colors).
+            // These defaults are meant to *support* the look, but remain editable.
+            const canSetBg = !state.colorLocks.background;
+            const canSetAccent = !state.colorLocks.accent;
+            const canSetG1 = !state.colorLocks.gradientStart;
+            const canSetG2 = !state.colorLocks.gradientEnd;
+
+            const dominant = palette?.dominant;
+            const secondary = palette?.secondary;
+
+            const isGradientMode = [
+                'Candy Gradient Lab',
+                'Sunrise Wellness Counter',
+                'Golden Mist Aura',
+                'Pastel Picnic',
+                'Outdoor Energy Boost',
+            ].includes(nextMode);
+
+            if (isGradientMode) {
+                next.gradientEnabled = true;
+                if (canSetG1 && dominant) next.gradientStart = dominant;
+                if (canSetG2 && secondary) next.gradientEnd = secondary;
+            }
+
+            const isColorPop = nextMode === 'Color Pop Hero';
+            if (isColorPop) {
+                next.gradientEnabled = false;
+                if (canSetBg && dominant) next.backgroundColor = dominant;
+                if (canSetAccent && secondary) next.accentColor = secondary;
+            }
+
+            // Keep other modes neutral by default (no forced white injection).
+            return next;
         }),
     setBackgroundColor: (color) =>
         set((state) => ({
