@@ -603,7 +603,10 @@ function buildSceneType(state: ProductStudioState): string {
 function buildPhotoMode(state: ProductStudioState): string {
     if (!state.photoMode) return '';
     const preset = PHOTO_MODE_PRESETS[state.photoMode];
-    return preset ? `PHOTO_MODE: ${preset}` : `PHOTO_MODE: ${state.photoMode}`;
+    if (preset) {
+        return `PHOTO_MODE (NON-NEGOTIABLE): ${state.photoMode}. ${preset}`;
+    }
+    return `PHOTO_MODE (NON-NEGOTIABLE): ${state.photoMode}.`;
 }
 
 function buildBackground(state: ProductStudioState): string {

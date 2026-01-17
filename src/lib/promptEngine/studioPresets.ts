@@ -458,7 +458,7 @@ export function buildStudioPrompt(options: StudioPromptOptions): string {
     // PHOTO MODE
     // =========================================================================
     if (options.photoMode && PHOTO_MODE_PRESETS[options.photoMode]) {
-        parts.push(`PHOTO_MODE: ${PHOTO_MODE_PRESETS[options.photoMode]}`);
+        parts.push(`PHOTO_MODE (NON-NEGOTIABLE): ${options.photoMode}. ${PHOTO_MODE_PRESETS[options.photoMode]}`);
     }
 
     // =========================================================================
