@@ -60,7 +60,11 @@ export class ProductBuilder implements PromptBuilder {
               : this.buildProductInsertion();
 
         if (effectiveHeightNotes) {
-            prompt += ` Respect real-world scale: ${effectiveHeightNotes}. Adjust camera distance so the item visually matches that measurement.`;
+            prompt += ` Respect real-world scale: ${effectiveHeightNotes}.`;
+            prompt +=
+                ' SCALE LOCK (CRITICAL): Enforce believable hand-to-product proportions. If the product is held, it must fit naturally in adult hands with realistic grip and finger wrap; do not scale it into an oversized jar or giant hero prop.';
+            prompt +=
+                ' If scale conflicts arise, prioritize the numeric real-world measurement over stylistic composition. Adjust camera distance and framing instead of enlarging the product beyond plausible real-world size.';
         }
 
         if (isEcommerceBlankSpaceMode) {
