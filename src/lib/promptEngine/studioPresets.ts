@@ -19,23 +19,23 @@ Clean geometry. Premium commercial quality. High clarity. Sharp focus.
 // PHOTO / COMPOSITION MODE PRESETS
 // =============================================================================
 export const PHOTO_MODE_PRESETS: Record<string, string> = {
-    'Clear': `Pure white #FFFFFF background. No set dressing, no props, no gradients, no textures. Clean clinical studio composition. Product only.`,
-    'Color Pop Hero': `High-impact hero composition with strong contrast and bold color emphasis.`,
-    'Ingredient Stack': `Ingredients or material elements arranged around the product in a clean, controlled layout. No environment context.`,
-    'Acrylic Blocks': `Clear or tinted acrylic blocks used as compositional pedestals or framing elements. Controlled reflections and clean geometry.`,
-    'Foam & Texture': `Subtle foam, liquid, or tactile textures used as abstract visual elements. No narrative meaning.`,
-    'Tile & Spa': `Spa-clean studio arrangement with tiled or minimal grid textures as abstract design elements. Studio-only, no real room context.`,
-    'Routine Carousel': `Series-ready studio framing with consistent spacing and repeatable layout for carousel/sequence output.`,
-    'Pastel Picnic': `Soft pastel studio color story with gentle gradients and clean abstract surfaces. No real-world picnic scene.`,
-    'Face Pop Close-Up': `Tight hero crop emphasizing label/packaging details while keeping full product visible; high clarity, studio-only.`,
-    'Sunrise Wellness Counter': `Warm sunrise color palette and soft gradient lighting as an abstract studio mood; no real kitchen/counter environment.`,
-    'Clinical Lab Counter': `Clinical laboratory-inspired studio styling: sterile, minimal, ultra-clean surfaces; no real lab environment.`,
-    'Candy Gradient Lab': `Smooth gradient studio background with controlled color transitions. Modern, abstract aesthetic.`,
-    'Golden Mist Aura': `Soft atmospheric mist with controlled golden highlights. Studio-only ambience.`,
-    'Crown Wellness Vanity': `Premium vanity-inspired studio styling with clean reflective accents; studio-only, no real bathroom.`,
-    'Splash Shot': `High-speed liquid splash frozen in motion interacting with the product. Splash must not obscure the product.`,
-    'Outdoor Energy Boost': `Bright energetic studio palette and crisp highlights to evoke outdoors without depicting a real location.`,
-    'Hero Landing Page': `Hero landing page composition. Clean centered layout. Strong visual hierarchy. Product as the primary focal point.`
+    'Clear': `Pure white #FFFFFF seamless backdrop. No set dressing. No props. No gradients. No textures. No color cast. Product only. Centered product packshot. Soft contact shadow only.`,
+    'Color Pop Hero': `Bold graphic hero. Strong color blocking backdrop (single bold hue or two-tone split). High contrast. Clean studio geometry. Minimal set dressing (abstract only). Product is dominant and centered; sharp label readability.`,
+    'Ingredient Stack': `Ingredients or material elements arranged around the product in a clean, controlled layout. Studio-only. No real-world setting.`,
+    'Acrylic Blocks': `Clear or tinted acrylic blocks as pedestals/framing elements. Crisp edges, controlled reflections, clean geometry. Product placed on or between blocks. No clutter.`,
+    'Foam & Texture': `Abstract tactile textures: soft foam swirls, gel ribbons, or subtle liquid ripples as design elements. Must remain minimal and studio-clean. No mess. Product stays fully readable.`,
+    'Tile & Spa': `Spa-clean tile grid surface (simple white/off-white tiles with subtle grout lines). Minimal studio arrangement. Gentle steam/mist optional but controlled. No real room; abstract set only.`,
+    'Routine Carousel': `Carousel-ready repeatable framing. Consistent margins and spacing. Neutral studio backdrop. Even lighting. Product centered with predictable negative space for text. No random props.`,
+    'Pastel Picnic': `Soft pastel palette with gentle gradient backdrop and smooth matte surfaces. Airy, bright, minimal. Abstract pastel blocks/shapes allowed. No real-world picnic objects.`,
+    'Face Pop Close-Up': `Close hero framing that emphasizes label, cap, and material detail while keeping full product visible (no cropping). High clarity, macro-style sharpness. Minimal background distractions.`,
+    'Sunrise Wellness Counter': `Warm sunrise gradient backdrop (peach→gold→soft pink) with soft directional highlights. Abstract “counter” surface only (no real kitchen). Subtle long shadow for morning mood.`,
+    'Clinical Lab Counter': `Clinical sterile studio set: bright neutral whites, subtle stainless accents, ultra-clean surface. Minimal glassware silhouettes allowed as abstract blurred background shapes (no readable labels). No real lab room.`,
+    'Candy Gradient Lab': `Modern smooth candy gradient background with controlled transitions. Glossy acrylic accents allowed. High saturation but clean. Product edges tack sharp.`,
+    'Golden Mist Aura': `Soft atmospheric mist/haze around the product with golden rim highlights. Mist is subtle and does not obscure the label. Premium glow, studio-only.`,
+    'Crown Wellness Vanity': `Premium reflective accents: subtle mirror-like base, clean metallic highlight strips, soft luxury lighting. No real bathroom. Abstract vanity set only.`,
+    'Splash Shot': `High-speed liquid splash frozen in motion near the product. Splash must not obscure the label. Crisp droplets. Clean studio lighting; no messy pooling.`,
+    'Outdoor Energy Boost': `Bright energetic color palette (sky-blue/green accents), crisp highlights, and subtle “fresh air” feel using abstract gradients only. No real outdoors. High clarity.`,
+    'Hero Landing Page': `Hero landing page composition. Clean centered layout. Strong hierarchy. Large negative space reserved for copy. Product is the primary focal point; full label readable; premium studio lighting.`
 };
 
 // =============================================================================
