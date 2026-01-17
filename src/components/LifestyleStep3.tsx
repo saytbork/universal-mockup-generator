@@ -1873,6 +1873,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         ? ['Hero Landing Page', 'Clear', 'Color Pop Hero', 'Ingredient Stack']
                         : [
                           'Hero Landing Page', 'Clear', 'Color Pop Hero', 'Ingredient Stack',
+                          'Acrylic Blocks', 'Splash Shot',
                           'Tile & Spa', 'Foam & Texture', 'Routine Carousel', 'Pastel Picnic',
                           'Face Pop Close-Up', 'Sunrise Wellness Counter', 'Clinical Lab Counter',
                           'Golden Mist Aura', 'Outdoor Energy Boost', 'Crown Wellness Vanity',
