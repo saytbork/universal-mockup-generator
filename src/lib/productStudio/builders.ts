@@ -517,12 +517,6 @@ function buildAlignment(state: ProductStudioState): string {
     return `ALIGNMENT: ${map[alignment] || alignment}`;
 }
 
-function buildCustomHeroCue(state: ProductStudioState): string {
-    const cue = state.customHeroCue?.trim();
-    if (!cue) return '';
-    return `HERO_CUE: ${cue}`;
-}
-
 function buildInteraction(state: ProductStudioState): string {
     const allowHands = state.interaction !== 'none' || state.handsHolding === true;
     if (!allowHands) return '';
@@ -638,7 +632,7 @@ function buildBackground(state: ProductStudioState): string {
         const color = normalizeHexOrEmpty(state.backgroundColor);
         const isDefaultWhite = !!color && color.toLowerCase() === '#ffffff';
         if (isDefaultWhite) {
-            return 'BACKGROUND: Clean seamless studio backdrop in neutral white (no beige cast).';
+            return 'BACKGROUND: Pure solid white #FFFFFF seamless studio backdrop. Absolutely no tint, no beige/green cast, no gradient.';
         }
         if (color) {
             return `BACKGROUND: Clean seamless studio backdrop in ${safeHexToColorName(color)} tone.`;
@@ -646,7 +640,7 @@ function buildBackground(state: ProductStudioState): string {
     }
 
     // 2. Fallback to generic if no hex
-    return 'BACKGROUND: Clean seamless studio backdrop in neutral white (no beige cast).';
+    return 'BACKGROUND: Pure solid white #FFFFFF seamless studio backdrop. Absolutely no tint, no beige/green cast, no gradient.';
 }
 
 function buildShadow(state: ProductStudioState): string {
@@ -897,7 +891,6 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     if (!state.blankSpaceEnabled) {
         segments.push(buildAlignment(state));
     }
-    segments.push(buildCustomHeroCue(state));
 
     // 5. Creativity System (Includes Props)
     if (!state.blankSpaceEnabled) {
@@ -1030,43 +1023,44 @@ function buildNegativePrompt(state: ProductStudioState): string {
 // ============================================================================
 
 export function generateProductJobs(state: ProductStudioState): ProductGenerationJob[] {
+    const normalizedState = normalizeProductStudioStateForPrompt(state);
     // Mandatory state logging
-    console.log('[PRODUCT STUDIO STATE]', state);
+    console.log('[PRODUCT STUDIO STATE]', normalizedState);
 
-    if (state.products.length === 0) {
+    if (normalizedState.products.length === 0) {
         console.warn('[ProductStudio] No products to generate');
         return [];
     }
 
-    console.log('[BUNDLE STATE]', JSON.stringify(state.bundle, null, 2));
-    console.log('[SCENE TYPE]', state.sceneType);
+    console.log('[BUNDLE STATE]', JSON.stringify(normalizedState.bundle, null, 2));
+    console.log('[SCENE TYPE]', normalizedState.sceneType);
 
     // Bundle mode: ONE image only
-    if (state.bundle.enabled) {
-        validateBundleState(state);
+    if (normalizedState.bundle.enabled) {
+        validateBundleState(normalizedState);
 
-        const prompt = assembleBundlePrompt(state);
-        validatePrompt(prompt, { allowHands: state.interaction !== 'none' || state.handsHolding === true });
+        const prompt = assembleBundlePrompt(normalizedState);
+        validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' || normalizedState.handsHolding === true });
 
         console.log(`[FINAL PRODUCT PROMPT] Bundle:`, prompt);
 
         return [{
-            productId: state.bundle.primaryProductId!,
-            productName: `Bundle: ${state.bundle.mode}`,
+            productId: normalizedState.bundle.primaryProductId!,
+            productName: `Bundle: ${normalizedState.bundle.mode}`,
             prompt,
-            negativePrompt: buildNegativePrompt(state),
-            aspectRatio: state.aspectRatio,
-            bundleId: state.bundle.selectedBundleId || 'custom',
-            sceneType: state.sceneType,
+            negativePrompt: buildNegativePrompt(normalizedState),
+            aspectRatio: normalizedState.aspectRatio,
+            bundleId: normalizedState.bundle.selectedBundleId || 'custom',
+            sceneType: normalizedState.sceneType,
         }];
     }
 
     // Standard mode: one image per product
     const jobs: ProductGenerationJob[] = [];
 
-    for (const product of state.products) {
-        const prompt = assembleSingleProductPrompt(state, product);
-        validatePrompt(prompt, { allowHands: state.interaction !== 'none' || state.handsHolding === true });
+    for (const product of normalizedState.products) {
+        const prompt = assembleSingleProductPrompt(normalizedState, product);
+        validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' || normalizedState.handsHolding === true });
 
         console.log(`[FINAL PRODUCT PROMPT] ${product.name}:`, prompt);
 
@@ -1074,13 +1068,36 @@ export function generateProductJobs(state: ProductStudioState): ProductGeneratio
             productId: product.id,
             productName: product.name,
             prompt,
-            negativePrompt: buildNegativePrompt(state),
-            aspectRatio: state.aspectRatio,
-            sceneType: state.sceneType,
+            negativePrompt: buildNegativePrompt(normalizedState),
+            aspectRatio: normalizedState.aspectRatio,
+            sceneType: normalizedState.sceneType,
         });
     }
 
     return jobs;
+}
+
+function normalizeProductStudioStateForPrompt(state: ProductStudioState): ProductStudioState {
+    const next: ProductStudioState = { ...state };
+
+    // Photo Mode conflict rules:
+    // "Clear" is absolute: pure white studio, no set dressing or creative styling blocks.
+    if (next.photoMode === 'Clear') {
+        next.backgroundColor = '#FFFFFF';
+        next.gradientEnabled = false;
+        next.props = '';
+        next.selectedProps = [];
+        next.propDensity = 'none';
+        next.creativityLevel = 0;
+        next.paletteSource = 'custom';
+
+        // Clear should not imply any environment/set cues.
+        next.environmentContext = null;
+        next.environmentMacro = 'studio';
+        next.microPlace = 'neutral-surface';
+    }
+
+    return next;
 }
 
 // ============================================================================

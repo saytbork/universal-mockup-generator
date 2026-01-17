@@ -361,7 +361,6 @@ export interface Step3Values {
   studioAlignment?: string;
   studioShadow?: string;
   studioProps?: string;
-  studioCustomHeroCue?: string;
   studioInteraction?: string;
   studioLens?: string;
   studioLightingRig?: string;
@@ -1405,7 +1404,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       studioAlignment: productStore.alignment,
       studioShadow: productStore.shadow,
       studioProps: productStore.props,
-      studioCustomHeroCue: productStore.customHeroCue,
       studioInteraction: productStore.interaction,
       studioLens: productStore.lens,
       studioLightingRig: productStore.lightingRig,
@@ -1418,7 +1416,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     productStore.alignment,
     productStore.shadow,
     productStore.props,
-    productStore.customHeroCue,
     productStore.interaction,
     productStore.lens,
     productStore.lightingRig,
@@ -2360,19 +2357,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             />
                           </div>
 
-                          <div>
-                            <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">CUSTOM HERO CUE</p>
-                            <textarea
-                              value={productStore.customHeroCue}
-                              onChange={(e) => {
-                                productStore.setCustomHeroCue(e.target.value);
-                                markSectionTouched('product-setup');
-                              }}
-                              rows={2}
-                              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 resize-none"
-                              placeholder="Custom instruction appended to prompt..."
-                            />
-                          </div>
                         </div>
                       </div>
                     </>

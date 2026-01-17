@@ -1820,10 +1820,6 @@ export function mapLifestyleToPromptOptions(
     } else if (sceneState.studioProps && !isIngredientStack) {
         console.log('[MAP] Props ignored - only allowed with Ingredient Stack photoMode');
     }
-    if (sceneState.studioCustomHeroCue) {
-        (mapped as any).studioCustomHeroCue = sceneState.studioCustomHeroCue;
-        (mapped as any).customHeroCue = sceneState.studioCustomHeroCue;
-    }
     if (sceneState.studioInteraction) {
         (mapped as any).studioInteraction = sceneState.studioInteraction;
     }

@@ -260,8 +260,6 @@ export const BRAND_PRESETS: BrandPreset[] = [
             paletteSource: 'brand',
             propDensity: 'none',
             photoMode: 'Clinical Lab Counter',
-            backgroundColor: '#FFFFFF',
-            gradientEnabled: false,
             proMode: true,
             lens: '50mm Product Prime',
             lightingRig: 'Softbox Wrap',
@@ -278,14 +276,10 @@ export const BRAND_PRESETS: BrandPreset[] = [
             creativityLevel: 1,
             creativeTheme: 'fresh-bright',
             lightStyle: 'soft',
-            paletteSource: 'custom',
+            paletteSource: 'brand',
             propDensity: 'low',
             photoMode: 'Sunrise Wellness Counter',
-            backgroundColor: '#FFF6EE',
-            accentColor: '#FF6A3D',
             gradientEnabled: true,
-            gradientStart: '#FFF6EE',
-            gradientEnd: '#FFD4B8',
             gradientAngle: 180,
             proMode: true,
             lens: '50mm Product Prime',
@@ -300,16 +294,12 @@ export const BRAND_PRESETS: BrandPreset[] = [
         description: 'High-chroma color blocking, playful props, punchy highlights.',
         config: {
             creativeTheme: 'playful-pop',
-            paletteSource: 'custom',
+            paletteSource: 'brand',
             creativityLevel: 2,
             lightStyle: 'contrast',
             propDensity: 'medium',
             photoMode: 'Candy Gradient Lab',
-            backgroundColor: '#FF3CAC',
-            accentColor: '#FFB703',
             gradientEnabled: true,
-            gradientStart: '#FF3CAC',
-            gradientEnd: '#FFB703',
             gradientAngle: 135,
             proMode: true,
             lens: '50mm Product Prime',
@@ -328,9 +318,7 @@ export const BRAND_PRESETS: BrandPreset[] = [
             lightStyle: 'shadow-play',
             paletteSource: 'cool-neutral',
             propDensity: 'none',
-            photoMode: 'Clear',
-            backgroundColor: '#0B0D12',
-            accentColor: '#C5C7D0',
+            photoMode: 'Hero Landing Page',
             gradientEnabled: false,
             proMode: true,
             lens: '70-200mm Compression',
@@ -439,6 +427,12 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     photoMode: 'Hero Landing Page',
     backgroundColor: '#ffffff',
     accentColor: '#6366f1',
+    colorLocks: {
+        background: false,
+        accent: false,
+        gradientStart: false,
+        gradientEnd: false,
+    },
     alignment: 'center',
     shadow: 'soft-drop',
     gradientEnabled: false,
@@ -446,7 +440,6 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     gradientEnd: '#f0f0f0',
     gradientAngle: 180,
     props: '',
-    customHeroCue: '',
     interaction: 'none',
     proMode: false,
     lens: '50mm Product Prime',
@@ -587,7 +580,6 @@ type ProductStudioActions = {
     setGradientEnd: (color: string) => void;
     setGradientAngle: (angle: number) => void;
     setProps: (props: string) => void;
-    setCustomHeroCue: (cue: string) => void;
     setInteraction: (interaction: 'none' | 'cropped-hand' | 'holding' | 'presenting' | 'applying') => void;
     setProMode: (enabled: boolean) => void;
     setLens: (lens: string) => void;
@@ -634,19 +626,15 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     state.gradientEnd === '#ffffff' ||
                     state.gradientEnd === '#FFFFFF';
 
-                if (isBackgroundDefault && product.palette.dominant) {
-                    updates.backgroundColor = product.palette.dominant;
-                    console.log('[ProductStudio] Auto-set backgroundColor from palette:', product.palette.dominant);
-                }
-                if (isAccentDefault && product.palette.secondary) {
+                if (!state.colorLocks.accent && isAccentDefault && product.palette.secondary) {
                     updates.accentColor = product.palette.secondary;
                     console.log('[ProductStudio] Auto-set accentColor from palette:', product.palette.secondary);
                 }
-                if (isGradientStartDefault && product.palette.dominant) {
+                if (!state.colorLocks.gradientStart && isGradientStartDefault && product.palette.dominant) {
                     updates.gradientStart = product.palette.dominant;
                     console.log('[ProductStudio] Auto-set gradientStart from palette:', product.palette.dominant);
                 }
-                if (isGradientEndDefault && product.palette.secondary) {
+                if (!state.colorLocks.gradientEnd && isGradientEndDefault && product.palette.secondary) {
                     updates.gradientEnd = product.palette.secondary;
                     console.log('[ProductStudio] Auto-set gradientEnd from palette:', product.palette.secondary);
                 }
@@ -1116,14 +1104,49 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
         }),
 
     // Product Studio UI Controls (NEW)
-    setPhotoMode: (mode) => set({ photoMode: mode }),
-    setBackgroundColor: (color) => set({ backgroundColor: color }),
-    setAccentColor: (color) => set({ accentColor: color }),
+    setPhotoMode: (mode) =>
+        set((state) => {
+            const nextMode = String(mode ?? '');
+            // "Clear" means: pure white, no set dressing, no creative styling blocks.
+            if (nextMode === 'Clear') {
+                return {
+                    photoMode: nextMode,
+                    backgroundColor: '#FFFFFF',
+                    gradientEnabled: false,
+                    props: '',
+                    selectedProps: [],
+                    propDensity: 'none',
+                    creativityLevel: 0,
+                    paletteSource: 'custom',
+                    // lock white background so palette extraction doesn't override it
+                    colorLocks: { ...state.colorLocks, background: true },
+                };
+            }
+            return { photoMode: nextMode };
+        }),
+    setBackgroundColor: (color) =>
+        set((state) => ({
+            backgroundColor: String(color ?? ''),
+            colorLocks: { ...state.colorLocks, background: true },
+        })),
+    setAccentColor: (color) =>
+        set((state) => ({
+            accentColor: String(color ?? ''),
+            colorLocks: { ...state.colorLocks, accent: true },
+        })),
     setAlignment: (alignment) => set({ alignment }),
     setShadow: (shadow) => set({ shadow }),
     setGradientEnabled: (enabled) => set({ gradientEnabled: enabled }),
-    setGradientStart: (color) => set({ gradientStart: color }),
-    setGradientEnd: (color) => set({ gradientEnd: color }),
+    setGradientStart: (color) =>
+        set((state) => ({
+            gradientStart: String(color ?? ''),
+            colorLocks: { ...state.colorLocks, gradientStart: true },
+        })),
+    setGradientEnd: (color) =>
+        set((state) => ({
+            gradientEnd: String(color ?? ''),
+            colorLocks: { ...state.colorLocks, gradientEnd: true },
+        })),
     setGradientAngle: (angle) => set({ gradientAngle: angle }),
     setProps: (props) =>
         set((state) => {
@@ -1135,7 +1158,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 hasProps && state.propDensity === 'none' ? 'low' : state.propDensity;
             return { props: nextProps, propDensity: nextDensity };
         }),
-    setCustomHeroCue: (cue) => set({ customHeroCue: cue }),
     setInteraction: (interaction) => set({ interaction }),
     setProMode: (enabled) => set({ proMode: enabled }),
     setLens: (lens) => set({ lens }),

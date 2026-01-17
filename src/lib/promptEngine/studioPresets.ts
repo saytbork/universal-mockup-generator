@@ -19,7 +19,7 @@ Clean geometry. Premium commercial quality. High clarity. Sharp focus.
 // PHOTO / COMPOSITION MODE PRESETS
 // =============================================================================
 export const PHOTO_MODE_PRESETS: Record<string, string> = {
-    'Clear': `Clean studio composition with neutral lighting and minimal visual noise.`,
+    'Clear': `Pure white #FFFFFF background. No set dressing, no props, no gradients, no textures. Clean clinical studio composition. Product only.`,
     'Color Pop Hero': `High-impact hero composition with strong contrast and bold color emphasis.`,
     'Ingredient Stack': `Ingredients or material elements arranged around the product in a clean, controlled layout. No environment context.`,
     'Acrylic Blocks': `Clear or tinted acrylic blocks used as compositional pedestals or framing elements. Controlled reflections and clean geometry.`,

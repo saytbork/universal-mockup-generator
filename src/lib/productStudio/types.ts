@@ -405,6 +405,12 @@ export type ProductStudioState = {
     photoMode: string;
     backgroundColor: string;
     accentColor: string;
+    colorLocks: {
+        background: boolean;
+        accent: boolean;
+        gradientStart: boolean;
+        gradientEnd: boolean;
+    };
     alignment: 'left' | 'center' | 'right' | 'centered' | 'left-space' | 'right-space';
     shadow: 'soft-drop' | 'hard-drop' | 'floating';
     gradientEnabled: boolean;
@@ -412,7 +418,6 @@ export type ProductStudioState = {
     gradientEnd: string;
     gradientAngle: number;
     props: string;
-    customHeroCue: string;
     interaction: 'none' | 'cropped-hand' | 'holding' | 'presenting' | 'applying';
     proMode: boolean;
     lens: string;

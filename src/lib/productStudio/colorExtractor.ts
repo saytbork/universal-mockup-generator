@@ -23,11 +23,21 @@ export async function extractDominantColors(
                 return;
             }
 
-            // Sample at reduced size for performance
+            // Sample at reduced size for performance.
+            // IMPORTANT: focus on the likely label region (center/lower-middle) to avoid
+            // backgrounds, caps, shadows, and table surfaces dominating the palette.
             const sampleSize = 50;
             canvas.width = sampleSize;
             canvas.height = sampleSize;
-            ctx.drawImage(img, 0, 0, sampleSize, sampleSize);
+
+            // Label ROI heuristic:
+            // - horizontally centered (avoid edges/background)
+            // - vertically biased toward mid-lower (where labels usually sit)
+            const sx = Math.floor(img.width * 0.20);
+            const sy = Math.floor(img.height * 0.35);
+            const sw = Math.max(1, Math.floor(img.width * 0.60));
+            const sh = Math.max(1, Math.floor(img.height * 0.45));
+            ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sampleSize, sampleSize);
 
             const imageData = ctx.getImageData(0, 0, sampleSize, sampleSize);
             const pixels = imageData.data;
@@ -54,9 +64,13 @@ export async function extractDominantColors(
                 colorMap[key] = (colorMap[key] || 0) + 1;
             }
 
-            // Sort by frequency
+            // Prefer saturated colors (label/brand) over neutrals.
             const sorted = Object.entries(colorMap)
-                .sort(([, a], [, b]) => b - a)
+                .sort(([rgbA, countA], [rgbB, countB]) => {
+                    const scoreA = scoreColor(rgbA, countA);
+                    const scoreB = scoreColor(rgbB, countB);
+                    return scoreB - scoreA;
+                })
                 .slice(0, 10);
 
             if (sorted.length === 0) {
@@ -85,4 +99,44 @@ export async function extractDominantColors(
 
         img.src = imageSource;
     });
+}
+
+function scoreColor(rgb: string, count: number): number {
+    const [r, g, b] = rgb.split(',').map(Number);
+    const { s, l } = rgbToHsl(r, g, b);
+
+    // Penalize near-gray and extreme luminance.
+    const saturationBoost = Math.pow(Math.max(0, s), 1.5); // favor saturated label colors
+    const luminancePenalty = l < 0.08 || l > 0.92 ? 0.15 : 1.0;
+
+    return count * saturationBoost * luminancePenalty;
+}
+
+function rgbToHsl(r: number, g: number, b: number): { h: number; s: number; l: number } {
+    const rn = r / 255;
+    const gn = g / 255;
+    const bn = b / 255;
+
+    const max = Math.max(rn, gn, bn);
+    const min = Math.min(rn, gn, bn);
+    const l = (max + min) / 2;
+
+    if (max === min) return { h: 0, s: 0, l };
+
+    const d = max - min;
+    const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    let h = 0;
+    switch (max) {
+        case rn:
+            h = (gn - bn) / d + (gn < bn ? 6 : 0);
+            break;
+        case gn:
+            h = (bn - rn) / d + 2;
+            break;
+        case bn:
+            h = (rn - gn) / d + 4;
+            break;
+    }
+    h /= 6;
+    return { h, s, l };
 }
