@@ -296,6 +296,8 @@ type ActiveProduct = {
   mimeType: string;
   name: string;
   heightCm?: number;
+  heightValue?: number | null;
+  heightUnit?: 'cm' | 'in';
 };
 
 type GoogleCredentialResponse = {
@@ -1151,12 +1153,20 @@ const App: React.FC = () => {
       const next = prev.flatMap(product => {
         const asset = productAssets.find(assetItem => assetItem.id === product.id);
         if (!asset) return [];
+        const heightValue = asset.heightValue ?? null;
+        const heightUnit = asset.heightUnit ?? 'cm';
+        const heightCm =
+          heightValue != null && Number.isFinite(Number(heightValue)) && Number(heightValue) > 0
+            ? (heightUnit === 'in' ? Number(heightValue) * 2.54 : Number(heightValue))
+            : undefined;
         const updatedProduct: ActiveProduct = {
           ...product,
           name: asset.label || product.name,
           base64: asset.base64 ?? product.base64,
           mimeType: asset.mimeType ?? product.mimeType,
-          ...(asset.heightValue != null ? { heightCm: asset.heightValue } : {}),
+          heightValue,
+          heightUnit,
+          ...(heightCm != null ? { heightCm } : {}),
         };
         return [updatedProduct];
       });
@@ -4570,12 +4580,17 @@ If the model attempts to create a scene or environment, override it and force a 
             }
             : {}),
 	          personIncluded,
-          productAssets: (ritualNoProductMode ? [] : generationProducts).map(p => ({
-	            id: p.id,
-	            base64: p.base64,
-	            mimeType: p.mimeType,
-	            heightCm: p.heightCm,
-	          })),
+          productAssets: (ritualNoProductMode ? [] : generationProducts).map(p => {
+            const sourceAsset = productAssets.find(asset => asset.id === p.id);
+            return {
+              id: p.id,
+              label: sourceAsset?.label ?? 'Product',
+              base64: p.base64,
+              mimeType: p.mimeType,
+              heightValue: sourceAsset?.heightValue ?? null,
+              heightUnit: sourceAsset?.heightUnit ?? 'cm',
+            };
+          }),
           ...(shouldReuseIdentityKey
             ? {
               identityKey: identityContinuityRef.current?.identityKey,
@@ -5787,38 +5802,6 @@ If the model attempts to create a scene or environment, override it and force a 
                               disabled={!hasUploadedProduct}
                               lockedMessage="Upload a source product first to attach a model."
                             />
-                            {hasModelReference && (
-                              <div className="rounded-xl border border-gray-200 bg-white/50 p-4 space-y-2 text-sm">
-                                <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Composition</p>
-                                <div className="flex flex-wrap gap-2">
-                                  {(
-                                    [
-                                      { value: 'balanced', label: 'Balanced' },
-                                      { value: 'product-first', label: 'Product First' },
-                                      { value: 'model-first', label: 'Model First' },
-                                      { value: 'fifty-fifty', label: 'Fifty / Fifty' },
-                                    ] as const
-                                  ).map(option => (
-                                    <button
-                                      key={option.value}
-                                      type="button"
-                                      onClick={() => setCompositionMode(option.value)}
-                                      className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${compositionMode === option.value ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20' : 'border-gray-200 bg-white text-gray-600 hover:border-indigo-600'}`}
-                                    >
-                                      {option.label}
-                                    </button>
-                                  ))}
-                                </div>
-                                <p className="text-[11px] text-gray-500">
-                                  {{
-                                    balanced: 'Balanced share between product and person.',
-                                    'product-first': 'Product is the hero; person supports the story.',
-                                    'model-first': 'Person is the hero; product is secondary but visible.',
-                                    'fifty-fifty': 'Equal emphasis on person and product.',
-                                  }[compositionMode] ?? ''}
-                                </p>
-                              </div>
-                            )}
                           </div>
                         </details>
                       )}

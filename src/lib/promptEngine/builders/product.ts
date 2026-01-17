@@ -15,6 +15,26 @@ export class ProductBuilder implements PromptBuilder {
             productMaterial,
         } = options;
 
+        const derivedHeightNotes = (() => {
+            const parts: string[] = [];
+            for (const asset of productAssets as any[]) {
+                const label = (asset?.label || asset?.name || asset?.id || 'product') as string;
+                const unit = (asset?.heightUnit as 'cm' | 'in' | undefined) ?? 'cm';
+                const raw =
+                    typeof asset?.heightValue === 'number'
+                        ? asset.heightValue
+                        : typeof asset?.heightCm === 'number'
+                          ? asset.heightCm
+                          : undefined;
+                if (typeof raw !== 'number' || !Number.isFinite(raw) || raw <= 0) continue;
+                const cm = unit === 'in' ? raw * 2.54 : raw;
+                const rounded = Math.round(cm * 10) / 10;
+                parts.push(`${label} ~${rounded} cm tall`);
+            }
+            return parts.length ? parts.join('. ') : '';
+        })();
+        const effectiveHeightNotes = (heightNotes || derivedHeightNotes).trim();
+
         // Ritual Mode can optionally generate product-free lifestyle images.
         // When enabled, we must not inject any product-related copy.
         if (options.ritualModeActive && options.ritualHideProduct) {
@@ -39,8 +59,8 @@ export class ProductBuilder implements PromptBuilder {
               ? this.buildEcommerceCanvasProductInsertion(options)
               : this.buildProductInsertion();
 
-        if (heightNotes) {
-            prompt += ` Respect real-world scale: ${heightNotes}. Adjust camera distance so the item visually matches that measurement.`;
+        if (effectiveHeightNotes) {
+            prompt += ` Respect real-world scale: ${effectiveHeightNotes}. Adjust camera distance so the item visually matches that measurement.`;
         }
 
         if (isEcommerceBlankSpaceMode) {

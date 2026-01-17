@@ -387,6 +387,36 @@ const CAMERA_DEVICE_SEMANTIC_MAP: Record<string, string> = {
     'Laptop webcam (pro setup)': 'captured through a laptop webcam in a professional setting, flat lighting, slight compression, intentional composition'
 };
 
+const PRODUCT_PROMINENCE_CONFIG: Record<
+    'balanced' | 'product-first' | 'model-first' | 'fifty-fifty',
+    { placementStyle: string; productPlane: string }
+> = {
+    balanced: {
+        placementStyle:
+            'Balanced placement: product and person share attention while the environment supports the moment without stealing focus.',
+        productPlane:
+            'Balanced plane: keep both the face and the product within the same depth of field; the product label must be tack sharp and fully readable. Avoid heavy background blur that hides the product; avoid tiny product-in-frame compositions.',
+    },
+    'product-first': {
+        placementStyle:
+            'Product-forward placement: the product is the primary hero in the foreground while the environment remains visible as context.',
+        productPlane:
+            'Foreground product-first placement closest to the camera lens; product and label must be tack sharp and fully readable; do not let the product fall into the background. Scale requirement: product must be large enough that label text reads clearly (avoid tiny product-in-frame compositions). The product sits closer to the camera than the face; the face must not obscure or dominate the product.',
+    },
+    'model-first': {
+        placementStyle:
+            'Person-forward placement: the person is the hero while the product remains clearly visible and believable within the scene.',
+        productPlane:
+            'Person-forward plane: keep the person in the foreground with clear focus and prominence. The product stays visible and readable (label must remain tack sharp), but it is secondary in prominence. Do not hide the product behind hands or in deep background.',
+    },
+    'fifty-fifty': {
+        placementStyle:
+            'Equal emphasis placement: person and product share prominence with tight, intentional framing.',
+        productPlane:
+            'Equal emphasis plane: place the product and the face in the foreground together. Tight framing where both elements share prominence. Keep both the face and the product label tack sharp and readable; avoid compositing or unrealistic scale differences.',
+    },
+};
+
 /**
  * SHOT TYPE → Physical camera framing (SIMPLIFIED)
  */
@@ -1278,11 +1308,17 @@ export function mapLifestyleToPromptOptions(
 
     // For environment-first scenes, the default is mid-ground contextual placement.
     // However, if the user is explicitly presenting the product toward camera, force product-forward framing.
-    if (foregroundProductFocusRequested || (hasUploadedProductAsset && !ritualHideProductRequested)) {
-        mapped.placementStyle =
-            'Product-forward placement: the product is the primary hero in the foreground while the environment remains visible as context.';
-        mapped.productPlane =
-            'Foreground product-first placement closest to the camera lens; product and label must be tack sharp and fully readable; do not let the product fall into the background. Scale requirement: product must be large enough that label text reads clearly (avoid tiny product-in-frame compositions). The product sits closer to the camera than the face; the face must not obscure or dominate the product.';
+    if (foregroundProductFocusRequested) {
+        mapped.placementStyle = PRODUCT_PROMINENCE_CONFIG['product-first'].placementStyle;
+        mapped.productPlane = PRODUCT_PROMINENCE_CONFIG['product-first'].productPlane;
+    } else if (hasUploadedProductAsset && !ritualHideProductRequested) {
+        const key =
+            (sceneState as any).productProminence || ('product-first' as const);
+        const config =
+            PRODUCT_PROMINENCE_CONFIG[key as keyof typeof PRODUCT_PROMINENCE_CONFIG] ??
+            PRODUCT_PROMINENCE_CONFIG['product-first'];
+        mapped.placementStyle = config.placementStyle;
+        mapped.productPlane = config.productPlane;
     }
 
     if (!sceneState.ugcRealMode) {

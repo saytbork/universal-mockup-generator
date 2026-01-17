@@ -184,6 +184,7 @@ export interface Step3Values {
   cameraType: string;
   cameraAngle: string;
   framing: string;
+  productProminence: 'balanced' | 'product-first' | 'model-first' | 'fifty-fifty';
 
   // Product Interaction
   productInteraction: string;
@@ -891,6 +892,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     cameraType: 'DSLR / mirrorless camera',
     cameraAngle: 'Eye level',
     framing: 'Rule of thirds',
+    productProminence: 'product-first',
 
     // Product Interaction
     productInteraction: 'Holding',
@@ -6101,6 +6103,40 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         ]}
                         selectedValue={values.shotType}
                       />
+                    </div>
+
+                    <div className={SECTION_GROUP_CLASS}>
+                      <p className="text-xs uppercase tracking-wider text-indigo-600">COMPOSITION</p>
+                      <div className="flex flex-wrap gap-2">
+                        {(
+                          [
+                            { value: 'product-first', label: 'Product First' },
+                            { value: 'balanced', label: 'Balanced' },
+                            { value: 'fifty-fifty', label: 'Fifty / Fifty' },
+                            { value: 'model-first', label: 'Model First' },
+                          ] as const
+                        ).map(option => (
+                          <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => {
+                              updateValue('productProminence', option.value);
+                              markSectionTouched('camera');
+                            }}
+                            className={getPillClass(values.productProminence === option.value)}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-[11px] text-gray-500 mt-1">
+                        {{
+                          balanced: 'Balanced share between product and person.',
+                          'product-first': 'Product is the hero; person supports the story.',
+                          'model-first': 'Person is the hero; product is secondary but visible.',
+                          'fifty-fifty': 'Equal emphasis on person and product.',
+                        }[values.productProminence] ?? ''}
+                      </p>
                     </div>
 
                     <div className={SECTION_GROUP_CLASS}>
