@@ -250,71 +250,92 @@ export const PREBUILT_BUNDLES: PrebuiltBundle[] = [
 export const BRAND_PRESETS: BrandPreset[] = [
     {
         id: 'ag1-style',
-        label: 'AG1 Style',
-        description: 'Functional, clinical, premium trust.',
+        label: 'Clean Clinical Trust',
+        description: 'Bright, sterile, high-clarity studio for trust and precision.',
         config: {
-            creativityLevel: 1, // Subtle
-            composition: 'centered',
-            surface: 'stone',
-            scale: 'balanced',
-            spacing: 'airy', // Explicitly airy per spec
-            lightStyle: 'clinical',
+            sceneType: 'studio-branding',
+            creativityLevel: 1,
             creativeTheme: 'clinical-minimal',
+            lightStyle: 'clinical',
             paletteSource: 'brand',
             propDensity: 'none',
+            photoMode: 'Clinical Lab Counter',
+            backgroundColor: '#FFFFFF',
+            gradientEnabled: false,
+            proMode: true,
+            lens: '50mm Product Prime',
+            lightingRig: 'Softbox Wrap',
+            finish: 'Clinical Lab Polish',
             bundle: { enabled: false, mode: 'off', layout: 'lineal', spacing: 'compact', primaryProductId: null, secondaryProductIds: [], selectedBundleId: null },
         },
     },
     {
         id: 'ritual-style',
-        label: 'Ritual Style',
-        description: 'Bright, editorial, lifestyle-clean.',
+        label: 'Warm Editorial Wellness',
+        description: 'Warm gradients, clean props, premium editorial polish.',
         config: {
+            sceneType: 'studio-branding',
             creativityLevel: 1,
-            composition: 'thirds',
-            surface: 'acrylic',
-            scale: 'balanced',
-            spacing: 'balanced',
-            lightStyle: 'soft',
             creativeTheme: 'fresh-bright',
-            paletteSource: 'warm-neutral',
+            lightStyle: 'soft',
+            paletteSource: 'custom',
             propDensity: 'low',
+            photoMode: 'Sunrise Wellness Counter',
+            backgroundColor: '#FFF6EE',
+            accentColor: '#FF6A3D',
+            gradientEnabled: true,
+            gradientStart: '#FFF6EE',
+            gradientEnd: '#FFD4B8',
+            gradientAngle: 180,
+            proMode: true,
+            lens: '50mm Product Prime',
+            lightingRig: 'Gradient Cyclorama',
+            finish: 'Matte Editorial',
             bundle: { enabled: false, mode: 'off', layout: 'lineal', spacing: 'compact', primaryProductId: null, secondaryProductIds: [], selectedBundleId: null },
         },
     },
     {
         id: 'olly-style',
-        label: 'OLLY Style',
-        description: 'Playful, bold, retail-first.',
+        label: 'Vibrant Color Pop Studio',
+        description: 'High-chroma color blocking, playful props, punchy highlights.',
         config: {
-            creativityLevel: 2, // Bold
-            composition: 'asymmetrical',
-            surface: 'abstract', // color-block
-            scale: 'balanced',
-            spacing: 'compact',
-            lightStyle: 'contrast', // bright-even mapped to contrast or clinical? brightness is usually clinical, mood is playful. Let's go contrast for pop.
             creativeTheme: 'playful-pop',
             paletteSource: 'custom',
-            propDensity: 'medium', // dense
-            // Bundle: user said "duo". We'll handle this in logic or just set enabled if products exist.
-            // We can't strictly force bundle in config if we don't know product count, BUT we can set intent.
-            // For safety, we default bundle OFF in static config, and handle smart logic in action.
+            creativityLevel: 2,
+            lightStyle: 'contrast',
+            propDensity: 'medium',
+            photoMode: 'Candy Gradient Lab',
+            backgroundColor: '#FF3CAC',
+            accentColor: '#FFB703',
+            gradientEnabled: true,
+            gradientStart: '#FF3CAC',
+            gradientEnd: '#FFB703',
+            gradientAngle: 135,
+            proMode: true,
+            lens: '50mm Product Prime',
+            lightingRig: 'Prism Spotlight Duo',
+            finish: 'Vibrant Color Pop',
         },
     },
     {
         id: 'luxury-minimal',
         label: 'Luxury Minimal',
-        description: 'High-end DTC, slow, dramatic.',
+        description: 'Minimal, premium, controlled contrast and clean reflections.',
         config: {
+            sceneType: 'studio-branding',
             creativityLevel: 1,
-            composition: 'centered',
-            surface: 'stone', // dark-stone -> stone
-            scale: 'dominant', // large
-            spacing: 'airy',
-            lightStyle: 'shadow-play', // dramatic
-            creativeTheme: 'premium-clean', // or dark-dramatic? Spec says premium-luxury -> premium-clean.
+            creativeTheme: 'premium-clean',
+            lightStyle: 'shadow-play',
             paletteSource: 'cool-neutral',
             propDensity: 'none',
+            photoMode: 'Clear',
+            backgroundColor: '#0B0D12',
+            accentColor: '#C5C7D0',
+            gradientEnabled: false,
+            proMode: true,
+            lens: '70-200mm Compression',
+            lightingRig: 'Hard Edge Gels',
+            finish: 'Film Grain Luxury',
             bundle: { enabled: false, mode: 'off', layout: 'lineal', spacing: 'compact', primaryProductId: null, secondaryProductIds: [], selectedBundleId: null },
         },
     },
@@ -434,7 +455,7 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
 
     // LEGACY (To be removed)
     ecommerceMode: false,
-    paletteSource: 'warm-neutral',
+    paletteSource: 'brand',
     lighting: 'clinical-softbox',
     presetTier: 'basic',
 };
@@ -1068,7 +1089,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
 
             const newState = { ...state, ...preset.config };
 
-            // Handle specific OLLY bundle logic if applicable
+            // For the "Vibrant Color Pop Studio" preset, auto-enable a duo layout when 2+ products exist.
             if (presetId === 'olly-style') {
                 // Try to apply "Duo" if available
                 if (state.products.length >= 2) {
@@ -1104,7 +1125,16 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setGradientStart: (color) => set({ gradientStart: color }),
     setGradientEnd: (color) => set({ gradientEnd: color }),
     setGradientAngle: (angle) => set({ gradientAngle: angle }),
-    setProps: (props) => set({ props }),
+    setProps: (props) =>
+        set((state) => {
+            const nextProps = String(props ?? '');
+            const hasProps = nextProps.trim().length > 0;
+            // If the user starts typing props, ensure they actually show up by not leaving density at "none".
+            // We preserve explicit user choices if they've already picked a density.
+            const nextDensity =
+                hasProps && state.propDensity === 'none' ? 'low' : state.propDensity;
+            return { props: nextProps, propDensity: nextDensity };
+        }),
     setCustomHeroCue: (cue) => set({ customHeroCue: cue }),
     setInteraction: (interaction) => set({ interaction }),
     setProMode: (enabled) => set({ proMode: enabled }),

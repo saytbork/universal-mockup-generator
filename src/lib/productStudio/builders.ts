@@ -387,11 +387,8 @@ function buildComposition(state: ProductStudioState): string {
 // ============================================================================
 
 function buildEnvironment(state: ProductStudioState): string {
-    // Studio mode: no environment, controlled base only
-    // If strict studio options are used, environment is suppressed
-    if (state.sceneType === 'studio-branding' || state.blankSpaceEnabled) {
-        return '';
-    }
+    // Ecommerce blank space: environment is irrelevant.
+    if (state.blankSpaceEnabled) return '';
 
     const parts: string[] = [];
     const hasCtx = state.environmentContext !== null;
@@ -405,6 +402,24 @@ function buildEnvironment(state: ProductStudioState): string {
 
     if (!macro || macro === 'studio') {
         return '';
+    }
+
+    // Studio branding: treat environment controls as "set styling" cues (abstract, not a real room).
+    if (state.sceneType === 'studio-branding') {
+        const envText = macro === 'custom' && state.customEnvironmentText
+            ? state.customEnvironmentText
+            : macro.replace(/-/g, ' ');
+
+        parts.push(`STUDIO SET: ${envText}-inspired set styling (abstract cues only, not a real location)`);
+
+        const microText = micro === 'custom' && state.customMicroPlaceText
+            ? state.customMicroPlaceText
+            : micro.replace(/-/g, ' ');
+        if (microText) {
+            parts.push(`base surface cue: ${microText}`);
+        }
+
+        return parts.join(', ');
     }
 
     // Editorial mode: abstracted environment
@@ -622,12 +637,14 @@ function buildBackground(state: ProductStudioState): string {
     if (state.backgroundColor) {
         const color = state.backgroundColor.trim();
         const isDefaultWhite = color.toLowerCase() === '#ffffff';
-        if (isDefaultWhite) return '';
-        return `BACKGROUND: Clean studio backdrop in ${safeHexToColorName(color)} tone.`;
+        if (isDefaultWhite) {
+            return 'BACKGROUND: Clean seamless studio backdrop in neutral white (no beige cast).';
+        }
+        return `BACKGROUND: Clean seamless studio backdrop in ${safeHexToColorName(color)} tone.`;
     }
 
     // 2. Fallback to generic if no hex
-    return '';
+    return 'BACKGROUND: Clean seamless studio backdrop in neutral white (no beige cast).';
 }
 
 function buildShadow(state: ProductStudioState): string {
@@ -652,15 +669,14 @@ function buildCreativity(state: ProductStudioState): string {
 
     const parts: string[] = [];
 
-    // 0. Props Injection (Ingredient Stack Support)
-    // Only inject props if in Ingredient Stack mode OR if density is explicitly set
-    const isIngredientStack = state.photoMode === 'Ingredient Stack';
-    if (state.props && (isIngredientStack || state.propDensity !== 'none')) {
-        parts.push(`PROPS/INGREDIENTS: ${state.props}. Arranged naturally around the product.`);
+    // 0. Props Injection (Always honor explicit user input)
+    const propsText = state.props?.trim();
+    if (propsText) {
+        parts.push(`PROPS: ${propsText}. Arrange as subtle set dressing around the product. No readable text/logos on props.`);
     }
 
     // Creativity Level 0Check = Off
-    if (state.creativityLevel === 0 && !isIngredientStack) return parts.join(' ');
+    if (state.creativityLevel === 0) return parts.join(' ');
 
     // 1. Creative Theme (Expanded)
     const themeMap: Record<CreativeTheme, string> = {
@@ -685,11 +701,11 @@ function buildCreativity(state: ProductStudioState): string {
     parts.push(lightStyleMap[state.lightStyle]);
 
     const paletteMap: Record<PaletteSource, string> = {
-        'brand': 'colors derived from product branding',
-        'warm-neutral': 'warm neutral palette, beige and creams',
+        'brand': 'colors derived from the product packaging and label',
+        'warm-neutral': 'warm neutral palette (creams and warm grays, no yellow/beige cast)',
         'cool-neutral': 'cool neutral palette, slate and silver',
         'complementary': 'complementary accent colors',
-        'custom': 'custom defined palette',
+        'custom': 'custom defined palette (use selected background + accent colors)',
     };
     parts.push(paletteMap[state.paletteSource]);
 
@@ -703,7 +719,7 @@ function buildCreativity(state: ProductStudioState): string {
         };
         parts.push(densityMap[state.propDensity] || '');
         parts.push(`props: ${state.selectedProps.join(', ')}`);
-        parts.push('props are secondary and slightly out of focus');
+        parts.push('props are secondary and never steal focus');
         parts.push('no branded props, no readable text on props');
     }
 
@@ -783,19 +799,29 @@ function buildNegativeConstraints(state: ProductStudioState): string {
             'no heads, no torsos, no full figure',
             'hand must be anatomically correct (five fingers), realistic proportions, no deformities',
             'no animals, no digital devices, no user content',
-            'clean composition, commercial standard, high resolution, sharp focus',
+            'clean composition, commercial standard, high resolution',
+            'deep depth of field (no shallow DOF), product and hand on the same focus plane',
+            'no blur on product, no soft-focus label',
+            'no warped or unreadable label typography',
         ].join(', ');
     }
 
-    return 'product only, inanimate objects only, no animals, no digital devices, no user content, clean composition, commercial standard, high resolution, sharp focus';
+    return [
+        'product only, inanimate objects only',
+        'no animals, no digital devices, no user content',
+        'clean composition, commercial standard, high resolution',
+        'deep depth of field (no shallow DOF), tack-sharp product',
+        'no blur on product, no soft-focus label',
+        'no warped or unreadable label typography',
+    ].join(', ');
 }
 
 function buildQualityBar(state: ProductStudioState): string {
     const allowHands = state.interaction !== 'none' || state.handsHolding === true;
     if (allowHands) {
-        return 'real ecommerce hero image, premium supplement or skincare brand campaign, ultra clean, high resolution, commercial-ready, no ambiguity, art-directed, brand-safe, product with a single cropped hand only';
+        return 'real ecommerce hero image, premium commercial product photography, ultra clean, high resolution, commercial-ready, no ambiguity, art-directed, brand-safe, product with a single cropped hand only, tack-sharp label';
     }
-    return 'real ecommerce hero image, premium supplement or skincare brand campaign, ultra clean, high resolution, commercial-ready, no ambiguity, art-directed, brand-safe, inanimate objects only';
+    return 'real ecommerce hero image, premium commercial product photography, ultra clean, high resolution, commercial-ready, no ambiguity, art-directed, brand-safe, inanimate objects only, tack-sharp label';
 }
 
 function buildIntegrityConstraints(): string {

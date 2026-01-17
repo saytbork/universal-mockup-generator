@@ -2178,7 +2178,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           <div>
                             <p className={GROUP_LABEL_CLASS}>PRODUCT INTERACTION</p>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex flex-wrap gap-2">
                             <Chip
                               onClick={() => {
                                 productStore.setInteraction('none');
@@ -2203,8 +2203,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   markSectionTouched('product-setup');
                                 }}
                                 selected={productStore.interaction === key}
+                                className="whitespace-normal"
                               >
-                                {label}
+                                {key === 'applying' ? (
+                                  <span className="whitespace-normal leading-tight text-center">
+                                    Applying / Opening
+                                  </span>
+                                ) : (
+                                  label
+                                )}
                               </Chip>
                             ))}
                           </div>
@@ -2262,24 +2269,28 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             <div>
                               <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LIGHTING RIG</p>
                               <div className="flex flex-wrap gap-2">
-                                {[
-                                  '3-Point Beauty Dish', 'Softbox Wrap', 'Hard Edge Gels',
-                                  'Backlit Acrylic', 'High-Speed Splash Rig', 'Gradient Cyclorama',
-                                  'Prism Spotlight Duo'
-                                ].map(rig => (
+                                {([
+                                  { value: 'Three-Point Beauty', label: '3-Point Beauty Dish' },
+                                  { value: 'Softbox Wrap', label: 'Softbox Wrap' },
+                                  { value: 'Hard Edge Gels', label: 'Hard Edge Gels' },
+                                  { value: 'Backlit Acrylic', label: 'Backlit Acrylic' },
+                                  { value: 'High-Speed Splash Rig', label: 'High-Speed Splash Rig' },
+                                  { value: 'Gradient Cyclorama', label: 'Gradient Cyclorama' },
+                                  { value: 'Prism Spotlight Duo', label: 'Prism Spotlight Duo' },
+                                ] as const).map(({ value, label }) => (
                                   <button
-                                    key={rig}
+                                    key={value}
                                     onClick={() => {
-                                      productStore.setLightingRig(rig);
+                                      productStore.setLightingRig(value);
                                       markSectionTouched('product-setup');
                                     }}
-                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.lightingRig === rig
+                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.lightingRig === value
                                       ? 'bg-indigo-600 text-white border-indigo-600'
                                       : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
                                       }`}
                                     style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
                                   >
-                                    {rig}
+                                    {label}
                                   </button>
                                 ))}
                               </div>
@@ -2370,7 +2381,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   {/* STUDIO WARNING */}
                   <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
                     <p className="text-[11px] text-amber-700 font-medium">
-                      ⚠️ Studio uses abstract sets. Environments disable Studio.
+                      ⚠️ Studio uses abstract sets. “Environment” acts as set styling cues (not a real location).
                     </p>
                   </div>
                 </>
