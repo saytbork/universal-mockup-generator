@@ -2087,7 +2087,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <div className="relative">
                           <input
                             type="color"
-                            value={productStore.backgroundColor || '#ffffff'}
+                            value={/^#[0-9a-fA-F]{6}$/.test(productStore.backgroundColor || '') ? productStore.backgroundColor : '#ffffff'}
                             onChange={(e) => {
                               productStore.setBackgroundColor(e.target.value);
                               markSectionTouched('product-setup');
@@ -2096,7 +2096,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           />
                           <div
                             className="w-9 h-9 rounded-full border-2 border-gray-200 cursor-pointer transition-all duration-200 hover:scale-110 hover:border-gray-400"
-                            style={{ backgroundColor: productStore.backgroundColor || '#ffffff' }}
+                            style={{ backgroundColor: (/^#[0-9a-fA-F]{6}$/.test(productStore.backgroundColor || '') ? productStore.backgroundColor : '#ffffff') }}
                           />
                         </div>
                         <input
@@ -2117,7 +2117,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <div className="relative">
                           <input
                             type="color"
-                            value={productStore.accentColor || '#6366f1'}
+                            value={/^#[0-9a-fA-F]{6}$/.test(productStore.accentColor || '') ? productStore.accentColor : '#6366f1'}
                             onChange={(e) => {
                               productStore.setAccentColor(e.target.value);
                               markSectionTouched('product-setup');
@@ -2126,7 +2126,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           />
                           <div
                             className="w-9 h-9 rounded-full border-2 border-gray-200 cursor-pointer transition-all duration-200 hover:scale-110 hover:border-gray-400"
-                            style={{ backgroundColor: productStore.accentColor || '#6366f1' }}
+                            style={{ backgroundColor: (/^#[0-9a-fA-F]{6}$/.test(productStore.accentColor || '') ? productStore.accentColor : '#6366f1') }}
                           />
                         </div>
                         <input

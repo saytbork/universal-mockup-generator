@@ -494,7 +494,7 @@ function buildFinish(state: ProductStudioState): string {
 
 function buildAccentColor(state: ProductStudioState): string {
     // Only inject if user deviated from default accent
-    const accent = state.accentColor?.trim();
+    const accent = normalizeHexOrEmpty(state.accentColor);
     if (!accent) return '';
     const isDefault = accent.toLowerCase() === '#6366f1';
     if (isDefault) return '';
@@ -615,10 +615,10 @@ function buildPhotoMode(state: ProductStudioState): string {
 function buildBackground(state: ProductStudioState): string {
     // Real environments: avoid "studio background" contradictions.
     if (state.sceneType === 'lifestyle-real' || state.sceneType === 'ugc-phone') {
-        const bg = state.backgroundColor?.trim();
+        const bg = normalizeHexOrEmpty(state.backgroundColor);
         const bgName = safeHexToColorName(bg);
         if (!bg || bg.toLowerCase() === '#ffffff' || bgName === 'white') return '';
-        const accentName = safeHexToColorName(state.accentColor?.trim());
+        const accentName = safeHexToColorName(normalizeHexOrEmpty(state.accentColor));
         if (accentName && accentName !== 'white' && accentName !== 'neutral') {
             return `COLOR PALETTE: subtle ${bgName} accents with ${accentName} highlights.`;
         }
@@ -634,13 +634,15 @@ function buildBackground(state: ProductStudioState): string {
     }
 
     // 1. Explicit Hex/Custom Background (Prioritized)
-    if (state.backgroundColor) {
-        const color = state.backgroundColor.trim();
-        const isDefaultWhite = color.toLowerCase() === '#ffffff';
+    {
+        const color = normalizeHexOrEmpty(state.backgroundColor);
+        const isDefaultWhite = !!color && color.toLowerCase() === '#ffffff';
         if (isDefaultWhite) {
             return 'BACKGROUND: Clean seamless studio backdrop in neutral white (no beige cast).';
         }
-        return `BACKGROUND: Clean seamless studio backdrop in ${safeHexToColorName(color)} tone.`;
+        if (color) {
+            return `BACKGROUND: Clean seamless studio backdrop in ${safeHexToColorName(color)} tone.`;
+        }
     }
 
     // 2. Fallback to generic if no hex
@@ -668,6 +670,7 @@ function buildCreativity(state: ProductStudioState): string {
     if (state.blankSpaceEnabled) return '';
 
     const parts: string[] = [];
+    const proRigActive = !!(state.proMode && state.lightingRig && LIGHTING_PRESETS[state.lightingRig]);
 
     // 0. Props Injection (Always honor explicit user input)
     const propsText = state.props?.trim();
@@ -692,13 +695,16 @@ function buildCreativity(state: ProductStudioState): string {
     parts.push(themeMap[state.creativeTheme]);
 
     // 2. Light Style (Creative Lighting)
-    const lightStyleMap: Record<LightStyle, string> = {
-        'soft': 'soft diffused creative lighting',
-        'clinical': 'crisp clinical evenly lit',
-        'contrast': 'high contrast artistic lighting',
-        'shadow-play': 'gentle artistic shadow play',
-    };
-    parts.push(lightStyleMap[state.lightStyle]);
+    // If Pro lighting rig is active, do NOT add a second competing lighting description here.
+    if (!proRigActive) {
+        const lightStyleMap: Record<LightStyle, string> = {
+            'soft': 'soft diffused creative lighting',
+            'clinical': 'crisp clinical evenly lit',
+            'contrast': 'high contrast artistic lighting',
+            'shadow-play': 'gentle artistic shadow play',
+        };
+        parts.push(lightStyleMap[state.lightStyle]);
+    }
 
     const paletteMap: Record<PaletteSource, string> = {
         'brand': 'colors derived from the product packaging and label',
@@ -724,6 +730,13 @@ function buildCreativity(state: ProductStudioState): string {
     }
 
     return parts.filter(Boolean).join(', ');
+}
+
+function normalizeHexOrEmpty(input: string | undefined | null): string {
+    const value = String(input ?? '').trim();
+    if (!value) return '';
+    if (/^#[0-9a-fA-F]{6}$/.test(value)) return value;
+    return '';
 }
 
 // ============================================================================
