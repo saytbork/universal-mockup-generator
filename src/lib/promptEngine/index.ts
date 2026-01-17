@@ -83,6 +83,9 @@ function negativePrompt(options?: PromptOptions) {
 
         // Product integrity
         "warped product", "stretched product", "deformed bottle",
+        "giant bottle", "huge bottle", "oversized bottle",
+        "giant jar", "huge jar", "oversized jar",
+        "oversized product", "giant product", "product too large",
         "incorrect label", "fake reflections", "deformed label",
         "warped text", "curved typography", "melted text",
         "incorrect font", "missing letters", "extra letters",
