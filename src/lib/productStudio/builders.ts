@@ -457,9 +457,12 @@ function buildEnvironment(state: ProductStudioState): string {
 
 function buildLighting(state: ProductStudioState): string {
     // Pro photographer mode uses lighting rigs (preset-driven) across scene types.
-    // This keeps the control decisive and prevents "it does nothing" confusion.
-    if (state.proMode && state.lightingRig && LIGHTING_PRESETS[state.lightingRig]) {
-        return `LIGHTING_RIG: ${LIGHTING_PRESETS[state.lightingRig]}`;
+    // Also honor a selected (non-default) rig even if Pro Mode is toggled off later.
+    const lightingRig = String(state.lightingRig || '').trim();
+    const lightingRigPreset = lightingRig ? LIGHTING_PRESETS[lightingRig] : undefined;
+    const isNonDefaultRig = lightingRig !== '' && lightingRig !== 'Softbox Wrap';
+    if ((state.proMode || isNonDefaultRig) && lightingRigPreset) {
+        return `LIGHTING_RIG: ${lightingRigPreset}`;
     }
 
     const lightingMap: Record<string, string> = {
@@ -670,7 +673,12 @@ function buildCreativity(state: ProductStudioState): string {
     if (state.blankSpaceEnabled) return '';
 
     const parts: string[] = [];
-    const proRigActive = !!(state.proMode && state.lightingRig && LIGHTING_PRESETS[state.lightingRig]);
+    const proRigActive = (() => {
+        const lightingRig = String(state.lightingRig || '').trim();
+        const hasPreset = !!(lightingRig && LIGHTING_PRESETS[lightingRig]);
+        const isNonDefaultRig = lightingRig !== '' && lightingRig !== 'Softbox Wrap';
+        return hasPreset && (state.proMode || isNonDefaultRig);
+    })();
 
     // 0. Props Injection (Always honor explicit user input)
     const propsText = state.props?.trim();

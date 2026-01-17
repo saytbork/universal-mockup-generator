@@ -5,6 +5,7 @@ import { buildCamera } from './camera';
 import { buildEnvironment } from './environment';
 import { buildLighting } from './lighting';
 import { FormulationStoryBuilder } from './formulationStory';
+import { PHOTO_MODE_PRESETS } from '../studioPresets';
 
 export interface SceneNarrativeSections {
     creationIntent: string;
@@ -616,6 +617,13 @@ export class SceneNarrativeBuilder {
             narrativeParts.push(
                 'Final quality check. The scene must present a fully professional, editorial-grade result. If any conflicting cues appear, prioritize professional camera equipment, controlled lighting, stabilized motion, and deliberate environments. Suppress or override any residual casual, handheld, selfie-based, phone-captured, webcam-like, or user-generated signals. The final image should be brand-safe, visually consistent, and suitable for commercial or editorial use.'
             );
+        }
+
+        // Photo Mode injection (used by some UI flows even outside Studio fast-path).
+        // Keep it explicit and non-negotiable so each mode produces a visible, production-style delta.
+        const photoMode = String(((options as any).photoMode || (options as any).studioPhotoMode || '')).trim();
+        if (photoMode && PHOTO_MODE_PRESETS[photoMode]) {
+            narrativeParts.push(`PHOTO_MODE (NON-NEGOTIABLE): ${photoMode}. ${PHOTO_MODE_PRESETS[photoMode]}`);
         }
 
         return narrativeParts.join(' ');

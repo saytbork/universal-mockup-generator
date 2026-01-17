@@ -1902,6 +1902,8 @@ export function mapLifestyleToPromptOptions(
     }
     if (sceneState.studioLightingRig) {
         (mapped as any).studioLightingRig = sceneState.studioLightingRig;
+        // PromptEngine Studio fast-path reads `studioLighting`; treat Lighting Rig as the decisive studio lighting preset.
+        (mapped as any).studioLighting = sceneState.studioLightingRig;
     }
     if (sceneState.studioFinish) {
         (mapped as any).studioFinish = sceneState.studioFinish;
