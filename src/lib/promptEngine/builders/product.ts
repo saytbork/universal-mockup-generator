@@ -20,6 +20,9 @@ export class ProductBuilder implements PromptBuilder {
         if (options.ritualModeActive && options.ritualHideProduct) {
             return '';
         }
+        if (options.forceHideProduct) {
+            return '';
+        }
 
         // If no product assets are present, avoid referencing an uploaded product.
         if (!Array.isArray(productAssets) || productAssets.length === 0) {

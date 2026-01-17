@@ -343,6 +343,8 @@ export interface Step3Values {
   expertAttire: ExpertAttire;
   expertBadgePreference: BadgePreference;
   labVibe: string;
+  labVibeCustom: string;
+  formulationProductVisible: boolean;
 
   // Advanced Pro
   sameCreatorAcrossScenes: boolean;
@@ -712,7 +714,7 @@ const GRADIENT_ANGLE_OPTIONS: Array<'45' | '90' | '180'> = ['45', '90', '180'];
 const SIDE_PLACEMENT_OPTIONS = ['Left', 'Center', 'Right'];
 
 // FORMULATION STORY
-const LAB_VIBE_OPTIONS = ['Clean Lab', 'Moody Lab', 'Warm Studio'];
+const LAB_VIBE_OPTIONS = ['Clean Lab', 'Moody Lab', 'Warm Studio', 'None', 'Custom'];
 
 // CREATIVITY V1 CONSTANTS
 const COMPOSITION_MODE_V1_OPTIONS = [
@@ -999,6 +1001,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     expertAttire: EXPERT_ATTIRE_OPTIONS[0].value,
     expertBadgePreference: BADGE_PREFERENCE_OPTIONS[0].value,
     labVibe: LAB_VIBE_OPTIONS[0],
+    labVibeCustom: '',
+    formulationProductVisible: true,
 
     // Formulation Story (New Prompting logic)
     formulationExpertEnabled: false,
@@ -6461,6 +6465,32 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           {option}
                         </button>
                       ))}
+                    </div>
+                    {values.labVibe === 'Custom' && (
+                      <input
+                        type="text"
+                        value={values.labVibeCustom}
+                        onChange={(e) => { updateValue('labVibeCustom', e.target.value); markSectionTouched('formulationStory'); }}
+                        className="mt-2 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                        placeholder="e.g., university research lab, clean home workbench, small apothecary corner"
+                      />
+                    )}
+                  </div>
+
+                  <div className={SECTION_GROUP_CLASS}>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <p className="text-xs uppercase tracking-wider text-indigo-600">Product Visible</p>
+                        <p className="text-[11px] text-gray-500">Toggle off to generate a formulation scene without the product in-frame.</p>
+                      </div>
+                      <Toggle
+                        checked={values.formulationProductVisible}
+                        aria-label="Product visible"
+                        onCheckedChange={(next) => {
+                          updateValue('formulationProductVisible', next);
+                          markSectionTouched('formulationStory');
+                        }}
+                      />
                     </div>
                   </div>
 

@@ -36,11 +36,15 @@ export class FormulationStoryInjectionBuilder implements PromptBuilder {
             parts.push(`Medical Attire: ${story.expertAttire.replace(/_/g, ' ')}.`);
         }
 
-        if (story.labVibe && story.labVibe !== 'none') {
+        if (story.labVibeCustom) {
+            parts.push(`Lab vibe (custom): ${story.labVibeCustom}.`);
+        } else if (story.labVibe && story.labVibe !== 'none') {
             const hint = LAB_VIBE_HINTS[story.labVibe];
             if (hint) {
                 parts.push(`Lab vibe: ${hint}.`);
             }
+        } else if (story.labVibe === 'none') {
+            parts.push('Lab vibe: none (clean hero background, no lab props or tools).');
         }
 
         if (story.badgePreference) {

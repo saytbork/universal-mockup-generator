@@ -102,6 +102,8 @@ export interface FormulationStoryOptions {
     expertName?: string;
     roleCredentials?: string;
     labVibe?: 'modern_clinical_lab' | 'r_and_d_studio' | 'apothecary_lab' | 'none';
+    /** Freeform override for lab/location set dressing (used when Lab Vibe is Custom). */
+    labVibeCustom?: string;
     expertRole?: string;
     expertRoleLabel?: string;
     expertAttire?: ExpertAttire;
@@ -238,6 +240,9 @@ export interface PromptOptions {
     ritualPosture?: string;
     ritualActivities?: string[];
     ritualCustom?: string;
+
+    /** When true, the scene must contain no visible product packaging anywhere in frame. */
+    forceHideProduct?: boolean;
 
     formulationExpertEnabled?: boolean;
     formulationExpertName?: string;

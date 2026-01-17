@@ -318,7 +318,8 @@ function getBackgroundDescriptor(variationId: string | undefined): string | null
 const FORMULATION_LAB_VIBE_MAP: Record<string, FormulationStoryOptions['labVibe']> = {
     'Clean Lab': 'modern_clinical_lab',
     'Moody Lab': 'r_and_d_studio',
-    'Warm Studio': 'apothecary_lab'
+    'Warm Studio': 'apothecary_lab',
+    'None': 'none'
 };
 
 const ROLE_LABELS: Record<ExpertRole, string> = {
@@ -358,12 +359,15 @@ const buildFormulationStoryOptions = (sceneState: Step3Values): FormulationStory
         return undefined;
     }
     const focus = EXPERT_ROLE_FOCUS_MAP[sceneState.expertRole] ?? 'custom';
-    const labVibe = FORMULATION_LAB_VIBE_MAP[sceneState.labVibe] ?? 'none';
+    const isCustom = sceneState.labVibe === 'Custom';
+    const labVibe = isCustom ? 'none' : (FORMULATION_LAB_VIBE_MAP[sceneState.labVibe] ?? 'none');
+    const labVibeCustom = isCustom ? (sceneState.labVibeCustom?.trim() || undefined) : undefined;
     return {
         professionalFocus: focus,
         expertName: sceneState.expertName?.trim() || undefined,
         roleCredentials: sceneState.expertCredentials?.trim() || undefined,
         labVibe,
+        labVibeCustom,
         expertRole: sceneState.expertRole,
         expertRoleLabel: ROLE_LABELS[sceneState.expertRole] ?? 'medical expert',
         expertAttire: sceneState.expertAttire,
@@ -684,6 +688,7 @@ export function mapLifestyleToPromptOptions(
         throw new Error('Invalid state: formulation story enabled with noPerson=true');
     }
 
+
     // ========================================================================
     // DEV VALIDATION: Environment Mode Rules (Phase 6)
     // ========================================================================
@@ -730,6 +735,11 @@ export function mapLifestyleToPromptOptions(
         identitySeed,
         ugcStyle: existingOptions.ugcStyle ?? 'optimized'
     };
+
+    // Formulation Story can optionally hide the product entirely (scene-only).
+    if (sceneState.formulationStoryEnabled && sceneState.formulationProductVisible === false) {
+        (mapped as any).forceHideProduct = true;
+    }
     const hasUploadedProductAsset = (existingOptions.productAssets?.length ?? 0) > 0;
     const ritualHideProductRequested =
         (sceneState as any).ritualModeEnabled === true && Boolean((sceneState as any).ritualHideProduct);

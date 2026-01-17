@@ -338,6 +338,10 @@ export class SceneNarrativeBuilder {
             options.contentStyle === 'product' ||
             options.sceneIntent === 'ecommerce';
 
+        if (options.forceHideProduct) {
+            return 'Lifestyle environment composition with no visible product packaging anywhere in frame.';
+        }
+
         // Ecommerce canvas overlay (background replacement) can coexist with environment controls.
         // When active, it must override environment-first copy.
         if (options.creationMode === 'bg-replace' && options.ecommerceSidePlacementFlag) {

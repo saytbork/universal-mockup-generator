@@ -64,13 +64,19 @@ export class FormulationStoryBuilder implements PromptBuilder {
             );
         }
 
-        if (story.labVibe && story.labVibe !== 'none') {
+        if (story.labVibeCustom) {
+            parts.push(
+                `The background environment reflects: ${story.labVibeCustom}, kept subtle and believable, avoiding staged set dressing.`
+            );
+        } else if (story.labVibe && story.labVibe !== 'none') {
             const hint = LAB_VIBE_HINTS[story.labVibe];
             if (hint) {
                 parts.push(
                     `Subtle background hints such as ${hint} may appear, keeping the space cozy yet focused rather than sterile or theatrical.`
                 );
             }
+        } else if (story.labVibe === 'none') {
+            parts.push('Background stays clean and minimal like a hero set: no lab props, no tools, no extra elements.');
         }
 
         parts.push('No hero language or cinematic polish—just an approachable expert who keeps the person-first focus.');

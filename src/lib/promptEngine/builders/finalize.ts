@@ -6,7 +6,9 @@ import type { PromptOptions, PromptBuilder } from '../types';
 
 export class FinalizeBuilder implements PromptBuilder {
     build(options: PromptOptions): string {
-        const ritualHideProduct = options.ritualModeActive && options.ritualHideProduct === true;
+        const hideProduct =
+            (options.ritualModeActive && options.ritualHideProduct === true) ||
+            options.forceHideProduct === true;
 
         const lines: string[] = [
             'Final render must be high resolution, photorealistic and free of watermarks or text.',
@@ -16,11 +18,11 @@ export class FinalizeBuilder implements PromptBuilder {
             'No floating limbs.',
         ];
 
-        if (ritualHideProduct) {
+        if (hideProduct) {
             lines.push(
                 'CRITICAL: No product visible anywhere in frame (no packaging, no bottles, no jars, no labels, no supplement containers).',
                 'Do not include any brand packaging, product hero, or close-up packshot.',
-                'Make the ritual action clearly visible and central.'
+                'Focus on the person and environment; do not show any brand packaging.'
             );
             if (options.ritualNoObjects) {
                 lines.push(
