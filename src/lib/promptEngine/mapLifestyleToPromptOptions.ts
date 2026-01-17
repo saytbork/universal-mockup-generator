@@ -1142,8 +1142,24 @@ export function mapLifestyleToPromptOptions(
         creationModeKey = 'Lifestyle UGC';
     }
 
+    const productProminenceKey =
+        ((sceneState as any).productProminence as
+            | 'balanced'
+            | 'product-first'
+            | 'model-first'
+            | 'fifty-fifty'
+            | undefined) ?? 'product-first';
+
     const creationModeStructural = isEnvironmentSceneIntent
-        ? 'Environment-first lifestyle composition keeping the product grounded within the lived-in room.'
+        ? hasUploadedProductAsset && !ritualHideProductRequested
+            ? ({
+                balanced: 'Lifestyle composition in a real environment with balanced emphasis between person and product.',
+                'product-first': 'Lifestyle composition in a real environment with the product as the hero (product-first).',
+                'model-first': 'Lifestyle composition in a real environment with the person as the hero while the product remains clearly visible.',
+                'fifty-fifty': 'Lifestyle composition in a real environment with equal emphasis on person and product.',
+            } as const)[productProminenceKey] ??
+              'Lifestyle composition in a real environment with the product clearly visible.'
+            : 'Environment-first lifestyle composition keeping the product grounded within the lived-in room.'
         : isEcommerceBlankSpaceActive
             ? 'Ecommerce blank-space layout with pure white background, heavy negative space for UX overlays, and no environmental narrative.'
             : CREATION_MODE_STRUCTURAL_MAP[creationModeKey] || CREATION_MODE_STRUCTURAL_MAP['Lifestyle UGC'];
@@ -1166,7 +1182,15 @@ export function mapLifestyleToPromptOptions(
     const rawCompositionModeKey = sceneState.compositionMode || 'Lifestyle Showcase';
     const compositionModeKey = isEnvironmentSceneIntent ? 'Lifestyle Showcase' : rawCompositionModeKey;
     const compositionModeStructural = isEnvironmentSceneIntent
-        ? 'Environment-first layout with human-first framing and contextual surroundings.'
+        ? hasUploadedProductAsset && !ritualHideProductRequested
+            ? ({
+                balanced: 'Balanced framing: product and person share attention; environment supports the moment without stealing focus.',
+                'product-first': 'Product-first framing: product in the foreground hero position; person supports the story; environment stays contextual.',
+                'model-first': 'Person-first framing: person in the foreground hero position; product remains clearly visible and readable but secondary.',
+                'fifty-fifty': 'Equal emphasis framing: tight composition where face and product share prominence equally.',
+            } as const)[productProminenceKey] ??
+              'Product visible framing: keep product readable and present.'
+            : 'Environment-first layout with human-first framing and contextual surroundings.'
         : isEcommerceBlankSpaceActive
             ? 'Ecommerce blank-space arrangement with white void for product and copy, no lifestyle embellishments.'
             : COMPOSITION_MODE_STRUCTURAL_MAP[rawCompositionModeKey] || '';
