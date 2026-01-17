@@ -515,17 +515,17 @@ function buildInteraction(state: ProductStudioState): string {
     // Keep wording strictly "hand-only" (no heads/torso) and avoid any "lifestyle/people" phrasing.
     switch (state.interaction) {
         case 'cropped-hand':
-            return 'INTERACTION: single cropped hand at the edge of frame lightly touching or presenting the product; hand only, no arms, no body';
+            return 'INTERACTION: single cropped hand at the edge of frame lightly touching or presenting the product; hand-only crop, exclude any other anatomy outside the hand';
         case 'holding':
-            return 'INTERACTION: single cropped hand holding the product with a natural grip; hand only, no arms, no body';
+            return 'INTERACTION: single cropped hand holding the product with a natural grip; hand-only crop, exclude any other anatomy outside the hand';
         case 'presenting':
-            return 'INTERACTION: single cropped hand presenting the product from the side; hand only, no arms, no body';
+            return 'INTERACTION: single cropped hand presenting the product from the side; hand-only crop, exclude any other anatomy outside the hand';
         case 'applying':
-            return 'INTERACTION: single cropped hand opening, dispensing, or applying the product; hand only, no arms, no body';
+            return 'INTERACTION: single cropped hand opening, dispensing, or applying the product; hand-only crop, exclude any other anatomy outside the hand';
         default:
             // Back-compat: if an older UI path toggles handsHolding without a specific interaction.
             if (state.handsHolding === true) {
-                return 'INTERACTION: single cropped hand at the edge of frame lightly presenting the product; hand only, no arms, no body';
+                return 'INTERACTION: single cropped hand at the edge of frame lightly presenting the product; hand-only crop, exclude any other anatomy outside the hand';
             }
             return '';
     }
