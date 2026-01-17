@@ -1400,10 +1400,9 @@ const App: React.FC = () => {
   const lastAspectRatioRef = useRef<string>('1:1');
   const uploaderRef = useRef<ImageUploaderHandle | null>(null);
   const isDevBypass = useMemo(() => {
-    if (!import.meta.env.DEV) return false;
-    const params = new URLSearchParams(location.search);
-    return params.has('dev');
-  }, [location.search]);
+    // Local dev should never be blocked by credit limits.
+    return Boolean(import.meta.env.DEV);
+  }, []);
   const isAdmin = useMemo(() => {
     const normalized = userEmail.trim().toLowerCase();
     return (
@@ -4834,10 +4833,12 @@ If the model attempts to create a scene or environment, override it and force a 
         }
         void reportGalleryEntry(finalUrl);
         runHiResPipeline(finalUrl);
-        const newCount = creditUsage + creditCost;
-        setCreditUsage(newCount);
-        if (typeof window !== 'undefined') {
-          window.localStorage.setItem(IMAGE_COUNT_KEY, String(newCount));
+        if (!isTrialBypassActive) {
+          const newCount = creditUsage + creditCost;
+          setCreditUsage(newCount);
+          if (typeof window !== 'undefined') {
+            window.localStorage.setItem(IMAGE_COUNT_KEY, String(newCount));
+          }
         }
         // Avoid localStorage gallery (data URLs exceed quota); dashboard uses Firestore gallery history.
       } catch (err) {
@@ -5069,13 +5070,15 @@ If the model attempts to create a scene or environment, override it and force a 
         runHiResPipeline(lastUrl);
       }
 
-      setCreditUsage(prev => {
-        const next = prev + projectedCost;
-        if (typeof window !== 'undefined') {
-          window.localStorage.setItem(IMAGE_COUNT_KEY, String(next));
-        }
-        return next;
-      });
+      if (!isTrialBypassActive) {
+        setCreditUsage(prev => {
+          const next = prev + projectedCost;
+          if (typeof window !== 'undefined') {
+            window.localStorage.setItem(IMAGE_COUNT_KEY, String(next));
+          }
+          return next;
+        });
+      }
     } catch (err) {
       console.error(err);
       let errorMessage = '';
