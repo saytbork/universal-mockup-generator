@@ -1808,6 +1808,37 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             variant="primary"
           >
             <div className="space-y-4">
+              {/* PHOTO TYPE — Mutually exclusive modes to avoid prompt conflicts */}
+              <div className={SECTION_GROUP_CLASS}>
+                <p className={GROUP_LABEL_CLASS}>PHOTO TYPE</p>
+                <div className="flex flex-wrap gap-2">
+                  <Chip
+                    onClick={() => {
+                      productStore.setEnvironmentContext(null);
+                      markSectionTouched('product-setup');
+                    }}
+                    selected={productStore.environmentContext == null}
+                  >
+                    Photo Studio
+                  </Chip>
+                  <Chip
+                    onClick={() => {
+                      // Default to a safe, common environment if none selected yet.
+                      productStore.setEnvironmentContext({ macro: 'kitchen', micro: 'countertop' });
+                      markSectionTouched('product-setup');
+                    }}
+                    selected={productStore.environmentContext != null}
+                    disabled={productStore.blankSpaceEnabled === true}
+                    className={productStore.blankSpaceEnabled ? 'opacity-50 cursor-not-allowed' : undefined}
+                  >
+                    Environment
+                  </Chip>
+                </div>
+                <p className="text-[11px] text-gray-500 mt-1">
+                  Photo Studio = controlled set (Photo Modes). Environment = real setting controls. They never mix.
+                </p>
+              </div>
+
               {/* SCENE TYPE — Hidden in Product Studio (product-only mode) */}
               {!isProductMode && (
                 <div className={SECTION_GROUP_CLASS}>
@@ -3554,7 +3585,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             isTouched={touchedSections.has('product-environment')}
             variant="primary"
           >
-            {(() => {
+            {productStore.environmentContext == null ? (
+              <div className="rounded-xl border border-gray-200 bg-white p-3 text-gray-500 text-sm">
+                Switch <span className="font-semibold">Photo Type</span> to <span className="font-semibold">Environment</span> to enable real settings.
+              </div>
+            ) : (
+            (() => {
               const selectedMacro =
                 (productStore.environmentContext?.macro as EnvironmentMacro | null | undefined)
                 ?? (productStore.environmentMacro && productStore.environmentMacro !== 'studio' ? productStore.environmentMacro : null);
@@ -3678,7 +3714,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
                 </div>
               );
-            })()}
+            })()
+            )}
           </SmoothAccordion>
 
           <SmoothAccordion

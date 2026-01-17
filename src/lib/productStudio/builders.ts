@@ -456,13 +456,17 @@ function buildEnvironment(state: ProductStudioState): string {
 // ============================================================================
 
 function buildLighting(state: ProductStudioState): string {
-    // Pro photographer mode uses lighting rigs (preset-driven) across scene types.
+    const isPhotoStudio = state.sceneType === 'studio-branding';
+
+    // Photo Studio: allow lighting rigs (preset-driven).
     // Also honor a selected (non-default) rig even if Pro Mode is toggled off later.
-    const lightingRig = String(state.lightingRig || '').trim();
-    const lightingRigPreset = lightingRig ? LIGHTING_PRESETS[lightingRig] : undefined;
-    const isNonDefaultRig = lightingRig !== '' && lightingRig !== 'Softbox Wrap';
-    if ((state.proMode || isNonDefaultRig) && lightingRigPreset) {
-        return `LIGHTING_RIG: ${lightingRigPreset}`;
+    if (isPhotoStudio) {
+        const lightingRig = String(state.lightingRig || '').trim();
+        const lightingRigPreset = lightingRig ? LIGHTING_PRESETS[lightingRig] : undefined;
+        const isNonDefaultRig = lightingRig !== '' && lightingRig !== 'Softbox Wrap';
+        if ((state.proMode || isNonDefaultRig) && lightingRigPreset) {
+            return `LIGHTING_RIG: ${lightingRigPreset}`;
+        }
     }
 
     const lightingMap: Record<string, string> = {
@@ -674,6 +678,7 @@ function buildCreativity(state: ProductStudioState): string {
 
     const parts: string[] = [];
     const proRigActive = (() => {
+        if (state.sceneType !== 'studio-branding') return false;
         const lightingRig = String(state.lightingRig || '').trim();
         const hasPreset = !!(lightingRig && LIGHTING_PRESETS[lightingRig]);
         const isNonDefaultRig = lightingRig !== '' && lightingRig !== 'Softbox Wrap';
@@ -872,6 +877,7 @@ function buildIntegrityConstraints(): string {
  */
 function assembleSingleProductPrompt(state: ProductStudioState, product: ProductAsset): string {
     const segments: string[] = [];
+    const isPhotoStudio = state.sceneType === 'studio-branding';
 
     // 1. Scene Type
     segments.push(buildSceneType(state));
@@ -890,20 +896,19 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     if (!state.blankSpaceEnabled) {
         segments.push(buildComposition(state));
     }
-    // 4b. Photo Mode (NEW)
-    segments.push(buildPhotoMode(state));
-    // 4c. Background (NEW - Hex Support)
-    if (!state.blankSpaceEnabled) {
-        segments.push(buildBackground(state));
-    }
-    // 4d. Shadow (NEW)
-    segments.push(buildShadow(state));
-    // 4e. Studio Styling (NEW)
-    segments.push(buildLens(state));
-    segments.push(buildFinish(state));
-    segments.push(buildAccentColor(state));
-    if (!state.blankSpaceEnabled) {
-        segments.push(buildAlignment(state));
+    // 4b–4e. Photo Studio styling blocks (mutually exclusive with Environment)
+    if (isPhotoStudio) {
+        segments.push(buildPhotoMode(state));
+        if (!state.blankSpaceEnabled) {
+            segments.push(buildBackground(state));
+        }
+        segments.push(buildShadow(state));
+        segments.push(buildLens(state));
+        segments.push(buildFinish(state));
+        segments.push(buildAccentColor(state));
+        if (!state.blankSpaceEnabled) {
+            segments.push(buildAlignment(state));
+        }
     }
 
     // 5. Creativity System (Includes Props)
@@ -947,6 +952,7 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
 
 function assembleBundlePrompt(state: ProductStudioState): string {
     const segments: string[] = [];
+    const isPhotoStudio = state.sceneType === 'studio-branding';
 
     // 1. Scene Type
     segments.push(buildSceneType(state));
@@ -970,14 +976,14 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     if (!state.blankSpaceEnabled) {
         segments.push(buildComposition(state));
     }
-    // 4b. Photo Mode (NEW)
-    segments.push(buildPhotoMode(state));
-    // 4c. Background (NEW - Hex Support)
-    if (!state.blankSpaceEnabled) {
-        segments.push(buildBackground(state));
+    // 4b–4d. Photo Studio styling blocks (mutually exclusive with Environment)
+    if (isPhotoStudio) {
+        segments.push(buildPhotoMode(state));
+        if (!state.blankSpaceEnabled) {
+            segments.push(buildBackground(state));
+        }
+        segments.push(buildShadow(state));
     }
-    // 4d. Shadow (NEW)
-    segments.push(buildShadow(state));
 
     // 5. Creativity
     if (!state.blankSpaceEnabled) {
