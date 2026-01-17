@@ -1426,6 +1426,11 @@ const App: React.FC = () => {
     !isProductPlacement &&
     lifestyleStep3Values?.ritualModeEnabled === true &&
     lifestyleStep3Values?.ritualHideProduct === true;
+  const formulationNoProductMode =
+    !isProductPlacement &&
+    lifestyleStep3Values?.formulationStoryEnabled === true &&
+    lifestyleStep3Values?.formulationProductVisible === false;
+  const hideProductMode = ritualNoProductMode || formulationNoProductMode;
   const canUseMood = hasUploadedProduct;
   const [lifestyleTone, setLifestyleTone] = useState<'ugc' | 'editorial'>('ugc');
   const toggleTheme = useCallback(() => {
@@ -4522,8 +4527,8 @@ If the model attempts to create a scene or environment, override it and force a 
         return;
       }
       const generationProductsRaw = overrideActiveList?.length ? overrideActiveList : activeProducts;
-      const generationProducts = ritualNoProductMode ? [] : generationProductsRaw;
-      if (!generationProducts.length && !ritualNoProductMode) {
+      const generationProducts = hideProductMode ? [] : generationProductsRaw;
+      if (!generationProducts.length && !hideProductMode) {
         setImageError("Please upload a product image first.");
         return;
       }
@@ -4580,7 +4585,7 @@ If the model attempts to create a scene or environment, override it and force a 
             }
             : {}),
 	          personIncluded,
-          productAssets: (ritualNoProductMode ? [] : generationProducts).map(p => {
+          productAssets: (hideProductMode ? [] : generationProducts).map(p => {
             const sourceAsset = productAssets.find(asset => asset.id === p.id);
             return {
               id: p.id,
@@ -4719,7 +4724,7 @@ If the model attempts to create a scene or environment, override it and force a 
         const naturalMode = resolvedUgcStyle === 'natural';
         const rawMode = !!promptOptions.ugcRealModeActive;
         const shouldIncludeHumanImage = personIncluded && !(naturalMode || rawMode);
-        const shouldSendProductImage = generationProducts.length > 0;
+        const shouldSendProductImage = generationProducts.length > 0 && !hideProductMode;
         const identityInlinePart = personIdentityPackage.modelReferenceBase64
           ? {
             inlineData: {
@@ -5860,21 +5865,21 @@ If the model attempts to create a scene or environment, override it and force a 
                         03 / Generate
                       </p>
                     </div>
-                    {!hasUploadedProduct && !ritualNoProductMode && (
+                    {!hasUploadedProduct && !hideProductMode && (
                       <div className="rounded-lg border border-gray-200 bg-white/70 px-3 py-2 text-[11px] text-gray-500 dark:bg-black/20 dark:border-white/10 dark:text-white/50">
                         Locked until previous step is complete
                       </div>
                     )}
                     {(() => {
-	                      const isGenerateDisabled = isImageLoading || (!hasUploadedProduct && !ritualNoProductMode);
+	                      const isGenerateDisabled = isImageLoading || (!hasUploadedProduct && !hideProductMode);
 	                      const generationRestrictionMessage = (() => {
 	                        if (!isGenerateDisabled) return '';
-	                        if (!hasUploadedProduct && !ritualNoProductMode) return 'Upload a source product photo before generating.';
+	                        if (!hasUploadedProduct && !hideProductMode) return 'Upload a source product photo before generating.';
 	                        if (isImageLoading) return 'Generation is in progress; please wait.';
 	                        return '';
 	                      })();
                       return (
-                        <div className={hasUploadedProduct || ritualNoProductMode ? '' : 'opacity-50 pointer-events-none select-none'}>
+                        <div className={hasUploadedProduct || hideProductMode ? '' : 'opacity-50 pointer-events-none select-none'}>
                           <button
                             type="button"
                             onClick={
