@@ -1820,6 +1820,10 @@ export function mapLifestyleToPromptOptions(
     } else if (sceneState.studioProps && !isIngredientStack) {
         console.log('[MAP] Props ignored - only allowed with Ingredient Stack photoMode');
     }
+    if (sceneState.studioIngredientLayout && isIngredientStack) {
+        (mapped as any).studioIngredientLayout = sceneState.studioIngredientLayout;
+        (mapped as any).ingredientLayout = sceneState.studioIngredientLayout;
+    }
     if (sceneState.studioInteraction) {
         (mapped as any).studioInteraction = sceneState.studioInteraction;
     }
@@ -1844,6 +1848,7 @@ export function mapLifestyleToPromptOptions(
             alignment: sceneState.studioAlignment,
             shadow: sceneState.studioShadow,
             props: sceneState.studioProps,
+            ingredientLayout: sceneState.studioIngredientLayout,
             lens: sceneState.studioLens,
             lightingRig: sceneState.studioLightingRig,
             finish: sceneState.studioFinish,

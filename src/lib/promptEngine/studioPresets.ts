@@ -388,6 +388,10 @@ export interface StudioPromptOptions {
     // Photo Mode
     photoMode?: string;
 
+    // Props / Ingredients (optional, primarily for Ingredient Stack)
+    suggestedProps?: string;
+    ingredientLayout?: 'auto' | 'grounded' | 'floating' | 'top-view';
+
     // Auto Palette Extraction (extracted from product label)
     paletteColor1?: string; // Primary color
     paletteColor2?: string; // Secondary color
@@ -421,9 +425,6 @@ export interface StudioPromptOptions {
 
     // Optional Interaction
     interaction?: string;
-
-    // Props / Ingredients (optional, primarily for Ingredient Stack)
-    suggestedProps?: string;
 }
 
 export function buildStudioPrompt(options: StudioPromptOptions): string {
@@ -464,7 +465,14 @@ export function buildStudioPrompt(options: StudioPromptOptions): string {
     // PROPS / INGREDIENTS (Injected after Photo Mode)
     // =========================================================================
     if (options.suggestedProps) {
-        parts.push(`PROPS/INGREDIENTS: ${options.suggestedProps}. Arranged naturally around the product.`);
+        const layout = options.ingredientLayout ?? 'auto';
+        const layoutHint: Record<NonNullable<StudioPromptOptions['ingredientLayout']>, string> = {
+            auto: 'Arrange in a clean, controlled layout around the product.',
+            grounded: 'All ingredients must rest on the same surface/base as the product. No floating ingredients. Realistic contact shadows. Powders may form small grounded piles.',
+            floating: 'Ingredients float around the product at varied depths. No ingredients resting on a surface. Powders must appear as fine airborne dust/particles (no piles).',
+            'top-view': 'Flat lay top-down arrangement with ingredients placed around the product on a clean surface. No floating ingredients.',
+        };
+        parts.push(`PROPS/INGREDIENTS: ${options.suggestedProps}. ${layoutHint[layout]}`);
     }
 
     // =========================================================================
@@ -581,6 +589,7 @@ export function buildStudioPrompt(options: StudioPromptOptions): string {
         composition: options.composition,
         shadowStyle: options.shadow,
         props: (options as any).suggestedProps || (options as any).props,
+        ingredientLayout: options.ingredientLayout,
         lens: options.lens,
         lightingRig: options.lighting,
         finish: options.finish,

@@ -17,7 +17,7 @@ import type { EcommerceSlotKey, EcommerceSlotsConfig } from '@/lib/ecommerceOver
 import { Chip } from './ui/Chip';
 import { Toggle } from './ui/Toggle';
 import { useProductStudioStore, PREBUILT_BUNDLES, BRAND_PRESETS } from '@/lib/productStudio/store';
-import type { ProductStudioState, CameraAngle, CameraDistance, CameraRotation, CameraFraming, CreativeTheme, PaletteSource, PropDensity, BlankSpaceSide, EnvironmentMacro, Lighting, ProductType, MicroPlace, CompositionMode, SurfaceBase, ProductScale, ProductSpacing, LightStyle, NegativeSpace } from '@/lib/productStudio/types';
+import type { ProductStudioState, CameraAngle, CameraDistance, CameraRotation, CameraFraming, CreativeTheme, PaletteSource, PropDensity, BlankSpaceSide, EnvironmentMacro, Lighting, ProductType, MicroPlace, CompositionMode, SurfaceBase, ProductScale, ProductSpacing, LightStyle, NegativeSpace, IngredientStackLayout } from '@/lib/productStudio/types';
 import { validateProductStudioState } from '@/lib/productStudio/validator';
 import { normalizeOption } from '../system/normalizeOptions';
 
@@ -361,6 +361,7 @@ export interface Step3Values {
   studioAlignment?: string;
   studioShadow?: string;
   studioProps?: string;
+  studioIngredientLayout?: IngredientStackLayout;
   studioInteraction?: string;
   studioLens?: string;
   studioLightingRig?: string;
@@ -1404,6 +1405,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       studioAlignment: productStore.alignment,
       studioShadow: productStore.shadow,
       studioProps: productStore.props,
+      studioIngredientLayout: productStore.ingredientLayout,
       studioInteraction: productStore.interaction,
       studioLens: productStore.lens,
       studioLightingRig: productStore.lightingRig,
@@ -1416,6 +1418,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     productStore.alignment,
     productStore.shadow,
     productStore.props,
+    productStore.ingredientLayout,
     productStore.interaction,
     productStore.lens,
     productStore.lightingRig,
@@ -1905,6 +1908,36 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 placeholder:text-gray-400"
                         />
                         <p className="text-[9px] text-gray-400 mt-1">These ingredients will appear as props around your product</p>
+
+                        <div className="mt-3">
+                          <label className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold block mb-1">
+                            Ingredient layout
+                          </label>
+                          <div className="flex flex-wrap gap-2">
+                            {(
+                              [
+                                { value: 'auto', label: 'Auto' },
+                                { value: 'grounded', label: 'On base' },
+                                { value: 'floating', label: 'Floating' },
+                                { value: 'top-view', label: 'Top view' },
+                              ] as const
+                            ).map(({ value, label }) => (
+                              <Chip
+                                key={value}
+                                selected={productStore.ingredientLayout === value}
+                                onClick={() => {
+                                  productStore.setIngredientLayout(value);
+                                  markSectionTouched('product-setup');
+                                }}
+                              >
+                                {label}
+                              </Chip>
+                            ))}
+                          </div>
+                          <p className="text-[9px] text-gray-400 mt-1">
+                            “On base” prevents floating ingredients. “Floating” makes powders airy (no piles). “Top view” works best with Top Down camera.
+                          </p>
+                        </div>
                       </div>
                     )}
                   </div>

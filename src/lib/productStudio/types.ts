@@ -418,6 +418,8 @@ export type ProductStudioState = {
     gradientEnd: string;
     gradientAngle: number;
     props: string;
+    /** Ingredient Stack only: controls whether ingredients float or rest on the base. */
+    ingredientLayout: IngredientStackLayout;
     interaction: 'none' | 'cropped-hand' | 'holding' | 'presenting' | 'applying';
     proMode: boolean;
     lens: string;
@@ -455,3 +457,9 @@ export type GeneratedProductImage = {
     prompt: string;
     timestamp: number;
 };
+
+// =============================================================================
+// INGREDIENT STACK (PHOTO MODE) OPTIONS
+// =============================================================================
+
+export type IngredientStackLayout = 'auto' | 'grounded' | 'floating' | 'top-view';

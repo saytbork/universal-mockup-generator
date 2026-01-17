@@ -476,6 +476,10 @@ export class PromptEngine {
                 // Photo Mode
                 photoMode: (options as any).photoMode || (options as any).studioPhotoMode,
 
+                // Props / Ingredients (Ingredient Stack only)
+                suggestedProps: (options as any).suggestedProps || (options as any).studioProps,
+                ingredientLayout: (options as any).ingredientLayout || (options as any).studioIngredientLayout,
+
                 // Auto Palette Extraction
                 paletteColor1: (options as any).paletteColor1,
                 paletteColor2: (options as any).paletteColor2,

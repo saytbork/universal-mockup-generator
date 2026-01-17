@@ -440,6 +440,7 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     gradientEnd: '#f0f0f0',
     gradientAngle: 180,
     props: '',
+    ingredientLayout: 'grounded',
     interaction: 'none',
     proMode: false,
     lens: '50mm Product Prime',
@@ -580,6 +581,7 @@ type ProductStudioActions = {
     setGradientEnd: (color: string) => void;
     setGradientAngle: (angle: number) => void;
     setProps: (props: string) => void;
+    setIngredientLayout: (layout: ProductStudioState['ingredientLayout']) => void;
     setInteraction: (interaction: 'none' | 'cropped-hand' | 'holding' | 'presenting' | 'applying') => void;
     setProMode: (enabled: boolean) => void;
     setLens: (lens: string) => void;
@@ -1117,6 +1119,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     backgroundColor: '#FFFFFF',
                     gradientEnabled: false,
                     props: '',
+                    ingredientLayout: 'grounded',
                     selectedProps: [],
                     propDensity: 'none',
                     creativityLevel: 0,
@@ -1196,6 +1199,8 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 hasProps && state.propDensity === 'none' ? 'low' : state.propDensity;
             return { props: nextProps, propDensity: nextDensity };
         }),
+    setIngredientLayout: (layout) =>
+        set({ ingredientLayout: (layout ?? 'auto') as ProductStudioState['ingredientLayout'] }),
     setInteraction: (interaction) => set({ interaction }),
     setProMode: (enabled) => set({ proMode: enabled }),
     setLens: (lens) => set({ lens }),
