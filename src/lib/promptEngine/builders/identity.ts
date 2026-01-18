@@ -369,7 +369,7 @@ Captured by smartphone so fine edges may appear soft or broken.
 
                 if (typeof secondaryAge === 'number') {
                     parts.push(
-                        `AGE DIFFERENCE: PRIMARY SUBJECT must read as ${age}. SECONDARY SUBJECT must read as ${secondaryAge}. Make the age difference visually obvious.`
+                        `AGE COHERENCE (COUPLE): PRIMARY SUBJECT must read as ${age}. SECONDARY SUBJECT must read as ${secondaryAge}. Keep the age difference subtle and realistic (2–6 years; never more than 8). Never render teen + adult or young + elderly mismatch.`
                     );
 
                     const secondaryAgeGroupLabel = secondaryAge >= 75 ? 'elder' : 'adult';
@@ -485,12 +485,42 @@ Captured by smartphone so fine edges may appear soft or broken.
         }
 
         if (personDetails?.eyeDirection) {
-            const eyeMap: Record<string, string> = {
-                'Looking at camera': 'eyes directed at camera with focused gaze',
-                'Looking at product': 'eyes directed toward product with attentive focus',
-                'Looking away naturally': 'eyes off-camera at natural angle, candid gaze'
-            };
-            parts.push(sanitizePart(eyeMap[personDetails.eyeDirection] || personDetails.eyeDirection, isUgcMode));
+            const eyeDirection = String(personDetails.eyeDirection);
+            const isCouple = options.personCount === 'couple';
+
+            if (isCouple) {
+                if (eyeDirection === 'Looking at camera') {
+                    parts.push(
+                        sanitizePart(
+                            'EYE DIRECTION (COUPLE): Only ONE subject may look at the camera. The other must look at the product or look away naturally. Never both looking at camera.',
+                            isUgcMode
+                        )
+                    );
+                } else if (eyeDirection === 'Looking at product') {
+                    parts.push(
+                        sanitizePart(
+                            'EYE DIRECTION (COUPLE): Both subjects look at the product OR one looks at the product while the other looks at the first subject. Shared moment, not posed.',
+                            isUgcMode
+                        )
+                    );
+                } else if (eyeDirection === 'Looking away naturally') {
+                    parts.push(
+                        sanitizePart(
+                            'EYE DIRECTION (COUPLE): Both subjects look away casually OR one looks away while the other looks at the product. Avoid direct eye contact between both subjects unless explicitly requested.',
+                            isUgcMode
+                        )
+                    );
+                } else {
+                    parts.push(sanitizePart(String(eyeDirection), isUgcMode));
+                }
+            } else {
+                const eyeMap: Record<string, string> = {
+                    'Looking at camera': 'eyes directed at camera with focused gaze',
+                    'Looking at product': 'eyes directed toward product with attentive focus',
+                    'Looking away naturally': 'eyes off-camera at natural angle, candid gaze',
+                };
+                parts.push(sanitizePart(eyeMap[eyeDirection] || eyeDirection, isUgcMode));
+            }
         }
 
         if (personDetails?.personPose) {

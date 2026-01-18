@@ -822,46 +822,68 @@ export function mapLifestyleToPromptOptions(
     const personIncluded = !sceneState.noPerson;
     mapped.personIncluded = personIncluded;
     mapped.personCount = sceneState.personCount || 'single';
-    mapped.coupleSex = sceneState.coupleSex || 'different';
-    // Secondary person (Person B) handling for Couple:
-    // - Age is honored whenever it differs from Person A (even if Advanced is OFF).
-    // - The rest of Person B attributes require Advanced (editSecondaryPerson) to avoid unintended overrides.
-    const secondaryDetails = (() => {
-        if ((sceneState as any).personCount !== 'couple') return null;
-        const isExplicit = (sceneState as any).editSecondaryPerson === true;
-        const details: any = {};
-        const pick = (key: string, targetKey: string = key) => {
-            const value = String(((sceneState as any)[key] ?? '')).trim();
-            if (value) details[targetKey] = value;
-        };
-        const pickNumber = (key: string, targetKey: string = key) => {
-            const value = (sceneState as any)[key];
-            if (typeof value === 'number' && Number.isFinite(value)) details[targetKey] = value;
-        };
-        const primaryAge = typeof (sceneState as any).age === 'number' ? (sceneState as any).age : null;
-        const secondaryAge = (sceneState as any).secondaryAge;
-        if (typeof secondaryAge === 'number' && Number.isFinite(secondaryAge)) {
-            if (primaryAge === null || secondaryAge !== primaryAge) {
-                details.age = secondaryAge;
-            }
-        }
+    mapped.coupleSex = mapped.personCount === 'couple' ? (sceneState.coupleSex || 'different') : undefined;
+    // Couple semantics (strict):
+    // - Person A uses all explicit UI controls
+    // - Person B is auto-derived with distinct identity (no explicit per-person editing)
+    // - Age coherence: Person B age = Person A age ± random(2–6), never > 8, never below 18.
+    const isCouple = mapped.personCount === 'couple';
+    const isNoPerson = Boolean((sceneState as any).noPerson);
+    if (isCouple && isNoPerson) {
+        throw new Error('COUPLE VALIDATION: Person count is Couple but noPerson is enabled.');
+    }
 
-        if (!isExplicit) {
-            return Object.keys(details).length ? details : null;
+    const hashString = (input: string): number => {
+        let hash = 5381;
+        for (let i = 0; i < input.length; i++) {
+            hash = ((hash << 5) + hash) ^ input.charCodeAt(i);
         }
+        return hash >>> 0;
+    };
 
-        pick('secondaryGender', 'gender');
-        pick('secondaryEthnicity', 'ethnicity');
-        pick('secondarySkinTone', 'skinTone');
-        pick('secondaryEyeColor', 'eyeColor');
-        pick('secondaryBodyType', 'bodyType');
-        pick('secondaryHairLength', 'hairLength');
-        pick('secondaryHairTexture', 'hairTexture');
-        pick('secondaryHairColor', 'hairColor');
-        return Object.keys(details).length ? details : null;
-    })();
-    if (secondaryDetails) {
-        (mapped as any).secondaryPersonDetails = secondaryDetails;
+    const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+
+    const deriveCoupleSecondaryAge = (primaryAge: number, token: string) => {
+        const h = hashString(`${token}::secondary-age`);
+        const offset = 2 + (h % 5); // 2–6
+        const sign = ((h >> 3) & 1) === 0 ? -1 : 1;
+        const minAge = 18;
+        const maxAge = 90;
+        const raw = primaryAge + sign * offset;
+        // Avoid teen/elder mismatch and out-of-range
+        const clamped = clamp(raw, minAge, maxAge);
+        // Ensure delta is within 2–6 and not >8
+        const delta = Math.abs(clamped - primaryAge);
+        if (delta < 2) return clamp(primaryAge + 2, minAge, maxAge);
+        if (delta > 8) return clamp(primaryAge + 6, minAge, maxAge);
+        return clamped;
+    };
+
+    if (isCouple) {
+        const primaryAgeRaw = (sceneState as any).age;
+        const primaryAge =
+            typeof primaryAgeRaw === 'number' && Number.isFinite(primaryAgeRaw) ? Number(primaryAgeRaw) : 30;
+        const token = String(mapped.identityVariationToken || mapped.identityKey || mapped.seed || 'couple');
+        const secondaryAge = deriveCoupleSecondaryAge(primaryAge, token);
+
+        const primaryGender = String((sceneState as any).gender || '').trim();
+        const coupleSex = mapped.coupleSex || 'different';
+        const derivedSecondaryGender = (() => {
+            const g = primaryGender.toLowerCase();
+            if (!primaryGender) return null;
+            if (coupleSex === 'same') return primaryGender;
+            if (coupleSex !== 'different') return null;
+            if (g.includes('female')) return 'Male';
+            if (g.includes('male')) return 'Female';
+            return null;
+        })();
+
+        (mapped as any).secondaryPersonDetails = {
+            age: secondaryAge,
+            ...(derivedSecondaryGender ? { gender: derivedSecondaryGender } : {}),
+        };
+    } else {
+        (mapped as any).secondaryPersonDetails = undefined;
     }
 
     const sceneIntent = sceneState.sceneIntent as 'environment' | 'ecommerce';
@@ -1046,7 +1068,16 @@ export function mapLifestyleToPromptOptions(
             if (sceneState.productInteraction === 'Using' && sceneState.productUsageDescription) {
                 interactionParts.push(sceneState.productUsageDescription.trim());
             }
-            mapped.personDetails.productInteraction = interactionParts.filter(Boolean).join(' ');
+            const interactionText = interactionParts.filter(Boolean).join(' ');
+            if (mapped.personCount === 'couple') {
+                mapped.personDetails.productInteraction = [
+                    'COUPLE INTERACTION RULE: Only Person A interacts actively with the product.',
+                    'Person B remains supportive and passive (no contact with the product).',
+                    `Person A: ${interactionText}.`
+                ].join(' ');
+            } else {
+                mapped.personDetails.productInteraction = interactionText;
+            }
         }
         mapped.productStructure = sceneState.productStructure || 'single';
         if (sceneState.eyeColor) mapped.personDetails.eyeColor = sceneState.eyeColor;

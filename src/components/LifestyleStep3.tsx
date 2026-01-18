@@ -4361,28 +4361,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         />
                       </div>
 
-                      {values.personCount === 'couple' && (
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs text-gray-600 dark:text-white/60">Age (Person B)</span>
-                            <span className="text-sm font-medium text-gray-900 dark:text-white">{values.secondaryAge}</span>
-                          </div>
-                          <input
-                            type="range"
-                            min={18}
-                            max={90}
-                            step={1}
-                            value={values.secondaryAge}
-                            onChange={(event) => { updateValue('secondaryAge', Number(event.target.value)); markSectionTouched('creator'); }}
-                            className="scene-age-slider w-full"
-                            style={{ ['--progress' as any]: `${Math.round(((values.secondaryAge - 18) / (90 - 18)) * 100)}%` }}
-                          />
-                          <p className="text-[11px] text-gray-400 dark:text-white/40">
-                            Person B defaults to Person A unless changed.
-                          </p>
-                        </div>
-                      )}
-
 	                      <div className="space-y-2">
 	                        <span className="text-xs text-gray-600 dark:text-white/60">
 	                          {values.personCount === 'couple' ? 'Primary gender' : 'Gender'}
@@ -4412,7 +4390,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               {values.ugcRealMode
                                 ? 'Raw Domestic UGC is single-person only. Couple is disabled.'
                                 : values.personCount === 'couple'
-                                ? 'Primary person settings apply to Person A; Person B is derived automatically (distinct identity).'
+                                ? (
+                                  <>
+                                    Primary person settings apply to Person A.
+                                    <br />
+                                    Person B is derived automatically with a distinct identity.
+                                  </>
+                                )
                                 : 'Choose single creator or a couple.'}
                             </p>
                           </div>
@@ -4443,32 +4427,56 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                          </Chip>
 	                        </div>
 	                        {values.personCount === 'couple' && (
-	                          <div className="flex flex-wrap gap-2">
-	                            <Chip
-	                              onClick={() => {
-	                                updateValue('coupleSex', 'same');
-	                                markSectionTouched('creator');
-	                              }}
-	                              selected={values.coupleSex === 'same'}
-	                              size="md"
-	                              tooltip="Couple: same sex"
-	                            >
-	                              Same sex
-	                            </Chip>
-	                            <Chip
-	                              onClick={() => {
-	                                updateValue('coupleSex', 'different');
-	                                markSectionTouched('creator');
-	                              }}
-	                              selected={values.coupleSex === 'different'}
-	                              size="md"
-	                              tooltip="Couple: different sex"
-	                            >
-	                              Different sex
-	                            </Chip>
+	                          <div className="space-y-2">
+	                            <span className="text-xs text-gray-600 dark:text-white/60">Sex pairing</span>
+	                            <div className="flex flex-wrap gap-2">
+	                              <Chip
+	                                onClick={() => {
+	                                  updateValue('coupleSex', 'same');
+	                                  markSectionTouched('creator');
+	                                }}
+	                                selected={values.coupleSex === 'same'}
+	                                size="md"
+	                              >
+	                                Same sex
+	                              </Chip>
+	                              <Chip
+	                                onClick={() => {
+	                                  updateValue('coupleSex', 'different');
+	                                  markSectionTouched('creator');
+	                                }}
+	                                selected={values.coupleSex === 'different'}
+	                                size="md"
+	                              >
+	                                Different sex
+	                              </Chip>
+	                            </div>
 	                          </div>
 	                        )}
-	                        {values.personCount === 'couple' && (
+
+                        <div className="space-y-2">
+                          <span className="text-xs text-gray-600 dark:text-white/60">Eye direction</span>
+                          <div className="flex flex-wrap gap-2">
+                            {EYE_DIRECTION_OPTIONS.map(option => {
+                              const active = values.eyeDirection === option;
+                              return (
+                                <button
+                                  key={option}
+                                  type="button"
+                                  onClick={() => { updateValue('eyeDirection', option); markSectionTouched('creator'); }}
+                                  className={`px-3 h-8 rounded-full border text-xs transition-colors ${active
+                                    ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
+                                    : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
+                                    }`}
+                                >
+                                  {option}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+	                        {false && (
 	                          <div className="pt-2">
 	                            <div className="flex items-center justify-between gap-3">
 	                              <div>
@@ -4506,7 +4514,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                        )}
 	                      </div>
 
-	                      {values.personCount === 'couple' && values.editSecondaryPerson && (
+	                      {false && (
 	                        <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-4 dark:bg-black/20 dark:border-white/10">
 	                          <p className="text-[11px] uppercase tracking-[0.3em] text-gray-400 font-semibold dark:text-white/40">
 	                            Person B (Secondary)
@@ -4983,28 +4991,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 onClick={() => { updateValue('facialExpression', option); markSectionTouched('creator'); }}
                                 className={`px-3 h-8 rounded-full border text-xs transition-colors ${active
                                   ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500'
-                                  : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-                                  }`}
-                              >
-                                {option}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <span className="text-xs text-gray-600 dark:text-white/60">Eye direction</span>
-                        <div className="flex flex-wrap gap-2">
-                          {EYE_DIRECTION_OPTIONS.map(option => {
-                            const active = values.eyeDirection === option;
-                            return (
-                              <button
-                                key={option}
-                                type="button"
-                                onClick={() => { updateValue('eyeDirection', option); markSectionTouched('creator'); }}
-                                className={`px-3 h-8 rounded-full border text-xs transition-colors ${active
-                                  ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
                                   : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
                                   }`}
                               >
