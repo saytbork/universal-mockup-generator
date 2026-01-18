@@ -1030,6 +1030,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const [activePaletteSlot, setActivePaletteSlot] = useState<'productPaletteA' | 'productPaletteB' | 'productPaletteC'>(
     'productPaletteA'
   );
+  const [productCreativeAdvancedOpen, setProductCreativeAdvancedOpen] = useState(false);
 
   // New strict states
   const [isCreatorPro, setIsCreatorPro] = useState(false);
@@ -1794,8 +1795,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         <>
           <SmoothAccordion
             icon={Layers}
-            title="Product Setup"
-            tooltip="Define product context (product-only)"
+            title="01 / Product Setup"
+            tooltip="Define the product context. This determines what the system is allowed to generate."
             isOpen={openAccordionId === 'product-setup'}
             onToggle={() => toggleSection('product-setup')}
             isRequired
@@ -1803,9 +1804,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             variant="primary"
           >
             <div className="space-y-4">
+              <p className="text-sm text-gray-500">
+                Define the product context. This determines what the system is allowed to generate.
+              </p>
+
               {/* PHOTO TYPE — Mutually exclusive modes to avoid prompt conflicts */}
               <div className={SECTION_GROUP_CLASS}>
                 <p className={GROUP_LABEL_CLASS}>PHOTO TYPE</p>
+                <p className="text-[11px] text-gray-500 mt-1">
+                  Choose how the product is staged. Studio and Environment never mix.
+                </p>
                 <div className="flex flex-wrap gap-2">
                   <Chip
                     onClick={() => {
@@ -1830,7 +1838,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </Chip>
                 </div>
                 <p className="text-[11px] text-gray-500 mt-1">
-                  Photo Studio = controlled set (Photo Modes). Environment = real setting controls. They never mix.
+                  Photo Studio uses controlled sets. Environment places the product in a real-world setting.
                 </p>
               </div>
 
@@ -1886,99 +1894,119 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                    PRODUCT STUDIO CONTROLS (Studio Mode Only)
                    Basic/Pro Visibility System
                    ============================================================ */}
-              {productStore.sceneType === 'studio-branding' && (
+              {(productStore.sceneType === 'studio-branding' ||
+                productStore.sceneType === 'editorial-product' ||
+                productStore.sceneType === 'lifestyle-real') && (
                 <>
-                  {/* ═══════════════════════════════════════════════════════════
-                      1. PHOTO MODE — What am I making?
-                      Basic: 4 options | Pro: All options
-                      ═══════════════════════════════════════════════════════════ */}
-                  <div className={SECTION_GROUP_CLASS}>
-                    <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">PHOTO MODE</p>
-                    <div className="flex flex-wrap gap-2">
-                      {(productStore.presetTier === 'basic'
-                        ? ['Hero Landing Page', 'Clear', 'Color Pop Hero', 'Ingredient Stack']
-                        : [
-                          'Hero Landing Page', 'Clear', 'Color Pop Hero', 'Ingredient Stack',
-                          'Acrylic Blocks', 'Splash Shot',
-                          'Tile & Spa', 'Foam & Texture', 'Routine Carousel', 'Pastel Picnic',
-                          'Face Pop Close-Up', 'Sunrise Wellness Counter', 'Clinical Lab Counter',
-                          'Golden Mist Aura', 'Outdoor Energy Boost', 'Crown Wellness Vanity',
-                          'Candy Gradient Lab'
-                        ]
-                      ).map(mode => (
-                        <button
-                          key={mode}
-                          title={mode}
-                          onClick={() => {
-                            productStore.setPhotoMode(mode);
-                            markSectionTouched('product-setup');
-                          }}
-                          className={`px-4 py-2 rounded-xl text-[10px] font-bold border transition-all duration-300 ${productStore.photoMode === mode
-                            ? 'bg-indigo-600 text-white border-indigo-600'
-                            : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
-                            }`}
-                          style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                        >
-                          {mode}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Ingredient Input — Only visible when Ingredient Stack is selected */}
-                    {productStore.photoMode === 'Ingredient Stack' && (
-                      <div className="mt-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                        <label className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold block mb-1">
-                          Ingredients to show
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="e.g. turmeric, ginger, vitamin C capsules"
-                          value={productStore.props || ''}
-                          onChange={(e) => {
-                            productStore.setProps(e.target.value);
-                            markSectionTouched('product-setup');
-                          }}
-                          className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 placeholder:text-gray-400"
-                        />
-                        <p className="text-[9px] text-gray-400 mt-1">These ingredients will appear as props around your product</p>
-
-                        <div className="mt-3">
-                          <label className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold block mb-1">
-                            Ingredient layout
-                          </label>
-                          <div className="flex flex-wrap gap-2">
-                            {(
-                              [
-                                { value: 'auto', label: 'Auto' },
-                                { value: 'grounded', label: 'On base' },
-                                { value: 'floating', label: 'Floating' },
-                                { value: 'top-view', label: 'Top view' },
-                              ] as const
-                            ).map(({ value, label }) => (
-                              <Chip
-                                key={value}
-                                selected={productStore.ingredientLayout === value}
-                                onClick={() => {
-                                  productStore.setIngredientLayout(value);
-                                  markSectionTouched('product-setup');
-                                }}
-                              >
-                                {label}
-                              </Chip>
-                            ))}
-                          </div>
-                          <p className="text-[9px] text-gray-400 mt-1">
-                            “On base” prevents floating ingredients. “Floating” makes powders airy (no piles). “Top view” works best with Top Down camera.
-                          </p>
+                  {productStore.environmentContext == null && (
+                    <>
+                      {/* ═══════════════════════════════════════════════════════════
+                          1. PHOTO MODE — What am I making?
+                          Basic: 4 options | Pro: All options
+                          ═══════════════════════════════════════════════════════════ */}
+                      <div className={SECTION_GROUP_CLASS}>
+                        <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">PHOTO MODE</p>
+                        <div className="flex flex-wrap gap-2">
+                          {(productStore.presetTier === 'basic'
+                            ? ['Hero Landing Page', 'Clear', 'Color Pop Hero', 'Ingredient Stack']
+                            : [
+                              'Hero Landing Page', 'Clear', 'Color Pop Hero', 'Ingredient Stack',
+                              'Acrylic Blocks', 'Splash Shot',
+                              'Tile & Spa', 'Foam & Texture', 'Routine Carousel', 'Pastel Picnic',
+                              'Face Pop Close-Up', 'Sunrise Wellness Counter', 'Clinical Lab Counter',
+                              'Golden Mist Aura', 'Outdoor Energy Boost', 'Crown Wellness Vanity',
+                              'Candy Gradient Lab'
+                            ]
+                          ).map(mode => (
+                            <button
+                              key={mode}
+                              title={mode}
+                              onClick={() => {
+                                productStore.setPhotoMode(mode);
+                                markSectionTouched('product-setup');
+                              }}
+                              className={`px-4 py-2 rounded-xl text-[10px] font-bold border transition-all duration-300 ${productStore.photoMode === mode
+                                ? 'bg-indigo-600 text-white border-indigo-600'
+                                : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                                }`}
+                              style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
+                            >
+                              {mode}
+                            </button>
+                          ))}
                         </div>
+
+                        {/* Ingredient Input — Only visible when Ingredient Stack is selected */}
+                        {productStore.photoMode === 'Ingredient Stack' && (
+                          <div className="mt-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <label className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold block mb-1">
+                              Ingredients to show
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="e.g. turmeric, ginger, vitamin C capsules"
+                              value={productStore.props || ''}
+                              onChange={(e) => {
+                                productStore.setProps(e.target.value);
+                                markSectionTouched('product-setup');
+                              }}
+                              className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 placeholder:text-gray-400"
+                            />
+                            <p className="text-[9px] text-gray-400 mt-1">These ingredients will appear as props around your product</p>
+
+                            <div className="mt-3">
+                              <label className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold block mb-1">
+                                Ingredient layout
+                              </label>
+                              <div className="flex flex-wrap gap-2">
+                                {(
+                                  [
+                                    { value: 'auto', label: 'Auto' },
+                                    { value: 'grounded', label: 'On base' },
+                                    { value: 'floating', label: 'Floating' },
+                                    { value: 'top-view', label: 'Top view' },
+                                  ] as const
+                                ).map(({ value, label }) => (
+                                  <Chip
+                                    key={value}
+                                    selected={productStore.ingredientLayout === value}
+                                    onClick={() => {
+                                      productStore.setIngredientLayout(value);
+                                      markSectionTouched('product-setup');
+                                    }}
+                                  >
+                                    {label}
+                                  </Chip>
+                                ))}
+                              </div>
+                              <p className="text-[9px] text-gray-400 mt-1">
+                                “On base” prevents floating ingredients. “Floating” makes powders airy (no piles). “Top view” works best with Top Down camera.
+                              </p>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
+
+                      {/* STUDIO WARNING */}
+                      <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                        <p className="text-[11px] text-amber-700 font-medium">
+                          Photo Studio uses controlled sets (no real-world location context).
+                        </p>
+                      </div>
+                    </>
+                  )}
 
                   {/* ═══════════════════════════════════════════════════════════
                       2. PRODUCT CONTEXT — What is the product?
                       Always visible in both Basic and Pro
                       ═══════════════════════════════════════════════════════════ */}
+                  <div className={SECTION_GROUP_CLASS}>
+                    <p className={GROUP_LABEL_CLASS}>PRODUCT IDENTITY</p>
+                    <p className="text-[11px] text-gray-500 mt-1">
+                      What the product is, physically and commercially.
+                    </p>
+                  </div>
+
                   <div className={SECTION_GROUP_CLASS}>
                     <p className={GROUP_LABEL_CLASS}>PRODUCT TYPE</p>
                     <div className="flex flex-wrap gap-2">
@@ -2061,6 +2089,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </Chip>
                       ))}
                     </div>
+                  </div>
+
+                  <div className={SECTION_GROUP_CLASS}>
+                    <p className={GROUP_LABEL_CLASS}>COMPOSITION BASICS</p>
+                    <p className="text-[11px] text-gray-500 mt-1">
+                      High-level layout decisions before creative styling.
+                    </p>
                   </div>
 
                   {/* ═══════════════════════════════════════════════════════════
@@ -2428,12 +2463,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     </>
                   )}
 
-                  {/* STUDIO WARNING */}
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-                    <p className="text-[11px] text-amber-700 font-medium">
-                      ⚠️ Studio uses abstract sets. “Environment” acts as set styling cues (not a real location).
-                    </p>
-                  </div>
                 </>
               )}
             </div>
@@ -2443,14 +2472,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           {values.productType && (
             <SmoothAccordion
               icon={Layers}
-              title="Physical Properties"
-              tooltip="Configure physical appearance per product type"
+              title="02 / Physical Properties"
+              tooltip="Configure the real, physical appearance of the product itself."
               isOpen={openAccordionId === 'physical-props'}
               onToggle={() => toggleSection('physical-props')}
               isTouched={touchedSections.has('physical-props')}
               variant="primary"
             >
               <div className="space-y-4">
+                <p className="text-sm text-gray-500">
+                  Configure the real, physical appearance of the product itself.
+                </p>
                 {/* CAPSULES PHYSICAL */}
                 {values.productType === 'Capsules' && (
                   <>
@@ -3109,356 +3141,19 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             </SmoothAccordion>
           )}
 
-          {/* BRAND LOOK SYSTEM */}
           <SmoothAccordion
             icon={Layers}
-            title="Brand Look System"
-            tooltip="Apply a complete brand style preset"
-            isOpen={openAccordionId === 'brand-look'}
-            onToggle={() => toggleSection('brand-look')}
-            isTouched={touchedSections.has('brand-look')}
-            iconClassName="text-purple-600 dark:text-purple-300"
-            variant="secondary"
-          >
-            <div className="space-y-4">
-              <div className={SECTION_GROUP_CLASS}>
-                <p className={GROUP_LABEL_CLASS}>APPLY PRESET</p>
-                <div className="flex flex-wrap gap-2">
-                  {BRAND_PRESETS.map(preset => (
-                    <Chip
-                      key={preset.id}
-                      onClick={() => {
-                        productStore.applyBrandPreset(preset.id);
-                        markSectionTouched('brand-look');
-                        setOpenAccordionId('product-creativity');
-                      }}
-                      selected={false}
-                    >
-                      {preset.label}
-                    </Chip>
-                  ))}
-                </div>
-                <p className="text-[11px] text-gray-500 mt-2">
-                  Select a preset to instantly configure composition, lighting, and style. You can fine-tune details below.
-                </p>
-              </div>
-            </div>
-          </SmoothAccordion>
-
-          <SmoothAccordion
-            icon={Sparkles}
-            title="Creative Direction"
-            tooltip="Professional composition, lighting, and style controls"
-            isOpen={openAccordionId === 'product-creativity'}
-            onToggle={() => toggleSection('product-creativity')}
-            isTouched={touchedSections.has('product-creativity')}
-            iconClassName="text-indigo-600 dark:text-indigo-300"
-            variant="secondary"
-          >
-            <div className="space-y-6">
-              {/* CREATIVITY LEVEL */}
-              <div className={SECTION_GROUP_CLASS}>
-                <p className={GROUP_LABEL_CLASS}>CREATIVITY LEVEL</p>
-                <div className="flex gap-2">
-                  {([0, 1, 2, 3] as const).map(level => (
-                    <Chip
-                      key={level}
-                      onClick={() => {
-                        productStore.setCreativityLevel(level);
-                        markSectionTouched('product-creativity');
-                      }}
-                      selected={productStore.creativityLevel === level}
-                    >
-                      {level === 0 ? 'Off' : level === 1 ? 'Subtle' : level === 2 ? 'Bold' : 'Max'}
-                    </Chip>
-                  ))}
-                </div>
-              </div>
-
-              {productStore.creativityLevel > 0 && (
-                <>
-                  {/* COMPOSITION MODE */}
-                  <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>COMPOSITION MODE</p>
-                    <div className="flex flex-wrap gap-2">
-                      {COMPOSITION_MODE_V1_OPTIONS.map(opt => (
-                        <div key={opt.value} className="relative group">
-                          <Chip
-                            onClick={() => {
-                              productStore.setComposition(opt.value as CompositionMode);
-                              markSectionTouched('product-creativity');
-                            }}
-                            selected={productStore.composition === opt.value}
-                          >
-                            {opt.label}
-                          </Chip>
-                        </div>
-                      ))}
-                    </div>
-                    <SelectedOptionFooter options={COMPOSITION_MODE_V1_OPTIONS} selectedValue={productStore.composition} />
-                  </div>
-
-                  {/* SURFACE / BASE */}
-                  <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>SURFACE / BASE</p>
-                    <div className="flex flex-wrap gap-2">
-                      {SURFACE_BASE_OPTIONS.map(opt => (
-                        <Chip
-                          key={opt.value}
-                          onClick={() => {
-                            productStore.setSurface(opt.value as SurfaceBase);
-                            markSectionTouched('product-creativity');
-                          }}
-                          selected={productStore.surface === opt.value}
-                        >
-                          {opt.label}
-                        </Chip>
-                      ))}
-                    </div>
-                    <SelectedOptionFooter options={SURFACE_BASE_OPTIONS} selectedValue={productStore.surface} />
-                  </div>
-
-                  {/* SCALE & SPACING */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className={SECTION_GROUP_CLASS}>
-                      <p className={GROUP_LABEL_CLASS}>SCALE</p>
-                      <div className="flex flex-col gap-2">
-                        {PRODUCT_SCALE_OPTIONS.map(opt => (
-                          <button
-                            key={opt.value}
-                            type="button"
-                            onClick={() => {
-                              productStore.setScale(opt.value);
-                              markSectionTouched('product-creativity');
-                            }}
-                            className={getPillClass(productStore.scale === opt.value, true)}
-                          >
-                            {opt.label}
-                          </button>
-                        ))}
-                      </div>
-                      <SelectedOptionFooter
-                        options={[
-                          { value: 'dominant', label: 'Dominant', description: 'Product fills the frame and reads as the hero.' },
-                          { value: 'balanced', label: 'Balanced', description: 'Natural scale with room for accents and styling.' },
-                          { value: 'oversized', label: 'Oversized', description: 'Bigger-than-life hero emphasis for impact.' },
-                        ]}
-                        selectedValue={productStore.scale}
-                      />
-                    </div>
-                    <div className={SECTION_GROUP_CLASS}>
-                      <p className={GROUP_LABEL_CLASS}>SPACING</p>
-                      <div className="flex flex-col gap-2">
-                        {PRODUCT_SPACING_OPTIONS.map(opt => (
-                          <button
-                            key={opt.value}
-                            type="button"
-                            onClick={() => {
-                              productStore.setSpacing(opt.value);
-                              markSectionTouched('product-creativity');
-                            }}
-                            className={getPillClass(productStore.spacing === opt.value, true)}
-                          >
-                            {opt.label}
-                          </button>
-                        ))}
-                      </div>
-                      <SelectedOptionFooter
-                        options={[
-                          { value: 'compact', label: 'Compact', description: 'Tighter composition with minimal breathing room.' },
-                          { value: 'balanced', label: 'Balanced', description: 'Comfortable spacing that still feels product-first.' },
-                          { value: 'airy', label: 'Airy', description: 'More breathing room for a premium, spacious layout.' },
-                        ]}
-                        selectedValue={productStore.spacing}
-                      />
-                    </div>
-                  </div>
-
-                  {/* LIGHT STYLE */}
-                  <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>LIGHT STYLE (CREATIVE)</p>
-                    <div className="flex flex-wrap gap-2">
-                      {LIGHT_STYLE_OPTIONS_V1.map(opt => (
-                        <Chip
-                          key={opt.value}
-                          onClick={() => {
-                            productStore.setLightStyle(opt.value as LightStyle);
-                            markSectionTouched('product-creativity');
-                          }}
-                          selected={productStore.lightStyle === opt.value}
-                        >
-                          {opt.label}
-                        </Chip>
-                      ))}
-                    </div>
-                    <SelectedOptionFooter options={LIGHT_STYLE_OPTIONS_V1} selectedValue={productStore.lightStyle} />
-                  </div>
-
-                  {/* NEGATIVE SPACE */}
-                  <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>NEGATIVE SPACE INTENT</p>
-                    <div className="flex flex-wrap gap-2">
-                      {NEGATIVE_SPACE_OPTIONS.map(opt => (
-                        <Chip
-                          key={opt.value}
-                          onClick={() => {
-                            productStore.setNegativeSpace(opt.value);
-                            markSectionTouched('product-creativity');
-                          }}
-                          selected={productStore.negativeSpace === opt.value}
-                        >
-                          {opt.label}
-                        </Chip>
-                      ))}
-                    </div>
-                    <SelectedOptionFooter
-                      options={[
-                        { value: 'none', label: 'None', description: 'Fills the frame with the product and set dressing.' },
-                        { value: 'subtle', label: 'Subtle', description: 'A little breathing room without feeling empty.' },
-                        { value: 'intentional', label: 'Intentional', description: 'Clear copy/CTA room with a deliberate layout.' },
-                        { value: 'heavy', label: 'Heavy', description: 'Lots of open space for strong typography or ads.' },
-                      ]}
-                      selectedValue={productStore.negativeSpace}
-                    />
-                  </div>
-
-                  {/* CREATIVE THEME */}
-                  <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>CREATIVE THEME</p>
-                    <div className="flex flex-wrap gap-2">
-                      {CREATIVE_THEME_OPTIONS_V1.map(opt => (
-                        <Chip
-                          key={opt.value}
-                          onClick={() => {
-                            productStore.setCreativeTheme(opt.value);
-                            markSectionTouched('product-creativity');
-                          }}
-                          selected={productStore.creativeTheme === opt.value}
-                        >
-                          {opt.label}
-                        </Chip>
-                      ))}
-                    </div>
-                    <SelectedOptionFooter
-                      options={[
-                        { value: 'clinical-minimal', label: 'Clinical Minimal', description: 'Clean, lab-like minimalism with restrained styling.' },
-                        { value: 'ingredient-color', label: 'Ingredient Color Story', description: 'Uses ingredient cues and color to tell the product story.' },
-                        { value: 'premium-clean', label: 'Premium Luxury', description: 'High-end, polished look with luxury-grade restraint.' },
-                        { value: 'fresh-bright', label: 'Fresh & Bright', description: 'Light, uplifting palette and crisp highlights.' },
-                        { value: 'dark-dramatic', label: 'Dark & Dramatic', description: 'Moody tones with dramatic contrast and depth.' },
-                        { value: 'playful-pop', label: 'Playful Pop', description: 'Bold, energetic styling with fun accent color.' },
-                        { value: 'tech-clean', label: 'Tech Clean', description: 'Modern, precise, slightly futuristic cleanliness.' },
-                        { value: 'bold-graphic', label: 'Bold Graphic', description: 'Strong shapes and high-impact, graphic composition.' },
-                      ]}
-                      selectedValue={productStore.creativeTheme}
-                    />
-                  </div>
-
-                  {/* PALETTE SOURCE */}
-                  <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>PALETTE SOURCE</p>
-                    <div className="flex flex-wrap gap-2">
-                      {PALETTE_SOURCE_OPTIONS_V1.map(opt => (
-                        <Chip
-                          key={opt.value}
-                          onClick={() => {
-                            productStore.setPaletteSource(opt.value);
-                            markSectionTouched('product-creativity');
-                          }}
-                          selected={productStore.paletteSource === opt.value}
-                        >
-                          {opt.label}
-                        </Chip>
-                      ))}
-                    </div>
-                    <SelectedOptionFooter
-                      options={[
-                        { value: 'brand', label: 'Product Label Colors', description: 'Pulls tones from the pack/label for brand consistency.' },
-                        { value: 'warm-neutral', label: 'Warm Neutrals', description: 'Creams, sands, and warm grays for softness and warmth.' },
-                        { value: 'cool-neutral', label: 'Cool Neutrals', description: 'Cool grays and whites for a crisp, modern feel.' },
-                        { value: 'complementary', label: 'Complementary Accent', description: 'Adds an accent color that contrasts the pack tastefully.' },
-                        { value: 'custom', label: 'Custom Palette', description: 'Use your own palette (manual colors).' },
-                      ]}
-                      selectedValue={productStore.paletteSource}
-                    />
-
-                    {productStore.paletteSource === 'custom' && (
-                      <div className="mt-3 space-y-4">
-                        <div className="flex items-center gap-4">
-                          <p className="text-sm text-gray-500">Custom palette implementation pending...</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* PROP DENSITY */}
-                  <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>PROP DENSITY</p>
-                    <div className="flex flex-wrap gap-2">
-                      {PROP_DENSITY_OPTIONS.map(opt => (
-                        <Chip
-                          key={opt.value}
-                          onClick={() => {
-                            productStore.setPropDensity(opt.value);
-                            markSectionTouched('product-creativity');
-                          }}
-                          selected={productStore.propDensity === opt.value}
-                        >
-                          {opt.label}
-                        </Chip>
-                      ))}
-                    </div>
-                    <SelectedOptionFooter
-                      options={[
-                        { value: 'none', label: 'None', description: 'No supporting props; product stays the only subject.' },
-                        { value: 'low', label: 'Light', description: 'A few subtle props for context without distraction.' },
-                        { value: 'medium', label: 'Medium', description: 'Balanced styling with clear supporting elements.' },
-                        { value: 'dense', label: 'Dense', description: 'Full set styling; maximal context and texture.' },
-                      ]}
-                      selectedValue={productStore.propDensity}
-                    />
-                  </div>
-
-                  {/* SUGGESTED PROPS */}
-                  <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>SUGGESTED PROPS</p>
-                    <p className="text-[11px] text-gray-500">Optional. Product-safe suggestions based on Product Type.</p>
-                    <div className="flex flex-wrap gap-2">
-                      {productSuggestedProps.map(prop => {
-                        const selected = productStore.selectedProps.includes(prop);
-                        return (
-                          <Chip
-                            key={prop}
-                            onClick={() => {
-                              // Assuming store has toggle logic or we do it here
-                              const current = productStore.selectedProps;
-                              const next = selected ? current.filter(x => x !== prop) : [...current, prop];
-                              productStore.setSelectedProps(next);
-                              markSectionTouched('product-creativity');
-                            }}
-                            selected={selected}
-                          >
-                            {prop}
-                          </Chip>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          </SmoothAccordion>
-
-          <SmoothAccordion
-            icon={Layers}
-            title="Product Structure"
-            tooltip="Define how products are grouped and placed"
+            title="03 / Product Structure"
+            tooltip="Define how products are grouped, bundled, and positioned."
             isOpen={openAccordionId === 'productStructure'}
             onToggle={() => toggleSection('productStructure')}
             isTouched={touchedSections.has('productStructure')}
             variant="primary"
           >
             <div className="space-y-4">
+              <p className="text-sm text-gray-500">
+                Define how products are grouped, bundled, and positioned.
+              </p>
               {/* BUNDLE PRESETS (Mode: Single/Duo/Trio/Kit) */}
               <div className={SECTION_GROUP_CLASS}>
                 <div className="flex items-center justify-between">
@@ -3570,22 +3265,376 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           </SmoothAccordion>
 
 
+          {/* BRAND LOOK SYSTEM */}
+          <SmoothAccordion
+            icon={Layers}
+            title="04 / Brand Look System"
+            tooltip="Apply a brand-wide visual baseline (defaults)"
+            isOpen={openAccordionId === 'brand-look'}
+            onToggle={() => toggleSection('brand-look')}
+            isTouched={touchedSections.has('brand-look')}
+            iconClassName="text-purple-600 dark:text-purple-300"
+            variant="secondary"
+          >
+            <div className="space-y-4">
+              <p className="text-sm text-gray-500">
+                Start here for speed or brand consistency. Brand Look sets defaults—you can override later.
+              </p>
+              <div className={SECTION_GROUP_CLASS}>
+                <p className={GROUP_LABEL_CLASS}>APPLY PRESET</p>
+                <div className="flex flex-wrap gap-2">
+                  {BRAND_PRESETS.map(preset => (
+                    <Chip
+                      key={preset.id}
+                      onClick={() => {
+                        productStore.applyBrandPreset(preset.id);
+                        markSectionTouched('brand-look');
+                        setOpenAccordionId('product-creativity');
+                      }}
+                      selected={false}
+                    >
+                      {preset.label}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </SmoothAccordion>
+
+          <SmoothAccordion
+            icon={Sparkles}
+            title="05 / Creative Direction"
+            tooltip="Primary visual decisions. Safe to experiment."
+            isOpen={openAccordionId === 'product-creativity'}
+            onToggle={() => toggleSection('product-creativity')}
+            isTouched={touchedSections.has('product-creativity')}
+            iconClassName="text-indigo-600 dark:text-indigo-300"
+            variant="secondary"
+          >
+            <div className="space-y-6">
+              <p className="text-sm text-gray-500">
+                These choices shape the mood without breaking realism.
+              </p>
+
+              {/* CREATIVITY LEVEL */}
+              <div className={SECTION_GROUP_CLASS}>
+                <p className={GROUP_LABEL_CLASS}>CREATIVITY LEVEL</p>
+                <div className="flex gap-2">
+                  {([0, 1, 2, 3] as const).map(level => (
+                    <Chip
+                      key={level}
+                      onClick={() => {
+                        productStore.setCreativityLevel(level);
+                        markSectionTouched('product-creativity');
+                      }}
+                      selected={productStore.creativityLevel === level}
+                    >
+                      {level === 0 ? 'Off' : level === 1 ? 'Subtle' : level === 2 ? 'Bold' : 'Max'}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+
+              {productStore.creativityLevel > 0 && (
+                <>
+                  {/* CORE */}
+                  <div className={SECTION_GROUP_CLASS}>
+                    <p className={GROUP_LABEL_CLASS}>CORE</p>
+                    <p className="text-[11px] text-gray-500 mt-1">
+                      Primary visual decisions. Safe to experiment.
+                    </p>
+                  </div>
+
+                  {/* CREATIVE THEME */}
+                  <div className={SECTION_GROUP_CLASS}>
+                    <p className={GROUP_LABEL_CLASS}>CREATIVE THEME</p>
+                    <div className="flex flex-wrap gap-2">
+                      {CREATIVE_THEME_OPTIONS_V1.map(opt => (
+                        <Chip
+                          key={opt.value}
+                          onClick={() => {
+                            productStore.setCreativeTheme(opt.value);
+                            markSectionTouched('product-creativity');
+                          }}
+                          selected={productStore.creativeTheme === opt.value}
+                        >
+                          {opt.label}
+                        </Chip>
+                      ))}
+                    </div>
+                    <SelectedOptionFooter options={CREATIVE_THEME_OPTIONS_V1} selectedValue={productStore.creativeTheme} />
+                  </div>
+
+                  {/* LIGHT STYLE */}
+                  <div className={SECTION_GROUP_CLASS}>
+                    <p className={GROUP_LABEL_CLASS}>LIGHT STYLE</p>
+                    <div className="flex flex-wrap gap-2">
+                      {LIGHT_STYLE_OPTIONS_V1.map(opt => (
+                        <Chip
+                          key={opt.value}
+                          onClick={() => {
+                            productStore.setLightStyle(opt.value as LightStyle);
+                            markSectionTouched('product-creativity');
+                          }}
+                          selected={productStore.lightStyle === opt.value}
+                        >
+                          {opt.label}
+                        </Chip>
+                      ))}
+                    </div>
+                    <SelectedOptionFooter options={LIGHT_STYLE_OPTIONS_V1} selectedValue={productStore.lightStyle} />
+                  </div>
+
+                  {/* PROP DENSITY */}
+                  <div className={SECTION_GROUP_CLASS}>
+                    <p className={GROUP_LABEL_CLASS}>PROP DENSITY</p>
+                    <div className="flex flex-wrap gap-2">
+                      {PROP_DENSITY_OPTIONS.map(opt => (
+                        <Chip
+                          key={opt.value}
+                          onClick={() => {
+                            productStore.setPropDensity(opt.value);
+                            markSectionTouched('product-creativity');
+                          }}
+                          selected={productStore.propDensity === opt.value}
+                        >
+                          {opt.label}
+                        </Chip>
+                      ))}
+                    </div>
+                    <SelectedOptionFooter
+                      options={[
+                        { value: 'none', label: 'None', description: 'No supporting props; product stays the only subject.' },
+                        { value: 'low', label: 'Light', description: 'A few subtle props for context without distraction.' },
+                        { value: 'medium', label: 'Medium', description: 'Balanced styling with clear supporting elements.' },
+                        { value: 'dense', label: 'Dense', description: 'Full set styling; maximal context and texture.' },
+                      ]}
+                      selectedValue={productStore.propDensity}
+                    />
+                  </div>
+
+                  {/* ADVANCED (collapsed by default) */}
+                  <div className={SECTION_GROUP_CLASS}>
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className={GROUP_LABEL_CLASS}>ADVANCED</p>
+                        <p className="text-[11px] text-gray-500 mt-1">
+                          Fine-tune the scene. Optional.
+                        </p>
+                      </div>
+                      <Toggle
+                        checked={productCreativeAdvancedOpen}
+                        onCheckedChange={(next) => {
+                          setProductCreativeAdvancedOpen(next);
+                        }}
+                        aria-label="Creative Direction advanced controls"
+                      />
+                    </div>
+                  </div>
+
+                  {productCreativeAdvancedOpen && (
+                    <>
+                      {/* COMPOSITION MODE */}
+                      <div className={SECTION_GROUP_CLASS}>
+                        <p className={GROUP_LABEL_CLASS}>COMPOSITION MODE</p>
+                        <div className="flex flex-wrap gap-2">
+                          {COMPOSITION_MODE_V1_OPTIONS.map(opt => (
+                            <div key={opt.value} className="relative group">
+                              <Chip
+                                onClick={() => {
+                                  productStore.setComposition(opt.value as CompositionMode);
+                                  markSectionTouched('product-creativity');
+                                }}
+                                selected={productStore.composition === opt.value}
+                              >
+                                {opt.label}
+                              </Chip>
+                            </div>
+                          ))}
+                        </div>
+                        <SelectedOptionFooter options={COMPOSITION_MODE_V1_OPTIONS} selectedValue={productStore.composition} />
+                      </div>
+
+                      {/* SURFACE / BASE */}
+                      <div className={SECTION_GROUP_CLASS}>
+                        <p className={GROUP_LABEL_CLASS}>SURFACE / BASE</p>
+                        <div className="flex flex-wrap gap-2">
+                          {SURFACE_BASE_OPTIONS.map(opt => (
+                            <Chip
+                              key={opt.value}
+                              onClick={() => {
+                                productStore.setSurface(opt.value as SurfaceBase);
+                                markSectionTouched('product-creativity');
+                              }}
+                              selected={productStore.surface === opt.value}
+                            >
+                              {opt.label}
+                            </Chip>
+                          ))}
+                        </div>
+                        <SelectedOptionFooter options={SURFACE_BASE_OPTIONS} selectedValue={productStore.surface} />
+                      </div>
+
+                      {/* SCALE & SPACING */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className={SECTION_GROUP_CLASS}>
+                          <p className={GROUP_LABEL_CLASS}>SCALE</p>
+                          <div className="flex flex-col gap-2">
+                            {PRODUCT_SCALE_OPTIONS.map(opt => (
+                              <button
+                                key={opt.value}
+                                type="button"
+                                onClick={() => {
+                                  productStore.setScale(opt.value);
+                                  markSectionTouched('product-creativity');
+                                }}
+                                className={getPillClass(productStore.scale === opt.value, true)}
+                              >
+                                {opt.label}
+                              </button>
+                            ))}
+                          </div>
+                          <SelectedOptionFooter
+                            options={[
+                              { value: 'dominant', label: 'Dominant', description: 'Product fills the frame and reads as the hero.' },
+                              { value: 'balanced', label: 'Balanced', description: 'Natural scale with room for accents and styling.' },
+                              { value: 'oversized', label: 'Oversized', description: 'Bigger-than-life hero emphasis for impact.' },
+                            ]}
+                            selectedValue={productStore.scale}
+                          />
+                        </div>
+                        <div className={SECTION_GROUP_CLASS}>
+                          <p className={GROUP_LABEL_CLASS}>SPACING</p>
+                          <div className="flex flex-col gap-2">
+                            {PRODUCT_SPACING_OPTIONS.map(opt => (
+                              <button
+                                key={opt.value}
+                                type="button"
+                                onClick={() => {
+                                  productStore.setSpacing(opt.value);
+                                  markSectionTouched('product-creativity');
+                                }}
+                                className={getPillClass(productStore.spacing === opt.value, true)}
+                              >
+                                {opt.label}
+                              </button>
+                            ))}
+                          </div>
+                          <SelectedOptionFooter
+                            options={[
+                              { value: 'compact', label: 'Compact', description: 'Tighter composition with minimal breathing room.' },
+                              { value: 'balanced', label: 'Balanced', description: 'Comfortable spacing that still feels product-first.' },
+                              { value: 'airy', label: 'Airy', description: 'More breathing room for a premium, spacious layout.' },
+                            ]}
+                            selectedValue={productStore.spacing}
+                          />
+                        </div>
+                      </div>
+
+                      {/* NEGATIVE SPACE */}
+                      <div className={SECTION_GROUP_CLASS}>
+                        <p className={GROUP_LABEL_CLASS}>NEGATIVE SPACE INTENT</p>
+                        <div className="flex flex-wrap gap-2">
+                          {NEGATIVE_SPACE_OPTIONS.map(opt => (
+                            <Chip
+                              key={opt.value}
+                              onClick={() => {
+                                productStore.setNegativeSpace(opt.value);
+                                markSectionTouched('product-creativity');
+                              }}
+                              selected={productStore.negativeSpace === opt.value}
+                            >
+                              {opt.label}
+                            </Chip>
+                          ))}
+                        </div>
+                        <SelectedOptionFooter
+                          options={[
+                            { value: 'none', label: 'None', description: 'Fills the frame with the product and set dressing.' },
+                            { value: 'subtle', label: 'Subtle', description: 'A little breathing room without feeling empty.' },
+                            { value: 'intentional', label: 'Intentional', description: 'Clear copy/CTA room with a deliberate layout.' },
+                            { value: 'heavy', label: 'Heavy', description: 'Lots of open space for strong typography or ads.' },
+                          ]}
+                          selectedValue={productStore.negativeSpace}
+                        />
+                      </div>
+
+                      {/* PALETTE SOURCE */}
+                      <div className={SECTION_GROUP_CLASS}>
+                        <p className={GROUP_LABEL_CLASS}>PALETTE SOURCE</p>
+                        <div className="flex flex-wrap gap-2">
+                          {PALETTE_SOURCE_OPTIONS_V1.map(opt => (
+                            <Chip
+                              key={opt.value}
+                              onClick={() => {
+                                productStore.setPaletteSource(opt.value);
+                                markSectionTouched('product-creativity');
+                              }}
+                              selected={productStore.paletteSource === opt.value}
+                            >
+                              {opt.label}
+                            </Chip>
+                          ))}
+                        </div>
+                        <SelectedOptionFooter
+                          options={[
+                            { value: 'brand', label: 'Product Label Colors', description: 'Pulls tones from the pack/label for brand consistency.' },
+                            { value: 'warm-neutral', label: 'Warm Neutrals', description: 'Creams, sands, and warm grays for softness and warmth.' },
+                            { value: 'cool-neutral', label: 'Cool Neutrals', description: 'Cool grays and whites for a crisp, modern feel.' },
+                            { value: 'complementary', label: 'Complementary Accent', description: 'Adds an accent color that contrasts the pack tastefully.' },
+                            { value: 'custom', label: 'Custom Palette', description: 'Use your own palette (manual colors).' },
+                          ]}
+                          selectedValue={productStore.paletteSource}
+                        />
+                      </div>
+
+                      {/* SUGGESTED PROPS */}
+                      <div className={SECTION_GROUP_CLASS}>
+                        <p className={GROUP_LABEL_CLASS}>SUGGESTED PROPS</p>
+                        <p className="text-[11px] text-gray-500">Optional. Product-safe suggestions based on Product Type.</p>
+                        <div className="flex flex-wrap gap-2">
+                          {productSuggestedProps.map(prop => {
+                            const selected = productStore.selectedProps.includes(prop);
+                            return (
+                              <Chip
+                                key={prop}
+                                onClick={() => {
+                                  const current = productStore.selectedProps;
+                                  const next = selected ? current.filter(x => x !== prop) : [...current, prop];
+                                  productStore.setSelectedProps(next);
+                                  markSectionTouched('product-creativity');
+                                }}
+                                selected={selected}
+                              >
+                                {prop}
+                              </Chip>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+          </SmoothAccordion>
+
           {/* PRODUCT STUDIO — ENVIRONMENT (single source of truth: productStore.environmentContext) */}
+          {productStore.environmentContext != null && (
           <SmoothAccordion
             icon={MapPin}
-            title="Environment"
-            tooltip="Place the product into a real setting (product-only)"
+            title="06 / Environment"
+            tooltip="Place the product into a real setting. Product-only, no people."
             isOpen={openAccordionId === 'product-environment'}
             onToggle={() => toggleSection('product-environment')}
             isTouched={touchedSections.has('product-environment')}
             variant="primary"
           >
-            {productStore.environmentContext == null ? (
-              <div className="rounded-xl border border-gray-200 bg-white p-3 text-gray-500 text-sm">
-                Switch <span className="font-semibold">Photo Type</span> to <span className="font-semibold">Environment</span> to enable real settings.
-              </div>
-            ) : (
-            (() => {
+            <div className="space-y-4">
+              <p className="text-sm text-gray-500">
+                Place the product into a real setting. Product-only, no people.
+              </p>
+              {(() => {
               const selectedMacro =
                 (productStore.environmentContext?.macro as EnvironmentMacro | null | undefined)
                 ?? (productStore.environmentMacro && productStore.environmentMacro !== 'studio' ? productStore.environmentMacro : null);
@@ -3709,13 +3758,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
                 </div>
               );
-            })()
-            )}
+              })()}
+            </div>
           </SmoothAccordion>
+          )}
 
           <SmoothAccordion
             icon={Camera}
-            title="Camera & Framing"
+            title="07 / Camera & Framing"
             tooltip="Professional product photography controls"
             isOpen={openAccordionId === 'product-camera'}
             onToggle={() => toggleSection('product-camera')}
@@ -3723,6 +3773,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             variant="primary"
           >
             <div className="space-y-4">
+              <p className="text-sm text-gray-500">Professional photography controls.</p>
               <div className={SECTION_GROUP_CLASS}>
                 <p className={GROUP_LABEL_CLASS}>CAMERA SYSTEM</p>
                 <div className="flex flex-wrap gap-2">
@@ -3838,14 +3889,20 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
           <SmoothAccordion
             icon={Building2}
-            title="Ecommerce Image Builder"
-            tooltip="Neutral background + subject placement"
+            title="08 / Ecommerce Image Builder (BETA)"
+            tooltip="Generate ecommerce-ready images with layout-safe space (experimental)"
             isOpen={openAccordionId === 'ecommerce'}
             onToggle={() => toggleSection('ecommerce')}
             isActive
             variant="secondary"
           >
             <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold tracking-wide text-amber-800">
+                  BETA
+                </span>
+                <p className="text-sm text-gray-500">Some preview features are experimental.</p>
+              </div>
               <div className={SECTION_GROUP_CLASS}>
                 <div className="flex items-center justify-between gap-3">
                   <div>
