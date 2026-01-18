@@ -2270,52 +2270,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       ═══════════════════════════════════════════════════════════ */}
                   {productStore.presetTier === 'pro' && (
                     <>
-                      {/* PRODUCT INTERACTION — Single unified control */}
-                      <div className={SECTION_GROUP_CLASS}>
-                        <div className="flex items-center justify-between gap-3">
-                          <div>
-                            <p className={GROUP_LABEL_CLASS}>PRODUCT INTERACTION</p>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            <Chip
-                              onClick={() => {
-                                productStore.setInteraction('none');
-                                updateValue('handsHolding', false);
-                                markSectionTouched('product-setup');
-                              }}
-                              selected={productStore.interaction === 'none' && !values.handsHolding}
-                            >
-                              None
-                            </Chip>
-                              {([
-                              { key: 'cropped-hand', label: 'Cropped hand' },
-                              { key: 'holding', label: 'Holding' },
-                              { key: 'presenting', label: 'Presenting' },
-                              { key: 'applying', label: 'Applying / Opening' },
-                            ] as const).map(({ key, label }) => (
-                              <Chip
-                                key={key}
-                                onClick={() => {
-                                  productStore.setInteraction(key);
-                                  updateValue('handsHolding', true);
-                                  markSectionTouched('product-setup');
-                                }}
-                                selected={productStore.interaction === key}
-                                className="whitespace-normal"
-                              >
-                                {key === 'applying' ? (
-                                  <span className="whitespace-normal leading-tight text-center">
-                                    Applying / Opening
-                                  </span>
-                                ) : (
-                                  label
-                                )}
-                              </Chip>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
                       {/* PRO PHOTOGRAPHER MODE */}
                       <div className={SECTION_GROUP_CLASS}>
                         <div className="flex items-center justify-between gap-3 mb-3">
@@ -3764,8 +3718,73 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           )}
 
           <SmoothAccordion
+            icon={Hand}
+            title="07 / Product Interaction"
+            tooltip="Hands and interaction are treated as controlled visual elements, not decoration."
+            isOpen={openAccordionId === 'product-interaction'}
+            onToggle={() => toggleSection('product-interaction')}
+            isTouched={touchedSections.has('product-interaction')}
+            variant="primary"
+          >
+            <div className="space-y-4">
+              <p className="text-sm text-gray-500">
+                Define how the product is physically interacted with.<br />
+                This affects realism, trust, and narrative tone.
+              </p>
+
+              <div className={SECTION_GROUP_CLASS}>
+                <p className={GROUP_LABEL_CLASS}>PRODUCT INTERACTION</p>
+                <div className="flex flex-wrap gap-2">
+                  {(
+                    [
+                      { value: 'none', label: 'None', detail: 'No hands. No skin. No human shadows.' },
+                      { value: 'passive-presence', label: 'Passive Presence', detail: 'Hands visible in frame, not touching the product.' },
+                      { value: 'cropped-hand', label: 'Cropped Hand', detail: 'Partial hand for scale only. No grip. No action.' },
+                      { value: 'supported-hold', label: 'Supported Hold', detail: 'Product rests on an open palm. No pressure.' },
+                      { value: 'holding', label: 'Holding', detail: 'One hand holds the product naturally. No gesture.' },
+                      { value: 'two-hand-hold', label: 'Two-Hand Hold', detail: 'Both hands hold the product centered. Calm and careful.' },
+                      { value: 'presenting', label: 'Presenting', detail: 'Shown to camera with label readable. No push to lens.' },
+                      { value: 'framed-presentation', label: 'Framed Presentation', detail: 'Hands frame the product editorially. No offer-to-lens.' },
+                      { value: 'applying-opening', label: 'Applying / Opening', detail: 'One clear action: twist/open. No consumption.' },
+                      { value: 'capsule-display', label: 'Capsule Display', detail: '2–4 capsules in palm + bottle visible. No pouring.' },
+                      { value: 'resting-interaction', label: 'Resting Interaction', detail: 'Product rests against hand/wrist. Passive contact.' },
+                    ] as const
+                  ).map(option => {
+                    const disabled =
+                      option.value === 'capsule-display' && productStore.definition.type !== 'capsules';
+                    return (
+                      <Chip
+                        key={option.value}
+                        onClick={() => {
+                          if (disabled) return;
+                          productStore.setInteraction(option.value as any);
+                          productStore.setHandsHolding(option.value !== 'none');
+                          markSectionTouched('product-interaction');
+                        }}
+                        selected={productStore.interaction === (option.value as any)}
+                        disabled={disabled}
+                        className="whitespace-normal"
+                      >
+                        <span className="flex flex-col items-start text-left leading-tight">
+                          <span className="font-bold">{option.label}</span>
+                          <span className="text-[10px] font-medium opacity-70">{option.detail}</span>
+                        </span>
+                      </Chip>
+                    );
+                  })}
+                </div>
+                {productStore.definition.type !== 'capsules' && (
+                  <p className="text-[11px] text-gray-500 mt-2">
+                    Capsule Display is only available when Product Type is Capsules.
+                  </p>
+                )}
+              </div>
+            </div>
+          </SmoothAccordion>
+
+          <SmoothAccordion
             icon={Camera}
-            title="07 / Camera & Framing"
+            title="08 / Camera & Framing"
             tooltip="Professional product photography controls"
             isOpen={openAccordionId === 'product-camera'}
             onToggle={() => toggleSection('product-camera')}
@@ -3782,6 +3801,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       key={option}
                       onClick={() => {
                         updateValue('productCameraSystem', option);
+                        // Keep ProductStudio prompt camera system stable (used in product-only engine).
+                        // This UI is descriptive; actual camera personality is driven by angle/distance/rig presets.
                         markSectionTouched('product-camera');
                       }}
                       selected={values.productCameraSystem === option}
@@ -3810,6 +3831,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         key={option}
                         onClick={() => {
                           updateValue('productCameraAngle', option as any);
+                          const angleMap: Record<string, ProductStudioState['angle']> = {
+                            'Eye level product': 'front',
+                            '45° hero': '45',
+                            'Top-down flat lay': 'top',
+                            'Low angle power': 'front',
+                            'High angle overview': '45',
+                            'Detail close-up': '45',
+                          };
+                          const mapped = angleMap[option];
+                          if (mapped) productStore.setAngle(mapped);
                           markSectionTouched('product-camera');
                         }}
                         selected={values.productCameraAngle === option}
@@ -3828,6 +3859,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         key={option}
                         onClick={() => {
                           updateValue('productCameraDistance', option);
+                          const distanceMap: Record<string, ProductStudioState['distance']> = {
+                            Wide: 'medium',
+                            Standard: 'medium',
+                            Tight: 'close',
+                            Macro: 'macro',
+                          };
+                          const mapped = distanceMap[option];
+                          if (mapped) productStore.setDistance(mapped);
                           markSectionTouched('product-camera');
                         }}
                         selected={values.productCameraDistance === option}
@@ -3848,6 +3887,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         key={option}
                         onClick={() => {
                           updateValue('productCameraRotation', option);
+                          productStore.setRotation(option === 0 ? 'none' : 'slight');
                           markSectionTouched('product-camera');
                         }}
                         selected={values.productCameraRotation === option}
@@ -3874,6 +3914,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         key={option}
                         onClick={() => {
                           updateValue('productFramingGuide', option as any);
+                          if (option === 'Rule of thirds') {
+                            productStore.setFraming('rule-of-thirds');
+                          } else if (option === 'Centered hero') {
+                            productStore.setFraming('centered');
+                          }
                           markSectionTouched('product-camera');
                         }}
                         selected={values.productFramingGuide === option}
@@ -3889,7 +3934,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
           <SmoothAccordion
             icon={Building2}
-            title="08 / Ecommerce Image Builder (BETA)"
+            title="09 / Ecommerce Image Builder (BETA)"
             tooltip="Generate ecommerce-ready images with layout-safe space (experimental)"
             isOpen={openAccordionId === 'ecommerce'}
             onToggle={() => toggleSection('ecommerce')}

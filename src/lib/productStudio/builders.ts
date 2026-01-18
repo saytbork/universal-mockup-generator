@@ -528,23 +528,59 @@ function buildInteraction(state: ProductStudioState): string {
     const allowHands = state.interaction !== 'none' || state.handsHolding === true;
     if (!allowHands) return '';
 
-    // Keep wording strictly "hand-only" (no heads/torso) and avoid any "lifestyle/people" phrasing.
-    switch (state.interaction) {
-        case 'cropped-hand':
-            return 'INTERACTION: single cropped hand at the edge of frame lightly touching or presenting the product; hand-only crop, exclude any other anatomy outside the hand';
-        case 'holding':
-            return 'INTERACTION: single cropped hand holding the product with a natural grip; hand-only crop, exclude any other anatomy outside the hand';
-        case 'presenting':
-            return 'INTERACTION: single cropped hand presenting the product from the side; hand-only crop, exclude any other anatomy outside the hand';
-        case 'applying':
-            return 'INTERACTION: single cropped hand opening, dispensing, or applying the product; hand-only crop, exclude any other anatomy outside the hand';
-        default:
-            // Back-compat: if an older UI path toggles handsHolding without a specific interaction.
-            if (state.handsHolding === true) {
-                return 'INTERACTION: single cropped hand at the edge of frame lightly presenting the product; hand-only crop, exclude any other anatomy outside the hand';
-            }
-            return '';
+    const interactionKey = String(state.interaction || '').trim();
+    const presetKey = (() => {
+        switch (interactionKey) {
+            case 'passive-presence':
+                return 'Passive Presence';
+            case 'cropped-hand':
+                return 'Cropped Hand';
+            case 'supported-hold':
+                return 'Supported Hold';
+            case 'holding':
+                return 'Holding';
+            case 'two-hand-hold':
+                return 'Two-Hand Hold';
+            case 'presenting':
+                return 'Presenting';
+            case 'framed-presentation':
+                return 'Framed Presentation';
+            case 'applying-opening':
+                return 'Applying / Opening';
+            case 'capsule-display':
+                return 'Capsule Display';
+            case 'resting-interaction':
+                return 'Resting Interaction';
+            // Back-compat for older persisted values
+            case 'applying':
+                return 'Applying / Opening';
+            default:
+                return '';
+        }
+    })();
+
+    if (!presetKey) {
+        if (state.handsHolding === true) {
+            return [
+                'PRODUCT_INTERACTION: Cropped Hand.',
+                'Hands and interaction are treated as controlled visual elements, not decoration.',
+                'Only one interaction mode is allowed. No hybrid interactions.'
+            ].join(' ');
+        }
+        return '';
     }
+
+    const preset = INTERACTION_PRESETS[presetKey] || '';
+    return [
+        `PRODUCT_INTERACTION: ${presetKey}.`,
+        preset,
+        'Hands and interaction are treated as controlled visual elements, not decoration.',
+        'Only one interaction mode is allowed. No hybrid interactions.',
+        'Hands must look natural and relaxed. No stiff fingers. No theatrical gestures.',
+        'Product is always the visual hero. Hands never overpower the product.'
+    ]
+        .filter(Boolean)
+        .join(' ');
 }
 
 // ============================================================================
@@ -845,7 +881,24 @@ function buildNegativeConstraints(state: ProductStudioState): string {
 function buildQualityBar(state: ProductStudioState): string {
     const allowHands = state.interaction !== 'none' || state.handsHolding === true;
     if (allowHands) {
-        return 'real ecommerce hero image, premium commercial product photography, ultra clean, high resolution, commercial-ready, no ambiguity, art-directed, brand-safe, product with a single cropped hand only, tack-sharp label';
+        const interaction = String(state.interaction || '').trim();
+        const handsDescriptor = (() => {
+            switch (interaction) {
+                case 'two-hand-hold':
+                    return 'product held with two hands only (no head, no torso), tack-sharp label';
+                case 'framed-presentation':
+                    return 'product framed by hands only (no head, no torso), tack-sharp label';
+                case 'capsule-display':
+                    return 'product with capsules displayed in hand (no head, no torso), tack-sharp label';
+                case 'passive-presence':
+                    return 'product with passive hands in frame (no contact), tack-sharp label';
+                case 'cropped-hand':
+                    return 'product with cropped hand for scale only, tack-sharp label';
+                default:
+                    return 'product with a natural hand interaction, tack-sharp label';
+            }
+        })();
+        return `real ecommerce hero image, premium commercial product photography, ultra clean, high resolution, commercial-ready, no ambiguity, art-directed, brand-safe, ${handsDescriptor}`;
     }
     return 'real ecommerce hero image, premium commercial product photography, ultra clean, high resolution, commercial-ready, no ambiguity, art-directed, brand-safe, inanimate objects only, tack-sharp label';
 }
@@ -1018,13 +1071,34 @@ function assembleBundlePrompt(state: ProductStudioState): string {
 // ============================================================================
 
 function buildNegativePrompt(state: ProductStudioState): string {
-    const allowHands = state.interaction !== 'none' || state.handsHolding === true;
-    const humanNegatives = allowHands
-        ? ['person', 'people', 'face', 'body', 'full hand', 'multiple hands']
-        : ['person', 'people', 'face', 'body', 'hand', 'hands'];
+    const interaction = String(state.interaction || 'none');
+    const allowHands = interaction !== 'none' || state.handsHolding === true;
+
+    const humanNegativesBase = ['person', 'people', 'head', 'face', 'body', 'torso', 'full figure', 'model'];
+    const handsNegatives = (() => {
+        if (!allowHands) return ['hand', 'hands', 'fingers'];
+        if (interaction === 'cropped-hand') return ['full arm', 'full person'];
+        // Most interactions are hand-only; block other human framing.
+        return ['arms', 'shoulders', 'neck'];
+    })();
+
+    const interactionSpecific = (() => {
+        // Enforce single-hand intent where explicitly specified.
+        if (interaction === 'holding' || interaction === 'supported-hold' || interaction === 'presenting') {
+            return ['two hands', 'both hands', 'multiple hands'];
+        }
+        return [];
+    })();
 
     return [
-        ...humanNegatives,
+        ...humanNegativesBase,
+        ...handsNegatives,
+        ...interactionSpecific,
+        // Interaction safety / realism
+        'eating', 'drinking', 'swallowing', 'ingestion',
+        'pouring capsules', 'pouring pills',
+        'floating hands', 'stiff fingers', 'mannequin hands',
+        'distracting jewelry', 'oversized jewelry',
         // Quality / artifacts
         'blurry', 'low quality', 'distorted', 'warped', 'deformed', 'melted', 'glitched',
         'broken object', 'broken glass', 'cracked', 'shattered', 'fragmented',
@@ -1099,6 +1173,10 @@ export function generateProductJobs(state: ProductStudioState): ProductGeneratio
 
 function normalizeProductStudioStateForPrompt(state: ProductStudioState): ProductStudioState {
     const next: ProductStudioState = { ...state };
+    // Back-compat for older persisted interaction values.
+    if ((next as any).interaction === 'applying') {
+        (next as any).interaction = 'applying-opening';
+    }
 
     // Photo Mode conflict rules:
     // "Clear" is absolute: pure white studio, no set dressing or creative styling blocks.

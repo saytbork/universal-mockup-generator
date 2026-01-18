@@ -161,10 +161,16 @@ export const SHADOW_PRESETS: Record<string, string> = {
 // =============================================================================
 export const INTERACTION_PRESETS: Record<string, string> = {
     'None': ``,
-    'Cropped Hand': `Cropped manicured hand interacting with the product. Hand only, no head, no torso.`,
-    'Holding': `Hand holding the product with precision grip. Hand only.`,
-    'Presenting': `Hand presenting the product from side. Hand only.`,
-    'Applying': `Hand applying or opening the product. Hand only.`
+    'Passive Presence': `Hands visible in frame as passive context only. No contact with the product. Hands resting naturally nearby on the surface. No action.`,
+    'Cropped Hand': `Cropped hand partially visible only for scale. Hand is incomplete at the frame edge. No grip, no action. Relaxed fingers. No full arm.`,
+    'Supported Hold': `Product resting on an open or semi-open palm. No grip pressure. Incidental support only. Do not orient the label intentionally to the camera.`,
+    'Holding': `One hand holding the product with a natural, relaxed grip. No demonstrative gesture. No rotation. Not pushed toward the lens.`,
+    'Two-Hand Hold': `Two hands holding the product gently and symmetrically. Product centered. No action. Careful, calm hold.`,
+    'Presenting': `One hand presenting the product to camera with controlled posture. Label faces the camera and remains fully readable. Do not push the product toward the lens.`,
+    'Framed Presentation': `Hands frame the product in a calm, premium editorial way. Hands create a visual frame around the product. Do not move the product closer to the lens. No offer-to-lens.`,
+    'Applying / Opening': `A single clear action: opening the product (twisting cap, lifting lid) with realistic hand mechanics. No consumption. No dramatization.`,
+    'Capsule Display': `Capsule display: One hand holds 2–4 capsules in the palm. The bottle is visible nearby or in the other hand. Capsules exactly match the product contents. No pouring. No ingestion.`,
+    'Resting Interaction': `Product resting against the hand or wrist with passive contact only. No grip. No action. Natural incidental touch.`,
 };
 
 // =============================================================================
@@ -570,8 +576,27 @@ export function buildStudioPrompt(options: StudioPromptOptions): string {
     // =========================================================================
     // OPTIONAL INTERACTION
     // =========================================================================
-    if (options.interaction && INTERACTION_PRESETS[options.interaction]) {
-        parts.push(`OPTIONAL INTERACTION: ${INTERACTION_PRESETS[options.interaction]}`);
+    const interactionKey = (() => {
+        const raw = String(options.interaction || '').trim();
+        const aliases: Record<string, string> = {
+            'none': 'None',
+            'passive-presence': 'Passive Presence',
+            'cropped-hand': 'Cropped Hand',
+            'supported-hold': 'Supported Hold',
+            'holding': 'Holding',
+            'two-hand-hold': 'Two-Hand Hold',
+            'presenting': 'Presenting',
+            'framed-presentation': 'Framed Presentation',
+            'applying-opening': 'Applying / Opening',
+            'capsule-display': 'Capsule Display',
+            'resting-interaction': 'Resting Interaction',
+            // Back-compat
+            'applying': 'Applying / Opening',
+        };
+        return aliases[raw] || raw;
+    })();
+    if (interactionKey && INTERACTION_PRESETS[interactionKey]) {
+        parts.push(`OPTIONAL INTERACTION: ${INTERACTION_PRESETS[interactionKey]}`);
     }
 
     // =========================================================================
@@ -636,14 +661,38 @@ export function buildStudioPrompt(options: StudioPromptOptions): string {
             }
         }
 
-        if (validationErrors.length > 0) {
-            console.error('[STUDIO VALIDATION FAILED]', validationErrors);
-            // Don't throw in prod, but log errors
-            console.warn('[STUDIO WARNING] Some UI selections may not appear in the final prompt:', validationErrors);
-        }
+    if (validationErrors.length > 0) {
+        console.error('[STUDIO VALIDATION FAILED]', validationErrors);
+        // Don't throw in prod, but log errors
+        console.warn('[STUDIO WARNING] Some UI selections may not appear in the final prompt:', validationErrors);
     }
+}
 
-    return `${positivePrompt} NEGATIVE PROMPT: ${STUDIO_NEGATIVES}`;
+    const interactionEnabled = (() => {
+        const raw = String(options.interaction || '').trim().toLowerCase();
+        return raw !== '' && raw !== 'none';
+    })();
+
+    const baseNegatives = STUDIO_NEGATIVES
+        .replace(/\bNo living subjects\.\s*/i, '')
+        .replace(/\bNo heads\.\s*/i, '')
+        .trim();
+
+    const interactionAwareNegatives = interactionEnabled
+        ? [
+            'No living subjects except hands.',
+            'Hands only. No arms beyond a small cropped forearm.',
+            'No heads. No faces. No bodies.',
+            baseNegatives,
+        ].filter(Boolean).join(' ')
+        : [
+            'No living subjects.',
+            'No hands.',
+            'No heads.',
+            baseNegatives,
+        ].filter(Boolean).join(' ');
+
+    return `${positivePrompt} NEGATIVE PROMPT: ${interactionAwareNegatives}`;
 }
 
 // =============================================================================

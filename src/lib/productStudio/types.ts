@@ -420,7 +420,18 @@ export type ProductStudioState = {
     props: string;
     /** Ingredient Stack only: controls whether ingredients float or rest on the base. */
     ingredientLayout: IngredientStackLayout;
-    interaction: 'none' | 'cropped-hand' | 'holding' | 'presenting' | 'applying';
+    interaction:
+        | 'none'
+        | 'passive-presence'
+        | 'cropped-hand'
+        | 'supported-hold'
+        | 'holding'
+        | 'two-hand-hold'
+        | 'presenting'
+        | 'framed-presentation'
+        | 'applying-opening'
+        | 'capsule-display'
+        | 'resting-interaction';
     proMode: boolean;
     lens: string;
     lightingRig: string;

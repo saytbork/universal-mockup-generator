@@ -128,10 +128,34 @@ function validateBundle(state: ProductStudioState): string[] {
 }
 
 // ============================================================================
-// 4. FORBIDDEN LANGUAGE (STRICT)
+// 4. PRODUCT INTERACTION RULES (STRICT)
 // ============================================================================
 
-const FORBIDDEN_TERMS = ['person', 'people', 'model', 'face', 'selfie', 'phone', 'lifestyle', 'hand', 'hands', 'usage', 'ingestion'];
+function validateProductInteraction(state: ProductStudioState): string[] {
+    const errors: string[] = [];
+    const interaction = String(state.interaction || 'none');
+
+    if (interaction === 'capsule-display') {
+        if (state.definition.type !== 'capsules') {
+            errors.push('Capsule Display requires Product Type = Capsules.');
+        }
+    }
+
+    if (interaction === 'two-hand-hold') {
+        // Ultra tight crop prevention: two hands cannot fit in macro framing.
+        if (state.distance === 'macro') {
+            errors.push('Two-Hand Hold is not compatible with Macro distance. Use Tight/Close framing instead.');
+        }
+    }
+
+    return errors;
+}
+
+// ============================================================================
+// 5. FORBIDDEN LANGUAGE (STRICT)
+// ============================================================================
+
+const FORBIDDEN_TERMS = ['person', 'people', 'model', 'face', 'selfie', 'phone', 'lifestyle'];
 const ALLOWED_EXCEPTION = 'cropped fingers at frame edge holding product';
 
 function validateForbiddenLanguage(state: ProductStudioState): string[] {
@@ -176,6 +200,7 @@ export function validateProductStudioState(state: ProductStudioState): Validatio
         ...validateProductEnvironment(state),
         ...validateLighting(state),
         ...validateBundle(state),
+        ...validateProductInteraction(state),
         ...validateForbiddenLanguage(state)
     ];
 
