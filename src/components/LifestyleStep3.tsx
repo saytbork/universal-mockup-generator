@@ -271,6 +271,7 @@ export interface Step3Values {
   productPackaging?: 'With box' | 'Without box';
   productScale?: 'Small handheld' | 'Medium tabletop' | 'Large object';
   handsHolding: boolean;
+  productStudioInteraction?: ProductStudioState['interaction'];
   productCount?: 1 | 2 | 3;
   productGrouping?: 'Aligned' | 'Stacked' | 'Scattered';
 
@@ -958,11 +959,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     // ==========================================================================
     productType: 'Capsules',
     productTypeCustom: '',
-    productPackaging: 'Without box',
-    productScale: 'Medium tabletop',
-    handsHolding: false,
-    productCount: 1,
-    productGrouping: 'Aligned',
+	    productPackaging: 'Without box',
+	    productScale: 'Medium tabletop',
+	    handsHolding: false,
+	    productStudioInteraction: 'none',
+	    productCount: 1,
+	    productGrouping: 'Aligned',
 
     productCreativityLevel: 'Off',
     productCreativeTheme: 'Clinical Minimal',
@@ -3839,14 +3841,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     return (
                       <Chip
                         key={option.value}
-                        onClick={() => {
-                          if (disabled) return;
-                          productStore.setInteraction(option.value as any);
-                          productStore.setHandsHolding(option.value !== 'none');
-                          markSectionTouched('product-interaction');
-                        }}
-                        selected={productStore.interaction === (option.value as any)}
-                        disabled={disabled}
+	                        onClick={() => {
+	                          if (disabled) return;
+	                          productStore.setInteraction(option.value as any);
+	                          productStore.setHandsHolding(option.value !== 'none');
+	                          updateValue('productStudioInteraction', option.value as any);
+	                          updateValue('handsHolding', option.value !== 'none');
+	                          markSectionTouched('product-interaction');
+	                        }}
+	                        selected={productStore.interaction === (option.value as any)}
+	                        disabled={disabled}
                         className="whitespace-normal"
                       >
                         <span className="flex flex-col items-start text-left leading-tight">

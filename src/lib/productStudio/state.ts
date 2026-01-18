@@ -182,6 +182,7 @@ export interface ProductStudioStep3Values {
   productTypeCustom?: string;
   productScale?: string;
   handsHolding?: boolean;
+  productStudioInteraction?: string;
   noPerson?: boolean;
   selfieMode?: string;
   ugcRealMode?: boolean;

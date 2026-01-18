@@ -185,7 +185,11 @@ export function mapProductModeToPromptOptions(
     mapped.creationIntent = 'product';
     mapped.personIncluded = false;
     mapped.sceneIntent = 'ecommerce';
-    mapped.addHands = sceneState.handsHolding === true;
+    const productStudioInteractionRaw = String((sceneState as any).productStudioInteraction ?? '').trim();
+    const productStudioInteraction =
+        productStudioInteractionRaw || (sceneState.handsHolding === true ? 'holding' : 'none');
+    (mapped as any).studioInteraction = productStudioInteraction || undefined;
+    mapped.addHands = productStudioInteraction !== '' && productStudioInteraction !== 'none';
 
     // Ecommerce blank-space is optional and must be toggle-driven.
     // If disabled, Product mode should generate non-blank studio/aesthetic shots.
@@ -379,6 +383,7 @@ export function mapProductModeToPromptOptions(
         cameraShot: mapped.cameraShot,
         perspective: mapped.perspective,
         addHands: mapped.addHands,
+        studioInteraction: (mapped as any).studioInteraction,
         aspectRatio: mapped.aspectRatio
     });
 

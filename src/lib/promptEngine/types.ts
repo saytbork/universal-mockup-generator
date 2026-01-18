@@ -202,6 +202,7 @@ export interface PromptOptions {
     bundleLabels?: string[];
     productMaterial?: string;
     addHands?: boolean;
+    studioInteraction?: string;
     clothingPreset?: string;
     clothingQuickPreset?: string;
     customClothes?: CustomClothes;
