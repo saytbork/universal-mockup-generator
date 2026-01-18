@@ -183,6 +183,13 @@ No text. No logos. No brand names. No labeled props.
 No real-world context. No storytelling elements.
 `.trim().replace(/\n/g, ' ');
 
+const HAND_REALISM_BLOCK = [
+    'HAND REALISM (CRITICAL): Hands must look like real adult human hands photographed in a studio.',
+    'Natural skin texture with pores and subtle imperfections; realistic knuckles, tendons, and fingernails.',
+    'Relaxed finger curvature and believable grip pressure; accurate contact shadows and micro-occlusion where skin touches the product.',
+    'No gloves. No plastic skin. No mannequin/CGI hands. No waxy or overly-smoothed skin.',
+].join(' ');
+
 // =============================================================================
 // STUDIO RANDOM POOLS (SAFE TO RANDOMIZE)
 // =============================================================================
@@ -673,6 +680,10 @@ export function buildStudioPrompt(options: StudioPromptOptions): string {
         return raw !== '' && raw !== 'none';
     })();
 
+    if (interactionEnabled) {
+        parts.push(HAND_REALISM_BLOCK);
+    }
+
     const baseNegatives = STUDIO_NEGATIVES
         .replace(/\bNo living subjects\.\s*/i, '')
         .replace(/\bNo heads\.\s*/i, '')
@@ -683,6 +694,7 @@ export function buildStudioPrompt(options: StudioPromptOptions): string {
             'No living subjects except hands.',
             'Hands only. No arms beyond a small cropped forearm.',
             'No heads. No faces. No bodies.',
+            'No mannequin hands. No CGI hands. No plastic skin. No waxy hands. No gloves.',
             baseNegatives,
         ].filter(Boolean).join(' ')
         : [
