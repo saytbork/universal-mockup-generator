@@ -10,6 +10,12 @@ export class FinalizeBuilder implements PromptBuilder {
             (options.ritualModeActive && options.ritualHideProduct === true) ||
             options.forceHideProduct === true;
 
+        const ugcDepthLockActive =
+            Boolean(options.ugcRealModeActive) ||
+            Boolean(options.rawDomesticUgcActive) ||
+            options.contentStyle === 'ugc' ||
+            options.creationIntent === 'ugc';
+
         const lines: string[] = [
             'Final render must be high resolution, photorealistic and free of watermarks or text.',
             'No text, no logos, no watermarks.',
@@ -35,8 +41,12 @@ export class FinalizeBuilder implements PromptBuilder {
                 'No hallucinated packaging.',
                 'Product geometry, material and label must remain exact.',
                 'CONTACT REALISM: The product must look physically held (not composited). Fingers must occlude edges naturally with believable grip pressure and contact shadows. No pasted/sticker look and no halo/cutout edges.',
-                'OPTICS LOCK: The product must be tack sharp and the sharpest object in the frame. Use deep depth of field (f/8–f/11) or focus stacking; absolutely no portrait mode, bokeh, or shallow depth-of-field that blurs the product or label.',
-                'Never let the product be out of focus: no blurry product, no soft focus on the product, and no depth-of-field that blurs the label.'
+                ugcDepthLockActive
+                    ? 'OPTICS LOCK: Keep the entire frame evenly focused. The product label must be tack sharp and fully readable. Do not let the product or label become soft while other areas are sharp.'
+                    : 'OPTICS LOCK: The product must be tack sharp and the sharpest object in the frame. Use deep depth of field (f/8–f/11) or focus stacking; absolutely no portrait mode, bokeh, or shallow depth-of-field that blurs the product or label.',
+                ugcDepthLockActive
+                    ? 'Never let the product be unreadable: label text must remain crisp and clear.'
+                    : 'Never let the product be out of focus: no blurry product, no soft focus on the product, and no depth-of-field that blurs the label.'
             );
             if (options.ritualModeActive && options.ritualNoObjects) {
                 lines.push(

@@ -71,9 +71,20 @@ export class ProductBuilder implements PromptBuilder {
             return prompt;
         }
 
+        const ugcDepthLockActive =
+            Boolean(options.ugcRealModeActive) ||
+            Boolean(options.rawDomesticUgcActive) ||
+            (options.contentStyle === 'ugc' && (Array.isArray(options.ugcCaptureStyleBase) ? options.ugcCaptureStyleBase.length > 0 : false));
+
         // Product-first optics lock: the product must never be the blurred element.
-        prompt +=
-            ' FOCUS PRIORITY: lock focus on the product. The product must be the sharpest object in the frame and the label must be fully readable. Use deep depth of field (f/8–f/11) or focus stacking. Absolutely no portrait mode, bokeh, or shallow depth-of-field that blurs the product (if anything is softer, it must be the background or the face—not the product).';
+        if (ugcDepthLockActive) {
+            // UGC guard blocks any positive depth-of-field language. Keep focus directives without DOF terms.
+            prompt +=
+                ' FOCUS PRIORITY: the product label must be crisp and fully readable. Keep the entire frame evenly focused; do not let the product or label become soft while the face is sharp.';
+        } else {
+            prompt +=
+                ' FOCUS PRIORITY: lock focus on the product. The product must be the sharpest object in the frame and the label must be fully readable. Use deep depth of field (f/8–f/11) or focus stacking. Absolutely no portrait mode, bokeh, or shallow depth-of-field that blurs the product (if anything is softer, it must be the background or the face—not the product).';
+        }
         if (effectiveHeightNotes) {
             prompt +=
                 ' SCALE RULE: Do not upscale the product beyond its real-world size. If readability is low, move the camera closer or adjust framing while keeping believable hand-to-product proportions and consistent real-world scale.';

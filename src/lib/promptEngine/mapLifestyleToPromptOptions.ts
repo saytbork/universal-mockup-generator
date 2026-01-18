@@ -395,7 +395,7 @@ const PRODUCT_PROMINENCE_CONFIG: Record<
         placementStyle:
             'Balanced placement: product and person share attention while the environment supports the moment without stealing focus.',
         productPlane:
-            'Balanced plane: keep both the face and the product within the same depth of field; the product label must be tack sharp and fully readable. Avoid heavy background blur that hides the product; avoid tiny product-in-frame compositions.',
+            'Balanced plane: keep both the face and the product in focus at the same time; the product label must be tack sharp and fully readable. Avoid heavy background blur that hides the product; avoid tiny product-in-frame compositions.',
     },
     'product-first': {
         placementStyle:
@@ -1201,7 +1201,7 @@ export function mapLifestyleToPromptOptions(
     if (isEnvironmentSceneIntent) {
         mapped.placementStyle = 'Lifestyle placement with the product integrated in the environment, not hero-focused.';
         mapped.productPlane =
-            'Mid-ground contextual placement within the room or space. Keep the product and label tack sharp and fully readable; keep both the face and the product within depth of field. Do not blur or defocus the product.';
+            'Mid-ground contextual placement within the room or space. Keep the product and label tack sharp and fully readable; keep both the face and the product in focus at the same time. Do not blur or defocus the product.';
         mapped.placementCamera = sceneState.cameraType || mapped.placementCamera;
     }
 
