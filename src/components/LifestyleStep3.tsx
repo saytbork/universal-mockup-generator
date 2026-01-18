@@ -17,7 +17,7 @@ import type { EcommerceSlotKey, EcommerceSlotsConfig } from '@/lib/ecommerceOver
 import { Chip } from './ui/Chip';
 import { Toggle } from './ui/Toggle';
 import { useProductStudioStore, PREBUILT_BUNDLES, BRAND_PRESETS } from '@/lib/productStudio/store';
-import type { ProductStudioState, CameraAngle, CameraDistance, CameraRotation, CameraFraming, CreativeTheme, PaletteSource, PropDensity, BlankSpaceSide, EnvironmentMacro, Lighting, ProductType, MicroPlace, CompositionMode, SurfaceBase, ProductScale, ProductSpacing, LightStyle, NegativeSpace, IngredientStackLayout } from '@/lib/productStudio/types';
+import type { ProductStudioState, CameraAngle, CameraDistance, CameraRotation, CameraFraming, CreativeTheme, PaletteSource, PropDensity, BlankSpaceSide, EnvironmentMacro, Lighting, ProductType, MicroPlace, CompositionMode, SurfaceBase, ProductScale, ProductSpacing, LightStyle, NegativeSpace, IngredientStackLayout, ProductStateMotion } from '@/lib/productStudio/types';
 import { validateProductStudioState } from '@/lib/productStudio/validator';
 import { normalizeOption } from '../system/normalizeOptions';
 
@@ -3096,8 +3096,78 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           )}
 
           <SmoothAccordion
+            icon={Activity}
+            title="03 / Product State & Motion"
+            tooltip="Describe what the product is doing. Product-only—no human implied."
+            isOpen={openAccordionId === 'product-state-motion'}
+            onToggle={() => toggleSection('product-state-motion')}
+            isTouched={touchedSections.has('product-state-motion')}
+            variant="primary"
+          >
+            <div className="space-y-4">
+              <p className="text-sm text-gray-500">
+                Product State & Motion describe what the product is doing. Product Interaction describes what hands are doing.
+              </p>
+
+              <div className={SECTION_GROUP_CLASS}>
+                <p className={GROUP_LABEL_CLASS}>PRODUCT STATE & MOTION</p>
+                <div className="flex flex-wrap gap-2">
+                  {(
+                    [
+                      { value: 'static', label: 'Static', detail: 'Closed and stationary.' },
+                      { value: 'opened', label: 'Opened', detail: 'Open container. No motion.' },
+                      { value: 'spilled', label: 'Spilled', detail: 'Contents spilled on surface.' },
+                      { value: 'dispensed', label: 'Dispensed', detail: 'Controlled amount released.' },
+                      { value: 'pouring', label: 'Pouring', detail: 'Stream falling downward.' },
+                      { value: 'falling', label: 'Falling', detail: 'Discrete items falling mid-air.' },
+                    ] as const
+                  ).map(option => {
+                    const type = productStore.definition.type;
+                    const allowedByType = (() => {
+                      switch (type) {
+                        case 'capsules':
+                          return option.value === 'static' || option.value === 'opened' || option.value === 'falling' || option.value === 'spilled';
+                        case 'gummies':
+                          return option.value === 'static' || option.value === 'opened' || option.value === 'falling' || option.value === 'spilled';
+                        case 'drops':
+                          return option.value === 'static' || option.value === 'opened' || option.value === 'dispensed';
+                        case 'powder':
+                          return option.value === 'static' || option.value === 'opened' || option.value === 'pouring' || option.value === 'dispensed';
+                        default:
+                          return option.value === 'static';
+                      }
+                    })();
+
+                    return (
+                      <Chip
+                        key={option.value}
+                        onClick={() => {
+                          if (!allowedByType) return;
+                          productStore.setStateMotion(option.value as ProductStateMotion);
+                          markSectionTouched('product-state-motion');
+                        }}
+                        selected={productStore.stateMotion === (option.value as ProductStateMotion)}
+                        disabled={!allowedByType}
+                        className="whitespace-normal"
+                      >
+                        <span className="flex flex-col items-start text-left leading-tight">
+                          <span className="font-bold">{option.label}</span>
+                          <span className="text-[10px] font-medium opacity-70">{option.detail}</span>
+                        </span>
+                      </Chip>
+                    );
+                  })}
+                </div>
+                <p className="text-[11px] text-gray-500 mt-2">
+                  Physics rules: gravity downward only, no floating, irregular distribution, natural motion freeze.
+                </p>
+              </div>
+            </div>
+          </SmoothAccordion>
+
+          <SmoothAccordion
             icon={Layers}
-            title="03 / Product Structure"
+            title="04 / Product Structure"
             tooltip="Define how products are grouped, bundled, and positioned."
             isOpen={openAccordionId === 'productStructure'}
             onToggle={() => toggleSection('productStructure')}
@@ -3222,7 +3292,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           {/* BRAND LOOK SYSTEM */}
           <SmoothAccordion
             icon={Layers}
-            title="04 / Brand Look System"
+            title="05 / Brand Look System"
             tooltip="Apply a brand-wide visual baseline (defaults)"
             isOpen={openAccordionId === 'brand-look'}
             onToggle={() => toggleSection('brand-look')}
@@ -3257,7 +3327,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
           <SmoothAccordion
             icon={Sparkles}
-            title="05 / Creative Direction"
+            title="06 / Creative Direction"
             tooltip="Primary visual decisions. Safe to experiment."
             isOpen={openAccordionId === 'product-creativity'}
             onToggle={() => toggleSection('product-creativity')}
@@ -3577,7 +3647,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           {productStore.environmentContext != null && (
           <SmoothAccordion
             icon={MapPin}
-            title="06 / Environment"
+            title="07 / Environment"
             tooltip="Place the product into a real setting. Product-only, no people."
             isOpen={openAccordionId === 'product-environment'}
             onToggle={() => toggleSection('product-environment')}
@@ -3719,7 +3789,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
           <SmoothAccordion
             icon={Hand}
-            title="07 / Product Interaction"
+            title="08 / Product Interaction"
             tooltip="Hands and interaction are treated as controlled visual elements, not decoration."
             isOpen={openAccordionId === 'product-interaction'}
             onToggle={() => toggleSection('product-interaction')}
@@ -3784,7 +3854,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
           <SmoothAccordion
             icon={Camera}
-            title="08 / Camera & Framing"
+            title="09 / Camera & Framing"
             tooltip="Professional product photography controls"
             isOpen={openAccordionId === 'product-camera'}
             onToggle={() => toggleSection('product-camera')}
@@ -3934,7 +4004,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
           <SmoothAccordion
             icon={Building2}
-            title="09 / Ecommerce Image Builder (BETA)"
+            title="10 / Ecommerce Image Builder (BETA)"
             tooltip="Generate ecommerce-ready images with layout-safe space (experimental)"
             isOpen={openAccordionId === 'ecommerce'}
             onToggle={() => toggleSection('ecommerce')}

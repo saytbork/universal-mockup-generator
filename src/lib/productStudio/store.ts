@@ -11,6 +11,7 @@ import type {
     ProductDefinition,
     ProductType,
     PhysicalDefinition,
+    ProductStateMotion,
     CapsulesPhysical,
     GummiesPhysical,
     DropsPhysical,
@@ -381,6 +382,7 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     handsHolding: false,
     packagingMode: 'without-box',
     physicalScaleLabel: 'medium-tabletop',
+    stateMotion: 'static',
 
     // 3️⃣ BRAND & PALETTE (SINGLE COLOR AUTHORITY)
     palette: DEFAULT_PALETTE,
@@ -583,6 +585,7 @@ type ProductStudioActions = {
     setProps: (props: string) => void;
     setIngredientLayout: (layout: ProductStudioState['ingredientLayout']) => void;
     setInteraction: (interaction: ProductStudioState['interaction']) => void;
+    setStateMotion: (motion: ProductStateMotion) => void;
     setProMode: (enabled: boolean) => void;
     setLens: (lens: string) => void;
     setLightingRig: (rig: string) => void;
@@ -703,13 +706,38 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setPhysicalScaleLabel: (scale) => set({ physicalScaleLabel: scale }),
 
     setProductType: (type) =>
-        set((state) => ({
-            definition: {
-                ...state.definition,
-                type,
-                physical: getDefaultPhysical(type),
-            },
-        })),
+        set((state) => {
+            const nextPhysical = getDefaultPhysical(type);
+
+            const allowedMotionsByType: Record<ProductType, ProductStateMotion[]> = {
+                capsules: ['static', 'opened', 'falling', 'spilled'],
+                gummies: ['static', 'opened', 'falling', 'spilled'],
+                drops: ['static', 'opened', 'dispensed'],
+                powder: ['static', 'opened', 'pouring', 'dispensed'],
+                skincare: ['static'],
+                device: ['static'],
+                custom: ['static'],
+                dummy: ['static'],
+            };
+
+            const allowed = allowedMotionsByType[type] ?? ['static'];
+            const nextMotion = allowed.includes(state.stateMotion) ? state.stateMotion : 'static';
+
+            // If product type changes away from capsules, Capsule Display is no longer valid.
+            const nextInteraction =
+                type !== 'capsules' && state.interaction === 'capsule-display' ? 'none' : state.interaction;
+
+            return {
+                definition: {
+                    ...state.definition,
+                    type,
+                    physical: nextPhysical,
+                },
+                stateMotion: nextMotion,
+                interaction: nextInteraction,
+                handsHolding: nextInteraction !== 'none',
+            };
+        }),
 
     setProductColor: (hex, semanticName) =>
         set((state) => ({
@@ -1201,7 +1229,103 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
         }),
     setIngredientLayout: (layout) =>
         set({ ingredientLayout: (layout ?? 'auto') as ProductStudioState['ingredientLayout'] }),
-    setInteraction: (interaction) => set({ interaction }),
+    setInteraction: (interaction) =>
+        set((state) => {
+            const nextInteraction = interaction;
+
+            // Force rules (engine-level):
+            // - Capsule Display => motion must be Static
+            // - Applying / Opening => motion must be Opened
+            let nextMotion: ProductStateMotion = state.stateMotion;
+            if (nextInteraction === 'capsule-display') nextMotion = 'static';
+            if (nextInteraction === 'applying-opening') nextMotion = 'opened';
+
+            const isAllowedByMotion = (motion: ProductStateMotion, candidate: ProductStudioState['interaction']) => {
+                if (motion === 'pouring' || motion === 'falling') return candidate === 'none' || candidate === 'cropped-hand';
+                if (motion === 'spilled' || motion === 'dispensed') {
+                    return (
+                        candidate === 'none' ||
+                        candidate === 'cropped-hand' ||
+                        candidate === 'resting-interaction' ||
+                        candidate === 'supported-hold'
+                    );
+                }
+                if (motion === 'opened') {
+                    return (
+                        candidate === 'none' ||
+                        candidate === 'cropped-hand' ||
+                        candidate === 'supported-hold' ||
+                        candidate === 'holding' ||
+                        candidate === 'two-hand-hold' ||
+                        candidate === 'applying-opening'
+                    );
+                }
+                // static
+                return candidate !== 'applying-opening';
+            };
+
+            let effectiveInteraction: ProductStudioState['interaction'] = nextInteraction;
+            if (!isAllowedByMotion(nextMotion, effectiveInteraction)) {
+                if (nextMotion === 'pouring' || nextMotion === 'falling') effectiveInteraction = 'none';
+                else if (nextMotion === 'opened') effectiveInteraction = 'holding';
+                else effectiveInteraction = 'none';
+            }
+
+            return {
+                interaction: effectiveInteraction,
+                handsHolding: effectiveInteraction !== 'none',
+                stateMotion: nextMotion,
+            };
+        }),
+    setStateMotion: (motion) =>
+        set((state) => {
+            const nextMotion = motion;
+
+            const coerceInteractionForMotion = (candidate: ProductStudioState['interaction']) => {
+                if (nextMotion === 'pouring' || nextMotion === 'falling') {
+                    return candidate === 'cropped-hand' ? 'cropped-hand' : 'none';
+                }
+                if (nextMotion === 'spilled' || nextMotion === 'dispensed') {
+                    const allowed: ProductStudioState['interaction'][] = [
+                        'none',
+                        'cropped-hand',
+                        'resting-interaction',
+                        'supported-hold',
+                    ];
+                    return allowed.includes(candidate) ? candidate : 'none';
+                }
+                if (nextMotion === 'opened') {
+                    const allowed: ProductStudioState['interaction'][] = [
+                        'none',
+                        'cropped-hand',
+                        'supported-hold',
+                        'holding',
+                        'two-hand-hold',
+                        'applying-opening',
+                    ];
+                    return allowed.includes(candidate) ? candidate : 'none';
+                }
+                // static
+                if (candidate === 'applying-opening') return 'none';
+                return candidate;
+            };
+
+            // Force rules:
+            // - Capsule Display => motion must be Static
+            // - Applying / Opening => motion must be Opened
+            let effectiveMotion = nextMotion;
+            const currentInteraction = state.interaction;
+            if (currentInteraction === 'capsule-display') effectiveMotion = 'static';
+            if (currentInteraction === 'applying-opening') effectiveMotion = 'opened';
+
+            const effectiveInteraction = coerceInteractionForMotion(currentInteraction);
+
+            return {
+                stateMotion: effectiveMotion,
+                interaction: effectiveInteraction,
+                handsHolding: effectiveInteraction !== 'none',
+            };
+        }),
     setProMode: (enabled) => set({ proMode: enabled }),
     setLens: (lens) => set({ lens }),
     setLightingRig: (rig) => set({ lightingRig: rig }),

@@ -524,6 +524,77 @@ function buildAlignment(state: ProductStudioState): string {
     return `ALIGNMENT: ${map[alignment] || alignment}`;
 }
 
+// ============================================================================
+// PRODUCT STATE & MOTION (Product-only)
+// ============================================================================
+
+function buildStateMotion(state: ProductStudioState): string {
+    const motion = String(state.stateMotion || 'static');
+    const { physical } = state.definition;
+
+    if (motion === 'static') {
+        return 'PRODUCT_STATE_MOTION: Static. Product is stationary. No motion.';
+    }
+
+    if (motion === 'opened') {
+        return 'PRODUCT_STATE_MOTION: Opened. Container is open with cap/lid removed. No motion.';
+    }
+
+    // Motion physics (applies to any non-static motion)
+    const physics = [
+        'gravity downward only',
+        'no floating motion',
+        'irregular spacing and organic distribution',
+        'natural mid-action freeze (no symmetry)',
+    ].join(', ');
+
+    if (motion === 'falling') {
+        if (physical.kind === 'capsules') {
+            const v = physical.v;
+            const colorDesc = getColorDescription(v.capsuleContentColor);
+            return `PRODUCT_STATE_MOTION: Falling. Container is open and tilted. ${v.capsuleStyle} capsules with ${colorDesc} contents actively falling in mid-air. ${physics}.`;
+        }
+        if (physical.kind === 'gummies') {
+            const v = physical.v;
+            const colorDesc = getColorDescription(v.gummyColor);
+            return `PRODUCT_STATE_MOTION: Falling. Container is open and tilted. ${v.shape}-shaped gummies in ${colorDesc} color actively falling in mid-air. ${physics}.`;
+        }
+        // Fallback wording (validator should prevent this case)
+        return `PRODUCT_STATE_MOTION: Falling. Contents actively falling in mid-air. ${physics}.`;
+    }
+
+    if (motion === 'pouring') {
+        if (physical.kind === 'powder') {
+            const v = physical.v;
+            const colorDesc = getColorDescription(v.powderColor);
+            return `PRODUCT_STATE_MOTION: Pouring. Container is open and tilted, releasing a controlled stream of ${v.texture} powder in ${colorDesc} tone downward. No smoke or mist effect. ${physics}.`;
+        }
+        return `PRODUCT_STATE_MOTION: Pouring. Contents releasing downward due to gravity. ${physics}.`;
+    }
+
+    if (motion === 'dispensed') {
+        if (physical.kind === 'drops') {
+            const v = physical.v;
+            const liquidColorDesc = v.liquidColorMode === 'custom'
+                ? getColorDescription(v.liquidCustomColor)
+                : v.liquidColorMode;
+            return `PRODUCT_STATE_MOTION: Dispensed. Bottle is open; a single ${liquidColorDesc} droplet releases from the dropper tip. Realistic surface tension. ${physics}.`;
+        }
+        if (physical.kind === 'powder') {
+            const v = physical.v;
+            const colorDesc = getColorDescription(v.powderColor);
+            return `PRODUCT_STATE_MOTION: Dispensed. A controlled amount of ${v.texture} powder in ${colorDesc} tone is dispensed onto the surface. Grounded shadows and realistic weight. ${physics}.`;
+        }
+        return `PRODUCT_STATE_MOTION: Dispensed. A controlled amount of contents is released. ${physics}.`;
+    }
+
+    if (motion === 'spilled') {
+        return `PRODUCT_STATE_MOTION: Spilled. Contents spilled on the surface with irregular distribution. Grounded shadows, realistic weight. ${physics}.`;
+    }
+
+    return '';
+}
+
 function buildInteraction(state: ProductStudioState): string {
     const allowHands = state.interaction !== 'none' || state.handsHolding === true;
     if (!allowHands) return '';
@@ -938,6 +1009,9 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     // 1. Product Definition (Source of Truth)
     segments.push(buildProductDescription(state, product));
 
+    // 2. Product State & Motion (Product-only; no human implied)
+    segments.push(buildStateMotion(state));
+
     // 3. Environment + Micro Place (When allowed)
     if (!state.blankSpaceEnabled) {
         const environment = buildEnvironment(state);
@@ -1015,6 +1089,9 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     if (primary) {
         segments.push(buildProductDescription(state, primary));
     }
+
+    // 2. Product State & Motion (Product-only; no human implied)
+    segments.push(buildStateMotion(state));
 
     // 9. Bundle Logic (If Applicable) - Placed early to define subject
     segments.push(buildBundleComposition(state));
@@ -1096,7 +1173,13 @@ function buildNegativePrompt(state: ProductStudioState): string {
         ...interactionSpecific,
         // Interaction safety / realism
         'eating', 'drinking', 'swallowing', 'ingestion',
+        'hands pouring product',
         'pouring capsules', 'pouring pills',
+        'floating capsules',
+        'symmetrical motion',
+        'magical particles',
+        'mist', 'smoke',
+        'exaggerated splash',
         'floating hands', 'stiff fingers', 'mannequin hands',
         'distracting jewelry', 'oversized jewelry',
         // Quality / artifacts

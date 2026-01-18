@@ -128,31 +128,95 @@ function validateBundle(state: ProductStudioState): string[] {
 }
 
 // ============================================================================
-// 4. PRODUCT INTERACTION RULES (STRICT)
+// 4. PRODUCT STATE & MOTION (STRICT)
 // ============================================================================
 
-function validateProductInteraction(state: ProductStudioState): string[] {
+function validateProductStateMotion(state: ProductStudioState): string[] {
     const errors: string[] = [];
-    const interaction = String(state.interaction || 'none');
+    const motion = String(state.stateMotion || 'static');
 
-    if (interaction === 'capsule-display') {
-        if (state.definition.type !== 'capsules') {
-            errors.push('Capsule Display requires Product Type = Capsules.');
-        }
-    }
+    const type = state.definition.type;
+    const allowedByType: Record<string, string[]> = {
+        capsules: ['static', 'opened', 'falling', 'spilled'],
+        gummies: ['static', 'opened', 'falling', 'spilled'],
+        drops: ['static', 'opened', 'dispensed'],
+        powder: ['static', 'opened', 'pouring', 'dispensed'],
+    };
 
-    if (interaction === 'two-hand-hold') {
-        // Ultra tight crop prevention: two hands cannot fit in macro framing.
-        if (state.distance === 'macro') {
-            errors.push('Two-Hand Hold is not compatible with Macro distance. Use Tight/Close framing instead.');
-        }
+    const allowed = allowedByType[type] ?? ['static'];
+    if (!allowed.includes(motion)) {
+        errors.push(`Product State & Motion "${motion}" is not allowed for Product Type "${type}".`);
     }
 
     return errors;
 }
 
 // ============================================================================
-// 5. FORBIDDEN LANGUAGE (STRICT)
+// 5. PRODUCT STATE × PRODUCT INTERACTION (STRICT MATRIX)
+// ============================================================================
+
+function validateMotionInteractionCompatibility(state: ProductStudioState): string[] {
+    const errors: string[] = [];
+    const motion = String(state.stateMotion || 'static');
+    const interaction = String(state.interaction || 'none');
+
+    // Hard force rules (must validate even if UI/store tries to coerce):
+    if (interaction === 'capsule-display' && motion !== 'static') {
+        errors.push('Capsule Display requires Product State & Motion = Static.');
+    }
+    if (interaction === 'applying-opening' && motion !== 'opened') {
+        errors.push('Applying / Opening requires Product State & Motion = Opened.');
+    }
+
+    // Motion vs interaction matrix
+    if (motion === 'pouring' || motion === 'falling') {
+        if (!(interaction === 'none' || interaction === 'cropped-hand')) {
+            errors.push('Pouring/Falling motion is only compatible with Product Interaction = None or Cropped Hand.');
+        }
+    }
+
+    if (motion === 'spilled' || motion === 'dispensed') {
+        const allowed = new Set(['none', 'cropped-hand', 'resting-interaction', 'supported-hold']);
+        if (!allowed.has(interaction)) {
+            errors.push('Spilled/Dispensed motion disables Holding and Presentation interaction modes.');
+        }
+    }
+
+    if (motion === 'opened') {
+        const allowed = new Set([
+            'none',
+            'cropped-hand',
+            'supported-hold',
+            'holding',
+            'two-hand-hold',
+            'applying-opening',
+        ]);
+        if (!allowed.has(interaction)) {
+            errors.push('Opened state is not compatible with Presenting, Framed Presentation, or Capsule Display.');
+        }
+    }
+
+    if (motion === 'static') {
+        if (interaction === 'applying-opening') {
+            errors.push('Static state is not compatible with Applying / Opening. Use Opened state instead.');
+        }
+    }
+
+    // Product-type constraints
+    if (interaction === 'capsule-display' && state.definition.type !== 'capsules') {
+        errors.push('Capsule Display requires Product Type = Capsules.');
+    }
+
+    // Camera compatibility (existing hard rule carried over)
+    if (interaction === 'two-hand-hold' && state.distance === 'macro') {
+        errors.push('Two-Hand Hold is not compatible with Macro distance. Use Tight/Close framing instead.');
+    }
+
+    return errors;
+}
+
+// ============================================================================
+// 6. FORBIDDEN LANGUAGE (STRICT)
 // ============================================================================
 
 const FORBIDDEN_TERMS = ['person', 'people', 'model', 'face', 'selfie', 'phone', 'lifestyle'];
@@ -200,7 +264,8 @@ export function validateProductStudioState(state: ProductStudioState): Validatio
         ...validateProductEnvironment(state),
         ...validateLighting(state),
         ...validateBundle(state),
-        ...validateProductInteraction(state),
+        ...validateProductStateMotion(state),
+        ...validateMotionInteractionCompatibility(state),
         ...validateForbiddenLanguage(state)
     ];
 

@@ -132,6 +132,12 @@ export type ProductDefinition = {
 };
 
 // ============================================================================
+// PRODUCT STATE & MOTION (Product-only)
+// ============================================================================
+
+export type ProductStateMotion = 'static' | 'opened' | 'spilled' | 'dispensed' | 'pouring' | 'falling';
+
+// ============================================================================
 // 1️⃣ MODE (ROOT BLOCKER)
 // ============================================================================
 
@@ -333,6 +339,11 @@ export type ProductStudioState = {
     handsHolding: boolean;
     packagingMode: 'without-box' | 'with-box';
     physicalScaleLabel: 'small-handheld' | 'medium-tabletop' | 'large-object';
+
+    // ========================================================================
+    // PRODUCT STATE & MOTION (Product-only, no human implied)
+    // ========================================================================
+    stateMotion: ProductStateMotion;
 
     // ========================================================================
     // 3️⃣ BRAND & PALETTE (SINGLE COLOR AUTHORITY)
