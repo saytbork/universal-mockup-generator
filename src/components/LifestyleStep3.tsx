@@ -125,8 +125,9 @@ export interface Step3Values {
   // Creator/Person
   age: number; // Numeric age (18-90)
   noPerson: boolean;
-  personCount: 'single' | 'couple';
+  personCount: 'single' | 'couple' | 'group';
   coupleSex: 'same' | 'different';
+  coupleStaging: string;
   editSecondaryPerson: boolean;
   secondaryAge: number;
   secondaryGender: string;
@@ -825,17 +826,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const [openUgcLayerId, setOpenUgcLayerId] = useState<UGCLayerField | null>(null);
   const [touchedSections, setTouchedSections] = useState<Set<string>>(new Set());
   // Removed duplicate isCreatorPro declaration here, managed near top.
-	  const initialValues: Step3Values = {
-	    // Creator/Person
-	    age: 30, // Numeric age
-	    noPerson: initialSceneIntent === 'ecommerce', // UGC Rule: person MUST be present by default
-	    personCount: 'single',
-	    coupleSex: 'different',
-	    editSecondaryPerson: false,
-        secondaryAge: 30,
-	    secondaryGender: '',
-	    secondaryEthnicity: '',
-	    secondarySkinTone: '',
+		  const initialValues: Step3Values = {
+		    // Creator/Person
+		    age: 30, // Numeric age
+		    noPerson: initialSceneIntent === 'ecommerce', // UGC Rule: person MUST be present by default
+		    personCount: 'single',
+		    coupleSex: 'different',
+		    coupleStaging: 'Together (side-by-side)',
+		    editSecondaryPerson: false,
+	        secondaryAge: 30,
+		    secondaryGender: '',
+		    secondaryEthnicity: '',
+		    secondarySkinTone: '',
 	    secondaryEyeColor: '',
 	    secondaryBodyType: '',
 	    secondaryHairLength: '',
@@ -4357,7 +4359,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
                           <span className="text-xs text-gray-600 dark:text-white/60">
-                            {values.personCount === 'couple' ? 'Age (Person A)' : 'Age'}
+	                            {values.personCount !== 'single' ? 'Age (Person A)' : 'Age'}
                           </span>
                           <span className="text-sm font-medium text-gray-900 dark:text-white">{values.age}</span>
                         </div>
@@ -4394,53 +4396,65 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                        </div>
 	                      </div>
 
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between gap-3">
-                          <div>
-                            <span className="text-xs text-gray-600 dark:text-white/60">Person count</span>
-                            <p className="text-[11px] text-gray-400 dark:text-white/40">
-                              {values.ugcRealMode
-                                ? 'Raw Domestic UGC is single-person only. Couple is disabled.'
-                                : values.personCount === 'couple'
-                                ? (
-                                  <>
-                                    Primary person settings apply to Person A.
-                                    <br />
-                                    Person B is derived automatically with a distinct identity.
-                                  </>
-                                )
-                                : 'Choose single creator or a couple.'}
-                            </p>
-                          </div>
-                        </div>
-	                        <div className="flex flex-wrap gap-2">
-	                          <Chip
-	                            onClick={() => {
-	                              updateValue('personCount', 'single');
-	                              markSectionTouched('creator');
-	                            }}
-	                            selected={values.personCount === 'single'}
-	                            size="md"
-	                          >
-	                            Single
-	                          </Chip>
-	                          <Chip
-	                            disabled={values.ugcRealMode}
-	                            onClick={() => {
-	                              if (values.ugcRealMode) return;
-	                              updateValue('personCount', 'couple');
-	                              markSectionTouched('creator');
-	                            }}
-	                            selected={values.personCount === 'couple'}
-	                            size="md"
-	                            tooltip={values.ugcRealMode ? 'Disabled in Raw Domestic UGC' : undefined}
-	                          >
-	                            Couple
-	                          </Chip>
+	                      <div className="space-y-2">
+	                        <div className="flex items-center justify-between gap-3">
+	                          <div>
+	                            <span className="text-xs text-gray-600 dark:text-white/60">Person count</span>
+	                            <p className="text-[11px] text-gray-400 dark:text-white/40">
+	                              {values.personCount === 'couple' ? (
+	                                <>
+	                                  Person A and Person B both appear in-frame.
+	                                  <br />
+	                                  Configure Person B identity below and choose Couple staging.
+	                                </>
+	                              ) : values.personCount === 'group' ? (
+	                                '3–5 people in-frame. Person A uses these settings; others are derived automatically with distinct identities.'
+	                              ) : (
+	                                'Choose single creator, a couple, or a small group.'
+	                              )}
+	                            </p>
+	                          </div>
 	                        </div>
-	                        {values.personCount === 'couple' && (
-	                          <div className="space-y-2">
-	                            <span className="text-xs text-gray-600 dark:text-white/60">Sex pairing</span>
+		                        <div className="flex flex-wrap gap-2">
+		                          <Chip
+		                            onClick={() => {
+		                              updateValue('personCount', 'single');
+		                              updateValue('editSecondaryPerson', false);
+		                              markSectionTouched('creator');
+		                            }}
+		                            selected={values.personCount === 'single'}
+		                            size="md"
+		                          >
+		                            Single
+		                          </Chip>
+		                          <Chip
+		                            onClick={() => {
+		                              updateValue('personCount', 'couple');
+		                              updateValue('editSecondaryPerson', true);
+		                              if (!values.coupleStaging) updateValue('coupleStaging', 'Together (side-by-side)');
+		                              if (!values.secondaryAge || values.secondaryAge === 30) updateValue('secondaryAge', Math.min(90, Math.max(18, values.age + 2)));
+		                              markSectionTouched('creator');
+		                            }}
+		                            selected={values.personCount === 'couple'}
+		                            size="md"
+		                          >
+		                            Couple
+		                          </Chip>
+		                          <Chip
+		                            onClick={() => {
+		                              updateValue('personCount', 'group');
+		                              updateValue('editSecondaryPerson', false);
+		                              markSectionTouched('creator');
+		                            }}
+		                            selected={values.personCount === 'group'}
+		                            size="md"
+		                          >
+		                            Group
+		                          </Chip>
+		                        </div>
+		                        {values.personCount === 'couple' && (
+		                          <div className="space-y-2">
+		                            <span className="text-xs text-gray-600 dark:text-white/60">Sex pairing</span>
 	                            <div className="flex flex-wrap gap-2">
 	                              <Chip
 	                                onClick={() => {
@@ -4463,8 +4477,29 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                                Different sex
 	                              </Chip>
 	                            </div>
-	                          </div>
-	                        )}
+		                          </div>
+		                        )}
+
+		                        {values.personCount === 'couple' && (
+		                          <div className="space-y-2">
+		                            <span className="text-xs text-gray-600 dark:text-white/60">Couple staging</span>
+		                            <div className="flex flex-wrap gap-2">
+		                              {RITUAL_COUPLE_STAGING_OPTIONS.map(option => (
+		                                <Chip
+		                                  key={option}
+		                                  onClick={() => {
+		                                    updateValue('coupleStaging', option);
+		                                    markSectionTouched('creator');
+		                                  }}
+		                                  selected={values.coupleStaging === option}
+		                                  size="md"
+		                                >
+		                                  {option}
+		                                </Chip>
+		                              ))}
+		                            </div>
+		                          </div>
+		                        )}
 
                         <div className="space-y-2">
                           <span className="text-xs text-gray-600 dark:text-white/60">Eye direction</span>
@@ -4488,18 +4523,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           </div>
                         </div>
 
-	                        {false && (
-	                          <div className="pt-2">
-	                            <div className="flex items-center justify-between gap-3">
-	                              <div>
-	                                <p className="text-xs text-gray-600 dark:text-white/60">Advanced</p>
-	                                <p className="text-[11px] text-gray-400 dark:text-white/40">
-	                                  Edit Person B explicitly (otherwise it’s auto-derived).
-	                                </p>
-	                              </div>
-	                              <Toggle
-	                                checked={values.editSecondaryPerson}
-	                                title={values.editSecondaryPerson ? 'Editing Person B is enabled' : 'Enable editing Person B'}
+		                        {values.personCount === 'couple' && (
+		                          <div className="pt-2">
+		                            <div className="flex items-center justify-between gap-3">
+		                              <div>
+		                                <p className="text-xs text-gray-600 dark:text-white/60">Person B settings</p>
+		                                <p className="text-[11px] text-gray-400 dark:text-white/40">
+		                                  Toggle on to edit Person B. If left off, Person B will be derived automatically.
+		                                </p>
+		                              </div>
+		                              <Toggle
+		                                checked={values.editSecondaryPerson}
+		                                title={values.editSecondaryPerson ? 'Editing Person B is enabled' : 'Enable editing Person B'}
 	                                aria-label="Enable editing Person B"
 	                                onCheckedChange={(next) => {
 	                                  updateValue('editSecondaryPerson', next);
@@ -4521,16 +4556,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                                  }
 	                                }}
 	                              />
-	                            </div>
-	                          </div>
-	                        )}
+		                            </div>
+		                          </div>
+		                        )}
 	                      </div>
 
-	                      {false && (
-	                        <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-4 dark:bg-black/20 dark:border-white/10">
-	                          <p className="text-[11px] uppercase tracking-[0.3em] text-gray-400 font-semibold dark:text-white/40">
-	                            Person B (Secondary)
-	                          </p>
+		                      {values.personCount === 'couple' && values.editSecondaryPerson && (
+		                        <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-4 dark:bg-black/20 dark:border-white/10">
+		                          <p className="text-[11px] uppercase tracking-[0.3em] text-gray-400 font-semibold dark:text-white/40">
+		                            Person B (Secondary)
+		                          </p>
                               <div className="space-y-2">
                                 <div className="flex justify-between items-center">
                                   <span className="text-xs text-gray-600 dark:text-white/60">Age</span>
@@ -4678,9 +4713,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                                );
 	                              })}
 	                            </div>
-	                          </div>
-	                        </div>
-	                      )}
+		                          </div>
+		                        </div>
+		                      )}
 
 	                      <div className="space-y-2">
 	                        <span className="text-xs text-gray-600 dark:text-white/60">Ethnicity</span>
@@ -5095,41 +5130,53 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </div>
                       </div>
 
-                      <div className="space-y-2">
-                        <span className="text-xs font-semibold text-gray-900 dark:text-white">People</span>
-                        {values.ugcRealMode && (
-                          <p className="text-[11px] text-gray-500 dark:text-white/40">
-                            Raw Domestic UGC is single-person only. Couple is disabled.
-                          </p>
-                        )}
-                        <div className="flex flex-wrap gap-2">
-                          <Chip
-                            selected={values.personCount === 'single'}
-                            onClick={() => {
-                              updateValue('personCount', 'single');
-                              markSectionTouched('creator');
-                            }}
-                            size="md"
-                          >
-                            Single
-                          </Chip>
-                          <Chip
-                            selected={values.personCount === 'couple'}
-                            disabled={values.ugcRealMode}
-                            onClick={() => {
-                              if (values.ugcRealMode) return;
-                              updateValue('personCount', 'couple');
-                              markSectionTouched('creator');
-                            }}
-                            tooltip={values.ugcRealMode ? 'Disabled in Raw Domestic UGC' : undefined}
-                            size="md"
-                          >
-                            Couple
-                          </Chip>
-                        </div>
-                        {values.personCount === 'couple' && (
-                          <div className="flex flex-wrap gap-2">
-                            <Chip
+	                      <div className="space-y-2">
+	                        <span className="text-xs font-semibold text-gray-900 dark:text-white">People</span>
+	                        {values.ugcRealMode && (
+	                          <p className="text-[11px] text-gray-500 dark:text-white/40">
+	                            Raw Domestic UGC: multiple people are supported, but results may be less consistent.
+	                          </p>
+	                        )}
+	                        <div className="flex flex-wrap gap-2">
+	                          <Chip
+	                            selected={values.personCount === 'single'}
+	                            onClick={() => {
+	                              updateValue('personCount', 'single');
+	                              updateValue('editSecondaryPerson', false);
+	                              markSectionTouched('creator');
+	                            }}
+	                            size="md"
+	                          >
+	                            Single
+	                          </Chip>
+	                          <Chip
+	                            selected={values.personCount === 'couple'}
+	                            onClick={() => {
+	                              updateValue('personCount', 'couple');
+	                              updateValue('editSecondaryPerson', true);
+	                              if (!values.coupleStaging) updateValue('coupleStaging', 'Together (side-by-side)');
+	                              if (!values.secondaryAge || values.secondaryAge === 30) updateValue('secondaryAge', Math.min(90, Math.max(18, values.age + 2)));
+	                              markSectionTouched('creator');
+	                            }}
+	                            size="md"
+	                          >
+	                            Couple
+	                          </Chip>
+	                          <Chip
+	                            selected={values.personCount === 'group'}
+	                            onClick={() => {
+	                              updateValue('personCount', 'group');
+	                              updateValue('editSecondaryPerson', false);
+	                              markSectionTouched('creator');
+	                            }}
+	                            size="md"
+	                          >
+	                            Group
+	                          </Chip>
+	                        </div>
+	                        {values.personCount === 'couple' && (
+	                          <div className="flex flex-wrap gap-2">
+	                            <Chip
                               selected={values.coupleSex === 'same'}
                               onClick={() => {
                                 updateValue('coupleSex', 'same');
@@ -5150,10 +5197,27 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               size="md"
                             >
                               Different sex
-                            </Chip>
-                          </div>
-                        )}
-                      </div>
+	                            </Chip>
+	                          </div>
+	                        )}
+	                        {values.personCount === 'couple' && (
+	                          <div className="flex flex-wrap gap-2 pt-1">
+	                            {RITUAL_COUPLE_STAGING_OPTIONS.map(option => (
+	                              <Chip
+	                                key={option}
+	                                selected={values.coupleStaging === option}
+	                                onClick={() => {
+	                                  updateValue('coupleStaging', option);
+	                                  markSectionTouched('creator');
+	                                }}
+	                                size="md"
+	                              >
+	                                {option}
+	                              </Chip>
+	                            ))}
+	                          </div>
+	                        )}
+	                      </div>
 
                       <div className="space-y-2">
                         <span className="text-xs font-semibold text-gray-900 dark:text-white">Ethnicity</span>

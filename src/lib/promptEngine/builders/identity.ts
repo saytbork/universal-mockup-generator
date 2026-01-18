@@ -166,7 +166,7 @@ export class IdentityBuilder implements PromptBuilder {
         const ageGroupLabel = age >= 75 ? 'elder' : 'adult';
         const personCount = options.personCount;
         const isCouple = personCount === 'couple';
-        const primarySubjectNoun = isCouple ? 'PRIMARY SUBJECT' : 'Subject';
+        const primarySubjectNoun = personCount && personCount !== 'single' ? 'PRIMARY SUBJECT' : 'Subject';
 
         // ====================================================================
         // MODEL REFERENCE OVERRIDE (highest priority)
@@ -366,6 +366,22 @@ Captured by smartphone so fine edges may appear soft or broken.
                             ? 'mixed-gender couple'
                             : 'couple';
                 parts.push(`Two subjects in frame: ${sexText}. Both must look like real distinct individuals.`);
+                const coupleStaging = String((options as any).coupleStaging ?? '').trim();
+                if (coupleStaging) {
+                    parts.push(
+                        sanitizePart(
+                            `COUPLE STAGING: ${coupleStaging}. Both subjects must be clearly visible in-frame. Avoid a secondary subject that is blurred, out-of-focus, or treated like a meaningless background extra.`,
+                            isUgcMode
+                        )
+                    );
+                } else {
+                    parts.push(
+                        sanitizePart(
+                            'COUPLE STAGING: Both subjects appear intentionally in-frame, positioned so they both read clearly and naturally. Avoid a secondary subject that is blurred or hidden in the background.',
+                            isUgcMode
+                        )
+                    );
+                }
 
                 if (typeof secondaryAge === 'number') {
                     parts.push(
@@ -449,11 +465,25 @@ Captured by smartphone so fine edges may appear soft or broken.
                 }
             }
 
+            if (personCount === 'group') {
+                parts.push(
+                    sanitizePart(
+                        'GROUP MODE: 3–5 subjects in frame. Person A follows the selected identity controls. All additional people must be distinct real individuals (no cloned faces), derived automatically with coherent style and minor natural variation. All faces must be clearly visible and not blurred into the background. Only ONE person interacts actively with the product; others remain supportive and passive.',
+                        isUgcMode
+                    )
+                );
+            }
+
             if (identityMode === 'auto' && identityVariationToken) {
                 parts.push(`[IDENTITY_VARIATION_TOKEN: ${identityVariationToken}]`);
                 if (personCount === 'couple') {
                     parts.push(`FACE SIGNATURE A: ${this.buildFaceSignature(`${identityVariationToken}-A`)}`);
                     parts.push(`FACE SIGNATURE B: ${this.buildFaceSignature(`${identityVariationToken}-B`)}`);
+                } else if (personCount === 'group') {
+                    parts.push(`FACE SIGNATURE A: ${this.buildFaceSignature(`${identityVariationToken}-A`)}`);
+                    parts.push(`FACE SIGNATURE B: ${this.buildFaceSignature(`${identityVariationToken}-B`)}`);
+                    parts.push(`FACE SIGNATURE C: ${this.buildFaceSignature(`${identityVariationToken}-C`)}`);
+                    parts.push(`FACE SIGNATURE D: ${this.buildFaceSignature(`${identityVariationToken}-D`)}`);
                 } else {
                     parts.push(`FACE SIGNATURE: ${this.buildFaceSignature(identityVariationToken)}`);
                 }
@@ -463,6 +493,11 @@ Captured by smartphone so fine edges may appear soft or broken.
                 if (personCount === 'couple') {
                     parts.push(`FACE SIGNATURE A: ${this.buildFaceSignature(`${identityKey}-A`)}`);
                     parts.push(`FACE SIGNATURE B: ${this.buildFaceSignature(`${identityKey}-B`)}`);
+                } else if (personCount === 'group') {
+                    parts.push(`FACE SIGNATURE A: ${this.buildFaceSignature(`${identityKey}-A`)}`);
+                    parts.push(`FACE SIGNATURE B: ${this.buildFaceSignature(`${identityKey}-B`)}`);
+                    parts.push(`FACE SIGNATURE C: ${this.buildFaceSignature(`${identityKey}-C`)}`);
+                    parts.push(`FACE SIGNATURE D: ${this.buildFaceSignature(`${identityKey}-D`)}`);
                 } else {
                     parts.push(`FACE SIGNATURE: ${this.buildFaceSignature(identityKey)}`);
                 }
@@ -487,6 +522,7 @@ Captured by smartphone so fine edges may appear soft or broken.
         if (personDetails?.eyeDirection) {
             const eyeDirection = String(personDetails.eyeDirection);
             const isCouple = options.personCount === 'couple';
+            const isGroup = options.personCount === 'group';
 
             if (isCouple) {
                 if (eyeDirection === 'Looking at camera') {
@@ -507,6 +543,31 @@ Captured by smartphone so fine edges may appear soft or broken.
                     parts.push(
                         sanitizePart(
                             'EYE DIRECTION (COUPLE): Both subjects look away casually OR one looks away while the other looks at the product. Avoid direct eye contact between both subjects unless explicitly requested.',
+                            isUgcMode
+                        )
+                    );
+                } else {
+                    parts.push(sanitizePart(String(eyeDirection), isUgcMode));
+                }
+            } else if (isGroup) {
+                if (eyeDirection === 'Looking at camera') {
+                    parts.push(
+                        sanitizePart(
+                            'EYE DIRECTION (GROUP): Only one or two subjects may look at the camera. The others must look at the product or look away naturally. Avoid everyone staring at camera at once.',
+                            isUgcMode
+                        )
+                    );
+                } else if (eyeDirection === 'Looking at product') {
+                    parts.push(
+                        sanitizePart(
+                            'EYE DIRECTION (GROUP): Most subjects look at the product OR share attention naturally between the product and each other. Keep it candid, not posed.',
+                            isUgcMode
+                        )
+                    );
+                } else if (eyeDirection === 'Looking away naturally') {
+                    parts.push(
+                        sanitizePart(
+                            'EYE DIRECTION (GROUP): Most subjects look away casually with natural variation. Some may glance at the product. Avoid everyone synchronizing in the same direction.',
                             isUgcMode
                         )
                     );

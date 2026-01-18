@@ -13,7 +13,15 @@
  */
 
 import type { ExpertRole, Step3Values, ExpertAttire } from '../../components/LifestyleStep3';
-import type { CustomClothes, FormulationStoryOptions, IdentityLock, PromptOptions, UGCRealModeLayerSet, SceneOrderChaosLevel } from './types';
+import type {
+    CustomClothes,
+    FormulationStoryOptions,
+    IdentityLock,
+    PersonDetails,
+    PromptOptions,
+    SceneOrderChaosLevel,
+    UGCRealModeLayerSet
+} from './types';
 import { mapProductModeToPromptOptions } from './mapProductModeToPromptOptions';
 import { APPEARANCE_SEMANTIC_MAP } from './semanticMaps/appearance';
 
@@ -823,10 +831,12 @@ export function mapLifestyleToPromptOptions(
     mapped.personIncluded = personIncluded;
     mapped.personCount = sceneState.personCount || 'single';
     mapped.coupleSex = mapped.personCount === 'couple' ? (sceneState.coupleSex || 'different') : undefined;
-    // Couple semantics (strict):
+    (mapped as any).coupleStaging =
+        mapped.personCount === 'couple' ? String((sceneState as any).coupleStaging ?? '').trim() || undefined : undefined;
+    // Couple semantics:
     // - Person A uses all explicit UI controls
-    // - Person B is auto-derived with distinct identity (no explicit per-person editing)
-    // - Age coherence: Person B age = Person A age ± random(2–6), never > 8, never below 18.
+    // - Person B can be explicitly configured (basic identity), otherwise it is derived automatically
+    // - Age coherence: default Person B age = Person A age ± random(2–6), never > 8, never below 18.
     const isCouple = mapped.personCount === 'couple';
     const isNoPerson = Boolean((sceneState as any).noPerson);
     if (isCouple && isNoPerson) {
@@ -864,7 +874,7 @@ export function mapLifestyleToPromptOptions(
         const primaryAge =
             typeof primaryAgeRaw === 'number' && Number.isFinite(primaryAgeRaw) ? Number(primaryAgeRaw) : 30;
         const token = String(mapped.identityVariationToken || mapped.identityKey || mapped.seed || 'couple');
-        const secondaryAge = deriveCoupleSecondaryAge(primaryAge, token);
+        const derivedSecondaryAge = deriveCoupleSecondaryAge(primaryAge, token);
 
         const primaryGender = String((sceneState as any).gender || '').trim();
         const coupleSex = mapped.coupleSex || 'different';
@@ -878,10 +888,47 @@ export function mapLifestyleToPromptOptions(
             return null;
         })();
 
-        (mapped as any).secondaryPersonDetails = {
+        const editSecondaryPerson = Boolean((sceneState as any).editSecondaryPerson);
+        const secondaryAgeRaw = (sceneState as any).secondaryAge;
+        const secondaryAgeExplicit =
+            typeof secondaryAgeRaw === 'number' && Number.isFinite(secondaryAgeRaw) ? Number(secondaryAgeRaw) : null;
+        const secondaryAge = editSecondaryPerson && typeof secondaryAgeExplicit === 'number' ? secondaryAgeExplicit : derivedSecondaryAge;
+
+        const secondaryGenderRaw = String((sceneState as any).secondaryGender ?? '').trim();
+        const secondaryGender = editSecondaryPerson && secondaryGenderRaw ? secondaryGenderRaw : derivedSecondaryGender;
+
+        const primaryEthnicity = String((sceneState as any).ethnicity ?? '').trim();
+        const primarySkinTone = String((sceneState as any).skinTone ?? '').trim();
+        const primaryEyeColor = String((sceneState as any).eyeColor ?? '').trim();
+        const primaryBodyType = String((sceneState as any).bodyType ?? '').trim();
+        const primaryHairLength = String((sceneState as any).hairLength ?? '').trim();
+        const primaryHairTexture = String((sceneState as any).hairTexture ?? '').trim();
+        const primaryHairColor = String((sceneState as any).hairColor ?? '').trim();
+
+        const secondaryPersonDetails: Partial<PersonDetails> = {
             age: secondaryAge,
-            ...(derivedSecondaryGender ? { gender: derivedSecondaryGender } : {}),
+            ...(secondaryGender ? { gender: secondaryGender } : {}),
         };
+
+        if (editSecondaryPerson) {
+            const secondaryEthnicity = String((sceneState as any).secondaryEthnicity ?? '').trim() || primaryEthnicity || undefined;
+            const secondarySkinTone = String((sceneState as any).secondarySkinTone ?? '').trim() || primarySkinTone || undefined;
+            const secondaryEyeColor = String((sceneState as any).secondaryEyeColor ?? '').trim() || primaryEyeColor || undefined;
+            const secondaryBodyType = String((sceneState as any).secondaryBodyType ?? '').trim() || primaryBodyType || undefined;
+            const secondaryHairLength = String((sceneState as any).secondaryHairLength ?? '').trim() || primaryHairLength || undefined;
+            const secondaryHairTexture = String((sceneState as any).secondaryHairTexture ?? '').trim() || primaryHairTexture || undefined;
+            const secondaryHairColor = String((sceneState as any).secondaryHairColor ?? '').trim() || primaryHairColor || undefined;
+
+            if (secondaryEthnicity) secondaryPersonDetails.ethnicity = secondaryEthnicity;
+            if (secondarySkinTone) secondaryPersonDetails.skinTone = secondarySkinTone;
+            if (secondaryEyeColor) secondaryPersonDetails.eyeColor = secondaryEyeColor;
+            if (secondaryBodyType) secondaryPersonDetails.bodyType = secondaryBodyType;
+            if (secondaryHairLength) secondaryPersonDetails.hairLength = secondaryHairLength;
+            if (secondaryHairTexture) secondaryPersonDetails.hairTexture = secondaryHairTexture;
+            if (secondaryHairColor) secondaryPersonDetails.hairColor = secondaryHairColor;
+        }
+
+        (mapped as any).secondaryPersonDetails = secondaryPersonDetails;
     } else {
         (mapped as any).secondaryPersonDetails = undefined;
     }
@@ -897,9 +944,6 @@ export function mapLifestyleToPromptOptions(
     const isEcommerceBlankSpaceActive = isEcommerceSceneIntent;
     const isUGCRealMode = !!sceneState.ugcRealMode;
     if (isUGCRealMode) {
-        mapped.personCount = 'single';
-        mapped.coupleSex = undefined;
-        (mapped as any).secondaryPersonDetails = undefined;
         // UGC selfie rule: never show two hands (phone hand must not appear).
         if (personIncluded && (sceneState.productInteraction || '').trim().toLowerCase() === 'holding') {
             mapped.productInteraction = 'holding the product with exactly one hand (only that hand visible)';
