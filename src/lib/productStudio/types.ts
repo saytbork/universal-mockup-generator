@@ -138,15 +138,6 @@ export type ProductDefinition = {
 export type ProductStateMotion = 'static' | 'opened' | 'spilled' | 'dispensed' | 'pouring' | 'falling';
 
 // ============================================================================
-// GROUP (Product Studio human entities)
-// ============================================================================
-
-export type ProductStudioGroupMode = 'solo' | 'couple' | 'group';
-export type ProductStudioGroupComposition = 'mixed' | 'same_sex' | 'different_sex';
-export type ProductStudioEyeDirectionScope = 'shared' | 'primary_led' | 'natural_mix';
-export type ProductStudioEyeDirectionValue = 'looking-at-camera' | 'looking-at-product' | 'looking-away-naturally';
-
-// ============================================================================
 // 1️⃣ MODE (ROOT BLOCKER)
 // ============================================================================
 
@@ -353,14 +344,6 @@ export type ProductStudioState = {
     // PRODUCT STATE & MOTION (Product-only, no human implied)
     // ========================================================================
     stateMotion: ProductStateMotion;
-
-    // ========================================================================
-    // GROUP (Human entities as scale/interaction anchors only)
-    // ========================================================================
-    groupMode: ProductStudioGroupMode;
-    groupComposition: ProductStudioGroupComposition;
-    eyeDirectionScope: ProductStudioEyeDirectionScope;
-    eyeDirectionValue: ProductStudioEyeDirectionValue;
 
     // ========================================================================
     // 3️⃣ BRAND & PALETTE (SINGLE COLOR AUTHORITY)

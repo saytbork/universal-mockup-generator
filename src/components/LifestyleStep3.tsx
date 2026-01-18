@@ -3123,7 +3123,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     ] as const
                   ).map(option => {
                     const type = productStore.definition.type;
-                    const isTypicalForType = (() => {
+                    const allowedByType = (() => {
                       switch (type) {
                         case 'capsules':
                           return (
@@ -3154,12 +3154,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       <Chip
                         key={option.value}
                         onClick={() => {
+                          if (!allowedByType) return;
                           productStore.setStateMotion(option.value as ProductStateMotion);
                           markSectionTouched('product-state-motion');
                         }}
                         selected={productStore.stateMotion === (option.value as ProductStateMotion)}
+                        disabled={!allowedByType}
                         className="whitespace-normal"
-                        tooltip={!isTypicalForType ? 'This motion will be interpreted to a physically plausible snapshot for the selected product type.' : undefined}
                       >
                         <span className="flex flex-col items-start text-left leading-tight">
                           <span className="font-bold">{option.label}</span>
@@ -3171,9 +3172,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
                 <p className="text-[11px] text-gray-500 mt-2">
                   Physics rules: gravity downward only, no floating, irregular distribution, natural motion freeze.
-                </p>
-                <p className="text-[11px] text-gray-500">
-                  Conflicts are resolved by interpretation (precedence), never by disabling controls.
                 </p>
               </div>
             </div>
@@ -3817,123 +3815,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               </p>
 
               <div className={SECTION_GROUP_CLASS}>
-                <p className={GROUP_LABEL_CLASS}>GROUP</p>
-                <p className="text-[11px] text-gray-500 mt-1">
-                  Defines how many individuals may appear as scale/interaction anchors. No lifestyle or narrative context.
-                </p>
-
-                <div className="space-y-3 mt-2">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-wider text-gray-500 mb-2">MODE</p>
-                    <div className="flex flex-wrap gap-2">
-                      {(
-                        [
-                          { value: 'solo', label: 'Solo', detail: '1 individual' },
-                          { value: 'couple', label: 'Couple', detail: '2 individuals' },
-                          { value: 'group', label: 'Group', detail: '3–5 individuals' },
-                        ] as const
-                      ).map(option => (
-                        <Chip
-                          key={option.value}
-                          onClick={() => {
-                            productStore.setGroupMode(option.value as any);
-                            markSectionTouched('product-interaction');
-                          }}
-                          selected={productStore.groupMode === (option.value as any)}
-                          className="whitespace-normal"
-                        >
-                          <span className="flex flex-col items-start text-left leading-tight">
-                            <span className="font-bold">{option.label}</span>
-                            <span className="text-[10px] font-medium opacity-70">{option.detail}</span>
-                          </span>
-                        </Chip>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-[10px] uppercase tracking-wider text-gray-500 mb-2">COMPOSITION</p>
-                    <div className="flex flex-wrap gap-2">
-                      {(
-                        [
-                          { value: 'mixed', label: 'Mixed', detail: 'Unrestricted (default)' },
-                          { value: 'same_sex', label: 'Same sex', detail: 'All match Person A gender' },
-                          { value: 'different_sex', label: 'Different sex', detail: 'At least one differs' },
-                        ] as const
-                      ).map(option => (
-                        <Chip
-                          key={option.value}
-                          onClick={() => {
-                            productStore.setGroupComposition(option.value as any);
-                            markSectionTouched('product-interaction');
-                          }}
-                          selected={productStore.groupComposition === (option.value as any)}
-                          className="whitespace-normal"
-                        >
-                          <span className="flex flex-col items-start text-left leading-tight">
-                            <span className="font-bold">{option.label}</span>
-                            <span className="text-[10px] font-medium opacity-70">{option.detail}</span>
-                          </span>
-                        </Chip>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-[10px] uppercase tracking-wider text-gray-500 mb-2">EYE DIRECTION SCOPE</p>
-                    <div className="flex flex-wrap gap-2">
-                      {(
-                        [
-                          { value: 'shared', label: 'Shared', detail: 'All use the selected direction' },
-                          { value: 'primary_led', label: 'Primary-led', detail: 'A uses selection; others vary' },
-                          { value: 'natural_mix', label: 'Natural mix', detail: 'Each varies naturally' },
-                        ] as const
-                      ).map(option => (
-                        <Chip
-                          key={option.value}
-                          onClick={() => {
-                            productStore.setEyeDirectionScope(option.value as any);
-                            markSectionTouched('product-interaction');
-                          }}
-                          selected={productStore.eyeDirectionScope === (option.value as any)}
-                          className="whitespace-normal"
-                        >
-                          <span className="flex flex-col items-start text-left leading-tight">
-                            <span className="font-bold">{option.label}</span>
-                            <span className="text-[10px] font-medium opacity-70">{option.detail}</span>
-                          </span>
-                        </Chip>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-[10px] uppercase tracking-wider text-gray-500 mb-2">EYE DIRECTION</p>
-                    <div className="flex flex-wrap gap-2">
-                      {(
-                        [
-                          { value: 'looking-at-camera', label: 'Looking at camera' },
-                          { value: 'looking-at-product', label: 'Looking at product' },
-                          { value: 'looking-away-naturally', label: 'Looking away naturally' },
-                        ] as const
-                      ).map(option => (
-                        <Chip
-                          key={option.value}
-                          onClick={() => {
-                            productStore.setEyeDirectionValue(option.value as any);
-                            markSectionTouched('product-interaction');
-                          }}
-                          selected={productStore.eyeDirectionValue === (option.value as any)}
-                        >
-                          {option.label}
-                        </Chip>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className={SECTION_GROUP_CLASS}>
                 <p className={GROUP_LABEL_CLASS}>PRODUCT INTERACTION</p>
                 <div className="flex flex-wrap gap-2">
                   {(
@@ -3951,21 +3832,20 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       { value: 'resting-interaction', label: 'Resting Interaction', detail: 'Product rests against hand/wrist. Passive contact.' },
                     ] as const
                   ).map(option => {
+                    const disabled =
+                      option.value === 'capsule-display' && productStore.definition.type !== 'capsules';
                     return (
                       <Chip
                         key={option.value}
                         onClick={() => {
+                          if (disabled) return;
                           productStore.setInteraction(option.value as any);
                           productStore.setHandsHolding(option.value !== 'none');
                           markSectionTouched('product-interaction');
                         }}
                         selected={productStore.interaction === (option.value as any)}
+                        disabled={disabled}
                         className="whitespace-normal"
-                        tooltip={
-                          option.value === 'capsule-display' && productStore.definition.type !== 'capsules'
-                            ? 'Capsule Display will be interpreted for the selected product type.'
-                            : undefined
-                        }
                       >
                         <span className="flex flex-col items-start text-left leading-tight">
                           <span className="font-bold">{option.label}</span>
@@ -3975,9 +3855,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     );
                   })}
                 </div>
-                {productStore.definition.type !== 'capsules' && productStore.interaction === 'capsule-display' && (
+                {productStore.definition.type !== 'capsules' && (
                   <p className="text-[11px] text-gray-500 mt-2">
-                    Capsule Display is being interpreted because Product Type is not Capsules.
+                    Capsule Display is only available when Product Type is Capsules.
                   </p>
                 )}
               </div>
