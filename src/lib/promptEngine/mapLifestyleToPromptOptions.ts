@@ -1276,22 +1276,35 @@ export function mapLifestyleToPromptOptions(
         normalizedCameraOperator = [DEFAULT_HANDHELD_OPERATOR];
     }
 
-    mapped.ugcCaptureStyleBase = normalizedCaptureBase;
-    mapped.ugcCameraOperator = normalizedCameraOperator;
-    mapped.ugcBodyPhonePosition = normalizedBodyPhone;
-    mapped.ugcMotionStability = normalizedMotion;
-    mapped.ugcFramingImperfections = normalizedFraming;
-    mapped.ugcAwkwardContext = normalizedAwkward;
+    // IMPORTANT:
+    // Only attach `ugcRealModeLayers` (and related layer fields) when Raw Domestic UGC is actually active.
+    // Otherwise other builders (e.g. camera) treat the presence of this object as UGC-real-active and degrade optics.
+    if (sceneState.ugcRealMode) {
+        mapped.ugcCaptureStyleBase = normalizedCaptureBase;
+        mapped.ugcCameraOperator = normalizedCameraOperator;
+        mapped.ugcBodyPhonePosition = normalizedBodyPhone;
+        mapped.ugcMotionStability = normalizedMotion;
+        mapped.ugcFramingImperfections = normalizedFraming;
+        mapped.ugcAwkwardContext = normalizedAwkward;
 
-    const ugcLayerSet: UGCRealModeLayerSet = {
-        captureBase: normalizedCaptureBase,
-        cameraOperator: normalizedCameraOperator,
-        bodyPhonePosition: normalizedBodyPhone,
-        motionStability: normalizedMotion,
-        framingImperfections: normalizedFraming,
-        awkwardContext: normalizedAwkward
-    };
-    mapped.ugcRealModeLayers = ugcLayerSet;
+        const ugcLayerSet: UGCRealModeLayerSet = {
+            captureBase: normalizedCaptureBase,
+            cameraOperator: normalizedCameraOperator,
+            bodyPhonePosition: normalizedBodyPhone,
+            motionStability: normalizedMotion,
+            framingImperfections: normalizedFraming,
+            awkwardContext: normalizedAwkward
+        };
+        mapped.ugcRealModeLayers = ugcLayerSet;
+    } else {
+        delete (mapped as any).ugcCaptureStyleBase;
+        delete (mapped as any).ugcCameraOperator;
+        delete (mapped as any).ugcBodyPhonePosition;
+        delete (mapped as any).ugcMotionStability;
+        delete (mapped as any).ugcFramingImperfections;
+        delete (mapped as any).ugcAwkwardContext;
+        delete (mapped as any).ugcRealModeLayers;
+    }
 
     mapped.elderlyRealismGuard = sceneState.elderlyRealismGuard;
     mapped.elderlyRealismDescriptor = sceneState.elderlyRealismDescriptor;
@@ -1347,7 +1360,22 @@ export function mapLifestyleToPromptOptions(
 
     if (!sceneState.ugcRealMode) {
         // Shot Type
-        const shotTypeSemantic = SHOT_TYPE_SEMANTIC_MAP[sceneState.shotType] || SHOT_TYPE_SEMANTIC_MAP['Medium'];
+        const isEcommerceCanvasOverlayActive = sceneState.ecommerceSidePlacementFlag === true;
+        const productProminenceKey =
+            ((sceneState as any).productProminence as 'balanced' | 'product-first' | 'model-first' | 'fifty-fifty' | undefined) ??
+            ('product-first' as const);
+
+        // In bg-replace canvas overlay, wide shots consistently shrink the product and defeat "Product First".
+        // Force tighter shot types based on the user's composition intent.
+        const effectiveShotTypeKey = isEcommerceCanvasOverlayActive
+            ? productProminenceKey === 'model-first'
+                ? 'Medium'
+                : 'Close'
+            : (sceneState.shotType || 'Medium');
+
+        const shotTypeSemantic =
+            SHOT_TYPE_SEMANTIC_MAP[effectiveShotTypeKey] ||
+            SHOT_TYPE_SEMANTIC_MAP['Medium'];
         mapped.cameraShot = shotTypeSemantic as any;
         console.log('[MAP] shotType:', sceneState.shotType, '→', shotTypeSemantic);
 

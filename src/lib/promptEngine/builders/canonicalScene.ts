@@ -501,6 +501,8 @@ export class SceneNarrativeBuilder {
             options.creationMode === 'bg-replace' && options.ecommerceSidePlacementFlag === true;
 
         if (isEcommerceCanvasOverlay) {
+            const creationModeStructural = (options as any).creationModeStructural || '';
+            const compositionModeStructural = (options as any).compositionModeStructural || '';
             const bgLine = options.bgGradient
                 ? `Background: gradient ${options.bgGradient.angle ?? 90}° from ${options.bgGradient.startColor} to ${options.bgGradient.endColor}.`
                 : options.bgColor
@@ -510,6 +512,8 @@ export class SceneNarrativeBuilder {
             return [
                 'Ecommerce canvas overlay is active.',
                 'Remove the original environment completely; no room context or location cues.',
+                creationModeStructural ? `Creation: ${creationModeStructural}.` : '',
+                compositionModeStructural ? `Composition: ${compositionModeStructural}.` : '',
                 bgLine,
                 'Lighting: neutral, even, studio-like; preserve subject realism and natural shadows without any environment storytelling.'
             ].join(' ');
