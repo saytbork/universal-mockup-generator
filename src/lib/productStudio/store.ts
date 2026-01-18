@@ -710,10 +710,10 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             const nextPhysical = getDefaultPhysical(type);
 
             const allowedMotionsByType: Record<ProductType, ProductStateMotion[]> = {
-                capsules: ['static', 'opened', 'falling', 'spilled'],
-                gummies: ['static', 'opened', 'falling', 'spilled'],
-                drops: ['static', 'opened', 'dispensed'],
-                powder: ['static', 'opened', 'pouring', 'dispensed'],
+                capsules: ['static', 'opened', 'spilled', 'dispensed', 'falling'],
+                gummies: ['static', 'opened', 'spilled', 'dispensed', 'falling'],
+                drops: ['static', 'opened', 'spilled', 'dispensed'],
+                powder: ['static', 'opened', 'spilled', 'dispensed', 'pouring'],
                 skincare: ['static'],
                 device: ['static'],
                 custom: ['static'],
@@ -1242,14 +1242,9 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
 
             const isAllowedByMotion = (motion: ProductStateMotion, candidate: ProductStudioState['interaction']) => {
                 if (motion === 'pouring' || motion === 'falling') return candidate === 'none' || candidate === 'cropped-hand';
-                if (motion === 'spilled' || motion === 'dispensed') {
-                    return (
-                        candidate === 'none' ||
-                        candidate === 'cropped-hand' ||
-                        candidate === 'resting-interaction' ||
-                        candidate === 'supported-hold'
-                    );
-                }
+                if (motion === 'spilled') return candidate === 'none' || candidate === 'cropped-hand';
+                // Interpretation-first: "Dispensed" can be shown with a stabilized hand intent.
+                if (motion === 'dispensed') return true;
                 if (motion === 'opened') {
                     return (
                         candidate === 'none' ||
@@ -1266,7 +1261,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
 
             let effectiveInteraction: ProductStudioState['interaction'] = nextInteraction;
             if (!isAllowedByMotion(nextMotion, effectiveInteraction)) {
-                if (nextMotion === 'pouring' || nextMotion === 'falling') effectiveInteraction = 'none';
+                if (nextMotion === 'pouring' || nextMotion === 'falling') effectiveInteraction = 'cropped-hand';
                 else if (nextMotion === 'opened') effectiveInteraction = 'holding';
                 else effectiveInteraction = 'none';
             }
@@ -1283,16 +1278,19 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
 
             const coerceInteractionForMotion = (candidate: ProductStudioState['interaction']) => {
                 if (nextMotion === 'pouring' || nextMotion === 'falling') {
-                    return candidate === 'cropped-hand' ? 'cropped-hand' : 'none';
+                    if (candidate === 'none' || candidate === 'cropped-hand') return candidate;
+                    return 'cropped-hand';
                 }
-                if (nextMotion === 'spilled' || nextMotion === 'dispensed') {
+                if (nextMotion === 'spilled') {
                     const allowed: ProductStudioState['interaction'][] = [
                         'none',
                         'cropped-hand',
-                        'resting-interaction',
-                        'supported-hold',
                     ];
                     return allowed.includes(candidate) ? candidate : 'none';
+                }
+                if (nextMotion === 'dispensed') {
+                    // Dispensed is interpretation-first: allow stabilized hand intents.
+                    return candidate;
                 }
                 if (nextMotion === 'opened') {
                     const allowed: ProductStudioState['interaction'][] = [

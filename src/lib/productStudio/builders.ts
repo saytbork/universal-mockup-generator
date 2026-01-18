@@ -533,11 +533,24 @@ function buildStateMotion(state: ProductStudioState): string {
     const { physical } = state.definition;
 
     if (motion === 'static') {
-        return 'PRODUCT_STATE_MOTION: Static. Product is stationary. No motion.';
+        return [
+            'PRODUCT_STATE_MOTION: Static.',
+            'Product fully assembled.',
+            'Cap present and attached.',
+            'Contents fully contained.',
+            'Product resting on a surface with grounded shadows.',
+            'No motion.',
+        ].join(' ');
     }
 
     if (motion === 'opened') {
-        return 'PRODUCT_STATE_MOTION: Opened. Container is open with cap/lid removed. No motion.';
+        return [
+            'PRODUCT_STATE_MOTION: Opened.',
+            'Container is open and resting on a surface.',
+            'Cap removed and NOT visible anywhere in frame.',
+            'Contents remain contained (no mid-air, no spilling).',
+            'No motion.',
+        ].join(' ');
     }
 
     // Motion physics (applies to any non-static motion)
@@ -548,28 +561,62 @@ function buildStateMotion(state: ProductStudioState): string {
         'natural mid-action freeze (no symmetry)',
     ].join(', ');
 
+    const capRule = 'Cap removed and NOT visible anywhere in frame.';
+
     if (motion === 'falling') {
         if (physical.kind === 'capsules') {
             const v = physical.v;
             const colorDesc = getColorDescription(v.capsuleContentColor);
-            return `PRODUCT_STATE_MOTION: Falling. Container is open and tilted. ${v.capsuleStyle} capsules with ${colorDesc} contents actively falling in mid-air. ${physics}.`;
+            return [
+                'PRODUCT_STATE_MOTION: Falling.',
+                'Container is open and tilted mouth-down.',
+                capRule,
+                `${v.capsuleStyle} capsules with ${colorDesc} contents actively falling in mid-air.`,
+                `${physics}.`,
+                'Shadows must anchor container and falling contents.',
+            ].join(' ');
         }
         if (physical.kind === 'gummies') {
             const v = physical.v;
             const colorDesc = getColorDescription(v.gummyColor);
-            return `PRODUCT_STATE_MOTION: Falling. Container is open and tilted. ${v.shape}-shaped gummies in ${colorDesc} color actively falling in mid-air. ${physics}.`;
+            return [
+                'PRODUCT_STATE_MOTION: Falling.',
+                'Container is open and tilted mouth-down.',
+                capRule,
+                `${v.shape}-shaped gummies in ${colorDesc} color actively falling in mid-air.`,
+                `${physics}.`,
+                'Shadows must anchor container and falling contents.',
+            ].join(' ');
         }
         // Fallback wording (validator should prevent this case)
-        return `PRODUCT_STATE_MOTION: Falling. Contents actively falling in mid-air. ${physics}.`;
+        return [
+            'PRODUCT_STATE_MOTION: Falling.',
+            'Container is open and tilted mouth-down.',
+            capRule,
+            `Contents actively falling in mid-air. ${physics}.`,
+        ].join(' ');
     }
 
     if (motion === 'pouring') {
         if (physical.kind === 'powder') {
             const v = physical.v;
             const colorDesc = getColorDescription(v.powderColor);
-            return `PRODUCT_STATE_MOTION: Pouring. Container is open and tilted, releasing a controlled stream of ${v.texture} powder in ${colorDesc} tone downward. No smoke or mist effect. ${physics}.`;
+            return [
+                'PRODUCT_STATE_MOTION: Pouring.',
+                'Container is open and tilted.',
+                capRule,
+                `Releasing a controlled stream of ${v.texture} powder in ${colorDesc} tone downward.`,
+                'Powder falls naturally; no smoke or mist effect.',
+                `${physics}.`,
+                'Surface exists below with grounded shadows.',
+            ].join(' ');
         }
-        return `PRODUCT_STATE_MOTION: Pouring. Contents releasing downward due to gravity. ${physics}.`;
+        return [
+            'PRODUCT_STATE_MOTION: Pouring.',
+            'Container is open and tilted.',
+            capRule,
+            `Contents releasing downward due to gravity. ${physics}.`,
+        ].join(' ');
     }
 
     if (motion === 'dispensed') {
@@ -578,18 +625,43 @@ function buildStateMotion(state: ProductStudioState): string {
             const liquidColorDesc = v.liquidColorMode === 'custom'
                 ? getColorDescription(v.liquidCustomColor)
                 : v.liquidColorMode;
-            return `PRODUCT_STATE_MOTION: Dispensed. Bottle is open; a single ${liquidColorDesc} droplet releases from the dropper tip. Realistic surface tension. ${physics}.`;
+            return [
+                'PRODUCT_STATE_MOTION: Dispensed.',
+                'Container open, stabilized angle (controlled dispensing).',
+                capRule,
+                `A single ${liquidColorDesc} droplet releases from the dropper tip.`,
+                'Realistic surface tension; no streams, no splashes.',
+                `${physics}.`,
+            ].join(' ');
         }
         if (physical.kind === 'powder') {
             const v = physical.v;
             const colorDesc = getColorDescription(v.powderColor);
-            return `PRODUCT_STATE_MOTION: Dispensed. A controlled amount of ${v.texture} powder in ${colorDesc} tone is dispensed onto the surface. Grounded shadows and realistic weight. ${physics}.`;
+            return [
+                'PRODUCT_STATE_MOTION: Dispensed.',
+                'Container open, stabilized angle (controlled dispensing).',
+                capRule,
+                `A controlled amount of ${v.texture} powder in ${colorDesc} tone is dispensed onto the surface.`,
+                'Powder is at rest on the surface (post-dispense).',
+                `Grounded shadows and realistic weight. ${physics}.`,
+            ].join(' ');
         }
-        return `PRODUCT_STATE_MOTION: Dispensed. A controlled amount of contents is released. ${physics}.`;
+        return [
+            'PRODUCT_STATE_MOTION: Dispensed.',
+            'Container open, stabilized angle (controlled dispensing).',
+            capRule,
+            `A controlled amount of contents is released in an ordered cluster. ${physics}.`,
+        ].join(' ');
     }
 
     if (motion === 'spilled') {
-        return `PRODUCT_STATE_MOTION: Spilled. Contents spilled on the surface with irregular distribution. Grounded shadows, realistic weight. ${physics}.`;
+        return [
+            'PRODUCT_STATE_MOTION: Spilled.',
+            'Post-spill moment: contents are at rest on the surface (no mid-air items).',
+            'Container is open and resting on a surface (may be tipped or fallen).',
+            capRule,
+            `Contents spilled with irregular distribution. Grounded shadows, realistic weight. ${physics}.`,
+        ].join(' ');
     }
 
     return '';
@@ -1150,6 +1222,7 @@ function assembleBundlePrompt(state: ProductStudioState): string {
 function buildNegativePrompt(state: ProductStudioState): string {
     const interaction = String(state.interaction || 'none');
     const allowHands = interaction !== 'none' || state.handsHolding === true;
+    const motion = String(state.stateMotion || 'static');
 
     const humanNegativesBase = ['person', 'people', 'head', 'face', 'body', 'torso', 'full figure', 'model'];
     const handsNegatives = (() => {
@@ -1171,6 +1244,10 @@ function buildNegativePrompt(state: ProductStudioState): string {
         ...humanNegativesBase,
         ...handsNegatives,
         ...interactionSpecific,
+        // Container / cap integrity (interpretation-first)
+        ...(motion === 'static'
+            ? ['missing cap', 'open container', 'cap removed']
+            : ['cap visible', 'cap in frame', 'cap on surface', 'attached cap', 'sealed container releasing contents']),
         // Interaction safety / realism
         'eating', 'drinking', 'swallowing', 'ingestion',
         'hands pouring product',
@@ -1260,6 +1337,54 @@ function normalizeProductStudioStateForPrompt(state: ProductStudioState): Produc
     if ((next as any).interaction === 'applying') {
         (next as any).interaction = 'applying-opening';
     }
+
+    // Interpretation-first coercion (never refuse on conflicts; resolve to a physically plausible snapshot).
+    const type = next.definition.type;
+    const allowedMotionsByType: Record<string, ProductStudioState['stateMotion'][]> = {
+        capsules: ['static', 'opened', 'spilled', 'dispensed', 'falling'],
+        gummies: ['static', 'opened', 'spilled', 'dispensed', 'falling'],
+        drops: ['static', 'opened', 'spilled', 'dispensed'],
+        powder: ['static', 'opened', 'spilled', 'dispensed', 'pouring'],
+    };
+    const allowed = allowedMotionsByType[type] ?? ['static'];
+    if (!allowed.includes(next.stateMotion)) {
+        // Nearest intent mapping (do not block):
+        const fallback: Record<string, ProductStudioState['stateMotion']> = {
+            pouring: type === 'powder' ? 'pouring' : 'falling',
+            falling: type === 'drops' ? 'dispensed' : 'falling',
+            dispensed: allowed.includes('dispensed') ? 'dispensed' : 'falling',
+            spilled: allowed.includes('spilled') ? 'spilled' : 'dispensed',
+            opened: allowed.includes('opened') ? 'opened' : 'static',
+            static: 'static',
+        };
+        next.stateMotion = fallback[String(next.stateMotion)] ?? 'static';
+    }
+
+    // Container state rules:
+    // - Static => cap attached
+    // - Non-static => cap removed and NOT visible (handled via positive + negative prompts)
+
+    // Interaction reinterpretation for motion (do not refuse):
+    const motion = String(next.stateMotion || 'static');
+    const interaction = String(next.interaction || 'none');
+    if (motion === 'falling') {
+        if (!(interaction === 'none' || interaction === 'cropped-hand')) {
+            next.interaction = 'cropped-hand';
+        }
+    } else if (motion === 'spilled') {
+        if (!(interaction === 'none' || interaction === 'cropped-hand')) {
+            next.interaction = 'none';
+        }
+    }
+
+    // Force rules (still deterministic):
+    if (next.interaction === 'capsule-display') {
+        next.stateMotion = 'static';
+    }
+    if (next.interaction === 'applying-opening') {
+        next.stateMotion = 'opened';
+    }
+    next.handsHolding = next.interaction !== 'none';
 
     // Photo Mode conflict rules:
     // "Clear" is absolute: pure white studio, no set dressing or creative styling blocks.

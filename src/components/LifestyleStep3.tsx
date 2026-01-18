@@ -3126,13 +3126,25 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     const allowedByType = (() => {
                       switch (type) {
                         case 'capsules':
-                          return option.value === 'static' || option.value === 'opened' || option.value === 'falling' || option.value === 'spilled';
+                          return (
+                            option.value === 'static' ||
+                            option.value === 'opened' ||
+                            option.value === 'spilled' ||
+                            option.value === 'dispensed' ||
+                            option.value === 'falling'
+                          );
                         case 'gummies':
-                          return option.value === 'static' || option.value === 'opened' || option.value === 'falling' || option.value === 'spilled';
+                          return (
+                            option.value === 'static' ||
+                            option.value === 'opened' ||
+                            option.value === 'spilled' ||
+                            option.value === 'dispensed' ||
+                            option.value === 'falling'
+                          );
                         case 'drops':
-                          return option.value === 'static' || option.value === 'opened' || option.value === 'dispensed';
+                          return option.value === 'static' || option.value === 'opened' || option.value === 'spilled' || option.value === 'dispensed';
                         case 'powder':
-                          return option.value === 'static' || option.value === 'opened' || option.value === 'pouring' || option.value === 'dispensed';
+                          return option.value === 'static' || option.value === 'opened' || option.value === 'spilled' || option.value === 'pouring' || option.value === 'dispensed';
                         default:
                           return option.value === 'static';
                       }
@@ -6775,6 +6787,23 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             <ul className="list-disc list-inside text-sm text-red-600 space-y-1">
               {validationResult.errors.map((err, i) => (
                 <li key={i}>{err}</li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+
+      {/* VALIDATION WARNINGS (Soft) */}
+      {
+        isProductMode && validationResult.valid && validationResult.warnings.length > 0 && (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 space-y-2 mt-4">
+            <div className="flex items-center gap-2 text-amber-800 font-semibold text-sm uppercase tracking-wide">
+              <AlertTriangle className="w-5 h-5" />
+              <span>Interpretation Notes</span>
+            </div>
+            <ul className="list-disc list-inside text-sm text-amber-800 space-y-1">
+              {validationResult.warnings.map((warn, i) => (
+                <li key={i}>{warn}</li>
               ))}
             </ul>
           </div>
