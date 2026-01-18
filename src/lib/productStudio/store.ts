@@ -383,6 +383,10 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     packagingMode: 'without-box',
     physicalScaleLabel: 'medium-tabletop',
     stateMotion: 'static',
+    groupMode: 'solo',
+    groupComposition: 'mixed',
+    eyeDirectionScope: 'primary_led',
+    eyeDirectionValue: 'looking-at-product',
 
     // 3️⃣ BRAND & PALETTE (SINGLE COLOR AUTHORITY)
     palette: DEFAULT_PALETTE,
@@ -586,6 +590,10 @@ type ProductStudioActions = {
     setIngredientLayout: (layout: ProductStudioState['ingredientLayout']) => void;
     setInteraction: (interaction: ProductStudioState['interaction']) => void;
     setStateMotion: (motion: ProductStateMotion) => void;
+    setGroupMode: (mode: ProductStudioState['groupMode']) => void;
+    setGroupComposition: (composition: ProductStudioState['groupComposition']) => void;
+    setEyeDirectionScope: (scope: ProductStudioState['eyeDirectionScope']) => void;
+    setEyeDirectionValue: (value: ProductStudioState['eyeDirectionValue']) => void;
     setProMode: (enabled: boolean) => void;
     setLens: (lens: string) => void;
     setLightingRig: (rig: string) => void;
@@ -721,11 +729,9 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             };
 
             const allowed = allowedMotionsByType[type] ?? ['static'];
-            const nextMotion = allowed.includes(state.stateMotion) ? state.stateMotion : 'static';
-
-            // If product type changes away from capsules, Capsule Display is no longer valid.
-            const nextInteraction =
-                type !== 'capsules' && state.interaction === 'capsule-display' ? 'none' : state.interaction;
+            // Keep user selections; interpretation layer will resolve any mismatch.
+            const nextMotion = allowed.includes(state.stateMotion) ? state.stateMotion : state.stateMotion;
+            const nextInteraction = state.interaction;
 
             return {
                 definition: {
@@ -1230,100 +1236,15 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setIngredientLayout: (layout) =>
         set({ ingredientLayout: (layout ?? 'auto') as ProductStudioState['ingredientLayout'] }),
     setInteraction: (interaction) =>
-        set((state) => {
-            const nextInteraction = interaction;
-
-            // Force rules (engine-level):
-            // - Capsule Display => motion must be Static
-            // - Applying / Opening => motion must be Opened
-            let nextMotion: ProductStateMotion = state.stateMotion;
-            if (nextInteraction === 'capsule-display') nextMotion = 'static';
-            if (nextInteraction === 'applying-opening') nextMotion = 'opened';
-
-            const isAllowedByMotion = (motion: ProductStateMotion, candidate: ProductStudioState['interaction']) => {
-                if (motion === 'pouring' || motion === 'falling') return candidate === 'none' || candidate === 'cropped-hand';
-                if (motion === 'spilled') return candidate === 'none' || candidate === 'cropped-hand';
-                // Interpretation-first: "Dispensed" can be shown with a stabilized hand intent.
-                if (motion === 'dispensed') return true;
-                if (motion === 'opened') {
-                    return (
-                        candidate === 'none' ||
-                        candidate === 'cropped-hand' ||
-                        candidate === 'supported-hold' ||
-                        candidate === 'holding' ||
-                        candidate === 'two-hand-hold' ||
-                        candidate === 'applying-opening'
-                    );
-                }
-                // static
-                return candidate !== 'applying-opening';
-            };
-
-            let effectiveInteraction: ProductStudioState['interaction'] = nextInteraction;
-            if (!isAllowedByMotion(nextMotion, effectiveInteraction)) {
-                if (nextMotion === 'pouring' || nextMotion === 'falling') effectiveInteraction = 'cropped-hand';
-                else if (nextMotion === 'opened') effectiveInteraction = 'holding';
-                else effectiveInteraction = 'none';
-            }
-
-            return {
-                interaction: effectiveInteraction,
-                handsHolding: effectiveInteraction !== 'none',
-                stateMotion: nextMotion,
-            };
-        }),
-    setStateMotion: (motion) =>
-        set((state) => {
-            const nextMotion = motion;
-
-            const coerceInteractionForMotion = (candidate: ProductStudioState['interaction']) => {
-                if (nextMotion === 'pouring' || nextMotion === 'falling') {
-                    if (candidate === 'none' || candidate === 'cropped-hand') return candidate;
-                    return 'cropped-hand';
-                }
-                if (nextMotion === 'spilled') {
-                    const allowed: ProductStudioState['interaction'][] = [
-                        'none',
-                        'cropped-hand',
-                    ];
-                    return allowed.includes(candidate) ? candidate : 'none';
-                }
-                if (nextMotion === 'dispensed') {
-                    // Dispensed is interpretation-first: allow stabilized hand intents.
-                    return candidate;
-                }
-                if (nextMotion === 'opened') {
-                    const allowed: ProductStudioState['interaction'][] = [
-                        'none',
-                        'cropped-hand',
-                        'supported-hold',
-                        'holding',
-                        'two-hand-hold',
-                        'applying-opening',
-                    ];
-                    return allowed.includes(candidate) ? candidate : 'none';
-                }
-                // static
-                if (candidate === 'applying-opening') return 'none';
-                return candidate;
-            };
-
-            // Force rules:
-            // - Capsule Display => motion must be Static
-            // - Applying / Opening => motion must be Opened
-            let effectiveMotion = nextMotion;
-            const currentInteraction = state.interaction;
-            if (currentInteraction === 'capsule-display') effectiveMotion = 'static';
-            if (currentInteraction === 'applying-opening') effectiveMotion = 'opened';
-
-            const effectiveInteraction = coerceInteractionForMotion(currentInteraction);
-
-            return {
-                stateMotion: effectiveMotion,
-                interaction: effectiveInteraction,
-                handsHolding: effectiveInteraction !== 'none',
-            };
-        }),
+        set(() => ({
+            interaction,
+            handsHolding: interaction !== 'none',
+        })),
+    setStateMotion: (motion) => set({ stateMotion: motion }),
+    setGroupMode: (mode) => set({ groupMode: mode }),
+    setGroupComposition: (composition) => set({ groupComposition: composition }),
+    setEyeDirectionScope: (scope) => set({ eyeDirectionScope: scope }),
+    setEyeDirectionValue: (value) => set({ eyeDirectionValue: value }),
     setProMode: (enabled) => set({ proMode: enabled }),
     setLens: (lens) => set({ lens }),
     setLightingRig: (rig) => set({ lightingRig: rig }),

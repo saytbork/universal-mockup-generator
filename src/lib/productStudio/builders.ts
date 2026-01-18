@@ -667,6 +667,79 @@ function buildStateMotion(state: ProductStudioState): string {
     return '';
 }
 
+// ============================================================================
+// GROUP (human entities as scale/interaction anchors only)
+// ============================================================================
+
+function buildGroup(state: ProductStudioState): string {
+    const mode = String((state as any).groupMode || 'solo');
+    const composition = String((state as any).groupComposition || 'mixed');
+    const scope = String((state as any).eyeDirectionScope || 'primary_led');
+    const eye = String((state as any).eyeDirectionValue || 'looking-at-product');
+    const interaction = String(state.interaction || 'none');
+
+    const countText =
+        mode === 'solo'
+            ? '1 individual'
+            : mode === 'couple'
+                ? '2 individuals'
+                : '3–5 individuals';
+
+    const compositionText =
+        composition === 'same_sex'
+            ? 'same_sex'
+            : composition === 'different_sex'
+                ? 'different_sex'
+                : 'mixed';
+
+    const eyeValueText =
+        eye === 'looking-at-camera'
+            ? 'looking at camera'
+            : eye === 'looking-away-naturally'
+                ? 'looking away naturally'
+                : 'looking at product';
+
+    const eyeScopeText =
+        scope === 'shared'
+            ? 'shared'
+            : scope === 'natural_mix'
+                ? 'natural_mix'
+                : 'primary_led';
+
+    const eyeRules = (() => {
+        if (eyeScopeText === 'shared') {
+            return `EYE_DIRECTION: shared; all individuals use "${eyeValueText}".`;
+        }
+        if (eyeScopeText === 'natural_mix') {
+            return `EYE_DIRECTION: natural_mix; each individual varies naturally around "${eyeValueText}".`;
+        }
+        return `EYE_DIRECTION: primary_led; primary individual uses "${eyeValueText}", others vary naturally.`;
+    })();
+
+    const derivationRules = (() => {
+        if (mode === 'solo') return 'No derived individuals.';
+        if (mode === 'couple') {
+            return 'DERIVATION: Secondary individual must be visually distinct from primary (face OR hair OR body proportions).';
+        }
+        return 'DERIVATION: 3–5 distinct individuals; no two share identical face, hair, or expression; age variance within ±10 years unless locked.';
+    })();
+
+    // Product Interaction precedence: if interaction is "none", keep individuals out of frame.
+    const visibilityRule =
+        interaction === 'none'
+            ? 'VISIBILITY: No individuals visible in frame (group remains conceptual; no narrative).'
+            : 'VISIBILITY: Individuals are allowed only as scale reference or interaction anchors. They must never dominate the frame.';
+
+    return [
+        `GROUP: ${mode} (${countText}).`,
+        `GROUP_COMPOSITION: ${compositionText}.`,
+        eyeRules,
+        derivationRules,
+        visibilityRule,
+        'CONTEXT: product-only imagery; no real-world scene framing, no narrative, no storytelling.',
+    ].join(' ');
+}
+
 function buildInteraction(state: ProductStudioState): string {
     const allowHands = state.interaction !== 'none' || state.handsHolding === true;
     if (!allowHands) return '';
@@ -1023,10 +1096,11 @@ function buildNegativeConstraints(state: ProductStudioState): string {
 
 function buildQualityBar(state: ProductStudioState): string {
     const allowHands = state.interaction !== 'none' || state.handsHolding === true;
+    const interaction = String(state.interaction || 'none');
     if (allowHands) {
-        const interaction = String(state.interaction || '').trim();
+        const interactionTrimmed = String(state.interaction || '').trim();
         const handsDescriptor = (() => {
-            switch (interaction) {
+            switch (interactionTrimmed) {
                 case 'two-hand-hold':
                     return 'product held with two hands only (no head, no torso), tack-sharp label';
                 case 'framed-presentation':
@@ -1041,9 +1115,13 @@ function buildQualityBar(state: ProductStudioState): string {
                     return 'product with a natural hand interaction, tack-sharp label';
             }
         })();
-        return `real ecommerce hero image, premium commercial product photography, ultra clean, high resolution, commercial-ready, no ambiguity, art-directed, brand-safe, ${handsDescriptor}`;
+        return `real ecommerce hero image, premium commercial product photography, ultra clean, high resolution, commercial-ready, no ambiguity, art-directed, brand-safe, ${handsDescriptor}, product remains dominant in frame`;
     }
-    return 'real ecommerce hero image, premium commercial product photography, ultra clean, high resolution, commercial-ready, no ambiguity, art-directed, brand-safe, inanimate objects only, tack-sharp label';
+    // Even with group semantics present, "None" interaction means: no humans visible.
+    if (interaction === 'none') {
+        return 'real ecommerce hero image, premium commercial product photography, ultra clean, high resolution, commercial-ready, no ambiguity, art-directed, brand-safe, no humans visible, tack-sharp label';
+    }
+    return 'real ecommerce hero image, premium commercial product photography, ultra clean, high resolution, commercial-ready, no ambiguity, art-directed, brand-safe, tack-sharp label';
 }
 
 function buildIntegrityConstraints(): string {
@@ -1083,6 +1161,9 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
 
     // 2. Product State & Motion (Product-only; no human implied)
     segments.push(buildStateMotion(state));
+
+    // 2b. Group semantics (product-only; human entities are scale/interaction anchors)
+    segments.push(buildGroup(state));
 
     // 3. Environment + Micro Place (When allowed)
     if (!state.blankSpaceEnabled) {
@@ -1165,6 +1246,9 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     // 2. Product State & Motion (Product-only; no human implied)
     segments.push(buildStateMotion(state));
 
+    // 2b. Group semantics (product-only; human entities are scale/interaction anchors)
+    segments.push(buildGroup(state));
+
     // 9. Bundle Logic (If Applicable) - Placed early to define subject
     segments.push(buildBundleComposition(state));
 
@@ -1224,9 +1308,12 @@ function buildNegativePrompt(state: ProductStudioState): string {
     const allowHands = interaction !== 'none' || state.handsHolding === true;
     const motion = String(state.stateMotion || 'static');
 
-    const humanNegativesBase = ['person', 'people', 'head', 'face', 'body', 'torso', 'full figure', 'model'];
+    const wantsNoHumans = interaction === 'none';
+    const humanNegativesBase = wantsNoHumans
+        ? ['person', 'people', 'head', 'face', 'body', 'torso', 'full figure', 'model']
+        : [];
     const handsNegatives = (() => {
-        if (!allowHands) return ['hand', 'hands', 'fingers'];
+        if (wantsNoHumans) return ['hand', 'hands', 'fingers'];
         if (interaction === 'cropped-hand') return ['full arm', 'full person'];
         // Most interactions are hand-only; block other human framing.
         return ['arms', 'shoulders', 'neck'];
@@ -1244,6 +1331,9 @@ function buildNegativePrompt(state: ProductStudioState): string {
         ...humanNegativesBase,
         ...handsNegatives,
         ...interactionSpecific,
+        // Scope guard: forbid lifestyle/ugc/ritual language and framing
+        'lifestyle', 'ugc', 'ritual', 'storytelling', 'cinematic scene',
+        'kitchen', 'bathroom', 'bedroom', 'living room', 'outdoor',
         // Container / cap integrity (interpretation-first)
         ...(motion === 'static'
             ? ['missing cap', 'open container', 'cap removed']
