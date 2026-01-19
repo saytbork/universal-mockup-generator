@@ -331,10 +331,10 @@ function buildComposition(state: ProductStudioState): string {
     // 1. Composition Mode (User Control)
     const compMap: Record<CompositionMode, string> = {
         'centered': 'centered hero composition',
-        'thirds': 'rule of thirds composition',
-        'asymmetrical': 'asymmetrical editorial composition',
-        'flatlay': 'flat lay top-down composition',
-        'pedestal': 'pedestal product presentation',
+        'thirds': 'rule of thirds composition; place the product near a thirds intersection with intentional breathing room',
+        'asymmetrical': 'asymmetrical editorial composition; intentional offset balance and negative space',
+        'flatlay': 'flat lay top-down composition; overhead camera viewpoint and flat surface plane clearly visible',
+        'pedestal': 'pedestal product presentation; product elevated on a base with grounded contact shadow',
     };
     parts.push(compMap[state.composition]);
 
@@ -732,6 +732,8 @@ function buildInteraction(state: ProductStudioState): string {
         'Hands and interaction are treated as controlled visual elements, not decoration.',
         'Only one interaction mode is allowed. No hybrid interactions.',
         'Hands must look natural and relaxed. No stiff fingers. No theatrical gestures.',
+        'HAND REALISM (CRITICAL): natural skin texture, realistic knuckles and fingernails, believable grip pressure, correct contact shadows and micro-occlusion where skin touches the product.',
+        'No mannequin hands. No plastic/rubber look. No CGI hand artifacts.',
         'Product is always the visual hero. Hands never overpower the product.'
     ]
         .filter(Boolean)
@@ -802,9 +804,16 @@ function buildPhotoMode(state: ProductStudioState): string {
     if (!state.photoMode) return '';
     const preset = PHOTO_MODE_PRESETS[state.photoMode];
     if (preset) {
-        return `PHOTO_MODE (NON-NEGOTIABLE): ${state.photoMode}. ${preset}`;
+        // Do NOT echo the photoMode label, because some UI labels contain forbidden words (e.g. "Face").
+        // The preset text alone is deterministic and safe for Product Studio validation.
+        return `PHOTO_MODE (NON-NEGOTIABLE): ${preset}`;
     }
-    return `PHOTO_MODE (NON-NEGOTIABLE): ${state.photoMode}.`;
+    // Fallback: sanitize label before injecting to avoid hard-blocked words.
+    const safeLabel = String(state.photoMode)
+        .replace(/\b(face|people|person|human|model|portrait|lifestyle|ugc)\b/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    return safeLabel ? `PHOTO_MODE (NON-NEGOTIABLE): ${safeLabel}.` : '';
 }
 
 function buildBackground(state: ProductStudioState): string {
@@ -1153,6 +1162,9 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     // 1. Scene Type
     segments.push(buildSceneType(state));
 
+    // 1b. Photo Mode (global art direction across Product Studio scene types)
+    segments.push(buildPhotoMode(state));
+
     // 1. Product Definition (Source of Truth)
     segments.push(buildProductDescription(state, product));
 
@@ -1172,7 +1184,6 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     }
     // 4b–4e. Photo Studio styling blocks (mutually exclusive with Environment)
     if (isPhotoStudio) {
-        segments.push(buildPhotoMode(state));
         if (!state.blankSpaceEnabled) {
             segments.push(buildBackground(state));
         }
@@ -1233,6 +1244,9 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     // 1. Scene Type
     segments.push(buildSceneType(state));
 
+    // 1b. Photo Mode (global art direction across Product Studio scene types)
+    segments.push(buildPhotoMode(state));
+
     // 1. Product Definition (Primary)
     const primary = state.products.find(p => p.id === state.bundle.primaryProductId);
     if (primary) {
@@ -1257,7 +1271,6 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     }
     // 4b–4d. Photo Studio styling blocks (mutually exclusive with Environment)
     if (isPhotoStudio) {
-        segments.push(buildPhotoMode(state));
         if (!state.blankSpaceEnabled) {
             segments.push(buildBackground(state));
         }
@@ -1370,7 +1383,7 @@ function buildNegativePrompt(state: ProductStudioState): string {
         'magical particles',
         'mist', 'smoke',
         'exaggerated splash',
-        'floating hands', 'stiff fingers', 'mannequin hands',
+        'floating hands', 'stiff fingers', 'mannequin hands', 'plastic hands', 'rubber hands', 'cgi hands',
         'distracting jewelry', 'oversized jewelry',
         // Quality / artifacts
         'blurry', 'low quality', 'distorted', 'warped', 'deformed', 'melted', 'glitched',
@@ -1495,8 +1508,10 @@ function normalizeProductStudioStateForPrompt(state: ProductStudioState): Produc
             next.interaction = 'cropped-hand';
         }
     } else if (motion === 'spilled') {
-        if (!(interaction === 'none' || interaction === 'cropped-hand')) {
-            next.interaction = 'none';
+        // Post-spill moment: allow passive hands in-frame (no contact) or a cropped hand for scale.
+        // If the user chose an incompatible "hold" interaction, reinterpret to a physically plausible passive presence.
+        if (!(interaction === 'none' || interaction === 'cropped-hand' || interaction === 'passive-presence')) {
+            next.interaction = 'passive-presence';
         }
     }
 

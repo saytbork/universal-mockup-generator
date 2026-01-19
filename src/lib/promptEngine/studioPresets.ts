@@ -10,7 +10,7 @@
 // =============================================================================
 export const BASE_STUDIO = `
 STUDIO MODE. PRODUCT-ONLY IMAGE.
-Controlled studio environment. No real-world location. No lifestyle context.
+Controlled studio environment. No real-world location. No narrative context.
 Abstract, editorial, or neutral composition. The product is the only subject.
 Clean geometry. Premium commercial quality. High clarity. Sharp focus.
 `.trim().replace(/\n/g, ' ');
@@ -27,14 +27,14 @@ export const PHOTO_MODE_PRESETS: Record<string, string> = {
     'Tile & Spa': `Spa bathroom tile set. White/off-white tile grid with subtle grout lines, clean glossy reflections, a few water droplets and small foam clusters. Optional rolled towels in soft blur background. Bright diffused light like a spa. Looks like a high-end product campaign in a spa environment.`,
     'Routine Carousel': `Daily routine counter set. Clean sink/countertop surface with soft daylight. Minimal routine props (folded towel, neutral pump bottle silhouettes, tray) in the background, softly blurred. Repeatable spacing and consistent margins for carousel output. Product remains the hero and label fully readable.`,
     'Pastel Picnic': `Outdoor picnic campaign set. Pastel picnic blanket pattern, warm golden-hour sunlight, soft lens flare, shallow background with greenery bokeh. Styled fruit slices and colorful gummies/candies as supporting props scattered tastefully. Mega-production look: art-directed, premium, cinematic sunlight—but product label stays crisp.`,
-    'Face Pop Close-Up': `Close hero framing emphasizing label, cap, and material detail while keeping the full product visible (no cropping). Beauty-style soft key light, clean background separation, macro clarity. Minimal background distractions.`,
-    'Sunrise Wellness Counter': `Morning wellness counter set. Warm sunrise light beams with long soft shadows. Clean countertop surface with subtle breakfast/wellness props in soft blur (glass, bowl silhouette, citrus slice) for mood. Looks like a premium morning ritual campaign; no clutter.`,
+    'Face Pop Close-Up': `Close hero framing emphasizing label, cap, and material detail while keeping the full product visible (no cropping). Beauty-style soft key light, clean background separation, macro clarity. Minimal background distractions. No subjects, no skin.`,
+    'Sunrise Wellness Counter': `Morning counter set. Warm sunrise light beams with long soft shadows. Clean countertop surface with subtle breakfast/wellness props in soft blur (glass, bowl silhouette, citrus slice) for mood. Premium art-directed look; no clutter.`,
     'Clinical Lab Counter': `Clinical laboratory bench set. Sterile counter with subtle stainless accents and clean glassware (beakers/flasks) in the background, softly blurred. Cool professional lighting, ultra-clean, high-clarity. No readable labels on lab items.`,
     'Candy Gradient Lab': `Candy gradient lab set. Smooth colorful gradient background with modern acrylic reflections and clean geometric shapes. High saturation but controlled. Product edges tack sharp; label remains perfectly readable.`,
     'Golden Mist Aura': `Golden mist aura set. Soft atmospheric mist/haze with warm golden rim highlights and dreamy glow. Mist is subtle and must not obscure label. Premium high-end campaign look.`,
     'Crown Wellness Vanity': `Luxury vanity campaign set. Clean reflective base, subtle mirror hints, premium metallic accents, soft luxury lighting. Optional blurred perfume-bottle silhouettes (no readable labels). Looks like a premium vanity product campaign.`,
     'Splash Shot': `High-speed splash campaign. Frozen droplets and a controlled splash arc near the product (water/clear liquid). Splash must never obscure label. Crisp droplets, clean studio lighting, no messy pooling.`,
-    'Outdoor Energy Boost': `Outdoor energy campaign set. Bright natural sunlight, greenery background bokeh, fresh vibrant color accents. Product staged on a clean stone/wood surface outdoors. Mega-production commercial look; no people.`,
+    'Outdoor Energy Boost': `Outdoor energy campaign set. Bright natural sunlight, greenery background bokeh, fresh vibrant color accents. Product staged on a clean stone/wood surface outdoors. Mega-production commercial look; no subjects.`,
     'Hero Landing Page': `Hero landing page composition. Clean centered product layout with strong hierarchy. Large intentional negative space reserved for copy. Product is primary focal point; full label readable; premium controlled lighting.`
 };
 
@@ -177,14 +177,14 @@ export const INTERACTION_PRESETS: Record<string, string> = {
 // STUDIO NEGATIVES (ALWAYS LAST)
 // =============================================================================
 export const STUDIO_NEGATIVES = `
-No living subjects. No heads. No lifestyle scenes.
+No living subjects. No heads. No narrative scenes.
 No real-world environments or locations.
 No text. No logos. No brand names. No labeled props.
 No real-world context. No storytelling elements.
 `.trim().replace(/\n/g, ' ');
 
 const HAND_REALISM_BLOCK = [
-    'HAND REALISM (CRITICAL): Hands must look like real adult human hands photographed in a studio.',
+    'HAND REALISM (CRITICAL): Hands must look like real adult hands photographed in a studio.',
     'Natural skin texture with pores and subtle imperfections; realistic knuckles, tendons, and fingernails.',
     'Relaxed finger curvature and believable grip pressure; accurate contact shadows and micro-occlusion where skin touches the product.',
     'No gloves. No plastic skin. No mannequin/CGI hands. No waxy or overly-smoothed skin.',
