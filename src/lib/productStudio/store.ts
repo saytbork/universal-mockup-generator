@@ -5,6 +5,7 @@
 
 import { create } from 'zustand';
 import { extractDominantColors } from './colorExtractor';
+import { applyCanonicalPhysicalForMotion } from './motionCoherence';
 import type {
     ProductStudioState,
     ProductAsset,
@@ -1270,6 +1271,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 interaction: effectiveInteraction,
                 handsHolding: effectiveInteraction !== 'none',
                 stateMotion: nextMotion,
+                definition: applyCanonicalPhysicalForMotion(state.definition, nextMotion),
             };
         }),
     setStateMotion: (motion) =>
@@ -1322,6 +1324,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 stateMotion: effectiveMotion,
                 interaction: effectiveInteraction,
                 handsHolding: effectiveInteraction !== 'none',
+                definition: applyCanonicalPhysicalForMotion(state.definition, effectiveMotion),
             };
         }),
     setProMode: (enabled) => set({ proMode: enabled }),

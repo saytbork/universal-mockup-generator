@@ -42,6 +42,7 @@ import {
     SHADOW_PRESETS,
     INTERACTION_PRESETS,
 } from '../promptEngine/studioPresets';
+import { applyCanonicalPhysicalForMotion } from './motionCoherence';
 
 // ============================================================================
 // FORBIDDEN TERMS VALIDATION
@@ -571,6 +572,7 @@ function buildStateMotion(state: ProductStudioState): string {
                 'PRODUCT_STATE_MOTION: Falling.',
                 'Container is open and tilted mouth-down.',
                 capRule,
+                'Contents actively falling due to gravity.',
                 `${v.capsuleStyle} capsules with ${colorDesc} contents actively falling in mid-air.`,
                 `${physics}.`,
                 'Shadows must anchor container and falling contents.',
@@ -583,6 +585,7 @@ function buildStateMotion(state: ProductStudioState): string {
                 'PRODUCT_STATE_MOTION: Falling.',
                 'Container is open and tilted mouth-down.',
                 capRule,
+                'Contents actively falling due to gravity.',
                 `${v.shape}-shaped gummies in ${colorDesc} color actively falling in mid-air.`,
                 `${physics}.`,
                 'Shadows must anchor container and falling contents.',
@@ -593,6 +596,7 @@ function buildStateMotion(state: ProductStudioState): string {
             'PRODUCT_STATE_MOTION: Falling.',
             'Container is open and tilted mouth-down.',
             capRule,
+            'Contents actively falling due to gravity.',
             `Contents actively falling in mid-air. ${physics}.`,
         ].join(' ');
     }
@@ -1046,16 +1050,55 @@ function buildQualityBar(state: ProductStudioState): string {
     return 'real ecommerce hero image, premium commercial product photography, ultra clean, high resolution, commercial-ready, no ambiguity, art-directed, brand-safe, inanimate objects only, tack-sharp label';
 }
 
-function buildIntegrityConstraints(): string {
+function buildIntegrityConstraints(state: ProductStudioState): string {
     // Keep this free of forbidden human terms.
+    const motion = String(state.stateMotion || 'static');
+    const isStatic = motion === 'static';
     return [
         'single product only (unless bundle mode)',
-        'product must be fully assembled and physically plausible',
+        isStatic
+            ? 'product must be fully assembled and physically plausible'
+            : 'product must be physically plausible for the selected PRODUCT_STATE_MOTION (no hybrid states)',
         'no duplicates of the product',
         'no broken, warped, melted, or deformed objects',
         'no floating parts, no separated components',
-        'no partial or missing parts (cap, dropper, lid, label must be aligned and intact)',
+        isStatic
+            ? 'no partial or missing parts (cap/lid closed, label aligned and intact)'
+            : 'no partial or missing structural parts (label, threads, neck/collar, and opening must be intact). Cap/closure may be removed per motion and must not appear unless motion is Static.',
     ].join(', ');
+}
+
+function enforceMotionPromptCoherence(prompt: string, state: ProductStudioState): string {
+    const motion = String(state.stateMotion || 'static');
+    if (motion !== 'falling') return prompt;
+
+    let next = prompt;
+    const forbidden = [
+        'Product fully assembled.',
+        'Cap present and attached.',
+        'Contents fully contained.',
+        'PRODUCT_STATE_MOTION: Static.',
+        'PRODUCT_STATE_MOTION: Opened.',
+        'PRODUCT_STATE_MOTION: Spilled.',
+        'PRODUCT_STATE_MOTION: Dispensed.',
+        'PRODUCT_STATE_MOTION: Pouring.',
+    ];
+    for (const phrase of forbidden) {
+        next = next.replaceAll(phrase, '');
+    }
+
+    const required = [
+        'Container is open and tilted mouth-down.',
+        'Cap removed and NOT visible anywhere in frame.',
+        'Contents actively falling due to gravity.',
+    ];
+    for (const phrase of required) {
+        if (!next.includes(phrase)) {
+            next = `${next}, ${phrase}`;
+        }
+    }
+
+    return next.replace(/\s+/g, ' ').replace(/,\s*,/g, ',').trim();
 }
 
 /**
@@ -1136,12 +1179,12 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     segments.push(buildQualityBar(state));
 
     // 11b. Integrity / Artifact Guards
-    segments.push(buildIntegrityConstraints());
+    segments.push(buildIntegrityConstraints(state));
 
     // Aspect ratio technical
     segments.push(buildAspectRatio(state));
 
-    const finalPrompt = segments.filter(Boolean).join(', ');
+    const finalPrompt = enforceMotionPromptCoherence(segments.filter(Boolean).join(', '), state);
     console.log('2. Generated Prompt Parts:', segments);
     console.log('3. FINAL PROMPT:', finalPrompt);
     console.groupEnd();
@@ -1204,7 +1247,7 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     segments.push(buildQualityBar(state));
 
     // 11b. Integrity / Artifact Guards
-    segments.push(buildIntegrityConstraints());
+    segments.push(buildIntegrityConstraints(state));
 
     segments.push(buildAspectRatio(state));
 
@@ -1212,7 +1255,7 @@ function assembleBundlePrompt(state: ProductStudioState): string {
         segments.push(buildEcommerce(state));
     }
 
-    return segments.filter(Boolean).join(', ');
+    return enforceMotionPromptCoherence(segments.filter(Boolean).join(', '), state);
 }
 
 // ============================================================================
@@ -1385,6 +1428,10 @@ function normalizeProductStudioStateForPrompt(state: ProductStudioState): Produc
         next.stateMotion = 'opened';
     }
     next.handsHolding = next.interaction !== 'none';
+
+    // Hard canonical physical coherence for motion (silent auto-correct).
+    // Motion overrides any persisted physical sub-states that can contradict motion.
+    next.definition = applyCanonicalPhysicalForMotion(next.definition, next.stateMotion);
 
     // Photo Mode conflict rules:
     // "Clear" is absolute: pure white studio, no set dressing or creative styling blocks.
