@@ -457,18 +457,9 @@ function buildEnvironment(state: ProductStudioState): string {
 // ============================================================================
 
 function buildLighting(state: ProductStudioState): string {
-    const isPhotoStudio = state.sceneType === 'studio-branding';
-
-    // Photo Studio: allow lighting rigs (preset-driven).
-    // Also honor a selected (non-default) rig even if Pro Mode is toggled off later.
-    if (isPhotoStudio) {
-        const lightingRig = String(state.lightingRig || '').trim();
-        const lightingRigPreset = lightingRig ? LIGHTING_PRESETS[lightingRig] : undefined;
-        const isNonDefaultRig = lightingRig !== '' && lightingRig !== 'Softbox Wrap';
-        if ((state.proMode || isNonDefaultRig) && lightingRigPreset) {
-            return `LIGHTING_RIG: ${lightingRigPreset}`;
-        }
-    }
+    const lightingRig = String(state.lightingRig || '').trim();
+    const lightingRigPreset = lightingRig ? LIGHTING_PRESETS[lightingRig] : undefined;
+    const isNonDefaultRig = lightingRig !== '' && lightingRig !== 'Softbox Wrap';
 
     const lightingMap: Record<string, string> = {
         'natural-light': 'soft natural lighting',
@@ -483,7 +474,16 @@ function buildLighting(state: ProductStudioState): string {
         'clinical-softbox': 'clinical softbox studio lighting',
     };
 
-    return `${lightingMap[state.lighting] || 'professional lighting'}, soft shadows, controlled highlights, clean reflections, no harsh cinematic contrast`;
+    const base =
+        `${lightingMap[state.lighting] || 'professional lighting'}, soft shadows, controlled highlights, clean reflections, no harsh cinematic contrast`;
+
+    // Pro Photographer Mode: inject lighting rig as a first-class, product-safe signal
+    // across ALL Product Studio scene types (studio-branding + editorial-product + lifestyle-real).
+    if ((state.proMode || isNonDefaultRig) && lightingRigPreset) {
+        return `LIGHTING_RIG: ${lightingRigPreset} ${base}`;
+    }
+
+    return base;
 }
 
 function buildLens(state: ProductStudioState): string {
@@ -1177,8 +1177,6 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
             segments.push(buildBackground(state));
         }
         segments.push(buildShadow(state));
-        segments.push(buildLens(state));
-        segments.push(buildFinish(state));
         segments.push(buildAccentColor(state));
         if (!state.blankSpaceEnabled) {
             segments.push(buildAlignment(state));
@@ -1195,6 +1193,10 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
 
     // 7. Lighting (Product Safe)
     segments.push(buildLighting(state));
+
+    // 7b. Pro Photographer Mode (global; not limited to studio-branding)
+    segments.push(buildLens(state));
+    segments.push(buildFinish(state));
 
     // 8. Camera & Framing
     segments.push(buildCamera(state));
@@ -1270,6 +1272,10 @@ function assembleBundlePrompt(state: ProductStudioState): string {
 
     // 7. Lighting
     segments.push(buildLighting(state));
+
+    // 7b. Pro Photographer Mode (global; not limited to studio-branding)
+    segments.push(buildLens(state));
+    segments.push(buildFinish(state));
 
     // 8. Camera
     segments.push(buildCamera(state));
