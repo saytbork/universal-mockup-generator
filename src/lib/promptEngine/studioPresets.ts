@@ -19,23 +19,23 @@ Clean geometry. Premium commercial quality. High clarity. Sharp focus.
 // PHOTO / COMPOSITION MODE PRESETS
 // =============================================================================
 export const PHOTO_MODE_PRESETS: Record<string, string> = {
-    'Clear': `Pure white #FFFFFF seamless backdrop. No set dressing. No props. No gradients. No textures. No color cast. Product only. Centered product packshot. Soft contact shadow only.`,
-    'Color Pop Hero': `Bold graphic hero with strong color blocking. Background is a single vibrant solid color or clean two-tone split. Punchy highlights and crisp shadows. Minimal geometric set pieces only. Product is dominant and centered; label readability is perfect.`,
-    'Ingredient Stack': `Ingredients or material elements arranged around the product in a clean, controlled layout. Props feel art-directed and premium (not random).`,
-    'Acrylic Blocks': `Prism + acrylic block set. Clear acrylic blocks and pedestals at varied heights. Crisp edges, controlled reflections, premium studio polish. Add subtle prismatic light streaks/rainbow refractions on the background and acrylic edges (never across label text). Product placed on a hero acrylic pedestal with secondary blocks framing the scene.`,
-    'Foam & Texture': `Texture macro set: foam bubbles, gel ribbons, and wet glossy textures used as design elements. Product stays clean, dry, and fully readable. Controlled droplets/splashes only—no messy pooling.`,
-    'Tile & Spa': `Spa bathroom tile set. White/off-white tile grid with subtle grout lines, clean glossy reflections, a few water droplets and small foam clusters. Optional rolled towels in soft blur background. Bright diffused light like a spa. Looks like a high-end product campaign in a spa environment.`,
-    'Routine Carousel': `Daily routine counter set. Clean sink/countertop surface with soft daylight. Minimal routine props (folded towel, neutral pump bottle silhouettes, tray) in the background, softly blurred. Repeatable spacing and consistent margins for carousel output. Product remains the hero and label fully readable.`,
-    'Pastel Picnic': `Outdoor picnic campaign set. Pastel picnic blanket pattern, warm golden-hour sunlight, soft lens flare, shallow background with greenery bokeh. Styled fruit slices and colorful gummies/candies as supporting props scattered tastefully. Mega-production look: art-directed, premium, cinematic sunlight—but product label stays crisp.`,
-    'Face Pop Close-Up': `Close hero framing emphasizing label, cap, and material detail while keeping the full product visible (no cropping). Beauty-style soft key light, clean background separation, macro clarity. Minimal background distractions. No subjects, no skin.`,
-    'Sunrise Wellness Counter': `Morning counter set. Warm sunrise light beams with long soft shadows. Clean countertop surface with subtle breakfast/wellness props in soft blur (glass, bowl silhouette, citrus slice) for mood. Premium art-directed look; no clutter.`,
-    'Clinical Lab Counter': `Clinical laboratory bench set. Sterile counter with subtle stainless accents and clean glassware (beakers/flasks) in the background, softly blurred. Cool professional lighting, ultra-clean, high-clarity. No readable labels on lab items.`,
-    'Candy Gradient Lab': `Candy gradient lab set. Smooth colorful gradient background with modern acrylic reflections and clean geometric shapes. High saturation but controlled. Product edges tack sharp; label remains perfectly readable.`,
-    'Golden Mist Aura': `Golden mist aura set. Soft atmospheric mist/haze with warm golden rim highlights and dreamy glow. Mist is subtle and must not obscure label. Premium high-end campaign look.`,
-    'Crown Wellness Vanity': `Luxury vanity campaign set. Clean reflective base, subtle mirror hints, premium metallic accents, soft luxury lighting. Optional blurred perfume-bottle silhouettes (no readable labels). Looks like a premium vanity product campaign.`,
-    'Splash Shot': `High-speed splash campaign. Frozen droplets and a controlled splash arc near the product (water/clear liquid). Splash must never obscure label. Crisp droplets, clean studio lighting, no messy pooling.`,
-    'Outdoor Energy Boost': `Outdoor energy campaign set. Bright natural sunlight, greenery background bokeh, fresh vibrant color accents. Product staged on a clean stone/wood surface outdoors. Mega-production commercial look; no subjects.`,
-    'Hero Landing Page': `Hero landing page composition. Clean centered product layout with strong hierarchy. Large intentional negative space reserved for copy. Product is primary focal point; full label readable; premium controlled lighting.`
+    'Hero Landing Page': `High-clarity hero module on a clean set. Intentional negative space reserved for copy. Crisp studio lighting, controlled shadows, premium retouch. Product is dominant; full label readable; no clutter.`,
+    'Clear': `Pure white #FFFFFF seamless backdrop. No set dressing. No props. No gradients. No textures. No color cast. Product only. Centered packshot. Soft contact shadow only.`,
+    'Color Pop Hero': `Modern supplement hero shot with bold monochrome or two-tone color blocking. High-saturation seamless background, clean drop shadows, punchy highlights. Minimal geometric set pieces only. Premium commercial retouch; label readability perfect.`,
+    'Ingredient Stack': `Surround the product with sliced fruit, herbs, and subtle bubbly textures that hint at benefits. Keep everything vibrant, fresh, art-directed, and premium. No random clutter; props are secondary and unbranded.`,
+    'Acrylic Blocks': `Clear acrylic blocks and geometric pedestals at varied heights. Crisp edges, controlled reflections, premium studio polish. Add subtle prismatic split highlights on background and acrylic edges (never over label text). Product placed on a hero acrylic pedestal with secondary blocks framing the set.`,
+    'Splash Shot': `Dynamic high-speed splash set with frozen droplets and a controlled arc of clear liquid near the product. Splash must never obscure the label. Crisp droplets, clean lighting, no messy pooling, premium campaign polish.`,
+    'Tile & Spa': `Glossy tile set with clean grout lines, soft reflections, subtle droplets, and small foam clusters. Bright diffused light. Calm spa-like set styling with ultra-clean surfaces. Product remains the hero; label fully readable.`,
+    'Foam & Texture': `Macro textures: foam bubbles, gel ribbons, creamy swatches, and droplets used as design elements on the set. Product stays clean and dry; label fully readable. Controlled textures only; no messy pooling.`,
+    'Routine Carousel': `Repeatable countertop set for carousel outputs: clean surface plane, soft daylight, minimal supporting silhouettes in the background, consistent margins and spacing. Designed to look premium and repeatable across SKUs.`,
+    'Pastel Picnic': `Art-directed picnic set with a pastel blanket pattern, warm golden-hour sunlight, gentle lens flare, and soft background greenery bokeh. Styled fruit slices and colorful candies/gummies as secondary props. Campaign-grade polish; label stays crisp.`,
+    'Face Pop Close-Up': `Close hero framing emphasizing label, cap, and material detail while keeping the full product visible (no cropping). Beauty-style soft key light, clean separation, macro clarity. Minimal background distractions. No subjects, no skin.`,
+    'Sunrise Wellness Counter': `Warm sunrise beams with long soft shadows on a clean countertop. Subtle breakfast/wellness props in soft blur for set styling only. Premium art-directed look; no clutter. Product remains the hero and label stays readable.`,
+    'Clinical Lab Counter': `Science-forward bench set: sterile counter, subtle stainless accents, and clean unlabeled glassware in soft blur background. Cool professional lighting, ultra-clean clarity, medical precision mood.`,
+    'Golden Mist Aura': `Warm golden ambience with subtle atmospheric haze and dreamy highlights. Mist must be minimal and must not obscure the label. Premium high-end campaign polish with controlled glow.`,
+    'Outdoor Energy Boost': `Bright natural sunlight with greenery bokeh and fresh vibrant accents. Product staged on a clean stone/wood surface. Campaign-grade polish; no subjects.`,
+    'Crown Wellness Vanity': `Luxury vanity set: clean reflective base, subtle mirror hints, premium metallic accents, soft luxury lighting. Optional unlabeled silhouettes only. Calm, premium campaign styling; label remains crisp.`,
+    'Candy Gradient Lab': `Playful premium gradient set with clean geometric forms and modern reflections. High saturation but controlled. Candy-like color transitions and polished highlights; label stays perfectly readable.`
 };
 
 // =============================================================================
@@ -471,7 +471,9 @@ export function buildStudioPrompt(options: StudioPromptOptions): string {
     // PHOTO MODE
     // =========================================================================
     if (options.photoMode && PHOTO_MODE_PRESETS[options.photoMode]) {
-        parts.push(`PHOTO_MODE (NON-NEGOTIABLE): ${options.photoMode}. ${PHOTO_MODE_PRESETS[options.photoMode]}`);
+        // Do not echo the photoMode label; some labels include forbidden tokens in Product Studio validation (e.g. "Face").
+        // The preset text alone is deterministic and sufficient.
+        parts.push(`PHOTO_MODE (NON-NEGOTIABLE): ${PHOTO_MODE_PRESETS[options.photoMode]}`);
     }
 
     // =========================================================================
