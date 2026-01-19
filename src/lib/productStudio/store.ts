@@ -1232,106 +1232,24 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
         set({ ingredientLayout: (layout ?? 'auto') as ProductStudioState['ingredientLayout'] }),
     setInteraction: (interaction) =>
         set((state) => {
+            // IMPORTANT UX: selection should "stick" in UI.
+            // We resolve physical conflicts silently at prompt-build time (normalizeProductStudioStateForPrompt).
             const nextInteraction = interaction;
-
-            // Force rules (engine-level):
-            // - Capsule Display => motion must be Static
-            // - Applying / Opening => motion must be Opened
-            let nextMotion: ProductStateMotion = state.stateMotion;
-            if (nextInteraction === 'capsule-display') nextMotion = 'static';
-            if (nextInteraction === 'applying-opening') nextMotion = 'opened';
-
-            const isAllowedByMotion = (motion: ProductStateMotion, candidate: ProductStudioState['interaction']) => {
-                if (motion === 'pouring' || motion === 'falling') return candidate === 'none' || candidate === 'cropped-hand';
-                if (motion === 'spilled') return candidate === 'none' || candidate === 'cropped-hand';
-                // Interpretation-first: "Dispensed" can be shown with a stabilized hand intent.
-                if (motion === 'dispensed') return true;
-                if (motion === 'opened') {
-                    return (
-                        candidate === 'none' ||
-                        candidate === 'cropped-hand' ||
-                        candidate === 'supported-hold' ||
-                        candidate === 'holding' ||
-                        candidate === 'two-hand-hold' ||
-                        candidate === 'applying-opening'
-                    );
-                }
-                // static
-                return candidate !== 'applying-opening';
-            };
-
-            let effectiveInteraction: ProductStudioState['interaction'] = nextInteraction;
-            if (!isAllowedByMotion(nextMotion, effectiveInteraction)) {
-                if (nextMotion === 'pouring' || nextMotion === 'falling') effectiveInteraction = 'cropped-hand';
-                else if (nextMotion === 'opened') effectiveInteraction = 'holding';
-                else effectiveInteraction = 'none';
-            }
+            const isCapsules = state.definition.type === 'capsules';
+            const effectiveInteraction =
+                nextInteraction === 'capsule-display' && !isCapsules ? 'none' : nextInteraction;
 
             return {
                 interaction: effectiveInteraction,
                 handsHolding: effectiveInteraction !== 'none',
-                stateMotion: nextMotion,
-                definition: applyCanonicalPhysicalForMotion(state.definition, nextMotion),
+                definition: applyCanonicalPhysicalForMotion(state.definition, state.stateMotion),
             };
         }),
     setStateMotion: (motion) =>
         set((state) => {
-            const discreteSurfaceSpillTypes = new Set<ProductType>(['capsules', 'gummies', 'powder']);
-            const surfacePresent = state.blankSpaceEnabled === false;
-            const nextMotion =
-                surfacePresent &&
-                discreteSurfaceSpillTypes.has(state.definition.type) &&
-                (motion === 'falling' || motion === 'dispensed' || motion === 'spilled')
-                    ? 'spilled'
-                    : motion;
-
-            const coerceInteractionForMotion = (candidate: ProductStudioState['interaction']) => {
-                if (nextMotion === 'pouring' || nextMotion === 'falling') {
-                    if (candidate === 'none' || candidate === 'cropped-hand') return candidate;
-                    return 'cropped-hand';
-                }
-                if (nextMotion === 'spilled') {
-                    const allowed: ProductStudioState['interaction'][] = [
-                        'none',
-                        'cropped-hand',
-                    ];
-                    return allowed.includes(candidate) ? candidate : 'none';
-                }
-                if (nextMotion === 'dispensed') {
-                    // Dispensed is interpretation-first: allow stabilized hand intents.
-                    return candidate;
-                }
-                if (nextMotion === 'opened') {
-                    const allowed: ProductStudioState['interaction'][] = [
-                        'none',
-                        'cropped-hand',
-                        'supported-hold',
-                        'holding',
-                        'two-hand-hold',
-                        'applying-opening',
-                    ];
-                    return allowed.includes(candidate) ? candidate : 'none';
-                }
-                // static
-                if (candidate === 'applying-opening') return 'none';
-                return candidate;
-            };
-
-            // Force rules:
-            // - Capsule Display => motion must be Static
-            // - Applying / Opening => motion must be Opened
-            let effectiveMotion = nextMotion;
-            const currentInteraction = state.interaction;
-            if (currentInteraction === 'capsule-display') effectiveMotion = 'static';
-            if (currentInteraction === 'applying-opening') effectiveMotion = 'opened';
-
-            const effectiveInteraction = coerceInteractionForMotion(currentInteraction);
-
             return {
-                stateMotion: effectiveMotion,
-                interaction: effectiveInteraction,
-                handsHolding: effectiveInteraction !== 'none',
-                definition: applyCanonicalPhysicalForMotion(state.definition, effectiveMotion),
+                stateMotion: motion,
+                definition: applyCanonicalPhysicalForMotion(state.definition, motion),
             };
         }),
     setProMode: (enabled) => set({ proMode: enabled }),
