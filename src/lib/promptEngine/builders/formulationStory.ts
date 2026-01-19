@@ -43,7 +43,7 @@ export class FormulationStoryBuilder implements PromptBuilder {
         parts.push(`The expert is described as a ${roleLabel}.`);
 
         const attireSentence = story.expertAttireDescription
-            ? `They wear ${story.expertAttireDescription} that stays true to real medical workwear without slick polish.`
+            ? `They wear ${story.expertAttireDescription}.`
             : 'They wear practical medical attire that feels worn-in and ready for hands-on work.';
         parts.push(attireSentence);
 

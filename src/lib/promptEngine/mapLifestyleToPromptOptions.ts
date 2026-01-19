@@ -344,7 +344,7 @@ const ROLE_LABELS: Record<ExpertRole, string> = {
 };
 
 const ATTIRE_DESCRIPTIONS: Record<ExpertAttire, string> = {
-    none: '',
+    none: 'regular clothing in neutral tones (beige, white, black, gray, or brown). No medical uniform, no scrubs, no lab coat.',
     white_medical_coat: 'a white medical coat over professional attire',
     white_scrubs: 'white medical scrubs',
     light_blue_scrubs: 'light blue scrubs',
@@ -381,7 +381,7 @@ const buildFormulationStoryOptions = (sceneState: Step3Values): FormulationStory
 
     const attireDescription =
         sceneState.expertAttire === 'none'
-            ? undefined
+            ? ATTIRE_DESCRIPTIONS.none
             : (ATTIRE_DESCRIPTIONS[sceneState.expertAttire] ?? 'professional medical attire');
 
     return {
