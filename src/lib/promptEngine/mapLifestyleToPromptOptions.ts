@@ -344,6 +344,7 @@ const ROLE_LABELS: Record<ExpertRole, string> = {
 };
 
 const ATTIRE_DESCRIPTIONS: Record<ExpertAttire, string> = {
+    none: '',
     white_medical_coat: 'a white medical coat over professional attire',
     white_scrubs: 'white medical scrubs',
     light_blue_scrubs: 'light blue scrubs',
@@ -378,6 +379,11 @@ const buildFormulationStoryOptions = (sceneState: Step3Values): FormulationStory
             ? (sceneState.expertRoleCustom?.trim() || 'formulation expert')
             : (ROLE_LABELS[sceneState.expertRole] ?? 'medical expert');
 
+    const attireDescription =
+        sceneState.expertAttire === 'none'
+            ? undefined
+            : (ATTIRE_DESCRIPTIONS[sceneState.expertAttire] ?? 'professional medical attire');
+
     return {
         professionalFocus: focus,
         expertName: sceneState.expertName?.trim() || undefined,
@@ -386,8 +392,8 @@ const buildFormulationStoryOptions = (sceneState: Step3Values): FormulationStory
         labVibeCustom,
         expertRole: sceneState.expertRole,
         expertRoleLabel: roleLabel || undefined,
-        expertAttire: sceneState.expertAttire,
-        expertAttireDescription: ATTIRE_DESCRIPTIONS[sceneState.expertAttire] ?? 'professional medical attire',
+        expertAttire: sceneState.expertAttire === 'none' ? undefined : sceneState.expertAttire,
+        expertAttireDescription: attireDescription,
         badgePreference: sceneState.expertBadgePreference
     };
 };

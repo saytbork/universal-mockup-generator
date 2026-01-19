@@ -427,6 +427,7 @@ export type ExpertRole =
   | 'custom';
 
 export type ExpertAttire =
+  | 'none'
   | 'white_medical_coat'
   | 'white_scrubs'
   | 'light_blue_scrubs'
@@ -449,6 +450,7 @@ const EXPERT_ROLE_OPTIONS: { label: string; value: ExpertRole }[] = [
 ];
 
 const EXPERT_ATTIRE_OPTIONS: { label: string; value: ExpertAttire }[] = [
+  { label: 'None', value: 'none' },
   { label: 'White medical coat', value: 'white_medical_coat' },
   { label: 'White scrubs', value: 'white_scrubs' },
   { label: 'Light blue scrubs', value: 'light_blue_scrubs' },
@@ -1003,7 +1005,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     expertRoleCustom: '',
     expertName: '',
     expertCredentials: '',
-    expertAttire: EXPERT_ATTIRE_OPTIONS[0].value,
+    // Keep legacy default (do not switch default just because we added a "None" option).
+    expertAttire: 'white_medical_coat',
     expertBadgePreference: BADGE_PREFERENCE_OPTIONS[0].value,
     labVibe: LAB_VIBE_OPTIONS[0],
     labVibeCustom: '',
@@ -1016,7 +1019,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     formulationCustomRole: '',
     formulationLabVibe: 'None',
     formulationPreset: '',
-    formulationExpertAttire: EXPERT_ATTIRE_OPTIONS[0].value,
+    formulationExpertAttire: 'white_medical_coat',
     formulationAttire: '',
     formulationBadgeEnabled: false,
 

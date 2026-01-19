@@ -34,7 +34,7 @@ export class FormulationStoryInjectionBuilder implements PromptBuilder {
 
         if (story.expertAttireDescription) {
             parts.push(`Medical Attire: ${story.expertAttireDescription}.`);
-        } else if (story.expertAttire) {
+        } else if (story.expertAttire && story.expertAttire !== 'none') {
             parts.push(`Medical Attire: ${story.expertAttire.replace(/_/g, ' ')}.`);
         }
 
