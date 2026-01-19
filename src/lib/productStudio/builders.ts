@@ -661,12 +661,15 @@ function buildStateMotion(state: ProductStudioState): string {
     if (motion === 'spilled') {
         return [
             'PRODUCT_STATE_MOTION: Spilled.',
+            'A visible surface MUST exist (tabletop, studio plinth, or countertop).',
             'Container resting on a surface, tipped on its side.',
+            'Container touches the surface (no floating).',
+            'Orientation is horizontal or slightly tilted.',
             'Mouth is open.',
             'Contents spilled onto the surface.',
             'Gravity-resolved distribution.',
             'Grounded contact shadows.',
-            'A small number of items may appear mid-bounce very close to the opening, but the majority must rest on the surface plane.',
+            'All contents must rest on the surface plane (no mid-air capsules).',
             'No levitation. No suspension. No airborne-only composition.',
             // Cap handling: allow either out-of-frame or resting nearby on the surface.
             'Cap removed; it may be visible nearby resting on the surface, or fully outside frame.',
@@ -1334,6 +1337,9 @@ function buildNegativePrompt(state: ProductStudioState): string {
                 'capsules suspended',
                 'levitating capsules',
                 'airborne capsules',
+                'capsules flying',
+                'capsules bouncing in air',
+                'capsules above surface',
                 'no surface',
                 'surface missing',
                 'capsules not touching surface',
