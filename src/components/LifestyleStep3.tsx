@@ -341,6 +341,7 @@ export interface Step3Values {
   // Formulation Story
   formulationStoryEnabled: boolean;
   expertRole: ExpertRole;
+  expertRoleCustom: string;
   expertName: string;
   expertCredentials: string;
   expertAttire: ExpertAttire;
@@ -414,6 +415,7 @@ const getPillClass = (isActive: boolean, fullWidth = false) => {
 const GENDER_OPTIONS = ['Female', 'Male', 'Trans', 'Non-binary', 'Gender non-conforming'];
 
 export type ExpertRole =
+  | 'none'
   | 'doctor'
   | 'medical_professional'
   | 'clinical_researcher'
@@ -434,6 +436,7 @@ export type ExpertAttire =
 export type BadgePreference = 'name_only' | 'name_and_badge';
 
 const EXPERT_ROLE_OPTIONS: { label: string; value: ExpertRole }[] = [
+  { label: 'None', value: 'none' },
   { label: 'Doctor / Physician (MD)', value: 'doctor' },
   { label: 'Medical Professional', value: 'medical_professional' },
   { label: 'Clinical Researcher', value: 'clinical_researcher' },
@@ -997,6 +1000,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     // Formulation Story (Legacy UI compatible)
     formulationStoryEnabled: false,
     expertRole: EXPERT_ROLE_OPTIONS[0].value,
+    expertRoleCustom: '',
     expertName: '',
     expertCredentials: '',
     expertAttire: EXPERT_ATTIRE_OPTIONS[0].value,
@@ -6734,13 +6738,32 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <button
                           key={option.value}
                           type="button"
-                          onClick={() => { updateValue('expertRole', option.value); markSectionTouched('formulationStory'); }}
+                          onClick={() => {
+                            updateValue('expertRole', option.value);
+                            // Keep custom role text only when Custom is selected.
+                            if (option.value !== 'custom') {
+                              updateValue('expertRoleCustom', '');
+                            }
+                            markSectionTouched('formulationStory');
+                          }}
                           className={getPillClass(values.expertRole === option.value)}
                         >
                           {option.label}
                         </button>
                       ))}
                     </div>
+                    {values.expertRole === 'custom' && (
+                      <input
+                        type="text"
+                        value={values.expertRoleCustom}
+                        onChange={(e) => {
+                          updateValue('expertRoleCustom', e.target.value);
+                          markSectionTouched('formulationStory');
+                        }}
+                        className="mt-2 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                        placeholder="e.g., Board-Certified Toxicologist, Herbal Formulator, Lab Director"
+                      />
+                    )}
                   </div>
 
                   <div className={SECTION_GROUP_CLASS}>

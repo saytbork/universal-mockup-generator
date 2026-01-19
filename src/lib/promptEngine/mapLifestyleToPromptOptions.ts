@@ -331,6 +331,7 @@ const FORMULATION_LAB_VIBE_MAP: Record<string, FormulationStoryOptions['labVibe'
 };
 
 const ROLE_LABELS: Record<ExpertRole, string> = {
+    none: '',
     doctor: 'medical doctor / physician (MD)',
     medical_professional: 'medical professional',
     clinical_researcher: 'clinical researcher',
@@ -351,6 +352,7 @@ const ATTIRE_DESCRIPTIONS: Record<ExpertAttire, string> = {
 };
 
 const EXPERT_ROLE_FOCUS_MAP: Record<ExpertRole, FormulationStoryOptions['professionalFocus']> = {
+    none: 'custom',
     doctor: 'clinical_researcher',
     medical_professional: 'clinical_researcher',
     clinical_researcher: 'clinical_researcher',
@@ -370,6 +372,12 @@ const buildFormulationStoryOptions = (sceneState: Step3Values): FormulationStory
     const isCustom = sceneState.labVibe === 'Custom';
     const labVibe = isCustom ? 'none' : (FORMULATION_LAB_VIBE_MAP[sceneState.labVibe] ?? 'none');
     const labVibeCustom = isCustom ? (sceneState.labVibeCustom?.trim() || undefined) : undefined;
+
+    const roleLabel =
+        sceneState.expertRole === 'custom'
+            ? (sceneState.expertRoleCustom?.trim() || 'formulation expert')
+            : (ROLE_LABELS[sceneState.expertRole] ?? 'medical expert');
+
     return {
         professionalFocus: focus,
         expertName: sceneState.expertName?.trim() || undefined,
@@ -377,7 +385,7 @@ const buildFormulationStoryOptions = (sceneState: Step3Values): FormulationStory
         labVibe,
         labVibeCustom,
         expertRole: sceneState.expertRole,
-        expertRoleLabel: ROLE_LABELS[sceneState.expertRole] ?? 'medical expert',
+        expertRoleLabel: roleLabel || undefined,
         expertAttire: sceneState.expertAttire,
         expertAttireDescription: ATTIRE_DESCRIPTIONS[sceneState.expertAttire] ?? 'professional medical attire',
         badgePreference: sceneState.expertBadgePreference

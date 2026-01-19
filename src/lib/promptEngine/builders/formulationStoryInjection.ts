@@ -27,8 +27,10 @@ export class FormulationStoryInjectionBuilder implements PromptBuilder {
             parts.push(`Credentials: ${story.roleCredentials}.`);
         }
 
-        const role = story.expertRoleLabel || story.expertRole || 'formulation expert';
-        parts.push(`Role: ${role}.`);
+        const role = (story.expertRoleLabel || story.expertRole || '').trim();
+        if (role && role.toLowerCase() !== 'none') {
+            parts.push(`Role: ${role}.`);
+        }
 
         if (story.expertAttireDescription) {
             parts.push(`Medical Attire: ${story.expertAttireDescription}.`);
