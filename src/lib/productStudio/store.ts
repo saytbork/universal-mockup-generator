@@ -1276,7 +1276,14 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
         }),
     setStateMotion: (motion) =>
         set((state) => {
-            const nextMotion = motion;
+            const discreteSurfaceSpillTypes = new Set<ProductType>(['capsules', 'gummies', 'powder']);
+            const surfacePresent = state.blankSpaceEnabled === false;
+            const nextMotion =
+                surfacePresent &&
+                discreteSurfaceSpillTypes.has(state.definition.type) &&
+                (motion === 'falling' || motion === 'dispensed' || motion === 'spilled')
+                    ? 'spilled'
+                    : motion;
 
             const coerceInteractionForMotion = (candidate: ProductStudioState['interaction']) => {
                 if (nextMotion === 'pouring' || nextMotion === 'falling') {

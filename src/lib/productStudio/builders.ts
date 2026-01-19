@@ -661,10 +661,15 @@ function buildStateMotion(state: ProductStudioState): string {
     if (motion === 'spilled') {
         return [
             'PRODUCT_STATE_MOTION: Spilled.',
-            'Post-spill moment: contents are at rest on the surface (no mid-air items).',
-            'Container is open and resting on a surface (may be tipped or fallen).',
-            capRule,
-            `Contents spilled with irregular distribution. Grounded shadows, realistic weight. ${physics}.`,
+            'Container resting on a surface, tipped on its side.',
+            'Mouth is open.',
+            'Contents spilled onto the surface.',
+            'Gravity-resolved distribution.',
+            'Grounded contact shadows.',
+            'A small number of items may appear mid-bounce very close to the opening, but the majority must rest on the surface plane.',
+            'No levitation. No suspension. No airborne-only composition.',
+            // Cap handling: allow either out-of-frame or resting nearby on the surface.
+            'Cap removed; it may be visible nearby resting on the surface, or fully outside frame.',
         ].join(' ');
     }
 
@@ -1070,31 +1075,55 @@ function buildIntegrityConstraints(state: ProductStudioState): string {
 
 function enforceMotionPromptCoherence(prompt: string, state: ProductStudioState): string {
     const motion = String(state.stateMotion || 'static');
-    if (motion !== 'falling') return prompt;
+    if (!(motion === 'falling' || motion === 'spilled')) return prompt;
 
     let next = prompt;
-    const forbidden = [
+    const forbiddenBase = [
         'Product fully assembled.',
         'Cap present and attached.',
         'Contents fully contained.',
         'PRODUCT_STATE_MOTION: Static.',
         'PRODUCT_STATE_MOTION: Opened.',
-        'PRODUCT_STATE_MOTION: Spilled.',
         'PRODUCT_STATE_MOTION: Dispensed.',
         'PRODUCT_STATE_MOTION: Pouring.',
     ];
+    const forbidden = motion === 'falling'
+        ? [...forbiddenBase, 'PRODUCT_STATE_MOTION: Spilled.']
+        : [...forbiddenBase, 'PRODUCT_STATE_MOTION: Falling.'];
     for (const phrase of forbidden) {
         next = next.replaceAll(phrase, '');
     }
 
-    const required = [
-        'Container is open and tilted mouth-down.',
-        'Cap removed and NOT visible anywhere in frame.',
-        'Contents actively falling due to gravity.',
-    ];
+    const required = motion === 'falling'
+        ? [
+            'Container is open and tilted mouth-down.',
+            'Cap removed and NOT visible anywhere in frame.',
+            'Contents actively falling due to gravity.',
+        ]
+        : [
+            'Container resting on a surface, tipped on its side.',
+            'Contents spilled onto the surface.',
+            'Gravity-resolved distribution.',
+            'Grounded contact shadows.',
+        ];
     for (const phrase of required) {
         if (!next.includes(phrase)) {
             next = `${next}, ${phrase}`;
+        }
+    }
+
+    if (motion === 'spilled') {
+        // Enforce "no airborne/levitating" language by removing the banned terms entirely.
+        const bannedTerms = [
+            'floating',
+            'mid-air',
+            'falling through space',
+            'suspended',
+            'levitating',
+        ];
+        for (const t of bannedTerms) {
+            const re = new RegExp(`\\b${t.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\\\$&')}\\b`, 'gi');
+            next = next.replace(re, '');
         }
     }
 
@@ -1283,14 +1312,43 @@ function buildNegativePrompt(state: ProductStudioState): string {
         return [];
     })();
 
+    const capIntegrityNegatives = (() => {
+        if (motion === 'static') return ['missing cap', 'open container', 'cap removed'];
+        if (motion === 'spilled') {
+            return [
+                'attached cap',
+                'cap sealed',
+                'sealed container releasing contents',
+                'cap floating',
+                'cap levitating',
+            ];
+        }
+        return ['cap visible', 'cap in frame', 'cap on surface', 'attached cap', 'sealed container releasing contents'];
+    })();
+
+    const spilledSurfaceNegatives =
+        motion === 'spilled'
+            ? [
+                'floating capsules',
+                'capsules in mid-air',
+                'capsules suspended',
+                'levitating capsules',
+                'airborne capsules',
+                'no surface',
+                'surface missing',
+                'capsules not touching surface',
+                'detached shadows',
+                'floating shadows',
+            ]
+            : [];
+
     return [
         ...humanNegativesBase,
         ...handsNegatives,
         ...interactionSpecific,
-        // Container / cap integrity (interpretation-first)
-        ...(motion === 'static'
-            ? ['missing cap', 'open container', 'cap removed']
-            : ['cap visible', 'cap in frame', 'cap on surface', 'attached cap', 'sealed container releasing contents']),
+        // Container / cap integrity
+        ...capIntegrityNegatives,
+        ...spilledSurfaceNegatives,
         // Interaction safety / realism
         'eating', 'drinking', 'swallowing', 'ingestion',
         'hands pouring product',
@@ -1383,6 +1441,16 @@ function normalizeProductStudioStateForPrompt(state: ProductStudioState): Produc
 
     // Interpretation-first coercion (never refuse on conflicts; resolve to a physically plausible snapshot).
     const type = next.definition.type;
+    // Auto-correct to SPILLED_ON_SURFACE (canonical) when a surface is present to prevent aerial interpretations.
+    const surfacePresent = next.blankSpaceEnabled === false;
+    const discreteSurfaceSpillTypes = new Set(['capsules', 'gummies', 'powder']);
+    if (
+        surfacePresent &&
+        discreteSurfaceSpillTypes.has(type) &&
+        (next.stateMotion === 'falling' || next.stateMotion === 'dispensed' || next.stateMotion === 'spilled')
+    ) {
+        next.stateMotion = 'spilled';
+    }
     const allowedMotionsByType: Record<string, ProductStudioState['stateMotion'][]> = {
         capsules: ['static', 'opened', 'spilled', 'dispensed', 'falling'],
         gummies: ['static', 'opened', 'spilled', 'dispensed', 'falling'],
