@@ -192,6 +192,8 @@ export interface PromptOptions {
     coupleSex?: 'same' | 'different';
     coupleStaging?: string;
     secondaryPersonDetails?: Partial<PersonDetails>;
+    /** True when Person B age was derived automatically (not explicitly set via UI). */
+    secondaryAgeDerived?: boolean;
     eyeDirection?: EyeDirectionKey;
     seed?: string;
 

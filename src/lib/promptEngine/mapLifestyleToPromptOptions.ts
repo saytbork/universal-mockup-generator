@@ -907,6 +907,7 @@ export function mapLifestyleToPromptOptions(
         const secondaryAgeExplicit =
             typeof secondaryAgeRaw === 'number' && Number.isFinite(secondaryAgeRaw) ? Number(secondaryAgeRaw) : null;
         const secondaryAge = editSecondaryPerson && typeof secondaryAgeExplicit === 'number' ? secondaryAgeExplicit : derivedSecondaryAge;
+        mapped.secondaryAgeDerived = !editSecondaryPerson;
 
         const secondaryGenderRaw = String((sceneState as any).secondaryGender ?? '').trim();
         const secondaryGender = editSecondaryPerson && secondaryGenderRaw ? secondaryGenderRaw : derivedSecondaryGender;
@@ -945,6 +946,7 @@ export function mapLifestyleToPromptOptions(
         (mapped as any).secondaryPersonDetails = secondaryPersonDetails;
     } else {
         (mapped as any).secondaryPersonDetails = undefined;
+        mapped.secondaryAgeDerived = undefined;
     }
 
     const sceneIntent = sceneState.sceneIntent as 'environment' | 'ecommerce';

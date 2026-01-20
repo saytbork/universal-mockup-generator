@@ -364,6 +364,7 @@ Captured by smartphone so fine edges may appear soft or broken.
             const personCount = options.personCount;
             const coupleSex = options.coupleSex;
             const secondaryPersonDetails = (options as any).secondaryPersonDetails as Partial<PersonDetails> | undefined;
+            const secondaryAgeDerived = Boolean((options as any).secondaryAgeDerived);
 
             if (personCount === 'couple') {
                 const secondaryAge =
@@ -399,7 +400,9 @@ Captured by smartphone so fine edges may appear soft or broken.
 
                 if (typeof secondaryAge === 'number') {
                     parts.push(
-                        `AGE COHERENCE (COUPLE): PRIMARY SUBJECT must read as ${age}. SECONDARY SUBJECT must read as ${secondaryAge}. Keep the age difference subtle and realistic (2–6 years; never more than 8). Never render teen + adult or young + elderly mismatch.`
+                        secondaryAgeDerived
+                            ? `AGE COHERENCE (COUPLE): PRIMARY SUBJECT must read as ${age}. SECONDARY SUBJECT must read as ${secondaryAge}. Keep the age difference subtle and realistic (2–6 years; never more than 8). Never render teen + adult mismatch.`
+                            : `AGE LOCK (COUPLE): PRIMARY SUBJECT must read as ${age}. SECONDARY SUBJECT must read as ${secondaryAge}. Respect these ages exactly as selected, even if the age gap is large. Never render teen + adult mismatch.`
                     );
 
                     const secondaryAgeGroupLabel = secondaryAge >= 75 ? 'elder' : 'adult';
