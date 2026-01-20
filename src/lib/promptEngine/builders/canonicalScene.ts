@@ -343,6 +343,16 @@ export class SceneNarrativeBuilder {
             return 'Lifestyle environment composition with no visible product packaging anywhere in frame.';
         }
 
+        // Ritual Hero Canvas: neutral background + hero placement (Lifestyle-only).
+        // This must override environment-first mode to avoid injecting real room context.
+        if (!isProductMode && options.ritualModeActive) {
+            return [
+                'RITUAL HERO CANVAS (HARD RULE): neutral seamless background with no location cues.',
+                'Hero placement: centered composition with clean negative space and intentional framing.',
+                'If the product is visible, it must be placed cleanly and coherently within the hero layout (not cluttered).'
+            ].join(' ');
+        }
+
         // Ecommerce canvas overlay (background replacement) can coexist with environment controls.
         // When active, it must override environment-first copy.
         if (options.creationMode === 'bg-replace' && options.ecommerceSidePlacementFlag) {

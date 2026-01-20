@@ -1658,6 +1658,20 @@ export function mapLifestyleToPromptOptions(
     }
 
     // ========================================================================
+    // RITUAL MODE → HERO CANVAS OVERRIDE (Neutral background + placement)
+    // ========================================================================
+    // Ritual hero scenes should not inject a literal environment/location even if the user had one selected.
+    // CanonicalScene will add the neutral hero canvas language; we must suppress setting/micro so other builders don't re-add rooms.
+    if ((mapped as any).ritualModeActive === true) {
+        mapped.setting = '';
+        mapped.microLocation = '';
+        (mapped as any).sceneEnvironment = '';
+        mapped.environmentOrder = '';
+        (mapped as any).selectedEnvironment = '';
+        (mapped as any).customEnvironment = '';
+    }
+
+    // ========================================================================
     // BACKGROUND VARIATION (auto mode by default)
     // ========================================================================
     const bgVariationMode = existingOptions.backgroundVariationMode || 'auto';
