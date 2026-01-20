@@ -177,6 +177,14 @@ MODEL REFERENCE OVERRIDE:
 Use the uploaded model reference as the single source of truth for appearance.
 Do not alter age, gender, ethnicity, facial structure, skin, hair, or expression.
 Match the person exactly as shown.
+ACCESSORY LOCK (NON-NEGOTIABLE):
+Preserve all visible accessories exactly as in the reference. Do not add, remove, swap, or restyle any accessories.
+If the reference includes any of the following, they MUST remain identical in the final render:
+- eyewear (glasses/frames/lenses): same shape, thickness, color, tint, reflections, and fit on the face
+- headwear (hat/cap/beanie): same type, color, texture, and placement
+- head covering (scarf/bandana/headscarf): same coverage, pattern, fabric, and placement
+- jewelry (earrings/necklace): keep if present; do not invent if absent
+Do NOT remove glasses. Do NOT change frames. Do NOT remove or change head coverings. Do NOT hallucinate new accessories.
             `.trim().replace(/\s+/g, ' '));
         } else {
             // ================================================================
