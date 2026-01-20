@@ -177,7 +177,9 @@ function enforcePreflightGuards(options: PromptOptions) {
             options.creationMode === 'bg-replace' &&
             options.ecommerceSidePlacementFlag === true &&
             (Boolean(options.bgColor) || Boolean(options.bgGradient));
+        const allowMissingEnvironmentForRitual = Boolean(options.ritualModeActive);
         if (!options.setting && !allowMissingEnvironment) {
+            if (allowMissingEnvironmentForRitual) return;
             throw new Error('UGC environment missing or overridden. Please select or provide an environment.');
         }
     }
