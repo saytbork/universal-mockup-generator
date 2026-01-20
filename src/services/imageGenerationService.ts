@@ -101,8 +101,6 @@ export async function generateImageWithGemini({
         apiVersion: "v1beta",
     });
 
-    const isNaturalUgc = ugcStyle?.toLowerCase() === "natural" || ugcRealModeActive === true;
-    const shouldIncludeHumanImage = !isNaturalUgc;
     const shouldSendProductImage = products.length > 0;
 
     const identityInlinePart = personIdentityPackage?.modelReferenceBase64
@@ -114,6 +112,10 @@ export async function generateImageWithGemini({
               reference: true,
           }
         : null;
+
+    const isNaturalUgc = ugcStyle?.toLowerCase() === "natural" || ugcRealModeActive === true;
+    const hasHumanReference = Boolean(identityInlinePart || modelReferenceFile);
+    const shouldIncludeHumanImage = hasHumanReference || !isNaturalUgc;
 
     const parts: any[] = [];
     parts.push({ text: prompt });

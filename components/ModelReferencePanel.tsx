@@ -1,4 +1,5 @@
 import React from 'react';
+import { Toggle } from '../src/components/ui/Toggle';
 
 function sanitizeNotes(text = "") {
   return text
@@ -84,11 +85,11 @@ const ModelReferencePanel: React.FC<ModelReferencePanelProps> = ({
               <span className="text-xs">
                 Preserve accessories exactly (glasses / headwear)
               </span>
-              <input
-                type="checkbox"
+              <Toggle
                 checked={Boolean(lockAccessories)}
-                onChange={(e) => onLockAccessoriesChange(e.target.checked)}
-                className="h-4 w-4 accent-indigo-600"
+                onCheckedChange={(next) => onLockAccessoriesChange(next)}
+                disabled={disabled}
+                aria-label="Preserve accessories exactly (glasses / headwear)"
               />
             </label>
           )}
