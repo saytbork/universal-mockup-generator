@@ -148,6 +148,7 @@ export class IdentityBuilder implements PromptBuilder {
         const {
             personIncluded,
             hasModelReference,
+            modelReferenceLockAccessories,
             personDetails,
             contentStyle,
             creationIntent,
@@ -177,6 +178,10 @@ MODEL REFERENCE OVERRIDE:
 Use the uploaded model reference as the single source of truth for appearance.
 Do not alter age, gender, ethnicity, facial structure, skin, hair, or expression.
 Match the person exactly as shown.
+            `.trim().replace(/\s+/g, ' '));
+
+            if (modelReferenceLockAccessories !== false) {
+                parts.push(`
 ACCESSORY LOCK (NON-NEGOTIABLE):
 Preserve all visible accessories exactly as in the reference. Do not add, remove, swap, or restyle any accessories.
 If the reference includes any of the following, they MUST remain identical in the final render:
@@ -185,7 +190,8 @@ If the reference includes any of the following, they MUST remain identical in th
 - head covering (scarf/bandana/headscarf): same coverage, pattern, fabric, and placement
 - jewelry (earrings/necklace): keep if present; do not invent if absent
 Do NOT remove glasses. Do NOT change frames. Do NOT remove or change head coverings. Do NOT hallucinate new accessories.
-            `.trim().replace(/\s+/g, ' '));
+                `.trim().replace(/\s+/g, ' '));
+            }
         } else {
             // ================================================================
             // AGE ANCHOR (for 45+; stronger for 50+)

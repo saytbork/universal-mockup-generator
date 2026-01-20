@@ -1057,6 +1057,7 @@ const App: React.FC = () => {
   const [modelReferenceFile, setModelReferenceFile] = useState<File | null>(null);
   const [modelReferencePreview, setModelReferencePreview] = useState<string | null>(null);
   const [modelReferenceNotes, setModelReferenceNotes] = useState('');
+  const [modelReferenceLockAccessories, setModelReferenceLockAccessories] = useState(true);
   const [personIdentityPackage, setPersonIdentityPackage] = useState<PersonIdentityPackage>(() =>
     createPersonIdentityPackage(createDefaultOptions())
   );
@@ -1448,6 +1449,8 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!hasModelReference) {
       setCompositionMode('balanced');
+      setModelReferenceNotes('');
+      setModelReferenceLockAccessories(true);
     }
   }, [hasModelReference]);
   const primarySceneId = storyboardScenes[0]?.id ?? identitySourceSceneId;
@@ -4564,6 +4567,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
         const basePromptOptions: any = {
           ...options,
+          modelReferenceLockAccessories,
           contentStyle: isProductPlacement ? 'product' : 'ugc',
           creationIntent: isProductPlacement ? 'product' : options.creationIntent,
           sceneIntent: isProductPlacement ? 'ecommerce' : options.sceneIntent,
@@ -5807,6 +5811,8 @@ If the model attempts to create a scene or environment, override it and force a 
                               notes={modelReferenceNotes}
                               onNotesChange={setModelReferenceNotes}
                               onClear={handleClearModelReference}
+                              lockAccessories={modelReferenceLockAccessories}
+                              onLockAccessoriesChange={setModelReferenceLockAccessories}
                               disabled={!hasUploadedProduct}
                               lockedMessage="Upload a source product first to attach a model."
                             />

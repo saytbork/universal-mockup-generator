@@ -14,6 +14,8 @@ interface ModelReferencePanelProps {
   notes: string;
   onNotesChange: (value: string) => void;
   onClear: () => void;
+  lockAccessories?: boolean;
+  onLockAccessoriesChange?: (next: boolean) => void;
   disabled?: boolean;
   lockedMessage?: string;
 }
@@ -24,6 +26,8 @@ const ModelReferencePanel: React.FC<ModelReferencePanelProps> = ({
   notes,
   onNotesChange,
   onClear,
+  lockAccessories = true,
+  onLockAccessoriesChange,
   disabled = false,
   lockedMessage,
 }) => {
@@ -75,6 +79,19 @@ const ModelReferencePanel: React.FC<ModelReferencePanelProps> = ({
             alt="Model reference"
             className="rounded-lg h-32 w-full object-cover border border-gray-200 dark:border-white/10"
           />
+          {typeof onLockAccessoriesChange === 'function' && (
+            <label className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 dark:bg-black/20 dark:border-white/10 dark:text-white/70">
+              <span className="text-xs">
+                Preserve accessories exactly (glasses / headwear)
+              </span>
+              <input
+                type="checkbox"
+                checked={Boolean(lockAccessories)}
+                onChange={(e) => onLockAccessoriesChange(e.target.checked)}
+                className="h-4 w-4 accent-indigo-600"
+              />
+            </label>
+          )}
           <textarea
             value={cleanedNotes}
             onChange={(event) => onNotesChange(sanitizeNotes(event.target.value))}

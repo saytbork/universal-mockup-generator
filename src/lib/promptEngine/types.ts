@@ -266,6 +266,7 @@ export interface PromptOptions {
 
     // Identity
     hasModelReference?: boolean;      // Model reference uploaded
+    modelReferenceLockAccessories?: boolean; // Preserve glasses/headwear/etc from model reference
     modelReference?: ModelReference;
     personIdentity?: PersonIdentity; // Renamed from duplicate identityLock
     personIncluded?: boolean;
