@@ -663,14 +663,15 @@ function buildStateMotion(state: ProductStudioState): string {
             'PRODUCT_STATE_MOTION: Spilled.',
             'A visible surface MUST exist (tabletop, studio plinth, or countertop).',
             'Container resting on a surface, tipped on its side.',
-            'Container touches the surface (no floating).',
+            'Container touches the surface with clear contact shadow (fully grounded).',
             'Orientation is horizontal or slightly tilted.',
             'Mouth is open.',
             'Contents spilled onto the surface.',
             'Gravity-resolved distribution.',
             'Grounded contact shadows.',
             'All contents must rest on the surface plane (no mid-air capsules).',
-            'No levitation. No suspension. No airborne-only composition.',
+            'No airborne items. No items suspended off the surface plane.',
+            'LABEL GEOMETRY LOCK (CRITICAL): Even when the container is tipped, preserve the exact label geometry and typography from the reference. No warped label, no stretched text, no sheared artwork, no curved or melted typography. The label must remain perfectly readable.',
             // Cap handling: allow either out-of-frame or resting nearby on the surface.
             'Cap removed; it may be visible nearby resting on the surface, or fully outside frame.',
         ].join(' ');
@@ -1139,7 +1140,12 @@ function enforceMotionPromptCoherence(prompt: string, state: ProductStudioState)
         }
     }
 
-    return next.replace(/\s+/g, ' ').replace(/,\s*,/g, ',').trim();
+    return next
+        .replace(/\(\s*no\s*\)/gi, '')
+        .replace(/\(\s*\)/g, '')
+        .replace(/\s+/g, ' ')
+        .replace(/,\s*,/g, ',')
+        .trim();
 }
 
 /**
