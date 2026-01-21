@@ -188,6 +188,8 @@ export class SceneNarrativeBuilder {
 
         const normalize = (value: string) => value.trim().toLowerCase();
         const noObjects = options.ritualNoObjects === true;
+        const heroCanvasActive =
+            options.creationMode === 'bg-replace' || options.ecommerceSidePlacementFlag === true;
         const isCouple = options.personCount === 'couple';
         const coupleStaging = String(options.ritualCoupleStaging || '').trim();
         const posture = String(options.ritualPosture || '').trim();
@@ -234,8 +236,8 @@ export class SceneNarrativeBuilder {
                     : 'Show a recognizable yoga pose (sun salutation, downward dog, warrior pose); body posture must read as actively practicing.',
             'running':
                 noObjects
-                    ? 'Show a running moment (mid-run on a path) with athletic wear and outdoor context; no handheld items.'
-                    : 'Show a running moment (mid-run on a path) or a pre/post-run action (tying running shoes, stretching calves) with athletic wear and outdoor context.',
+                    ? 'Show a running moment (mid-stride) with athletic wear; no handheld items.'
+                    : 'Show a running moment (mid-stride) or a pre/post-run action (stretching calves) with athletic wear.',
             'strength training':
                 noObjects
                     ? 'Show a clear strength training action using bodyweight only (squats, lunges, push-ups) with visible exertion and proper form; no equipment.'
@@ -306,6 +308,12 @@ export class SceneNarrativeBuilder {
                 'Only people and the environment/architecture. Empty hands.'
             );
         }
+        if (heroCanvasActive) {
+            constraintLines.push(
+                'HERO CANVAS CONTEXT: neutral seamless background only (no location cues, no rooms, no paths, no outdoors, no buildings).',
+                'Subjects must be integrated onto a solid hero background with grounded shadows. No environment/storytelling elements.'
+            );
+        }
 
         if (options.ritualHideProduct) {
             return [
@@ -317,7 +325,9 @@ export class SceneNarrativeBuilder {
                 postureCopy,
                 ...constraintLines,
                 'CRITICAL: No product visible anywhere in frame (no packaging, no bottles, no labels).',
-                'Focus on the environment, action, and lifestyle moment.'
+                heroCanvasActive
+                    ? 'Focus on the action and posture against the neutral hero background (no environment).'
+                    : 'Focus on the environment, action, and lifestyle moment.'
             ].join(' ');
         }
 

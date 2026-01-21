@@ -806,6 +806,21 @@ export function mapLifestyleToPromptOptions(
         const activities = Array.isArray((sceneState as any).ritualActivities) ? (sceneState as any).ritualActivities : [];
         (mapped as any).ritualActivities = activities.filter((v: any) => typeof v === 'string' && v.trim());
         (mapped as any).ritualCustom = String((sceneState as any).ritualCustom ?? '').trim() || undefined;
+
+        // HARD RULE: Ritual mode uses a neutral hero canvas (background replacement) and must respect the selected background color.
+        // Prefer the global studio background color picker (Composition Basics). Fallback to ecommerce background color, then white.
+        const ritualBg =
+            String((sceneState as any).studioBackgroundColor || '')
+                .trim() ||
+            String((sceneState as any).ecommerceBackgroundColor || '')
+                .trim() ||
+            '#FFFFFF';
+
+        mapped.creationMode = 'bg-replace';
+        mapped.ecommerceSidePlacementFlag = true;
+        mapped.sidePlacement = 'center' as any;
+        mapped.bgColor = ritualBg.toUpperCase();
+        delete mapped.bgGradient;
     } else {
         (mapped as any).ritualModeActive = false;
         (mapped as any).ritualHideProduct = false;
@@ -1813,7 +1828,15 @@ export function mapLifestyleToPromptOptions(
         mapped.ecommerceSidePlacementFlag = true;
         (mapped as any).ecommerceSidePlacement = sidePlacement;
 
-        if (sceneState.ecommerceBackgroundMode === 'gradient') {
+        const ritualHeroCanvasActive = (mapped as any).ritualModeActive === true;
+        const ritualBg =
+            String((sceneState as any).studioBackgroundColor || '')
+                .trim() ||
+            String((sceneState as any).ecommerceBackgroundColor || '')
+                .trim() ||
+            '#FFFFFF';
+
+        if (!ritualHeroCanvasActive && sceneState.ecommerceBackgroundMode === 'gradient') {
             const angle = parseInt(sceneState.ecommerceGradientAngle || '90', 10) || 90;
             mapped.bgGradient = {
                 startColor: sceneState.ecommerceGradientStart || '#f7f7f7',
@@ -1822,7 +1845,7 @@ export function mapLifestyleToPromptOptions(
             };
             delete mapped.bgColor;
         } else {
-            mapped.bgColor = (sceneState.ecommerceBackgroundColor || '#FFFFFF').toUpperCase();
+            mapped.bgColor = (ritualHeroCanvasActive ? ritualBg : (sceneState.ecommerceBackgroundColor || '#FFFFFF')).toUpperCase();
             delete mapped.bgGradient;
         }
 
