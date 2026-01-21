@@ -19,10 +19,6 @@ export class FormulationStoryInjectionBuilder implements PromptBuilder {
         }
 
         const parts: string[] = [];
-        if (story.expertName) {
-            parts.push(`Expert Name: ${story.expertName}.`);
-        }
-
         if (story.roleCredentials) {
             parts.push(`Credentials: ${story.roleCredentials}.`);
         }
@@ -53,8 +49,8 @@ export class FormulationStoryInjectionBuilder implements PromptBuilder {
         if (story.badgePreference) {
             const badgeText =
                 story.badgePreference === 'name_and_badge'
-                    ? 'Badge preference: name plus subtle specialty badge opposite the pocket.'
-                    : 'Badge preference: embroidered name only.';
+                    ? 'Badge preference: subtle specialty badge opposite the pocket (no duplicate name).'
+                    : 'Badge preference: embroidered name only (name appears once).';
             parts.push(badgeText);
         }
 

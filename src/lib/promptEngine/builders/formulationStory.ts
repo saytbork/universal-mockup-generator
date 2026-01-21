@@ -49,7 +49,7 @@ export class FormulationStoryBuilder implements PromptBuilder {
 
         if (story.expertName) {
             parts.push(
-                `Their name, ${story.expertName}, is embroidered once above the chest pocket on one side and mentioned casually without emphasis.`
+                `Their name, ${story.expertName}, is embroidered exactly once on the left chest above the pocket. No duplicate name text anywhere else on the clothing.`
             );
         }
 
