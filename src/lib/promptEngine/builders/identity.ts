@@ -168,6 +168,7 @@ export class IdentityBuilder implements PromptBuilder {
         const personCount = options.personCount;
         const isCouple = personCount === 'couple';
         const primarySubjectNoun = personCount && personCount !== 'single' ? 'PRIMARY SUBJECT' : 'Subject';
+        const primaryHairColorSpecified = Boolean(personDetails?.hairColor);
 
         // ====================================================================
         // MODEL REFERENCE OVERRIDE (highest priority)
@@ -223,8 +224,16 @@ Do NOT make the person appear younger.
             }
 
             if (age >= 55) {
+                const negativeAgeBand =
+                    age >= 70
+                        ? 'no 20s/30s/40s/50s/60s appearance, no middle-aged look, no youthful skin'
+                        : 'no 20s/30s/40s face, no youthful skin, no teen proportions';
+                parts.push(`NEGATIVE AGE CONSTRAINT: ${primarySubjectNoun} must NOT render younger (${negativeAgeBand}). Age visibility must remain dominant.`);
+            }
+
+            if (age >= 70) {
                 parts.push(
-                    `NEGATIVE AGE CONSTRAINT: ${primarySubjectNoun} must NOT render younger (no 20s/30s/40s face, no youthful skin, no teen proportions). Age visibility must remain dominant.`
+                    `AGE VISIBILITY (HARD RULE): ${primarySubjectNoun} must read as an elderly ${age}-year-old at a glance. If ambiguous, err older—never younger.`
                 );
             }
 
@@ -234,9 +243,9 @@ Do NOT make the person appear younger.
             if (age >= 75) {
                 parts.push(`
 ELDER REALISM (${primarySubjectNoun}): Deep crow's feet, softened jawline, gentle jowls, age spots on face and hands.
-Hair skews gray/silver/white with thinning and irregular texture.
 Hands show visible veins and knuckle definition.
 Skin carries micro wrinkles around mouth, eyes, and neck with authentic sag.
+${primaryHairColorSpecified ? 'Hair color may be dyed; keep the explicitly selected hair color while preserving elder realism.' : 'Hair may skew gray/silver/white with thinning and irregular texture unless explicitly specified.'}
                 `.trim().replace(/\s+/g, ' '));
             }
 
@@ -408,7 +417,7 @@ Captured by smartphone so fine edges may appear soft or broken.
                     const secondaryAgeGroupLabel = secondaryAge >= 75 ? 'elder' : 'adult';
                     if (secondaryAge >= 70) {
                         parts.push(
-                            `SECONDARY AGE ANCHOR: SECONDARY SUBJECT MUST visually read as ${secondaryAge} years old. Facial structure, skin laxity, eye area, neck, and hands must match a real ${secondaryAge}-year-old ${secondaryAgeGroupLabel}. Do NOT make the secondary subject appear younger.`
+                            `SECONDARY AGE ANCHOR: SECONDARY SUBJECT MUST visually read as ${secondaryAge} years old. Facial structure, skin laxity, eye area, neck, hands, and posture must match a real ${secondaryAge}-year-old ${secondaryAgeGroupLabel}. Do NOT make the secondary subject appear younger. AGE VISIBILITY: must read clearly as elderly; if ambiguous, err older.`
                         );
                     } else if (secondaryAge >= 60) {
                         parts.push(
@@ -421,9 +430,11 @@ Captured by smartphone so fine edges may appear soft or broken.
                     }
 
                     if (secondaryAge >= 55) {
-                        parts.push(
-                            `SECONDARY NEGATIVE AGE CONSTRAINT: SECONDARY SUBJECT must NOT render younger (no 20s/30s/40s face, no youthful skin). Age visibility must remain dominant.`
-                        );
+                        const secondaryNegativeAgeBand =
+                            secondaryAge >= 70
+                                ? 'no 20s/30s/40s/50s/60s appearance, no middle-aged look, no youthful skin'
+                                : 'no 20s/30s/40s face, no youthful skin';
+                        parts.push(`SECONDARY NEGATIVE AGE CONSTRAINT: SECONDARY SUBJECT must NOT render younger (${secondaryNegativeAgeBand}). Age visibility must remain dominant.`);
                     }
 
                     if (secondaryAge >= 75) {
