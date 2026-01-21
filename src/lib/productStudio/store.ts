@@ -146,6 +146,7 @@ export function getDefaultMicroPlace(env: EnvironmentMacro): MicroPlace {
         'hallway': 'console-table',
         'home-gym': 'bench',
         'balcony-indoor-terrace': 'table',
+        'cgmp-facility': 'conveyor-belt',
         'urban-exterior': 'concrete-ledge',
         'natural-exterior': 'rock',
         'parking-lot': 'car-hood',
@@ -163,7 +164,7 @@ export function getDefaultMicroPlace(env: EnvironmentMacro): MicroPlace {
 
 const NIGHT_MODE_ENVS: EnvironmentMacro[] = ['urban-exterior', 'street-corner', 'parking-lot'];
 const FLASH_PHOTO_ENVS: EnvironmentMacro[] = ['urban-exterior', 'street-corner', 'parking-lot'];
-const RING_LIGHT_ENVS: EnvironmentMacro[] = ['studio', 'workspace', 'kitchen', 'living-room', 'bedroom', 'bathroom'];
+const RING_LIGHT_ENVS: EnvironmentMacro[] = ['studio', 'workspace', 'kitchen', 'living-room', 'bedroom', 'bathroom', 'cgmp-facility'];
 
 export function enforceValidLighting(lighting: Lighting, env: EnvironmentMacro): Lighting {
     if (lighting === 'night-mode' && !NIGHT_MODE_ENVS.includes(env)) {

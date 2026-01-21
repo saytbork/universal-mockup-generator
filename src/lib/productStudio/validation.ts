@@ -67,7 +67,7 @@ function validateProductEnvironment(state: ProductStudioState): string[] {
 const INTERIOR_LIGHTING: Lighting[] = ['cozy-indoors', 'ring-light', 'mood-lighting', 'flash-photo'];
 const EXTERIOR_LIGHTING: Lighting[] = ['natural-light', 'sunny-day', 'golden-hour', 'overcast', 'night-mode', 'flash-photo'];
 
-const INTERIOR_ENVS: EnvironmentMacro[] = ['kitchen', 'living-room', 'bedroom', 'bathroom', 'workspace', 'hallway', 'home-gym', 'balcony-indoor-terrace', 'studio'];
+const INTERIOR_ENVS: EnvironmentMacro[] = ['kitchen', 'living-room', 'bedroom', 'bathroom', 'workspace', 'hallway', 'home-gym', 'balcony-indoor-terrace', 'cgmp-facility', 'studio'];
 const EXTERIOR_ENVS: EnvironmentMacro[] = ['urban-exterior', 'natural-exterior', 'parking-lot', 'backyard-patio', 'street-corner'];
 
 function validateLighting(state: ProductStudioState): string[] {

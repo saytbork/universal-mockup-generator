@@ -214,6 +214,7 @@ export type SceneType = 'studio-branding' | 'editorial-product' | 'lifestyle-rea
 export type EnvironmentMacro =
     | 'kitchen' | 'living-room' | 'bedroom' | 'bathroom' | 'workspace'
     | 'hallway' | 'home-gym' | 'balcony-indoor-terrace'
+    | 'cgmp-facility'
     | 'urban-exterior' | 'natural-exterior' | 'parking-lot'
     | 'backyard-patio' | 'street-corner' | 'studio'
     | 'custom';
@@ -232,6 +233,7 @@ export type MicroPlace =
     | 'sidewalk-edge' | 'urban-bench'
     | 'car-hood' | 'trunk-edge'
     | 'rock' | 'wooden-surface' | 'picnic-table'
+    | 'conveyor-belt' | 'filling-line'
     | 'neutral-surface'
     | 'custom';
 

@@ -1630,6 +1630,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const ENVIRONMENT_MACRO_OPTIONS: EnvironmentMacro[] = [
     'kitchen', 'living-room', 'bedroom', 'bathroom', 'workspace',
     'hallway', 'home-gym', 'balcony-indoor-terrace',
+    'cgmp-facility',
     'urban-exterior', 'natural-exterior', 'parking-lot',
     'backyard-patio', 'street-corner', 'custom'
   ];
@@ -1639,6 +1640,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     'kitchen-island',
     'sink-ledge',
     'dining-table',
+    'conveyor-belt',
+    'filling-line',
   ];
 
   const PRODUCT_ENVIRONMENT_LIGHTING_OPTIONS: Array<{ label: string; value: ProductStudioState['lighting'] }> = [
@@ -3731,6 +3734,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           >
                             {env === 'custom'
                               ? 'Custom'
+                              : env === 'cgmp-facility'
+                                ? 'cGMP Manufacturing Facility'
                               : env.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
                             }
                           </Chip>

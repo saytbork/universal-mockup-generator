@@ -407,15 +407,23 @@ function buildEnvironment(state: ProductStudioState): string {
 
     // Studio branding: treat environment controls as "set styling" cues (abstract, not a real room).
     if (state.sceneType === 'studio-branding') {
-        const envText = macro === 'custom' && state.customEnvironmentText
-            ? state.customEnvironmentText
-            : macro.replace(/-/g, ' ');
+        const envText =
+            macro === 'cgmp-facility'
+                ? 'cGMP dietary supplement manufacturing facility (clean-room production line, stainless steel equipment, filling and packaging stations)'
+                : macro === 'custom' && state.customEnvironmentText
+                    ? state.customEnvironmentText
+                    : macro.replace(/-/g, ' ');
 
         parts.push(`STUDIO SET: ${envText}-inspired set styling (abstract cues only, not a real location)`);
 
-        const microText = micro === 'custom' && state.customMicroPlaceText
-            ? state.customMicroPlaceText
-            : micro.replace(/-/g, ' ');
+        const microText =
+            micro === 'conveyor-belt'
+                ? 'stainless steel conveyor belt'
+                : micro === 'filling-line'
+                    ? 'stainless steel filling line'
+                    : micro === 'custom' && state.customMicroPlaceText
+                        ? state.customMicroPlaceText
+                        : micro.replace(/-/g, ' ');
         if (microText) {
             parts.push(`base surface cue: ${microText}`);
         }
@@ -425,23 +433,44 @@ function buildEnvironment(state: ProductStudioState): string {
 
     // Editorial mode: abstracted environment
     if (state.sceneType === 'editorial-product') {
-        parts.push('editorial setting with stylized surface');
+        if (macro === 'cgmp-facility') {
+            parts.push('manufacturing facility set with clean stainless steel production surfaces');
+        } else {
+            parts.push('editorial setting with stylized surface');
+        }
         if (micro) {
-            parts.push(`product placed on ${micro.replace(/-/g, ' ')}`);
+            const microText =
+                micro === 'conveyor-belt'
+                    ? 'stainless steel conveyor belt'
+                    : micro === 'filling-line'
+                        ? 'stainless steel filling line'
+                        : micro.replace(/-/g, ' ');
+            parts.push(`product placed on ${microText}`);
         }
         parts.push('abstracted environment, no specific room context');
+        if (macro === 'cgmp-facility') {
+            parts.push('in-process packaging cues: empty line, clean machinery, no visible workers');
+        }
     }
     // Lifestyle-real/UGC mode: full environment
     else if (state.sceneType === 'lifestyle-real' || state.sceneType === 'ugc-phone') {
-        const envText = macro === 'custom' && state.customEnvironmentText
-            ? state.customEnvironmentText
-            : macro.replace(/-/g, ' ');
+        const envText =
+            macro === 'cgmp-facility'
+                ? 'cGMP manufacturing facility'
+                : macro === 'custom' && state.customEnvironmentText
+                    ? state.customEnvironmentText
+                    : macro.replace(/-/g, ' ');
 
         parts.push(`${envText} setting`);
 
-        const microText = micro === 'custom' && state.customMicroPlaceText
-            ? state.customMicroPlaceText
-            : micro.replace(/-/g, ' ');
+        const microText =
+            micro === 'conveyor-belt'
+                ? 'stainless steel conveyor belt'
+                : micro === 'filling-line'
+                    ? 'stainless steel filling line'
+                    : micro === 'custom' && state.customMicroPlaceText
+                        ? state.customMicroPlaceText
+                        : micro.replace(/-/g, ' ');
 
         if (microText) {
             parts.push(`product placed on ${microText}`);
