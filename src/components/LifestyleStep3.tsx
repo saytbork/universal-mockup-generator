@@ -1046,6 +1046,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // New strict states
   const [isCreatorPro, setIsCreatorPro] = useState(false);
   const [personBAdvancedOpen, setPersonBAdvancedOpen] = useState(false);
+  const [productEnvironmentAdvancedOpen, setProductEnvironmentAdvancedOpen] = useState(false);
+  const [productEnvironmentShowAllMacros, setProductEnvironmentShowAllMacros] = useState(false);
 
   // ============================================================================
   // PHASE 3: PRODUCT STUDIO STORE (SINGLE SOURCE OF TRUTH FOR PRODUCT MODE)
@@ -1628,22 +1630,45 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     'Custom'
   ];
 
-  const ENVIRONMENT_MACRO_OPTIONS: EnvironmentMacro[] = [
-    'kitchen', 'living-room', 'bedroom', 'bathroom', 'workspace',
-    'hallway', 'home-gym', 'balcony-indoor-terrace',
-    'cgmp-facility',
-    'urban-exterior', 'natural-exterior', 'parking-lot',
-    'backyard-patio', 'street-corner', 'custom'
+  const PRODUCT_ENVIRONMENT_MACRO_GROUPS: Array<{ label: string; items: EnvironmentMacro[] }> = [
+    {
+      label: 'Home',
+      items: [
+        'kitchen',
+        'living-room',
+        'bedroom',
+        'bathroom',
+        'workspace',
+        'hallway',
+        'home-gym',
+        'balcony-indoor-terrace',
+      ],
+    },
+    { label: 'Industrial', items: ['cgmp-facility'] },
+    {
+      label: 'Outdoor',
+      items: ['urban-exterior', 'street-corner', 'parking-lot', 'backyard-patio', 'natural-exterior'],
+    },
+    { label: 'Custom', items: ['custom'] },
   ];
 
-  const PRODUCT_ENVIRONMENT_MICRO_OPTIONS: MicroPlace[] = [
-    'countertop',
-    'kitchen-island',
-    'sink-ledge',
-    'dining-table',
-    'conveyor-belt',
-    'filling-line',
-  ];
+  const PRODUCT_ENVIRONMENT_MICRO_BY_MACRO: Partial<Record<EnvironmentMacro, MicroPlace[]>> = {
+    kitchen: ['countertop', 'kitchen-island', 'sink-ledge', 'dining-table'],
+    'living-room': ['coffee-table', 'side-table', 'shelf'],
+    bedroom: ['nightstand', 'dresser-top', 'side-table'],
+    bathroom: ['vanity', 'sink-ledge', 'shower-shelf'],
+    workspace: ['desk-surface', 'keyboard-side', 'notebook-area'],
+    hallway: ['console-table', 'shelf'],
+    'home-gym': ['bench', 'mat-edge', 'water-bottle-side'],
+    'balcony-indoor-terrace': ['table', 'railing-ledge'],
+    'cgmp-facility': ['conveyor-belt', 'filling-line'],
+    'urban-exterior': ['concrete-ledge', 'low-wall', 'stairs'],
+    'street-corner': ['sidewalk-edge', 'urban-bench', 'low-wall'],
+    'parking-lot': ['car-hood', 'trunk-edge', 'concrete-ledge'],
+    'backyard-patio': ['outdoor-table', 'chair-armrest', 'table'],
+    'natural-exterior': ['rock', 'wooden-surface', 'picnic-table'],
+    custom: ['custom'],
+  };
 
   const PRODUCT_ENVIRONMENT_LIGHTING_OPTIONS: Array<{ label: string; value: ProductStudioState['lighting'] }> = [
     { label: 'Natural Light', value: 'natural-light' },
@@ -3731,37 +3756,61 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <p className={GROUP_LABEL_CLASS}>MACRO ENVIRONMENT</p>
-                          <p className="text-[11px] text-gray-500 mt-1">Choose a setting to match lighting + surfaces</p>
+                          <p className="text-[11px] text-gray-500 mt-1">Pick a setting. Keep it simple unless you need specific staging.</p>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            productStore.setEnvironmentContext(null);
-                            markSectionTouched('product-environment');
-                          }}
-                          className="text-[11px] font-semibold text-gray-500 hover:text-gray-900"
-                        >
-                          Clear
-                        </button>
-                      </div>
-
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {ENVIRONMENT_MACRO_OPTIONS.map(env => (
-                          <Chip
-                            key={env}
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] font-semibold text-gray-500 dark:text-white/50">More</span>
+                            <Toggle
+                              checked={productEnvironmentShowAllMacros}
+                              onCheckedChange={(next) => setProductEnvironmentShowAllMacros(next)}
+                              aria-label="Show more environments"
+                            />
+                          </div>
+                          <button
+                            type="button"
                             onClick={() => {
-                              productStore.setEnvironmentContext({ macro: env, micro: null });
+                              productStore.setEnvironmentContext(null);
                               markSectionTouched('product-environment');
                             }}
-                            selected={selectedMacro === env}
+                            className="text-[11px] font-semibold text-gray-500 hover:text-gray-900 dark:text-white/50 dark:hover:text-white"
                           >
-                            {env === 'custom'
-                              ? 'Custom'
-                              : env === 'cgmp-facility'
-                                ? 'cGMP Manufacturing Facility'
-                              : env.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-                            }
-                          </Chip>
+                            Clear
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 space-y-4">
+                        {PRODUCT_ENVIRONMENT_MACRO_GROUPS.filter(group => {
+                          if (group.label === 'Home') return true;
+                          return productEnvironmentShowAllMacros;
+                        }).map(group => (
+                          <div key={group.label} className="space-y-2">
+                            <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">
+                              {group.label}
+                            </p>
+                            <div className="grid grid-cols-2 gap-2">
+                              {group.items.map(env => (
+                                <Chip
+                                  key={env}
+                                  onClick={() => {
+                                    productStore.setEnvironmentContext({ macro: env, micro: null });
+                                    markSectionTouched('product-environment');
+                                  }}
+                                  selected={selectedMacro === env}
+                                  size="md"
+                                  className="w-full justify-center whitespace-normal text-center"
+                                >
+                                  {env === 'custom'
+                                    ? 'Custom'
+                                    : env === 'cgmp-facility'
+                                      ? 'cGMP Manufacturing Facility'
+                                      : env.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                                  }
+                                </Chip>
+                              ))}
+                            </div>
+                          </div>
                         ))}
                       </div>
 
@@ -3782,8 +3831,23 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     </div>
 
                     <div className={SECTION_GROUP_CLASS}>
-                      <p className={GROUP_LABEL_CLASS}>MICRO PLACE</p>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className={GROUP_LABEL_CLASS}>MICRO PLACE</p>
+                          <p className="text-[11px] text-gray-500 mt-1">Optional refinement for where the product sits.</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-semibold text-gray-500 dark:text-white/50">Advanced</span>
+                          <Toggle
+                            checked={productEnvironmentAdvancedOpen}
+                            onCheckedChange={(next) => setProductEnvironmentAdvancedOpen(next)}
+                            aria-label="Advanced environment controls"
+                          />
+                        </div>
+                      </div>
+
+                      {selectedMacro ? (
+                      <div className="flex flex-wrap gap-2 mt-2">
                         <Chip
                           onClick={() => {
                             const macro = (selectedMacro ?? 'kitchen') as EnvironmentMacro;
@@ -3791,10 +3855,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             markSectionTouched('product-environment');
                           }}
                           selected={!selectedMicro}
+                          size="md"
                         >
-                          Optional
+                          Auto
                         </Chip>
-                        {PRODUCT_ENVIRONMENT_MICRO_OPTIONS.map(place => (
+                        {(PRODUCT_ENVIRONMENT_MICRO_BY_MACRO[selectedMacro] ?? ['neutral-surface']).map(place => (
                           <Chip
                             key={place}
                             onClick={() => {
@@ -3803,11 +3868,48 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               markSectionTouched('product-environment');
                             }}
                             selected={selectedMicro === place}
+                            size="md"
                           >
-                            {place.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                            {place === 'conveyor-belt'
+                              ? 'Conveyor belt'
+                              : place === 'filling-line'
+                                ? 'Filling line'
+                                : place.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                            }
                           </Chip>
                         ))}
+                        {productEnvironmentAdvancedOpen && (
+                          <Chip
+                            onClick={() => {
+                              const macro = (selectedMacro ?? 'kitchen') as EnvironmentMacro;
+                              productStore.setEnvironmentContext({ macro, micro: 'custom' });
+                              markSectionTouched('product-environment');
+                            }}
+                            selected={selectedMicro === 'custom'}
+                            size="md"
+                          >
+                            Custom
+                          </Chip>
+                        )}
                       </div>
+                      ) : (
+                        <p className="text-[11px] text-gray-500 mt-2">Select a macro environment to refine micro placement.</p>
+                      )}
+
+                      {productEnvironmentAdvancedOpen && selectedMicro === 'custom' && (
+                        <label className="block space-y-1 mt-3">
+                          <p className="text-[11px] uppercase tracking-wide text-gray-500">Custom micro place</p>
+                          <input
+                            value={productStore.customMicroPlaceText || ''}
+                            onChange={(e) => {
+                              productStore.setCustomMicroPlaceText(e.target.value);
+                              markSectionTouched('product-environment');
+                            }}
+                            placeholder="e.g. stainless steel filling station"
+                            className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none"
+                          />
+                        </label>
+                      )}
                     </div>
 
                     <div className={SECTION_GROUP_CLASS}>
@@ -3816,7 +3918,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <p className="text-[11px] text-gray-500 mt-1">Product-safe lighting style</p>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        {PRODUCT_ENVIRONMENT_LIGHTING_OPTIONS.map(option => (
+                        {(productEnvironmentAdvancedOpen
+                          ? PRODUCT_ENVIRONMENT_LIGHTING_OPTIONS
+                          : PRODUCT_ENVIRONMENT_LIGHTING_OPTIONS.filter(opt =>
+                            opt.value === 'natural-light' ||
+                            opt.value === 'overcast' ||
+                            opt.value === 'cozy-indoors' ||
+                            opt.value === 'ring-light'
+                          )
+                        ).map(option => (
                           <Chip
                             key={option.value}
                             onClick={() => {
@@ -3824,11 +3934,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               markSectionTouched('product-environment');
                             }}
                             selected={productStore.lighting === option.value}
+                            size="md"
                           >
                             {option.label}
                           </Chip>
                         ))}
                       </div>
+                      {!productEnvironmentAdvancedOpen && (
+                        <p className="text-[11px] text-gray-500 mt-2">
+                          Enable Advanced to access stylistic lighting (Golden Hour, Sunny Day, Mood, Night, Flash).
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
