@@ -32,7 +32,7 @@ const warmInactiveClass =
   'border-orange-200 bg-orange-50/50 text-orange-700 hover:border-orange-300 dark:bg-orange-500/10 dark:text-orange-200 dark:border-orange-500/30 dark:hover:border-orange-500/50';
 
 const disabledClass =
-  'opacity-50 cursor-not-allowed pointer-events-none bg-gray-50 text-gray-400 border-gray-200 dark:bg-white/5 dark:text-white/30 dark:border-white/10';
+  'opacity-70 cursor-not-allowed pointer-events-none bg-gray-50/80 text-gray-400 border-gray-200 dark:bg-white/5 dark:text-white/40 dark:border-white/10';
 
 export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
   ({ selected = false, disabled = false, size = 'sm', tone = 'default', tooltip, className = '', children, ...props }, ref) => {

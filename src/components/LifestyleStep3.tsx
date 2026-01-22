@@ -396,9 +396,9 @@ const getAgeCategory = (age: number) => {
 };
 
 const SECTION_GROUP_CLASS =
-  'space-y-3';
+  'space-y-2';
 const GROUP_LABEL_CLASS =
-  'text-[10px] uppercase tracking-[0.2em] text-gray-500 font-extrabold mb-1';
+  'text-[11px] uppercase tracking-[0.14em] text-gray-500 font-semibold leading-none';
 
 const getPillClass = (isActive: boolean, fullWidth = false) => {
   const base = `rounded-full px-4 py-2 text-xs font-semibold border transition-colors ${fullWidth ? 'w-full text-center' : ''}`;
@@ -1045,6 +1045,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
   // New strict states
   const [isCreatorPro, setIsCreatorPro] = useState(false);
+  const [personBAdvancedOpen, setPersonBAdvancedOpen] = useState(false);
 
   // ============================================================================
   // PHASE 3: PRODUCT STUDIO STORE (SINGLE SOURCE OF TRUTH FOR PRODUCT MODE)
@@ -2029,6 +2030,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           key={option}
                           onClick={() => {
                             updateValue('productType', option as any);
+                            const mapped = ({
+                              Capsules: 'capsules',
+                              Gummies: 'gummies',
+                              Drops: 'drops',
+                              Powder: 'powder',
+                              Skincare: 'skincare',
+                              Device: 'device',
+                              Custom: 'custom',
+                            } as const)[option];
+                            if (mapped) productStore.setProductType(mapped);
                             markSectionTouched('product-setup');
                           }}
                           selected={
@@ -2069,6 +2080,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           key={option}
                           onClick={() => {
                             updateValue('productPackaging', option);
+                            productStore.setPackagingMode(option === 'With box' ? 'with-box' : 'without-box');
                             markSectionTouched('product-setup');
                           }}
                           selected={
@@ -2091,6 +2103,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           key={option}
                           onClick={() => {
                             updateValue('productScale', option);
+                            const mapped =
+                              option === 'Small handheld'
+                                ? 'small-handheld'
+                                : option === 'Medium tabletop'
+                                  ? 'medium-tabletop'
+                                  : 'large-object';
+                            productStore.setPhysicalScaleLabel(mapped);
                             markSectionTouched('product-setup');
                           }}
                           selected={
@@ -3531,17 +3550,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           <p className={GROUP_LABEL_CLASS}>SCALE</p>
                           <div className="flex flex-col gap-2">
                             {PRODUCT_SCALE_OPTIONS.map(opt => (
-                              <button
+                              <Chip
                                 key={opt.value}
-                                type="button"
                                 onClick={() => {
                                   productStore.setScale(opt.value);
                                   markSectionTouched('product-creativity');
                                 }}
-                                className={getPillClass(productStore.scale === opt.value, true)}
+                                selected={productStore.scale === opt.value}
+                                size="md"
+                                className="w-full justify-center py-3 rounded-full text-[12px] font-semibold"
                               >
                                 {opt.label}
-                              </button>
+                              </Chip>
                             ))}
                           </div>
                           <SelectedOptionFooter
@@ -3557,17 +3577,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           <p className={GROUP_LABEL_CLASS}>SPACING</p>
                           <div className="flex flex-col gap-2">
                             {PRODUCT_SPACING_OPTIONS.map(opt => (
-                              <button
+                              <Chip
                                 key={opt.value}
-                                type="button"
                                 onClick={() => {
                                   productStore.setSpacing(opt.value);
                                   markSectionTouched('product-creativity');
                                 }}
-                                className={getPillClass(productStore.spacing === opt.value, true)}
+                                selected={productStore.spacing === opt.value}
+                                size="md"
+                                className="w-full justify-center py-3 rounded-full text-[12px] font-semibold"
                               >
                                 {opt.label}
-                              </button>
+                              </Chip>
                             ))}
                           </div>
                           <SelectedOptionFooter
@@ -3642,7 +3663,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       <div className={SECTION_GROUP_CLASS}>
                         <p className={GROUP_LABEL_CLASS}>SUGGESTED PROPS</p>
                         <p className="text-[11px] text-gray-500">Optional. Product-safe suggestions based on Product Type.</p>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="grid grid-cols-2 gap-2">
                           {productSuggestedProps.map(prop => {
                             const selected = productStore.selectedProps.includes(prop);
                             return (
@@ -3655,6 +3676,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   markSectionTouched('product-creativity');
                                 }}
                                 selected={selected}
+                                size="xs"
+                                className="w-full justify-center rounded-full"
                               >
                                 {prop}
                               </Chip>
@@ -4368,7 +4391,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   <>
                     <section className="space-y-6">
                       <div className="flex items-center gap-2">
-                        <p className="text-[11px] uppercase tracking-[0.3em] text-gray-400 font-semibold dark:text-white/40">Core identity</p>
+                        <p className={GROUP_LABEL_CLASS}>CORE IDENTITY</p>
                         {touchedSections.has('creator') && <Check className="w-4 h-4 text-indigo-600 dark:text-indigo-300" />}
                       </div>
 
@@ -4396,19 +4419,19 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                          {values.personCount === 'couple' ? 'Primary gender' : 'Gender'}
 	                        </span>
 	                        <div className="flex flex-wrap gap-2">
-	                          {(['Female', 'Male'] as const).map(option => {
-	                            const active = values.gender === option;
-	                            return (
-	                              <Chip
-	                                key={option}
-	                                onClick={() => { updateValue('gender', option); markSectionTouched('creator'); }}
-	                                selected={active}
-	                                size="md"
-	                              >
-	                                {option}
-	                              </Chip>
-	                            );
-	                          })}
+	                          {(isCreatorPro
+	                            ? (['Female', 'Male', 'Trans', 'Non-binary', 'Gender non-conforming'] as const)
+	                            : (['Female', 'Male'] as const)
+	                          ).map(option => (
+	                            <Chip
+	                              key={option}
+	                              onClick={() => { updateValue('gender', option as any); markSectionTouched('creator'); }}
+	                              selected={values.gender === (option as any)}
+	                              size="md"
+	                            >
+	                              {option}
+	                            </Chip>
+	                          ))}
 	                        </div>
 	                      </div>
 
@@ -4517,27 +4540,24 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 		                          </div>
 		                        )}
 
-                        <div className="space-y-2">
-                          <span className="text-xs text-gray-600 dark:text-white/60">Eye direction</span>
-                          <div className="flex flex-wrap gap-2">
-                            {EYE_DIRECTION_OPTIONS.map(option => {
-                              const active = values.eyeDirection === option;
-                              return (
-                                <button
-                                  key={option}
-                                  type="button"
-                                  onClick={() => { updateValue('eyeDirection', option); markSectionTouched('creator'); }}
-                                  className={`px-3 h-8 rounded-full border text-xs transition-colors ${active
-                                    ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-                                    : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-                                    }`}
-                                >
-                                  {option}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
+	                        <div className="space-y-2">
+	                          <span className="text-xs text-gray-600 dark:text-white/60">Eye direction</span>
+	                          <div className="flex flex-wrap gap-2">
+	                            {EYE_DIRECTION_OPTIONS.map(option => {
+	                              const active = values.eyeDirection === option;
+	                              return (
+	                                <Chip
+	                                  key={option}
+	                                  onClick={() => { updateValue('eyeDirection', option); markSectionTouched('creator'); }}
+	                                  selected={active}
+	                                  size="md"
+	                                >
+	                                  {option}
+	                                </Chip>
+	                              );
+	                            })}
+	                          </div>
+	                        </div>
 
 		                        {values.personCount === 'couple' && (
 		                          <div className="pt-2">
@@ -4579,156 +4599,188 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
 		                      {values.personCount === 'couple' && values.editSecondaryPerson && (
 		                        <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-4 dark:bg-black/20 dark:border-white/10">
-		                          <p className="text-[11px] uppercase tracking-[0.3em] text-gray-400 font-semibold dark:text-white/40">
-		                            Person B (Secondary)
-		                          </p>
-                              <div className="space-y-2">
-                                <div className="flex justify-between items-center">
-                                  <span className="text-xs text-gray-600 dark:text-white/60">Age</span>
-                                  <span className="text-sm font-medium text-gray-900 dark:text-white">{values.secondaryAge}</span>
-                                </div>
-                                <input
-                                  type="range"
-                                  min={18}
-                                  max={90}
-                                  step={1}
-                                  value={values.secondaryAge}
-                                  onChange={(event) => { updateValue('secondaryAge', Number(event.target.value)); markSectionTouched('creator'); }}
-                                  className="scene-age-slider w-full"
-                                  style={{ ['--progress' as any]: `${Math.round(((values.secondaryAge - 18) / (90 - 18)) * 100)}%` }}
-                                />
-                              </div>
-	                          <div className="space-y-2">
-	                            <span className="text-xs text-gray-600 dark:text-white/60">Gender</span>
-	                            <div className="flex flex-wrap gap-2">
-	                              {(['Female', 'Male'] as const).map(option => (
-	                                <Chip
-	                                  key={option}
-	                                  onClick={() => { updateValue('secondaryGender', option); markSectionTouched('creator'); }}
-	                                  selected={values.secondaryGender === option}
-	                                  tooltip={`Person B: ${option}`}
-	                                  size="md"
-	                                >
-	                                  {option}
-	                                </Chip>
-	                              ))}
-	                            </div>
-	                          </div>
-	                          <div className="space-y-2">
-	                            <span className="text-xs text-gray-600 dark:text-white/60">Ethnicity</span>
-	                            <div className="flex flex-wrap gap-2">
-	                              {(
-	                                [
-	                                  'Non-specific',
-	                                  'White / European descent',
-	                                  'Black / African descent',
-	                                  'Latino / Hispanic',
-	                                ] as const
-	                              ).map(option => {
-	                                const active = values.secondaryEthnicity === option;
-	                                return (
-	                                  <button
-	                                    key={option}
-	                                    type="button"
-	                                    onClick={() => { updateValue('secondaryEthnicity', option); markSectionTouched('creator'); }}
-	                                    className={`px-3 h-8 rounded-full border text-xs transition-colors ${active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'} dark:border-white/10 ${active ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white' : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'}`}
-	                                  >
-	                                    {option}
-	                                  </button>
-	                                );
-	                              })}
-	                            </div>
-	                          </div>
-	                          <div className="space-y-2">
-	                            <span className="text-xs text-gray-600 dark:text-white/60">Skin tone</span>
-	                            <div className="flex flex-wrap gap-2">
-	                              {SKIN_TONE_OPTIONS.map(option => {
-	                                const active = values.secondarySkinTone === option;
-	                                return (
-	                                  <button
-	                                    key={option}
-	                                    type="button"
-	                                    onClick={() => { updateValue('secondarySkinTone', option); markSectionTouched('creator'); }}
-	                                    className={`px-3 h-8 rounded-full border text-xs transition-colors ${active
-	                                      ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-	                                      : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-	                                      }`}
-	                                  >
-	                                    {option}
-	                                  </button>
-	                                );
-	                              })}
-	                            </div>
-	                          </div>
-	                          <div className="space-y-2">
-	                            <span className="text-xs text-gray-600 dark:text-white/60">Eye color</span>
-	                            <div className="flex gap-2 flex-wrap">
-	                              {EYE_COLOR_OPTIONS.map(option => {
-	                                const active = values.secondaryEyeColor === option;
-	                                return (
-	                                  <button
-	                                    key={option}
-	                                    type="button"
-	                                    onClick={() => { updateValue('secondaryEyeColor', option); markSectionTouched('creator'); }}
-	                                    className={`h-8 px-3 rounded-full border text-xs transition-colors ${active
-	                                      ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-	                                      : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-	                                      }`}
-	                                  >
-	                                    {option}
-	                                  </button>
-	                                );
-	                              })}
-	                            </div>
-	                          </div>
-	                          <div className="space-y-2">
-	                            <span className="text-xs text-gray-600 dark:text-white/60">Hair</span>
-	                            <div className="grid grid-cols-3 gap-2">
-	                              {(['Short', 'Shoulder', 'Long'] as const).map(option => {
-	                                const active = values.secondaryHairLength === option;
-	                                return (
-	                                  <button
-	                                    key={option}
-	                                    type="button"
-	                                    onClick={() => { updateValue('secondaryHairLength', option); markSectionTouched('creator'); }}
-	                                    className={`px-3 h-8 rounded-full border text-xs transition-colors ${active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'} dark:border-white/10 ${active ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white' : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'}`}
-	                                  >
-	                                    {option}
-	                                  </button>
-	                                );
-	                              })}
-	                            </div>
-	                            <div className="flex flex-wrap gap-2">
-	                              {[...HAIR_TEXTURE_OPTIONS, 'Custom'].map(option => {
-	                                const active = values.secondaryHairTexture === option;
-	                                const label = option === 'Coily/Kinky' ? 'Coily / Kinky' : option;
-	                                return (
-	                                  <button
-	                                    key={option}
-	                                    type="button"
-	                                    onClick={() => { updateValue('secondaryHairTexture', option); markSectionTouched('creator'); }}
-	                                    className={`px-3 h-8 rounded-full border text-xs transition-colors ${active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'} dark:border-white/10 ${active ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white' : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'}`}
-	                                  >
-	                                    {label}
-	                                  </button>
-	                                );
-	                              })}
-	                            </div>
-	                            <div className="flex flex-wrap gap-2">
-	                              {HAIR_COLOR_OPTIONS.map(option => {
-	                                const active = values.secondaryHairColor === option;
-	                                return (
-	                                  <button
-	                                    key={option}
-	                                    type="button"
-	                                    onClick={() => { updateValue('secondaryHairColor', option); markSectionTouched('creator'); }}
-	                                    className={`px-3 h-8 rounded-full border text-xs transition-colors ${active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'} dark:border-white/10 ${active ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white' : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'}`}
-	                                  >
-	                                    {option}
-	                                  </button>
-	                                );
-	                              })}
-	                            </div>
+		                          <div className="flex items-start justify-between gap-4">
+		                            <div>
+		                              <p className="text-sm font-semibold text-gray-900 dark:text-white">Person B (Secondary)</p>
+		                              <p className="text-[11px] text-gray-400 dark:text-white/40">
+		                                Keep Person B coherent and in-focus. Use Advanced only if you need tighter control.
+		                              </p>
+		                            </div>
+		                            <div className="flex items-center gap-2">
+		                              <span className="text-xs text-gray-500 dark:text-white/50">Advanced</span>
+		                              <Toggle
+		                                checked={personBAdvancedOpen}
+		                                onCheckedChange={(next) => setPersonBAdvancedOpen(next)}
+		                                aria-label="Toggle Person B advanced controls"
+		                              />
+		                            </div>
+		                          </div>
+
+		                          <div className="space-y-4">
+		                            <div className="space-y-2">
+		                              <div className="flex justify-between items-center">
+		                                <span className="text-xs text-gray-600 dark:text-white/60">Age</span>
+		                                <span className="text-sm font-medium text-gray-900 dark:text-white">{values.secondaryAge}</span>
+		                              </div>
+		                              <input
+		                                type="range"
+		                                min={18}
+		                                max={90}
+		                                step={1}
+		                                value={values.secondaryAge}
+		                                onChange={(event) => { updateValue('secondaryAge', Number(event.target.value)); markSectionTouched('creator'); }}
+		                                className="scene-age-slider w-full"
+		                                style={{ ['--progress' as any]: `${Math.round(((values.secondaryAge - 18) / (90 - 18)) * 100)}%` }}
+		                              />
+		                            </div>
+
+		                            <div className="space-y-2">
+		                              <span className="text-xs text-gray-600 dark:text-white/60">Gender</span>
+		                              <div className="flex flex-wrap gap-2">
+		                                {(['Female', 'Male'] as const).map(option => (
+		                                  <Chip
+		                                    key={option}
+		                                    onClick={() => { updateValue('secondaryGender', option); markSectionTouched('creator'); }}
+		                                    selected={values.secondaryGender === option}
+		                                    size="md"
+		                                  >
+		                                    {option}
+		                                  </Chip>
+		                                ))}
+		                              </div>
+		                            </div>
+
+		                            <div className="space-y-2">
+		                              <span className="text-xs text-gray-600 dark:text-white/60">Ethnicity</span>
+		                              <div className="flex flex-wrap gap-2">
+		                                {(isCreatorPro
+		                                  ? ([
+		                                    'Non-specific',
+		                                    'White / European descent',
+		                                    'Black / African descent',
+		                                    'Latino / Hispanic',
+		                                    'Asian',
+		                                    'Middle Eastern',
+		                                    'South Asian',
+		                                    'Mixed',
+		                                  ] as const)
+		                                  : ([
+		                                    'Non-specific',
+		                                    'White / European descent',
+		                                    'Black / African descent',
+		                                    'Latino / Hispanic',
+		                                  ] as const)
+		                                ).map(option => (
+		                                  <Chip
+		                                    key={option}
+		                                    onClick={() => { updateValue('secondaryEthnicity', option); markSectionTouched('creator'); }}
+		                                    selected={values.secondaryEthnicity === option}
+		                                    size="md"
+		                                  >
+		                                    {option}
+		                                  </Chip>
+		                                ))}
+		                              </div>
+		                            </div>
+
+		                            <div className="space-y-2">
+		                              <span className="text-xs text-gray-600 dark:text-white/60">Hair</span>
+		                              <div className="grid grid-cols-3 gap-2">
+		                                {(['Short', 'Shoulder', 'Long'] as const).map(option => (
+		                                  <Chip
+		                                    key={option}
+		                                    onClick={() => { updateValue('secondaryHairLength', option); markSectionTouched('creator'); }}
+		                                    selected={values.secondaryHairLength === option}
+		                                    size="md"
+		                                    className="w-full justify-center rounded-full py-2 text-[12px] font-semibold"
+		                                  >
+		                                    {option}
+		                                  </Chip>
+		                                ))}
+		                              </div>
+		                              <div className="flex flex-wrap gap-2">
+		                                {HAIR_COLOR_OPTIONS.map(option => (
+		                                  <Chip
+		                                    key={option}
+		                                    onClick={() => { updateValue('secondaryHairColor', option); markSectionTouched('creator'); }}
+		                                    selected={values.secondaryHairColor === option}
+		                                    size="md"
+		                                  >
+		                                    {option}
+		                                  </Chip>
+		                                ))}
+		                              </div>
+		                            </div>
+
+		                            {personBAdvancedOpen && (
+		                              <>
+		                                <div className="pt-3 border-t border-gray-100 dark:border-white/10" />
+
+		                                <div className="space-y-2">
+		                                  <span className="text-xs text-gray-600 dark:text-white/60">Skin tone</span>
+		                                  <div className="flex flex-wrap gap-2">
+		                                    {SKIN_TONE_OPTIONS.map(option => (
+		                                      <Chip
+		                                        key={option}
+		                                        onClick={() => { updateValue('secondarySkinTone', option); markSectionTouched('creator'); }}
+		                                        selected={values.secondarySkinTone === option}
+		                                        size="md"
+		                                      >
+		                                        {option}
+		                                      </Chip>
+		                                    ))}
+		                                  </div>
+		                                </div>
+
+		                                <div className="space-y-2">
+		                                  <span className="text-xs text-gray-600 dark:text-white/60">Eye color</span>
+		                                  <div className="flex flex-wrap gap-2">
+		                                    {EYE_COLOR_OPTIONS.map(option => (
+		                                      <Chip
+		                                        key={option}
+		                                        onClick={() => { updateValue('secondaryEyeColor', option); markSectionTouched('creator'); }}
+		                                        selected={values.secondaryEyeColor === option}
+		                                        size="md"
+		                                      >
+		                                        {option}
+		                                      </Chip>
+		                                    ))}
+		                                  </div>
+		                                </div>
+
+		                                <div className="space-y-2">
+		                                  <span className="text-xs text-gray-600 dark:text-white/60">Hair texture</span>
+		                                  <div className="flex flex-wrap gap-2">
+		                                    {HAIR_TEXTURE_OPTIONS.map(option => (
+		                                      <Chip
+		                                        key={option}
+		                                        onClick={() => { updateValue('secondaryHairTexture', option); markSectionTouched('creator'); }}
+		                                        selected={values.secondaryHairTexture === option}
+		                                        size="md"
+		                                      >
+		                                        {option === 'Coily/Kinky' ? 'Coily / Kinky' : option}
+		                                      </Chip>
+		                                    ))}
+		                                  </div>
+		                                </div>
+
+		                                <div className="space-y-2">
+		                                  <span className="text-xs text-gray-600 dark:text-white/60">Body type</span>
+		                                  <div className="flex flex-wrap gap-2">
+		                                    {BODY_TYPE_OPTIONS.map(option => (
+		                                      <Chip
+		                                        key={option}
+		                                        onClick={() => { updateValue('secondaryBodyType', option as any); markSectionTouched('creator'); }}
+		                                        selected={values.secondaryBodyType === (option as any)}
+		                                        size="md"
+		                                      >
+		                                        {option}
+		                                      </Chip>
+		                                    ))}
+		                                  </div>
+		                                </div>
+		                              </>
+		                            )}
 		                          </div>
 		                        </div>
 		                      )}
@@ -4736,192 +4788,138 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                      <div className="space-y-2">
 	                        <span className="text-xs text-gray-600 dark:text-white/60">Ethnicity</span>
 	                        <div className="flex flex-wrap gap-2">
-	                          {(
-	                            [
-                              'Non-specific',
-                              'White / European descent',
-                              'Black / African descent',
-                              'Latino / Hispanic',
-                            ] as const
-                          ).map(option => {
-                            const active = values.ethnicity === option;
-                            return (
-                              <button
-                                key={option}
-                                type="button"
-                                onClick={() => { updateValue('ethnicity', option); markSectionTouched('creator'); }}
-                                className={`px-3 h-8 rounded-full border text-xs transition-colors ${active
-                                  ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-                                  : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-                                  }`}
-                              >
-                                {option}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
+	                          {(isCreatorPro
+	                            ? ([
+	                              'Non-specific',
+	                              'White / European descent',
+	                              'Black / African descent',
+	                              'Latino / Hispanic',
+	                              'Asian',
+	                              'Middle Eastern',
+	                              'South Asian',
+	                              'Mixed',
+	                            ] as const)
+	                            : ([
+	                              'Non-specific',
+	                              'White / European descent',
+	                              'Black / African descent',
+	                              'Latino / Hispanic',
+	                            ] as const)
+	                          ).map(option => (
+	                            <Chip
+	                              key={option}
+	                              onClick={() => { updateValue('ethnicity', option); markSectionTouched('creator'); }}
+	                              selected={values.ethnicity === option}
+	                              size="md"
+	                            >
+	                              {option}
+	                            </Chip>
+	                          ))}
+	                        </div>
+	                      </div>
                     </section>
 
                     <section className="space-y-6">
-                      <p className="text-[11px] uppercase tracking-[0.3em] text-gray-400 font-semibold dark:text-white/40">Appearance</p>
+                      <p className={GROUP_LABEL_CLASS}>APPEARANCE</p>
 
                       <div className="space-y-2">
                         <span className="text-xs text-gray-600 dark:text-white/60">Hair length</span>
                         <div className="grid grid-cols-3 gap-2">
-                          {(['Short', 'Shoulder', 'Long'] as const).map(option => {
-                            const active = values.hairLength === option;
-                            return (
-                              <button
-                                key={option}
-                                type="button"
-                                onClick={() => { updateValue('hairLength', option); markSectionTouched('creator'); }}
-                                className={`h-8 rounded-full border text-xs transition-colors ${active
-                                  ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-                                  : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-                                  }`}
-                              >
-                                {option}
-                              </button>
-                            );
-                          })}
+                          {(isCreatorPro
+                            ? (['Buzzcut', 'Short', 'Shoulder', 'Chin-length', 'Long', 'Very long'] as const)
+                            : (['Short', 'Shoulder', 'Long'] as const)
+                          ).map(option => (
+                            <Chip
+                              key={option}
+                              onClick={() => { updateValue('hairLength', option as any); markSectionTouched('creator'); }}
+                              selected={values.hairLength === (option as any)}
+                              size="md"
+                              className="w-full justify-center rounded-full py-2 text-[12px] font-semibold"
+                            >
+                              {option}
+                            </Chip>
+                          ))}
                         </div>
                       </div>
 
                     </section>
 
                     <section className="space-y-4">
-                      <p className="text-[11px] uppercase tracking-[0.3em] text-gray-400 font-semibold dark:text-white/40">Facial expression</p>
+                      <p className={GROUP_LABEL_CLASS}>FACIAL EXPRESSION</p>
                       <div className="grid grid-cols-2 gap-2">
-                        {(['Calm & Serene', 'Joyful & High-Energy'] as const).map(option => {
-                          const active = values.facialExpression === option;
-                          return (
-                            <button
-                              key={option}
-                              type="button"
-                              onClick={() => { updateValue('facialExpression', option); markSectionTouched('creator'); }}
-                              className={`h-9 rounded-full border text-xs font-medium transition-colors ${active
-                                ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500'
-                                : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-                                }`}
-                            >
-                              {option}
-                            </button>
-                          );
-                        })}
+                        {(isCreatorPro
+                          ? ([
+                            'Calm & Serene',
+                            'Joyful & High-Energy',
+                            'Confident & Editorial',
+                            'Playful & Candid',
+                            'Hustle & Juggle',
+                            'Stressed but Determined',
+                            'Relieved / Recovered',
+                          ] as const)
+                          : (['Calm & Serene', 'Joyful & High-Energy'] as const)
+                        ).map(option => (
+                          <Chip
+                            key={option}
+                            onClick={() => { updateValue('facialExpression', option as any); markSectionTouched('creator'); }}
+                            selected={values.facialExpression === (option as any)}
+                            size="md"
+                            className="w-full justify-center py-3 rounded-full text-[12px] font-semibold"
+                          >
+                            {option}
+                          </Chip>
+                        ))}
                       </div>
                     </section>
 
                     <section className="space-y-10 overflow-hidden transition-all duration-300 max-h-0 opacity-0 group-[.is-pro]:max-h-[4000px] group-[.is-pro]:opacity-100">
-                      <p className="text-[11px] uppercase tracking-[0.3em] text-gray-400 font-semibold dark:text-white/40">Advanced controls</p>
-
-                      <div className="space-y-2">
-                        <span className="text-xs text-gray-600 dark:text-white/60">Gender (extended)</span>
-                        <div className="flex flex-wrap gap-2">
-                          {(['Trans', 'Non-binary', 'Gender non-conforming'] as const).map(option => {
-                            const active = values.gender === (option as any);
-                            return (
-                              <button
-                                key={option}
-                                type="button"
-                                onClick={() => { updateValue('gender', option as any); markSectionTouched('creator'); }}
-                                className={`px-3 h-8 rounded-full border text-xs transition-colors ${active
-                                  ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-                                  : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-                                  }`}
-                              >
-                                {option}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <span className="text-xs text-gray-600 dark:text-white/60">Ethnicity (extended)</span>
-                        <div className="flex flex-wrap gap-2">
-                          {(['Asian', 'Middle Eastern', 'South Asian', 'Mixed'] as const).map(option => {
-                            const active = values.ethnicity === option;
-                            return (
-                              <button
-                                key={option}
-                                type="button"
-                                onClick={() => { updateValue('ethnicity', option); markSectionTouched('creator'); }}
-                                className={`px-3 h-8 rounded-full border text-xs transition-colors ${active
-                                  ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-                                  : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-                                  }`}
-                              >
-                                {option}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
+                      <p className={GROUP_LABEL_CLASS}>DETAILS</p>
 
                       <div className="space-y-2">
                         <span className="text-xs text-gray-600 dark:text-white/60">Skin tone</span>
                         <div className="flex flex-wrap gap-2">
-                          {SKIN_TONE_OPTIONS.map(option => {
-                            const active = values.skinTone === option;
-                            return (
-                              <button
-                                key={option}
-                                type="button"
-                                onClick={() => { updateValue('skinTone', option); markSectionTouched('creator'); }}
-                                className={`px-3 h-8 rounded-full border text-xs transition-colors ${active
-                                  ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-                                  : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-                                  }`}
-                              >
-                                {option}
-                              </button>
-                            );
-                          })}
+                          {SKIN_TONE_OPTIONS.map(option => (
+                            <Chip
+                              key={option}
+                              onClick={() => { updateValue('skinTone', option); markSectionTouched('creator'); }}
+                              selected={values.skinTone === option}
+                              size="md"
+                            >
+                              {option}
+                            </Chip>
+                          ))}
                         </div>
                       </div>
 
                       <div className="space-y-2">
                         <span className="text-xs text-gray-600 dark:text-white/60">Eye color</span>
-                        <div className="flex gap-2 flex-wrap">
-                          {EYE_COLOR_OPTIONS.map(option => {
-                            const active = values.eyeColor === option;
-                            return (
-                              <button
-                                key={option}
-                                type="button"
-                                onClick={() => { updateValue('eyeColor', option); markSectionTouched('creator'); }}
-                                className={`h-8 px-3 rounded-full border text-xs transition-colors ${active
-                                  ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-                                  : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-                                  }`}
-                              >
-                                {option}
-                              </button>
-                            );
-                          })}
+                        <div className="flex flex-wrap gap-2">
+                          {EYE_COLOR_OPTIONS.map(option => (
+                            <Chip
+                              key={option}
+                              onClick={() => { updateValue('eyeColor', option); markSectionTouched('creator'); }}
+                              selected={values.eyeColor === option}
+                              size="md"
+                            >
+                              {option}
+                            </Chip>
+                          ))}
                         </div>
                       </div>
 
                       <div className="space-y-2">
                         <span className="text-xs text-gray-600 dark:text-white/60">Body type</span>
                         <div className="flex flex-wrap gap-2">
-                          {BODY_TYPE_OPTIONS.map(option => {
-                            const active = values.bodyType === option;
-                            return (
-                              <button
-                                key={option}
-                                type="button"
-                                onClick={() => { updateValue('bodyType', option as Step3Values['bodyType']); markSectionTouched('creator'); }}
-                                className={`px-3 h-8 rounded-full border text-xs transition-colors ${active
-                                  ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-                                  : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-                                  }`}
-                              >
-                                {option}
-                              </button>
-                            );
-                          })}
+                          {BODY_TYPE_OPTIONS.map(option => (
+                            <Chip
+                              key={option}
+                              onClick={() => { updateValue('bodyType', option as Step3Values['bodyType']); markSectionTouched('creator'); }}
+                              selected={values.bodyType === option}
+                              size="md"
+                            >
+                              {option}
+                            </Chip>
+                          ))}
                         </div>
                       </div>
 
@@ -4936,17 +4934,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           ).map(option => {
                             const active = values.hairState === option.value;
                             return (
-                              <button
+                              <Chip
                                 key={option.value}
-                                type="button"
                                 onClick={() => { updateValue('hairState', option.value); markSectionTouched('creator'); }}
-                                className={`px-3 h-8 rounded-full border text-xs transition-colors ${active
-                                  ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-                                  : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-                                  }`}
+                                selected={active}
+                                size="md"
                               >
                                 {option.label}
-                              </button>
+                              </Chip>
                             );
                           })}
                         </div>
@@ -4955,45 +4950,20 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       {values.hairState === 'natural' && (
                         <>
                           <div className="space-y-2">
-                            <span className="text-xs text-gray-600 dark:text-white/60">Hair length (advanced)</span>
-                            <div className="flex flex-wrap gap-2">
-                              {(['Buzzcut', 'Chin-length', 'Very long'] as const).map(option => {
-                                const active = values.hairLength === option;
-                                return (
-                                  <button
-                                    key={option}
-                                    type="button"
-                                    onClick={() => { updateValue('hairLength', option); markSectionTouched('creator'); }}
-                                    className={`px-3 h-8 rounded-full border text-xs transition-colors ${active
-                                      ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-                                      : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-                                      }`}
-                                  >
-                                    {option}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
                             <span className="text-xs text-gray-600 dark:text-white/60">Hair texture</span>
                             <div className="flex flex-wrap gap-2">
                               {[...HAIR_TEXTURE_OPTIONS, 'Custom'].map(option => {
                                 const active = values.hairTexture === option;
                                 const label = option === 'Coily/Kinky' ? 'Coily / Kinky' : option;
                                 return (
-                                  <button
+                                  <Chip
                                     key={option}
-                                    type="button"
                                     onClick={() => { updateValue('hairTexture', option); markSectionTouched('creator'); }}
-                                    className={`px-3 h-8 rounded-full border text-xs transition-colors ${active
-                                      ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-                                      : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-                                      }`}
+                                    selected={active}
+                                    size="md"
                                   >
                                     {label}
-                                  </button>
+                                  </Chip>
                                 );
                               })}
                             </div>
@@ -5013,56 +4983,20 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           <div className="space-y-2">
                             <span className="text-xs text-gray-600 dark:text-white/60">Hair color</span>
                             <div className="flex flex-wrap gap-2">
-                              {HAIR_COLOR_OPTIONS.map(option => {
-                                const active = values.hairColor === option;
-                                return (
-                                  <button
-                                    key={option}
-                                    type="button"
-                                    onClick={() => { updateValue('hairColor', option); markSectionTouched('creator'); }}
-                                    className={`px-3 h-8 rounded-full border text-xs transition-colors ${active
-                                      ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-                                      : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-                                      }`}
-                                  >
-                                    {option}
-                                  </button>
-                                );
-                              })}
+                              {HAIR_COLOR_OPTIONS.map(option => (
+                                <Chip
+                                  key={option}
+                                  onClick={() => { updateValue('hairColor', option); markSectionTouched('creator'); }}
+                                  selected={values.hairColor === option}
+                                  size="md"
+                                >
+                                  {option}
+                                </Chip>
+                              ))}
                             </div>
                           </div>
                         </>
                       )}
-
-                      <div className="space-y-2">
-                        <span className="text-xs text-gray-600 dark:text-white/60">Facial expression (advanced)</span>
-                        <div className="flex flex-wrap gap-2">
-                          {(
-                            [
-                              'Confident & Editorial',
-                              'Playful & Candid',
-                              'Hustle & Juggle',
-                              'Stressed but Determined',
-                              'Relieved / Recovered',
-                            ] as const
-                          ).map(option => {
-                            const active = values.facialExpression === option;
-                            return (
-                              <button
-                                key={option}
-                                type="button"
-                                onClick={() => { updateValue('facialExpression', option); markSectionTouched('creator'); }}
-                                className={`px-3 h-8 rounded-full border text-xs transition-colors ${active
-                                  ? 'bg-indigo-600 text-white border-indigo-600 dark:border-white/10 dark:bg-indigo-500 dark:border-indigo-500'
-                                  : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-                                  }`}
-                              >
-                                {option}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
 
 	                      <div className={`flex items-center justify-between pt-4 ${(!hasFirstGenerationComplete || hasModelReference) ? 'opacity-50' : ''}`}>
 	                        <div>
