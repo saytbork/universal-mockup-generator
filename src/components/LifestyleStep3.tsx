@@ -4002,16 +4002,29 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                        }}
 	                        selected={productStore.interaction === (option.value as any)}
 	                        disabled={disabled}
-                        className="whitespace-normal"
+                        tooltip={option.detail}
                       >
-                        <span className="flex flex-col items-start text-left leading-tight">
-                          <span className="font-bold">{option.label}</span>
-                          <span className="text-[10px] font-medium opacity-70">{option.detail}</span>
-                        </span>
+                        {option.label}
                       </Chip>
                     );
                   })}
                 </div>
+                <SelectedOptionFooter
+                  options={[
+                    { value: 'none', label: 'None', description: 'No hands. No skin. No human shadows.' },
+                    { value: 'passive-presence', label: 'Passive Presence', description: 'Hands visible in frame, not touching the product.' },
+                    { value: 'cropped-hand', label: 'Cropped Hand', description: 'Partial hand for scale only. No grip. No action.' },
+                    { value: 'supported-hold', label: 'Supported Hold', description: 'Product rests on an open palm. No pressure.' },
+                    { value: 'holding', label: 'Holding', description: 'One hand holds the product naturally. No gesture.' },
+                    { value: 'two-hand-hold', label: 'Two-Hand Hold', description: 'Both hands hold the product centered. Calm and careful.' },
+                    { value: 'presenting', label: 'Presenting', description: 'Shown to camera with label readable. No push to lens.' },
+                    { value: 'framed-presentation', label: 'Framed Presentation', description: 'Hands frame the product editorially. No offer-to-lens.' },
+                    { value: 'applying-opening', label: 'Applying / Opening', description: 'One clear action: twist/open. No consumption.' },
+                    { value: 'capsule-display', label: 'Capsule Display', description: '2–4 capsules in palm + bottle visible. No pouring.' },
+                    { value: 'resting-interaction', label: 'Resting Interaction', description: 'Product rests against hand/wrist. Passive contact.' },
+                  ]}
+                  selectedValue={productStore.interaction as any}
+                />
                 {productStore.definition.type !== 'capsules' && (
                   <p className="text-[11px] text-gray-500 mt-2">
                     Capsule Display is only available when Product Type is Capsules.
