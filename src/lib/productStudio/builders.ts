@@ -461,7 +461,7 @@ function buildEnvironment(state: ProductStudioState): string {
             parts.push(
                 'In-process packaging moment: multiple unlabeled amber bottles may appear in the background on the conveyor for context, but only ONE hero product has the exact uploaded label and it must remain perfectly readable'
             );
-            parts.push('No visible workers, no hands, no faces, no uniforms in frame');
+            parts.push('No staff or operators visible in frame');
         } else {
             const envText =
                 macro === 'custom' && state.customEnvironmentText

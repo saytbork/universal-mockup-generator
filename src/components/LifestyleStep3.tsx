@@ -3181,7 +3181,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     ] as const
                   ).map(option => {
                     const type = productStore.definition.type;
-                    const allowedByType = (() => {
+                    const isTypicalForType = (() => {
                       switch (type) {
                         case 'capsules':
                           return (
@@ -3200,11 +3200,24 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             option.value === 'falling'
                           );
                         case 'drops':
-                          return option.value === 'static' || option.value === 'opened' || option.value === 'spilled' || option.value === 'dispensed';
+                          return (
+                            option.value === 'static' ||
+                            option.value === 'opened' ||
+                            option.value === 'spilled' ||
+                            option.value === 'dispensed'
+                          );
                         case 'powder':
-                          return option.value === 'static' || option.value === 'opened' || option.value === 'spilled' || option.value === 'pouring' || option.value === 'dispensed';
+                          return (
+                            option.value === 'static' ||
+                            option.value === 'opened' ||
+                            option.value === 'spilled' ||
+                            option.value === 'pouring' ||
+                            option.value === 'dispensed'
+                          );
                         default:
-                          return option.value === 'static';
+                          // For less-structured types (skincare/device/custom), allow selection.
+                          // The engine will reinterpret to a physically plausible snapshot at build time.
+                          return false;
                       }
                     })();
 
@@ -3212,22 +3225,32 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       <Chip
                         key={option.value}
                         onClick={() => {
-                          if (!allowedByType) return;
                           productStore.setStateMotion(option.value as ProductStateMotion);
                           markSectionTouched('product-state-motion');
                         }}
                         selected={productStore.stateMotion === (option.value as ProductStateMotion)}
-                        disabled={!allowedByType}
-                        className="whitespace-normal"
+                        tooltip={
+                          isTypicalForType
+                            ? option.detail
+                            : `${option.detail} (May be reinterpreted for Product Type “${type}”.)`
+                        }
                       >
-                        <span className="flex flex-col items-start text-left leading-tight">
-                          <span className="font-bold">{option.label}</span>
-                          <span className="text-[10px] font-medium opacity-70">{option.detail}</span>
-                        </span>
+                        {option.label}
                       </Chip>
                     );
                   })}
                 </div>
+                <SelectedOptionFooter
+                  options={[
+                    { value: 'static', label: 'Static', description: 'Closed and stationary.' },
+                    { value: 'opened', label: 'Opened', description: 'Open container. No motion.' },
+                    { value: 'spilled', label: 'Spilled', description: 'Contents spilled on surface.' },
+                    { value: 'dispensed', label: 'Dispensed', description: 'Controlled amount released.' },
+                    { value: 'pouring', label: 'Pouring', description: 'Stream falling downward.' },
+                    { value: 'falling', label: 'Falling', description: 'Discrete items falling mid-air.' },
+                  ]}
+                  selectedValue={productStore.stateMotion}
+                />
                 <p className="text-[11px] text-gray-500 mt-2">
                   Physics rules: gravity downward only, no floating, irregular distribution, natural motion freeze.
                 </p>
