@@ -3751,7 +3751,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             isTouched={touchedSections.has('product-environment')}
             variant="primary"
           >
-            <div className="space-y-4">
+            <div className="space-y-6">
               <p className="text-sm text-gray-500">
                 Place the product into a real setting. Product-only, no people.
               </p>
@@ -3767,7 +3767,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               const isDisabled = Boolean(values.ecommerceSidePlacementFlag || productStore.blankSpaceEnabled);
 
               return (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {isDisabled && (
                     <div className="rounded-xl border border-gray-200 bg-white p-3 text-gray-500 text-sm">
                       Environment is disabled while Background Canvas is On (neutral background mode).
@@ -3775,14 +3775,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   )}
 
                   <div className={isDisabled ? 'opacity-50 pointer-events-none' : ''}>
-                    <div className={SECTION_GROUP_CLASS}>
-                      <div className="flex items-center justify-between gap-3">
+                    <div className={`${SECTION_GROUP_CLASS} space-y-5`}>
+                      <div className="flex items-center justify-between gap-4">
                         <div>
                           <p className={GROUP_LABEL_CLASS}>MACRO ENVIRONMENT</p>
                           <p className="text-[11px] text-gray-500 mt-1">Pick a setting. Keep it simple unless you need specific staging.</p>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-3">
                             <span className="text-[11px] font-semibold text-gray-500 dark:text-white/50">More</span>
                             <Toggle
                               checked={productEnvironmentShowAllMacros}
@@ -3803,16 +3803,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </div>
                       </div>
 
-                      <div className="mt-3 space-y-4">
+                      <div className="mt-4 space-y-6">
                         {PRODUCT_ENVIRONMENT_MACRO_GROUPS.filter(group => {
                           if (group.label === 'Home') return true;
                           return productEnvironmentShowAllMacros;
                         }).map(group => (
-                          <div key={group.label} className="space-y-2">
+                          <div key={group.label} className="space-y-3">
                             <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">
                               {group.label}
                             </p>
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-2 gap-3">
                               {group.items.map(env => (
                                 <Chip
                                   key={env}
@@ -3853,7 +3853,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       )}
                     </div>
 
-                    <div className={SECTION_GROUP_CLASS}>
+                    <div className={`${SECTION_GROUP_CLASS} space-y-5`}>
                       <div className="flex items-start justify-between gap-4">
                         <div>
                           <p className={GROUP_LABEL_CLASS}>MICRO PLACE</p>
@@ -3870,7 +3870,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       </div>
 
                       {selectedMacro ? (
-                      <div className="flex flex-wrap gap-2 mt-2">
+                      <div className="flex flex-wrap gap-3 mt-3">
                         <Chip
                           onClick={() => {
                             const macro = (selectedMacro ?? 'kitchen') as EnvironmentMacro;
@@ -3935,12 +3935,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       )}
                     </div>
 
-                    <div className={SECTION_GROUP_CLASS}>
+                    <div className={`${SECTION_GROUP_CLASS} space-y-5`}>
                       <div>
                         <p className={GROUP_LABEL_CLASS}>LIGHTING</p>
                         <p className="text-[11px] text-gray-500 mt-1">Product-safe lighting style</p>
                       </div>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-3 mt-3">
                         {(productEnvironmentAdvancedOpen
                           ? PRODUCT_ENVIRONMENT_LIGHTING_OPTIONS
                           : PRODUCT_ENVIRONMENT_LIGHTING_OPTIONS.filter(opt =>
