@@ -454,14 +454,21 @@ function buildEnvironment(state: ProductStudioState): string {
     }
     // Lifestyle-real/UGC mode: full environment
     else if (state.sceneType === 'lifestyle-real' || state.sceneType === 'ugc-phone') {
-        const envText =
-            macro === 'cgmp-facility'
-                ? 'cGMP manufacturing facility'
-                : macro === 'custom' && state.customEnvironmentText
+        if (macro === 'cgmp-facility') {
+            parts.push(
+                'cGMP dietary supplement manufacturing facility setting: clean stainless steel filling line, conveyor belts, guide rails, hopper/nozzle filling heads, spotless clean-room surfaces, industrial production context'
+            );
+            parts.push(
+                'In-process packaging moment: multiple unlabeled amber bottles may appear in the background on the conveyor for context, but only ONE hero product has the exact uploaded label and it must remain perfectly readable'
+            );
+            parts.push('No visible workers, no hands, no faces, no uniforms in frame');
+        } else {
+            const envText =
+                macro === 'custom' && state.customEnvironmentText
                     ? state.customEnvironmentText
                     : macro.replace(/-/g, ' ');
-
-        parts.push(`${envText} setting`);
+            parts.push(`${envText} setting`);
+        }
 
         const microText =
             micro === 'conveyor-belt'
@@ -1566,6 +1573,15 @@ function normalizeProductStudioStateForPrompt(state: ProductStudioState): Produc
     // Photo Mode conflict rules:
     // "Clear" is absolute: pure white studio, no set dressing or creative styling blocks.
     if (next.photoMode === 'Clear') {
+        const macro =
+            (next.environmentContext?.macro ?? next.environmentMacro) as EnvironmentMacro | undefined;
+        // If the user intentionally selected a real environment (e.g., cGMP facility),
+        // do NOT wipe the environment. Clear is a studio-only photo mode.
+        if (macro && macro !== 'studio') {
+            next.photoMode = '';
+            return next;
+        }
+
         next.backgroundColor = '#FFFFFF';
         next.gradientEnabled = false;
         next.props = '';
