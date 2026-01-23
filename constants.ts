@@ -259,7 +259,7 @@ export type PropBundle = {
   settings: Partial<MockupOptions>;
 };
 
-const getOptionValueByLabel = (options: Option[], label: string, fallbackIndex = 0) =>
+export const getOptionValueByLabel = (options: Option[], label: string, fallbackIndex = 0) =>
   options.find(option => option.label === label)?.value ?? options[fallbackIndex].value;
 
 export const PROP_BUNDLES: PropBundle[] = [
@@ -779,11 +779,11 @@ export const CREATOR_PRESETS: CreatorPreset[] = [
 export const CAMERA_OPTIONS: Option[] = [
   {
     label: 'Intentional smartphone camera',
-    value: 'captured with the phone’s rear camera for deliberate, stabilized framing without selfie distortion',
+    value: 'captured with a modern smartphone camera for deliberate, stabilized framing without selfie distortion',
   },
   {
     label: 'DSLR / mirrorless camera',
-    value: 'captured with a professional DSLR or mirrorless body using high-quality optics and shallow depth of field',
+    value: 'captured with a professional DSLR or mirrorless camera using high-quality optics and shallow depth of field',
   },
   {
     label: 'Cinema camera rig',

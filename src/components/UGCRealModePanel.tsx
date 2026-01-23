@@ -1,1 +1,1 @@
-export { default } from '../components/UGCRealModePanel';
+export { default } from '../../components/UGCRealModePanel';

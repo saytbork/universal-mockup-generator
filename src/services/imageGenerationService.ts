@@ -20,9 +20,12 @@ type GenerateImageParams = {
     model: string;
     prompt: string;
     aspectRatio: string;
+    preserveReferenceImage?: boolean;
     products: ActiveProduct[];
     personIdentityPackage?: PersonIdentityPackage;
     modelReferenceFile?: File | null;
+    ugcStyle?: string;
+    ugcRealModeActive?: boolean;
 };
 
 const fileToBase64 = (file: File): Promise<{ base64: string; mimeType: string }> => {
@@ -43,9 +46,12 @@ export async function generateImageWithGemini({
     model,
     prompt,
     aspectRatio,
+    preserveReferenceImage = false,
     products,
     personIdentityPackage,
     modelReferenceFile,
+    ugcStyle,
+    ugcRealModeActive,
 }: GenerateImageParams) {
     // In development, use local backend to bypass OAuth2 restrictions
     const isDevelopment = import.meta.env.DEV || window.location.hostname === 'localhost';
@@ -95,57 +101,71 @@ export async function generateImageWithGemini({
         apiVersion: "v1beta",
     });
 
-    // Build request parts with images
-    const requestParts: any[] = [];
+    const shouldSendProductImage = products.length > 0;
 
-    // Add identity reference if exists
     const identityInlinePart = personIdentityPackage?.modelReferenceBase64
         ? {
-            inlineData: {
-                data: personIdentityPackage.modelReferenceBase64,
-                mimeType: personIdentityPackage.modelReferenceMime ?? "image/png",
-            },
-            reference: true,
-        }
+              inlineData: {
+                  data: personIdentityPackage.modelReferenceBase64,
+                  mimeType: personIdentityPackage.modelReferenceMime ?? "image/png",
+              },
+              reference: true,
+          }
         : null;
 
-    if (identityInlinePart) {
-        requestParts.push(identityInlinePart);
-    } else if (modelReferenceFile) {
-        const { base64: modelBase64, mimeType: modelMimeType } = await fileToBase64(modelReferenceFile);
-        requestParts.push({
-            inlineData: { data: modelBase64, mimeType: modelMimeType },
-            reference: true,
+    const isNaturalUgc = ugcStyle?.toLowerCase() === "natural" || ugcRealModeActive === true;
+    const hasHumanReference = Boolean(identityInlinePart || modelReferenceFile);
+    const shouldIncludeHumanImage = hasHumanReference || !isNaturalUgc;
+
+    const parts: any[] = [];
+    parts.push({ text: prompt });
+    if (shouldIncludeHumanImage) {
+        if (identityInlinePart) {
+            parts.push(identityInlinePart);
+        } else if (modelReferenceFile) {
+            const { base64: modelBase64, mimeType: modelMimeType } = await fileToBase64(modelReferenceFile);
+            parts.push({
+                inlineData: { data: modelBase64, mimeType: modelMimeType },
+                reference: true,
+            });
+        }
+    }
+
+    if (shouldSendProductImage) {
+        products.forEach((product) => {
+            parts.push({
+                inlineData: { data: product.base64, mimeType: product.mimeType },
+                reference: true,
+            });
         });
     }
 
-    // Add product images
-    products.forEach((product) => {
-        requestParts.push({
-            inlineData: { data: product.base64, mimeType: product.mimeType },
-            reference: true,
-        });
-    });
+    const payloadLog = {
+        isNaturalUgc,
+        productImageSent: shouldSendProductImage,
+        humanImageSent: shouldIncludeHumanImage && Boolean(identityInlinePart || modelReferenceFile),
+        partsCount: parts.length,
+    };
+    console.log('[UGC PAYLOAD]', payloadLog);
 
-    // Add text prompt
-    requestParts.push({ text: prompt });
-
+    const seed = crypto.randomUUID();
+    console.log('[UGC DEBUG] seed:', seed);
     const response = await ai.models.generateContent({
         model,
-        contents: { parts: requestParts },
+        contents: { parts },
         config: {
             responseModalities: [Modality.IMAGE],
             safetySettings: [],
             generationConfig: {
                 responseMimeType: "image/png",
                 aspectRatio,
-                preserveReferenceImage: true,
+                preserveReferenceImage,
                 temperature: 0.25,
                 topP: 0.9,
+                seed,
             },
         } as any,
     });
 
     return response;
 }
-

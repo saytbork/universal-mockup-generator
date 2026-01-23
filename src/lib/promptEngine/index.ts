@@ -47,27 +47,34 @@ import { ConstraintsBuilder } from './builders/constraints';
 import { FinalizeBuilder } from './builders/finalize';
 import { SceneNarrativeBuilder } from './builders/canonicalScene';
 import { UGCRealModeBuilder } from './builders/ugcRealMode';
+import { SelfieCaptureBuilder } from './builders/selfieCapture';
 import { FormulationStoryInjectionBuilder } from './builders/formulationStoryInjection';
 import { CompositionDetailsBuilder } from './builders/compositionDetails';
+import { SceneStructureBuilder } from './builders/sceneStructure';
+import { VisualGrammarBuilder } from './builders/visualGrammar';
+import { PromptSanitizer } from './sanitizer';
+import { buildStudioPrompt, PRODUCT_STUDIO_CANONICAL_PROMPT } from './studioPresets';
 import type { PromptOptions } from './types';
 import { buildMasterPrompt, MasterPromptSections } from './masterPrompt';
 
 // ============================================================================
 // NEGATIVE PROMPT - Quality anchors and artifact prevention
 // ============================================================================
-function negativePrompt() {
-    return [
+const RAW_DOMESTIC_NEGATIVE_APPEND =
+    'No studio lighting, no cinematic look, no professional photography, no centered composition, no passport photo, no fashion editorial, no shallow depth of field, no background bokeh, no HDR look, no perfect symmetry, no influencer styling, no product hero shot.';
+function negativePrompt(options?: PromptOptions) {
+    const entries = [
         // Anatomical integrity
         "deformed hands", "extra fingers", "missing fingers", "long fingers",
         "broken fingers", "distorted limbs", "extra limbs", "extra arms",
-        "extra legs", "mutated body", "mangled hands", "disconnected arms",
+        "extra legs", "mutated anatomy", "mangled hands", "disconnected arms",
 
         // Face integrity
         "blurry face", "distorted face", "face artifacts", "asymmetric face",
         "doll-like face", "cut-off head",
 
-        // Body integrity
-        "cut-off body", "partial person", "double body",
+        // Torso integrity
+        "cut-off torso", "partial person", "duplicate torso",
 
         // Skin issues
         "overexposed skin", "underexposed skin", "grainy skin texture",
@@ -76,6 +83,9 @@ function negativePrompt() {
 
         // Product integrity
         "warped product", "stretched product", "deformed bottle",
+        "giant bottle", "huge bottle", "oversized bottle",
+        "giant jar", "huge jar", "oversized jar",
+        "oversized product", "giant product", "product too large",
         "incorrect label", "fake reflections", "deformed label",
         "warped text", "curved typography", "melted text",
         "incorrect font", "missing letters", "extra letters",
@@ -97,12 +107,54 @@ function negativePrompt() {
         // Wardrobe consistency
         "altered outfit", "invented clothing", "incorrect fabric",
         "incorrect outfit color", "wrong clothing texture"
-    ].join(", ");
+    ];
+    if (options?.rawDomesticUgcActive) {
+        entries.push(RAW_DOMESTIC_NEGATIVE_APPEND);
+    }
+    const shouldGuardIdentity =
+        options?.ugcRealModeActive ||
+        ['natural', 'raw'].includes((options?.ugcStyle ?? '').toLowerCase());
+    if (shouldGuardIdentity) {
+        const additional = [
+            'face consistency',
+            'same face as reference',
+            'matching facial features'
+        ];
+        additional.forEach(term => {
+            if (!entries.includes(term)) {
+                entries.push(term);
+            }
+        });
+    }
+    return entries.join(", ");
 }
+
+const generateRequestSeed = (): string => {
+    if (typeof globalThis !== 'undefined') {
+        const runtimeCrypto = (globalThis as typeof globalThis & { crypto?: Crypto }).crypto;
+        if (runtimeCrypto?.randomUUID) {
+            return runtimeCrypto.randomUUID();
+        }
+    }
+    const randomComponent = Math.random().toString(36).slice(2, 10);
+    return `${Date.now().toString(36)}-${randomComponent}`;
+};
 
 const DEPTH_DETECTION_REGEX = /(depth of field|portrait mode|portrait blur|bokeh|bokeh effect|background blur|blurred background|lens blur|lens emulation|cinematic focus|cinematic blur|subject separation|background separation|subject isolation|shallow depth|shallow focus|soft background|soft focus|depth cues|depth effect|spatial depth|defocused background)/gi;
 const FOCUS_OVERRIDE_APPEND =
-    'flat focus across the entire frame, small sensor, fixed wide lens, no depth separation, no portrait mode.';
+    'flat focus across the entire frame, small sensor, fixed wide lens, everything sharp foreground to background.';
+const UGC_FOCUS_LOCK_APPEND =
+    'uniform focus across the entire frame with no dramatic focus falloff.';
+
+function isUgcSelfieCaptureActive(options: PromptOptions): boolean {
+    const selfieActive = isSelfieActive(options);
+    const ugcActive =
+        options.contentStyle === 'ugc' ||
+        options.creationIntent === 'ugc' ||
+        Boolean(options.ugcRealModeActive) ||
+        Boolean(options.rawDomesticUgcActive);
+    return ugcActive && selfieActive;
+}
 
 function enforcePreflightGuards(options: PromptOptions) {
     const lock = options.identityLock;
@@ -121,34 +173,100 @@ function enforcePreflightGuards(options: PromptOptions) {
         }
     }
     if (options.creationIntent === 'ugc') {
-        if (!options.setting) {
+        const allowMissingEnvironment =
+            options.creationMode === 'bg-replace' &&
+            options.ecommerceSidePlacementFlag === true &&
+            (Boolean(options.bgColor) || Boolean(options.bgGradient));
+        const allowMissingEnvironmentForRitual = Boolean(options.ritualModeActive);
+        if (!options.setting && !allowMissingEnvironment) {
+            if (allowMissingEnvironmentForRitual) return;
             throw new Error('UGC environment missing or overridden. Please select or provide an environment.');
         }
     }
 }
 
 function enforceUgcFocusGuard(prompt: string, options: PromptOptions): string {
-    const ugcActive = options.ugcRealModeActive || options.rawDomesticUgcActive;
-    if (!ugcActive) {
+    // Depth/DoF conflicts ("bokeh") are only blocked for Raw Domestic UGC / selfie capture modes.
+    // Editorial / optimized lifestyle may legitimately use shallow depth of field.
+    const requiresUgcDepthLock =
+        Boolean(options.ugcRealModeActive) ||
+        Boolean(options.rawDomesticUgcActive) ||
+        isUgcSelfieCaptureActive(options);
+    if (!requiresUgcDepthLock) {
         return prompt;
     }
-    let sanitizedPrompt = prompt;
+
+    // Split positive and negative prompt (negative can have depth terms as blockers)
+    // NOTE: legacy builders sometimes emit `Negative prompt:` without leading spaces/newlines.
+    const negativeMarkerRegex = /\bNegative prompt:\s*/i;
+    const negativeMatch = negativeMarkerRegex.exec(prompt);
+    const negativeIndex = negativeMatch ? negativeMatch.index : -1;
+    let positivePrompt = negativeIndex >= 0 ? prompt.substring(0, negativeIndex) : prompt;
+    const negativePrompt = negativeIndex >= 0 ? prompt.substring(negativeIndex) : '';
+
+    const allowDepthMention = (before: string, withinBlockedList: boolean): boolean => {
+        const snippet = before.toLowerCase();
+        // Allow negations like "no background blur", "no shallow depth of field", etc.
+        if (/\bno\b[\s\w-]{0,20}$/.test(snippet)) return true;
+        if (withinBlockedList) return true;
+        if (/\bblocked[:\s,]*$/.test(snippet)) return true;
+        if (snippet.includes('blocked:')) return true;
+        if (snippet.includes('blocked')) return true;
+        return false;
+    };
+
+    // Do not mutate prompt content; only enforce that any depth terms are negated/blocked.
+    if (!/flat focus across the entire frame/i.test(positivePrompt)) {
+        positivePrompt = `${positivePrompt} ${FOCUS_OVERRIDE_APPEND}`;
+    }
+    if (!/uniform focus across the entire frame/i.test(positivePrompt)) {
+        positivePrompt = `${positivePrompt} ${UGC_FOCUS_LOCK_APPEND}`;
+    }
+
+    // Check only positive prompt for remaining depth terms
     DEPTH_DETECTION_REGEX.lastIndex = 0;
-    if (DEPTH_DETECTION_REGEX.test(prompt)) {
-        console.warn('[UGC FOCUS GUARD] Removing background separation language from prompt.');
-        DEPTH_DETECTION_REGEX.lastIndex = 0;
-        sanitizedPrompt = sanitizedPrompt.replace(DEPTH_DETECTION_REGEX, 'flat focus');
+    let match: RegExpExecArray | null = null;
+    while ((match = DEPTH_DETECTION_REGEX.exec(positivePrompt))) {
+        const offset = match.index ?? 0;
+        const before = positivePrompt.slice(Math.max(0, offset - 25), offset);
+        const prefix = positivePrompt.slice(0, offset).toLowerCase();
+        const lastBlocked = prefix.lastIndexOf('blocked:');
+        const withinBlockedList = lastBlocked !== -1 && offset - lastBlocked < 400;
+        if (allowDepthMention(before, withinBlockedList)) {
+            continue;
+        }
+        throw new Error(
+            `UGC depth conflict detected: "${match[0]}" language present in positive prompt. Re-run generation.`
+        );
     }
-    if (!/flat focus across the entire frame/i.test(sanitizedPrompt)) {
-        sanitizedPrompt = `${sanitizedPrompt} ${FOCUS_OVERRIDE_APPEND}`;
-    }
-    DEPTH_DETECTION_REGEX.lastIndex = 0;
-    if (DEPTH_DETECTION_REGEX.test(sanitizedPrompt)) {
-        DEPTH_DETECTION_REGEX.lastIndex = 0;
-        throw new Error('UGC depth conflict detected: background separation language present. Re-run generation.');
-    }
-    return sanitizedPrompt.replace(/\s+/g, ' ').trim();
+
+    // Rejoin with negative prompt
+    return `${positivePrompt}${negativePrompt}`.replace(/\s+/g, ' ').trim();
 }
+
+const isSelfieActive = (options: PromptOptions): boolean => {
+    const captureBase =
+        options.ugcCaptureStyleBase ??
+        options.ugcRealModeLayers?.captureBase ??
+        [];
+    const knownSelfieCaptureBaseIds = new Set([
+        'torso-level-handheld',
+        'high-angle',
+        'close-face',
+        'propped-surface'
+    ]);
+    if (captureBase.some(id => knownSelfieCaptureBaseIds.has(id))) {
+        return true;
+    }
+
+    const selfieRaw =
+        options.selfieMode ||
+        options.personDetails?.selfieMode ||
+        options.personDetails?.selfieType ||
+        '';
+    const normalized = String(selfieRaw).trim().toLowerCase();
+    return normalized !== '' && normalized !== 'none';
+};
 
 // ============================================================================
 // VALIDATION GUARDS - Illegal combination detection
@@ -184,6 +302,12 @@ function validateSemanticCombinations(options: PromptOptions): ValidationWarning
         warnings.push({
             type: 'age-integrity',
             message: `⚠️ AGE INTEGRITY: Age ${age} with smooth/editorial skin may reduce age visibility.`
+        });
+    }
+    if (age >= 60 && (skinRealism.includes('soft retouch') || skinRealism.includes('smooth'))) {
+        warnings.push({
+            type: 'age-integrity',
+            message: `⚠️ AGE INTEGRITY: Age ${age} with soft retouch may reduce age visibility. Consider Natural/Raw.`
         });
     }
 
@@ -224,11 +348,14 @@ export class PromptEngine {
     // CANONICAL BUILDER ORDER
     private constraintsBuilder = new ConstraintsBuilder();    // Priority 6
     private identityBuilder = new IdentityBuilder();          // Priority 2
+    private selfieCaptureBuilder = new SelfieCaptureBuilder(); // Priority 3
     private ugcBuilder = new UGCRealModeBuilder();            // Priority 3 (DOMINANT)
     private narrativeBuilder = new SceneNarrativeBuilder();   // Priority 4
     private finalizeBuilder = new FinalizeBuilder();          // Priority 6
     private formulationStoryInjectionBuilder = new FormulationStoryInjectionBuilder();
     private compositionDetailsBuilder = new CompositionDetailsBuilder();
+    private sceneStructureBuilder = new SceneStructureBuilder(); // NEW: Structure Layer
+    private visualGrammarBuilder = new VisualGrammarBuilder();   // Priority 1.5: Grammar Layer
 
     /**
      * Build complete prompt from options
@@ -245,17 +372,55 @@ export class PromptEngine {
     build(options: PromptOptions): string {
         console.log('[PROMPT ENGINE] Starting canonical build pipeline');
 
+        // Identity variation must change on every render unless explicitly locked.
+        // This prevents "same person" repeats when the user hits Generate multiple times without changing UI values.
+        const shouldRandomizeIdentity =
+            options.personIncluded === true &&
+            options.contentStyle !== 'product' &&
+            !options.hasModelReference &&
+            options.sameCreatorAcrossScenes !== true &&
+            options.identityMode !== 'locked';
+
+	        if (shouldRandomizeIdentity) {
+	            const timestamp = Date.now().toString(36).slice(-6);
+	            const random = Math.random().toString(36).substring(2, 8);
+	            options.identityVariationToken = `${timestamp}-${random}`.toUpperCase();
+	            options.identityKey = undefined;
+	            options.identityMode = 'auto';
+	        }
+
+        if (options.sameCreatorAcrossScenes === true && !options.hasModelReference) {
+            options.identityMode = 'locked';
+            if (!options.identityKey) {
+                if (typeof globalThis !== 'undefined') {
+                    const runtimeCrypto = (globalThis as typeof globalThis & { crypto?: Crypto }).crypto;
+                    if (runtimeCrypto?.randomUUID) {
+                        options.identityKey = runtimeCrypto.randomUUID();
+                    }
+                }
+                if (!options.identityKey) {
+                    const randomComponent = Math.random().toString(36).slice(2, 10);
+                    options.identityKey = `${Date.now().toString(36)}-${randomComponent}`;
+                }
+            }
+            options.identityVariationToken = undefined;
+        }
+
+        if (!options.identityLock) {
+            options.seed = generateRequestSeed();
+        }
+
         // ====================================================================
         // RULE 4: MANDATORY SAFETY GUARD - Fail early
         // ====================================================================
-        const isSelfie = options.selfieMode && options.selfieMode !== 'None';
+        const isSelfie = isSelfieActive(options);
         const productCount = options.productAssets?.length || 0;
 
         if (isSelfie && productCount > 1) {
-            console.error('❌ CRITICAL: Attempted to build prompt with Selfie Mode + Multiple Products');
-            throw new InvalidSceneCombinationError(
-                'Selfie mode cannot be used with multiple products. Please switch to Standard Camera or Single Product.'
-            );
+            const errorMessage =
+                'Selfie capture allows exactly one visible product. Multiple products are not permitted.';
+            console.error(`❌ CRITICAL: ${errorMessage}`);
+            throw new InvalidSceneCombinationError(errorMessage);
         }
 
         // ====================================================================
@@ -270,25 +435,185 @@ export class PromptEngine {
         enforcePreflightGuards(options);
 
         // ====================================================================
+        // CLEANUP INSTRUMENTATION — TEMPORARY (remove after usage mapping)
+        // ====================================================================
+        console.log('[CLEANUP-INSTRUMENT] ===== BUILD CALL START =====');
+        console.log('[CLEANUP-INSTRUMENT] creationMode:', options.creationMode);
+        console.log('[CLEANUP-INSTRUMENT] contentStyle:', options.contentStyle);
+        console.log('[CLEANUP-INSTRUMENT] sceneType:', (options as any).sceneType);
+        console.log('[CLEANUP-INSTRUMENT] setting/environment:', options.setting);
+        console.log('[CLEANUP-INSTRUMENT] microLocation:', options.microLocation);
+        console.log('[CLEANUP-INSTRUMENT] ugcRealModeActive:', options.ugcRealModeActive);
+        console.log('[CLEANUP-INSTRUMENT] brandLook:', (options as any).brandLook);
+        console.log('[CLEANUP-INSTRUMENT] editorialStyle:', (options as any).editorialStyle);
+        console.log('[CLEANUP-INSTRUMENT] personIncluded:', options.personIncluded);
+
+        // ====================================================================
         // STEP 1: Modes (handled in narrativeBuilder.buildCreationIntent/Mode)
         // ====================================================================
         console.log('[PROMPT ENGINE] Step 1: Modes -', options.creationMode, options.creationIntent);
+
+        // ====================================================================
+        // STUDIO MODE FAST-PATH (MEGA PROMPT V2)
+        // ====================================================================
+        if (options.creationMode === 'studio') {
+            console.log('[CLEANUP-INSTRUMENT] BRANCH: 🟢 STUDIO FAST-PATH');
+            console.log('[PROMPT ENGINE] Studio Mode FAST-PATH activated');
+
+            // MUTUAL EXCLUSIVITY GUARD: Studio mode must not have environment data
+            if (options.setting && options.setting !== '' && options.setting !== 'studio') {
+                console.warn('[STUDIO GUARD] Environment detected in Studio mode - clearing:', options.setting);
+                (options as any).setting = '';
+                (options as any).environment = '';
+                (options as any).microLocation = '';
+            }
+
+            // Log which Studio options are being used
+            console.log('[CLEANUP-INSTRUMENT] Studio options:', {
+                photoMode: (options as any).photoMode || (options as any).studioPhotoMode,
+                surface: (options as any).studioSurface,
+                composition: (options as any).studioComposition,
+                lighting: (options as any).studioLighting,
+                hasPalette: !!((options as any).paletteColor1 || (options as any).paletteColor2),
+            });
+
+            const studioPrompt = buildStudioPrompt({
+                // Photo Mode
+                photoMode: (options as any).photoMode || (options as any).studioPhotoMode,
+
+                // Props / Ingredients (Ingredient Stack only)
+                suggestedProps: (options as any).suggestedProps || (options as any).studioProps,
+                ingredientLayout: (options as any).ingredientLayout || (options as any).studioIngredientLayout,
+
+                // Auto Palette Extraction
+                paletteColor1: (options as any).paletteColor1,
+                paletteColor2: (options as any).paletteColor2,
+                paletteColor3: (options as any).paletteColor3,
+
+                // Background (fallback if no palette)
+                backgroundColor: (options as any).heroBackground || options.bgColor,
+                gradientStart: options.bgGradient?.startColor,
+                gradientEnd: options.bgGradient?.endColor,
+
+                // Surface
+                surface: (options as any).studioSurface,
+                surfaceHarmonizeWithPalette: (options as any).surfaceHarmonizeWithPalette,
+
+                // Composition
+                composition: (options as any).studioComposition,
+                scale: (options as any).studioScale,
+                spacing: (options as any).studioSpacing,
+                negativeSpace: (options as any).studioNegativeSpace,
+
+                // Camera
+                lens: (options as any).studioLens,
+                angle: (options as any).studioAngle,
+                distance: (options as any).studioDistance,
+                framing: (options as any).studioFraming,
+
+                // Lighting & Finish
+                lighting: (options as any).studioLighting,
+                finish: (options as any).studioFinish,
+                shadow: (options as any).studioShadow || (options as any).heroShadow,
+
+                // Optional Interaction
+                interaction: (options as any).studioInteraction
+            });
+
+            // Prepend the canonical prompt as the authoritative root contract
+            const finalStudioPrompt = `${PRODUCT_STUDIO_CANONICAL_PROMPT}\n\n---\n\nGENERATION INSTRUCTIONS:\n${studioPrompt}`;
+
+            console.log('[CLEANUP-INSTRUMENT] ===== BUILD CALL END (Studio) =====');
+            console.log('[FINAL PROMPT STRING]', finalStudioPrompt);
+            return finalStudioPrompt;
+        }
+
+        // If we reach here, we're in LEGACY branch
+        console.log('[CLEANUP-INSTRUMENT] BRANCH: 🟡 LEGACY PIPELINE');
+
+        const ugcSelfieDominant = options.contentStyle === 'ugc' && isSelfie;
+        options.ugcSelfieDominant = ugcSelfieDominant;
+
+        if (ugcSelfieDominant) {
+            const overrideTarget = options as any;
+            const isCloseFace =
+                options.ugcCaptureStyleBase?.includes('close-face') ||
+                options.ugcRealModeLayers?.captureBase?.includes('close-face');
+            overrideTarget.creationMode = 'ugc_selfie';
+            overrideTarget.compositionMode = null;
+            overrideTarget.sceneIntent = null;
+            overrideTarget.shotType = null;
+            delete overrideTarget.cameraDistance;
+            if (isCloseFace) {
+                overrideTarget.cameraDistance = 'extreme_close';
+            }
+            overrideTarget.personPose = null;
+            overrideTarget.camera = 'front-facing smartphone camera';
+            overrideTarget.cameraDeviceSemantic = 'front-facing smartphone camera';
+            overrideTarget.cameraType = null;
+            overrideTarget.placementCamera = null;
+
+            // Aggressive wipe of forbidden framing terms to prevent leakage violations
+            const forbiddenKeys = ['shotType', 'cameraDistance', 'cameraShot', 'cameraAngle', 'perspective', 'framing', 'personPose', 'wardrobe', 'identityBlock'];
+            const forbiddenTerms = ['lifestyle', 'portrait', 'medium', 'torso', 'rule of thirds'];
+
+            const cleanValue = (val: any) => {
+                if (typeof val !== 'string') return val;
+                let cleaned = val;
+                forbiddenTerms.forEach(term => {
+                    const regex = new RegExp(term, 'gi');
+                    cleaned = cleaned.replace(regex, '');
+                });
+                return cleaned.trim();
+            };
+
+            forbiddenKeys.forEach(key => {
+                if (overrideTarget[key]) overrideTarget[key] = cleanValue(overrideTarget[key]);
+                if (options.personDetails && (options.personDetails as any)[key]) {
+                    (options.personDetails as any)[key] = cleanValue((options.personDetails as any)[key]);
+                }
+            });
+
+            if (options.personDetails) {
+                options.personDetails.personPose = undefined;
+            }
+        }
 
         // ====================================================================
         // STEP 2: Identity
         // ====================================================================
         const shouldIncludeIdentity =
             options.personIncluded &&
-            !options.hasModelReference &&
             options.contentStyle !== 'product';
 
-        const constraintsSection = this.constraintsBuilder.build(options);
         const identitySection = shouldIncludeIdentity
             ? this.identityBuilder.build(options)
             : '';
+        const selfieCaptureSection = this.selfieCaptureBuilder.build(options);
 
         console.log('[PROMPT ENGINE] Step 2: Identity -',
             shouldIncludeIdentity ? `${identitySection.length} chars` : 'SUPPRESSED');
+
+        if (ugcSelfieDominant) {
+            const ugcSection = this.ugcBuilder.build(options);
+            const finalizeSection = this.finalizeBuilder.build(options);
+            const negative = negativePrompt(options);
+            let finalPrompt = [
+                identitySection,
+                selfieCaptureSection,
+                ugcSection,
+                finalizeSection
+            ]
+                .filter(Boolean)
+                .join(' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+            finalPrompt = enforceUgcFocusGuard(finalPrompt, options);
+            finalPrompt = `${finalPrompt} Negative prompt: ${negative}`.replace(/\s+/g, ' ').trim();
+            console.log('[PROMPT ENGINE] Selfie-dominant pipeline ACTIVE');
+            console.log('[FINAL PROMPT STRING]', finalPrompt);
+            return finalPrompt;
+        }
 
         // ====================================================================
         // STEP 3: UGC Real Mode (DOMINANT MODIFIER)
@@ -300,6 +625,7 @@ export class PromptEngine {
         // ====================================================================
         // STEP 4: Canonical Scene
         // ====================================================================
+        const constraintsSection = this.constraintsBuilder.build(options);
         const narrativeSections = this.narrativeBuilder.build(options, {
             identity: identitySection,
             constraints: constraintsSection
@@ -324,8 +650,10 @@ export class PromptEngine {
         // ====================================================================
         // ASSEMBLE MASTER PROMPT (canonical order)
         // ====================================================================
-        const negative = negativePrompt();
+        const negative = negativePrompt(options);
         const masterSections: MasterPromptSections = {
+            sceneStructure: this.sceneStructureBuilder.build(options),
+            visualGrammar: this.visualGrammarBuilder.build(options),
             creationIntent: narrativeSections.creationIntent,
             creationMode: narrativeSections.creationMode,
             ugcRealMode: ugcSection || narrativeSections.ugcRealMode,
@@ -334,11 +662,13 @@ export class PromptEngine {
             cameraFraming: narrativeSections.cameraFraming,
             environmentLightingMood: narrativeSections.environmentLightingMood,
             compositionDetails: compositionDetailsSection,
+            selfieCapture: selfieCaptureSection,
             identity: narrativeSections.identity || identitySection,
             finalize: finalizeSection
         };
 
-        let finalPrompt = buildMasterPrompt(masterSections, negative);
+        const resolvedUgcStyle = options.ugcStyle ?? 'optimized';
+        let finalPrompt = buildMasterPrompt(masterSections, negative, resolvedUgcStyle);
 
         const bannedEnvironmentalTerms = /(luxury editorial|hero framing|cinema camera)/i;
         if (options.sceneIntent === 'environment' && options.creationIntent !== 'ugc' && bannedEnvironmentalTerms.test(finalPrompt)) {
@@ -346,7 +676,7 @@ export class PromptEngine {
             masterSections.creationMode = 'Environment-first lifestyle composition with natural surroundings and contextual product placement.';
             masterSections.ecommerceBuilder = undefined;
             masterSections.cameraFraming = 'Camera: handheld smartphone perspective capturing lived-in surroundings, avoiding cinematic hero angles.';
-            finalPrompt = buildMasterPrompt(masterSections, negative);
+            finalPrompt = buildMasterPrompt(masterSections, negative, resolvedUgcStyle);
         }
 
         if (/data:image/i.test(finalPrompt)) {
@@ -358,6 +688,86 @@ export class PromptEngine {
         }
 
         finalPrompt = enforceUgcFocusGuard(finalPrompt, options);
+
+        // ====================================================================
+        // PRODUCT MODE HUMAN EXCLUSION (Legacy) -> Still valid
+        // ====================================================================
+        const isProductOnly =
+            options.contentStyle === 'product' ||
+            options.creationIntent === 'product' ||
+            options.sceneIntent === 'ecommerce';
+        if (isProductOnly) {
+            const forbidden = /\b(lifestyle|ugc|user-generated|selfie|phone|creator|person|people|human|identity|ethnicity|age|face)\b/i;
+            const negativeMarker = ' Negative prompt: ';
+            const negativeIndex = finalPrompt.indexOf(negativeMarker);
+            const positivePrompt = negativeIndex >= 0 ? finalPrompt.substring(0, negativeIndex) : finalPrompt;
+            const match = forbidden.exec(positivePrompt);
+            if (match) {
+                const matchIndex = match.index ?? 0;
+                const excerptStart = Math.max(0, matchIndex - 140);
+                const excerptEnd = Math.min(positivePrompt.length, matchIndex + 140);
+                console.error('[PRODUCT MODE BLOCK] Forbidden language detected in positive prompt', {
+                    match: match[0],
+                    excerpt: positivePrompt.slice(excerptStart, excerptEnd)
+                });
+                throw new InvalidSceneCombinationError(
+                    `Product Step 3 cannot include lifestyle, UGC, phone/selfie, or human identity language. Found: "${match[0]}".`
+                );
+            }
+        }
+
+        // ====================================================================
+        // NEW: SANITIZER & INTEGRITY ASSERTION
+        // ====================================================================
+        if (isProductOnly) {
+            const sanitizer = new PromptSanitizer(); // Instantiate here or as class property
+            finalPrompt = sanitizer.sanitize(finalPrompt);
+            try {
+                sanitizer.assertIntegrity(finalPrompt, options);
+            } catch (e: any) {
+                console.error('[PROMPT INTEGRITY FAILURE]', e.message);
+                throw e; // Hard fail as requested
+            }
+        }
+
+        // ====================================================================
+        // STUDIO MODE ISOLATION GUARD (for sceneType-based Studio access)
+        // ====================================================================
+        // Note: creationMode === 'studio' is handled by the fast-path above.
+        // This guard catches sceneType === 'studio_packshot' which may bypass the fast-path.
+        const isStudioPackshotType = (options as any).sceneType === 'studio_packshot';
+
+        if (isStudioPackshotType) {
+            console.log('[STUDIO GUARD] Active (sceneType) - Enforcing strict product isolation');
+
+            // 1. POSITIVE INJECTION: Prepend explicit Studio context
+            const studioPositiveInjection =
+                'Studio setting. ' +
+                'No real environment. ' +
+                'No lifestyle context. ' +
+                'No home, kitchen, bathroom, vanity, counter, or room. ' +
+                'Abstract studio backdrop or clean gradient only. ';
+
+            // Insert after the first sentence of the prompt
+            const periodIndex = finalPrompt.indexOf('. ');
+            if (periodIndex > 0) {
+                finalPrompt = finalPrompt.substring(0, periodIndex + 2) + studioPositiveInjection + finalPrompt.substring(periodIndex + 2);
+            } else {
+                finalPrompt = studioPositiveInjection + finalPrompt;
+            }
+
+            // 2. NEGATIVE INJECTION: Append extended anti-lifestyle negatives
+            const studioNegativeExtension =
+                ', no lifestyle scene, no home environment, no routine depiction, ' +
+                'no daily-use context, no bathroom, no kitchen, no vanity, no counter, ' +
+                'no morning routine, no wellness context, no product in use, no person using product';
+
+            const negativeMarkerIdx = finalPrompt.indexOf('Negative prompt: ');
+            if (negativeMarkerIdx >= 0) {
+                // Append to existing negative
+                finalPrompt = finalPrompt + studioNegativeExtension;
+            }
+        }
 
         // ====================================================================
         // MANDATORY DEBUG LOGGING
@@ -382,21 +792,43 @@ export class PromptEngine {
      * Get individual components for debugging
      */
     getComponents(options: PromptOptions): Record<string, string> {
+        const ugcSelfieDominant = options.contentStyle === 'ugc' && isSelfieActive(options);
+        options.ugcSelfieDominant = ugcSelfieDominant;
+
         const shouldIncludeIdentity =
             options.personIncluded &&
             !options.hasModelReference &&
             options.contentStyle !== 'product';
 
-        const constraintsSection = this.constraintsBuilder.build(options);
         const identitySection = shouldIncludeIdentity
             ? this.identityBuilder.build(options)
             : '';
         const ugcSection = this.ugcBuilder.build(options);
+        const selfieCaptureSection = this.selfieCaptureBuilder.build(options);
+        const finalizeSection = this.finalizeBuilder.build(options);
+
+        if (ugcSelfieDominant) {
+            return {
+                Narrative: [
+                    identitySection,
+                    selfieCaptureSection,
+                    ugcSection,
+                    finalizeSection
+                ]
+                    .filter(Boolean)
+                    .join(' '),
+                Identity: identitySection,
+                UGC: ugcSection,
+                Constraints: '',
+                Finalize: finalizeSection
+            };
+        }
+
+        const constraintsSection = this.constraintsBuilder.build(options);
         const narrativeSections = this.narrativeBuilder.build(options, {
             identity: identitySection,
             constraints: constraintsSection
         });
-        const finalizeSection = this.finalizeBuilder.build(options);
         const compositionDetailsSection = this.compositionDetailsBuilder.build(options);
 
         return {
@@ -408,6 +840,7 @@ export class PromptEngine {
                 narrativeSections.ecommerceBuilder ?? '',
                 narrativeSections.cameraFraming,
                 narrativeSections.environmentLightingMood,
+                selfieCaptureSection,
                 compositionDetailsSection,
                 finalizeSection
             ]

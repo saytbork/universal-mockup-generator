@@ -1,0 +1,309 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://boostugc.com/schemas/deterministic-prompt-input.json",
+    "title": "DeterministicPromptInput",
+    "description": "Input contract for the deterministic prompt engine",
+    "type": "object",
+    "required": [
+        "sceneType",
+        "productSetup",
+        "compositionRules",
+        "environment",
+        "lighting",
+        "creativity",
+        "camera",
+        "ecommerce",
+        "outputFormat"
+    ],
+    "properties": {
+        "sceneType": {
+            "type": "string",
+            "enum": [
+                "studio_packshot",
+                "editorial_product",
+                "lifestyle_product",
+                "ugc_phone",
+                "ecommerce_blank_space",
+                "bundle_kit"
+            ],
+            "description": "Root controller. Determines all logic, permissions, and constraints."
+        },
+        "productSetup": {
+            "type": "object",
+            "required": [
+                "productType"
+            ],
+            "properties": {
+                "productType": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Required. Type of product (e.g., 'skincare serum', 'vitamin bottle')"
+                },
+                "packaging": {
+                    "type": "string",
+                    "description": "Product packaging description"
+                },
+                "physicalScale": {
+                    "type": "string",
+                    "description": "Physical scale (e.g., 'tabletop', 'handheld')"
+                },
+                "productContentColor": {
+                    "type": "string",
+                    "description": "Color of product contents for palette influence"
+                },
+                "handsAllowed": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Only allowed for lifestyle_product and ugc_phone"
+                }
+            }
+        },
+        "compositionRules": {
+            "type": "object",
+            "required": [
+                "quantity",
+                "interactionObjects"
+            ],
+            "properties": {
+                "quantity": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Number of product units. >1 only for bundle_kit or editorial_product"
+                },
+                "arrangement": {
+                    "type": "string",
+                    "description": "Product arrangement style"
+                },
+                "interactionObjects": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Explicit list of allowed objects. Empty = no extra objects."
+                }
+            }
+        },
+        "environment": {
+            "type": "object",
+            "properties": {
+                "macroEnvironment": {
+                    "type": "string",
+                    "description": "Forbidden for studio_packshot and ecommerce_blank_space"
+                },
+                "microPlace": {
+                    "type": "string",
+                    "description": "Specific location within macro environment"
+                }
+            }
+        },
+        "lighting": {
+            "type": "object",
+            "required": [
+                "lightingStyle"
+            ],
+            "properties": {
+                "lightingStyle": {
+                    "type": "string",
+                    "description": "Must be compatible with sceneType"
+                }
+            }
+        },
+        "creativity": {
+            "type": "object",
+            "required": [
+                "level"
+            ],
+            "properties": {
+                "level": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 10,
+                    "description": "studio_packshot=0, ecommerce≤2, ugc≤3"
+                },
+                "theme": {
+                    "type": "string",
+                    "description": "Visual theme (not allowed for ecommerce)"
+                },
+                "paletteSource": {
+                    "type": "string",
+                    "description": "Color palette source (not allowed for ecommerce)"
+                },
+                "propDensity": {
+                    "type": "string",
+                    "description": "Prop density level"
+                }
+            }
+        },
+        "camera": {
+            "type": "object",
+            "required": [
+                "cameraSystem"
+            ],
+            "properties": {
+                "cameraSystem": {
+                    "type": "string",
+                    "description": "ugc_phone requires 'smartphone' only"
+                },
+                "angle": {
+                    "type": "string",
+                    "description": "Camera angle"
+                },
+                "distance": {
+                    "type": "string",
+                    "description": "Camera distance"
+                },
+                "rotation": {
+                    "type": "string",
+                    "description": "Camera rotation"
+                },
+                "framing": {
+                    "type": "string",
+                    "description": "Framing style"
+                }
+            }
+        },
+        "ecommerce": {
+            "type": "object",
+            "required": [
+                "enabled"
+            ],
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Only allowed for sceneType=ecommerce_blank_space"
+                },
+                "blankSpacePosition": {
+                    "type": "string",
+                    "enum": [
+                        "left",
+                        "right",
+                        "top",
+                        "bottom"
+                    ],
+                    "description": "Position of blank space for overlays"
+                },
+                "overlaySafeArea": {
+                    "type": "boolean",
+                    "description": "Reserve safe area for text overlays"
+                }
+            }
+        },
+        "outputFormat": {
+            "type": "object",
+            "properties": {
+                "aspectRatio": {
+                    "type": "string",
+                    "description": "Output aspect ratio (e.g., '1:1', '4:5', '16:9')"
+                },
+                "resolution": {
+                    "type": "string",
+                    "description": "Output resolution"
+                }
+            }
+        }
+    },
+    "allOf": [
+        {
+            "if": {
+                "properties": {
+                    "sceneType": {
+                        "const": "studio_packshot"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "creativity": {
+                        "properties": {
+                            "level": {
+                                "maximum": 0
+                            }
+                        }
+                    },
+                    "productSetup": {
+                        "properties": {
+                            "handsAllowed": {
+                                "const": false
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "sceneType": {
+                        "const": "ugc_phone"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "creativity": {
+                        "properties": {
+                            "level": {
+                                "maximum": 3
+                            }
+                        }
+                    },
+                    "camera": {
+                        "properties": {
+                            "cameraSystem": {
+                                "pattern": "(?i)smartphone|mobile|phone"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "sceneType": {
+                        "const": "ecommerce_blank_space"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "creativity": {
+                        "properties": {
+                            "level": {
+                                "maximum": 2
+                            }
+                        }
+                    },
+                    "productSetup": {
+                        "properties": {
+                            "handsAllowed": {
+                                "const": false
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "sceneType": {
+                        "const": "bundle_kit"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "compositionRules": {
+                        "properties": {
+                            "quantity": {
+                                "minimum": 2
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}

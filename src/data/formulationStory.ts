@@ -1,4 +1,4 @@
-import type { Option } from '@/types';
+import type { Option } from '../../types';
 
 export interface FormulationExpertPreset {
   value: string;

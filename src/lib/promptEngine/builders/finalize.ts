@@ -6,20 +6,58 @@ import type { PromptOptions, PromptBuilder } from '../types';
 
 export class FinalizeBuilder implements PromptBuilder {
     build(options: PromptOptions): string {
+        const hideProduct =
+            (options.ritualModeActive && options.ritualHideProduct === true) ||
+            options.forceHideProduct === true;
+
+        const ugcDepthLockActive =
+            Boolean(options.ugcRealModeActive) ||
+            Boolean(options.rawDomesticUgcActive) ||
+            options.contentStyle === 'ugc' ||
+            options.creationIntent === 'ugc';
+
         const lines: string[] = [
             'Final render must be high resolution, photorealistic and free of watermarks or text.',
             'No text, no logos, no watermarks.',
             'No CGI look or plastic skin.',
             'No distorted hands, fingers or wrists.',
             'No floating limbs.',
-            'No invented labels or product redesign.',
-            'No hallucinated packaging.',
-            'Product geometry, material and label must remain exact.'
         ];
+
+        if (hideProduct) {
+            lines.push(
+                'CRITICAL: No product visible anywhere in frame (no packaging, no bottles, no jars, no labels, no supplement containers).',
+                'Do not include any brand packaging, product hero, or close-up packshot.',
+                'Focus on the person and environment; do not show any brand packaging.'
+            );
+            if (options.ritualNoObjects) {
+                lines.push(
+                    'CRITICAL: No props or objects visible. Only people and environment/architecture. Empty hands.'
+                );
+            }
+        } else {
+            lines.push(
+                'No invented labels or product redesign.',
+                'No hallucinated packaging.',
+                'Product geometry, material and label must remain exact.',
+                'CONTACT REALISM: The product must look physically held (not composited). Fingers must occlude edges naturally with believable grip pressure and contact shadows. No pasted/sticker look and no halo/cutout edges.',
+                ugcDepthLockActive
+                    ? 'OPTICS LOCK: Keep the entire frame evenly focused. The product label must be tack sharp and fully readable. Do not let the product or label become soft while other areas are sharp.'
+                    : 'OPTICS LOCK: The product must be tack sharp and the sharpest object in the frame. Use deep depth of field (f/8–f/11) or focus stacking; absolutely no portrait mode, bokeh, or shallow depth-of-field that blurs the product or label.',
+                ugcDepthLockActive
+                    ? 'Never let the product be unreadable: label text must remain crisp and clear.'
+                    : 'Never let the product be out of focus: no blurry product, no soft focus on the product, and no depth-of-field that blurs the label.'
+            );
+            if (options.ritualModeActive && options.ritualNoObjects) {
+                lines.push(
+                    'CRITICAL: No props or objects visible. Only people and environment/architecture. Empty hands.'
+                );
+            }
+        }
 
         const intent = options.creationIntent || 'ugc';
 
-        if (intent !== 'ugc') {
+        if (intent !== 'ugc' && options.contentStyle !== 'product' && options.sceneIntent !== 'ecommerce') {
             lines.push(
                 'No lifestyle framing.',
                 'No creator narrative.',
@@ -34,6 +72,12 @@ export class FinalizeBuilder implements PromptBuilder {
             lines.push(
                 'Only one product is held naturally in the hand while any additional items rest on nearby surfaces (table, shelf, counter, or bag).',
                 'Do not place multiple products in one hand or in both hands simultaneously.'
+            );
+        }
+
+        if (!options.identityLock && options.contentStyle !== 'product' && options.sceneIntent !== 'ecommerce') {
+            lines.push(
+                'NEGATIVE IDENTITY CONSTRAINT: same woman, same person, identical face, repeated subject, recurring individual.'
             );
         }
 

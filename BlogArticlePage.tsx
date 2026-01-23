@@ -21,10 +21,10 @@ const BlogArticlePage: React.FC = () => {
 
   if (!article) {
     return (
-      <div className="bg-gray-950 text-white min-h-screen flex flex-col">
+      <div className="bg-gray-50 text-gray-900 dark:bg-black dark:text-white min-h-screen flex flex-col">
         <div className="max-w-5xl mx-auto px-4 py-20">
-          <p className="text-sm text-gray-400">Article not found.</p>
-          <Link to="/blog" className="inline-flex mt-4 text-indigo-300">
+          <p className="text-sm text-gray-600">Article not found.</p>
+          <Link to="/blog" className="inline-flex mt-4 text-indigo-600">
             Back to blog
           </Link>
         </div>
@@ -33,23 +33,30 @@ const BlogArticlePage: React.FC = () => {
   }
 
   return (
-    <div className="bg-gray-950 text-white min-h-screen">
+    <div className="bg-gray-50 text-gray-900 dark:bg-black dark:text-white min-h-screen">
       <div className="max-w-5xl mx-auto px-4 py-12 space-y-10">
-        <section className="blog-hero rounded-3xl border border-white/10 bg-gradient-to-br from-indigo-500/30 to-purple-500/30 p-8 space-y-4">
-          <Link className="text-sm text-gray-200 underline" to="/blog">
+        <section className="blog-hero rounded-3xl border border-gray-200 bg-gray-50 p-8 space-y-4 shadow-md shadow-md shadow-indigo-500/20">
+          <Link className="text-sm text-gray-900 underline" to="/blog">
             ← Back to blog
           </Link>
           <div className="space-y-3">
-            <p className="text-xs uppercase tracking-[0.4em] text-indigo-200">Blog</p>
+            <p className="text-xs uppercase tracking-[0.4em] text-indigo-600">Blog</p>
             <h1 className="text-4xl font-semibold leading-tight">{article.title}</h1>
-            <p className="text-lg text-gray-200 max-w-3xl">{article.subtitle}</p>
+            <p className="text-lg text-gray-900 max-w-3xl">{article.subtitle}</p>
           </div>
-          <figure className="rounded-2xl border border-white/10 bg-black/40 p-4 space-y-2">
-            <p className="text-xs uppercase tracking-[0.35em] text-gray-400">Hero prompt</p>
-            <p className="text-sm text-gray-200 leading-relaxed">{article.heroImage.prompt}</p>
-            <figcaption className="text-[11px] uppercase tracking-[0.35em] text-gray-500">
-              {article.heroImage.alt}
-            </figcaption>
+          <figure className="rounded-2xl border border-gray-200 bg-white overflow-hidden space-y-2">
+            <div className="aspect-video w-full bg-gray-100 relative overflow-hidden" style={{ maxHeight: '550px' }}>
+              <img
+                src={article.heroImage.url || `/blog/heroes/${article.slug}.webp`}
+                alt={article.heroImage.alt}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=1000';
+                }}
+              />
+
+            </div>
+
           </figure>
         </section>
 
@@ -58,27 +65,17 @@ const BlogArticlePage: React.FC = () => {
             <article key={section.heading} className="space-y-3">
               <h2 className="text-2xl font-semibold">{section.heading}</h2>
               <div
-                className="space-y-2 text-gray-200 leading-relaxed"
+                className="space-y-2 text-gray-900 leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: section.body }}
               />
-              {section.imagePrompt ? (
-                <figure className="rounded-2xl border border-white/10 bg-gray-900/60 p-4 space-y-2">
-                  <p className="text-xs uppercase tracking-[0.35em] text-gray-400">Image prompt</p>
-                  <p className="text-sm text-gray-200 leading-relaxed">{section.imagePrompt}</p>
-                  {section.imageAlt && (
-                    <figcaption className="text-[11px] uppercase tracking-[0.35em] text-gray-500">
-                      {section.imageAlt}
-                    </figcaption>
-                  )}
-                </figure>
-              ) : null}
+
             </article>
           ))}
-          <div className="blog-cta rounded-3xl border border-white/10 bg-gradient-to-br from-emerald-500/20 to-indigo-500/20 p-6 space-y-3">
+          <div className="blog-cta rounded-3xl border border-gray-200 bg-gray-50 p-6 space-y-3">
             <h3 className="text-2xl font-semibold">{article.cta.title}</h3>
-            <p className="text-gray-200 leading-relaxed">{article.cta.text}</p>
+            <p className="text-gray-900 leading-relaxed">{article.cta.text}</p>
             <a
-              className="inline-flex items-center justify-center rounded-full bg-emerald-500/90 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-400"
+              className="inline-flex items-center justify-center rounded-full bg-indigo-600 text-white px-6 py-3 text-sm font-semibold text-white transition hover:bg-indigo-600 text-white"
               href="/app"
             >
               {article.cta.button}

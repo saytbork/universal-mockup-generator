@@ -1,1 +1,1 @@
-export { default } from '../components/ImageEditor';
+export { default } from '../../components/ImageEditor';

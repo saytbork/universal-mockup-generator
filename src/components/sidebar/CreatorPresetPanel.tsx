@@ -12,7 +12,7 @@ const presets = [
 
 // Simple preset definitions for now.
 // Can be expanded later.
-const presetValues = {
+const presetValues: Record<string, Record<string, string>> = {
   "Beauty Creator": {
     hairStyle: "Loose Waves",
     hairColor: "Golden Blonde",
@@ -62,7 +62,7 @@ export default function CreatorPresetPanel() {
   const linkTalent = useCreatorStore((s) => s.linkTalent);
   const toggleLinkTalent = useCreatorStore((s) => s.toggleLinkTalent);
 
-  const applyPreset = (presetName) => {
+  const applyPreset = (presetName: string) => {
     setPreset(presetName);
 
     if (presetName === "Custom Build") return;
@@ -71,13 +71,13 @@ export default function CreatorPresetPanel() {
     if (!values) return;
 
     Object.entries(values).forEach(([key, value]) => {
-      setCreatorField(key, value);
+      setCreatorField(key as any, value);
     });
   };
 
   return (
     <div className="flex flex-col gap-6">
-      <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wide">
+      <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
         Creator Presets
       </h3>
 
@@ -91,8 +91,8 @@ export default function CreatorPresetPanel() {
               onClick={() => applyPreset(p)}
               className={
                 isActive
-                  ? "px-4 py-2 rounded-lg text-left bg-indigo-500 text-white"
-                  : "px-4 py-2 rounded-lg text-left bg-gray-700 text-gray-300 hover:bg-gray-600"
+                  ? "px-4 py-2 rounded-lg text-left bg-indigo-600 text-white"
+                  : "px-4 py-2 rounded-lg text-left bg-whiteTint text-gray-600 hover:bg-whiteTint"
               }
             >
               {p}
@@ -107,8 +107,8 @@ export default function CreatorPresetPanel() {
           onClick={toggleLinkTalent}
           className={
             linkTalent
-              ? "w-10 h-6 rounded-full bg-indigo-500 relative"
-              : "w-10 h-6 rounded-full bg-gray-600 relative"
+              ? "w-10 h-6 rounded-full bg-indigo-600 text-white relative"
+              : "w-10 h-6 rounded-full bg-whiteTint relative"
           }
         >
           <div
@@ -120,7 +120,7 @@ export default function CreatorPresetPanel() {
           />
         </button>
 
-        <span className="text-gray-300 text-sm">Link Talent Across Scenes</span>
+        <span className="text-gray-600 text-sm">Link Talent Across Scenes</span>
       </div>
     </div>
   );

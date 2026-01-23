@@ -9,7 +9,17 @@ export class CompositionDetailsBuilder implements PromptBuilder {
         }
 
         if (options.sidePlacement) {
-            parts.push(`Product and person placement: ${options.sidePlacement} side.`);
+            parts.push(`Product placement: ${options.sidePlacement} side.`);
+        }
+
+        if (options.ecommerceSidePlacementFlag && options.sidePlacement) {
+            if (options.sidePlacement === 'center') {
+                parts.push('Maintain even negative space on both sides so copy can wrap naturally.');
+            } else if (options.sidePlacement === 'left' || options.sidePlacement === 'right') {
+                parts.push(
+                    `Reserve large, clean negative space on the ${options.sidePlacement === 'left' ? 'right' : 'left'} side for text overlays.`
+                );
+            }
         }
 
         if (options.bgGradient) {

@@ -7,50 +7,114 @@
  * NO UGC terminology allowed.
  */
 
-import type { Step3Values } from '@/components/LifestyleStep3';
+import type { ProductStudioStep3Values } from '@/lib/productStudio/state';
 import type { PromptOptions } from './types';
 
-/**
- * Product Mode vocabulary - NEVER use UGC terms
- */
-const PRODUCT_VOCABULARY = {
-    // Forbidden terms (never inject these)
-    FORBIDDEN: [
-        'selfie',
-        'candid',
-        'real life mess',
-        'phone camera',
-        'ugc',
-        'creator',
-        'person',
-        'face',
-        'emotion'
-    ],
+const normalizeSidePlacement = (raw?: string): 'left' | 'center' | 'right' => {
+    const lower = String(raw || '').toLowerCase();
+    if (lower.includes('left')) return 'left';
+    if (lower.includes('right')) return 'right';
+    return 'center';
+};
 
-    // Allowed terms (premium ecommerce only)
-    ALLOWED: {
-        composition: [
-            'studio product photography',
-            'editorial flat lay',
-            'controlled lighting',
-            'premium ecommerce aesthetic',
-            'clean product studio',
-            'ingredient story composition',
-            'abstract benefit visual',
-            'routine bundle shot'
-        ],
-        lighting: [
-            'soft studio light',
-            'natural window light',
-            'controlled directional light'
-        ],
-        interaction: [
-            'hands holding product',
-            'hands pouring product',
-            'hands opening product',
-            'hands placing product',
-            'product only, no hands'
-        ]
+const clampHex = (value: string | undefined, fallback: string): string => {
+    const normalized = String(value || '').trim();
+    return /^#[0-9a-f]{6}$/i.test(normalized) ? normalized : fallback;
+};
+
+const sanitizeProductCopy = (value: string): string => {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    return raw
+        .replace(/\b(lifestyle|ugc|user-generated|selfie|phone|creator|person|people|human|identity|ethnicity|age|face)\b/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+};
+
+const mapProductCameraDistance = (
+    distance?: ProductStudioStep3Values['productCameraDistance']
+): NonNullable<PromptOptions['cameraDistance']> => {
+    switch (distance) {
+        case 'Wide':
+            return 'wide';
+        case 'Tight':
+            return 'close';
+        case 'Macro':
+            return 'macro';
+        case 'Standard':
+        default:
+            return 'medium';
+    }
+};
+
+const mapProductCameraAngle = (angle?: ProductStudioStep3Values['productCameraAngle']): string | undefined => {
+    switch (angle) {
+        case 'Eye level product':
+            return 'camera positioned at product eye level with a neutral perspective';
+        case '45 degree hero':
+            return '45° hero angle, slightly above the product looking down';
+        case 'Top-down flat lay':
+            return 'top-down flat lay, camera directly overhead';
+        case 'Low angle power':
+            return 'low angle view looking slightly upward at the product';
+        case 'High angle overview':
+            return 'high angle overview looking down at the product';
+        case 'Detail close-up':
+            return 'detail close-up angle emphasizing materials and label detail';
+        default:
+            return undefined;
+    }
+};
+
+const mapProductShotType = (
+    distance?: ProductStudioStep3Values['productCameraDistance'],
+    angle?: ProductStudioStep3Values['productCameraAngle']
+): string | undefined => {
+    if (angle === 'Top-down flat lay') {
+        return 'flat lay product shot with clean spacing';
+    }
+    switch (distance) {
+        case 'Wide':
+            return 'wide product composition with generous negative space';
+        case 'Standard':
+            return 'standard product framing showing the full product clearly';
+        case 'Tight':
+            return 'tight hero close-up emphasizing label and texture';
+        case 'Macro':
+            return 'macro detail close-up showing fine material detail';
+        default:
+            return undefined;
+    }
+};
+
+const mapProductFraming = (
+    framing?: ProductStudioStep3Values['productFramingGuide'],
+    rotationDegrees?: ProductStudioStep3Values['productCameraRotation']
+): { perspective?: string; forcedSidePlacement?: 'left' | 'right' } => {
+    const rotationSuffix =
+        typeof rotationDegrees === 'number' && rotationDegrees > 0
+            ? ` with an intentional ${rotationDegrees}° camera rotation`
+            : '';
+
+    switch (framing) {
+        case 'Centered hero':
+            return { perspective: `centered hero composition with clean margins${rotationSuffix}` };
+        case 'Rule of thirds':
+            return { perspective: `rule-of-thirds composition with intentional spacing${rotationSuffix}` };
+        case 'Left aligned + negative space':
+            return {
+                perspective: `product aligned left with large clean negative space to the right${rotationSuffix}`,
+                forcedSidePlacement: 'left'
+            };
+        case 'Right aligned + negative space':
+            return {
+                perspective: `product aligned right with large clean negative space to the left${rotationSuffix}`,
+                forcedSidePlacement: 'right'
+            };
+        case 'Grid-ready':
+            return { perspective: `grid-ready centered framing with consistent margins${rotationSuffix}` };
+        default:
+            return rotationSuffix ? { perspective: `intentional studio framing${rotationSuffix}` } : {};
     }
 };
 
@@ -62,66 +126,224 @@ const PRODUCT_VOCABULARY = {
  * - Never reference people/faces/emotions
  */
 export function mapProductModeToPromptOptions(
-    sceneState: Step3Values,
+    sceneState: ProductStudioStep3Values,
     existingOptions: Partial<PromptOptions> = {}
 ): Partial<PromptOptions> {
-    console.log('[PRODUCT MODE MAP INPUT]', sceneState);
+    console.log('[PRODUCT STEP3 INPUT]', {
+        sceneIntent: sceneState.sceneIntent,
+        aspectRatio: sceneState.aspectRatio,
+        sidePlacement: sceneState.sidePlacement,
+        ecommerceBackgroundMode: sceneState.ecommerceBackgroundMode,
+        ecommerceBackgroundColor: sceneState.ecommerceBackgroundColor,
+        ecommerceGradientStart: sceneState.ecommerceGradientStart,
+        ecommerceGradientEnd: sceneState.ecommerceGradientEnd,
+        ecommerceGradientAngle: sceneState.ecommerceGradientAngle,
+        productType: sceneState.productType,
+        productTypeCustom: sceneState.productTypeCustom,
+        handsHolding: sceneState.handsHolding,
+        productCameraSystem: sceneState.productCameraSystem,
+        productCameraAngle: sceneState.productCameraAngle,
+        productCameraDistance: sceneState.productCameraDistance,
+        productCameraRotation: sceneState.productCameraRotation,
+        productFramingGuide: sceneState.productFramingGuide,
+        productCreativityLevel: sceneState.productCreativityLevel,
+        productCreativeTheme: sceneState.productCreativeTheme,
+        productPaletteSource: sceneState.productPaletteSource,
+        productPropDensity: sceneState.productPropDensity,
+        productPropsSelected: sceneState.productPropsSelected
+    });
 
-    const mapped: Partial<PromptOptions> = { ...existingOptions };
+    if (sceneState.ugcRealMode) {
+        console.error('[INVALID STATE BLOCKED] UGC Real Mode cannot run in product mode');
+        throw new Error('Invalid state: ugcRealMode in product mode');
+    }
+    if (sceneState.noPerson === false) {
+        console.error('[INVALID STATE BLOCKED] Person cannot be enabled in product mode');
+        throw new Error('Invalid state: person enabled in product mode');
+    }
+    if (sceneState.selfieMode && sceneState.selfieMode !== 'None') {
+        console.error('[INVALID STATE BLOCKED] Selfie mode cannot run in product mode');
+        throw new Error('Invalid state: selfie mode in product mode');
+    }
+    if ((existingOptions.productAssets?.length || 0) > 1 && sceneState.selfieMode && sceneState.selfieMode !== 'None') {
+        console.error('[INVALID STATE BLOCKED] Selfie cannot be used with multi-product');
+        throw new Error('Invalid state: selfie + multi-product');
+    }
 
-    // Force Product Mode flags
+    const mapped: Partial<PromptOptions> = {
+        ...existingOptions
+    };
+
+    // Prevent any UGC contracts from leaking into Product prompts.
+    // masterPrompt.ts appends UGC_CONTRACTS[ugcStyle] unconditionally.
+    mapped.ugcStyle = 'optimized';
+
+    const ecommerceCanvasActive = sceneState.ecommerceSidePlacementFlag === true;
+
+    // Force Product Mode flags (authoritative)
     mapped.contentStyle = 'product';
-    mapped.creationMode = 'studio'; // Product mode uses studio creation mode
+    mapped.creationIntent = 'product';
     mapped.personIncluded = false;
+    mapped.sceneIntent = 'ecommerce';
+    const productStudioInteractionRaw = String((sceneState as any).productStudioInteraction ?? '').trim();
+    const productStudioInteraction =
+        productStudioInteractionRaw || (sceneState.handsHolding === true ? 'holding' : 'none');
+    (mapped as any).studioInteraction = productStudioInteraction || undefined;
+    mapped.addHands = productStudioInteraction !== '' && productStudioInteraction !== 'none';
 
-    // ========================================================================
-    // PRODUCT COMPOSITION (Stage 4)
-    // ========================================================================
+    // Ecommerce blank-space is optional and must be toggle-driven.
+    // If disabled, Product mode should generate non-blank studio/aesthetic shots.
+    if (ecommerceCanvasActive) {
+        mapped.creationMode = 'ecom-blank';
+        mapped.compositionMode = 'Ecommerce Blank Space';
+        mapped.ecommerceBlankSpaceMode = true;
+        mapped.ecommerceSidePlacementFlag = true;
+        mapped.lighting =
+            'neutral studio lighting with clean highlights, controlled reflections, and a minimal contact shadow; no environment context';
+    } else {
+        mapped.creationMode =
+            sceneState.productCreativityLevel && sceneState.productCreativityLevel !== 'Off'
+                ? 'aesthetic'
+                : 'studio';
+        mapped.compositionMode = undefined;
+        mapped.ecommerceBlankSpaceMode = false;
+        mapped.ecommerceSidePlacementFlag = false;
+        mapped.lighting =
+            'soft studio lighting with clean highlights, controlled reflections, and gentle realistic shadows; product-only composition';
+    }
 
-    // Composition presets map to specific prompt vocabulary
-    const compositionPresetMap: Record<string, string> = {
-        'Clean Product Studio': 'clean product studio with controlled lighting and soft shadows',
-        'Editorial Flat Lay': 'editorial flat lay composition with precise arrangement',
-        'Ingredient Story': 'ingredient story with product and natural elements',
-        'Abstract Benefit Visual': 'abstract benefit visual with conceptual styling',
-        'Routine / Bundle Shot': 'routine bundle shot showing multiple products together'
-    };
+    const sidePlacement = normalizeSidePlacement(sceneState.sidePlacement);
+    mapped.sidePlacement = sidePlacement;
+    mapped.ecommerceSidePlacement = sidePlacement;
 
-    // ========================================================================
-    // ENVIRONMENT & BACKGROUND (Stage 5)
-    // ========================================================================
+    // Allow product camera/framing controls (product-only, pro)
+    mapped.camera = 'DSLR / mirrorless camera';
+    mapped.cameraType = 'DSLR / mirrorless camera';
+    mapped.cameraDistance = mapProductCameraDistance(sceneState.productCameraDistance);
+    mapped.cameraAngle = mapProductCameraAngle(sceneState.productCameraAngle) as any;
+    mapped.cameraShot = mapProductShotType(sceneState.productCameraDistance, sceneState.productCameraAngle) as any;
 
-    // Product-safe environments only
-    const environmentMap: Record<string, string> = {
-        'Solid brand color': 'solid brand color background',
-        'Soft gradient': 'soft gradient background',
-        'Bathroom shelf': 'bathroom shelf surface',
-        'Kitchen counter': 'kitchen counter surface',
-        'Studio seamless': 'studio seamless white background'
-    };
+    const framing = mapProductFraming(sceneState.productFramingGuide, sceneState.productCameraRotation);
+    if (framing.forcedSidePlacement) {
+        mapped.sidePlacement = framing.forcedSidePlacement;
+        mapped.ecommerceSidePlacement = framing.forcedSidePlacement;
+    }
+    mapped.perspective = framing.perspective as any;
 
-    // ========================================================================
-    // PRODUCT INTERACTION (Stage 6 - NOT UGC)
-    // ========================================================================
+    // Background (solid or gradient) should only be injected when the Ecommerce background canvas toggle is enabled.
+    if (ecommerceCanvasActive) {
+        if (sceneState.ecommerceBackgroundMode === 'gradient') {
+            const angle = parseInt(sceneState.ecommerceGradientAngle || '90', 10) || 90;
+            mapped.bgGradient = {
+                startColor: clampHex(sceneState.ecommerceGradientStart, '#f7f7f7'),
+                endColor: clampHex(sceneState.ecommerceGradientEnd, '#d9d9d9'),
+                angle
+            };
+            delete mapped.bgColor;
+        } else {
+            mapped.bgColor = clampHex(sceneState.ecommerceBackgroundColor, '#ffffff').toUpperCase();
+            delete mapped.bgGradient;
+        }
+    } else {
+        delete mapped.bgColor;
+        delete mapped.bgGradient;
+    }
 
-    // Hands-only interaction (editorial, not UGC)
-    const interactionMap: Record<string, string> = {
-        'No hands': 'product only composition with no hands visible',
-        'Hands holding': 'hands holding product in editorial style, no face visible',
-        'Hands pouring': 'hands pouring product in controlled demonstration, no face visible',
-        'Hands opening': 'hands opening product in clean demonstration, no face visible',
-        'Hands placing': 'hands placing product on surface, no face visible'
-    };
+    // Product classification inputs (do not change product; only contextual hints)
+    (mapped as any).productType = sceneState.productType || 'Capsules';
+    (mapped as any).productTypeCustom = sceneState.productTypeCustom || '';
+    (mapped as any).productCreativityLevel = sceneState.productCreativityLevel || 'Off';
+    (mapped as any).productCreativeTheme = sceneState.productCreativeTheme || 'Clinical Minimal';
+    (mapped as any).productPaletteSource = sceneState.productPaletteSource || 'Use product label colors';
+    (mapped as any).productPropDensity = sceneState.productPropDensity || 'None';
+    (mapped as any).productPropsSelected = sceneState.productPropsSelected || [];
 
-    // ========================================================================
-    // LIGHTING (Stage 7 - Simplified)
-    // ========================================================================
+    // Creativity + styling descriptors must be explicit so they change the output deterministically.
+    // Keep this product-safe (no UGC/lifestyle/selfie language).
+    const creativityLevel = String(sceneState.productCreativityLevel || 'Off').trim();
+    const creativeTheme = sanitizeProductCopy(String(sceneState.productCreativeTheme || '').trim());
+    const propDensity = sanitizeProductCopy(String(sceneState.productPropDensity || '').trim());
+    const paletteSource = sanitizeProductCopy(String(sceneState.productPaletteSource || '').trim());
+    const selectedProps = (sceneState.productPropsSelected || [])
+        .map(p => sanitizeProductCopy(String(p)))
+        .filter(Boolean)
+        .slice(0, 10);
 
-    const lightingMap: Record<string, string> = {
-        'Soft studio light': 'soft studio lighting with controlled highlights',
-        'Natural window light': 'natural window light for realistic product photography',
-        'Controlled directional light': 'controlled directional lighting with intentional shadows'
-    };
+    if (!ecommerceCanvasActive) {
+        const creativityParts: string[] = [];
+        if (creativityLevel && creativityLevel !== 'Off') {
+            creativityParts.push(`Creativity level: ${creativityLevel}.`);
+        }
+        if (creativeTheme) {
+            creativityParts.push(`Creative theme: ${creativeTheme}.`);
+        }
+        if (paletteSource) {
+            creativityParts.push(`Palette: ${paletteSource}.`);
+        }
+        if (propDensity) {
+            creativityParts.push(`Prop density: ${propDensity}.`);
+        }
+        if (selectedProps.length) {
+            creativityParts.push(`Props: ${selectedProps.join(', ')}.`);
+        }
+        if (creativityParts.length) {
+            mapped.compositionModeStructural = creativityParts.join(' ');
+        }
+    }
+
+    // Environment is allowed ONLY when the Ecommerce background canvas is disabled.
+    // This lets Product Mode place the product into a real setting (no people) using existing environment/lighting controls.
+    if (ecommerceCanvasActive) {
+        mapped.setting = '';
+        mapped.environmentOrder = '';
+        mapped.microLocation = '';
+        delete (mapped as any).customEnvironment;
+    } else {
+        const resolvedEnvironment = (sceneState.customEnvironment || '').trim() || (sceneState.environment || '').trim();
+        if (resolvedEnvironment) {
+            mapped.setting = resolvedEnvironment;
+        }
+        const resolvedLighting = (sceneState.lightingStyle || '').trim();
+        if (resolvedLighting) {
+            mapped.lighting = resolvedLighting;
+        }
+    }
+
+    mapped.placementStyle = undefined;
+    // Ensure pro camera selection cannot be overridden by leftover UI fields.
+    // `buildCamera()` prioritizes `cameraType` over `camera`, so we must clear it in Product Step 3.
+    delete (mapped as any).cameraType;
+    delete (mapped as any).placementCamera;
+    mapped.personDetails = undefined;
+    mapped.identityLock = undefined;
+    mapped.personIdentity = undefined;
+    mapped.gender = undefined;
+    mapped.ethnicity = undefined;
+    mapped.skinTone = undefined;
+    mapped.hairColor = undefined;
+    mapped.hairStyle = undefined;
+    mapped.personPose = undefined;
+    mapped.personMood = undefined;
+    mapped.personAppearance = undefined;
+    mapped.productInteraction = undefined;
+    mapped.wardrobeStyle = undefined;
+    mapped.personProps = undefined;
+    mapped.microLocation = undefined;
+    mapped.personExpression = undefined;
+    mapped.selfieMode = undefined;
+    mapped.selfieType = 'None';
+    mapped.ugcRealModeActive = false;
+    // Remove any raw UGC flags that downstream mappers/builders use (prevents "phone" degradation).
+    delete (mapped as any).ugcRealMode;
+    delete (mapped as any).ugcMode;
+    mapped.ugcRealModeLayers = undefined;
+    mapped.ugcCaptureStyleBase = undefined;
+    mapped.ugcCameraOperator = undefined;
+    mapped.ugcBodyPhonePosition = undefined;
+    mapped.ugcMotionStability = undefined;
+    mapped.ugcFramingImperfections = undefined;
+    mapped.ugcAwkwardContext = undefined;
+    mapped.ugcSelfieDominant = false;
 
     // ========================================================================
     // OUTPUT FORMAT (Stage 8)
@@ -132,7 +354,8 @@ export function mapProductModeToPromptOptions(
         '4:5 (Portrait)': '4:5',
         '9:16 (Story)': '9:16'
     };
-    mapped.aspectRatio = aspectRatioMap[sceneState.aspectRatio] || '1:1';
+    const aspectRatioKey = sceneState.aspectRatio ?? '1:1 (Square)';
+    mapped.aspectRatio = aspectRatioMap[aspectRatioKey] || '1:1';
 
     // ========================================================================
     // VALIDATION - Block all UGC state (Stage 11)
@@ -144,22 +367,50 @@ export function mapProductModeToPromptOptions(
     mapped.personExpression = undefined;
     mapped.personPose = undefined;
 
-    console.log('[PRODUCT MODE MAP OUTPUT]', mapped);
+    console.log('[PRODUCT STEP3 MAP OUT]', {
+        contentStyle: mapped.contentStyle,
+        creationIntent: mapped.creationIntent,
+        creationMode: mapped.creationMode,
+        sceneIntent: mapped.sceneIntent,
+        compositionMode: mapped.compositionMode,
+        ecommerceBlankSpaceMode: mapped.ecommerceBlankSpaceMode,
+        sidePlacement: mapped.sidePlacement,
+        bgColor: mapped.bgColor,
+        bgGradient: mapped.bgGradient,
+        camera: mapped.camera,
+        cameraAngle: mapped.cameraAngle,
+        cameraDistance: mapped.cameraDistance,
+        cameraShot: mapped.cameraShot,
+        perspective: mapped.perspective,
+        addHands: mapped.addHands,
+        studioInteraction: (mapped as any).studioInteraction,
+        aspectRatio: mapped.aspectRatio
+    });
 
     return mapped;
 }
 
-/**
- * Validate that no forbidden UGC terms appear in prompt
- */
 export function validateProductModePrompt(prompt: string): boolean {
-    const lowerPrompt = prompt.toLowerCase();
-
-    for (const forbidden of PRODUCT_VOCABULARY.FORBIDDEN) {
-        if (lowerPrompt.includes(forbidden.toLowerCase())) {
-            console.error(`[PRODUCT MODE VALIDATION FAILED] Forbidden term detected: "${forbidden}"`);
-            return false;
-        }
+    const forbidden = [
+        'lifestyle',
+        'ugc',
+        'user-generated',
+        'selfie',
+        'phone',
+        'creator',
+        'person',
+        'people',
+        'human',
+        'identity',
+        'ethnicity',
+        'age',
+        'face'
+    ];
+    const lower = prompt.toLowerCase();
+    const hit = forbidden.find(term => lower.includes(term));
+    if (hit) {
+        console.error(`[PRODUCT MODE VALIDATION FAILED] Forbidden term detected: "${hit}"`);
+        return false;
     }
 
     return true;

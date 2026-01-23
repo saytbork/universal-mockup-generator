@@ -1,39 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Product Mockup Generator</title>
-    <script src="https://cdn.tailwindcss.com"></script>
 
-<style>
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Product &amp; Lifestyle Mockups for Ecommerce Brands | Perfect Mockup</title>
+  <meta name="description"
+    content="Create studio-ready product mockups and lifestyle visuals without photoshoots. Built for ecommerce brands, ads and product launches." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('theme');
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var next = stored === 'dark' || stored === 'light' ? stored : (prefersDark ? 'dark' : 'light');
+        document.documentElement.classList.toggle('dark', next === 'dark');
+      } catch (e) { }
+    })();
+  </script>
+
+  <style>
     /* Custom scrollbar for webkit browsers */
     .custom-scrollbar::-webkit-scrollbar {
       width: 8px;
       height: 8px;
     }
+
     .custom-scrollbar::-webkit-scrollbar-track {
       background: transparent;
     }
+
     .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #4a5568; /* gray-600 */
+      background: var(--border);
       border-radius: 10px;
-      border: 2px solid #1a202c; /* bg-gray-800/50 -ish */
+      border: 2px solid var(--surface-tint);
     }
+
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #718096; /* gray-500 */
+      background: var(--text-muted);
     }
+
     /* For Firefox */
     .custom-scrollbar {
       scrollbar-width: thin;
-      scrollbar-color: #4a5568 transparent;
+      scrollbar-color: var(--border) transparent;
     }
   </style>
-<link rel="stylesheet" href="/index.css">
+  <link rel="stylesheet" href="/globals.css">
 </head>
-  <body class="bg-gray-900 text-white">
-    <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
-  </body>
+
+<body class="bg-gray-50 text-gray-900 dark:bg-black dark:text-white font-sans">
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
 </html>

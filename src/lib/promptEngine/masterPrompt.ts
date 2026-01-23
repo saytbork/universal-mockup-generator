@@ -11,9 +11,77 @@
  * 6. environmentLightingMood - Scene, light, atmosphere
  * 7. compositionDetails - Layout + supporting context
  * 8. identity - Person physical traits
- * 9. finalize - Constraints and output format
- * 10. ugcRealMode - DOMINANT override (always appended last when active)
+ * 9. selfieCapture - UGC selfie hard constraints (conditional)
+ * 10. finalize - Constraints and output format
+ * 11. ugcRealMode - DOMINANT override (always appended last when active)
  */
+
+const OPTIMIZED_UGC_PROMPT = '';
+const NATURAL_UGC_PROMPT = `
+LIFESTYLE MODE: NATURAL UGC.
+
+SCENE NARRATIVE:
+This must look like a real, casual photo taken at home by a normal person using a smartphone.
+The image should feel natural, human, and believable.
+It must not look staged, produced, or commercially polished.
+
+RULES:
+- No studio lighting.
+- No professional photography.
+- No polished or commercial composition.
+- No beauty filters.
+- No skin smoothing.
+- No brand-style presentation.
+
+VISUAL FIDELITY:
+- Hyperrealistic and imperfect UGC photo aesthetic.
+- Basic smartphone front-camera quality.
+- Flat focus across the entire frame.
+- Everything sharp from foreground to background.
+- No background blur, no depth of field effects.
+- Natural domestic lighting.
+- Uneven exposure is allowed.
+- Minor imperfections are allowed.
+- Low dynamic range with small sensor characteristics.
+
+CREATOR IDENTITY:
+- Real skin texture with natural variation.
+- No retouching.
+- Casual, unposed expression and posture.
+- The person is not presenting or performing.
+
+CAPTURE:
+- Handheld or casual front-camera framing.
+- Arm visible positioned as if holding the device (phone invisible).
+- Slightly imperfect framing and handheld wobbling are allowed.
+- Horizon does not need to be perfectly level.
+- Camera placement feels incidental, not planned.
+
+ENVIRONMENT:
+- Real domestic environment.
+- Lived-in but not dirty or chaotic.
+- Everyday surroundings.
+
+CRITICAL PROHIBITIONS:
+- No studio light.
+- No production setup.
+- No ecommerce product shot.
+- No influencer-style posing.
+- No showing the product directly to camera.
+
+GOAL:
+Natural, pleasant, believable UGC.
+Not raw and messy.
+Not polished or optimized.
+Just real.
+`.trim();
+const RAW_UGC_PROMPT = '';
+
+const UGC_CONTRACTS = {
+  optimized: OPTIMIZED_UGC_PROMPT,
+  natural: NATURAL_UGC_PROMPT,
+  raw: RAW_UGC_PROMPT,
+};
 
 export type MasterPromptSections = {
   creationIntent: string;
@@ -24,8 +92,11 @@ export type MasterPromptSections = {
   cameraFraming: string;
   environmentLightingMood: string;
   compositionDetails?: string;
+  selfieCapture?: string;
   identity?: string;
   finalize?: string;
+  sceneStructure?: string;
+  visualGrammar?: string;
 };
 
 /**
@@ -36,22 +107,48 @@ export type MasterPromptSections = {
  * - Identity is placed AFTER scene for human-first composition.
  * - Finalize provides quality anchors and constraints before the final UGC override.
  */
-export function buildMasterPrompt(sections: MasterPromptSections, negativePrompt: string): string {
-    const {
-      creationIntent,
-      creationMode,
-      ugcRealMode,
-      formulationStory,
-      ecommerceBuilder,
-      cameraFraming,
-      environmentLightingMood,
-      compositionDetails,
-      identity,
-      finalize
-    } = sections;
+export function buildMasterPrompt(
+  sections: MasterPromptSections,
+  negativePrompt: string,
+  ugcStyle: 'optimized' | 'natural' | 'raw' = 'optimized'
+): string {
+  const {
+    creationIntent,
+    creationMode,
+    ugcRealMode,
+    formulationStory,
+    ecommerceBuilder,
+    cameraFraming,
+    environmentLightingMood,
+    compositionDetails,
+    selfieCapture,
+    identity,
+    finalize,
+    sceneStructure,
+    visualGrammar
+  } = sections;
+
+  const selfieCaptureActive = Boolean(selfieCapture && selfieCapture.trim().length > 0);
 
   // CANONICAL ORDER - creation intent first, raw domestic UGC last
-    const parts = [
+  const candidateParts = selfieCaptureActive
+    ? [
+      sceneStructure,     // 0. PHYSICAL STRUCTURE
+      visualGrammar,      // 0.5 VISUAL GRAMMAR (Semantics)
+      creationIntent,     // 1. Structural context
+      creationMode,       // 2. Mode rules
+      formulationStory,   // 3. Expert credibility
+      ecommerceBuilder,   // 4. Blank space layout
+      identity,           // 5. Person traits (before selfie capture)
+      selfieCapture,      // 6. UGC selfie hard constraints
+      cameraFraming,      // 7. Camera composition
+      environmentLightingMood, // 8. Scene + lighting
+      compositionDetails, // 9. Composition instructions
+      finalize            // 10. Constraints + output
+    ]
+    : [
+      sceneStructure,     // 0. PHYSICAL STRUCTURE
+      visualGrammar,      // 0.5 VISUAL GRAMMAR (Semantics)
       creationIntent,     // 1. Structural context
       creationMode,       // 2. Mode rules
       formulationStory,   // 3. Expert credibility
@@ -61,19 +158,37 @@ export function buildMasterPrompt(sections: MasterPromptSections, negativePrompt
       compositionDetails, // 7. Composition instructions
       identity,           // 8. Person traits
       finalize            // 9. Constraints + output
-    ]
-    .filter(Boolean)
-    .map(part => (part || '').trim())
-    .filter(part => part.length > 0);
+    ];
 
-    const ugcSection = (ugcRealMode || '').trim();
-    if (ugcSection) {
-      parts.push(ugcSection);
+  const cleanedParts: string[] = [];
+  for (const candidate of candidateParts) {
+    if (!candidate) continue;
+    const trimmedCandidate = candidate.trim();
+    if (trimmedCandidate.length === 0) continue;
+    cleanedParts.push(trimmedCandidate);
+  }
+
+  const renderedParts: string[] = [];
+  for (const cleanedPart of cleanedParts) {
+    renderedParts.push(cleanedPart);
+  }
+
+  const ugcContract = UGC_CONTRACTS[ugcStyle];
+  if (ugcContract) {
+    const trimmedContract = ugcContract.trim();
+    if (trimmedContract.length > 0) {
+      renderedParts.push(trimmedContract);
     }
+  }
 
-  const prompt = parts.join(' ').replace(/\s+/g, ' ').trim();
+  const ugcSection = (ugcRealMode || '').trim();
+  if (ugcSection) {
+    renderedParts.push(ugcSection);
+  }
 
-  console.log('[MASTER PROMPT] Assembled', parts.length, 'sections,', prompt.length, 'chars');
+  const prompt = renderedParts.join(' ').replace(/\s+/g, ' ').trim();
+
+  console.log('[MASTER PROMPT] Assembled', renderedParts.length, 'sections,', prompt.length, 'chars');
 
   return `${prompt} Negative prompt: ${negativePrompt}`.replace(/\s+/g, ' ').trim();
 }

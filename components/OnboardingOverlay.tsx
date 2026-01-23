@@ -82,9 +82,9 @@ const OnboardingOverlay: React.FC<OnboardingOverlayProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 pointer-events-none">
-      <div className="absolute inset-0 bg-gray-950/80 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-whiteTint" />
       <div
-        className="absolute border border-indigo-400 shadow-[0_0_0_9999px_rgba(15,23,42,0.65)] rounded-3xl transition-all duration-300"
+        className="absolute border border-indigo-600 rounded-3xl transition-all duration-300"
         style={{
           top: rect.top,
           left: rect.left,
@@ -93,20 +93,20 @@ const OnboardingOverlay: React.FC<OnboardingOverlayProps> = ({
         }}
       />
       <div
-        className="absolute glass-card rounded-3xl border border-white/10 p-5 text-left w-80 pointer-events-auto shadow-xl animate-fade-up"
+        className="absolute glass-card rounded-3xl border border-gray-200 p-5 text-left w-80 pointer-events-auto shadow-md shadow-md shadow-indigo-500/20 animate-fade-up"
         style={{
           top: cardTop,
           left: cardLeft,
         }}
       >
-        <p className="text-xs uppercase tracking-[0.4em] text-indigo-200">{`Step ${currentStep} / ${steps.length}`}</p>
-        <h3 className="text-white text-lg font-semibold mt-2">{step.title}</h3>
-        <p className="text-gray-300 text-sm mt-2">{step.description}</p>
+        <p className="text-xs uppercase tracking-[0.4em] text-indigo-600">{`Step ${currentStep} / ${steps.length}`}</p>
+        <h3 className="text-gray-900 text-lg font-semibold mt-2">{step.title}</h3>
+        <p className="text-gray-600 text-sm mt-2">{step.description}</p>
         <div className="mt-4 flex items-center justify-between text-xs">
-          <button onClick={onSkip} className="text-gray-400 hover:text-white transition">Skip</button>
+          <button onClick={onSkip} className="text-gray-600 hover:text-gray-900 transition">Skip</button>
           <button
             onClick={onNext}
-            className="rounded-full bg-indigo-500 px-4 py-1.5 text-white font-semibold hover:bg-indigo-600 transition"
+            className="rounded-full bg-indigo-600 text-white px-4 py-1.5 text-white font-semibold hover:bg-indigo-600 text-white transition"
           >
             {currentStep === steps.length ? 'Got it' : 'Next'}
           </button>

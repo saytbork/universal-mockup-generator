@@ -25,7 +25,7 @@ const InteractionPanel: React.FC<InteractionPanelProps> = ({
 }) => {
     return (
         <div className="space-y-3">
-            <p className="text-xs uppercase tracking-widest text-gray-400 mb-2">
+            <p className="text-xs uppercase tracking-widest text-gray-600 mb-2">
                 Interaction Style
             </p>
             <div className="grid grid-cols-2 gap-2">
@@ -42,8 +42,8 @@ const InteractionPanel: React.FC<InteractionPanelProps> = ({
                 border text-sm font-medium
                 ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                 ${isActive
-                                    ? 'border-indigo-500/50 bg-white/[0.08] text-white'
-                                    : 'border-white/10 bg-white/[0.02] text-gray-300 hover:border-white/20 hover:bg-white/[0.04]'
+                                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500'
+                                    : 'border-gray-200 bg-whiteTint text-gray-600 hover:border-indigo-600 hover:text-gray-900'
                                 }
               `}
                         >

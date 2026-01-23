@@ -1,104 +1,133 @@
-:root {
-  color-scheme: dark;
-}
+@import "./globals.css";
 
-body {
-  margin: 0;
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: #111827; /* Tailwind gray-900 */
-  color: #f9fafb; /* Tailwind gray-50 */
-  scroll-behavior: smooth;
-}
-
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(24px);
+@layer base {
+  .dark .bg-white {
+    @apply bg-white/5;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  .dark .bg-gray-50 {
+    @apply bg-black;
+  }
+
+  .dark .bg-gray-100 {
+    @apply bg-white/10;
+  }
+
+  .dark .border-gray-200 {
+    @apply border-white/10;
+  }
+
+  .dark .text-gray-900 {
+    @apply text-white;
+  }
+
+  .dark .text-gray-700 {
+    @apply text-white;
+  }
+
+  .dark .text-gray-600 {
+    @apply text-white/70;
+  }
+
+  .dark .text-gray-500 {
+    @apply text-white/60;
   }
 }
 
-.animate-fade-up {
-  animation: fadeUp 0.9s ease forwards;
-  opacity: 0;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .heading-lg {
+    @apply text-2xl font-semibold tracking-tight text-gray-900;
+  }
+
+  .heading-md {
+    @apply text-lg font-semibold tracking-tight text-gray-900;
+  }
+
+  .body {
+    @apply text-sm text-gray-900;
+  }
+
+  .label {
+    @apply text-xs font-medium uppercase tracking-[0.18em] text-gray-600;
+  }
+
+  .helper {
+    @apply text-xs text-gray-500;
+  }
+
+  .mono-data {
+    @apply font-mono text-xs text-gray-600;
+  }
 }
 
-.delay-100 { animation-delay: 0.1s; }
-.delay-200 { animation-delay: 0.2s; }
-.delay-300 { animation-delay: 0.3s; }
-.delay-400 { animation-delay: 0.4s; }
+@layer utilities {
+  @keyframes progress {
+    from {
+      width: 0%;
+    }
 
-.glass-card {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(15, 23, 42, 0.7);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.8);
-}
-.chip {
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(55, 65, 81, 0.6);
-  color: #f8fafc;
-  padding: 0.35rem 0.95rem;
-  font-size: 0.85rem;
-  font-weight: 500;
-  transition: all 0.2s ease-in-out;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.chip:hover:not(:disabled) {
-  background: rgba(79, 70, 229, 0.5);
-  border-color: rgba(129, 140, 248, 1);
-}
-.chip-active {
-  background: rgba(99, 102, 241, 0.95);
-  border-color: rgba(129, 140, 248, 1);
-  box-shadow: 0 8px 20px -10px rgba(79, 70, 229, 0.9);
-}
-.chip:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
+    to {
+      width: 100%;
+    }
+  }
 
-.scene-age-slider {
-  appearance: none;
-  height: 12px;
-  border-radius: 999px;
-  background: #1f2937;
-  transition: box-shadow 0.2s ease, background 0.2s ease;
-}
-.scene-age-slider:focus {
-  outline: none;
-  box-shadow: 0 0 0 6px rgba(129, 140, 248, 0.25);
-}
-.scene-age-slider:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
-}
-.scene-age-slider::-webkit-slider-thumb {
-  appearance: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 999px;
-  background: #eef2ff;
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.4);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.scene-age-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.1);
-  box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.35);
-}
-.scene-age-slider::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
-  border-radius: 999px;
-  background: #eef2ff;
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.4);
-  border: none;
-}
-.scene-age-slider::-moz-range-track {
-  background: transparent;
+  @keyframes loading {
+    0% {
+      transform: translateX(-100%);
+    }
+
+    50% {
+      transform: translateX(0%);
+    }
+
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  @keyframes scan-glow {
+    0% {
+      top: -5%;
+      opacity: 0;
+    }
+
+    15% {
+      opacity: 1;
+    }
+
+    85% {
+      opacity: 1;
+    }
+
+    100% {
+      top: 105%;
+      opacity: 0;
+    }
+  }
+
+  @keyframes reveal {
+    0% {
+      clip-path: inset(100% 0 0 0);
+    }
+
+    100% {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  @keyframes grid-fade {
+
+    0%,
+    100% {
+      opacity: 0.1;
+    }
+
+    50% {
+      opacity: 0.3;
+    }
+  }
 }

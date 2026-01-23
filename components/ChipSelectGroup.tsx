@@ -1,10 +1,10 @@
 import React from 'react';
 import { normalizeOptions } from '../src/system/normalizeOptions';
 import { Option } from '../types';
-import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { Tooltip, TooltipTrigger, TooltipContent } from '../src/components/ui/tooltip';
 
 interface ChipSelectGroupProps {
-  label: string;
+  label?: string;
   options: Option[];
   selectedValue: string;
   onChange: (value: string) => void;
@@ -13,6 +13,7 @@ interface ChipSelectGroupProps {
   customLabel?: string;
   customPlaceholder?: string;
   labelTooltip?: string;
+  compact?: boolean;
 }
 
 const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
@@ -25,12 +26,15 @@ const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
   customLabel = 'Custom',
   customPlaceholder = 'Describe your own option',
   labelTooltip,
+  compact = false,
 }) => {
   const optionValues = options.map(option => option.value);
   const isCustomValue = allowCustom && selectedValue && !optionValues.includes(selectedValue);
   const [customDraft, setCustomDraft] = React.useState(isCustomValue ? selectedValue : '');
   const [customActive, setCustomActive] = React.useState(isCustomValue);
   const normalizedOptions = normalizeOptions(options);
+  const selectedOption = normalizedOptions.find(option => option.value === selectedValue) ?? null;
+  const selectedHint = selectedOption?.tooltip ?? null;
 
   React.useEffect(() => {
     if (isCustomValue) {
@@ -46,46 +50,71 @@ const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
     onChange(value);
   };
 
+  const chipBase = compact
+    ? 'rounded-full px-3 py-1.5 text-xs font-medium border transition-colors focus:outline-none'
+    : 'rounded-full px-3 py-1.5 text-xs sm:text-sm font-medium border transition-colors focus:outline-none';
+
+  const chipInactive =
+    'bg-white text-gray-600 border-gray-200 hover:border-gray-400 ' +
+    'dark:bg-white/5 dark:text-white/60 dark:border-white/10 dark:hover:border-white/30';
+
+  const chipActive =
+    'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-500 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white';
+
+  const chipDisabled =
+    'opacity-50 cursor-not-allowed pointer-events-none bg-gray-50 text-gray-400 border-gray-200 ' +
+    'dark:bg-white/5 dark:text-white/30 dark:border-white/10';
+
   return (
     <div className="flex flex-col space-y-3">
-      <div className="flex items-center gap-2">
-        <label className="text-sm font-medium text-gray-400">{label}</label>
-        {labelTooltip && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                className="h-6 w-6 rounded-full border border-white/20 bg-gray-700 text-xs font-semibold text-white transition hover:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                aria-label={`${label} info`}
-              >
-                ?
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="max-w-xs text-sm opacity-90">
-              {labelTooltip}
-            </TooltipContent>
-          </Tooltip>
+      {label && (
+        <div className="flex items-center gap-2">
+          <label className="text-[10px] uppercase tracking-[0.2em] text-gray-500 font-extrabold">
+            {label}
+          </label>
+          {labelTooltip && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  className="h-5 w-5 rounded-full border border-gray-200 bg-white text-[10px] font-semibold text-gray-500 transition hover:border-indigo-600 hover:text-indigo-600 focus:outline-none dark:bg-gray-900/40 dark:border-gray-700"
+                  aria-label={`${label} info`}
+                >
+                  ?
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs text-sm opacity-90">
+                {labelTooltip}
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </div>
         )}
-      </div>
       <div>
-        <div className="flex flex-nowrap lg:flex-wrap gap-2 py-2 overflow-x-auto lg:overflow-visible custom-scrollbar">
-          {normalizedOptions.map((option) => {
-            const tooltip = option.tooltip || null;
-            const isActive = selectedValue === option.value;
-            const normalizedLabel = option.label;
+        <div className="flex flex-wrap gap-2">
+	          {normalizedOptions.map((option) => {
+	            const tooltip = option.tooltip || null;
+	            const isActive = selectedValue === option.value;
+	            const normalizedLabel = option.label;
+	            const nativeTitle = tooltip || normalizedLabel;
 
-            return (
-              <Tooltip key={option.value}>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    disabled={disabled}
-                    className={`chip ${isActive ? 'chip-active' : ''}`}
-                    onClick={() => onChange(option.value)}
-                  >
-                    {normalizedLabel}
-                  </button>
-                </TooltipTrigger>
+	            return (
+	              <Tooltip key={option.value}>
+	                <TooltipTrigger asChild>
+	                  <button
+	                    type="button"
+	                    disabled={disabled}
+	                    title={nativeTitle}
+	                    className={[
+	                      chipBase,
+	                      disabled ? chipDisabled : (isActive ? chipActive : chipInactive),
+	                      disabled ? '' : 'cursor-pointer',
+	                    ].join(' ')}
+	                    onClick={() => onChange(option.value)}
+	                  >
+	                    {normalizedLabel}
+	                  </button>
+	                </TooltipTrigger>
 
                 {tooltip && (
                   <TooltipContent side="right" className="max-w-xs text-sm opacity-90">
@@ -106,27 +135,32 @@ const ChipSelectGroup: React.FC<ChipSelectGroupProps> = ({
               }}
               disabled={disabled}
               className={`
-                px-3 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ease-in-out
-                border whitespace-nowrap flex-shrink-0
-                ${(customActive || isCustomValue)
-                  ? 'bg-sky-500 border-sky-400 text-white shadow-md'
-                  : 'bg-gray-700 border-gray-600 text-gray-300 hover:enabled:bg-gray-600 hover:enabled:border-gray-500'
-                }
-                ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                ${chipBase}
+                whitespace-nowrap
+                ${(customActive || isCustomValue) ? chipActive : chipInactive}
+                ${disabled ? '' : 'cursor-pointer'}
               `}
             >
               ✏️ {customLabel}
             </button>
           )}
         </div>
-        {allowCustom && customActive && (
+        {selectedHint && !customActive && !isCustomValue && (
+          <p className="mt-1 text-[11px] text-gray-500 dark:text-white/60">{selectedHint}</p>
+        )}
+        {allowCustom && (customActive || isCustomValue) && (
+          <p className="mt-1 text-[11px] text-gray-500 dark:text-white/60">
+            Custom selection: type any description and it will be used as-is.
+          </p>
+        )}
+          {allowCustom && customActive && (
           <input
             type="text"
             value={customDraft}
             onChange={(event) => handleCustomChange(event.target.value)}
             placeholder={customPlaceholder}
             disabled={disabled}
-            className="mt-2 w-full rounded-md border border-white/20 bg-gray-800 px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 disabled:opacity-50"
+            className="mt-3 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white disabled:opacity-50 dark:bg-gray-900/40 dark:border-gray-700 dark:focus:ring-offset-black"
           />
         )}
       </div>

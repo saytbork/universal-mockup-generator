@@ -1,47 +1,32 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 
 interface AccordionProps {
   title: string;
   children: React.ReactNode;
   isOpen?: boolean;
   onToggle?: () => void;
+  disabled?: boolean;
   /** Optional subtitle shown below the title */
   subtitle?: string;
   /** Badge to show next to title (e.g., count) */
   badge?: string | number;
 }
 
-/**
- * Stripe-style Accordion with smooth height animation
- * Features:
- * - Dark mode (#0B0F19 compatible)
- * - Smooth max-height transition
- * - Chevron rotation on open/close
- * - Subtle borders and modern spacing
- * - FIXED: Proper pointer-events handling
- */
 const Accordion: React.FC<AccordionProps> = ({
   title,
   children,
   isOpen,
   onToggle,
+  disabled = false,
   subtitle,
   badge
 }) => {
   const [internalOpen, setInternalOpen] = useState(false);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const [contentHeight, setContentHeight] = useState(0);
 
   const open = typeof isOpen === 'boolean' ? isOpen : internalOpen;
 
-  // Measure content height for smooth animation
-  useEffect(() => {
-    if (contentRef.current) {
-      setContentHeight(contentRef.current.scrollHeight);
-    }
-  }, [open, children]);
-
   const handleToggle = () => {
+    if (disabled) return;
     if (onToggle) {
       onToggle();
     } else {
@@ -50,22 +35,23 @@ const Accordion: React.FC<AccordionProps> = ({
   };
 
   return (
-    <div className="border-b border-white/5 last:border-b-0">
+    <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden transition-all">
       <button
         type="button"
         onClick={handleToggle}
-        className="w-full flex justify-between items-center py-4 px-3 text-left transition-colors duration-150 hover:bg-white/[0.02] rounded-lg group"
+        disabled={disabled}
+        className="w-full flex justify-between items-center p-4 text-left bg-white hover:bg-whiteElevated transition-colors focus:outline-none"
         aria-expanded={open}
       >
         <div className="flex flex-col gap-0.5">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-gray-100 tracking-wide">
+            <span className="text-sm font-semibold text-gray-900 tracking-wide">
               {title}
             </span>
-            {badge !== undefined && (
-              <span className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                {badge}
-              </span>
+              {badge !== undefined && (
+                <span className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-indigo-600 text-white border border-indigo-600">
+                  {badge}
+                </span>
             )}
           </div>
           {subtitle && (
@@ -85,20 +71,13 @@ const Accordion: React.FC<AccordionProps> = ({
         </svg>
       </button>
 
-      {/* Animated content container - FIXED pointer-events */}
-      {open && (
-        <div
-          className="overflow-hidden"
-          style={{
-            maxHeight: contentHeight + 32,
-            transition: 'max-height 0.2s ease-out',
-          }}
-        >
-          <div ref={contentRef} className="px-3 pb-4 pt-1">
-            {children}
-          </div>
+      <div
+        className={`grid transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] border-t border-gray-200 bg-whiteTint ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
+      >
+        <div className="overflow-hidden">
+          <div className="p-4">{children}</div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

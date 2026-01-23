@@ -1,0 +1,31 @@
+{
+    "id": "guide-packshots-005",
+    "slug": "ecommerce-packshots-masterclass",
+    "title": "Ecommerce Packshots Masterclass: AI for Studio Quality",
+    "subtitle": "Learn how to achieve professional studio lighting and composition for your product packshots using AI.",
+    "category": "Studio",
+    "seo": {
+        "title": "Ecommerce Packshots Masterclass | Studio Quality AI Photography",
+        "description": "Achieve high-end studio results for your ecommerce packshots using Perfect Mockup's advanced AI lighting and placement controls."
+    },
+    "heroImage": {
+        "url": "/images/guides/packshots-hero.png",
+        "prompt": "Studio product photography of a glass bottle with professional rim lighting, clean background, sharp focus, 8k",
+        "alt": "High-end AI studio packshot"
+    },
+    "sections": [
+        {
+            "heading": "The Anatomy of a High-End Packshot",
+            "body": "A great packshot is defined by three things: Sharpness, Material accuracy, and Lighting. In 'Studio Mode', our AI emphasizes these elements. You can specify materials like 'Frosted Glass' or 'Brushed Metal' to ensure the AI renders reflections with physical accuracy."
+        },
+        {
+            "heading": "Customizing Studio Lighting",
+            "body": "Lighting can change the entire personality of a product. 'Rim Lighting' adds a premium look for high-end objects, while 'Softbox' lighting is perfect for everyday essentials. Experiment with different rigs in the 'Pro' settings for ultimate control."
+        }
+    ],
+    "cta": {
+        "title": "Upgrade your produce catalog today.",
+        "text": "Go beyond basic flat-lays and create cinematic studio photography for every product in your store.",
+        "button": "Start Studio Session"
+    }
+}

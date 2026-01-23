@@ -25,8 +25,10 @@ export function buildScene(params: any): string {
     delete params.sceneSetting;
     delete params.perspective;
     delete params.scenePerspective;
+    const chaosDescriptor = params.sceneOrderChaosDescriptor ?? "";
+    delete params.sceneOrderChaosDescriptor;
 
-    return uniqueParts([setting, perspective]);
+    return uniqueParts([setting, perspective, chaosDescriptor]);
 }
 
 export class SceneBuilder implements PromptBuilder {
@@ -48,12 +50,15 @@ export class SceneBuilder implements PromptBuilder {
         const cleanSetting = this.cleanText(setting);
         const cleanLighting = this.cleanText(lighting);
         const cleanEnvironment = this.cleanText(environmentOrder);
+        const cleanChaosDescriptor = this.cleanText(options.sceneOrderChaosDescriptor || '');
+        const chaosSentence = cleanChaosDescriptor ? `Scene order: ${cleanChaosDescriptor}.` : '';
         const cleanPerspective = this.cleanText(perspective);
         const cleanProductPlane = this.cleanText(productPlane);
 
         return `
       The scene is a ${cleanSetting}, illuminated by ${cleanLighting}.
       The overall environment has a ${cleanEnvironment} feel.
+      ${chaosSentence}
       The photo is shot from a ${cleanPerspective}, embracing the chosen camera style and its natural characteristics.
       Frame the composition so the product lives in ${cleanProductPlane}.
     `.trim().replace(/\s+/g, ' ');

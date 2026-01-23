@@ -75,7 +75,7 @@ export class SpecialModesBuilder implements PromptBuilder {
       - natural hands,
       - correct finger shape,
       - proper wrist rotation,
-      - realistic arm connection to the body.
+      - realistic arm connection to the shoulder and torso.
     `.trim().replace(/\s+/g, ' ');
     }
 

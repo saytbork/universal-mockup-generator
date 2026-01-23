@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useImperativeHandle, useState } from 'react';
+import { Plus } from 'lucide-react';
 
 interface ImageUploaderProps {
   onImageUpload: (files: File[]) => void;
   uploadedImagePreview?: string | null;
   disabled?: boolean;
   lockedMessage?: string;
+  maxFiles?: number;
 }
 
 export interface ImageUploaderHandle {
@@ -16,6 +18,7 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
   uploadedImagePreview = null,
   disabled = false,
   lockedMessage,
+  maxFiles = 5,
 }, ref) => {
   const [isDragging, setIsDragging] = useState(false);
   const [localPreview, setLocalPreview] = useState<string | null>(uploadedImagePreview);
@@ -47,6 +50,8 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
     if (files.length) {
       emitUpload(files);
     }
+    // Allow selecting the same file again (otherwise onChange won't fire).
+    e.target.value = '';
   };
 
   const handleDrop = useCallback((e: React.DragEvent<HTMLElement>) => {
@@ -77,59 +82,64 @@ const ImageUploader = React.forwardRef<ImageUploaderHandle, ImageUploaderProps>(
     setIsDragging(false);
   }, []);
 
-  const handleAddAnotherClick = () => {
+  const handleClick = () => {
     if (disabled) return;
+    if (inputRef.current) {
+      inputRef.current.value = '';
+    }
     inputRef.current?.click();
   };
 
   const previewToShow = localPreview || uploadedImagePreview;
 
   return (
-    <div className={`relative flex flex-col items-center justify-center w-full p-4 bg-gray-800 rounded-lg border-2 border-dashed border-gray-600 ${disabled ? 'opacity-60' : ''}`}>
-      <h3 className="text-lg font-semibold text-gray-300 mb-4">Upload Product Image</h3>
-      <div
-        className={`relative w-full h-40 flex items-center justify-center rounded-md transition-all duration-300 ${isDragging ? 'bg-gray-700' : ''}`}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragEnter={handleDragEnter}
-        onDragLeave={handleDragLeave}
-      >
+    <div
+      className={`relative w-full aspect-[16/10] rounded-xl border transition-all duration-500 flex items-center justify-center overflow-hidden shadow-sm ${
+        disabled
+          ? 'opacity-60 cursor-not-allowed bg-gray-50 border-gray-200 dark:bg-white/5 dark:border-white/10'
+          : 'cursor-pointer border-gray-200 bg-white hover:border-indigo-600/30 dark:bg-white/5 dark:border-white/10 dark:hover:border-white/20 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]'
+      } ${isDragging ? 'border-indigo-600 bg-indigo-50' : ''}`}
+      onClick={handleClick}
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+    >
+      <div className="text-center p-6 pointer-events-none">
         {previewToShow ? (
-          <img src={previewToShow} alt="Product Preview" className="max-h-full max-w-full object-contain rounded-md" />
+          <img
+            src={previewToShow}
+            alt="Product Preview"
+            className="max-h-[160px] max-w-full object-contain rounded-lg mx-auto"
+          />
         ) : (
-          <div className="text-center text-gray-400">
-            <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-            </svg>
-            <p>Drag & drop or click to upload</p>
-          </div>
+          <>
+            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-200 shadow-inner dark:bg-white/5 dark:border-white/10">
+              <Plus className="w-6 h-6 text-gray-400 dark:text-white/40" />
+            </div>
+            <div className="text-[12px] font-bold uppercase tracking-widest text-gray-900 mb-1 dark:text-white">
+              Source Product
+            </div>
+            <div className="text-[10px] text-gray-500 uppercase font-medium dark:text-white/50">
+              Click to browse (Max {maxFiles})
+            </div>
+          </>
         )}
-        <input
-          type="file"
-          className={`absolute inset-0 w-full h-full opacity-0 ${disabled ? 'cursor-not-allowed pointer-events-none' : 'cursor-pointer'}`}
-          disabled={disabled}
-          multiple
-          onChange={handleFileChange}
-          ref={inputRef}
-          accept="image/png, image/jpeg, image/webp"
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-        />
       </div>
-      <p className="mt-3 text-xs text-gray-400">Tip: Drop multiple files at once. The first becomes the hero; others stay in your library.</p>
-      <button
-        type="button"
-        onClick={handleAddAnotherClick}
-        className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-gray-200 hover:border-indigo-400 hover:text-white transition"
+
+      <input
+        type="file"
+        className="hidden"
         disabled={disabled}
-      >
-        + Add another photo
-      </button>
-      {disabled && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-900/70 rounded-lg text-sm text-gray-300">
-          {lockedMessage || 'Complete the previous step to continue'}
+        multiple
+        onChange={handleFileChange}
+        ref={inputRef}
+        accept="image/png, image/jpeg, image/webp"
+      />
+
+      {disabled && lockedMessage && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white rounded-xl text-sm text-gray-500 dark:bg-black/40 dark:text-white/60 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+          {lockedMessage}
         </div>
       )}
     </div>

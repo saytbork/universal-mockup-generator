@@ -14,7 +14,9 @@ import {
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import type { GalleryImage } from "../services/galleryService";
+import { PLAN_CONFIG, type PlanTier } from "../constants/planConfig";
+import { listLocalGalleryEntries } from "../services/localGallery";
 
 type ActivityItem = {
   id: string;
@@ -26,7 +28,7 @@ type ActivityItem = {
 
 type UserInfo = {
   email: string;
-  credits: number;
+  credits?: number;
   plan: string;
   inviteUsed?: boolean;
 };
@@ -45,16 +47,16 @@ const formatTimeAgo = (timestamp: number) => {
 const activityIcon = (type: ActivityItem["type"]) => {
   switch (type) {
     case "login":
-      return <Shield className="h-4 w-4 text-indigo-300" />;
+      return <Shield className="h-4 w-4 text-indigo-600" />;
     case "image":
-      return <ImageIcon className="h-4 w-4 text-emerald-300" />;
+      return <ImageIcon className="h-4 w-4 text-indigo-600" />;
     case "invite":
-      return <Gift className="h-4 w-4 text-purple-300" />;
+      return <Gift className="h-4 w-4 text-indigo-600" />;
     case "upgrade":
-      return <ArrowUpRight className="h-4 w-4 text-amber-300" />;
+      return <ArrowUpRight className="h-4 w-4 text-gray-500" />;
     case "logout":
     default:
-      return <Clock className="h-4 w-4 text-gray-300" />;
+      return <Clock className="h-4 w-4 text-gray-600" />;
   }
 };
 
@@ -64,8 +66,8 @@ export default function Dashboard() {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const priceCreator = import.meta.env.VITE_STRIPE_PRICE_CREATOR as string | undefined;
-  const priceStudio = import.meta.env.VITE_STRIPE_PRICE_STUDIO as string | undefined;
+  const [showPlanModal, setShowPlanModal] = useState(false);
+  const [planNotice, setPlanNotice] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -97,41 +99,57 @@ export default function Dashboard() {
 
   const creditsLabel = useMemo(() => {
     if (!user) return "0";
-    return `${user.credits} credits`;
+    const credits = Number(user.credits ?? 0);
+    return `${credits} credits`;
   }, [user]);
 
-  const startCheckout = async (plan: "creator" | "studio") => {
+  const openPlanModal = () => {
+    setPlanNotice(null);
+    setShowPlanModal(true);
+  };
+
+  const currentPlanTier: PlanTier = useMemo(() => {
+    const raw = String(user?.plan || "free").trim().toLowerCase();
+    if (raw === "creator" || raw === "studio" || raw === "free") return raw;
+    return "free";
+  }, [user?.plan]);
+
+  const handlePlanTierSelect = (tier: PlanTier) => {
+    if (tier === currentPlanTier) return;
+    if (tier === "free") {
+      setPlanNotice("To downgrade, cancel the subscription from your Stripe receipt or contact support.");
+      return;
+    }
+    const targetUrl = PLAN_CONFIG[tier].stripeUrl;
+    if (!targetUrl) {
+      setPlanNotice("Checkout is not configured yet.");
+      return;
+    }
+    const email = String(user?.email || "").trim();
+    if (!email) {
+      setPlanNotice("Please sign in to continue.");
+      return;
+    }
     try {
-      const priceId = plan === "creator" ? priceCreator : priceStudio;
-      if (!priceId) {
-        alert("Pricing configuration missing. Please set price IDs.");
-        return;
-      }
-      const res = await axios.post("/api/stripe/create-checkout-session", {
-        userId: user?.email,
-        priceId,
-      });
-      if (res.data?.url) {
-        window.location.href = res.data.url;
-      } else {
-        alert("Unable to start checkout.");
-      }
+      const url = new URL(targetUrl);
+      url.searchParams.set("prefilled_email", email);
+      window.open(url.toString(), "_blank", "noopener,noreferrer");
     } catch (err) {
-      console.error("checkout error", err);
-      alert("Unable to start checkout.");
+      console.error(err);
+      setPlanNotice("Could not open checkout. Please try again.");
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0D0F12] text-white flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-black dark:text-white flex items-center justify-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.92 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
-          className="rounded-3xl bg-white/5 border border-white/10 px-8 py-6 shadow-2xl backdrop-blur-lg"
+          className="rounded-xl bg-white border border-gray-200 px-8 py-6"
         >
-          <p className="text-sm text-gray-300">Loading your workspace...</p>
+          <p className="text-sm text-gray-600">Loading your workspace...</p>
         </motion.div>
       </div>
     );
@@ -140,23 +158,74 @@ export default function Dashboard() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-[#0D0F12] text-white">
+    <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-black dark:text-white">
+      {showPlanModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-50 px-4">
+          <div className="w-full max-w-3xl rounded-xl border border-gray-200 bg-white p-6 md:p-8 shadow-md shadow-indigo-500/20 space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.4em] text-indigo-600">Manage plan</p>
+                <h3 className="text-2xl font-semibold text-gray-900 mt-1">Choose what fits your launch</h3>
+              </div>
+              <button
+                onClick={() => {
+                  setShowPlanModal(false);
+                  setPlanNotice(null);
+                }}
+                className="text-sm text-gray-600 hover:text-gray-900"
+              >
+                Close
+              </button>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              {(Object.keys(PLAN_CONFIG) as PlanTier[]).map((tier) => {
+                const config = PLAN_CONFIG[tier];
+                const isCurrent = currentPlanTier === tier;
+                return (
+                  <button
+                    key={tier}
+                    onClick={() => handlePlanTierSelect(tier)}
+                    disabled={isCurrent}
+                    className={`rounded-xl border p-4 text-left transition ${isCurrent
+                      ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-500/20 scale-105 duration-500"
+                      : "border-gray-200 bg-gray-100 text-gray-600 hover:border-indigo-600 hover:text-gray-900"
+                      }`}
+                  >
+                    <p className="text-lg font-semibold flex items-center justify-between">
+                      <span>{config.label}</span>
+                      <span className="text-sm font-medium">{config.priceLabel}</span>
+                    </p>
+                    <p className={`text-sm mt-2 ${isCurrent ? "text-white/90" : "text-gray-600"}`}>
+                      {config.description}
+                    </p>
+                    <p className="text-xs mt-2">
+                      {isCurrent ? "Current plan" : "Go to checkout"}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+            {planNotice && <p className="text-xs text-gray-500">{planNotice}</p>}
+          </div>
+        </div>
+      )}
+
       <div className="max-w-6xl mx-auto px-6 py-10 space-y-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="flex items-center justify-between gap-4 rounded-2xl bg-white/5 border border-white/10 px-6 py-5 shadow-xl backdrop-blur-lg"
+          className="flex items-center justify-between gap-4 rounded-xl bg-white border border-gray-200 px-6 py-5"
         >
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Dashboard</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Dashboard</p>
             <h1 className="text-2xl font-semibold">Welcome back</h1>
-            <p className="text-sm text-gray-400">{user.email}</p>
+            <p className="text-sm text-gray-600">{user.email}</p>
           </div>
           <button
             onClick={() => logout()}
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-gray-200 transition hover:bg-white/10"
+            className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-900 transition hover:border-indigo-600 hover:bg-indigo-50"
           >
             <LogOut className="h-4 w-4" />
             Logout
@@ -170,26 +239,26 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: "easeOut" }}
-            className="lg:col-span-2 rounded-3xl bg-gradient-to-br from-indigo-600/20 via-purple-600/15 to-blue-600/10 border border-white/10 p-6 shadow-2xl"
+            className="lg:col-span-2 rounded-xl bg-white border border-gray-200 p-6"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-2">
-                <p className="text-sm text-indigo-200 flex items-center gap-2">
+                <p className="text-sm text-indigo-600 flex items-center gap-2">
                   <Zap className="h-4 w-4" /> Credits Available
                 </p>
                 <h2 className="text-4xl font-bold">{creditsLabel}</h2>
-                <p className="text-sm text-gray-300">
+                <p className="text-sm text-gray-600">
                   Plan: {user.plan || "free"} {user.plan === "free" ? "– 2 credits included" : ""}
                 </p>
                 {user.inviteUsed && (
-                  <p className="text-xs text-emerald-200 flex items-center gap-2">
+                  <p className="text-xs text-indigo-600 flex items-center gap-2">
                     <Sparkles className="h-4 w-4" /> Welcome gift applied (+20 credits)
                   </p>
                 )}
               </div>
               <button
-                onClick={() => startCheckout("creator")}
-                className="inline-flex items-center gap-2 rounded-full bg-white text-gray-900 px-4 py-2 text-sm font-semibold shadow-md hover:shadow-lg transition"
+                onClick={openPlanModal}
+                className="inline-flex items-center gap-2 rounded-full bg-indigo-600 text-white px-4 py-2 text-sm font-semibold transition hover:bg-indigo-700"
               >
                 Upgrade Plan <ArrowUpRight className="h-4 w-4" />
               </button>
@@ -197,15 +266,15 @@ export default function Dashboard() {
             <div className="mt-6 flex flex-wrap gap-3">
               <a
                 href="/app/generator"
-                className={`inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition ${user.credits > 0
-                  ? "bg-indigo-500 text-white hover:bg-indigo-400"
-                  : "bg-white/10 text-gray-400 cursor-not-allowed"
+                className={`inline-flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${Number(user.credits ?? 0) > 0
+                  ? "bg-indigo-600 text-white hover:bg-indigo-700"
+                  : "bg-gray-100 text-gray-400 cursor-not-allowed"
                   }`}
               >
                 <Wand2 className="h-4 w-4" /> Generate an Image
               </a>
-              {user.credits <= 0 && (
-                <span className="text-xs text-amber-200">You have no credits left. Upgrade your plan to continue.</span>
+              {Number(user.credits ?? 0) <= 0 && (
+                <span className="text-xs text-gray-500">You have no credits left. Upgrade your plan to continue.</span>
               )}
             </div>
           </motion.div>
@@ -215,10 +284,10 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: "easeOut", delay: 0.05 }}
-            className="rounded-3xl bg-white/5 border border-white/10 p-5 shadow-xl backdrop-blur-lg space-y-4"
+            className="rounded-xl bg-white border border-gray-200 p-5 space-y-4"
           >
-            <div className="flex items-center gap-2 text-sm text-gray-300">
-              <Sparkles className="h-4 w-4 text-indigo-300" />
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Sparkles className="h-4 w-4 text-indigo-600" />
               Quick Actions
             </div>
             <div className="space-y-3">
@@ -226,18 +295,18 @@ export default function Dashboard() {
                 { label: "Create UGC Image", href: "/app/generator", icon: <ImageIcon className="h-4 w-4" /> },
                 { label: "Product Upload", href: "/app/generator?mode=upload", icon: <UploadCloud className="h-4 w-4" /> },
                 { label: "Hero Mode Generator", href: "/app/generator?hero=true", icon: <Shield className="h-4 w-4" /> },
-                { label: "Upgrade Plan", href: "#upgrade", icon: <ArrowUpRight className="h-4 w-4" />, action: () => startCheckout("creator") },
+                { label: "Upgrade Plan", href: "#upgrade", icon: <ArrowUpRight className="h-4 w-4" />, action: openPlanModal },
               ].map((item) => (
                 <div
                   key={item.label}
                   onClick={() => (item.action ? item.action() : (window.location.href = item.href))}
-                  className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-gray-200 hover:border-indigo-400/50 hover:bg-indigo-500/10 transition cursor-pointer"
+                  className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 transition cursor-pointer hover:border-indigo-600 hover:bg-indigo-50"
                 >
                   <span className="flex items-center gap-2">
                     {item.icon}
                     {item.label}
                   </span>
-                  <ArrowUpRight className="h-4 w-4 text-gray-400" />
+                  <ArrowUpRight className="h-4 w-4 text-indigo-600" />
                 </div>
               ))}
             </div>
@@ -249,32 +318,32 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
-          className="rounded-3xl bg-white/5 border border-white/10 p-6 shadow-xl backdrop-blur-lg"
+          className="rounded-xl bg-white border border-gray-200 p-6"
         >
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-xs uppercase tracking-[0.25em] text-indigo-200">Recent Activity</p>
+              <p className="text-xs uppercase tracking-[0.25em] text-indigo-600">Recent Activity</p>
               <h3 className="text-lg font-semibold">Latest events</h3>
             </div>
-            <Clock className="h-5 w-5 text-indigo-200" />
+            <Clock className="h-5 w-5 text-indigo-600" />
           </div>
           {activity.length === 0 ? (
-            <p className="text-sm text-gray-400">No activity yet.</p>
+            <p className="text-sm text-gray-600">No activity yet.</p>
           ) : (
             <div className="space-y-3 max-h-72 overflow-auto pr-1 custom-scrollbar">
               {activity.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 hover:border-indigo-400/40 transition"
+                  className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 hover:border-indigo-600 transition"
                 >
                   <div className="flex items-center gap-3">
                     {activityIcon(item.type)}
                     <div>
                       <p className="text-sm font-medium capitalize">{item.type}</p>
-                      <p className="text-xs text-gray-400">{formatTimeAgo(item.timestamp)}</p>
+                      <p className="text-xs text-gray-600">{formatTimeAgo(item.timestamp)}</p>
                     </div>
                   </div>
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-gray-600">
                     {item.type === "invite" && "+20 credits"}
                     {item.type === "image" && (item.meta?.delta ?? -1)}
                   </span>
@@ -289,14 +358,14 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.15 }}
-          className="rounded-3xl bg-white/5 border border-white/10 p-6 shadow-xl backdrop-blur-lg"
+          className="rounded-xl bg-white border border-gray-200 p-6"
         >
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-xs uppercase tracking-[0.25em] text-indigo-200">My Gallery</p>
+              <p className="text-xs uppercase tracking-[0.25em] text-indigo-600">My Gallery</p>
               <h3 className="text-lg font-semibold">Your Generated Images</h3>
             </div>
-            <ImageIcon className="h-5 w-5 text-indigo-200" />
+            <ImageIcon className="h-5 w-5 text-indigo-600" />
           </div>
           <GallerySection userEmail={user.email} />
         </motion.div>
@@ -307,7 +376,7 @@ export default function Dashboard() {
 
 // Gallery Section Component
 function GallerySection({ userEmail }: { userEmail: string }) {
-  const [images, setImages] = useState<any[]>([]);
+  const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -318,17 +387,99 @@ function GallerySection({ userEmail }: { userEmail: string }) {
         const { listPublicGallery } = await import('../services/galleryService');
         const allImages = await listPublicGallery();
 
-        const currentUserEmail = userEmail;
-        const userId = userEmail;
+        const currentUserEmail = String(userEmail || '').trim().toLowerCase();
+        const userId = currentUserEmail;
 
-        const userImages = allImages.filter(img =>
-          img.userId === userId ||
-          (img.userId === 'guest' && userId === currentUserEmail)
-        );
+        const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+        const userImages = allImages.filter(img => {
+          const createdDate =
+            img.createdAt?.toDate?.() ||
+            (typeof (img.createdAt as any)?.seconds === 'number' ? new Date((img.createdAt as any).seconds * 1000) : null) ||
+            (typeof (img.createdAt as any) === 'number' ? new Date(img.createdAt as any) : null) ||
+            null;
+          const createdAtMs = createdDate ? createdDate.getTime() : 0;
+          const isMine =
+            String(img.userId || '').trim().toLowerCase() === userId ||
+            (String(img.userId || '').trim().toLowerCase() === 'guest' && userId === currentUserEmail);
+          return isMine && createdAtMs >= thirtyDaysAgo;
+        });
+
+        const LOCAL_GALLERY_CACHE_KEY = 'ugc-free-gallery';
+        let localImages: GalleryImage[] = [];
+        try {
+          const stored = window.localStorage.getItem(LOCAL_GALLERY_CACHE_KEY);
+          const parsed = stored ? JSON.parse(stored) : [];
+          if (Array.isArray(parsed)) {
+            localImages = parsed
+              .filter(item => item && typeof item.imageUrl === 'string')
+              .map(item => ({
+                id: String(item.id || `local-${Math.random().toString(36).slice(2)}`),
+                imageUrl: String(item.imageUrl),
+                userId: String(item.userId || '').trim().toLowerCase(),
+                plan: String(item.plan || 'free'),
+                createdAt: typeof item.createdAt === 'number' ? item.createdAt : Date.now(),
+                width: item.width,
+                height: item.height,
+                modelReferenceUsed: item.modelReferenceUsed,
+                productsUsed: item.productsUsed,
+              }))
+              .filter(img => img.userId === userId)
+              .filter(img => {
+                const createdAtMs =
+                  typeof img.createdAt === 'number'
+                    ? img.createdAt
+                    : (typeof (img.createdAt as any)?.seconds === 'number' ? (img.createdAt as any).seconds * 1000 : 0);
+                return createdAtMs >= thirtyDaysAgo;
+              });
+          }
+        } catch (err) {
+          console.warn('Unable to load local gallery cache', err);
+        }
+
+        let indexedDbImages: GalleryImage[] = [];
+        try {
+          const indexed = await listLocalGalleryEntries(userId, 30);
+          indexedDbImages = indexed.map(entry => ({
+            id: entry.id,
+            imageUrl: entry.imageUrl,
+            userId: entry.userId,
+            plan: entry.plan || 'free',
+            createdAt: entry.createdAt,
+            width: entry.width,
+            height: entry.height,
+            modelReferenceUsed: undefined,
+            productsUsed: undefined,
+          }));
+        } catch (err) {
+          console.warn('Unable to load IndexedDB gallery cache', err);
+        }
+
+        const merged = [...userImages, ...localImages, ...indexedDbImages];
+        const seen = new Set<string>();
+        const deduped = merged.filter(img => {
+          const key = String(img.imageUrl || '');
+          if (!key) return false;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+
+        const sorted = [...deduped].sort((a, b) => {
+          const aDate =
+            a.createdAt?.toDate?.() ||
+            (typeof (a.createdAt as any)?.seconds === 'number' ? new Date((a.createdAt as any).seconds * 1000) : null) ||
+            (typeof (a.createdAt as any) === 'number' ? new Date(a.createdAt as any) : null) ||
+            new Date(0);
+          const bDate =
+            b.createdAt?.toDate?.() ||
+            (typeof (b.createdAt as any)?.seconds === 'number' ? new Date((b.createdAt as any).seconds * 1000) : null) ||
+            (typeof (b.createdAt as any) === 'number' ? new Date(b.createdAt as any) : null) ||
+            new Date(0);
+          return bDate.getTime() - aDate.getTime();
+        });
 
         if (mounted) {
-          setImages(userImages);
-          console.log(`📸 Mostrando ${userImages.length} imágenes en el dashboard`);
+          setImages(sorted);
         }
       } catch (err: any) {
         console.error('Failed to load user gallery:', err);
@@ -361,15 +512,15 @@ function GallerySection({ userEmail }: { userEmail: string }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-sm text-gray-400">Loading your gallery...</p>
+        <p className="text-sm text-gray-600">Loading your gallery...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
-        <p className="text-sm text-red-300">{error}</p>
+      <div className="rounded-xl border border-gray-200 bg-white p-4">
+        <p className="text-sm text-gray-500">{error}</p>
       </div>
     );
   }
@@ -377,11 +528,11 @@ function GallerySection({ userEmail }: { userEmail: string }) {
   if (images.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 space-y-3">
-        <ImageIcon className="h-12 w-12 text-gray-600" />
-        <p className="text-sm text-gray-400">No images generated yet</p>
+        <ImageIcon className="h-12 w-12 text-gray-500" />
+        <p className="text-sm text-gray-600">No images generated yet</p>
         <a
           href="/app/generator"
-          className="inline-flex items-center gap-2 rounded-full bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-600 transition"
+          className="inline-flex items-center gap-2 rounded-full bg-indigo-600 text-white px-4 py-2 text-sm font-semibold transition hover:bg-indigo-700"
         >
           <Wand2 className="h-4 w-4" />
           Generate Your First Image
@@ -393,13 +544,17 @@ function GallerySection({ userEmail }: { userEmail: string }) {
   return (
     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
       {images.map((image) => {
-        const createdDate = image.createdAt?.toDate?.() || new Date(image.createdAt?.seconds * 1000 || Date.now());
+        const createdDate =
+          image.createdAt?.toDate?.() ||
+          (typeof (image.createdAt as any)?.seconds === 'number' ? new Date((image.createdAt as any).seconds * 1000) : null) ||
+          (typeof (image.createdAt as any) === 'number' ? new Date(image.createdAt as any) : null) ||
+          new Date();
         const dateStr = createdDate.toLocaleDateString();
 
         return (
           <div
             key={image.id}
-            className="group relative rounded-2xl overflow-hidden border border-white/10 bg-white/5 transition hover:border-indigo-400/50"
+            className="rounded-xl overflow-hidden border border-gray-200 bg-white transition hover:border-indigo-600"
           >
             <img
               src={image.imageUrl}
@@ -407,17 +562,17 @@ function GallerySection({ userEmail }: { userEmail: string }) {
               className="w-full h-48 object-cover"
               loading="lazy"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition flex flex-col justify-end p-4 space-y-2">
-              <div className="text-xs text-gray-300 space-y-1">
-                <p>Plan: {image.plan || 'free'}</p>
-                {image.width && image.height && (
-                  <p>Size: {image.width}×{image.height}</p>
-                )}
-                <p>Created: {dateStr}</p>
+            <div className="p-4 space-y-2">
+              <div className="text-xs text-gray-600 space-y-1">
+                <p className="font-medium text-gray-900">Created: {dateStr}</p>
+                <p className="text-gray-600">Plan: {image.plan || 'free'}</p>
+                {image.width && image.height ? (
+                  <p className="text-gray-600">Size: {image.width}×{image.height}</p>
+                ) : null}
               </div>
               <button
                 onClick={() => handleDownload(image.imageUrl, `ugc-image-${image.id}.png`)}
-                className="w-full rounded-lg bg-indigo-500 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-600 transition"
+                className="w-full rounded-xl bg-indigo-600 text-white px-3 py-2 text-sm font-semibold transition hover:bg-indigo-700"
               >
                 Download
               </button>

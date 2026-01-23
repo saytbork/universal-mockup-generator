@@ -43,13 +43,13 @@ export class FormulationStoryBuilder implements PromptBuilder {
         parts.push(`The expert is described as a ${roleLabel}.`);
 
         const attireSentence = story.expertAttireDescription
-            ? `They wear ${story.expertAttireDescription} that stays true to real medical workwear without slick polish.`
+            ? `They wear ${story.expertAttireDescription}.`
             : 'They wear practical medical attire that feels worn-in and ready for hands-on work.';
         parts.push(attireSentence);
 
         if (story.expertName) {
             parts.push(
-                `Their name, ${story.expertName}, is embroidered once above the chest pocket on one side and mentioned casually without emphasis.`
+                `Their name, ${story.expertName}, is embroidered exactly once on the left chest above the pocket. No duplicate name text anywhere else on the clothing.`
             );
         }
 
@@ -64,13 +64,19 @@ export class FormulationStoryBuilder implements PromptBuilder {
             );
         }
 
-        if (story.labVibe && story.labVibe !== 'none') {
+        if (story.labVibeCustom) {
+            parts.push(
+                `The background environment reflects: ${story.labVibeCustom}, kept subtle and believable, avoiding staged set dressing.`
+            );
+        } else if (story.labVibe && story.labVibe !== 'none') {
             const hint = LAB_VIBE_HINTS[story.labVibe];
             if (hint) {
                 parts.push(
                     `Subtle background hints such as ${hint} may appear, keeping the space cozy yet focused rather than sterile or theatrical.`
                 );
             }
+        } else if (story.labVibe === 'none') {
+            parts.push('Background stays clean and minimal like a hero set: no lab props, no tools, no extra elements.');
         }
 
         parts.push('No hero language or cinematic polish—just an approachable expert who keeps the person-first focus.');

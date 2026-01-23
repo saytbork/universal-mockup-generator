@@ -98,9 +98,12 @@ export type BadgePreference = 'name_only' | 'name_and_badge';
 
 export interface FormulationStoryOptions {
     professionalFocus?: ProfessionalFocus;
+    expertPreset?: 'respiratory_doctor' | 'clinical_researcher' | 'herbal_formulator' | 'custom';
     expertName?: string;
     roleCredentials?: string;
     labVibe?: 'modern_clinical_lab' | 'r_and_d_studio' | 'apothecary_lab' | 'none';
+    /** Freeform override for lab/location set dressing (used when Lab Vibe is Custom). */
+    labVibeCustom?: string;
     expertRole?: string;
     expertRoleLabel?: string;
     expertAttire?: ExpertAttire;
@@ -129,13 +132,17 @@ export interface UGCRealModeLayerSet {
     awkwardContext?: string[];
 }
 
+export type UGCImperfectionLevel = 'low' | 'medium' | 'high';
+
 export interface PromptOptions {
     // Core
     contentStyle: 'ugc' | 'product' | '';
     creationIntent?: 'ugc' | 'product' | 'brand';
-    creationMode: 'lifestyle' | 'studio' | 'aesthetic' | 'bg-replace' | 'ecom-blank';
+    ugcStyle?: 'optimized' | 'natural' | 'raw';
+    creationMode: 'lifestyle' | 'studio' | 'aesthetic' | 'bg-replace' | 'ecom-blank' | 'ugc_selfie';
     aspectRatio: string;
     camera: string;
+    cameraType?: string;
     cameraDistance?: CameraDistanceKey;
     cameraAngle?: CameraAngleKey;
     cameraShot?: CameraShotKey;
@@ -151,11 +158,21 @@ export interface PromptOptions {
     productPlane: string;
     placementStyle?: string;
     placementCamera?: string;
+    sceneEnvironmentDescriptor?: string;
+    skinRealism?: string;
+    creationModeStructural?: string;
+    compositionModeStructural?: string;
+    cameraDeviceSemantic?: string;
 
     // Person
     personDetails?: PersonDetails;
     genderPresentation?: 'masculine' | 'feminine' | 'neutral';
     identityLock?: IdentityLock;
+    identity?: {
+        faceSignature?: string;
+        facialEmbedding?: string;
+        personSeed?: string;
+    };
     gender?: string;
     ethnicity?: string;
     skinTone?: string;
@@ -171,7 +188,14 @@ export interface PromptOptions {
     personExpression?: string;
     selfieMode?: string;      // Unified Selfie Mode
     selfieType?: string;      // Legacy
+    personCount?: 'single' | 'couple' | 'group';
+    coupleSex?: 'same' | 'different';
+    coupleStaging?: string;
+    secondaryPersonDetails?: Partial<PersonDetails>;
+    /** True when Person B age was derived automatically (not explicitly set via UI). */
+    secondaryAgeDerived?: boolean;
     eyeDirection?: EyeDirectionKey;
+    seed?: string;
 
     // Product
     productAssets?: ProductAsset[];
@@ -180,6 +204,7 @@ export interface PromptOptions {
     bundleLabels?: string[];
     productMaterial?: string;
     addHands?: boolean;
+    studioInteraction?: string;
     clothingPreset?: string;
     clothingQuickPreset?: string;
     customClothes?: CustomClothes;
@@ -189,8 +214,14 @@ export interface PromptOptions {
     heroAlignment?: string;
     heroScale?: number;
     heroShadow?: string;
+    coreSceneNarrative?: string;
 
     compositionMode?: string;
+    framing?: string;
+    allowHeadroom?: boolean;
+    allowTorso?: boolean;
+    allowEnvironmentProminence?: boolean;
+    allowSceneComposition?: boolean;
     bgColor?: string;
     bgGradient?: {
         startColor: string;
@@ -205,26 +236,54 @@ export interface PromptOptions {
     sceneIntent?: 'environment' | 'ecommerce';
     ecommerceBlankSpaceMode?: boolean;
 
+    // Ritual Mode (Lifestyle-only)
+    ritualModeActive?: boolean;
+    ritualHideProduct?: boolean;
+    ritualNoObjects?: boolean;
+    ritualCoupleStaging?: string;
+    ritualPosture?: string;
+    ritualActivities?: string[];
+    ritualCustom?: string;
+
+    /** When true, the scene must contain no visible product packaging anywhere in frame. */
+    forceHideProduct?: boolean;
+
     formulationExpertEnabled?: boolean;
     formulationExpertName?: string;
     formulationExpertRole?: string;
     formulationLabStyle?: string;
     formulationExpertPreset?: string;
     formulationStory?: FormulationStoryOptions;
+    formulationName?: string;
+    formulationRole?: string;
+    formulationCustomRole?: string;
+    formulationLabVibe?: 'modern_clinical_lab' | 'r_and_d_studio' | 'apothecary_lab' | 'none';
+    formulationPreset?: string;
+    formulationExpertAttire?: ExpertAttire;
+    formulationAttire?: string;
+    formulationBadgeEnabled?: boolean;
 
     // Real Mode
     realModeActive?: boolean;
 
     // Identity
     hasModelReference?: boolean;      // Model reference uploaded
+    modelReferenceLockAccessories?: boolean; // Preserve glasses/headwear/etc from model reference
     modelReference?: ModelReference;
-    identityLock?: PersonIdentity;
+    personIdentity?: PersonIdentity; // Renamed from duplicate identityLock
     personIncluded?: boolean;
+    sameCreatorAcrossScenes?: boolean;
+    identitySeed?: string;
+    identityMode?: 'auto' | 'locked';       // auto = different person each render, locked = same person
+    identityKey?: string;                   // Internal key for locked mode (persisted)
+    identityVariationToken?: string;        // Token for auto mode (regenerated each render)
 
     // UGC Real Mode
     ugcRealModeActive?: boolean;      // UGC Real Mode toggle
+    ugcSelfieDominant?: boolean;      // Derived: UGC selfie pipeline dominance
     heroPersona?: string;             // Semantic UGC persona description
     ugcCaptureSituation?: string | null; // Selected UGC capture situation
+    ugcImperfectionLevel?: UGCImperfectionLevel;
     ugcCaptureStyleBase?: string[];
     ugcCameraOperator?: string[];
     ugcBodyPhonePosition?: string[];
@@ -238,9 +297,16 @@ export interface PromptOptions {
     elderlyRealismGuardActive?: boolean;
     elderlyRealismGuardLabel?: string;
 
-    // Composition
+    // Background Variation (internal, auto-managed)
+    backgroundVariationMode?: 'auto' | 'locked';
+    backgroundVariationId?: string;
+    lastBackgroundId?: string;
+
     compositionIntro?: string;
     identityBlock?: string;
+    sceneStructure?: import('../../../types').SceneStructure;
+    colorSystem?: import('../../../types').ColorSystem;
+    visualGrammar?: import('../../../types').VisualGrammar;
 }
 
 export interface PromptBuilder {

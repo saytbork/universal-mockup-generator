@@ -5,6 +5,7 @@ import { buildCamera } from './camera';
 import { buildEnvironment } from './environment';
 import { buildLighting } from './lighting';
 import { FormulationStoryBuilder } from './formulationStory';
+import { PHOTO_MODE_PRESETS } from '../studioPresets';
 
 export interface SceneNarrativeSections {
     creationIntent: string;
@@ -18,7 +19,8 @@ export interface SceneNarrativeSections {
 }
 
 const creationModeCopy: Record<string, string> = {
-    lifestyle: 'Lifestyle environment with human presence. Natural interaction with the product.',
+    // Keep lifestyle wording free of explicit "human" to avoid leaking into product-mode guards
+    lifestyle: 'Lifestyle environment with the product integrated naturally into the scene.',
     studio: 'Studio-style hero shot. Controlled lighting and composition.',
     aesthetic: 'Aesthetic-focused composition. Design-forward styling.',
     'bg-replace': 'Background replaced while preserving subject realism.',
@@ -26,9 +28,51 @@ const creationModeCopy: Record<string, string> = {
 };
 
 const sidePlacementCopy: Record<string, string> = {
-    left: 'Product positioned on the left side of the frame.',
-    center: 'Product positioned near the center of the frame.',
-    right: 'Product positioned on the right side of the frame.'
+    left: 'Product anchored on the left side of the frame, leaving the right side open for copy.',
+    center: 'Product centered with balanced copy space on both sides.',
+    right: 'Product anchored on the right side of the frame, leaving the left side open for copy.'
+};
+
+const INDOOR_ENVIRONMENTS = new Set([
+    'Kitchen',
+    'Living Room',
+    'Bedroom',
+    'Bathroom',
+    'Workspace',
+    'Hallway',
+    'Home Gym',
+    'Balcony / Indoor Terrace'
+]);
+
+const OUTDOOR_ENVIRONMENTS = new Set([
+    'Urban Exterior',
+    'Natural Exterior',
+    'Parking Lot',
+    'Backyard / Patio',
+    'Street Corner'
+]);
+
+const formatEnvironmentPhrase = (environmentText?: string): string => {
+    if (!environmentText?.trim()) {
+        return '';
+    }
+    const normalized = environmentText.trim();
+    const lower = normalized.toLowerCase();
+    if (INDOOR_ENVIRONMENTS.has(normalized)) {
+        return `inside a ${lower}`;
+    }
+    if (OUTDOOR_ENVIRONMENTS.has(normalized)) {
+        return `outdoors on a ${lower}`;
+    }
+    return `in ${lower}`;
+};
+
+const HUMAN_REALISM_GUARD =
+    'The person looks like a real human, candid and imperfect, with natural skin texture, subtle asymmetry, and a lived-in environment. Nothing looks 3D, CGI, rendered, or studio-polished.';
+
+const shouldApplyHumanRealismGuard = (options: PromptOptions): boolean => {
+    const isNonUGC = !options.ugcRealModeActive && options.contentStyle !== 'ugc';
+    return isNonUGC && (options.creationMode === 'lifestyle' || Boolean(options.formulationExpertEnabled));
 };
 
 export class SceneNarrativeBuilder {
@@ -62,14 +106,20 @@ export class SceneNarrativeBuilder {
     private buildCreationIntent(options: PromptOptions): string {
         const clothingCopy = this.clothingBuilder.build(options);
         const productCopy = this.productBuilder.build(options);
+        const ritualCopy = this.buildRitualMode(options);
         const parts: string[] = [];
+
+        const isProductMode =
+            options.creationIntent === 'product' ||
+            options.contentStyle === 'product' ||
+            options.sceneIntent === 'ecommerce';
 
         switch (options.creationIntent) {
             case 'product':
                 parts.push(
                     'Product-focused commercial image.',
                     'Clean composition designed for ecommerce and ads.',
-                    'No creator narrative.'
+                    'No narrative context.'
                 );
                 break;
             case 'brand':
@@ -80,16 +130,44 @@ export class SceneNarrativeBuilder {
                 );
                 break;
             default:
-                parts.push(
-                    'UGC-style lifestyle scene.',
-                    'Authentic, casual, real-world feeling.',
-                    'Natural imperfections, candid composition.',
-                    'Allowed creator presence.'
-                );
+                if (isProductMode) {
+                    parts.push(
+                        'Product-focused commercial image.',
+                        'Clean composition designed for ecommerce and ads.',
+                        'No narrative context.'
+                    );
+                } else {
+                    const ugcStyle = String(options.ugcStyle || 'optimized').toLowerCase();
+                    const isUgcReal =
+                        Boolean(options.realModeActive) ||
+                        Boolean(options.ugcRealModeActive) ||
+                        Boolean(options.rawDomesticUgcActive);
+                    const wantsUgcLook = isUgcReal || ugcStyle === 'raw' || ugcStyle === 'natural';
+
+                    if (wantsUgcLook) {
+                        parts.push(
+                            'UGC-style lifestyle scene.',
+                            'Authentic, casual, real-world feeling.',
+                            'Natural imperfections are acceptable.',
+                            'Allowed creator presence.'
+                        );
+                    } else {
+                        parts.push(
+                            'High-end lifestyle campaign photo.',
+                            'Professional advertising/editorial quality with clean, intentional styling.',
+                            'Spotless environment: no crumbs, stains, dust, fingerprints, clutter, or random mess.',
+                            'Art-directed but natural: curated props only, brand-safe, premium look.'
+                        );
+                    }
+                }
         }
 
         if (clothingCopy) {
             parts.push(clothingCopy);
+        }
+
+        if (ritualCopy) {
+            parts.push(ritualCopy);
         }
 
         if (productCopy) {
@@ -99,26 +177,232 @@ export class SceneNarrativeBuilder {
         return parts.filter(Boolean).join(' ');
     }
 
+    private buildRitualMode(options: PromptOptions): string {
+        if (!options.ritualModeActive) return '';
+        const activities = Array.isArray(options.ritualActivities) ? options.ritualActivities : [];
+        const custom = String(options.ritualCustom || '').trim();
+        const all = [...activities, ...(custom ? [custom] : [])]
+            .map(item => item.trim())
+            .filter(Boolean);
+        const ritualList = all.length ? all.join(', ') : 'meditation, yoga, breathwork, or a wellness routine';
+
+        const normalize = (value: string) => value.trim().toLowerCase();
+        const noObjects = options.ritualNoObjects === true;
+        const heroCanvasActive =
+            options.creationMode === 'bg-replace' || options.ecommerceSidePlacementFlag === true;
+        const isCouple = options.personCount === 'couple';
+        const coupleStaging = String(options.ritualCoupleStaging || '').trim();
+        const posture = String(options.ritualPosture || '').trim();
+        const postureCopy =
+            posture && posture !== 'Auto'
+                ? isCouple
+                    ? `POSTURE: Both subjects are ${posture.toLowerCase()} (coordinated, not mirrored).`
+                    : `POSTURE: Subject is ${posture.toLowerCase()}.`
+                : '';
+        const coupleStagingCopy = (() => {
+            if (!isCouple) return '';
+            switch (coupleStaging) {
+                case 'Together (one behind the other)':
+                    return 'COUPLE STAGING: Together with one person slightly behind the other (stacked depth), both clearly visible.';
+                case 'Facing each other':
+                    return 'COUPLE STAGING: Facing each other, interacting naturally while performing the ritual.';
+                case 'Separated (different areas)':
+                    return 'COUPLE STAGING: Separated within the same environment (different areas), both performing the ritual simultaneously; keep both clearly visible.';
+                case 'Together (side-by-side)':
+                default:
+                    return 'COUPLE STAGING: Together side-by-side, both clearly visible.';
+            }
+        })();
+
+        const coupleRitualCopy = isCouple
+            ? [
+                'COUPLE RITUAL: Both subjects must be actively performing the ritual.',
+                'They should be coordinated and similar (same ritual theme), but not identical: vary micro-poses, timing, gaze, or hand placement so it feels natural and not mirrored.',
+                'Both actions must be readable in-frame at the same time.'
+            ].join(' ')
+            : '';
+        const actionHintsByRitual: Record<string, string> = {
+            'meditation':
+                noObjects
+                    ? 'Show a clear meditation posture (seated cross-legged or on a chair), relaxed shoulders, hands resting on knees; empty hands, no props.'
+                    : 'Show a clear meditation posture (seated cross-legged or on a chair), relaxed shoulders, hands resting on knees; keep the setting minimal and calm.',
+            'breathwork':
+                noObjects
+                    ? 'Show an obvious breathwork action: seated posture, one hand on belly and one on chest, slow exhale; no props, empty hands.'
+                    : 'Show an obvious breathwork action: seated posture, one hand on belly and one on chest, slow exhale, calm focused breathing.',
+            'yoga':
+                noObjects
+                    ? 'Show a recognizable yoga pose (sun salutation, downward dog, warrior pose); body posture must read as actively practicing; no props.'
+                    : 'Show a recognizable yoga pose (sun salutation, downward dog, warrior pose); body posture must read as actively practicing.',
+            'running':
+                noObjects
+                    ? 'Show a running moment (mid-stride) with athletic wear; no handheld items.'
+                    : 'Show a running moment (mid-stride) or a pre/post-run action (stretching calves) with athletic wear.',
+            'strength training':
+                noObjects
+                    ? 'Show a clear strength training action using bodyweight only (squats, lunges, push-ups) with visible exertion and proper form; no equipment.'
+                    : 'Show a clear strength training action: dumbbells/kettlebell, squat/lunge/press, or resistance bands; visible exertion and proper form.',
+            'stretching':
+                noObjects
+                    ? 'Show a visible stretching action (hamstring stretch, quad stretch, shoulder stretch); body position must read as actively stretching; no props.'
+                    : 'Show a visible stretching action (hamstring stretch, quad stretch, shoulder stretch); body position must read as actively stretching.',
+            'morning routine':
+                noObjects
+                    ? 'Show a morning routine action without props: opening curtains, stretching, or preparing to leave the house; warm morning light; no items in hands.'
+                    : 'Show a morning routine action: making coffee/tea, opening curtains, journaling at a table, or preparing breakfast; warm morning light and tidy setting.',
+            'journaling':
+                noObjects
+                    ? 'Show a reflective journaling moment without props: seated posture, thoughtful pause, hands relaxed; no notebook/pen.'
+                    : 'Show an obvious journaling action: notebook open, pen in hand, writing mid-sentence at a table; soft morning/afternoon light.',
+            'hydration / water intake':
+                noObjects
+                    ? 'Show a hydration-focused lifestyle moment without props: post-workout breathing and reset; no bottles or cups.'
+                    : 'Show a hydration action: person actively drinking water or filling a glass; natural casual moment.',
+            'smoothie prep':
+                noObjects
+                    ? 'Show a wellness kitchen moment without props: moving through the kitchen, preparing for a routine; no blender, no food items.'
+                    : 'Show smoothie prep action: blender on counter, ingredients visible, pouring into a glass; hands mid-action.',
+            'meal prep':
+                noObjects
+                    ? 'Show a wellness kitchen routine without props: moving through a tidy kitchen, setting intentions; no food items, no tools.'
+                    : 'Show meal prep action: chopping vegetables, assembling bowls, using cutting board; kitchen counter with ingredients in-use (tidy but active).',
+            'nature walk':
+                'Show an outdoor nature walk action: walking on a trail/park path, casual pace; environment clearly outdoors and green; no handheld items.',
+            'cold plunge':
+                noObjects
+                    ? 'Show a cold plunge action: stepping into a cold tub, visible cold breath; no props.'
+                    : 'Show a cold plunge action: stepping into a cold tub, visible cold breath; the action must read as cold immersion.',
+            'sauna':
+                noObjects
+                    ? 'Show a sauna action: warm wood sauna setting, subtle sweat/steam; relaxing seated posture; no props.'
+                    : 'Show a sauna action: warm wood sauna setting, subtle sweat/steam; relaxing seated posture in a sauna-like environment.',
+            'skincare routine':
+                noObjects
+                    ? 'Show a skincare-style self-care moment without products: gentle face massage at a mirror; no bottles, no jars.'
+                    : 'Show a skincare action: applying a simple routine in front of a bathroom mirror or vanity; hands touching face; action must be clearly skincare.',
+            'sleep wind-down':
+                noObjects
+                    ? 'Show a sleep wind-down action: dim bedside lamp, gentle stretching; no books/devices visible.'
+                    : 'Show a sleep wind-down action: dim bedside lamp, reading a book, stretching, or setting an alarm; cozy bedroom mood.',
+            'digestive relief':
+                noObjects
+                    ? 'Show a digestive relief moment: gentle belly breathing, hands resting on abdomen, slow exhale, relaxed posture; no props.'
+                    : 'Show a digestive relief moment: gentle belly breathing, hands resting on abdomen, slow exhale, relaxed posture; calm comfortable setting.',
+        };
+
+        const normalizedRituals = activities.map(normalize);
+        const actionHints = normalizedRituals
+            .map(key => actionHintsByRitual[key])
+            .filter(Boolean);
+
+        const actionCopy = actionHints.length
+            ? `RITUAL ACTION (must be clearly visible): ${actionHints.join(' ')}`
+            : 'RITUAL ACTION (must be clearly visible): Show a clear, recognizable wellness/lifestyle action with appropriate props and body posture (avoid generic standing portraits).';
+
+        const constraintLines: string[] = [
+            'Ritual must respect selected facial expression and eye direction settings.',
+        ];
+        if (noObjects) {
+            constraintLines.push(
+                'CRITICAL: No props or objects in frame. No handheld items. No food, drinks, bottles, cups, books, phones, tools, equipment, candles, plants, appliances, or accessories.',
+                'Only people and the environment/architecture. Empty hands.'
+            );
+        }
+        if (heroCanvasActive) {
+            constraintLines.push(
+                'HERO CANVAS CONTEXT: neutral seamless background only (no location cues, no rooms, no paths, no outdoors, no buildings).',
+                'Subjects must be integrated onto a solid hero background with grounded shadows. No environment/storytelling elements.'
+            );
+        }
+
+        if (options.ritualHideProduct) {
+            return [
+                'RITUAL MODE: Lifestyle ritual scene.',
+                `Depict a wellness ritual such as ${ritualList}.`,
+                actionCopy,
+                coupleRitualCopy,
+                coupleStagingCopy,
+                postureCopy,
+                ...constraintLines,
+                'CRITICAL: No product visible anywhere in frame (no packaging, no bottles, no labels).',
+                heroCanvasActive
+                    ? 'Focus on the action and posture against the neutral hero background (no environment).'
+                    : 'Focus on the environment, action, and lifestyle moment.'
+            ].join(' ');
+        }
+
+        return [
+            'RITUAL MODE: Lifestyle ritual scene.',
+            `Depict a wellness ritual such as ${ritualList}.`,
+            actionCopy,
+            coupleRitualCopy,
+            coupleStagingCopy,
+            postureCopy,
+            ...constraintLines,
+            'If a product appears, it must be incidental and secondary (never a hero packshot).'
+        ].join(' ');
+    }
+
     private buildCreationMode(options: PromptOptions): string {
+        const isProductMode =
+            options.creationIntent === 'product' ||
+            options.contentStyle === 'product' ||
+            options.sceneIntent === 'ecommerce';
+
+        if (options.forceHideProduct) {
+            return 'Lifestyle environment composition with no visible product packaging anywhere in frame.';
+        }
+
+        // Ritual Hero Canvas: neutral background + hero placement (Lifestyle-only).
+        // This must override environment-first mode to avoid injecting real room context.
+        if (!isProductMode && options.ritualModeActive) {
+            return [
+                'RITUAL HERO CANVAS (HARD RULE): neutral seamless background with no location cues.',
+                'Hero placement: centered composition with clean negative space and intentional framing.',
+                'If the product is visible, it must be placed cleanly and coherently within the hero layout (not cluttered).'
+            ].join(' ');
+        }
+
+        // Ecommerce canvas overlay (background replacement) can coexist with environment controls.
+        // When active, it must override environment-first copy.
+        if (options.creationMode === 'bg-replace' && options.ecommerceSidePlacementFlag) {
+            return [
+                'Background replacement mode.',
+                'Remove the original environment completely and replace it with a clean neutral background (solid color or gradient).',
+                'No visible room, furniture, decor, or location cues.',
+                'Subject and product remain photorealistic and naturally lit.'
+            ].join(' ');
+        }
+        if (!isProductMode && options.sceneIntent === 'environment') {
+            return 'Environment-first lifestyle composition with the product grounded in a natural space, avoiding hero or studio framing.';
+        }
         const mode = options.creationMode;
-        const copy = creationModeCopy[mode] || creationModeCopy.lifestyle;
+        const copy = creationModeCopy[mode] || (isProductMode ? creationModeCopy.studio : creationModeCopy.lifestyle);
         return copy;
     }
 
     private buildUgcRealMode(options: PromptOptions): string {
-        const isActive = !!options.ugcRealModeActive || !!options.realModeActive;
-        if (isActive) {
-            return options.ugcCaptureSituation
-                ? 'UGC Real Mode active with physical capture override. Phone-like framing with imperfect handheld geometry.'
-                : 'UGC Real Mode active. Maintain handheld framing and everyday imperfections.';
+        const isProductMode =
+            options.creationIntent === 'product' ||
+            options.contentStyle === 'product' ||
+            options.sceneIntent === 'ecommerce';
+        if (isProductMode) {
+            return '';
         }
 
-        return 'UGC Real Mode disabled. No selfie perspective. No creator narrative.';
+        if (options.realModeActive) {
+            return [
+                'UGC Real Mode active. Phone-like framing. Subtle real-world imperfections.',
+                'This is raw, real user-generated content. Do not correct framing, lighting, posture, or composition. Allow awkward angles, uneven headroom, off-center subjects, partial cropping, and accidental framing. Lighting may be harsh, dim, mixed, or unbalanced, including shadows or color casts. Facial expressions should feel natural, tired, distracted, or mid-moment rather than posed or aspirational. The product may be held awkwardly, partially obscured, tilted, or off-axis. Minor motion blur, handheld shake, and casual instability are acceptable. Imperfections are intentional and must not be fixed. The final image should feel spontaneous, unplanned, and slightly broken, like a real moment captured without aesthetic intent.'
+            ].join(' ');
+        }
+
+        return '';
     }
 
     private buildFormulationStory(options: PromptOptions): string | undefined {
         // FORMULATION STORY IS OPTIONAL - if disabled, skip entirely
-        if (!options.formulationExpertEnabled) {
+        if (!options.formulationExpertEnabled || options.personIncluded === false) {
             return undefined;
         }
 
@@ -134,59 +418,142 @@ export class SceneNarrativeBuilder {
     }
 
     private buildEcommerceBuilder(options: PromptOptions): string | undefined {
-        const isEcommerceIntent = options.creationIntent === 'product' || options.creationIntent === 'brand';
-        const isEcomBlank = options.creationMode === 'ecom-blank';
-
-        if (!isEcommerceIntent && !isEcomBlank) {
+        if (
+            options.ugcRealModeActive ||
+            !options.ecommerceSidePlacementFlag
+        ) {
             return undefined;
         }
 
-        const composition = options.compositionMode
-            ? `Blank-space layout optimized for text and UI overlays with ${options.compositionMode}.`
-            : 'Blank-space layout optimized for text and UI overlays.';
         const placement =
-            options.sidePlacement && sidePlacementCopy[options.sidePlacement]
-                ? sidePlacementCopy[options.sidePlacement]
-                : 'Product positioned near the center of the frame.';
-        const bgColor = options.bgColor ? `Clean solid background color ${options.bgColor}.` : '';
+            options.ecommerceSidePlacementDescriptor ||
+            (options.sidePlacement && sidePlacementCopy[options.sidePlacement]) ||
+            'Product positioned near the center of the frame.';
+        const copySpace =
+            options.sidePlacement === 'center'
+                ? 'Maintain even negative space on both sides so copy can wrap naturally.'
+                : options.sidePlacement
+                    ? `Reserve large, clean negative space on the ${options.sidePlacement === 'left' ? 'right' : 'left'
+                    } side for text overlays.`
+                    : '';
 
-        return [composition, placement, bgColor].filter(Boolean).join(' ');
+        return [placement, copySpace].filter(Boolean).join(' ');
     }
 
     private buildCameraFraming(options: PromptOptions, constraints?: string): string {
+        const isProductMode =
+            options.creationIntent === 'product' ||
+            options.contentStyle === 'product' ||
+            options.sceneIntent === 'ecommerce';
+
         const cameraText = buildCamera({
             camera: options.camera,
             cameraType: (options as any).cameraType,
-            placementCamera: (options as any).placementCamera
+            placementCamera: (options as any).placementCamera,
+            productAssets: options.productAssets,
+            ugcMode:
+                options.contentStyle === 'ugc' ||
+                options.creationIntent === 'ugc' ||
+                Boolean(options.ugcRealModeActive) ||
+                Boolean(options.rawDomesticUgcActive)
         });
         const parts: string[] = [];
-        const ugcActive = !!options.ugcRealModeActive;
-        const age = options.personDetails?.age || 0;
+        const suppressCameraDescriptors = !!options.ugcRealModeActive;
 
-        if (cameraText) {
-            parts.push(`Camera: ${cameraText}.`);
+        if (options.sceneStructure?.cameraLock) {
+            const lock = options.sceneStructure.cameraLock;
+            if (lock === 'top_down_flatlay') {
+                parts.push('Camera: Top-down flatlay perspective (0 degrees). Directly overhead alignment. No angle, no tilt.');
+            } else if (lock === 'eye_level_pedestal') {
+                parts.push('Camera: Eye-level perspective (90 degrees). Straight-on view of the pedestal. Low horizon line.');
+            } else if (lock === 'slightly_elevated_editorial') {
+                parts.push('Camera: Slightly elevated editorial angle (15-30 degrees). Minimalist architectural framing.');
+            }
+            parts.push('Camera Alignment: Strictly axis-aligned. No dutch angles, no wide-angle distortion.');
+        } else {
+            if (cameraText) {
+                parts.push(`Camera: ${cameraText}.`);
+            }
+            if (!suppressCameraDescriptors && options.cameraAngle) {
+                parts.push(`Camera angle: ${options.cameraAngle}.`);
+            }
+            if (!suppressCameraDescriptors && options.perspective) {
+                parts.push(`Framing: ${options.perspective}.`);
+            }
         }
-        if (!ugcActive && options.cameraAngle) {
-            parts.push(`Camera angle: ${options.cameraAngle}.`);
-        }
-        if (!ugcActive && options.perspective) {
-            parts.push(`Framing: ${options.perspective}.`);
-        }
-        if (!ugcActive && options.cameraShot) {
+        if (!suppressCameraDescriptors && options.cameraShot) {
             parts.push(`Shot type: ${options.cameraShot}.`);
         }
         if (constraints) {
             parts.push(constraints);
         }
 
-        let framingBlock = parts.join(' ');
-        if (age >= 85) {
-            framingBlock = this.stripSymmetryLanguage(framingBlock);
+        if (isProductMode) {
+            parts.push(
+                'Capture is professional and controlled: stabilized camera on tripod or rig, intentional framing, clean exposure, accurate color, and studio-grade lighting discipline. No motion wobble, no accidental framing, and no casual artifacts.'
+            );
+        } else if (options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
+            parts.push(
+                'This scene is captured using professional-grade camera equipment only, such as DSLR or mirrorless cameras, cinema cameras, or medium format systems. Framing and shot selection are intentional and precise, with a clearly defined shot type and camera angle. The camera is fully stabilized, either on a tripod or controlled rig, with smooth, deliberate movement if any. Lighting is studio-grade or professionally controlled, producing clean exposure, accurate colors, and natural depth. The image must not resemble user-generated content in any way. Exclude all casual, handheld, selfie-based, phone-captured, webcam-style, or amateur artifacts.'
+            );
+            parts.push(
+                'Camera movement, if present, is intentional, minimal, and professionally executed. The camera remains fully stabilized using tripods, sliders, gimbals, or controlled rigs, with smooth and deliberate motion only when it serves the scene. Exclude all handheld shake, walking motion, wearable-mounted movement, phone wobble, accidental drift, or jitter commonly associated with user-generated content. The scene must feel composed, steady, and editorial at all times.'
+            );
         }
-        return framingBlock;
+
+        return parts.join(' ');
     }
 
     private buildEnvironmentLightingMood(options: PromptOptions): string {
+        const isProductMode =
+            options.creationIntent === 'product' ||
+            options.contentStyle === 'product' ||
+            options.sceneIntent === 'ecommerce';
+
+        const isEcommerceBlankSpaceMode =
+            Boolean(
+                options.ecommerceBlankSpaceMode ||
+                options.creationMode === 'ecom-blank' ||
+                options.compositionMode === 'Ecommerce Blank Space'
+            );
+
+        const isEcommerceCanvasOverlay =
+            options.creationMode === 'bg-replace' && options.ecommerceSidePlacementFlag === true;
+
+        if (isEcommerceCanvasOverlay) {
+            const creationModeStructural = (options as any).creationModeStructural || '';
+            const compositionModeStructural = (options as any).compositionModeStructural || '';
+            const bgLine = options.bgGradient
+                ? `Background: gradient ${options.bgGradient.angle ?? 90}° from ${options.bgGradient.startColor} to ${options.bgGradient.endColor}.`
+                : options.bgColor
+                    ? `Background: solid ${options.bgColor}.`
+                    : 'Background: clean neutral solid or gradient.';
+
+            return [
+                'Ecommerce canvas overlay is active.',
+                'Remove the original environment completely; no room context or location cues.',
+                creationModeStructural ? `Creation: ${creationModeStructural}.` : '',
+                compositionModeStructural ? `Composition: ${compositionModeStructural}.` : '',
+                bgLine,
+                'Lighting: neutral, even, studio-like; preserve subject realism and natural shadows without any environment storytelling.'
+            ].join(' ');
+        }
+
+        if (isEcommerceBlankSpaceMode) {
+            const bgLine = options.bgGradient
+                ? `Clean neutral gradient background (linear ${options.bgGradient.angle ?? 90}° from ${options.bgGradient.startColor} to ${options.bgGradient.endColor}).`
+                : options.bgColor
+                    ? `Clean solid background color (${options.bgColor}).`
+                    : 'Clean neutral solid or gradient background.';
+            const text = [
+                bgLine,
+                'Professional studio lighting with neutral, even illumination and a minimal contact shadow straight under the product.',
+                'No environment context or narrative.'
+            ].join(' ');
+            console.log('[SCENE NARRATIVE] Ecommerce Blank Space enforced lighting:', text);
+            return text;
+        }
+
         const environmentText = buildEnvironment({
             environmentOrder: options.environmentOrder,
             sceneEnvironment: (options as any).sceneEnvironment || options.setting,
@@ -194,75 +561,95 @@ export class SceneNarrativeBuilder {
         });
         const lightingText = buildLighting({
             lighting: options.lighting,
-            sceneLighting: (options as any).sceneLighting
+            sceneLighting: (options as any).sceneLighting,
+            personDetails: options.personDetails,
+            ugcRealMode: options.ugcRealModeActive
         });
-        const age = options.personDetails?.age || 0;
-        const isAge80Plus = age >= 80;
-        const isAge85Plus = age >= 85;
 
         // Inject structural rules from mapper
         const creationModeStructural = (options as any).creationModeStructural || '';
         const compositionModeStructural = (options as any).compositionModeStructural || '';
         const cameraDeviceSemantic = (options as any).cameraDeviceSemantic || '';
 
-        const timeLightingNarrative = (options as any).timeLightingNarrative || '';
+        const environmentPhrase = formatEnvironmentPhrase(environmentText);
+        const backgroundLine =
+            isProductMode && !options.ecommerceBlankSpaceMode
+                ? options.bgGradient
+                    ? `Background: gradient ${options.bgGradient.angle ?? 90}° from ${options.bgGradient.startColor} to ${options.bgGradient.endColor}.`
+                    : options.bgColor
+                        ? `Background: solid ${options.bgColor}.`
+                        : ''
+                : '';
 
-        const parts = [
-            timeLightingNarrative ? `${timeLightingNarrative}` : '',
+        const narrativeParts = [
             creationModeStructural ? `Creation: ${creationModeStructural}.` : '',
             compositionModeStructural ? `Composition: ${compositionModeStructural}.` : '',
             cameraDeviceSemantic ? `Camera: ${cameraDeviceSemantic}.` : '',
-            environmentText ? `Environment: ${environmentText}.` : '',
+            backgroundLine,
+            environmentPhrase ? `Environment: ${environmentPhrase}.` : '',
+            options.sceneOrderChaosDescriptor ? `Scene order: ${options.sceneOrderChaosDescriptor}.` : '',
             lightingText ? `Lighting: ${lightingText}.` : ''
         ].filter(Boolean);
 
-        if (isAge80Plus) {
-            parts.push(
-                'Lighting stays uneven, mixed, and imperfect—only available ambient sources with uncontrolled falloff.'
+        const ugcEnvironmentDescriptor = (options as any).sceneEnvironmentDescriptor;
+        if (options.ugcRealModeActive && ugcEnvironmentDescriptor) {
+            narrativeParts.push(ugcEnvironmentDescriptor);
+        }
+
+        if (options.elderlyRealismGuardActive) {
+            const descriptor =
+                options.elderlyRealismDescriptor?.trim() ||
+                'Elderly realism guard: advanced age must remain visually dominant with natural skin texture, posture, and lived-in cues.';
+            narrativeParts.push(descriptor);
+        }
+
+        if (!isProductMode && options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
+            narrativeParts.push(
+                'The environment is intentionally selected and professionally appropriate. Scenes take place in clean, controlled, and visually coherent settings suitable for editorial, lifestyle, or ecommerce use, such as studios, curated interiors, or well-composed outdoor locations. The environment must feel deliberate and brand-safe, with no association to casual personal spaces or accidental capture contexts. Exclude all user-generated environments or situations, including bedrooms, bathrooms, car interiors, mirrors, beds, couches, or any setting that implies a selfie, phone capture, or informal personal moment. The environment should support a polished, professional narrative without human capture artifacts.'
             );
         }
 
-        let narrative = parts.join(' ');
-        narrative = this.enforceUnevenLightingLanguage(narrative, age);
-        if (isAge85Plus) {
-            narrative = this.stripSymmetryLanguage(narrative);
+
+        if (!isProductMode && options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
+            narrativeParts.push(
+                'Lighting is professionally designed and intentionally controlled. The scene uses studio-grade or well-managed natural lighting with balanced exposure, consistent color temperature, and soft, dimensional shadows. Illumination enhances clarity, depth, and material detail without harsh overhead light, uneven shadows, or mixed lighting sources. Exclude all phone-based lighting, on-camera flash, bathroom or ceiling lights, low-quality ambient light, or any casual, uncontrolled illumination commonly associated with user-generated content.'
+            );
         }
 
-        console.log('[SCENE NARRATIVE] Environment/Lighting/Mood:', narrative.substring(0, 200) + '...');
-        return narrative;
-    }
+        console.log('[SCENE NARRATIVE] Environment/Lighting/Mood:', narrativeParts.join(' ').substring(0, 200) + '...');
+        const shouldInjectLifestyleRealism =
+            !options.ugcRealModeActive &&
+            options.contentStyle !== 'ugc' &&
+            options.creationMode === 'lifestyle';
 
-    private enforceUnevenLightingLanguage(block: string, age: number): string {
-        if (age < 80 || !block) {
-            return block;
+        if (shouldInjectLifestyleRealism) {
+            narrativeParts.push(
+                'Lifestyle Realism Enforcement',
+                'This is a real-life lifestyle photograph, not user-generated content.',
+                'The scene must feel real, human, and intentionally composed.',
+                'Lighting is natural and believable, clean and balanced, not studio-perfect.',
+                'Human skin shows subtle natural variation and soft texture, no smoothing, no plastic or CGI appearance.',
+                'Posture and hand positioning include slight natural imperfection, avoid symmetry or mannequin-like alignment.',
+                'Facial expression is relaxed and natural, not posed or model-like.',
+                'The product is held naturally as part of everyday life, not centered or hero-framed.',
+                'Camera capture is intentional and stable, not handheld, not selfie-based.',
+                'Avoid render look, avoid artificial perfection, avoid hyper-polished surfaces.'
+            );
         }
-        const replacements: Array<[RegExp, string]> = [
-            [/\bgraduated illumination\b/gi, 'improvised illumination'],
-            [/\bbalanced illumination\b/gi, 'imperfect illumination'],
-            [/\bbalanced lighting\b/gi, 'imperfect lighting'],
-            [/\bbalanced\b/gi, 'off-kilter'],
-            [/\bcontrolled\b/gi, 'uncontrolled'],
-            [/\baesthetic\b/gi, 'plain'],
-            [/\bpolished\b/gi, 'raw']
-        ];
-        let sanitized = block;
-        replacements.forEach(([regex, replacement]) => {
-            sanitized = sanitized.replace(regex, replacement);
-        });
-        if (age >= 85) {
-            sanitized = sanitized.replace(/\b[Ee]ven\b/g, 'irregular');
-        }
-        return sanitized;
-    }
 
-    private stripSymmetryLanguage(block: string): string {
-        if (!block) {
-            return block;
+        if (!isProductMode && options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
+            narrativeParts.push(
+                'Final quality check. The scene must present a fully professional, editorial-grade result. If any conflicting cues appear, prioritize professional camera equipment, controlled lighting, stabilized motion, and deliberate environments. Suppress or override any residual casual, handheld, selfie-based, phone-captured, webcam-like, or user-generated signals. The final image should be brand-safe, visually consistent, and suitable for commercial or editorial use.'
+            );
         }
-        return block
-            .replace(/\b[Bb]alanced\b/g, 'off-kilter')
-            .replace(/\b[Ee]ven\b/g, 'irregular')
-            .replace(/\b[Ss]ymmetrical\b/g, 'lopsided')
-            .replace(/\b[Ss]ymmetry\b/g, 'lopsided layout');
+
+        // Photo Mode injection (used by some UI flows even outside Studio fast-path).
+        // Keep it explicit and non-negotiable so each mode produces a visible, production-style delta.
+        const photoMode = String(((options as any).photoMode || (options as any).studioPhotoMode || '')).trim();
+        if (photoMode && PHOTO_MODE_PRESETS[photoMode]) {
+            narrativeParts.push(`PHOTO_MODE (NON-NEGOTIABLE): ${photoMode}. ${PHOTO_MODE_PRESETS[photoMode]}`);
+        }
+
+        return narrativeParts.join(' ');
     }
 }

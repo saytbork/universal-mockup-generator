@@ -1,10 +1,11 @@
 
 
-import React, { forwardRef, useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { GoogleGenAI, Modality } from "@google/genai";
 import { MockupOptions, OptionCategory, Option } from './types';
-import { Info } from 'lucide-react';
+import { Info, Moon, Sun } from 'lucide-react';
+import Logo from './src/components/Logo';
 import {
   CONTENT_STYLE_OPTIONS,
   CREATION_MODE_OPTIONS,
@@ -18,9 +19,10 @@ import {
   PERSON_PROP_OPTIONS, MICRO_LOCATION_OPTIONS, MICRO_LOCATION_NONE_VALUE, PERSON_EXPRESSION_OPTIONS, HAIR_STYLE_OPTIONS,
   CREATOR_PRESETS, PROP_BUNDLES, PRO_LENS_OPTIONS, PRO_LIGHTING_RIG_OPTIONS, PRO_POST_TREATMENT_OPTIONS, PRO_LOOK_PRESETS, PRODUCT_PLANE_OPTIONS, SUPPLEMENT_PHOTO_PRESETS, HERO_PERSON_PRESETS, HERO_PERSON_DESCRIPTION_PRESETS,
   HAIR_COLOR_OPTIONS, EYE_COLOR_OPTIONS, SKIN_TONE_OPTIONS, HeroLandingAlignment, HeroLandingShadowStyle, DOWNLOAD_CREDIT_CONFIG, HIGH_RES_UNAVAILABLE_MESSAGE, SKIN_REALISM_OPTIONS,
-  COMPOSITION_MODE_OPTIONS, SIDE_PLACEMENT_OPTIONS,
-  CAMERA_SHOT_OPTIONS, CAMERA_ANGLE_OPTIONS, CAMERA_DISTANCE_OPTIONS
-} from './constants';
+	  COMPOSITION_MODE_OPTIONS, SIDE_PLACEMENT_OPTIONS,
+	  CAMERA_SHOT_OPTIONS, CAMERA_ANGLE_OPTIONS, CAMERA_DISTANCE_OPTIONS,
+	  getOptionValueByLabel
+	} from './constants';
 import type { CreatorPreset, DownloadResolution, HeroPosePreset, PropBundle, ProLookPreset, SupplementPhotoPreset } from './constants';
 import BundleSelector from './src/bundles/components/BundleSelector';
 import CustomBundleBuilder from './src/bundles/components/CustomBundleBuilder';
@@ -38,7 +40,17 @@ import {
 import { normalizeOptions } from './src/system/normalizeOptions';
 import { promptEngine } from './src/lib/promptEngine';
 import { mapLifestyleToPromptOptions } from './src/lib/promptEngine/mapLifestyleToPromptOptions';
+import { mapProductModeToPromptOptions } from './src/lib/promptEngine/mapProductModeToPromptOptions';
 import LifestyleStep3, { type Step3Values } from "@/components/LifestyleStep3";
+import { type EcommerceGenerationSettings } from '@/components/EcommerceStep3';
+import type { EcommerceSlotKey, EcommerceSlotsConfig } from '@/lib/ecommerceOverlay/types';
+import { loadEcommerceSlotsConfig, saveEcommerceSlotsConfig } from '@/lib/ecommerceOverlay/storage';
+import { ECOMMERCE_SLOT_REQUIRED_BLANK_SPACE } from '@/lib/ecommerceOverlay/templates';
+import { PLAN_CONFIG, type PlanTier } from './src/constants/planConfig';
+import { addLocalGalleryEntry, pruneLocalGallery } from './src/services/localGallery';
+// PHASE 2: ProductStudio direct generation
+import { useProductStudioStore, generateProductJobs, validatePrompt } from '@/lib/productStudio';
+import { addProductWithPalette } from '@/lib/productStudio/store';
 
 
 
@@ -58,6 +70,8 @@ type UGCRealModeSettings = {
   offCenterId: string;
   framingId: string;
 };
+
+const PRODUCT_DEFAULT_ASPECT_RATIO = '4:3' as const;
 
 const createDefaultUGCRealSettings = (): UGCRealModeSettings => ({
   isEnabled: false,
@@ -189,18 +203,24 @@ const pickPersonDetails = (options: MockupOptions): PersonDetails => ({
   pose: options.personPose ?? options.pose,
 });
 
-const buildActiveProductFromAsset = (asset: ProductAsset): ActiveProduct | null => {
-  if (!asset.base64 || !asset.mimeType) {
-    return null;
-  }
-  return {
-    id: asset.id,
-    base64: asset.base64,
-    mimeType: asset.mimeType,
-    name: asset.label || 'Product',
-    heightCm: asset.heightValue ?? undefined,
-  };
-};
+	const buildActiveProductFromAsset = (asset: ProductAsset): ActiveProduct | null => {
+	  if (!asset.base64 || !asset.mimeType) {
+	    return null;
+	  }
+	  const heightCm = (() => {
+	    if (asset.heightValue === null || asset.heightValue === undefined) return undefined;
+	    const value = Number(asset.heightValue);
+	    if (!Number.isFinite(value) || value <= 0) return undefined;
+	    return asset.heightUnit === 'in' ? value * 2.54 : value;
+	  })();
+	  return {
+	    id: asset.id,
+	    base64: asset.base64,
+	    mimeType: asset.mimeType,
+	    name: asset.label || 'Product',
+	    heightCm,
+	  };
+	};
 
 const createPersonIdentityPackage = (options: MockupOptions, overrides?: Partial<PersonIdentityPackage>): PersonIdentityPackage => ({
   identityLock: overrides?.identityLock ?? false,
@@ -276,6 +296,8 @@ type ActiveProduct = {
   mimeType: string;
   name: string;
   heightCm?: number;
+  heightValue?: number | null;
+  heightUnit?: 'cm' | 'in';
 };
 
 type GoogleCredentialResponse = {
@@ -491,11 +513,21 @@ const HERO_SHADOW_TEXT: Record<HeroLandingShadowStyle, string> = {
   floating: 'Make it feel like the product floats with a faint contact glow instead of a traditional shadow.',
 };
 
+const PERSON_COUNT_OPTIONS: Option[] = [
+  { label: 'Single', value: 'single', tooltip: 'One person in the scene.' },
+  { label: 'Couple', value: 'couple', tooltip: 'Two people in the scene.' },
+];
+
+const COUPLE_SEX_OPTIONS: Option[] = [
+  { label: 'Same sex', value: 'same', tooltip: 'Two people of the same sex.' },
+  { label: 'Different sex', value: 'different', tooltip: 'Two people of different sexes.' },
+];
+
 const DEFAULT_AGE_GROUP =
   AGE_GROUP_OPTIONS.find(option => option.label === '26-35')?.value ?? AGE_GROUP_OPTIONS[0].value;
 
 const createDefaultOptions = (): MockupOptions => ({
-  contentStyle: '',
+  contentStyle: 'ugc',
   placementStyle: PLACEMENT_STYLE_OPTIONS[0].value,
   placementCamera: PLACEMENT_CAMERA_OPTIONS[0].value,
   lighting: LIGHTING_OPTIONS[0].value,
@@ -545,17 +577,19 @@ const createDefaultOptions = (): MockupOptions => ({
   creationMode: 'lifestyle',
   sidePlacement: 'right',
   bgColor: '#FFFFFF',
+  personCount: 'single',
+  coupleSex: 'different',
 });
 import ImageUploader, { ImageUploaderHandle } from './components/ImageUploader';
 import GeneratedImage from './components/GeneratedImage';
 import VideoGenerator from './components/VideoGenerator';
 import Accordion from './components/Accordion';
-import ChipSelectGroup from './components/ChipSelectGroup';
 import ImageEditor from './components/ImageEditor';
 import ModelReferencePanel from './components/ModelReferencePanel';
+import ChipSelectGroup from './components/ChipSelectGroup';
 
 import OnboardingOverlay from './components/OnboardingOverlay';
-import ModeTierToggle, { ModeTier } from './components/ModeTierToggle';
+import ModeTierToggle from './components/ModeTierToggle';
 
 import { useAuth } from './src/contexts/AuthContext';
 
@@ -587,6 +621,123 @@ const describeAgeGroup = (ageGroup: string, gender: string) => {
     default:
       return `a ${genderNoun} aged ${ageGroup}`;
   }
+  };
+
+type MoodSuggestion = {
+  moodLabel: string;
+  lightingLabel: string;
+  settingLabel: string;
+  placementStyleLabel: string;
+  placementCameraLabel: string;
+};
+
+const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
+  const clean = hex.replace('#', '').trim();
+  if (clean.length !== 6) return null;
+  const value = Number.parseInt(clean, 16);
+  if (Number.isNaN(value)) return null;
+  return {
+    r: (value >> 16) & 0xff,
+    g: (value >> 8) & 0xff,
+    b: value & 0xff,
+  };
+};
+
+const rgbToHex = (r: number, g: number, b: number) =>
+  `#${[r, g, b]
+    .map(channel => Math.max(0, Math.min(255, Math.round(channel))).toString(16).padStart(2, '0'))
+    .join('')
+    .toUpperCase()}`;
+
+const extractPaletteFromImage = async (file: File, maxColors = 6): Promise<string[]> => {
+  const bitmap = await createImageBitmap(file);
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    throw new Error('Canvas context unavailable.');
+  }
+
+  const targetSize = 48;
+  canvas.width = targetSize;
+  canvas.height = targetSize;
+  ctx.drawImage(bitmap, 0, 0, targetSize, targetSize);
+
+  const { data } = ctx.getImageData(0, 0, targetSize, targetSize);
+  const counts = new Map<string, number>();
+  const step = 4;
+  for (let i = 0; i < data.length; i += step) {
+    const alpha = data[i + 3] ?? 0;
+    if (alpha < 200) continue;
+    const r = data[i] ?? 0;
+    const g = data[i + 1] ?? 0;
+    const b = data[i + 2] ?? 0;
+
+    const quant = (value: number) => Math.round(value / 32) * 32;
+    const color = rgbToHex(quant(r), quant(g), quant(b));
+    counts.set(color, (counts.get(color) ?? 0) + 1);
+  }
+
+  const palette = [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, maxColors)
+    .map(([color]) => color);
+
+  if (!palette.length) {
+    throw new Error('No palette colors detected.');
+  }
+  return palette;
+};
+
+const deriveMoodSuggestions = (palette: string[]): MoodSuggestion => {
+  const rgbs = palette.map(hexToRgb).filter(Boolean) as Array<{ r: number; g: number; b: number }>;
+  const avg = rgbs.reduce(
+    (acc, rgb) => ({ r: acc.r + rgb.r, g: acc.g + rgb.g, b: acc.b + rgb.b }),
+    { r: 0, g: 0, b: 0 }
+  );
+  const count = Math.max(1, rgbs.length);
+  const r = avg.r / count;
+  const g = avg.g / count;
+  const b = avg.b / count;
+  const brightness = (r + g + b) / 3;
+  const warmth = r - b;
+
+  if (brightness < 90) {
+    return {
+      moodLabel: 'Moody & Cinematic',
+      lightingLabel: 'Mood Lighting',
+      settingLabel: 'Boutique Hotel',
+      placementStyleLabel: 'Luxury Editorial',
+      placementCameraLabel: 'Cinema Camera',
+    };
+  }
+
+  if (warmth > 35) {
+    return {
+      moodLabel: 'Warm & Cozy',
+      lightingLabel: 'Golden Hour',
+      settingLabel: 'Living Room',
+      placementStyleLabel: 'Nature Elements',
+      placementCameraLabel: 'Cinema Camera',
+    };
+  }
+
+  if (warmth < -35) {
+    return {
+      moodLabel: 'Cool & Clean',
+      lightingLabel: 'Overcast',
+      settingLabel: 'Home Office',
+      placementStyleLabel: 'On-White Studio',
+      placementCameraLabel: 'Macro Lens',
+    };
+  }
+
+  return {
+    moodLabel: 'Bright & Natural',
+    lightingLabel: 'Natural Light',
+    settingLabel: 'Kitchen',
+    placementStyleLabel: 'Lifestyle Flatlay',
+    placementCameraLabel: 'Product Tabletop Rig',
+  };
 };
 
 const LOCAL_STORAGE_KEY = 'ugc-product-mockup-generator-api-key';
@@ -619,49 +770,7 @@ const normalizeGeminiModel = (raw?: string) => raw || '';
 const GEMINI_IMAGE_MODEL = normalizeGeminiModel('gemini-2.5-flash-image') || 'gemini-2.5-flash-image';
 const GOOGLE_MODEL = import.meta.env.VITE_GOOGLE_MODEL ?? '';
 
-type PlanTier = 'free' | 'creator' | 'studio';
-
-const PLAN_CONFIG: Record<
-  PlanTier,
-  {
-    label: string;
-    description: string;
-    creditLimit: number;
-    allowStudio: boolean;
-    allowCaption: boolean;
-    priceLabel: string;
-    stripeUrl?: string;
-  }
-> = {
-  free: {
-    label: 'Free',
-    description: '2 credits · watermark · comunidad · sin videos',
-    creditLimit: 2,
-    allowStudio: false,
-    allowCaption: false,
-    priceLabel: '$0',
-  },
-  creator: {
-    label: 'Creator',
-    description: '20 credits + 2 videos/mes · sin marca · soporte standard',
-    creditLimit: 20,
-    allowStudio: true,
-    allowCaption: true,
-    priceLabel: '$19/mo',
-    stripeUrl: 'https://buy.stripe.com/14A28tb1Sgr0b2Y5HBeIw02',
-  },
-  studio: {
-    label: 'Studio',
-    description: '60 credits + 6 videos/mes · sin marca · soporte priority',
-    creditLimit: 60,
-    allowStudio: true,
-    allowCaption: true,
-    priceLabel: '$29/mo',
-    stripeUrl: 'https://buy.stripe.com/7sYfZj1ricaKdb6da3eIw01',
-  },
-};
-
-const VIDEO_CREDIT_COST = 15;
+ const VIDEO_CREDIT_COST = 15;
 
 const PLAN_UNLOCK_CODES: Record<string, PlanTier> = {
   CREATOR15: 'creator',
@@ -671,7 +780,7 @@ const PLAN_UNLOCK_CODES: Record<string, PlanTier> = {
 };
 const TESTER_UPGRADE_CODE = import.meta.env.VITE_TESTER_CODE || '713371';
 
-const PERSON_FIELD_KEYS: OptionCategory[] = [
+const PERSON_FIELD_KEYS = [
   'ageGroup',
   'personAppearance',
   'personMood',
@@ -700,16 +809,22 @@ const PERSON_FIELD_KEYS: OptionCategory[] = [
   'customMicroLocation',
   'expression',
   'hairstyle',
-] as OptionCategory[];
+] as const satisfies readonly (keyof MockupOptions)[];
+
+type PersonFieldKey = (typeof PERSON_FIELD_KEYS)[number];
+
+const isPersonFieldKey = (key: OptionCategory): key is PersonFieldKey =>
+  (PERSON_FIELD_KEYS as readonly string[]).includes(key);
 
 const applyPersonProfileToOptions = (
   base: MockupOptions,
   profile: Partial<MockupOptions>
 ): MockupOptions => {
-  const updated = { ...base };
+  const updated: MockupOptions = { ...base };
   PERSON_FIELD_KEYS.forEach(key => {
-    if (profile[key] !== undefined) {
-      updated[key] = profile[key] as string;
+    const nextValue = profile[key];
+    if (nextValue !== undefined) {
+      updated[key] = nextValue;
     }
   });
   return updated;
@@ -841,6 +956,46 @@ const scaleImageToLongEdge = async (sourceUrl: string, targetLongEdge: number): 
   return { url, width, height };
 };
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const downscaleDataUrlToJpeg = async (
+  dataUrl: string,
+  opts: { maxLongEdge: number; quality: number }
+): Promise<{ base64: string; mimeType: string }> => {
+  const img = await loadImageFromUrl(dataUrl);
+  const longEdge = Math.max(img.naturalWidth, img.naturalHeight);
+  if (!longEdge) {
+    throw new Error('Source image has invalid dimensions.');
+  }
+  const scale = Math.min(1, opts.maxLongEdge / longEdge);
+  const width = Math.max(1, Math.round(img.naturalWidth * scale));
+  const height = Math.max(1, Math.round(img.naturalHeight * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    throw new Error('Canvas context is unavailable for scaling.');
+  }
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(img, 0, 0, width, height);
+  const url = canvas.toDataURL('image/jpeg', opts.quality);
+  const [, base64] = url.split(';base64,');
+  return { base64, mimeType: 'image/jpeg' };
+};
+
+const maybeDownscaleInlineImage = async (
+  base64: string,
+  mimeType: string,
+  opts: { maxLongEdge: number; maxBase64Length: number; quality: number }
+): Promise<{ base64: string; mimeType: string }> => {
+  if (!base64) return { base64, mimeType };
+  if (base64.length <= opts.maxBase64Length) return { base64, mimeType };
+  const dataUrl = `data:${mimeType};base64,${base64}`;
+  return downscaleDataUrlToJpeg(dataUrl, { maxLongEdge: opts.maxLongEdge, quality: opts.quality });
+};
+
 const App: React.FC = () => {
   const GEMINI_DISABLED = false; // Gemini must stay enabled for direct image generation
   const location = useLocation();
@@ -879,6 +1034,9 @@ const App: React.FC = () => {
     };
   }
   const [options, setOptions] = useState<MockupOptions>(() => syncCharacterFields(cloneOptions(initialSceneRef.current!.options)));
+  const hasSelectedIntent = Boolean(options.contentStyle);
+  const contentStyleValue = hasSelectedIntent ? options.contentStyle : CONTENT_STYLE_OPTIONS[0].value;
+  const isProductPlacement = contentStyleValue === 'product';
   const applyOptionsUpdate = useCallback(
     (updater: React.SetStateAction<MockupOptions>) => {
       setOptions(prev => {
@@ -899,6 +1057,7 @@ const App: React.FC = () => {
   const [modelReferenceFile, setModelReferenceFile] = useState<File | null>(null);
   const [modelReferencePreview, setModelReferencePreview] = useState<string | null>(null);
   const [modelReferenceNotes, setModelReferenceNotes] = useState('');
+  const [modelReferenceLockAccessories, setModelReferenceLockAccessories] = useState(true);
   const [personIdentityPackage, setPersonIdentityPackage] = useState<PersonIdentityPackage>(() =>
     createPersonIdentityPackage(createDefaultOptions())
   );
@@ -992,19 +1151,26 @@ const App: React.FC = () => {
   }, [normalizedProductAssets]);
   useEffect(() => {
     setActiveProducts(prev => {
-      const next = prev
-        .map(product => {
-          const asset = productAssets.find(assetItem => assetItem.id === product.id);
-          if (!asset) return null;
-          return {
-            ...product,
-            name: asset.label || product.name,
-            heightCm: asset.heightValue ?? undefined,
-            base64: asset.base64 ?? product.base64,
-            mimeType: asset.mimeType ?? product.mimeType,
-          };
-        })
-        .filter((item): item is ActiveProduct => Boolean(item));
+      const next = prev.flatMap(product => {
+        const asset = productAssets.find(assetItem => assetItem.id === product.id);
+        if (!asset) return [];
+        const heightValue = asset.heightValue ?? null;
+        const heightUnit = asset.heightUnit ?? 'cm';
+        const heightCm =
+          heightValue != null && Number.isFinite(Number(heightValue)) && Number(heightValue) > 0
+            ? (heightUnit === 'in' ? Number(heightValue) * 2.54 : Number(heightValue))
+            : undefined;
+        const updatedProduct: ActiveProduct = {
+          ...product,
+          name: asset.label || product.name,
+          base64: asset.base64 ?? product.base64,
+          mimeType: asset.mimeType ?? product.mimeType,
+          heightValue,
+          heightUnit,
+          ...(heightCm != null ? { heightCm } : {}),
+        };
+        return [updatedProduct];
+      });
       const isSame =
         next.length === prev.length &&
         next.every((item, index) => item.name === prev[index]?.name && item.heightCm === prev[index]?.heightCm);
@@ -1021,7 +1187,69 @@ const App: React.FC = () => {
       }
       return next;
     });
-  }, [productAssets]);
+  }, [isProductPlacement, productAssets]);
+
+  // PHASE 5: Sync productAssets to ProductStudioStore for Product mode
+  useEffect(() => {
+    if (!isProductPlacement) return;
+
+    const store = useProductStudioStore.getState();
+    const currentProducts = store.products;
+
+    // Only sync if products have changed
+    const productIds = productAssets.map(a => a.id);
+    const currentIds = currentProducts.map(p => p.id);
+    const needsSync = productIds.length !== currentIds.length ||
+      !productIds.every((id, i) => id === currentIds[i]);
+
+    if (!needsSync) return;
+
+    let canceled = false;
+    (async () => {
+      // Rebuild products in store (with palette extraction) WITHOUT wiping user-selected settings.
+      store.resetProducts();
+      for (const asset of productAssets) {
+        if (canceled) return;
+        if (!asset.base64 || !asset.mimeType) continue;
+	        await addProductWithPalette({
+	          id: asset.id,
+	          name: asset.label || 'Product',
+	          imageUrl: asset.previewUrl || '',
+	          base64: asset.base64,
+	          mimeType: asset.mimeType,
+	          heightValue: asset.heightValue,
+	          heightUnit: asset.heightUnit,
+	        });
+	      }
+      if (canceled) return;
+      console.log('[PRODUCT STUDIO SYNC] Products synced:', useProductStudioStore.getState().products.length);
+    })();
+
+    return () => {
+      canceled = true;
+    };
+  }, [isProductPlacement, productAssets]);
+
+  // Keep ProductStudioStore metadata (name + height) in sync without resetting user settings.
+  useEffect(() => {
+    if (!isProductPlacement) return;
+    const store = useProductStudioStore.getState();
+    for (const asset of productAssets) {
+      const product = store.products.find(p => p.id === asset.id);
+      if (!product) continue;
+      const nextName = asset.label || 'Product';
+      if (product.name !== nextName) {
+        store.updateProductName(asset.id, nextName);
+      }
+      const nextHeightValue = asset.heightValue ?? null;
+      const nextHeightUnit = asset.heightUnit ?? 'cm';
+      const currentHeightValue = (product as any).heightValue ?? null;
+      const currentHeightUnit = (product as any).heightUnit ?? 'cm';
+      if (currentHeightValue !== nextHeightValue || currentHeightUnit !== nextHeightUnit) {
+        store.updateProductHeight(asset.id, nextHeightValue, nextHeightUnit);
+      }
+    }
+  }, [isProductPlacement, productAssets]);
   useEffect(() => {
     if (!availableProductIds.length) return;
     if (!availableProductIds.includes(recommendedBaseProduct)) {
@@ -1111,6 +1339,20 @@ const App: React.FC = () => {
 
   // LifestyleStep3 state for PromptEngine
   const [lifestyleStep3Values, setLifestyleStep3Values] = useState<Step3Values | null>(null);
+  const [hasFirstGenerationComplete, setHasFirstGenerationComplete] = useState(false);
+
+  const [ecommerceSelectedSlots, setEcommerceSelectedSlots] = useState<EcommerceSlotKey[]>([]);
+  const [ecommerceSlotsConfig, setEcommerceSlotsConfig] = useState<EcommerceSlotsConfig>(() => loadEcommerceSlotsConfig());
+  const [ecommerceSlotBaseImages, setEcommerceSlotBaseImages] = useState<Partial<Record<EcommerceSlotKey, string | null>>>({});
+  const [ecommerceGenerationSettings, setEcommerceGenerationSettings] = useState<EcommerceGenerationSettings>({
+    reserveBlankSpace: false,
+    blankSpaceDirection: 'right',
+    viewFraming: 'centered',
+  });
+
+  useEffect(() => {
+    saveEcommerceSlotsConfig(ecommerceSlotsConfig);
+  }, [ecommerceSlotsConfig]);
   const [activeTalentPreset, setActiveTalentPreset] = useState('custom');
   const [isProPhotographer, setIsProPhotographer] = useState(false);
   const [activeProPreset, setActiveProPreset] = useState<string>('custom');
@@ -1134,7 +1376,7 @@ const App: React.FC = () => {
   const [adminDevError, setAdminDevError] = useState<string | null>(null);
   const [adminDevLoading, setAdminDevLoading] = useState(false);
   const [isSimpleMode, setIsSimpleMode] = useState(true);
-  const [modeTier, setModeTier] = useState<ModeTier>('basic');
+  // modeTier removed (unused)
   const [showGoalWizard, setShowGoalWizard] = useState(false);
   const [goalWizardStep, setGoalWizardStep] = useState(1);
   const [goalWizardData, setGoalWizardData] = useState({
@@ -1155,12 +1397,13 @@ const App: React.FC = () => {
   const trialInputRef = useRef<HTMLInputElement>(null);
   const googleButtonRef = useRef<HTMLDivElement>(null);
   const googleInitRef = useRef(false);
+  const identityContinuityRef = useRef<{ identityKey?: string; identitySeed?: string } | null>(null);
+  const lastAspectRatioRef = useRef<string>('1:1');
   const uploaderRef = useRef<ImageUploaderHandle | null>(null);
   const isDevBypass = useMemo(() => {
-    if (!import.meta.env.DEV) return false;
-    const params = new URLSearchParams(location.search);
-    return params.has('dev');
-  }, [location.search]);
+    // Local dev should never be blocked by credit limits.
+    return Boolean(import.meta.env.DEV);
+  }, []);
   const isAdmin = useMemo(() => {
     const normalized = userEmail.trim().toLowerCase();
     return (
@@ -1178,15 +1421,36 @@ const App: React.FC = () => {
   const [trialCodeInput, setTrialCodeInput] = useState('');
   const [trialCodeError, setTrialCodeError] = useState<string | null>(null);
   const isTrialBypassActive = hasTrialBypass || isDevBypass;
-  const hasSelectedIntent = Boolean(options.contentStyle);
   const hasUploadedProduct = activeProducts.length > 0 || productAssets.length > 0;
+  const ritualNoProductMode =
+    !isProductPlacement &&
+    lifestyleStep3Values?.ritualModeEnabled === true &&
+    lifestyleStep3Values?.ritualHideProduct === true;
+  const formulationNoProductMode =
+    !isProductPlacement &&
+    lifestyleStep3Values?.formulationStoryEnabled === true &&
+    lifestyleStep3Values?.formulationProductVisible === false;
+  const hideProductMode = ritualNoProductMode || formulationNoProductMode;
   const canUseMood = hasUploadedProduct;
-  const contentStyleValue = hasSelectedIntent ? options.contentStyle : CONTENT_STYLE_OPTIONS[0].value;
-  const isProductPlacement = contentStyleValue === 'product';
+  const [lifestyleTone, setLifestyleTone] = useState<'ugc' | 'editorial'>('ugc');
+  const toggleTheme = useCallback(() => {
+    const root = document.documentElement;
+    const nextIsDark = !root.classList.contains('dark');
+    root.classList.toggle('dark', nextIsDark);
+    document.body.classList.toggle('dark', nextIsDark);
+    root.style.colorScheme = nextIsDark ? 'dark' : 'light';
+    try {
+      localStorage.setItem('theme', nextIsDark ? 'dark' : 'light');
+    } catch {
+      // ignore
+    }
+  }, []);
   const hasModelReference = Boolean(modelReferenceFile || personIdentityPackage.modelReferenceBase64);
   useEffect(() => {
     if (!hasModelReference) {
       setCompositionMode('balanced');
+      setModelReferenceNotes('');
+      setModelReferenceLockAccessories(true);
     }
   }, [hasModelReference]);
   const primarySceneId = storyboardScenes[0]?.id ?? identitySourceSceneId;
@@ -1200,10 +1464,13 @@ const App: React.FC = () => {
   const microLocationDefault = MICRO_LOCATION_NONE_VALUE;
   const isHeroLandingMode = activeSupplementPreset === HERO_LANDING_PRESET_VALUE;
   const currentPlan = PLAN_CONFIG[planTier];
+  const modeLabel = isProductPlacement ? 'Product (Studio)' : 'Lifestyle';
+  const hasWatermark = isFreeUser;
   const shouldRequireLogin = !isLoggedIn;
   const loginGateActive = shouldRequireLogin;
   const planCreditLimit = isGuest ? 2 : currentPlan.creditLimit;
   const planVideoLimit = Math.floor(planCreditLimit / VIDEO_CREDIT_COST);
+  const hasVideoExports = planVideoLimit > 0;
   const canUseStudioFeatures = currentPlan.allowStudio || isTrialBypassActive;
   const canUseCaptionAssistant = false;
   const remainingCredits = Math.max(planCreditLimit - creditUsage, 0);
@@ -1607,16 +1874,22 @@ const App: React.FC = () => {
     setCopyError(null);
   }, [generatedImageUrl]);
 
-  useEffect(() => {
-    if (activeProductAsset) {
-      setUploadedImageFile(activeProductAsset.file);
-      setUploadedImagePreview(activeProductAsset.previewUrl);
-    } else {
-      setUploadedImageFile(null);
-      setUploadedImagePreview(null);
-      setIsMultiProductPackaging(false);
-    }
-  }, [activeProductAsset]);
+	  useEffect(() => {
+	    if (activeProductAsset) {
+	      setUploadedImageFile(activeProductAsset.file);
+	      setUploadedImagePreview(activeProductAsset.previewUrl);
+	      return;
+	    }
+	    // Avoid false "no upload" states during mode switches; fall back to first asset if available.
+	    if (productAssets.length) {
+	      setUploadedImageFile(productAssets[0].file);
+	      setUploadedImagePreview(productAssets[0].previewUrl);
+	      return;
+	    }
+	    setUploadedImageFile(null);
+	    setUploadedImagePreview(null);
+	    setIsMultiProductPackaging(false);
+	  }, [activeProductAsset, productAssets]);
 
   useEffect(() => {
     if (!isProductPlacement) return;
@@ -1682,7 +1955,7 @@ const App: React.FC = () => {
     }
     const resolvedKey = apiKey || envApiKey;
     if (!resolvedKey) {
-      notify('Please configure your Gemini API key to continue.');
+      notify('Please add your access key to continue.');
       requireNewApiKey();
       return null;
     }
@@ -1692,7 +1965,7 @@ const App: React.FC = () => {
   const toggleSimpleMode = useCallback(() => {
     setIsSimpleMode(prev => {
       if (prev && !canUseStudioFeatures) {
-        setPlanNotice('Upgrade to Creator or Studio to unlock Studio Mode.');
+        setPlanNotice('Upgrade your plan to unlock advanced controls.');
         setShowPlanModal(true);
         return prev;
       }
@@ -1741,44 +2014,62 @@ const App: React.FC = () => {
           >
             <div className="space-y-4">
               <ChipSelectGroup label="Age Group" options={AGE_GROUP_OPTIONS} selectedValue={options.ageGroup} onChange={(value) => handleOptionChange('ageGroup', value, 'Person Details')} disabled={personControlsDisabled} />
+              <ChipSelectGroup
+                label="People"
+                options={PERSON_COUNT_OPTIONS}
+                selectedValue={options.personCount ?? 'single'}
+                onChange={(value) => handleOptionChange('personCount', value, 'Person Details')}
+                disabled={personControlsDisabled}
+              />
+              {(options.personCount ?? 'single') === 'couple' && (
+                <ChipSelectGroup
+                  label="Couple"
+                  options={COUPLE_SEX_OPTIONS}
+                  selectedValue={options.coupleSex ?? 'different'}
+                  onChange={(value) => handleOptionChange('coupleSex', value, 'Person Details')}
+                  disabled={personControlsDisabled}
+                />
+              )}
               {isProductPlacement && <p className="text-xs text-gray-500">Person options are disabled for product placement shots.</p>}
-              <div className={`rounded-2xl border border-white/10 bg-gray-900/40 p-4 space-y-3 ${personControlsDisabled ? 'opacity-50' : ''}`}>
+              <div className={`rounded-2xl border border-gray-200 bg-gray-100 p-4 space-y-3 ${personControlsDisabled ? 'opacity-50' : ''} dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]`}>
                 <ChipSelectGroup label="Creator Preset" options={normalizedCreatorPresetOptions} selectedValue={activeTalentPreset} onChange={(value) => handlePresetSelect(value)} disabled={personControlsDisabled} />
-                {activePresetMeta?.description && <p className="text-xs text-gray-400">{activePresetMeta.description}</p>}
+                {activePresetMeta?.description && <p className="text-xs text-gray-600 dark:text-white/60">{activePresetMeta.description}</p>}
                 <div className="flex flex-wrap gap-2 text-xs">
-                  <button type="button" onClick={handleSaveTalentProfile} disabled={personControlsDisabled} className="inline-flex items-center rounded-full border border-white/20 px-3 py-1 font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition disabled:opacity-60">
+                  <button type="button" onClick={handleSaveTalentProfile} disabled={personControlsDisabled} className="inline-flex items-center rounded-full border border-gray-200 px-3 py-1 font-semibold text-gray-600 hover:border-indigo-600 hover:text-gray-900 transition disabled:opacity-60 dark:border-white/10 dark:text-white/60 dark:hover:border-white/30 dark:hover:text-white">
                     Save as My Talent
                   </button>
-                  <button type="button" onClick={handleApplySavedTalent} disabled={personControlsDisabled || !hasSavedTalent} className="inline-flex items-center rounded-full border border-white/20 px-3 py-1 font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition disabled:opacity-60">
+                  <button type="button" onClick={handleApplySavedTalent} disabled={personControlsDisabled || !hasSavedTalent} className="inline-flex items-center rounded-full border border-gray-200 px-3 py-1 font-semibold text-gray-600 hover:border-indigo-600 hover:text-gray-900 transition disabled:opacity-60 dark:border-white/10 dark:text-white/60 dark:hover:border-white/30 dark:hover:text-white">
                     Apply saved talent
                   </button>
                 </div>
-                {talentToast === 'saved' && <p className="text-xs text-emerald-300">Talent saved for future scenes.</p>}
-                {talentToast === 'applied' && <p className="text-xs text-emerald-300">Saved talent applied.</p>}
-                <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-3 space-y-2">
+                {talentToast === 'saved' && <p className="text-xs text-indigo-600">Talent saved for future scenes.</p>}
+                {talentToast === 'applied' && <p className="text-xs text-indigo-600">Saved talent applied.</p>}
+                <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 space-y-2 dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Link talent across scenes</p>
-                      <p className="text-xs text-gray-400">Keep this same creator for morning / afternoon / night shots.</p>
+                      <p className="text-xs uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-300">Link talent across scenes</p>
+                      <p className="text-xs text-gray-600 dark:text-white/60">Keep this same creator for morning / afternoon / night shots.</p>
                     </div>
                     <label className="relative inline-flex cursor-pointer items-center gap-2">
                       <input type="checkbox" className="sr-only" checked={isTalentLinkedAcrossScenes} onChange={handleTalentLinkToggle} disabled={personControlsDisabled} />
-                      <div className={`relative h-5 w-10 rounded-full transition ${isTalentLinkedAcrossScenes ? 'bg-indigo-500' : 'bg-gray-700'} ${personControlsDisabled ? 'opacity-50' : ''}`}>
-                        <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${isTalentLinkedAcrossScenes ? 'translate-x-4' : ''}`} />
+                      <div
+                        className={`relative h-5 w-10 rounded-full border border-gray-200 transition ${isTalentLinkedAcrossScenes ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-gray-200'} ${personControlsDisabled ? 'opacity-50' : ''} dark:border-white/10 ${isTalentLinkedAcrossScenes ? 'dark:bg-indigo-500 dark:border-indigo-500' : 'dark:bg-white/10'}`}
+                      >
+                        <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white border border-gray-200 transition ${isTalentLinkedAcrossScenes ? 'translate-x-4' : ''} dark:border-white/10`} />
                       </div>
-                      <span className={`text-xs font-semibold ${isTalentLinkedAcrossScenes ? 'text-indigo-200' : 'text-gray-500'}`}>
+                      <span className={`text-xs font-semibold ${isTalentLinkedAcrossScenes ? 'text-indigo-600' : 'text-gray-500'} ${isTalentLinkedAcrossScenes ? 'dark:text-indigo-300' : 'dark:text-white/50'}`}>
                         {isTalentLinkedAcrossScenes ? 'Active' : 'Off'}
                       </span>
                     </label>
                   </div>
-                  {personControlsDisabled && <p className="text-[11px] text-gray-500">Enable people in this scene to sync the talent across your storyboard.</p>}
+                  {personControlsDisabled && <p className="text-[11px] text-gray-500 dark:text-white/50">Enable people in this scene to sync the talent across your storyboard.</p>}
                   {isTalentLinkedAcrossScenes && !isActiveScenePrimary && (
-                    <p className="text-[11px] text-amber-200">
+                    <p className="text-[11px] text-gray-500 dark:text-white/50">
                       Identity locked from {storyboardScenes[0]?.label || 'Scene 1'} while Same Person is active.
                     </p>
                   )}
                   {isTalentLinkedAcrossScenes && !personControlsDisabled && (
-                    <p className="text-[11px] text-indigo-200">
+                    <p className="text-[11px] text-indigo-600 dark:text-indigo-300">
                       Any tweak you make to the person instantly updates every other scene that still features them.
                     </p>
                   )}
@@ -1806,11 +2097,11 @@ const App: React.FC = () => {
                 </p>
               )}
               {!personControlsDisabled && !ugcRealSettings.isEnabled && (
-                <div className="rounded-2xl border border-white/15 bg-black/30 p-4 space-y-3">
+                <div className="rounded-2xl border border-gray-200 bg-gray-100 p-4 space-y-3">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Hero person presets</p>
-                      <p className="text-[11px] text-gray-400">
+                      <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Hero person presets</p>
+                      <p className="text-[11px] text-gray-600">
                         Quickly stage face-frame, offer-to-lens, or grounded lounge poses inspired by modern supplement shoots.
                       </p>
                     </div>
@@ -1824,29 +2115,29 @@ const App: React.FC = () => {
                           type="button"
                           onClick={() => handleHeroPosePresetSelect(preset.value)}
                           className={`w-full rounded-xl border px-3 py-2 text-left transition ${isActive
-                            ? 'border-indigo-400 bg-indigo-500/10 text-white'
-                            : 'border-white/15 text-gray-200 hover-border-indigo-400 hover:text-white'
+                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500'
+                            : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-indigo-600 hover:text-gray-900'
                             }`}
                         >
                           <div className="flex items-center gap-1 relative group text-sm font-semibold">
                             <span>{preset.label}</span>
                             {preset.tooltip && (
-                              <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
+                              <span className="text-xs text-gray-600 cursor-pointer group-hover:text-gray-900">
                                 ⓘ
-                                <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                                <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-white text-gray-900 text-xs p-2 rounded-2xl border border-gray-200 shadow-sm w-44">
                                   {preset.tooltip}
                                 </div>
                               </span>
                             )}
                           </div>
-                          <p className="text-[11px] text-gray-400 mt-1">{preset.description}</p>
+                          <p className="text-[11px] text-gray-600 mt-1">{preset.description}</p>
                         </button>
                       );
                     })}
                   </div>
                   {selectedHeroPreset === 'custom' && (
                     <textarea
-                      className="mt-3 w-full rounded-lg border border-white/15 bg-gray-900/40 px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:border-indigo-400 focus:outline-none"
+                      className="mt-3 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none"
                       placeholder="Describe your own hero pose or product interaction..."
                       value={customHeroDescription}
                       onChange={(event) => setCustomHeroDescription(event.target.value)}
@@ -1854,7 +2145,7 @@ const App: React.FC = () => {
                     />
                   )}
                   {selectedHeroPreset !== 'custom' && (
-                    <p className="text-[11px] text-indigo-200">
+                    <p className="text-[11px] text-indigo-600">
                       Pose + camera notes are baked into the prompt. You can still tweak any field above.
                     </p>
                   )}
@@ -1862,31 +2153,31 @@ const App: React.FC = () => {
               )}
               {!personControlsDisabled && renderFormulationStoryPanel('ugc')}
               {!personControlsDisabled && (
-                <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-4">
-                  <p className="text-xs uppercase tracking-[0.3em] text-indigo-200 mb-3">Prop bundles</p>
+                <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                  <p className="text-xs uppercase tracking-[0.3em] text-indigo-600 mb-3">Prop bundles</p>
                   <div className="flex flex-wrap gap-2">
                     {PROP_BUNDLES.map(bundle => (
-                      <button key={bundle.label} type="button" onClick={() => handlePropBundleSelect(bundle.settings)} className="rounded-full border border-white/20 px-3 py-1 text-xs text-white/80 hover:border-indigo-400 hover:text-white transition">
+                      <button key={bundle.label} type="button" onClick={() => handlePropBundleSelect(bundle.settings)} className="rounded-full border border-gray-200 px-3 py-1 text-xs text-gray-600 hover:border-indigo-600 hover:text-gray-900 transition">
                         {bundle.label}
                       </button>
                     ))}
                   </div>
-                  <p className="text-[11px] text-gray-400 mt-2">Tap any bundle to pre-fill props, micro-location, and mood.</p>
+                  <p className="text-[11px] text-gray-600 mt-2">Tap any bundle to pre-fill props, micro-location, and mood.</p>
                 </div>
               )}
-              <div className="rounded-2xl border border-white/10 bg-gray-900/50 p-4">
-                <p className="text-xs uppercase tracking-[0.3em] text-indigo-200 mb-2">Talent preview</p>
-                <div className="flex flex-wrap gap-2 text-xs text-gray-300">
-                  <span className="rounded-full bg-white/5 px-3 py-1">{options.gender}</span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">{options.ageGroup}</span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">{options.personMood}</span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">{options.personPose}</span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">{options.wardrobeStyle}</span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">{options.skinTone}</span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">{options.hairColor}</span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">{options.eyeColor}</span>
+              <div className="rounded-2xl border border-gray-200 bg-gray-100 p-4">
+                <p className="text-xs uppercase tracking-[0.3em] text-indigo-600 mb-2">Talent preview</p>
+                <div className="flex flex-wrap gap-2 text-xs text-gray-600">
+                  <span className="rounded-full bg-gray-50 px-3 py-1">{options.gender}</span>
+                  <span className="rounded-full bg-gray-50 px-3 py-1">{options.ageGroup}</span>
+                  <span className="rounded-full bg-gray-50 px-3 py-1">{options.personMood}</span>
+                  <span className="rounded-full bg-gray-50 px-3 py-1">{options.personPose}</span>
+                  <span className="rounded-full bg-gray-50 px-3 py-1">{options.wardrobeStyle}</span>
+                  <span className="rounded-full bg-gray-50 px-3 py-1">{options.skinTone}</span>
+                  <span className="rounded-full bg-gray-50 px-3 py-1">{options.hairColor}</span>
+                  <span className="rounded-full bg-gray-50 px-3 py-1">{options.eyeColor}</span>
                 </div>
-                <p className="text-[11px] text-gray-400 mt-2">
+                <p className="text-[11px] text-gray-600 mt-2">
                   {options.personExpression} · {options.hairStyle} · {options.personProps}
                 </p>
               </div>
@@ -1945,10 +2236,10 @@ const App: React.FC = () => {
 
   const renderBundlesSection = () => (
     <div id={getSectionId('Bundles')} className="mt-6">
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-4">
+      <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 space-y-4">
         <div className="flex flex-col gap-1">
-          <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Bundles</p>
-          <p className="text-sm text-gray-400">Quickly swap between curated packs, your own mix, or AI-recommended combos.</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Bundles</p>
+          <p className="text-sm text-gray-600">Quickly swap between curated packs, your own mix, or AI-recommended combos.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {BUNDLE_TABS.map(tab => (
@@ -1956,7 +2247,7 @@ const App: React.FC = () => {
               key={tab.id}
               type="button"
               onClick={() => setActiveBundleTab(tab.id)}
-              className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${activeBundleTab === tab.id ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
+              className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${activeBundleTab === tab.id ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500' : 'border-gray-200 bg-gray-100 text-gray-600 hover:border-indigo-600 hover:text-gray-900'
                 }`}
             >
               {tab.label}
@@ -1981,15 +2272,15 @@ const App: React.FC = () => {
         {activeBundleTab === 'recommended' && (
           <div className="space-y-4">
             {availableProductIds.length === 0 ? (
-              <p className="text-xs text-amber-200">Upload at least one product photo to view recommendations.</p>
+              <p className="text-xs text-gray-500">Upload at least one product photo to view recommendations.</p>
             ) : (
               <>
                 <div className="flex flex-col gap-2">
-                  <label className="text-xs uppercase tracking-[0.3em] text-gray-400">Anchor product</label>
+                  <label className="text-xs uppercase tracking-[0.3em] text-gray-600">Anchor product</label>
                   <select
                     value={recommendedBaseProduct}
                     onChange={event => setRecommendedBaseProduct(event.target.value as ProductId)}
-                    className="rounded-lg border border-white/15 bg-gray-900/60 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                    className="rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-600 focus:outline-none"
                   >
                     {availableProductIds.map(productId => (
                       <option key={productId} value={productId}>
@@ -2009,15 +2300,15 @@ const App: React.FC = () => {
           </div>
         )}
         {lastBundleSelection && lastBundleSelection.some(id => availableProductIdSet.has(id)) && (
-          <div className="rounded-2xl border border-white/10 bg-gray-900/40 p-3 space-y-2">
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Last bundle sent</p>
+          <div className="rounded-2xl border border-gray-200 bg-gray-100 p-3 space-y-2">
+            <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Last bundle sent</p>
             <div className="flex flex-wrap gap-2 text-xs">
               {lastBundleSelection
                 .filter(productId => availableProductIdSet.has(productId))
                 .map(productId => (
                   <span
                     key={`${productId}-last`}
-                    className="rounded-full border border-white/20 px-3 py-1 text-gray-100"
+                    className="rounded-full border border-gray-200 px-3 py-1 text-gray-900"
                   >
                     {productMediaLibrary[productId]?.label || PRODUCT_MEDIA_LIBRARY[productId]?.label || productId}
                   </span>
@@ -2261,24 +2552,24 @@ const App: React.FC = () => {
   }, [applyOptionsUpdate]);
 
   const renderFormulationStoryPanel = (context: 'product' | 'ugc') => (
-    <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
+    <div className="rounded-2xl border border-gray-200 bg-gray-100 p-4 space-y-3">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Formulation story</p>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Formulation story</p>
+          <p className="text-xs text-gray-600">
             {context === 'product'
               ? 'Highlight the doctor or researcher behind the formula to build trust.'
               : 'Let your UGC creator double as the doctor/scientist formulating the blend.'}
           </p>
         </div>
-        <label className="flex items-center gap-2 text-xs text-gray-400">
+        <label className="flex items-center gap-2 text-xs text-gray-600">
           <span>{formulationExpertEnabled ? 'Active' : 'Off'}</span>
           <button
             type="button"
             onClick={() => setFormulationExpertEnabled(prev => !prev)}
-            className={`relative h-5 w-10 rounded-full transition ${formulationExpertEnabled ? 'bg-indigo-500' : 'bg-gray-700'}`}
+            className={`relative h-5 w-10 rounded-full transition ${formulationExpertEnabled ? 'bg-indigo-600 text-white' : 'bg-gray-50'}`}
           >
-            <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${formulationExpertEnabled ? 'translate-x-5' : ''}`} />
+            <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white border border-gray-200 transition ${formulationExpertEnabled ? 'translate-x-5' : ''}`} />
           </button>
         </label>
       </div>
@@ -2291,8 +2582,8 @@ const App: React.FC = () => {
                 type="button"
                 onClick={() => handleFormulationPresetSelect(preset.value)}
                 className={`rounded-full border px-3 py-1 text-xs transition ${formulationExpertPreset === preset.value
-                  ? 'border-amber-300 bg-amber-500/10 text-white'
-                  : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500'
+                  : 'border-gray-200 bg-gray-100 text-gray-600 hover:border-indigo-600 hover:text-gray-900'
                   }`}
               >
                 {preset.label}
@@ -2306,8 +2597,8 @@ const App: React.FC = () => {
                 type="button"
                 onClick={() => handleFormulationProfessionSelect(option.value)}
                 className={`rounded-full border px-3 py-1 text-xs transition ${formulationExpertProfession === option.value
-                  ? 'border-amber-300 bg-amber-500/10 text-white'
-                  : 'border-white/15 text-gray-300 hover:border-indigo-400 hover:text-white'
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500'
+                  : 'border-gray-200 bg-gray-100 text-gray-600 hover:border-indigo-600 hover:text-gray-900'
                   }`}
               >
                 {option.label}
@@ -2322,7 +2613,7 @@ const App: React.FC = () => {
                 value={formulationExpertName}
                 onChange={event => setFormulationExpertName(event.target.value)}
                 placeholder="e.g., Dr. Sofia Reyes"
-                className="rounded-md border border-white/10 bg-black/20 px-2 py-1 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                className="rounded-2xl border border-gray-200 bg-white px-2 py-1 text-sm text-gray-900 focus:border-indigo-600 focus:outline-none"
               />
             </div>
             <div className="flex flex-col gap-1">
@@ -2332,7 +2623,7 @@ const App: React.FC = () => {
                 value={formulationExpertRole}
                 onChange={event => setFormulationExpertRole(event.target.value)}
                 placeholder="e.g., pulmonologist & lead formulator"
-                className="rounded-md border border-white/10 bg-black/20 px-2 py-1 text-sm text-white focus:border-indigo-400 focus:outline-none"
+                className="rounded-2xl border border-gray-200 bg-white px-2 py-1 text-sm text-gray-900 focus:border-indigo-600 focus:outline-none"
               />
             </div>
           </div>
@@ -2342,7 +2633,7 @@ const App: React.FC = () => {
             selectedValue={formulationLabStyle}
             onChange={value => setFormulationLabStyle(value)}
           />
-          <p className="text-[11px] text-gray-400">We’ll mention their research, lab setup, and why the formula feels trustworthy. Ensure this expert looks like a real human, photographed with natural imperfections.</p>
+          <p className="text-[11px] text-gray-600">We’ll mention their research, lab setup, and why the formula feels trustworthy. Ensure this expert looks like a real human, photographed with natural imperfections.</p>
         </div>
       )}
     </div>
@@ -2369,7 +2660,9 @@ const App: React.FC = () => {
   );
 
   const handleCustomClothesUpload = useCallback(
-    (file: File) => {
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
       const previewUrl = URL.createObjectURL(file);
       persistUgcRealSettings(prev => {
         if (prev.clothingPreview && prev.clothingPreview !== previewUrl) {
@@ -2500,10 +2793,10 @@ const App: React.FC = () => {
     setFourKVariant(null);
     setTwoKVariant(null);
     try {
+      const twoK = await scaleImageToLongEdge(sourceUrl, 2048);
+      setTwoKVariant(twoK);
       const fourK = await scaleImageToLongEdge(sourceUrl, 3840);
       setFourKVariant(fourK);
-      const twoK = await scaleImageToLongEdge(fourK.url, 2048);
-      setTwoKVariant(twoK);
     } catch (error) {
       console.error('Local upscale failed.', error);
       setHiResError(HIGH_RES_UNAVAILABLE_MESSAGE);
@@ -2570,6 +2863,10 @@ const App: React.FC = () => {
     if (isTalentLinkedAcrossScenes) {
       setIsTalentLinkedAcrossScenes(false);
       setLinkedTalentProfile(null);
+      setPersonIdentityPackage(prev => ({
+        ...prev,
+        identityLock: false,
+      }));
       return;
     }
     if (isProductPlacement || options.ageGroup === 'no person') {
@@ -3199,7 +3496,7 @@ const App: React.FC = () => {
 
     applyOptionsUpdate(() => newOptions);
     setSelectedCategories(updatedSelectedCategories);
-    if (PERSON_FIELD_KEYS.includes(category)) {
+    if (isPersonFieldKey(category)) {
       const updatedDetails = pickPersonDetails(newOptions);
       setPersonIdentityPackage(prev => {
         const updatedPackage = clonePersonIdentityPackage({
@@ -3250,7 +3547,7 @@ const App: React.FC = () => {
       requiredCategories = ['ageGroup'];
     }
 
-    if (PERSON_FIELD_KEYS.includes(category) && activeTalentPreset !== 'custom') {
+    if (isPersonFieldKey(category) && activeTalentPreset !== 'custom') {
       setActiveTalentPreset('custom');
     }
   };
@@ -3526,7 +3823,7 @@ const App: React.FC = () => {
       ? `Use the uploaded model reference as the exact identity.
 Do not change or alter the person's face, age, hair, skin tone, gender, or any physical attributes.
 Preserve identity exactly. Do not stylize, enhance, beautify, or modify the appearance in any way.`
-      : identityPackage.personDetails
+      : identityPackage.identityLock && identityPackage.personDetails
         ? `Use the following identity for the person in this scene.
 This identity must remain exactly consistent across all scenes.
 Do not alter or randomize the face, age, facial structure, or appearance.
@@ -4092,35 +4389,48 @@ If the model attempts to create a scene or environment, override it and force a 
     [contentStyleValue, isSimpleMode, modelReferenceFile]
   );
 
-  const publishFreeGallery = useCallback(
-    (imageUrl: string, plan?: string, compositionMode?: string) => {
-      if (typeof window === 'undefined') return;
-      try {
-        const key = LOCAL_GALLERY_CACHE_KEY;
-        const stored = window.localStorage.getItem(key);
-        const parsed = stored ? JSON.parse(stored) : [];
-        const existing = Array.isArray(parsed) ? parsed : [];
-        const generateId = () => {
-          if (window.crypto?.randomUUID) {
-            return window.crypto.randomUUID();
-          }
-          return `local-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
-        };
-        const entry = {
-          id: generateId(),
-          imageUrl,
-          plan: plan ? plan.toLowerCase() : 'free',
-          compositionMode,
-          createdAt: Date.now(),
-        };
-        const next = [entry, ...existing].slice(0, 20);
-        window.localStorage.setItem(key, JSON.stringify(next));
-      } catch (err) {
-        console.warn('Failed to publish to gallery', err);
-      }
-    },
-    []
-  );
+  const publishFreeGallery = useCallback((entry: {
+    imageUrl: string;
+    userId: string;
+    plan?: string;
+    compositionMode?: string;
+    createdAt?: number;
+  }) => {
+    if (typeof window === 'undefined') return;
+    const imageUrl = String(entry.imageUrl || '').trim();
+    const userId = String(entry.userId || '').trim().toLowerCase();
+    if (!imageUrl || !userId) return;
+    if (imageUrl.toLowerCase().startsWith('data:')) return;
+
+    try {
+      const key = LOCAL_GALLERY_CACHE_KEY;
+      const stored = window.localStorage.getItem(key);
+      const parsed = stored ? JSON.parse(stored) : [];
+      const existing = Array.isArray(parsed) ? parsed : [];
+      const generateId = () => {
+        if (window.crypto?.randomUUID) {
+          return window.crypto.randomUUID();
+        }
+        return `local-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
+      };
+
+      const nextEntry = {
+        id: generateId(),
+        imageUrl,
+        userId,
+        plan: entry.plan ? String(entry.plan).toLowerCase() : 'free',
+        compositionMode: entry.compositionMode,
+        createdAt: typeof entry.createdAt === 'number' ? entry.createdAt : Date.now(),
+      };
+
+      const next = [nextEntry, ...existing]
+        .filter(item => item && typeof item.imageUrl === 'string' && typeof item.userId === 'string')
+        .slice(0, 120);
+      window.localStorage.setItem(key, JSON.stringify(next));
+    } catch (err) {
+      console.warn('Failed to publish to local gallery cache', err);
+    }
+  }, []);
 
   const getImageDimensions = useCallback((url: string): Promise<{ width: number; height: number }> => {
     return new Promise((resolve, reject) => {
@@ -4138,11 +4448,13 @@ If the model attempts to create a scene or environment, override it and force a 
   const reportGalleryEntry = useCallback(
     async (url: string) => {
       if (!url) return;
-      const userId = userEmail || 'guest';
+      const safeEmail = String(userEmail || '').trim();
+      if (!safeEmail) return;
+      const userId = safeEmail.toLowerCase();
       const plan = planTier;
       try {
         const { width, height } = await getImageDimensions(url);
-        await fetch('/api/galleryHandler?action=add', {
+        const response = await fetch('/api/galleryHandler?action=add', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -4157,11 +4469,29 @@ If the model attempts to create a scene or environment, override it and force a 
             },
           }),
         });
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          throw new Error(data?.error || `Gallery add failed (${response.status})`);
+        }
+        const payload = await response.json().catch(() => ({} as any));
+        const storedImageUrl = typeof payload?.imageUrl === 'string' ? payload.imageUrl : null;
+        publishFreeGallery({
+          imageUrl: storedImageUrl || url,
+          userId,
+          plan,
+          compositionMode,
+        });
       } catch (error) {
         console.warn('Failed to report gallery entry', error);
+        publishFreeGallery({
+          imageUrl: url,
+          userId,
+          plan,
+          compositionMode,
+        });
       }
     },
-    [userEmail, planTier, modelReferenceFile, productAssets.length, getImageDimensions]
+    [userEmail, planTier, modelReferenceFile, productAssets.length, getImageDimensions, publishFreeGallery, compositionMode]
   );
 
   const determineGalleryPlan = useCallback(() => {
@@ -4183,6 +4513,14 @@ If the model attempts to create a scene or environment, override it and force a 
     [availableProductIds, productAssets]
   );
 
+  const computePromptHash = async (text: string) => {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(text);
+    const hashBuffer = await (globalThis.crypto?.subtle ?? (window as any).crypto.subtle).digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+  };
+
   const handleGenerateClick = useCallback(
     async (bundleProducts?: ProductId[], overrideActiveList?: ActiveProduct[], runMode: 'generate' | 'validate' = 'generate') => {
       bundleSelectionRef.current = bundleProducts ?? null;
@@ -4190,8 +4528,9 @@ If the model attempts to create a scene or environment, override it and force a 
         setImageError(`You reached the ${currentPlan.label} limit (${planCreditLimit} credits). Upgrade your plan to keep generating scenes.`);
         return;
       }
-      const generationProducts = overrideActiveList?.length ? overrideActiveList : activeProducts;
-      if (!generationProducts.length) {
+      const generationProductsRaw = overrideActiveList?.length ? overrideActiveList : activeProducts;
+      const generationProducts = hideProductMode ? [] : generationProductsRaw;
+      if (!generationProducts.length && !hideProductMode) {
         setImageError("Please upload a product image first.");
         return;
       }
@@ -4213,41 +4552,182 @@ If the model attempts to create a scene or environment, override it and force a 
 
       try {
         // Build PromptOptions from current state
+        const shouldReuseIdentityKey =
+          !isProductPlacement &&
+          !hasModelReference &&
+          lifestyleStep3Values?.sameCreatorAcrossScenes === true &&
+          personIncluded === true &&
+          Boolean(identityContinuityRef.current?.identityKey);
+
+        const allowedProductCreationModes = new Set(['studio', 'aesthetic', 'bg-replace', 'ecom-blank']);
+        const safeProductCreationMode =
+          options.creationMode && allowedProductCreationModes.has(String(options.creationMode))
+            ? options.creationMode
+            : 'studio';
+
         const basePromptOptions: any = {
           ...options,
+          modelReferenceLockAccessories,
           contentStyle: isProductPlacement ? 'product' : 'ugc',
-          creationMode: options.creationMode || 'lifestyle',
-          personIncluded,
-          productAssets: generationProducts.map(p => ({
-            id: p.id,
-            base64: p.base64,
-            mimeType: p.mimeType,
-          })),
+          creationIntent: isProductPlacement ? 'product' : options.creationIntent,
+          sceneIntent: isProductPlacement ? 'ecommerce' : options.sceneIntent,
+          creationMode: isProductPlacement
+            ? safeProductCreationMode
+            : (options.creationMode || 'lifestyle'),
+          ...(isProductPlacement
+            ? {
+              cameraType:
+                options.cameraType &&
+                  !String(options.cameraType).toLowerCase().includes('smartphone') &&
+                  !String(options.cameraType).toLowerCase().includes('phone')
+                  ? options.cameraType
+                  : 'DSLR / mirrorless camera',
+              compositionMode: undefined,
+              compositionModeStructural: undefined,
+              creationModeStructural: undefined,
+            }
+            : {}),
+	          personIncluded,
+          productAssets: (hideProductMode ? [] : generationProducts).map(p => {
+            const sourceAsset = productAssets.find(asset => asset.id === p.id);
+            return {
+              id: p.id,
+              label: sourceAsset?.label ?? 'Product',
+              base64: p.base64,
+              mimeType: p.mimeType,
+              heightValue: sourceAsset?.heightValue ?? null,
+              heightUnit: sourceAsset?.heightUnit ?? 'cm',
+            };
+          }),
+          ...(shouldReuseIdentityKey
+            ? {
+              identityKey: identityContinuityRef.current?.identityKey,
+              identitySeed: identityContinuityRef.current?.identitySeed,
+              identityMode: 'locked',
+            }
+            : {}),
         };
 
         // If LifestyleStep3 values exist, map them to PromptOptions
         let promptOptions = basePromptOptions;
-        if (lifestyleStep3Values && !isProductPlacement) {
+        let finalPrompt: string;
+
+        // PHASE 2: PRODUCT MODE - Use ProductStudioStore directly, bypass legacy mapper
+        if (isProductPlacement) {
+          // Read directly from ProductStudioStore - SINGLE SOURCE OF TRUTH
+          const productStateRaw = useProductStudioStore.getState();
+          const productState = { ...productStateRaw, aspectRatio: PRODUCT_DEFAULT_ASPECT_RATIO as any };
+          console.log('[PRODUCT STUDIO STATE]', productState);
+
+          // Generate jobs using Product-only builders
+          const jobs = generateProductJobs(productState);
+
+          if (jobs.length === 0) {
+            setImageError('No products to generate. Please upload product images first.');
+            setIsImageLoading(false);
+            return;
+          }
+
+          // Use first job's prompt (single product or bundle)
+          finalPrompt = jobs[0].prompt;
+
+          // PHASE 7: HARDBLOCK VALIDATION - Check forbidden terms
+          try {
+            validatePrompt(finalPrompt, { allowHands: productState.interaction !== 'none' || productState.handsHolding === true });
+          } catch (validationError) {
+            console.error('[PROMPT BLOCKED]', validationError);
+            setImageError(`Generation blocked: ${(validationError as Error).message}`);
+            setIsImageLoading(false);
+            return;
+          }
+
+          console.log('[FINAL PRODUCT PROMPT]', finalPrompt);
+
+          // Product mode uses minimal prompt options
+          promptOptions = {
+            ...basePromptOptions,
+            contentStyle: 'product',
+            creationIntent: 'product',
+            sceneIntent: 'ecommerce',
+            personIncluded: false,
+            aspectRatio: PRODUCT_DEFAULT_ASPECT_RATIO,
+          };
+        } else if (lifestyleStep3Values) {
+          // LIFESTYLE/UGC MODE - Use legacy mapper (unchanged)
           promptOptions = mapLifestyleToPromptOptions(lifestyleStep3Values, basePromptOptions, hasModelReference);
+          finalPrompt = promptEngine.build(promptOptions);
+        } else {
+          finalPrompt = promptEngine.build(promptOptions);
+        }
+
+        const keepSamePersonAcrossRenders =
+          !isProductPlacement &&
+          !hasModelReference &&
+          lifestyleStep3Values?.sameCreatorAcrossScenes === true &&
+          personIncluded === true;
+
+        // If the user wants the same person, force reuse of the previously-minted identity
+        // (prevents accidental reminting that makes the person change when the toggle is ON).
+        if (keepSamePersonAcrossRenders && identityContinuityRef.current?.identityKey) {
+          promptOptions = {
+            ...promptOptions,
+            identityMode: 'locked',
+            identityVariationToken: undefined,
+            identityKey: identityContinuityRef.current.identityKey,
+            identitySeed: identityContinuityRef.current.identitySeed ?? promptOptions.identitySeed,
+          };
+        }
+
+        // Product mode safety: force the model to keep the referenced product visible.
+        if (isProductPlacement) {
+          finalPrompt = [
+            finalPrompt,
+            'CRITICAL: The product shown in the reference image(s) MUST appear in the final image, clearly visible and not cropped out.',
+            'Do NOT generate an empty scene/background; never omit the product.',
+          ].join(' ');
+        } else if (isProPhotographer) {
+          const proBits = [options.proLens, options.proLightingRig, options.proPostTreatment].filter(Boolean);
+          if (proBits.length) {
+            finalPrompt = `${finalPrompt} PRO PHOTOGRAPHER OVERRIDES: ${proBits.join(' ')}.`;
+          }
+        }
+
+        // Persist continuity identity only when explicitly requested.
+        // Otherwise "locked" mode would mint a new identityKey every click → different person.
+        if (keepSamePersonAcrossRenders && promptOptions?.identityKey) {
+          identityContinuityRef.current = {
+            identityKey: promptOptions.identityKey,
+            identitySeed: promptOptions.identitySeed,
+          };
         }
 
         // MANDATORY LOGS - Prove injection works
         console.log('[SCENESTATE]', lifestyleStep3Values);
         console.log('[PROMPT OPTIONS FROM MAP]', promptOptions);
 
-        // Use PromptEngine to build final prompt
-        const finalPrompt = promptEngine.build(promptOptions);
+        const promptHash = await computePromptHash(finalPrompt);
+        console.log('[UGC DEBUG] promptHash:', promptHash);
+        console.log('[UGC DEBUG] promptPreview:', finalPrompt.slice(0, 300));
 
         // MANDATORY LOG - Final prompt string MUST show injected values
         console.log('[FINAL PROMPT STRING]', finalPrompt);
 
-        const aspectRatio = options?.aspectRatio || '1:1';
+	      const aspectRatio =
+	        isProductPlacement
+	          ? PRODUCT_DEFAULT_ASPECT_RATIO
+	          : (promptOptions.aspectRatio || options.aspectRatio || '1:1');
+	      lastAspectRatioRef.current = aspectRatio;
 
         const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
         if (!resolvedApiKey) {
           return;
         }
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string, apiVersion: 'v1beta' });
+        const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: 'v1beta' });
+        const resolvedUgcStyle = (promptOptions.ugcStyle ?? 'optimized').toLowerCase();
+        const naturalMode = resolvedUgcStyle === 'natural';
+        const rawMode = !!promptOptions.ugcRealModeActive;
+        const shouldIncludeHumanImage = personIncluded && !(naturalMode || rawMode);
+        const shouldSendProductImage = generationProducts.length > 0 && !hideProductMode;
         const identityInlinePart = personIdentityPackage.modelReferenceBase64
           ? {
             inlineData: {
@@ -4258,38 +4738,79 @@ If the model attempts to create a scene or environment, override it and force a 
           }
           : null;
         const requestParts: any[] = [];
-        if (identityInlinePart) {
-          requestParts.push(identityInlinePart);
-        } else if (modelReferenceFile) {
-          const { base64: modelBase64, mimeType: modelMimeType } = await fileToBase64(modelReferenceFile);
-          requestParts.push({
-            inlineData: { data: modelBase64, mimeType: modelMimeType },
-            reference: true,
-          });
-        }
-        generationProducts.forEach(product => {
-          requestParts.push({
-            inlineData: { data: product.base64, mimeType: product.mimeType },
-            reference: true,
-          });
-        });
         requestParts.push({ text: finalPrompt });
+        if (shouldIncludeHumanImage) {
+          if (identityInlinePart) {
+            requestParts.push(identityInlinePart);
+          } else if (modelReferenceFile) {
+            const { base64: modelBase64, mimeType: modelMimeType } = await fileToBase64(modelReferenceFile);
+            requestParts.push({
+              inlineData: { data: modelBase64, mimeType: modelMimeType },
+              reference: true,
+            });
+          }
+        }
+        if (shouldSendProductImage) {
+          for (const product of generationProducts) {
+            // Higher-fidelity reference helps avoid warped labels/typography on the product.
+            const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
+              maxLongEdge: 2048,
+              maxBase64Length: 4_000_000,
+              quality: 0.96,
+            });
+            requestParts.push({
+              inlineData: { data: resized.base64, mimeType: resized.mimeType },
+              reference: true,
+            });
+          }
+        }
+        const payload = { parts: requestParts };
+        const payloadLog = {
+          isNaturalUgc: naturalMode || rawMode,
+          productImageSent: shouldSendProductImage,
+          humanImageSent: shouldIncludeHumanImage && (Boolean(identityInlinePart) || Boolean(modelReferenceFile)),
+          partsCount: requestParts.length,
+        };
+        console.log('[UGC PAYLOAD]', payloadLog);
 
-        const response = await ai.models.generateContent({
-          model: GEMINI_IMAGE_MODEL,
-          contents: { parts: requestParts },
-          config: {
-            responseModalities: [Modality.IMAGE],
-            safetySettings: [],
-            generationConfig: {
-              responseMimeType: 'image/png',
-              aspectRatio,
-              preserveReferenceImage: true,
-              temperature: 0.25,
-              topP: 0.9,
-            },
-          },
-        });
+        const seed = crypto.randomUUID();
+        console.log('[UGC DEBUG] seed:', seed);
+        const generateWithRetry = async () => {
+          const maxAttempts = 2;
+          for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+		              return await ai.models.generateContent({
+		                model: GEMINI_IMAGE_MODEL,
+		                contents: payload,
+		                config: {
+		                  responseModalities: [Modality.IMAGE],
+		                  safetySettings: [],
+	                  generationConfig: {
+	                    responseMimeType: 'image/png',
+	                    aspectRatio,
+	                    // Product Studio forces a fixed output ratio; reference preservation can override ratio.
+	                    preserveReferenceImage: isProductPlacement || shouldSendProductImage,
+	                    temperature: 0.25,
+	                    topP: 0.9,
+	                    seed,
+	                  },
+	                } as any,
+	              });
+            } catch (error) {
+              const message = String((error as any)?.message ?? error);
+              const shouldRetry =
+                attempt < maxAttempts &&
+                (message.includes('Failed to fetch') ||
+                  message.includes('ERR_CONNECTION_CLOSED') ||
+                  message.includes('NetworkError'));
+              if (!shouldRetry) throw error;
+              await sleep(450 * attempt);
+            }
+          }
+          throw new Error('Image generation failed after retries.');
+        };
+
+        const response = await generateWithRetry();
 
         const responseParts = response?.candidates?.[0]?.content?.parts ?? [];
         const inlineImage = responseParts.find(part => (part as any)?.inlineData?.data) as { inlineData?: { data?: string } } | undefined;
@@ -4300,39 +4821,30 @@ If the model attempts to create a scene or environment, override it and force a 
 
         const finalUrl = `data:image/png;base64,${encodedImage}`;
         setGeneratedImageUrl(finalUrl);
+        setHasFirstGenerationComplete(true);  // Enable Keep Same Person toggle
+        try {
+          const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
+          void addLocalGalleryEntry({
+            userId: galleryUserId,
+            imageUrl: finalUrl,
+            createdAt: Date.now(),
+            plan: planTier,
+            aspectRatio,
+          });
+          void pruneLocalGallery(galleryUserId, 30, 120);
+        } catch (e) {
+          console.warn('Local gallery save failed', e);
+        }
         void reportGalleryEntry(finalUrl);
-        const galleryPlan = determineGalleryPlan();
-        if (galleryPlan) {
-          const galleryPayload: Record<string, string> = { url: finalUrl, plan: galleryPlan };
-          if (hasModelReference) {
-            galleryPayload.compositionMode = compositionMode;
-          }
-          console.log('Sending gallery POST', galleryPayload);
-          try {
-            const response = await fetch('/api/galleryHandler?action=add', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(galleryPayload),
-            });
-            console.log('Gallery add status:', response.status);
-            if (!response.ok) {
-              console.log('Gallery add response:', await response.text());
-            }
-            if (!response.ok) {
-              const errorText = await response.text().catch(() => 'unknown error');
-              console.warn('Failed to save community gallery image', errorText);
-            }
-          } catch (err) {
-            console.warn('Failed to save community gallery image', err);
-          }
-        }
         runHiResPipeline(finalUrl);
-        const newCount = creditUsage + creditCost;
-        setCreditUsage(newCount);
-        if (typeof window !== 'undefined') {
-          window.localStorage.setItem(IMAGE_COUNT_KEY, String(newCount));
+        if (!isTrialBypassActive) {
+          const newCount = creditUsage + creditCost;
+          setCreditUsage(newCount);
+          if (typeof window !== 'undefined') {
+            window.localStorage.setItem(IMAGE_COUNT_KEY, String(newCount));
+          }
         }
-        publishFreeGallery(finalUrl, galleryPlan, compositionMode);
+        // Avoid localStorage gallery (data URLs exceed quota); dashboard uses Firestore gallery history.
       } catch (err) {
         console.error(err);
         let errorMessage = '';
@@ -4393,6 +4905,221 @@ If the model attempts to create a scene or environment, override it and force a 
     ]
   );
 
+	  const handleGenerateEcommerceClick = useCallback(async () => {
+	    bundleSelectionRef.current = null;
+	    if (isTrialLocked) {
+	      setImageError(`You reached the ${currentPlan.label} limit (${planCreditLimit} credits). Upgrade your plan to keep generating scenes.`);
+	      return;
+	    }
+
+	    const generationProducts = activeProducts;
+	    if (!generationProducts.length) {
+	      setImageError("Please upload a product image first.");
+	      return;
+	    }
+	    if (!ecommerceSelectedSlots.length) {
+	      setImageError('Select at least one Ecommerce slot before generating.');
+	      return;
+	    }
+
+	    const creditCost = getImageCreditCost(options);
+	    const projectedCost = creditCost * ecommerceSelectedSlots.length;
+	    if (!isTrialBypassActive && projectedCost > remainingCredits) {
+	      setImageError('Not enough credits for these slots. Reduce slots or upgrade your plan.');
+      setShowPlanModal(true);
+      return;
+    }
+
+    resetOutputs();
+    setGeneratedCopy(null);
+    setCopyError(null);
+    setIsImageLoading(true);
+	    setImageError(null);
+
+	    try {
+	      // Ecommerce overlays are a Product Studio feature; build prompts from the ProductStudioStore
+	      // (not from legacy PromptEngine mapping), so all selected Product Studio options inject.
+	      const baseProductStateRaw = useProductStudioStore.getState();
+	      console.log('[PRODUCT STUDIO STATE][ECOM]', baseProductStateRaw);
+
+	      // Product Studio: force fixed output ratio (user request).
+	      const aspectRatio = PRODUCT_DEFAULT_ASPECT_RATIO;
+	      const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
+	      if (!resolvedApiKey) {
+	        return;
+	      }
+
+      const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: 'v1beta' });
+
+	      let lastUrl: string | null = null;
+	      for (const slotKey of ecommerceSelectedSlots) {
+	        const requiredBlankDir = ECOMMERCE_SLOT_REQUIRED_BLANK_SPACE[slotKey] ?? 'right';
+	        const reserveBlankSpace = ecommerceGenerationSettings.reserveBlankSpace;
+
+	        const slotProductState: any = {
+	          ...baseProductStateRaw,
+	          // Enforce studio-safe ecommerce builder; overlay rendering is handled in-app.
+	          mode: 'studio',
+	          sceneType: 'studio-branding',
+	          aspectRatio,
+	          // Slot-based blank-space control
+	          blankSpaceEnabled: reserveBlankSpace && requiredBlankDir !== 'center',
+	          blankSpaceSide:
+	            requiredBlankDir === 'left' || requiredBlankDir === 'right'
+	              ? requiredBlankDir
+	              : (baseProductStateRaw as any).blankSpaceSide ?? 'right',
+	          // Center "blank space" is represented via internal breathing room, not side-placement.
+	          negativeSpace: reserveBlankSpace && requiredBlankDir === 'center' ? 'intentional' : (baseProductStateRaw as any).negativeSpace,
+	          spacing: reserveBlankSpace && requiredBlankDir === 'center' ? 'airy' : (baseProductStateRaw as any).spacing,
+	        };
+
+	        const jobs = generateProductJobs(slotProductState);
+	        if (!jobs.length) {
+	          throw new Error(`No Product Studio jobs generated for slot ${slotKey}.`);
+	        }
+	        const finalPrompt = jobs[0].prompt;
+
+	        try {
+	          validatePrompt(finalPrompt, {
+	            allowHands: slotProductState.interaction !== 'none' || slotProductState.handsHolding === true,
+	          });
+	        } catch (validationError) {
+	          console.error('[PROMPT BLOCKED][ECOM]', validationError);
+	          throw validationError;
+	        }
+
+	        console.log('[ECOM SLOT]', slotKey, {
+	          blankSpace: slotProductState.blankSpaceEnabled ? slotProductState.blankSpaceSide : 'off',
+	          promptPreview: finalPrompt.slice(0, 240),
+	        });
+
+	        const seed = crypto.randomUUID();
+	        const productParts: any[] = [];
+	        for (const product of generationProducts) {
+          const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
+            maxLongEdge: 2048,
+            maxBase64Length: 4_000_000,
+            quality: 0.96,
+          });
+          productParts.push({ inlineData: { data: resized.base64, mimeType: resized.mimeType }, reference: true });
+        }
+
+        const generateWithRetry = async () => {
+          const maxAttempts = 2;
+          for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+	              return await ai.models.generateContent({
+	                model: GEMINI_IMAGE_MODEL,
+	                contents: { parts: [{ text: finalPrompt }, ...productParts] },
+	                config: {
+	                  responseModalities: [Modality.IMAGE],
+	                  safetySettings: [],
+		                  generationConfig: {
+		                    responseMimeType: 'image/png',
+		                    aspectRatio,
+		                    // Product Studio forces a fixed output ratio; reference preservation can override ratio.
+			                    preserveReferenceImage: true,
+		                    temperature: 0.25,
+		                    topP: 0.9,
+		                    seed,
+		                  },
+	                } as any,
+	              });
+	            } catch (error) {
+              const message = String((error as any)?.message ?? error);
+              const shouldRetry =
+                attempt < maxAttempts &&
+                (message.includes('Failed to fetch') ||
+                  message.includes('ERR_CONNECTION_CLOSED') ||
+                  message.includes('NetworkError'));
+              if (!shouldRetry) throw error;
+              await sleep(450 * attempt);
+            }
+          }
+          throw new Error('Image generation failed after retries.');
+        };
+
+        const response = await generateWithRetry();
+
+        const responseParts = response?.candidates?.[0]?.content?.parts ?? [];
+        const inlineImage = responseParts.find(part => (part as any)?.inlineData?.data) as
+          | { inlineData?: { data?: string } }
+          | undefined;
+        const encodedImage = inlineImage?.inlineData?.data;
+        if (!encodedImage) {
+          throw new Error(`Image generation failed for slot ${slotKey}.`);
+        }
+
+        const finalUrl = `data:image/png;base64,${encodedImage}`;
+        lastUrl = finalUrl;
+        setEcommerceSlotBaseImages(prev => ({ ...prev, [slotKey]: finalUrl }));
+        setGeneratedImageUrl(finalUrl);
+        try {
+          const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
+          void addLocalGalleryEntry({
+            userId: galleryUserId,
+            imageUrl: finalUrl,
+            createdAt: Date.now(),
+            plan: planTier,
+            aspectRatio,
+          });
+          void pruneLocalGallery(galleryUserId, 30, 120);
+        } catch (e) {
+          console.warn('Local gallery save failed', e);
+        }
+        void reportGalleryEntry(finalUrl);
+      }
+
+      if (lastUrl) {
+        runHiResPipeline(lastUrl);
+      }
+
+      if (!isTrialBypassActive) {
+        setCreditUsage(prev => {
+          const next = prev + projectedCost;
+          if (typeof window !== 'undefined') {
+            window.localStorage.setItem(IMAGE_COUNT_KEY, String(next));
+          }
+          return next;
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      let errorMessage = '';
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      } else {
+        try {
+          errorMessage = JSON.stringify(err);
+        } catch {
+          errorMessage = String(err);
+        }
+      }
+      setImageError(errorMessage);
+    } finally {
+      setIsImageLoading(false);
+      bundleSelectionRef.current = null;
+    }
+	  }, [
+	    activeProducts,
+	    ecommerceGenerationSettings.reserveBlankSpace,
+	    ecommerceSelectedSlots,
+	    getActiveApiKeyOrNotify,
+	    getImageCreditCost,
+	    isTrialBypassActive,
+    isTrialLocked,
+    currentPlan.label,
+    planCreditLimit,
+    remainingCredits,
+    resetOutputs,
+    options,
+	    runHiResPipeline,
+	    setShowPlanModal,
+	    reportGalleryEntry,
+	  ]);
+
   const generateMockup = useCallback(
     (bundleProducts: string[]) => {
       const sanitized = bundleProducts.filter((product): product is ProductId =>
@@ -4439,7 +5166,8 @@ If the model attempts to create a scene or environment, override it and force a 
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string, apiVersion: 'v1beta' });
       const base64Image = generatedImageUrl.split(',')[1];
 
-      const aspectRatio = options?.aspectRatio || '1:1';
+      const aspectRatio =
+        isProductPlacement ? PRODUCT_DEFAULT_ASPECT_RATIO : (lastAspectRatioRef.current || options.aspectRatio || '1:1');
       const response = await ai.models.generateContent({
         model: GEMINI_IMAGE_MODEL, // maintain this but enforce insert behavior through the prompt and config above
         contents: {
@@ -4448,32 +5176,46 @@ If the model attempts to create a scene or environment, override it and force a 
             { text: prompt.trim() },
           ],
         },
-        config: {
-          responseModalities: [Modality.IMAGE],
-          safetySettings: [],
-          generationConfig: {
-            responseMimeType: 'image/png',
-            aspectRatio,
-            preserveReferenceImage: true,
-            temperature: 0.25,
-            topP: 0.9,
-          },
-        },
-      });
+	        config: {
+	          responseModalities: [Modality.IMAGE],
+	          safetySettings: [],
+	          generationConfig: {
+	            responseMimeType: 'image/png',
+	            aspectRatio,
+	            // Product Studio forces a fixed output ratio; reference preservation can override ratio.
+	            preserveReferenceImage: isProductPlacement,
+	            temperature: 0.25,
+	            topP: 0.9,
+	          },
+	        } as any,
+	      });
 
       const responseParts = response?.candidates?.[0]?.content?.parts ?? [];
-      for (const part of responseParts) {
-        if ('inlineData' in part && (part as any).inlineData?.data) {
-          const editedUrl = `data:image/png;base64,${(part as any).inlineData.data}`;
-          setGeneratedImageUrl(editedUrl);
-          void reportGalleryEntry(editedUrl);
-          runHiResPipeline(editedUrl);
-          if (editOptions?.clearManual) {
-            setEditPrompt('');
-          }
-          return;
-        }
-      }
+	      for (const part of responseParts) {
+	        if ('inlineData' in part && (part as any).inlineData?.data) {
+	          const editedUrl = `data:image/png;base64,${(part as any).inlineData.data}`;
+	          setGeneratedImageUrl(editedUrl);
+	          try {
+	            const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
+	            void addLocalGalleryEntry({
+	              userId: galleryUserId,
+	              imageUrl: editedUrl,
+	              createdAt: Date.now(),
+	              plan: planTier,
+	              aspectRatio,
+	            });
+	            void pruneLocalGallery(galleryUserId, 30, 120);
+	          } catch (e) {
+	            console.warn('Local gallery save failed', e);
+	          }
+	          void reportGalleryEntry(editedUrl);
+	          runHiResPipeline(editedUrl);
+	          if (editOptions?.clearManual) {
+	            setEditPrompt('');
+	          }
+	          return;
+	        }
+	      }
 
       throw new Error("Image edit failed or returned no images.");
     } catch (err) {
@@ -4568,7 +5310,7 @@ If the model attempts to create a scene or environment, override it and force a 
       }
 
       if (operation.error) {
-        throw new Error(operation.error.message || 'Video generation failed with an unknown error.');
+        throw new Error((operation.error as any)?.message || 'Video generation failed with an unknown error.');
       }
 
       const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
@@ -4622,6 +5364,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
   return (
     <>
+      <div className="fixed inset-0 pointer-events-none z-[999999] bg-grain opacity-[0.035]" />
       <OnboardingOverlay
         visible={shouldShowOnboarding}
         currentStep={onboardingStep}
@@ -4631,36 +5374,36 @@ If the model attempts to create a scene or environment, override it and force a 
       />
 
       {showGoalWizard && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 px-4">
-          <div className="w-full max-w-3xl rounded-3xl border border-white/10 bg-gray-950 p-6 md:p-10 shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-gray-50 dark:bg-black px-4">
+          <div className="w-full max-w-3xl rounded-3xl border border-gray-200 bg-white/10 p-6 md:p-10 shadow-md shadow-md shadow-indigo-500/20 space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.4em] text-indigo-200">Quick start wizard</p>
-                <h3 className="text-2xl md:text-3xl font-semibold text-white mt-2">Let’s set up your scene</h3>
+                <p className="text-xs uppercase tracking-[0.4em] text-indigo-600">Quick start wizard</p>
+                <h3 className="text-2xl md:text-3xl font-semibold text-gray-900 mt-2">Let’s set up your scene</h3>
               </div>
-              <button onClick={handleGoalWizardSkip} className="text-sm text-gray-400 hover:text-white">Skip</button>
+              <button onClick={handleGoalWizardSkip} className="text-sm text-gray-600 hover:text-gray-900">Skip</button>
             </div>
-            <p className="text-sm text-gray-400">Step {goalWizardStep} / 3</p>
+            <p className="text-sm text-gray-600">Step {goalWizardStep} / 3</p>
             {goalWizardStep === 1 && (
               <div className="grid gap-4 md:grid-cols-2">
                 {normalizedGoalWizardGoals.map(option => (
                   <button
                     key={option.value}
                     onClick={() => handleGoalWizardSelect('goal', option.value)}
-                    className={`rounded-2xl border p-4 text-left transition ${goalWizardData.goal === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
+                    className={`rounded-2xl border p-4 text-left transition ${goalWizardData.goal === option.value ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500' : 'border-gray-200 bg-gray-100 text-gray-600'}`}
                   >
                     <div className="flex items-center gap-1 relative group">
                       <span className="text-lg font-semibold">{option.label}</span>
                       {option.tooltip && (
-                        <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
+                        <span className="text-xs text-gray-600 cursor-pointer group-hover:text-gray-900">
                           ⓘ
-                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-white text-gray-900 text-xs p-2 rounded-2xl border border-gray-200 shadow-sm w-44">
                             {option.tooltip}
                           </div>
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-400 mt-2">{cleanDescription(option.description)}</p>
+                    <p className="text-sm text-gray-600 mt-2">{cleanDescription(option.description)}</p>
                   </button>
                 ))}
               </div>
@@ -4671,20 +5414,20 @@ If the model attempts to create a scene or environment, override it and force a 
                   <button
                     key={option.value}
                     onClick={() => handleGoalWizardSelect('vibe', option.value)}
-                    className={`rounded-2xl border p-4 text-left transition ${goalWizardData.vibe === option.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
+                    className={`rounded-2xl border p-4 text-left transition ${goalWizardData.vibe === option.value ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500' : 'border-gray-200 bg-gray-100 text-gray-600'}`}
                   >
                     <div className="flex items-center gap-1 relative group">
                       <span className="text-base font-semibold">{option.label}</span>
                       {option.tooltip && (
-                        <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
+                        <span className="text-xs text-gray-600 cursor-pointer group-hover:text-gray-900">
                           ⓘ
-                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-white text-gray-900 text-xs p-2 rounded-2xl border border-gray-200 shadow-sm w-44">
                             {option.tooltip}
                           </div>
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-400 mt-2">{cleanDescription(option.description)}</p>
+                    <p className="text-sm text-gray-600 mt-2">{cleanDescription(option.description)}</p>
                   </button>
                 ))}
               </div>
@@ -4697,34 +5440,34 @@ If the model attempts to create a scene or environment, override it and force a 
                     <button
                       key={preset.value}
                       onClick={() => handleGoalWizardSelect('preset', preset.value)}
-                      className={`rounded-2xl border p-4 text-left transition ${goalWizardData.preset === preset.value ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
+                      className={`rounded-2xl border p-4 text-left transition ${goalWizardData.preset === preset.value ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500' : 'border-gray-200 bg-gray-100 text-gray-600'}`}
                     >
                       <div className="flex items-center gap-1 relative group">
                         <span className="text-base font-semibold">{preset.label}</span>
                         {preset.tooltip && (
-                          <span className="text-xs text-gray-400 cursor-pointer group-hover:text-white">
+                          <span className="text-xs text-gray-600 cursor-pointer group-hover:text-gray-900">
                             ⓘ
-                            <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-black/90 text-white text-xs p-2 rounded shadow-lg w-44">
+                            <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-white text-gray-900 text-xs p-2 rounded-2xl border border-gray-200 shadow-sm w-44">
                               {preset.tooltip}
                             </div>
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-400 mt-2">{cleanDescription(preset.description)}</p>
+                      <p className="text-sm text-gray-600 mt-2">{cleanDescription(preset.description)}</p>
                     </button>
                   ))}
               </div>
             )}
-            <div className="flex items-center justify-between pt-4 border-t border-white/5">
-              <button onClick={goalWizardStep === 1 ? handleGoalWizardSkip : handleGoalWizardBack} className="text-sm text-gray-400 hover:text-white">
+            <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+              <button onClick={goalWizardStep === 1 ? handleGoalWizardSkip : handleGoalWizardBack} className="text-sm text-gray-600 hover:text-gray-900">
                 {goalWizardStep === 1 ? 'Skip wizard' : 'Back'}
               </button>
               {goalWizardStep < 3 ? (
-                <button onClick={handleGoalWizardNext} className="rounded-full bg-indigo-500 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-400 transition">
+                <button onClick={handleGoalWizardNext} className="rounded-full bg-indigo-600 text-white px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-600 text-white transition">
                   Next
                 </button>
               ) : (
-                <button onClick={handleGoalWizardComplete} className="rounded-full bg-emerald-500 px-6 py-2 text-sm font-semibold text-white hover:bg-emerald-400 transition">
+                <button onClick={handleGoalWizardComplete} className="rounded-full bg-indigo-600 text-white px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-600 text-white transition">
                   Apply &amp; build
                 </button>
               )}
@@ -4734,38 +5477,41 @@ If the model attempts to create a scene or environment, override it and force a 
       )}
 
       {showPlanModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-          <div className="w-full max-w-3xl rounded-3xl border border-white/10 bg-gray-950 p-6 md:p-8 shadow-2xl space-y-6">
-            <div className="flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm px-4">
+          <div className="w-full max-w-5xl rounded-3xl border border-gray-200 bg-white/95 p-8 md:p-10 shadow-xl shadow-indigo-500/20 space-y-8">
+            <div className="flex items-start justify-between gap-6">
               <div>
-                <p className="text-xs uppercase tracking-[0.4em] text-indigo-200">Manage plan</p>
-                <h3 className="text-2xl font-semibold text-white mt-1">Choose what fits your launch</h3>
+                <p className="text-xs uppercase tracking-[0.4em] text-indigo-600">Manage plan</p>
+                <h3 className="text-3xl font-semibold text-gray-900 mt-2 leading-tight">Choose what fits your launch</h3>
               </div>
-              <button onClick={() => { setShowPlanModal(false); setPlanCodeInput(''); setPlanCodeError(null); setPlanNotice(null); }} className="text-sm text-gray-400 hover:text-white">
+              <button onClick={() => { setShowPlanModal(false); setPlanCodeInput(''); setPlanCodeError(null); setPlanNotice(null); }} className="text-sm text-gray-600 hover:text-gray-900">
                 Close
               </button>
             </div>
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid gap-5 md:grid-cols-2">
               {Object.entries(PLAN_CONFIG).map(([tier, config]) => (
                 <button
                   key={tier}
                   onClick={() => handlePlanTierSelect(tier as PlanTier)}
-                  className={`rounded-2xl border p-4 text-left transition ${planTier === tier ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
+                  className={`rounded-2xl border p-6 text-left transition-all duration-300 ${planTier === tier
+                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-500/25'
+                    : 'border-gray-200 bg-white text-gray-900 hover:border-indigo-600 hover:bg-indigo-50/40'
+                    }`}
                 >
-                  <p className="text-lg font-semibold flex items-center justify-between">
+                  <p className="text-xl font-semibold flex items-center justify-between">
                     <span>{config.label}</span>
-                    <span className="text-sm text-indigo-200">{config.priceLabel}</span>
+                    <span className={`text-base font-semibold ${planTier === tier ? 'text-white' : 'text-indigo-600'}`}>{config.priceLabel}</span>
                   </p>
-                  <p className="text-sm text-gray-400 mt-1">{config.description}</p>
-                  <p className="text-xs mt-2">
+                  <p className={`text-sm mt-3 leading-relaxed ${planTier === tier ? 'text-indigo-100' : 'text-gray-600'}`}>{config.description}</p>
+                  <p className={`text-xs mt-4 font-medium ${planTier === tier ? 'text-white/90' : 'text-gray-600'}`}>
                     {planTier === tier ? 'Current plan' : 'Go to checkout'}
                   </p>
                 </button>
               ))}
             </div>
-            <div className="space-y-2 text-left">
-              <p className="text-xs uppercase tracking-[0.3em] text-gray-500">Have an upgrade code?</p>
-              <div className="flex flex-col sm:flex-row gap-2">
+            <div className="space-y-3 text-left pt-2">
+              <p className="text-xs uppercase tracking-[0.35em] text-gray-500">Have an upgrade code?</p>
+              <div className="flex flex-col sm:flex-row gap-3">
                 <input
                   type="text"
                   value={planCodeInput}
@@ -4774,125 +5520,76 @@ If the model attempts to create a scene or environment, override it and force a 
                     if (planCodeError) setPlanCodeError(null);
                   }}
                   placeholder="Enter the code from your receipt"
-                  className="flex-1 rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-white focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                  className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 />
                 <button
                   type="button"
                   onClick={handlePlanCodeSubmit}
-                  className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400 transition"
+                  className="rounded-2xl bg-indigo-600 text-white px-6 py-3 text-sm font-semibold hover:bg-indigo-700 transition"
                 >
                   Apply
                 </button>
               </div>
-              {planCodeError && <p className="text-xs text-red-300">{planCodeError}</p>}
+              {planCodeError && <p className="text-xs text-gray-500">{planCodeError}</p>}
             </div>
           </div>
         </div>
       )}
 
-      <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 lg:p-8">
+      <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-black dark:text-white p-6 sm:p-10 lg:p-16">
         <div className="max-w-7xl mx-auto relative">
-          <header className="text-center mb-8">
-            <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500">
-              Universal AI Mockup Generator
-            </h1>
-            <p className="mt-2 text-lg text-gray-400">
-              Generate photo-realistic UGC-style images for your products in seconds.
-            </p>
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs text-gray-400">
-              <span className="rounded-full border border-white/20 px-3 py-1 text-white/90">
-                Plan: {currentPlan.label} {currentPlan.priceLabel ? `· ${currentPlan.priceLabel}` : ''}
-              </span>
-              <span>
-                {remainingCredits} credits left
-                {planVideoLimit > 0 ? ` · ${Math.max(remainingVideos, 0)} video credits left` : ''}
-                {isTrialBypassActive ? ' · Admin bypass active' : ''}
-              </span>
+          <header className="relative mb-20 flex items-center justify-between">
+            <div className="flex flex-col">
+              <Logo variant="appHeader" />
+            </div>
+
+            <div className="flex items-center gap-8">
               <button
-                onClick={() => {
-                  setPlanNotice(null);
-                  setShowPlanModal(true);
-                }}
-                className="inline-flex items-center justify-center rounded-full border border-white/20 px-4 py-2 text-white/80 hover:border-indigo-400 hover:text-white transition"
+                type="button"
+                onClick={toggleTheme}
+                className="h-10 w-10 rounded-full border border-gray-200 bg-white text-gray-600 hover:text-indigo-600 transition flex items-center justify-center shadow-sm overflow-hidden dark:bg-white/5 dark:border-white/10 dark:text-white/70 dark:hover:text-white dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]"
+                aria-label="Toggle theme"
               >
-                Manage plan
+                <Moon className="theme-icon-light animate-scale-icon" size={18} />
+                <Sun className="theme-icon-dark animate-scale-icon" size={18} />
               </button>
-            </div>
-            {planNotice && <p className="mt-2 text-xs text-rose-300">{planNotice}</p>}
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
-              {isKeySelected && isUsingStoredKey && (
-                <button
-                  onClick={handleApiKeyInvalid}
-                  className="inline-flex items-center justify-center rounded-lg border border-gray-600 px-4 py-2 text-sm font-semibold text-gray-200 hover:bg-gray-800 transition"
-                >
-                  Change API Key
-                </button>
-              )}
-              {!shouldRequireLogin && !isLoggedIn && (
-                <button
-                  onClick={() => signInWithGoogle()}
-                  className="inline-flex items-center justify-center rounded-lg border border-indigo-500/60 px-4 py-2 text-sm font-semibold text-indigo-200 hover:bg-indigo-500/10 transition"
-                >
-                  Sign in
-                </button>
-              )}
-              {/* Hide Replay guided tour until onboarding flow is revamped */}
-            </div>
-            {isLoggedIn && (
-              <>
-                <div className="mt-4 flex flex-col sm:flex-row gap-3 items-center justify-center text-sm text-gray-400">
-                  <span>Signed in as {userEmail}</span>
-                  <button
-                    onClick={handleLogout}
-                    className="inline-flex items-center justify-center rounded-full border border-gray-600 px-3 py-1 font-semibold text-gray-200 hover:bg-gray-800 transition"
-                  >
-                    Switch account
-                  </button>
-                </div>
-                <p className="mt-2 text-xs text-gray-400">{currentPlan.description}</p>
-              </>
-            )}
-            <div className="mt-6 flex items-center justify-center gap-4 text-xs text-gray-400">
-              <span className={isSimpleMode ? 'text-white' : ''}>Simple Mode</span>
-              <label
-                className={`relative inline-flex cursor-pointer items-center ${!canUseStudioFeatures ? 'opacity-40 cursor-not-allowed' : ''}`}
-              >
-                <input
-                  type="checkbox"
-                  className="sr-only"
-                  checked={!isSimpleMode}
-                  onChange={toggleSimpleMode}
-                  disabled={!canUseStudioFeatures}
-                  aria-label="Toggle studio mode"
-                />
+
+              <div className="relative flex items-center rounded-full bg-gray-100 p-1 shadow-inner dark:bg-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
                 <div
-                  className={`relative h-6 w-11 rounded-full transition ${!isSimpleMode ? 'bg-indigo-500' : 'bg-gray-700'
-                    }`}
+                  className={`absolute inset-y-1 left-1 w-28 rounded-full bg-white shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] dark:bg-white ${isProductPlacement ? 'translate-x-[112px]' : 'translate-x-0'}`}
+                />
+                <button
+                  type="button"
+                  onClick={() => handleOptionChange('contentStyle', 'ugc', 'Mode')}
+                  className={`relative z-10 w-28 px-6 py-2 rounded-full text-[10px] font-bold tracking-widest transition-colors duration-300 ${!isProductPlacement ? 'text-gray-900' : 'text-gray-500 hover:text-gray-600'} ${!isProductPlacement ? 'dark:text-black' : 'dark:text-white/60 dark:hover:text-white/80'}`}
                 >
-                  <span
-                    className={`absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow transition ${!isSimpleMode ? 'translate-x-5' : ''
-                      }`}
-                  />
-                </div>
-              </label>
-              <span className={!isSimpleMode ? 'text-white' : ''}>Studio Mode</span>
+                  LIFESTYLE
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleOptionChange('contentStyle', 'product', 'Mode')}
+                  className={`relative z-10 w-28 px-6 py-2 rounded-full text-[10px] font-bold tracking-widest transition-colors duration-300 ${isProductPlacement ? 'text-gray-900' : 'text-gray-500 hover:text-gray-600'} ${isProductPlacement ? 'dark:text-black' : 'dark:text-white/60 dark:hover:text-white/80'}`}
+                >
+                  STUDIO
+                </button>
+              </div>
             </div>
           </header>
 
-          <main className="flex flex-col gap-8">
-            {(!isSimpleMode && canUseStudioFeatures) && (
-              <div className="rounded-3xl border border-white/5 bg-white/5 p-5 space-y-4">
+          <main className="flex flex-col gap-6">
+            {(!isSimpleMode && canUseStudioFeatures && isDevBypass) && (
+              <div className="rounded-3xl border border-gray-200 bg-white/10 p-5 space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Storyboard</p>
-                    <p className="text-sm text-gray-400">Queue variations and switch scenes without rebuilding settings.</p>
+                    <p className="text-xs uppercase tracking-[0.35em] text-indigo-600">Storyboard</p>
+                    <p className="text-sm text-gray-600">Queue variations and switch scenes without rebuilding settings.</p>
                   </div>
                   <div className="flex items-center gap-2 text-xs">
                     <button
                       type="button"
                       onClick={handleAddScene}
                       disabled={storyboardScenes.length >= 4}
-                      className="rounded-full border border-white/20 px-3 py-1 text-white/80 hover:border-indigo-400 hover:text-white transition disabled:opacity-40"
+                      className="rounded-full border border-gray-200 px-3 py-1 text-gray-600 hover:border-indigo-600 hover:text-gray-900 transition disabled:opacity-40"
                     >
                       + Add scene
                     </button>
@@ -4900,7 +5597,7 @@ If the model attempts to create a scene or environment, override it and force a 
                       type="button"
                       onClick={handleDuplicateScene}
                       disabled={storyboardScenes.length >= 4}
-                      className="rounded-full border border-white/20 px-3 py-1 text-white/80 hover:border-indigo-400 hover:text-white transition disabled:opacity-40"
+                      className="rounded-full border border-gray-200 px-3 py-1 text-gray-600 hover:border-indigo-600 hover:text-gray-900 transition disabled:opacity-40"
                     >
                       Duplicate
                     </button>
@@ -4910,7 +5607,7 @@ If the model attempts to create a scene or environment, override it and force a 
                   {storyboardScenes.map(scene => (
                     <div
                       key={scene.id}
-                      className={`rounded-2xl border px-4 py-3 flex items-center gap-3 ${scene.id === activeSceneId ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'}`}
+                      className={`rounded-2xl border px-4 py-3 flex items-center gap-3 ${scene.id === activeSceneId ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500' : 'border-gray-200 bg-gray-50 text-gray-600'}`}
                     >
                       <button onClick={() => handleSceneSelect(scene.id)} className="font-semibold">
                         {scene.label}
@@ -4918,7 +5615,7 @@ If the model attempts to create a scene or environment, override it and force a 
                       {storyboardScenes.length > 1 && (
                         <button
                           onClick={() => handleDeleteScene(scene.id)}
-                          className="text-xs text-gray-400 hover:text-red-300"
+                          className="text-xs text-gray-600 hover:text-gray-900"
                         >
                           Remove
                         </button>
@@ -4926,13 +5623,13 @@ If the model attempts to create a scene or environment, override it and force a 
                     </div>
                   ))}
                 </div>
-                <div className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-black/20 p-4 text-xs text-gray-300">
+                <div className="flex flex-col gap-2 rounded-2xl border border-gray-200 bg-gray-100 p-4 text-xs text-gray-600">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="uppercase tracking-[0.3em] text-indigo-200">Same person</p>
-                      <p className="text-gray-400 mt-1">Keep a single creator across every scene automatically.</p>
+                      <p className="uppercase tracking-[0.3em] text-indigo-600">Same person</p>
+                      <p className="text-gray-600 mt-1">Keep a single creator across every scene automatically.</p>
                     </div>
-                    <label className={`relative inline-flex cursor-pointer items-center ${isTalentLinkedAcrossScenes ? 'text-white' : ''}`}>
+                    <label className="relative inline-flex cursor-pointer items-center">
                       <input
                         type="checkbox"
                         className="sr-only"
@@ -4941,11 +5638,11 @@ If the model attempts to create a scene or environment, override it and force a 
                         aria-label="Use the same person in all storyboard scenes"
                       />
                       <div
-                        className={`relative h-5 w-10 rounded-full transition ${isTalentLinkedAcrossScenes ? 'bg-indigo-500' : 'bg-gray-700'
+                        className={`relative h-5 w-10 rounded-full transition ${isTalentLinkedAcrossScenes ? 'bg-indigo-600 text-white' : 'bg-gray-50'
                           }`}
                       >
                         <span
-                          className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white shadow transition ${isTalentLinkedAcrossScenes ? 'translate-x-4' : ''
+                          className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white border border-gray-200 transition ${isTalentLinkedAcrossScenes ? 'translate-x-4' : ''
                             }`}
                         />
                       </div>
@@ -4959,223 +5656,268 @@ If the model attempts to create a scene or environment, override it and force a 
             )}
 
             <fieldset className="contents">
-              {/* DEFINITIVE GRID LAYOUT - SaaS Control Panel
-                  Row 1: | Step 1 | Step 2 | Talent |
-                  Row 2: | Step 3 | Step 2 | Talent |
-                  Row 3: | Step 3 | Generated Mockup | Generated Mockup |
-                  Row 4: | Step 3 | Generated Mockup | Generated Mockup |
-                  Row 5: | Step 3 | Generated Mockup | Generated Mockup |
-              */}
-              <div className="grid gap-4 w-full grid-cols-1 auto-rows-auto lg:grid-cols-[380px_minmax(520px,1fr)_340px] lg:grid-rows-[auto_auto_1fr_1fr_1fr]">
-
-                {/* STEP 1: col-1, row-1 */}
-                <div
-                  ref={intentRef}
-                  className="col-span-1 lg:col-start-1 lg:row-start-1 bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-3"
-                >
-                  <div className="flex flex-col gap-1">
-                    <p className="text-xs uppercase tracking-widest text-indigo-300">Step 1</p>
-                    <h2 className="text-2xl font-bold text-gray-200">Choose Content Intent</h2>
-                    <p className="text-sm text-gray-400">
-                      {isProductPlacement
-                        ? 'Product Placement focuses on stylized scenes with zero people so the product stays hero.'
-                        : 'UGC Lifestyle enables authentic creator vibes, including people interacting with the product.'}
-                    </p>
-                  </div>
-                  <ChipSelectGroup
-                    label="Content Style"
-                    options={CONTENT_STYLE_OPTIONS}
-                    selectedValue={options.contentStyle}
-                    onChange={(value) => handleOptionChange('contentStyle', value, 'Content Intent')}
-                  />
-                </div>
-
-                {/* STEP 2 (Product Upload): col-2, rows-1-2 */}
-                <div
-                  ref={uploadRef}
-                  className="col-span-1 lg:col-start-2 lg:row-start-1 lg:row-span-2 bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-3 overflow-hidden"
-                >
-                  <div className="flex flex-col gap-1">
-                    <p className="text-xs uppercase tracking-widest text-indigo-300">Step 2</p>
-                    <h2 className="text-2xl font-bold text-gray-200">
-                      {hasUploadedProduct ? 'Product Photo Ready' : 'Add Your Product Photo'}
-                    </h2>
-                    <p className="text-sm text-gray-400">
-                      {hasUploadedProduct
-                        ? 'This product image will be reused for both UGC and Product Placement. Upload again only if you want to replace it.'
-                        : 'Upload a transparent PNG, JPG, or WebP of your product to anchor every scene.'}
-                    </p>
-                  </div>
-                  <ImageUploader
-                    ref={uploaderRef}
-                    onImageUpload={handleImageUpload}
-                    uploadedImagePreview={uploadedImagePreview}
-                    disabled={!hasSelectedIntent}
-                    lockedMessage="Select Step 1 first to unlock uploads."
-                  />
-                  {productAssets.length > 0 && (
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
-                      <div className="flex flex-wrap items-center justify-between gap-3">
-                        <div className="flex items-center gap-2">
-                          <p className="text-xs uppercase tracking-[0.35em] text-indigo-200">Product library</p>
-                          <span className="rounded-full border border-white/20 px-2 py-0.5 text-[11px] text-white/80">
-                            {productAssets.length}
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={handleLibraryAddClick}
-                          className="inline-flex items-center gap-2 rounded-full border border-white/20 px-3 py-1 text-[11px] text-gray-200 hover:border-indigo-400 hover:text-white transition"
-                        >
-                          + Add photo
-                        </button>
-                      </div>
-                      <div className="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
-                        {productAssets.map(asset => {
-                          const isActive = activeProducts.some(product => product.id === asset.id);
-                          return (
-                            <div
-                              key={asset.id}
-                              className={`flex-shrink-0 w-32 rounded-xl border p-2 ${isActive ? 'border-indigo-400 bg-indigo-500/5' : 'border-white/10 bg-black/20'}`}
-                            >
-                              <div className="relative mb-2">
-                                <img src={asset.previewUrl} alt={asset.label} className="h-20 w-full rounded-md object-cover border border-white/10" />
-                                <button
-                                  type="button"
-                                  onClick={() => handleProductAssetDelete(asset.id)}
-                                  className="absolute -right-1 -top-1 rounded-full bg-black/80 p-0.5 text-[9px] text-rose-300 hover:bg-rose-500/40"
-                                >
-                                  ✕
-                                </button>
-                              </div>
-                              <input
-                                type="text"
-                                value={asset.label}
-                                onChange={event => handleProductAssetLabelChange(asset.id, event.target.value)}
-                                className="w-full rounded-md border border-white/10 bg-black/20 px-1.5 py-0.5 text-[10px] text-white focus:border-indigo-400 focus:outline-none mb-1"
-                                placeholder="Name"
-                              />
-                              <div className="flex gap-1">
-                                <input
-                                  type="number"
-                                  min="0"
-                                  step="0.1"
-                                  value={asset.heightValue ?? ''}
-                                  onChange={event => handleProductHeightChange(asset.id, event.target.value)}
-                                  className="flex-1 w-full rounded-md border border-white/10 bg-black/20 px-1 py-0.5 text-[10px] text-white focus:border-indigo-400 focus:outline-none"
-                                  placeholder="H"
-                                />
-                                <select
-                                  value={asset.heightUnit}
-                                  onChange={event => handleProductHeightUnitChange(asset.id, event.target.value as 'cm' | 'in')}
-                                  className="rounded-md border border-white/10 bg-black/20 px-1 py-0.5 text-[10px] text-white focus:border-indigo-400 focus:outline-none"
-                                >
-                                  <option value="cm">cm</option>
-                                  <option value="in">in</option>
-                                </select>
-                              </div>
-                              {productAssets.length > 1 && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleProductAssetSelect(asset.id)}
-                                  className={`w-full mt-1 rounded-full border px-2 py-0.5 text-[10px] ${isActive ? 'border-indigo-400 text-white' : 'border-white/20 text-gray-300 hover:border-indigo-400'}`}
-                                >
-                                  {isActive ? 'Active' : 'Use'}
-                                </button>
-                              )}
-                            </div>
-                          );
-                        })}
-                        <button
-                          type="button"
-                          onClick={handleLibraryAddClick}
-                          className="flex-shrink-0 w-24 rounded-xl border border-dashed border-white/20 bg-black/10 p-2 flex flex-col items-center justify-center text-center hover:border-indigo-400 transition"
-                        >
-                          <span className="text-xl text-white/60">+</span>
-                          <span className="text-[10px] text-gray-500">Add</span>
-                        </button>
-                      </div>
+              <div className="grid gap-6 w-full grid-cols-1 lg:grid-cols-[420px_minmax(620px,1fr)] items-start">
+                <div className="flex flex-col gap-6">
+                  <div
+                    ref={intentRef}
+                    className="flex flex-col gap-6 transition-all"
+                  >
+                    <div className="flex flex-col gap-1">
+                      <p className="text-[10px] uppercase tracking-[0.4em] text-indigo-600 font-bold">01 / Input Assets</p>
                     </div>
-                  )}
-                </div>
 
-                {/* TALENT PANEL: col-3, rows-1-2 */}
-                <div className="col-span-1 lg:col-start-3 lg:row-start-1 lg:row-span-2 bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-3 overflow-hidden">
-                  <ModelReferencePanel
-                    onFileSelect={handleModelReferenceUpload}
-                    previewUrl={modelReferencePreview}
-                    notes={modelReferenceNotes}
-                    onNotesChange={setModelReferenceNotes}
-                    onClear={handleClearModelReference}
-                    disabled={!hasUploadedProduct || isProductPlacement}
-                    lockedMessage={
-                      !hasUploadedProduct
-                        ? "Upload your product image first to attach a model."
-                        : 'Model references are only available in UGC Lifestyle scenes with a person enabled. Switch out of Product Placement and pick an age group to unlock this.'
-                    }
-                  />
-                  {hasModelReference && (
-                    <div className="rounded-2xl border border-white/10 bg-black/30 p-4 space-y-2 text-sm">
-                      <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Composition Mode</p>
-                      <select
-                        value={compositionMode}
-                        onChange={event => setCompositionMode(event.target.value as CompositionMode)}
-                        className="w-full rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                      >
-                        <option value="balanced">Balanced</option>
-                        <option value="product-first">Product First</option>
-                        <option value="model-first">Model First</option>
-                        <option value="fifty-fifty">Fifty / Fifty</option>
-                      </select>
-                      <p className="text-[11px] text-gray-400">
-                        Control which subject leads the frame while keeping both elements physically integrated.
+                    <div className="space-y-6">
+
+                      <div className="bg-white rounded-xl p-8 border border-gray-200 text-center flex flex-col items-center justify-center min-h-[320px] relative transition-all hover:border-indigo-600/30 group dark:bg-white/5 dark:border-white/10 dark:hover:border-white/20 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            uploaderRef.current?.openFileDialog();
+                          }}
+                          className="flex flex-col items-center gap-4 text-gray-500 group-hover:text-indigo-600 transition-colors dark:text-white/60 dark:group-hover:text-white"
+                        >
+                          <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-2xl font-light border border-gray-200 shadow-inner dark:bg-white/5 dark:border-white/10 dark:text-white/70">
+                            +
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <p className="text-xs font-bold tracking-[0.2em] text-gray-900 uppercase dark:text-white">Source Product</p>
+                            <p className="text-[10px] text-gray-500 tracking-wider dark:text-white/50">CLICK TO BROWSE (MAX 5)</p>
+                          </div>
+                        </button>
+                      </div>
+
+                      <div className="sr-only" aria-hidden="true">
+                        <ImageUploader
+                          ref={uploaderRef}
+                          onImageUpload={handleImageUpload}
+                          uploadedImagePreview={uploadedImagePreview}
+                          disabled={!hasSelectedIntent}
+                          lockedMessage="Select a mode to start."
+                        />
+                      </div>
+
+                      {productAssets.length > 0 && (
+                        <div className="space-y-3">
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div className="flex items-center gap-2">
+                              <p className="text-xs uppercase tracking-[0.35em] text-gray-500 font-medium">Product gallery</p>
+                              <span className="rounded-full bg-gray-100 border border-gray-200 px-2 py-0.5 text-[11px] text-gray-600">
+                                {productAssets.length}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={handleLibraryAddClick}
+                              className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-1.5 text-[11px] text-gray-700 font-medium hover:border-indigo-600 hover:text-indigo-600 transition"
+                            >
+                              + Add
+                            </button>
+                          </div>
+                          <div className="flex gap-3 overflow-x-auto py-2 custom-scrollbar">
+                            {productAssets.map(asset => {
+                              const isActive = activeProducts.some(product => product.id === asset.id);
+                              return (
+                                <div
+                                  key={asset.id}
+                                  className={`flex-shrink-0 w-40 rounded-xl p-4 transition-all bg-white border ${isActive ? 'border-gray-200 ring-2 ring-gray-100' : 'border-gray-200 hover:border-gray-300'}`}
+                                >
+                                  <div className="relative mb-3">
+                                    <img
+                                      src={asset.previewUrl}
+                                      alt={asset.label}
+                                      className="h-24 w-full rounded-lg object-contain bg-gray-50"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={(e) => { e.stopPropagation(); handleProductAssetDelete(asset.id); }}
+                                      className="absolute -right-2 -top-2 rounded-full bg-white border border-gray-200 p-0.5 text-[9px] text-gray-400 hover:text-gray-600 hover:border-gray-400 w-5 h-5 flex items-center justify-center transition"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                  <input
+                                    type="text"
+                                    value={asset.label}
+                                    onChange={event => handleProductAssetLabelChange(asset.id, event.target.value)}
+                                    className="w-full rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-[11px] text-gray-900 focus:border-indigo-600 focus:outline-none mb-2 text-center placeholder:text-gray-400"
+                                    placeholder="Product name"
+                                  />
+                                  <div className="flex gap-1">
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      step="0.1"
+                                      value={asset.heightValue ?? ''}
+                                      onChange={event => handleProductHeightChange(asset.id, event.target.value)}
+                                      className="flex-1 w-full rounded-lg border border-gray-200 bg-white px-2 py-1 text-[10px] text-gray-900 focus:border-indigo-600 focus:outline-none placeholder:text-gray-400"
+                                      placeholder="H"
+                                    />
+                                    <div className="flex items-center gap-0.5">
+                                      {(['cm', 'in'] as const).map(unit => (
+                                        <button
+                                          key={unit}
+                                          type="button"
+                                          onClick={(e) => { e.stopPropagation(); handleProductHeightUnitChange(asset.id, unit); }}
+                                          className={`rounded-lg px-2 py-1 text-[10px] font-medium transition ${asset.heightUnit === unit ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                                        >
+                                          {unit}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); handleProductAssetSelect(asset.id); }}
+                                    className={`w-full flex items-center justify-center rounded-full text-xs font-medium transition-all py-2 mt-3 ${isActive ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-indigo-600 hover:text-indigo-600'}`}
+                                  >
+                                    {isActive ? 'Active' : 'Use'}
+                                  </button>
+                                </div>
+                              );
+                            })}
+                            <button
+                              type="button"
+                              onClick={handleLibraryAddClick}
+                              className="flex-shrink-0 w-28 min-h-[180px] rounded-xl bg-gray-50 border-2 border-dashed border-gray-200 p-3 flex flex-col items-center justify-center text-center hover:border-indigo-400 hover:bg-indigo-50 transition"
+                            >
+                              <span className="text-2xl text-gray-400">+</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {!isProductPlacement && (
+                        <details className="border border-gray-200 pt-3 group bg-white p-4 rounded-lg dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+                          <summary className="cursor-pointer list-none flex items-center justify-between text-[11px] font-bold tracking-[0.2em] text-gray-500 hover:text-indigo-600 transition-colors">
+                            <div className="flex items-center gap-3">
+                              <span className="p-1.5 rounded-lg bg-gray-100 border border-gray-200 dark:bg-black/20 dark:border-white/10">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                              </span>
+                              <div className="flex flex-col">
+                                <span className="uppercase flex items-center gap-2">
+                                  Model Reference {hasModelReference && <span className="text-success text-[14px]">✓</span>}
+                                </span>
+                                <span className="text-[9px] font-medium lowercase tracking-normal text-gray-500 group-hover:text-indigo-600">Upload model for exact facial match</span>
+                              </div>
+                            </div>
+                            <span className="text-xs transition-transform group-open:rotate-180">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                            </span>
+                          </summary>
+                          <div className="mt-4 space-y-4">
+                            <ModelReferencePanel
+                              onFileSelect={handleModelReferenceUpload}
+                              previewUrl={modelReferencePreview}
+                              notes={modelReferenceNotes}
+                              onNotesChange={setModelReferenceNotes}
+                              onClear={handleClearModelReference}
+                              lockAccessories={modelReferenceLockAccessories}
+                              onLockAccessoriesChange={setModelReferenceLockAccessories}
+                              disabled={!hasUploadedProduct}
+                              lockedMessage="Upload a source product first to attach a model."
+                            />
+                          </div>
+                        </details>
+                      )}
+                    </div>
+                  </div>
+
+                  <div
+                    ref={uploadRef}
+                    className="flex flex-col gap-6 transition-all"
+                  >
+                    <div className="flex flex-col gap-1">
+                      <p className="text-[10px] uppercase tracking-[0.4em] text-indigo-600 font-bold">
+                        02 / {isProductPlacement ? 'Product Studio' : 'Build Your Character'}
                       </p>
                     </div>
-                  )}
-                  {hasUploadedProduct && !personInScene && !isProductPlacement && !hasModelReference && (
-                    <p className="text-xs text-amber-300">
-                      Model references only apply when this scene uses UGC Lifestyle with a person selected. Switch off Product Placement and choose an age so the same talent can carry across your morning/afternoon/night shots.
-                    </p>
-                  )}
-                </div>
-
-                {/* STEP 3 (Scene Builder): col-1, rows-2-5 (scrolls internally) */}
-                <div className="col-span-1 lg:col-start-1 lg:row-start-2 lg:row-span-4 overflow-hidden">
-                  {(() => {
-                    const isGenerateDisabled = isImageLoading || !uploadedImageFile;
-
-                    const generationRestrictionMessage = (() => {
-                      if (!isGenerateDisabled) return '';
-                      if (!uploadedImageFile) {
-                        return 'Upload a product photo before generating.';
-                      }
-                      if (isImageLoading) {
-                        return 'Generation is in progress; please wait.';
-                      }
-                      return '';
-                    })();
-
-                    return (
-                      <SceneBuilderStep
-                        ref={customizeRef}
+                    {!hasUploadedProduct && (
+                      <div className="rounded-lg border border-gray-200 bg-white/70 px-3 py-2 text-[11px] text-gray-500 dark:bg-black/20 dark:border-white/10 dark:text-white/50">
+                        Locked until previous step is complete
+                      </div>
+                    )}
+                    <div className={hasUploadedProduct ? '' : 'opacity-50 pointer-events-none select-none'}>
+                      <LifestyleStep3
+                        key={isProductPlacement ? 'product-step3' : 'ugc-step3'}
+                        embedded
                         isProductMode={isProductPlacement}
-                        isLocked={!hasUploadedProduct}
-                        isImageLoading={isImageLoading}
-                        isGenerateDisabled={isGenerateDisabled}
-                        generationRestriction={generationRestrictionMessage}
+                        productCount={productAssets.length}
                         onValuesChange={handleLifestyleStep3Change}
-                        onGenerate={handleGenerateClick}
+                        onCanGenerateChange={() => {
+                          // UI-only refactor: generation logic unchanged.
+                        }}
                         hasModelReference={hasModelReference}
-                        productCount={activeProducts.length}
+                        hasFirstGenerationComplete={hasFirstGenerationComplete}
+                        ecommerceOverlay={
+                          isProductPlacement
+                            ? {
+                              selectedSlots: ecommerceSelectedSlots,
+                              onSelectedSlotsChange: setEcommerceSelectedSlots,
+                              slotsConfig: ecommerceSlotsConfig,
+                              onSlotsConfigChange: setEcommerceSlotsConfig,
+                              slotBaseImages: ecommerceSlotBaseImages,
+                              settings: ecommerceGenerationSettings,
+                              onSettingsChange: setEcommerceGenerationSettings,
+                            }
+                            : undefined
+                        }
                       />
-                    );
-                  })()}
+                    </div>
+                  </div>
+
+                  <div
+                    ref={customizeRef}
+                    className="flex flex-col gap-6 transition-all"
+                  >
+                    <div className="flex flex-col gap-1">
+                      <p className="text-[10px] uppercase tracking-[0.4em] text-indigo-600 font-bold">
+                        03 / Generate
+                      </p>
+                    </div>
+                    {!hasUploadedProduct && !hideProductMode && (
+                      <div className="rounded-lg border border-gray-200 bg-white/70 px-3 py-2 text-[11px] text-gray-500 dark:bg-black/20 dark:border-white/10 dark:text-white/50">
+                        Locked until previous step is complete
+                      </div>
+                    )}
+                    {(() => {
+	                      const isGenerateDisabled = isImageLoading || (!hasUploadedProduct && !hideProductMode);
+	                      const generationRestrictionMessage = (() => {
+	                        if (!isGenerateDisabled) return '';
+	                        if (!hasUploadedProduct && !hideProductMode) return 'Upload a source product photo before generating.';
+	                        if (isImageLoading) return 'Generation is in progress; please wait.';
+	                        return '';
+	                      })();
+                      return (
+                        <div className={hasUploadedProduct || hideProductMode ? '' : 'opacity-50 pointer-events-none select-none'}>
+                          <button
+                            type="button"
+                            onClick={
+                              isProductPlacement && ecommerceSelectedSlots.length > 0
+                                ? () => handleGenerateEcommerceClick()
+                                : () => handleGenerateClick()
+                            }
+                            disabled={isGenerateDisabled}
+                            title={generationRestrictionMessage && isGenerateDisabled ? generationRestrictionMessage : undefined}
+                            className="w-full py-3 rounded-xl font-semibold transition bg-indigo-600 text-white hover:bg-indigo-600 text-white disabled:bg-gray-50 disabled:text-gray-600 disabled:cursor-not-allowed shadow-sm"
+                          >
+                            {isImageLoading ? 'Generating...' : 'Generate Mockup'}
+                          </button>
+                          {generationRestrictionMessage && isGenerateDisabled && (
+                            <div className="mt-2 flex items-start gap-2 text-xs text-gray-500">
+                              <Info size={14} />
+                              <span>{generationRestrictionMessage}</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </div>
                 </div>
 
-                {/* GENERATED MOCKUP: cols-2-3, rows-3-5 (visually dominant) */}
-                <div className="col-span-1 lg:col-start-2 lg:col-span-2 lg:row-start-3 lg:row-span-3 bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 relative lg:sticky lg:top-4 flex flex-col gap-6">
+                <div className="rounded-xl p-4 transition-all bg-white relative lg:sticky lg:top-4 flex flex-col gap-6 min-h-[520px] dark:bg-white/5 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+
                   <GeneratedImage
-                    imageUrl={generatedImageUrl}
+                    imageUrl={twoKVariant?.url ?? generatedImageUrl}
                     fourKVariant={fourKVariant}
                     twoKVariant={twoKVariant}
                     isHiResProcessing={isPreparingHiRes}
@@ -5218,95 +5960,59 @@ If the model attempts to create a scene or environment, override it and force a 
                     />
                   )}
                 </div>
-
               </div>
             </fieldset>
           </main>
-        </div >
+
+          <div className="mt-20 border-t border-gray-200 pt-8 pb-12">
+            <div className="flex flex-wrap items-center justify-between gap-8">
+              <div className="flex items-center gap-12 text-[10px] font-black tracking-[0.3em] text-gray-500">
+                <div className="flex items-center gap-2">
+                  <span className="text-indigo-600">L-ENGINE</span> ACTIVE
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-success shadow-sm"></span>
+                  SIMULATION STABLE
+                </div>
+                <div className="text-gray-500 Secondary">
+                  READY
+                </div>
+              </div>
+
+              <div className="flex items-center gap-8">
+                <Link
+                  to="/dashboard"
+                  className="text-[10px] font-black tracking-[0.3em] text-indigo-600 hover:text-indigo-600 transition"
+                >
+                  MY ACCOUNT
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
       </div >
+
       {showAdminDevButtons && (
-        <div className="fixed bottom-6 left-6 z-[999999] hidden md:flex flex-col gap-2 opacity-60 hover:opacity-100 transition">
+        <div className="fixed bottom-6 right-6 z-[999999] hidden md:flex flex-col gap-2 opacity-60 hover:opacity-100 transition">
           <button
             onClick={handleAddTestCredits}
             disabled={adminDevLoading}
-            className="rounded-full border border-white/30 bg-white/10 px-4 py-2 text-xs font-semibold text-white/80 shadow-lg backdrop-blur hover:bg-white/20 disabled:opacity-50"
+            className="rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-xs font-semibold text-gray-900 shadow-lg hover:bg-gray-100 disabled:opacity-50"
           >
             Add 100 Test Credits
           </button>
           <button
             onClick={handleResetAccount}
             disabled={adminDevLoading}
-            className="rounded-full border border-white/30 bg-white/10 px-4 py-2 text-xs font-semibold text-white/80 shadow-lg backdrop-blur hover:bg-white/20 disabled:opacity-50"
+            className="rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-xs font-semibold text-gray-900 shadow-lg hover:bg-gray-100 disabled:opacity-50"
           >
             Reset My Account
           </button>
-          {(adminDevMessage || adminDevError) && (
-            <div className="text-[11px] leading-tight">
-              {adminDevMessage && <div className="text-emerald-300">{adminDevMessage}</div>}
-              {adminDevError && <div className="text-rose-300">{adminDevError}</div>}
-            </div>
-          )}
         </div>
-      )}
+      )
+      }
     </>
   );
 };
-
-interface SceneBuilderStepProps {
-  isProductMode: boolean;
-  isLocked: boolean;
-  isImageLoading: boolean;
-  isGenerateDisabled: boolean;
-  generationRestriction?: string;
-  onValuesChange: (values: Step3Values) => void;
-  onGenerate: () => void;
-  hasModelReference: boolean;
-  productCount: number;
-}
-
-const SceneBuilderStep = forwardRef<HTMLDivElement, SceneBuilderStepProps>(({
-  isProductMode,
-  isLocked,
-  isImageLoading,
-  isGenerateDisabled,
-  generationRestriction,
-  onValuesChange,
-  onGenerate,
-  hasModelReference,
-  productCount,
-}, ref) => (
-    <div
-      ref={ref}
-      className={`bg-gray-800/50 rounded-lg flex flex-col overflow-hidden ${isLocked ? 'opacity-60 pointer-events-none' : ''}`}
-    >
-      <div className="flex-grow overflow-y-auto custom-scrollbar">
-        <LifestyleStep3
-        isProductMode={isProductMode}
-        onValuesChange={onValuesChange}
-        onCanGenerateChange={(canGenerate) => {
-          // Add logic if needed
-        }}
-        hasModelReference={hasModelReference}
-      />
-    </div>
-    <div className="p-4 flex-shrink-0">
-      <button
-        type="button"
-        onClick={onGenerate}
-        disabled={isGenerateDisabled}
-        title={generationRestriction && isGenerateDisabled ? generationRestriction : undefined}
-        className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-900/50 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
-      >
-        {isImageLoading ? 'Generating...' : 'Generate Mockup'}
-      </button>
-      {generationRestriction && isGenerateDisabled && (
-        <div className="mt-2 flex items-start gap-2 text-xs text-amber-300">
-          <Info size={14} />
-          <span>{generationRestriction}</span>
-        </div>
-      )}
-    </div>
-  </div>
-));
 
 export default App;

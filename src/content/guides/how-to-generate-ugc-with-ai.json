@@ -1,0 +1,39 @@
+{
+    "id": "guide-ugc-001",
+    "slug": "how-to-generate-ugc-with-ai",
+    "title": "How to Generate UGC with AI: The Complete Guide",
+    "subtitle": "Learn how to create authentic, conversion-focused user-generated content using AI without sending products to influencers.",
+    "category": "Tutorials",
+    "seo": {
+        "title": "How to Generate UGC with AI | Perfect Mockup Guide",
+        "description": "Discover the step-by-step process of creating realistic UGC visuals with AI for your ecommerce ads and social media."
+    },
+    "heroImage": {
+        "url": "/images/guides/ugc-hero.png",
+        "prompt": "Authentic UGC photo of a person holding a beauty product in a sunlit bathroom, mirror selfie style, natural lighting, high detail, 8k",
+        "alt": "AI-generated UGC content for ecommerce"
+    },
+    "sections": [
+        {
+            "heading": "Why AI UGC is the Future of Ecommerce Ads",
+            "body": "Traditional UGC requires shipping products, waiting weeks for content, and high costs. AI UGC allows you to generate authentic visuals in minutes. By using specialized AI models like Perfect Mockup, you can maintain total control over both the product appearance and the creator's vibe, ensuring your ads align perfectly with your brand identity."
+        },
+        {
+            "heading": "Step 1: Uploading Your Reference Product",
+            "body": "The foundation of a great AI UGC shot is a high-quality product photo. Upload a clean shot of your product. Our system will analyze the dimensions and labels to ensure every generation preserves your brand's integrity. No need for professional lighting at this stage—the AI handles the environment."
+        },
+        {
+            "heading": "Step 2: Selecting the Right UGC Mode",
+            "body": "Navigate to the 'Lifestyle' tab and select 'UGC Mode'. This mode is specifically calibrated to produce 'imperfect' and authentic-looking photos. Unlike studio mode, UGC mode adds subtle noise, natural lighting variations, and realistic human interactions that thrive on platforms like TikTok and Instagram."
+        },
+        {
+            "heading": "Step 3: Defining the Creator and Scene",
+            "body": "Choose your creator persona. Do you need a 'Gen-Z skincare enthusiast' or a '30-something kitchen pro'? Select the setting—a bedroom, a park, or a minimalist office. These choices define the narrative your customers will connect with."
+        }
+    ],
+    "cta": {
+        "title": "Ready to launch your first AI UGC campaign?",
+        "text": "Start generating authentic mockups today and see the conversion lift.",
+        "button": "Start Creating UGC"
+    }
+}
