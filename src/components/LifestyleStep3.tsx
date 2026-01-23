@@ -1896,19 +1896,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   >
                     Photo Studio
                   </Chip>
-                  <Chip
-                    onClick={() => {
-                      // Default to a safe, common environment if none selected yet.
-                      productStore.setEnvironmentContext({ macro: 'kitchen', micro: 'countertop' });
-                      markSectionTouched('product-setup');
-                    }}
-                    selected={productStore.environmentContext != null}
-                    disabled={productStore.blankSpaceEnabled === true || productStore.photoMode === 'Hero Landing Page'}
-                    className={(productStore.blankSpaceEnabled === true || productStore.photoMode === 'Hero Landing Page') ? 'opacity-50 cursor-not-allowed' : undefined}
-                    title={productStore.photoMode === 'Hero Landing Page' ? 'Disabled.\nHero Landing Page controls background only.' : undefined}
-                  >
-                    Environment
-                  </Chip>
+	                  <Chip
+	                    onClick={() => {
+	                      // Default to a safe, common environment if none selected yet.
+	                      productStore.setEnvironmentContext({ macro: 'kitchen', micro: 'countertop' });
+	                      markSectionTouched('product-setup');
+	                    }}
+	                    selected={productStore.environmentContext != null}
+	                    disabled={productStore.blankSpaceEnabled === true}
+	                    className={productStore.blankSpaceEnabled === true ? 'opacity-50 cursor-not-allowed' : undefined}
+	                  >
+	                    Environment
+	                  </Chip>
                 </div>
                 <p className="text-[11px] text-gray-500 mt-1">
                   Photo Studio uses controlled sets. Environment places the product in a real-world setting.
@@ -1980,17 +1979,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                      <div className={SECTION_GROUP_CLASS}>
 	                        <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">PHOTO MODE</p>
 	                        <div className="flex flex-wrap gap-2">
-	                          {(productStore.presetTier === 'basic'
-	                            ? ['Hero Landing Page', 'Color Pop Hero', 'Ingredient Stack']
-	                            : [
-	                              'Hero Landing Page', 'Color Pop Hero', 'Ingredient Stack',
-	                              'Acrylic Blocks', 'Splash Shot',
-	                              'Tile & Spa', 'Foam & Texture', 'Routine Carousel', 'Pastel Picnic',
-	                              'Face Pop Close-Up', 'Sunrise Wellness Counter', 'Clinical Lab Counter',
-	                              'Golden Mist Aura', 'Outdoor Energy Boost', 'Crown Wellness Vanity',
-	                              'Candy Gradient Lab'
-	                            ]
-	                          ).map(mode => (
+		                          {(productStore.presetTier === 'basic'
+		                            ? ['Hero Landing Page', 'Color Pop Hero', 'Ingredient Stack']
+		                            : [
+		                              'Hero Landing Page', 'Color Pop Hero', 'Ingredient Stack',
+		                              'Acrylic Blocks', 'Splash Shot',
+		                              'Tile & Spa', 'Foam & Texture', 'Routine Carousel', 'Pastel Picnic',
+		                              'Sunrise Wellness Counter', 'Clinical Lab Counter',
+		                              'Golden Mist Aura', 'Outdoor Energy Boost', 'Crown Wellness Vanity',
+		                              'Candy Gradient Lab'
+		                            ]
+		                          ).map(mode => (
                             <button
                               key={mode}
                               title={
