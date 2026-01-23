@@ -176,3 +176,30 @@ export async function deleteLocalGalleryEntry(id: string): Promise<void> {
   await txDone(tx);
   db.close();
 }
+
+export async function deleteLocalGalleryEntriesByImageUrl(
+  userId: string,
+  imageUrl: string
+): Promise<number> {
+  if (typeof window === 'undefined' || typeof indexedDB === 'undefined') return 0;
+  const normalized = String(userId || '').trim().toLowerCase();
+  if (!normalized) return 0;
+  const targetUrl = String(imageUrl || '').trim();
+  if (!targetUrl) return 0;
+
+  const db = await openDb();
+  const tx = db.transaction(STORE, 'readwrite');
+  const store = tx.objectStore(STORE);
+  const index = store.index('byUser');
+  const entries = await requestToPromise<LocalGalleryEntry[]>(index.getAll(normalized));
+  let deleted = 0;
+  for (const entry of entries) {
+    if (String(entry?.imageUrl || '') === targetUrl) {
+      store.delete(String(entry.id));
+      deleted += 1;
+    }
+  }
+  await txDone(tx);
+  db.close();
+  return deleted;
+}

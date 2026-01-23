@@ -17,7 +17,11 @@ import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import type { GalleryImage } from "../services/galleryService";
 import { PLAN_CONFIG, type PlanTier } from "../constants/planConfig";
-import { deleteLocalGalleryEntry, listLocalGalleryEntries } from "../services/localGallery";
+import { deleteLocalGalleryEntry, deleteLocalGalleryEntriesByImageUrl, listLocalGalleryEntries } from "../services/localGallery";
+
+type GalleryEntry = GalleryImage & {
+  source: "cloud" | "localStorage" | "indexedDb";
+};
 
 type ActivityItem = {
   id: string;
@@ -390,10 +394,10 @@ export default function Dashboard() {
 
 // Gallery Section Component
 function GallerySection({ userEmail }: { userEmail: string }) {
-  const [images, setImages] = useState<GalleryImage[]>([]);
+  const [images, setImages] = useState<GalleryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [busyId, setBusyId] = useState<string | null>(null);
+  const [busyKey, setBusyKey] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -406,7 +410,8 @@ function GallerySection({ userEmail }: { userEmail: string }) {
         const userId = currentUserEmail;
 
         const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-        const userImages = allImages.filter(img => {
+        const userImages: GalleryEntry[] = allImages
+          .filter(img => {
           const createdDate =
             img.createdAt?.toDate?.() ||
             (typeof (img.createdAt as any)?.seconds === 'number' ? new Date((img.createdAt as any).seconds * 1000) : null) ||
@@ -417,10 +422,11 @@ function GallerySection({ userEmail }: { userEmail: string }) {
             String(img.userId || '').trim().toLowerCase() === userId ||
             (String(img.userId || '').trim().toLowerCase() === 'guest' && userId === currentUserEmail);
           return isMine && createdAtMs >= thirtyDaysAgo;
-        });
+          })
+          .map(img => ({ ...img, source: "cloud" as const }));
 
         const LOCAL_GALLERY_CACHE_KEY = 'ugc-free-gallery';
-        let localImages: GalleryImage[] = [];
+        let localImages: GalleryEntry[] = [];
         try {
           const stored = window.localStorage.getItem(LOCAL_GALLERY_CACHE_KEY);
           const parsed = stored ? JSON.parse(stored) : [];
@@ -437,6 +443,7 @@ function GallerySection({ userEmail }: { userEmail: string }) {
                 height: item.height,
                 modelReferenceUsed: item.modelReferenceUsed,
                 productsUsed: item.productsUsed,
+                source: "localStorage" as const,
               }))
               .filter(img => img.userId === userId)
               .filter(img => {
@@ -451,7 +458,7 @@ function GallerySection({ userEmail }: { userEmail: string }) {
           console.warn('Unable to load local gallery cache', err);
         }
 
-        let indexedDbImages: GalleryImage[] = [];
+        let indexedDbImages: GalleryEntry[] = [];
         try {
           const indexed = await listLocalGalleryEntries(userId, 30);
           indexedDbImages = indexed.map(entry => ({
@@ -464,6 +471,7 @@ function GallerySection({ userEmail }: { userEmail: string }) {
             height: entry.height,
             modelReferenceUsed: undefined,
             productsUsed: undefined,
+            source: "indexedDb" as const,
           }));
         } catch (err) {
           console.warn('Unable to load IndexedDB gallery cache', err);
@@ -527,14 +535,21 @@ function GallerySection({ userEmail }: { userEmail: string }) {
     const ok = window.confirm('Delete this image from your gallery?');
     if (!ok) return;
 
-    setBusyId(image.id);
+    const busy = `${(image as any)?.source ?? "unknown"}:${String(image.id || "")}`;
+    setBusyKey(busy);
     try {
-      const isLocal = String(image.id || '').startsWith('local-') || String(image.imageUrl || '').toLowerCase().startsWith('data:');
-      if (isLocal) {
+      const entry = image as GalleryEntry;
+      const safeUserId = String(userEmail || "").trim().toLowerCase();
+      if (entry.source !== "cloud") {
         try {
-          await deleteLocalGalleryEntry(image.id);
+          await deleteLocalGalleryEntry(entry.id);
         } catch (err) {
           console.warn('Local gallery delete warning', err);
+        }
+        try {
+          await deleteLocalGalleryEntriesByImageUrl(safeUserId, entry.imageUrl);
+        } catch (err) {
+          console.warn('Local gallery url delete warning', err);
         }
         try {
           const LOCAL_GALLERY_CACHE_KEY = 'ugc-free-gallery';
@@ -549,7 +564,31 @@ function GallerySection({ userEmail }: { userEmail: string }) {
         }
       } else {
         const { deleteFromGallery } = await import('../services/galleryService');
-        await deleteFromGallery(image.id);
+        try {
+          await deleteFromGallery(entry.id);
+        } catch (err: any) {
+          const message = String(err?.message || "");
+          // Treat already-deleted entries as success and proceed with local cleanup.
+          if (!message.includes("Not found")) throw err;
+        }
+
+        // Also remove any local cache copies of the same image URL.
+        try {
+          await deleteLocalGalleryEntriesByImageUrl(safeUserId, entry.imageUrl);
+        } catch (err) {
+          console.warn('Local gallery url delete warning', err);
+        }
+        try {
+          const LOCAL_GALLERY_CACHE_KEY = 'ugc-free-gallery';
+          const stored = window.localStorage.getItem(LOCAL_GALLERY_CACHE_KEY);
+          const parsed = stored ? JSON.parse(stored) : [];
+          if (Array.isArray(parsed)) {
+            const next = parsed.filter((item: any) => String(item?.imageUrl || '') !== String(entry.imageUrl || ''));
+            window.localStorage.setItem(LOCAL_GALLERY_CACHE_KEY, JSON.stringify(next));
+          }
+        } catch (err) {
+          console.warn('LocalStorage gallery delete warning', err);
+        }
       }
 
       const urlKey = String(image.imageUrl || '');
@@ -560,7 +599,7 @@ function GallerySection({ userEmail }: { userEmail: string }) {
       console.error('Delete failed:', err);
       alert(err?.message || 'Failed to delete image.');
     } finally {
-      setBusyId(null);
+      setBusyKey(null);
     }
   };
 
@@ -608,7 +647,7 @@ function GallerySection({ userEmail }: { userEmail: string }) {
 
         return (
           <div
-            key={image.id}
+            key={`${image.source}:${image.id}`}
             className="rounded-xl overflow-hidden border border-gray-200 bg-white transition hover:border-indigo-600"
           >
             <img
@@ -628,14 +667,14 @@ function GallerySection({ userEmail }: { userEmail: string }) {
               <div className="flex gap-2">
                 <button
                   onClick={() => handleDownload(image.imageUrl, `ugc-image-${image.id}.png`)}
-                  disabled={busyId === image.id}
+                  disabled={busyKey === `${image.source}:${image.id}`}
                   className="flex-1 rounded-xl bg-indigo-600 text-white px-3 py-2 text-sm font-semibold transition hover:bg-indigo-700 disabled:opacity-50"
                 >
                   Download
                 </button>
                 <button
                   onClick={() => handleDelete(image)}
-                  disabled={busyId === image.id}
+                  disabled={busyKey === `${image.source}:${image.id}`}
                   className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 transition hover:border-red-500 hover:text-red-600 disabled:opacity-50"
                   title="Delete"
                 >

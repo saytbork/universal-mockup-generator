@@ -1500,16 +1500,16 @@ const App: React.FC = () => {
     0
   );
   const remainingVideos = Math.max(planVideoLimit - videoGenerationCount, 0);
-  const isTrialLocked = !isTrialBypassActive && !isAdmin && remainingCredits <= 0;
+  const isTrialLocked = !isTrialBypassActive && remainingCredits <= 0;
   const hasPlanVideoAccess = planVideoLimit > 0 || hasVideoAccess || isTrialBypassActive;
   const isVideoLimitReached = !isTrialBypassActive && planVideoLimit > 0 && videoGenerationCount >= planVideoLimit;
   const showCaptionAssistant = false;
   useEffect(() => {
-    if (!isTrialBypassActive && !isAdmin && remainingCredits <= 0) {
+    if (!isTrialBypassActive && remainingCredits <= 0) {
       setShowPlanModal(true);
       setPlanNotice(isGuest ? 'Has usado tus 2 créditos gratuitos. Regístrate para obtener más.' : 'Se agotaron los créditos del plan Free. Actualiza para seguir generando.');
     }
-  }, [isTrialBypassActive, isAdmin, remainingCredits, isGuest]);
+  }, [isTrialBypassActive, remainingCredits, isGuest]);
   useEffect(() => {
     if ((!personInScene || isProductPlacement) && ugcRealSettings.isEnabled) {
       persistUgcRealSettings(prev => ({ ...prev, isEnabled: false }));
@@ -4539,7 +4539,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
       let reservedCredits = 0;
       try {
-        if (!isTrialBypassActive && isUsingRemoteCredits && !isAdmin) {
+        if (!isTrialBypassActive && isUsingRemoteCredits) {
           await consumeRemoteCredits(creditCost);
           reservedCredits = creditCost;
         }
@@ -4953,7 +4953,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
       let reservedCredits = 0;
 		    try {
-          if (!isTrialBypassActive && isUsingRemoteCredits && !isAdmin) {
+          if (!isTrialBypassActive && isUsingRemoteCredits) {
             await consumeRemoteCredits(projectedCost);
             reservedCredits = projectedCost;
           }
@@ -5317,7 +5317,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
     let reservedCredits = 0;
     try {
-	      if (!isTrialBypassActive && isUsingRemoteCredits && !isAdmin) {
+	      if (!isTrialBypassActive && isUsingRemoteCredits) {
 	        await consumeRemoteCredits(videoCost);
 	        reservedCredits = videoCost;
 	      }
