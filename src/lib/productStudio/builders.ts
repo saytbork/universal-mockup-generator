@@ -885,6 +885,14 @@ function buildSplashShot(state: ProductStudioState): string {
     return parts.join(' ');
 }
 
+function buildMacroTextureCameraBlock(state: ProductStudioState): string {
+    if (state.photoMode !== 'Foam & Texture') return '';
+    return [
+        'CAMERA (LOCKED – CRITICAL): Eye-level or slight frontal angle. Camera positioned parallel to the surface. Natural product photography perspective.',
+        'NEGATIVE CAMERA CONSTRAINTS (MANDATORY): No top-down view. No overhead shot. No aerial perspective. No bird’s-eye view. No flatlay composition. Camera must not be perpendicular to the surface.'
+    ].join(' ');
+}
+
 function buildBackground(state: ProductStudioState): string {
     const normalizeHexExact = (input: string | undefined | null, fallback: string): string => {
         const raw = normalizeHexOrEmpty(input);
@@ -1269,6 +1277,7 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     segments.push(buildPhotoMode(state));
     if (!state.blankSpaceEnabled && !isHeroLandingPage) {
         segments.push(buildSplashShot(state));
+        segments.push(buildMacroTextureCameraBlock(state));
     }
 
     // 1. Product Definition (Source of Truth)
@@ -1366,6 +1375,7 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     segments.push(buildPhotoMode(state));
     if (!state.blankSpaceEnabled && !isHeroLandingPage) {
         segments.push(buildSplashShot(state));
+        segments.push(buildMacroTextureCameraBlock(state));
     }
 
     // 1. Product Definition (Primary)
@@ -1443,6 +1453,7 @@ function buildNegativePrompt(state: ProductStudioState): string {
     const allowHands = interaction !== 'none' || state.handsHolding === true;
     const motion = String(state.stateMotion || 'static');
     const splashStyle = state.photoMode === 'Splash Shot' ? (state.splashStyle ?? 'Basic') : null;
+    const macroTexturesActive = state.photoMode === 'Foam & Texture';
 
     const humanNegativesBase = ['person', 'people', 'head', 'face', 'body', 'torso', 'full figure', 'model'];
     const handsNegatives = (() => {
@@ -1497,6 +1508,9 @@ function buildNegativePrompt(state: ProductStudioState): string {
         ...humanNegativesBase,
         ...handsNegatives,
         ...interactionSpecific,
+        ...(macroTexturesActive
+            ? ['top-down', 'overhead', 'aerial', 'bird’s-eye', "bird's-eye", 'flat lay', 'flatlay']
+            : []),
         // Container / cap integrity
         ...capIntegrityNegatives,
         ...spilledSurfaceNegatives,

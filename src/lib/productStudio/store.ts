@@ -224,6 +224,8 @@ const INTERPRETATION_MESSAGES = {
         'Selected camera system overrides framing guides for optical realism.',
     neutralHandsNoIdentity:
         'Hands treated as neutral anatomical elements without human identity.',
+    macroTexturesNoAerial:
+        'Overhead/flatlay camera is disabled for macro textures. Camera adjusted automatically.',
 } as const;
 
 function withInterpretationNote(
@@ -920,7 +922,16 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             return { propDensity: density };
         }),
     setSelectedProps: (props) => set({ selectedProps: props }),
-    setComposition: (composition) => set({ composition }),
+    setComposition: (composition) =>
+        set((state) => {
+            if (state.photoMode === 'Foam & Texture' && composition === 'flatlay') {
+                return {
+                    composition: 'centered',
+                    ...withInterpretationNote(state, 'composition', INTERPRETATION_MESSAGES.macroTexturesNoAerial),
+                };
+            }
+            return { composition };
+        }),
     setSurface: (surface) => set({ surface }),
     setScale: (scale) => set({ scale }),
     setSpacing: (spacing) => set({ spacing }),
@@ -932,6 +943,10 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setAngle: (angle) =>
         set((state) => {
             const next: Partial<ProductStudioState> = { angle };
+            if (state.photoMode === 'Foam & Texture' && angle === 'top') {
+                next.angle = 'front';
+                Object.assign(next, withInterpretationNote(state, 'angle', INTERPRETATION_MESSAGES.macroTexturesNoAerial));
+            }
             if (isMacroFraming(state, { angle }) && isInteractionIncompatibleWithMacro(state.interaction)) {
                 next.interaction = reinterpretMacroInteraction({ ...state, angle });
                 next.handsHolding = next.interaction !== 'none';
@@ -1256,6 +1271,20 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     environmentContext: null,
                     sceneType: 'studio-branding',
                     proMode: false,
+                };
+            }
+
+            if (nextMode === 'Foam & Texture') {
+                return {
+                    photoMode: nextMode,
+                    // Macro textures do not imply top-down; enforce eye-level + grounded product framing defaults.
+                    angle: 'front',
+                    distance: 'macro',
+                    composition: 'centered',
+                    lens: '100mm Macro Prime',
+                    lightingRig: 'Softbox Wrap',
+                    finish: 'Clinical Lab Polish',
+                    stateMotion: 'static',
                 };
             }
 

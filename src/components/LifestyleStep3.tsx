@@ -3538,16 +3538,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             </div>
           </SmoothAccordion>
 
-          <SmoothAccordion
-            icon={Sparkles}
-            title="06 / Creative Direction"
-            tooltip="Primary visual decisions. Safe to experiment."
-            isOpen={openAccordionId === 'product-creativity'}
-            onToggle={() => toggleSection('product-creativity')}
-            isTouched={touchedSections.has('product-creativity')}
-            iconClassName="text-indigo-600 dark:text-indigo-300"
-            variant="secondary"
-          >
+            {productStore.photoMode !== 'Hero Landing Page' ? (
+	          <SmoothAccordion
+	            icon={Sparkles}
+	            title="06 / Creative Direction"
+	            tooltip="Primary visual decisions. Safe to experiment."
+	            isOpen={openAccordionId === 'product-creativity'}
+	            onToggle={() => toggleSection('product-creativity')}
+	            isTouched={touchedSections.has('product-creativity')}
+	            iconClassName="text-indigo-600 dark:text-indigo-300"
+	            variant="secondary"
+	          >
             <div className="space-y-6">
               <p className="text-sm text-gray-500">
                 These choices shape the mood without breaking realism.
@@ -3858,7 +3859,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </>
               )}
             </div>
-          </SmoothAccordion>
+	          </SmoothAccordion>
+            ) : null}
 
           {/* PRODUCT STUDIO — ENVIRONMENT (single source of truth: productStore.environmentContext) */}
           {productStore.environmentContext != null && (
