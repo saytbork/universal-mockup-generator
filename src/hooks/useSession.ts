@@ -18,7 +18,14 @@ export function useSession(redirectOnFail = true): SessionState {
         const res = await fetch('/api/user?action=me');
         if (res.ok) {
           const data = await res.json();
-          if (mounted) setEmail(data.email);
+          const nextEmail = typeof data.email === 'string' ? data.email.trim() : '';
+          if (nextEmail) {
+            if (mounted) setEmail(nextEmail);
+          } else if (redirectOnFail) {
+            navigate('/login', { replace: true });
+          } else {
+            if (mounted) setEmail(null);
+          }
         } else if (redirectOnFail) {
           navigate('/login', { replace: true });
         }

@@ -79,7 +79,12 @@ export default function Dashboard() {
           return;
         }
         const data = await res.json();
-        if (mounted) setUser(data);
+        const email = typeof data.email === "string" ? data.email.trim() : "";
+        if (!email) {
+          navigate("/login", { replace: true });
+          return;
+        }
+        if (mounted) setUser({ ...data, email });
         const act = await fetch("/api/activity/list");
         if (act.ok) {
           const actData = await act.json();

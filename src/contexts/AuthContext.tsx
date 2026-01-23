@@ -33,9 +33,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const res = await fetch('/api/user?action=me');
         if (res.ok) {
           const data = await res.json();
-          const email = data.email as string;
-          setUser({ email });
-          setEmailUser(email);
+          const email = typeof data.email === 'string' ? data.email.trim() : '';
+          if (email) {
+            setUser({ email });
+            setEmailUser(email);
+          } else {
+            setUser(null);
+            setEmailUser(null);
+          }
         } else {
           setUser(null);
           setEmailUser(null);
