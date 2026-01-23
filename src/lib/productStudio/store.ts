@@ -943,7 +943,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setAngle: (angle) =>
         set((state) => {
             const next: Partial<ProductStudioState> = { angle };
-            if (state.photoMode === 'Foam & Texture' && angle === 'top') {
+            if (state.photoMode === 'Foam & Texture' && (angle === 'top' || angle === 'detail')) {
                 next.angle = 'front';
                 Object.assign(next, withInterpretationNote(state, 'angle', INTERPRETATION_MESSAGES.macroTexturesNoAerial));
             }

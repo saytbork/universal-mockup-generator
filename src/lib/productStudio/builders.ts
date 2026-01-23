@@ -889,6 +889,7 @@ function buildMacroTextureCameraBlock(state: ProductStudioState): string {
     if (state.photoMode !== 'Foam & Texture') return '';
     return [
         'CAMERA (LOCKED – CRITICAL): Eye-level or slight frontal angle. Camera positioned parallel to the surface. Natural product photography perspective.',
+        'The surface plane must be visible and recede in perspective; the product front face is visible (not a top-down plan view).',
         'NEGATIVE CAMERA CONSTRAINTS (MANDATORY): No top-down view. No overhead shot. No aerial perspective. No bird’s-eye view. No flatlay composition. Camera must not be perpendicular to the surface.'
     ].join(' ');
 }
