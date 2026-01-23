@@ -1,5 +1,3 @@
-import { kv } from "@vercel/kv";
-
 export type UserRecord = {
   plan?: string | null;
   credits: number;
@@ -15,6 +13,11 @@ const hasKV =
 
 const userKey = (email: string) => `user:${email}`;
 
+const getKv = async () => {
+  const mod = await import("@vercel/kv");
+  return mod.kv;
+};
+
 const defaultUser = (): UserRecord => ({
   plan: null,
   credits: 0,
@@ -24,6 +27,7 @@ const defaultUser = (): UserRecord => ({
 
 export const getUser = async (email: string): Promise<UserRecord> => {
   if (hasKV) {
+    const kv = await getKv();
     const stored = await kv.get<UserRecord>(userKey(email));
     if (stored) return stored;
     const fresh = defaultUser();
@@ -41,6 +45,7 @@ export const setUser = async (email: string, data: Partial<UserRecord>) => {
   const current = await getUser(email);
   const next = { ...current, ...data, updatedAt: Date.now() };
   if (hasKV) {
+    const kv = await getKv();
     await kv.set(userKey(email), next);
   } else {
     memoryStore.set(email, next);

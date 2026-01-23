@@ -1,4 +1,3 @@
-import { kv } from "@vercel/kv";
 import { randomUUID } from "crypto";
 
 export type ActivityRecord = {
@@ -17,6 +16,11 @@ const hasKV =
 const activityKey = (email: string) => `activity:${email}`;
 const memoryStore = new Map<string, ActivityRecord[]>();
 
+const getKv = async () => {
+  const mod = await import("@vercel/kv");
+  return mod.kv;
+};
+
 export async function addActivity(
   email: string,
   type: ActivityRecord["type"],
@@ -30,6 +34,7 @@ export async function addActivity(
     meta,
   };
   if (hasKV) {
+    const kv = await getKv();
     await kv.lpush(activityKey(email), JSON.stringify(record));
     // keep latest 200
     await kv.ltrim(activityKey(email), 0, 199);
@@ -43,6 +48,7 @@ export async function addActivity(
 
 export async function listActivity(email: string, limit = 20): Promise<ActivityRecord[]> {
   if (hasKV) {
+    const kv = await getKv();
     const raw = await kv.lrange<string>(activityKey(email), 0, limit - 1);
     return raw
       .map((item) => {
