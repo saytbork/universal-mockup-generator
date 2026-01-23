@@ -1282,6 +1282,8 @@ const App: React.FC = () => {
   const [isUsingStoredKey, setIsUsingStoredKey] = useState(false);
   const [userEmail, setUserEmail] = useState('');
   const [inviteUsed, setInviteUsed] = useState(false);
+  const [remoteCredits, setRemoteCredits] = useState<number | null>(null);
+  const [remotePlanTier, setRemotePlanTier] = useState<PlanTier | null>(null);
   useEffect(() => {
     const nextEmail = user?.email || emailUser || '';
     setUserEmail(nextEmail);
@@ -1291,17 +1293,29 @@ const App: React.FC = () => {
     let active = true;
     if (!userEmail) {
       setInviteUsed(false);
+      setRemoteCredits(null);
+      setRemotePlanTier(null);
       return () => {
         active = false;
       };
     }
     const fetchProfile = async () => {
       try {
-        const res = await fetch('/api/user/me');
+        const res = await fetch('/api/user?action=me');
         if (!res.ok) return;
         const data = await res.json();
         if (active) {
           setInviteUsed(Boolean(data.inviteUsed));
+          const credits = Number(data.credits ?? 0);
+          setRemoteCredits(Number.isFinite(credits) ? credits : 0);
+          const rawPlan = String(data.plan ?? 'free')
+            .trim()
+            .toLowerCase();
+          if (rawPlan === 'creator' || rawPlan === 'studio' || rawPlan === 'free') {
+            setRemotePlanTier(rawPlan);
+          } else {
+            setRemotePlanTier('free');
+          }
         }
       } catch (error) {
         console.error('Unable to fetch user profile for gallery', error);
@@ -1409,7 +1423,11 @@ const App: React.FC = () => {
       normalized.endsWith('@amisano-design.com')
     );
   }, [userEmail]);
-  const isFreeUser = !isAdmin && planTier === 'free';
+  const resolvedPlanTier = useMemo<PlanTier>(() => {
+    if (!isGuest && remotePlanTier) return remotePlanTier;
+    return planTier;
+  }, [isGuest, remotePlanTier, planTier]);
+  const isFreeUser = !isAdmin && resolvedPlanTier === 'free';
   const [hasTrialBypass, setHasTrialBypass] = useState(false);
   const [trialCodeInput, setTrialCodeInput] = useState('');
   const [trialCodeError, setTrialCodeError] = useState<string | null>(null);
@@ -1456,7 +1474,7 @@ const App: React.FC = () => {
   const personPropNoneValue = PERSON_PROP_OPTIONS[0].value;
   const microLocationDefault = MICRO_LOCATION_NONE_VALUE;
   const isHeroLandingMode = activeSupplementPreset === HERO_LANDING_PRESET_VALUE;
-  const currentPlan = PLAN_CONFIG[planTier];
+  const currentPlan = PLAN_CONFIG[resolvedPlanTier];
   const modeLabel = isProductPlacement ? 'Product (Studio)' : 'Lifestyle';
   const hasWatermark = isFreeUser;
   const shouldRequireLogin = !isLoggedIn;
@@ -1466,9 +1484,13 @@ const App: React.FC = () => {
   const hasVideoExports = planVideoLimit > 0;
   const canUseStudioFeatures = currentPlan.allowStudio || isTrialBypassActive;
   const canUseCaptionAssistant = false;
-  const remainingCredits = Math.max(planCreditLimit - creditUsage, 0);
+  const isUsingRemoteCredits = !isGuest && Boolean(userEmail.trim());
+  const remainingCredits = Math.max(
+    isUsingRemoteCredits ? (remoteCredits ?? Number.POSITIVE_INFINITY) : planCreditLimit - creditUsage,
+    0
+  );
   const remainingVideos = Math.max(planVideoLimit - videoGenerationCount, 0);
-  const isTrialLocked = !isTrialBypassActive && creditUsage >= planCreditLimit;
+  const isTrialLocked = !isTrialBypassActive && !isAdmin && remainingCredits <= 0;
   const hasPlanVideoAccess = planVideoLimit > 0 || hasVideoAccess || isTrialBypassActive;
   const isVideoLimitReached = !isTrialBypassActive && planVideoLimit > 0 && videoGenerationCount >= planVideoLimit;
   const showCaptionAssistant = false;
@@ -4326,6 +4348,38 @@ If the model attempts to create a scene or environment, override it and force a 
     [contentStyleValue, isSimpleMode, modelReferenceFile]
   );
 
+  const mutateRemoteCredits = useCallback(
+    async (action: 'consume' | 'refund', amount: number) => {
+      if (!amount || amount <= 0) return null;
+      const res = await fetch(`/api/credits?action=${action}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const message = typeof data?.error === 'string' ? data.error : 'Unable to update credits';
+        throw new Error(message);
+      }
+      const next = Number(data?.credits ?? 0);
+      if (Number.isFinite(next)) {
+        setRemoteCredits(next);
+      }
+      return Number.isFinite(next) ? next : null;
+    },
+    [setRemoteCredits]
+  );
+
+  const consumeRemoteCredits = useCallback(
+    async (amount: number) => mutateRemoteCredits('consume', amount),
+    [mutateRemoteCredits]
+  );
+
+  const refundRemoteCredits = useCallback(
+    async (amount: number) => mutateRemoteCredits('refund', amount),
+    [mutateRemoteCredits]
+  );
+
   const publishFreeGallery = useCallback((entry: {
     imageUrl: string;
     userId: string;
@@ -4487,7 +4541,12 @@ If the model attempts to create a scene or environment, override it and force a 
       setIsImageLoading(true);
       setImageError(null);
 
+      let reservedCredits = 0;
       try {
+        if (!isTrialBypassActive && isUsingRemoteCredits && !isAdmin) {
+          await consumeRemoteCredits(creditCost);
+          reservedCredits = creditCost;
+        }
         // Build PromptOptions from current state
         const shouldReuseIdentityKey =
           !isProductPlacement &&
@@ -4657,6 +4716,15 @@ If the model attempts to create a scene or environment, override it and force a 
 
         const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
         if (!resolvedApiKey) {
+          if (reservedCredits > 0) {
+            try {
+              await refundRemoteCredits(reservedCredits);
+            } catch (refundError) {
+              console.warn('Credit refund failed', refundError);
+            } finally {
+              reservedCredits = 0;
+            }
+          }
           return;
         }
         const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: 'v1beta' });
@@ -4765,7 +4833,7 @@ If the model attempts to create a scene or environment, override it and force a 
             userId: galleryUserId,
             imageUrl: finalUrl,
             createdAt: Date.now(),
-            plan: planTier,
+            plan: resolvedPlanTier,
             aspectRatio,
           });
           void pruneLocalGallery(galleryUserId, 30, 120);
@@ -4775,14 +4843,23 @@ If the model attempts to create a scene or environment, override it and force a 
         void reportGalleryEntry(finalUrl);
         runHiResPipeline(finalUrl);
         if (!isTrialBypassActive) {
-          const newCount = creditUsage + creditCost;
-          setCreditUsage(newCount);
-          if (typeof window !== 'undefined') {
-            window.localStorage.setItem(IMAGE_COUNT_KEY, String(newCount));
+          if (!isUsingRemoteCredits) {
+            const newCount = creditUsage + creditCost;
+            setCreditUsage(newCount);
+            if (typeof window !== 'undefined') {
+              window.localStorage.setItem(IMAGE_COUNT_KEY, String(newCount));
+            }
           }
         }
         // Avoid localStorage gallery (data URLs exceed quota); dashboard uses Firestore gallery history.
       } catch (err) {
+        if (reservedCredits > 0) {
+          try {
+            await refundRemoteCredits(reservedCredits);
+          } catch (refundError) {
+            console.warn('Credit refund failed', refundError);
+          }
+        }
         console.error(err);
         let errorMessage = '';
         if (err instanceof Error) {
@@ -4834,6 +4911,11 @@ If the model attempts to create a scene or environment, override it and force a 
       hasModelReference,
       compositionMode,
       creditUsage,
+      consumeRemoteCredits,
+      refundRemoteCredits,
+      isAdmin,
+      isUsingRemoteCredits,
+      resolvedPlanTier,
       handleApiKeyInvalid,
       normalizeGeminiModel(GOOGLE_MODEL ?? GEMINI_IMAGE_MODEL),
       Modality,
@@ -4867,24 +4949,38 @@ If the model attempts to create a scene or environment, override it and force a 
       return;
     }
 
-    resetOutputs();
-    setGeneratedCopy(null);
-    setCopyError(null);
-    setIsImageLoading(true);
-	    setImageError(null);
+	    resetOutputs();
+	    setGeneratedCopy(null);
+	    setCopyError(null);
+	    setIsImageLoading(true);
+		    setImageError(null);
 
-	    try {
-	      // Ecommerce overlays are a Product Studio feature; build prompts from the ProductStudioStore
-	      // (not from legacy PromptEngine mapping), so all selected Product Studio options inject.
-	      const baseProductStateRaw = useProductStudioStore.getState();
-	      console.log('[PRODUCT STUDIO STATE][ECOM]', baseProductStateRaw);
+      let reservedCredits = 0;
+		    try {
+          if (!isTrialBypassActive && isUsingRemoteCredits && !isAdmin) {
+            await consumeRemoteCredits(projectedCost);
+            reservedCredits = projectedCost;
+          }
+		      // Ecommerce overlays are a Product Studio feature; build prompts from the ProductStudioStore
+		      // (not from legacy PromptEngine mapping), so all selected Product Studio options inject.
+		      const baseProductStateRaw = useProductStudioStore.getState();
+		      console.log('[PRODUCT STUDIO STATE][ECOM]', baseProductStateRaw);
 
 	      // Product Studio: force fixed output ratio (user request).
-	      const aspectRatio = PRODUCT_DEFAULT_ASPECT_RATIO;
-	      const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
-	      if (!resolvedApiKey) {
-	        return;
-	      }
+		      const aspectRatio = PRODUCT_DEFAULT_ASPECT_RATIO;
+		      const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
+		      if (!resolvedApiKey) {
+            if (reservedCredits > 0) {
+              try {
+                await refundRemoteCredits(reservedCredits);
+              } catch (refundError) {
+                console.warn('Credit refund failed', refundError);
+              } finally {
+                reservedCredits = 0;
+              }
+            }
+		        return;
+		      }
 
       const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: 'v1beta' });
 
@@ -4993,17 +5089,17 @@ If the model attempts to create a scene or environment, override it and force a 
         setGeneratedImageUrl(finalUrl);
         try {
           const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
-          void addLocalGalleryEntry({
-            userId: galleryUserId,
-            imageUrl: finalUrl,
-            createdAt: Date.now(),
-            plan: planTier,
-            aspectRatio,
-          });
-          void pruneLocalGallery(galleryUserId, 30, 120);
-        } catch (e) {
-          console.warn('Local gallery save failed', e);
-        }
+	          void addLocalGalleryEntry({
+	            userId: galleryUserId,
+	            imageUrl: finalUrl,
+	            createdAt: Date.now(),
+	            plan: resolvedPlanTier,
+	            aspectRatio,
+	          });
+	          void pruneLocalGallery(galleryUserId, 30, 120);
+	        } catch (e) {
+	          console.warn('Local gallery save failed', e);
+	        }
         void reportGalleryEntry(finalUrl);
       }
 
@@ -5011,20 +5107,29 @@ If the model attempts to create a scene or environment, override it and force a 
         runHiResPipeline(lastUrl);
       }
 
-      if (!isTrialBypassActive) {
-        setCreditUsage(prev => {
-          const next = prev + projectedCost;
-          if (typeof window !== 'undefined') {
-            window.localStorage.setItem(IMAGE_COUNT_KEY, String(next));
+	      if (!isTrialBypassActive) {
+          if (!isUsingRemoteCredits) {
+            setCreditUsage(prev => {
+              const next = prev + projectedCost;
+              if (typeof window !== 'undefined') {
+                window.localStorage.setItem(IMAGE_COUNT_KEY, String(next));
+              }
+              return next;
+            });
           }
-          return next;
-        });
-      }
-    } catch (err) {
-      console.error(err);
-      let errorMessage = '';
-      if (err instanceof Error) {
-        errorMessage = err.message;
+	      }
+	    } catch (err) {
+        if (reservedCredits > 0) {
+          try {
+            await refundRemoteCredits(reservedCredits);
+          } catch (refundError) {
+            console.warn('Credit refund failed', refundError);
+          }
+        }
+	      console.error(err);
+	      let errorMessage = '';
+	      if (err instanceof Error) {
+	        errorMessage = err.message;
       } else if (typeof err === 'string') {
         errorMessage = err;
       } else {
@@ -5039,23 +5144,28 @@ If the model attempts to create a scene or environment, override it and force a 
       setIsImageLoading(false);
       bundleSelectionRef.current = null;
     }
-	  }, [
-	    activeProducts,
-	    ecommerceGenerationSettings.reserveBlankSpace,
-	    ecommerceSelectedSlots,
-	    getActiveApiKeyOrNotify,
-	    getImageCreditCost,
-	    isTrialBypassActive,
-    isTrialLocked,
-    currentPlan.label,
-    planCreditLimit,
-    remainingCredits,
-    resetOutputs,
-    options,
-	    runHiResPipeline,
-	    setShowPlanModal,
-	    reportGalleryEntry,
-	  ]);
+		  }, [
+		    activeProducts,
+		    ecommerceGenerationSettings.reserveBlankSpace,
+		    ecommerceSelectedSlots,
+		    getActiveApiKeyOrNotify,
+		    getImageCreditCost,
+		    isTrialBypassActive,
+	    isTrialLocked,
+	    currentPlan.label,
+	    planCreditLimit,
+	    remainingCredits,
+	    resetOutputs,
+	    options,
+		    runHiResPipeline,
+		    setShowPlanModal,
+		    reportGalleryEntry,
+      consumeRemoteCredits,
+      refundRemoteCredits,
+      isAdmin,
+      isUsingRemoteCredits,
+      resolvedPlanTier,
+		  ]);
 
   const generateMockup = useCallback(
     (bundleProducts: string[]) => {
@@ -5209,16 +5319,39 @@ If the model attempts to create a scene or environment, override it and force a 
     setVideoError(null);
     setGeneratedVideoUrl(null);
 
+    let reservedCredits = 0;
     try {
-      if (GEMINI_DISABLED) {
-        setVideoError("Video generation is disabled while Gemini is off.");
-        return;
-      }
-      const resolvedApiKey = getActiveApiKeyOrNotify(message => setVideoError(message));
-      if (!resolvedApiKey) {
-        setIsVideoLoading(false);
-        return;
-      }
+	      if (!isTrialBypassActive && isUsingRemoteCredits && !isAdmin) {
+	        await consumeRemoteCredits(videoCost);
+	        reservedCredits = videoCost;
+	      }
+	      if (GEMINI_DISABLED) {
+	        setVideoError("Video generation is disabled while Gemini is off.");
+          if (reservedCredits > 0) {
+            try {
+              await refundRemoteCredits(reservedCredits);
+            } catch (refundError) {
+              console.warn('Credit refund failed', refundError);
+            } finally {
+              reservedCredits = 0;
+            }
+          }
+	        return;
+	      }
+	      const resolvedApiKey = getActiveApiKeyOrNotify(message => setVideoError(message));
+	      if (!resolvedApiKey) {
+          if (reservedCredits > 0) {
+            try {
+              await refundRemoteCredits(reservedCredits);
+            } catch (refundError) {
+              console.warn('Credit refund failed', refundError);
+            } finally {
+              reservedCredits = 0;
+            }
+          }
+	        setIsVideoLoading(false);
+	        return;
+	      }
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string, apiVersion: 'v1beta' });
       const base64Image = generatedImageUrl.split(',')[1];
 
@@ -5256,13 +5389,15 @@ If the model attempts to create a scene or environment, override it and force a 
         const blob = await response.blob();
         setGeneratedVideoUrl(URL.createObjectURL(blob));
         if (!isTrialBypassActive) {
-          setCreditUsage(count => {
-            const next = count + videoCost;
-            if (typeof window !== 'undefined') {
-              window.localStorage.setItem(IMAGE_COUNT_KEY, String(next));
-            }
-            return next;
-          });
+          if (!isUsingRemoteCredits) {
+            setCreditUsage(count => {
+              const next = count + videoCost;
+              if (typeof window !== 'undefined') {
+                window.localStorage.setItem(IMAGE_COUNT_KEY, String(next));
+              }
+              return next;
+            });
+          }
         }
         if (!isTrialBypassActive && planVideoLimit > 0 && !hasVideoAccess) {
           setVideoGenerationCount(count => count + 1);
@@ -5272,6 +5407,13 @@ If the model attempts to create a scene or environment, override it and force a 
       }
 
     } catch (err) {
+      if (reservedCredits > 0) {
+        try {
+          await refundRemoteCredits(reservedCredits);
+        } catch (refundError) {
+          console.warn('Credit refund failed', refundError);
+        }
+      }
       console.error(err);
       let errorMessage = err instanceof Error ? err.message : String(err);
 
