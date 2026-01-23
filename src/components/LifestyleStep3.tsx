@@ -1903,8 +1903,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       markSectionTouched('product-setup');
                     }}
                     selected={productStore.environmentContext != null}
-                    disabled={productStore.blankSpaceEnabled === true}
-                    className={productStore.blankSpaceEnabled ? 'opacity-50 cursor-not-allowed' : undefined}
+                    disabled={productStore.blankSpaceEnabled === true || productStore.photoMode === 'Hero Landing Page'}
+                    className={(productStore.blankSpaceEnabled === true || productStore.photoMode === 'Hero Landing Page') ? 'opacity-50 cursor-not-allowed' : undefined}
+                    title={productStore.photoMode === 'Hero Landing Page' ? 'Disabled.\nHero Landing Page controls background only.' : undefined}
                   >
                     Environment
                   </Chip>
@@ -1992,7 +1993,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	                          ).map(mode => (
                             <button
                               key={mode}
-                              title={mode}
+                              title={
+                                mode === 'Hero Landing Page'
+                                  ? 'Controls background color only.\nDisables environment and lighting.'
+                                  : mode === 'Splash Shot'
+                                    ? 'Classic liquid splash styles.\nLabel visibility always preserved.'
+                                    : mode
+                              }
                               onClick={() => {
                                 productStore.setPhotoMode(mode);
                                 markSectionTouched('product-setup');
@@ -2007,6 +2014,31 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             </button>
                           ))}
                         </div>
+
+                        {productStore.photoMode === 'Splash Shot' ? (
+                          <div className="mt-3">
+                            <label
+                              className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold block mb-1"
+                              title={'Classic liquid splash styles.\nLabel visibility always preserved.'}
+                            >
+                              Splash Style
+                            </label>
+                            <div className="flex flex-wrap gap-2">
+                              {(['Basic', 'Intermediate', 'Advanced'] as const).map(style => (
+                                <Chip
+                                  key={style}
+                                  selected={productStore.splashStyle === style}
+                                  onClick={() => {
+                                    productStore.setSplashStyle(style);
+                                    markSectionTouched('product-setup');
+                                  }}
+                                >
+                                  {style}
+                                </Chip>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null}
 
                         {/* Ingredient Input — Only visible when Ingredient Stack is selected */}
                         {productStore.photoMode === 'Ingredient Stack' && (
@@ -2255,193 +2287,161 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     )}
                   </div>
 
-                  {/* ═══════════════════════════════════════════════════════════
-                      4. APPEARANCE — How does it look?
-                      Background + Shadow always visible
-                      ═══════════════════════════════════════════════════════════ */}
-	                  <div className={SECTION_GROUP_CLASS}>
-	                    <p className={GROUP_LABEL_CLASS}>BACKGROUND</p>
-	                    <div className="flex flex-wrap gap-2 mb-3">
-	                      <Chip
-	                        selected={productStore.gradientEnabled === false}
-	                        onClick={() => {
-	                          productStore.setGradientEnabled(false);
-	                          markSectionTouched('product-setup');
-	                        }}
-	                      >
-	                        Solid
-	                      </Chip>
-	                      <Chip
-	                        selected={productStore.gradientEnabled === true}
-	                        onClick={() => {
-	                          productStore.setGradientEnabled(true);
-	                          markSectionTouched('product-setup');
-	                        }}
-	                      >
-	                        Gradient
-	                      </Chip>
-	                    </div>
-	                    <div className="flex gap-6">
-	                      {productStore.gradientEnabled ? (
-	                        <>
-	                          {/* Gradient Start */}
-	                          <div className="flex items-center gap-2">
-	                            <div className="relative">
-	                              <input
-	                                type="color"
-	                                value={/^#[0-9a-fA-F]{6}$/.test(productStore.gradientStart || '') ? productStore.gradientStart : '#F6F7FB'}
-	                                onChange={(e) => {
-	                                  productStore.setGradientEnabled(true);
-	                                  productStore.setGradientStart(e.target.value);
-	                                  markSectionTouched('product-setup');
-	                                }}
-	                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-	                              />
-	                              <div
-	                                className="w-9 h-9 rounded-full border-2 border-gray-200 cursor-pointer transition-all duration-200 hover:scale-110 hover:border-gray-400"
-	                                style={{ backgroundColor: (/^#[0-9a-fA-F]{6}$/.test(productStore.gradientStart || '') ? productStore.gradientStart : '#F6F7FB') }}
-	                              />
-	                            </div>
-	                            <input
-	                              type="text"
-	                              value={productStore.gradientStart || '#F6F7FB'}
-	                              onChange={(e) => {
-	                                productStore.setGradientEnabled(true);
-	                                productStore.setGradientStart(e.target.value);
-	                                markSectionTouched('product-setup');
-	                              }}
-	                              placeholder="#F6F7FB"
-	                              className="w-20 px-2 py-1 text-xs font-mono bg-white border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
-	                            />
-	                            <span className="text-[10px] text-gray-400">BG1</span>
-	                          </div>
-
-	                          {/* Gradient End */}
-	                          <div className="flex items-center gap-2">
-	                            <div className="relative">
-	                              <input
-	                                type="color"
-	                                value={/^#[0-9a-fA-F]{6}$/.test(productStore.gradientEnd || '') ? productStore.gradientEnd : '#E9ECF5'}
-	                                onChange={(e) => {
-	                                  productStore.setGradientEnabled(true);
-	                                  productStore.setGradientEnd(e.target.value);
-	                                  markSectionTouched('product-setup');
-	                                }}
-	                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-	                              />
-	                              <div
-	                                className="w-9 h-9 rounded-full border-2 border-gray-200 cursor-pointer transition-all duration-200 hover:scale-110 hover:border-gray-400"
-	                                style={{ backgroundColor: (/^#[0-9a-fA-F]{6}$/.test(productStore.gradientEnd || '') ? productStore.gradientEnd : '#E9ECF5') }}
-	                              />
-	                            </div>
-	                            <input
-	                              type="text"
-	                              value={productStore.gradientEnd || '#E9ECF5'}
-	                              onChange={(e) => {
-	                                productStore.setGradientEnabled(true);
-	                                productStore.setGradientEnd(e.target.value);
-	                                markSectionTouched('product-setup');
-	                              }}
-	                              placeholder="#E9ECF5"
-	                              className="w-20 px-2 py-1 text-xs font-mono bg-white border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
-	                            />
-	                            <span className="text-[10px] text-gray-400">BG2</span>
-	                          </div>
-	                        </>
-	                      ) : (
-	                        <>
-	                          {/* Background Color */}
-	                          <div className="flex items-center gap-2">
-	                            <div className="relative">
-	                              <input
-	                                type="color"
-	                                value={/^#[0-9a-fA-F]{6}$/.test(productStore.backgroundColor || '') ? productStore.backgroundColor : '#F6F7FB'}
-	                                onChange={(e) => {
-	                                  productStore.setBackgroundColor(e.target.value);
-	                                  markSectionTouched('product-setup');
-	                                }}
-	                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-	                              />
-	                              <div
-	                                className="w-9 h-9 rounded-full border-2 border-gray-200 cursor-pointer transition-all duration-200 hover:scale-110 hover:border-gray-400"
-	                                style={{ backgroundColor: (/^#[0-9a-fA-F]{6}$/.test(productStore.backgroundColor || '') ? productStore.backgroundColor : '#F6F7FB') }}
-	                              />
-	                            </div>
-	                            <input
-	                              type="text"
-	                              value={productStore.backgroundColor || '#F6F7FB'}
-	                              onChange={(e) => {
-	                                productStore.setBackgroundColor(e.target.value);
-	                                markSectionTouched('product-setup');
-	                              }}
-	                              placeholder="#F6F7FB"
-	                              className="w-20 px-2 py-1 text-xs font-mono bg-white border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
-	                            />
-	                            <span className="text-[10px] text-gray-400">BG</span>
-	                          </div>
-	                        </>
-	                      )}
-
-	                      {/* Accent Color */}
-	                      <div className="flex items-center gap-2">
-	                        <div className="relative">
-	                          <input
-	                            type="color"
-                            value={/^#[0-9a-fA-F]{6}$/.test(productStore.accentColor || '') ? productStore.accentColor : '#6366f1'}
-                            onChange={(e) => {
-                              productStore.setAccentColor(e.target.value);
+                  {productStore.photoMode === 'Hero Landing Page' ? (
+                      <div className={SECTION_GROUP_CLASS}>
+                        <p className={GROUP_LABEL_CLASS}>HERO BACKGROUND</p>
+                        <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">BACKGROUND TYPE</p>
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          <Chip
+                            selected={productStore.gradientEnabled === false}
+                            onClick={() => {
+                              productStore.setGradientEnabled(false);
                               markSectionTouched('product-setup');
                             }}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                          />
-                          <div
-                            className="w-9 h-9 rounded-full border-2 border-gray-200 cursor-pointer transition-all duration-200 hover:scale-110 hover:border-gray-400"
-                            style={{ backgroundColor: (/^#[0-9a-fA-F]{6}$/.test(productStore.accentColor || '') ? productStore.accentColor : '#6366f1') }}
-                          />
+                            title={'Controls background color only.\nDisables environment and lighting.'}
+                          >
+                            Solid
+                          </Chip>
+                          <Chip
+                            selected={productStore.gradientEnabled === true}
+                            onClick={() => {
+                              productStore.setGradientEnabled(true);
+                              markSectionTouched('product-setup');
+                            }}
+                            title={'Controls background color only.\nDisables environment and lighting.'}
+                          >
+                            Gradient
+                          </Chip>
                         </div>
-                        <input
-                          type="text"
-                          value={productStore.accentColor || '#6366f1'}
-                          onChange={(e) => {
-                            productStore.setAccentColor(e.target.value);
-                            markSectionTouched('product-setup');
-                          }}
-	                          placeholder="#6366f1"
-	                          className="w-20 px-2 py-1 text-xs font-mono bg-white border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
-	                        />
-	                        <span className="text-[10px] text-gray-400">Accent</span>
-	                      </div>
-	                    </div>
-	                  </div>
+                        <div className="flex gap-6">
+                          {productStore.gradientEnabled ? (
+                            <>
+                              <div className="flex items-center gap-2">
+                                <div className="relative">
+                                  <input
+                                    type="color"
+                                    value={/^#[0-9a-fA-F]{6}$/.test(productStore.gradientStart || '') ? productStore.gradientStart : '#F6F7FB'}
+                                    onChange={(e) => {
+                                      productStore.setGradientEnabled(true);
+                                      productStore.setGradientStart(e.target.value);
+                                      markSectionTouched('product-setup');
+                                    }}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                  />
+                                  <div
+                                    className="w-9 h-9 rounded-full border-2 border-gray-200 cursor-pointer transition-all duration-200 hover:scale-110 hover:border-gray-400"
+                                    style={{ backgroundColor: (/^#[0-9a-fA-F]{6}$/.test(productStore.gradientStart || '') ? productStore.gradientStart : '#F6F7FB') }}
+                                  />
+                                </div>
+                                <input
+                                  type="text"
+                                  value={productStore.gradientStart || '#F6F7FB'}
+                                  onChange={(e) => {
+                                    productStore.setGradientEnabled(true);
+                                    productStore.setGradientStart(e.target.value);
+                                    markSectionTouched('product-setup');
+                                  }}
+                                  placeholder="#F6F7FB"
+                                  className="w-20 px-2 py-1 text-xs font-mono bg-white border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                />
+                                <span className="text-[10px] text-gray-400">Start</span>
+                              </div>
 
-                  <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>SHADOW STYLE</p>
-                    <div className="flex flex-wrap gap-2">
-                      {[
-                        { key: 'soft-drop', label: 'Soft' },
-                        { key: 'hard-drop', label: 'Hard' },
-                        { key: 'floating', label: 'Floating' }
-                      ].map(({ key, label }) => (
-                        <Chip
-                          key={key}
-                          onClick={() => {
-                            productStore.setShadow(key as 'soft-drop' | 'hard-drop' | 'floating');
-                            markSectionTouched('product-setup');
-                          }}
-                          selected={productStore.shadow === key}
-                        >
-                          {label}
-                        </Chip>
-                      ))}
+                              <div className="flex items-center gap-2">
+                                <div className="relative">
+                                  <input
+                                    type="color"
+                                    value={/^#[0-9a-fA-F]{6}$/.test(productStore.gradientEnd || '') ? productStore.gradientEnd : '#E9ECF5'}
+                                    onChange={(e) => {
+                                      productStore.setGradientEnabled(true);
+                                      productStore.setGradientEnd(e.target.value);
+                                      markSectionTouched('product-setup');
+                                    }}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                  />
+                                  <div
+                                    className="w-9 h-9 rounded-full border-2 border-gray-200 cursor-pointer transition-all duration-200 hover:scale-110 hover:border-gray-400"
+                                    style={{ backgroundColor: (/^#[0-9a-fA-F]{6}$/.test(productStore.gradientEnd || '') ? productStore.gradientEnd : '#E9ECF5') }}
+                                  />
+                                </div>
+                                <input
+                                  type="text"
+                                  value={productStore.gradientEnd || '#E9ECF5'}
+                                  onChange={(e) => {
+                                    productStore.setGradientEnabled(true);
+                                    productStore.setGradientEnd(e.target.value);
+                                    markSectionTouched('product-setup');
+                                  }}
+                                  placeholder="#E9ECF5"
+                                  className="w-20 px-2 py-1 text-xs font-mono bg-white border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                />
+                                <span className="text-[10px] text-gray-400">End</span>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <div className="relative">
+                                <input
+                                  type="color"
+                                  value={/^#[0-9a-fA-F]{6}$/.test(productStore.backgroundColor || '') ? productStore.backgroundColor : '#F6F7FB'}
+                                  onChange={(e) => {
+                                    productStore.setBackgroundColor(e.target.value);
+                                    markSectionTouched('product-setup');
+                                  }}
+                                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                />
+                                <div
+                                  className="w-9 h-9 rounded-full border-2 border-gray-200 cursor-pointer transition-all duration-200 hover:scale-110 hover:border-gray-400"
+                                  style={{ backgroundColor: (/^#[0-9a-fA-F]{6}$/.test(productStore.backgroundColor || '') ? productStore.backgroundColor : '#F6F7FB') }}
+                                />
+                              </div>
+                              <input
+                                type="text"
+                                value={productStore.backgroundColor || '#F6F7FB'}
+                                onChange={(e) => {
+                                  productStore.setBackgroundColor(e.target.value);
+                                  markSectionTouched('product-setup');
+                                }}
+                                placeholder="#F6F7FB"
+                                className="w-20 px-2 py-1 text-xs font-mono bg-white border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                              />
+                              <span className="text-[10px] text-gray-400">BG</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : null}
+
+                  {productStore.photoMode !== 'Hero Landing Page' ? (
+                    <div className={SECTION_GROUP_CLASS}>
+                      <p className={GROUP_LABEL_CLASS}>SHADOW STYLE</p>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { key: 'soft-drop', label: 'Soft' },
+                          { key: 'hard-drop', label: 'Hard' },
+                          { key: 'floating', label: 'Floating' }
+                        ].map(({ key, label }) => (
+                          <Chip
+                            key={key}
+                            onClick={() => {
+                              productStore.setShadow(key as 'soft-drop' | 'hard-drop' | 'floating');
+                              markSectionTouched('product-setup');
+                            }}
+                            selected={productStore.shadow === key}
+                          >
+                            {label}
+                          </Chip>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  ) : null}
 
                   {/* ═══════════════════════════════════════════════════════════
                       5. PRO ONLY — Advanced Controls
                       Hidden in Basic mode, revealed progressively in Pro
                       ═══════════════════════════════════════════════════════════ */}
-                  {productStore.presetTier === 'pro' && (
-                    <>
+	                  {productStore.presetTier === 'pro' && productStore.photoMode !== 'Hero Landing Page' && (
+	                    <>
                       {/* PRO PHOTOGRAPHER MODE */}
                       <div className={SECTION_GROUP_CLASS}>
                         <div className="flex items-center justify-between gap-3 mb-3">

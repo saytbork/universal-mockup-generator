@@ -782,6 +782,8 @@ function buildInteraction(state: ProductStudioState): string {
 // ============================================================================
 
 function buildCamera(state: ProductStudioState): string {
+    if (state.photoMode === 'Hero Landing Page') return '';
+
     const parts: string[] = [];
 
     parts.push(`shot on professional ${state.cameraSystem.toUpperCase()} camera`);
@@ -840,6 +842,12 @@ function buildSceneType(state: ProductStudioState): string {
 
 function buildPhotoMode(state: ProductStudioState): string {
     if (!state.photoMode) return '';
+
+    // Hero Landing Page: background-only control (no scene, lighting, mood, surface, or camera injection).
+    if (state.photoMode === 'Hero Landing Page') {
+        return '';
+    }
+
     const preset = PHOTO_MODE_PRESETS[state.photoMode];
     if (preset) {
         // Do NOT echo the photoMode label, because some UI labels contain forbidden words (e.g. "Face").
@@ -852,6 +860,29 @@ function buildPhotoMode(state: ProductStudioState): string {
         .replace(/\s+/g, ' ')
         .trim();
     return safeLabel ? `PHOTO_MODE (NON-NEGOTIABLE): ${safeLabel}.` : '';
+}
+
+function buildSplashShot(state: ProductStudioState): string {
+    if (state.photoMode !== 'Splash Shot') return '';
+
+    const style = state.splashStyle ?? 'Basic';
+    const parts: string[] = [
+        'SPLASH ENGINE (WHEN ENABLED): Splash Style must be selected from Basic, Intermediate, Advanced.',
+        `SPLASH STYLE: ${style}.`,
+        'Splash obeys gravity and realistic motion.',
+        'Splash never obscures the product label.',
+        'No floating liquid.'
+    ];
+
+    if (style === 'Basic') {
+        parts.push('BASIC: Small splash, low volume, close to the product.', 'No fine particles or mist.');
+    } else if (style === 'Intermediate') {
+        parts.push('INTERMEDIATE: Medium splash with some height and visible dynamics.', 'Gravity-resolved motion only; no mist.');
+    } else {
+        parts.push('ADVANCED: Large splash with clear arcs and high energy.', 'Mist is allowed only in Advanced and must not cover the label.');
+    }
+
+    return parts.join(' ');
 }
 
 function buildBackground(state: ProductStudioState): string {
@@ -1224,17 +1255,21 @@ function buildLabelLock(): string {
 function assembleSingleProductPrompt(state: ProductStudioState, product: ProductAsset): string {
     const segments: string[] = [];
     const isPhotoStudio = state.sceneType === 'studio-branding';
+    const isHeroLandingPage = state.photoMode === 'Hero Landing Page';
 
     // 1. Scene Type
     segments.push(buildSceneType(state));
 
-    // 1b. Hero Background Control (must not be overridden by Photo Mode/Atmosphere)
-    if (!state.blankSpaceEnabled) {
+    // 1b. Hero Landing Page: background-only control
+    if (!state.blankSpaceEnabled && state.photoMode === 'Hero Landing Page') {
         segments.push(buildBackground(state));
     }
 
     // 1c. Photo Mode (global art direction across Product Studio scene types)
     segments.push(buildPhotoMode(state));
+    if (!state.blankSpaceEnabled && !isHeroLandingPage) {
+        segments.push(buildSplashShot(state));
+    }
 
     // 1. Product Definition (Source of Truth)
     segments.push(buildProductDescription(state, product));
@@ -1244,18 +1279,18 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     segments.push(buildStateMotion(state));
 
     // 3. Environment + Micro Place (When allowed)
-    if (!state.blankSpaceEnabled) {
+    if (!state.blankSpaceEnabled && !isHeroLandingPage) {
         const environment = buildEnvironment(state);
         if (environment) segments.push(environment);
     }
 
     // 4. Composition & Art Direction (Key for Olly/AG1)
     // In Ecommerce Blank Space mode, composition is governed by `buildEcommerce()`.
-    if (!state.blankSpaceEnabled) {
+    if (!state.blankSpaceEnabled && !isHeroLandingPage) {
         segments.push(buildComposition(state));
     }
     // 4b–4e. Photo Studio styling blocks (mutually exclusive with Environment)
-    if (isPhotoStudio) {
+    if (isPhotoStudio && !isHeroLandingPage) {
         segments.push(buildShadow(state));
         segments.push(buildAccentColor(state));
         if (!state.blankSpaceEnabled) {
@@ -1264,7 +1299,7 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     }
 
     // 5. Creativity System (Includes Props)
-    if (!state.blankSpaceEnabled) {
+    if (!state.blankSpaceEnabled && !isHeroLandingPage) {
         const creativity = buildCreativity(state);
         if (creativity) segments.push(creativity);
     }
@@ -1272,17 +1307,25 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     // 6. Props (Handled in Creativity)
 
     // 7. Lighting (Product Safe)
-    segments.push(buildLighting(state));
+    if (!isHeroLandingPage) {
+        segments.push(buildLighting(state));
+    }
 
     // 7b. Pro Photographer Mode (global; not limited to studio-branding)
-    segments.push(buildLens(state));
-    segments.push(buildFinish(state));
+    if (!isHeroLandingPage) {
+        segments.push(buildLens(state));
+        segments.push(buildFinish(state));
+    }
 
     // 8. Camera & Framing
-    segments.push(buildCamera(state));
+    if (!isHeroLandingPage) {
+        segments.push(buildCamera(state));
+    }
 
     // 9. Interaction (optional cropped hand)
-    segments.push(buildInteraction(state));
+    if (!isHeroLandingPage) {
+        segments.push(buildInteraction(state));
+    }
 
     // 9b. Ecommerce (Blank Space mode)
     if (state.blankSpaceEnabled) {
@@ -1309,17 +1352,21 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
 function assembleBundlePrompt(state: ProductStudioState): string {
     const segments: string[] = [];
     const isPhotoStudio = state.sceneType === 'studio-branding';
+    const isHeroLandingPage = state.photoMode === 'Hero Landing Page';
 
     // 1. Scene Type
     segments.push(buildSceneType(state));
 
-    // 1b. Hero Background Control (must not be overridden by Photo Mode/Atmosphere)
-    if (!state.blankSpaceEnabled) {
+    // 1b. Hero Landing Page: background-only control
+    if (!state.blankSpaceEnabled && state.photoMode === 'Hero Landing Page') {
         segments.push(buildBackground(state));
     }
 
     // 1c. Photo Mode (global art direction across Product Studio scene types)
     segments.push(buildPhotoMode(state));
+    if (!state.blankSpaceEnabled && !isHeroLandingPage) {
+        segments.push(buildSplashShot(state));
+    }
 
     // 1. Product Definition (Primary)
     const primary = state.products.find(p => p.id === state.bundle.primaryProductId);
@@ -1335,35 +1382,41 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     segments.push(buildBundleComposition(state));
 
     // 3. Environment
-    if (!state.blankSpaceEnabled) {
+    if (!state.blankSpaceEnabled && !isHeroLandingPage) {
         const environment = buildEnvironment(state);
         if (environment) segments.push(environment);
     }
 
     // 4. Composition
-    if (!state.blankSpaceEnabled) {
+    if (!state.blankSpaceEnabled && !isHeroLandingPage) {
         segments.push(buildComposition(state));
     }
     // 4b–4d. Photo Studio styling blocks (mutually exclusive with Environment)
-    if (isPhotoStudio) {
+    if (isPhotoStudio && !isHeroLandingPage) {
         segments.push(buildShadow(state));
     }
 
     // 5. Creativity
-    if (!state.blankSpaceEnabled) {
+    if (!state.blankSpaceEnabled && !isHeroLandingPage) {
         const creativity = buildCreativity(state);
         if (creativity) segments.push(creativity);
     }
 
     // 7. Lighting
-    segments.push(buildLighting(state));
+    if (!isHeroLandingPage) {
+        segments.push(buildLighting(state));
+    }
 
     // 7b. Pro Photographer Mode (global; not limited to studio-branding)
-    segments.push(buildLens(state));
-    segments.push(buildFinish(state));
+    if (!isHeroLandingPage) {
+        segments.push(buildLens(state));
+        segments.push(buildFinish(state));
+    }
 
     // 8. Camera
-    segments.push(buildCamera(state));
+    if (!isHeroLandingPage) {
+        segments.push(buildCamera(state));
+    }
 
     // 10. Negative Constraints
     // 11. Final Quality Bar
@@ -1389,6 +1442,7 @@ function buildNegativePrompt(state: ProductStudioState): string {
     const interaction = String(state.interaction || 'none');
     const allowHands = interaction !== 'none' || state.handsHolding === true;
     const motion = String(state.stateMotion || 'static');
+    const splashStyle = state.photoMode === 'Splash Shot' ? (state.splashStyle ?? 'Basic') : null;
 
     const humanNegativesBase = ['person', 'people', 'head', 'face', 'body', 'torso', 'full figure', 'model'];
     const handsNegatives = (() => {
@@ -1453,8 +1507,8 @@ function buildNegativePrompt(state: ProductStudioState): string {
         'floating capsules',
         'symmetrical motion',
         'magical particles',
-        'mist', 'smoke',
-        'exaggerated splash',
+        ...(splashStyle === 'Advanced' ? ['smoke'] : ['mist', 'smoke']),
+        ...(splashStyle ? [] : ['exaggerated splash']),
         'floating hands', 'stiff fingers', 'mannequin hands', 'plastic hands', 'rubber hands', 'cgi hands',
         'distracting jewelry', 'oversized jewelry',
         // Quality / artifacts

@@ -497,6 +497,7 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     // PRODUCT STUDIO UI CONTROLS (NEW)
     interpretationNotes: {},
     photoMode: 'Hero Landing Page',
+    splashStyle: 'Basic',
     // Default hero background must not imply a pure white seamless.
     backgroundColor: '#F6F7FB',
     accentColor: '#204020',
@@ -645,6 +646,7 @@ type ProductStudioActions = {
 
     // Product Studio UI Controls (NEW)
     setPhotoMode: (mode: string) => void;
+    setSplashStyle: (style: ProductStudioState['splashStyle']) => void;
     setBackgroundColor: (color: string) => void;
     setAccentColor: (color: string) => void;
     setAlignment: (alignment: ProductStudioState['alignment']) => void;
@@ -1248,8 +1250,21 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 return { photoMode: 'Hero Landing Page' };
             }
 
+            if (nextMode === 'Hero Landing Page') {
+                return {
+                    photoMode: nextMode,
+                    environmentContext: null,
+                    sceneType: 'studio-branding',
+                    proMode: false,
+                };
+            }
+
             return { photoMode: nextMode };
         }),
+    setSplashStyle: (style) =>
+        set(() => ({
+            splashStyle: style ?? 'Basic',
+        })),
     setBackgroundColor: (color) =>
         set((state) => ({
             backgroundColor: String(color ?? ''),

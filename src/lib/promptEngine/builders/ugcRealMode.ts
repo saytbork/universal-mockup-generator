@@ -48,7 +48,7 @@ The person and product remain the primary subjects.
 `.trim().replace(/\s+/g, ' ');
 
 const UGC_VALIDATION = `
-VALIDATION: Does this look like a careless front-camera selfie at home with no intent to look good?
+VALIDATION: Does this look like a careless front-phone selfie at home with no intent to look good?
 If no, reject immediately.
 `.trim().replace(/\s+/g, ' ');
 
@@ -87,7 +87,7 @@ Captured accidentally in a real daily moment.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 CLOSE-FACE FRAMING (ABSOLUTE)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Camera distance: 10–20 cm from the face.
+Distance: 10–20 cm from the face.
 The phone is inches away from the face.
 The FACE dominates the frame (75–90% of image area).
 
@@ -172,7 +172,7 @@ ENVIRONMENT (LIFESTYLE CONTEXT)
 Real lived-in domestic environment.
 Unstyled.
 Uncontrolled.
-Nothing staged for the camera.
+Nothing staged for capture.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ABSOLUTE BLOCKERS
@@ -200,7 +200,7 @@ BLOCKED:
 FINAL VALIDATION CHECK
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Ask:
-"Does this look like a cramped, awkward, badly framed front-camera selfie,
+"Does this look like a cramped, awkward, badly framed front-phone selfie,
 taken inches from the face, with ONE hand holding the product imperfectly,
 ugly lighting, and real physical contact?"
 
@@ -253,7 +253,7 @@ const CAMERA_OPERATOR_DETAILS: Record<string, string> = {
 };
 
 const BODY_PHONE_DETAILS: Record<string, string> = {
-    'arm-extended': 'Arm fully extended, product toward camera.',
+    'arm-extended': 'Arm fully extended, product toward viewer.',
     'chest-rest': 'Phone pressed to chest, elbows tucked.',
     'shoulder-peek': 'Phone peeks over shoulder, face turns away.',
     'tilted-angle': 'Phone twisted from wrist flick.'
@@ -388,7 +388,7 @@ export class UGCRealModeBuilder implements PromptBuilder {
         // ====================================================================
         parts.push(UGC_DEVICE_CONTRACT);
         parts.push(UGC_COMPOSITION_RULES);
-        parts.push(`Camera tilt: ${tiltAngle}° off-level, handheld wobble.`);
+        parts.push(`Tilt: ${tiltAngle}° off-level, handheld wobble.`);
         parts.push(UGC_LIGHTING_RULES);
         parts.push(UGC_IMPERFECTION_LEVEL_RULES[imperfectionLevel]);
         parts.push(UGC_APPEARANCE_RULES);

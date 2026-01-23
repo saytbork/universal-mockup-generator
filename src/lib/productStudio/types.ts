@@ -417,6 +417,7 @@ export type ProductStudioState = {
     // ========================================================================
     interpretationNotes: Partial<Record<string, { message: string; ts: number }>>;
     photoMode: string;
+    splashStyle: 'Basic' | 'Intermediate' | 'Advanced';
     backgroundColor: string;
     accentColor: string;
     colorLocks: {

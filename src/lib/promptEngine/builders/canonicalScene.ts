@@ -441,6 +441,10 @@ export class SceneNarrativeBuilder {
     }
 
     private buildCameraFraming(options: PromptOptions, constraints?: string): string {
+        if (options.creationMode === 'lifestyle' && options.contentStyle === 'ugc' && options.ugcRealModeActive) {
+            return constraints ? constraints : '';
+        }
+
         const isProductMode =
             options.creationIntent === 'product' ||
             options.contentStyle === 'product' ||
@@ -510,6 +514,11 @@ export class SceneNarrativeBuilder {
             options.contentStyle === 'product' ||
             options.sceneIntent === 'ecommerce';
 
+        const isLifestyleUgc =
+            options.creationMode === 'lifestyle' &&
+            options.contentStyle === 'ugc' &&
+            Boolean(options.ugcRealModeActive);
+
         const isEcommerceBlankSpaceMode =
             Boolean(
                 options.ecommerceBlankSpaceMode ||
@@ -559,17 +568,19 @@ export class SceneNarrativeBuilder {
             sceneEnvironment: (options as any).sceneEnvironment || options.setting,
             customEnvironment: (options as any).customEnvironment
         });
-        const lightingText = buildLighting({
-            lighting: options.lighting,
-            sceneLighting: (options as any).sceneLighting,
-            personDetails: options.personDetails,
-            ugcRealMode: options.ugcRealModeActive
-        });
+        const lightingText = isLifestyleUgc
+            ? ''
+            : buildLighting({
+                lighting: options.lighting,
+                sceneLighting: (options as any).sceneLighting,
+                personDetails: options.personDetails,
+                ugcRealMode: options.ugcRealModeActive
+            });
 
         // Inject structural rules from mapper
         const creationModeStructural = (options as any).creationModeStructural || '';
         const compositionModeStructural = (options as any).compositionModeStructural || '';
-        const cameraDeviceSemantic = (options as any).cameraDeviceSemantic || '';
+        const cameraDeviceSemantic = isLifestyleUgc ? '' : ((options as any).cameraDeviceSemantic || '');
 
         const environmentPhrase = formatEnvironmentPhrase(environmentText);
         const backgroundLine =

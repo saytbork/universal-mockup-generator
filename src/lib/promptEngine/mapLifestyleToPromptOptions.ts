@@ -1314,7 +1314,8 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     // UGC REAL MODE → HARD OVERRIDES (Highest Priority)
     // ========================================================================
-    if (sceneState.ugcRealMode) {
+    const lifestyleUgcMode = creationModeKey === 'Lifestyle UGC';
+    if (sceneState.ugcRealMode || lifestyleUgcMode) {
         console.log('[MAP] UGC Real Mode ACTIVE - applying hard overrides');
 
         // FORCE lifestyle mode
@@ -1322,7 +1323,7 @@ export function mapLifestyleToPromptOptions(
         mapped.ugcRealModeActive = true;
         mapped.realModeActive = true;
         mapped.ugcCaptureSituation = sceneState.ugcCaptureSituation || null;
-        mapped.ugcImperfectionLevel = sceneState.ugcImperfectionLevel || 'high';
+        mapped.ugcImperfectionLevel = sceneState.ugcImperfectionLevel || (lifestyleUgcMode ? 'medium' : 'high');
     } else {
         mapped.ugcCaptureSituation = null;
         mapped.ugcImperfectionLevel = undefined;
