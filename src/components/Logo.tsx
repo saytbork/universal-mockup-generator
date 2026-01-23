@@ -1,8 +1,5 @@
 import React from 'react';
 
-import colorLogoUrl from '../../img/logos/svg/colorlogo.svg';
-import whiteLogoUrl from '../../img/logos/svg/logowhite.svg';
-
 type LogoVariant = 'siteNav' | 'appHeader';
 
 type LogoProps = {
@@ -25,13 +22,13 @@ export default function Logo({ variant = 'siteNav', className = '' }: LogoProps)
   return (
     <div className={`flex items-center ${className}`}>
       <img
-        src={colorLogoUrl}
+        src="/images/colorlogo.svg"
         alt="Perfect Mockup"
         className={`${styles.height} w-auto dark:hidden`}
         draggable={false}
       />
       <img
-        src={whiteLogoUrl}
+        src="/images/logowhite.svg"
         alt="Perfect Mockup"
         className={`${styles.height} w-auto hidden dark:block`}
         draggable={false}

@@ -860,6 +860,26 @@ function buildBackground(state: ProductStudioState): string {
         return 'BACKGROUND: Pure solid white #FFFFFF seamless studio backdrop. Absolutely no tint, no beige/green cast, no gradient.';
     }
 
+    const photoModeBackdropDefaults: Record<string, string> = {
+        'Hero Landing Page': 'BACKGROUND: clean off-white studio gradient backdrop with gentle vignette and soft falloff (not pure white).',
+        'Color Pop Hero': 'BACKGROUND: bold but controlled solid tone or subtle gradient supporting the label palette (not pure white).',
+        'Ingredient Stack': 'BACKGROUND: premium studio backdrop with subtle tonal gradient; set reads as a styled tabletop scene (not pure white).',
+        'Acrylic Blocks': 'BACKGROUND: cool studio gradient backdrop with crisp specular highlights and controlled reflections (not pure white).',
+        'Splash Shot': 'BACKGROUND: high-key studio gradient with clean speculars and controlled falloff (not pure white).',
+        'Tile & Spa': 'BACKGROUND: high-key off-white to light-gray gradient backdrop with a clear horizon transition above the tile set (not pure white).',
+        'Foam & Texture': 'BACKGROUND: neutral studio gradient backdrop (off-white/soft gray) to showcase textures (not pure white).',
+        'Routine Carousel': 'BACKGROUND: consistent soft daylight gradient backdrop for repeatable carousel outputs (not pure white).',
+        'Pastel Picnic': 'BACKGROUND: pastel-toned backdrop with soft greenery bokeh accents, art-directed and clean (not pure white).',
+        'Face Pop Close-Up': 'BACKGROUND: neutral off-white studio gradient with minimal distractions (not pure white).',
+        'Sunrise Wellness Counter': 'BACKGROUND: warm sunrise gradient backdrop with soft beams and long gentle falloff (not pure white).',
+        'Clinical Lab Counter': 'BACKGROUND: cool clinical gray-blue gradient backdrop with sterile set continuity (not pure white).',
+        'Golden Mist Aura': 'BACKGROUND: warm golden gradient backdrop with controlled glow and soft falloff (not pure white).',
+        'Outdoor Energy Boost': 'BACKGROUND: bright natural backdrop with soft greenery bokeh and clean tonal separation (not pure white).',
+        'Crown Wellness Vanity': 'BACKGROUND: luxury neutral gradient backdrop with subtle reflective cues (not pure white).',
+        'Candy Gradient Lab': 'BACKGROUND: saturated premium gradient backdrop with polished highlights (not pure white).',
+        'Tile & Spa (alt)': 'BACKGROUND: high-key off-white gradient backdrop with a horizon transition (not pure white).',
+    };
+
     // Real environments: avoid "studio background" contradictions.
     if (state.sceneType === 'lifestyle-real' || state.sceneType === 'ugc-phone') {
         const bg = normalizeHexOrEmpty(state.backgroundColor);
@@ -887,7 +907,10 @@ function buildBackground(state: ProductStudioState): string {
     if (!color) return '';
 
     const isWhite = color.toLowerCase() === '#ffffff';
-    if (isWhite && !state.colorLocks?.background) return '';
+    if (isWhite && !state.colorLocks?.background) {
+        // If background is still default white and user didn't lock it, Photo Mode must define a complete set/backdrop.
+        return photoModeBackdropDefaults[state.photoMode] || 'BACKGROUND: subtle off-white studio gradient backdrop with gentle falloff (not pure white).';
+    }
     if (isWhite) {
         return 'BACKGROUND: Pure solid white #FFFFFF seamless studio backdrop. Absolutely no tint, no beige/green cast, no gradient.';
     }
