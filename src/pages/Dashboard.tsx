@@ -543,7 +543,10 @@ function GallerySection({ userEmail }: { userEmail: string }) {
         await deleteFromGallery(image.id);
       }
 
-      setImages(prev => prev.filter(i => i.id !== image.id));
+      const urlKey = String(image.imageUrl || '');
+      setImages(prev =>
+        prev.filter(i => String(i.imageUrl || '') !== urlKey && String(i.id || '') !== String(image.id || ''))
+      );
     } catch (err: any) {
       console.error('Delete failed:', err);
       alert(err?.message || 'Failed to delete image.');

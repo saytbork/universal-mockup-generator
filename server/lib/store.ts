@@ -20,7 +20,7 @@ const getKv = async () => {
 
 const defaultUser = (): UserRecord => ({
   plan: null,
-  credits: 0,
+  credits: 2,
   inviteUsed: false,
   updatedAt: Date.now(),
 });

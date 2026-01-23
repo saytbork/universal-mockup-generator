@@ -427,7 +427,7 @@ Avoid oversized or floating product overlays.
   'product-first': `
 Product slightly closer to the camera but still physically integrated in the hand.
 Keep the person in mid-ground, not heavily blurred.
-Maintain natural depth of field without aggressive background separation.
+Maintain flat focus across the frame; no background separation, no bokeh, no portrait mode.
 `,
   'model-first': `
 Keep the person in the foreground with clear focus and prominence.
@@ -1302,7 +1302,13 @@ const App: React.FC = () => {
     const fetchProfile = async () => {
       try {
         const res = await fetch('/api/user?action=me');
-        if (!res.ok) return;
+        if (!res.ok) {
+          if (active) {
+            setRemoteCredits(0);
+            setRemotePlanTier('free');
+          }
+          return;
+        }
         const data = await res.json();
         if (active) {
           setInviteUsed(Boolean(data.inviteUsed));
@@ -1319,6 +1325,10 @@ const App: React.FC = () => {
         }
       } catch (error) {
         console.error('Unable to fetch user profile for gallery', error);
+        if (active) {
+          setRemoteCredits(0);
+          setRemotePlanTier('free');
+        }
       }
     };
     fetchProfile();
@@ -1486,7 +1496,7 @@ const App: React.FC = () => {
   const canUseCaptionAssistant = false;
   const isUsingRemoteCredits = !isGuest && Boolean(userEmail.trim());
   const remainingCredits = Math.max(
-    isUsingRemoteCredits ? (remoteCredits ?? Number.POSITIVE_INFINITY) : planCreditLimit - creditUsage,
+    isUsingRemoteCredits ? (remoteCredits ?? 0) : planCreditLimit - creditUsage,
     0
   );
   const remainingVideos = Math.max(planVideoLimit - videoGenerationCount, 0);
@@ -4014,7 +4024,7 @@ Maintain correct human anatomy at all times:
       if (preset?.prompt) {
         prompt += ` ${clean(preset.prompt)}`;
       }
-      prompt += ' Their face must look photorealistic and human—no CGI, animation, or plastic skin. Keep real pores, imperfect lighting, and shallow depth of field like an editorial portrait.';
+      prompt += ' Their face must look photorealistic and human—no CGI, animation, or plastic skin. Keep real pores and imperfect lighting. Keep flat focus across the frame (no depth-of-field blur).';
       prompt += ' Make it obvious they created the formula based on cited clinical research—include subtle clipboard notes, lab coat details, and a respectful nod to science-backed development.';
     }
     if (realModeActive) {
