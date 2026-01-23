@@ -257,7 +257,7 @@ export default function Dashboard() {
                 </p>
                 {user.inviteUsed && (
                   <p className="text-xs text-indigo-600 flex items-center gap-2">
-                    <Sparkles className="h-4 w-4" /> Welcome gift applied (+20 credits)
+                    <Sparkles className="h-4 w-4" /> Welcome gift applied (+10 credits)
                   </p>
                 )}
               </div>
@@ -349,7 +349,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <span className="text-xs text-gray-600">
-                    {item.type === "invite" && "+20 credits"}
+                    {item.type === "invite" && "+10 credits"}
                     {item.type === "image" && (item.meta?.delta ?? -1)}
                   </span>
                 </div>

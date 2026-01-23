@@ -77,7 +77,7 @@ export default function Login() {
           </div>
           <label className="block text-sm text-gray-600">
             Invitation Code
-            <div className="text-xs text-gray-500 mt-1">Optional — unlock 20 credits</div>
+            <div className="text-xs text-gray-500 mt-1">Optional — unlock 10 credits</div>
           </label>
           <div className="relative">
             <input

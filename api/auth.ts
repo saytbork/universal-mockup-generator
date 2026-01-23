@@ -112,8 +112,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               metadata: { ...metadata, invite_bonus_claimed: 'true' },
             });
             const user = await getUser(email);
-            await setUser(email, { credits: (user.credits || 0) + 20, inviteUsed: true });
-            await addActivity(email, 'invite', { bonus: 20 });
+            await setUser(email, { credits: (user.credits || 0) + 10, inviteUsed: true });
+            await addActivity(email, 'invite', { bonus: 10 });
           }
         }
       } catch (error) {
