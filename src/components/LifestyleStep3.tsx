@@ -6517,6 +6517,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   icon={Camera}
                   title="Camera & Framing"
                   tooltip="How the scene is captured"
+                  helpTooltip={'Camera & Framing.\nUGC ignores camera aesthetics to preserve realism.'}
                   isOpen={openAccordionId === 'camera'}
                   onToggle={() => toggleSection('camera')}
                   isTouched={touchedSections.has('camera')}

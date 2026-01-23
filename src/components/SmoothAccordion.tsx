@@ -5,6 +5,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 interface SmoothAccordionProps {
   title: string;
   tooltip: string;
+  helpTooltip?: string;
   icon: React.ElementType;
   children: React.ReactNode;
   isOpen?: boolean;
@@ -27,6 +28,7 @@ interface SmoothAccordionProps {
 const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
   title,
   tooltip,
+  helpTooltip,
   icon: Icon,
   children,
   isOpen,
@@ -48,6 +50,7 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const controlled = typeof isOpen === 'boolean';
   const open = controlled ? isOpen : internalOpen;
+  const tooltipContent = helpTooltip ?? tooltip;
 
   const handleToggle = () => {
     if (onToggle) {
@@ -85,7 +88,7 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
             <div className="text-left">
               <div className="flex items-center gap-2">
                 <p className={`text-sm font-semibold text-gray-900 dark:text-white ${titleClassName}`}>{title}</p>
-                {tooltip ? (
+                {tooltipContent ? (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button
@@ -98,7 +101,9 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
                         <HelpCircle className="w-4 h-4" />
                       </button>
                     </TooltipTrigger>
-                    <TooltipContent side="right">{tooltip}</TooltipContent>
+                    <TooltipContent side="right">
+                      <span className="whitespace-pre-line">{tooltipContent}</span>
+                    </TooltipContent>
                   </Tooltip>
                 ) : null}
                 {isRequired && !isTouched && (

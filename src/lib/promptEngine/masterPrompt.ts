@@ -17,74 +17,22 @@
  */
 
 const OPTIMIZED_UGC_PROMPT = `
-OPTICS LOCK (UGC):
-- Smartphone tiny-sensor look.
-- Flat focus across the entire frame; everything sharp foreground to background.
-- No portrait mode, no bokeh, no background blur.
+UGC CAPTURE:
+- Casual smartphone photo.
+- Natural, unstyled, believable.
+- Product and label clearly visible and readable.
 `.trim();
 const NATURAL_UGC_PROMPT = `
-LIFESTYLE MODE: NATURAL UGC.
-
-SCENE NARRATIVE:
-This must look like a real, casual photo taken at home by a normal person using a smartphone.
-The image should feel natural, human, and believable.
-It must not look staged, produced, or commercially polished.
-
-RULES:
-- No studio lighting.
-- No professional photography.
-- No polished or commercial composition.
-- No beauty filters.
-- No skin smoothing.
-- No brand-style presentation.
-
-VISUAL FIDELITY:
-- Hyperrealistic and imperfect UGC photo aesthetic.
-- Basic smartphone front-camera quality.
-- Flat focus across the entire frame.
-- Everything sharp from foreground to background.
-- No background blur, no depth of field effects.
-- Natural domestic lighting.
-- Uneven exposure is allowed.
-- Minor imperfections are allowed.
-- Low dynamic range with small sensor characteristics.
-
-CREATOR IDENTITY:
-- Real skin texture with natural variation.
-- No retouching.
-- Casual, unposed expression and posture.
-- The person is not presenting or performing.
-
-CAPTURE:
-- Handheld or casual front-camera framing.
-- Arm visible positioned as if holding the device (phone invisible).
-- Slightly imperfect framing and handheld wobbling are allowed.
-- Horizon does not need to be perfectly level.
-- Camera placement feels incidental, not planned.
-
-ENVIRONMENT:
-- Real domestic environment.
-- Lived-in but not dirty or chaotic.
-- Everyday surroundings.
-
-CRITICAL PROHIBITIONS:
-- No studio light.
-- No production setup.
-- No ecommerce product shot.
-- No influencer-style posing.
-- No showing the product directly to camera.
-
-GOAL:
-Natural, pleasant, believable UGC.
-Not raw and messy.
-Not polished or optimized.
-Just real.
+UGC CAPTURE:
+- Casual smartphone photo in a real setting.
+- Natural, unstyled, believable.
+- Product and label clearly visible and readable.
 `.trim();
 const RAW_UGC_PROMPT = `
-OPTICS LOCK (UGC):
-- Smartphone tiny-sensor look.
-- Flat focus across the entire frame; everything sharp foreground to background.
-- No portrait mode, no bokeh, no background blur.
+UGC CAPTURE:
+- Casual smartphone photo.
+- Natural, unstyled, believable.
+- Product and label clearly visible and readable.
 `.trim();
 
 const UGC_CONTRACTS = {
@@ -184,7 +132,11 @@ export function buildMasterPrompt(
   }
 
   const ugcContract = UGC_CONTRACTS[ugcStyle];
-  if (ugcContract) {
+  const shouldApplyUgcContract =
+    /\bugc\b/i.test(`${creationIntent} ${creationMode} ${ugcRealMode}`) ||
+    selfieCaptureActive;
+
+  if (ugcContract && shouldApplyUgcContract) {
     const trimmedContract = ugcContract.trim();
     if (trimmedContract.length > 0) {
       renderedParts.push(trimmedContract);

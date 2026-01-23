@@ -14,7 +14,8 @@ export class FinalizeBuilder implements PromptBuilder {
             Boolean(options.ugcRealModeActive) ||
             Boolean(options.rawDomesticUgcActive) ||
             options.contentStyle === 'ugc' ||
-            options.creationIntent === 'ugc';
+            options.creationIntent === 'ugc' ||
+            options.creationMode === 'lifestyle';
 
         const lines: string[] = [
             'Final render must be high resolution, photorealistic and free of watermarks or text.',
@@ -28,7 +29,7 @@ export class FinalizeBuilder implements PromptBuilder {
             lines.push(
                 'CRITICAL: No product visible anywhere in frame (no packaging, no bottles, no jars, no labels, no supplement containers).',
                 'Do not include any brand packaging, product hero, or close-up packshot.',
-                'Focus on the person and environment; do not show any brand packaging.'
+                'Emphasize the person and environment; do not show any brand packaging.'
             );
             if (options.ritualNoObjects) {
                 lines.push(
@@ -43,10 +44,10 @@ export class FinalizeBuilder implements PromptBuilder {
                 'PRODUCT PRIORITY (CRITICAL): The product must be clearly visible in the foreground/main subject position; never placed in the background/second plane.',
                 'CONTACT REALISM: The product must look physically held (not composited). Fingers must occlude edges naturally with believable grip pressure and contact shadows. No pasted/sticker look and no halo/cutout edges.',
                 ugcDepthLockActive
-                    ? 'OPTICS LOCK: Keep the entire frame evenly focused. The product label must be tack sharp and fully readable. Do not let the product or label become soft while other areas are sharp.'
+                    ? 'VISIBILITY LOCK: The product and label remain clearly visible and readable across the frame; never soft or unreadable.'
                     : 'OPTICS LOCK: The product must be tack sharp and the sharpest object in the frame. Use deep depth of field (f/8–f/11) or focus stacking; absolutely no portrait mode, bokeh, or shallow depth-of-field that blurs the product or label.',
                 ugcDepthLockActive
-                    ? 'Never let the product be unreadable: label text must remain crisp and clear.'
+                    ? 'Never let the product be unreadable: label text remains clear and legible.'
                     : 'Never let the product be out of focus: no blurry product, no soft focus on the product, and no depth-of-field that blurs the label.'
             );
             if (options.ritualModeActive && options.ritualNoObjects) {

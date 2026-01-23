@@ -11,15 +11,14 @@ import type { PromptOptions, PromptBuilder } from '../types';
 // ============================================================================
 
 const UGC_DEVICE_CONTRACT = `
-DEVICE: Front-facing smartphone camera only, tiny sensor, cheap glass.
-CAPTURE: Flat focus across entire frame, everything sharp foreground to background.
-OPTICS LOCK: no background separation, no portrait mode, no shallow depth of field, no cinematic blur.
-QUALITY: Hand wobble, compression noise, clipped highlights, crushed shadows.
-FOCUS: Everything in mediocre focus 0-3m, small sensor look.
+CAPTURE: Casual smartphone photo.
+LOOK: Natural, unstyled, believable.
+DETAIL: Product and label clearly visible and readable.
+QUALITY: Minor handheld imperfections and compression artifacts are allowed.
 `.trim().replace(/\s+/g, ' ');
 
 const UGC_COMPOSITION_RULES = `
-FRAMING: Off-center, 1-5° camera roll, awkward headroom, partial crop.
+FRAMING: Off-center, slight tilt, awkward headroom, partial crop.
 POSE: Unposed, distracted, mid-gesture, never rehearsed.
 CAPTURE: Imprecise selfie composition, casual low-intent.
 `.trim().replace(/\s+/g, ' ');
@@ -45,8 +44,7 @@ Never hero prop or influencer demo. If PDP-ready, mode has failed.
 const UGC_ENVIRONMENT_RULE = `
 BACKGROUND: Incidental domestic clutter, readable but secondary.
 Lower contrast, visually tired, no scenic framing.
-Face and product must hold highest local contrast.
-No foreground/background plane separation; background must never look like a separate "second plane".
+The person and product remain the primary subjects.
 `.trim().replace(/\s+/g, ' ');
 
 const UGC_VALIDATION = `
@@ -60,17 +58,17 @@ IMPERFECTIONS (LOW): Include 1–2 subtle capture flaws only: mild sensor noise,
 Keep the image readable and not stylized.
 `.trim().replace(/\s+/g, ' '),
     medium: `
-IMPERFECTIONS (MEDIUM): Include 2–3 obvious phone-capture flaws: visible JPEG compression blocks, oversharpening halos, uneven white balance, clipped highlights, crushed shadows, minor motion blur.
-Avoid any cinematic or professional look.
+IMPERFECTIONS (MEDIUM): Include 2–3 obvious phone-capture flaws: visible JPEG compression blocks, oversharpening halos, uneven white balance, clipped highlights, crushed shadows, minor motion smear.
+Avoid any professional look.
 `.trim().replace(/\s+/g, ' '),
     high: `
-IMPERFECTIONS (HIGH): Include 3–5 strong phone-capture flaws: heavy JPEG compression artifacts, aggressive oversharpening halos, rolling-shutter wobble, fingerprint haze on lens, harsh mixed lighting, blown highlights and shadow crush.
+IMPERFECTIONS (HIGH): Include 3–5 strong phone-capture flaws: heavy JPEG compression artifacts, aggressive oversharpening halos, rolling-shutter wobble, fingerprint haze on phone glass, harsh mixed lighting, blown highlights and shadow crush.
 Must feel like a low-quality, unflattering domestic capture.
 `.trim().replace(/\s+/g, ' ')
 };
 
 const BLOCKED_VOCABULARY = `
-BLOCKED: "hero shot", "editorial", "studio", "commercial", "luxury", "premium", "perfectly composed", "balanced lighting", "soft lighting", "portrait", "showcase".
+BLOCKED: "hero shot", "editorial", "studio", "commercial", "luxury", "premium", "perfectly composed", "balanced lighting", "soft lighting", "showcase".
 `.trim().replace(/\s+/g, ' ');
 
 // ============================================================================
@@ -146,15 +144,10 @@ No air gaps.
 No floating fingers.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-CAMERA & OPTICS (LOCKED)
+CAMERA (LOCKED)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Front-facing smartphone camera ONLY.
-Tiny sensor. Cheap optics.
-
-Flat focus across the entire frame.
-No background separation.
-No portrait mode.
-No cinematic blur.
+Smartphone selfie capture.
+Flat, natural image with no intentional effects.
 
 Angle is imperfect and human:
 - slight pitch (+6° to +10° or −6° to −10°)
@@ -227,11 +220,6 @@ deformed hands,
 extra fingers,
 missing fingers,
 distorted limbs,
-studio lighting,
-professional photography,
-cinematic blur,
-portrait mode,
-bokeh,
 centered composition,
 product hero shot,
 editorial styling,
@@ -265,7 +253,7 @@ const CAMERA_OPERATOR_DETAILS: Record<string, string> = {
 };
 
 const BODY_PHONE_DETAILS: Record<string, string> = {
-    'arm-extended': 'Arm fully extended, product toward lens.',
+    'arm-extended': 'Arm fully extended, product toward camera.',
     'chest-rest': 'Phone pressed to chest, elbows tucked.',
     'shoulder-peek': 'Phone peeks over shoulder, face turns away.',
     'tilted-angle': 'Phone twisted from wrist flick.'
@@ -281,7 +269,7 @@ const MOTION_DETAILS: Record<string, string> = {
 const FRAMING_DETAILS: Record<string, string> = {
     'partial-face-cut': 'Face cropped at edge.',
     'off-center': 'Subject leans to one side.',
-    'finger-lens': 'Fingers partially cover lens.',
+    'finger-lens': 'Fingers partially cover the frame.',
     'tight-headroom': 'Scalp pressed against top border.'
 };
 

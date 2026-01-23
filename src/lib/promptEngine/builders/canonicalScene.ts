@@ -632,7 +632,7 @@ export class SceneNarrativeBuilder {
                 'Posture and hand positioning include slight natural imperfection, avoid symmetry or mannequin-like alignment.',
                 'Facial expression is relaxed and natural, not posed or model-like.',
                 'The product is held naturally as part of everyday life, not centered or hero-framed.',
-                'Camera capture is intentional and stable, not handheld, not selfie-based.',
+                'Framing feels intentional and stable.',
                 'Avoid render look, avoid artificial perfection, avoid hyper-polished surfaces.'
             );
         }

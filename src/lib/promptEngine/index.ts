@@ -60,8 +60,6 @@ import { buildMasterPrompt, MasterPromptSections } from './masterPrompt';
 // ============================================================================
 // NEGATIVE PROMPT - Quality anchors and artifact prevention
 // ============================================================================
-const RAW_DOMESTIC_NEGATIVE_APPEND =
-    'No studio lighting, no cinematic look, no professional photography, no centered composition, no passport photo, no fashion editorial, no shallow depth of field, no background bokeh, no HDR look, no perfect symmetry, no influencer styling, no product hero shot.';
 function negativePrompt(options?: PromptOptions) {
     const entries = [
         // Anatomical integrity
@@ -100,17 +98,10 @@ function negativePrompt(options?: PromptOptions) {
         "ai artifacts", "floating objects", "framing issues",
         "duplicate objects",
 
-        // Depth of field suppression for UGC
-        "background blur", "portrait blur", "bokeh", "cinematic focus", "cinematic blur", "shallow depth of field", "soft background",
-        "blurred background", "soft focus", "portrait mode effect", "depth effect", "background separation", "subject separation", "lens blur",
-
         // Wardrobe consistency
         "altered outfit", "invented clothing", "incorrect fabric",
         "incorrect outfit color", "wrong clothing texture"
     ];
-    if (options?.rawDomesticUgcActive) {
-        entries.push(RAW_DOMESTIC_NEGATIVE_APPEND);
-    }
     const shouldGuardIdentity =
         options?.ugcRealModeActive ||
         ['natural', 'raw'].includes((options?.ugcStyle ?? '').toLowerCase());
@@ -140,11 +131,65 @@ const generateRequestSeed = (): string => {
     return `${Date.now().toString(36)}-${randomComponent}`;
 };
 
-const DEPTH_DETECTION_REGEX = /(depth of field|portrait mode|portrait blur|bokeh|bokeh effect|background blur|blurred background|lens blur|lens emulation|cinematic focus|cinematic blur|subject separation|background separation|subject isolation|shallow depth|shallow focus|soft background|soft focus|depth cues|depth effect|spatial depth|defocused background)/gi;
-const FOCUS_OVERRIDE_APPEND =
-    'flat focus across the entire frame, small sensor, fixed wide lens, everything sharp foreground to background.';
-const UGC_FOCUS_LOCK_APPEND =
-    'uniform focus across the entire frame with no dramatic focus falloff.';
+const MODE_RESOLUTION_GUARDRAIL = `
+MODE RESOLUTION (MANDATORY)
+
+If UGC, Raw Domestic UGC, or Lifestyle Real is enabled:
+- Remove all camera terminology related to optics, lenses, focus, depth, bokeh, cinematic look, film look, or professional photography.
+- Enforce flat, natural smartphone capture with no intentional depth or focus effects.
+- Depth of field must be implicit, neutral, uncontrolled, and never described.
+- Any conflicting camera or depth language must be ignored.
+`.trim();
+
+function prependModeResolutionGuardrail(prompt: string): string {
+    if (prompt.trimStart().startsWith('MODE RESOLUTION (MANDATORY)')) return prompt.trim();
+    return `${MODE_RESOLUTION_GUARDRAIL} ${prompt}`.replace(/\s+/g, ' ').trim();
+}
+
+function stripModeResolutionGuardrail(prompt: string): string {
+    return prompt
+        .replace(/^MODE RESOLUTION \(MANDATORY\).*?ignored\.\s*/i, '')
+        .trim();
+}
+
+function isModeResolutionRestricted(options: PromptOptions): boolean {
+    return (
+        options.creationIntent === 'ugc' ||
+        options.contentStyle === 'ugc' ||
+        Boolean(options.ugcRealModeActive) ||
+        Boolean(options.rawDomesticUgcActive) ||
+        options.creationMode === 'lifestyle'
+    );
+}
+
+function sanitizeCameraAestheticsForRestrictedModes(prompt: string, options: PromptOptions): string {
+    if (!isModeResolutionRestricted(options)) return prompt;
+
+    let sanitized = prompt;
+
+    // Replace any explicit camera blocks with a fixed smartphone-safe description.
+    sanitized = sanitized.replace(
+        /\bCamera:\s*[^.]*\./gi,
+        'Camera: Captured casually on a smartphone. Flat, natural image. Product and label are clearly visible and readable.'
+    );
+
+    // Remove optics / pro-camera terminology that can leak from older builders/mappings.
+    sanitized = sanitized
+        .replace(/\bdepth of field\b/gi, '')
+        .replace(/\b(bokeh|cinematic|filmic|dslr|mirrorless|optics?|lenses?|lens|aperture|f-stop)\b/gi, '')
+        .replace(/\bfilm look\b/gi, '')
+        .replace(/\bprofessional photography\b/gi, '')
+        .replace(/\b(professional lighting|studio lighting|controlled lighting)\b/gi, '')
+        .replace(/\bf\/\d+(\s*[–-]\s*f\/\d+)?\b/gi, '')
+        .replace(/\bportrait mode\b/gi, '')
+        .replace(/\bfocus(ed|ing)?\b/gi, '')
+        .replace(/\bsubject separation\b/gi, '')
+        .replace(/\bbackground separation\b/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    return sanitized;
+}
 
 function isUgcSelfieCaptureActive(options: PromptOptions): boolean {
     const selfieActive = isSelfieActive(options);
@@ -185,70 +230,9 @@ function enforcePreflightGuards(options: PromptOptions) {
     }
 }
 
-function enforceUgcFocusGuard(prompt: string, options: PromptOptions): string {
-    // UGC should never read like portrait mode / shallow-DOF capture.
-    // Enforce flat focus (smartphone tiny-sensor look) across ALL UGC styles.
-    const isUgc =
-        options.creationIntent === 'ugc' ||
-        (!options.creationIntent && options.contentStyle === 'ugc') ||
-        Boolean(options.ugcRealModeActive) ||
-        Boolean(options.rawDomesticUgcActive) ||
-        isUgcSelfieCaptureActive(options);
-    const requiresUgcDepthLock = isUgc;
-    if (!requiresUgcDepthLock) {
-        return prompt;
-    }
-
-    // Split positive and negative prompt (negative can have depth terms as blockers)
-    // NOTE: legacy builders sometimes emit `Negative prompt:` without leading spaces/newlines.
-    const negativeMarkerRegex = /\bNegative prompt:\s*/i;
-    const negativeMatch = negativeMarkerRegex.exec(prompt);
-    const negativeIndex = negativeMatch ? negativeMatch.index : -1;
-    let positivePrompt = negativeIndex >= 0 ? prompt.substring(0, negativeIndex) : prompt;
-    const negativePrompt = negativeIndex >= 0 ? prompt.substring(negativeIndex) : '';
-
-    const allowDepthMention = (before: string, withinBlockedList: boolean): boolean => {
-        const snippet = before.toLowerCase();
-        // Allow negations like "no background blur", "no shallow depth of field", etc.
-        if (/\bno\b[\s\w-]{0,20}$/.test(snippet)) return true;
-        if (/\bavoid\b[\s\w-]{0,20}$/.test(snippet)) return true;
-        if (/\bwithout\b[\s\w-]{0,20}$/.test(snippet)) return true;
-        if (/\bnever\b[\s\w-]{0,20}$/.test(snippet)) return true;
-        if (/\bexclude\b[\s\w-]{0,20}$/.test(snippet)) return true;
-        if (withinBlockedList) return true;
-        if (/\bblocked[:\s,]*$/.test(snippet)) return true;
-        if (snippet.includes('blocked:')) return true;
-        if (snippet.includes('blocked')) return true;
-        return false;
-    };
-
-    // Do not mutate prompt content; only enforce that any depth terms are negated/blocked.
-    if (!/flat focus across the entire frame/i.test(positivePrompt)) {
-        positivePrompt = `${positivePrompt} ${FOCUS_OVERRIDE_APPEND}`;
-    }
-    if (!/uniform focus across the entire frame/i.test(positivePrompt)) {
-        positivePrompt = `${positivePrompt} ${UGC_FOCUS_LOCK_APPEND}`;
-    }
-
-    // Check only positive prompt for remaining depth terms
-    DEPTH_DETECTION_REGEX.lastIndex = 0;
-    let match: RegExpExecArray | null = null;
-    while ((match = DEPTH_DETECTION_REGEX.exec(positivePrompt))) {
-        const offset = match.index ?? 0;
-        const before = positivePrompt.slice(Math.max(0, offset - 25), offset);
-        const prefix = positivePrompt.slice(0, offset).toLowerCase();
-        const lastBlocked = prefix.lastIndexOf('blocked:');
-        const withinBlockedList = lastBlocked !== -1 && offset - lastBlocked < 400;
-        if (allowDepthMention(before, withinBlockedList)) {
-            continue;
-        }
-        throw new Error(
-            `UGC depth conflict detected: "${match[0]}" language present in positive prompt. Re-run generation.`
-        );
-    }
-
-    // Rejoin with negative prompt
-    return `${positivePrompt}${negativePrompt}`.replace(/\s+/g, ' ').trim();
+function applyModeResolution(prompt: string, options: PromptOptions): string {
+    const sanitized = sanitizeCameraAestheticsForRestrictedModes(prompt, options);
+    return prependModeResolutionGuardrail(sanitized);
 }
 
 const isSelfieActive = (options: PromptOptions): boolean => {
@@ -616,8 +600,8 @@ export class PromptEngine {
                 .join(' ')
                 .replace(/\s+/g, ' ')
                 .trim();
-            finalPrompt = enforceUgcFocusGuard(finalPrompt, options);
             finalPrompt = `${finalPrompt} Negative prompt: ${negative}`.replace(/\s+/g, ' ').trim();
+            finalPrompt = applyModeResolution(finalPrompt, options);
             console.log('[PROMPT ENGINE] Selfie-dominant pipeline ACTIVE');
             console.log('[FINAL PROMPT STRING]', finalPrompt);
             return finalPrompt;
@@ -695,7 +679,7 @@ export class PromptEngine {
             throw new Error('Prompt too large, aborting build');
         }
 
-        finalPrompt = enforceUgcFocusGuard(finalPrompt, options);
+        finalPrompt = applyModeResolution(finalPrompt, options);
 
         // ====================================================================
         // PRODUCT MODE HUMAN EXCLUSION (Legacy) -> Still valid
@@ -708,7 +692,8 @@ export class PromptEngine {
             const forbidden = /\b(lifestyle|ugc|user-generated|selfie|phone|creator|person|people|human|identity|ethnicity|age|face)\b/i;
             const negativeMarker = ' Negative prompt: ';
             const negativeIndex = finalPrompt.indexOf(negativeMarker);
-            const positivePrompt = negativeIndex >= 0 ? finalPrompt.substring(0, negativeIndex) : finalPrompt;
+            const rawPositivePrompt = negativeIndex >= 0 ? finalPrompt.substring(0, negativeIndex) : finalPrompt;
+            const positivePrompt = stripModeResolutionGuardrail(rawPositivePrompt);
             const match = forbidden.exec(positivePrompt);
             if (match) {
                 const matchIndex = match.index ?? 0;

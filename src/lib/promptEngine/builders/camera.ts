@@ -26,6 +26,7 @@ export function buildCamera(params: any): string {
   const ugcRealActive =
     Boolean(params.ugcRealMode || params.ugcRealModeActive || params.rawDomesticUgcActive) ||
     Boolean(params.ugcRealModeLayers);
+  const lifestyleRealActive = params.creationMode === 'lifestyle';
   const ugcMode = Boolean(params.ugcMode || params.ugcRealMode) || ugcRealActive || selfieActive;
   const hasProductAssets = Array.isArray(params.productAssets) && params.productAssets.length > 0;
 
@@ -35,7 +36,7 @@ export function buildCamera(params: any): string {
     delete params.cameraType;
     delete params.placementCamera;
     return uniqueParts([
-      "front-facing smartphone camera selfie, wide fixed lens, small sensor, flat focus across the entire frame, no portrait mode blur",
+      "front-facing smartphone selfie capture, casual handheld framing, natural phone photo feel",
     ]);
   }
 
@@ -45,7 +46,17 @@ export function buildCamera(params: any): string {
     delete params.cameraType;
     delete params.placementCamera;
     return uniqueParts([
-      "front-facing smartphone camera, tiny sensor, wide fixed lens, flat focus across the entire frame, no portrait mode blur",
+      "smartphone capture, casual handheld framing, natural phone photo feel",
+    ]);
+  }
+
+  // Lifestyle Real: enforce a simple smartphone capture description and avoid optics terminology.
+  if (lifestyleRealActive) {
+    delete params.camera;
+    delete params.cameraType;
+    delete params.placementCamera;
+    return uniqueParts([
+      "smartphone capture, natural and unstyled photo feel",
     ]);
   }
 
@@ -75,16 +86,16 @@ export function buildCamera(params: any): string {
       .replace(
         /shallow depth of field/gi,
         ugcMode
-          ? "flat focus across the entire frame"
+          ? "natural, unstyled clarity"
           : "deep depth of field (f/8–f/11)"
       )
       .replace(/subject separation/gi, "crisp detail");
   }
 
   const focusLock =
-    hasProductAssets && !ugcRealActive
+    hasProductAssets && !ugcRealActive && !lifestyleRealActive
       ? ugcMode
-        ? "FOCUS PRIORITY: keep the product and label tack sharp and fully readable while maintaining flat focus across the entire frame (smartphone tiny-sensor look). No portrait mode, no bokeh, no background blur."
+        ? "VISIBILITY PRIORITY: keep the product and label clearly visible and readable; product remains the primary subject."
         : "FOCUS PRIORITY: lock focus on the product (not the face). The product must be the sharpest object in the frame; the label must be crisp and fully readable. Use deep depth of field (f/8–f/11) or focus stacking. Absolutely no portrait mode, bokeh, or shallow depth-of-field that blurs the product."
       : "";
 
