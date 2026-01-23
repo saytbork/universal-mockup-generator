@@ -790,6 +790,7 @@ function buildCamera(state: ProductStudioState): string {
         'front': 'straight-on front view',
         '45': '45-degree hero angle',
         'top': 'top-down flat lay perspective',
+        'detail': 'detail close-up angle emphasizing label and material',
     };
     parts.push(angleMap[state.angle]);
 
@@ -1184,6 +1185,21 @@ function enforceMotionPromptCoherence(prompt: string, state: ProductStudioState)
         .trim();
 }
 
+// ============================================================================
+// LABEL LOCK (CRITICAL)
+// ============================================================================
+
+function buildLabelLock(): string {
+    return [
+        'LABEL LOCK (CRITICAL): The product label is a real photographic label from the reference image and must be reproduced exactly as seen.',
+        'Do not rewrite, invent, complete, or retype label text.',
+        'Do not redraw label artwork; do not change typography, font weight, spacing, or alignment.',
+        'Do not warp, curve, stretch, distort, or texture-map the label; keep it as a flat optically captured decal.',
+        'If the bottle rotates, the label rotates rigidly with it; no perspective distortion and no curvature compensation.',
+        'Keep the label facing the camera straight-on with no 3/4 turn to prevent label deformation.',
+    ].join(' ');
+}
+
 /**
  * FINAL PROMPT ASSEMBLY ORDER (MANDATORY):
  * 1. Scene Type
@@ -1209,6 +1225,7 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
 
     // 1. Product Definition (Source of Truth)
     segments.push(buildProductDescription(state, product));
+    segments.push(buildLabelLock());
 
     // 2. Product State & Motion (Product-only; no human implied)
     segments.push(buildStateMotion(state));
@@ -1293,6 +1310,7 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     const primary = state.products.find(p => p.id === state.bundle.primaryProductId);
     if (primary) {
         segments.push(buildProductDescription(state, primary));
+        segments.push(buildLabelLock());
     }
 
     // 2. Product State & Motion (Product-only; no human implied)
@@ -1429,6 +1447,10 @@ function buildNegativePrompt(state: ProductStudioState): string {
         'distracting jewelry', 'oversized jewelry',
         // Quality / artifacts
         'blurry', 'low quality', 'distorted', 'warped', 'deformed', 'melted', 'glitched',
+        // Label integrity
+        'redrawn label', 'rewritten label', 'invented label text', 'altered typography',
+        'warped label', 'curved label', 'stretched label', 'crooked label', 'misaligned label', 'mismatched label proportions',
+        'label as texture', 'label texture', 'label distortion', 'label perspective warp',
         'broken object', 'broken glass', 'cracked', 'shattered', 'fragmented',
         'floating parts', 'separated parts', 'disconnected components', 'disembodied cap', 'detached dropper',
         'duplicate product', 'multiple bottles', 'extra caps', 'extra droppers',

@@ -247,7 +247,7 @@ export type Lighting =
 // ============================================================================
 
 export type CameraSystem = 'dslr' | 'mirrorless';
-export type CameraAngle = 'front' | '45' | 'top';
+export type CameraAngle = 'front' | '45' | 'top' | 'detail';
 export type CameraDistance = 'macro' | 'close' | 'medium';
 export type CameraRotation = 'none' | 'slight';
 export type CameraFraming = 'centered' | 'rule-of-thirds';
@@ -415,6 +415,7 @@ export type ProductStudioState = {
     // ========================================================================
     // PRODUCT STUDIO UI CONTROLS (NEW)
     // ========================================================================
+    interpretationNotes: Partial<Record<string, { message: string; ts: number }>>;
     photoMode: string;
     backgroundColor: string;
     accentColor: string;

@@ -402,7 +402,7 @@ const buildFormulationStoryOptions = (sceneState: Step3Values): FormulationStory
  * CAMERA DEVICE → Physical capture characteristics and lens behavior
  */
 const CAMERA_DEVICE_SEMANTIC_MAP: Record<string, string> = {
-    'Intentional smartphone camera': 'captured with a modern smartphone camera, stabilized grip, intentional framing, no selfie distortion',
+    'Intentional smartphone camera': 'captured with a modern smartphone camera (tiny sensor, wide fixed lens), flat focus across the entire frame, everything sharp foreground to background, no portrait mode, no background blur',
     'DSLR / mirrorless camera': 'captured with a professional DSLR or mirrorless camera using premium glass, deep depth of field (f/8–f/11), and crisp detail',
     'Cinema camera rig': 'captured on a cinema camera with controlled rigs, smooth motion, and filmic dynamic range',
     'Medium format studio camera': 'captured on a medium-format studio system with tethered capture for ultra-sharp detail and tonal accuracy',
@@ -1428,6 +1428,9 @@ export function mapLifestyleToPromptOptions(
             'Front-facing phone camera with tiny sensor, flat focus across the entire frame, no background blur, no portrait mode, limited dynamic range, clipped highlights, crushed shadows, wobbling handheld geometry.';
         console.log('[MAP] camera: raw domestic front camera enforced');
     } else {
+        const isUgcIntent =
+            mapped.creationIntent === 'ugc' ||
+            sceneState.creationIntent === 'ugc';
         const defaultCameraLabel = 'DSLR / mirrorless camera';
         const cameraDevice = (sceneState as any).cameraType || defaultCameraLabel;
         const cameraDeviceSemantic = CAMERA_DEVICE_SEMANTIC_MAP[cameraDevice] || CAMERA_DEVICE_SEMANTIC_MAP[defaultCameraLabel];
@@ -1436,17 +1439,25 @@ export function mapLifestyleToPromptOptions(
         let effectiveCameraSemantic = shouldForceEnvironmentSmartphone
             ? 'Handheld smartphone perspective capturing natural perspective, emphasizing the surrounding environment.'
             : cameraDeviceSemantic;
+
+        if (isUgcIntent) {
+            // UGC should not read like portrait mode / shallow-DOF capture.
+            const ugcCameraLabel = 'Intentional smartphone camera';
+            mapped.camera = ugcCameraLabel;
+            effectiveCameraSemantic = CAMERA_DEVICE_SEMANTIC_MAP[ugcCameraLabel] || effectiveCameraSemantic;
+        } else {
+            mapped.camera = cameraDevice;
+        }
+
         if (foregroundProductFocusRequested) {
             // Avoid semantics that encourage focusing on the face/background when the product must be foreground.
             effectiveCameraSemantic = effectiveCameraSemantic
-                .replace(/shallow depth of field/gi, 'controlled depth of field')
                 .replace(/crisp subject separation/gi, 'crisp overall clarity');
             effectiveCameraSemantic +=
-                ' Focus priority: lock focus on the product in the foreground; the product label must be tack sharp and fully readable.';
+                ' Focus priority: lock focus on the product in the foreground; the product label must be tack sharp and fully readable. Avoid heavy background blur.';
         }
-        mapped.camera = cameraDevice;
         mapped.cameraDeviceSemantic = effectiveCameraSemantic;
-        console.log('[MAP] camera:', cameraDevice, '→', effectiveCameraSemantic);
+        console.log('[MAP] camera:', mapped.camera, '→', effectiveCameraSemantic);
     }
 
     // For environment-first scenes, the default is mid-ground contextual placement.

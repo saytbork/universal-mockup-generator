@@ -16,7 +16,12 @@
  * 11. ugcRealMode - DOMINANT override (always appended last when active)
  */
 
-const OPTIMIZED_UGC_PROMPT = '';
+const OPTIMIZED_UGC_PROMPT = `
+OPTICS LOCK (UGC):
+- Smartphone tiny-sensor look.
+- Flat focus across the entire frame; everything sharp foreground to background.
+- No portrait mode, no bokeh, no background blur.
+`.trim();
 const NATURAL_UGC_PROMPT = `
 LIFESTYLE MODE: NATURAL UGC.
 
@@ -75,7 +80,12 @@ Not raw and messy.
 Not polished or optimized.
 Just real.
 `.trim();
-const RAW_UGC_PROMPT = '';
+const RAW_UGC_PROMPT = `
+OPTICS LOCK (UGC):
+- Smartphone tiny-sensor look.
+- Flat focus across the entire frame; everything sharp foreground to background.
+- No portrait mode, no bokeh, no background blur.
+`.trim();
 
 const UGC_CONTRACTS = {
   optimized: OPTIMIZED_UGC_PROMPT,

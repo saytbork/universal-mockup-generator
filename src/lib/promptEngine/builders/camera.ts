@@ -72,13 +72,20 @@ export function buildCamera(params: any): string {
   if (hasProductAssets && camera) {
     // Never encourage shallow DOF when a product reference must remain readable.
     camera = String(camera)
-      .replace(/shallow depth of field/gi, "deep depth of field (f/8–f/11)")
+      .replace(
+        /shallow depth of field/gi,
+        ugcMode
+          ? "flat focus across the entire frame"
+          : "deep depth of field (f/8–f/11)"
+      )
       .replace(/subject separation/gi, "crisp detail");
   }
 
   const focusLock =
     hasProductAssets && !ugcRealActive
-      ? "FOCUS PRIORITY: lock focus on the product (not the face). The product must be the sharpest object in the frame; the label must be crisp and fully readable. Use deep depth of field (f/8–f/11) or focus stacking. Absolutely no portrait mode, bokeh, or shallow depth-of-field that blurs the product."
+      ? ugcMode
+        ? "FOCUS PRIORITY: keep the product and label tack sharp and fully readable while maintaining flat focus across the entire frame (smartphone tiny-sensor look). No portrait mode, no bokeh, no background blur."
+        : "FOCUS PRIORITY: lock focus on the product (not the face). The product must be the sharpest object in the frame; the label must be crisp and fully readable. Use deep depth of field (f/8–f/11) or focus stacking. Absolutely no portrait mode, bokeh, or shallow depth-of-field that blurs the product."
       : "";
 
   // Prevent duplication in mapped styling

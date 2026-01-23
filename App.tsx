@@ -1372,9 +1372,6 @@ const App: React.FC = () => {
   const [planCodeInput, setPlanCodeInput] = useState('');
   const [planCodeError, setPlanCodeError] = useState<string | null>(null);
   const [planNotice, setPlanNotice] = useState<string | null>(null);
-  const [adminDevMessage, setAdminDevMessage] = useState<string | null>(null);
-  const [adminDevError, setAdminDevError] = useState<string | null>(null);
-  const [adminDevLoading, setAdminDevLoading] = useState(false);
   const [isSimpleMode, setIsSimpleMode] = useState(true);
   // modeTier removed (unused)
   const [showGoalWizard, setShowGoalWizard] = useState(false);
@@ -1412,10 +1409,6 @@ const App: React.FC = () => {
       normalized.endsWith('@amisano-design.com')
     );
   }, [userEmail]);
-  const showAdminDevButtons = useMemo(
-    () => !import.meta.env.DEV && isAdmin,
-    [isAdmin]
-  );
   const isFreeUser = !isAdmin && planTier === 'free';
   const [hasTrialBypass, setHasTrialBypass] = useState(false);
   const [trialCodeInput, setTrialCodeInput] = useState('');
@@ -3021,62 +3014,6 @@ const App: React.FC = () => {
     setPlanCodeInput('');
     setPlanCodeError(null);
   }, [planCodeInput, handlePlanTierSelect]);
-
-  const handleAddTestCredits = useCallback(() => {
-    if (!isAdmin) return;
-    if (!userEmail) {
-      setAdminDevError('Sign in to attach credits.');
-      return;
-    }
-    setAdminDevLoading(true);
-    setAdminDevError(null);
-    setAdminDevMessage(null);
-    try {
-      setCreditUsage(prev => {
-        const next = Math.max(0, prev - 100);
-        if (typeof window !== 'undefined') {
-          window.localStorage.setItem(IMAGE_COUNT_KEY, String(next));
-        }
-        return next;
-      });
-      setAdminDevMessage('Added 100 test credits locally');
-    } catch (error: any) {
-      setAdminDevError(error?.message || 'Unable to add credits');
-    } finally {
-      setAdminDevLoading(false);
-    }
-  }, [isAdmin, userEmail]);
-
-  const handleResetAccount = useCallback(() => {
-    if (!isAdmin) return;
-    if (!userEmail) {
-      setAdminDevError('Sign in to reset.');
-      return;
-    }
-    setAdminDevLoading(true);
-    setAdminDevError(null);
-    setAdminDevMessage(null);
-    try {
-      setPlanTier('free');
-      setCreditUsage(() => {
-        if (typeof window !== 'undefined') {
-          window.localStorage.setItem(IMAGE_COUNT_KEY, '0');
-        }
-        return 0;
-      });
-      setVideoGenerationCount(0);
-      setHasVideoAccess(false);
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(PLAN_STORAGE_KEY, 'free');
-        window.localStorage.removeItem(VIDEO_ACCESS_KEY);
-      }
-      setAdminDevMessage('Account reset to Free locally');
-    } catch (error: any) {
-      setAdminDevError(error?.message || 'Unable to reset account');
-    } finally {
-      setAdminDevLoading(false);
-    }
-  }, [isAdmin, userEmail]);
 
   const handleProPhotographerToggle = useCallback(() => {
     setIsProPhotographer(prev => !prev);
@@ -4754,9 +4691,9 @@ If the model attempts to create a scene or environment, override it and force a 
           for (const product of generationProducts) {
             // Higher-fidelity reference helps avoid warped labels/typography on the product.
             const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
-              maxLongEdge: 2048,
-              maxBase64Length: 4_000_000,
-              quality: 0.96,
+              maxLongEdge: isProductPlacement ? 3072 : 2048,
+              maxBase64Length: isProductPlacement ? 7_500_000 : 4_000_000,
+              quality: isProductPlacement ? 0.99 : 0.96,
             });
             requestParts.push({
               inlineData: { data: resized.base64, mimeType: resized.mimeType },
@@ -4790,7 +4727,7 @@ If the model attempts to create a scene or environment, override it and force a 
 	                    aspectRatio,
 	                    // Product Studio forces a fixed output ratio; reference preservation can override ratio.
 	                    preserveReferenceImage: isProductPlacement || shouldSendProductImage,
-	                    temperature: 0.25,
+	                    temperature: isProductPlacement ? 0.1 : 0.25,
 	                    topP: 0.9,
 	                    seed,
 	                  },
@@ -5184,7 +5121,7 @@ If the model attempts to create a scene or environment, override it and force a 
 	            aspectRatio,
 	            // Product Studio forces a fixed output ratio; reference preservation can override ratio.
 	            preserveReferenceImage: isProductPlacement,
-	            temperature: 0.25,
+	            temperature: isProductPlacement ? 0.1 : 0.25,
 	            topP: 0.9,
 	          },
 	        } as any,
@@ -5992,25 +5929,6 @@ If the model attempts to create a scene or environment, override it and force a 
         </div>
       </div >
 
-      {showAdminDevButtons && (
-        <div className="fixed bottom-6 right-6 z-[999999] hidden md:flex flex-col gap-2 opacity-60 hover:opacity-100 transition">
-          <button
-            onClick={handleAddTestCredits}
-            disabled={adminDevLoading}
-            className="rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-xs font-semibold text-gray-900 shadow-lg hover:bg-gray-100 disabled:opacity-50"
-          >
-            Add 100 Test Credits
-          </button>
-          <button
-            onClick={handleResetAccount}
-            disabled={adminDevLoading}
-            className="rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-xs font-semibold text-gray-900 shadow-lg hover:bg-gray-100 disabled:opacity-50"
-          >
-            Reset My Account
-          </button>
-        </div>
-      )
-      }
     </>
   );
 };

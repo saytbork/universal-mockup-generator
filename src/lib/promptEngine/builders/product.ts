@@ -67,6 +67,9 @@ export class ProductBuilder implements PromptBuilder {
                 ' If scale conflicts arise, prioritize the numeric real-world measurement over stylistic composition. Adjust camera distance and framing instead of enlarging the product beyond plausible real-world size.';
         }
 
+        prompt +=
+            ' LABEL LOCK (CRITICAL): The product label is a real photographic label from the reference image and must be reproduced exactly as seen. Do not rewrite, invent, complete, or retype label text. Do not redraw label artwork; do not change typography, font weight, spacing, or alignment. Do not warp, curve, stretch, distort, or texture-map the label; keep it as a flat optically captured decal. If the bottle rotates, the label rotates rigidly with it; no perspective distortion and no curvature compensation. Keep the label facing the camera straight-on with no 3/4 turn to prevent label deformation.';
+
         if (isEcommerceBlankSpaceMode) {
             return prompt;
         }

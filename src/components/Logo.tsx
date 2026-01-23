@@ -1,5 +1,7 @@
 import React from 'react';
-import { Aperture } from 'lucide-react';
+
+import colorLogoUrl from '../../img/logos/svg/colorlogo.svg';
+import whiteLogoUrl from '../../img/logos/svg/logowhite.svg';
 
 type LogoVariant = 'siteNav' | 'appHeader';
 
@@ -8,19 +10,12 @@ type LogoProps = {
   className?: string;
 };
 
-const variantStyles: Record<
-  LogoVariant,
-  { icon: string; wordmark: string; accent: string }
-> = {
+const variantStyles: Record<LogoVariant, { height: string }> = {
   siteNav: {
-    icon: 'w-6 h-6 text-indigo-600 dark:text-indigo-300',
-    wordmark: 'uppercase text-lg font-black tracking-tight text-gray-900 dark:text-white leading-none',
-    accent: 'text-indigo-600 dark:text-indigo-300',
+    height: 'h-6',
   },
   appHeader: {
-    icon: 'w-7 h-7 text-indigo-600 dark:text-indigo-400',
-    wordmark: 'uppercase text-4xl font-black tracking-tight text-gray-900 dark:text-white leading-none',
-    accent: 'text-indigo-600 dark:text-indigo-400',
+    height: 'h-9',
   },
 };
 
@@ -28,12 +23,19 @@ export default function Logo({ variant = 'siteNav', className = '' }: LogoProps)
   const styles = variantStyles[variant];
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      <Aperture className={styles.icon} strokeWidth={2} />
-      <span className={styles.wordmark}>
-        Perfect <span className={styles.accent}>Mockup</span>
-      </span>
+    <div className={`flex items-center ${className}`}>
+      <img
+        src={colorLogoUrl}
+        alt="Perfect Mockup"
+        className={`${styles.height} w-auto dark:hidden`}
+        draggable={false}
+      />
+      <img
+        src={whiteLogoUrl}
+        alt="Perfect Mockup"
+        className={`${styles.height} w-auto hidden dark:block`}
+        draggable={false}
+      />
     </div>
   );
 }
-

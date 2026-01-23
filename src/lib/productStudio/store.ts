@@ -208,6 +208,73 @@ export function enforceValidEnvironment(
 }
 
 // ============================================================================
+// INTERPRETATION NOTES (UI - Inline)
+// ============================================================================
+
+const INTERPRETATION_MESSAGES = {
+    macroInteraction:
+        'Two-hand interaction is not compatible with macro framing. Interaction adjusted automatically.',
+    openedCannotFloat:
+        'Opened containers cannot float. Motion constrained to a grounded state.',
+    photoStudioIgnoresEnvironment:
+        'Photo Studio mode uses abstract set styling. Real environments are ignored.',
+    interactionSimplified:
+        'Only one interaction mode is allowed. Interaction simplified for physical coherence.',
+    cameraOverridesFraming:
+        'Selected camera system overrides framing guides for optical realism.',
+    neutralHandsNoIdentity:
+        'Hands treated as neutral anatomical elements without human identity.',
+} as const;
+
+function withInterpretationNote(
+    state: ProductStudioState,
+    key: string,
+    message: string
+): Pick<ProductStudioState, 'interpretationNotes'> {
+    return {
+        interpretationNotes: {
+            ...(state.interpretationNotes || {}),
+            [key]: { message, ts: Date.now() },
+        },
+    };
+}
+
+function isMacroFraming(state: ProductStudioState, next?: { distance?: ProductStudioState['distance']; angle?: ProductStudioState['angle'] }): boolean {
+    const distance = next?.distance ?? state.distance;
+    const angle = next?.angle ?? state.angle;
+    return distance === 'macro' || angle === 'detail';
+}
+
+function isInteractionIncompatibleWithMacro(interaction: ProductStudioState['interaction']): boolean {
+    return new Set<ProductStudioState['interaction']>([
+        'two-hand-hold',
+        'holding',
+        'supported-hold',
+        'presenting',
+        'framed-presentation',
+        'applying-opening',
+        'capsule-display',
+    ]).has(interaction);
+}
+
+function reinterpretMacroInteraction(state: ProductStudioState): ProductStudioState['interaction'] {
+    // Deterministic: macro prioritizes label legibility (remove hands), detail-closeup can keep passive hands.
+    return state.distance === 'macro' ? 'none' : 'passive-presence';
+}
+
+function isTelephotoCompressionLens(lens: string): boolean {
+    return /\bcompression\b/i.test(lens) || /\b70-200mm\b/i.test(lens);
+}
+
+function isMacroLens(lens: string): boolean {
+    return /\bmacro\b/i.test(lens);
+}
+
+function isTiltShiftLens(lens: string): boolean {
+    return /\btilt-?shift\b/i.test(lens);
+}
+
+// ============================================================================
 // PRE-BUILT BUNDLES
 // ============================================================================
 
@@ -428,6 +495,7 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     bundle: DEFAULT_BUNDLE,
 
     // PRODUCT STUDIO UI CONTROLS (NEW)
+    interpretationNotes: {},
     photoMode: 'Hero Landing Page',
     backgroundColor: '#ffffff',
     accentColor: '#6366f1',
@@ -858,10 +926,44 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
 
     // Camera
     setCameraSystem: (system) => set({ cameraSystem: system }),
-    setAngle: (angle) => set({ angle }),
-    setDistance: (distance) => set({ distance }),
+    setAngle: (angle) =>
+        set((state) => {
+            const next: Partial<ProductStudioState> = { angle };
+            if (isMacroFraming(state, { angle }) && isInteractionIncompatibleWithMacro(state.interaction)) {
+                next.interaction = reinterpretMacroInteraction({ ...state, angle });
+                next.handsHolding = next.interaction !== 'none';
+                Object.assign(next, withInterpretationNote(state, 'angle', INTERPRETATION_MESSAGES.macroInteraction));
+            }
+            return next;
+        }),
+    setDistance: (distance) =>
+        set((state) => {
+            const next: Partial<ProductStudioState> = { distance };
+
+            if (isMacroFraming(state, { distance }) && isInteractionIncompatibleWithMacro(state.interaction)) {
+                next.interaction = reinterpretMacroInteraction({ ...state, distance });
+                next.handsHolding = next.interaction !== 'none';
+                Object.assign(next, withInterpretationNote(state, 'distance', INTERPRETATION_MESSAGES.macroInteraction));
+            }
+
+            // Telephoto compression cannot coexist with macro framing; prioritize distance + legibility.
+            if (distance === 'macro' && isTelephotoCompressionLens(state.lens)) {
+                next.lens = '100mm Macro Prime';
+                Object.assign(next, withInterpretationNote(state, 'distance', INTERPRETATION_MESSAGES.cameraOverridesFraming));
+            }
+
+            return next;
+        }),
     setRotation: (rotation) => set({ rotation }),
-    setFraming: (framing) => set({ framing }),
+    setFraming: (framing) =>
+        set((state) => {
+            const next: Partial<ProductStudioState> = { framing };
+            if (isTiltShiftLens(state.lens) && framing === 'rule-of-thirds') {
+                next.framing = 'centered';
+                Object.assign(next, withInterpretationNote(state, 'framing', INTERPRETATION_MESSAGES.cameraOverridesFraming));
+            }
+            return next;
+        }),
 
     // Environment — CANONICAL SETTER
     setEnvironmentContext: (ctx) => {
@@ -1206,7 +1308,16 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             colorLocks: { ...state.colorLocks, accent: true },
         })),
     setAlignment: (alignment) => set({ alignment }),
-    setShadow: (shadow) => set({ shadow }),
+    setShadow: (shadow) =>
+        set((state) => {
+            if (state.stateMotion === 'opened' && shadow === 'floating') {
+                return {
+                    shadow: 'soft-drop',
+                    ...withInterpretationNote(state, 'shadow', INTERPRETATION_MESSAGES.openedCannotFloat),
+                };
+            }
+            return { shadow };
+        }),
     setGradientEnabled: (enabled) => set({ gradientEnabled: enabled }),
     setGradientStart: (color) =>
         set((state) => ({
@@ -1233,12 +1344,30 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
         set({ ingredientLayout: (layout ?? 'auto') as ProductStudioState['ingredientLayout'] }),
     setInteraction: (interaction) =>
         set((state) => {
-            // IMPORTANT UX: selection should "stick" in UI.
-            // We resolve physical conflicts silently at prompt-build time (normalizeProductStudioStateForPrompt).
-            const nextInteraction = interaction;
             const isCapsules = state.definition.type === 'capsules';
-            const effectiveInteraction =
-                nextInteraction === 'capsule-display' && !isCapsules ? 'none' : nextInteraction;
+            let effectiveInteraction: ProductStudioState['interaction'] =
+                interaction === 'capsule-display' && !isCapsules ? 'none' : interaction;
+
+            // Rule 1: Macro framing cannot support active/gestural holds.
+            if (isMacroFraming(state) && isInteractionIncompatibleWithMacro(effectiveInteraction)) {
+                effectiveInteraction = reinterpretMacroInteraction(state);
+                return {
+                    interaction: effectiveInteraction,
+                    handsHolding: effectiveInteraction !== 'none',
+                    definition: applyCanonicalPhysicalForMotion(state.definition, state.stateMotion),
+                    ...withInterpretationNote(state, 'interaction', INTERPRETATION_MESSAGES.macroInteraction),
+                };
+            }
+
+            // Rule 4 (safety): never allow hybrid interaction flags.
+            if (effectiveInteraction === 'none' && state.handsHolding === true) {
+                return {
+                    interaction: 'none',
+                    handsHolding: false,
+                    definition: applyCanonicalPhysicalForMotion(state.definition, state.stateMotion),
+                    ...withInterpretationNote(state, 'interaction', INTERPRETATION_MESSAGES.interactionSimplified),
+                };
+            }
 
             return {
                 interaction: effectiveInteraction,
@@ -1248,13 +1377,38 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
         }),
     setStateMotion: (motion) =>
         set((state) => {
-            return {
+            const next: Partial<ProductStudioState> = {
                 stateMotion: motion,
                 definition: applyCanonicalPhysicalForMotion(state.definition, motion),
             };
+            if (motion === 'opened' && state.shadow === 'floating') {
+                next.shadow = 'soft-drop';
+                Object.assign(next, withInterpretationNote(state, 'stateMotion', INTERPRETATION_MESSAGES.openedCannotFloat));
+            }
+            return next;
         }),
     setProMode: (enabled) => set({ proMode: enabled }),
-    setLens: (lens) => set({ lens }),
+    setLens: (lens) =>
+        set((state) => {
+            const next: Partial<ProductStudioState> = { lens };
+
+            // Telephoto compression cannot coexist with macro framing.
+            if (isTelephotoCompressionLens(lens) && state.distance === 'macro') {
+                next.distance = 'close';
+                Object.assign(next, withInterpretationNote(state, 'lens', INTERPRETATION_MESSAGES.cameraOverridesFraming));
+            }
+            // Tilt-shift invalidates strict thirds.
+            if (isTiltShiftLens(lens) && state.framing === 'rule-of-thirds') {
+                next.framing = 'centered';
+                Object.assign(next, withInterpretationNote(state, 'lens', INTERPRETATION_MESSAGES.cameraOverridesFraming));
+            }
+            // Macro lens implies macro-safe optics if macro framing is selected.
+            if (state.distance === 'macro' && !isMacroLens(lens) && isTelephotoCompressionLens(lens) === false) {
+                // No-op: allow product primes; only compression is blocked.
+            }
+
+            return next;
+        }),
     setLightingRig: (rig) => set({ lightingRig: rig }),
     setFinish: (finish) => set({ finish }),
 

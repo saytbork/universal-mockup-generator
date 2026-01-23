@@ -25,6 +25,17 @@ import { normalizeOption } from '../system/normalizeOptions';
 // TYPES & INTERFACES
 // ============================================================================
 
+function InterpretationNote({ message }: { message: string }) {
+  return (
+    <div className="mt-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-[11px] text-gray-600">
+      <div className="text-[10px] font-black tracking-[0.25em] text-gray-500">
+        Interpretation Note
+      </div>
+      <div>{message}</div>
+    </div>
+  );
+}
+
 // **CANONICAL STATE** - SINGLE SOURCE OF TRUTH for Step 3 Scene Builder
 export interface SceneState {
   mode: 'basic' | 'pro';
@@ -1053,6 +1064,34 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // PHASE 3: PRODUCT STUDIO STORE (SINGLE SOURCE OF TRUTH FOR PRODUCT MODE)
   // ============================================================================
   const productStore = useProductStudioStore();
+  const interpretationNotes = productStore.interpretationNotes || {};
+  const getInterpretationNote = (key: string): string | null => {
+    const entry = (interpretationNotes as any)[key];
+    if (!entry) return null;
+    if (typeof entry.message !== 'string') return null;
+    if (typeof entry.ts !== 'number') return null;
+    return Date.now() - entry.ts < 4000 ? entry.message : null;
+  };
+
+  useEffect(() => {
+    if (!isProductMode) return;
+    setValues(prev => ({
+      ...prev,
+      productCameraAngle: (() => {
+        if (productStore.angle === 'detail') return 'Detail close-up';
+        if (productStore.angle === 'top') return 'Top-down flat lay';
+        if (productStore.angle === 'front') return 'Eye level product';
+        return '45° hero';
+      })(),
+      productCameraDistance: (() => {
+        if (productStore.distance === 'macro') return 'Macro';
+        if (productStore.distance === 'close') return 'Tight';
+        return 'Standard';
+      })(),
+      productFramingGuide: productStore.framing === 'rule-of-thirds' ? 'Rule of thirds' : 'Centered hero',
+      productCameraRotation: productStore.rotation === 'none' ? 0 : 5,
+    }));
+  }, [isProductMode, productStore.angle, productStore.distance, productStore.framing, productStore.rotation]);
 
   // Derived state for Environment (Strict Rule: Studio = No Environment, Lifestyle = Always Environment)
   // Product Studio must NEVER show Lifestyle/UGC sections.
@@ -1242,7 +1281,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             'Top-down flat lay': 'top',
             'Low angle power': 'front',
             'High angle overview': '45',
-            'Detail close-up': 'front',
+            'Detail close-up': 'detail',
           };
           mappedValue = angleMap[value as string] ?? '45';
         } else if (key === 'productCameraDistance') {
@@ -2118,6 +2157,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </Chip>
                       ))}
                     </div>
+                    {getInterpretationNote('shadow') && (
+                      <InterpretationNote message={getInterpretationNote('shadow')!} />
+                    )}
                   </div>
 
                   <div className={SECTION_GROUP_CLASS}>
@@ -2374,6 +2416,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </button>
                                 ))}
                               </div>
+                              {getInterpretationNote('lens') && (
+                                <InterpretationNote message={getInterpretationNote('lens')!} />
+                              )}
                             </div>
 
                             <div>
@@ -3251,6 +3296,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   ]}
                   selectedValue={productStore.stateMotion}
                 />
+                {getInterpretationNote('stateMotion') && (
+                  <InterpretationNote message={getInterpretationNote('stateMotion')!} />
+                )}
                 <p className="text-[11px] text-gray-500 mt-2">
                   Physics rules: gravity downward only, no floating, irregular distribution, natural motion freeze.
                 </p>
@@ -4048,6 +4096,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   ]}
                   selectedValue={productStore.interaction as any}
                 />
+                {getInterpretationNote('interaction') && (
+                  <InterpretationNote message={getInterpretationNote('interaction')!} />
+                )}
                 {productStore.definition.type !== 'capsules' && (
                   <p className="text-[11px] text-gray-500 mt-2">
                     Capsule Display is only available when Product Type is Capsules.
@@ -4112,7 +4163,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             'Top-down flat lay': 'top',
                             'Low angle power': 'front',
                             'High angle overview': '45',
-                            'Detail close-up': '45',
+                            'Detail close-up': 'detail',
                           };
                           const mapped = angleMap[option];
                           if (mapped) productStore.setAngle(mapped);
@@ -4124,6 +4175,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       </Chip>
                     ))}
                   </div>
+                  {getInterpretationNote('angle') && (
+                    <InterpretationNote message={getInterpretationNote('angle')!} />
+                  )}
                 </div>
 
                 <div className={SECTION_GROUP_CLASS}>
@@ -4150,6 +4204,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       </Chip>
                     ))}
                   </div>
+                  {getInterpretationNote('distance') && (
+                    <InterpretationNote message={getInterpretationNote('distance')!} />
+                  )}
                 </div>
               </div>
 
@@ -4202,6 +4259,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       </Chip>
                     ))}
                   </div>
+                  {getInterpretationNote('framing') && (
+                    <InterpretationNote message={getInterpretationNote('framing')!} />
+                  )}
                 </div>
               </div>
             </div>

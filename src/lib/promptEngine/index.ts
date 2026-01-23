@@ -186,12 +186,15 @@ function enforcePreflightGuards(options: PromptOptions) {
 }
 
 function enforceUgcFocusGuard(prompt: string, options: PromptOptions): string {
-    // Depth/DoF conflicts ("bokeh") are only blocked for Raw Domestic UGC / selfie capture modes.
-    // Editorial / optimized lifestyle may legitimately use shallow depth of field.
-    const requiresUgcDepthLock =
+    // UGC should never read like portrait mode / shallow-DOF capture.
+    // Enforce flat focus (smartphone tiny-sensor look) across ALL UGC styles.
+    const isUgc =
+        options.creationIntent === 'ugc' ||
+        (!options.creationIntent && options.contentStyle === 'ugc') ||
         Boolean(options.ugcRealModeActive) ||
         Boolean(options.rawDomesticUgcActive) ||
         isUgcSelfieCaptureActive(options);
+    const requiresUgcDepthLock = isUgc;
     if (!requiresUgcDepthLock) {
         return prompt;
     }
@@ -208,6 +211,10 @@ function enforceUgcFocusGuard(prompt: string, options: PromptOptions): string {
         const snippet = before.toLowerCase();
         // Allow negations like "no background blur", "no shallow depth of field", etc.
         if (/\bno\b[\s\w-]{0,20}$/.test(snippet)) return true;
+        if (/\bavoid\b[\s\w-]{0,20}$/.test(snippet)) return true;
+        if (/\bwithout\b[\s\w-]{0,20}$/.test(snippet)) return true;
+        if (/\bnever\b[\s\w-]{0,20}$/.test(snippet)) return true;
+        if (/\bexclude\b[\s\w-]{0,20}$/.test(snippet)) return true;
         if (withinBlockedList) return true;
         if (/\bblocked[:\s,]*$/.test(snippet)) return true;
         if (snippet.includes('blocked:')) return true;
