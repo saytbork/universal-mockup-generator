@@ -40,6 +40,7 @@ export class FinalizeBuilder implements PromptBuilder {
                 'No invented labels or product redesign.',
                 'No hallucinated packaging.',
                 'Product geometry, material and label must remain exact.',
+                'PRODUCT PRIORITY (CRITICAL): The product must be clearly visible in the foreground/main subject position; never placed in the background/second plane.',
                 'CONTACT REALISM: The product must look physically held (not composited). Fingers must occlude edges naturally with believable grip pressure and contact shadows. No pasted/sticker look and no halo/cutout edges.',
                 ugcDepthLockActive
                     ? 'OPTICS LOCK: Keep the entire frame evenly focused. The product label must be tack sharp and fully readable. Do not let the product or label become soft while other areas are sharp.'

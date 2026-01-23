@@ -4195,12 +4195,16 @@ ${cleanPlacementStyle}
         if (options.customProp) {
           prompt += `Additional prop: ${clean(options.customProp)}. `;
         }
-        if (options.personProps !== personPropNoneValue) {
-          prompt += `Add supporting props such as ${cleanPersonProps} to reinforce the lifestyle context. `;
-        }
-        if (!hasModelReference && options.productInteraction === 'showing to camera') {
-          prompt += `Ensure the product is held close to the camera lens in the foreground, occupying the main focal plane with crisp sharpness. The person stays behind the product, slightly defocused or secondary in the frame. The product must NOT appear in the background and must always remain in the front-most visual layer. `;
-        }
+	        if (options.personProps !== personPropNoneValue) {
+	          prompt += `Add supporting props such as ${cleanPersonProps} to reinforce the lifestyle context. `;
+	        }
+	        if (hasUploadedProduct && !hideProductMode) {
+	          prompt +=
+	            'PRODUCT FOCUS LOCK (CRITICAL): The product must always be the primary subject, on the front-most visual layer, and tack sharp; never in the background or out of focus. ';
+	        }
+	        if (!hasModelReference && options.productInteraction === 'showing to camera') {
+	          prompt += `Ensure the product is held close to the camera lens in the foreground, occupying the main focal plane with crisp sharpness. The person stays behind the product, slightly defocused or secondary in the frame. The product must NOT appear in the background and must always remain in the front-most visual layer. `;
+	        }
         if (options.microLocation !== microLocationDefault) {
           prompt += `Place them within ${cleanMicroLocation} to ground the scene. `;
         }
@@ -4248,19 +4252,19 @@ No warped, melted, or floating limbs.
         if (heroPosePromptCue) {
           prompt += ` ${clean(heroPosePromptCue)}`;
         }
-        if (realModeActive) {
-          if (ugcRealSettings.imperfectLighting) {
-            prompt += ' Let the lighting stay imperfect with hotspots, hard falloff, and visible shadows on the wall.';
-          }
-          if (ugcRealSettings.lowResolution) {
-            prompt += ' Simulate a low-resolution phone capture with pixel softness and slight chroma noise.';
-          }
-          if (ugcRealSettings.offFocus) {
-            prompt += ' Allow focus to breathe and slip, keeping only part of the face/product tack sharp.';
-          }
-          if (ugcRealSettings.tiltedPhone) {
-            prompt += ' Keep the camera horizon slightly tilted as if the phone was captured quickly.';
-          }
+	        if (realModeActive) {
+	          if (ugcRealSettings.imperfectLighting) {
+	            prompt += ' Let the lighting stay imperfect with hotspots, hard falloff, and visible shadows on the wall.';
+	          }
+	          if (ugcRealSettings.lowResolution) {
+	            prompt += ' Simulate a low-resolution phone capture with pixel softness and slight chroma noise.';
+	          }
+	          if (ugcRealSettings.offFocus) {
+	            prompt += ' Keep focus stable: the product and label remain tack sharp at all times (no focus breathing on the product).';
+	          }
+	          if (ugcRealSettings.tiltedPhone) {
+	            prompt += ' Keep the camera horizon slightly tilted as if the phone was captured quickly.';
+	          }
           const offCenterPreset = UGC_OFF_CENTER_OPTIONS.find(option => option.id === ugcRealSettings.offCenterId);
           if (offCenterPreset) {
             prompt += ` ${clean(offCenterPreset.prompt)}`;
@@ -4269,11 +4273,11 @@ No warped, melted, or floating limbs.
           if (framingPreset) {
             prompt += ` ${clean(framingPreset.prompt)}`;
           }
-          if (ugcRealSettings.blurAmount > 0 || ugcRealSettings.grainAmount > 0) {
-            prompt += ` Add roughly ${ugcRealSettings.blurAmount}% focus blur and ${ugcRealSettings.grainAmount}% grain to mimic raw smartphone texture.`;
-          }
-          prompt += ' UGC Real Mode may add grain, lighting imperfections and organic feel to the scene, but must not degrade product clarity, readability or branding. ';
-        }
+	          if (ugcRealSettings.grainAmount > 0) {
+	            prompt += ` Add roughly ${ugcRealSettings.grainAmount}% grain to mimic raw smartphone texture (no focus blur on the product).`;
+	          }
+	          prompt += ' UGC Real Mode may add grain, lighting imperfections and organic feel to the scene, but must not degrade product clarity, readability or branding. ';
+	        }
       }
     }
 

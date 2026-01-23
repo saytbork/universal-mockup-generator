@@ -429,7 +429,7 @@ const PRODUCT_PROMINENCE_CONFIG: Record<
         placementStyle:
             'Person-forward placement: the person is the hero while the product remains clearly visible and believable within the scene.',
         productPlane:
-            'Person-forward plane: keep the person in the foreground with clear focus and prominence. The product stays visible and readable (label must remain tack sharp), but it is secondary in prominence. Do not hide the product behind hands or in deep background.',
+            'Person-forward plane: keep the person prominent without pushing the product into a second plane. Keep the product on the same visual plane and tack sharp with a fully readable label; never place it in deep background or out of focus.',
     },
     'fifty-fifty': {
         placementStyle:
