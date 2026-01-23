@@ -634,6 +634,7 @@ Captured by smartphone so fine edges may appear soft or broken.
             const captureIds = new Set([
                 'torso-level-handheld',
                 'high-angle',
+                'low-angle',
                 'close-face',
                 'propped-surface',
             ]);

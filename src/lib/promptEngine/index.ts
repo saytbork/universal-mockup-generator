@@ -259,6 +259,7 @@ const isSelfieActive = (options: PromptOptions): boolean => {
     const knownSelfieCaptureBaseIds = new Set([
         'torso-level-handheld',
         'high-angle',
+        'low-angle',
         'close-face',
         'propped-surface'
     ]);

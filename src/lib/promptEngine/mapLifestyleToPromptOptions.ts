@@ -1974,6 +1974,7 @@ export function mapLifestyleToPromptOptions(
     const captureBaseIsSelfie =
         captureBaseId === 'torso-level-handheld' ||
         captureBaseId === 'high-angle' ||
+        captureBaseId === 'low-angle' ||
         captureBaseId === 'close-face' ||
         captureBaseId === 'propped-surface';
     const uiSelfieUnset = !sceneState.selfieMode || sceneState.selfieMode === 'None';
