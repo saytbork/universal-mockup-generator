@@ -4066,11 +4066,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             isTouched={touchedSections.has('product-camera')}
             variant="primary"
           >
-            <div className="space-y-4">
+            <div className="space-y-6">
               <p className="text-sm text-gray-500">Professional photography controls.</p>
               <div className={SECTION_GROUP_CLASS}>
                 <p className={GROUP_LABEL_CLASS}>CAMERA SYSTEM</p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-3">
                   {(['DSLR / mirrorless', 'Macro lens', 'Telephoto compression'] as const).map(option => (
                     <Chip
                       key={option}
@@ -4088,10 +4088,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-5">
                 <div className={SECTION_GROUP_CLASS}>
                   <p className={GROUP_LABEL_CLASS}>ANGLE</p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-3">
                     {(
                       [
                         'Eye level product',
@@ -4128,7 +4128,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                 <div className={SECTION_GROUP_CLASS}>
                   <p className={GROUP_LABEL_CLASS}>DISTANCE</p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-3">
                     {(['Wide', 'Standard', 'Tight', 'Macro'] as const).map(option => (
                       <Chip
                         key={option}
@@ -4153,10 +4153,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-5">
                 <div className={SECTION_GROUP_CLASS}>
                   <p className={GROUP_LABEL_CLASS}>ROTATION</p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-3">
                     {([0, 5, 10, 15] as const).map(option => (
                       <Chip
                         key={option}
@@ -4175,7 +4175,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                 <div className={SECTION_GROUP_CLASS}>
                   <p className={GROUP_LABEL_CLASS}>FRAMING GUIDE</p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-3">
                     {(
                       [
                         'Centered hero',
@@ -4534,7 +4534,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </button>
               </div>
 
-              <div className="px-4 py-6 space-y-10 bg-gray-50 dark:bg-white/5">
+              <div className="px-4 py-6 space-y-6 bg-gray-50 dark:bg-white/5">
                 {isPersonDisabled ? (
                   <div className="rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-500 dark:border-white/10 dark:bg-black/20 dark:text-white/60">
                     Creator / Person controls are disabled in Product Mode.
@@ -5016,7 +5016,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             onClick={() => { updateValue('facialExpression', option as any); markSectionTouched('creator'); }}
                             selected={values.facialExpression === (option as any)}
                             size="md"
-                            className="w-full justify-center py-3 rounded-full text-[12px] font-semibold"
+                            className="w-full justify-center"
                           >
                             {option}
                           </Chip>
@@ -5024,7 +5024,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       </div>
                     </section>
 
-                    <section className="space-y-10 overflow-hidden transition-all duration-300 max-h-0 opacity-0 group-[.is-pro]:max-h-[4000px] group-[.is-pro]:opacity-100">
+                    <section className="space-y-6 overflow-hidden transition-all duration-300 max-h-0 opacity-0 group-[.is-pro]:max-h-[4000px] group-[.is-pro]:opacity-100">
                       <p className={GROUP_LABEL_CLASS}>DETAILS</p>
 
                       <div className="space-y-2">
