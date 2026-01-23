@@ -125,9 +125,15 @@ const SiteNav: React.FC = () => {
           aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
           onClick={() => setMobileMenuOpen(prev => !prev)}
         >
-          <span className={`block h-0.5 w-6 bg-white transition ${mobileMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`} />
-          <span className={`block h-0.5 w-6 bg-white transition ${mobileMenuOpen ? 'opacity-0' : ''}`} />
-          <span className={`block h-0.5 w-6 bg-white transition ${mobileMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`} />
+          <span
+            className={`block h-0.5 w-6 bg-gray-900 transition dark:bg-white ${mobileMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`}
+          />
+          <span
+            className={`block h-0.5 w-6 bg-gray-900 transition dark:bg-white ${mobileMenuOpen ? 'opacity-0' : ''}`}
+          />
+          <span
+            className={`block h-0.5 w-6 bg-gray-900 transition dark:bg-white ${mobileMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}
+          />
         </button>
       </div>
 

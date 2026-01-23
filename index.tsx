@@ -7,6 +7,17 @@ import { AuthProvider } from './src/contexts/AuthContext';
 import Login from './src/pages/Login';
 import Dashboard from './src/pages/Dashboard';
 import { TooltipProvider } from './src/components/ui/tooltip';
+import LandingPage from './LandingPage';
+import BlogPage from './BlogPage';
+import BlogArticlePage from './BlogArticlePage';
+import GuidesPage from './GuidesPage';
+import GuideArticlePage from './GuideArticlePage';
+import FAQPage from './FAQPage';
+import UseCases from './UseCases';
+import Comparisons from './Comparisons';
+import TermsPage from './TermsPage';
+import PrivacyPage from './PrivacyPage';
+import SiteLayout from './src/components/SiteLayout';
 
 class RootErrorBoundary extends React.Component<
   React.PropsWithChildren,
@@ -71,12 +82,26 @@ root.render(
       <AuthProvider>
         <BrowserRouter>
           <Routes>
+            {/* Marketing site */}
+            <Route element={<SiteLayout />}>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/pricing" element={<Navigate to="/#pricing" replace />} />
+              <Route path="/use-cases" element={<UseCases />} />
+              <Route path="/comparisons" element={<Comparisons />} />
+              <Route path="/blog" element={<BlogPage />} />
+              <Route path="/blog/:slug" element={<BlogArticlePage />} />
+              <Route path="/guides" element={<GuidesPage />} />
+              <Route path="/guides/:slug" element={<GuideArticlePage />} />
+              <Route path="/faq" element={<FAQPage />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
+            </Route>
+
             <Route path="/app" element={<AppWithTooltips />} />
             <Route path="/app/generator" element={<AppWithTooltips />} />
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/" element={<Navigate to="/app" replace />} />
-            <Route path="*" element={<Navigate to="/app" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>
