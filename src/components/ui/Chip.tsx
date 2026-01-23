@@ -50,8 +50,9 @@ export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
       .filter(Boolean)
       .join(' ');
 
+    const safeTooltip = typeof tooltip === 'string' ? tooltip : undefined;
     const inferredTitle =
-      tooltip ??
+      safeTooltip ??
       props.title ??
       (typeof children === 'string' ? children : undefined);
 
@@ -61,13 +62,13 @@ export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
       </button>
     );
 
-    if (!tooltip) return button;
+    if (!safeTooltip) return button;
 
     return (
       <Tooltip>
         <TooltipTrigger asChild>{button}</TooltipTrigger>
         <TooltipContent side="top" className="max-w-xs text-sm opacity-90">
-          {tooltip}
+          {safeTooltip}
         </TooltipContent>
       </Tooltip>
     );

@@ -7081,8 +7081,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               <span>Validation Errors</span>
             </div>
             <ul className="list-disc list-inside text-sm text-red-600 space-y-1">
-              {validationResult.errors.map((err, i) => (
-                <li key={i}>{err}</li>
+              {(Array.isArray(validationResult.errors) ? validationResult.errors : []).map((err, i) => (
+                <li key={i}>{typeof err === 'string' ? err : JSON.stringify(err)}</li>
               ))}
             </ul>
           </div>

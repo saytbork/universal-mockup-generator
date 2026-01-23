@@ -50,7 +50,9 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const controlled = typeof isOpen === 'boolean';
   const open = controlled ? isOpen : internalOpen;
-  const tooltipContent = helpTooltip ?? tooltip;
+  const safeTooltip = typeof tooltip === 'string' ? tooltip : '';
+  const safeHelpTooltip = typeof helpTooltip === 'string' ? helpTooltip : undefined;
+  const tooltipContent = safeHelpTooltip ?? safeTooltip;
 
   const handleToggle = () => {
     if (onToggle) {
@@ -113,7 +115,7 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
                   <Check className="w-4 h-4 text-green-500" />
                 )}
               </div>
-              <p className={`text-[10px] text-gray-500 font-medium dark:text-white/40 ${tooltipClassName}`}>{tooltip}</p>
+              <p className={`text-[10px] text-gray-500 font-medium dark:text-white/40 ${tooltipClassName}`}>{safeTooltip}</p>
             </div>
           </div>
           <ChevronDown
@@ -159,7 +161,7 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
                       <HelpCircle className="w-4 h-4" />
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent side="right">{tooltip}</TooltipContent>
+                  <TooltipContent side="right">{safeTooltip}</TooltipContent>
                 </Tooltip>
               ) : null}
               {isRequired && !isTouched && (
@@ -169,7 +171,7 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
                 <Check className="w-4 h-4 text-green-500" />
               )}
             </div>
-            <p className={`text-[10px] text-gray-500 font-medium dark:text-white/40 ${tooltipClassName}`}>{tooltip}</p>
+            <p className={`text-[10px] text-gray-500 font-medium dark:text-white/40 ${tooltipClassName}`}>{safeTooltip}</p>
           </div>
         </div>
         <ChevronDown
