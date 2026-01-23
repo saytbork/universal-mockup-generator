@@ -855,66 +855,52 @@ function buildPhotoMode(state: ProductStudioState): string {
 }
 
 function buildBackground(state: ProductStudioState): string {
-    // Photo-mode hard rule: Clear means absolute pure white.
-    if (state.photoMode === 'Clear') {
-        return 'BACKGROUND: Pure solid white #FFFFFF seamless studio backdrop. Absolutely no tint, no beige/green cast, no gradient.';
-    }
-
-    const photoModeBackdropDefaults: Record<string, string> = {
-        'Hero Landing Page': 'BACKGROUND: clean off-white studio gradient backdrop with gentle vignette and soft falloff (not pure white).',
-        'Color Pop Hero': 'BACKGROUND: bold but controlled solid tone or subtle gradient supporting the label palette (not pure white).',
-        'Ingredient Stack': 'BACKGROUND: premium studio backdrop with subtle tonal gradient; set reads as a styled tabletop scene (not pure white).',
-        'Acrylic Blocks': 'BACKGROUND: cool studio gradient backdrop with crisp specular highlights and controlled reflections (not pure white).',
-        'Splash Shot': 'BACKGROUND: high-key studio gradient with clean speculars and controlled falloff (not pure white).',
-        'Tile & Spa': 'BACKGROUND: high-key off-white to light-gray gradient backdrop with a clear horizon transition above the tile set (not pure white).',
-        'Foam & Texture': 'BACKGROUND: neutral studio gradient backdrop (off-white/soft gray) to showcase textures (not pure white).',
-        'Routine Carousel': 'BACKGROUND: consistent soft daylight gradient backdrop for repeatable carousel outputs (not pure white).',
-        'Pastel Picnic': 'BACKGROUND: pastel-toned backdrop with soft greenery bokeh accents, art-directed and clean (not pure white).',
-        'Face Pop Close-Up': 'BACKGROUND: neutral off-white studio gradient with minimal distractions (not pure white).',
-        'Sunrise Wellness Counter': 'BACKGROUND: warm sunrise gradient backdrop with soft beams and long gentle falloff (not pure white).',
-        'Clinical Lab Counter': 'BACKGROUND: cool clinical gray-blue gradient backdrop with sterile set continuity (not pure white).',
-        'Golden Mist Aura': 'BACKGROUND: warm golden gradient backdrop with controlled glow and soft falloff (not pure white).',
-        'Outdoor Energy Boost': 'BACKGROUND: bright natural backdrop with soft greenery bokeh and clean tonal separation (not pure white).',
-        'Crown Wellness Vanity': 'BACKGROUND: luxury neutral gradient backdrop with subtle reflective cues (not pure white).',
-        'Candy Gradient Lab': 'BACKGROUND: saturated premium gradient backdrop with polished highlights (not pure white).',
-        'Tile & Spa (alt)': 'BACKGROUND: high-key off-white gradient backdrop with a horizon transition (not pure white).',
+    const normalizeHexExact = (input: string | undefined | null, fallback: string): string => {
+        const raw = normalizeHexOrEmpty(input);
+        const value = raw || normalizeHexOrEmpty(fallback) || '#F6F7FB';
+        return value.toUpperCase();
     };
 
-    // Real environments: avoid "studio background" contradictions.
-    if (state.sceneType === 'lifestyle-real' || state.sceneType === 'ugc-phone') {
-        const bg = normalizeHexOrEmpty(state.backgroundColor);
-        const bgName = safeHexToColorName(bg);
-        if (!bg || bg.toLowerCase() === '#ffffff' || bgName === 'white') return '';
-        const accentName = safeHexToColorName(normalizeHexOrEmpty(state.accentColor));
-        if (accentName && accentName !== 'white' && accentName !== 'neutral') {
-            return `COLOR PALETTE: subtle ${bgName} accents with ${accentName} highlights.`;
-        }
-        return `COLOR PALETTE: subtle ${bgName} accents.`;
-    }
+    const parts: string[] = [];
+    parts.push(
+        'HERO BACKGROUND ENGINE (CRITICAL): Hero controls ONLY the background color; never surface, lighting, mood, or scene.'
+    );
 
-    // Gradient background (ecommerce + studio)
     if (state.gradientEnabled) {
-        const start = state.gradientStart?.trim() || '#ffffff';
-        const end = state.gradientEnd?.trim() || '#f0f0f0';
+        const start = normalizeHexExact(state.gradientStart, state.backgroundColor || '#F6F7FB');
+        const end = normalizeHexExact(state.gradientEnd, start);
         const angle = typeof state.gradientAngle === 'number' ? state.gradientAngle : 180;
-        return `BACKGROUND: Smooth gradient backdrop from ${safeHexToColorName(start)} to ${safeHexToColorName(end)} at ${angle} degrees. Seamless, studio-clean.`;
+        parts.push(
+            `HERO BACKGROUND = GRADIENT: Use exact hex ${start} and ${end}; smooth gradient at ${angle}°; no texture, no noise.`
+        );
+    } else {
+        const color = normalizeHexExact(state.backgroundColor, '#F6F7FB');
+        parts.push(
+            `HERO BACKGROUND = SOLID: Use exact hex ${color}; flat solid color; no texture, no noise.`
+        );
     }
 
-    // 1. Explicit Hex/Custom Background (Prioritized)
-    // 1. Explicit background color only when user chose a non-white, or explicitly locked to white.
-    // If the user never touched background and it remains default white, defer to PHOTO_MODE styling.
-    const color = normalizeHexOrEmpty(state.backgroundColor);
-    if (!color) return '';
+    if (state.photoMode === 'Color Pop Hero') {
+        const heroProduct =
+            state.products.find(p => p.id === state.activeProductId) ??
+            state.products.find(p => p.id === state.bundle.primaryProductId) ??
+            state.products[0];
+        const dominant = normalizeHexOrEmpty(heroProduct?.palette?.dominant || '');
+        const secondary = normalizeHexOrEmpty(heroProduct?.palette?.secondary || '');
+        if (dominant || secondary) {
+            const d = dominant ? dominant.toUpperCase() : '';
+            const s = secondary ? secondary.toUpperCase() : d;
+            parts.push(
+                `COLOR POP HERO: Extract dominant colors ${d}${s ? `, ${s}` : ''} from the product; use only as chromatic diffusion or lighting accents; never force a white background.`
+            );
+        } else {
+            parts.push(
+                'COLOR POP HERO: Use dominant product colors only as chromatic diffusion or lighting accents; never force a white background.'
+            );
+        }
+    }
 
-    const isWhite = color.toLowerCase() === '#ffffff';
-    if (isWhite && !state.colorLocks?.background) {
-        // If background is still default white and user didn't lock it, Photo Mode must define a complete set/backdrop.
-        return photoModeBackdropDefaults[state.photoMode] || 'BACKGROUND: subtle off-white studio gradient backdrop with gentle falloff (not pure white).';
-    }
-    if (isWhite) {
-        return 'BACKGROUND: Pure solid white #FFFFFF seamless studio backdrop. Absolutely no tint, no beige/green cast, no gradient.';
-    }
-    return `BACKGROUND: Clean seamless studio backdrop in ${safeHexToColorName(color)} tone.`;
+    return parts.join(' ');
 }
 
 function buildShadow(state: ProductStudioState): string {
@@ -1027,16 +1013,15 @@ function buildEcommerce(state: ProductStudioState): string {
     parts.push('ECOMMERCE COMPOSITION (STRICT)');
     parts.push('asymmetrical product placement');
 
-    // Background directive (solid/gradient)
+    // Background directive (Hero Background Engine)
     if (state.gradientEnabled) {
-        const start = state.gradientStart?.trim() || '#ffffff';
-        const end = state.gradientEnd?.trim() || '#f0f0f0';
+        const start = normalizeHexOrEmpty(state.gradientStart) || normalizeHexOrEmpty(state.backgroundColor) || '#F6F7FB';
+        const end = normalizeHexOrEmpty(state.gradientEnd) || start;
         const angle = typeof state.gradientAngle === 'number' ? state.gradientAngle : 180;
-        parts.push(`seamless gradient background from ${safeHexToColorName(start)} to ${safeHexToColorName(end)} at ${angle} degrees`);
-    } else if (state.backgroundColor && state.backgroundColor.trim().toLowerCase() !== '#ffffff') {
-        parts.push(`seamless solid background in ${safeHexToColorName(state.backgroundColor.trim())} tone`);
+        parts.push(`hero background gradient using exact hex ${start.toUpperCase()} and ${end.toUpperCase()} at ${angle} degrees; no texture, no noise`);
     } else {
-        parts.push('neutral seamless background');
+        const color = normalizeHexOrEmpty(state.backgroundColor) || '#F6F7FB';
+        parts.push(`hero background solid using exact hex ${color.toUpperCase()}; flat color; no texture, no noise`);
     }
 
     // Handle bundle positioning with ecommerce
@@ -1243,7 +1228,12 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     // 1. Scene Type
     segments.push(buildSceneType(state));
 
-    // 1b. Photo Mode (global art direction across Product Studio scene types)
+    // 1b. Hero Background Control (must not be overridden by Photo Mode/Atmosphere)
+    if (!state.blankSpaceEnabled) {
+        segments.push(buildBackground(state));
+    }
+
+    // 1c. Photo Mode (global art direction across Product Studio scene types)
     segments.push(buildPhotoMode(state));
 
     // 1. Product Definition (Source of Truth)
@@ -1266,9 +1256,6 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     }
     // 4b–4e. Photo Studio styling blocks (mutually exclusive with Environment)
     if (isPhotoStudio) {
-        if (!state.blankSpaceEnabled) {
-            segments.push(buildBackground(state));
-        }
         segments.push(buildShadow(state));
         segments.push(buildAccentColor(state));
         if (!state.blankSpaceEnabled) {
@@ -1326,7 +1313,12 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     // 1. Scene Type
     segments.push(buildSceneType(state));
 
-    // 1b. Photo Mode (global art direction across Product Studio scene types)
+    // 1b. Hero Background Control (must not be overridden by Photo Mode/Atmosphere)
+    if (!state.blankSpaceEnabled) {
+        segments.push(buildBackground(state));
+    }
+
+    // 1c. Photo Mode (global art direction across Product Studio scene types)
     segments.push(buildPhotoMode(state));
 
     // 1. Product Definition (Primary)
@@ -1354,9 +1346,6 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     }
     // 4b–4d. Photo Studio styling blocks (mutually exclusive with Environment)
     if (isPhotoStudio) {
-        if (!state.blankSpaceEnabled) {
-            segments.push(buildBackground(state));
-        }
         segments.push(buildShadow(state));
     }
 
@@ -1616,30 +1605,7 @@ function normalizeProductStudioStateForPrompt(state: ProductStudioState): Produc
     next.definition = applyCanonicalPhysicalForMotion(next.definition, next.stateMotion);
 
     // Photo Mode conflict rules:
-    // "Clear" is absolute: pure white studio, no set dressing or creative styling blocks.
-    if (next.photoMode === 'Clear') {
-        const macro =
-            (next.environmentContext?.macro ?? next.environmentMacro) as EnvironmentMacro | undefined;
-        // If the user intentionally selected a real environment (e.g., cGMP facility),
-        // do NOT wipe the environment. Clear is a studio-only photo mode.
-        if (macro && macro !== 'studio') {
-            next.photoMode = '';
-            return next;
-        }
-
-        next.backgroundColor = '#FFFFFF';
-        next.gradientEnabled = false;
-        next.props = '';
-        next.selectedProps = [];
-        next.propDensity = 'none';
-        next.creativityLevel = 0;
-        next.paletteSource = 'custom';
-
-        // Clear should not imply any environment/set cues.
-        next.environmentContext = null;
-        next.environmentMacro = 'studio';
-        next.microPlace = 'neutral-surface';
-    }
+    // "Clear" is disabled by the Hero Background Engine and should never reach this layer.
 
     return next;
 }

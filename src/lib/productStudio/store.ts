@@ -497,8 +497,9 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     // PRODUCT STUDIO UI CONTROLS (NEW)
     interpretationNotes: {},
     photoMode: 'Hero Landing Page',
-    backgroundColor: '#ffffff',
-    accentColor: '#6366f1',
+    // Default hero background must not imply a pure white seamless.
+    backgroundColor: '#F6F7FB',
+    accentColor: '#204020',
     colorLocks: {
         background: false,
         accent: false,
@@ -508,8 +509,8 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     alignment: 'center',
     shadow: 'soft-drop',
     gradientEnabled: false,
-    gradientStart: '#ffffff',
-    gradientEnd: '#f0f0f0',
+    gradientStart: '#F6F7FB',
+    gradientEnd: '#E9ECF5',
     gradientAngle: 180,
     props: '',
     ingredientLayout: 'grounded',
@@ -1241,61 +1242,13 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setPhotoMode: (mode) =>
         set((state) => {
             const nextMode = String(mode ?? '');
-            const active = state.products.find(p => p.id === state.activeProductId) ?? state.products[0];
-            const palette = active?.palette;
 
-            // "Clear" means: pure white, no set dressing, no creative styling blocks.
+            // "Clear" is disabled: the Hero background engine always controls background color.
             if (nextMode === 'Clear') {
-                return {
-                    photoMode: nextMode,
-                    backgroundColor: '#FFFFFF',
-                    gradientEnabled: false,
-                    props: '',
-                    ingredientLayout: 'grounded',
-                    selectedProps: [],
-                    propDensity: 'none',
-                    creativityLevel: 0,
-                    paletteSource: 'custom',
-                    // lock white background so palette extraction doesn't override it
-                    colorLocks: { ...state.colorLocks, background: true },
-                };
+                return { photoMode: 'Hero Landing Page' };
             }
 
-            const next: Partial<ProductStudioState> = { photoMode: nextMode };
-
-            // Photo-mode defaults (only when user hasn't explicitly locked those colors).
-            // These defaults are meant to *support* the look, but remain editable.
-            const canSetBg = !state.colorLocks.background;
-            const canSetAccent = !state.colorLocks.accent;
-            const canSetG1 = !state.colorLocks.gradientStart;
-            const canSetG2 = !state.colorLocks.gradientEnd;
-
-            const dominant = palette?.dominant;
-            const secondary = palette?.secondary;
-
-            const isGradientMode = [
-                'Candy Gradient Lab',
-                'Sunrise Wellness Counter',
-                'Golden Mist Aura',
-                'Pastel Picnic',
-                'Outdoor Energy Boost',
-            ].includes(nextMode);
-
-            if (isGradientMode) {
-                next.gradientEnabled = true;
-                if (canSetG1 && dominant) next.gradientStart = dominant;
-                if (canSetG2 && secondary) next.gradientEnd = secondary;
-            }
-
-            const isColorPop = nextMode === 'Color Pop Hero';
-            if (isColorPop) {
-                next.gradientEnabled = false;
-                if (canSetBg && dominant) next.backgroundColor = dominant;
-                if (canSetAccent && secondary) next.accentColor = secondary;
-            }
-
-            // Keep other modes neutral by default (no forced white injection).
-            return next;
+            return { photoMode: nextMode };
         }),
     setBackgroundColor: (color) =>
         set((state) => ({
