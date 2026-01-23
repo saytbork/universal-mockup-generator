@@ -15,7 +15,11 @@ export default function Login() {
     setStatus("loading");
     setMessage(null);
     try {
-      await sendMagicLink(email, invitationCode);
+      const result = await sendMagicLink(email, invitationCode);
+      if (result?.autoLoggedIn) {
+        window.location.href = result.redirect || "/app";
+        return;
+      }
       setStatus("success");
       setMessage("You will receive your login link shortly.");
     } catch (err: any) {

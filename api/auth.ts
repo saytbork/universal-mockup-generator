@@ -29,6 +29,50 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         res.status(400).json({ error: 'Email required' });
         return;
       }
+      const requiredCode = process.env.INVITATION_CODE;
+      const disposableDomains = ['mailinator.com', 'yopmail.com', '10minutemail', 'guerrillamail.com'];
+      const domain = String(email).split('@')[1] || '';
+      const isDisposable = disposableDomains.some((d) => domain.toLowerCase().includes(d));
+      const normalizedCode = typeof invitationCode === 'string' ? invitationCode.trim() : '';
+      const shouldAutoLogin =
+        Boolean(normalizedCode && requiredCode && normalizedCode === requiredCode && !isDisposable);
+
+      if (shouldAutoLogin) {
+        res.setHeader('Set-Cookie', [
+          `session_email=${encodeURIComponent(email)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`,
+        ]);
+
+        try {
+          const stripe = getStripe();
+          const customers = await stripe.customers.list({ email, limit: 1 });
+          const existing = customers.data[0];
+          const customer =
+            existing ||
+            (await stripe.customers.create({
+              email,
+              metadata: {},
+            }));
+
+          const metadata = customer.metadata || {};
+          const alreadyClaimed = metadata.invite_bonus_claimed === 'true';
+
+          if (!alreadyClaimed) {
+            await stripe.customers.update(customer.id, {
+              metadata: { ...metadata, invite_bonus_claimed: 'true' },
+            });
+            const user = await getUser(email);
+            await setUser(email, { credits: (user.credits || 0) + 10, inviteUsed: true });
+            await addActivity(email, 'invite', { bonus: 10 });
+          }
+        } catch (error) {
+          console.error('Invitation bonus error', error);
+        }
+
+        await addActivity(email, 'login', { method: 'invite_auto' });
+        res.status(200).json({ ok: true, autoLoggedIn: true, redirect: '/app' });
+        return;
+      }
+
       const token = createMagicToken(email, invitationCode);
       const magicLink = `${process.env.BASE_URL ?? 'https://boostugc.app'}/api/auth?action=verify&token=${token}`;
 
@@ -61,7 +105,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   `,
       });
 
-      res.status(200).json({ ok: true });
+      res.status(200).json({ ok: true, autoLoggedIn: false });
       return;
     }
     case 'verify': {

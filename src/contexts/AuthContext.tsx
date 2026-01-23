@@ -8,7 +8,10 @@ interface AuthContextType {
   loading: boolean;
   isGuest: boolean;
   signInWithGoogle: () => Promise<void>;
-  sendMagicLink: (email: string, invitationCode?: string) => Promise<void>;
+  sendMagicLink: (
+    email: string,
+    invitationCode?: string
+  ) => Promise<{ autoLoggedIn?: boolean; redirect?: string }>;
   logout: () => Promise<void>;
   loginAsGuest: () => void;
 }
@@ -71,6 +74,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const data = await res.json().catch(() => ({}));
       throw new Error(data.error || 'Unable to send magic link');
     }
+    const payload = await res.json().catch(() => ({}));
+    return payload || {};
   };
 
   const logout = async () => {
