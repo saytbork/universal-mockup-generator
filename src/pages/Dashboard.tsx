@@ -11,6 +11,7 @@ import {
   Zap,
   Clock,
   Gift,
+  CircleHelp,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -252,9 +253,7 @@ export default function Dashboard() {
                   <Zap className="h-4 w-4" /> Credits Available
                 </p>
                 <h2 className="text-4xl font-bold">{creditsLabel}</h2>
-                <p className="text-sm text-gray-600">
-                  Plan: {user.plan || "free"} {user.plan === "free" ? "– 2 credits included" : ""}
-                </p>
+                <p className="text-sm text-gray-600">Plan: {user.plan || "free"}</p>
                 {user.inviteUsed && (
                   <p className="text-xs text-indigo-600 flex items-center gap-2">
                     <Sparkles className="h-4 w-4" /> Welcome gift applied (+10 credits)
@@ -368,7 +367,17 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-xs uppercase tracking-[0.25em] text-indigo-600">My Gallery</p>
-              <h3 className="text-lg font-semibold">Your Generated Images</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-semibold">Your Generated Images</h3>
+                <button
+                  type="button"
+                  aria-label="Gallery retention help"
+                  title={`Your generated images.\nAvailable for 30 days.`}
+                  className="inline-flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600"
+                >
+                  <CircleHelp className="h-4 w-4" />
+                </button>
+              </div>
             </div>
             <ImageIcon className="h-5 w-5 text-indigo-600" />
           </div>
@@ -588,13 +597,7 @@ function GallerySection({ userEmail }: { userEmail: string }) {
   }
 
   return (
-    <div className="space-y-3">
-      <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-        <p className="text-[11px] text-amber-800 font-medium">
-          Images are available for 30 days. Download anything you want to keep.
-        </p>
-      </div>
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
       {images.map((image) => {
         const createdDate =
           image.createdAt?.toDate?.() ||
@@ -643,7 +646,6 @@ function GallerySection({ userEmail }: { userEmail: string }) {
           </div>
         );
       })}
-      </div>
     </div>
   );
 }

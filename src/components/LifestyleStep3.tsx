@@ -1863,42 +1863,30 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   }, [values.ugcRealMode, values.formulationStoryEnabled, updateValue]);
   return (
     <div className={embedded ? 'w-full space-y-4' : 'w-full max-w-2xl mx-auto space-y-4 p-4'}>
-      {!embedded && (
-        <div className="flex flex-col gap-1">
-          <p className="text-xs uppercase tracking-widest text-indigo-600">Step 3</p>
-          <h2 className="text-2xl font-bold text-gray-900">{isEcommerceMode ? 'Product Builder' : 'Scene Builder'}</h2>
-          <p className="text-sm text-gray-500">
-            {isEcommerceMode
-              ? 'Product-only ecommerce controls: pro camera, controlled background, and layout-safe composition.'
-              : 'Define how the scene looks, feels, and behaves visually.'}
-          </p>
-        </div>
-      )}
+	      {!embedded && (
+	        <div className="flex flex-col gap-1">
+	          <p className="text-xs uppercase tracking-widest text-indigo-600">Step 3</p>
+	          <h2 className="text-2xl font-bold text-gray-900">{isEcommerceMode ? 'Product Builder' : 'Scene Builder'}</h2>
+	        </div>
+	      )}
 
       {isEcommerceMode && (
         <>
-          <SmoothAccordion
-            icon={Layers}
-            title="01 / Product Setup"
-            tooltip="Define the product context. This determines what the system is allowed to generate."
-            isOpen={openAccordionId === 'product-setup'}
-            onToggle={() => toggleSection('product-setup')}
-            isRequired
-            isTouched={touchedSections.has('product-setup')}
-            variant="primary"
-          >
-            <div className="space-y-4">
-              <p className="text-sm text-gray-500">
-                Define the product context. This determines what the system is allowed to generate.
-              </p>
-
-              {/* PHOTO TYPE — Mutually exclusive modes to avoid prompt conflicts */}
-              <div className={SECTION_GROUP_CLASS}>
-                <p className={GROUP_LABEL_CLASS}>PHOTO TYPE</p>
-                <p className="text-[11px] text-gray-500 mt-1">
-                  Choose how the product is staged. Studio and Environment never mix.
-                </p>
-                <div className="flex flex-wrap gap-2">
+	          <SmoothAccordion
+	            icon={Layers}
+	            title="01 / Product Setup"
+	            tooltip={`Product setup.\nProduct basics.`}
+	            isOpen={openAccordionId === 'product-setup'}
+	            onToggle={() => toggleSection('product-setup')}
+	            isRequired
+	            isTouched={touchedSections.has('product-setup')}
+	            variant="primary"
+	          >
+	            <div className="space-y-4">
+	              {/* PHOTO TYPE — Mutually exclusive modes to avoid prompt conflicts */}
+	              <div className={SECTION_GROUP_CLASS}>
+	                <p className={GROUP_LABEL_CLASS}>PHOTO TYPE</p>
+	                <div className="flex flex-wrap gap-2">
                   <Chip
                     onClick={() => {
                       productStore.setEnvironmentContext(null);
@@ -2063,20 +2051,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </Chip>
                                 ))}
                               </div>
-                              <p className="text-[9px] text-gray-400 mt-1">
-                                “On base” prevents floating ingredients. “Floating” makes powders airy (no piles). “Top view” works best with Top Down camera.
-                              </p>
+                              {/* No persistent explanatory copy; use tooltips only. */}
                             </div>
                           </div>
                         )}
                       </div>
 
-                      {/* STUDIO WARNING */}
-                      <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-                        <p className="text-[11px] text-amber-700 font-medium">
-                          Photo Studio uses controlled sets (no real-world location context).
-                        </p>
-                      </div>
                     </>
                   )}
 
@@ -2086,9 +2066,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       ═══════════════════════════════════════════════════════════ */}
                   <div className={SECTION_GROUP_CLASS}>
                     <p className={GROUP_LABEL_CLASS}>PRODUCT IDENTITY</p>
-                    <p className="text-[11px] text-gray-500 mt-1">
-                      What the product is, physically and commercially.
-                    </p>
                   </div>
 
                   <div className={SECTION_GROUP_CLASS}>
@@ -4107,10 +4084,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         ))}
                       </div>
                       {!productEnvironmentAdvancedOpen && (
-                        <p className="text-[11px] text-gray-500 mt-2">
-                          Enable Advanced to access stylistic lighting (Golden Hour, Sunny Day, Mood, Night, Flash).
-                        </p>
-                      )}
+                          {/* No persistent explanatory copy; use tooltips only. */}
+                        )}
                     </div>
                   </div>
                 </div>
@@ -4120,24 +4095,19 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           </SmoothAccordion>
           )}
 
-          <SmoothAccordion
-            icon={Hand}
-            title="08 / Product Interaction"
-            tooltip="Hands and interaction are treated as controlled visual elements, not decoration."
-            isOpen={openAccordionId === 'product-interaction'}
-            onToggle={() => toggleSection('product-interaction')}
-            isTouched={touchedSections.has('product-interaction')}
-            variant="primary"
-          >
-            <div className="space-y-4">
-              <p className="text-sm text-gray-500">
-                Define how the product is physically interacted with.<br />
-                This affects realism, trust, and narrative tone.
-              </p>
-
-              <div className={SECTION_GROUP_CLASS}>
-                <p className={GROUP_LABEL_CLASS}>PRODUCT INTERACTION</p>
-                <div className="flex flex-wrap gap-2">
+	          <SmoothAccordion
+	            icon={Hand}
+	            title="08 / Product Interaction"
+	            tooltip={`Product interaction.\nOne interaction per scene.`}
+	            isOpen={openAccordionId === 'product-interaction'}
+	            onToggle={() => toggleSection('product-interaction')}
+	            isTouched={touchedSections.has('product-interaction')}
+	            variant="primary"
+	          >
+	            <div className="space-y-4">
+	              <div className={SECTION_GROUP_CLASS}>
+	                <p className={GROUP_LABEL_CLASS}>PRODUCT INTERACTION</p>
+	                <div className="flex flex-wrap gap-2">
                   {(
                     [
                       { value: 'none', label: 'None', detail: 'No hands. No skin. No human shadows.' },
@@ -4362,28 +4332,26 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             </div>
           </SmoothAccordion>
 
-          <SmoothAccordion
-            icon={Building2}
-            title="10 / Ecommerce Image Builder (BETA)"
-            tooltip="Generate ecommerce-ready images with layout-safe space (experimental)"
-            isOpen={openAccordionId === 'ecommerce'}
-            onToggle={() => toggleSection('ecommerce')}
-            isActive
-            variant="secondary"
-          >
+	          <SmoothAccordion
+	            icon={Building2}
+	            title="10 / Ecommerce Image Builder (BETA)"
+	            tooltip={`Ecommerce builder.\nBeta feature.`}
+	            isOpen={openAccordionId === 'ecommerce'}
+	            onToggle={() => toggleSection('ecommerce')}
+	            isActive
+	            variant="secondary"
+	          >
             <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold tracking-wide text-amber-800">
-                  BETA
-                </span>
-                <p className="text-sm text-gray-500">Some preview features are experimental.</p>
-              </div>
-              <div className={SECTION_GROUP_CLASS}>
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className={GROUP_LABEL_CLASS}>BACKGROUND CANVAS</p>
-                    <p className="text-[11px] text-gray-500 mt-1">Neutral background + negative space (optional)</p>
-                  </div>
+	              <div className="flex items-center gap-2">
+	                <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold tracking-wide text-amber-800">
+	                  BETA
+	                </span>
+	              </div>
+	              <div className={SECTION_GROUP_CLASS}>
+	                <div className="flex items-center justify-between gap-3">
+	                  <div>
+	                    <p className={GROUP_LABEL_CLASS}>BACKGROUND CANVAS</p>
+	                  </div>
                   <Toggle
                     checked={values.ecommerceSidePlacementFlag}
                     onCheckedChange={(next) => {
@@ -4394,20 +4362,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     aria-label="Background canvas"
                   />
                 </div>
-                {values.ecommerceSidePlacementFlag !== true && (
-                  <p className="text-[11px] text-gray-500">
-                    Turn this off to use Product Builder Creativity (studio/aesthetic) instead of a neutral blank-space layout.
-                  </p>
-                )}
-              </div>
+	              </div>
 
               {values.ecommerceSidePlacementFlag === true && (
                 <>
-                  <div className={SECTION_GROUP_CLASS}>
-                    <div>
-                      <p className={GROUP_LABEL_CLASS}>SIDE PLACEMENT</p>
-                      <p className="text-[11px] text-gray-500 mt-1">Product anchor position</p>
-                    </div>
+	                  <div className={SECTION_GROUP_CLASS}>
+	                    <div>
+	                      <p className={GROUP_LABEL_CLASS}>SIDE PLACEMENT</p>
+	                    </div>
                     <div className="flex flex-wrap gap-2">
                       {SIDE_PLACEMENT_OPTIONS.map(option => (
                         <Chip
@@ -5903,17 +5865,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       />
                     </div>
 
-                    {values.ugcRealMode && (
-                      <>
-                        <p className="text-xs text-gray-500 mt-2 mb-4">
-                          Pro controls are locked. The system handles everything automatically.
-                        </p>
-                        <div className="rounded-2xl border border-gray-200 bg-white p-4 space-y-2">
-                          <div className="flex flex-wrap items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="text-[10px] uppercase tracking-[0.2em] text-gray-500 font-extrabold">IMPERFECTION LEVEL</p>
-                              <p className="text-[11px] text-gray-500 mt-1">How “ugly” the phone capture looks (noise/compression/focus mistakes).</p>
-                            </div>
+	                    {values.ugcRealMode && (
+	                      <>
+	                        <div className="rounded-2xl border border-gray-200 bg-white p-4 space-y-2">
+	                          <div className="flex flex-wrap items-start justify-between gap-3">
+	                            <div className="min-w-0">
+	                              <p className="text-[10px] uppercase tracking-[0.2em] text-gray-500 font-extrabold">IMPERFECTION LEVEL</p>
+	                            </div>
                             <div className="flex flex-wrap justify-end gap-2">
                               {(['low', 'medium', 'high'] as const).map(level => (
                                 <button
@@ -5925,22 +5883,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 >
                                   {level === 'low' ? 'Low' : level === 'medium' ? 'Medium' : 'High'}
                                 </button>
-                              ))}
-                            </div>
-                          </div>
-                          <p className="text-[11px] text-gray-500">
-                            Tip: use <span className="font-semibold">High</span> to match real “random selfie” ugliness. Use <span className="font-semibold">Low</span> if it gets too messy.
-                          </p>
-                        </div>
+	                              ))}
+	                            </div>
+	                          </div>
+	                        </div>
                         <div className="space-y-4">
                           {RAW_DOMESTIC_CAPTURE_SECTIONS.map(section => {
                             const currentSelections = (values[section.field] as string[]) || [];
                             return (
                               <div key={section.field} className="space-y-3">
-                                <div>
-                                  <p className="text-xs uppercase tracking-wider text-gray-500">{section.title}</p>
-                                  <p className="text-xs text-gray-500 mt-1">{section.description}</p>
-                                </div>
+	                                <div>
+	                                  <p className="text-xs uppercase tracking-wider text-gray-500">{section.title}</p>
+	                                </div>
                                 <div className="flex flex-wrap gap-2">
                                   {section.options.map(option => (
                                     <Chip
@@ -7133,22 +7087,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         )
       }
 
-      {/* VALIDATION WARNINGS (Soft) */}
-      {
-        isProductMode && validationResult.valid && validationResult.warnings.length > 0 && (
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 space-y-2 mt-4">
-            <div className="flex items-center gap-2 text-amber-800 font-semibold text-sm uppercase tracking-wide">
-              <AlertTriangle className="w-5 h-5" />
-              <span>Interpretation Notes</span>
-            </div>
-            <ul className="list-disc list-inside text-sm text-amber-800 space-y-1">
-              {validationResult.warnings.map((warn, i) => (
-                <li key={i}>{warn}</li>
-              ))}
-            </ul>
-          </div>
-        )
-      }
+	      {/* No persistent warning blocks; show contextual errors only. */}
 
     </div >
   );

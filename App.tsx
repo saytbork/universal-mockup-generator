@@ -2087,17 +2087,7 @@ const App: React.FC = () => {
                       </span>
                     </label>
                   </div>
-                  {personControlsDisabled && <p className="text-[11px] text-gray-500 dark:text-white/50">Enable people in this scene to sync the talent across your storyboard.</p>}
-                  {isTalentLinkedAcrossScenes && !isActiveScenePrimary && (
-                    <p className="text-[11px] text-gray-500 dark:text-white/50">
-                      Identity locked from {storyboardScenes[0]?.label || 'Scene 1'} while Same Person is active.
-                    </p>
-                  )}
-                  {isTalentLinkedAcrossScenes && !personControlsDisabled && (
-                    <p className="text-[11px] text-indigo-600 dark:text-indigo-300">
-                      Any tweak you make to the person instantly updates every other scene that still features them.
-                    </p>
-                  )}
+                  {/* No persistent explanatory copy; use tooltips only. */}
                 </div>
               </div>
               <ChipSelectGroup label="Appearance Level" options={PERSON_APPEARANCE_OPTIONS} selectedValue={options.personAppearance} onChange={(value) => handleOptionChange('personAppearance', value, 'Person Details')} disabled={personControlsDisabled} />
@@ -2116,19 +2106,11 @@ const App: React.FC = () => {
               <ChipSelectGroup label="Skin Realism" options={SKIN_REALISM_OPTIONS} selectedValue={options.skinRealism} onChange={(value) => handleOptionChange('skinRealism', value, 'Person Details')} disabled={personControlsDisabled} />
               <ChipSelectGroup label="Eye Color" options={EYE_COLOR_OPTIONS} selectedValue={options.eyeColor} onChange={(value) => handleOptionChange('eyeColor', value, 'Person Details')} disabled={personControlsDisabled} />
               <ChipSelectGroup label="Selfie Type" options={SELFIE_TYPE_OPTIONS} selectedValue={options.selfieType} onChange={(value) => handleOptionChange('selfieType', value, 'Person Details')} disabled={personControlsDisabled} />
-              {!personControlsDisabled && (
-                <p className="text-[11px] text-gray-500">
-                  Tip: selfie styles mimic how the creator is actually holding the phone (mirror, arm-length, low-angle). Choose the angle you want viewers to feel.
-                </p>
-              )}
               {!personControlsDisabled && !ugcRealSettings.isEnabled && (
                 <div className="rounded-2xl border border-gray-200 bg-gray-100 p-4 space-y-3">
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Hero person presets</p>
-                      <p className="text-[11px] text-gray-600">
-                        Quickly stage face-frame, offer-to-lens, or grounded lounge poses inspired by modern supplement shoots.
-                      </p>
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -5311,7 +5293,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
   const handleGenerateVideo = async () => {
     if (!hasPlanVideoAccess) {
-      setVideoError("Your current plan does not include video generation. Upgrade to Creator or Studio to unlock this feature.");
+      setVideoError("Video generation is disabled.");
       return;
     }
     if (!generatedImageUrl) {
@@ -5319,7 +5301,7 @@ If the model attempts to create a scene or environment, override it and force a 
       return;
     }
     if (!isTrialBypassActive && planVideoLimit > 0 && !hasVideoAccess && isVideoLimitReached) {
-      setVideoError("You reached your video credit limit. Upgrade your plan for more exports.");
+      setVideoError("Video generation is disabled.");
       return;
     }
 
@@ -6039,13 +6021,13 @@ If the model attempts to create a scene or environment, override it and force a 
                       onGenerateVideo={handleGenerateVideo}
                       isVideoLoading={isVideoLoading}
                       videoError={videoError}
-                      generatedVideoUrl={generatedVideoUrl}
-                      isGenerating={isVideoLoading || isImageLoading}
-                      hasAccess={hasPlanVideoAccess}
-                      lockMessage={planVideoLimit === 0 ? "Upgrade to Creator or Studio to unlock video generation." : undefined}
-                      showAccessCodeField={planVideoLimit === 0}
-                      remainingVideos={planVideoLimit > 0 ? remainingVideos : null}
-                      planLabel={currentPlan.label}
+	                      generatedVideoUrl={generatedVideoUrl}
+	                      isGenerating={isVideoLoading || isImageLoading}
+	                      hasAccess={hasPlanVideoAccess}
+	                      lockMessage={planVideoLimit === 0 ? "Video generation is disabled." : undefined}
+	                      showAccessCodeField={planVideoLimit === 0}
+	                      remainingVideos={planVideoLimit > 0 ? remainingVideos : null}
+	                      planLabel={currentPlan.label}
                       accessCode={videoAccessInput}
                       onAccessCodeChange={handleVideoAccessCodeChange}
                       onAccessSubmit={handleVideoAccessSubmit}
