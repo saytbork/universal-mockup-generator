@@ -1,6 +1,7 @@
 // @ts-ignore – TS needs this because admin.mjs is ESM
 import admin, { adminDB, adminStorage, FieldValue } from "../server/firebase/admin.mjs";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { checkAuth } from "../server/lib/checkAuth.js";
 
 type GalleryMeta = {
   width?: number;
@@ -158,8 +159,56 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(200).json({ images });
       }
 
+      case "delete": {
+        if (req.method !== "POST") {
+          res.setHeader("Allow", "POST");
+          return res.status(405).json({ error: "Method not allowed" });
+        }
+
+        const email = checkAuth(req);
+        if (!email) {
+          return res.status(401).json({ error: "Unauthorized" });
+        }
+
+        const { id } = req.body || {};
+        if (!id || typeof id !== "string") {
+          return res.status(400).json({ error: "Missing id" });
+        }
+
+        const normalizedEmail = String(email).trim().toLowerCase();
+        const docRef = adminDB.collection("gallery").doc(id);
+        const doc = await docRef.get();
+        if (!doc.exists) {
+          return res.status(404).json({ error: "Not found" });
+        }
+
+        const data = doc.data() as any;
+        const owner = String(data?.userId || "").trim().toLowerCase();
+        if (!owner || owner !== normalizedEmail) {
+          return res.status(403).json({ error: "Forbidden" });
+        }
+
+        const imageUrl = String(data?.imageUrl || "");
+        // Best-effort cleanup in Storage (only for our bucket URLs).
+        try {
+          const prefix = `https://storage.googleapis.com/${adminStorage.name}/`;
+          if (imageUrl.startsWith(prefix)) {
+            const path = imageUrl.slice(prefix.length);
+            const safeUserPath = normalizedEmail.replace(/[^a-z0-9@._-]+/g, "_");
+            if (path.startsWith(`gallery/${safeUserPath}/`)) {
+              await adminStorage.file(path).delete({ ignoreNotFound: true });
+            }
+          }
+        } catch (err) {
+          console.warn("Gallery storage delete warning", err);
+        }
+
+        await docRef.delete();
+        return res.status(200).json({ ok: true });
+      }
+
       default:
-        return res.status(400).json({ error: "Invalid action. Use 'add' or 'list'" });
+        return res.status(400).json({ error: "Invalid action. Use 'add', 'list', or 'delete'" });
     }
   } catch (error: any) {
     console.error("❌ Gallery handler error:", error);

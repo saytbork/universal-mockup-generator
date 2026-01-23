@@ -16,7 +16,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import type { GalleryImage } from "../services/galleryService";
 import { PLAN_CONFIG, type PlanTier } from "../constants/planConfig";
-import { listLocalGalleryEntries } from "../services/localGallery";
+import { deleteLocalGalleryEntry, listLocalGalleryEntries } from "../services/localGallery";
 
 type ActivityItem = {
   id: string;
@@ -384,6 +384,7 @@ function GallerySection({ userEmail }: { userEmail: string }) {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -506,11 +507,48 @@ function GallerySection({ userEmail }: { userEmail: string }) {
   const handleDownload = async (imageUrl: string, imageName?: string) => {
     try {
       const { downloadImage } = await import('../services/galleryService');
-      downloadImage(imageUrl, imageName);
+      await downloadImage(imageUrl, imageName);
     } catch (err) {
       console.error('Download failed:', err);
-      alert('Failed to download image. Opening in new tab...');
-      window.open(imageUrl, '_blank');
+      alert('Failed to download image.');
+    }
+  };
+
+  const handleDelete = async (image: GalleryImage) => {
+    const ok = window.confirm('Delete this image from your gallery?');
+    if (!ok) return;
+
+    setBusyId(image.id);
+    try {
+      const isLocal = String(image.id || '').startsWith('local-') || String(image.imageUrl || '').toLowerCase().startsWith('data:');
+      if (isLocal) {
+        try {
+          await deleteLocalGalleryEntry(image.id);
+        } catch (err) {
+          console.warn('Local gallery delete warning', err);
+        }
+        try {
+          const LOCAL_GALLERY_CACHE_KEY = 'ugc-free-gallery';
+          const stored = window.localStorage.getItem(LOCAL_GALLERY_CACHE_KEY);
+          const parsed = stored ? JSON.parse(stored) : [];
+          if (Array.isArray(parsed)) {
+            const next = parsed.filter((item: any) => String(item?.imageUrl || '') !== String(image.imageUrl || ''));
+            window.localStorage.setItem(LOCAL_GALLERY_CACHE_KEY, JSON.stringify(next));
+          }
+        } catch (err) {
+          console.warn('LocalStorage gallery delete warning', err);
+        }
+      } else {
+        const { deleteFromGallery } = await import('../services/galleryService');
+        await deleteFromGallery(image.id);
+      }
+
+      setImages(prev => prev.filter(i => i.id !== image.id));
+    } catch (err: any) {
+      console.error('Delete failed:', err);
+      alert(err?.message || 'Failed to delete image.');
+    } finally {
+      setBusyId(null);
     }
   };
 
@@ -547,7 +585,13 @@ function GallerySection({ userEmail }: { userEmail: string }) {
   }
 
   return (
-    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="space-y-3">
+      <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+        <p className="text-[11px] text-amber-800 font-medium">
+          Images are available for 30 days. Download anything you want to keep.
+        </p>
+      </div>
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
       {images.map((image) => {
         const createdDate =
           image.createdAt?.toDate?.() ||
@@ -575,16 +619,28 @@ function GallerySection({ userEmail }: { userEmail: string }) {
                   <p className="text-gray-600">Size: {image.width}×{image.height}</p>
                 ) : null}
               </div>
-              <button
-                onClick={() => handleDownload(image.imageUrl, `ugc-image-${image.id}.png`)}
-                className="w-full rounded-xl bg-indigo-600 text-white px-3 py-2 text-sm font-semibold transition hover:bg-indigo-700"
-              >
-                Download
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleDownload(image.imageUrl, `ugc-image-${image.id}.png`)}
+                  disabled={busyId === image.id}
+                  className="flex-1 rounded-xl bg-indigo-600 text-white px-3 py-2 text-sm font-semibold transition hover:bg-indigo-700 disabled:opacity-50"
+                >
+                  Download
+                </button>
+                <button
+                  onClick={() => handleDelete(image)}
+                  disabled={busyId === image.id}
+                  className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 transition hover:border-red-500 hover:text-red-600 disabled:opacity-50"
+                  title="Delete"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
         );
       })}
+      </div>
     </div>
   );
 }

@@ -36,6 +36,10 @@ export interface ListGalleryResponse {
     images: GalleryImage[];
 }
 
+export interface DeleteGalleryResponse {
+    ok: boolean;
+}
+
 /**
  * Add image to gallery
  * @param imageUrl - Public URL of uploaded image
@@ -121,26 +125,58 @@ export async function listUserGallery(userId: string): Promise<GalleryImage[]> {
 }
 
 /**
+ * Delete a gallery image by ID (requires session cookie).
+ */
+export async function deleteFromGallery(id: string): Promise<void> {
+    const trimmed = String(id || '').trim();
+    if (!trimmed) throw new Error('Missing gallery id');
+    try {
+        await axios.post<DeleteGalleryResponse>('/api/galleryHandler?action=delete', { id: trimmed });
+    } catch (error) {
+        console.error('❌ Failed to delete gallery image:', error);
+        if (axios.isAxiosError(error)) {
+            throw new Error(
+                `Gallery API error: ${error.response?.data?.error || error.message}`
+            );
+        }
+        throw error;
+    }
+}
+
+/**
  * Download image from URL
  * @param imageUrl - URL of image to download
  * @param filename - Optional filename for download
  */
-export function downloadImage(imageUrl: string, filename?: string): void {
+export async function downloadImage(imageUrl: string, filename?: string): Promise<void> {
     try {
+        const url = String(imageUrl || '').trim();
+        if (!url) throw new Error('Missing image URL');
+        const name = filename || `ugc-image-${Date.now()}.png`;
+
+        // Prefer a blob download to avoid opening a new tab (and to work reliably cross-origin).
+        const res = await fetch(url, { mode: 'cors', credentials: 'omit' });
+        if (!res.ok) throw new Error(`Failed to fetch image (${res.status})`);
+        const blob = await res.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        try {
+            const link = document.createElement('a');
+            link.href = objectUrl;
+            link.download = name;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } finally {
+            URL.revokeObjectURL(objectUrl);
+        }
+    } catch (error) {
+        console.error('❌ Failed to download image:', error);
+        // Final fallback: still attempt a regular download without opening a new tab.
         const link = document.createElement('a');
         link.href = imageUrl;
         link.download = filename || `ugc-image-${Date.now()}.png`;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-
-        console.log('✅ Image download initiated');
-    } catch (error) {
-        console.error('❌ Failed to download image:', error);
-        // Fallback: open in new tab
-        window.open(imageUrl, '_blank', 'noopener,noreferrer');
     }
 }

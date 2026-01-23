@@ -166,3 +166,13 @@ export async function pruneLocalGallery(userId: string, days = 30, maxEntries = 
   db.close();
 }
 
+export async function deleteLocalGalleryEntry(id: string): Promise<void> {
+  if (typeof window === 'undefined' || typeof indexedDB === 'undefined') return;
+  const key = String(id || '').trim();
+  if (!key) return;
+  const db = await openDb();
+  const tx = db.transaction(STORE, 'readwrite');
+  tx.objectStore(STORE).delete(key);
+  await txDone(tx);
+  db.close();
+}
