@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { checkAuth } from '../server/lib/checkAuth.js';
-import { getUser, setUser } from '../server/lib/store.js';
+import { getUser, consumeCredit, refundCredit, getEffectiveCredits } from '../server/lib/store.js';
 import { addActivity } from '../server/lib/activity.js';
 
 const parseAction = (req: VercelRequest) => {
@@ -36,25 +36,55 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(401).json({ error: 'Unauthorized' });
     return;
   }
-  const { amount } = req.body || {};
+  const { amount, bucket } = req.body || {};
   const creditAmount = parseAmount(amount) ?? 1;
   try {
-    const user = await getUser(email);
     if (action === 'consume') {
-      if ((user.credits ?? 0) < creditAmount) {
-        res.status(400).json({ error: 'No credits' });
-        return;
+      let consumed = 0;
+      let lastBucket: string | undefined;
+      for (let i = 0; i < creditAmount; i += 1) {
+        const result = await consumeCredit(email);
+        if (!result.ok) {
+          // Refund any partial consumption
+          if (consumed > 0 && lastBucket) {
+            for (let j = 0; j < consumed; j += 1) {
+              await refundCredit(email, lastBucket as any);
+            }
+          }
+          res.status(402).json({ error: 'No credits' });
+          return;
+        }
+        consumed += 1;
+        lastBucket = result.bucket;
       }
-      const next = (user.credits ?? 0) - creditAmount;
-      await setUser(email, { credits: next });
+      const user = await getUser(email);
       await addActivity(email, 'image', { delta: -creditAmount });
-      res.json({ ok: true, credits: next });
+      res.json({
+        ok: true,
+        credits: user.credits ?? getEffectiveCredits(user),
+        remaining_credits: getEffectiveCredits(user),
+        trial_remaining: user.trialRemaining ?? 0,
+        invite_remaining: user.inviteRemaining ?? 0,
+        subscription_remaining: user.subscriptionRemaining ?? 0,
+      });
       return;
     }
-    const next = (user.credits ?? 0) + creditAmount;
-    await setUser(email, { credits: next });
+    // refund
+    const targetBucket =
+      bucket === 'trial' || bucket === 'invite' || bucket === 'subscription' ? bucket : 'subscription';
+    for (let i = 0; i < creditAmount; i += 1) {
+      await refundCredit(email, targetBucket);
+    }
+    const user = await getUser(email);
     await addActivity(email, 'image', { delta: creditAmount, refund: true });
-    res.json({ ok: true, credits: next });
+    res.json({
+      ok: true,
+      credits: user.credits ?? getEffectiveCredits(user),
+      remaining_credits: getEffectiveCredits(user),
+      trial_remaining: user.trialRemaining ?? 0,
+      invite_remaining: user.inviteRemaining ?? 0,
+      subscription_remaining: user.subscriptionRemaining ?? 0,
+    });
   } catch (error) {
     console.error('consume credit error', error);
     res.status(500).json({ error: 'Unable to consume credit' });

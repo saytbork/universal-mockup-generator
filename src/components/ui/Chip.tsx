@@ -50,15 +50,37 @@ export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
       .filter(Boolean)
       .join(' ');
 
+    const resolvedChildren = (() => {
+      if (React.isValidElement(children) || Array.isArray(children)) {
+        return { kind: 'node' as const, value: children };
+      }
+      if (typeof children === 'string' || typeof children === 'number') {
+        return { kind: 'text' as const, value: String(children) };
+      }
+      if (children == null || typeof children === 'boolean') {
+        return { kind: 'node' as const, value: children };
+      }
+      if (typeof children === 'object') {
+        try {
+          return { kind: 'text' as const, value: JSON.stringify(children) };
+        } catch {
+          return { kind: 'text' as const, value: String(children) };
+        }
+      }
+      return { kind: 'text' as const, value: String(children) };
+    })();
+
     const safeTooltip = typeof tooltip === 'string' ? tooltip : undefined;
     const inferredTitle =
       safeTooltip ??
       props.title ??
-      (typeof children === 'string' ? children : undefined);
+      (resolvedChildren.kind === 'text' ? resolvedChildren.value : undefined);
 
     const button = (
       <button type="button" ref={ref} className={classes} disabled={disabled} title={inferredTitle} {...props}>
-        {typeof children === 'string' ? <span className="truncate max-w-full">{children}</span> : children}
+        {resolvedChildren.kind === 'text'
+          ? <span className="truncate max-w-full">{resolvedChildren.value}</span>
+          : resolvedChildren.value}
       </button>
     );
 

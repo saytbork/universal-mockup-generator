@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { checkAuth } from '../server/lib/checkAuth.js';
-import { getUser, setUser } from '../server/lib/store.js';
+import { getUser, setUser, getEffectiveCredits } from '../server/lib/store.js';
 import { listActivity } from '../server/lib/activity.js';
 
 const parseAction = (req: VercelRequest) => {
@@ -33,15 +33,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   let user = await getUser(email);
-  // Migration: older accounts created before server-side credit enforcement may have 0 credits.
-  // If they have no prior image consumption activity, grant the Free plan's included 2 credits once.
   const normalizedPlan = String(user.plan ?? 'free').trim().toLowerCase();
-  if ((user.credits ?? 0) === 0 && (normalizedPlan === 'free' || normalizedPlan === '' || user.plan == null)) {
+  if (normalizedPlan === 'free' && user.trialRemaining <= 0 && user.inviteRemaining <= 0) {
     try {
       const recent = await listActivity(email, 30);
       const hasSpend = recent.some(item => item.type === 'image' && Number(item.meta?.delta ?? 0) < 0);
       if (!hasSpend) {
-        user = await setUser(email, { credits: 2, plan: user.plan ?? 'free' });
+        user = await setUser(email, { trialRemaining: 2, plan: user.plan ?? 'free' });
       }
     } catch (err) {
       // Never fail /me due to activity lookups.
@@ -52,8 +50,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.status(200).json({
     userId: email,
     email,
-    credits: user.credits ?? 0,
     plan: user.plan ?? 'free',
+    credits: user.credits ?? getEffectiveCredits(user),
+    remaining_credits: getEffectiveCredits(user),
+    trial_remaining: user.trialRemaining ?? 0,
+    invite_remaining: user.inviteRemaining ?? 0,
+    subscription_remaining: user.subscriptionRemaining ?? 0,
     inviteUsed: user.inviteUsed ?? false,
+    trialUsed: user.trialUsed ?? false,
   });
 }

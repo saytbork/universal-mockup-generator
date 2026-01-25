@@ -2,7 +2,6 @@
 
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { GoogleGenAI, Modality } from "@google/genai";
 import { MockupOptions, OptionCategory, Option } from './types';
 import { Info, Moon, Sun } from 'lucide-react';
 import Logo from './src/components/Logo';
@@ -1312,7 +1311,7 @@ const App: React.FC = () => {
         const data = await res.json();
         if (active) {
           setInviteUsed(Boolean(data.inviteUsed));
-          const credits = Number(data.credits ?? 0);
+          const credits = Number(data.remaining_credits ?? data.credits ?? 0);
           setRemoteCredits(Number.isFinite(credits) ? credits : 0);
           const rawPlan = String(data.plan ?? 'free')
             .trim()
@@ -3064,49 +3063,12 @@ const App: React.FC = () => {
   }, []);
 
 
-  const buildCopyPrompt = useCallback(
-    (sceneOptions: MockupOptions) => {
-      const style = sceneOptions.contentStyle === 'product' ? 'product placement' : 'UGC lifestyle';
-      return `You are a copywriter for a modern DTC brand. Write one short social caption (max 30 words) describing a ${sceneOptions.productMaterial} product captured as ${style} in a ${sceneOptions.setting} with ${sceneOptions.lighting}. Mention the mood "${sceneOptions.personMood}" and end with a friendly CTA.`;
-    },
-    []
-  );
-
   const handleGenerateCopy = useCallback(async () => {
     setCopyError(null);
     setIsCopyLoading(true);
-    try {
-      if (GEMINI_DISABLED) {
-        setCopyError('Caption generation is disabled while Gemini is off.');
-        return;
-      }
-      const resolvedApiKey = getActiveApiKeyOrNotify(message => setCopyError(message));
-      if (!resolvedApiKey) {
-        setIsCopyLoading(false);
-        return;
-      }
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string, apiVersion: 'v1beta' });
-      const prompt = buildCopyPrompt(options);
-      const response = await ai.models.generateContent({
-        model: GEMINI_IMAGE_MODEL,
-        contents: [{ text: prompt }],
-      });
-      const text =
-        response.candidates?.[0]?.content?.parts
-          ?.map(part => part.text ?? '')
-          .join('')
-          .trim() ?? '';
-      if (text) {
-        setGeneratedCopy(text);
-      } else {
-        setCopyError('Could not craft a caption. Try again.');
-      }
-    } catch (error) {
-      setCopyError(String(error));
-    } finally {
-      setIsCopyLoading(false);
-    }
-  }, [buildCopyPrompt, getActiveApiKeyOrNotify, options]);
+    setCopyError('Caption generation is disabled.');
+    setIsCopyLoading(false);
+  }, []);
 
   const handleGoalWizardSelect = useCallback((field: 'goal' | 'vibe' | 'preset', value: string) => {
     setGoalWizardData(prev => ({ ...prev, [field]: value }));
@@ -4344,38 +4306,6 @@ If the model attempts to create a scene or environment, override it and force a 
     [contentStyleValue, isSimpleMode, modelReferenceFile]
   );
 
-  const mutateRemoteCredits = useCallback(
-    async (action: 'consume' | 'refund', amount: number) => {
-      if (!amount || amount <= 0) return null;
-      const res = await fetch(`/api/credits?action=${action}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        const message = typeof data?.error === 'string' ? data.error : 'Unable to update credits';
-        throw new Error(message);
-      }
-      const next = Number(data?.credits ?? 0);
-      if (Number.isFinite(next)) {
-        setRemoteCredits(next);
-      }
-      return Number.isFinite(next) ? next : null;
-    },
-    [setRemoteCredits]
-  );
-
-  const consumeRemoteCredits = useCallback(
-    async (amount: number) => mutateRemoteCredits('consume', amount),
-    [mutateRemoteCredits]
-  );
-
-  const refundRemoteCredits = useCallback(
-    async (amount: number) => mutateRemoteCredits('refund', amount),
-    [mutateRemoteCredits]
-  );
-
   const publishFreeGallery = useCallback((entry: {
     imageUrl: string;
     userId: string;
@@ -4537,12 +4467,7 @@ If the model attempts to create a scene or environment, override it and force a 
       setIsImageLoading(true);
       setImageError(null);
 
-      let reservedCredits = 0;
       try {
-        if (!isTrialBypassActive && isUsingRemoteCredits) {
-          await consumeRemoteCredits(creditCost);
-          reservedCredits = creditCost;
-        }
         // Build PromptOptions from current state
         const shouldReuseIdentityKey =
           !isProductPlacement &&
@@ -4712,18 +4637,8 @@ If the model attempts to create a scene or environment, override it and force a 
 
         const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
         if (!resolvedApiKey) {
-          if (reservedCredits > 0) {
-            try {
-              await refundRemoteCredits(reservedCredits);
-            } catch (refundError) {
-              console.warn('Credit refund failed', refundError);
-            } finally {
-              reservedCredits = 0;
-            }
-          }
           return;
         }
-        const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: 'v1beta' });
         const resolvedUgcStyle = (promptOptions.ugcStyle ?? 'optimized').toLowerCase();
         const naturalMode = resolvedUgcStyle === 'natural';
         const rawMode = !!promptOptions.ugcRealModeActive;
@@ -4773,51 +4688,33 @@ If the model attempts to create a scene or environment, override it and force a 
           partsCount: requestParts.length,
         };
         console.log('[UGC PAYLOAD]', payloadLog);
-
-        const seed = crypto.randomUUID();
-        console.log('[UGC DEBUG] seed:', seed);
-        const generateWithRetry = async () => {
-          const maxAttempts = 2;
-          for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-            try {
-		              return await ai.models.generateContent({
-		                model: GEMINI_IMAGE_MODEL,
-		                contents: payload,
-		                config: {
-		                  responseModalities: [Modality.IMAGE],
-		                  safetySettings: [],
-	                  generationConfig: {
-	                    responseMimeType: 'image/png',
-	                    aspectRatio,
-	                    // Product Studio forces a fixed output ratio; reference preservation can override ratio.
-	                    preserveReferenceImage: isProductPlacement || shouldSendProductImage,
-	                    temperature: isProductPlacement ? 0.1 : 0.25,
-	                    topP: 0.9,
-	                    seed,
-	                  },
-	                } as any,
-	              });
-            } catch (error) {
-              const message = String((error as any)?.message ?? error);
-              const shouldRetry =
-                attempt < maxAttempts &&
-                (message.includes('Failed to fetch') ||
-                  message.includes('ERR_CONNECTION_CLOSED') ||
-                  message.includes('NetworkError'));
-              if (!shouldRetry) throw error;
-              await sleep(450 * attempt);
-            }
+        const preserveReferenceImage = isProductPlacement || shouldSendProductImage;
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: GEMINI_IMAGE_MODEL,
+            parts: payload.parts,
+            aspectRatio,
+            preserveReferenceImage,
+            apiKey: resolvedApiKey,
+          }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const message = typeof data?.error === 'string' ? data.error : 'Generation failed';
+          setImageError(message);
+          if (response.status === 402 || response.status === 403) {
+            setShowPlanModal(true);
           }
-          throw new Error('Image generation failed after retries.');
-        };
-
-        const response = await generateWithRetry();
-
-        const responseParts = response?.candidates?.[0]?.content?.parts ?? [];
-        const inlineImage = responseParts.find(part => (part as any)?.inlineData?.data) as { inlineData?: { data?: string } } | undefined;
-        const encodedImage = inlineImage?.inlineData?.data;
+          return;
+        }
+        const encodedImage = typeof data?.imageBase64 === 'string' ? data.imageBase64 : '';
         if (!encodedImage) {
           throw new Error('Image generation failed or returned no images.');
+        }
+        if (typeof data?.remaining_credits === 'number') {
+          setRemoteCredits(data.remaining_credits);
         }
 
         const finalUrl = `data:image/png;base64,${encodedImage}`;
@@ -4849,13 +4746,6 @@ If the model attempts to create a scene or environment, override it and force a 
         }
         // Avoid localStorage gallery (data URLs exceed quota); dashboard uses Firestore gallery history.
       } catch (err) {
-        if (reservedCredits > 0) {
-          try {
-            await refundRemoteCredits(reservedCredits);
-          } catch (refundError) {
-            console.warn('Credit refund failed', refundError);
-          }
-        }
         console.error(err);
         let errorMessage = '';
         if (err instanceof Error) {
@@ -4907,14 +4797,12 @@ If the model attempts to create a scene or environment, override it and force a 
       hasModelReference,
       compositionMode,
       creditUsage,
-      consumeRemoteCredits,
-      refundRemoteCredits,
       isAdmin,
       isUsingRemoteCredits,
       resolvedPlanTier,
       handleApiKeyInvalid,
       normalizeGeminiModel(GOOGLE_MODEL ?? GEMINI_IMAGE_MODEL),
-      Modality,
+      setRemoteCredits,
       lifestylePrompt,
       lifestyleStep3Values
     ]
@@ -4951,12 +4839,7 @@ If the model attempts to create a scene or environment, override it and force a 
 	    setIsImageLoading(true);
 		    setImageError(null);
 
-      let reservedCredits = 0;
 		    try {
-          if (!isTrialBypassActive && isUsingRemoteCredits) {
-            await consumeRemoteCredits(projectedCost);
-            reservedCredits = projectedCost;
-          }
 		      // Ecommerce overlays are a Product Studio feature; build prompts from the ProductStudioStore
 		      // (not from legacy PromptEngine mapping), so all selected Product Studio options inject.
 		      const baseProductStateRaw = useProductStudioStore.getState();
@@ -4964,21 +4847,10 @@ If the model attempts to create a scene or environment, override it and force a 
 
 	      // Product Studio: force fixed output ratio (user request).
 		      const aspectRatio = PRODUCT_DEFAULT_ASPECT_RATIO;
-		      const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
-		      if (!resolvedApiKey) {
-            if (reservedCredits > 0) {
-              try {
-                await refundRemoteCredits(reservedCredits);
-              } catch (refundError) {
-                console.warn('Credit refund failed', refundError);
-              } finally {
-                reservedCredits = 0;
-              }
-            }
-		        return;
-		      }
-
-      const ai = new GoogleGenAI({ apiKey: resolvedApiKey, apiVersion: 'v1beta' });
+	      const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
+	      if (!resolvedApiKey) {
+	        return;
+	      }
 
 	      let lastUrl: string | null = null;
 	      for (const slotKey of ecommerceSelectedSlots) {
@@ -5022,7 +4894,6 @@ If the model attempts to create a scene or environment, override it and force a 
 	          promptPreview: finalPrompt.slice(0, 240),
 	        });
 
-	        const seed = crypto.randomUUID();
 	        const productParts: any[] = [];
 	        for (const product of generationProducts) {
           const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
@@ -5033,48 +4904,31 @@ If the model attempts to create a scene or environment, override it and force a 
           productParts.push({ inlineData: { data: resized.base64, mimeType: resized.mimeType }, reference: true });
         }
 
-        const generateWithRetry = async () => {
-          const maxAttempts = 2;
-          for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-            try {
-	              return await ai.models.generateContent({
-	                model: GEMINI_IMAGE_MODEL,
-	                contents: { parts: [{ text: finalPrompt }, ...productParts] },
-	                config: {
-	                  responseModalities: [Modality.IMAGE],
-	                  safetySettings: [],
-		                  generationConfig: {
-		                    responseMimeType: 'image/png',
-		                    aspectRatio,
-		                    // Product Studio forces a fixed output ratio; reference preservation can override ratio.
-			                    preserveReferenceImage: true,
-		                    temperature: 0.25,
-		                    topP: 0.9,
-		                    seed,
-		                  },
-	                } as any,
-	              });
-	            } catch (error) {
-              const message = String((error as any)?.message ?? error);
-              const shouldRetry =
-                attempt < maxAttempts &&
-                (message.includes('Failed to fetch') ||
-                  message.includes('ERR_CONNECTION_CLOSED') ||
-                  message.includes('NetworkError'));
-              if (!shouldRetry) throw error;
-              await sleep(450 * attempt);
-            }
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: GEMINI_IMAGE_MODEL,
+            parts: [{ text: finalPrompt }, ...productParts],
+            aspectRatio,
+            preserveReferenceImage: true,
+            apiKey: resolvedApiKey,
+          }),
+        });
+
+        const responseData = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const message = typeof responseData?.error === 'string' ? responseData.error : 'Generation failed';
+          setImageError(message);
+          if (response.status === 402 || response.status === 403) {
+            setShowPlanModal(true);
           }
-          throw new Error('Image generation failed after retries.');
-        };
-
-        const response = await generateWithRetry();
-
-        const responseParts = response?.candidates?.[0]?.content?.parts ?? [];
-        const inlineImage = responseParts.find(part => (part as any)?.inlineData?.data) as
-          | { inlineData?: { data?: string } }
-          | undefined;
-        const encodedImage = inlineImage?.inlineData?.data;
+          return;
+        }
+        if (typeof responseData?.remaining_credits === 'number') {
+          setRemoteCredits(responseData.remaining_credits);
+        }
+        const encodedImage = typeof responseData?.imageBase64 === 'string' ? responseData.imageBase64 : '';
         if (!encodedImage) {
           throw new Error(`Image generation failed for slot ${slotKey}.`);
         }
@@ -5115,13 +4969,6 @@ If the model attempts to create a scene or environment, override it and force a 
           }
 	      }
 	    } catch (err) {
-        if (reservedCredits > 0) {
-          try {
-            await refundRemoteCredits(reservedCredits);
-          } catch (refundError) {
-            console.warn('Credit refund failed', refundError);
-          }
-        }
 	      console.error(err);
 	      let errorMessage = '';
 	      if (err instanceof Error) {
@@ -5156,10 +5003,8 @@ If the model attempts to create a scene or environment, override it and force a 
 		    runHiResPipeline,
 		    setShowPlanModal,
 		    reportGalleryEntry,
-      consumeRemoteCredits,
-      refundRemoteCredits,
       isAdmin,
-      isUsingRemoteCredits,
+      setRemoteCredits,
       resolvedPlanTier,
 		  ]);
 
@@ -5206,61 +5051,62 @@ If the model attempts to create a scene or environment, override it and force a 
         setIsImageLoading(false);
         return;
       }
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string, apiVersion: 'v1beta' });
       const base64Image = generatedImageUrl.split(',')[1];
 
       const aspectRatio =
         isProductPlacement ? PRODUCT_DEFAULT_ASPECT_RATIO : (lastAspectRatioRef.current || options.aspectRatio || '1:1');
-      const response = await ai.models.generateContent({
-        model: GEMINI_IMAGE_MODEL, // maintain this but enforce insert behavior through the prompt and config above
-        contents: {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: GEMINI_IMAGE_MODEL,
           parts: [
             { inlineData: { data: base64Image, mimeType: 'image/png' } },
             { text: prompt.trim() },
           ],
-        },
-	        config: {
-	          responseModalities: [Modality.IMAGE],
-	          safetySettings: [],
-	          generationConfig: {
-	            responseMimeType: 'image/png',
-	            aspectRatio,
-	            // Product Studio forces a fixed output ratio; reference preservation can override ratio.
-	            preserveReferenceImage: isProductPlacement,
-	            temperature: isProductPlacement ? 0.1 : 0.25,
-	            topP: 0.9,
-	          },
-	        } as any,
-	      });
+          aspectRatio,
+          preserveReferenceImage: isProductPlacement,
+          apiKey: resolvedApiKey,
+        }),
+      });
 
-      const responseParts = response?.candidates?.[0]?.content?.parts ?? [];
-	      for (const part of responseParts) {
-	        if ('inlineData' in part && (part as any).inlineData?.data) {
-	          const editedUrl = `data:image/png;base64,${(part as any).inlineData.data}`;
-	          setGeneratedImageUrl(editedUrl);
-	          try {
-	            const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
-	            void addLocalGalleryEntry({
-	              userId: galleryUserId,
-	              imageUrl: editedUrl,
-	              createdAt: Date.now(),
-	              plan: planTier,
-	              aspectRatio,
-	            });
-	            void pruneLocalGallery(galleryUserId, 30, 120);
-	          } catch (e) {
-	            console.warn('Local gallery save failed', e);
-	          }
-	          void reportGalleryEntry(editedUrl);
-	          runHiResPipeline(editedUrl);
-	          if (editOptions?.clearManual) {
-	            setEditPrompt('');
-	          }
-	          return;
-	        }
-	      }
-
-      throw new Error("Image edit failed or returned no images.");
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const message = typeof data?.error === 'string' ? data.error : 'Image edit failed';
+        setImageError(message);
+        if (response.status === 402 || response.status === 403) {
+          setShowPlanModal(true);
+        }
+        return;
+      }
+      if (typeof data?.remaining_credits === 'number') {
+        setRemoteCredits(data.remaining_credits);
+      }
+      const encodedImage = typeof data?.imageBase64 === 'string' ? data.imageBase64 : '';
+      if (!encodedImage) {
+        throw new Error('Image edit failed or returned no images.');
+      }
+      const editedUrl = `data:image/png;base64,${encodedImage}`;
+      setGeneratedImageUrl(editedUrl);
+      try {
+        const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
+        void addLocalGalleryEntry({
+          userId: galleryUserId,
+          imageUrl: editedUrl,
+          createdAt: Date.now(),
+          plan: planTier,
+          aspectRatio,
+        });
+        void pruneLocalGallery(galleryUserId, 30, 120);
+      } catch (e) {
+        console.warn('Local gallery save failed', e);
+      }
+      void reportGalleryEntry(editedUrl);
+      runHiResPipeline(editedUrl);
+      if (editOptions?.clearManual) {
+        setEditPrompt('');
+      }
+      return;
     } catch (err) {
       console.error(err);
       let errorMessage = String(err);
@@ -5285,155 +5131,26 @@ If the model attempts to create a scene or environment, override it and force a 
     } finally {
       setIsImageLoading(false);
     }
-  }, [generatedImageUrl, getActiveApiKeyOrNotify, handleApiKeyInvalid, runHiResPipeline, options.aspectRatio]);
+  }, [
+    generatedImageUrl,
+    getActiveApiKeyOrNotify,
+    handleApiKeyInvalid,
+    isProductPlacement,
+    options.aspectRatio,
+    planTier,
+    reportGalleryEntry,
+    runHiResPipeline,
+    setRemoteCredits,
+    setShowPlanModal,
+    userEmail,
+  ]);
 
   const handleEditImage = useCallback(async () => {
     await applyImageEdit(editPrompt, { clearManual: true });
   }, [applyImageEdit, editPrompt]);
 
   const handleGenerateVideo = async () => {
-    if (!hasPlanVideoAccess) {
-      setVideoError("Video generation is disabled.");
-      return;
-    }
-    if (!generatedImageUrl) {
-      setVideoError("An image must be generated first.");
-      return;
-    }
-    if (!isTrialBypassActive && planVideoLimit > 0 && !hasVideoAccess && isVideoLimitReached) {
-      setVideoError("Video generation is disabled.");
-      return;
-    }
-
-    const videoCost = VIDEO_CREDIT_COST;
-    if (!isTrialBypassActive && videoCost > remainingCredits) {
-      setVideoError("Not enough credits for video generation.");
-      return;
-    }
-
-    setIsVideoLoading(true);
-    setVideoError(null);
-    setGeneratedVideoUrl(null);
-
-    let reservedCredits = 0;
-    try {
-	      if (!isTrialBypassActive && isUsingRemoteCredits) {
-	        await consumeRemoteCredits(videoCost);
-	        reservedCredits = videoCost;
-	      }
-	      if (GEMINI_DISABLED) {
-	        setVideoError("Video generation is disabled while Gemini is off.");
-          if (reservedCredits > 0) {
-            try {
-              await refundRemoteCredits(reservedCredits);
-            } catch (refundError) {
-              console.warn('Credit refund failed', refundError);
-            } finally {
-              reservedCredits = 0;
-            }
-          }
-	        return;
-	      }
-	      const resolvedApiKey = getActiveApiKeyOrNotify(message => setVideoError(message));
-	      if (!resolvedApiKey) {
-          if (reservedCredits > 0) {
-            try {
-              await refundRemoteCredits(reservedCredits);
-            } catch (refundError) {
-              console.warn('Credit refund failed', refundError);
-            } finally {
-              reservedCredits = 0;
-            }
-          }
-	        setIsVideoLoading(false);
-	        return;
-	      }
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string, apiVersion: 'v1beta' });
-      const base64Image = generatedImageUrl.split(',')[1];
-
-      const getVideoAspectRatio = (): '16:9' | '9:16' => {
-        if (options.aspectRatio === '1:1') return '9:16'; // VEO doesn't support 1:1, default to vertical
-        return options.aspectRatio as '16:9' | '9:16';
-      };
-
-      let operation = await ai.models.generateVideos({
-        model: 'veo-3.1-fast-generate-preview',
-        prompt: videoPrompt,
-        image: {
-          imageBytes: base64Image,
-          mimeType: 'image/png',
-        },
-        config: {
-          numberOfVideos: 1,
-          resolution: '720p',
-          aspectRatio: getVideoAspectRatio(),
-        }
-      });
-
-      while (!operation.done) {
-        await new Promise(resolve => setTimeout(resolve, 10000));
-        operation = await ai.operations.getVideosOperation({ operation: operation });
-      }
-
-      if (operation.error) {
-        throw new Error((operation.error as any)?.message || 'Video generation failed with an unknown error.');
-      }
-
-      const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
-      if (downloadLink) {
-        const response = await fetch(`${downloadLink}&key=${resolvedApiKey}`);
-        const blob = await response.blob();
-        setGeneratedVideoUrl(URL.createObjectURL(blob));
-        if (!isTrialBypassActive) {
-          if (!isUsingRemoteCredits) {
-            setCreditUsage(count => {
-              const next = count + videoCost;
-              if (typeof window !== 'undefined') {
-                window.localStorage.setItem(IMAGE_COUNT_KEY, String(next));
-              }
-              return next;
-            });
-          }
-        }
-        if (!isTrialBypassActive && planVideoLimit > 0 && !hasVideoAccess) {
-          setVideoGenerationCount(count => count + 1);
-        }
-      } else {
-        throw new Error("Video generation completed but no download link was provided.");
-      }
-
-    } catch (err) {
-      if (reservedCredits > 0) {
-        try {
-          await refundRemoteCredits(reservedCredits);
-        } catch (refundError) {
-          console.warn('Credit refund failed', refundError);
-        }
-      }
-      console.error(err);
-      let errorMessage = err instanceof Error ? err.message : String(err);
-
-      try {
-        const errorJson = JSON.parse(errorMessage);
-        if (errorJson.error && errorJson.error.message) {
-          errorMessage = String(errorJson.error.message);
-        }
-      } catch (parseError) {
-        // ignore
-      }
-
-      if (errorMessage.includes("Requested entity was not found")) {
-        setVideoError("Your API Key is invalid. Please select a valid key to continue.");
-        handleApiKeyInvalid();
-      } else if (errorMessage.toLowerCase().includes("quota")) {
-        setVideoError("API quota exceeded. Please select a different API key, or check your current key's plan and billing details.");
-        handleApiKeyInvalid();
-      } else {
-        setVideoError(errorMessage);
-      }
-    } finally {
-      setIsVideoLoading(false);
-    }
+    setVideoError("Video generation is disabled.");
   };
 
 

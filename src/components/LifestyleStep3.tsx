@@ -4084,9 +4084,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           </Chip>
                         ))}
                       </div>
-                      {!productEnvironmentAdvancedOpen && (
-                          {/* No persistent explanatory copy; use tooltips only. */}
-                        )}
                     </div>
                   </div>
                 </div>

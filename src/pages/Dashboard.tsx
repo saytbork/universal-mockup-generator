@@ -34,6 +34,10 @@ type ActivityItem = {
 type UserInfo = {
   email: string;
   credits?: number;
+  remaining_credits?: number;
+  trial_remaining?: number;
+  invite_remaining?: number;
+  subscription_remaining?: number;
   plan: string;
   inviteUsed?: boolean;
 };
@@ -109,7 +113,7 @@ export default function Dashboard() {
 
   const creditsLabel = useMemo(() => {
     if (!user) return "0";
-    const credits = Number(user.credits ?? 0);
+    const credits = Number(user.remaining_credits ?? user.credits ?? 0);
     return `${credits} credits`;
   }, [user]);
 
@@ -274,14 +278,14 @@ export default function Dashboard() {
             <div className="mt-6 flex flex-wrap gap-3">
               <a
                 href="/app/generator"
-                className={`inline-flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${Number(user.credits ?? 0) > 0
+                className={`inline-flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${Number(user.remaining_credits ?? user.credits ?? 0) > 0
                   ? "bg-indigo-600 text-white hover:bg-indigo-700"
                   : "bg-gray-100 text-gray-400 cursor-not-allowed"
                   }`}
               >
                 <Wand2 className="h-4 w-4" /> Generate an Image
               </a>
-              {Number(user.credits ?? 0) <= 0 && (
+              {Number(user.remaining_credits ?? user.credits ?? 0) <= 0 && (
                 <span className="text-xs text-gray-500">You have no credits left. Upgrade your plan to continue.</span>
               )}
             </div>

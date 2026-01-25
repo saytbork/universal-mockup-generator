@@ -61,8 +61,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               metadata: { ...metadata, invite_bonus_claimed: 'true' },
             });
             const user = await getUser(email);
-            await setUser(email, { credits: (user.credits || 0) + 10, inviteUsed: true });
-            await addActivity(email, 'invite', { bonus: 10 });
+            const plan = String(user.plan ?? 'free').trim().toLowerCase();
+            if (plan === 'free') {
+              await setUser(email, {
+                inviteRemaining: (user.inviteRemaining || 0) + 10,
+                inviteUsed: true,
+              });
+              await addActivity(email, 'invite', { bonus: 10 });
+            }
           }
         } catch (error) {
           console.error('Invitation bonus error', error);
@@ -156,8 +162,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               metadata: { ...metadata, invite_bonus_claimed: 'true' },
             });
             const user = await getUser(email);
-            await setUser(email, { credits: (user.credits || 0) + 10, inviteUsed: true });
-            await addActivity(email, 'invite', { bonus: 10 });
+            const plan = String(user.plan ?? 'free').trim().toLowerCase();
+            if (plan === 'free') {
+              await setUser(email, {
+                inviteRemaining: (user.inviteRemaining || 0) + 10,
+                inviteUsed: true,
+              });
+              await addActivity(email, 'invite', { bonus: 10 });
+            }
           }
         }
       } catch (error) {

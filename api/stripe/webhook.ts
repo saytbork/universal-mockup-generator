@@ -56,10 +56,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const session = event.data.object as Stripe.Checkout.Session;
         const email = session.customer_email || "";
         if (email) {
-          await setUser(email, { plan: session.subscription as string, credits: 20 });
+          const plan = (session.metadata?.plan || 'basic').toString().toLowerCase();
+          await setUser(email, {
+            plan,
+            subscriptionRemaining: 20,
+            trialRemaining: 0,
+            inviteRemaining: 0,
+          });
           if (session.customer) {
             await stripe.customers.update(session.customer as string, {
-              metadata: { ...(session.metadata || {}), credits: "20" },
+              metadata: { ...(session.metadata || {}), subscription_remaining: "20", plan },
             });
           }
           await addActivity(email, "upgrade", { source: "checkout.session.completed" });
@@ -71,11 +77,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const email = invoice.customer_email || (invoice.customer as string);
         if (email) {
           const user = await getUser(email);
-          const nextCredits = (user.credits || 0) + 20;
-          await setUser(email, { credits: nextCredits });
+          const nextCredits = (user.subscriptionRemaining || 0) + 20;
+          await setUser(email, { subscriptionRemaining: nextCredits });
           if (invoice.customer) {
             await stripe.customers.update(invoice.customer as string, {
-              metadata: { ...(invoice.metadata || {}), credits: String(nextCredits) },
+              metadata: { ...(invoice.metadata || {}), subscription_remaining: String(nextCredits) },
             });
           }
           await addActivity(email, "upgrade", { source: "invoice.payment_succeeded", credits: nextCredits });
@@ -86,7 +92,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const subscription = event.data.object as Stripe.Subscription;
         const email = subscription.metadata?.email;
         if (email) {
-          await setUser(email, { plan: "free", credits: 0 });
+          await setUser(email, { plan: "free", subscriptionRemaining: 0 });
           await addActivity(email, "upgrade", { source: "customer.subscription.deleted" });
         }
         break;
