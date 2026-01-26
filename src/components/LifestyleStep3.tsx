@@ -962,8 +962,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     customClothesDetail: '',
 
     // Creation Intent / Modes (simplified - removed legacy modes)
-    creationIntent: initialSceneIntent === 'ecommerce' ? 'product' : 'ugc',
-    creationMode: 'Lifestyle UGC',
+    creationIntent: initialSceneIntent === 'ecommerce' ? 'product' : 'brand',
+    creationMode: initialSceneIntent === 'ecommerce' ? 'Lifestyle UGC' : 'Aesthetic Builder',
     compositionMode: '', // Toggle-driven (Ecommerce Blank Space)
     sidePlacement: SIDE_PLACEMENT_OPTIONS[1],
     ecommerceBackgroundColor: '#ffffff',
@@ -5852,12 +5852,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         onCheckedChange={(newValue) => {
                           updateValue('ugcRealMode', newValue);
                           if (newValue) {
+                            updateValue('creationIntent', 'ugc');
+                            updateValue('creationMode', 'Lifestyle UGC');
                             updateValue('ugcImperfectionLevel', 'high');
                             updateValue('personCount', 'single');
                             updateValue('editSecondaryPerson', false);
                             updateValue('formulationStoryEnabled', false);
                             updateValue('facialExpression', 'Soft Smile');
                             updateValue('eyeDirection', 'Looking at camera');
+                          } else {
+                            updateValue('creationIntent', 'brand');
+                            updateValue('creationMode', 'Aesthetic Builder');
                           }
                         }}
                       />

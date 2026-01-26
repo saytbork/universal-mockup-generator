@@ -1236,7 +1236,9 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     // CREATION MODE → Structural Rules (FIRST - affects everything downstream)
     // ========================================================================
-    let creationModeKey = sceneState.creationMode || 'Lifestyle UGC';
+    let creationModeKey =
+        sceneState.creationMode ||
+        (sceneState.ugcRealMode || sceneState.creationIntent === 'ugc' ? 'Lifestyle UGC' : 'Aesthetic Builder');
 
     // OVERRIDE: If Composition Mode is 'Ecommerce Blank Space', force creation mode
     // This allows Ecommerce Builder to work without UI state sync complexity
@@ -1245,7 +1247,9 @@ export function mapLifestyleToPromptOptions(
     }
 
     if (isEnvironmentSceneIntent) {
-        creationModeKey = 'Lifestyle UGC';
+        creationModeKey =
+            sceneState.creationMode ||
+            (sceneState.ugcRealMode || sceneState.creationIntent === 'ugc' ? 'Lifestyle UGC' : 'Aesthetic Builder');
     }
 
     const productProminenceKey =
@@ -1925,7 +1929,7 @@ export function mapLifestyleToPromptOptions(
     // CONTENT STYLE & CREATION INTENT
     // ========================================================================
     mapped.creationIntent = sceneState.creationIntent;
-    mapped.contentStyle = 'ugc';
+    mapped.contentStyle = (sceneState.ugcRealMode || sceneState.creationIntent === 'ugc') ? 'ugc' : 'product';
 
     // ========================================================================
     // SELFIE MODE (Restored Logic)
