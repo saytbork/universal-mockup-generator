@@ -141,35 +141,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const isDisposable = disposableDomains.some((d) => domain.toLowerCase().includes(d));
 
         const shouldApplyBonus =
-          invitationCode && requiredCode && invitationCode === requiredCode && !isDisposable;
+          invitationCode && !isDisposable && (!requiredCode || invitationCode === requiredCode);
 
         if (shouldApplyBonus) {
-          const stripe = getStripe();
-          const customers = await stripe.customers.list({ email, limit: 1 });
-          const existing = customers.data[0];
-          const customer =
-            existing ||
-            (await stripe.customers.create({
-              email,
-              metadata: {},
-            }));
+          const user = await getUser(email);
+          const plan = String(user.plan ?? 'free').trim().toLowerCase();
+          const alreadyClaimed = Boolean(user.inviteUsed);
 
-          const metadata = customer.metadata || {};
-          const alreadyClaimed = metadata.invite_bonus_claimed === 'true';
-
-          if (!alreadyClaimed) {
-            await stripe.customers.update(customer.id, {
-              metadata: { ...metadata, invite_bonus_claimed: 'true' },
+          if (plan === 'free' && !alreadyClaimed) {
+            await setUser(email, {
+              inviteRemaining: (user.inviteRemaining || 0) + 10,
+              inviteUsed: true,
             });
-            const user = await getUser(email);
-            const plan = String(user.plan ?? 'free').trim().toLowerCase();
-            if (plan === 'free') {
-              await setUser(email, {
-                inviteRemaining: (user.inviteRemaining || 0) + 10,
-                inviteUsed: true,
+            await addActivity(email, 'invite', { bonus: 10 });
+          }
+
+          // Best-effort: keep Stripe metadata in sync if Stripe is configured.
+          try {
+            const stripe = getStripe();
+            const customers = await stripe.customers.list({ email, limit: 1 });
+            const existing = customers.data[0];
+            const customer =
+              existing ||
+              (await stripe.customers.create({
+                email,
+                metadata: {},
+              }));
+
+            const metadata = customer.metadata || {};
+            if (metadata.invite_bonus_claimed !== 'true') {
+              await stripe.customers.update(customer.id, {
+                metadata: { ...metadata, invite_bonus_claimed: 'true' },
               });
-              await addActivity(email, 'invite', { bonus: 10 });
             }
+          } catch (stripeError) {
+            console.warn('Invitation bonus stripe sync skipped', stripeError);
           }
         }
       } catch (error) {
