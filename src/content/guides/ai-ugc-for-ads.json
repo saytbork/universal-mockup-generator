@@ -1,0 +1,91 @@
+{
+  "id": "pillar-ugc-ads-001",
+  "slug": "ai-ugc-for-ads",
+  "title": "AI UGC for Ads: A Practical Guide for Performance Teams",
+  "subtitle": "Define AI UGC for paid ads, understand what makes it work, and build a repeatable workflow for variation, testing, and compliance without sacrificing product accuracy.",
+  "category": "Pillars",
+  "seo": {
+    "title": "AI UGC for Ads | Practical Guide for Performance Teams",
+    "description": "A practical guide to AI UGC for ads: what it is (and isn’t), how to structure variations, run creative testing, avoid common failure modes, and keep compliance and product accuracy."
+  },
+  "heroImage": {
+    "prompt": "Creator-native UGC-style ad still: person holding a packaged product in a real home environment. Natural light, believable imperfections, product label readable, no fake text. 16:9.",
+    "alt": "AI-generated UGC-style ad creative with a product held in a real environment."
+  },
+  "sections": [
+    {
+      "heading": "Definition: What is AI UGC for ads?",
+      "body": "AI UGC for ads refers to ad creatives that mimic the aesthetics and pacing of user-generated content, created with generative AI rather than a human creator shooting the content. The intent is performance: fast iteration on creative angles and variations while keeping the product depiction consistent enough to be usable for ecommerce campaigns."
+    },
+    {
+      "heading": "What AI UGC is NOT (and why this matters in performance marketing)",
+      "body": "AI UGC is not a substitute for a real testimonial, and it should not imply a real person experience if that is not true. It is not a license to invent claims, outcomes, or endorsements. It is not a generic lifestyle image where the product identity drifts. For ad performance teams, these distinctions matter because misleading creatives create downstream issues: disapprovals, refunds, low quality scores, and weak learning signals from your tests."
+    },
+    {
+      "heading": "Why UGC-style ads work (mechanics, not hype)",
+      "body": "UGC-style ads often work because they look native to the feed. They reduce the \"ad\" feeling, communicate usage quickly, and let the product be understood in context. The performance advantage usually comes from speed of iteration and message-market fit testing: trying multiple angles, hooks, scenes, and formats and letting data choose winners."
+    },
+    {
+      "heading": "The performance workflow: from creative angle → variations → learning",
+      "body": "Treat AI UGC as a system, not as a one-off prompt. Start with a creative angle (the reason someone would care), then generate controlled variations (what changes vs what stays constant), then test and learn. If you change everything at once, you cannot attribute performance differences. If you change nothing, the account stops learning and creatives fatigue."
+    },
+    {
+      "heading": "Creative angles (what to vary first)",
+      "body": "A creative angle is the framing of the product story in an ad. Examples of angles include: problem-first, routine-first, before/after framing (without inventing outcomes), ingredient or feature focus, convenience, portability, or lifestyle fit. Pick a small set of angles and test them deliberately. The goal is to learn which angle resonates before you spend time polishing production details."
+    },
+    {
+      "heading": "Variation dimensions (what you can vary without breaking the test)",
+      "body": "In AI UGC, you can vary several dimensions while keeping others fixed: scene/location, lighting style, camera distance, creator identity and wardrobe (when relevant), prop set, hand placement, and framing. A useful rule is to vary one major dimension per test batch while keeping the product depiction stable: packaging, label, size, and color should not drift."
+    },
+    {
+      "heading": "Ad formats you should plan for (still, carousel, video)",
+      "body": "Performance campaigns usually need multiple placements and formats. Still images can be used for static placements and rapid iteration. Carousels can communicate routines or steps across frames, but require continuity. Videos add motion and pacing requirements; even if you start with stills, plan the scenes so they could become sequences later. The key is to design variation sets that can be reused across formats without changing the product depiction."
+    },
+    {
+      "heading": "Testing methodology: how to run creative tests with AI UGC",
+      "body": "A practical creative testing loop is: generate a set of variations with one variable changed, run an A/B or multivariate test depending on your budget, and then scale the winners into additional iterations. Document the input choices for each creative so you can reproduce winners. When AI is involved, reproducibility depends on controlling prompts, identity constraints, and the allowed variation dimensions."
+    },
+    {
+      "heading": "Creative QA: what to validate before spending budget",
+      "body": "Before running spend, validate: product identity accuracy (shape, colors, label), readability of packaging, physical realism (shadows, reflections, contact points), and the absence of invented text or logos. For creator scenes, check hands and facial details for obvious artifacts. For ecommerce, also check that the creative does not imply unverified claims. QA is not a nice-to-have; it prevents invalid tests and reduces account-level risk."
+    },
+    {
+      "heading": "Compliance and policy risk (what to watch, without pretending to be legal advice)",
+      "body": "Ad platforms and marketplaces have policies that change. In general, reduce risk by avoiding misleading implications: do not present AI-generated visuals as real customer testimonials, do not invent medical or financial outcomes, do not add false certifications, and do not include brand logos or trademarks you do not own. If your product category is regulated, treat the creative as one part of compliance and verify requirements with the platform and local regulations."
+    },
+    {
+      "heading": "Common failure modes (why AI UGC often underperforms)",
+      "body": "AI UGC fails when it becomes generic, when it looks like a template, or when the product becomes secondary and unreadable. Another failure mode is inconsistency: if the product looks different across creatives, the audience trust drops and the campaign learns the wrong lesson. Finally, low-quality outputs produce noisy test results: you may conclude an angle is weak when the real issue was creative QA."
+    },
+    {
+      "heading": "How AI UGC connects to ecommerce outcomes",
+      "body": "The job of an ad creative is to earn the click and set expectations. For ecommerce, AI UGC is most valuable when it communicates product usage clearly and truthfully, and when it aligns with your product page imagery. If the ad shows a product that looks different from your PDP, conversion suffers. Use AI UGC to explore angles and scenarios, then keep your PDP and listing images consistent with the product depiction."
+    },
+    {
+      "heading": "How this relates to other guides (without duplicating them)",
+      "body": "This guide focuses on performance structure: angles, variation, testing, QA, and compliance. If you need a step-by-step walkthrough for generating UGC-style visuals, use the UGC workflow guide. If you need platform-specific image requirements, use the Shopify or Amazon guides. If you need a broader definition of product mockups and ecommerce fidelity constraints, use the AI product mockups pillar."
+    },
+    {
+      "heading": "FAQ: Is AI UGC the same as influencer content?",
+      "body": "No. Influencer content is created by a real person and may include real experience claims. AI UGC is generated content that can mimic the style of creator-native ads, but it should not imply a real testimonial or real personal experience if that is not true."
+    },
+    {
+      "heading": "FAQ: What should stay constant across variations?",
+      "body": "Keep the product depiction constant: packaging geometry, label layout and readability, brand colors, and any critical visual identifiers. Variation should come from scene, framing, props, and the creative angle, not from changing the product."
+    },
+    {
+      "heading": "FAQ: How many variations should you generate per angle?",
+      "body": "The right number depends on budget and how you test. A practical starting point is to generate a small batch per angle so you can learn quickly, then expand only the winners. The key is consistency in what you vary and documentation of inputs so you can reproduce winning patterns."
+    },
+    {
+      "heading": "FAQ: How do you reduce disapproval risk?",
+      "body": "Avoid misleading claims, avoid implied testimonials, and avoid adding unverified badges or certifications. Run a QA checklist before launch and keep a record of what each creative implies. Policies differ by platform and change over time, so verify requirements for your category."
+    }
+  ],
+  "cta": {
+    "title": "Generate UGC-style ad variations",
+    "text": "Create UGC-style visuals for ads, test angles, and iterate on winners while keeping product accuracy.",
+    "button": "Try the App"
+  }
+}
+

@@ -11,6 +11,11 @@ const furtherReadingByGuideSlug: Record<string, string[]> = {
         'background-replacement-ecommerce',
         'shopify-product-photos-ai-tactics',
     ],
+    'ai-ugc-for-ads': [
+        'dtc-ad-creatives-ai-ugc',
+        'ab-testing-ai-ugc',
+        'how-to-create-scroll-stopping-ugc-with-ai',
+    ],
     'how-to-generate-ugc-with-ai': [
         'how-to-create-scroll-stopping-ugc-with-ai',
         'dtc-ad-creatives-ai-ugc',
@@ -43,6 +48,11 @@ const relatedGuidesByGuideSlug: Record<string, string[]> = {
         'shopify-product-photos-ai-workflow',
         'amazon-listing-images-ai-guide',
         'how-to-generate-ugc-with-ai',
+    ],
+    'ai-ugc-for-ads': [
+        'how-to-generate-ugc-with-ai',
+        'ai-product-mockups',
+        'shopify-product-photos-ai-workflow',
     ],
 };
 
