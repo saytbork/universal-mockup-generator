@@ -1,19 +1,22 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen } from 'lucide-react';
 import { getAllGuides } from './src/content/guides';
+import { applySeo } from './src/lib/seo';
 
 const GuidesPage: React.FC = () => {
   const guides = getAllGuides();
 
+  useEffect(() => {
+    applySeo({
+      title: 'Guides & Tutorials | Perfect Mockup',
+      description: 'Step-by-step guides for AI product photography, ecommerce visuals, and UGC-style content for Shopify and Amazon sellers.',
+      canonical: 'https://perfectmockup.com/guides',
+    });
+  }, []);
+
   return (
     <div className="bg-white dark:bg-black text-gray-900 dark:text-white min-h-screen pb-24 transition-colors duration-500">
-      {/* SEO Shell */}
-      <head>
-        <title>Guides & Tutorials | Perfect Mockup</title>
-        <meta name="description" content="Master the art of AI product photography. Step-by-step guides for ecommerce founders, Shopify owners, and Amazon sellers." />
-      </head>
-
       <div className="max-w-6xl mx-auto px-6 py-20 space-y-16">
         {/* Header Section */}
         <div className="space-y-4 max-w-2xl">

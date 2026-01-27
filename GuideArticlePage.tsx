@@ -1,11 +1,24 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { getGuideBySlug } from './src/content/guides';
+import { applySeo } from './src/lib/seo';
 
 const GuideArticlePage: React.FC = () => {
     const { slug } = useParams<{ slug: string }>();
     const guide = getGuideBySlug(slug);
+
+    useEffect(() => {
+        if (!guide) return;
+        applySeo({
+            title: guide.seo.title,
+            description: guide.seo.description,
+            canonical: `https://perfectmockup.com/guides/${guide.slug}`,
+            ogImage: guide.heroImage.url
+                ? (guide.heroImage.url.startsWith('http') ? guide.heroImage.url : `https://perfectmockup.com${guide.heroImage.url}`)
+                : undefined,
+        });
+    }, [guide]);
 
     if (!guide) {
         return (
@@ -20,12 +33,6 @@ const GuideArticlePage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-white pb-20">
-            {/* SEO Shell */}
-            <head>
-                <title>{guide.seo.title}</title>
-                <meta name="description" content={guide.seo.description} />
-            </head>
-
             {/* Navigation */}
             <nav className="sticky top-0 z-40 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-gray-100 dark:border-white/5">
                 <div className="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">

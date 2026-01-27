@@ -1,13 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getBlogArticleBySlug, BlogArticle } from './src/content/blog';
-
-const setMetaDescription = (content: string) => {
-  const meta = document.querySelector('meta[name="description"]');
-  if (meta) {
-    meta.setAttribute('content', content);
-  }
-};
+import { applySeo } from './src/lib/seo';
 
 const BlogArticlePage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -15,8 +9,14 @@ const BlogArticlePage: React.FC = () => {
 
   useEffect(() => {
     if (!article) return;
-    document.title = article.seo.title;
-    setMetaDescription(article.seo.description);
+    applySeo({
+      title: article.seo.title,
+      description: article.seo.description,
+      canonical: `https://perfectmockup.com/blog/${article.slug}`,
+      ogImage: article.heroImage.url
+        ? (article.heroImage.url.startsWith('http') ? article.heroImage.url : `https://perfectmockup.com${article.heroImage.url}`)
+        : undefined,
+    });
   }, [article]);
 
   if (!article) {

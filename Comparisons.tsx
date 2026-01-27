@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, Gauge, ShieldCheck, Star, ArrowRight } from 'lucide-react';
+import { applySeo } from './src/lib/seo';
 
 const rows = [
   {
@@ -54,6 +55,14 @@ const rows = [
 ];
 
 const Comparisons: React.FC = () => {
+  useEffect(() => {
+    applySeo({
+      title: 'Perfect Mockup vs Competitors | Comparisons',
+      description: 'Compare Perfect Mockup with other AI tools for ecommerce product visuals, lifestyle scenes, and UGC-style ads.',
+      canonical: 'https://perfectmockup.com/comparisons',
+    });
+  }, []);
+
   return (
     <div className="bg-gray-50 text-gray-900 dark:bg-black dark:text-white min-h-screen">
       <div className="relative max-w-5xl mx-auto px-4 py-20 space-y-12">

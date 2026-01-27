@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { applySeo } from './src/lib/seo';
 
 const faqs = [
   {
@@ -28,6 +29,14 @@ const faqs = [
 ];
 
 const FAQPage: React.FC = () => {
+  useEffect(() => {
+    applySeo({
+      title: 'FAQ | Perfect Mockup',
+      description: 'Frequently asked questions about Perfect Mockup: credits, commercial use, photorealism, and AI UGC.',
+      canonical: 'https://perfectmockup.com/faq',
+    });
+  }, []);
+
   return (
     <div className="bg-gray-50 text-gray-900 dark:bg-black dark:text-white min-h-screen">
       <div className="max-w-5xl mx-auto px-4 py-20 space-y-12">

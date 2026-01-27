@@ -1,6 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { applySeo } from './src/lib/seo';
 
 const TermsPage: React.FC = () => {
+  useEffect(() => {
+    applySeo({
+      title: 'Terms of Service | Perfect Mockup',
+      description: 'Terms of Service for Perfect Mockup.',
+      canonical: 'https://perfectmockup.com/terms',
+    });
+  }, []);
+
   return (
     <div className="bg-gray-50 text-gray-900 dark:bg-black dark:text-white min-h-screen">
       <div className="max-w-5xl mx-auto px-4 py-20 space-y-10">

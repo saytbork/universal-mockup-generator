@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, ArrowRight, ShoppingBag, Truck, Users2, Building2, CheckCircle2 } from 'lucide-react';
+import { applySeo } from './src/lib/seo';
 
 const sections = [
   {
@@ -46,6 +47,14 @@ const sections = [
 ];
 
 const UseCases: React.FC = () => {
+  useEffect(() => {
+    applySeo({
+      title: 'Use Cases | Perfect Mockup',
+      description: 'Use cases for AI-generated ecommerce product visuals: Shopify, Amazon, agencies, creators, and performance teams.',
+      canonical: 'https://perfectmockup.com/use-cases',
+    });
+  }, []);
+
   return (
     <div className="bg-gray-50 text-gray-900 dark:bg-black dark:text-white min-h-screen">
       <div className="relative max-w-5xl mx-auto px-4 py-20 space-y-12">

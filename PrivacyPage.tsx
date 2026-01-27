@@ -1,6 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { applySeo } from './src/lib/seo';
 
 const PrivacyPage: React.FC = () => {
+  useEffect(() => {
+    applySeo({
+      title: 'Privacy Policy | Perfect Mockup',
+      description: 'Privacy Policy for Perfect Mockup.',
+      canonical: 'https://perfectmockup.com/privacy',
+    });
+  }, []);
+
   return (
     <div className="bg-gray-50 text-gray-900 dark:bg-black dark:text-white min-h-screen">
       <div className="max-w-5xl mx-auto px-4 py-20 space-y-10">
