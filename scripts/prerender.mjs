@@ -101,6 +101,22 @@ const getSeoForPath = (routePath) => {
     };
   }
 
+  if (p.startsWith('/comparisons/')) {
+    const slug = p.slice('/comparisons/'.length);
+    const name = slug
+      .split('-')
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+    return {
+      title: `Perfect Mockup vs ${name} | Comparisons`,
+      description: 'Compare Perfect Mockup with other AI tools for ecommerce product visuals, lifestyle scenes, and UGC-style ads.',
+      canonical: `https://perfectmockup.com/comparisons/${slug}`,
+      ogType: 'website',
+      ogImage: getDefaultOgImage(),
+    };
+  }
+
   if (p === '/blog') {
     return {
       title: 'Blog | Perfect Mockup',
@@ -185,7 +201,6 @@ const getSeoForPath = (routePath) => {
     };
   }
 
-  // Intentionally not pre-rendering dynamic comparisons pages (not in sitemap).
   return null;
 };
 
@@ -273,4 +288,3 @@ const main = () => {
 };
 
 main();
-

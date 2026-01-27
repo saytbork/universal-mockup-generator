@@ -25,6 +25,10 @@
         {
             "heading": "Refining the Composition",
             "body": "Use the composition controls to place your product. Whether it's a 'Fifty-Fifty' split between the model and the product or a 'Product-First' approach, ensuring the visual hierarchy is clear is essential for sales."
+        },
+        {
+            "heading": "Related pillar",
+            "body": "For definitions, mockup types, and ecommerce fidelity constraints (consistency and label accuracy), see: /guides/ai-product-mockups."
         }
     ],
     "cta": {

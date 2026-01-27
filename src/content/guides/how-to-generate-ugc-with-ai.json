@@ -29,6 +29,10 @@
         {
             "heading": "Step 3: Defining the Creator and Scene",
             "body": "Choose your creator persona. Do you need a 'Gen-Z skincare enthusiast' or a '30-something kitchen pro'? Select the setting—a bedroom, a park, or a minimalist office. These choices define the narrative your customers will connect with."
+        },
+        {
+            "heading": "Related pillar",
+            "body": "For ad-specific structure (angles, variations, testing, QA, and policy risk), see: /guides/ai-ugc-for-ads."
         }
     ],
     "cta": {

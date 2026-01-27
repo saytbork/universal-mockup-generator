@@ -5,16 +5,19 @@ import { getGuideBySlug } from './src/content/guides';
 import { applySeo } from './src/lib/seo';
 
 const relatedGuideByBlogSlug: Record<string, string> = {
-  'amazon-listing-images-ai': 'amazon-listing-images-ai-guide',
-  'shopify-product-photos-ai-tactics': 'shopify-product-photos-ai-workflow',
-  'how-to-create-scroll-stopping-ugc-with-ai': 'how-to-generate-ugc-with-ai',
-  'dtc-ad-creatives-ai-ugc': 'how-to-generate-ugc-with-ai',
-  'ab-testing-ai-ugc': 'how-to-generate-ugc-with-ai',
-  'ugc-content-engine-ai-firebase': 'how-to-generate-ugc-with-ai',
-  'cinematic-lifestyle-shots-ai': 'how-to-create-ai-lifestyle-images',
-  'background-replacement-ecommerce': 'ecommerce-packshots-masterclass',
-  'ai-product-mockups-launch-pages': 'ecommerce-packshots-masterclass',
-  'ai-photography-supplements-beauty': 'how-to-create-ai-lifestyle-images',
+  // Pillar routing: each post supports one pillar (mockups, UGC ads, or Shopify PDP imagery).
+  'amazon-listing-images-ai': 'ai-product-mockups',
+  'ai-product-mockups-launch-pages': 'ai-product-mockups',
+  'cinematic-lifestyle-shots-ai': 'ai-product-mockups',
+  'ai-photography-supplements-beauty': 'ai-product-mockups',
+
+  'how-to-create-scroll-stopping-ugc-with-ai': 'ai-ugc-for-ads',
+  'dtc-ad-creatives-ai-ugc': 'ai-ugc-for-ads',
+  'ab-testing-ai-ugc': 'ai-ugc-for-ads',
+  'ugc-content-engine-ai-firebase': 'ai-ugc-for-ads',
+
+  'shopify-product-photos-ai-tactics': 'shopify-product-images-ai',
+  'background-replacement-ecommerce': 'shopify-product-images-ai',
 };
 
 const BlogArticlePage: React.FC = () => {

@@ -42,6 +42,8 @@ const urls = new Set();
   '/pricing',
   '/use-cases',
   '/comparisons',
+  '/comparisons/photoroom',
+  '/comparisons/midjourney',
   '/blog',
   '/guides',
   '/faq',

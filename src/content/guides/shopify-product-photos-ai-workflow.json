@@ -25,6 +25,10 @@
         {
             "heading": "Optimizing for Mobile Shoppers",
             "body": "Most Shopify traffic is mobile. Ensure your generated visuals are cropped correctly for vertical scrolling. Our system supports multiple aspect ratios (1:1, 4:5, 9:16) to ensure your product looks stunning on every device."
+        },
+        {
+            "heading": "Related pillar",
+            "body": "For PDP image types, consistency requirements, and ads → PDP alignment, see: /guides/shopify-product-images-ai."
         }
     ],
     "cta": {

@@ -21,6 +21,10 @@
         {
             "heading": "Secondary Lifestyle Images for Conversion",
             "body": "Amazon listings thrive on secondary images that show the product 'in use'. Use 'Lifestyle Mode' to generate these scenes. Whether it's showing a supplement on a kitchen counter or a beauty product in a spa-like setting, these images help answer customer questions before they even ask."
+        },
+        {
+            "heading": "Related pillar",
+            "body": "For definitions, mockup types, and ecommerce fidelity constraints (consistency and label accuracy), see: /guides/ai-product-mockups."
         }
     ],
     "cta": {
