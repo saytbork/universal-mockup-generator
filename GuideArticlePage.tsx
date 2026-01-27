@@ -1,12 +1,48 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { getGuideBySlug } from './src/content/guides';
+import { getBlogArticleBySlug } from './src/content/blog';
 import { applySeo } from './src/lib/seo';
+
+const furtherReadingByGuideSlug: Record<string, string[]> = {
+    'how-to-generate-ugc-with-ai': [
+        'how-to-create-scroll-stopping-ugc-with-ai',
+        'dtc-ad-creatives-ai-ugc',
+        'ab-testing-ai-ugc',
+    ],
+    'how-to-create-ai-lifestyle-images': [
+        'cinematic-lifestyle-shots-ai',
+        'ai-photography-supplements-beauty',
+        'ai-product-mockups-launch-pages',
+    ],
+    'shopify-product-photos-ai-workflow': [
+        'shopify-product-photos-ai-tactics',
+        'background-replacement-ecommerce',
+        'ai-product-mockups-launch-pages',
+    ],
+    'amazon-listing-images-ai-guide': [
+        'amazon-listing-images-ai',
+        'background-replacement-ecommerce',
+        'ai-product-mockups-launch-pages',
+    ],
+    'ecommerce-packshots-masterclass': [
+        'background-replacement-ecommerce',
+        'ai-product-mockups-launch-pages',
+        'shopify-product-photos-ai-tactics',
+    ],
+};
 
 const GuideArticlePage: React.FC = () => {
     const { slug } = useParams<{ slug: string }>();
     const guide = getGuideBySlug(slug);
+    const furtherReading = useMemo(() => {
+        if (!guide) return [];
+        const slugs = furtherReadingByGuideSlug[guide.slug] ?? [];
+        return slugs
+            .map((s) => getBlogArticleBySlug(s))
+            .filter(Boolean);
+    }, [guide]);
 
     useEffect(() => {
         if (!guide) return;
@@ -139,6 +175,25 @@ const GuideArticlePage: React.FC = () => {
                         )}
                     </section>
                 ))}
+
+                {furtherReading.length > 0 && (
+                    <section className="rounded-xl border border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/5 p-6 space-y-3">
+                        <p className="text-xs uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 font-black">
+                            Further reading
+                        </p>
+                        <div className="space-y-2">
+                            {furtherReading.slice(0, 3).map((post) => (
+                                <Link
+                                    key={post!.slug}
+                                    to={`/blog/${post!.slug}`}
+                                    className="block text-sm font-bold text-indigo-600 hover:underline"
+                                >
+                                    {post!.title}
+                                </Link>
+                            ))}
+                        </div>
+                    </section>
+                )}
 
                 {/* Closing CTA Card */}
                 <div className="pt-12">

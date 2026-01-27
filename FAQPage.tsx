@@ -39,6 +39,23 @@ const FAQPage: React.FC = () => {
 
   return (
     <div className="bg-gray-50 text-gray-900 dark:bg-black dark:text-white min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: faqs.map((item) => ({
+              '@type': 'Question',
+              name: item.q,
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: item.a,
+              },
+            })),
+          }),
+        }}
+      />
       <div className="max-w-5xl mx-auto px-4 py-20 space-y-12">
         <div className="space-y-3">
           <h1 className="text-4xl font-bold">Frequently Asked Questions</h1>

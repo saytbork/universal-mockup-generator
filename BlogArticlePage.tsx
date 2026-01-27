@@ -1,11 +1,31 @@
 import React, { useEffect, useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getBlogArticleBySlug, BlogArticle } from './src/content/blog';
+import { getGuideBySlug } from './src/content/guides';
 import { applySeo } from './src/lib/seo';
+
+const relatedGuideByBlogSlug: Record<string, string> = {
+  'amazon-listing-images-ai': 'amazon-listing-images-ai-guide',
+  'shopify-product-photos-ai-tactics': 'shopify-product-photos-ai-workflow',
+  'how-to-create-scroll-stopping-ugc-with-ai': 'how-to-generate-ugc-with-ai',
+  'dtc-ad-creatives-ai-ugc': 'how-to-generate-ugc-with-ai',
+  'ab-testing-ai-ugc': 'how-to-generate-ugc-with-ai',
+  'ugc-content-engine-ai-firebase': 'how-to-generate-ugc-with-ai',
+  'cinematic-lifestyle-shots-ai': 'how-to-create-ai-lifestyle-images',
+  'background-replacement-ecommerce': 'ecommerce-packshots-masterclass',
+  'ai-product-mockups-launch-pages': 'ecommerce-packshots-masterclass',
+  'ai-photography-supplements-beauty': 'how-to-create-ai-lifestyle-images',
+};
 
 const BlogArticlePage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const article = useMemo<BlogArticle | null>(() => getBlogArticleBySlug(slug), [slug]);
+  const relatedGuide = useMemo(() => {
+    if (!slug) return null;
+    const guideSlug = relatedGuideByBlogSlug[slug];
+    if (!guideSlug) return null;
+    return getGuideBySlug(guideSlug);
+  }, [slug]);
 
   useEffect(() => {
     if (!article) return;
@@ -104,6 +124,16 @@ const BlogArticlePage: React.FC = () => {
 
             </article>
           ))}
+
+          {relatedGuide && (
+            <section className="rounded-2xl border border-gray-200 bg-gray-50 p-6 space-y-2">
+              <p className="text-xs uppercase tracking-[0.2em] text-gray-500 font-extrabold">Related guide</p>
+              <Link to={`/guides/${relatedGuide.slug}`} className="text-indigo-600 font-semibold hover:underline">
+                {relatedGuide.title}
+              </Link>
+            </section>
+          )}
+
           <div className="blog-cta rounded-3xl border border-gray-200 bg-gray-50 p-6 space-y-3">
             <h3 className="text-2xl font-semibold">{article.cta.title}</h3>
             <p className="text-gray-900 leading-relaxed">{article.cta.text}</p>

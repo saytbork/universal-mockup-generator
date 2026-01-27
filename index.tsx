@@ -16,6 +16,7 @@ import GuideArticlePage from './GuideArticlePage';
 import FAQPage from './FAQPage';
 import UseCases from './UseCases';
 import Comparisons from './Comparisons';
+import ComparisonSlugPage from './ComparisonSlugPage';
 import TermsPage from './TermsPage';
 import PrivacyPage from './PrivacyPage';
 import SiteLayout from './src/components/SiteLayout';
@@ -89,6 +90,7 @@ root.render(
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/use-cases" element={<UseCases />} />
               <Route path="/comparisons" element={<Comparisons />} />
+              <Route path="/comparisons/:slug" element={<ComparisonSlugPage />} />
               <Route path="/blog" element={<BlogPage />} />
               <Route path="/blog/:slug" element={<BlogArticlePage />} />
               <Route path="/guides" element={<GuidesPage />} />
