@@ -26,22 +26,7 @@ import type {
     PropDensity,
 } from './types';
 
-import {
-    BASE_STUDIO,
-    PHOTO_MODE_PRESETS,
-    SURFACE_PRESETS,
-    COMPOSITION_PRESETS,
-    SCALE_PRESETS,
-    SPACING_PRESETS,
-    NEGATIVE_SPACE_PRESETS,
-    LENS_PRESETS,
-    CAMERA_ANGLE_PRESETS,
-    CAMERA_DISTANCE_PRESETS,
-    LIGHTING_PRESETS,
-    FINISH_PRESETS,
-    SHADOW_PRESETS,
-    INTERACTION_PRESETS,
-} from '../promptEngine/studioPresets';
+import { mapSceneToPrompt } from './mapSceneToPrompt';
 import { applyCanonicalPhysicalForMotion } from './motionCoherence';
 
 // ============================================================================
@@ -493,47 +478,15 @@ function buildEnvironment(state: ProductStudioState): string {
 // ============================================================================
 
 function buildLighting(state: ProductStudioState): string {
-    const lightingRig = String(state.lightingRig || '').trim();
-    const lightingRigPreset = lightingRig ? LIGHTING_PRESETS[lightingRig] : undefined;
-    const isNonDefaultRig = lightingRig !== '' && lightingRig !== 'Softbox Wrap';
-
-    const lightingMap: Record<string, string> = {
-        'natural-light': 'soft natural lighting',
-        'sunny-day': 'bright sunny daylight',
-        'golden-hour': 'warm golden hour light',
-        'overcast': 'soft overcast diffused light',
-        'cozy-indoors': 'cozy warm indoor lighting',
-        'ring-light': 'ring light illumination',
-        'mood-lighting': 'atmospheric mood lighting',
-        'night-mode': 'night mode low-light',
-        'flash-photo': 'flash photography lighting',
-        'clinical-softbox': 'clinical softbox studio lighting',
-    };
-
-    const base =
-        `${lightingMap[state.lighting] || 'professional lighting'}, soft shadows, controlled highlights, clean reflections, no harsh cinematic contrast`;
-
-    // Pro Photographer Mode: inject lighting rig as a first-class, product-safe signal
-    // across ALL Product Studio scene types (studio-branding + editorial-product + lifestyle-real).
-    if ((state.proMode || isNonDefaultRig) && lightingRigPreset) {
-        return `LIGHTING_RIG: ${lightingRigPreset} ${base}`;
-    }
-
-    return base;
+    return '';
 }
 
 function buildLens(state: ProductStudioState): string {
-    if (!state.proMode) return '';
-    if (!state.lens) return '';
-    const preset = LENS_PRESETS[state.lens];
-    return preset ? `LENS: ${preset}` : `LENS: ${state.lens}`;
+    return '';
 }
 
 function buildFinish(state: ProductStudioState): string {
-    if (!state.proMode) return '';
-    if (!state.finish) return '';
-    const preset = FINISH_PRESETS[state.finish];
-    return preset ? `FINISH: ${preset}` : `FINISH: ${state.finish}`;
+    return '';
 }
 
 function buildAccentColor(state: ProductStudioState): string {
@@ -762,7 +715,20 @@ function buildInteraction(state: ProductStudioState): string {
         return '';
     }
 
-    const preset = INTERACTION_PRESETS[presetKey] || '';
+    const presetMap: Record<string, string> = {
+        'Passive Presence': 'Hands visible in frame as passive context only. No contact with the product. Hands resting naturally nearby on the surface.',
+        'Cropped Hand': 'Cropped hand partially visible only for scale. Hand is incomplete at the frame edge. No grip, no action.',
+        'Supported Hold': 'Product resting on an open or semi-open palm. No grip pressure. Incidental support only.',
+        'Holding': 'One hand holding the product with a natural, relaxed grip. No demonstrative gesture.',
+        'Two-Hand Hold': 'Two hands holding the product gently and symmetrically. No action. Calm hold.',
+        'Presenting': 'One hand presenting the product to camera with controlled posture. Label faces the camera and remains fully readable.',
+        'Framed Presentation': 'Hands frame the product in a calm, premium editorial way. Hands create a visual frame around the product.',
+        'Applying / Opening': 'A single clear action: opening the product with realistic hand mechanics. No consumption.',
+        'Capsule Display': 'One hand holds 2–4 capsules in the palm. The bottle is visible nearby or in the other hand.',
+        'Resting Interaction': 'Product resting against the hand or wrist with passive contact only. No grip. Natural incidental touch.',
+    };
+
+    const preset = presetMap[presetKey] || '';
     return [
         `PRODUCT_INTERACTION: ${presetKey}.`,
         preset,
@@ -841,119 +807,23 @@ function buildSceneType(state: ProductStudioState): string {
 // ============================================================================
 
 function buildPhotoMode(state: ProductStudioState): string {
-    if (!state.photoMode) return '';
-
-    // Hero Landing Page: background-only control (no scene, lighting, mood, surface, or camera injection).
-    if (state.photoMode === 'Hero Landing Page') {
-        return '';
-    }
-
-    const preset = PHOTO_MODE_PRESETS[state.photoMode];
-    if (preset) {
-        // Do NOT echo the photoMode label, because some UI labels contain forbidden words (e.g. "Face").
-        // The preset text alone is deterministic and safe for Product Studio validation.
-        return `PHOTO_MODE (NON-NEGOTIABLE): ${preset}`;
-    }
-    // Fallback: sanitize label before injecting to avoid hard-blocked words.
-    const safeLabel = String(state.photoMode)
-        .replace(/\b(face|people|person|human|model|portrait|lifestyle|ugc)\b/gi, '')
-        .replace(/\s+/g, ' ')
-        .trim();
-    return safeLabel ? `PHOTO_MODE (NON-NEGOTIABLE): ${safeLabel}.` : '';
+    return '';
 }
 
 function buildSplashShot(state: ProductStudioState): string {
-    if (state.photoMode !== 'Splash Shot') return '';
-
-    const style = state.splashStyle ?? 'Basic';
-    const parts: string[] = [
-        'SPLASH ENGINE (WHEN ENABLED): Splash Style must be selected from Basic, Intermediate, Advanced.',
-        `SPLASH STYLE: ${style}.`,
-        'Splash obeys gravity and realistic motion.',
-        'Splash never obscures the product label.',
-        'No floating liquid.'
-    ];
-
-    if (style === 'Basic') {
-        parts.push('BASIC: Small splash, low volume, close to the product.', 'No fine particles or mist.');
-    } else if (style === 'Intermediate') {
-        parts.push('INTERMEDIATE: Medium splash with some height and visible dynamics.', 'Gravity-resolved motion only; no mist.');
-    } else {
-        parts.push('ADVANCED: Large splash with clear arcs and high energy.', 'Mist is allowed only in Advanced and must not cover the label.');
-    }
-
-    return parts.join(' ');
+    return '';
 }
 
 function buildMacroTextureCameraBlock(state: ProductStudioState): string {
-    if (state.photoMode !== 'Foam & Texture') return '';
-    return [
-        'CAMERA (LOCKED – CRITICAL): Eye-level or slight frontal angle. Camera positioned parallel to the surface. Natural product photography perspective.',
-        'The surface plane must be visible and recede in perspective; the product front side is visible (not a top-down plan view).',
-        'NEGATIVE CAMERA CONSTRAINTS (MANDATORY): No top-down view. No overhead shot. No aerial perspective. No bird’s-eye view. No flatlay composition. Camera must not be perpendicular to the surface.'
-    ].join(' ');
+    return '';
 }
 
 function buildBackground(state: ProductStudioState): string {
-    const normalizeHexExact = (input: string | undefined | null, fallback: string): string => {
-        const raw = normalizeHexOrEmpty(input);
-        const value = raw || normalizeHexOrEmpty(fallback) || '#F6F7FB';
-        return value.toUpperCase();
-    };
-
-    const parts: string[] = [];
-    parts.push(
-        'HERO BACKGROUND ENGINE (CRITICAL): Hero controls ONLY the background color; never surface, lighting, mood, or scene.'
-    );
-
-    if (state.gradientEnabled) {
-        const start = normalizeHexExact(state.gradientStart, state.backgroundColor || '#F6F7FB');
-        const end = normalizeHexExact(state.gradientEnd, start);
-        const angle = typeof state.gradientAngle === 'number' ? state.gradientAngle : 180;
-        parts.push(
-            `HERO BACKGROUND = GRADIENT: Use exact hex ${start} and ${end}; smooth gradient at ${angle}°; no texture, no noise.`
-        );
-    } else {
-        const color = normalizeHexExact(state.backgroundColor, '#F6F7FB');
-        parts.push(
-            `HERO BACKGROUND = SOLID: Use exact hex ${color}; flat solid color; no texture, no noise.`
-        );
-    }
-
-    if (state.photoMode === 'Color Pop Hero') {
-        const heroProduct =
-            state.products.find(p => p.id === state.activeProductId) ??
-            state.products.find(p => p.id === state.bundle.primaryProductId) ??
-            state.products[0];
-        const dominant = normalizeHexOrEmpty(heroProduct?.palette?.dominant || '');
-        const secondary = normalizeHexOrEmpty(heroProduct?.palette?.secondary || '');
-        if (dominant || secondary) {
-            const d = dominant ? dominant.toUpperCase() : '';
-            const s = secondary ? secondary.toUpperCase() : d;
-            parts.push(
-                `COLOR POP HERO: Extract dominant colors ${d}${s ? `, ${s}` : ''} from the product; use only as chromatic diffusion or lighting accents; never force a white background.`
-            );
-        } else {
-            parts.push(
-                'COLOR POP HERO: Use dominant product colors only as chromatic diffusion or lighting accents; never force a white background.'
-            );
-        }
-    }
-
-    return parts.join(' ');
+    return '';
 }
 
 function buildShadow(state: ProductStudioState): string {
-    if (!state.shadow) return '';
-
-    const shadowKeyMap: Record<ProductStudioState['shadow'], keyof typeof SHADOW_PRESETS> = {
-        'soft-drop': 'Soft Drop',
-        'hard-drop': 'Hard Drop',
-        'floating': 'Floating',
-    };
-
-    const presetKey = shadowKeyMap[state.shadow];
-    return presetKey ? (SHADOW_PRESETS[presetKey] || '') : '';
+    return '';
 }
 
 // ============================================================================
@@ -961,75 +831,7 @@ function buildShadow(state: ProductStudioState): string {
 // ============================================================================
 
 function buildCreativity(state: ProductStudioState): string {
-    if (state.blankSpaceEnabled) return '';
-
-    const parts: string[] = [];
-    const proRigActive = (() => {
-        if (state.sceneType !== 'studio-branding') return false;
-        const lightingRig = String(state.lightingRig || '').trim();
-        const hasPreset = !!(lightingRig && LIGHTING_PRESETS[lightingRig]);
-        const isNonDefaultRig = lightingRig !== '' && lightingRig !== 'Softbox Wrap';
-        return hasPreset && (state.proMode || isNonDefaultRig);
-    })();
-
-    // 0. Props Injection (Always honor explicit user input)
-    const propsText = state.props?.trim();
-    if (propsText) {
-        parts.push(`PROPS: ${propsText}. Arrange as subtle set dressing around the product. No readable text/logos on props.`);
-    }
-
-    // Creativity Level 0Check = Off
-    if (state.creativityLevel === 0) return parts.join(' ');
-
-    // 1. Creative Theme (Expanded)
-    const themeMap: Record<CreativeTheme, string> = {
-        'clinical-minimal': 'clinical minimal aesthetic, clean lines, medical precision',
-        'premium-clean': 'premium clean aesthetic, luxury feel, refined elegance',
-        'bold-graphic': 'bold graphic style, strong colors, visual impact',
-        'ingredient-color': 'ingredient-focused color story, vibrant fresh tones',
-        'fresh-bright': 'fresh and bright daylight aesthetic, airy atmosphere',
-        'dark-dramatic': 'dark dramatic mood, high contrast, luxury noir feel',
-        'playful-pop': 'playful pop-art aesthetic, vibrant energy',
-        'tech-clean': 'tech-focused clean aesthetic, futuristic minimalism',
-    };
-    parts.push(themeMap[state.creativeTheme]);
-
-    // 2. Light Style (Creative Lighting)
-    // If Pro lighting rig is active, do NOT add a second competing lighting description here.
-    if (!proRigActive) {
-        const lightStyleMap: Record<LightStyle, string> = {
-            'soft': 'soft diffused creative lighting',
-            'clinical': 'crisp clinical evenly lit',
-            'contrast': 'high contrast artistic lighting',
-            'shadow-play': 'gentle artistic shadow play',
-        };
-        parts.push(lightStyleMap[state.lightStyle]);
-    }
-
-    const paletteMap: Record<PaletteSource, string> = {
-        'brand': 'colors derived from the product packaging and label',
-        'warm-neutral': 'warm neutral palette (creams and warm grays, no yellow/beige cast)',
-        'cool-neutral': 'cool neutral palette, slate and silver',
-        'complementary': 'complementary accent colors',
-        'custom': 'custom defined palette (use selected background + accent colors)',
-    };
-    parts.push(paletteMap[state.paletteSource]);
-
-    // 4. Props
-    if (state.propDensity !== 'none' && state.selectedProps.length > 0) {
-        const densityMap: Record<PropDensity, string> = {
-            'none': '',
-            'low': 'minimal minimal props',
-            'medium': 'moderate prop styling',
-            'dense': 'rich dense prop styling',
-        };
-        parts.push(densityMap[state.propDensity] || '');
-        parts.push(`props: ${state.selectedProps.join(', ')}`);
-        parts.push('props are secondary and never steal focus');
-        parts.push('no branded props, no readable text on props');
-    }
-
-    return parts.filter(Boolean).join(', ');
+    return '';
 }
 
 function normalizeHexOrEmpty(input: string | undefined | null): string {
@@ -1263,95 +1065,21 @@ function buildLabelLock(): string {
  */
 function assembleSingleProductPrompt(state: ProductStudioState, product: ProductAsset): string {
     const segments: string[] = [];
-    const isPhotoStudio = state.sceneType === 'studio-branding';
-    const isHeroLandingPage = state.photoMode === 'Hero Landing Page';
+    const sceneResult = mapSceneToPrompt(state, product);
 
-    // 1. Scene Type
-    segments.push(buildSceneType(state));
-
-    // 1b. Hero Landing Page: background-only control
-    if (!state.blankSpaceEnabled && state.photoMode === 'Hero Landing Page') {
-        segments.push(buildBackground(state));
-    }
-
-    // 1c. Photo Mode (global art direction across Product Studio scene types)
-    segments.push(buildPhotoMode(state));
-    if (!state.blankSpaceEnabled && !isHeroLandingPage) {
-        segments.push(buildSplashShot(state));
-        segments.push(buildMacroTextureCameraBlock(state));
-    }
-
-    // 1. Product Definition (Source of Truth)
+    segments.push(sceneResult.prompt);
     segments.push(buildProductDescription(state, product));
     segments.push(buildLabelLock());
-
-    // 2. Product State & Motion (Product-only; no human implied)
     segments.push(buildStateMotion(state));
 
-    // 3. Environment + Micro Place (When allowed)
-    if (!state.blankSpaceEnabled && !isHeroLandingPage) {
-        const environment = buildEnvironment(state);
-        if (environment) segments.push(environment);
-    }
-
-    // 4. Composition & Art Direction (Key for Olly/AG1)
-    // In Ecommerce Blank Space mode, composition is governed by `buildEcommerce()`.
-    if (!state.blankSpaceEnabled && !isHeroLandingPage) {
-        segments.push(buildComposition(state));
-    }
-    // 4b–4e. Photo Studio styling blocks (mutually exclusive with Environment)
-    if (isPhotoStudio && !isHeroLandingPage) {
-        segments.push(buildShadow(state));
-        segments.push(buildAccentColor(state));
-        if (!state.blankSpaceEnabled) {
-            segments.push(buildAlignment(state));
-        }
-    }
-
-    // 5. Creativity System (Includes Props)
-    if (!state.blankSpaceEnabled && !isHeroLandingPage) {
-        const creativity = buildCreativity(state);
-        if (creativity) segments.push(creativity);
-    }
-
-    // 6. Props (Handled in Creativity)
-
-    // 7. Lighting (Product Safe)
-    if (!isHeroLandingPage) {
-        segments.push(buildLighting(state));
-    }
-
-    // 7b. Pro Photographer Mode (global; not limited to studio-branding)
-    if (!isHeroLandingPage) {
-        segments.push(buildLens(state));
-        segments.push(buildFinish(state));
-    }
-
-    // 8. Camera & Framing
-    if (!isHeroLandingPage) {
-        segments.push(buildCamera(state));
-    }
-
-    // 9. Interaction (optional cropped hand)
-    if (!isHeroLandingPage) {
+    if (state.interaction !== 'none' || state.handsHolding === true) {
         segments.push(buildInteraction(state));
     }
 
-    // 9b. Ecommerce (Blank Space mode)
-    if (state.blankSpaceEnabled) {
-        segments.push(buildEcommerce(state));
-    }
-
-    // 11. Final Quality Bar
-    segments.push(buildQualityBar(state));
-
-    // 11b. Integrity / Artifact Guards
     segments.push(buildIntegrityConstraints(state));
-
-    // Aspect ratio technical
     segments.push(buildAspectRatio(state));
 
-    const finalPrompt = enforceMotionPromptCoherence(segments.filter(Boolean).join(', '), state);
+    const finalPrompt = enforceMotionPromptCoherence(segments.filter(Boolean).join(' '), state);
     console.log('2. Generated Prompt Parts:', segments);
     console.log('3. FINAL PROMPT:', finalPrompt);
     console.groupEnd();
@@ -1361,88 +1089,25 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
 
 function assembleBundlePrompt(state: ProductStudioState): string {
     const segments: string[] = [];
-    const isPhotoStudio = state.sceneType === 'studio-branding';
-    const isHeroLandingPage = state.photoMode === 'Hero Landing Page';
+    const primary = state.products.find(p => p.id === state.bundle.primaryProductId) ?? null;
+    const sceneResult = mapSceneToPrompt(state, primary ?? undefined);
 
-    // 1. Scene Type
-    segments.push(buildSceneType(state));
-
-    // 1b. Hero Landing Page: background-only control
-    if (!state.blankSpaceEnabled && state.photoMode === 'Hero Landing Page') {
-        segments.push(buildBackground(state));
-    }
-
-    // 1c. Photo Mode (global art direction across Product Studio scene types)
-    segments.push(buildPhotoMode(state));
-    if (!state.blankSpaceEnabled && !isHeroLandingPage) {
-        segments.push(buildSplashShot(state));
-        segments.push(buildMacroTextureCameraBlock(state));
-    }
-
-    // 1. Product Definition (Primary)
-    const primary = state.products.find(p => p.id === state.bundle.primaryProductId);
+    segments.push(sceneResult.prompt);
     if (primary) {
         segments.push(buildProductDescription(state, primary));
         segments.push(buildLabelLock());
     }
-
-    // 2. Product State & Motion (Product-only; no human implied)
     segments.push(buildStateMotion(state));
-
-    // 9. Bundle Logic (If Applicable) - Placed early to define subject
     segments.push(buildBundleComposition(state));
 
-    // 3. Environment
-    if (!state.blankSpaceEnabled && !isHeroLandingPage) {
-        const environment = buildEnvironment(state);
-        if (environment) segments.push(environment);
+    if (state.interaction !== 'none' || state.handsHolding === true) {
+        segments.push(buildInteraction(state));
     }
 
-    // 4. Composition
-    if (!state.blankSpaceEnabled && !isHeroLandingPage) {
-        segments.push(buildComposition(state));
-    }
-    // 4b–4d. Photo Studio styling blocks (mutually exclusive with Environment)
-    if (isPhotoStudio && !isHeroLandingPage) {
-        segments.push(buildShadow(state));
-    }
-
-    // 5. Creativity
-    if (!state.blankSpaceEnabled && !isHeroLandingPage) {
-        const creativity = buildCreativity(state);
-        if (creativity) segments.push(creativity);
-    }
-
-    // 7. Lighting
-    if (!isHeroLandingPage) {
-        segments.push(buildLighting(state));
-    }
-
-    // 7b. Pro Photographer Mode (global; not limited to studio-branding)
-    if (!isHeroLandingPage) {
-        segments.push(buildLens(state));
-        segments.push(buildFinish(state));
-    }
-
-    // 8. Camera
-    if (!isHeroLandingPage) {
-        segments.push(buildCamera(state));
-    }
-
-    // 10. Negative Constraints
-    // 11. Final Quality Bar
-    segments.push(buildQualityBar(state));
-
-    // 11b. Integrity / Artifact Guards
     segments.push(buildIntegrityConstraints(state));
-
     segments.push(buildAspectRatio(state));
 
-    if (state.blankSpaceEnabled) {
-        segments.push(buildEcommerce(state));
-    }
-
-    return enforceMotionPromptCoherence(segments.filter(Boolean).join(', '), state);
+    return enforceMotionPromptCoherence(segments.filter(Boolean).join(' '), state);
 }
 
 // ============================================================================
