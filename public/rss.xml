@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+ <channel>
+  <title>Perfect Mockup Blog</title>
+  <link>https://perfectmockup.com/blog</link>
+  <description>Guides, tutorials, and AI insights for ecommerce product visuals.</description>
+  <lastBuildDate>Tue, 27 Jan 2026 15:30:45 GMT</lastBuildDate>
+  <item>
+    <title>A/B Testing AI UGC: Find Your Best Performing Scenes</title>
+    <link>https://perfectmockup.com/blog/ab-testing-ai-ugc</link>
+    <guid isPermaLink="true">https://perfectmockup.com/blog/ab-testing-ai-ugc</guid>
+    <description>Learn how to run rapid A/B tests with AI-generated UGC to discover which visuals drive the highest conversions.</description>
+  </item>
+  <item>
+    <title>AI Photography for Supplements and Beauty Brands</title>
+    <link>https://perfectmockup.com/blog/ai-photography-supplements-beauty</link>
+    <guid isPermaLink="true">https://perfectmockup.com/blog/ai-photography-supplements-beauty</guid>
+    <description>Learn how to generate premium supplement and beauty product images using AI, including lifestyle, hero, and ingredient visuals.</description>
+  </item>
+  <item>
+    <title>AI Product Mockups for Launch Pages: Hero Images That Convert</title>
+    <link>https://perfectmockup.com/blog/ai-product-mockups-launch-pages</link>
+    <guid isPermaLink="true">https://perfectmockup.com/blog/ai-product-mockups-launch-pages</guid>
+    <description>Learn how to generate high-converting hero images for your landing pages using AI-driven product mockups.</description>
+  </item>
+  <item>
+    <title>Amazon Listing Images With AI: A+ Content That Ranks</title>
+    <link>https://perfectmockup.com/blog/amazon-listing-images-ai</link>
+    <guid isPermaLink="true">https://perfectmockup.com/blog/amazon-listing-images-ai</guid>
+    <description>Learn how to generate Amazon-ready product images, A+ content modules, and lifestyle shots using AI.</description>
+  </item>
+  <item>
+    <title>Background Replacement for eCommerce: Clean, Fast, On-Brand</title>
+    <link>https://perfectmockup.com/blog/background-replacement-ecommerce</link>
+    <guid isPermaLink="true">https://perfectmockup.com/blog/background-replacement-ecommerce</guid>
+    <description>Learn how AI background replacement helps eCommerce brands create clean, consistent product photos with no editing software.</description>
+  </item>
+  <item>
+    <title>Cinematic Lifestyle Shots With AI: Lighting, Props, and Mood</title>
+    <link>https://perfectmockup.com/blog/cinematic-lifestyle-shots-ai</link>
+    <guid isPermaLink="true">https://perfectmockup.com/blog/cinematic-lifestyle-shots-ai</guid>
+    <description>Learn how to generate cinematic lifestyle photography using AI with the right lighting, props, and visual storytelling.</description>
+  </item>
+  <item>
+    <title>DTC Ad Creatives: AI UGC That Scales Winning Angles</title>
+    <link>https://perfectmockup.com/blog/dtc-ad-creatives-ai-ugc</link>
+    <guid isPermaLink="true">https://perfectmockup.com/blog/dtc-ad-creatives-ai-ugc</guid>
+    <description>Learn how to create high-performing DTC ad creatives using ultra-realistic AI UGC. Build lifestyle scenes, product demos, and creator moments at scale.</description>
+  </item>
+  <item>
+    <title>How to Create Scroll-Stopping UGC With AI</title>
+    <link>https://perfectmockup.com/blog/how-to-create-scroll-stopping-ugc-with-ai</link>
+    <guid isPermaLink="true">https://perfectmockup.com/blog/how-to-create-scroll-stopping-ugc-with-ai</guid>
+    <description>Learn the exact framework to create ultra-realistic UGC photos and creator-style scenes using AI. No studio needed.</description>
+  </item>
+  <item>
+    <title>Shopify Product Photos: AI Tactics to Increase Conversion</title>
+    <link>https://perfectmockup.com/blog/shopify-product-photos-ai-tactics</link>
+    <guid isPermaLink="true">https://perfectmockup.com/blog/shopify-product-photos-ai-tactics</guid>
+    <description>Upgrade your Shopify product photos using AI. Learn what images convert, how to structure them, and how to reduce bounce rates.</description>
+  </item>
+  <item>
+    <title>Building a UGC Content Engine With AI and Firebase</title>
+    <link>https://perfectmockup.com/blog/ugc-content-engine-ai-firebase</link>
+    <guid isPermaLink="true">https://perfectmockup.com/blog/ugc-content-engine-ai-firebase</guid>
+    <description>Learn how to build an automated UGC content engine using AI generation and Firebase storage, syncing, and delivery.</description>
+  </item>
+ </channel>
+</rss>

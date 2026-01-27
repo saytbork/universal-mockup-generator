@@ -8,6 +8,7 @@ import Login from './src/pages/Login';
 import Dashboard from './src/pages/Dashboard';
 import { TooltipProvider } from './src/components/ui/tooltip';
 import LandingPage from './LandingPage';
+import PricingPage from './PricingPage';
 import BlogPage from './BlogPage';
 import BlogArticlePage from './BlogArticlePage';
 import GuidesPage from './GuidesPage';
@@ -83,9 +84,9 @@ root.render(
         <BrowserRouter>
           <Routes>
             {/* Marketing site */}
-            <Route element={<SiteLayout />}>
+              <Route element={<SiteLayout />}>
               <Route path="/" element={<LandingPage />} />
-              <Route path="/pricing" element={<Navigate to="/#pricing" replace />} />
+              <Route path="/pricing" element={<PricingPage />} />
               <Route path="/use-cases" element={<UseCases />} />
               <Route path="/comparisons" element={<Comparisons />} />
               <Route path="/blog" element={<BlogPage />} />

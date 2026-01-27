@@ -39,6 +39,7 @@ const urls = new Set();
 // Core marketing routes (React Router)
 [
   '/',
+  '/pricing',
   '/use-cases',
   '/comparisons',
   '/blog',
@@ -79,4 +80,3 @@ const xml = [
 const outPath = path.join(repoRoot, 'public', 'sitemap.xml');
 fs.writeFileSync(outPath, xml, 'utf8');
 console.log(`[sitemap] wrote ${outPath} (${urls.size} urls)`);
-

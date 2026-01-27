@@ -3,6 +3,7 @@ export type SeoConfig = {
   description: string;
   canonical: string;
   ogImage?: string;
+  ogType?: 'website' | 'article';
 };
 
 const DEFAULT_OG_IMAGE = 'https://perfectmockup.com/preview.png';
@@ -38,11 +39,10 @@ export const applySeo = (config: SeoConfig) => {
   setMeta('og:description', config.description, 'property');
   setMeta('og:url', config.canonical, 'property');
   setMeta('og:image', ogImage, 'property');
-  setMeta('og:type', 'website', 'property');
+  setMeta('og:type', config.ogType || 'website', 'property');
 
   setMeta('twitter:card', 'summary_large_image');
   setMeta('twitter:title', config.title);
   setMeta('twitter:description', config.description);
   setMeta('twitter:image', ogImage);
 };
-

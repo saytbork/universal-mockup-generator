@@ -294,7 +294,11 @@ const ScaleCatalog = () => (
   </div>
 );
 
-const LandingPage: React.FC = () => {
+type LandingPageProps = {
+  disableSeo?: boolean;
+};
+
+const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
   const [activePreview, setActivePreview] = useState<
     'product' | 'ugc' | 'editorial' | 'background' | 'aesthetic'
   >('product');
@@ -393,6 +397,7 @@ const LandingPage: React.FC = () => {
   }, [isHoveringSteps, steps.length]);
 
   useEffect(() => {
+    if (disableSeo) return;
     document.title = seo.title;
     const setMeta = (key: string, content: string, attr: 'name' | 'property' = 'name') => {
       let element = document.querySelector(`meta[${attr}='${key}']`) as HTMLMetaElement | null;
@@ -421,7 +426,7 @@ const LandingPage: React.FC = () => {
     setMeta('twitter:description', seo.description);
     setMeta('twitter:image', seo.image);
     setLink('canonical', seo.url);
-  }, [seo.title, seo.description, seo.url, seo.image]);
+  }, [disableSeo, seo.title, seo.description, seo.url, seo.image]);
 
   const previewModes = [
     {

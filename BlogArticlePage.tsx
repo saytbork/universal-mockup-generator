@@ -16,6 +16,7 @@ const BlogArticlePage: React.FC = () => {
       ogImage: article.heroImage.url
         ? (article.heroImage.url.startsWith('http') ? article.heroImage.url : `https://perfectmockup.com${article.heroImage.url}`)
         : undefined,
+      ogType: 'article',
     });
   }, [article]);
 
@@ -34,6 +35,38 @@ const BlogArticlePage: React.FC = () => {
 
   return (
     <div className="bg-gray-50 text-gray-900 dark:bg-black dark:text-white min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'BlogPosting',
+            mainEntityOfPage: {
+              '@type': 'WebPage',
+              '@id': `https://perfectmockup.com/blog/${article.slug}`,
+            },
+            headline: article.title,
+            description: article.seo.description,
+            image: article.heroImage.url
+              ? (article.heroImage.url.startsWith('http') ? article.heroImage.url : `https://perfectmockup.com${article.heroImage.url}`)
+              : undefined,
+            author: {
+              '@type': 'Organization',
+              name: 'Perfect Mockup',
+              url: 'https://perfectmockup.com/',
+            },
+            publisher: {
+              '@type': 'Organization',
+              name: 'Perfect Mockup',
+              url: 'https://perfectmockup.com/',
+              logo: {
+                '@type': 'ImageObject',
+                url: 'https://perfectmockup.com/img/logos/colorlogo.svg',
+              },
+            },
+          }),
+        }}
+      />
       <div className="max-w-5xl mx-auto px-4 py-12 space-y-10">
         <section className="blog-hero rounded-3xl border border-gray-200 bg-gray-50 p-8 space-y-4 shadow-md shadow-md shadow-indigo-500/20">
           <Link className="text-sm text-gray-900 underline" to="/blog">

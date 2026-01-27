@@ -17,6 +17,7 @@ const GuideArticlePage: React.FC = () => {
             ogImage: guide.heroImage.url
                 ? (guide.heroImage.url.startsWith('http') ? guide.heroImage.url : `https://perfectmockup.com${guide.heroImage.url}`)
                 : undefined,
+            ogType: 'article',
         });
     }, [guide]);
 
@@ -33,6 +34,35 @@ const GuideArticlePage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-white pb-20">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                    __html: JSON.stringify({
+                        '@context': 'https://schema.org',
+                        '@type': 'HowTo',
+                        name: guide.title,
+                        description: guide.seo.description,
+                        url: `https://perfectmockup.com/guides/${guide.slug}`,
+                        image: guide.heroImage.url
+                            ? (guide.heroImage.url.startsWith('http') ? guide.heroImage.url : `https://perfectmockup.com${guide.heroImage.url}`)
+                            : undefined,
+                        step: guide.sections.map((section) => ({
+                            '@type': 'HowToStep',
+                            name: section.heading,
+                            text: section.body,
+                        })),
+                        publisher: {
+                            '@type': 'Organization',
+                            name: 'Perfect Mockup',
+                            url: 'https://perfectmockup.com/',
+                            logo: {
+                                '@type': 'ImageObject',
+                                url: 'https://perfectmockup.com/img/logos/colorlogo.svg',
+                            },
+                        },
+                    }),
+                }}
+            />
             {/* Navigation */}
             <nav className="sticky top-0 z-40 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-gray-100 dark:border-white/5">
                 <div className="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
