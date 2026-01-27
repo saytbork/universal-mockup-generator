@@ -4715,7 +4715,7 @@ If the model attempts to create a scene or environment, override it and force a 
         if (!response.ok) {
           const message = typeof data?.error === 'string' ? data.error : 'Generation failed';
           setImageError(message);
-          if (response.status === 402 || response.status === 403) {
+          if ((response.status === 402 || response.status === 403) && remainingCredits <= 0) {
             setShowPlanModal(true);
           }
           return;
@@ -4840,7 +4840,6 @@ If the model attempts to create a scene or environment, override it and force a 
 	    const projectedCost = creditCost * ecommerceSelectedSlots.length;
 	    if (!isTrialBypassActive && projectedCost > remainingCredits) {
 	      setImageError('Not enough credits for these slots. Reduce slots or upgrade your plan.');
-      setShowPlanModal(true);
       return;
     }
 
@@ -4931,7 +4930,7 @@ If the model attempts to create a scene or environment, override it and force a 
         if (!response.ok) {
           const message = typeof responseData?.error === 'string' ? responseData.error : 'Generation failed';
           setImageError(message);
-          if (response.status === 402 || response.status === 403) {
+          if ((response.status === 402 || response.status === 403) && remainingCredits <= 0) {
             setShowPlanModal(true);
           }
           return;
