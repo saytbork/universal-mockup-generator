@@ -533,10 +533,10 @@ const LandingPage: React.FC = () => {
             </Link>
             <button
               onClick={handleSmoothScroll('#pricing')}
-              className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-5 font-bold text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors group"
+              className="relative w-full sm:w-auto inline-flex items-center justify-center px-8 py-5 font-bold text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors group"
             >
               View Plans
-              <div className="w-0 group-hover:w-full h-0.5 bg-indigo-600 dark:bg-indigo-400 transition-all duration-300 absolute bottom-4" />
+              <span className="absolute left-0 right-0 -bottom-1 h-0.5 origin-left scale-x-0 bg-indigo-600 dark:bg-indigo-400 transition-transform duration-300 group-hover:scale-x-100" />
             </button>
           </motion.div>
         </div>
