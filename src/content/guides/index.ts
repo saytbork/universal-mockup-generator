@@ -41,6 +41,7 @@ const guides = Object.values(guideModules).map(module => module.default);
 const slugOrder = [
     'ai-product-mockups',
     'ai-ugc-for-ads',
+    'shopify-product-images-ai',
     'how-to-generate-ugc-with-ai',
     'how-to-create-ai-lifestyle-images',
     'shopify-product-photos-ai-workflow',

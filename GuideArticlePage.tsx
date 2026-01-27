@@ -16,6 +16,11 @@ const furtherReadingByGuideSlug: Record<string, string[]> = {
         'ab-testing-ai-ugc',
         'how-to-create-scroll-stopping-ugc-with-ai',
     ],
+    'shopify-product-images-ai': [
+        'shopify-product-photos-ai-tactics',
+        'background-replacement-ecommerce',
+        'ai-product-mockups-launch-pages',
+    ],
     'how-to-generate-ugc-with-ai': [
         'how-to-create-scroll-stopping-ugc-with-ai',
         'dtc-ad-creatives-ai-ugc',
@@ -53,6 +58,11 @@ const relatedGuidesByGuideSlug: Record<string, string[]> = {
         'how-to-generate-ugc-with-ai',
         'ai-product-mockups',
         'shopify-product-photos-ai-workflow',
+    ],
+    'shopify-product-images-ai': [
+        'shopify-product-photos-ai-workflow',
+        'ai-product-mockups',
+        'ai-ugc-for-ads',
     ],
 };
 

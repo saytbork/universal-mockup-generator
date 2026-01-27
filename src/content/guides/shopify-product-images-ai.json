@@ -1,0 +1,107 @@
+{
+  "id": "pillar-shopify-images-001",
+  "slug": "shopify-product-images-ai",
+  "title": "Shopify Product Images With AI: A Practical PDP Guide",
+  "subtitle": "Build a PDP image system for Shopify: what images you need, how to keep consistency and label fidelity, and how to align ads with PDP visuals to reduce friction and improve conversion.",
+  "category": "Pillars",
+  "seo": {
+    "title": "Shopify Product Images With AI | Practical PDP Guide",
+    "description": "A practical guide to Shopify product images with AI: PDP image types, workflows for consistency and label fidelity, and how to align ad creatives with PDP visuals to reduce conversion friction."
+  },
+  "heroImage": {
+    "prompt": "Clean Shopify PDP-style product image set: the same product shown in consistent lighting across multiple frames (hero, detail, lifestyle). Product label readable, consistent color, believable shadows. 16:9.",
+    "alt": "A consistent set of AI-generated Shopify product images for a PDP."
+  },
+  "sections": [
+    {
+      "heading": "Definition: What are \"Shopify product images\" (in PDP terms)?",
+      "body": "In Shopify, product images are the visual set used on a product detail page (PDP) to help a shopper understand what the product is, how it looks, how it is used, and whether it matches their expectations. The goal is not artistry. The goal is clarity and confidence: images should reduce uncertainty and prevent surprises after purchase."
+    },
+    {
+      "heading": "What this guide covers (and what it does not)",
+      "body": "This guide focuses on PDP imagery for Shopify: image types, consistency rules, workflows, and how to align ads with PDP visuals. It does not duplicate the general AI mockups pillar or the AI UGC for ads pillar. If you need broader mockup definitions or performance-creative testing systems, use those pillars."
+    },
+    {
+      "heading": "Why PDP imagery affects conversion (mechanics, not hype)",
+      "body": "PDP images reduce conversion friction by answering shopper questions quickly: what the product looks like, what size it is, how it is used, and what is included. When the ad creative and the PDP image set disagree (different packaging, different color, unclear label), shoppers hesitate or bounce. Consistency across the funnel is a usability problem, not just a brand problem."
+    },
+    {
+      "heading": "PDP image types (a practical set to plan for)",
+      "body": "Most PDPs need a predictable set of image types. The exact mix depends on category and price point, but the underlying jobs stay similar: clarity, detail, scale, context, and reassurance. The sections below describe common PDP image types and what each one is supposed to do."
+    },
+    {
+      "heading": "Primary image (the \"decision\" frame)",
+      "body": "The primary image is the first frame a shopper sees. It should make the product instantly recognizable and reduce ambiguity. For AI-generated images, this frame must be strict about identity: stable packaging geometry, stable brand colors, and readable labeling. If the primary image is inconsistent across sessions or across SKUs, the entire set becomes less trustworthy."
+    },
+    {
+      "heading": "Alternate angles (shape, size, and completeness)",
+      "body": "Angle images exist to reduce surprise. They show the product from other sides, clarify thickness/height, and confirm what is included. If AI is used, angle variation should not introduce label drift or packaging deformation. The goal is consistent, believable representation of the same product."
+    },
+    {
+      "heading": "Detail / close-up frames (label, texture, components)",
+      "body": "Close-ups answer verification questions: ingredient panels, usage instructions, material texture, or component details. For ecommerce, label fidelity and readability matter more than cinematic depth. If AI introduces invented text or distorted typography, these frames become risky. Treat close-up frames as a QA gate for the entire generation workflow."
+    },
+    {
+      "heading": "In-context usage frames (context without turning into UGC)",
+      "body": "Context images show how the product is used or where it belongs. This can be lifestyle or environment context without going fully creator-native. The constraint for PDP context is still clarity: the product should remain readable and the scene should not imply claims or experiences that are not supported."
+    },
+    {
+      "heading": "Scale frames (hand, desk, shelf, routine)",
+      "body": "Scale frames reduce uncertainty about size. They can use a hand, a common object, or a known setting. For AI, scale frames must keep proportions believable: hands should not be malformed, and the product should not look pasted. If scale frames are not credible, they increase doubt instead of reducing it."
+    },
+    {
+      "heading": "Comparison frames (variants and bundles)",
+      "body": "If you sell variants (flavors, sizes, colors) or bundles, shoppers need clear differentiation. AI can help generate consistent comparison layouts, but it must preserve exact packaging details per SKU. The risk is homogenizing variants so they look interchangeable. A workflow should explicitly lock identity per SKU and only vary the environment and framing."
+    },
+    {
+      "heading": "Consistency requirements for Shopify PDPs (what must not drift)",
+      "body": "PDP images are a consistency system. The product depiction must stay stable: packaging silhouette, label layout, typography, and brand colors. Lighting should be coherent across the set, even if the environments change slightly. If the product is held or placed on surfaces, contact shadows and reflections must match the environment so the product looks physically present."
+    },
+    {
+      "heading": "Label fidelity: why it is the highest-leverage constraint",
+      "body": "In many categories, the label is the product. It carries brand identity and critical information. If AI distorts label text or typography, shoppers lose confidence and support tickets increase. In practice, label fidelity is a gating requirement: if you cannot preserve label accuracy reliably, AI imagery should be limited to top-of-funnel creative rather than PDP-critical frames."
+    },
+    {
+      "heading": "Workflow: building a repeatable Shopify image set with AI",
+      "body": "A repeatable workflow starts with a consistent product reference, then defines a fixed set of PDP image types, then generates variations within controlled constraints. Document your input parameters (reference images, allowed angles, allowed environments) so outputs are reproducible. Avoid changing multiple variables at once across a set; otherwise you create inconsistency rather than variety."
+    },
+    {
+      "heading": "Ads → PDP alignment (reducing funnel mismatch)",
+      "body": "Ads often use more context, more motion, and more narrative. PDP images prioritize clarity and verification. Alignment means: the product depicted in the ad should match the PDP product depiction, and the expectations set by the ad should be supported by PDP images. When alignment breaks (different packaging, different color, unclear label), the click becomes low-quality and conversion drops."
+    },
+    {
+      "heading": "How to use UGC-style creatives without harming PDP trust",
+      "body": "UGC-style creatives can be effective for ads, but they can also introduce variability that is not appropriate for PDP images. Treat UGC-style visuals as a placement-specific asset type. Keep PDP images anchored in consistency and clarity, and ensure that UGC-style ads do not depict a product version that looks materially different from what the shopper will see on the PDP."
+    },
+    {
+      "heading": "Common failure modes (why Shopify AI images get ignored or hurt conversion)",
+      "body": "Common failures include: inconsistent packaging across images, unreadable labels, overly stylized lighting that hides details, and unrealistic integration that makes the product look pasted. Another failure mode is using the same visual template for every SKU, which makes the catalog feel generic. PDP imagery should feel consistent but not identical; variation should be controlled."
+    },
+    {
+      "heading": "How this relates to other guides (without duplicating them)",
+      "body": "This pillar focuses on PDP image systems for Shopify. For hands-on generation steps, use the Shopify workflow guide. For performance creative systems and testing, use the AI UGC for ads pillar. For broader mockup definitions and ecommerce fidelity constraints, use the AI product mockups pillar."
+    },
+    {
+      "heading": "FAQ: How many images should a Shopify PDP have?",
+      "body": "The right number depends on category complexity and what a shopper needs to verify. A practical approach is to cover the core jobs: primary clarity, angles, details, context, and scale. If an image does not reduce uncertainty, it usually does not belong in the set."
+    },
+    {
+      "heading": "FAQ: Should you use AI images as the first (primary) image?",
+      "body": "Whether you use AI for the primary image depends on your ability to preserve product identity and label fidelity. If the product depiction drifts, the primary image becomes risky because it sets expectations. Many teams start with AI for supporting frames, then expand to primary frames only when consistency is proven."
+    },
+    {
+      "heading": "FAQ: How do you keep variants from looking the same?",
+      "body": "Lock identity constraints per SKU: packaging geometry, label layout, and brand colors. Then vary only environment and framing. If your process reuses the same prompt without SKU-specific constraints, variants will converge and become hard to distinguish."
+    },
+    {
+      "heading": "FAQ: How do you connect ad creatives to PDP images?",
+      "body": "Ensure the product depiction matches across the funnel and that the PDP image set supports the expectation the ad creates. If ads are heavy on context, include at least one PDP context frame that matches the ad's environment logic while keeping product readability and accuracy."
+    }
+  ],
+  "cta": {
+    "title": "Build a consistent Shopify image set",
+    "text": "Generate Shopify-ready product images that prioritize clarity, label fidelity, and consistency across your PDP.",
+    "button": "Try the App"
+  }
+}
+
