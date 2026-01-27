@@ -47,7 +47,7 @@ const TermsPage: React.FC = () => {
 
           <section className="space-y-2">
             <h2 className="text-xl font-semibold text-gray-900">8. Contact</h2>
-            <p>Questions? Email <a className="text-indigo-600" href="mailto:support@boostugc.app">support@boostugc.app</a>.</p>
+            <p>Questions? Email <a className="text-indigo-600" href="mailto:support@perfectmockup.com">support@perfectmockup.com</a>.</p>
           </section>
         </div>
       </div>

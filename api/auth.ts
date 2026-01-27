@@ -80,7 +80,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const token = createMagicToken(email, invitationCode);
-      const magicLink = `${process.env.BASE_URL ?? 'https://boostugc.app'}/api/auth?action=verify&token=${token}`;
+      const magicLink = `${process.env.BASE_URL ?? 'https://perfectmockup.com'}/api/auth?action=verify&token=${token}`;
 
       await sendEmail({
         to: email,
@@ -184,7 +184,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       await addActivity(email, 'login', {});
 
-      res.writeHead(302, { Location: 'https://boostugc.app/dashboard' });
+      res.writeHead(302, { Location: 'https://perfectmockup.com/dashboard' });
       res.end();
       return;
     }

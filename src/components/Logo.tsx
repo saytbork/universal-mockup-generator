@@ -22,13 +22,13 @@ export default function Logo({ variant = 'siteNav', className = '' }: LogoProps)
   return (
     <div className={`flex items-center ${className}`}>
       <img
-        src="/images/colorlogo.svg"
+        src="/img/logos/colorlogo.svg"
         alt="Perfect Mockup"
         className={`${styles.height} w-auto dark:hidden`}
         draggable={false}
       />
       <img
-        src="/images/logowhite.svg"
+        src="/img/logos/logowhite.svg"
         alt="Perfect Mockup"
         className={`${styles.height} w-auto hidden dark:block`}
         draggable={false}

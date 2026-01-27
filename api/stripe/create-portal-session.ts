@@ -17,7 +17,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: "https://boostugc.app/dashboard",
+      return_url: "https://perfectmockup.com/dashboard",
     });
 
     res.status(200).json({ url: session.url });

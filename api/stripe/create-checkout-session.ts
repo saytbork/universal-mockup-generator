@@ -19,8 +19,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       mode: "subscription",
       customer_email: userId,
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: "https://boostugc.app/dashboard?success=true",
-      cancel_url: "https://boostugc.app/pricing?cancel=true",
+      success_url: "https://perfectmockup.com/dashboard?success=true",
+      cancel_url: "https://perfectmockup.com/pricing?cancel=true",
     });
 
     res.status(200).json({ url: session.url });

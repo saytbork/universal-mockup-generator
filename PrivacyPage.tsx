@@ -42,7 +42,7 @@ const PrivacyPage: React.FC = () => {
 
           <section className="space-y-2">
             <h2 className="text-xl font-semibold text-gray-900">7. Contact</h2>
-            <p>For privacy questions or deletion requests, email <a className="text-indigo-600" href="mailto:support@boostugc.app">support@boostugc.app</a>.</p>
+            <p>For privacy questions or deletion requests, email <a className="text-indigo-600" href="mailto:support@perfectmockup.com">support@perfectmockup.com</a>.</p>
           </section>
         </div>
       </div>
