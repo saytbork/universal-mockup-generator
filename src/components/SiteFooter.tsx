@@ -1,5 +1,4 @@
 import React from 'react';
-import { Instagram, Twitter, Youtube, Linkedin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Logo from './Logo';
 
@@ -43,12 +42,6 @@ const SiteFooter: React.FC = () => {
         </div>
         <div className="flex flex-wrap items-center justify-between gap-4 border-t border-gray-200 pt-4 text-xs text-gray-500">
           <p>© 2025 Perfect Mockup. All rights reserved.</p>
-          <div className="flex items-center gap-3 text-gray-600">
-            <a href="#" aria-label="Instagram" className="hover:text-gray-900"><Instagram className="w-4 h-4" /></a>
-            <a href="#" aria-label="Twitter" className="hover:text-gray-900"><Twitter className="w-4 h-4" /></a>
-            <a href="#" aria-label="YouTube" className="hover:text-gray-900"><Youtube className="w-4 h-4" /></a>
-            <a href="#" aria-label="LinkedIn" className="hover:text-gray-900"><Linkedin className="w-4 h-4" /></a>
-          </div>
         </div>
       </div>
     </footer>

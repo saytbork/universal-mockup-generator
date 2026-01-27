@@ -595,7 +595,7 @@ const LandingPage: React.FC = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 1, ease: [0.23, 1, 0.32, 1] }}
-              className="text-5xl sm:text-7xl font-bold text-gray-900 dark:text-white leading-[1.05] tracking-tight"
+              className="text-5xl sm:text-7xl font-bold text-gray-900 dark:text-white leading-[1.05] tracking-tight text-balance"
             >
               Create Ecommerce-Ready Product Visuals <br className="hidden md:block" />
               <span className="text-indigo-600 dark:text-indigo-400">
@@ -607,7 +607,7 @@ const LandingPage: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 1, delay: 0.4 }}
-              className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed font-medium"
+              className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed font-medium text-balance"
             >
               Generate consistent product shots and controlled UGC-style visuals for product pages, ads, and conversion funnels. No photoshoots. No agencies. No guessing.
             </motion.p>
@@ -642,7 +642,7 @@ const LandingPage: React.FC = () => {
         <div className="max-w-6xl mx-auto px-6 py-24 space-y-10">
           <div className="text-center space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">What you can create</p>
-            <h2 className="text-3xl text-gray-900 dark:text-white font-semibold">Create the visuals your product needs to sell</h2>
+            <h2 className="text-3xl text-gray-900 dark:text-white font-semibold text-balance">Create the visuals your product needs to sell</h2>
           </div>
 
           <div className="grid gap-5 md:grid-cols-3">
@@ -694,7 +694,7 @@ const LandingPage: React.FC = () => {
         <div className="max-w-6xl mx-auto px-6 py-16 space-y-10">
           <div className="text-center space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Preview</p>
-            <h2 className="text-3xl text-gray-900 font-semibold">See what you can create</h2>
+            <h2 className="text-3xl text-gray-900 font-semibold text-balance">See what you can create</h2>
             <p className="text-gray-600 max-w-3xl mx-auto mt-3">
               Choose Product or Lifestyle to match your goal. UGC feels authentic. Editorial feels premium.
             </p>
@@ -739,7 +739,7 @@ const LandingPage: React.FC = () => {
         <div className="max-w-6xl mx-auto px-6 py-20 space-y-12">
           <div className="text-center space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">How it works</p>
-            <h2 className="text-3xl sm:text-4xl text-gray-900 font-bold tracking-tight">From product to visuals in minutes</h2>
+            <h2 className="text-3xl sm:text-4xl text-gray-900 font-bold tracking-tight text-balance">From product to visuals in minutes</h2>
           </div>
 
           <div className="grid gap-12 lg:grid-cols-2 items-center">
@@ -854,7 +854,7 @@ const LandingPage: React.FC = () => {
             <span className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50">
               Core Philosophy
             </span>
-            <h2 className="text-4xl md:text-5xl text-gray-900 font-bold tracking-tight">Two modes. One visual system.</h2>
+            <h2 className="text-4xl md:text-5xl text-gray-900 font-bold tracking-tight text-balance">Two modes. One visual system.</h2>
             <p className="text-gray-500 max-w-2xl mx-auto text-lg leading-relaxed">
               Product and Lifestyle never mix. You always control the intent before generating.
             </p>
@@ -874,7 +874,7 @@ const LandingPage: React.FC = () => {
                   <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
                   <span className="text-[10px] text-indigo-300 font-bold uppercase tracking-[0.2em]">PDP Ready</span>
                 </div>
-                <h3 className="text-2xl font-bold text-white">Product (Studio)</h3>
+                <h3 className="text-2xl font-bold text-white text-balance">Product (Studio)</h3>
                 <p className="text-gray-400 text-sm leading-relaxed max-w-sm">
                   Use when clarity and control matter. Perfect for marketplaces, catalogs, and clean e-commerce listings.
                 </p>
@@ -938,7 +938,7 @@ const LandingPage: React.FC = () => {
                   <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
                   <span className="text-[10px] text-white/80 font-bold uppercase tracking-[0.2em]">Conversion Focus</span>
                 </div>
-                <h3 className="text-2xl font-bold text-white">Lifestyle (UGC & Editorial)</h3>
+                <h3 className="text-2xl font-bold text-white text-balance">Lifestyle (UGC & Editorial)</h3>
                 <p className="text-indigo-100 text-sm leading-relaxed max-w-md">
                   Use when context and emotion drive conversion. Choose UGC for authenticity or Editorial for brand polish.
                 </p>
@@ -954,7 +954,7 @@ const LandingPage: React.FC = () => {
         <div className="max-w-6xl mx-auto px-6 space-y-16">
           <div className="text-center space-y-4">
             <span className="text-indigo-600 dark:text-indigo-400 text-[10px] font-bold uppercase tracking-[0.3em]">Why Perfect Mockup</span>
-            <h2 className="text-4xl md:text-5xl text-gray-900 dark:text-white font-bold tracking-tight">
+            <h2 className="text-4xl md:text-5xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">
               Built as a Visual System, Not a Generator
             </h2>
             <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto text-lg leading-relaxed font-medium">
@@ -972,7 +972,7 @@ const LandingPage: React.FC = () => {
               className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 p-8 flex flex-col justify-between group min-h-[320px] shadow-sm"
             >
               <div className="space-y-4">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">From Weeks to Minutes</h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white text-balance">From Weeks to Minutes</h3>
                 <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
                   Skip studios, scheduling, talent, and retouching. Generate launch-ready visuals the moment your product is ready.
                 </p>
@@ -989,7 +989,7 @@ const LandingPage: React.FC = () => {
               className="md:col-span-2 bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 p-8 flex flex-col md:flex-row gap-8 items-center min-h-[320px] shadow-sm"
             >
               <div className="flex-1 space-y-4">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">One Visual System. Every Channel.</h3>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white text-balance">One Visual System. Every Channel.</h3>
                 <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
                   The same product logic drives visuals across product pages, ads, marketplaces, and paid social, so nothing drifts off-spec.
                 </p>
@@ -1014,7 +1014,7 @@ const LandingPage: React.FC = () => {
                 <div className="inline-flex px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[9px] font-bold uppercase tracking-widest mb-2">
                   SYSTEM CORE
                 </div>
-                <h3 className="text-2xl font-bold text-white">Decisions In. Not Randomness Out.</h3>
+                <h3 className="text-2xl font-bold text-white text-balance">Decisions In. Not Randomness Out.</h3>
                 <p className="text-gray-400 text-sm leading-relaxed">
                   Perfect Mockup uses structured inputs, strict modes, and composition rules so every image matches its ecommerce use case.
                 </p>
@@ -1033,7 +1033,7 @@ const LandingPage: React.FC = () => {
               className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 p-8 flex flex-col justify-between min-h-[320px] shadow-sm"
             >
               <div className="space-y-4">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Built to Scale With Your Catalog</h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white text-balance">Built to Scale With Your Catalog</h3>
                 <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
                   From your first SKU to hundreds of products, generate consistent visuals without increasing production overhead.
                 </p>
@@ -1055,7 +1055,7 @@ const LandingPage: React.FC = () => {
         <div className="max-w-6xl mx-auto px-6 space-y-12">
           <div className="text-center space-y-4">
             <span className="text-indigo-600 text-[10px] font-bold uppercase tracking-[0.3em]">Perfect for Teams</span>
-            <h2 className="text-3xl font-bold text-gray-900">Designed for the modern ecommerce ecosystem</h2>
+            <h2 className="text-3xl font-bold text-gray-900 text-balance">Designed for the modern ecommerce ecosystem</h2>
           </div>
 
           <div className="flex flex-wrap justify-center items-center gap-4 max-w-4xl mx-auto">
@@ -1084,7 +1084,7 @@ const LandingPage: React.FC = () => {
         <div className="max-w-6xl mx-auto px-6 py-24 space-y-10">
           <div className="text-center space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-400">Resources</p>
-            <h2 className="text-3xl text-gray-900 dark:text-white font-semibold">Latest from our Blog</h2>
+            <h2 className="text-3xl text-gray-900 dark:text-white font-semibold text-balance">Latest from our Blog</h2>
             <p className="text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mt-3">
               Insights, guides, and tactics to help you win with AI-driven visuals.
             </p>
@@ -1134,7 +1134,7 @@ const LandingPage: React.FC = () => {
         <div className="max-w-5xl mx-auto px-6 space-y-12">
           <div className="text-center space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">FAQ</p>
-            <h2 className="text-3xl sm:text-4xl text-gray-900 dark:text-white font-bold tracking-tight">
+            <h2 className="text-3xl sm:text-4xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">
               Answers for ecommerce teams
             </h2>
             <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
@@ -1160,7 +1160,7 @@ const LandingPage: React.FC = () => {
         <div className="max-w-6xl mx-auto space-y-16">
           <div className="text-center space-y-4">
             <span className="text-indigo-600 text-[10px] font-bold uppercase tracking-[0.3em]">Scalable Pricing</span>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight">Plans built for launch velocity</h2>
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight text-balance">Plans built for launch velocity</h2>
             <p className="text-gray-500 max-w-2xl mx-auto text-lg leading-relaxed">
               Scale your visuals as your products and campaigns grow. No hidden fees.
             </p>
@@ -1316,7 +1316,7 @@ const LandingPage: React.FC = () => {
 
       <section className="bg-gray-900 dark:bg-white/[0.03] py-24 text-center">
         <div className="max-w-4xl mx-auto px-6">
-          <h2 className="text-4xl md:text-5xl text-white font-bold tracking-tight">
+          <h2 className="text-4xl md:text-5xl text-white font-bold tracking-tight text-balance">
             Launch Products with Visuals That Convert
           </h2>
           <p className="mt-6 text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
