@@ -34,7 +34,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   let user = await getUser(email);
   const normalizedPlan = String(user.plan ?? 'free').trim().toLowerCase();
-  if (normalizedPlan === 'free' && user.trialRemaining <= 0 && user.inviteRemaining <= 0) {
+  if (normalizedPlan === 'free' && user.trialRemaining <= 0) {
     try {
       const recent = await listActivity(email, 30);
       const hasSpend = recent.some(item => item.type === 'image' && Number(item.meta?.delta ?? 0) < 0);

@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { checkAuth } from '../server/lib/checkAuth.js';
-import { getUser, consumeCredit, refundCredit, getEffectiveCredits } from '../server/lib/store.js';
-import { addActivity } from '../server/lib/activity.js';
+import { getUser, consumeCredit, refundCredit, getEffectiveCredits, setUser } from '../server/lib/store.js';
+import { addActivity, listActivity } from '../server/lib/activity.js';
 
 const parseAction = (req: VercelRequest) => {
   const raw = req.query.action;
@@ -22,7 +22,7 @@ const parseAmount = (raw: unknown) => {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const action = parseAction(req);
-  if (action !== 'consume' && action !== 'refund') {
+  if (action !== 'consume' && action !== 'refund' && action !== 'redeem') {
     res.status(400).json({ error: 'Invalid action' });
     return;
   }
@@ -36,9 +36,62 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(401).json({ error: 'Unauthorized' });
     return;
   }
-  const { amount, bucket } = req.body || {};
+  const { amount, bucket, code } = req.body || {};
   const creditAmount = parseAmount(amount) ?? 1;
   try {
+    if (action === 'redeem') {
+      const normalized = typeof code === 'string' ? code.trim() : '';
+      if (!normalized) {
+        res.status(400).json({ error: 'Missing code' });
+        return;
+      }
+      const requiredCode = process.env.INVITATION_CODE;
+      const testerCode = process.env.TESTER_UPGRADE_CODE || '713371';
+      const matchesRequired = requiredCode ? normalized === requiredCode : true;
+      const matchesTester = normalized === testerCode;
+      if (!matchesRequired && !matchesTester) {
+        res.status(400).json({ error: 'Invalid code' });
+        return;
+      }
+      const user = await getUser(email);
+      const plan = String(user.plan ?? 'free').trim().toLowerCase();
+      if (plan !== 'free') {
+        res.status(400).json({ error: 'Code can only be applied to free plan' });
+        return;
+      }
+      if (user.inviteUsed) {
+        res.status(409).json({ error: 'Code already used' });
+        return;
+      }
+      let trialRemaining = user.trialRemaining ?? 0;
+      if (trialRemaining <= 0) {
+        try {
+          const recent = await listActivity(email, 30);
+          const hasSpend = recent.some(item => item.type === 'image' && Number(item.meta?.delta ?? 0) < 0);
+          if (!hasSpend) {
+            trialRemaining = 2;
+          }
+        } catch (err) {
+          console.warn('Redeem code activity check failed', err);
+        }
+      }
+      const next = await setUser(email, {
+        trialRemaining,
+        inviteRemaining: (user.inviteRemaining || 0) + 10,
+        inviteUsed: true,
+      });
+      await addActivity(email, 'invite', { bonus: 10, code: normalized });
+      res.json({
+        ok: true,
+        credits: next.credits ?? getEffectiveCredits(next),
+        remaining_credits: getEffectiveCredits(next),
+        trial_remaining: next.trialRemaining ?? 0,
+        invite_remaining: next.inviteRemaining ?? 0,
+        subscription_remaining: next.subscriptionRemaining ?? 0,
+        inviteUsed: next.inviteUsed ?? false,
+      });
+      return;
+    }
     if (action === 'consume') {
       let consumed = 0;
       let lastBucket: string | undefined;

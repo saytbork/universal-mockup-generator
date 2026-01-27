@@ -2998,24 +2998,35 @@ const App: React.FC = () => {
     [isSimpleMode, userEmail]
   );
 
-  const handlePlanCodeSubmit = useCallback(() => {
+  const handlePlanCodeSubmit = useCallback(async () => {
     const trimmed = planCodeInput.trim();
     const normalized = trimmed.toUpperCase();
     if (!trimmed) {
       setPlanCodeError('Enter the access code provided after checkout.');
       return;
     }
-    if (normalized === TESTER_UPGRADE_CODE.toUpperCase()) {
-      setPlanTier('creator');
-      setCreditUsage(0);
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(PLAN_STORAGE_KEY, 'creator');
-        window.localStorage.setItem(IMAGE_COUNT_KEY, '0');
+    try {
+      const res = await fetch('/api/credits?action=redeem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: trimmed }),
+      });
+      if (res.ok) {
+        const data = await res.json().catch(() => ({}));
+        if (typeof data?.remaining_credits === 'number') {
+          setRemoteCredits(data.remaining_credits);
+        }
+        setPlanCodeInput('');
+        setPlanCodeError(null);
+        setPlanNotice('Access code applied: +10 credits.');
+        setShowPlanModal(false);
+        return;
       }
-      setPlanCodeInput('');
-      setPlanCodeError(null);
-      setPlanNotice('Tester code applied: 20 credits.');
-      setShowPlanModal(false);
+    } catch (err) {
+      console.warn('Plan code redeem failed', err);
+    }
+    if (normalized === TESTER_UPGRADE_CODE.toUpperCase()) {
+      setPlanCodeError('Code already used or not eligible for this account.');
       return;
     }
     const tier = PLAN_UNLOCK_CODES[normalized];
@@ -3026,7 +3037,7 @@ const App: React.FC = () => {
     handlePlanTierSelect(tier);
     setPlanCodeInput('');
     setPlanCodeError(null);
-  }, [planCodeInput, handlePlanTierSelect]);
+  }, [planCodeInput, handlePlanTierSelect, setRemoteCredits]);
 
   const handleProPhotographerToggle = useCallback(() => {
     setIsProPhotographer(prev => !prev);
