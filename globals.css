@@ -61,6 +61,19 @@ body {
     color 0.7s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+li,
+blockquote,
+figcaption {
+  text-wrap: balance;
+}
+
 .bg-grain {
   pointer-events: none;
   opacity: 0.025;
