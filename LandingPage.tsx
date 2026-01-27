@@ -304,6 +304,67 @@ const LandingPage: React.FC = () => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [activeStep, setActiveStep] = useState(0);
   const [isHoveringSteps, setIsHoveringSteps] = useState(false);
+  const seo = {
+    title: 'AI Product & Lifestyle Mockups for Ecommerce Brands | Perfect Mockup',
+    description:
+      'Generate premium product visuals, lifestyle scenes, and UGC-style ads in minutes. Built for ecommerce brands, growth teams, and product launches.',
+    url: 'https://perfectmockup.com/',
+    image: 'https://perfectmockup.com/preview.png',
+  };
+  const faqItems = [
+    {
+      question: 'What is Perfect Mockup?',
+      answer:
+        'Perfect Mockup is an AI product visual generator that creates premium product photography, lifestyle scenes, and UGC-style ads without photoshoots.',
+    },
+    {
+      question: 'Can I use my existing product image?',
+      answer:
+        'Yes. Upload your existing product image and the system integrates it into professional micro-environments while preserving label accuracy.',
+    },
+    {
+      question: 'How fast can I generate new visuals?',
+      answer:
+        'Most scenes generate in minutes. You can iterate quickly across product shots, lifestyle, and ad-ready variations.',
+    },
+    {
+      question: 'Does Perfect Mockup replace a studio shoot?',
+      answer:
+        'It replaces many routine shoots by generating premium, campaign-ready scenes. You still own the output and can use it for ads, landing pages, and ecommerce.',
+    },
+    {
+      question: 'What types of visuals can I create?',
+      answer:
+        'Product studio shots, lifestyle UGC, editorial lifestyle, background replacement, and branded ad assets with consistent styling.',
+    },
+  ];
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        name: 'Perfect Mockup',
+        url: 'https://perfectmockup.com/',
+        logo: 'https://perfectmockup.com/img/logos/colorlogo.svg',
+      },
+      {
+        '@type': 'WebSite',
+        name: 'Perfect Mockup',
+        url: 'https://perfectmockup.com/',
+      },
+      {
+        '@type': 'FAQPage',
+        mainEntity: faqItems.map(item => ({
+          '@type': 'Question',
+          name: item.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: item.answer,
+          },
+        })),
+      },
+    ],
+  };
 
   const steps = [
     {
@@ -330,6 +391,37 @@ const LandingPage: React.FC = () => {
     }, 5000);
     return () => clearInterval(interval);
   }, [isHoveringSteps, steps.length]);
+
+  useEffect(() => {
+    document.title = seo.title;
+    const setMeta = (key: string, content: string, attr: 'name' | 'property' = 'name') => {
+      let element = document.querySelector(`meta[${attr}='${key}']`) as HTMLMetaElement | null;
+      if (!element) {
+        element = document.createElement('meta');
+        element.setAttribute(attr, key);
+        document.head.appendChild(element);
+      }
+      element.setAttribute('content', content);
+    };
+    const setLink = (rel: string, href: string) => {
+      let element = document.querySelector(`link[rel='${rel}']`) as HTMLLinkElement | null;
+      if (!element) {
+        element = document.createElement('link');
+        element.setAttribute('rel', rel);
+        document.head.appendChild(element);
+      }
+      element.setAttribute('href', href);
+    };
+    setMeta('description', seo.description);
+    setMeta('og:title', seo.title, 'property');
+    setMeta('og:description', seo.description, 'property');
+    setMeta('og:url', seo.url, 'property');
+    setMeta('og:image', seo.image, 'property');
+    setMeta('twitter:title', seo.title);
+    setMeta('twitter:description', seo.description);
+    setMeta('twitter:image', seo.image);
+    setLink('canonical', seo.url);
+  }, [seo.title, seo.description, seo.url, seo.image]);
 
   const previewModes = [
     {
@@ -434,6 +526,10 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white text-gray-900 dark:bg-black dark:text-white transition-colors duration-500 overflow-x-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       <header className="relative min-h-[85vh] flex flex-col justify-center overflow-hidden border-b border-gray-100 dark:border-white/5 bg-white dark:bg-black">
         {/* Animated Gradient Background */}
         <div className="absolute inset-0 z-0">
@@ -1030,6 +1126,32 @@ const LandingPage: React.FC = () => {
             >
               View All Articles
             </Link>
+          </div>
+        </div>
+      </section>
+
+      <section id="faq" className="bg-white dark:bg-black py-24 border-b border-gray-100 dark:border-white/5">
+        <div className="max-w-5xl mx-auto px-6 space-y-12">
+          <div className="text-center space-y-3">
+            <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">FAQ</p>
+            <h2 className="text-3xl sm:text-4xl text-gray-900 dark:text-white font-bold tracking-tight">
+              Answers for ecommerce teams
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              Clear guidance on how Perfect Mockup works and where it fits in your launch stack.
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            {faqItems.map((item) => (
+              <div
+                key={item.question}
+                className="rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 p-6 space-y-3"
+              >
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{item.question}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{item.answer}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
