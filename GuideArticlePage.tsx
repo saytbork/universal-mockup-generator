@@ -6,6 +6,11 @@ import { getBlogArticleBySlug } from './src/content/blog';
 import { applySeo } from './src/lib/seo';
 
 const furtherReadingByGuideSlug: Record<string, string[]> = {
+    'ai-product-mockups': [
+        'ai-product-mockups-launch-pages',
+        'background-replacement-ecommerce',
+        'shopify-product-photos-ai-tactics',
+    ],
     'how-to-generate-ugc-with-ai': [
         'how-to-create-scroll-stopping-ugc-with-ai',
         'dtc-ad-creatives-ai-ugc',
@@ -33,6 +38,14 @@ const furtherReadingByGuideSlug: Record<string, string[]> = {
     ],
 };
 
+const relatedGuidesByGuideSlug: Record<string, string[]> = {
+    'ai-product-mockups': [
+        'shopify-product-photos-ai-workflow',
+        'amazon-listing-images-ai-guide',
+        'how-to-generate-ugc-with-ai',
+    ],
+};
+
 const GuideArticlePage: React.FC = () => {
     const { slug } = useParams<{ slug: string }>();
     const guide = getGuideBySlug(slug);
@@ -42,6 +55,11 @@ const GuideArticlePage: React.FC = () => {
         return slugs
             .map((s) => getBlogArticleBySlug(s))
             .filter(Boolean);
+    }, [guide]);
+    const relatedGuides = useMemo(() => {
+        if (!guide) return [];
+        const slugs = relatedGuidesByGuideSlug[guide.slug] ?? [];
+        return slugs.map((s) => getGuideBySlug(s)).filter(Boolean);
     }, [guide]);
 
     useEffect(() => {
@@ -175,6 +193,25 @@ const GuideArticlePage: React.FC = () => {
                         )}
                     </section>
                 ))}
+
+                {relatedGuides.length > 0 && (
+                    <section className="rounded-xl border border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/5 p-6 space-y-3">
+                        <p className="text-xs uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 font-black">
+                            Related guides
+                        </p>
+                        <div className="space-y-2">
+                            {relatedGuides.map((g) => (
+                                <Link
+                                    key={g!.slug}
+                                    to={`/guides/${g!.slug}`}
+                                    className="block text-sm font-bold text-indigo-600 hover:underline"
+                                >
+                                    {g!.title}
+                                </Link>
+                            ))}
+                        </div>
+                    </section>
+                )}
 
                 {furtherReading.length > 0 && (
                     <section className="rounded-xl border border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/5 p-6 space-y-3">

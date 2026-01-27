@@ -39,6 +39,7 @@ const guideModules = import.meta.glob('./*.json', { eager: true }) as Record<str
 const guides = Object.values(guideModules).map(module => module.default);
 
 const slugOrder = [
+    'ai-product-mockups',
     'how-to-generate-ugc-with-ai',
     'how-to-create-ai-lifestyle-images',
     'shopify-product-photos-ai-workflow',

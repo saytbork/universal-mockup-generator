@@ -1,0 +1,99 @@
+{
+  "id": "pillar-mockups-001",
+  "slug": "ai-product-mockups",
+  "title": "AI Product Mockups: A Practical Guide for Ecommerce Teams",
+  "subtitle": "Define what an AI product mockup is, how it differs from renders and editing, and how to use mockup types (hero, PDP, ads, lifestyle) without breaking consistency or label fidelity.",
+  "category": "Pillars",
+  "seo": {
+    "title": "AI Product Mockups | Practical Guide for Ecommerce Teams",
+    "description": "A practical guide to AI product mockups: definitions, mockup types, when to use them, limitations, ecommerce requirements (consistency and label fidelity), and FAQs."
+  },
+  "heroImage": {
+    "prompt": "Premium ecommerce hero image of a single packaged product integrated into a clean micro-environment. Realistic materials, believable shadows, label readable, no flat catalog look. Editorial lighting. 16:9.",
+    "alt": "AI product mockup integrated into a realistic micro-environment."
+  },
+  "sections": [
+    {
+      "heading": "Definition: What is an AI product mockup?",
+      "body": "An AI product mockup is a product visual created or assembled with generative AI where a real product reference (a photo or a set of product images) is used to produce a new scene: a different environment, composition, lighting, context, or use case. In ecommerce, the goal is not novelty. The goal is a believable image that still respects the product's real-world identity: shape, colors, label layout, and readable packaging details."
+    },
+    {
+      "heading": "What an AI product mockup is NOT",
+      "body": "A mockup is not a random \"AI image\" of a product concept. It is not a generic 3D render unless you intentionally choose a 3D workflow. It is not a simple background swap that ignores shadows, reflections, or contact points. It is not a creative reinterpretation that changes label text, typography, packaging geometry, or brand colors. If the output changes those identity constraints, it stops being a usable ecommerce mockup."
+    },
+    {
+      "heading": "Why teams use AI mockups (and what problem they actually solve)",
+      "body": "AI mockups are typically adopted to reduce production friction: generating many useful variations (angles, environments, formats) without scheduling shoots for every iteration. The practical value is speed-to-asset for experiments, launches, seasonal campaigns, and platform-specific image requirements. The goal is repeatable, consistent outputs across a catalog and across channels, not one-off \"cool\" images."
+    },
+    {
+      "heading": "Core quality criteria (the minimum bar for ecommerce use)",
+      "body": "A usable AI product mockup must pass a basic credibility and compliance check. The product must look physically present (not pasted), the scale must be believable, and lighting must be consistent across product and environment. Packaging details must remain accurate: the label should be readable, typography should not drift, colors should not shift, and the silhouette should not morph. If a person is present, the hand contact must show correct occlusion and shadows so the product does not float."
+    },
+    {
+      "heading": "Types of product mockups (and when each one is appropriate)",
+      "body": "The term \"mockup\" covers multiple ecommerce formats. The right format depends on where the image will be used and how much context it should communicate. The sections below define the most common types and their tradeoffs."
+    },
+    {
+      "heading": "Hero mockup (landing page / campaign hero)",
+      "body": "A hero mockup is a high-clarity image designed for a landing page header or campaign hero. It typically uses a clean micro-environment, controlled composition, and intentional negative space for copy. The product is dominant and readable. Use this when you need a single image to anchor a launch, a PDP header, or a paid campaign creative where clarity beats variety."
+    },
+    {
+      "heading": "PDP mockup (product detail page images)",
+      "body": "A PDP mockup prioritizes product comprehension. It supports scanning: clear angles, readable packaging, and consistent lighting across a set. Use PDP mockups to replace inconsistent supplier photos, to standardize a catalog, or to generate supplementary images (context, scale, details) that are hard to shoot for every SKU."
+    },
+    {
+      "heading": "Lifestyle mockup (contextual scene)",
+      "body": "A lifestyle mockup places the product into a believable real-world setting to communicate usage and vibe. The environment must feel real: materials, clutter level, and lighting direction should make sense. Lifestyle is useful for ads, social, and PDP modules that need context. The risk is losing label readability or introducing identity drift, so the product constraints must stay strict."
+    },
+    {
+      "heading": "UGC-style mockup (creator-native ads)",
+      "body": "UGC-style mockups aim to mimic creator-native aesthetics (casual framing, imperfect light, everyday locations) while still keeping the product accurate. Use this format for paid social and fast iteration of ad variations. The tradeoff is that UGC aesthetics can reduce consistency across a catalog. It should be treated as a channel-specific asset type, not as your primary product image source."
+    },
+    {
+      "heading": "Ingredient stack / supporting elements (category storytelling)",
+      "body": "Ingredient and benefit-driven compositions place complementary items around the product (for example: citrus, botanicals, textures, or tools) to communicate a category story. The key constraint is realism: props must match scale and lighting, and they must not distract from packaging readability. Use this for campaign creatives and PDP modules where you need visual storytelling without a person in frame."
+    },
+    {
+      "heading": "Routine / carousel mockups (multi-frame sequences)",
+      "body": "Routine mockups are sets of images designed to work together: step-by-step use, morning/night routines, or multi-slide carousels. The core requirement is continuity: consistent product appearance, similar lighting logic, and repeatable framing rules across multiple frames. AI can generate these sets quickly, but only if the workflow has strong identity constraints and scene templates that vary without drifting."
+    },
+    {
+      "heading": "When to use AI mockups vs real photography (decision criteria)",
+      "body": "Use AI mockups when speed, variation, and standardization matter more than capturing a one-time real-world moment. Use real photography when you need a legally defensible depiction of a specific real event (for example: a real person using a product in a documented setting), when fine material properties are critical, or when the brand requires a signature photographic style that must be tightly controlled. In practice, many teams combine both: real photography for a small set of hero assets, AI mockups for breadth and iteration."
+    },
+    {
+      "heading": "Limitations and tradeoffs (what can go wrong)",
+      "body": "AI mockups can fail in predictable ways: label text warps, typography drifts, packaging shape morphs, reflections and shadows do not match the scene, or hands interact incorrectly. Another failure mode is \"generic beauty lighting\" that makes everything look like the same stock shoot. These risks increase when prompts are vague, when identity constraints are weak, or when too many variables change at once across a generation set."
+    },
+    {
+      "heading": "Ecommerce requirements: consistency and label fidelity",
+      "body": "For ecommerce, consistency is not optional. Customers notice when packaging looks different across images. The label must remain readable and unchanged, brand colors must remain stable, and product geometry must not fluctuate. If you generate multiple mockups, the variation should come from environment, composition, and lighting choices that stay physically plausible, not from changing the product itself. If your process cannot reliably preserve label fidelity, the outputs will be limited to top-of-funnel creative and will not serve PDP needs."
+    },
+    {
+      "heading": "How this relates to Shopify, Amazon, and UGC (without duplicating those guides)",
+      "body": "Shopify-focused mockups prioritize PDP clarity and conversion modules. Amazon-focused images have stricter constraints around main images and the structure of supporting content such as A+ modules. UGC-style visuals are optimized for paid social iteration and creator-native aesthetics. If you need platform-specific workflows, use the dedicated guides linked from this pillar."
+    },
+    {
+      "heading": "FAQ: Are AI product mockups the same as 3D renders?",
+      "body": "No. 3D renders are typically generated from a modeled product and a 3D scene. AI mockups often start from a real product reference and generate a new scene around it. Some teams combine approaches, but the workflows and failure modes differ."
+    },
+    {
+      "heading": "FAQ: What makes a mockup \"usable\" on a product page?",
+      "body": "Usable ecommerce mockups preserve product identity and clarity: accurate packaging shape, stable brand colors, readable label, and physically consistent lighting. If the product drifts or the label becomes unreadable, the image becomes risky for PDP use."
+    },
+    {
+      "heading": "FAQ: Can you use AI mockups for Amazon main images?",
+      "body": "Amazon has strict image requirements and policies. Whether a specific AI-generated image is acceptable depends on how it is produced and whether it complies with Amazon's current policies. Use the Amazon guide for platform-specific constraints and image types."
+    },
+    {
+      "heading": "FAQ: How do you avoid a generic \"AI stock\" look?",
+      "body": "Avoiding generic outputs typically requires two things: strong product identity constraints (so the product does not drift) and deliberate variation in micro-environments (so scenes do not repeat). If your workflow relies on one visual preset, results will converge and look repetitive."
+    }
+  ],
+  "cta": {
+    "title": "Generate your first product mockup",
+    "text": "Upload a reference product image and generate ecommerce-ready mockups for PDP, ads, and launches.",
+    "button": "Try the App"
+  }
+}
+
