@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { CheckCircle2, CreditCard, ShieldCheck, ShoppingBag, Users2, Zap, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import PlanCheckoutModal from './components/PlanCheckoutModal';
+import TestimonialsSection from './components/TestimonialsSection';
 import { getAllBlogArticles } from './src/content/blog';
 
 type PlanMetadata = {
@@ -739,6 +740,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
           </div>
         </div>
       </section>
+
+      <TestimonialsSection />
 
       <section className="bg-indigo-50/20 dark:bg-indigo-500/[0.02] border-b border-gray-100 dark:border-white/5 overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 py-20 space-y-12">
