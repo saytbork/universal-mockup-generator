@@ -4571,48 +4571,69 @@ If the model attempts to create a scene or environment, override it and force a 
             ? options.creationMode
             : 'studio';
 
-        const basePromptOptions: any = {
-          ...options,
-          modelReferenceLockAccessories,
-          contentStyle: isProductPlacement ? 'product' : 'ugc',
-          creationIntent: isProductPlacement ? 'product' : options.creationIntent,
-          sceneIntent: isProductPlacement ? 'ecommerce' : options.sceneIntent,
-          creationMode: isProductPlacement
-            ? safeProductCreationMode
-            : (options.creationMode || 'lifestyle'),
-          ...(isProductPlacement
-            ? {
-              cameraType:
-                options.cameraType &&
-                  !String(options.cameraType).toLowerCase().includes('smartphone') &&
-                  !String(options.cameraType).toLowerCase().includes('phone')
-                  ? options.cameraType
-                  : 'DSLR / mirrorless camera',
-              compositionMode: undefined,
-              compositionModeStructural: undefined,
-              creationModeStructural: undefined,
-            }
-            : {}),
-	          personIncluded,
-          productAssets: (hideProductMode ? [] : generationProducts).map(p => {
-            const sourceAsset = productAssets.find(asset => asset.id === p.id);
-            return {
-              id: p.id,
-              label: sourceAsset?.label ?? 'Product',
-              base64: p.base64,
-              mimeType: p.mimeType,
-              heightValue: sourceAsset?.heightValue ?? null,
-              heightUnit: sourceAsset?.heightUnit ?? 'cm',
-            };
-          }),
-          ...(shouldReuseIdentityKey
-            ? {
-              identityKey: identityContinuityRef.current?.identityKey,
-              identitySeed: identityContinuityRef.current?.identitySeed,
-              identityMode: 'locked',
-            }
-            : {}),
-        };
+	        const basePromptOptions: any = {
+	          ...options,
+	          modelReferenceLockAccessories,
+	          contentStyle: isProductPlacement ? 'product' : 'ugc',
+	          creationIntent: isProductPlacement ? 'product' : options.creationIntent,
+	          sceneIntent: isProductPlacement ? 'ecommerce' : options.sceneIntent,
+	          creationMode: isProductPlacement
+	            ? safeProductCreationMode
+	            : (options.creationMode || 'lifestyle'),
+	          ...(isProductPlacement
+	            ? {
+	              cameraType:
+	                options.cameraType &&
+	                  !String(options.cameraType).toLowerCase().includes('smartphone') &&
+	                  !String(options.cameraType).toLowerCase().includes('phone')
+	                  ? options.cameraType
+	                  : 'DSLR / mirrorless camera',
+	              compositionMode: undefined,
+	              compositionModeStructural: undefined,
+	              creationModeStructural: undefined,
+	            }
+	            : {}),
+		          personIncluded,
+	          productAssets: (hideProductMode ? [] : generationProducts).map(p => {
+	            const sourceAsset = productAssets.find(asset => asset.id === p.id);
+	            return {
+	              id: p.id,
+	              label: sourceAsset?.label ?? 'Product',
+	              base64: p.base64,
+	              mimeType: p.mimeType,
+	              heightValue: sourceAsset?.heightValue ?? null,
+	              heightUnit: sourceAsset?.heightUnit ?? 'cm',
+	            };
+	          }),
+	          ...(shouldReuseIdentityKey
+	            ? {
+	              identityKey: identityContinuityRef.current?.identityKey,
+	              identitySeed: identityContinuityRef.current?.identitySeed,
+	              identityMode: 'locked',
+	            }
+	            : {}),
+	        };
+	
+	        // Ensure every render produces a different person by default (while keeping age/gender/etc),
+	        // unless the user explicitly enables "Same character" OR uses a Model Reference (which must lock identity).
+	        const shouldForceRandomIdentity =
+	          !isProductPlacement &&
+	          !hasModelReference &&
+	          lifestyleStep3Values?.sameCreatorAcrossScenes !== true &&
+	          personIncluded === true;
+	        if (shouldForceRandomIdentity && !shouldReuseIdentityKey) {
+	          const runtimeUuid =
+	            (typeof globalThis !== 'undefined' && (globalThis as any)?.crypto?.randomUUID)
+	              ? (globalThis as any).crypto.randomUUID()
+	              : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+	          basePromptOptions.identityMode = 'auto';
+	          basePromptOptions.identityVariationToken = runtimeUuid;
+	          basePromptOptions.identityKey = undefined;
+	          basePromptOptions.identitySeed = runtimeUuid;
+	        } else if (!shouldReuseIdentityKey) {
+	          // Avoid accidental carryover when the toggle is OFF.
+	          basePromptOptions.identityKey = undefined;
+	        }
 
         // If LifestyleStep3 values exist, map them to PromptOptions
         let promptOptions = basePromptOptions;
