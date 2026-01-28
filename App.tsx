@@ -1495,7 +1495,7 @@ const App: React.FC = () => {
   const canUseCaptionAssistant = false;
   const isUsingRemoteCredits = !isGuest && Boolean(userEmail.trim());
   const remainingCredits = Math.max(
-    isUsingRemoteCredits ? (remoteCredits ?? 0) : planCreditLimit - creditUsage,
+    isUsingRemoteCredits ? (remoteCredits ?? planCreditLimit) : planCreditLimit - creditUsage,
     0
   );
   const remainingVideos = Math.max(planVideoLimit - videoGenerationCount, 0);
@@ -4468,7 +4468,9 @@ If the model attempts to create a scene or environment, override it and force a 
       const creditCost = getImageCreditCost(options);
       if (!isTrialBypassActive && creditCost > remainingCredits) {
         setImageError('Not enough credits for this generation. Upgrade your plan.');
-        setShowPlanModal(true);
+        if (remainingCredits <= 0) {
+          setShowPlanModal(true);
+        }
         return;
       }
 
@@ -5084,7 +5086,7 @@ If the model attempts to create a scene or environment, override it and force a 
       if (!response.ok) {
         const message = typeof data?.error === 'string' ? data.error : 'Image edit failed';
         setImageError(message);
-        if (response.status === 402 || response.status === 403) {
+        if ((response.status === 402 || response.status === 403) && remainingCredits <= 0) {
           setShowPlanModal(true);
         }
         return;

@@ -74,10 +74,7 @@ if (!rootElement) {
 
 const AppWithTooltips = () => (
   <TooltipProvider delayDuration={150}>
-    <>
-      <App />
-      <SupportWidget />
-    </>
+    <App />
   </TooltipProvider>
 );
 
@@ -110,6 +107,7 @@ root.render(
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+          <SupportWidget />
         </BrowserRouter>
       </AuthProvider>
     </RootErrorBoundary>
