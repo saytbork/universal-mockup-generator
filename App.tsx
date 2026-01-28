@@ -5453,7 +5453,7 @@ If the model attempts to create a scene or environment, override it and force a 
               <button
                 type="button"
                 onClick={toggleTheme}
-                className="h-10 w-10 rounded-full border border-gray-200 bg-white text-gray-600 hover:text-indigo-600 transition flex items-center justify-center shadow-sm overflow-hidden dark:bg-white/5 dark:border-white/10 dark:text-white/70 dark:hover:text-white dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]"
+                className="h-10 w-10 aspect-square flex-none rounded-full border border-gray-200 bg-white text-gray-600 hover:text-indigo-600 transition flex items-center justify-center shadow-sm overflow-hidden p-0 dark:bg-white/5 dark:border-white/10 dark:text-white/70 dark:hover:text-white dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]"
                 aria-label="Toggle theme"
               >
                 <span className="animate-scale-icon flex items-center justify-center">

@@ -33,7 +33,7 @@ const ModeTierToggle: React.FC<ModeTierToggleProps> = ({
                 <button
                     type="button"
                     onClick={toggleTheme}
-                    className="h-9 w-9 rounded-full border border-gray-200 bg-white text-gray-600 text-gray-500 hover:text-gray-900  hover:border-indigo-600  transition-all duration-300 flex items-center justify-center"
+                    className="h-9 w-9 aspect-square flex-none rounded-full border border-gray-200 bg-white text-gray-500 hover:text-gray-900 hover:border-indigo-600 transition-all duration-300 flex items-center justify-center p-0"
                     aria-label="Toggle theme"
                     title="Toggle theme"
                 >
