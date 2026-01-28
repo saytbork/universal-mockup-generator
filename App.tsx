@@ -5340,7 +5340,7 @@ If the model attempts to create a scene or environment, override it and force a 
         </div>
       )}
 
-      <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-black dark:text-white p-6 sm:p-10 lg:p-16">
+      <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-black dark:text-white p-4 sm:p-10 lg:p-16 pb-24 sm:pb-16">
         <div className="max-w-7xl mx-auto relative">
           <header className="relative mb-8 sm:mb-20 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-col">
@@ -5718,7 +5718,7 @@ If the model attempts to create a scene or environment, override it and force a 
                   </div>
                 </div>
 
-                <div className="rounded-xl p-4 transition-all bg-white relative lg:sticky lg:top-4 flex flex-col gap-6 min-h-[520px] dark:bg-white/5 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+                <div className="rounded-xl p-4 transition-all bg-white relative lg:sticky lg:top-4 flex flex-col gap-6 min-h-[360px] sm:min-h-[520px] dark:bg-white/5 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
 
                   <GeneratedImage
                     imageUrl={twoKVariant?.url ?? generatedImageUrl}

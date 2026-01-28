@@ -192,7 +192,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
 
   return (
     <div className="flex flex-col w-full">
-      <div className="relative w-full min-h-[40rem] flex items-center justify-center rounded-xl bg-white overflow-hidden dark:bg-white/5 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+      <div className="relative w-full min-h-[22rem] sm:min-h-[40rem] max-h-[70vh] flex items-center justify-center rounded-xl bg-white overflow-hidden dark:bg-white/5 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
         {isImageLoading ? (
           <div className="text-center">
             <LoadingSpinner />
