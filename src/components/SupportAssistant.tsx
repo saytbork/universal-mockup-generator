@@ -100,7 +100,7 @@ export default function SupportAssistant({ email }: { email?: string }) {
           </div>
 
           <div className="px-4 pt-3 flex flex-wrap gap-2">
-            {['Login', 'Créditos', 'Watermark', 'Exportar', 'Pagos'].map(label => (
+            {['Login', 'Invitation code', 'Código de acceso', 'Créditos', 'Watermark', 'Exportar', 'Pagos', 'Galería'].map(label => (
               <button
                 key={label}
                 type="button"

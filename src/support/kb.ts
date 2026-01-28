@@ -9,27 +9,91 @@ export const SUPPORT_KB: SupportArticle[] = [
   {
     id: 'login',
     title: 'No puedo iniciar sesión',
-    keywords: ['login', 'iniciar sesión', 'codigo', 'código', 'email', 'correo', 'verificación', 'verification'],
+    keywords: [
+      'login',
+      'iniciar sesion',
+      'iniciar sesión',
+      'magic link',
+      'link',
+      'enlace',
+      'correo',
+      'email',
+      'no llega',
+      'no me llega',
+      'no recibo',
+      'no recibi',
+      'spam',
+      'promociones',
+      'cookie',
+      'cookies',
+    ],
     answer:
       [
         'Si no podés entrar:',
-        '1) Andá a /login y pedí el código por email.',
-        '2) Revisá spam/promociones. Si no llega, probá reenviar y esperá 1–2 minutos.',
-        '3) Si estás en modo incógnito, asegurate de permitir cookies para este sitio.',
-        '4) Si sigue fallando, decime qué error te aparece y con qué email (sin reenviar el código).',
+        '1) Andá a /login y pedí el link de acceso por email.',
+        '2) Revisá spam/promociones. Si no llega, reenviá y esperá 1–2 minutos.',
+        '3) Abrí el link en el mismo navegador (y dispositivo) donde vas a usar la app.',
+        '4) Permití cookies para este sitio (si estás en incógnito puede fallar).',
+        '5) Si el link abre pero te vuelve a /login, probá recargar y después ir a /dashboard.',
+      ].join('\n'),
+  },
+  {
+    id: 'invite-code',
+    title: 'Invitation Code (bonus +10)',
+    keywords: ['invitation', 'invitation code', 'codigo invitacion', 'código invitación', 'invite', 'bonus', '10 credits', '+10', 'gift'],
+    answer:
+      [
+        'El “Invitation Code” (en /login) es opcional y sirve para sumar +10 créditos en el plan Free.',
+        '',
+        'Tips:',
+        '- Usá un email real (no temporales tipo mailinator/yopmail).',
+        '- El bonus se aplica una sola vez por cuenta.',
+        '- Si ya estás en plan pago, el código no aplica.',
+      ].join('\n'),
+  },
+  {
+    id: 'access-code',
+    title: 'Código de acceso (redeem)',
+    keywords: ['access code', 'codigo acceso', 'código acceso', 'redeem', 'canjear', 'checkout', 'receipt', 'recibo', 'email receipt'],
+    answer:
+      [
+        'Si tenés un código de acceso, podés canjearlo desde la app:',
+        '1) Entrá a /app',
+        '2) Abrí “Plan / Upgrade”',
+        '3) Pegá el código y confirmá',
+        '',
+        'Errores típicos:',
+        '- “Invalid code”: el código no coincide.',
+        '- “Code already used”: ya fue usado en esa cuenta.',
+        '- “Only free plan”: ese código solo aplica al plan Free.',
       ].join('\n'),
   },
   {
     id: 'credits',
     title: 'Créditos y límites',
-    keywords: ['creditos', 'créditos', 'credits', 'limite', 'límite', 'plan', 'free', 'trial'],
+    keywords: [
+      'creditos',
+      'créditos',
+      'credits',
+      'limite',
+      'límite',
+      'plan',
+      'free',
+      'creator',
+      'studio',
+      'no credits',
+      'sin creditos',
+      'sin créditos',
+      'remaining',
+    ],
     answer:
       [
         'Los límites dependen del plan:',
-        '- En el plan gratis, suele haber créditos limitados y algunas exportaciones con watermark.',
-        '- En planes pagos, los créditos se renuevan según tu suscripción.',
+        '- Free: 2 créditos (con watermark).',
+        '- Creator: 20 créditos + 2 videos/mes (sin marca).',
+        '- Studio: 60 créditos + 6 videos/mes (sin marca).',
         '',
-        'Tip: si te aparece “no credits remaining”, revisá /pricing.',
+        'Si ves “no credits” o “not enough credits”: te quedaste sin créditos o tu plan no alcanza para esa acción. Revisá /pricing.',
       ].join('\n'),
   },
   {
@@ -38,14 +102,28 @@ export const SUPPORT_KB: SupportArticle[] = [
     keywords: ['watermark', 'marca de agua', 'marca', 'logo'],
     answer:
       [
-        'El watermark aparece cuando estás en el plan gratis o en una exportación sin upgrade.',
-        'Para quitarlo: revisá /pricing y activá un plan pago.',
+        'En el plan Free las exportaciones llevan watermark.',
+        'Para quitarlo: activá Creator o Studio desde /pricing o desde el modal de plan dentro de la app.',
       ].join('\n'),
   },
   {
     id: 'export',
     title: 'No puedo exportar / descargar',
-    keywords: ['export', 'exportar', 'download', 'descargar', 'png', 'jpeg', 'jpg', 'video', 'mp4'],
+    keywords: [
+      'export',
+      'exportar',
+      'download',
+      'descargar',
+      'png',
+      'jpeg',
+      'jpg',
+      'video',
+      'mp4',
+      'blank',
+      'en blanco',
+      'fallo',
+      'error',
+    ],
     answer:
       [
         'Si la descarga falla:',
@@ -57,12 +135,42 @@ export const SUPPORT_KB: SupportArticle[] = [
   {
     id: 'billing',
     title: 'Pagos / Suscripción',
-    keywords: ['pago', 'pagos', 'stripe', 'suscripcion', 'suscripción', 'factura', 'billing', 'portal'],
+    keywords: [
+      'pago',
+      'pagos',
+      'stripe',
+      'suscripcion',
+      'suscripción',
+      'factura',
+      'billing',
+      'upgrade',
+      'plan',
+      'cancelar',
+      'cancelación',
+      'cancelacion',
+    ],
     answer:
       [
-        'Para cambiar o cancelar tu plan:',
-        '- Entrá a /pricing y usá el botón de tu plan.',
-        '- Si ya pagaste y no se refleja, decime el email de compra (sin datos de tarjeta).',
+        'Para cambiar de plan:',
+        '- Entrá a /pricing o abrí el modal “Manage plan” desde /dashboard.',
+        '',
+        'Para cancelar/downgrade:',
+        '- Cancelalo desde el email/recibo de Stripe (o el portal de Stripe si lo tenés).',
+        '',
+        'Si pagaste y no se refleja:',
+        '- Confirmá que estás logueado con el mismo email de compra.',
+      ].join('\n'),
+  },
+  {
+    id: 'gallery',
+    title: 'Galería / historial',
+    keywords: ['galeria', 'galería', 'gallery', 'historial', 'history', 'no aparece', 'missing', 'borrar', 'delete'],
+    answer:
+      [
+        'Si la galería no muestra imágenes:',
+        '1) Probá /dashboard y revisá tu historial.',
+        '2) Si cambiaste de navegador/dispositivo, el historial local puede no estar.',
+        '3) Desactivá extensiones de privacidad/adblock y recargá.',
       ].join('\n'),
   },
 ];
@@ -97,4 +205,3 @@ export const answerFromKb = (question: string) => {
   if (!best || best.score <= 0) return null;
   return best.article.answer;
 };
-
