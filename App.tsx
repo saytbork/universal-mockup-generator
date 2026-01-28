@@ -5342,12 +5342,12 @@ If the model attempts to create a scene or environment, override it and force a 
 
       <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-black dark:text-white p-6 sm:p-10 lg:p-16">
         <div className="max-w-7xl mx-auto relative">
-          <header className="relative mb-20 flex items-center justify-between">
+          <header className="relative mb-8 sm:mb-20 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-col">
               <Logo variant="appHeader" />
             </div>
 
-            <div className="flex items-center gap-8">
+            <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-8 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={toggleTheme}
@@ -5358,21 +5358,21 @@ If the model attempts to create a scene or environment, override it and force a 
                 <Sun className="theme-icon-dark animate-scale-icon" size={18} />
               </button>
 
-              <div className="relative flex items-center rounded-full bg-gray-100 p-1 shadow-inner dark:bg-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+              <div className="relative flex w-full max-w-[280px] items-center rounded-full bg-gray-100 p-1 shadow-inner dark:bg-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
                 <div
-                  className={`absolute inset-y-1 left-1 w-28 rounded-full bg-white shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] dark:bg-white ${isProductPlacement ? 'translate-x-[112px]' : 'translate-x-0'}`}
+                  className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] dark:bg-white ${isProductPlacement ? 'translate-x-full' : 'translate-x-0'}`}
                 />
                 <button
                   type="button"
                   onClick={() => handleOptionChange('contentStyle', 'ugc', 'Mode')}
-                  className={`relative z-10 w-28 px-6 py-2 rounded-full text-[10px] font-bold tracking-widest transition-colors duration-300 ${!isProductPlacement ? 'text-gray-900' : 'text-gray-500 hover:text-gray-600'} ${!isProductPlacement ? 'dark:text-black' : 'dark:text-white/60 dark:hover:text-white/80'}`}
+                  className={`relative z-10 flex-1 px-3 sm:px-6 py-2 rounded-full text-[9px] sm:text-[10px] font-bold tracking-widest transition-colors duration-300 ${!isProductPlacement ? 'text-gray-900' : 'text-gray-500 hover:text-gray-600'} ${!isProductPlacement ? 'dark:text-black' : 'dark:text-white/60 dark:hover:text-white/80'}`}
                 >
                   LIFESTYLE
                 </button>
                 <button
                   type="button"
                   onClick={() => handleOptionChange('contentStyle', 'product', 'Mode')}
-                  className={`relative z-10 w-28 px-6 py-2 rounded-full text-[10px] font-bold tracking-widest transition-colors duration-300 ${isProductPlacement ? 'text-gray-900' : 'text-gray-500 hover:text-gray-600'} ${isProductPlacement ? 'dark:text-black' : 'dark:text-white/60 dark:hover:text-white/80'}`}
+                  className={`relative z-10 flex-1 px-3 sm:px-6 py-2 rounded-full text-[9px] sm:text-[10px] font-bold tracking-widest transition-colors duration-300 ${isProductPlacement ? 'text-gray-900' : 'text-gray-500 hover:text-gray-600'} ${isProductPlacement ? 'dark:text-black' : 'dark:text-white/60 dark:hover:text-white/80'}`}
                 >
                   STUDIO
                 </button>
