@@ -4743,55 +4743,79 @@ If the model attempts to create a scene or environment, override it and force a 
         const rawMode = !!promptOptions.ugcRealModeActive;
         const shouldIncludeHumanImage = personIncluded && !(naturalMode || rawMode);
         const shouldSendProductImage = generationProducts.length > 0 && !hideProductMode;
-        const identityInlinePart = personIdentityPackage.modelReferenceBase64
-          ? {
-            inlineData: {
-              data: personIdentityPackage.modelReferenceBase64,
-              mimeType: personIdentityPackage.modelReferenceMime ?? 'image/png',
-            },
-            reference: true,
-          }
-          : null;
-        const requestParts: any[] = [];
-        requestParts.push({ text: finalPrompt });
-        if (shouldIncludeHumanImage) {
-          if (identityInlinePart) {
-            requestParts.push(identityInlinePart);
-          } else if (modelReferenceFile) {
-            const { base64: modelBase64, mimeType: modelMimeType } = await fileToBase64(modelReferenceFile);
-            requestParts.push({
-              inlineData: { data: modelBase64, mimeType: modelMimeType },
-              reference: true,
-            });
-          }
-        }
-        if (shouldSendProductImage) {
-          for (const product of generationProducts) {
-            // Higher-fidelity reference helps avoid warped labels/typography on the product.
-            const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
-              maxLongEdge: isProductPlacement ? 3072 : 2048,
-              maxBase64Length: isProductPlacement ? 7_500_000 : 4_000_000,
-              quality: isProductPlacement ? 0.99 : 0.96,
-            });
-            // Force reference images to match the selected Output Format aspect ratio.
-            // Even with an explicit `aspectRatio` request, some models bias toward the reference image dimensions.
-            const normalized = await letterboxDataUrlToAspectRatio(
-              `data:${resized.mimeType};base64,${resized.base64}`,
-              aspectRatio,
-              {
-                maxLongEdge: isProductPlacement ? 3072 : 2048,
-                background: resized.mimeType === 'image/jpeg' ? '#FFFFFF' : null,
-                mimeType: (resized.mimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
-                quality: isProductPlacement ? 0.99 : 0.96,
-              }
-            );
-            requestParts.push({
-              inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
-              reference: true,
-            });
-          }
-        }
-        const payload = { parts: requestParts };
+	        const identityInlinePart = personIdentityPackage.modelReferenceBase64
+	          ? {
+	            inlineData: {
+	              data: personIdentityPackage.modelReferenceBase64,
+	              mimeType: personIdentityPackage.modelReferenceMime ?? 'image/png',
+	            },
+	            reference: true,
+	          }
+	          : null;
+	        const requestParts: any[] = [];
+	        requestParts.push({ text: finalPrompt });
+	        if (shouldSendProductImage) {
+	          for (const product of generationProducts) {
+	            // Higher-fidelity reference helps avoid warped labels/typography on the product.
+	            const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
+	              maxLongEdge: isProductPlacement ? 3072 : 2048,
+	              maxBase64Length: isProductPlacement ? 7_500_000 : 4_000_000,
+	              quality: isProductPlacement ? 0.99 : 0.96,
+	            });
+	            // Force reference images to match the selected Output Format aspect ratio.
+	            // Even with an explicit `aspectRatio` request, some models bias toward the reference image dimensions.
+	            const normalized = await letterboxDataUrlToAspectRatio(
+	              `data:${resized.mimeType};base64,${resized.base64}`,
+	              aspectRatio,
+	              {
+	                maxLongEdge: isProductPlacement ? 3072 : 2048,
+	                background: resized.mimeType === 'image/jpeg' ? '#FFFFFF' : null,
+	                mimeType: (resized.mimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
+	                quality: isProductPlacement ? 0.99 : 0.96,
+	              }
+	            );
+	            requestParts.push({
+	              inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
+	              reference: true,
+	            });
+	          }
+	        }
+	        if (shouldIncludeHumanImage) {
+	          if (identityInlinePart) {
+	            const sourceMime = String(identityInlinePart.inlineData?.mimeType ?? 'image/png');
+	            const normalized = await letterboxDataUrlToAspectRatio(
+	              `data:${sourceMime};base64,${identityInlinePart.inlineData.data}`,
+	              aspectRatio,
+	              {
+	                maxLongEdge: 2048,
+	                background: sourceMime === 'image/jpeg' ? '#FFFFFF' : null,
+	                mimeType: (sourceMime === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
+	                quality: 0.96,
+	              }
+	            );
+	            requestParts.push({
+	              inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
+	              reference: true,
+	            });
+	          } else if (modelReferenceFile) {
+	            const { base64: modelBase64, mimeType: modelMimeType } = await fileToBase64(modelReferenceFile);
+	            const normalized = await letterboxDataUrlToAspectRatio(
+	              `data:${modelMimeType};base64,${modelBase64}`,
+	              aspectRatio,
+	              {
+	                maxLongEdge: 2048,
+	                background: modelMimeType === 'image/jpeg' ? '#FFFFFF' : null,
+	                mimeType: (modelMimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
+	                quality: 0.96,
+	              }
+	            );
+	            requestParts.push({
+	              inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
+	              reference: true,
+	            });
+	          }
+	        }
+	        const payload = { parts: requestParts };
         const payloadLog = {
           isNaturalUgc: naturalMode || rawMode,
           productImageSent: shouldSendProductImage,
