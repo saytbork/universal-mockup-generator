@@ -37,7 +37,7 @@ test('Lifestyle ecommerce canvas coexists with environment options (bg replace +
 
   const prompt = promptEngine.build(mapped as any);
   expect(prompt).toContain('Background replacement mode');
-  expect(prompt).toContain('Product and person placement: right side.');
+  expect(prompt).toContain('Product placement: right side.');
   expect(prompt).toContain('Background gradient: linear 90°');
   expect(prompt).not.toContain('Environment:');
   expect(prompt).not.toContain('inside a kitchen');
