@@ -102,3 +102,18 @@ gsutil cors set cors.json gs://boostugc-6d83f.firebasestorage.app
    - Build Command: `npm run build`
    - Output Directory: `dist`
 4. Deploy. Vercel serves the `dist` output as a static site and the client-side app reads the key at build time. If you need to rotate the key, update the variable in Vercel and redeploy.
+
+### Optional: In-app AI support assistant (OpenAI)
+
+This repo includes an optional support widget inside `/app` backed by a Vercel Function.
+
+1) Add env vars in Vercel (Project → Settings → Environment Variables):
+- `VITE_SUPPORT_AI_ENABLED=true`
+- `SUPPORT_AI_ENABLED=true`
+- `OPENAI_API_KEY=...`
+
+2) (Optional) Tune:
+- `OPENAI_SUPPORT_MODEL` (default: `gpt-4o-mini`)
+- `SUPPORT_AI_RL_MAX` (requests per 10 minutes, default: `20`)
+
+The API key is server-side only (never exposed to the browser).
