@@ -4,20 +4,17 @@ import SupportAssistant from './SupportAssistant';
 
 declare global {
   interface Window {
-    $crisp?: any[];
-    CRISP_WEBSITE_ID?: string;
-    Intercom?: (...args: any[]) => void;
-    intercomSettings?: Record<string, any>;
+    Tawk_API?: Record<string, any>;
+    Tawk_LoadStart?: Date;
   }
 }
 
-const crispWebsiteId = String(import.meta.env.VITE_CRISP_WEBSITE_ID || '').trim();
-const intercomAppId = String(import.meta.env.VITE_INTERCOM_APP_ID || '').trim();
+const tawkPropertyId = String(import.meta.env.VITE_TAWK_PROPERTY_ID || '').trim();
+const tawkWidgetId = String(import.meta.env.VITE_TAWK_WIDGET_ID || '').trim() || 'default';
 const aiEnabled = String(import.meta.env.VITE_SUPPORT_AI_ENABLED || '').toLowerCase() === 'true';
 
 const getPreferredProvider = () => {
-  if (crispWebsiteId) return 'crisp' as const;
-  if (intercomAppId) return 'intercom' as const;
+  if (tawkPropertyId) return 'tawk' as const;
   if (aiEnabled) return 'ai' as const;
   return 'none' as const;
 };
@@ -30,51 +27,52 @@ export default function SupportWidget() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (provider !== 'crisp') return;
+    if (provider !== 'tawk') return;
 
-    if (!window.$crisp) window.$crisp = [];
-    window.CRISP_WEBSITE_ID = crispWebsiteId;
+    window.Tawk_API = window.Tawk_API || {};
+    window.Tawk_LoadStart = new Date();
 
-    if (email && !isGuest) {
-      window.$crisp.push(['set', 'user:email', [email]]);
-    }
-
-    const existing = document.getElementById('crisp-chat-script');
+    const existing = document.getElementById('tawk-chat-script');
     if (existing) return;
 
     const script = document.createElement('script');
-    script.id = 'crisp-chat-script';
-    script.src = 'https://client.crisp.chat/l.js';
+    script.id = 'tawk-chat-script';
     script.async = true;
+    script.src = `https://embed.tawk.to/${tawkPropertyId}/${tawkWidgetId}`;
     document.head.appendChild(script);
-  }, [provider, email, isGuest]);
+  }, [provider]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (provider !== 'intercom') return;
+    if (provider !== 'tawk') return;
+    if (!email || isGuest) return;
 
-    const settings: Record<string, any> = { app_id: intercomAppId };
-    if (email && !isGuest) settings.email = email;
-    window.intercomSettings = settings;
+    const api = window.Tawk_API as any;
+    if (!api) return;
 
-    const w = window as any;
-    const ic = w.Intercom;
-    if (typeof ic === 'function') {
-      ic('update', settings);
+    const setAttrs = () => {
+      try {
+        api.setAttributes?.({ email }, () => {});
+      } catch {
+        // ignore
+      }
+    };
+
+    if (typeof api.onLoad === 'function') {
+      const prevOnLoad = api.onLoad;
+      api.onLoad = () => {
+        try {
+          prevOnLoad();
+        } finally {
+          setAttrs();
+        }
+      };
       return;
     }
 
-    const existing = document.getElementById('intercom-widget-script');
-    if (existing) return;
-
-    const script = document.createElement('script');
-    script.id = 'intercom-widget-script';
-    script.async = true;
-    script.src = `https://widget.intercom.io/widget/${intercomAppId}`;
-    document.head.appendChild(script);
+    setAttrs();
   }, [provider, email, isGuest]);
 
   if (provider === 'ai') return <SupportAssistant />;
   return null;
 }
-
