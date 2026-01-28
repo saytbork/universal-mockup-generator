@@ -1,9 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { checkAuth } from '../../server/lib/checkAuth.js';
+import { retrieveSupportContext } from '../../server/lib/supportKnowledge.js';
 
 const AI_ENABLED = String(process.env.SUPPORT_AI_ENABLED || '').toLowerCase() === 'true';
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_MODEL = process.env.OPENAI_SUPPORT_MODEL || 'gpt-4o-mini';
+const DOCS_TOPK = Number(process.env.SUPPORT_AI_DOCS_TOPK || 3);
+const DOCS_MAX_CHARS = Number(process.env.SUPPORT_AI_DOCS_MAX_CHARS || 6000);
 
 const hasKV =
   !!process.env.KV_REST_API_URL &&
@@ -59,7 +62,7 @@ Goal: help the user use the product with short, concrete, step-by-step instructi
 
 Rules:
 - Respond in English.
-- Do not invent features. If info is missing, ask 1 focused question.
+- Do not invent features. If product info is missing from the provided documentation, say you’re not sure and ask 1 focused question.
 - Do not request or repeat sensitive data (passwords, card numbers, tokens).
 - If the user asks for something unsafe/illegal, refuse and provide a safe alternative.
 
@@ -108,6 +111,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    const retrieved = retrieveSupportContext(message, {
+      topK: Number.isFinite(DOCS_TOPK) ? Math.max(1, Math.min(6, DOCS_TOPK)) : 3,
+      maxChars: Number.isFinite(DOCS_MAX_CHARS) ? Math.max(1500, Math.min(12000, DOCS_MAX_CHARS)) : 6000,
+    });
+    const contextBlock = retrieved.context
+      ? `Relevant product documentation (use this to answer product questions; if missing, ask 1 clarifying question):\n\n${retrieved.context}`
+      : '';
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -119,6 +130,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         temperature: 0.2,
         messages: [
           { role: 'system', content: systemPrompt(path) },
+          ...(contextBlock ? [{ role: 'system', content: contextBlock }] : []),
           { role: 'user', content: message },
         ],
       }),
