@@ -5354,8 +5354,10 @@ If the model attempts to create a scene or environment, override it and force a 
                 className="h-10 w-10 rounded-full border border-gray-200 bg-white text-gray-600 hover:text-indigo-600 transition flex items-center justify-center shadow-sm overflow-hidden dark:bg-white/5 dark:border-white/10 dark:text-white/70 dark:hover:text-white dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]"
                 aria-label="Toggle theme"
               >
-                <Moon className="theme-icon-light animate-scale-icon" size={18} />
-                <Sun className="theme-icon-dark animate-scale-icon" size={18} />
+                <span className="animate-scale-icon flex items-center justify-center">
+                  <Moon className="theme-icon-light" size={18} />
+                  <Sun className="theme-icon-dark" size={18} />
+                </span>
               </button>
 
               <div className="relative flex w-full max-w-[280px] items-center rounded-full bg-gray-100 p-1 shadow-inner dark:bg-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
