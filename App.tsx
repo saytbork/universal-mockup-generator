@@ -984,6 +984,82 @@ const downscaleDataUrlToJpeg = async (
   return { base64, mimeType: 'image/jpeg' };
 };
 
+const parseAspectRatio = (ratio: string): { w: number; h: number } | null => {
+  const raw = String(ratio || '').trim();
+  const match = raw.match(/^(\d+(?:\.\d+)?)\s*:\s*(\d+(?:\.\d+)?)$/);
+  if (!match) return null;
+  const w = Number(match[1]);
+  const h = Number(match[2]);
+  if (!Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0) return null;
+  return { w, h };
+};
+
+const letterboxDataUrlToAspectRatio = async (
+  dataUrl: string,
+  targetAspectRatio: string,
+  opts: { maxLongEdge: number; background: string | null; mimeType: 'image/png' | 'image/jpeg'; quality?: number }
+): Promise<{ base64: string; mimeType: string }> => {
+  const parsed = parseAspectRatio(targetAspectRatio);
+  if (!parsed) {
+    const [, base64] = String(dataUrl).split(';base64,');
+    return { base64: base64 ?? '', mimeType: opts.mimeType };
+  }
+  const img = await loadImageFromUrl(dataUrl);
+  const imgW = img.naturalWidth;
+  const imgH = img.naturalHeight;
+  if (!imgW || !imgH) {
+    const [, base64] = String(dataUrl).split(';base64,');
+    return { base64: base64 ?? '', mimeType: opts.mimeType };
+  }
+
+  const targetRatio = parsed.w / parsed.h;
+  const imgRatio = imgW / imgH;
+  let canvasW = imgW;
+  let canvasH = imgH;
+  if (imgRatio > targetRatio) {
+    canvasW = imgW;
+    canvasH = Math.round(canvasW / targetRatio);
+  } else {
+    canvasH = imgH;
+    canvasW = Math.round(canvasH * targetRatio);
+  }
+
+  const scale = Math.min(1, opts.maxLongEdge / Math.max(canvasW, canvasH));
+  const outW = Math.max(1, Math.round(canvasW * scale));
+  const outH = Math.max(1, Math.round(canvasH * scale));
+  const drawW = Math.max(1, Math.round(imgW * scale));
+  const drawH = Math.max(1, Math.round(imgH * scale));
+
+  const canvas = document.createElement('canvas');
+  canvas.width = outW;
+  canvas.height = outH;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    const [, base64] = String(dataUrl).split(';base64,');
+    return { base64: base64 ?? '', mimeType: opts.mimeType };
+  }
+
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  if (opts.background) {
+    ctx.fillStyle = opts.background;
+    ctx.fillRect(0, 0, outW, outH);
+  } else {
+    ctx.clearRect(0, 0, outW, outH);
+  }
+
+  const x = Math.round((outW - drawW) / 2);
+  const y = Math.round((outH - drawH) / 2);
+  ctx.drawImage(img, x, y, drawW, drawH);
+
+  const out =
+    opts.mimeType === 'image/jpeg'
+      ? canvas.toDataURL('image/jpeg', typeof opts.quality === 'number' ? opts.quality : 0.96)
+      : canvas.toDataURL('image/png');
+  const [, base64] = out.split(';base64,');
+  return { base64: base64 ?? '', mimeType: opts.mimeType };
+};
+
 const maybeDownscaleInlineImage = async (
   base64: string,
   mimeType: string,
@@ -4687,8 +4763,20 @@ If the model attempts to create a scene or environment, override it and force a 
               maxBase64Length: isProductPlacement ? 7_500_000 : 4_000_000,
               quality: isProductPlacement ? 0.99 : 0.96,
             });
+            // Force reference images to match the selected Output Format aspect ratio.
+            // Even with an explicit `aspectRatio` request, some models bias toward the reference image dimensions.
+            const normalized = await letterboxDataUrlToAspectRatio(
+              `data:${resized.mimeType};base64,${resized.base64}`,
+              aspectRatio,
+              {
+                maxLongEdge: isProductPlacement ? 3072 : 2048,
+                background: resized.mimeType === 'image/jpeg' ? '#FFFFFF' : null,
+                mimeType: (resized.mimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
+                quality: isProductPlacement ? 0.99 : 0.96,
+              }
+            );
             requestParts.push({
-              inlineData: { data: resized.base64, mimeType: resized.mimeType },
+              inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
               reference: true,
             });
           }
@@ -4911,13 +4999,23 @@ If the model attempts to create a scene or environment, override it and force a 
 
 	        const productParts: any[] = [];
 	        for (const product of generationProducts) {
-          const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
-            maxLongEdge: 2048,
-            maxBase64Length: 4_000_000,
-            quality: 0.96,
-          });
-          productParts.push({ inlineData: { data: resized.base64, mimeType: resized.mimeType }, reference: true });
-        }
+	          const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
+	            maxLongEdge: 2048,
+	            maxBase64Length: 4_000_000,
+	            quality: 0.96,
+	          });
+	          const normalized = await letterboxDataUrlToAspectRatio(
+	            `data:${resized.mimeType};base64,${resized.base64}`,
+	            aspectRatio,
+	            {
+	              maxLongEdge: 2048,
+	              background: resized.mimeType === 'image/jpeg' ? '#FFFFFF' : null,
+	              mimeType: (resized.mimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
+	              quality: 0.96,
+	            }
+	          );
+	          productParts.push({ inlineData: { data: normalized.base64, mimeType: normalized.mimeType }, reference: true });
+	        }
 
         const response = await fetch('/api/generate', {
           method: 'POST',
