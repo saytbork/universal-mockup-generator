@@ -4701,7 +4701,10 @@ If the model attempts to create a scene or environment, override it and force a 
           partsCount: requestParts.length,
         };
         console.log('[UGC PAYLOAD]', payloadLog);
-        const preserveReferenceImage = isProductPlacement || shouldSendProductImage;
+        // IMPORTANT: Output Format must control the result aspect ratio.
+        // When `preserveReferenceImage` is true, Gemini may keep the reference image framing/ratio
+        // even if we request a different `aspectRatio`. We still pass reference images for grounding.
+        const preserveReferenceImage = false;
         const response = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -4923,7 +4926,8 @@ If the model attempts to create a scene or environment, override it and force a 
             model: GEMINI_IMAGE_MODEL,
             parts: [{ text: finalPrompt }, ...productParts],
             aspectRatio,
-            preserveReferenceImage: true,
+            // Keep Output Format aspect ratio (do not lock to the uploaded product image dimensions).
+            preserveReferenceImage: false,
             apiKey: resolvedApiKey,
           }),
         });
