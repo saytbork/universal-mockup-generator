@@ -335,55 +335,46 @@ export default function SupportAssistant({ email }: { email?: string }) {
   return (
     <div className="fixed bottom-5 right-5 z-[9999]">
       {open ? (
-        <div className="w-[min(92vw,380px)] h-[min(70vh,520px)] rounded-2xl border border-gray-200 bg-white shadow-xl overflow-hidden">
+        <div className="w-[min(92vw,380px)] h-[min(75vh,560px)] rounded-2xl border border-gray-200 bg-white shadow-xl overflow-hidden flex flex-col">
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
             <div className="text-sm font-semibold">Support</div>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="rounded-full px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-100"
-            >
-              Close
-            </button>
-          </div>
-
-          <div className="px-4 pt-3 flex flex-wrap gap-2">
-            {['Sign in', 'Credits', 'Upload', 'Generation failed', 'Export', 'Billing'].map(label => (
+            <div className="flex items-center gap-2">
               <button
-                key={label}
                 type="button"
-                onClick={() => void send(label)}
-                className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                onClick={contactSupport}
+                className="rounded-full px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-100"
+                title="Email support"
               >
-                {label}
+                Contact
               </button>
-            ))}
-            <button
-              type="button"
-              onClick={contactSupport}
-              className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-            >
-              Contact support
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setFlow(null);
-                setMessages([
-                  {
-                    role: 'assistant',
-                    content:
-                      'Hi — I’m the Perfect Mockup assistant. Tell me what you’re trying to do and I’ll guide you step by step.',
-                  },
-                ]);
-              }}
-              className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-            >
-              Reset
-            </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setFlow(null);
+                  setMessages([
+                    {
+                      role: 'assistant',
+                      content:
+                        'Hi — I’m the Perfect Mockup assistant. Tell me what you’re trying to do and I’ll guide you step by step.',
+                    },
+                  ]);
+                }}
+                className="rounded-full px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-100"
+                title="Reset chat"
+              >
+                Reset
+              </button>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="rounded-full px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-100"
+              >
+                Close
+              </button>
+            </div>
           </div>
 
-          <div className="h-[calc(100%-112px)] overflow-auto px-4 py-3 space-y-3">
+          <div className="flex-1 overflow-auto px-4 py-3 space-y-3">
             {shownMessages.map((msg, idx) => (
               <div
                 key={idx}
