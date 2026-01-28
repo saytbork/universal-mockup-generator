@@ -1,16 +1,19 @@
 import React, { useMemo, useState } from 'react';
+import { answerFromKb } from '../support/kb';
 
 type ChatMessage = {
   role: 'user' | 'assistant';
   content: string;
 };
 
-const SUPPORT_ENABLED = String(import.meta.env.VITE_SUPPORT_AI_ENABLED || '').toLowerCase() === 'true';
+const WIDGET_ENABLED = String(import.meta.env.VITE_SUPPORT_WIDGET_ENABLED || '').toLowerCase() === 'true';
+const AI_ENABLED = String(import.meta.env.VITE_SUPPORT_AI_ENABLED || '').toLowerCase() === 'true';
+const SUPPORT_EMAIL = String(import.meta.env.VITE_SUPPORT_EMAIL || '').trim();
 
 const trimMessages = (messages: ChatMessage[], max = 12) =>
   messages.length > max ? messages.slice(messages.length - max) : messages;
 
-export default function SupportAssistant() {
+export default function SupportAssistant({ email }: { email?: string }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [input, setInput] = useState('');
@@ -22,11 +25,15 @@ export default function SupportAssistant() {
     },
   ]);
 
-  const canUse = SUPPORT_ENABLED;
+  const canUse = WIDGET_ENABLED;
   const shownMessages = useMemo(() => messages, [messages]);
 
-  const send = async () => {
-    const text = input.trim();
+  const appendAssistant = (content: string) => {
+    setMessages(prev => trimMessages([...prev, { role: 'assistant', content }]));
+  };
+
+  const send = async (preset?: string) => {
+    const text = (preset ?? input).trim();
     if (!text || busy) return;
 
     setInput('');
@@ -34,6 +41,24 @@ export default function SupportAssistant() {
     setMessages(prev => trimMessages([...prev, { role: 'user', content: text }]));
 
     try {
+      if (!AI_ENABLED) {
+        const kb = answerFromKb(text);
+        if (kb) {
+          appendAssistant(kb);
+        } else {
+          appendAssistant(
+            [
+              'No encontré una respuesta exacta.',
+              'Probá con: “login”, “créditos”, “watermark”, “exportar”, “pagos”.',
+              SUPPORT_EMAIL ? `Si querés, escribinos a ${SUPPORT_EMAIL}.` : '',
+            ]
+              .filter(Boolean)
+              .join('\n')
+          );
+        }
+        return;
+      }
+
       const res = await fetch('/api/support/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -49,14 +74,9 @@ export default function SupportAssistant() {
           ? data.reply.trim()
           : `No pude responder eso ahora mismo.${data.error ? ` (${data.error})` : ''}`;
 
-      setMessages(prev => trimMessages([...prev, { role: 'assistant', content: reply }]));
+      appendAssistant(reply);
     } catch (error) {
-      setMessages(prev =>
-        trimMessages([
-          ...prev,
-          { role: 'assistant', content: `Error de red. Probá de nuevo en unos segundos.` },
-        ])
-      );
+      appendAssistant('Error de red. Probá de nuevo en unos segundos.');
     } finally {
       setBusy(false);
     }
@@ -77,6 +97,19 @@ export default function SupportAssistant() {
             >
               Cerrar
             </button>
+          </div>
+
+          <div className="px-4 pt-3 flex flex-wrap gap-2">
+            {['Login', 'Créditos', 'Watermark', 'Exportar', 'Pagos'].map(label => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => void send(label)}
+                className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                {label}
+              </button>
+            ))}
           </div>
 
           <div className="h-[calc(100%-112px)] overflow-auto px-4 py-3 space-y-3">
@@ -125,7 +158,7 @@ export default function SupportAssistant() {
               </button>
             </div>
             <div className="mt-2 text-[11px] text-gray-500">
-              No compartas contraseñas ni información sensible.
+              No compartas contraseñas ni información sensible.{email ? ` (${email})` : ''}
             </div>
           </div>
         </div>
@@ -141,4 +174,3 @@ export default function SupportAssistant() {
     </div>
   );
 }
-

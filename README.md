@@ -108,10 +108,10 @@ gsutil cors set cors.json gs://boostugc-6d83f.firebasestorage.app
 This repo includes an optional support widget inside `/app` backed by a Vercel Function.
 
 1) Add env vars in Vercel (Project → Settings → Environment Variables):
-- Option A (recommended for live chat): set:
-  - `VITE_TAWK_PROPERTY_ID=...`
-  - `VITE_TAWK_WIDGET_ID=default` (or your widget id)
-- Option B (OpenAI assistant): set:
+- Enable the in-app widget:
+  - `VITE_SUPPORT_WIDGET_ENABLED=true`
+  - (optional) `VITE_SUPPORT_EMAIL=support@yourdomain.com`
+- Optionally enable OpenAI assistant mode:
   - `VITE_SUPPORT_AI_ENABLED=true`
   - `SUPPORT_AI_ENABLED=true`
   - `OPENAI_API_KEY=...`
