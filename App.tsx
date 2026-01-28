@@ -4684,19 +4684,29 @@ If the model attempts to create a scene or environment, override it and force a 
           };
         }
 
-        // Product mode safety: force the model to keep the referenced product visible.
-        if (isProductPlacement) {
-          finalPrompt = [
-            finalPrompt,
-            'CRITICAL: The product shown in the reference image(s) MUST appear in the final image, clearly visible and not cropped out.',
-            'Do NOT generate an empty scene/background; never omit the product.',
-          ].join(' ');
-        } else if (isProPhotographer) {
-          const proBits = [options.proLens, options.proLightingRig, options.proPostTreatment].filter(Boolean);
-          if (proBits.length) {
-            finalPrompt = `${finalPrompt} PRO PHOTOGRAPHER OVERRIDES: ${proBits.join(' ')}.`;
-          }
-        }
+	        // Product mode safety: force the model to keep the referenced product visible.
+	        if (isProductPlacement) {
+	          finalPrompt = [
+	            finalPrompt,
+	            'CRITICAL: The product shown in the reference image(s) MUST appear in the final image, clearly visible and not cropped out.',
+	            'Do NOT generate an empty scene/background; never omit the product.',
+	          ].join(' ');
+	        } else if (!hideProductMode && generationProducts.length > 0) {
+	          // Lifestyle/UGC safety: ensure the product is foregrounded and tack-sharp.
+	          // This prevents "nice portrait + blurry product" outputs when the user uploads a product reference.
+	          finalPrompt = [
+	            finalPrompt,
+	            'CRITICAL PRODUCT FOCUS: The product must be in the foreground and be the sharpest object in the image.',
+	            'The label/logo must be fully readable (no blur, no glare, no occlusion).',
+	            'Do NOT use shallow depth of field, portrait mode, bokeh, or background separation. Keep a single-plane image with flat focus.',
+	            'If a person is present, they may be slightly less sharp than the product, but the product must be tack sharp.',
+	          ].join(' ');
+	        } else if (isProPhotographer) {
+	          const proBits = [options.proLens, options.proLightingRig, options.proPostTreatment].filter(Boolean);
+	          if (proBits.length) {
+	            finalPrompt = `${finalPrompt} PRO PHOTOGRAPHER OVERRIDES: ${proBits.join(' ')}.`;
+	          }
+	        }
 
         // Persist continuity identity only when explicitly requested.
         // Otherwise "locked" mode would mint a new identityKey every click → different person.
@@ -4821,24 +4831,30 @@ If the model attempts to create a scene or environment, override it and force a 
           setRemoteCredits(data.remaining_credits);
         }
 
-        const finalUrl = `data:image/png;base64,${encodedImage}`;
-        setGeneratedImageUrl(finalUrl);
-        setHasFirstGenerationComplete(true);  // Enable Keep Same Person toggle
-        try {
-          const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
-          void addLocalGalleryEntry({
-            userId: galleryUserId,
-            imageUrl: finalUrl,
-            createdAt: Date.now(),
-            plan: resolvedPlanTier,
-            aspectRatio,
-          });
-          void pruneLocalGallery(galleryUserId, 30, 120);
-        } catch (e) {
-          console.warn('Local gallery save failed', e);
-        }
-        void reportGalleryEntry(finalUrl);
-        runHiResPipeline(finalUrl);
+	        const finalUrl = `data:image/png;base64,${encodedImage}`;
+	        const normalizedOutput = await letterboxDataUrlToAspectRatio(finalUrl, aspectRatio, {
+	          maxLongEdge: 4096,
+	          background: null,
+	          mimeType: 'image/png',
+	        });
+	        const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
+	        setGeneratedImageUrl(outputUrl);
+	        setHasFirstGenerationComplete(true);  // Enable Keep Same Person toggle
+	        try {
+	          const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
+	          void addLocalGalleryEntry({
+	            userId: galleryUserId,
+	            imageUrl: outputUrl,
+	            createdAt: Date.now(),
+	            plan: resolvedPlanTier,
+	            aspectRatio,
+	          });
+	          void pruneLocalGallery(galleryUserId, 30, 120);
+	        } catch (e) {
+	          console.warn('Local gallery save failed', e);
+	        }
+	        void reportGalleryEntry(outputUrl);
+	        runHiResPipeline(outputUrl);
         if (!isTrialBypassActive) {
           if (!isUsingRemoteCredits) {
             const newCount = creditUsage + creditCost;
@@ -5047,25 +5063,31 @@ If the model attempts to create a scene or environment, override it and force a 
           throw new Error(`Image generation failed for slot ${slotKey}.`);
         }
 
-        const finalUrl = `data:image/png;base64,${encodedImage}`;
-        lastUrl = finalUrl;
-        setEcommerceSlotBaseImages(prev => ({ ...prev, [slotKey]: finalUrl }));
-        setGeneratedImageUrl(finalUrl);
-        try {
-          const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
-	          void addLocalGalleryEntry({
-	            userId: galleryUserId,
-	            imageUrl: finalUrl,
-	            createdAt: Date.now(),
-	            plan: resolvedPlanTier,
-	            aspectRatio,
-	          });
-	          void pruneLocalGallery(galleryUserId, 30, 120);
-	        } catch (e) {
-	          console.warn('Local gallery save failed', e);
-	        }
-        void reportGalleryEntry(finalUrl);
-      }
+	        const finalUrl = `data:image/png;base64,${encodedImage}`;
+	        const normalizedOutput = await letterboxDataUrlToAspectRatio(finalUrl, aspectRatio, {
+	          maxLongEdge: 4096,
+	          background: null,
+	          mimeType: 'image/png',
+	        });
+	        const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
+	        lastUrl = outputUrl;
+	        setEcommerceSlotBaseImages(prev => ({ ...prev, [slotKey]: outputUrl }));
+	        setGeneratedImageUrl(outputUrl);
+	        try {
+	          const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
+		          void addLocalGalleryEntry({
+		            userId: galleryUserId,
+		            imageUrl: outputUrl,
+		            createdAt: Date.now(),
+		            plan: resolvedPlanTier,
+		            aspectRatio,
+		          });
+		          void pruneLocalGallery(galleryUserId, 30, 120);
+		        } catch (e) {
+		          console.warn('Local gallery save failed', e);
+		        }
+	        void reportGalleryEntry(outputUrl);
+	      }
 
       if (lastUrl) {
         runHiResPipeline(lastUrl);
@@ -5200,23 +5222,29 @@ If the model attempts to create a scene or environment, override it and force a 
       if (!encodedImage) {
         throw new Error('Image edit failed or returned no images.');
       }
-      const editedUrl = `data:image/png;base64,${encodedImage}`;
-      setGeneratedImageUrl(editedUrl);
-      try {
-        const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
-        void addLocalGalleryEntry({
-          userId: galleryUserId,
-          imageUrl: editedUrl,
-          createdAt: Date.now(),
-          plan: planTier,
-          aspectRatio,
-        });
-        void pruneLocalGallery(galleryUserId, 30, 120);
-      } catch (e) {
-        console.warn('Local gallery save failed', e);
-      }
-      void reportGalleryEntry(editedUrl);
-      runHiResPipeline(editedUrl);
+	      const editedUrl = `data:image/png;base64,${encodedImage}`;
+	      const normalizedOutput = await letterboxDataUrlToAspectRatio(editedUrl, aspectRatio, {
+	        maxLongEdge: 4096,
+	        background: null,
+	        mimeType: 'image/png',
+	      });
+	      const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
+	      setGeneratedImageUrl(outputUrl);
+	      try {
+	        const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
+	        void addLocalGalleryEntry({
+	          userId: galleryUserId,
+	          imageUrl: outputUrl,
+	          createdAt: Date.now(),
+	          plan: planTier,
+	          aspectRatio,
+	        });
+	        void pruneLocalGallery(galleryUserId, 30, 120);
+	      } catch (e) {
+	        console.warn('Local gallery save failed', e);
+	      }
+	      void reportGalleryEntry(outputUrl);
+	      runHiResPipeline(outputUrl);
       if (editOptions?.clearManual) {
         setEditPrompt('');
       }
