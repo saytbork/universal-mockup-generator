@@ -5768,9 +5768,9 @@ If the model attempts to create a scene or environment, override it and force a 
             </fieldset>
           </main>
 
-          <div className="mt-20 border-t border-gray-200 pt-8 pb-12">
-            <div className="flex flex-wrap items-center justify-between gap-8">
-              <div className="flex items-center gap-12 text-[10px] font-black tracking-[0.3em] text-gray-500">
+          <div className="mt-12 sm:mt-20 border-t border-gray-200 pt-6 sm:pt-8 pb-10 sm:pb-12">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-[10px] font-black tracking-[0.3em] text-gray-500">
                 <div className="flex items-center gap-2">
                   <span className="text-indigo-600">L-ENGINE</span> ACTIVE
                 </div>
@@ -5783,7 +5783,7 @@ If the model attempts to create a scene or environment, override it and force a 
                 </div>
               </div>
 
-              <div className="flex items-center gap-8">
+              <div className="flex items-center justify-start sm:justify-end gap-6">
                 <Link
                   to="/dashboard"
                   className="text-[10px] font-black tracking-[0.3em] text-indigo-600 hover:text-indigo-600 transition"
