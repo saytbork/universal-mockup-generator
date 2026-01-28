@@ -316,7 +316,32 @@ export default function SupportAssistant({ email }: { email?: string }) {
         }),
       });
 
-      const data = (await res.json().catch(() => ({}))) as { reply?: string; error?: string };
+      const data = (await res.json().catch(() => ({}))) as {
+        reply?: string;
+        error?: string;
+        details?: string;
+      };
+
+      if (!res.ok) {
+        // If AI is enabled in the client but the server is not configured, gracefully fall back to local help.
+        const hint =
+          res.status === 503
+            ? 'AI support is enabled in the UI but disabled on the server.'
+            : res.status === 500 && String(data?.error || '').includes('OPENAI_API_KEY')
+              ? 'AI support is missing the server key configuration.'
+              : '';
+        appendAssistant(
+          [
+            'AI support is temporarily unavailable — falling back to built-in help.',
+            hint,
+          ]
+            .filter(Boolean)
+            .join(' ')
+        );
+        localChat(text);
+        return;
+      }
+
       const reply =
         typeof data.reply === 'string' && data.reply.trim()
           ? data.reply.trim()
