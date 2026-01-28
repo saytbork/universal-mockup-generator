@@ -5924,8 +5924,8 @@ If the model attempts to create a scene or environment, override it and force a 
                             }
                             disabled={isGenerateDisabled}
                             title={generationRestrictionMessage && isGenerateDisabled ? generationRestrictionMessage : undefined}
-                            className="w-full py-3 rounded-xl font-semibold transition bg-indigo-600 text-white hover:bg-indigo-600 text-white disabled:bg-gray-50 disabled:text-gray-600 disabled:cursor-not-allowed shadow-sm"
-                          >
+	                            className="w-full py-3 rounded-xl font-semibold transition bg-indigo-600 text-white hover:bg-indigo-600 text-white disabled:bg-gray-50 disabled:text-gray-600 disabled:cursor-not-allowed"
+	                          >
                             {isImageLoading ? 'Generating...' : 'Generate Mockup'}
                           </button>
                           {generationRestrictionMessage && isGenerateDisabled && (
@@ -5958,33 +5958,47 @@ If the model attempts to create a scene or environment, override it and force a 
                   />
 
                   {generatedImageUrl && (
-                    <ImageEditor
-                      editPrompt={editPrompt}
-                      onPromptChange={(e) => setEditPrompt(e.target.value)}
-                      onEditImage={handleEditImage}
-                      isEditing={isImageLoading}
-                    />
+                    <details key={`edit-${generatedImageUrl}`} className="w-full" open={false}>
+                      <summary className="cursor-pointer select-none rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-900 hover:border-indigo-600 transition dark:border-white/10 dark:bg-black/20 dark:text-white dark:hover:border-white/30">
+                        Edit image
+                      </summary>
+                      <div className="mt-3">
+                        <ImageEditor
+                          editPrompt={editPrompt}
+                          onPromptChange={(e) => setEditPrompt(e.target.value)}
+                          onEditImage={handleEditImage}
+                          isEditing={isImageLoading}
+                        />
+                      </div>
+                    </details>
                   )}
 
                   {generatedImageUrl && (
-                    <VideoGenerator
-                      videoPrompt={videoPrompt}
-                      onPromptChange={(e) => setVideoPrompt(e.target.value)}
-                      onGenerateVideo={handleGenerateVideo}
-                      isVideoLoading={isVideoLoading}
-                      videoError={videoError}
-	                      generatedVideoUrl={generatedVideoUrl}
-	                      isGenerating={isVideoLoading || isImageLoading}
-	                      hasAccess={hasPlanVideoAccess}
-	                      lockMessage={planVideoLimit === 0 ? "Video generation is disabled." : undefined}
-	                      showAccessCodeField={planVideoLimit === 0}
-	                      remainingVideos={planVideoLimit > 0 ? remainingVideos : null}
-	                      planLabel={currentPlan.label}
-                      accessCode={videoAccessInput}
-                      onAccessCodeChange={handleVideoAccessCodeChange}
-                      onAccessSubmit={handleVideoAccessSubmit}
-                      accessError={videoAccessError}
-                    />
+                    <details key={`video-${generatedImageUrl}`} className="w-full" open={false}>
+                      <summary className="cursor-pointer select-none rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-900 hover:border-indigo-600 transition dark:border-white/10 dark:bg-black/20 dark:text-white dark:hover:border-white/30">
+                        Video
+                      </summary>
+                      <div className="mt-3">
+                        <VideoGenerator
+                          videoPrompt={videoPrompt}
+                          onPromptChange={(e) => setVideoPrompt(e.target.value)}
+                          onGenerateVideo={handleGenerateVideo}
+                          isVideoLoading={isVideoLoading}
+                          videoError={videoError}
+                          generatedVideoUrl={generatedVideoUrl}
+                          isGenerating={isVideoLoading || isImageLoading}
+                          hasAccess={hasPlanVideoAccess}
+                          lockMessage={planVideoLimit === 0 ? "Video generation is disabled." : undefined}
+                          showAccessCodeField={planVideoLimit === 0}
+                          remainingVideos={planVideoLimit > 0 ? remainingVideos : null}
+                          planLabel={currentPlan.label}
+                          accessCode={videoAccessInput}
+                          onAccessCodeChange={handleVideoAccessCodeChange}
+                          onAccessSubmit={handleVideoAccessSubmit}
+                          accessError={videoAccessError}
+                        />
+                      </div>
+                    </details>
                   )}
                 </div>
               </div>

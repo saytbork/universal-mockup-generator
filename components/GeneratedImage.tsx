@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import LoadingSpinner from './LoadingSpinner';
 import { HIGH_RES_UNAVAILABLE_MESSAGE } from '../constants';
 import type { DownloadCreditConfig, DownloadResolution } from '../constants';
@@ -55,9 +55,9 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
 
 	const [downloadResolution, setDownloadResolution] = useState<DownloadResolution>('original');
 	const [downloadError, setDownloadError] = useState<string | null>(null);
-  const [isProcessingDownload, setIsProcessingDownload] = useState(false);
+	const [isProcessingDownload, setIsProcessingDownload] = useState(false);
 
-  const parsedAspectRatio = (() => {
+  const parsedAspectRatio = useMemo(() => {
     const raw = String(targetAspectRatio ?? '').trim();
     const match = raw.match(/^(\d+(?:\.\d+)?)\s*:\s*(\d+(?:\.\d+)?)$/);
     if (!match) return null;
@@ -65,8 +65,41 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
     const h = Number(match[2]);
     if (!Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0) return null;
     return { w, h, css: `${w} / ${h}` };
-  })();
-  const isPortraitTarget = parsedAspectRatio ? parsedAspectRatio.w / parsedAspectRatio.h < 1 : false;
+  }, [targetAspectRatio]);
+
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [frameSize, setFrameSize] = useState<{ width: number; height: number } | null>(null);
+
+  useEffect(() => {
+    if (!parsedAspectRatio) {
+      setFrameSize(null);
+      return;
+    }
+    const el = containerRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') {
+      setFrameSize(null);
+      return;
+    }
+
+    const ratio = parsedAspectRatio.w / parsedAspectRatio.h;
+    const update = () => {
+      const rect = el.getBoundingClientRect();
+      const containerWidth = Math.max(1, Math.floor(rect.width));
+      const containerHeight = Math.max(1, Math.floor(rect.height));
+      let width = Math.min(containerWidth, Math.floor(containerHeight * ratio));
+      let height = Math.floor(width / ratio);
+      if (height > containerHeight) {
+        height = containerHeight;
+        width = Math.floor(height * ratio);
+      }
+      setFrameSize({ width, height });
+    };
+
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [parsedAspectRatio]);
 
   useEffect(() => {
     setDownloadResolution('original');
@@ -205,7 +238,10 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
 
   return (
     <div className="flex flex-col w-full">
-      <div className="relative w-full min-h-[22rem] sm:min-h-[40rem] max-h-[70vh] flex items-center justify-center rounded-xl bg-white overflow-hidden dark:bg-white/5 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+      <div
+        ref={containerRef}
+        className="relative w-full min-h-[22rem] sm:min-h-[40rem] max-h-[70vh] flex items-center justify-center rounded-xl bg-white overflow-hidden dark:bg-white/5 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]"
+      >
         {isImageLoading ? (
           <div className="text-center">
             <LoadingSpinner />
@@ -218,22 +254,22 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
           </div>
         ) : imageUrl ? (
           <div
-            className="max-h-full max-w-full mx-auto"
+            className="overflow-hidden rounded-xl"
             style={
-              parsedAspectRatio
+              frameSize
                 ? ({
-                  aspectRatio: parsedAspectRatio.css,
-                  ...(isPortraitTarget
-                    ? { height: '100%', width: 'auto' }
-                    : { width: '100%', height: 'auto' }),
+                  width: `${frameSize.width}px`,
+                  height: `${frameSize.height}px`,
                 } as React.CSSProperties)
-                : undefined
+                : parsedAspectRatio
+                  ? ({ aspectRatio: parsedAspectRatio.css, width: '100%', height: '100%' } as React.CSSProperties)
+                  : undefined
             }
           >
             <img
               src={imageUrl}
               alt="Generated Mockup"
-              className="h-full w-full object-contain rounded-xl"
+              className="h-full w-full object-contain"
             />
           </div>
         ) : (
@@ -262,9 +298,9 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
                       }}
                       disabled={!imageUrl}
                       className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition ${isActive
-                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-500/20 scale-105 duration-500 dark:bg-indigo-500 dark:border-indigo-500'
-                          : 'border-gray-200 bg-white text-gray-600 hover:border-indigo-600 hover:text-gray-900 dark:border-white/10 dark:bg-black/20 dark:text-white/60 dark:hover:border-white/30 dark:hover:text-white'
-                        } disabled:cursor-not-allowed disabled:opacity-50`}
+                        ? 'bg-indigo-600 text-white border-indigo-600 scale-105 duration-500 dark:bg-indigo-500 dark:border-indigo-500'
+                        : 'border-gray-200 bg-white text-gray-600 hover:border-indigo-600 hover:text-gray-900 dark:border-white/10 dark:bg-black/20 dark:text-white/60 dark:hover:border-white/30 dark:hover:text-white'
+                      } disabled:cursor-not-allowed disabled:opacity-50`}
                     >
                       {option.label} · {formatCreditLabel(cost)}
                     </button>

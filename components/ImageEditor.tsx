@@ -13,9 +13,9 @@ const ImageEditor: React.FC<ImageEditorProps> = ({
   onPromptChange,
   onEditImage,
   isEditing,
-}) => {
+  }) => {
   return (
-    <div className="w-full rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm shadow-indigo-500/10 dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+    <div className="w-full rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Edit image</h3>
