@@ -12,6 +12,7 @@ interface ImageVariantMeta {
 
 interface GeneratedImageProps {
   imageUrl: string | null;
+  targetAspectRatio?: string | null;
   fourKVariant: ImageVariantMeta | null;
   twoKVariant: ImageVariantMeta | null;
   isHiResProcessing: boolean;
@@ -39,6 +40,7 @@ const RESOLUTION_TARGETS: Record<DownloadResolution, number | null> = {
 
 const GeneratedImage: React.FC<GeneratedImageProps> = ({
   imageUrl,
+  targetAspectRatio,
   fourKVariant,
   twoKVariant,
   isHiResProcessing,
@@ -51,9 +53,19 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
   onChargeDownloadCredits,
 }) => {
 
-  const [downloadResolution, setDownloadResolution] = useState<DownloadResolution>('original');
-  const [downloadError, setDownloadError] = useState<string | null>(null);
-  const [isProcessingDownload, setIsProcessingDownload] = useState(false);
+	const [downloadResolution, setDownloadResolution] = useState<DownloadResolution>('original');
+	const [downloadError, setDownloadError] = useState<string | null>(null);
+	const [isProcessingDownload, setIsProcessingDownload] = useState(false);
+
+  const cssAspectRatio = (() => {
+    const raw = String(targetAspectRatio ?? '').trim();
+    const match = raw.match(/^(\d+(?:\.\d+)?)\s*:\s*(\d+(?:\.\d+)?)$/);
+    if (!match) return null;
+    const w = Number(match[1]);
+    const h = Number(match[2]);
+    if (!Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0) return null;
+    return `${w} / ${h}`;
+  })();
 
   useEffect(() => {
     setDownloadResolution('original');
@@ -204,11 +216,16 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
             <p className="text-sm">{imageError}</p>
           </div>
         ) : imageUrl ? (
-          <img
-            src={imageUrl}
-            alt="Generated Mockup"
-            className="max-h-full max-w-full object-contain rounded-xl"
-          />
+          <div
+            className="w-full max-w-full max-h-full"
+            style={cssAspectRatio ? ({ aspectRatio: cssAspectRatio } as React.CSSProperties) : undefined}
+          >
+            <img
+              src={imageUrl}
+              alt="Generated Mockup"
+              className="h-full w-full object-contain rounded-xl"
+            />
+          </div>
         ) : (
           <div className="text-center text-gray-500 dark:text-white/40">
             <p>Your generated mockup will appear here</p>

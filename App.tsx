@@ -1541,7 +1541,21 @@ const App: React.FC = () => {
       // ignore
     }
   }, []);
-  const hasModelReference = Boolean(modelReferenceFile || personIdentityPackage.modelReferenceBase64);
+	  const hasModelReference = Boolean(modelReferenceFile || personIdentityPackage.modelReferenceBase64);
+	  const selectedOutputAspectRatio = useMemo(() => {
+	    if (isProductPlacement) return PRODUCT_DEFAULT_ASPECT_RATIO;
+	    const label = lifestyleStep3Values?.aspectRatio;
+	    if (label) {
+	      const map: Record<string, string> = {
+	        '1:1 (Square)': '1:1',
+	        '4:5 (Portrait)': '4:5',
+	        '9:16 (Story)': '9:16',
+	        '16:9 (Landscape)': '16:9',
+	      };
+	      return map[label] ?? '1:1';
+	    }
+	    return lastAspectRatioRef.current || options.aspectRatio || '1:1';
+	  }, [isProductPlacement, lifestyleStep3Values?.aspectRatio, options.aspectRatio]);
   useEffect(() => {
     if (!hasModelReference) {
       setCompositionMode('balanced');
@@ -4728,6 +4742,13 @@ If the model attempts to create a scene or environment, override it and force a 
 	            finalPrompt = `${finalPrompt} PRO PHOTOGRAPHER OVERRIDES: ${proBits.join(' ')}.`;
 	          }
 	        }
+	
+	        if (!isProductPlacement && personIncluded) {
+	          finalPrompt = [
+	            finalPrompt,
+	            'REALISM HARD RULE: Photorealistic real human photo. Absolutely no 3D/CGI, no cartoon, no illustration, no anime, no doll-like/plastic skin, no game-render look.',
+	          ].join(' ');
+	        }
 
         // Persist continuity identity only when explicitly requested.
         // Otherwise "locked" mode would mint a new identityKey every click → different person.
@@ -5897,12 +5918,13 @@ If the model attempts to create a scene or environment, override it and force a 
 
                 <div className="rounded-xl p-4 transition-all bg-white relative lg:sticky lg:top-4 flex flex-col gap-6 min-h-[360px] sm:min-h-[520px] dark:bg-white/5 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
 
-                  <GeneratedImage
-                    imageUrl={twoKVariant?.url ?? generatedImageUrl}
-                    fourKVariant={fourKVariant}
-                    twoKVariant={twoKVariant}
-                    isHiResProcessing={isPreparingHiRes}
-                    hiResError={hiResError}
+	                  <GeneratedImage
+	                    imageUrl={twoKVariant?.url ?? generatedImageUrl}
+	                    targetAspectRatio={selectedOutputAspectRatio}
+	                    fourKVariant={fourKVariant}
+	                    twoKVariant={twoKVariant}
+	                    isHiResProcessing={isPreparingHiRes}
+	                    hiResError={hiResError}
                     isImageLoading={isImageLoading}
                     imageError={imageError}
                     onReset={handleReset}
