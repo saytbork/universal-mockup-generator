@@ -54,22 +54,22 @@ const rateLimit = async (key: string) => {
 };
 
 const systemPrompt = (path?: string) => `
-Sos un asistente de soporte para "Perfect Mockup" (app web).
-Objetivo: ayudar al usuario a usar la app con instrucciones concretas y cortas.
+You are a support assistant for "Perfect Mockup" (a web app).
+Goal: help the user use the product with short, concrete, step-by-step instructions.
 
-Reglas:
-- Respondé en español.
-- No inventes features. Si falta info, pedí 1 pregunta puntual.
-- No solicites ni repitas datos sensibles (passwords, tarjetas, tokens).
-- Si el usuario pide algo riesgoso/ilegal, rechazá y ofrecé alternativa segura.
+Rules:
+- Respond in English.
+- Do not invent features. If info is missing, ask 1 focused question.
+- Do not request or repeat sensitive data (passwords, card numbers, tokens).
+- If the user asks for something unsafe/illegal, refuse and provide a safe alternative.
 
-Contexto del producto (resumen):
-- Sitio marketing en / (pricing, blog, guides, FAQ).
-- App en /app: requiere login (Google o email con código) y usa créditos/planes.
-- Export/descargas y límites dependen del plan; Stripe puede usarse para upgrades.
-- En algunos casos hay watermark en el free tier.
+Product context (summary):
+- Marketing site at / (pricing, blog, guides, FAQ).
+- App at /app: requires sign-in (magic link email) and uses plans/credits.
+- Exports/downloads and limits depend on plan; Stripe may be used for upgrades.
+- Free plan exports may include a watermark.
 
-Ruta actual del usuario: ${path || '/'}
+Current user path: ${path || '/'}
 `.trim();
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -80,12 +80,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (!AI_ENABLED) {
-    res.status(503).json({ error: 'Support assistant disabled', reply: 'El asistente todavía no está habilitado.' });
+    res.status(503).json({ error: 'Support assistant disabled', reply: 'The support assistant is not enabled yet.' });
     return;
   }
 
   if (!OPENAI_API_KEY) {
-    res.status(500).json({ error: 'Missing OPENAI_API_KEY', reply: 'Falta configurar el asistente.' });
+    res.status(500).json({ error: 'Missing OPENAI_API_KEY', reply: 'Support assistant is not configured.' });
     return;
   }
 
@@ -94,7 +94,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const rlKey = email ? `u:${email}` : `ip:${ip}`;
   const rl = await rateLimit(rlKey);
   if (!rl.ok) {
-    res.status(429).json({ error: rl.reason || 'Rate limited', reply: 'Demasiadas consultas. Probá de nuevo en unos minutos.' });
+    res.status(429).json({ error: rl.reason || 'Rate limited', reply: 'Too many requests. Please try again in a few minutes.' });
     return;
   }
 
@@ -126,20 +126,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (!response.ok) {
       const text = await response.text().catch(() => '');
-      res.status(502).json({ error: `OpenAI error: ${response.status}`, details: text, reply: 'Tuve un problema consultando al asistente.' });
+      res.status(502).json({ error: `OpenAI error: ${response.status}`, details: text, reply: 'I had an issue contacting the assistant.' });
       return;
     }
 
     const data = (await response.json()) as any;
     const reply = String(data?.choices?.[0]?.message?.content ?? '').trim();
     if (!reply) {
-      res.status(502).json({ error: 'Empty reply', reply: 'No pude generar una respuesta. Probá reformular la pregunta.' });
+      res.status(502).json({ error: 'Empty reply', reply: 'I could not generate a response. Please rephrase your question.' });
       return;
     }
 
     res.status(200).json({ ok: true, reply, remaining: rl.remaining });
   } catch (error: any) {
-    res.status(500).json({ error: error?.message || 'Support failed', reply: 'Error interno. Probá de nuevo.' });
+    res.status(500).json({ error: error?.message || 'Support failed', reply: 'Internal error. Please try again.' });
   }
 }
-
