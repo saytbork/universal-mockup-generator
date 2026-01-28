@@ -1596,7 +1596,11 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!isTrialBypassActive && remainingCredits <= 0) {
       setShowPlanModal(true);
-      setPlanNotice(isGuest ? 'Has usado tus 2 créditos gratuitos. Regístrate para obtener más.' : 'Se agotaron los créditos del plan Free. Actualiza para seguir generando.');
+      setPlanNotice(
+        isGuest
+          ? "You’ve used your 2 free credits. Sign in to keep your history and unlock more credits."
+          : 'You are out of credits. Upgrade your plan to keep generating.'
+      );
     }
   }, [isTrialBypassActive, remainingCredits, isGuest]);
   useEffect(() => {
@@ -3072,17 +3076,19 @@ const App: React.FC = () => {
       }
       const targetUrl = PLAN_CONFIG[tier].stripeUrl;
       if (!targetUrl) return;
-      if (!userEmail) {
-        setPlanNotice('Inicia sesión para completar el pago.');
-        return;
-      }
       try {
         const url = new URL(targetUrl);
-        url.searchParams.set('prefilled_email', userEmail);
+        if (userEmail) {
+          url.searchParams.set('prefilled_email', userEmail);
+        } else {
+          setPlanNotice(
+            'You can check out now. To sync credits to your account, sign in with a magic link or Google first.'
+          );
+        }
         window.open(url.toString(), '_blank', 'noopener,noreferrer');
       } catch (err) {
         console.error(err);
-        setPlanNotice('No se pudo abrir el checkout. Intenta de nuevo.');
+        setPlanNotice('Could not open checkout. Please try again.');
       }
     },
     [isSimpleMode, userEmail]
@@ -5500,28 +5506,54 @@ If the model attempts to create a scene or environment, override it and force a 
         </div>
       )}
 
-      {showPlanModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm px-4">
-          <div className="w-full max-w-5xl rounded-3xl border border-gray-200 bg-white/95 p-8 md:p-10 shadow-xl shadow-indigo-500/20 space-y-8">
-            <div className="flex items-start justify-between gap-6">
-              <div>
-                <p className="text-xs uppercase tracking-[0.4em] text-indigo-600">Manage plan</p>
-                <h3 className="text-3xl font-semibold text-gray-900 mt-2 leading-tight">Choose what fits your launch</h3>
-              </div>
-              <button onClick={() => { setShowPlanModal(false); setPlanCodeInput(''); setPlanCodeError(null); setPlanNotice(null); }} className="text-sm text-gray-600 hover:text-gray-900">
-                Close
-              </button>
-            </div>
-            <div className="grid gap-5 md:grid-cols-2">
-              {Object.entries(PLAN_CONFIG).map(([tier, config]) => (
-                <button
-                  key={tier}
-                  onClick={() => handlePlanTierSelect(tier as PlanTier)}
-                  className={`rounded-2xl border p-6 text-left transition-all duration-300 ${planTier === tier
-                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-500/25'
-                    : 'border-gray-200 bg-white text-gray-900 hover:border-indigo-600 hover:bg-indigo-50/40'
-                    }`}
-                >
+	      {showPlanModal && (
+	        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm px-4">
+	          <div className="w-full max-w-5xl rounded-3xl border border-gray-200 bg-white/95 p-8 md:p-10 space-y-8">
+	            <div className="flex items-start justify-between gap-6">
+	              <div>
+	                <p className="text-xs uppercase tracking-[0.4em] text-indigo-600">Manage plan</p>
+	                <h3 className="text-3xl font-semibold text-gray-900 mt-2 leading-tight">Choose what fits your launch</h3>
+	              </div>
+	              <button onClick={() => { setShowPlanModal(false); setPlanCodeInput(''); setPlanCodeError(null); setPlanNotice(null); }} className="text-sm text-gray-600 hover:text-gray-900">
+	                Close
+	              </button>
+	            </div>
+
+	            {planNotice && (
+	              <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+	                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+	                  <span>{planNotice}</span>
+	                  {!userEmail && (
+	                    <div className="flex flex-col sm:flex-row gap-2">
+	                      <button
+	                        type="button"
+	                        onClick={() => signInWithGoogle()}
+	                        className="rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-900 hover:border-indigo-600 transition"
+	                      >
+	                        Continue with Google
+	                      </button>
+	                      <button
+	                        type="button"
+	                        onClick={() => { window.location.href = '/login'; }}
+	                        className="rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition"
+	                      >
+	                        Get a magic link
+	                      </button>
+	                    </div>
+	                  )}
+	                </div>
+	              </div>
+	            )}
+	            <div className="grid gap-5 md:grid-cols-2">
+	              {Object.entries(PLAN_CONFIG).map(([tier, config]) => (
+	                <button
+	                  key={tier}
+	                  onClick={() => handlePlanTierSelect(tier as PlanTier)}
+	                  className={`rounded-2xl border p-6 text-left transition-all duration-300 ${planTier === tier
+	                    ? 'bg-indigo-600 text-white border-indigo-600'
+	                    : 'border-gray-200 bg-white text-gray-900 hover:border-indigo-600 hover:bg-indigo-50/40'
+	                    }`}
+	                >
                   <p className="text-xl font-semibold flex items-center justify-between">
                     <span>{config.label}</span>
                     <span className={`text-base font-semibold ${planTier === tier ? 'text-white' : 'text-indigo-600'}`}>{config.priceLabel}</span>
