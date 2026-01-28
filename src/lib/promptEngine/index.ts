@@ -686,8 +686,7 @@ export class PromptEngine {
         // ====================================================================
         const isProductOnly =
             options.contentStyle === 'product' ||
-            options.creationIntent === 'product' ||
-            options.sceneIntent === 'ecommerce';
+            options.creationIntent === 'product';
         if (isProductOnly) {
             const forbidden = /\b(lifestyle|ugc|user-generated|selfie|phone|creator|person|people|human|identity|ethnicity|age|face)\b/i;
             const negativeMarker = ' Negative prompt: ';
