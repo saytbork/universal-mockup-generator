@@ -20,7 +20,7 @@ import ComparisonSlugPage from './ComparisonSlugPage';
 import TermsPage from './TermsPage';
 import PrivacyPage from './PrivacyPage';
 import SiteLayout from './src/components/SiteLayout';
-import SupportAssistant from './src/components/SupportAssistant';
+import SupportWidget from './src/components/SupportWidget';
 
 class RootErrorBoundary extends React.Component<
   React.PropsWithChildren,
@@ -76,7 +76,7 @@ const AppWithTooltips = () => (
   <TooltipProvider delayDuration={150}>
     <>
       <App />
-      <SupportAssistant />
+      <SupportWidget />
     </>
   </TooltipProvider>
 );
