@@ -4636,6 +4636,14 @@ If the model attempts to create a scene or environment, override it and force a 
 	          lifestyleStep3Values?.sameCreatorAcrossScenes !== true &&
 	          personIncluded === true;
 	        if (shouldForceRandomIdentity && !shouldReuseIdentityKey) {
+	          const pickRandomOptionValue = (list: Option[], excludeValues: Set<string> = new Set()) => {
+	            const candidates = list
+	              .map(item => item?.value)
+	              .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+	              .filter(value => !excludeValues.has(value));
+	            if (!candidates.length) return null;
+	            return candidates[Math.floor(Math.random() * candidates.length)];
+	          };
 	          const runtimeUuid =
 	            (typeof globalThis !== 'undefined' && (globalThis as any)?.crypto?.randomUUID)
 	              ? (globalThis as any).crypto.randomUUID()
@@ -4644,6 +4652,22 @@ If the model attempts to create a scene or environment, override it and force a 
 	          basePromptOptions.identityVariationToken = runtimeUuid;
 	          basePromptOptions.identityKey = undefined;
 	          basePromptOptions.identitySeed = runtimeUuid;
+
+	          // Make the "different person" perceptible by varying non-sensitive appearance traits
+	          // (without changing age unless the user changes it).
+	          // Only apply when the user hasn't explicitly chosen these controls.
+	          if (!selectedCategories.has('hairStyle')) {
+	            const nextHairStyle = pickRandomOptionValue(HAIR_STYLE_OPTIONS as any, new Set([options.hairStyle]));
+	            if (nextHairStyle) basePromptOptions.hairStyle = nextHairStyle;
+	          }
+	          if (!selectedCategories.has('hairColor')) {
+	            const nextHairColor = pickRandomOptionValue(HAIR_COLOR_OPTIONS as any, new Set([options.hairColor]));
+	            if (nextHairColor) basePromptOptions.hairColor = nextHairColor;
+	          }
+	          if (!selectedCategories.has('eyeColor')) {
+	            const nextEyeColor = pickRandomOptionValue(EYE_COLOR_OPTIONS as any, new Set([options.eyeColor]));
+	            if (nextEyeColor) basePromptOptions.eyeColor = nextEyeColor;
+	          }
 	        } else if (!shouldReuseIdentityKey) {
 	          // Avoid accidental carryover when the toggle is OFF.
 	          basePromptOptions.identityKey = undefined;

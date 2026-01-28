@@ -55,17 +55,18 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
 
 	const [downloadResolution, setDownloadResolution] = useState<DownloadResolution>('original');
 	const [downloadError, setDownloadError] = useState<string | null>(null);
-	const [isProcessingDownload, setIsProcessingDownload] = useState(false);
+  const [isProcessingDownload, setIsProcessingDownload] = useState(false);
 
-  const cssAspectRatio = (() => {
+  const parsedAspectRatio = (() => {
     const raw = String(targetAspectRatio ?? '').trim();
     const match = raw.match(/^(\d+(?:\.\d+)?)\s*:\s*(\d+(?:\.\d+)?)$/);
     if (!match) return null;
     const w = Number(match[1]);
     const h = Number(match[2]);
     if (!Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0) return null;
-    return `${w} / ${h}`;
+    return { w, h, css: `${w} / ${h}` };
   })();
+  const isPortraitTarget = parsedAspectRatio ? parsedAspectRatio.w / parsedAspectRatio.h < 1 : false;
 
   useEffect(() => {
     setDownloadResolution('original');
@@ -217,8 +218,17 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
           </div>
         ) : imageUrl ? (
           <div
-            className="w-full max-w-full max-h-full"
-            style={cssAspectRatio ? ({ aspectRatio: cssAspectRatio } as React.CSSProperties) : undefined}
+            className="max-h-full max-w-full mx-auto"
+            style={
+              parsedAspectRatio
+                ? ({
+                  aspectRatio: parsedAspectRatio.css,
+                  ...(isPortraitTarget
+                    ? { height: '100%', width: 'auto' }
+                    : { width: '100%', height: 'auto' }),
+                } as React.CSSProperties)
+                : undefined
+            }
           >
             <img
               src={imageUrl}
