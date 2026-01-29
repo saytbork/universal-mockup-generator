@@ -17,12 +17,8 @@ const IDENTITY_CONTRACT_TEXT = `
 This subject must be a unique individual. Do not reuse or approximate any previous face or physique. Each render represents a different real human. Avoid generic or stock-photo proportions.
 `.trim().replace(/\s+/g, ' ');
 
-const ANTI_DOLL_CONSTRAINT_UGC = `
+const ANTI_DOLL_CONSTRAINT = `
 The person must look like a real unedited smartphone photo of a real human. Avoid CGI, 3D render, synthetic human, mannequin, or doll-like appearance.
-`.trim().replace(/\s+/g, ' ');
-
-const ANTI_DOLL_CONSTRAINT_LIFESTYLE = `
-LIFESTYLE AD HUMAN REALISM (NON-NEGOTIABLE): Real commercial lifestyle photography with a real ad model. Natural facial asymmetry is REQUIRED. Minor skin texture, pores, fine lines, and micro-imperfections MUST be visible. Avoid perfectly smooth skin, doll-like faces, mannequin appearance, stock-avatar faces, or hyper-symmetrical features. No "AI beauty", no plastic skin, no beauty retouching.
 `.trim().replace(/\s+/g, ' ');
 
 // ============================================================================
@@ -165,15 +161,7 @@ export class IdentityBuilder implements PromptBuilder {
         }
 
         const isUgcMode =
-            contentStyle === 'ugc' ||
-            creationIntent === 'ugc' ||
-            Boolean(ugcRealModeActive) ||
-            Boolean(options.rawDomesticUgcActive);
-
-        const isLifestyleAdMode =
-            !isUgcMode &&
-            contentStyle !== 'product' &&
-            (options.creationMode === 'lifestyle' || options.creationMode === 'aesthetic');
+            contentStyle === 'ugc' || creationIntent === 'ugc' || Boolean(ugcRealModeActive);
         const parts: string[] = [];
         const age = personDetails?.age || 30;
         const ageGroupLabel = age >= 75 ? 'elder' : 'adult';
@@ -516,40 +504,32 @@ Captured by smartphone so fine edges may appear soft or broken.
 
             if (identityMode === 'auto' && identityVariationToken) {
                 parts.push(`[IDENTITY_VARIATION_TOKEN: ${identityVariationToken}]`);
-                if (!isLifestyleAdMode) {
-                    if (personCount === 'couple') {
-                        parts.push(`FACE SIGNATURE A: ${this.buildFaceSignature(`${identityVariationToken}-A`)}`);
-                        parts.push(`FACE SIGNATURE B: ${this.buildFaceSignature(`${identityVariationToken}-B`)}`);
-                    } else if (personCount === 'group') {
-                        parts.push(`FACE SIGNATURE A: ${this.buildFaceSignature(`${identityVariationToken}-A`)}`);
-                        parts.push(`FACE SIGNATURE B: ${this.buildFaceSignature(`${identityVariationToken}-B`)}`);
-                        parts.push(`FACE SIGNATURE C: ${this.buildFaceSignature(`${identityVariationToken}-C`)}`);
-                        parts.push(`FACE SIGNATURE D: ${this.buildFaceSignature(`${identityVariationToken}-D`)}`);
-                    } else {
-                        parts.push(`FACE SIGNATURE: ${this.buildFaceSignature(identityVariationToken)}`);
-                    }
-                    parts.push('This must be a different individual than any previously generated subject. Do not repeat facial identity.');
+                if (personCount === 'couple') {
+                    parts.push(`FACE SIGNATURE A: ${this.buildFaceSignature(`${identityVariationToken}-A`)}`);
+                    parts.push(`FACE SIGNATURE B: ${this.buildFaceSignature(`${identityVariationToken}-B`)}`);
+                } else if (personCount === 'group') {
+                    parts.push(`FACE SIGNATURE A: ${this.buildFaceSignature(`${identityVariationToken}-A`)}`);
+                    parts.push(`FACE SIGNATURE B: ${this.buildFaceSignature(`${identityVariationToken}-B`)}`);
+                    parts.push(`FACE SIGNATURE C: ${this.buildFaceSignature(`${identityVariationToken}-C`)}`);
+                    parts.push(`FACE SIGNATURE D: ${this.buildFaceSignature(`${identityVariationToken}-D`)}`);
                 } else {
-                    parts.push('Identity guidance is soft: avoid hyper-perfect symmetry. Keep subtle natural imperfections and realistic facial variation.');
+                    parts.push(`FACE SIGNATURE: ${this.buildFaceSignature(identityVariationToken)}`);
                 }
+                parts.push('This must be a different individual than any previously generated subject. Do not repeat facial identity.');
             } else if (identityMode === 'locked' && identityKey) {
                 parts.push(`[IDENTITY_KEY: ${identityKey}]`);
-                if (!isLifestyleAdMode) {
-                    if (personCount === 'couple') {
-                        parts.push(`FACE SIGNATURE A: ${this.buildFaceSignature(`${identityKey}-A`)}`);
-                        parts.push(`FACE SIGNATURE B: ${this.buildFaceSignature(`${identityKey}-B`)}`);
-                    } else if (personCount === 'group') {
-                        parts.push(`FACE SIGNATURE A: ${this.buildFaceSignature(`${identityKey}-A`)}`);
-                        parts.push(`FACE SIGNATURE B: ${this.buildFaceSignature(`${identityKey}-B`)}`);
-                        parts.push(`FACE SIGNATURE C: ${this.buildFaceSignature(`${identityKey}-C`)}`);
-                        parts.push(`FACE SIGNATURE D: ${this.buildFaceSignature(`${identityKey}-D`)}`);
-                    } else {
-                        parts.push(`FACE SIGNATURE: ${this.buildFaceSignature(identityKey)}`);
-                    }
-                    parts.push('Same subject as previous generation. Maintain facial identity consistency.');
+                if (personCount === 'couple') {
+                    parts.push(`FACE SIGNATURE A: ${this.buildFaceSignature(`${identityKey}-A`)}`);
+                    parts.push(`FACE SIGNATURE B: ${this.buildFaceSignature(`${identityKey}-B`)}`);
+                } else if (personCount === 'group') {
+                    parts.push(`FACE SIGNATURE A: ${this.buildFaceSignature(`${identityKey}-A`)}`);
+                    parts.push(`FACE SIGNATURE B: ${this.buildFaceSignature(`${identityKey}-B`)}`);
+                    parts.push(`FACE SIGNATURE C: ${this.buildFaceSignature(`${identityKey}-C`)}`);
+                    parts.push(`FACE SIGNATURE D: ${this.buildFaceSignature(`${identityKey}-D`)}`);
                 } else {
-                    parts.push('Identity lock applies only to broad traits (age range, gender). Avoid face-perfecting or avatar-like sameness.');
+                    parts.push(`FACE SIGNATURE: ${this.buildFaceSignature(identityKey)}`);
                 }
+                parts.push('Same subject as previous generation. Maintain facial identity consistency.');
             }
 
             // Identity contract (only in auto mode)
@@ -668,11 +648,9 @@ Captured by smartphone so fine edges may appear soft or broken.
             parts.push(sanitizePart(personDetails.personProps, isUgcMode));
         }
 
-        // Anti-doll constraints
+        // Anti-doll constraint for UGC
         if (isUgcMode) {
-            parts.push(ANTI_DOLL_CONSTRAINT_UGC);
-        } else if (isLifestyleAdMode) {
-            parts.push(ANTI_DOLL_CONSTRAINT_LIFESTYLE);
+            parts.push(ANTI_DOLL_CONSTRAINT);
         }
 
         const result = parts.filter(Boolean).join('. ').trim();
