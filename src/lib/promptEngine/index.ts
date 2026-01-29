@@ -61,6 +61,12 @@ import { buildMasterPrompt, MasterPromptSections } from './masterPrompt';
 // NEGATIVE PROMPT - Quality anchors and artifact prevention
 // ============================================================================
 function negativePrompt(options?: PromptOptions) {
+    const isUgc =
+        Boolean(options?.ugcRealModeActive) ||
+        Boolean(options?.rawDomesticUgcActive) ||
+        Boolean(options?.ugcSelfieDominant) ||
+        ['natural', 'raw'].includes((options?.ugcStyle ?? '').toLowerCase());
+
     const entries = [
         // Anatomical integrity
         "deformed hands", "extra fingers", "missing fingers", "long fingers",
@@ -68,14 +74,13 @@ function negativePrompt(options?: PromptOptions) {
         "extra legs", "mutated anatomy", "mangled hands", "disconnected arms",
 
         // Face integrity
-        "blurry face", "distorted face", "face artifacts", "asymmetric face",
-        "doll-like face", "cut-off head",
+        "distorted face", "face artifacts", "asymmetric face",
+        "doll-like face",
 
         // Torso integrity
-        "cut-off torso", "partial person", "duplicate torso",
+        "partial person", "duplicate torso",
 
         // Skin issues
-        "overexposed skin", "underexposed skin", "grainy skin texture",
         "over-smoothed skin", "plastic skin", "CGI human", "synthetic human",
         "mannequin", "waxy skin", "artificial face",
 
@@ -93,19 +98,34 @@ function negativePrompt(options?: PromptOptions) {
         "invented graphics",
 
         // General artifacts
-        "text", "logo", "watermark", "signature", "caption",
-        "cartoon style", "3d cartoon", "plush toy",
-        "ai artifacts", "floating objects", "framing issues",
+        "watermark", "watermark text", "overlay text", "subtitle", "signature", "caption",
+        "cartoon style", "illustration", "anime",
+        "3d render", "3d model", "cgi render", "octane render", "unreal engine", "game render",
+        "3d cartoon", "plush toy",
+        "ai artifacts", "floating objects",
         "duplicate objects",
 
         // Wardrobe consistency
         "altered outfit", "invented clothing", "incorrect fabric",
         "incorrect outfit color", "wrong clothing texture"
     ];
-    const shouldGuardIdentity =
-        options?.ugcRealModeActive ||
-        ['natural', 'raw'].includes((options?.ugcStyle ?? '').toLowerCase());
-    if (shouldGuardIdentity) {
+
+    if (isUgc) {
+        // UGC/selfies should allow imperfections (exposure variance, mild noise, imperfect framing).
+        // Remove negative terms that accidentally "beautify" the output by blocking realism artifacts.
+        const relaxed = new Set([
+            'blurry face',
+            'cut-off head',
+            'cut-off torso',
+            'overexposed skin',
+            'underexposed skin',
+            'grainy skin texture',
+            'framing issues',
+        ]);
+        for (let i = entries.length - 1; i >= 0; i -= 1) {
+            if (relaxed.has(entries[i])) entries.splice(i, 1);
+        }
+
         const additional = [
             'face consistency',
             'same face as reference',
@@ -173,6 +193,12 @@ function sanitizeCameraAestheticsForRestrictedModes(prompt: string, options: Pro
         'Camera: Captured casually on a smartphone. Flat, natural image. Product and label are clearly visible and readable.'
     );
 
+    // Replace overly-polished lighting descriptors with UGC-friendly ones.
+    sanitized = sanitized.replace(
+        /\bLighting:\s*[^.]*\./gi,
+        'Lighting: Accidental mixed indoor lighting (uneven, unbalanced, imperfect).'
+    );
+
     // Remove optics / pro-camera terminology that can leak from older builders/mappings.
     sanitized = sanitized
         .replace(/\bdepth of field\b/gi, '')
@@ -182,6 +208,9 @@ function sanitizeCameraAestheticsForRestrictedModes(prompt: string, options: Pro
         .replace(/\b(professional lighting|studio lighting|controlled lighting)\b/gi, '')
         .replace(/\bf\/\d+(\s*[–-]\s*f\/\d+)?\b/gi, '')
         .replace(/\bportrait mode\b/gi, '')
+        .replace(/\brule[-\s]?of[-\s]?thirds\b/gi, '')
+        .replace(/\bintersection points?\b/gi, '')
+        .replace(/\bintentional asymmetric balance\b/gi, '')
         .replace(/\bfocus(ed|ing)?\b/gi, '')
         .replace(/\bsubject separation\b/gi, '')
         .replace(/\bbackground separation\b/gi, '')

@@ -350,7 +350,23 @@ export class UGCRealModeBuilder implements PromptBuilder {
         const { ugcRealModeActive, personDetails, personIncluded, rawDomesticUgcActive } = options;
 
         if (options.ugcSelfieDominant) {
-            return UGC_DEVICE_CONTRACT;
+            const imperfectionLevel =
+                (options.ugcImperfectionLevel as 'low' | 'medium' | 'high' | undefined) ||
+                (options.rawDomesticUgcActive ? 'high' : 'high');
+            return [
+                UGC_DEVICE_CONTRACT,
+                UGC_COMPOSITION_RULES,
+                UGC_LIGHTING_RULES,
+                UGC_APPEARANCE_RULES,
+                UGC_ENVIRONMENT_RULE,
+                UGC_IMPERFECTION_LEVEL_RULES[imperfectionLevel],
+                'FOCUS RULE (SELFIE): Single-plane phone capture. No background separation. No portrait mode. No bokeh. Background stays naturally present and imperfect.',
+                BLOCKED_VOCABULARY,
+                UGC_VALIDATION
+            ]
+                .filter(Boolean)
+                .join(' ')
+                .trim();
         }
 
         if (!ugcRealModeActive) return '';

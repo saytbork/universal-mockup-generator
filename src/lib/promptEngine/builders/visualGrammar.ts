@@ -2,6 +2,18 @@ import type { PromptOptions } from '../types';
 
 export class VisualGrammarBuilder {
     build(options: PromptOptions): string {
+        // Visual grammar implies intentional composition and is not compatible with
+        // UGC/selfie modes where the framing should be accidental and imperfect.
+        if (
+            options.contentStyle === 'ugc' ||
+            options.creationIntent === 'ugc' ||
+            Boolean(options.ugcRealModeActive) ||
+            Boolean(options.rawDomesticUgcActive) ||
+            Boolean(options.ugcSelfieDominant)
+        ) {
+            return '';
+        }
+
         if (!options.visualGrammar) {
             return '';
         }
