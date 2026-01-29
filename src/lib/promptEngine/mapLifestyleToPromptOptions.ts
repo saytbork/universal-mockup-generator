@@ -1929,14 +1929,9 @@ export function mapLifestyleToPromptOptions(
     // CONTENT STYLE & CREATION INTENT
     // ========================================================================
     mapped.creationIntent = sceneState.creationIntent;
-    // This mapper is used for Lifestyle + UGC flows.
-    // IMPORTANT: Only mark the prompt as `ugc` when the user explicitly selected an UGC intent/mode.
-    // Otherwise, Lifestyle should behave like authentic advertising photography (not "cheap phone" UGC).
-    const normalizedIntent = String(sceneState.creationIntent || '').trim().toLowerCase();
-    const isUgcIntent =
-        normalizedIntent === 'ugc' ||
-        sceneState.ugcRealMode === true;
-    mapped.contentStyle = isUgcIntent ? 'ugc' : '';
+    // This mapper is used for Lifestyle/UGC flows. Even when "creationIntent" is "brand" or "product-first",
+    // we still allow people/identity language. Product-only isolation is handled by the Studio pipeline.
+    mapped.contentStyle = 'ugc';
 
     // ========================================================================
     // SELFIE MODE (Restored Logic)
