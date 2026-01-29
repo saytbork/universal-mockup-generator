@@ -173,13 +173,9 @@ function stripModeResolutionGuardrail(prompt: string): string {
 }
 
 function isModeResolutionRestricted(options: PromptOptions): boolean {
-    return (
-        options.creationIntent === 'ugc' ||
-        options.contentStyle === 'ugc' ||
-        Boolean(options.ugcRealModeActive) ||
-        Boolean(options.rawDomesticUgcActive) ||
-        options.creationMode === 'lifestyle'
-    );
+    // UGC Mode Resolution must ONLY run when UGC Real Mode is explicitly active.
+    // contentStyle / creationIntent are not sufficient signals.
+    return Boolean(options.ugcRealModeActive);
 }
 
 function sanitizeCameraAestheticsForRestrictedModes(prompt: string, options: PromptOptions): string {
@@ -260,6 +256,10 @@ function enforcePreflightGuards(options: PromptOptions) {
 }
 
 function applyModeResolution(prompt: string, options: PromptOptions): string {
+    if (!isModeResolutionRestricted(options)) {
+        // Safety: ensure we don't accidentally leak a stale MODE RESOLUTION block into non-UGC prompts.
+        return stripModeResolutionGuardrail(prompt);
+    }
     const sanitized = sanitizeCameraAestheticsForRestrictedModes(prompt, options);
     return prependModeResolutionGuardrail(sanitized);
 }
