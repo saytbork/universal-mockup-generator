@@ -9,6 +9,19 @@ export type UserRecord = {
   updatedAt: number;
 };
 
+const DEFAULT_UNLIMITED_EMAILS = ['juanamisano@gmail.com'];
+const UNLIMITED_EMAILS = new Set(
+  `${process.env.ADMIN_EMAILS || ''},${process.env.UNLIMITED_CREDITS_EMAILS || ''},${process.env.VITE_ADMIN_EMAILS || ''},${DEFAULT_UNLIMITED_EMAILS.join(',')}`
+    .split(',')
+    .map(email => email.trim().toLowerCase())
+    .filter(Boolean)
+);
+
+export const isUnlimitedCreditsEmail = (email: string) => {
+  const normalized = String(email || '').trim().toLowerCase();
+  return normalized ? UNLIMITED_EMAILS.has(normalized) : false;
+};
+
 const memoryStore = new Map<string, UserRecord>();
 const hasKV =
   !!process.env.KV_REST_API_URL &&
@@ -115,13 +128,24 @@ export const getEffectiveCredits = (user: UserRecord): number => computeEffectiv
 
 export const consumeCredit = async (email: string): Promise<{
   ok: boolean;
-  bucket?: 'trial' | 'invite' | 'subscription';
+  bucket?: 'trial' | 'invite' | 'subscription' | 'admin';
   remaining?: number;
   trialRemaining?: number;
   inviteRemaining?: number;
   subscriptionRemaining?: number;
   plan?: string;
 }> => {
+  if (isUnlimitedCreditsEmail(email)) {
+    return {
+      ok: true,
+      bucket: 'admin',
+      remaining: 999_999,
+      trialRemaining: 0,
+      inviteRemaining: 0,
+      subscriptionRemaining: 999_999,
+      plan: 'admin',
+    };
+  }
   if (hasKV) {
     const kv = await getKv();
     const script = `
@@ -233,8 +257,11 @@ export const consumeCredit = async (email: string): Promise<{
 
 export const refundCredit = async (
   email: string,
-  bucket: 'trial' | 'invite' | 'subscription'
+  bucket: 'trial' | 'invite' | 'subscription' | 'admin'
 ): Promise<UserRecord> => {
+  if (bucket === 'admin' || isUnlimitedCreditsEmail(email)) {
+    return getUser(email);
+  }
   if (hasKV) {
     const kv = await getKv();
     const script = `

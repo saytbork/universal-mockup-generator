@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { checkAuth } from '../server/lib/checkAuth.js';
-import { getUser, setUser, getEffectiveCredits } from '../server/lib/store.js';
+import { getUser, setUser, getEffectiveCredits, isUnlimitedCreditsEmail } from '../server/lib/store.js';
 import { listActivity } from '../server/lib/activity.js';
 
 const parseAction = (req: VercelRequest) => {
@@ -32,9 +32,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  let user = await getUser(email);
-  const normalizedPlan = String(user.plan ?? 'free').trim().toLowerCase();
-  if (normalizedPlan === 'free' && user.trialRemaining <= 0) {
+	  let user = await getUser(email);
+	  const isUnlimited = isUnlimitedCreditsEmail(email);
+	  const normalizedPlan = String(user.plan ?? 'free').trim().toLowerCase();
+	  if (normalizedPlan === 'free' && user.trialRemaining <= 0) {
     try {
       const recent = await listActivity(email, 30);
       const hasSpend = recent.some(item => item.type === 'image' && Number(item.meta?.delta ?? 0) < 0);
@@ -47,16 +48,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  res.status(200).json({
-    userId: email,
-    email,
-    plan: user.plan ?? 'free',
-    credits: user.credits ?? getEffectiveCredits(user),
-    remaining_credits: getEffectiveCredits(user),
-    trial_remaining: user.trialRemaining ?? 0,
-    invite_remaining: user.inviteRemaining ?? 0,
-    subscription_remaining: user.subscriptionRemaining ?? 0,
-    inviteUsed: user.inviteUsed ?? false,
-    trialUsed: user.trialUsed ?? false,
-  });
+	  res.status(200).json({
+	    userId: email,
+	    email,
+	    plan: user.plan ?? 'free',
+	    credits: user.credits ?? getEffectiveCredits(user),
+	    remaining_credits: isUnlimited ? 999_999 : getEffectiveCredits(user),
+	    trial_remaining: user.trialRemaining ?? 0,
+	    invite_remaining: user.inviteRemaining ?? 0,
+	    subscription_remaining: user.subscriptionRemaining ?? 0,
+	    inviteUsed: user.inviteUsed ?? false,
+	    trialUsed: user.trialUsed ?? false,
+	  });
 }

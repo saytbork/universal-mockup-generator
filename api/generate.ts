@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI, Modality } from '@google/genai';
 import { checkAuth } from '../server/lib/checkAuth.js';
-import { consumeCredit, refundCredit, getUser, getEffectiveCredits } from '../server/lib/store.js';
+import { consumeCredit, refundCredit, getUser, getEffectiveCredits, isUnlimitedCreditsEmail } from '../server/lib/store.js';
 import { addActivity } from '../server/lib/activity.js';
 
 const parseBody = async (req: VercelRequest) => {
@@ -30,6 +30,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(401).json({ error: 'Unauthorized' });
     return;
   }
+  const isUnlimited = isUnlimitedCreditsEmail(email);
 
   const body = await parseBody(req);
   const parts = Array.isArray(body.parts) ? body.parts : null;
@@ -52,7 +53,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(402).json({ error: 'No credits remaining' });
     return;
   }
-  await addActivity(email, 'image', { delta: -1, bucket: creditResult.bucket });
+  if (creditResult.bucket !== 'admin') {
+    await addActivity(email, 'image', { delta: -1, bucket: creditResult.bucket });
+  }
 
   const ai = new GoogleGenAI({ apiKey, apiVersion: 'v1beta' });
 
@@ -102,14 +105,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(200).json({
       ok: true,
       imageBase64: encodedImage,
-      remaining_credits: getEffectiveCredits(user),
+      remaining_credits: isUnlimited ? 999_999 : getEffectiveCredits(user),
       trial_remaining: user.trialRemaining ?? 0,
       invite_remaining: user.inviteRemaining ?? 0,
       subscription_remaining: user.subscriptionRemaining ?? 0,
     });
   } catch (error: any) {
     await refundCredit(email, creditResult.bucket);
-    await addActivity(email, 'image', { delta: 1, refund: true, bucket: creditResult.bucket });
+    if (creditResult.bucket !== 'admin') {
+      await addActivity(email, 'image', { delta: 1, refund: true, bucket: creditResult.bucket });
+    }
     res.status(500).json({ error: error?.message || 'Generation failed' });
   }
 }

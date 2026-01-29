@@ -1516,7 +1516,7 @@ const App: React.FC = () => {
   const [hasTrialBypass, setHasTrialBypass] = useState(false);
   const [trialCodeInput, setTrialCodeInput] = useState('');
   const [trialCodeError, setTrialCodeError] = useState<string | null>(null);
-  const isTrialBypassActive = hasTrialBypass || isDevBypass;
+  const isTrialBypassActive = hasTrialBypass || isDevBypass || isAdmin;
   const hasUploadedProduct = activeProducts.length > 0 || productAssets.length > 0;
   const ritualNoProductMode =
     !isProductPlacement &&
@@ -1584,10 +1584,12 @@ const App: React.FC = () => {
   const canUseStudioFeatures = currentPlan.allowStudio || isTrialBypassActive;
   const canUseCaptionAssistant = false;
   const isUsingRemoteCredits = !isGuest && Boolean(userEmail.trim());
-  const remainingCredits = Math.max(
-    isUsingRemoteCredits ? (remoteCredits ?? planCreditLimit) : planCreditLimit - creditUsage,
-    0
-  );
+  const remainingCredits = isTrialBypassActive
+    ? 999_999
+    : Math.max(
+      isUsingRemoteCredits ? (remoteCredits ?? planCreditLimit) : planCreditLimit - creditUsage,
+      0
+    );
   const remainingVideos = Math.max(planVideoLimit - videoGenerationCount, 0);
   const isTrialLocked = !isTrialBypassActive && remainingCredits <= 0;
   const hasPlanVideoAccess = planVideoLimit > 0 || hasVideoAccess || isTrialBypassActive;

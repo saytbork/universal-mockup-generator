@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { checkAuth } from '../server/lib/checkAuth.js';
-import { getUser, consumeCredit, refundCredit, getEffectiveCredits, setUser } from '../server/lib/store.js';
+import { getUser, consumeCredit, refundCredit, getEffectiveCredits, setUser, isUnlimitedCreditsEmail } from '../server/lib/store.js';
 import { addActivity, listActivity } from '../server/lib/activity.js';
 
 const parseAction = (req: VercelRequest) => {
@@ -36,6 +36,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(401).json({ error: 'Unauthorized' });
     return;
   }
+  const isUnlimited = isUnlimitedCreditsEmail(email);
   const { amount, bucket, code } = req.body || {};
   const creditAmount = parseAmount(amount) ?? 1;
   try {
@@ -99,7 +100,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const result = await consumeCredit(email);
         if (!result.ok) {
           // Refund any partial consumption
-          if (consumed > 0 && lastBucket) {
+          if (consumed > 0 && lastBucket && lastBucket !== 'admin') {
             for (let j = 0; j < consumed; j += 1) {
               await refundCredit(email, lastBucket as any);
             }
@@ -111,11 +112,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         lastBucket = result.bucket;
       }
       const user = await getUser(email);
-      await addActivity(email, 'image', { delta: -creditAmount });
+      if (lastBucket !== 'admin') {
+        await addActivity(email, 'image', { delta: -creditAmount });
+      }
       res.json({
         ok: true,
         credits: user.credits ?? getEffectiveCredits(user),
-        remaining_credits: getEffectiveCredits(user),
+        remaining_credits: isUnlimited ? 999_999 : getEffectiveCredits(user),
         trial_remaining: user.trialRemaining ?? 0,
         invite_remaining: user.inviteRemaining ?? 0,
         subscription_remaining: user.subscriptionRemaining ?? 0,
@@ -133,7 +136,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.json({
       ok: true,
       credits: user.credits ?? getEffectiveCredits(user),
-      remaining_credits: getEffectiveCredits(user),
+      remaining_credits: isUnlimited ? 999_999 : getEffectiveCredits(user),
       trial_remaining: user.trialRemaining ?? 0,
       invite_remaining: user.inviteRemaining ?? 0,
       subscription_remaining: user.subscriptionRemaining ?? 0,
