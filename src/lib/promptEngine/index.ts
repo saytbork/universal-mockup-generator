@@ -136,6 +136,25 @@ function negativePrompt(options?: PromptOptions) {
                 entries.push(term);
             }
         });
+
+        // UGC must avoid any "beautified" processing that looks like commercial/portrait work.
+        const ugcAntiPro = [
+            'hdr',
+            'clarity',
+            'skin retouch',
+            'beauty lighting',
+            'airbrushed skin',
+            'makeup look',
+            'portrait mode',
+            'background blur',
+            'bokeh',
+            'subject isolation',
+            'cinematic lighting',
+            'studio lighting'
+        ];
+        ugcAntiPro.forEach(term => {
+            if (!entries.includes(term)) entries.push(term);
+        });
     }
     return entries.join(", ");
 }
@@ -211,6 +230,9 @@ function sanitizeCameraAestheticsForRestrictedModes(prompt: string, options: Pro
         .replace(/\brule[-\s]?of[-\s]?thirds\b/gi, '')
         .replace(/\bintersection points?\b/gi, '')
         .replace(/\bintentional asymmetric balance\b/gi, '')
+        .replace(/\bHDR\b/gi, '')
+        .replace(/\bclarity\b/gi, '')
+        .replace(/\b(over)?sharpen(ed|ing)?\b/gi, '')
         .replace(/\bfocus(ed|ing)?\b/gi, '')
         .replace(/\bsubject separation\b/gi, '')
         .replace(/\bbackground separation\b/gi, '')
