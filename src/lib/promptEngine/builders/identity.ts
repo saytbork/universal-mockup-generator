@@ -58,92 +58,6 @@ export class IdentityBuilder implements PromptBuilder {
         return hash >>> 0;
     }
 
-    private pick<T>(arr: T[], seed: number, offset: number): T {
-        const idx = (seed + offset) % arr.length;
-        return arr[idx];
-    }
-
-    private buildFaceSignature(seedKey: string): string {
-        const seed = this.hashToken(seedKey);
-
-        const faceShape = [
-            'oval face',
-            'round face',
-            'square face',
-            'heart-shaped face',
-            'long face',
-            'diamond-shaped face',
-        ];
-        const jaw = [
-            'soft jawline',
-            'defined jawline',
-            'strong jawline',
-            'tapered jawline',
-            'broad jaw',
-            'narrow jaw',
-        ];
-        const cheekbones = [
-            'subtle cheekbones',
-            'high cheekbones',
-            'pronounced cheekbones',
-            'flat cheekbones',
-        ];
-        const eyes = [
-            'almond-shaped eyes',
-            'round eyes',
-            'deep-set eyes',
-            'wide-set eyes',
-            'close-set eyes',
-            'hooded eyelids',
-        ];
-        const brows = [
-            'straight brows',
-            'arched brows',
-            'thick brows',
-            'thin brows',
-            'soft natural brows',
-        ];
-        const nose = [
-            'straight nose bridge',
-            'slightly curved nose bridge',
-            'prominent nose bridge',
-            'small nose',
-            'wide nose',
-            'narrow nose',
-        ];
-        const lips = [
-            'thin lips',
-            'full lips',
-            'wide mouth',
-            'narrow mouth',
-            'defined cupid’s bow',
-        ];
-        const forehead = [
-            'low forehead',
-            'average forehead',
-            'high forehead',
-        ];
-        const hairline = [
-            'straight hairline',
-            'widow’s peak hairline',
-            'rounded hairline',
-            'slightly receding hairline',
-        ];
-
-        const parts = [
-            this.pick(faceShape, seed, 1),
-            this.pick(jaw, seed, 2),
-            this.pick(cheekbones, seed, 3),
-            this.pick(eyes, seed, 4),
-            this.pick(brows, seed, 5),
-            this.pick(nose, seed, 6),
-            this.pick(lips, seed, 7),
-            this.pick(forehead, seed, 8),
-            this.pick(hairline, seed, 9),
-        ];
-        return parts.join(', ');
-    }
-
     build(options: PromptOptions): string {
         const {
             personIncluded,
@@ -200,25 +114,25 @@ Do NOT remove glasses. Do NOT change frames. Do NOT remove or change head coveri
             if (age >= 60 && age < 70) {
                 parts.push(`
 AGE ANCHOR: ${primarySubjectNoun} MUST visually read as ${age} years old (late 60s realism).
-Facial features must match a real ${age}-year-old adult: visible forehead lines, crow's feet, smile lines, mild under-eye hollows, and slight skin laxity around jaw/neck.
+Age-appropriate fine lines, wrinkles, and texture MUST be visible. Avoid any smoothing that collapses age.
 Hands and neck MUST show age-appropriate texture (fine lines, subtle age spots, visible tendons/veins).
 Do NOT make the subject appear youthful, botoxed, facelifted, or heavily beautified. Avoid "anti-aging" smoothing.
                 `.trim().replace(/\s+/g, ' '));
             } else if (age >= 50 && age < 60) {
                 parts.push(`
 AGE ANCHOR: ${primarySubjectNoun} MUST visually read as ${age} years old.
-Facial features must match a real ${age}-year-old adult: age-appropriate skin texture, subtle to moderate facial lines (forehead, crow's feet, smile lines), and mature facial structure.
+Age-appropriate skin texture and subtle to moderate facial lines MUST be present.
 Do NOT make the subject appear youthful (no teen/20s look).
                 `.trim().replace(/\s+/g, ' '));
             } else if (age >= 45 && age < 50) {
                 parts.push(`
 AGE ANCHOR: ${primarySubjectNoun} MUST visually read as ${age} years old.
-Avoid a youthful teen/20s appearance; include age-appropriate skin texture and subtle facial lines.
+Avoid a youthful teen/20s appearance; include age-appropriate skin texture and subtle lines.
                 `.trim().replace(/\s+/g, ' '));
             } else if (age >= 70) {
                 parts.push(`
 AGE ANCHOR: ${primarySubjectNoun} MUST visually read as ${age} years old.
-Facial structure, skin laxity, eye area, neck, hands, and posture must match a real ${age}-year-old ${ageGroupLabel}.
+Skin laxity, hands, neck, and posture must match a real ${age}-year-old ${ageGroupLabel}.
 Do NOT make the person appear younger.
                 `.trim().replace(/\s+/g, ' '));
             }
@@ -242,9 +156,7 @@ Do NOT make the person appear younger.
             // ================================================================
             if (age >= 75) {
                 parts.push(`
-ELDER REALISM (${primarySubjectNoun}): Deep crow's feet, softened jawline, gentle jowls, age spots on face and hands.
-Hands show visible veins and knuckle definition.
-Skin carries micro wrinkles around mouth, eyes, and neck with authentic sag.
+ELDER REALISM (${primarySubjectNoun}): Elder realism must be obvious at a glance: visible age spots on hands, visible veins and knuckle definition, and authentic skin laxity and micro-wrinkles consistent with age.
 ${primaryHairColorSpecified ? 'Hair color may be dyed; keep the explicitly selected hair color while preserving elder realism.' : 'Hair may skew gray/silver/white with thinning and irregular texture unless explicitly specified.'}
                 `.trim().replace(/\s+/g, ' '));
             }
@@ -308,11 +220,11 @@ ${primaryHairColorSpecified ? 'Hair color may be dyed; keep the explicitly selec
                 const bodyTypeKey = String(personDetails.bodyType).trim().toLowerCase();
                 const physiqueAnchor =
                     bodyTypeKey === 'slim'
-                        ? 'PHYSIQUE DETAILS: Slim figure. Narrow waist and shoulders, lean arms and neck. Face is not round or full.'
-                        : bodyTypeKey === 'curvy'
-                            ? 'PHYSIQUE DETAILS: Curvy figure. Noticeable hip/waist curve, fuller thighs/arms. Face has gentle softness.'
-                            : bodyTypeKey === 'plus size' || bodyTypeKey === 'plus-size' || bodyTypeKey === 'plus'
-                                ? 'PHYSIQUE DETAILS: Plus-size figure. Fuller midsection and arms, thicker neck, softer jawline, fuller cheeks. Do NOT render a thin frame.'
+                        ? 'PHYSIQUE DETAILS: Slim figure. Narrow waist and shoulders, lean arms and neck. Do NOT render a fuller build.'
+                    : bodyTypeKey === 'curvy'
+                            ? 'PHYSIQUE DETAILS: Curvy figure. Noticeable hip/waist curve, fuller thighs/arms. Do NOT render extremely thin.'
+                        : bodyTypeKey === 'plus size' || bodyTypeKey === 'plus-size' || bodyTypeKey === 'plus'
+                                ? 'PHYSIQUE DETAILS: Plus-size figure. Fuller midsection and arms, thicker neck. Do NOT render a thin frame.'
                                 : 'PHYSIQUE DETAILS: Average figure. Balanced proportions, neither extremely thin nor plus-size.';
                 parts.push(physiqueAnchor);
             }
@@ -504,31 +416,9 @@ Captured by smartphone so fine edges may appear soft or broken.
 
             if (identityMode === 'auto' && identityVariationToken) {
                 parts.push(`[IDENTITY_VARIATION_TOKEN: ${identityVariationToken}]`);
-                if (personCount === 'couple') {
-                    parts.push(`FACE SIGNATURE A: ${this.buildFaceSignature(`${identityVariationToken}-A`)}`);
-                    parts.push(`FACE SIGNATURE B: ${this.buildFaceSignature(`${identityVariationToken}-B`)}`);
-                } else if (personCount === 'group') {
-                    parts.push(`FACE SIGNATURE A: ${this.buildFaceSignature(`${identityVariationToken}-A`)}`);
-                    parts.push(`FACE SIGNATURE B: ${this.buildFaceSignature(`${identityVariationToken}-B`)}`);
-                    parts.push(`FACE SIGNATURE C: ${this.buildFaceSignature(`${identityVariationToken}-C`)}`);
-                    parts.push(`FACE SIGNATURE D: ${this.buildFaceSignature(`${identityVariationToken}-D`)}`);
-                } else {
-                    parts.push(`FACE SIGNATURE: ${this.buildFaceSignature(identityVariationToken)}`);
-                }
                 parts.push('This must be a different individual than any previously generated subject. Do not repeat facial identity.');
             } else if (identityMode === 'locked' && identityKey) {
                 parts.push(`[IDENTITY_KEY: ${identityKey}]`);
-                if (personCount === 'couple') {
-                    parts.push(`FACE SIGNATURE A: ${this.buildFaceSignature(`${identityKey}-A`)}`);
-                    parts.push(`FACE SIGNATURE B: ${this.buildFaceSignature(`${identityKey}-B`)}`);
-                } else if (personCount === 'group') {
-                    parts.push(`FACE SIGNATURE A: ${this.buildFaceSignature(`${identityKey}-A`)}`);
-                    parts.push(`FACE SIGNATURE B: ${this.buildFaceSignature(`${identityKey}-B`)}`);
-                    parts.push(`FACE SIGNATURE C: ${this.buildFaceSignature(`${identityKey}-C`)}`);
-                    parts.push(`FACE SIGNATURE D: ${this.buildFaceSignature(`${identityKey}-D`)}`);
-                } else {
-                    parts.push(`FACE SIGNATURE: ${this.buildFaceSignature(identityKey)}`);
-                }
                 parts.push('Same subject as previous generation. Maintain facial identity consistency.');
             }
 
