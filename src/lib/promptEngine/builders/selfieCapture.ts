@@ -9,11 +9,6 @@ UGC SELFIE CAPTURE (FRONT CAMERA — HARD CONSTRAINT):
 
 Front-facing smartphone camera only (tiny sensor). Flat focus across entire frame; no background blur, no portrait mode blur.
 Framing is accidental and imperfect; never level, never centered, never symmetrical.
-
-PROCESSING (ANTI-PRO):
-No HDR. No "clarity". No deliberate sharpening. No beauty retouch.
-Cheap phone auto-processing only: uneven white balance, slight green/magenta cast, mild motion smear, compression.
-Lens artifacts allowed: slight wide-angle barrel distortion, mild rolling-shutter wobble, slight chromatic aberration.
 `.trim();
 
 const CLOSE_FACE_SELFIE_BLOCK = `
@@ -56,12 +51,6 @@ Tiny sensor. Cheap optics.
 
 Flat focus across the entire frame.
 Everything is equally mediocre in focus.
-
-PROCESSING (ANTI-PRO):
-No HDR. No clarity. No deliberate sharpening. No "clean" commercial look.
-Uneven white balance, mixed indoor lighting with a slight green cast is allowed.
-Minor motion smear and rolling-shutter wobble are allowed (but the product label must remain readable).
-Slight wide-angle barrel distortion and mild chromatic aberration are allowed.
 
 Angle is imperfect and human:
 - pitch between +6° to +10° OR −6° to −10°
@@ -113,7 +102,6 @@ LIGHTING (REAL DOMESTIC ONLY)
 Lighting is accidental.
 Uneven.
 Mixed temperature.
-Slight green tint from indoor fixtures is allowed.
 
 NO fill light.
 NO beauty light.
@@ -147,13 +135,6 @@ perfect hands
 perfect skin
 cinematic look
 premium look
-beauty lighting
-skin retouch
-airbrushed skin
-makeup look
-hdr
-clarity
-over-sharpened
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 FINAL VALIDATION (FAIL CHECK)
@@ -192,13 +173,13 @@ BLOCKED: professional framing, rule of thirds centered, cinematic look, backgrou
 
 const SELFIE_IMPERFECTION_LEVEL_RULES: Record<'low' | 'medium' | 'high', string> = {
     low: `
-IMPERFECTIONS (LOW): Subtle phone flaws only: mild sensor noise, slight white-balance mismatch, light compression. No HDR/clarity.
+IMPERFECTIONS (LOW): Subtle phone flaws only: mild sensor noise, slight white-balance mismatch, light compression.
 `.trim(),
     medium: `
-IMPERFECTIONS (MEDIUM): Noticeable phone flaws: JPEG compression blocks, uneven white balance with slight green cast, clipped highlights, crushed shadows, minor motion smear. No HDR/clarity or clean sharpening.
+IMPERFECTIONS (MEDIUM): Noticeable phone flaws: JPEG compression blocks, oversharpen halos, uneven white balance, clipped highlights, crushed shadows, minor motion blur.
 `.trim(),
     high: `
-IMPERFECTIONS (HIGH): Strong, ugly phone flaws: heavy compression artifacts, rolling-shutter wobble, fingerprint haze on lens, harsh mixed lighting with a slight green cast, uneven noise reduction. No HDR/clarity or clean sharpening.
+IMPERFECTIONS (HIGH): Strong, ugly phone flaws: heavy compression artifacts, aggressive oversharpen halos, rolling-shutter wobble, fingerprint haze on lens, harsh mixed lighting.
 `.trim()
 };
 
