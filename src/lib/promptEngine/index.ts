@@ -192,14 +192,12 @@ function stripModeResolutionGuardrail(prompt: string): string {
 }
 
 function isModeResolutionRestricted(options: PromptOptions): boolean {
-    const ugcStyleKey = String(options.ugcStyle ?? 'optimized').toLowerCase();
     return (
+        options.creationIntent === 'ugc' ||
         options.contentStyle === 'ugc' ||
         Boolean(options.ugcRealModeActive) ||
         Boolean(options.rawDomesticUgcActive) ||
-        Boolean((options as any).ugcSelfieDominant) ||
-        ugcStyleKey === 'raw' ||
-        ugcStyleKey === 'natural'
+        Boolean((options as any).ugcSelfieDominant)
     );
 }
 
