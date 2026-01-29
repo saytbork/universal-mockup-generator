@@ -15,12 +15,13 @@ export class FinalizeBuilder implements PromptBuilder {
             Boolean(options.rawDomesticUgcActive) ||
             options.contentStyle === 'ugc' ||
             options.creationIntent === 'ugc' ||
-            options.creationMode === 'lifestyle';
+            Boolean((options as any).ugcSelfieDominant);
 
         const lines: string[] = [
             'Final render must be high resolution, photorealistic and free of watermarks or text.',
             'No text, no logos, no watermarks.',
             'No CGI look or plastic skin.',
+            'No doll-like, mannequin, or uncanny valley look.',
             'No distorted hands, fingers or wrists.',
             'No floating limbs.',
         ];
@@ -59,7 +60,7 @@ export class FinalizeBuilder implements PromptBuilder {
 
         const intent = options.creationIntent || 'ugc';
 
-        if (intent !== 'ugc' && options.contentStyle !== 'product' && options.sceneIntent !== 'ecommerce') {
+        if (intent !== 'ugc' && options.creationMode !== 'lifestyle' && options.contentStyle !== 'product' && options.sceneIntent !== 'ecommerce') {
             lines.push(
                 'No lifestyle framing.',
                 'No creator narrative.',
@@ -67,6 +68,15 @@ export class FinalizeBuilder implements PromptBuilder {
                 'No phone camera.',
                 'No text or graphic overlays.',
                 'No logos or graphics.'
+            );
+        }
+
+        // Lifestyle (non-UGC) should feel like authentic advertising photography,
+        // but must avoid "portrait mode" / subject-isolation artifacts that read as AI.
+        if (options.creationMode === 'lifestyle' && intent !== 'ugc') {
+            lines.push(
+                'DEPTH CONSTRAINT (LIFESTYLE): Avoid portrait-mode blur, bokeh, and artificial subject isolation. If any background softness exists, it must feel like natural optics, not a cutout.',
+                'REALISM HARD RULE: Real human photo. No CGI, no doll/mannequin look, no airbrushed skin, no beauty retouching.'
             );
         }
 

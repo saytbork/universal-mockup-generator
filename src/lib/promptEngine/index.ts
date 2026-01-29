@@ -75,7 +75,7 @@ function negativePrompt(options?: PromptOptions) {
 
         // Face integrity
         "distorted face", "face artifacts", "asymmetric face",
-        "doll-like face",
+        "doll-like face", "doll face", "porcelain doll", "uncanny valley",
 
         // Torso integrity
         "partial person", "duplicate torso",
@@ -173,7 +173,7 @@ const generateRequestSeed = (): string => {
 const MODE_RESOLUTION_GUARDRAIL = `
 MODE RESOLUTION (MANDATORY)
 
-If UGC, Raw Domestic UGC, or Lifestyle Real is enabled:
+If UGC or Raw Domestic UGC is enabled:
 - Remove all camera terminology related to optics, lenses, focus, depth, bokeh, cinematic look, film look, or professional photography.
 - Enforce flat, natural smartphone capture with no intentional depth or focus effects.
 - Depth of field must be implicit, neutral, uncontrolled, and never described.
@@ -197,7 +197,7 @@ function isModeResolutionRestricted(options: PromptOptions): boolean {
         options.contentStyle === 'ugc' ||
         Boolean(options.ugcRealModeActive) ||
         Boolean(options.rawDomesticUgcActive) ||
-        options.creationMode === 'lifestyle'
+        Boolean((options as any).ugcSelfieDominant)
     );
 }
 
