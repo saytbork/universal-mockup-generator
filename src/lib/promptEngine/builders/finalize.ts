@@ -80,6 +80,14 @@ export class FinalizeBuilder implements PromptBuilder {
             );
         }
 
+        if (options.creationMode === 'aesthetic' && intent !== 'ugc' && options.contentStyle !== 'ugc') {
+            lines.push(
+                'LIFESTYLE AD PHOTO (AESTHETIC): This is a product-first lifestyle advertisement image, not a character portrait or AI avatar.',
+                'HUMAN REALISM (NON-NEGOTIABLE): Natural facial asymmetry is required. Visible pores, fine lines, and subtle skin texture must remain. No beauty retouching, no porcelain skin, no stock-avatar look.',
+                'BLOCKED: AI doll face, synthetic human, mannequin, hyper-perfect symmetry, plastic skin, editorial portrait, cinematic portrait, expert headshot.'
+            );
+        }
+
         if (options.productStructure && options.productStructure !== 'single') {
             lines.push(
                 'Only one product is held naturally in the hand while any additional items rest on nearby surfaces (table, shelf, counter, or bag).',
