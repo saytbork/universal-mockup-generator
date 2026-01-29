@@ -26,6 +26,7 @@ CAPTURE: Imprecise selfie composition, casual low-intent.
 const UGC_LIGHTING_RULES = `
 LIGHTING: Accidental domestic fixtures, mixed color temperatures.
 QUALITY: Overexposed areas, crushed shadows, uneven skin tones.
+COLOR: Uneven white balance with slight green tint from indoor fixtures is allowed.
 RULE: No correction, no fill, no diffusion.
 `.trim().replace(/\s+/g, ' ');
 
@@ -54,15 +55,15 @@ If no, reject immediately.
 
 const UGC_IMPERFECTION_LEVEL_RULES: Record<'low' | 'medium' | 'high', string> = {
     low: `
-IMPERFECTIONS (LOW): Include 1–2 subtle capture flaws only: mild sensor noise, slightly uneven white balance, light JPEG compression.
+IMPERFECTIONS (LOW): Include 1–2 subtle capture flaws only: mild sensor noise, slightly uneven white balance, light JPEG compression. No HDR/clarity/sharpening.
 Keep the image readable and not stylized.
 `.trim().replace(/\s+/g, ' '),
     medium: `
-IMPERFECTIONS (MEDIUM): Include 2–3 obvious phone-capture flaws: visible JPEG compression blocks, oversharpening halos, uneven white balance, clipped highlights, crushed shadows, minor motion smear.
+IMPERFECTIONS (MEDIUM): Include 2–3 obvious phone-capture flaws: visible JPEG compression blocks, uneven white balance with slight green cast, clipped highlights, crushed shadows, minor motion smear. No HDR/clarity/sharpening.
 Avoid any professional look.
 `.trim().replace(/\s+/g, ' '),
     high: `
-IMPERFECTIONS (HIGH): Include 3–5 strong phone-capture flaws: heavy JPEG compression artifacts, aggressive oversharpening halos, rolling-shutter wobble, fingerprint haze on phone glass, harsh mixed lighting, blown highlights and shadow crush.
+IMPERFECTIONS (HIGH): Include 3–5 strong phone-capture flaws: heavy JPEG compression artifacts, rolling-shutter wobble, fingerprint haze on phone glass, harsh mixed lighting with a slight green cast, blown highlights and shadow crush, uneven noise reduction. No HDR/clarity/sharpening.
 Must feel like a low-quality, unflattering domestic capture.
 `.trim().replace(/\s+/g, ' ')
 };
