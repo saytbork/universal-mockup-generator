@@ -5846,22 +5846,27 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <p className="text-sm font-medium text-gray-900">Raw Domestic UGC</p>
                         <p className="text-xs text-gray-500">Careless front-camera capture at home</p>
                       </div>
-                        <Toggle
-                          checked={values.ugcRealMode}
-                          aria-label="Enable Raw Domestic UGC"
-                          onCheckedChange={(newValue) => {
-                            updateValue('ugcRealMode', newValue);
-                            if (newValue) {
-                              updateValue('ugcImperfectionLevel', 'high');
-                              updateValue('personCount', 'single');
-                              updateValue('editSecondaryPerson', false);
-                              updateValue('formulationStoryEnabled', false);
-                              updateValue('facialExpression', 'Soft Smile');
-                              updateValue('eyeDirection', 'Looking at camera');
-                            }
-                          }}
-                        />
-                      </div>
+                      <Toggle
+                        checked={values.ugcRealMode}
+                        aria-label="Enable Raw Domestic UGC"
+                        onCheckedChange={(newValue) => {
+                          updateValue('ugcRealMode', newValue);
+                          if (newValue) {
+                            updateValue('creationIntent', 'ugc');
+                            updateValue('creationMode', 'Lifestyle UGC');
+                            updateValue('ugcImperfectionLevel', 'high');
+                            updateValue('personCount', 'single');
+                            updateValue('editSecondaryPerson', false);
+                            updateValue('formulationStoryEnabled', false);
+                            updateValue('facialExpression', 'Soft Smile');
+                            updateValue('eyeDirection', 'Looking at camera');
+                          } else {
+                            updateValue('creationIntent', 'brand');
+                            updateValue('creationMode', 'Aesthetic Builder');
+                          }
+                        }}
+                      />
+                    </div>
 
 	                    {values.ugcRealMode && (
 	                      <>

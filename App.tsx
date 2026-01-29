@@ -1079,7 +1079,6 @@ const App: React.FC = () => {
   const envApiKey = getEnvApiKey();
   const initialSceneRef = useRef<StoryboardScene | null>(null);
   const bundleSelectionRef = useRef<ProductId[] | null>(null);
-  const generationInFlightRef = useRef(false);
   if (!initialSceneRef.current) {
     initialSceneRef.current = {
       id: makeSceneId(),
@@ -4548,13 +4547,8 @@ If the model attempts to create a scene or environment, override it and force a 
     return hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
   };
 
-	  const handleGenerateClick = useCallback(
-	    async (bundleProducts?: ProductId[], overrideActiveList?: ActiveProduct[], runMode: 'generate' | 'validate' = 'generate') => {
-	      if (generationInFlightRef.current) {
-	        return;
-	      }
-	      generationInFlightRef.current = true;
-	      try {
+  const handleGenerateClick = useCallback(
+    async (bundleProducts?: ProductId[], overrideActiveList?: ActiveProduct[], runMode: 'generate' | 'validate' = 'generate') => {
       bundleSelectionRef.current = bundleProducts ?? null;
       if (isTrialLocked) {
         setImageError(`You reached the ${currentPlan.label} limit (${planCreditLimit} credits). Upgrade your plan to keep generating scenes.`);
@@ -4585,20 +4579,11 @@ If the model attempts to create a scene or environment, override it and force a 
       setImageError(null);
 
       try {
-        const cloneLifestyleStep3Values = <T,>(value: T): T => {
-          const structuredCloneFn = (globalThis as any)?.structuredClone as ((input: T) => T) | undefined;
-          if (typeof structuredCloneFn === 'function') {
-            return structuredCloneFn(value);
-          }
-          return JSON.parse(JSON.stringify(value)) as T;
-        };
-        const lifestyleStep3Snapshot = lifestyleStep3Values ? cloneLifestyleStep3Values(lifestyleStep3Values) : null;
-
         // Build PromptOptions from current state
         const shouldReuseIdentityKey =
           !isProductPlacement &&
           !hasModelReference &&
-          lifestyleStep3Snapshot?.sameCreatorAcrossScenes === true &&
+          lifestyleStep3Values?.sameCreatorAcrossScenes === true &&
           personIncluded === true &&
           Boolean(identityContinuityRef.current?.identityKey);
 
@@ -4740,9 +4725,9 @@ If the model attempts to create a scene or environment, override it and force a 
             personIncluded: false,
             aspectRatio: PRODUCT_DEFAULT_ASPECT_RATIO,
           };
-        } else if (lifestyleStep3Snapshot) {
+        } else if (lifestyleStep3Values) {
           // LIFESTYLE/UGC MODE - Use legacy mapper (unchanged)
-          promptOptions = mapLifestyleToPromptOptions(lifestyleStep3Snapshot, basePromptOptions, hasModelReference);
+          promptOptions = mapLifestyleToPromptOptions(lifestyleStep3Values, basePromptOptions, hasModelReference);
           finalPrompt = promptEngine.build(promptOptions);
         } else {
           finalPrompt = promptEngine.build(promptOptions);
@@ -4751,7 +4736,7 @@ If the model attempts to create a scene or environment, override it and force a 
         const keepSamePersonAcrossRenders =
           !isProductPlacement &&
           !hasModelReference &&
-          lifestyleStep3Snapshot?.sameCreatorAcrossScenes === true &&
+          lifestyleStep3Values?.sameCreatorAcrossScenes === true &&
           personIncluded === true;
 
         // If the user wants the same person, force reuse of the previously-minted identity
@@ -4807,7 +4792,7 @@ If the model attempts to create a scene or environment, override it and force a 
         }
 
         // MANDATORY LOGS - Prove injection works
-        console.log('[SCENESTATE]', lifestyleStep3Snapshot);
+        console.log('[SCENESTATE]', lifestyleStep3Values);
         console.log('[PROMPT OPTIONS FROM MAP]', promptOptions);
 
         const promptHash = await computePromptHash(finalPrompt);
@@ -5002,16 +4987,13 @@ If the model attempts to create a scene or environment, override it and force a 
         } else {
           setImageError(errorMessage);
         }
-	      } finally {
-	        setIsImageLoading(false);
-	        bundleSelectionRef.current = null;
-	      }
       } finally {
-        generationInFlightRef.current = false;
+        setIsImageLoading(false);
+        bundleSelectionRef.current = null;
       }
-	    },
-	    [
-	      activeProducts,
+    },
+    [
+      activeProducts,
       planTier,
       planCreditLimit,
       isTrialLocked,
@@ -5039,22 +5021,17 @@ If the model attempts to create a scene or environment, override it and force a 
       handleApiKeyInvalid,
       normalizeGeminiModel(GOOGLE_MODEL ?? GEMINI_IMAGE_MODEL),
       setRemoteCredits,
-	      lifestylePrompt,
-	      lifestyleStep3Values
-	    ]
-	  );
+      lifestylePrompt,
+      lifestyleStep3Values
+    ]
+  );
 
-		  const handleGenerateEcommerceClick = useCallback(async () => {
-        if (generationInFlightRef.current) {
-          return;
-        }
-        generationInFlightRef.current = true;
-        try {
-		    bundleSelectionRef.current = null;
-		    if (isTrialLocked) {
-		      setImageError(`You reached the ${currentPlan.label} limit (${planCreditLimit} credits). Upgrade your plan to keep generating scenes.`);
-		      return;
-		    }
+	  const handleGenerateEcommerceClick = useCallback(async () => {
+	    bundleSelectionRef.current = null;
+	    if (isTrialLocked) {
+	      setImageError(`You reached the ${currentPlan.label} limit (${planCreditLimit} credits). Upgrade your plan to keep generating scenes.`);
+	      return;
+	    }
 
 	    const generationProducts = activeProducts;
 	    if (!generationProducts.length) {
@@ -5076,10 +5053,10 @@ If the model attempts to create a scene or environment, override it and force a 
 	    resetOutputs();
 	    setGeneratedCopy(null);
 	    setCopyError(null);
-		    setIsImageLoading(true);
-			    setImageError(null);
+	    setIsImageLoading(true);
+		    setImageError(null);
 
-			    try {
+		    try {
 		      // Ecommerce overlays are a Product Studio feature; build prompts from the ProductStudioStore
 		      // (not from legacy PromptEngine mapping), so all selected Product Studio options inject.
 		      const baseProductStateRaw = useProductStudioStore.getState();
@@ -5240,34 +5217,30 @@ If the model attempts to create a scene or environment, override it and force a 
         }
       }
       setImageError(errorMessage);
-	      } finally {
-	        setIsImageLoading(false);
-	        bundleSelectionRef.current = null;
-	      }
-	      } finally {
-	        generationInFlightRef.current = false;
-	      }
-				  }, [
-				    activeProducts,
-				    ecommerceGenerationSettings.reserveBlankSpace,
-				    ecommerceSelectedSlots,
+    } finally {
+      setIsImageLoading(false);
+      bundleSelectionRef.current = null;
+    }
+		  }, [
+		    activeProducts,
+		    ecommerceGenerationSettings.reserveBlankSpace,
+		    ecommerceSelectedSlots,
 		    getActiveApiKeyOrNotify,
 		    getImageCreditCost,
 		    isTrialBypassActive,
 	    isTrialLocked,
 	    currentPlan.label,
-		    planCreditLimit,
-		    remainingCredits,
-		    resetOutputs,
-		    options,
-			    runHiResPipeline,
-			    setShowPlanModal,
-			    reportGalleryEntry,
-	      isAdmin,
-	      setRemoteCredits,
-	      resolvedPlanTier,
-        generationInFlightRef,
-			  ]);
+	    planCreditLimit,
+	    remainingCredits,
+	    resetOutputs,
+	    options,
+		    runHiResPipeline,
+		    setShowPlanModal,
+		    reportGalleryEntry,
+      isAdmin,
+      setRemoteCredits,
+      resolvedPlanTier,
+		  ]);
 
   const generateMockup = useCallback(
     (bundleProducts: string[]) => {
