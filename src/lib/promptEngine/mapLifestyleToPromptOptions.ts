@@ -856,10 +856,7 @@ export function mapLifestyleToPromptOptions(
 
     // Initialize Person Details
     if (!mapped.personDetails) mapped.personDetails = {};
-    const personIncludedRaw = !sceneState.noPerson;
-    const shouldForcePersonForLifestyle =
-        mapped.creationMode === 'lifestyle' || mapped.creationMode === 'aesthetic';
-    const personIncluded = shouldForcePersonForLifestyle ? true : personIncludedRaw;
+    const personIncluded = !sceneState.noPerson;
     mapped.personIncluded = personIncluded;
     mapped.personCount = sceneState.personCount || 'single';
     mapped.coupleSex = mapped.personCount === 'couple' ? (sceneState.coupleSex || 'different') : undefined;
