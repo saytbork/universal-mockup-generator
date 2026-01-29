@@ -76,6 +76,7 @@ export default function EcommerceStep3({
 }: EcommerceStep3Props) {
   const [activeSlot, setActiveSlot] = useState<EcommerceSlotKey | null>(selectedSlots[0] ?? null);
   const [expandedBlockIndex, setExpandedBlockIndex] = useState<number | null>(0);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const svgRef = useRef<SVGSVGElement | null>(null);
 
   useEffect(() => {
@@ -85,12 +86,13 @@ export default function EcommerceStep3({
 
   const activeSpec = activeSlot ? slotsConfig[activeSlot] : null;
   const activeBaseImageUrl = activeSlot ? slotBaseImages[activeSlot] : null;
+  const hasPreviewImage = Boolean(activeBaseImageUrl);
 
   const overlayWarning = useMemo(() => {
     if (!activeSlot || !activeSpec) return null;
     if (!activeSpec.blocks.length) return null;
     if (settings.reserveBlankSpace) return null;
-    return 'Overlays work best with Reserve Blank Space enabled.';
+    return 'Leave a blank side so text never covers the product.';
   }, [activeSlot, activeSpec, settings.reserveBlankSpace]);
 
   const requiredDir = activeSlot ? ECOMMERCE_SLOT_REQUIRED_BLANK_SPACE[activeSlot] : null;
@@ -105,7 +107,7 @@ export default function EcommerceStep3({
       )}
 
       <section className="rounded-xl border border-gray-200 bg-whiteTint p-4 space-y-3">
-        <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Slots</p>
+        <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Answer this question</p>
         <div className="flex flex-wrap gap-2">
           {ECOMMERCE_SLOT_KEYS.map(slotKey => {
             const selected = selectedSlots.includes(slotKey);
@@ -134,7 +136,7 @@ export default function EcommerceStep3({
                 tone="warm"
                 onClick={() => setActiveSlot(slotKey)}
               >
-                {slotKey}
+                {ECOMMERCE_SLOT_LABELS[slotKey]}
               </Chip>
             ))}
           </div>
@@ -142,62 +144,9 @@ export default function EcommerceStep3({
       </section>
 
       <section className="rounded-xl border border-gray-200 bg-whiteTint p-4 space-y-4">
-        <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Generation Overrides</p>
-        <div className="flex flex-wrap items-center gap-2">
-          <Chip selected={settings.reserveBlankSpace} onClick={() => onSettingsChange({ ...settings, reserveBlankSpace: true })}>
-            Reserve Blank Space: On
-          </Chip>
-          <Chip selected={!settings.reserveBlankSpace} onClick={() => onSettingsChange({ ...settings, reserveBlankSpace: false })}>
-            Reserve Blank Space: Off
-          </Chip>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-gray-600">Blank space:</span>
-          {(['left', 'center', 'right'] as const).map(dir => (
-            <Chip
-              key={dir}
-              selected={settings.blankSpaceDirection === dir}
-              onClick={() => onSettingsChange({ ...settings, blankSpaceDirection: dir })}
-            >
-              {dir}
-            </Chip>
-          ))}
-          {requiredDir && (
-            <span className="text-xs text-gray-600">
-              (template suggests: <span className="text-gray-900">{requiredDir}</span>)
-            </span>
-          )}
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-gray-600">View framing:</span>
-          {(
-            [
-              { key: 'centered', label: 'Centered' },
-              { key: 'left-negative-space', label: 'Left + negative space' },
-              { key: 'right-negative-space', label: 'Right + negative space' },
-            ] as const
-          ).map(option => (
-            <Chip
-              key={option.key}
-              selected={settings.viewFraming === option.key}
-              onClick={() => onSettingsChange({ ...settings, viewFraming: option.key })}
-            >
-              {option.label}
-            </Chip>
-          ))}
-        </div>
-        {overlayWarning && (
-          <div className="flex items-start gap-2 text-xs text-gray-500">
-            <AlertTriangle size={14} />
-            <span>{overlayWarning}</span>
-          </div>
-        )}
-      </section>
-
-      <section className="rounded-xl border border-gray-200 bg-whiteTint p-4 space-y-4">
         <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Live Preview</p>
         <div className="rounded-xl border border-gray-200 bg-whiteTint overflow-hidden">
-          {activeSpec ? (
+          {activeSpec && hasPreviewImage ? (
             <EcommerceOverlaySvg
               baseImageUrl={activeBaseImageUrl}
               spec={activeSpec}
@@ -205,7 +154,9 @@ export default function EcommerceStep3({
               ref={svgRef}
             />
           ) : (
-            <div className="p-6 text-sm text-gray-600">Select a slot to preview.</div>
+            <div className="p-6 text-sm text-gray-600">
+              {activeSlot ? 'Generate this slot to preview overlays on the product image.' : 'Select a slot to preview.'}
+            </div>
           )}
         </div>
         <div className="flex flex-wrap gap-2">
@@ -238,7 +189,7 @@ export default function EcommerceStep3({
         </div>
         {!activeBaseImageUrl && activeSlot && (
           <p className="text-xs text-gray-600">
-            Generate <span className="text-gray-900">{activeSlot}</span> to enable export.
+            Generate <span className="text-gray-900">{ECOMMERCE_SLOT_LABELS[activeSlot]}</span> to enable export.
           </p>
         )}
       </section>
@@ -246,202 +197,539 @@ export default function EcommerceStep3({
       <section className="rounded-xl border border-gray-200 bg-whiteTint p-4 space-y-4">
         <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Editor</p>
         {!activeSlot || !activeSpec ? (
-          <p className="text-sm text-gray-600">Select a slot to edit.</p>
+          <p className="text-sm text-gray-600">Select a question to edit.</p>
         ) : (
           <div className="space-y-5">
             <div className="space-y-3">
-              <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Global Style</p>
-              <div className="space-y-3">
-                <div className="space-y-1">
-                  <p className="text-[11px] text-gray-600">Font</p>
+              <StepCard
+                title={ECOMMERCE_SLOT_LABELS[activeSlot]}
+                subtitle="Answer the question in short, clear phrases. We’ll optimize spacing automatically."
+              >
+                <div className="space-y-4">
+                  {activeSpec.blocks.map((block, idx) => (
+                    <SimplifiedBlockEditor
+                      key={`${block.type}-${idx}`}
+                      block={block}
+                      onChange={nextBlock => {
+                        onSlotsConfigChange(
+                          updateSlotSpec(slotsConfig, activeSlot, prev => updateBlock(prev, idx, () => nextBlock as any))
+                        );
+                      }}
+                    />
+                  ))}
+                </div>
+              </StepCard>
+
+              <StepCard title="Visual preset" subtitle="Pick a clean style. Fonts and icons are already optimized.">
+                <div className="space-y-3">
                   <div className="flex flex-wrap gap-2">
-                    {(
-                      [
-                        {
-                          label: 'Inter',
-                          value: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-                        },
-                        {
-                          label: 'System',
-                          value: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-                        },
-                        { label: 'Serif', value: 'ui-serif, Georgia, Cambria, \"Times New Roman\", Times, serif' },
-                      ] as const
-                    ).map(font => (
+                    {VISUAL_PRESETS.map(preset => {
+                      const selected = isPresetMatch(activeSpec.globalStyle, preset);
+                      return (
+                        <PresetCard
+                          key={preset.key}
+                          label={preset.label}
+                          description={preset.description}
+                          selected={selected}
+                          onClick={() => {
+                            onSlotsConfigChange(
+                              updateSlotSpec(slotsConfig, activeSlot, prev => ({
+                                ...prev,
+                                globalStyle: preset.apply(prev.globalStyle),
+                              }))
+                            );
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs text-gray-600">Background</span>
+                    {(['glass', 'solid', 'none'] as const).map(mode => (
                       <Chip
-                        key={font.label}
-                        selected={activeSpec.globalStyle.fontFamily === font.value}
+                        key={mode}
+                        selected={activeSpec.globalStyle.cardBgStyle === mode}
                         onClick={() =>
                           onSlotsConfigChange(
                             updateSlotSpec(slotsConfig, activeSlot, prev => ({
                               ...prev,
-                              globalStyle: { ...prev.globalStyle, fontFamily: font.value },
+                              globalStyle: { ...prev.globalStyle, cardBgStyle: mode },
                             }))
                           )
                         }
                       >
-                        {font.label}
+                        {mode === 'glass' ? 'Glass' : mode === 'solid' ? 'Solid' : 'Minimal'}
                       </Chip>
                     ))}
                   </div>
                 </div>
-                <LabeledInput
-                  label="Text color"
-                  value={activeSpec.globalStyle.textColor}
-                  onChange={value => {
-                    onSlotsConfigChange(
-                      updateSlotSpec(slotsConfig, activeSlot, prev => ({
-                        ...prev,
-                        globalStyle: { ...prev.globalStyle, textColor: clampHex(value, prev.globalStyle.textColor) },
-                      }))
-                    );
-                  }}
-                  placeholder="#FFFFFF"
-                />
-                <LabeledInput
-                  label="Accent color"
-                  value={activeSpec.globalStyle.accentColor}
-                  onChange={value => {
-                    onSlotsConfigChange(
-                      updateSlotSpec(slotsConfig, activeSlot, prev => ({
-                        ...prev,
-                        globalStyle: { ...prev.globalStyle, accentColor: clampHex(value, prev.globalStyle.accentColor) },
-                      }))
-                    );
-                  }}
-                  placeholder="#8B5CF6"
-                />
-                <LabeledNumber
-                  label="Heading weight"
-                  value={activeSpec.globalStyle.headingWeight}
-                  onChange={value =>
-                    onSlotsConfigChange(
-                      updateSlotSpec(slotsConfig, activeSlot, prev => ({
-                        ...prev,
-                        globalStyle: { ...prev.globalStyle, headingWeight: Math.max(100, Math.min(900, value)) },
-                      }))
-                    )
-                  }
-                  min={100}
-                  max={900}
-                  step={50}
-                />
-                <LabeledNumber
-                  label="Body weight"
-                  value={activeSpec.globalStyle.bodyWeight}
-                  onChange={value =>
-                    onSlotsConfigChange(
-                      updateSlotSpec(slotsConfig, activeSlot, prev => ({
-                        ...prev,
-                        globalStyle: { ...prev.globalStyle, bodyWeight: Math.max(100, Math.min(900, value)) },
-                      }))
-                    )
-                  }
-                  min={100}
-                  max={900}
-                  step={50}
-                />
-                <LabeledNumber
-                  label="Radius"
-                  value={activeSpec.globalStyle.radius}
-                  onChange={value =>
-                    onSlotsConfigChange(
-                      updateSlotSpec(slotsConfig, activeSlot, prev => ({
-                        ...prev,
-                        globalStyle: { ...prev.globalStyle, radius: Math.max(0, value) },
-                      }))
-                    )
-                  }
-                  min={0}
-                  max={40}
-                  step={1}
-                />
-                <LabeledNumber
-                  label="Base scale"
-                  value={activeSpec.globalStyle.baseScale}
-                  onChange={value =>
-                    onSlotsConfigChange(
-                      updateSlotSpec(slotsConfig, activeSlot, prev => ({
-                        ...prev,
-                        globalStyle: { ...prev.globalStyle, baseScale: Math.max(0.6, Math.min(2, value)) },
-                      }))
-                    )
-                  }
-                  min={0.6}
-                  max={2}
-                  step={0.05}
-                />
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs text-gray-600">Card background:</span>
-                {(['glass', 'solid', 'none'] as const).map(mode => (
-                  <Chip
-                    key={mode}
-                    selected={activeSpec.globalStyle.cardBgStyle === mode}
-                    onClick={() =>
-                      onSlotsConfigChange(
-                        updateSlotSpec(slotsConfig, activeSlot, prev => ({
-                          ...prev,
-                          globalStyle: { ...prev.globalStyle, cardBgStyle: mode },
-                        }))
-                      )
-                    }
-                  >
-                    {mode}
-                  </Chip>
-                ))}
-              </div>
-            </div>
+              </StepCard>
 
-            <div className="space-y-3">
-              <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Blocks</p>
-              <div className="space-y-2">
-                {activeSpec.blocks.map((block, idx) => {
-                  const isOpen = expandedBlockIndex === idx;
-                  return (
-                    <div key={`${block.type}-${idx}`} className="rounded-xl border border-gray-200 bg-whiteTint overflow-hidden">
-                      <button
-                        type="button"
-                        onClick={() => setExpandedBlockIndex(isOpen ? null : idx)}
-                        className="w-full flex items-center justify-between px-3 py-2 text-left"
+              <StepCard title="Product placement" subtitle="We keep text away from the product.">
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Chip selected={settings.reserveBlankSpace} onClick={() => onSettingsChange({ ...settings, reserveBlankSpace: true })}>
+                      Blank space: On
+                    </Chip>
+                    <Chip selected={!settings.reserveBlankSpace} onClick={() => onSettingsChange({ ...settings, reserveBlankSpace: false })}>
+                      Blank space: Off
+                    </Chip>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs text-gray-600">Place text on:</span>
+                    {(['left', 'center', 'right'] as const).map(dir => (
+                      <Chip
+                        key={dir}
+                        selected={settings.blankSpaceDirection === dir}
+                        onClick={() => onSettingsChange({ ...settings, blankSpaceDirection: dir })}
                       >
-                        <div className="text-sm text-gray-900">
-                          <span className="text-gray-600">{idx + 1}.</span> {block.type}
-                        </div>
-                        <span className="text-xs text-gray-500">{isOpen ? 'Collapse' : 'Expand'}</span>
-                      </button>
-                      {isOpen && (
-                        <div className="px-3 pb-3 space-y-3">
-                          <BlockPositionEditor
-                            block={block}
-                            onChange={nextBlock => {
-                              onSlotsConfigChange(
-                                updateSlotSpec(slotsConfig, activeSlot, prev => ({
-                                  ...updateBlock(prev, idx, () => nextBlock as any),
-                                }))
-                              );
-                            }}
-                          />
-                          <BlockEditor
-                            block={block}
-                            onChange={nextBlock => {
-                              onSlotsConfigChange(
-                                updateSlotSpec(slotsConfig, activeSlot, prev => updateBlock(prev, idx, () => nextBlock as any))
-                              );
-                            }}
-                          />
-                        </div>
-                      )}
+                        {dir}
+                      </Chip>
+                    ))}
+                    {requiredDir && (
+                      <span className="text-xs text-gray-600">
+                        Suggested: <span className="text-gray-900">{requiredDir}</span>
+                      </span>
+                    )}
+                  </div>
+                  {overlayWarning && (
+                    <div className="flex items-start gap-2 text-xs text-gray-500">
+                      <AlertTriangle size={14} />
+                      <span>{overlayWarning}</span>
                     </div>
-                  );
-                })}
+                  )}
+                </div>
+              </StepCard>
+
+              <div className="rounded-xl border border-dashed border-gray-200 bg-whiteTint px-3 py-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAdvanced(prev => !prev)}
+                  className="w-full flex items-center justify-between text-left text-sm text-gray-700"
+                >
+                  <span>Advanced controls (optional)</span>
+                  <span className="text-xs text-gray-500">{showAdvanced ? 'Hide' : 'Show'}</span>
+                </button>
               </div>
+
+              {showAdvanced && (
+                <div className="space-y-4">
+                  <div className="rounded-xl border border-gray-200 bg-whiteTint p-3 space-y-3">
+                    <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Global Style</p>
+                    <div className="space-y-3">
+                      <div className="space-y-1">
+                        <p className="text-[11px] text-gray-600">Font</p>
+                        <div className="flex flex-wrap gap-2">
+                          {(
+                            [
+                              {
+                                label: 'Inter',
+                                value: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+                              },
+                              {
+                                label: 'System',
+                                value: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+                              },
+                              { label: 'Serif', value: 'ui-serif, Georgia, Cambria, \"Times New Roman\", Times, serif' },
+                            ] as const
+                          ).map(font => (
+                            <Chip
+                              key={font.label}
+                              selected={activeSpec.globalStyle.fontFamily === font.value}
+                              onClick={() =>
+                                onSlotsConfigChange(
+                                  updateSlotSpec(slotsConfig, activeSlot, prev => ({
+                                    ...prev,
+                                    globalStyle: { ...prev.globalStyle, fontFamily: font.value },
+                                  }))
+                                )
+                              }
+                            >
+                              {font.label}
+                            </Chip>
+                          ))}
+                        </div>
+                      </div>
+                      <LabeledInput
+                        label="Text color"
+                        value={activeSpec.globalStyle.textColor}
+                        onChange={value => {
+                          onSlotsConfigChange(
+                            updateSlotSpec(slotsConfig, activeSlot, prev => ({
+                              ...prev,
+                              globalStyle: { ...prev.globalStyle, textColor: clampHex(value, prev.globalStyle.textColor) },
+                            }))
+                          );
+                        }}
+                        placeholder="#FFFFFF"
+                      />
+                      <LabeledInput
+                        label="Accent color"
+                        value={activeSpec.globalStyle.accentColor}
+                        onChange={value => {
+                          onSlotsConfigChange(
+                            updateSlotSpec(slotsConfig, activeSlot, prev => ({
+                              ...prev,
+                              globalStyle: { ...prev.globalStyle, accentColor: clampHex(value, prev.globalStyle.accentColor) },
+                            }))
+                          );
+                        }}
+                        placeholder="#8B5CF6"
+                      />
+                      <LabeledNumber
+                        label="Heading weight"
+                        value={activeSpec.globalStyle.headingWeight}
+                        onChange={value =>
+                          onSlotsConfigChange(
+                            updateSlotSpec(slotsConfig, activeSlot, prev => ({
+                              ...prev,
+                              globalStyle: { ...prev.globalStyle, headingWeight: Math.max(100, Math.min(900, value)) },
+                            }))
+                          )
+                        }
+                        min={100}
+                        max={900}
+                        step={50}
+                      />
+                      <LabeledNumber
+                        label="Body weight"
+                        value={activeSpec.globalStyle.bodyWeight}
+                        onChange={value =>
+                          onSlotsConfigChange(
+                            updateSlotSpec(slotsConfig, activeSlot, prev => ({
+                              ...prev,
+                              globalStyle: { ...prev.globalStyle, bodyWeight: Math.max(100, Math.min(900, value)) },
+                            }))
+                          )
+                        }
+                        min={100}
+                        max={900}
+                        step={50}
+                      />
+                      <LabeledNumber
+                        label="Radius"
+                        value={activeSpec.globalStyle.radius}
+                        onChange={value =>
+                          onSlotsConfigChange(
+                            updateSlotSpec(slotsConfig, activeSlot, prev => ({
+                              ...prev,
+                              globalStyle: { ...prev.globalStyle, radius: Math.max(0, value) },
+                            }))
+                          )
+                        }
+                        min={0}
+                        max={40}
+                        step={1}
+                      />
+                      <LabeledNumber
+                        label="Base scale"
+                        value={activeSpec.globalStyle.baseScale}
+                        onChange={value =>
+                          onSlotsConfigChange(
+                            updateSlotSpec(slotsConfig, activeSlot, prev => ({
+                              ...prev,
+                              globalStyle: { ...prev.globalStyle, baseScale: Math.max(0.6, Math.min(2, value)) },
+                            }))
+                          )
+                        }
+                        min={0.6}
+                        max={2}
+                        step={0.05}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Blocks</p>
+                    {activeSpec.blocks.map((block, idx) => {
+                      const isOpen = expandedBlockIndex === idx;
+                      return (
+                        <div key={`${block.type}-${idx}`} className="rounded-xl border border-gray-200 bg-whiteTint overflow-hidden">
+                          <button
+                            type="button"
+                            onClick={() => setExpandedBlockIndex(isOpen ? null : idx)}
+                            className="w-full flex items-center justify-between px-3 py-2 text-left"
+                          >
+                            <div className="text-sm text-gray-900">
+                              <span className="text-gray-600">{idx + 1}.</span> {block.type}
+                            </div>
+                            <span className="text-xs text-gray-500">{isOpen ? 'Collapse' : 'Expand'}</span>
+                          </button>
+                          {isOpen && (
+                            <div className="px-3 pb-3 space-y-3">
+                              <BlockPositionEditor
+                                block={block}
+                                onChange={nextBlock => {
+                                  onSlotsConfigChange(
+                                    updateSlotSpec(slotsConfig, activeSlot, prev => ({
+                                      ...updateBlock(prev, idx, () => nextBlock as any),
+                                    }))
+                                  );
+                                }}
+                              />
+                              <BlockEditor
+                                block={block}
+                                onChange={nextBlock => {
+                                  onSlotsConfigChange(
+                                    updateSlotSpec(slotsConfig, activeSlot, prev => updateBlock(prev, idx, () => nextBlock as any))
+                                  );
+                                }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs text-gray-600">View framing:</span>
+                    {(
+                      [
+                        { key: 'centered', label: 'Centered' },
+                        { key: 'left-negative-space', label: 'Left + negative space' },
+                        { key: 'right-negative-space', label: 'Right + negative space' },
+                      ] as const
+                    ).map(option => (
+                      <Chip
+                        key={option.key}
+                        selected={settings.viewFraming === option.key}
+                        onClick={() => onSettingsChange({ ...settings, viewFraming: option.key })}
+                      >
+                        {option.label}
+                      </Chip>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
       </section>
     </div>
   );
+}
+
+const VISUAL_PRESETS = [
+  {
+    key: 'clean',
+    label: 'Clean',
+    description: 'Balanced, glass cards',
+    apply: (style: EcommerceOverlaySpec['globalStyle']) => ({
+      ...style,
+      fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+      headingWeight: 800,
+      bodyWeight: 500,
+      radius: 18,
+      cardBgStyle: 'glass' as const,
+      textColor: '#FFFFFF',
+      accentColor: '#8B5CF6',
+      baseScale: 1,
+    }),
+  },
+  {
+    key: 'bold',
+    label: 'Bold',
+    description: 'Solid panels, strong accents',
+    apply: (style: EcommerceOverlaySpec['globalStyle']) => ({
+      ...style,
+      fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+      headingWeight: 900,
+      bodyWeight: 600,
+      radius: 16,
+      cardBgStyle: 'solid' as const,
+      textColor: '#FFFFFF',
+      accentColor: '#F97316',
+      baseScale: 1,
+    }),
+  },
+  {
+    key: 'minimal',
+    label: 'Minimal',
+    description: 'Text-only overlay',
+    apply: (style: EcommerceOverlaySpec['globalStyle']) => ({
+      ...style,
+      fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+      headingWeight: 700,
+      bodyWeight: 500,
+      radius: 12,
+      cardBgStyle: 'none' as const,
+      textColor: '#FFFFFF',
+      accentColor: '#8B5CF6',
+      baseScale: 1,
+    }),
+  },
+];
+
+function isPresetMatch(style: EcommerceOverlaySpec['globalStyle'], preset: (typeof VISUAL_PRESETS)[number]) {
+  const next = preset.apply(style);
+  return (
+    style.cardBgStyle === next.cardBgStyle &&
+    style.fontFamily === next.fontFamily &&
+    style.accentColor === next.accentColor &&
+    style.textColor === next.textColor
+  );
+}
+
+function StepCard({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-xl border border-gray-200 bg-whiteTint p-4 space-y-3">
+      <div className="space-y-1">
+        <p className="text-sm font-semibold text-gray-900">{title}</p>
+        {subtitle && <p className="text-xs text-gray-600">{subtitle}</p>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function PresetCard({
+  label,
+  description,
+  selected,
+  onClick,
+}: {
+  label: string;
+  description: string;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-xl border px-3 py-2 text-left transition ${
+        selected ? 'border-indigo-600 bg-indigo-50/60' : 'border-gray-200 bg-whiteTint hover:border-indigo-300'
+      }`}
+    >
+      <p className="text-sm font-semibold text-gray-900">{label}</p>
+      <p className="text-xs text-gray-600">{description}</p>
+    </button>
+  );
+}
+
+function SimplifiedBlockEditor({
+  block,
+  onChange,
+}: {
+  block: OverlayBlock;
+  onChange: (next: OverlayBlock) => void;
+}) {
+  if (block.type === 'headline') {
+    return (
+      <div className="space-y-3">
+        <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Main message</p>
+        <LabeledInput label="Headline" value={block.text} onChange={value => onChange({ ...block, text: value })} />
+        <LabeledInput
+          label="Subheadline"
+          value={block.subheadline ?? ''}
+          onChange={value => onChange({ ...block, subheadline: value || undefined })}
+          placeholder="Optional"
+        />
+      </div>
+    );
+  }
+  if (block.type === 'bullets') {
+    return (
+      <div className="space-y-3">
+        <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Key benefits</p>
+        {block.items.map((item, idx) => (
+          <LabeledInput
+            key={idx}
+            label={`Benefit ${idx + 1}`}
+            value={item.text}
+            onChange={value => {
+              const next = block.items.slice();
+              next[idx] = { ...item, text: value };
+              onChange({ ...block, items: next });
+            }}
+          />
+        ))}
+        <button
+          type="button"
+          onClick={() => onChange({ ...block, items: [...block.items, { iconName: 'Check', text: 'New benefit' }] })}
+          className="text-xs text-indigo-600 hover:text-indigo-600"
+        >
+          + Add benefit
+        </button>
+      </div>
+    );
+  }
+  if (block.type === 'steps') {
+    return (
+      <div className="space-y-3">
+        <p className="text-xs uppercase tracking-[0.35em] text-gray-600">How it works</p>
+        {block.steps.map((step, idx) => (
+          <div key={idx} className="rounded-lg border border-gray-200 bg-whiteTint p-2 space-y-2">
+            <LabeledInput
+              label={`Step ${idx + 1} title`}
+              value={step.title}
+              onChange={value => {
+                const next = block.steps.slice();
+                next[idx] = { ...step, title: value };
+                onChange({ ...block, steps: next });
+              }}
+            />
+            <LabeledInput
+              label="Step detail"
+              value={step.body}
+              onChange={value => {
+                const next = block.steps.slice();
+                next[idx] = { ...step, body: value };
+                onChange({ ...block, steps: next });
+              }}
+            />
+          </div>
+        ))}
+      </div>
+    );
+  }
+  if (block.type === 'testimonials') {
+    return (
+      <div className="space-y-3">
+        <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Testimonials</p>
+        {block.cards.map((card, idx) => (
+          <div key={idx} className="rounded-lg border border-gray-200 bg-whiteTint p-2 space-y-2">
+            <LabeledInput
+              label={`Quote ${idx + 1}`}
+              value={card.quote}
+              onChange={value => {
+                const next = block.cards.slice();
+                next[idx] = { ...card, quote: value };
+                onChange({ ...block, cards: next });
+              }}
+            />
+            <LabeledInput
+              label="Name"
+              value={card.name}
+              onChange={value => {
+                const next = block.cards.slice();
+                next[idx] = { ...card, name: value };
+                onChange({ ...block, cards: next });
+              }}
+            />
+          </div>
+        ))}
+      </div>
+    );
+  }
+  if (block.type === 'badge') {
+    return (
+      <div className="space-y-3">
+        <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Badge</p>
+        <LabeledInput label="Badge text" value={block.text} onChange={value => onChange({ ...block, text: value })} />
+      </div>
+    );
+  }
+  return null;
 }
 
 function BlockPositionEditor({
