@@ -1505,21 +1505,7 @@ export function mapLifestyleToPromptOptions(
         console.log('[MAP] shotType:', sceneState.shotType, '→', shotTypeSemantic);
 
         // Camera Angle
-        const isNonUgcLifestyleAd =
-            mapped.contentStyle !== 'ugc' &&
-            mapped.creationMode !== 'studio' &&
-            mapped.creationMode !== 'bg-replace' &&
-            mapped.creationMode !== 'ecom-blank' &&
-            (mapped.creationMode === 'lifestyle' || mapped.creationMode === 'aesthetic');
-
-        const cameraAngleKey =
-            isNonUgcLifestyleAd &&
-            effectiveShotTypeKey === 'Full body' &&
-            (sceneState.cameraAngle === 'High angle' || sceneState.cameraAngle === 'Top-down')
-                ? 'Eye level'
-                : (sceneState.cameraAngle || 'Eye level');
-
-        const cameraAngleSemantic = CAMERA_ANGLE_SEMANTIC_MAP[cameraAngleKey] || CAMERA_ANGLE_SEMANTIC_MAP['Eye level'];
+        const cameraAngleSemantic = CAMERA_ANGLE_SEMANTIC_MAP[sceneState.cameraAngle] || CAMERA_ANGLE_SEMANTIC_MAP['Eye level'];
         mapped.cameraAngle = cameraAngleSemantic as any;
         console.log('[MAP] cameraAngle:', sceneState.cameraAngle, '→', cameraAngleSemantic);
 
