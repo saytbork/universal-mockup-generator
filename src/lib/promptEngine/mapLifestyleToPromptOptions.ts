@@ -1928,20 +1928,15 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     // CONTENT STYLE & CREATION INTENT
     // ========================================================================
-    // The UI can reuse "UGC" as a generic people/lifestyle intent; we only treat it as
-    // true UGC when the user explicitly enables UGC Real Mode or selects a raw/natural UGC style.
-    const rawIntent = String(sceneState.creationIntent || '').trim();
-    const normalizedIntent = rawIntent.toLowerCase();
-    const isExplicitUgcIntent =
-        normalizedIntent === 'ugc' &&
-        (sceneState.ugcRealMode === true || ugcStyleKey === 'raw' || ugcStyleKey === 'natural');
-
-    mapped.creationIntent =
-        normalizedIntent === 'ugc' && !isExplicitUgcIntent
-            ? ('brand' as any)
-            : (sceneState.creationIntent as any);
-
-    mapped.contentStyle = isExplicitUgcIntent ? 'ugc' : '';
+    mapped.creationIntent = sceneState.creationIntent;
+    // This mapper is used for Lifestyle + UGC flows.
+    // IMPORTANT: Only mark the prompt as `ugc` when the user explicitly selected an UGC intent/mode.
+    // Otherwise, Lifestyle should behave like authentic advertising photography (not "cheap phone" UGC).
+    const normalizedIntent = String(sceneState.creationIntent || '').trim().toLowerCase();
+    const isUgcIntent =
+        normalizedIntent === 'ugc' ||
+        sceneState.ugcRealMode === true;
+    mapped.contentStyle = isUgcIntent ? 'ugc' : '';
 
     // ========================================================================
     // SELFIE MODE (Restored Logic)
