@@ -56,6 +56,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
 	const [downloadResolution, setDownloadResolution] = useState<DownloadResolution>('original');
 	const [downloadError, setDownloadError] = useState<string | null>(null);
 	const [isProcessingDownload, setIsProcessingDownload] = useState(false);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   const parsedAspectRatio = useMemo(() => {
     const raw = String(targetAspectRatio ?? '').trim();
@@ -105,6 +106,17 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
     setDownloadResolution('original');
     setDownloadError(null);
   }, [imageUrl]);
+
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsLightboxOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isLightboxOpen]);
 
   const triggerDownload = (url: string, filename: string) => {
     const link = document.createElement('a');
@@ -238,6 +250,35 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
 
   return (
     <div className="flex flex-col w-full">
+      {isLightboxOpen && imageUrl && (
+        <div
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Image preview"
+          onClick={() => setIsLightboxOpen(false)}
+        >
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsLightboxOpen(false);
+            }}
+            className="absolute top-4 right-4 h-10 w-10 rounded-full border border-white/20 bg-black/40 text-white/90 hover:bg-black/60 transition flex items-center justify-center"
+            aria-label="Close preview"
+            title="Close"
+          >
+            <span className="text-xl leading-none">×</span>
+          </button>
+          <img
+            src={imageUrl}
+            alt="Generated Mockup (Full Size Preview)"
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[90vh] max-w-[95vw] object-contain rounded-xl border border-white/10"
+          />
+        </div>
+      )}
+
       <div
         ref={containerRef}
         className="relative w-full min-h-[22rem] sm:min-h-[40rem] max-h-[70vh] flex items-center justify-center rounded-xl bg-white overflow-hidden dark:bg-white/5 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]"
@@ -269,7 +310,8 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
             <img
               src={imageUrl}
               alt="Generated Mockup"
-              className="h-full w-full object-contain"
+              onClick={() => setIsLightboxOpen(true)}
+              className="h-full w-full object-contain cursor-zoom-in"
             />
           </div>
         ) : (
