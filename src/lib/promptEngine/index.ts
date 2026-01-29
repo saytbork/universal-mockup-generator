@@ -58,6 +58,178 @@ import type { PromptOptions } from './types';
 import { buildMasterPrompt, MasterPromptSections } from './masterPrompt';
 
 // ============================================================================
+// LIFESTYLE ONLY · Commercial Advertising · Human-Safe Canonical
+// (Copiar y pegar tal cual.)
+// ============================================================================
+const LIFESTYLE_COMMERCIAL_CANONICAL = `SYSTEM ROLE
+You are a deterministic visual generation engine specialized in LIFESTYLE COMMERCIAL ADVERTISING.
+You do not improvise.
+You do not infer intent.
+You execute only what is explicitly defined.
+
+There is NO product-only mode here.
+Lifestyle ALWAYS includes real people.
+The product exists within a lifestyle context.
+
+================================================================
+BLOCK 1 – DOMAIN LOCK (NON-NEGOTIABLE)
+================================================================
+
+This image is a LIFESTYLE ADVERTISEMENT IMAGE.
+
+This is:
+- Commercial lifestyle photography
+- Product-in-use or product-present advertising
+- Designed for PDPs, paid ads, and brand campaigns
+
+This is NOT:
+- A character portrait
+- An AI avatar
+- An expert headshot
+- Editorial or cinematic portraiture
+- Product-only photography
+
+================================================================
+BLOCK 2 – HUMAN RENDERING MODE (LOCKED, FIRST)
+================================================================
+
+A real human MUST be present.
+
+HUMAN TYPE:
+Real commercial advertising human.
+Comparable to real Meta Ads, Google Ads, ecommerce PDP lifestyle photography.
+
+HUMAN REALISM (NON-NEGOTIABLE):
+- Natural facial asymmetry is REQUIRED.
+- Visible skin texture, pores, fine lines, and micro-imperfections MUST be present.
+- Slight unevenness in posture, hands, and expression is REQUIRED.
+- Faces must feel alive, candid, and human.
+
+ABSOLUTELY FORBIDDEN:
+AI doll faces.
+Synthetic or CGI humans.
+Mannequin appearance.
+Porcelain or plastic skin.
+Perfect symmetry.
+Beauty retouching.
+Stock-avatar look.
+
+If any forbidden trait appears:
+→ The image is INVALID.
+→ Regenerate respecting this block.
+
+================================================================
+BLOCK 3 – IDENTITY HANDLING (SOFT, NEVER RIGID)
+================================================================
+
+Identity tokens or face signatures:
+- May guide age range, gender, and general appearance.
+- MUST NOT hard-lock facial perfection.
+- MUST allow variation, asymmetry, and imperfection.
+
+Identity exists only to avoid repetition,
+never to enforce idealized faces.
+
+================================================================
+BLOCK 4 – COMPOSITION (HIERARCHY ONLY)
+================================================================
+
+COMPOSITION OPTIONS (ALL VALID):
+- Product First
+- Balanced
+- Fifty / Fifty
+- Model First
+
+RULE:
+Composition defines visual priority ONLY.
+
+It does NOT affect:
+- facial beauty
+- skin quality
+- realism level
+- human rendering style
+
+Even in “Model First”:
+The human must remain real, imperfect, and non-idealized.
+
+================================================================
+BLOCK 5 – CAMERA & FRAMING (CAPTURE MECHANICS ONLY)
+================================================================
+
+Camera and framing describe HOW the scene is captured.
+They NEVER redefine the human.
+
+CAMERA TYPE:
+- DSLR / mirrorless camera
+- Cinema camera rig
+- Medium format studio camera
+
+Camera choice affects clarity and depth only.
+
+SHOT TYPE (ALL VALID):
+- Extreme close-up
+- Close
+- Medium
+- Wide
+- Full body
+
+If Wide or Full body:
+- Human proportions must remain natural.
+- Avoid catalog poses or rigid stance.
+- Natural weight distribution is REQUIRED.
+
+CAMERA ANGLE (ALL VALID):
+- Eye level
+- Slightly above eye level
+- Slightly below eye level
+- High angle
+- Low angle
+- Top-down
+- Bottom-up
+
+Angle affects spatial perception ONLY.
+It must NOT:
+- stylize the human
+- exaggerate anatomy
+- create toy-like or doll-like proportions
+
+================================================================
+BLOCK 6 – LIGHTING & ENVIRONMENT
+================================================================
+
+Lighting:
+- Natural or professionally controlled.
+- Believable and human-safe.
+- No beauty lighting.
+- No skin smoothing.
+- No CGI highlights.
+
+Environment:
+- Real, lived-in, and brand-safe.
+- Supports lifestyle context.
+- Secondary to product and human interaction.
+- Must not resemble a portrait studio.
+
+================================================================
+BLOCK 7 – FINAL VALIDATION (MANDATORY)
+================================================================
+
+Before finalizing, validate:
+
+- Does the person look like a real human in an ad?
+- Are asymmetry and imperfections visible?
+- Does the image avoid avatar, doll, or synthetic cues?
+- Do camera and framing affect capture, not identity?
+
+If any answer is NO:
+→ Reject output.
+→ Regenerate from BLOCK 2.
+
+================================================================
+END OF LIFESTYLE CANONICAL
+================================================================`;
+
+// ============================================================================
 // NEGATIVE PROMPT - Quality anchors and artifact prevention
 // ============================================================================
 function negativePrompt(options?: PromptOptions) {
@@ -153,6 +325,30 @@ function negativePrompt(options?: PromptOptions) {
             'studio lighting'
         ];
         ugcAntiPro.forEach(term => {
+            if (!entries.includes(term)) entries.push(term);
+        });
+    }
+
+    const isLifestyleNonUgc =
+        !isUgc &&
+        options?.contentStyle !== 'product' &&
+        (options?.creationMode === 'lifestyle' || options?.creationMode === 'aesthetic');
+    if (isLifestyleNonUgc) {
+        const lifestyleAntiDoll = [
+            'ai doll face',
+            'synthetic human',
+            'cgi person',
+            'mannequin',
+            'plastic face',
+            'porcelain skin',
+            'stock avatar',
+            'perfect symmetry',
+            'beauty retouch',
+            'editorial portrait',
+            'cinematic portrait',
+            'expert headshot'
+        ];
+        lifestyleAntiDoll.forEach(term => {
             if (!entries.includes(term)) entries.push(term);
         });
     }
@@ -735,6 +931,17 @@ export class PromptEngine {
         }
 
         finalPrompt = applyModeResolution(finalPrompt, options);
+
+        // Lifestyle-only canonical prelude (commercial advertising, human-safe).
+        // Applies only to non-UGC lifestyle/aesthetic modes.
+        if (
+            options.contentStyle !== 'ugc' &&
+            !options.ugcRealModeActive &&
+            !options.rawDomesticUgcActive &&
+            (options.creationMode === 'lifestyle' || options.creationMode === 'aesthetic')
+        ) {
+            finalPrompt = `${LIFESTYLE_COMMERCIAL_CANONICAL}\n\n${finalPrompt}`.trim();
+        }
 
         // ====================================================================
         // PRODUCT MODE HUMAN EXCLUSION (Legacy) -> Still valid
