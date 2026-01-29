@@ -282,9 +282,6 @@ function enforcePreflightGuards(options: PromptOptions) {
 }
 
 function applyModeResolution(prompt: string, options: PromptOptions): string {
-    if (!isModeResolutionRestricted(options)) {
-        return prompt.trim();
-    }
     const sanitized = sanitizeCameraAestheticsForRestrictedModes(prompt, options);
     return prependModeResolutionGuardrail(sanitized);
 }
@@ -721,6 +718,7 @@ export class PromptEngine {
             console.warn('[PROMPT ENGINE] Environment guard triggered - overriding to environment-safe placement');
             masterSections.creationMode = 'Environment-first lifestyle composition with natural surroundings and contextual product placement.';
             masterSections.ecommerceBuilder = undefined;
+            masterSections.cameraFraming = 'Camera: handheld smartphone perspective capturing lived-in surroundings, avoiding cinematic hero angles.';
             finalPrompt = buildMasterPrompt(masterSections, negative, resolvedUgcStyle);
         }
 
