@@ -72,7 +72,11 @@ const HUMAN_REALISM_GUARD =
 
 const shouldApplyHumanRealismGuard = (options: PromptOptions): boolean => {
     const isNonUGC = !options.ugcRealModeActive && options.contentStyle !== 'ugc';
-    return isNonUGC && (options.creationMode === 'lifestyle' || Boolean(options.formulationExpertEnabled));
+    return isNonUGC && (
+        options.creationMode === 'lifestyle' ||
+        options.creationMode === 'aesthetic' ||
+        Boolean(options.formulationExpertEnabled)
+    );
 };
 
 export class SceneNarrativeBuilder {
@@ -123,11 +127,19 @@ export class SceneNarrativeBuilder {
                 );
                 break;
             case 'brand':
-                parts.push(
-                    'Expert-led product narrative.',
-                    'Scientific credibility and formulation trust.',
-                    'The expert remains the primary subject.'
-                );
+                if (options.formulationExpertEnabled) {
+                    parts.push(
+                        'Expert-led product narrative.',
+                        'Scientific credibility and formulation trust.',
+                        'The expert remains the primary subject.'
+                    );
+                } else {
+                    parts.push(
+                        'Lifestyle advertisement image.',
+                        'Product-first commercial framing for ecommerce PDPs and ads.',
+                        'The person supports the product; the product remains the hero.'
+                    );
+                }
                 break;
             default:
                 if (isProductMode) {
@@ -625,6 +637,10 @@ export class SceneNarrativeBuilder {
             narrativeParts.push(
                 'Lighting is professionally designed and intentionally controlled. The scene uses studio-grade or well-managed natural lighting with balanced exposure, consistent color temperature, and soft, dimensional shadows. Illumination enhances clarity, depth, and material detail without harsh overhead light, uneven shadows, or mixed lighting sources. Exclude all phone-based lighting, on-camera flash, bathroom or ceiling lights, low-quality ambient light, or any casual, uncontrolled illumination commonly associated with user-generated content.'
             );
+        }
+
+        if (options.personIncluded !== false && shouldApplyHumanRealismGuard(options)) {
+            narrativeParts.push(HUMAN_REALISM_GUARD);
         }
 
         console.log('[SCENE NARRATIVE] Environment/Lighting/Mood:', narrativeParts.join(' ').substring(0, 200) + '...');
