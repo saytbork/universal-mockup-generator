@@ -1,10 +1,9 @@
-import React, { useCallback, useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { CheckCircle2, CreditCard, ShieldCheck, ShoppingBag, Users2, Zap, ArrowRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import {
+  Sparkles, Wand2, Camera, ShieldCheck, PlaySquare, Users, CheckCircle2, CreditCard, Zap, Layers, Image as ImageIcon, Gauge, ShoppingBag, Package, Users2, Building2, Instagram, Twitter, Youtube, Linkedin, ArrowRight
+} from 'lucide-react';
 import PlanCheckoutModal from './components/PlanCheckoutModal';
-import TestimonialsSection from './components/TestimonialsSection';
-import { getAllBlogArticles } from './src/content/blog';
 
 type PlanMetadata = {
   plan: 'creator' | 'studio';
@@ -25,6 +24,7 @@ type PricingPlan = {
   checkoutUrl?: string; // legacy fallback
   monthlyUrl?: string;
   yearlyUrl?: string;
+  contactEmail?: string;
   metadata?: PlanMetadata;
 };
 
@@ -37,7 +37,95 @@ type CheckoutPlan = {
   metadata?: PlanMetadata;
 };
 
-const getEnv = (key: string) => (import.meta as any).env?.[key] as string | undefined;
+const features = [
+  {
+    title: 'Mockups in seconds',
+    description: 'Upload your product and spin up on-brand UGC scenes that are ready to publish.',
+    icon: Sparkles,
+  },
+  {
+    title: 'Full creative control',
+    description: 'Dial in camera, lighting, materials, talent, and 40+ pro-level parameters.',
+    icon: Wand2,
+  },
+  {
+    title: 'Campaign-ready output',
+    description: 'Export stills or generate vertical and horizontal video cuts for ads.',
+    icon: PlaySquare,
+  },
+];
+
+const steps = [
+  { title: '1. Upload your product', detail: 'Drag any PNG/JPG/WebP and the app preps it automatically.' },
+  { title: '2. Pick the environment', detail: 'Select locations, camera types, people, interactions, and styles.' },
+  { title: '3. Generate & refine', detail: 'Produce mockups, tweak with edit prompts, and spin up video clips.' },
+];
+
+type GalleryImage = { id: string; url: string; plan?: string; createdAt?: number };
+
+const LOCAL_GALLERY_CACHE_KEY = 'ugc-free-gallery';
+
+type BeforeAfterSlide = {
+  id: string;
+  before: string;
+  after: string;
+  alt: string;
+};
+
+const beforeAfterSlides: BeforeAfterSlide[] = [
+  { id: '01', before: '/slider/01-before.jpg', after: '/slider/01-after.jpg', alt: 'Before and after example 01' },
+  { id: '02', before: '/slider/02-before.jpg', after: '/slider/02-after.jpg', alt: 'Before and after example 02' },
+  { id: '03', before: '/slider/03-before.jpg', after: '/slider/03-after.jpg', alt: 'Before and after example 03' },
+  { id: '04', before: '/slider/04-before.jpg', after: '/slider/04-after.jpg', alt: 'Before and after example 04' },
+  { id: '05', before: '/slider/05-before.jpg', after: '/slider/05-after.jpg', alt: 'Before and after example 05' },
+  { id: '06', before: '/slider/06-before.jpg', after: '/slider/06-after.jpg', alt: 'Before and after example 06' },
+];
+
+type CachedGalleryEntry = {
+  id?: string;
+  imageUrl?: string;
+  plan?: string;
+  compositionMode?: string;
+  createdAt?: number;
+  title?: string;
+};
+
+const readCachedGalleryImages = (): GalleryImage[] => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = window.localStorage.getItem(LOCAL_GALLERY_CACHE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((entry: CachedGalleryEntry, index: number) => {
+        if (!entry?.imageUrl) return null;
+        const id = entry.id || `local-${entry.createdAt ?? Date.now()}-${index}`;
+        return {
+          id,
+          url: entry.imageUrl,
+          plan: (entry.plan ?? 'free').toLowerCase(),
+          createdAt: entry.createdAt,
+        };
+      })
+      .filter((entry): entry is GalleryImage => Boolean(entry));
+  } catch (error) {
+    console.warn('Failed to load cached gallery images', error);
+    return [];
+  }
+};
+
+const getGalleryPlanLabel = (plan?: string) => {
+  if (!plan) return 'Community creation';
+  const normalized = plan.toLowerCase();
+  if (normalized === 'free') return 'Free plan';
+  if (normalized === 'invitation') return 'Invitation plan';
+  if (normalized === 'creator') return 'Creator plan';
+  if (normalized === 'studio') return 'Studio plan';
+  return plan;
+};
+
+const getEnv = (key: string) => import.meta.env[key as keyof ImportMetaEnv] as string | undefined;
 const DEFAULT_CREATOR_LINK = 'https://buy.stripe.com/14A28tb1Sgr0b2Y5HBeIw02';
 const DEFAULT_CREATOR_YEARLY_LINK = 'https://buy.stripe.com/fZu5kF3zq1w62wsc5ZeIw00';
 const DEFAULT_STUDIO_LINK = 'https://buy.stripe.com/7sYfZj1ricaKdb6da3eIw01';
@@ -46,12 +134,16 @@ const creatorMonthlyUrl =
   getEnv('VITE_STRIPE_LINK_CREATOR_MONTHLY') ??
   getEnv('VITE_STRIPE_LINK_CREATOR') ??
   DEFAULT_CREATOR_LINK;
-const creatorYearlyUrl = getEnv('VITE_STRIPE_LINK_CREATOR_YEARLY') ?? DEFAULT_CREATOR_YEARLY_LINK;
+const creatorYearlyUrl =
+  getEnv('VITE_STRIPE_LINK_CREATOR_YEARLY') ??
+  DEFAULT_CREATOR_YEARLY_LINK;
 const studioMonthlyUrl =
   getEnv('VITE_STRIPE_LINK_STUDIO_MONTHLY') ??
   getEnv('VITE_STRIPE_LINK_STUDIO') ??
   DEFAULT_STUDIO_LINK;
-const studioYearlyUrl = getEnv('VITE_STRIPE_LINK_STUDIO_YEARLY') ?? DEFAULT_STUDIO_YEARLY_LINK;
+const studioYearlyUrl =
+  getEnv('VITE_STRIPE_LINK_STUDIO_YEARLY') ??
+  DEFAULT_STUDIO_YEARLY_LINK;
 
 const pricing: PricingPlan[] = [
   {
@@ -60,7 +152,11 @@ const pricing: PricingPlan[] = [
     yearlyPrice: '$0',
     monthlyCaption: 'per month',
     yearlyCaption: 'per year',
-    highlights: ['2 credits (one-time)', 'Watermark', 'Community support'],
+    highlights: [
+      '2 credits (one-time)',
+      'Watermark',
+      'Community support',
+    ],
     cta: 'Get Started Free',
     isFree: true,
   },
@@ -70,7 +166,12 @@ const pricing: PricingPlan[] = [
     yearlyPrice: '$137',
     monthlyCaption: 'per month',
     yearlyCaption: 'per year',
-    highlights: ['20 credits/month', '2 videos/month', 'No watermark', 'Standard support'],
+    highlights: [
+      '20 credits/month',
+      '2 videos/month',
+      'No watermark',
+      'Standard support',
+    ],
     cta: 'Continue to Registration',
     checkoutUrl: creatorMonthlyUrl,
     monthlyUrl: creatorMonthlyUrl,
@@ -85,7 +186,12 @@ const pricing: PricingPlan[] = [
     yearlyPrice: '$244',
     monthlyCaption: 'per month',
     yearlyCaption: 'per year',
-    highlights: ['60 credits/month', '6 videos/month', 'No watermark', 'Priority support'],
+    highlights: [
+      '60 credits/month',
+      '6 videos/month',
+      'No watermark',
+      'Priority support',
+    ],
     cta: 'Continue to Registration',
     checkoutUrl: studioMonthlyUrl, // fallback
     monthlyUrl: studioMonthlyUrl,
@@ -95,375 +201,47 @@ const pricing: PricingPlan[] = [
 ];
 
 const paymentMethods = ['Visa', 'Mastercard', 'American Express', 'Apple Pay', 'Google Pay'];
+const TRIAL_BYPASS_KEY = 'ugc-product-mockup-trial-bypass';
+const ADMIN_EMAILS = (import.meta.env.VITE_ADMIN_EMAILS || '')
+  .split(',')
+  .map(email => email.trim().toLowerCase())
+  .filter(Boolean);
+const INVITE_CODE = import.meta.env.VITE_INVITE_CODE || '713371';
+const PLAN_STORAGE_KEY = 'ugc-plan-tier';
+const IMAGE_COUNT_KEY = 'ugc-product-mockup-generator-credit-count';
 
-// --- Advantage Grid Animation Components ---
+const NAV_LINKS = [
+  { label: 'Features', target: '#features' },
+  { label: 'Steps', target: '#steps' },
+  { label: 'Pricing', target: '#pricing' },
+  { label: 'Gallery', target: '#gallery' },
+];
 
-const WeeksToMinutes = () => {
-  const steps = ["Studio booking", "Talent", "Shoot", "Retouch", "Revisions"];
-  return (
-    <div className="relative h-24 w-full overflow-hidden flex flex-col justify-center">
-      <div className="relative h-full">
-        {steps.map((step, i) => (
-          <motion.div
-            key={step}
-            variants={{
-              initial: { opacity: 0.2, y: 0 },
-              animate: {
-                opacity: 0,
-                y: -30,
-                transition: { delay: i * 0.08, duration: 0.2, ease: [0.4, 0, 0.2, 1] }
-              }
-            }}
-            className="text-[10px] uppercase font-bold tracking-widest text-gray-400 dark:text-gray-500 mb-1"
-          >
-            {step}
-          </motion.div>
-        ))}
-        <motion.div
-          className="absolute inset-x-0 top-0 pt-2"
-          variants={{
-            initial: { opacity: 0, y: 20 },
-            animate: {
-              opacity: 1,
-              y: 0,
-              transition: { delay: 0.5, duration: 0.3, ease: "easeOut" }
-            }
-          }}
-        >
-          <div className="flex items-center gap-3">
-            <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 whitespace-nowrap">Generate → Launch-Ready</span>
-            <div className="flex-1 h-0.5 bg-gray-100 dark:bg-white/10 rounded-full overflow-hidden">
-              <motion.div
-                className="h-full bg-indigo-600 dark:bg-indigo-400"
-                variants={{
-                  initial: { width: "0%" },
-                  animate: { width: "100%", transition: { delay: 0.6, duration: 0.4 } }
-                }}
-              />
-            </div>
-          </div>
-        </motion.div>
-      </div>
-    </div>
-  );
-};
-
-const VisualSystem = () => {
-  const channels = ["PDP", "Ads", "Amazon", "Social"];
-  return (
-    <div className="relative w-full h-48 flex items-center justify-center pointer-events-none">
-      {/* Center Node */}
-      <motion.div
-        className="w-20 h-20 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] font-bold text-white text-center p-2 z-10 shadow-xl shadow-indigo-600/40"
-        variants={{
-          initial: { scale: 0.8, opacity: 0 },
-          animate: { scale: 1, opacity: 1, transition: { duration: 0.4, ease: "easeOut" } }
-        }}
-      >
-        Visual<br />System
-      </motion.div>
-
-      {/* Channels */}
-      {channels.map((name, i) => {
-        const positions = [
-          { x: -85, y: -50 },
-          { x: 85, y: -50 },
-          { x: -85, y: 50 },
-          { x: 85, y: 50 }
-        ];
-        const pos = positions[i];
-        return (
-          <React.Fragment key={name}>
-            <motion.div
-              className="absolute bg-white dark:bg-white/10 border border-gray-100 dark:border-white/20 px-3 py-1.5 rounded-lg text-[10px] font-black tracking-tighter shadow-sm"
-              style={{ x: pos.x, y: pos.y }}
-              variants={{
-                initial: { opacity: 0, scale: 0.8 },
-                animate: {
-                  opacity: 1,
-                  scale: 1,
-                  transition: { delay: 0.4 + i * 0.08, duration: 0.3, ease: "easeOut" },
-                  color: "#6366f1"
-                }
-              }}
-            >
-              {name}
-            </motion.div>
-            <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible">
-              <motion.line
-                x1="50%" y1="50%"
-                x2={`calc(50% + ${pos.x}px)`} y2={`calc(50% + ${pos.y}px)`}
-                stroke="#6366f1"
-                strokeWidth="1.5"
-                strokeDasharray="4 4"
-                variants={{
-                  initial: { pathLength: 0, opacity: 0 },
-                  animate: {
-                    pathLength: 1,
-                    opacity: 0.3,
-                    transition: { delay: 0.3 + i * 0.08, duration: 0.5 }
-                  }
-                }}
-              />
-            </svg>
-          </React.Fragment>
-        );
-      })}
-    </div>
-  );
-};
-
-const AntiRandomness = () => (
-  <div className="relative w-full h-32 flex items-center justify-center overflow-hidden">
-    <div className="relative">
-      <motion.div
-        className="text-5xl font-extrabold text-white/5 italic tracking-tighter"
-        variants={{
-          initial: { opacity: 0.5 },
-          animate: { opacity: 0, transition: { delay: 0.5, duration: 0.2 } }
-        }}
-      >
-        RANDOM
-        <motion.div
-          className="absolute top-1/2 left-[-10%] w-[120%] h-0.5 bg-red-500/30"
-          variants={{
-            initial: { scaleX: 0 },
-            animate: { scaleX: 1, transition: { delay: 0.2, duration: 0.3 } }
-          }}
-        />
-      </motion.div>
-      <motion.div
-        className="absolute inset-0 flex items-center justify-center text-indigo-400 font-bold tracking-widest text-3xl"
-        variants={{
-          initial: { opacity: 0, scale: 0.9, filter: "blur(12px)" },
-          animate: {
-            opacity: 1,
-            scale: 1,
-            filter: "blur(0px)",
-            transition: { delay: 0.8, duration: 0.4, ease: "easeOut" }
-          }
-        }}
-      >
-        SYSTEM
-        <motion.div
-          className="absolute inset-0 bg-indigo-500/10 blur-3xl rounded-full"
-          variants={{
-            initial: { opacity: 0 },
-            animate: { opacity: 1, transition: { delay: 1.0, duration: 0.6 } }
-          }}
-        />
-      </motion.div>
-    </div>
-  </div>
-);
-
-const ScaleCatalog = () => (
-  <div className="relative h-24 w-full flex items-center justify-center overflow-hidden bg-gray-50 dark:bg-black/20 rounded-xl border border-gray-100 dark:border-white/5 shadow-inner">
-    <div className="flex flex-col items-center">
-      <motion.div
-        className="text-2xl font-bold text-gray-300 dark:text-gray-700"
-        variants={{
-          initial: { opacity: 1, y: 0 },
-          animate: { opacity: 0, y: -25, transition: { delay: 0.4, duration: 0.2 } }
-        }}
-      >
-        1 SKU
-      </motion.div>
-      <motion.div
-        className="absolute text-2xl font-bold text-gray-400"
-        variants={{
-          initial: { opacity: 0, y: 25 },
-          animate: {
-            opacity: [0, 1, 0],
-            y: [25, 0, -25],
-            transition: { delay: 0.55, duration: 0.4, times: [0, 0.5, 1] }
-          }
-        }}
-      >
-        10 SKUs
-      </motion.div>
-      <motion.div
-        className="absolute text-2xl font-bold text-indigo-600 dark:text-indigo-400"
-        variants={{
-          initial: { opacity: 0, y: 20 },
-          animate: { opacity: 1, y: 0, transition: { delay: 0.9, duration: 0.3, ease: "easeOut" } }
-        }}
-      >
-        100 SKUs
-      </motion.div>
-    </div>
-  </div>
-);
-
-type LandingPageProps = {
-  disableSeo?: boolean;
-};
-
-const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
-  const [activePreview, setActivePreview] = useState<
-    'product' | 'ugc' | 'editorial' | 'background' | 'aesthetic'
-  >('product');
+const LandingPage: React.FC = () => {
+  const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<CheckoutPlan | null>(null);
   const [checkoutEmail, setCheckoutEmail] = useState('');
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
-  const [activeStep, setActiveStep] = useState(0);
-  const [isHoveringSteps, setIsHoveringSteps] = useState(false);
-  const seo = {
-    title: 'AI Product & Lifestyle Mockups for Ecommerce Brands | Perfect Mockup',
-    description:
-      'Generate premium product visuals, lifestyle scenes, and UGC-style ads in minutes. Built for ecommerce brands, growth teams, and product launches.',
-    url: 'https://perfectmockup.com/',
-    image: 'https://perfectmockup.com/preview.png',
-  };
-  const faqItems = [
-    {
-      question: 'What is Perfect Mockup?',
-      answer:
-        'Perfect Mockup is an AI product visual generator that creates premium product photography, lifestyle scenes, and UGC-style ads without photoshoots.',
-    },
-    {
-      question: 'Can I use my existing product image?',
-      answer:
-        'Yes. Upload your existing product image and the system integrates it into professional micro-environments while preserving label accuracy.',
-    },
-    {
-      question: 'How fast can I generate new visuals?',
-      answer:
-        'Most scenes generate in minutes. You can iterate quickly across product shots, lifestyle, and ad-ready variations.',
-    },
-    {
-      question: 'Does Perfect Mockup replace a studio shoot?',
-      answer:
-        'It replaces many routine shoots by generating premium, campaign-ready scenes. You still own the output and can use it for ads, landing pages, and ecommerce.',
-    },
-    {
-      question: 'What types of visuals can I create?',
-      answer:
-        'Product studio shots, lifestyle UGC, editorial lifestyle, background replacement, and branded ad assets with consistent styling.',
-    },
-  ];
-  const structuredData = {
-    '@context': 'https://schema.org',
-    '@graph': [
-      {
-        '@type': 'Organization',
-        name: 'Perfect Mockup',
-        url: 'https://perfectmockup.com/',
-        logo: 'https://perfectmockup.com/img/logos/colorlogo.svg',
-      },
-      {
-        '@type': 'WebSite',
-        name: 'Perfect Mockup',
-        url: 'https://perfectmockup.com/',
-      },
-      {
-        '@type': 'FAQPage',
-        mainEntity: faqItems.map(item => ({
-          '@type': 'Question',
-          name: item.question,
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: item.answer,
-          },
-        })),
-      },
-    ],
-  };
-
-  const steps = [
-    {
-      title: 'Step 1 — Upload your product',
-      description: 'Use your existing product image. No perfect photography required.',
-      icon: <ShoppingBag className="w-5 h-5" />,
-    },
-    {
-      title: 'Step 2 — Choose how it’s seen',
-      description: 'Product (Studio) or Lifestyle. UGC or Editorial when lifestyle is selected.',
-      icon: <Zap className="w-5 h-5" />,
-    },
-    {
-      title: 'Step 3 — Generate mockups',
-      description: 'Instant visuals ready for ecommerce, ads and social.',
-      icon: <Users2 className="w-5 h-5" />,
-    },
-  ];
-
-  useEffect(() => {
-    if (isHoveringSteps) return;
-    const interval = setInterval(() => {
-      setActiveStep(current => (current + 1) % steps.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [isHoveringSteps, steps.length]);
-
-  useEffect(() => {
-    if (disableSeo) return;
-    document.title = seo.title;
-    const setMeta = (key: string, content: string, attr: 'name' | 'property' = 'name') => {
-      let element = document.querySelector(`meta[${attr}='${key}']`) as HTMLMetaElement | null;
-      if (!element) {
-        element = document.createElement('meta');
-        element.setAttribute(attr, key);
-        document.head.appendChild(element);
-      }
-      element.setAttribute('content', content);
-    };
-    const setLink = (rel: string, href: string) => {
-      let element = document.querySelector(`link[rel='${rel}']`) as HTMLLinkElement | null;
-      if (!element) {
-        element = document.createElement('link');
-        element.setAttribute('rel', rel);
-        document.head.appendChild(element);
-      }
-      element.setAttribute('href', href);
-    };
-    setMeta('description', seo.description);
-    setMeta('og:title', seo.title, 'property');
-    setMeta('og:description', seo.description, 'property');
-    setMeta('og:url', seo.url, 'property');
-    setMeta('og:image', seo.image, 'property');
-    setMeta('twitter:title', seo.title);
-    setMeta('twitter:description', seo.description);
-    setMeta('twitter:image', seo.image);
-    setLink('canonical', seo.url);
-  }, [disableSeo, seo.title, seo.description, seo.url, seo.image]);
-
-  const previewModes = [
-    {
-      id: 'product',
-      title: 'Product (Studio)',
-      description: 'Clean, professional product mockups. No people. No distractions.',
-      image: '/images/home/Studio-Hero.webp',
-    },
-    {
-      id: 'ugc',
-      title: 'Lifestyle (UGC)',
-      description: 'Natural, real-world scenes designed to feel authentic and conversion-focused.',
-      image: '/images/home/Lifestyle-UGC.webp',
-    },
-    {
-      id: 'editorial',
-      title: 'Lifestyle (Editorial)',
-      description: 'Curated, premium lifestyle visuals for brand storytelling and campaigns.',
-      image: '/images/home/Lifestyle-editorial.webp',
-    },
-    {
-      id: 'background',
-      title: 'Background Replace',
-      description: 'Replace backgrounds cleanly while preserving product details.',
-      image: '/images/home/Background-Replace.webp',
-    },
-    {
-      id: 'aesthetic',
-      title: 'Aesthetic Builder',
-      description: 'Create premium creative directions for ecommerce visuals.',
-      image: '/images/home/Aesthetic-Builder.webp',
-    },
-  ] as const;
-
-  const activePreviewMode = previewModes.find(mode => mode.id === activePreview) ?? previewModes[0];
-
+  const [landingTrialInput, setLandingTrialInput] = useState('');
+  const [landingTrialStatus, setLandingTrialStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [showAccessGate, setShowAccessGate] = useState(false);
+  const [pendingRoute, setPendingRoute] = useState<string | null>(null);
+  const [inviteCode, setInviteCode] = useState('');
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [heroEmail, setHeroEmail] = useState('');
+  const [heroStatus, setHeroStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [heroMessage, setHeroMessage] = useState<string | null>(null);
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  const [galleryLoading, setGalleryLoading] = useState(true);
+  const [activeMode, setActiveMode] = useState('lifestyle');
+  const [beforeAfterValues, setBeforeAfterValues] = useState<Record<string, number>>(() =>
+    Object.fromEntries(beforeAfterSlides.map(slide => [slide.id, 50]))
+  );
+  const [beforeAfterView, setBeforeAfterView] = useState<Record<string, 'before' | 'after'>>(() =>
+    Object.fromEntries(beforeAfterSlides.map(slide => [slide.id, 'after']))
+  );
   const handleSmoothScroll = useCallback((selector: string) => {
     return (event: React.MouseEvent) => {
       event.preventDefault();
@@ -474,16 +252,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
       window.scrollTo({ top, behavior: 'smooth' });
     };
   }, []);
-
-  const handleBillingToggle = () => {
-    setBillingCycle(prev => (prev === 'monthly' ? 'yearly' : 'monthly'));
-  };
-
   const handleOpenCheckout = (plan: PricingPlan) => {
     const cadence = billingCycle === 'monthly' ? plan.monthlyCaption : `${plan.yearlyCaption} (annual)`;
     const price = billingCycle === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice;
     const checkoutUrl =
-      billingCycle === 'monthly' ? plan.monthlyUrl ?? plan.checkoutUrl : plan.yearlyUrl ?? plan.checkoutUrl;
+      billingCycle === 'monthly'
+        ? plan.monthlyUrl ?? plan.checkoutUrl
+        : plan.yearlyUrl ?? plan.checkoutUrl;
     setSelectedPlan({
       name: plan.name,
       price,
@@ -501,12 +276,33 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
     setCheckoutEmail('');
   };
 
+  const handleHeroMagicLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!heroEmail.trim()) return;
+    setHeroStatus('loading');
+    setHeroMessage(null);
+    try {
+      const res = await fetch('/api/auth?action=login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: heroEmail.trim() }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Unable to send magic link');
+      }
+      setHeroStatus('success');
+      setHeroMessage('Check your email for your magic link.');
+    } catch (err: any) {
+      setHeroStatus('error');
+      setHeroMessage(err?.message || 'Could not send link.');
+    }
+  };
+
   const handleConfirmCheckout = () => {
     if (!selectedPlan) return;
     if (!selectedPlan.checkoutUrl) {
-      setCheckoutError(
-        'Stripe payment link is not configured for this plan. Add VITE_STRIPE_LINK_CREATOR / VITE_STRIPE_LINK_STUDIO variables.'
-      );
+      setCheckoutError('Stripe payment link is not configured for this plan. Add VITE_STRIPE_LINK_CREATOR / VITE_STRIPE_LINK_STUDIO variables.');
       return;
     }
     try {
@@ -528,827 +324,744 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
     }
   };
 
-  const blogArticles = getAllBlogArticles().slice(0, 4);
+  const handleBillingToggle = () => {
+    setBillingCycle(prev => (prev === 'monthly' ? 'yearly' : 'monthly'));
+  };
+
+  const handleLandingCodeSubmit = (navigateOnSuccess = false) => {
+    setLandingTrialStatus('error');
+    if (navigateOnSuccess || pendingRoute) {
+      setShowAccessGate(false);
+      const destination = pendingRoute ?? '/app';
+      setPendingRoute(null);
+      navigate(destination);
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.localStorage.getItem(TRIAL_BYPASS_KEY) === 'true') {
+      setLandingTrialStatus('success');
+    }
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchGallery = async () => {
+      try {
+        // Import gallery service dynamically
+        const { listPublicGallery } = await import('./src/services/galleryService');
+        const images = await listPublicGallery();
+
+        if (!mounted) return;
+
+        // Transform to expected format
+        const transformedImages: GalleryImage[] = images.map(img => ({
+          id: img.id,
+          url: img.imageUrl,
+          plan: img.plan,
+          createdAt: img.createdAt?.seconds ? img.createdAt.seconds * 1000 : Date.now(),
+        }));
+
+        setGalleryImages(transformedImages.length ? transformedImages : readCachedGalleryImages());
+      } catch (error) {
+        console.error('Community gallery fetch failed', error);
+        if (mounted) {
+          setGalleryImages(readCachedGalleryImages());
+        }
+      } finally {
+        if (mounted) {
+          setGalleryLoading(false);
+        }
+      }
+    };
+    fetchGallery();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const requireAccessCode = useCallback((event?: React.MouseEvent, route = '/login') => {
+    event?.preventDefault();
+    navigate(route);
+  }, [navigate]);
+
+  const handleCloseAccessGate = () => {
+    setShowAccessGate(false);
+    setPendingRoute(null);
+    setLandingTrialInput('');
+    setLandingTrialStatus('idle');
+    setInviteCode('');
+    setInviteError(null);
+  };
+
+  const modeSlides = [
+    {
+      id: 'lifestyle',
+      title: 'Lifestyle UGC',
+      desc: 'Real people + product in natural environments.',
+      image: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80',
+    },
+    {
+      id: 'studio',
+      title: 'Studio Hero',
+      desc: 'Clean, bold hero shots for homepages.',
+      image: 'https://images.unsplash.com/photo-1512499617640-c2f999098c01?auto=format&fit=crop&w=1200&q=80',
+    },
+    {
+      id: 'aesthetic',
+      title: 'Aesthetic Builder',
+      desc: 'Curated props, palettes, and lighting for brand vibes.',
+      image: 'https://images.unsplash.com/photo-1506617420156-8e4536971650?auto=format&fit=crop&w=1200&q=80',
+    },
+    {
+      id: 'background',
+      title: 'Background Replace',
+      desc: 'Swap backgrounds while preserving product fidelity.',
+      image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1200&q=80',
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 dark:bg-black dark:text-white transition-colors duration-500 overflow-x-hidden">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
-      <header className="relative min-h-[85vh] flex flex-col justify-center overflow-hidden border-b border-gray-100 dark:border-white/5 bg-white dark:bg-black">
-        {/* Animated Gradient Background */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(99,102,241,0.08),transparent_50%)] animate-pulse" />
-          <motion.div
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.5, 0.3],
-              x: [0, 100, 0],
-              y: [0, -50, 0],
-            }}
-            transition={{
-              duration: 20,
-              repeat: Infinity,
-              ease: "linear"
-            }}
-            className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-indigo-500/10 blur-[120px] rounded-full"
-          />
-          <motion.div
-            animate={{
-              scale: [1, 1.3, 1],
-              opacity: [0.2, 0.4, 0.2],
-              x: [0, -120, 0],
-              y: [0, 80, 0],
-            }}
-            transition={{
-              duration: 25,
-              repeat: Infinity,
-              ease: "linear"
-            }}
-            className="absolute -bottom-[10%] -right-[10%] w-[50%] h-[50%] bg-blue-500/10 blur-[120px] rounded-full"
-          />
-        </div>
-
-        {/* Minimalist Background Grid */}
-        <div className="absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.07]">
-          <div className="h-full w-full" style={{ backgroundImage: 'radial-gradient(#6366f1 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-        </div>
-
-        <div className="relative z-10 max-w-6xl mx-auto px-6 py-20 flex flex-col items-center">
-          {/* Factual Trust Row */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="flex flex-wrap justify-center gap-x-8 gap-y-3 mb-12"
-          >
-            {[
-              "Built for ecommerce product pages",
-              "Product Mode and UGC Mode separated",
-              "Consistent outputs at scale"
-            ].map(statement => (
-              <div key={statement} className="flex items-center gap-2 text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
-                <CheckCircle2 className="w-3.5 h-3.5 text-indigo-500/50" />
-                {statement}
+    <>
+      <div className="min-h-screen bg-gray-950 text-gray-100">
+        <div className="bg-gradient-to-br from-indigo-900/40 via-gray-950 to-gray-950">
+          <div className="relative">
+            <nav className="relative z-10 max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+              <div className="text-sm font-semibold uppercase tracking-[0.3em] text-white">BoostUGC</div>
+              <div className="hidden items-center gap-6 text-xs uppercase tracking-[0.3em] text-white/80 md:flex">
+                {NAV_LINKS.map(link => (
+                  <button
+                    key={link.target}
+                    type="button"
+                    onClick={handleSmoothScroll(link.target)}
+                    className="hover:text-white focus:outline-none focus:text-white"
+                  >
+                    {link.label}
+                  </button>
+                ))}
               </div>
-            ))}
-          </motion.div>
-
-          {/* SaaS Headline & Mechanism */}
-          <div className="max-w-6xl mx-auto text-center space-y-8">
-            <motion.h1
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1, ease: [0.23, 1, 0.32, 1] }}
-              className="text-5xl sm:text-7xl font-bold text-gray-900 dark:text-white leading-[1.05] tracking-tight text-balance"
-            >
-              Create Ecommerce-Ready Product Visuals <br className="hidden md:block" />
-              <span className="text-indigo-600 dark:text-indigo-400">
-                & Controlled UGC in Minutes.
-              </span>
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1, delay: 0.4 }}
-              className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed font-medium text-balance"
-            >
-              Generate consistent product shots and controlled UGC-style visuals for product pages, ads, and conversion funnels. No photoshoots. No agencies. No guessing.
-            </motion.p>
+              <button
+                type="button"
+                aria-label="Toggle menu"
+                aria-expanded={isMobileMenuOpen}
+                aria-controls="mobile-menu"
+                onClick={() => setIsMobileMenuOpen(prev => !prev)}
+                className="relative z-20 flex h-10 w-10 flex-col items-center justify-center gap-1 rounded-full border border-white/20 bg-black/20 text-white transition hover:border-white/40 focus:outline-none md:hidden"
+              >
+                <span
+                  className={`block h-[2px] w-6 bg-current transition-transform duration-300 ${isMobileMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`}
+                />
+                <span
+                  className={`block h-[2px] w-6 bg-current transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-0' : 'opacity-100'}`}
+                />
+                <span
+                  className={`block h-[2px] w-6 bg-current transition-transform duration-300 ${isMobileMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}
+                />
+              </button>
+            </nav>
+            {isMobileMenuOpen && (
+              <div
+                id="mobile-menu"
+                className="md:hidden absolute inset-x-6 top-full mt-3 rounded-3xl border border-white/10 bg-gray-950/95 p-4 shadow-2xl backdrop-blur"
+              >
+                <div className="flex flex-col gap-3 text-sm uppercase tracking-[0.3em] text-white/90">
+                  {NAV_LINKS.map(link => (
+                    <button
+                      key={link.target}
+                      type="button"
+                      onClick={event => {
+                        handleSmoothScroll(link.target)(event);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="rounded-2xl px-4 py-2 text-left hover:bg-white/10 focus:outline-none"
+                    >
+                      {link.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Focused Production CTAs */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-12 w-full"
-          >
-            <Link
-              to="/login"
-              className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-indigo-600 text-white px-10 py-5 font-bold text-sm transition-all hover:bg-indigo-700 shadow-xl shadow-indigo-600/20 hover:shadow-indigo-600/30 hover:-translate-y-0.5 active:scale-[0.98]"
-            >
-              Create Your First Product Shot
-              <ArrowRight className="ml-2 w-4 h-4" />
-            </Link>
-            <button
-              onClick={handleSmoothScroll('#pricing')}
-              className="relative w-full sm:w-auto inline-flex items-center justify-center px-8 py-5 font-bold text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors group"
-            >
-              View Plans
-              <span className="absolute left-0 right-0 -bottom-1 h-0.5 origin-left scale-x-0 bg-indigo-600 dark:bg-indigo-400 transition-transform duration-300 group-hover:scale-x-100" />
-            </button>
-          </motion.div>
+          <header className="relative overflow-hidden py-12">
+            <div className="absolute inset-0 opacity-30 pointer-events-none" style={{ background: 'radial-gradient(circle at 20% 20%, rgba(79,70,229,0.35), transparent 55%)' }} />
+            <div className="max-w-6xl mx-auto px-6 pt-8 pb-20 flex flex-col items-center text-center gap-12 relative">
+              <div className="max-w-4xl space-y-6 animate-fade-up">
+                <p className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-1 text-xs uppercase tracking-widest text-indigo-200/90">
+                  <ShieldCheck className="w-3.5 h-3.5" /> BoostUGC · AI UGC Generator
+                </p>
+                <h1 className="text-4xl sm:text-5xl font-bold text-white leading-tight">
+                  The Fastest AI Generator for UGC & Product Mockups
+                </h1>
+                <p className="text-lg text-gray-300">
+                  Create high-quality lifestyle images and product-focused UGC in seconds. No photoshoots. No freelancers. Just upload your product and generate unlimited scenes.
+                </p>
+                <div className="flex flex-wrap justify-center gap-3 text-sm text-gray-300">
+                  {[
+                    { icon: <Sparkles className="w-4 h-4" />, label: 'Photorealistic AI Models' },
+                    { icon: <ImageIcon className="w-4 h-4" />, label: 'Upload Any Product' },
+                    { icon: <Layers className="w-4 h-4" />, label: 'Multiple Angles & Styles' },
+                    { icon: <Gauge className="w-4 h-4" />, label: 'Generated in Seconds' },
+                  ].map(item => (
+                    <span key={item.label} className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1">
+                      {item.icon}
+                      {item.label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4 animate-fade-up delay-200">
+                <Link
+                  to="/login"
+                  className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-8 py-4 font-semibold text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-600 transition"
+                >
+                  Start Now
+                </Link>
+                <button
+                  onClick={handleSmoothScroll('#pricing')}
+                  className="inline-flex items-center justify-center rounded-full border border-white/20 px-8 py-4 font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition"
+                >
+                  View Pricing
+                </button>
+              </div>
+              <div className="w-full max-w-xl animate-fade-up delay-300">
+                <form onSubmit={handleHeroMagicLink} className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 flex flex-col sm:flex-row gap-3 items-center shadow-lg shadow-indigo-900/30">
+                  <input
+                    type="email"
+                    value={heroEmail}
+                    onChange={(e) => setHeroEmail(e.target.value)}
+                    placeholder="Enter your email for a magic link"
+                    className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    disabled={heroStatus === 'loading'}
+                    className="w-full sm:w-auto whitespace-nowrap rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-5 py-3 text-sm font-semibold text-white shadow-lg hover:from-indigo-400 hover:to-purple-400 transition disabled:opacity-60"
+                  >
+                    {heroStatus === 'loading' ? 'Sending...' : 'Send Magic Link'}
+                  </button>
+                </form>
+                {heroMessage && (
+                  <p
+                    className={`mt-2 text-sm ${heroStatus === 'success' ? 'text-green-300' : 'text-rose-300'
+                      }`}
+                  >
+                    {heroMessage}
+                  </p>
+                )}
+              </div>
+              <p className="text-sm text-gray-500 animate-fade-up delay-400">Free plan → 2 credits · No credit card required</p>
+            </div>
+          </header>
+          <section className="w-full bg-white text-gray-900 border-y border-gray-100">
+            <div className="max-w-6xl mx-auto px-6 py-16 space-y-8">
+              <div className="text-center space-y-3">
+                <h2 className="text-3xl sm:text-4xl font-semibold">
+                  From static product shots to real-looking UGC
+                </h2>
+                <p className="text-lg text-gray-600">Same product. Real people. Real environments.</p>
+                <p className="text-sm text-gray-500 max-w-3xl mx-auto">
+                  See how a single product image becomes lifestyle and UGC content ready for ads, PDPs, and socials.
+                </p>
+              </div>
+              <div className="grid gap-6 md:grid-cols-2">
+                {beforeAfterSlides.map(slide => (
+                  <BeforeAfterCard
+                    key={slide.id}
+                    slide={slide}
+                    value={beforeAfterValues[slide.id] ?? 50}
+                    view={beforeAfterView[slide.id] ?? 'after'}
+                    onChange={(next) =>
+                      setBeforeAfterValues(prev => ({ ...prev, [slide.id]: next }))
+                    }
+                    onViewChange={(next) =>
+                      setBeforeAfterView(prev => ({ ...prev, [slide.id]: next }))
+                    }
+                  />
+                ))}
+              </div>
+            </div>
+          </section>
+          <section id="gallery" className="max-w-6xl mx-auto px-6 py-14 space-y-8">
+            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <div>
+                <p className="text-sm uppercase tracking-widest text-indigo-300">Community Gallery</p>
+                <h2 className="text-3xl text-white font-semibold mt-2">Latest Creations From the Community</h2>
+                <p className="text-gray-400 mt-3 max-w-2xl">
+                  Images generated with any plan (including Free Plan and invitation credit generations) appear here automatically.
+                </p>
+              </div>
+              <Link
+                to="/app"
+                className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-600 transition"
+              >
+                Generate Yours
+              </Link>
+            </div>
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+              {galleryLoading && (
+                <div className="col-span-full rounded-3xl border border-white/10 bg-gray-900/40 p-6 text-gray-300 text-sm">
+                  Loading community gallery...
+                </div>
+              )}
+              {!galleryLoading && galleryImages.length === 0 && (
+                <div className="col-span-full rounded-3xl border border-white/10 bg-gray-900/40 p-6 text-gray-300 text-sm">
+                  No community images yet. Generate yours!
+                </div>
+              )}
+              {!galleryLoading &&
+                galleryImages.map(image => (
+                  <div
+                    key={image.id}
+                    className="group relative block overflow-hidden rounded-3xl border border-white/10 bg-gray-900/40 text-left"
+                  >
+                    <img
+                      src={image.url}
+                      alt={getGalleryPlanLabel(image.plan)}
+                      className="h-64 w-full object-cover transition duration-500 group-hover:scale-105 group-hover:opacity-90"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition flex items-end">
+                      <p className="p-4 text-sm text-white">{getGalleryPlanLabel(image.plan)}</p>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </section>
         </div>
-      </header>
 
-      <section className="bg-gray-50/50 dark:bg-white/[0.02] border-b border-gray-100 dark:border-white/5">
-        <div className="max-w-6xl mx-auto px-6 py-24 space-y-10">
+        <section id="features" className="max-w-6xl mx-auto px-6 py-12 space-y-12">
           <div className="text-center space-y-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">What you can create</p>
-            <h2 className="text-3xl text-gray-900 dark:text-white font-semibold text-balance">Create the visuals your product needs to sell</h2>
+            <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">Why BoostUGC</p>
+            <h2 className="text-3xl text-white font-semibold">Why creators, brands and agencies choose BoostUGC</h2>
           </div>
-
-          <div className="grid gap-5 md:grid-cols-3">
+          <div className="grid md:grid-cols-3 gap-5">
             {[
               {
-                title: 'Product (Studio)',
-                description:
-                  'Clean, professional product mockups. No people. No distractions. Just your product, perfectly presented.',
-                uses: ['Product pages', 'Marketplaces', 'Catalogs', 'Ads requiring clean shots'],
+                title: 'Realistic product rendering',
+                desc: 'Understands shape, texture and materials for natural, high-quality results.',
+                icon: <Package className="w-6 h-6 text-indigo-300" />,
               },
               {
-                title: 'Lifestyle (UGC)',
-                description:
-                  'Natural, real-world scenes with people interacting with your product. Designed to feel authentic and conversion-focused.',
-                uses: ['Social ads', 'PDP galleries', 'Influencer-style content'],
+                title: 'Unlimited lifestyle scenarios',
+                desc: 'Generate scenes with people, kitchens, bedrooms, gyms, studios and more.',
+                icon: <Users2 className="w-6 h-6 text-indigo-300" />,
               },
               {
-                title: 'Lifestyle (Editorial)',
-                description: 'Curated, premium lifestyle visuals for brand storytelling and campaigns.',
-                uses: ['Launches', 'Brand pages', 'High-end campaigns'],
+                title: 'Works with any product',
+                desc: 'Bottles, jars, boxes, cosmetics, supplements, tech, apparel, food and more.',
+                icon: <ShoppingBag className="w-6 h-6 text-indigo-300" />,
               },
             ].map(card => (
-              <div
-                key={card.title}
-                className="rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 p-6 text-left space-y-4 hover:bg-indigo-50/30 dark:hover:bg-indigo-500/5 transition-colors duration-300"
-              >
-                <div className="space-y-2">
-                  <p className="text-gray-900 dark:text-white text-lg font-semibold">{card.title}</p>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{card.description}</p>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-500">Use for</p>
-                  <ul className="space-y-2 text-sm text-gray-900 dark:text-gray-300">
-                    {card.uses.map(item => (
-                      <li key={item} className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400 mt-0.5 flex-shrink-0" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+              <div key={card.title} className="rounded-2xl border border-white/10 bg-gray-900/60 p-5 text-left space-y-2">
+                <div className="flex items-center gap-2 text-sm text-indigo-200">{card.icon}<span>{card.title}</span></div>
+                <p className="text-gray-300 text-sm leading-relaxed">{card.desc}</p>
               </div>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="bg-white dark:bg-black border-b border-gray-100 dark:border-white/5">
-        <div className="max-w-6xl mx-auto px-6 py-16 space-y-10">
+        <section id="steps" className="max-w-6xl mx-auto px-6 py-12 space-y-10">
           <div className="text-center space-y-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Preview</p>
-            <h2 className="text-3xl text-gray-900 font-semibold text-balance">See what you can create</h2>
-            <p className="text-gray-600 max-w-3xl mx-auto mt-3">
-              Choose Product or Lifestyle to match your goal. UGC feels authentic. Editorial feels premium.
-            </p>
+            <p className="text-xs uppercase tracking-[0.3em] text-indigo-200">How it works</p>
+            <h2 className="text-3xl text-white font-semibold">Create stunning UGC in 3 steps</h2>
           </div>
+          <div className="grid md:grid-cols-3 gap-5">
+            {[
+              { title: '1. Upload your product', description: 'Jar, box, bottle or any product. We extract shape and materials.' },
+              { title: '2. Choose your style', description: 'Lifestyle, studio, cinematic, minimal, aesthetic, or clean white hero background.' },
+              { title: '3. Generate & download', description: 'Get 4K-quality images for Shopify, Amazon, funnels and ads.' },
+            ].map((card, index) => (
+              <div
+                key={card.title}
+                className="rounded-2xl border border-white/5 bg-gray-900/60 p-5 text-left transition transform hover:-translate-y-1 hover:border-indigo-400 animate-fade-up"
+                style={{ animationDelay: `${0.1 * (index + 1)}s` }}
+              >
+                <p className="text-xs uppercase tracking-widest text-gray-500">{card.title}</p>
+                <p className="mt-2 text-white text-lg font-semibold">{card.description.split('.')[0]}</p>
+                <p className="text-gray-400 mt-1">{card.description.split('.').slice(1).join('.')}</p>
+              </div>
+            ))}
+          </div>
+        </section>
 
-          <div className="grid gap-6 lg:grid-cols-[340px,1fr] items-start lg:items-stretch">
+        <section id="workflow" className="bg-gray-900/40 border-y border-white/5">
+          <div className="max-w-6xl mx-auto px-6 py-16 space-y-10">
+            <div className="text-center space-y-3">
+              <p className="text-sm uppercase tracking-widest text-indigo-300">Creation Modes</p>
+              <h2 className="text-3xl text-white font-semibold">Four powerful creation modes</h2>
+            </div>
+            <div className="grid gap-6 lg:grid-cols-[320px,1fr] items-center">
+              <div className="space-y-3">
+                {modeSlides.map(mode => (
+                  <button
+                    key={mode.id}
+                    onClick={() => setActiveMode(mode.id)}
+                    className={`w-full text-left rounded-2xl border p-4 transition ${activeMode === mode.id ? 'border-indigo-400 bg-indigo-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-300'
+                      }`}
+                  >
+                    <p className="font-semibold">{mode.title}</p>
+                    <p className="text-sm text-gray-400 mt-1">{mode.desc}</p>
+                  </button>
+                ))}
+              </div>
+              <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gray-900/60 p-4 min-h-[260px]">
+                {modeSlides.map(mode => (
+                  <div
+                    key={mode.id}
+                    className={`absolute inset-0 transition-all duration-500 ${activeMode === mode.id ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
+                      }`}
+                  >
+                    <img
+                      src={`${mode.image}&auto=format&fit=crop&w=1200&q=80`}
+                      alt={mode.title}
+                      className="h-full w-full object-cover rounded-2xl"
+                    />
+                    <div className="absolute bottom-4 left-4 right-4 rounded-2xl bg-black/60 backdrop-blur px-4 py-3 text-sm">
+                      <p className="text-white font-semibold">{mode.title}</p>
+                      <p className="text-gray-200">{mode.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* AI UGC explainer */}
+        <section className="w-full bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950 py-24 border-t border-white/5">
+          <div className="max-w-5xl mx-auto px-4 space-y-12 text-white">
             <div className="space-y-3">
-              {previewModes.map(mode => (
-                <button
-                  key={mode.id}
-                  type="button"
-                  onClick={() => setActivePreview(mode.id)}
-                  className={`w-full text-left rounded-xl border p-4 transition-all duration-300 ${activePreview === mode.id
-                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-500/20'
-                    : 'border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/10'
-                    }`}
-                >
-                  <p className={`font-semibold transition-colors ${activePreview === mode.id ? 'text-white' : 'text-gray-900 dark:text-white'}`}>{mode.title}</p>
-                  <p className={`text-sm mt-1 transition-colors ${activePreview === mode.id ? 'text-white/80' : 'text-gray-600 dark:text-gray-400'}`}>
-                    {mode.description}
-                  </p>
-                </button>
+              <h2 className="text-4xl font-bold">
+                What Is AI UGC and Why It’s Changing eCommerce Forever?
+              </h2>
+              <p className="text-gray-300 leading-relaxed">
+                AI-generated User Generated Content lets you skip photoshoots and creators while keeping visuals human and on-brand. With Gemini 2.5 Flash Image, you get realistic lighting, materials, and reflections tailored for commerce.
+              </p>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-3">
+              {[
+                {
+                  title: 'Speed & cost',
+                  desc: 'Ship lifestyle shots and hero images in minutes, not days.',
+                  icon: <Zap className="w-5 h-5 text-indigo-300" />,
+                },
+                {
+                  title: 'Consistency',
+                  desc: 'Keep every asset on-brand without depending on creators or studios.',
+                  icon: <ShieldCheck className="w-5 h-5 text-indigo-300" />,
+                },
+                {
+                  title: 'Unlimited tests',
+                  desc: 'Generate variations for A/B tests—backgrounds, angles, props, and lighting.',
+                  icon: <Sparkles className="w-5 h-5 text-indigo-300" />,
+                },
+              ].map(card => (
+                <div key={card.title} className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-2">
+                  <div className="flex items-center gap-2 text-sm text-indigo-200">{card.icon}<span>{card.title}</span></div>
+                  <p className="text-gray-200 text-sm leading-relaxed">{card.desc}</p>
+                </div>
               ))}
             </div>
 
-            <div className="relative overflow-hidden rounded-xl border border-gray-100 bg-white min-h-[320px] sm:min-h-[420px] lg:min-h-0 lg:h-full">
-              <img
-                src={activePreviewMode.image}
-                alt={activePreviewMode.title}
-                className="h-full w-full object-cover"
-                loading="lazy"
-              />
-              <div className="absolute bottom-4 left-4 right-4 rounded-xl bg-white/90 backdrop-blur-sm border border-gray-100 px-4 py-3 text-sm">
-                <p className="text-gray-900 font-semibold">{activePreviewMode.title}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <TestimonialsSection />
-
-      <section className="bg-indigo-50/20 dark:bg-indigo-500/[0.02] border-b border-gray-100 dark:border-white/5 overflow-hidden">
-        <div className="max-w-6xl mx-auto px-6 py-20 space-y-12">
-          <div className="text-center space-y-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">How it works</p>
-            <h2 className="text-3xl sm:text-4xl text-gray-900 font-bold tracking-tight text-balance">From product to visuals in minutes</h2>
-          </div>
-
-          <div className="grid gap-12 lg:grid-cols-2 items-center">
-            {/* Left Side: Step Cards */}
-            <div
-              className="space-y-4"
-              onMouseEnter={() => setIsHoveringSteps(true)}
-              onMouseLeave={() => setIsHoveringSteps(false)}
-            >
-              {steps.map((step, index) => {
-                const isActive = activeStep === index;
-                return (
-                  <button
-                    key={index}
-                    onClick={() => setActiveStep(index)}
-                    className={`w-full text-left p-6 rounded-xl border transition-all duration-500 relative overflow-hidden group ${isActive
-                      ? 'bg-white dark:bg-white/10 border-indigo-100 dark:border-indigo-500/30'
-                      : 'bg-transparent border-transparent hover:bg-gray-50 dark:hover:bg-white/5'
-                      }`}
-                  >
-                    {isActive && (
-                      <div className="absolute bottom-0 left-0 h-1 bg-indigo-600 animate-[progress_5s_linear_infinite]" />
-                    )}
-                    <div className="flex gap-4">
-                      <div className={`mt-1 flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-500 ${isActive ? 'bg-indigo-600 text-white' : 'bg-gray-100 dark:bg-white/5 text-gray-400 dark:text-gray-500 group-hover:bg-gray-200 dark:group-hover:bg-white/10'
-                        }`}>
-                        {step.icon}
-                      </div>
-                      <div className="space-y-1">
-                        <h3 className={`text-lg font-bold transition-colors duration-500 ${isActive ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}>
-                          {step.title}
-                        </h3>
-                        <p className={`text-sm leading-relaxed transition-colors duration-500 ${isActive ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'}`}>
-                          {step.description}
-                        </p>
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Right Side: Visual Sandbox */}
-            <div className="relative aspect-square sm:aspect-video lg:aspect-square bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10 overflow-hidden shadow-inner">
-              {/* Visual Step 1: Upload */}
-              <div className={`absolute inset-0 p-8 flex flex-col items-center justify-center transition-all duration-700 ${activeStep === 0 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-95 pointer-events-none'
-                }`}>
-                <div className="w-full max-w-sm aspect-square bg-white border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center gap-4 relative overflow-hidden group">
-                  <div className="w-16 h-16 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 animate-bounce">
-                    <ShoppingBag className="w-8 h-8" />
+            <div className="space-y-6">
+              <h3 className="text-2xl font-semibold">How eCommerce Brands Use AI UGC</h3>
+              <p className="text-gray-300 leading-relaxed">
+                Replace or supplement traditional content with lifestyle scenes, in-context product images, creator-style photos, hero shots, and secondary product images.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[
+                  { title: 'Shopify Stores', desc: 'Lifestyle + hero visuals without models or photographers.' },
+                  { title: 'Amazon Sellers', desc: 'A+ content, packshots, and lifestyle scenes that boost conversion.' },
+                  { title: 'Social Media Creators', desc: 'UGC-style shots for TikTok, Instagram, Reels, and thumbnails.' },
+                  { title: 'Agencies & Marketing Teams', desc: 'Produce unlimited branded assets for clients and campaigns.' },
+                ].map(item => (
+                  <div key={item.title} className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-2">
+                    <p className="font-semibold text-white">{item.title}</p>
+                    <p className="text-gray-300 text-sm">{item.desc}</p>
                   </div>
-                  <p className="text-sm font-semibold text-gray-900">Drop your product photo here</p>
-                  <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  {/* Simulated pulse effect */}
-                  <div className="absolute inset-x-8 bottom-8 h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-indigo-600 w-full origin-left animate-[loading_2s_ease-in-out_infinite]" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Visual Step 2: Choose */}
-              <div className={`absolute inset-0 p-8 flex flex-col items-center justify-center transition-all duration-700 ${activeStep === 1 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-95 pointer-events-none'
-                }`}>
-                <div className="w-full max-w-sm space-y-6">
-                  <div className="bg-white p-4 rounded-xl border border-gray-100 grid grid-cols-2 gap-3">
-                    <div className="aspect-square rounded-2xl bg-indigo-600 flex flex-col items-center justify-center text-white gap-2 border-4 border-indigo-200">
-                      <Zap className="w-8 h-8" />
-                      <span className="text-xs font-bold uppercase tracking-widest text-white/90">Lifestyle</span>
-                    </div>
-                    <div className="aspect-square rounded-2xl bg-gray-50 flex flex-col items-center justify-center text-gray-400 gap-2 grayscale">
-                      <ShoppingBag className="w-8 h-8" />
-                      <span className="text-xs font-bold uppercase tracking-widest">Studio</span>
-                    </div>
-                  </div>
-                  <div className="bg-white p-4 rounded-xl border border-gray-100 flex items-center justify-between">
-                    <span className="text-xs font-bold tracking-widest uppercase text-gray-400">Atmosphere</span>
-                    <div className="flex gap-1">
-                      {[1, 2, 3, 4].map(i => <div key={i} className={`w-6 h-6 rounded-lg ${i === 1 ? 'bg-indigo-600' : 'bg-gray-100'}`} />)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Visual Step 3: Generate */}
-              <div className={`absolute inset-0 p-8 flex flex-col items-center justify-center transition-all duration-700 ${activeStep === 2 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-95 pointer-events-none'
-                }`}>
-                <div className="w-full max-w-sm aspect-square relative rounded-xl overflow-hidden group">
-                  <img
-                    src="/images/home/Lifestyle-UGC.webp"
-                    alt="UGC Mockup"
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-6">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                      <span className="text-xs font-bold text-white uppercase tracking-widest">Visual Generated</span>
-                    </div>
-                  </div>
-                  {/* Scanner animation */}
-                  <div className="absolute inset-x-0 top-0 h-1 bg-indigo-400 shadow-lg shadow-indigo-400/50 animate-[scan_3s_ease-in-out_infinite]" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Bento: Product vs Lifestyle */}
-      <section className="bg-white dark:bg-black py-24 border-b border-gray-100 dark:border-white/5 overflow-hidden">
-        <div className="max-w-6xl mx-auto px-6 space-y-16">
-          <div className="text-center space-y-4">
-            <span className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50">
-              Core Philosophy
-            </span>
-            <h2 className="text-4xl md:text-5xl text-gray-900 font-bold tracking-tight text-balance">Two modes. One visual system.</h2>
-            <p className="text-gray-500 max-w-2xl mx-auto text-lg leading-relaxed">
-              Product and Lifestyle never mix. You always control the intent before generating.
-            </p>
-          </div>
-
-          <div className="grid lg:grid-cols-12 gap-6 h-full lg:h-[480px]">
-            {/* Studio Mode Card */}
-            <div className="lg:col-span-12 xl:col-span-5 bg-gray-900 rounded-xl overflow-hidden relative group border border-gray-800">
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
-              <img
-                src="/images/home/Studio-Hero.webp"
-                alt="Studio Mode"
-                className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-700"
-              />
-              <div className="absolute inset-x-0 bottom-0 p-8 z-20 space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
-                  <span className="text-[10px] text-indigo-300 font-bold uppercase tracking-[0.2em]">PDP Ready</span>
-                </div>
-                <h3 className="text-2xl font-bold text-white text-balance">Product (Studio)</h3>
-                <p className="text-gray-400 text-sm leading-relaxed max-w-sm">
-                  Use when clarity and control matter. Perfect for marketplaces, catalogs, and clean e-commerce listings.
-                </p>
+                ))}
               </div>
             </div>
 
-            {/* Lifestyle Mode Card */}
-            <div className="lg:col-span-12 xl:col-span-7 bg-indigo-600 rounded-xl overflow-hidden relative group border border-indigo-500">
-              <div className="absolute inset-0 bg-gradient-to-tr from-indigo-900/60 to-indigo-500/20 z-10" />
-              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
-              <img
-                src="/images/home/Lifestyle-UGC.webp"
-                alt="Lifestyle Mode"
-                className="absolute inset-0 w-full h-full object-cover opacity-50 blur-[2px] group-hover:blur-0 transition-all duration-700"
-              />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85%] aspect-video bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl z-20 overflow-hidden group/mini">
-                <div className="absolute inset-0 p-6 flex flex-col gap-4">
-                  <div className="flex justify-between items-start">
-                    <div className="px-3 py-1.5 bg-white rounded-lg text-gray-900 text-[10px] font-bold inline-flex items-center gap-2 shadow-sm">
-                      <Users2 className="w-3.5 h-3.5 text-indigo-600" />
-                      AI Intent Analysis
-                    </div>
-                    <div className="flex flex-col items-end gap-1">
-                      <span className="text-[10px] text-white/60 font-medium font-mono">Control: UGC Alpha</span>
-                      <div className="flex gap-0.5">
-                        {[1, 2, 3, 4, 5].map(i => <div key={i} className="w-1 h-3 bg-indigo-400 rounded-full" />)}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex-1 grid grid-cols-2 gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
-                    <div className="space-y-2">
-                      {[
-                        { label: 'Person', value: 'Woman, 25-30' },
-                        { label: 'Expression', value: 'Natural Smile' },
-                        { label: 'Action', value: 'Holding Product' }
-                      ].map(tag => (
-                        <div key={tag.label} className="bg-black/20 border border-white/10 p-2 rounded-lg backdrop-blur-sm">
-                          <p className="text-[8px] text-white/40 uppercase font-bold tracking-widest">{tag.label}</p>
-                          <p className="text-[10px] text-white font-medium">{tag.value}</p>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="space-y-2 translate-y-4">
-                      {[
-                        { label: 'Lighting', value: 'Golden Hour' },
-                        { label: 'Focus', value: 'Product First' },
-                        { label: 'Mood', value: 'Authentic' }
-                      ].map(tag => (
-                        <div key={tag.label} className="bg-indigo-500/20 border border-indigo-400/20 p-2 rounded-lg backdrop-blur-sm">
-                          <p className="text-[8px] text-white/40 uppercase font-bold tracking-widest">{tag.label}</p>
-                          <p className="text-[10px] text-white font-medium">{tag.value}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="absolute inset-x-0 bottom-0 p-8 z-30 space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                  <span className="text-[10px] text-white/80 font-bold uppercase tracking-[0.2em]">Conversion Focus</span>
-                </div>
-                <h3 className="text-2xl font-bold text-white text-balance">Lifestyle (UGC & Editorial)</h3>
-                <p className="text-indigo-100 text-sm leading-relaxed max-w-md">
-                  Use when context and emotion drive conversion. Choose UGC for authenticity or Editorial for brand polish.
-                </p>
-              </div>
+            <div className="space-y-4">
+              <h3 className="text-2xl font-semibold">Why BoostUGC is different</h3>
+              <ul className="list-disc pl-6 space-y-3 text-gray-300">
+                <li>Photorealistic by default—no AI art artifacts.</li>
+                <li>Realistic shadows, reflections, and product geometry tuned for eCommerce.</li>
+                <li>Optimized for ads, landing pages, and product pages.</li>
+              </ul>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Bento: The Advantage Grid */}
-      {/* Why Perfect Mockup: Advantage Grid */}
-      <section className="bg-gray-50/50 dark:bg-white/[0.02] py-24 border-b border-gray-100 dark:border-white/5 overflow-hidden">
-        <div className="max-w-6xl mx-auto px-6 space-y-16">
-          <div className="text-center space-y-4">
-            <span className="text-indigo-600 dark:text-indigo-400 text-[10px] font-bold uppercase tracking-[0.3em]">Why Perfect Mockup</span>
-            <h2 className="text-4xl md:text-5xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">
-              Built as a Visual System, Not a Generator
-            </h2>
-            <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto text-lg leading-relaxed font-medium">
-              Designed for ecommerce teams that need speed, consistency, and control.
-            </p>
-          </div>
+            <div className="space-y-4">
+              <h3 className="text-2xl font-semibold">Does AI UGC convert better?</h3>
+              <p className="text-gray-300 leading-relaxed">
+                Brands report higher add-to-cart, CTR, and ad performance with native, human-feeling visuals—and faster testing to find winning angles.
+              </p>
+            </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* Card 1: Time */}
-            <motion.div
-              initial="initial"
-              whileHover="animate"
-              whileInView="animate"
-              viewport={{ once: true, amount: 0.5 }}
-              className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 p-8 flex flex-col justify-between group min-h-[320px] shadow-sm"
-            >
-              <div className="space-y-4">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white text-balance">From Weeks to Minutes</h3>
-                <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
-                  Skip studios, scheduling, talent, and retouching. Generate launch-ready visuals the moment your product is ready.
-                </p>
-              </div>
-              <WeeksToMinutes />
-            </motion.div>
+            <div className="space-y-4">
+              <h3 className="text-2xl font-semibold">The future is AI-powered</h3>
+              <p className="text-gray-300 leading-relaxed">
+                As models improve, production shifts fully to AI-driven workflows. Stay ahead with studio-quality and lifestyle content at scale—no traditional shoots required.
+              </p>
+            </div>
 
-            {/* Card 2: System (Large) */}
-            <motion.div
-              initial="initial"
-              whileHover="animate"
-              whileInView="animate"
-              viewport={{ once: true, amount: 0.5 }}
-              className="md:col-span-2 bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 p-8 flex flex-col md:flex-row gap-8 items-center min-h-[320px] shadow-sm"
-            >
-              <div className="flex-1 space-y-4">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white text-balance">One Visual System. Every Channel.</h3>
-                <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
-                  The same product logic drives visuals across product pages, ads, marketplaces, and paid social, so nothing drifts off-spec.
-                </p>
-                <div className="pt-6 border-t border-gray-100 dark:border-white/10">
-                  <p className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.2em]">Change the rules once. Update everything.</p>
-                </div>
-              </div>
-              <div className="flex-1 w-full flex items-center justify-center">
-                <VisualSystem />
-              </div>
-            </motion.div>
-
-            {/* Card 3: Control (Large Dark) */}
-            <motion.div
-              initial="initial"
-              whileHover="animate"
-              whileInView="animate"
-              viewport={{ once: true, amount: 0.5 }}
-              className="md:col-span-2 bg-gray-900 dark:bg-white/[0.03] rounded-2xl p-8 flex flex-col md:flex-row gap-8 items-center min-h-[320px] border border-gray-800 dark:border-white/10 shadow-2xl"
-            >
-              <div className="flex-1 space-y-4">
-                <div className="inline-flex px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[9px] font-bold uppercase tracking-widest mb-2">
-                  SYSTEM CORE
-                </div>
-                <h3 className="text-2xl font-bold text-white text-balance">Decisions In. Not Randomness Out.</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">
-                  Perfect Mockup uses structured inputs, strict modes, and composition rules so every image matches its ecommerce use case.
-                </p>
-              </div>
-              <div className="flex-1 w-full flex items-center justify-center">
-                <AntiRandomness />
-              </div>
-            </motion.div>
-
-            {/* Card 4: Scale */}
-            <motion.div
-              initial="initial"
-              whileHover="animate"
-              whileInView="animate"
-              viewport={{ once: true, amount: 0.5 }}
-              className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 p-8 flex flex-col justify-between min-h-[320px] shadow-sm"
-            >
-              <div className="space-y-4">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white text-balance">Built to Scale With Your Catalog</h3>
-                <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
-                  From your first SKU to hundreds of products, generate consistent visuals without increasing production overhead.
-                </p>
-              </div>
-              <ScaleCatalog />
-            </motion.div>
-          </div>
-
-          <div className="max-w-3xl mx-auto text-center">
-            <p className="text-xs font-medium text-gray-500/80 dark:text-gray-400/50 uppercase tracking-widest">
-              Product visuals and UGC-style visuals are generated using separate modes to keep outputs ecommerce-safe.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Sophisticated Audience Cluster */}
-      <section className="bg-white dark:bg-black py-24 border-b border-gray-100 dark:border-white/5">
-        <div className="max-w-6xl mx-auto px-6 space-y-12">
-          <div className="text-center space-y-4">
-            <span className="text-indigo-600 text-[10px] font-bold uppercase tracking-[0.3em]">Perfect for Teams</span>
-            <h2 className="text-3xl font-bold text-gray-900 text-balance">Designed for the modern ecommerce ecosystem</h2>
-          </div>
-
-          <div className="flex flex-wrap justify-center items-center gap-4 max-w-4xl mx-auto">
-            {[
-              { label: 'DTC Brands', weight: 'font-extrabold', size: 'text-2xl', color: 'text-indigo-600', bg: 'bg-indigo-50 border-indigo-100' },
-              { label: 'Founders', weight: 'font-semibold', size: 'text-xl', color: 'text-gray-900', bg: 'bg-gray-50 border-gray-200' },
-              { label: 'Marketing Teams', weight: 'font-bold', size: 'text-lg', color: 'text-indigo-600/80', bg: 'bg-indigo-50/50 border-indigo-100/50' },
-              { label: 'Creative Agencies', weight: 'font-medium', size: 'text-2xl', color: 'text-gray-900', bg: 'bg-gray-50 border-gray-200' },
-              { label: 'Performance Marketers', weight: 'font-bold', size: 'text-xl', color: 'text-indigo-600', bg: 'bg-indigo-50 border-indigo-100' },
-              { label: 'UX Designers', weight: 'font-normal', size: 'text-lg', color: 'text-gray-400', bg: 'bg-transparent border-gray-100' },
-              { label: 'Store Managers', weight: 'font-semibold', size: 'text-lg', color: 'text-gray-900', bg: 'bg-gray-50 border-gray-200' },
-            ].map((item, i) => (
-              <div
-                key={item.label}
-                className={`px-6 py-4 rounded-full border transition-all hover:scale-105 cursor-default flex items-center gap-3 ${item.bg} ${item.color} ${item.weight} ${item.size}`}
-                style={{ animationDelay: `${i * 0.1}s` }}
+            <div className="pt-2">
+              <a
+                href="/login"
+                className="inline-flex items-center gap-2 bg-indigo-500 text-white px-6 py-3 rounded-md hover:bg-indigo-600 text-lg font-medium"
               >
-                {item.label}
-              </div>
-            ))}
+                <Sparkles className="w-5 h-5" />
+                Start Free Trial
+              </a>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="bg-indigo-50/50 dark:bg-white/5 border-y border-indigo-100 dark:border-white/10">
-        <div className="max-w-6xl mx-auto px-6 py-24 space-y-10">
-          <div className="text-center space-y-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-400">Resources</p>
-            <h2 className="text-3xl text-gray-900 dark:text-white font-semibold text-balance">Latest from our Blog</h2>
-            <p className="text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mt-3">
-              Insights, guides, and tactics to help you win with AI-driven visuals.
-            </p>
-          </div>
-
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {blogArticles.map(article => (
-              <Link
-                key={article.slug}
-                to={`/blog/${article.slug}`}
-                className="group flex flex-col rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:bg-gray-50 dark:hover:bg-white/10"
-              >
-                <div className="aspect-video w-full bg-gray-100 dark:bg-black/20 relative overflow-hidden">
-                  <img
-                    src={article.heroImage.url || `/blog/heroes/${article.slug}.webp`}
-                    alt={article.heroImage.alt}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                  />
-                </div>
-                <div className="flex-1 p-5 space-y-3">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white leading-tight transition-colors duration-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
-                    {article.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
-                    {article.subtitle}
-                  </p>
-                  <div className="mt-auto pt-4 flex items-center gap-1 text-sm font-medium text-indigo-600 dark:text-indigo-400">
-                    Read article <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          <div className="text-center mt-8">
-            <Link
-              to="/blog"
-              className="inline-flex items-center justify-center rounded-full border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 px-6 py-3 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/10 transition-all duration-300"
-            >
-              View All Articles
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <section id="faq" className="bg-white dark:bg-black py-24 border-b border-gray-100 dark:border-white/5">
-        <div className="max-w-5xl mx-auto px-6 space-y-12">
-          <div className="text-center space-y-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">FAQ</p>
-            <h2 className="text-3xl sm:text-4xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">
-              Answers for ecommerce teams
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Clear guidance on how Perfect Mockup works and where it fits in your launch stack.
-            </p>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2">
-            {faqItems.map((item) => (
-              <div
-                key={item.question}
-                className="rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 p-6 space-y-3"
-              >
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{item.question}</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{item.answer}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="pricing" className="bg-white dark:bg-black relative isolate py-24 px-6 border-b border-gray-100 dark:border-white/5">
-        <div className="max-w-6xl mx-auto space-y-16">
-          <div className="text-center space-y-4">
-            <span className="text-indigo-600 text-[10px] font-bold uppercase tracking-[0.3em]">Scalable Pricing</span>
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight text-balance">Plans built for launch velocity</h2>
-            <p className="text-gray-500 max-w-2xl mx-auto text-lg leading-relaxed">
-              Scale your visuals as your products and campaigns grow. No hidden fees.
-            </p>
-
-            <div className="mt-8 flex justify-center">
-              <div className="relative inline-flex items-center p-1 bg-gray-100/50 rounded-full border border-gray-200/50 min-w-[420px] isolation-auto h-12">
-                {/* Sliding background */}
-                <div
-                  className={`absolute inset-y-1 w-[calc(50%-4px)] rounded-full transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) shadow-md ${billingCycle === 'monthly' ? 'left-1 bg-white' : 'left-[50%] bg-indigo-600'
-                    }`}
-                />
-                <button
-                  onClick={() => billingCycle === 'yearly' && handleBillingToggle()}
-                  className={`flex-1 relative z-10 px-6 h-full rounded-full text-[12px] font-bold transition-colors duration-300 flex items-center justify-center whitespace-nowrap ${billingCycle === 'monthly' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700'
-                    }`}
-                >
-                  Billed monthly
-                </button>
-                <button
-                  onClick={() => billingCycle === 'monthly' && handleBillingToggle()}
-                  className={`flex-1 relative z-10 px-6 h-full rounded-full text-[12px] font-bold transition-colors duration-300 flex items-center justify-center gap-3 whitespace-nowrap ${billingCycle === 'yearly' ? 'text-white' : 'text-gray-500 hover:text-gray-700'
-                    }`}
-                >
-                  Billed yearly
-                  <span className={`px-2 py-0.5 rounded-md text-[10px] uppercase font-black tracking-wider transition-all duration-300 ${billingCycle === 'yearly' ? 'bg-white/20 text-white' : 'bg-indigo-100 text-indigo-600 shadow-sm'
-                    }`}>
-                    Save 20%
+        {/* Universal Mockup Generator – Pricing Section by Juan Amisano */}
+        <section id="pricing" className="relative isolate mt-16 px-4 py-20 sm:px-6 lg:px-8">
+          <div className="absolute inset-0 -z-10 rounded-[2.5rem] bg-gradient-to-b from-[#0A0A0F] to-[#111] opacity-95" />
+          <div className="max-w-6xl mx-auto text-white space-y-12">
+            <div className="text-center space-y-4">
+              <p className="text-sm uppercase tracking-[0.4em] text-indigo-200">Pricing</p>
+              <h2 className="text-3xl sm:text-4xl font-extrabold">Choose the plan that fits your launch velocity</h2>
+              <p className="text-base text-gray-400 max-w-2xl mx-auto">
+                Scale authentic UGC visuals without wrangling freelancers. Flip to annual billing and save 20% for your team.
+              </p>
+              <div className="mt-6 flex justify-center">
+                <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2 shadow-lg shadow-purple-900/30">
+                  <span className="text-sm text-gray-300">Billed monthly</span>
+                  <label className="relative inline-flex cursor-pointer items-center" aria-label="Toggle between monthly and annual billing">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={billingCycle === 'yearly'}
+                      onChange={handleBillingToggle}
+                    />
+                    <div className="h-6 w-12 rounded-full bg-gray-600 transition peer-checked:bg-indigo-500" />
+                    <span className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow transition peer-checked:translate-x-6" />
+                  </label>
+                  <span className="text-sm text-gray-300">
+                    Billed yearly <span className="ml-1 rounded-full bg-purple-600/30 px-2 py-0.5 text-xs text-purple-200">Save 20%</span>
                   </span>
-                </button>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-            {pricing.map(plan => {
-              const isYearly = billingCycle === 'yearly';
-              const cadenceLabel = isYearly ? plan.yearlyCaption : plan.monthlyCaption;
-              const displayedPrice = isYearly ? plan.yearlyPrice : plan.monthlyPrice;
-              const isFeatured = plan.featured;
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+              {pricing.map(plan => {
+                const isYearly = billingCycle === 'yearly';
+                const cadenceLabel = isYearly ? plan.yearlyCaption : plan.monthlyCaption;
+                const displayedPrice = isYearly ? plan.yearlyPrice : plan.monthlyPrice;
+                const baseCard =
+                  'group relative rounded-3xl border p-6 flex flex-col gap-6 hover:scale-[1.01] transition duration-300';
+                const cardClasses = plan.featured
+                  ? `${baseCard} border-[#7E5BEF] bg-gradient-to-b from-[#1A1340] to-[#120A24] shadow-[0_20px_60px_rgba(126,91,239,0.35)]`
+                  : `${baseCard} border-white/10 bg-white/5`;
 
-              return (
-                <article
-                  key={plan.name}
-                  className={`relative rounded-xl p-8 flex flex-col gap-8 transition-all duration-500 ease-out border ${isFeatured
-                    ? 'bg-gray-900 border-gray-800 scale-[1.02] z-10'
-                    : 'bg-white dark:bg-white/5 border-gray-100 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/10'
-                    }`}
-                >
-                  {isFeatured && (
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full ring-4 ring-white">
-                      Most Popular
-                    </div>
-                  )}
-
-                  <header className="space-y-4">
-                    <p className={`text-sm font-bold uppercase tracking-widest ${isFeatured ? 'text-indigo-400' : 'text-gray-500'}`}>
-                      {plan.name}
-                    </p>
-                    <div className="flex items-baseline gap-1">
-                      <span className={`text-5xl font-extrabold tracking-tight ${isFeatured ? 'text-white' : 'text-gray-900'}`}>
+                return (
+                  <article key={plan.name} className={cardClasses}>
+                    {plan.badge && (
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#7E5BEF] px-3 py-1 text-xs font-semibold text-white">
+                        {plan.badge}
+                      </span>
+                    )}
+                    <header className="space-y-2">
+                      <p className="text-base font-semibold">{plan.name}</p>
+                      <div aria-live="polite" className="flex items-baseline gap-1 text-4xl font-bold text-white">
                         {displayedPrice}
-                      </span>
-                      <span className={`text-sm font-medium ${isFeatured ? 'text-gray-400' : 'text-gray-500'}`}>
-                        / {isYearly ? 'year' : 'mo'}
-                      </span>
-                    </div>
-                    <p className={`text-xs font-medium leading-relaxed ${isFeatured ? 'text-indigo-200/50' : 'text-gray-400'}`}>
-                      {cadenceLabel}
-                    </p>
-                  </header>
-
-                  <ul className="space-y-4 flex-1">
-                    {plan.highlights.map(item => (
-                      <li key={item} className="flex items-start gap-3">
-                        <CheckCircle2 className={`w-5 h-5 mt-0.5 flex-shrink-0 ${isFeatured ? 'text-indigo-400' : 'text-indigo-600'}`} />
-                        <span className={`text-sm ${isFeatured ? 'text-gray-300' : 'text-gray-600'}`}>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <div className="pt-4 mt-auto">
+                        <span className="text-base font-medium text-gray-400">USD</span>
+                      </div>
+                      <p className="text-sm text-gray-400">{cadenceLabel}</p>
+                      <p className="sr-only">
+                        {displayedPrice} {cadenceLabel}
+                      </p>
+                    </header>
+                    <ul className="space-y-3 text-sm text-gray-200">
+                      {plan.highlights.map(item => (
+                        <li key={item} className="flex items-start gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-300 mt-0.5 flex-shrink-0" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
                     {(() => {
-                      const targetUrl = isYearly
-                        ? plan.yearlyUrl || plan.monthlyUrl || plan.checkoutUrl
-                        : plan.monthlyUrl || plan.checkoutUrl || plan.yearlyUrl;
-
                       if (plan.isFree) {
                         return (
                           <Link
                             to="/login"
-                            className="block w-full text-center px-6 py-4 rounded-xl border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white font-bold text-sm hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
+                            className="mt-auto w-full rounded-full border border-white/30 px-4 py-3 text-sm font-semibold text-white hover:border-indigo-300 text-center"
                           >
                             {plan.cta}
                           </Link>
                         );
                       }
-
+                      const isYearly = billingCycle === 'yearly';
+                      const targetUrl = isYearly
+                        ? plan.yearlyUrl || plan.monthlyUrl || plan.checkoutUrl
+                        : plan.monthlyUrl || plan.checkoutUrl || plan.yearlyUrl;
                       return (
                         <a
                           href={targetUrl || '#'}
-                          className={`block w-full text-center px-6 py-4 rounded-xl font-bold text-sm transition ${isFeatured
-                            ? 'bg-white text-gray-900 hover:bg-gray-100'
-                            : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                          className={`mt-auto w-full rounded-full px-4 py-3 text-sm font-semibold transition text-center ${plan.featured
+                            ? 'bg-white text-[#120A24] hover:bg-gray-100'
+                            : 'bg-indigo-500 text-white hover:bg-indigo-400'
                             }`}
                         >
                           {plan.cta}
                         </a>
                       );
                     })()}
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-
-          <p className="text-center text-sm text-gray-600">
-            1 credit equals 1 image generation in Fast Mode. PRO mode consumes 3 credits per execution.
-          </p>
-
-          {selectedPlan && (
-            <PlanCheckoutModal
-              plan={selectedPlan}
-              email={checkoutEmail}
-              onEmailChange={setCheckoutEmail}
-              onClose={handleCloseCheckout}
-              onConfirm={handleConfirmCheckout}
-              disabledReason={
-                !selectedPlan.checkoutUrl
-                  ? 'Stripe payment link missing. Configure VITE_STRIPE_LINK variables.'
-                  : checkoutError
-              }
-            />
-          )}
-
-          <div className="flex flex-col items-center gap-3 text-sm text-gray-600">
-            <div className="inline-flex items-center gap-2 text-gray-600 font-medium">
-              <CreditCard className="w-4 h-4 text-indigo-600" />
-              Payments processed by Stripe
+                  </article>
+                );
+              })}
             </div>
-            <div className="flex flex-wrap justify-center gap-2">
-              {paymentMethods.map(method => (
-                <span
-                  key={method}
-                  className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-600"
-                >
-                  {method}
-                </span>
-              ))}
+            <p className="text-center text-sm text-gray-400">
+              REMINDER: 1 credit equals 1 image generated in Fast Mode. Images generated in Photorealism PRO Mode consume 3 credits per execution.
+            </p>
+
+            {selectedPlan && (
+              <PlanCheckoutModal
+                plan={selectedPlan}
+                email={checkoutEmail}
+                onEmailChange={setCheckoutEmail}
+                onClose={handleCloseCheckout}
+                onConfirm={handleConfirmCheckout}
+                disabledReason={!selectedPlan.checkoutUrl ? 'Stripe payment link missing. Configure VITE_STRIPE_LINK variables.' : checkoutError}
+              />
+            )}
+
+            <div className="flex flex-col items-center gap-3 text-sm text-gray-400">
+              <div className="inline-flex items-center gap-2 text-white/80 font-medium">
+                <CreditCard className="w-4 h-4 text-indigo-300" />
+                Payments processed by Stripe
+              </div>
+              <div className="flex flex-wrap justify-center gap-2">
+                {paymentMethods.map(method => (
+                  <span key={method} className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-gray-300">
+                    {method}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="bg-gray-900 dark:bg-white/[0.03] py-24 text-center">
-        <div className="max-w-4xl mx-auto px-6">
-          <h2 className="text-4xl md:text-5xl text-white font-bold tracking-tight text-balance">
-            Launch Products with Visuals That Convert
-          </h2>
-          <p className="mt-6 text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
-            Create ecommerce-ready product and lifestyle mockups for ads, product pages, and social. No photoshoots required.
+        <section className="max-w-4xl mx-auto px-6 py-16 text-center border-t border-white/5">
+          <p className="text-sm uppercase tracking-[0.3em] text-indigo-200">Ready to promote</p>
+          <h2 className="mt-4 text-3xl text-white font-semibold">Launch with authentic-looking visuals today.</h2>
+          <p className="mt-3 text-gray-400">
+            Create an account with your email, connect your Gemini API key, upload your first product, and publish scroll-stopping results in minutes.
           </p>
-          <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4">
+          <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
             <Link
               to="/login"
-              className="inline-flex items-center justify-center rounded-xl bg-indigo-600 text-white px-10 py-5 font-bold text-sm transition-all hover:bg-indigo-700 shadow-xl shadow-indigo-600/20 hover:shadow-indigo-600/30 hover:-translate-y-0.5 active:scale-[0.98]"
+              className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-8 py-4 font-semibold text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-600 transition"
             >
-              Start Creating Mockups
-              <ArrowRight className="ml-2 w-4 h-4" />
+              Generate Mockups Now
             </Link>
-            <button
-              onClick={handleSmoothScroll('#pricing')}
-              className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-10 py-5 font-bold text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-all"
+            <a
+              href="mailto:hola@universalugc.com"
+              className="inline-flex items-center justify-center rounded-full border border-white/20 px-8 py-4 font-semibold text-white/80 hover:border-indigo-400 hover:text-white transition"
             >
-              View Pricing
-            </button>
+              Request a guided demo
+            </a>
           </div>
-        </div>
-      </section>
-    </div>
+        </section>
+
+      </div>
+      {/* Access gate modal removed; flow now uses direct login and magic link */}
+    </>
   );
 };
 
 export default LandingPage;
+
+function BeforeAfterCard({
+  slide,
+  value,
+  view,
+  onChange,
+  onViewChange,
+}: {
+  slide: BeforeAfterSlide;
+  value: number;
+  view: 'before' | 'after';
+  onChange: (next: number) => void;
+  onViewChange: (next: 'before' | 'after') => void;
+}) {
+  const safeValue = Math.max(0, Math.min(100, value));
+  return (
+    <div className="rounded-3xl border border-gray-200 bg-white p-3 md:p-4">
+      <div className="md:hidden space-y-3">
+        <div className="flex items-center justify-center gap-2">
+          {(['before', 'after'] as const).map(option => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => onViewChange(option)}
+              className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${view === option ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}
+            >
+              {option === 'before' ? 'Before' : 'After'}
+            </button>
+          ))}
+        </div>
+        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-gray-100">
+          <img
+            src={view === 'before' ? slide.before : slide.after}
+            alt={slide.alt}
+            className="absolute inset-0 h-full w-full object-cover"
+            loading="lazy"
+            draggable={false}
+          />
+          <span className="absolute left-3 top-3 rounded-full bg-white/85 px-3 py-1 text-[10px] font-semibold text-gray-700 uppercase tracking-widest">
+            {view === 'before' ? 'Before' : 'After'}
+          </span>
+        </div>
+      </div>
+      <div className="hidden md:block">
+        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-gray-100">
+          <img
+            src={slide.before}
+            alt={slide.alt}
+            className="absolute inset-0 h-full w-full object-cover"
+            loading="lazy"
+            draggable={false}
+          />
+          <div className="absolute inset-y-0 left-0 overflow-hidden" style={{ width: `${safeValue}%` }}>
+            <img
+              src={slide.after}
+              alt={slide.alt}
+              className="absolute inset-0 h-full w-full object-cover"
+              loading="lazy"
+              draggable={false}
+            />
+          </div>
+          <div className="pointer-events-none absolute inset-y-0" style={{ left: `${safeValue}%` }}>
+            <div className="absolute inset-y-0 -translate-x-1/2 w-[2px] bg-white/90" />
+            <div className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-10 rounded-full border border-white bg-gray-900/40 backdrop-blur-sm" />
+          </div>
+          <div className="absolute left-3 top-3 rounded-full bg-white/85 px-3 py-1 text-[10px] font-semibold text-gray-700 uppercase tracking-widest">
+            Before
+          </div>
+          <div className="absolute right-3 top-3 rounded-full bg-white/85 px-3 py-1 text-[10px] font-semibold text-gray-700 uppercase tracking-widest">
+            After
+          </div>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={safeValue}
+            onChange={(event) => onChange(Number(event.target.value))}
+            aria-label="Before and after comparison"
+            className="absolute inset-0 h-full w-full cursor-ew-resize opacity-0"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
