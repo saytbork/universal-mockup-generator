@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect, useRef } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { CheckCircle2, CreditCard, ShieldCheck, ShoppingBag, Users2, Zap, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -95,61 +95,6 @@ const pricing: PricingPlan[] = [
 ];
 
 const paymentMethods = ['Visa', 'Mastercard', 'American Express', 'Apple Pay', 'Google Pay'];
-
-// Note: This component must clearly communicate ecommerce use cases (PDPs, ads, marketplaces).
-// Do NOT frame this as influencer or creator-only UGC.
-type ProofSlide = {
-  id: string;
-  productImage: string;
-  realImage: string;
-  productAlt: string;
-  realAlt: string;
-};
-
-const PROOF_SLIDES: ProofSlide[] = [
-  {
-    id: '01-supplement',
-    productImage: '/slider/01-product.jpg',
-    realImage: '/slider/01-real.jpg',
-    productAlt: 'Supplement bottle packshot on white background',
-    realAlt: 'Person in a kitchen holding the same supplement bottle',
-  },
-  {
-    id: '02-beverage',
-    productImage: '/slider/02-product.jpg',
-    realImage: '/slider/02-real.jpg',
-    productAlt: 'Just Bubbles sparkling water can on wooden table',
-    realAlt: 'Hand opening Just Bubbles can with colorful studio background',
-  },
-  {
-    id: '03-food',
-    productImage: '/slider/03-product.jpg',
-    realImage: '/slider/03-real.jpg',
-    productAlt: 'Snack pouch product shot on a clean surface',
-    realAlt: 'Snack pouch on a lived-in table with hands nearby',
-  },
-  {
-    id: '04-pet',
-    productImage: '/slider/04-product.jpg',
-    realImage: '/slider/04-real.jpg',
-    productAlt: 'Pet product packshot on a neutral set',
-    realAlt: 'Pet product used in a home environment setting',
-  },
-  {
-    id: '05-health',
-    productImage: '/slider/05-product.jpg',
-    realImage: '/slider/05-real.jpg',
-    productAlt: 'Health product packshot on white background',
-    realAlt: 'Everyday person using the health product at home',
-  },
-  {
-    id: '06-generic',
-    productImage: '/slider/06-product.jpg',
-    realImage: '/slider/06-real.jpg',
-    productAlt: 'Generic ecommerce product shot',
-    realAlt: 'Same product in a simple lifestyle context',
-  },
-];
 
 // --- Advantage Grid Animation Components ---
 
@@ -350,89 +295,8 @@ const ScaleCatalog = () => (
   </div>
 );
 
-const BeforeAfterSlider: React.FC<{ slides: ProofSlide[] }> = ({ slides }) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  // Auto-scroll animation
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-
-    let animationId: number;
-    let scrollSpeed = 0.5;
-
-    const scroll = () => {
-      if (el.scrollLeft >= el.scrollWidth / 2) {
-        el.scrollLeft = 0;
-      } else {
-        el.scrollLeft += scrollSpeed;
-      }
-      animationId = requestAnimationFrame(scroll);
-    };
-
-    animationId = requestAnimationFrame(scroll);
-
-    const handleMouseEnter = () => { scrollSpeed = 0; };
-    const handleMouseLeave = () => { scrollSpeed = 0.5; };
-    el.addEventListener('mouseenter', handleMouseEnter);
-    el.addEventListener('mouseleave', handleMouseLeave);
-
-    return () => {
-      cancelAnimationFrame(animationId);
-      el.removeEventListener('mouseenter', handleMouseEnter);
-      el.removeEventListener('mouseleave', handleMouseLeave);
-    };
-  }, []);
-
-  return (
-    <div className="relative w-full overflow-hidden">
-      <div
-        ref={scrollRef}
-        className="flex gap-8 overflow-x-auto scrollbar-hide py-4"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-      >
-        {/* Duplicate for seamless loop */}
-        {[...slides, ...slides].map((slide, index) => (
-          <div
-            key={`${slide.id}-${index}`}
-            className="flex-shrink-0 flex gap-1"
-          >
-            {/* Before Image */}
-            <div className="w-[180px] sm:w-[220px] lg:w-[260px]">
-              <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-900">
-                <img
-                  src={slide.productImage}
-                  alt={slide.productAlt}
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-                <div className="absolute bottom-3 left-3">
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-white/90 text-gray-700 backdrop-blur-sm">
-                    Before
-                  </span>
-                </div>
-              </div>
-            </div>
-            {/* After Image */}
-            <div className="w-[180px] sm:w-[220px] lg:w-[260px]">
-              <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
-                <img
-                  src={slide.realImage}
-                  alt={slide.realAlt}
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-                <div className="absolute bottom-3 left-3">
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-indigo-600 text-white">
-                    After
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
+// Note: This slider must clearly communicate ecommerce use cases (PDPs, ads, marketplaces).
+// Do NOT frame this as influencer or creator-only UGC.
 
 
 type LandingPageProps = {
@@ -449,12 +313,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [activeStep, setActiveStep] = useState(0);
   const [isHoveringSteps, setIsHoveringSteps] = useState(false);
-  const [beforeAfterValues, setBeforeAfterValues] = useState<Record<string, number>>(() =>
-    Object.fromEntries(beforeAfterSlides.map(slide => [slide.id, 50]))
-  );
-  const [beforeAfterView, setBeforeAfterView] = useState<Record<string, 'before' | 'after'>>(() =>
-    Object.fromEntries(beforeAfterSlides.map(slide => [slide.id, 'after']))
-  );
   const seo = {
     title: 'AI Product & Lifestyle Mockups for Ecommerce Brands | Perfect Mockup',
     description:
@@ -790,32 +648,52 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
         </div>
       </header>
 
-      {/* Before/After Slider Section */}
-      <section className="relative bg-white dark:bg-black py-20 sm:py-28">
-        {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-          className="text-center space-y-4 mb-12 px-6"
-        >
-          <p className="text-xs uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-400 font-semibold">
-            The Transformation
-          </p>
-          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white leading-tight">
-            From product image to{' '}
-            <span className="bg-gradient-to-r from-indigo-600 to-blue-600 dark:from-indigo-400 dark:to-blue-400 bg-clip-text text-transparent">
-              real-world magic
-            </span>
-          </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Upload your product photo. Get stunning lifestyle visuals ready for PDPs, ads, and social.
-          </p>
-        </motion.div>
+      <section className="bg-white">
+        <div className="max-w-6xl mx-auto px-6 py-8 sm:py-10">
+          <div className="text-center space-y-2">
+            <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900">
+              From product image to real-world use
+            </h2>
+            <p className="text-gray-600">
+              Visuals ready for PDPs, ads, and ecommerce.
+            </p>
+          </div>
 
-        {/* Full-width Before/After Slider */}
-        <BeforeAfterSlider slides={PROOF_SLIDES} />
+          <div className="mt-6 overflow-x-auto">
+            <div className="flex gap-8 snap-x snap-mandatory">
+              {[1, 2, 3, 4, 5, 6].map(i => {
+                const left = String(i * 2 - 1).padStart(2, '0');
+                const right = String(i * 2).padStart(2, '0');
+                return (
+                  <div
+                    key={i}
+                    className="shrink-0 w-[85%] sm:w-[70%] lg:w-[60%] snap-center"
+                  >
+                    <div className="grid grid-cols-2 gap-4 sm:gap-6">
+                      <div className="h-[200px] sm:h-[240px] lg:h-[280px] bg-white flex items-center justify-center">
+                        <img
+                          src={`/slider/${left}.jpg`}
+                          alt={`Product image ${left}`}
+                          loading="lazy"
+                          className="h-full w-full object-contain"
+                        />
+                      </div>
+
+                      <div className="h-[200px] sm:h-[240px] lg:h-[280px] bg-white overflow-hidden">
+                        <img
+                          src={`/slider/${right}.jpg`}
+                          alt={`Real-world product usage ${right}`}
+                          loading="lazy"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </section>
 
       <section className="bg-gray-50/50 dark:bg-white/[0.02]">
