@@ -651,11 +651,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
       {/* Modern Auto-Scrolling Before/After Carousel */}
       <section className="bg-white dark:bg-black py-12 sm:py-16 overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 mb-8 sm:mb-12">
-          <div className="text-center space-y-2">
-            <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white">
+          <div className="text-center space-y-4">
+            <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
+              Real World Results
+            </span>
+            <h2 className="text-4xl md:text-5xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">
               From product image to real-world use
             </h2>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto text-lg leading-relaxed">
               Visuals ready for PDPs, ads, and ecommerce.
             </p>
           </div>
@@ -918,10 +921,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
 
       <section className="bg-white dark:bg-black/95">
         <div className="max-w-6xl mx-auto px-6 py-16 space-y-10">
-          <div className="text-center space-y-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Preview</p>
-            <h2 className="text-3xl text-gray-900 font-semibold text-balance">See what you can create</h2>
-            <p className="text-gray-600 max-w-3xl mx-auto mt-3">
+          <div className="text-center space-y-4">
+            <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
+              Preview
+            </span>
+            <h2 className="text-4xl md:text-5xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">See what you can create</h2>
+            <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto text-lg leading-relaxed">
               Choose Product or Lifestyle to match your goal. UGC feels authentic. Editorial feels premium.
             </p>
           </div>
