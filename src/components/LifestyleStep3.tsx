@@ -1101,35 +1101,35 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     }));
   }, [isProductMode, productStore.angle, productStore.distance, productStore.framing, productStore.rotation]);
 
-	  // Derived state for Environment (Strict Rule: Studio = No Environment, Lifestyle = Always Environment)
-	  // Product Studio must NEVER show Lifestyle/UGC sections.
-	  // Keep all "environment/lifestyle" UI strictly disabled when `isProductMode` is true.
-	  const isEnvironmentMode = !isProductMode;
+  // Derived state for Environment (Strict Rule: Studio = No Environment, Lifestyle = Always Environment)
+  // Product Studio must NEVER show Lifestyle/UGC sections.
+  // Keep all "environment/lifestyle" UI strictly disabled when `isProductMode` is true.
+  const isEnvironmentMode = !isProductMode;
 
-	  const normalizeProductStudioAspectRatio = useCallback((raw: unknown): ProductStudioState['aspectRatio'] => {
-	    const value = String(raw ?? '').trim();
-	    const labelMap: Record<string, ProductStudioState['aspectRatio']> = {
-	      '1:1 (Square)': '1:1',
-	      '4:5 (Portrait)': '4:5',
-	      '3:4 (Portrait)': '3:4',
-	      '9:16 (Story)': '9:16',
-	      '16:9 (Landscape)': '16:9',
-	      '4:3 (Landscape)': '4:3',
-	    };
-	    if (labelMap[value]) return labelMap[value];
-	
-	    const normalized = value.replace(/\s+/g, '');
-	    const allowed = new Set<ProductStudioState['aspectRatio']>(['1:1', '4:5', '3:4', '9:16', '4:3', '16:9']);
-	    if (allowed.has(normalized as ProductStudioState['aspectRatio'])) {
-	      return normalized as ProductStudioState['aspectRatio'];
-	    }
-	    return '1:1';
-	  }, []);
+  const normalizeProductStudioAspectRatio = useCallback((raw: unknown): ProductStudioState['aspectRatio'] => {
+    const value = String(raw ?? '').trim();
+    const labelMap: Record<string, ProductStudioState['aspectRatio']> = {
+      '1:1 (Square)': '1:1',
+      '4:5 (Portrait)': '4:5',
+      '3:4 (Portrait)': '3:4',
+      '9:16 (Story)': '9:16',
+      '16:9 (Landscape)': '16:9',
+      '4:3 (Landscape)': '4:3',
+    };
+    if (labelMap[value]) return labelMap[value];
 
-	  // Sync Product UI controls to ProductStudioStore when isProductMode === true
-	  const updateProductStudioValue = useCallback(<K extends keyof ProductStudioState>(
-	    key: K,
-	    value: ProductStudioState[K]
+    const normalized = value.replace(/\s+/g, '');
+    const allowed = new Set<ProductStudioState['aspectRatio']>(['1:1', '4:5', '3:4', '9:16', '4:3', '16:9']);
+    if (allowed.has(normalized as ProductStudioState['aspectRatio'])) {
+      return normalized as ProductStudioState['aspectRatio'];
+    }
+    return '1:1';
+  }, []);
+
+  // Sync Product UI controls to ProductStudioStore when isProductMode === true
+  const updateProductStudioValue = useCallback(<K extends keyof ProductStudioState>(
+    key: K,
+    value: ProductStudioState[K]
   ) => {
     if (!isProductMode) return;
     console.log('[PRODUCT STUDIO UPDATE]', key, value);
@@ -1185,16 +1185,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       case 'blankSpaceEnabled':
         productStore.setBlankSpaceEnabled(value as boolean);
         break;
-	      case 'blankSpaceSide':
-	        productStore.setBlankSpaceSide(value as ProductStudioState['blankSpaceSide']);
-	        break;
-	      case 'aspectRatio':
-	        productStore.setAspectRatio(normalizeProductStudioAspectRatio(value));
-	        break;
-	      default:
-	        console.warn('[PRODUCT STUDIO] Unhandled key:', key);
-	    }
-	  }, [isProductMode, normalizeProductStudioAspectRatio, productStore]);
+      case 'blankSpaceSide':
+        productStore.setBlankSpaceSide(value as ProductStudioState['blankSpaceSide']);
+        break;
+      case 'aspectRatio':
+        productStore.setAspectRatio(normalizeProductStudioAspectRatio(value));
+        break;
+      default:
+        console.warn('[PRODUCT STUDIO] Unhandled key:', key);
+    }
+  }, [isProductMode, normalizeProductStudioAspectRatio, productStore]);
 
   const toggleSection = (section: string) => {
     setOpenAccordionId(openAccordionId === section ? null : section);
@@ -2110,6 +2110,149 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             </div>
                           )}
                         </div>
+
+                        {/* ═══════════════════════════════════════════════════════════
+                          1.1 HERO BACKGROUND — Optional but critical for Hero Landing
+                          Visible only when 'Hero Landing Page' is selected.
+                          ═══════════════════════════════════════════════════════════ */}
+                        {productStore.photoMode === 'Hero Landing Page' && (
+                          <div className={`${SECTION_GROUP_CLASS} animate-in fade-in slide-in-from-top-2 duration-300`}>
+                            <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">HERO BACKGROUND</p>
+
+                            <div className="space-y-4 rounded-xl border border-gray-100 bg-gray-50/50 p-4">
+                              <div className="space-y-2">
+                                <p className="text-[9px] uppercase tracking-widest text-indigo-600 font-bold">BACKGROUND TYPE</p>
+                                <div className="flex gap-2">
+                                  <Chip
+                                    selected={!productStore.gradientEnabled}
+                                    onClick={() => {
+                                      productStore.setGradientEnabled(false);
+                                      markSectionTouched('product-setup');
+                                    }}
+                                  >
+                                    Solid
+                                  </Chip>
+                                  <Chip
+                                    selected={productStore.gradientEnabled}
+                                    onClick={() => {
+                                      productStore.setGradientEnabled(true);
+                                      markSectionTouched('product-setup');
+                                    }}
+                                  >
+                                    Gradient
+                                  </Chip>
+                                </div>
+                              </div>
+
+                              <div className="pt-2 border-t border-gray-100">
+                                <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold mb-2">QUICK COLORS (PRODUCT PALETTE)</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {[
+                                    { hex: '#F6F7FB', label: 'Neutral' },
+                                    { hex: productStore.products.find(p => p.id === productStore.activeProductId)?.palette?.dominant || '#FFFFFF', label: 'Primary' },
+                                    { hex: productStore.products.find(p => p.id === productStore.activeProductId)?.palette?.secondary || '#F0F0F0', label: 'Secondary' },
+                                  ].map((color, idx) => (
+                                    <button
+                                      key={`${color.hex}-${idx}`}
+                                      onClick={() => {
+                                        if (productStore.gradientEnabled) {
+                                          productStore.setGradientStart(color.hex);
+                                          productStore.setGradientEnd('#FFFFFF');
+                                        } else {
+                                          productStore.setBackgroundColor(color.hex);
+                                        }
+                                        markSectionTouched('product-setup');
+                                      }}
+                                      className="group flex items-center gap-1.5 px-2 py-1 rounded-full bg-white border border-gray-200 hover:border-indigo-300 transition-all"
+                                    >
+                                      <div className="w-4 h-4 rounded-full border border-gray-100 shadow-sm" style={{ background: color.hex }} />
+                                      <span className="text-[10px] text-gray-600 font-medium">{color.label}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div className="pt-2">
+                                {!productStore.gradientEnabled ? (
+                                  <div className="flex items-center gap-3">
+                                    <label className="relative flex-shrink-0">
+                                      <div
+                                        className="w-10 h-10 rounded-xl border-2 border-white shadow-md cursor-pointer overflow-hidden transition-transform active:scale-95"
+                                        style={{ background: productStore.backgroundColor }}
+                                      />
+                                      <input
+                                        type="color"
+                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                        value={productStore.backgroundColor || '#F6F7FB'}
+                                        onChange={(e) => {
+                                          productStore.setBackgroundColor(e.target.value);
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      />
+                                    </label>
+                                    <div className="flex-1">
+                                      <p className="text-[9px] text-gray-400 mb-0.5">HEX CODE</p>
+                                      <input
+                                        type="text"
+                                        value={(productStore.backgroundColor || '#F6F7FB').toUpperCase()}
+                                        onChange={(e) => {
+                                          const hex = e.target.value.toUpperCase();
+                                          if (/^#[0-9A-F]{0,6}$/i.test(hex)) {
+                                            productStore.setBackgroundColor(hex);
+                                            markSectionTouched('product-setup');
+                                          }
+                                        }}
+                                        className="w-full h-8 px-2 text-[11px] font-mono bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                      />
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="grid grid-cols-2 gap-4">
+                                    {[
+                                      { key: 'gradientStart', label: 'START' },
+                                      { key: 'gradientEnd', label: 'END' }
+                                    ].map(cfg => (
+                                      <div key={cfg.key} className="space-y-1.5">
+                                        <p className="text-[9px] text-gray-400 font-bold">{cfg.label}</p>
+                                        <div className="flex items-center gap-2">
+                                          <label className="relative flex-shrink-0">
+                                            <div
+                                              className="w-8 h-8 rounded-lg border-2 border-white shadow-sm cursor-pointer overflow-hidden"
+                                              style={{ background: (productStore as any)[cfg.key] || '#FFFFFF' }}
+                                            />
+                                            <input
+                                              type="color"
+                                              className="absolute inset-0 opacity-0 cursor-pointer"
+                                              value={(productStore as any)[cfg.key] || '#FFFFFF'}
+                                              onChange={(e) => {
+                                                if (cfg.key === 'gradientStart') productStore.setGradientStart(e.target.value);
+                                                else productStore.setGradientEnd(e.target.value);
+                                                markSectionTouched('product-setup');
+                                              }}
+                                            />
+                                          </label>
+                                          <input
+                                            type="text"
+                                            value={((productStore as any)[cfg.key] || '#FFFFFF').toUpperCase()}
+                                            onChange={(e) => {
+                                              const hex = e.target.value.toUpperCase();
+                                              if (/^#[0-9A-F]{0,6}$/i.test(hex)) {
+                                                if (cfg.key === 'gradientStart') productStore.setGradientStart(hex);
+                                                else productStore.setGradientEnd(hex);
+                                                markSectionTouched('product-setup');
+                                              }
+                                            }}
+                                            className="w-full h-7 px-1.5 text-[10px] font-mono bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                          />
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
 
                       </>
                     )}
@@ -3912,19 +4055,19 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                   return (
                     <div className="space-y-6">
-	                      {isDisabled && (
-	                        <div className="rounded-xl border border-gray-200 bg-white p-3 text-sm text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white/60">
-	                          Environment is disabled while Background Canvas is On (neutral background mode).
-	                        </div>
-	                      )}
-	
-	                      <div className={isDisabled ? 'opacity-50 pointer-events-none' : ''}>
-	                        <div className="space-y-5">
-	                          <div className="flex items-center justify-between gap-4">
-	                            <div>
-	                              <p className={GROUP_LABEL_CLASS}>MACRO ENVIRONMENT</p>
-	                              <p className="text-[11px] text-gray-500 mt-1">Pick a setting. Keep it simple unless you need specific staging.</p>
-	                            </div>
+                      {isDisabled && (
+                        <div className="rounded-xl border border-gray-200 bg-white p-3 text-sm text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white/60">
+                          Environment is disabled while Background Canvas is On (neutral background mode).
+                        </div>
+                      )}
+
+                      <div className={isDisabled ? 'opacity-50 pointer-events-none' : ''}>
+                        <div className="space-y-5">
+                          <div className="flex items-center justify-between gap-4">
+                            <div>
+                              <p className={GROUP_LABEL_CLASS}>MACRO ENVIRONMENT</p>
+                              <p className="text-[11px] text-gray-500 mt-1">Pick a setting. Keep it simple unless you need specific staging.</p>
+                            </div>
                             <div className="flex items-center gap-4">
                               <div className="flex items-center gap-3">
                                 <span className="text-[11px] font-semibold text-gray-500 dark:text-white/50">More</span>
@@ -3984,25 +4127,25 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           {selectedMacro === 'custom' && (
                             <label className="block space-y-1 mt-3">
                               <p className="text-[11px] uppercase tracking-wide text-gray-500">Custom environment</p>
-	                              <input
-	                                value={productStore.customEnvironmentText || ''}
-	                                onChange={(e) => {
-	                                  productStore.setCustomEnvironmentText(e.target.value);
-	                                  markSectionTouched('product-environment');
-	                                }}
-	                                placeholder="e.g. modern kitchen countertop"
-	                                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
-	                              />
-	                            </label>
-	                          )}
-	                        </div>
-	
-	                        <div className="space-y-5">
-	                          <div className="flex items-start justify-between gap-4">
-	                            <div>
-	                              <p className={GROUP_LABEL_CLASS}>MICRO PLACE</p>
-	                              <p className="text-[11px] text-gray-500 mt-1">Optional refinement for where the product sits.</p>
-	                            </div>
+                              <input
+                                value={productStore.customEnvironmentText || ''}
+                                onChange={(e) => {
+                                  productStore.setCustomEnvironmentText(e.target.value);
+                                  markSectionTouched('product-environment');
+                                }}
+                                placeholder="e.g. modern kitchen countertop"
+                                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
+                              />
+                            </label>
+                          )}
+                        </div>
+
+                        <div className="space-y-5">
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <p className={GROUP_LABEL_CLASS}>MICRO PLACE</p>
+                              <p className="text-[11px] text-gray-500 mt-1">Optional refinement for where the product sits.</p>
+                            </div>
                             <div className="flex items-center gap-2">
                               <span className="text-[11px] font-semibold text-gray-500 dark:text-white/50">Advanced</span>
                               <Toggle
@@ -4066,24 +4209,24 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           {productEnvironmentAdvancedOpen && selectedMicro === 'custom' && (
                             <label className="block space-y-1 mt-3">
                               <p className="text-[11px] uppercase tracking-wide text-gray-500">Custom micro place</p>
-	                              <input
-	                                value={productStore.customMicroPlaceText || ''}
-	                                onChange={(e) => {
-	                                  productStore.setCustomMicroPlaceText(e.target.value);
-	                                  markSectionTouched('product-environment');
-	                                }}
-	                                placeholder="e.g. stainless steel filling station"
-	                                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
-	                              />
-	                            </label>
-	                          )}
-	                        </div>
-	
-	                        <div className="space-y-5">
-	                          <div>
-	                            <p className={GROUP_LABEL_CLASS}>LIGHTING</p>
-	                            <p className="text-[11px] text-gray-500 mt-1">Product-safe lighting style</p>
-	                          </div>
+                              <input
+                                value={productStore.customMicroPlaceText || ''}
+                                onChange={(e) => {
+                                  productStore.setCustomMicroPlaceText(e.target.value);
+                                  markSectionTouched('product-environment');
+                                }}
+                                placeholder="e.g. stainless steel filling station"
+                                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
+                              />
+                            </label>
+                          )}
+                        </div>
+
+                        <div className="space-y-5">
+                          <div>
+                            <p className={GROUP_LABEL_CLASS}>LIGHTING</p>
+                            <p className="text-[11px] text-gray-500 mt-1">Product-safe lighting style</p>
+                          </div>
                           <div className="flex flex-wrap gap-3 mt-3">
                             {(productEnvironmentAdvancedOpen
                               ? PRODUCT_ENVIRONMENT_LIGHTING_OPTIONS

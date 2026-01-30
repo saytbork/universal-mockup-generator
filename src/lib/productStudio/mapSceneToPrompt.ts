@@ -214,6 +214,10 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     palette,
     suggestedProps: state.props,
     ingredientLayout: state.ingredientLayout,
+    backgroundColor: state.backgroundColor,
+    gradientEnabled: state.gradientEnabled,
+    gradientStart: state.gradientStart,
+    gradientEnd: state.gradientEnd,
   };
 
   let scene = '';

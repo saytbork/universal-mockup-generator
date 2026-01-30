@@ -28,6 +28,10 @@ export type SceneBuildInput = {
   palette?: PaletteInfo;
   suggestedProps?: string;
   ingredientLayout?: 'auto' | 'grounded' | 'floating' | 'top-view';
+  backgroundColor?: string;
+  gradientEnabled?: boolean;
+  gradientStart?: string;
+  gradientEnd?: string;
 };
 
 export type SplashMode = 'IMPACT_SPLASH' | 'RISING_SPLASH' | 'SIDE_DISPLACEMENT_SPLASH';
@@ -41,7 +45,7 @@ const paletteDescriptor = (palette?: PaletteInfo): string => {
   return `derived from the product palette (${bits.join(', ')})`;
 };
 
-export function buildHeroNeutralScene({ randomizer }: SceneBuildInput): string {
+export function buildHeroNeutralScene({ randomizer, backgroundColor, gradientEnabled, gradientStart, gradientEnd }: SceneBuildInput): string {
   const depthSettings = [
     'minimalist architectural nook with subtle spatial depth',
     'clean counter vignette with a soft back wall and ambient falloff',
@@ -59,8 +63,18 @@ export function buildHeroNeutralScene({ randomizer }: SceneBuildInput): string {
     'delicate tonal transitions in the environment',
   ];
 
+  const backgroundText = (() => {
+    if (gradientEnabled && gradientStart && gradientEnd) {
+      return `background is a smooth vertical gradient from ${gradientStart} to ${gradientEnd}`;
+    }
+    if (backgroundColor) {
+      return `background is a solid minimal ${backgroundColor} surface`;
+    }
+    return 'Clean but deep environment with subtle gradients or ambient shadows';
+  })();
+
   return [
-    'Clean but deep environment with subtle gradients or ambient shadows.',
+    `${backgroundText}.`,
     'Minimalist premium setting with spatial depth.',
     `Environment built from ${randomizer.pick(materials)} and refined surfaces.`,
     `Scene anchored in a ${randomizer.pick(depthSettings)}.`,
