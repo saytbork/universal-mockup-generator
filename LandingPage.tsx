@@ -824,7 +824,7 @@ const LandingPage: React.FC = () => {
 
         {/* Universal Mockup Generator – Pricing Section by Juan Amisano */}
         <section id="pricing" className="relative isolate mt-16 px-4 py-20 sm:px-6 lg:px-8">
-          <div className="absolute inset-0 -z-10 rounded-[2.5rem] bg-gradient-to-b from-gray-950 to-gray-900 opacity-95" />
+          <div className="absolute inset-0 -z-10 rounded-[2.5rem] bg-gradient-to-b from-[#0A0A0F] to-[#111] opacity-95" />
           <div className="max-w-6xl mx-auto text-white space-y-12">
             <div className="text-center space-y-4">
               <p className="text-sm uppercase tracking-[0.4em] text-indigo-200">Pricing</p>
@@ -860,13 +860,13 @@ const LandingPage: React.FC = () => {
                 const baseCard =
                   'group relative rounded-3xl border p-6 flex flex-col gap-6 hover:scale-[1.01] transition duration-300';
                 const cardClasses = plan.featured
-                  ? `${baseCard} border-indigo-500 bg-gradient-to-b from-indigo-900/60 to-indigo-950 shadow-lg shadow-indigo-500/30`
+                  ? `${baseCard} border-[#7E5BEF] bg-gradient-to-b from-[#1A1340] to-[#120A24] shadow-[0_20px_60px_rgba(126,91,239,0.35)]`
                   : `${baseCard} border-white/10 bg-white/5`;
 
                 return (
                   <article key={plan.name} className={cardClasses}>
                     {plan.badge && (
-                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-indigo-500 px-3 py-1 text-xs font-semibold text-white">
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#7E5BEF] px-3 py-1 text-xs font-semibold text-white">
                         {plan.badge}
                       </span>
                     )}
@@ -908,7 +908,7 @@ const LandingPage: React.FC = () => {
                         <a
                           href={targetUrl || '#'}
                           className={`mt-auto w-full rounded-full px-4 py-3 text-sm font-semibold transition text-center ${plan.featured
-                            ? 'bg-white text-gray-900 hover:bg-gray-100'
+                            ? 'bg-white text-[#120A24] hover:bg-gray-100'
                             : 'bg-indigo-500 text-white hover:bg-indigo-400'
                             }`}
                         >
