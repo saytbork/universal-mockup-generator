@@ -3891,19 +3891,19 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                   return (
                     <div className="space-y-6">
-                      {isDisabled && (
-                        <div className="rounded-xl border border-gray-200 bg-white p-3 text-gray-500 text-sm">
-                          Environment is disabled while Background Canvas is On (neutral background mode).
-                        </div>
-                      )}
-
-                      <div className={isDisabled ? 'opacity-50 pointer-events-none' : ''}>
-                        <div className={`${SECTION_GROUP_CLASS} space-y-5`}>
-                          <div className="flex items-center justify-between gap-4">
-                            <div>
-                              <p className={GROUP_LABEL_CLASS}>MACRO ENVIRONMENT</p>
-                              <p className="text-[11px] text-gray-500 mt-1">Pick a setting. Keep it simple unless you need specific staging.</p>
-                            </div>
+	                      {isDisabled && (
+	                        <div className="rounded-xl border border-gray-200 bg-white p-3 text-sm text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white/60">
+	                          Environment is disabled while Background Canvas is On (neutral background mode).
+	                        </div>
+	                      )}
+	
+	                      <div className={isDisabled ? 'opacity-50 pointer-events-none' : ''}>
+	                        <div className="space-y-5">
+	                          <div className="flex items-center justify-between gap-4">
+	                            <div>
+	                              <p className={GROUP_LABEL_CLASS}>MACRO ENVIRONMENT</p>
+	                              <p className="text-[11px] text-gray-500 mt-1">Pick a setting. Keep it simple unless you need specific staging.</p>
+	                            </div>
                             <div className="flex items-center gap-4">
                               <div className="flex items-center gap-3">
                                 <span className="text-[11px] font-semibold text-gray-500 dark:text-white/50">More</span>
@@ -3963,25 +3963,25 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           {selectedMacro === 'custom' && (
                             <label className="block space-y-1 mt-3">
                               <p className="text-[11px] uppercase tracking-wide text-gray-500">Custom environment</p>
-                              <input
-                                value={productStore.customEnvironmentText || ''}
-                                onChange={(e) => {
-                                  productStore.setCustomEnvironmentText(e.target.value);
-                                  markSectionTouched('product-environment');
-                                }}
-                                placeholder="e.g. modern kitchen countertop"
-                                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none"
-                              />
-                            </label>
-                          )}
-                        </div>
-
-                        <div className={`${SECTION_GROUP_CLASS} space-y-5`}>
-                          <div className="flex items-start justify-between gap-4">
-                            <div>
-                              <p className={GROUP_LABEL_CLASS}>MICRO PLACE</p>
-                              <p className="text-[11px] text-gray-500 mt-1">Optional refinement for where the product sits.</p>
-                            </div>
+	                              <input
+	                                value={productStore.customEnvironmentText || ''}
+	                                onChange={(e) => {
+	                                  productStore.setCustomEnvironmentText(e.target.value);
+	                                  markSectionTouched('product-environment');
+	                                }}
+	                                placeholder="e.g. modern kitchen countertop"
+	                                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
+	                              />
+	                            </label>
+	                          )}
+	                        </div>
+	
+	                        <div className="space-y-5">
+	                          <div className="flex items-start justify-between gap-4">
+	                            <div>
+	                              <p className={GROUP_LABEL_CLASS}>MICRO PLACE</p>
+	                              <p className="text-[11px] text-gray-500 mt-1">Optional refinement for where the product sits.</p>
+	                            </div>
                             <div className="flex items-center gap-2">
                               <span className="text-[11px] font-semibold text-gray-500 dark:text-white/50">Advanced</span>
                               <Toggle
@@ -4045,24 +4045,24 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           {productEnvironmentAdvancedOpen && selectedMicro === 'custom' && (
                             <label className="block space-y-1 mt-3">
                               <p className="text-[11px] uppercase tracking-wide text-gray-500">Custom micro place</p>
-                              <input
-                                value={productStore.customMicroPlaceText || ''}
-                                onChange={(e) => {
-                                  productStore.setCustomMicroPlaceText(e.target.value);
-                                  markSectionTouched('product-environment');
-                                }}
-                                placeholder="e.g. stainless steel filling station"
-                                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none"
-                              />
-                            </label>
-                          )}
-                        </div>
-
-                        <div className={`${SECTION_GROUP_CLASS} space-y-5`}>
-                          <div>
-                            <p className={GROUP_LABEL_CLASS}>LIGHTING</p>
-                            <p className="text-[11px] text-gray-500 mt-1">Product-safe lighting style</p>
-                          </div>
+	                              <input
+	                                value={productStore.customMicroPlaceText || ''}
+	                                onChange={(e) => {
+	                                  productStore.setCustomMicroPlaceText(e.target.value);
+	                                  markSectionTouched('product-environment');
+	                                }}
+	                                placeholder="e.g. stainless steel filling station"
+	                                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
+	                              />
+	                            </label>
+	                          )}
+	                        </div>
+	
+	                        <div className="space-y-5">
+	                          <div>
+	                            <p className={GROUP_LABEL_CLASS}>LIGHTING</p>
+	                            <p className="text-[11px] text-gray-500 mt-1">Product-safe lighting style</p>
+	                          </div>
                           <div className="flex flex-wrap gap-3 mt-3">
                             {(productEnvironmentAdvancedOpen
                               ? PRODUCT_ENVIRONMENT_LIGHTING_OPTIONS
