@@ -125,7 +125,6 @@ function buildEnvironmentScene(state: ProductStudioState, randomizer: ReturnType
   parts.push(`${macroText}.`);
   if (microText) parts.push(`Product placed on a ${microText}.`);
   parts.push(`${accent}.`);
-  parts.push('No people, no hands, no faces, no lifestyle staging.');
 
   return parts.join(' ');
 }
