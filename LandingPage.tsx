@@ -662,10 +662,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
         </div>
 
         {/* Full-width carousel container */}
-        <div className="relative w-full group overflow-x-auto scrollbar-hide">
-          {/* Gradient fade edges */}
-          <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-r from-white dark:from-black to-transparent z-10 pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-l from-white dark:from-black to-transparent z-10 pointer-events-none" />
+        <div className="relative w-full group overflow-hidden">
+          {/* Gradient fade edges - fixed positioning */}
+          <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-r from-white dark:from-black to-transparent z-20 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-l from-white dark:from-black to-transparent z-20 pointer-events-none" />
 
           {/* Infinite scrolling track with drag support */}
           <div
@@ -684,7 +684,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               const track = e.currentTarget as HTMLElement;
               track.dataset.dragging = 'true';
               track.dataset.startX = String(e.pageX);
-              track.dataset.scrollLeft = String(track.parentElement?.scrollLeft || 0);
+              track.dataset.scrollLeft = String(track.scrollLeft || 0);
               track.style.animationPlayState = 'paused';
             }}
             onMouseUp={(e) => {
@@ -697,25 +697,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               e.preventDefault();
               const x = e.pageX;
               const startX = Number(track.dataset.startX || 0);
-              const walk = (x - startX) * 2;
-              if (track.parentElement) {
-                track.parentElement.scrollLeft = Number(track.dataset.scrollLeft || 0) - walk;
-              }
+              const walk = (x - startX);
+              track.style.transform = `translateX(${walk}px)`;
             }}
             onTouchStart={(e) => {
               const track = e.currentTarget as HTMLElement;
               track.style.animationPlayState = 'paused';
-              track.dataset.startX = String(e.touches[0].pageX);
-              track.dataset.scrollLeft = String(track.parentElement?.scrollLeft || 0);
-            }}
-            onTouchMove={(e) => {
-              const track = e.currentTarget as HTMLElement;
-              const x = e.touches[0].pageX;
-              const startX = Number(track.dataset.startX || 0);
-              const walk = (x - startX) * 2;
-              if (track.parentElement) {
-                track.parentElement.scrollLeft = Number(track.dataset.scrollLeft || 0) - walk;
-              }
             }}
             onTouchEnd={(e) => {
               const track = e.currentTarget as HTMLElement;
@@ -731,7 +718,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
                     src={`/slider/0${num}-product.jpg`}
                     alt={`Product shot ${num}`}
                     loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    draggable="false"
+                    className="h-full w-full object-cover pointer-events-none"
                   />
                   <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
                     Before
@@ -743,7 +731,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
                     src={`/slider/0${num}-real.jpg`}
                     alt={`Lifestyle usage ${num}`}
                     loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    draggable="false"
+                    className="h-full w-full object-cover pointer-events-none"
                   />
                   <span className="absolute left-2 top-2 rounded-full bg-indigo-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">
                     After
@@ -754,12 +743,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
             {/* Sequence group - Before + 5 After images */}
             <div className="flex gap-1 sm:gap-2 mr-8 sm:mr-12 lg:mr-16">
               {/* Before image */}
-              <div className="relative shrink-0 aspect-[3/4] w-[140px] sm:w-[180px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/5">
+              <div className="relative shrink-0 aspect-[3/4] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900">
                 <img
                   src="/slider/seq-before.png"
                   alt="Product packshot"
                   loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  draggable="false"
+                  className="h-full w-full object-cover pointer-events-none"
                 />
                 <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
                   Before
@@ -767,12 +757,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               </div>
               {/* After sequence (1-5) */}
               {[1, 2, 3, 4, 5].map((seqNum) => (
-                <div key={`seq-${seqNum}`} className="relative shrink-0 aspect-[3/4] w-[140px] sm:w-[180px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/5">
+                <div key={`seq-${seqNum}`} className="relative shrink-0 aspect-[4/3] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900">
                   <img
                     src={`/slider/seq-0${seqNum}.jpg`}
                     alt={`Product sequence ${seqNum}`}
                     loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    draggable="false"
+                    className="h-full w-full object-cover pointer-events-none"
                   />
                   <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">
                     {seqNum}
@@ -789,7 +780,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
                     src={`/slider/0${num}-product.jpg`}
                     alt={`Product shot ${num}`}
                     loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    draggable="false"
+                    className="h-full w-full object-cover pointer-events-none"
                   />
                   <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
                     Before
@@ -801,7 +793,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
                     src={`/slider/0${num}-real.jpg`}
                     alt={`Lifestyle usage ${num}`}
                     loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    draggable="false"
+                    className="h-full w-full object-cover pointer-events-none"
                   />
                   <span className="absolute left-2 top-2 rounded-full bg-indigo-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">
                     After
@@ -812,12 +805,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
             {/* Duplicate sequence group */}
             <div className="flex gap-1 sm:gap-2 mr-8 sm:mr-12 lg:mr-16">
               {/* Before image */}
-              <div className="relative shrink-0 aspect-[3/4] w-[140px] sm:w-[180px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/5">
+              <div className="relative shrink-0 aspect-[3/4] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900">
                 <img
                   src="/slider/seq-before.png"
                   alt="Product packshot"
                   loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  draggable="false"
+                  className="h-full w-full object-cover pointer-events-none"
                 />
                 <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
                   Before
@@ -825,12 +819,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               </div>
               {/* After sequence (1-5) */}
               {[1, 2, 3, 4, 5].map((seqNum) => (
-                <div key={`seq2-${seqNum}`} className="relative shrink-0 aspect-[3/4] w-[140px] sm:w-[180px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/5">
+                <div key={`seq2-${seqNum}`} className="relative shrink-0 aspect-[4/3] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900">
                   <img
                     src={`/slider/seq-0${seqNum}.jpg`}
                     alt={`Product sequence ${seqNum}`}
                     loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    draggable="false"
+                    className="h-full w-full object-cover pointer-events-none"
                   />
                   <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">
                     {seqNum}
@@ -839,6 +834,19 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* CTA after carousel */}
+        <div className="flex justify-center pt-12">
+          <a
+            href="#pricing"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-full transition-all duration-300 shadow-lg shadow-indigo-600/25 hover:shadow-indigo-600/40 hover:-translate-y-0.5"
+          >
+            See Pricing Options
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </a>
         </div>
 
         {/* CSS Keyframes for infinite scroll */}
@@ -857,8 +865,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
       <section className="bg-gray-50 dark:bg-white/[0.02]">
         <div className="max-w-6xl mx-auto px-6 py-24 space-y-10">
           <div className="text-center space-y-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">What you can create</p>
-            <h2 className="text-3xl text-gray-900 dark:text-white font-semibold text-balance">Create the visuals your product needs to sell</h2>
+            <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
+              What you can create
+            </span>
+            <h2 className="text-4xl md:text-5xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">Create the visuals your product needs to sell</h2>
           </div>
 
           <div className="grid gap-5 md:grid-cols-3">
@@ -956,8 +966,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
       <section id="how-it-works" className="bg-gray-50 dark:bg-white/[0.02] overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 py-20 space-y-12">
           <div className="text-center space-y-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">How it works</p>
-            <h2 className="text-3xl sm:text-4xl text-gray-900 font-bold tracking-tight text-balance">From product to visuals in minutes</h2>
+            <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
+              How it works
+            </span>
+            <h2 className="text-4xl md:text-5xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">From product to visuals in minutes</h2>
           </div>
 
           <div className="grid gap-12 lg:grid-cols-2 items-center">
@@ -1171,7 +1183,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
       <section className="bg-gray-50 dark:bg-white/[0.02] py-24 overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 space-y-16">
           <div className="text-center space-y-4">
-            <span className="text-indigo-600 dark:text-indigo-400 text-[10px] font-bold uppercase tracking-[0.3em]">Why Perfect Mockup</span>
+            <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
+              Why Perfect Mockup
+            </span>
             <h2 className="text-4xl md:text-5xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">
               Built as a Visual System, Not a Generator
             </h2>
@@ -1272,8 +1286,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
       <section className="bg-white dark:bg-black/95 py-24">
         <div className="max-w-6xl mx-auto px-6 space-y-12">
           <div className="text-center space-y-4">
-            <span className="text-indigo-600 text-[10px] font-bold uppercase tracking-[0.3em]">Perfect for Teams</span>
-            <h2 className="text-3xl font-bold text-gray-900 text-balance">Designed for the modern ecommerce ecosystem</h2>
+            <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
+              Perfect for Teams
+            </span>
+            <h2 className="text-4xl md:text-5xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">Designed for the modern ecommerce ecosystem</h2>
           </div>
 
           <div className="flex flex-wrap justify-center items-center gap-4 max-w-4xl mx-auto">
@@ -1301,9 +1317,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
       <section className="bg-gray-50 dark:bg-white/[0.02]">
         <div className="max-w-6xl mx-auto px-6 py-24 space-y-10">
           <div className="text-center space-y-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-400">Resources</p>
-            <h2 className="text-3xl text-gray-900 dark:text-white font-semibold text-balance">Latest from our Blog</h2>
-            <p className="text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mt-3">
+            <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
+              Resources
+            </span>
+            <h2 className="text-4xl md:text-5xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">Latest from our Blog</h2>
+            <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto text-lg leading-relaxed">
               Insights, guides, and tactics to help you win with AI-driven visuals.
             </p>
           </div>
@@ -1351,11 +1369,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
       <section id="faq" className="bg-white dark:bg-black/95 py-24 border-b border-gray-100 dark:border-white/5">
         <div className="max-w-5xl mx-auto px-6 space-y-12">
           <div className="text-center space-y-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">FAQ</p>
-            <h2 className="text-3xl sm:text-4xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">
+            <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
+              FAQ
+            </span>
+            <h2 className="text-4xl md:text-5xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">
               Answers for ecommerce teams
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto text-lg leading-relaxed">
               Clear guidance on how Perfect Mockup works and where it fits in your launch stack.
             </p>
           </div>
@@ -1377,8 +1397,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
       <section id="pricing" className="bg-gray-50 dark:bg-white/[0.02] relative isolate py-24 px-6 border-b border-gray-100 dark:border-white/5">
         <div className="max-w-6xl mx-auto space-y-16">
           <div className="text-center space-y-4">
-            <span className="text-indigo-600 text-[10px] font-bold uppercase tracking-[0.3em]">Scalable Pricing</span>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight text-balance">Plans built for launch velocity</h2>
+            <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
+              Scalable Pricing
+            </span>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white tracking-tight text-balance">Plans built for launch velocity</h2>
             <p className="text-gray-500 max-w-2xl mx-auto text-lg leading-relaxed">
               Scale your visuals as your products and campaigns grow. No hidden fees.
             </p>
