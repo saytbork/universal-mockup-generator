@@ -678,9 +678,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               animationPlayState: 'running',
               width: 'max-content',
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.animationPlayState = 'paused'; }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.animationPlayState = 'running';
               (e.currentTarget as HTMLElement).dataset.dragging = 'false';
             }}
             onMouseDown={(e) => {
@@ -704,40 +702,38 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               track.style.transform = `translateX(${walk}px)`;
             }}
             onTouchStart={(e) => {
-              const track = e.currentTarget as HTMLElement;
-              track.style.animationPlayState = 'paused';
+              // Nothing to pause on touch start anymore, keep it moving
             }}
             onTouchEnd={(e) => {
-              const track = e.currentTarget as HTMLElement;
-              track.style.animationPlayState = 'running';
+              // Same here
             }}
           >
             {/* First set of paired images - grouped with gap between groups */}
 
             {/* Sequence group - Before + 5 After images */}
             <div className="flex gap-1 sm:gap-2 mr-8 sm:mr-12 lg:mr-16">
-              {/* Before image */}
-              <div className="relative shrink-0 aspect-[3/4] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900">
+              {/* Before image - 3:4 ratio */}
+              <div className="relative shrink-0 w-[150px] sm:w-[180px] md:w-[210px] lg:w-[240px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
                 <img
                   src="/slider/seq-before.png"
                   alt="Product packshot"
                   loading="lazy"
                   draggable="false"
-                  className="h-full w-full object-cover pointer-events-none"
+                  className="absolute inset-0 h-full w-full object-cover pointer-events-none"
                 />
                 <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
                   Before
                 </span>
               </div>
-              {/* After sequence (1-5) */}
+              {/* After sequence (1-5) - 4:3 ratio based on heights */}
               {[1, 2, 3, 4, 5].map((seqNum) => (
-                <div key={`seq-${seqNum}`} className="relative shrink-0 aspect-[4/3] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900">
+                <div key={`seq-${seqNum}`} className="relative shrink-0 w-[266px] sm:w-[320px] md:w-[373px] lg:w-[426px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
                   <img
                     src={`/slider/seq-0${seqNum}.jpg`}
                     alt={`Product sequence ${seqNum}`}
                     loading="lazy"
                     draggable="false"
-                    className="h-full w-full object-cover pointer-events-none"
+                    className="absolute inset-0 h-full w-full object-cover pointer-events-none"
                   />
                   <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">
                     {seqNum}
@@ -749,28 +745,28 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
 
             {/* Duplicate sequence group */}
             <div className="flex gap-1 sm:gap-2 mr-8 sm:mr-12 lg:mr-16">
-              {/* Before image */}
-              <div className="relative shrink-0 aspect-[3/4] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900">
+              {/* Before image - 3:4 ratio */}
+              <div className="relative shrink-0 w-[150px] sm:w-[180px] md:w-[210px] lg:w-[240px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
                 <img
                   src="/slider/seq-before.png"
                   alt="Product packshot"
                   loading="lazy"
                   draggable="false"
-                  className="h-full w-full object-cover pointer-events-none"
+                  className="absolute inset-0 h-full w-full object-cover pointer-events-none"
                 />
                 <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
                   Before
                 </span>
               </div>
-              {/* After sequence (1-5) */}
+              {/* After sequence (1-5) - 4:3 ratio based on heights */}
               {[1, 2, 3, 4, 5].map((seqNum) => (
-                <div key={`seq2-${seqNum}`} className="relative shrink-0 aspect-[4/3] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900">
+                <div key={`seq2-${seqNum}`} className="relative shrink-0 w-[266px] sm:w-[320px] md:w-[373px] lg:w-[426px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
                   <img
                     src={`/slider/seq-0${seqNum}.jpg`}
                     alt={`Product sequence ${seqNum}`}
                     loading="lazy"
                     draggable="false"
-                    className="h-full w-full object-cover pointer-events-none"
+                    className="absolute inset-0 h-full w-full object-cover pointer-events-none"
                   />
                   <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">
                     {seqNum}
