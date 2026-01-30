@@ -17,9 +17,10 @@ export class FinalizeBuilder implements PromptBuilder {
             options.creationIntent === 'ugc' ||
             options.creationMode === 'lifestyle';
 
+        const aspectRatio = String(options.aspectRatio || '').trim() || '1:1';
         const lines: string[] = [
             'Final render must be high resolution, photorealistic and free of watermarks or text.',
-            'ASPECT RATIO: 3:4 (vertical). The image must fully fill the frame with no empty space, no black bars, and no borders.',
+            `ASPECT RATIO: ${aspectRatio}. The image must fully fill the frame with no empty space, no black bars, and no borders.`,
             'No text, no logos, no watermarks, no UI overlays.',
             'No CGI look or plastic skin.',
             'No distorted hands, fingers or wrists.',

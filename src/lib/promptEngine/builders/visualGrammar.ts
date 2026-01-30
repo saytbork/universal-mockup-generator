@@ -14,8 +14,25 @@ export class VisualGrammarBuilder {
             return '';
         }
 
+        // Product mode integrity requires this layer even when UI does not provide a full visual grammar system.
         if (!options.visualGrammar) {
-            return '';
+            if (options.contentStyle !== 'product') return '';
+
+            const sidePlacement = options.sidePlacement;
+            const oppositeSide =
+                sidePlacement === 'left' ? 'right' : sidePlacement === 'right' ? 'left' : null;
+
+            const parts: string[] = ['VISUAL GRAMMAR LAYER:'];
+            parts.push('Single hero product dominates the frame.');
+            parts.push('Negative space is intentional and functional for overlay insertion.');
+            if (oppositeSide) {
+                parts.push(`Keep the ${oppositeSide} side visually silent and empty.`);
+            } else {
+                parts.push('Keep both sides visually silent and empty.');
+            }
+            parts.push('Secondary elements are subordinate and cannot compete with the product.');
+            parts.push('Background must be visually silent with no noise, clutter, or distracting texture.');
+            return parts.join(' ');
         }
 
         const {

@@ -26,6 +26,14 @@ test('Product mode ecommerce canvas maps bg + side placement', () => {
   expect(mapped.ecommerceBlankSpaceMode).toBe(true);
   expect(mapped.sidePlacement).toBe('left');
   expect(mapped.bgGradient).toEqual({ startColor: '#f7f7f7', endColor: '#d9d9d9', angle: 90 });
+
+  const prompt = promptEngine.build(mapped as any);
+  expect(prompt).toContain('OVERLAY-READY ECOMMERCE PDP CANVAS');
+  expect(prompt).toContain('OVERLAY-SAFE ZONE (CRITICAL)');
+  expect(prompt).toContain('SCENE STRUCTURE:');
+  expect(prompt).toContain('MATERIAL PHYSICS:');
+  expect(prompt).toContain('SCALE RULE:');
+  expect(prompt).toContain('VISUAL GRAMMAR LAYER:');
 });
 
 test('Product mode accepts raw aspect ratios (product studio output format)', () => {

@@ -2,8 +2,25 @@ import type { PromptOptions } from '../types';
 
 export class SceneStructureBuilder {
     build(options: PromptOptions): string {
-        if (!options.sceneStructure || !options.colorSystem) {
+        if (options.contentStyle !== 'product') {
             return '';
+        }
+
+        // Product mode integrity requires these sections even when the UI does not provide a
+        // full structural system. Provide a safe default so the prompt always includes:
+        // - SCENE STRUCTURE
+        // - MATERIAL PHYSICS
+        // - SCALE RULE
+        if (!options.sceneStructure || !options.colorSystem) {
+            const aspectRatio = String(options.aspectRatio || '1:1').trim() || '1:1';
+            const safeSide = options.sidePlacement === 'left' ? 'right' : options.sidePlacement === 'right' ? 'left' : 'both sides';
+
+            return [
+                'SCENE STRUCTURE: Clean ecommerce canvas with a minimal base plane and a seamless neutral background.',
+                `Output format: ${aspectRatio} aspect ratio with overlay-safe negative space on ${safeSide}.`,
+                'MATERIAL PHYSICS: background is matte neutral paper or painted studio sweep; surface is subtle stone/ceramic only under the product; no busy texture.',
+                'SCALE RULE: Product is the single hero subject and must be fully visible with realistic proportions; do not crop the product; do not shrink it into the background.'
+            ].join(' ');
         }
 
         const { structureType, geometry, blockCount, blockScale, layout, edgeStyle, material, scale } = options.sceneStructure;

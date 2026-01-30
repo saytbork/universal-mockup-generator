@@ -14,7 +14,11 @@ export class SpecialModesBuilder implements PromptBuilder {
         }
 
         // Ecom Blank Extended (additional rules beyond ModesBuilder)
-        if (options.compositionMode === 'ecom-blank') {
+        const isEcomBlank =
+            options.creationMode === 'ecom-blank' ||
+            options.ecommerceBlankSpaceMode === true ||
+            options.compositionMode === 'Ecommerce Blank Space';
+        if (isEcomBlank) {
             prompt += this.buildEcomBlankExtended(options) + ' ';
         }
 
@@ -49,33 +53,33 @@ export class SpecialModesBuilder implements PromptBuilder {
     private buildEcomBlankExtended(options: PromptOptions): string {
         const { bgColor = '#FFFFFF', sidePlacement = 'right', bgGradient } = options;
         const oppositeSide = sidePlacement === 'left' ? 'right' : 'left';
+        const aspectRatio = String(options.aspectRatio || '1:1').trim() || '1:1';
+
         const backgroundCopy = bgGradient
-            ? `This image must use a linear gradient background at ${bgGradient.angle ?? 90}° transitioning from ${bgGradient.startColor} to ${bgGradient.endColor}.`
-            : `This image must use a pure solid background with the exact color: ${bgColor}.`;
+            ? `Background: soft neutral gradient (linear ${bgGradient.angle ?? 90}° from ${bgGradient.startColor} to ${bgGradient.endColor}), but the overlay-safe ${oppositeSide} side must remain visually uniform with no gradient banding, no vignettes, and no contrast shifts.`
+            : `Background: soft neutral solid with the exact color ${bgColor}. The overlay-safe ${oppositeSide} side must remain visually uniform with no vignettes, no contrast shifts, and no texture noise.`;
+
+        const placementCopy =
+            sidePlacement === 'center'
+                ? 'Layout variant: CENTERED. Keep clean negative space on both left and right sides for overlays; do not add props or shadows that drift into the overlay-safe areas.'
+                : `Layout variant: ${sidePlacement.toUpperCase()}. The product must be positioned entirely on the ${sidePlacement} side. The ${oppositeSide} side is a protected overlay-safe zone.`;
 
         return `
+      ECOMMERCE PDP IMAGE CANVAS (OVERLAY-READY). This is a clean product image canvas designed to receive text/icon overlays later. The image is NOT a finished ad.
+      STRICTLY FORBIDDEN: any text, labels, badges, captions, UI elements, icons, arrows, frames, borders, dividers, or typography of any kind.
+      
+      Output format: ${aspectRatio} aspect ratio. High resolution. Clean edges. Product fully visible and tack sharp. No motion blur. No dramatic angles.
+      Camera: straight-on or slight 3/4 angle only. No dutch angles. No wide-angle distortion.
+      
+      ${placementCopy}
+      Overlay-safe zone rules (NON-NEGOTIABLE): the clean side must contain NO objects, NO props, NO highlights, NO reflections, NO shadows, NO gradients, and NO background elements crossing into that zone. At least 40% of the image width must remain clean negative space reserved for overlays.
+      
       ${backgroundCopy}
-      Do NOT generate rooms, environments, furniture, props or scenery.
-      Keep the background perfectly uniform and flat.
+      Lighting: soft studio lighting, even exposure, neutral white balance. No harsh shadows. No blown highlights. Any contact shadow must stay near the product and must NOT drift into the overlay-safe zone.
       
-      Place the product and the person exclusively on the ${sidePlacement} side of the frame.
-      Leave large, clean negative space on the ${oppositeSide} side for text overlays.
-      
-      Use soft studio lighting suitable for Amazon, Shopify and paid ads.
-      Do NOT add text, logos, watermarks or graphics.
-      
-      Insert the uploaded product cleanly into the scene with:
-      - perfect edges,
-      - precise shape preservation,
-      - correct reflections,
-      - realistic soft shadows on the flat background,
-      - exact label, exact colors and exact proportions.
-      
-      Maintain correct human anatomy at all times:
-      - natural hands,
-      - correct finger shape,
-      - proper wrist rotation,
-      - realistic arm connection to the shoulder and torso.
+      Product rules: product is the clear hero with correct proportions and realistic scale. No floating product. No duplicated product unless explicitly requested. Preserve the exact product packaging and label (no redesign, no invented text).
+      Props: allowed only if minimal and only near the product on the product side. Absolutely no props or visual noise near the overlay-safe zone.
+      Forbidden: any room scene, any real-world location context, any living subject, any head, any skin, any hands, any animals, any decorative clutter, or any editorial storytelling.
     `.trim().replace(/\s+/g, ' ');
     }
 

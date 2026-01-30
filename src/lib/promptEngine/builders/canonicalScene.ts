@@ -425,6 +425,13 @@ export class SceneNarrativeBuilder {
             return undefined;
         }
 
+        const isEcommerceBlankSpaceMode =
+            Boolean(
+                options.ecommerceBlankSpaceMode ||
+                options.creationMode === 'ecom-blank' ||
+                options.compositionMode === 'Ecommerce Blank Space'
+            );
+
         const placement =
             options.ecommerceSidePlacementDescriptor ||
             (options.sidePlacement && sidePlacementCopy[options.sidePlacement]) ||
@@ -437,7 +444,35 @@ export class SceneNarrativeBuilder {
                     } side for text overlays.`
                     : '';
 
-        return [placement, copySpace].filter(Boolean).join(' ');
+        if (!isEcommerceBlankSpaceMode) {
+            return [placement, copySpace].filter(Boolean).join(' ');
+        }
+
+        const aspectRatio = String(options.aspectRatio || '1:1').trim() || '1:1';
+        const sidePlacement = options.sidePlacement || 'center';
+        const oppositeSide =
+            sidePlacement === 'left' ? 'right' : sidePlacement === 'right' ? 'left' : 'both sides';
+
+        const backgroundCopy = options.bgGradient
+            ? `Background: neutral gradient (linear ${options.bgGradient.angle ?? 90}° from ${options.bgGradient.startColor} to ${options.bgGradient.endColor}), but the overlay-safe ${oppositeSide} must remain visually uniform with no banding, no vignettes, and no contrast shifts.`
+            : options.bgColor
+                ? `Background: neutral solid ${options.bgColor}. The overlay-safe ${oppositeSide} must remain visually uniform with no vignettes, no texture noise, and no contrast shifts.`
+                : `Background: neutral solid. The overlay-safe ${oppositeSide} must remain visually uniform with no vignettes, no texture noise, and no contrast shifts.`;
+
+        return [
+            'OVERLAY-READY ECOMMERCE PDP CANVAS (NON-NEGOTIABLE): This image is a product canvas intended to receive overlays later. Do not generate any text, typography, icons, badges, captions, UI elements, frames, borders, arrows, or graphic marks.',
+            `Output: ${aspectRatio} aspect ratio. High resolution. Clean edges. Product fully visible and tack sharp. No motion blur.`,
+            'Camera: straight-on or slight 3/4 angle only. No dramatic angles. No dutch angles. No wide-angle distortion.',
+            placement,
+            copySpace,
+            `OVERLAY-SAFE ZONE (CRITICAL): The clean ${oppositeSide} side must contain NO objects, NO props, NO highlights, NO reflections, NO shadows, and NO gradients that reduce contrast. Keep it empty and overlay-safe. At least 40% of the frame width must remain clean negative space on the overlay-safe side.`,
+            backgroundCopy,
+            'Lighting: soft studio lighting with even exposure and neutral white balance. No harsh shadows. Any contact shadow must stay near the product and must not drift into the overlay-safe zone.',
+            'Props: only allowed if minimal and only on the product side. No visual noise near the overlay-safe zone.',
+            'Forbidden: rooms, real-world location context, living subjects, heads, skin, hands, animals, decorative clutter, or editorial storytelling.'
+        ]
+            .filter(Boolean)
+            .join(' ');
     }
 
     private buildCameraFraming(options: PromptOptions, constraints?: string): string {
