@@ -895,6 +895,8 @@ function buildAspectRatio(state: ProductStudioState): string {
     const map = {
         '1:1': 'square 1:1 aspect ratio',
         '4:5': 'portrait 4:5 aspect ratio',
+        '3:4': 'portrait 3:4 aspect ratio',
+        '9:16': 'vertical 9:16 aspect ratio',
         '4:3': 'landscape 4:3 aspect ratio',
         '16:9': 'landscape 16:9 aspect ratio',
     };

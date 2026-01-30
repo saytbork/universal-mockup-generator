@@ -273,7 +273,7 @@ export type NegativeSpace = 'none' | 'subtle' | 'intentional' | 'heavy';
 // ============================================================================
 
 export type BlankSpaceSide = 'left' | 'right';
-export type AspectRatio = '1:1' | '4:5' | '4:3' | '16:9';
+export type AspectRatio = '1:1' | '4:5' | '3:4' | '9:16' | '4:3' | '16:9';
 
 // ============================================================================
 // BUNDLES v2

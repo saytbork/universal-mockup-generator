@@ -1100,15 +1100,35 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     }));
   }, [isProductMode, productStore.angle, productStore.distance, productStore.framing, productStore.rotation]);
 
-  // Derived state for Environment (Strict Rule: Studio = No Environment, Lifestyle = Always Environment)
-  // Product Studio must NEVER show Lifestyle/UGC sections.
-  // Keep all "environment/lifestyle" UI strictly disabled when `isProductMode` is true.
-  const isEnvironmentMode = !isProductMode;
+	  // Derived state for Environment (Strict Rule: Studio = No Environment, Lifestyle = Always Environment)
+	  // Product Studio must NEVER show Lifestyle/UGC sections.
+	  // Keep all "environment/lifestyle" UI strictly disabled when `isProductMode` is true.
+	  const isEnvironmentMode = !isProductMode;
 
-  // Sync Product UI controls to ProductStudioStore when isProductMode === true
-  const updateProductStudioValue = useCallback(<K extends keyof ProductStudioState>(
-    key: K,
-    value: ProductStudioState[K]
+	  const normalizeProductStudioAspectRatio = useCallback((raw: unknown): ProductStudioState['aspectRatio'] => {
+	    const value = String(raw ?? '').trim();
+	    const labelMap: Record<string, ProductStudioState['aspectRatio']> = {
+	      '1:1 (Square)': '1:1',
+	      '4:5 (Portrait)': '4:5',
+	      '3:4 (Portrait)': '3:4',
+	      '9:16 (Story)': '9:16',
+	      '16:9 (Landscape)': '16:9',
+	      '4:3 (Landscape)': '4:3',
+	    };
+	    if (labelMap[value]) return labelMap[value];
+	
+	    const normalized = value.replace(/\s+/g, '');
+	    const allowed = new Set<ProductStudioState['aspectRatio']>(['1:1', '4:5', '3:4', '9:16', '4:3', '16:9']);
+	    if (allowed.has(normalized as ProductStudioState['aspectRatio'])) {
+	      return normalized as ProductStudioState['aspectRatio'];
+	    }
+	    return '1:1';
+	  }, []);
+
+	  // Sync Product UI controls to ProductStudioStore when isProductMode === true
+	  const updateProductStudioValue = useCallback(<K extends keyof ProductStudioState>(
+	    key: K,
+	    value: ProductStudioState[K]
   ) => {
     if (!isProductMode) return;
     console.log('[PRODUCT STUDIO UPDATE]', key, value);
@@ -1164,16 +1184,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       case 'blankSpaceEnabled':
         productStore.setBlankSpaceEnabled(value as boolean);
         break;
-      case 'blankSpaceSide':
-        productStore.setBlankSpaceSide(value as ProductStudioState['blankSpaceSide']);
-        break;
-      case 'aspectRatio':
-        productStore.setAspectRatio(value as ProductStudioState['aspectRatio']);
-        break;
-      default:
-        console.warn('[PRODUCT STUDIO] Unhandled key:', key);
-    }
-  }, [isProductMode, productStore]);
+	      case 'blankSpaceSide':
+	        productStore.setBlankSpaceSide(value as ProductStudioState['blankSpaceSide']);
+	        break;
+	      case 'aspectRatio':
+	        productStore.setAspectRatio(normalizeProductStudioAspectRatio(value));
+	        break;
+	      default:
+	        console.warn('[PRODUCT STUDIO] Unhandled key:', key);
+	    }
+	  }, [isProductMode, normalizeProductStudioAspectRatio, productStore]);
 
   const toggleSection = (section: string) => {
     setOpenAccordionId(openAccordionId === section ? null : section);
