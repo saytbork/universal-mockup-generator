@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { CheckCircle2, CreditCard, ShieldCheck, ShoppingBag, Users2, Zap, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -96,20 +96,59 @@ const pricing: PricingPlan[] = [
 
 const paymentMethods = ['Visa', 'Mastercard', 'American Express', 'Apple Pay', 'Google Pay'];
 
-type BeforeAfterSlide = {
+// Note: This component must clearly communicate ecommerce use cases (PDPs, ads, marketplaces).
+// Do NOT frame this as influencer or creator-only UGC.
+type ProofSlide = {
   id: string;
-  before: string;
-  after: string;
-  alt: string;
+  productImage: string;
+  realImage: string;
+  productAlt: string;
+  realAlt: string;
 };
 
-const beforeAfterSlides: BeforeAfterSlide[] = [
-  { id: '01', before: '/slider/01-before.jpg', after: '/slider/01-after.jpg', alt: 'Before and after example 01' },
-  { id: '02', before: '/slider/02-before.jpg', after: '/slider/02-after.jpg', alt: 'Before and after example 02' },
-  { id: '03', before: '/slider/03-before.jpg', after: '/slider/03-after.jpg', alt: 'Before and after example 03' },
-  { id: '04', before: '/slider/04-before.jpg', after: '/slider/04-after.jpg', alt: 'Before and after example 04' },
-  { id: '05', before: '/slider/05-before.jpg', after: '/slider/05-after.jpg', alt: 'Before and after example 05' },
-  { id: '06', before: '/slider/06-before.jpg', after: '/slider/06-after.jpg', alt: 'Before and after example 06' },
+const PROOF_SLIDES: ProofSlide[] = [
+  {
+    id: '01-supplement',
+    productImage: '/slider/01-product.jpg',
+    realImage: '/slider/01-real.jpg',
+    productAlt: 'Supplement bottle packshot on white background',
+    realAlt: 'Person in a kitchen holding the same supplement bottle',
+  },
+  {
+    id: '02-beverage',
+    productImage: '/slider/02-product.jpg',
+    realImage: '/slider/02-real.jpg',
+    productAlt: 'Just Bubbles sparkling water can on wooden table',
+    realAlt: 'Hand opening Just Bubbles can with colorful studio background',
+  },
+  {
+    id: '03-food',
+    productImage: '/slider/03-product.jpg',
+    realImage: '/slider/03-real.jpg',
+    productAlt: 'Snack pouch product shot on a clean surface',
+    realAlt: 'Snack pouch on a lived-in table with hands nearby',
+  },
+  {
+    id: '04-pet',
+    productImage: '/slider/04-product.jpg',
+    realImage: '/slider/04-real.jpg',
+    productAlt: 'Pet product packshot on a neutral set',
+    realAlt: 'Pet product used in a home environment setting',
+  },
+  {
+    id: '05-health',
+    productImage: '/slider/05-product.jpg',
+    realImage: '/slider/05-real.jpg',
+    productAlt: 'Health product packshot on white background',
+    realAlt: 'Everyday person using the health product at home',
+  },
+  {
+    id: '06-generic',
+    productImage: '/slider/06-product.jpg',
+    realImage: '/slider/06-real.jpg',
+    productAlt: 'Generic ecommerce product shot',
+    realAlt: 'Same product in a simple lifestyle context',
+  },
 ];
 
 // --- Advantage Grid Animation Components ---
@@ -310,6 +349,91 @@ const ScaleCatalog = () => (
     </div>
   </div>
 );
+
+const BeforeAfterSlider: React.FC<{ slides: ProofSlide[] }> = ({ slides }) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll animation
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    let animationId: number;
+    let scrollSpeed = 0.5;
+
+    const scroll = () => {
+      if (el.scrollLeft >= el.scrollWidth / 2) {
+        el.scrollLeft = 0;
+      } else {
+        el.scrollLeft += scrollSpeed;
+      }
+      animationId = requestAnimationFrame(scroll);
+    };
+
+    animationId = requestAnimationFrame(scroll);
+
+    const handleMouseEnter = () => { scrollSpeed = 0; };
+    const handleMouseLeave = () => { scrollSpeed = 0.5; };
+    el.addEventListener('mouseenter', handleMouseEnter);
+    el.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      cancelAnimationFrame(animationId);
+      el.removeEventListener('mouseenter', handleMouseEnter);
+      el.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, []);
+
+  return (
+    <div className="relative w-full overflow-hidden">
+      <div
+        ref={scrollRef}
+        className="flex gap-8 overflow-x-auto scrollbar-hide py-4"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        {/* Duplicate for seamless loop */}
+        {[...slides, ...slides].map((slide, index) => (
+          <div
+            key={`${slide.id}-${index}`}
+            className="flex-shrink-0 flex gap-1"
+          >
+            {/* Before Image */}
+            <div className="w-[180px] sm:w-[220px] lg:w-[260px]">
+              <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-900">
+                <img
+                  src={slide.productImage}
+                  alt={slide.productAlt}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+                <div className="absolute bottom-3 left-3">
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-white/90 text-gray-700 backdrop-blur-sm">
+                    Before
+                  </span>
+                </div>
+              </div>
+            </div>
+            {/* After Image */}
+            <div className="w-[180px] sm:w-[220px] lg:w-[260px]">
+              <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
+                <img
+                  src={slide.realImage}
+                  alt={slide.realAlt}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+                <div className="absolute bottom-3 left-3">
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-indigo-600 text-white">
+                    After
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 
 type LandingPageProps = {
   disableSeo?: boolean;
@@ -666,37 +790,35 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
         </div>
       </header>
 
-      <section className="bg-white dark:bg-black border-b border-gray-100 dark:border-white/5">
-        <div className="max-w-6xl mx-auto px-6 py-20 space-y-10">
-          <div className="text-center space-y-3">
-            <h2 className="text-3xl sm:text-4xl font-semibold text-gray-900 dark:text-white">
-              From static product shots to real-looking UGC
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-400">Same product. Real people. Real environments.</p>
-            <p className="text-sm text-gray-500 dark:text-gray-500 max-w-3xl mx-auto">
-              See how a single product image becomes lifestyle and UGC content ready for ads, PDPs, and socials.
-            </p>
-          </div>
-          <div className="grid gap-6 md:grid-cols-2">
-            {beforeAfterSlides.map(slide => (
-              <BeforeAfterCard
-                key={slide.id}
-                slide={slide}
-                value={beforeAfterValues[slide.id] ?? 50}
-                view={beforeAfterView[slide.id] ?? 'after'}
-                onChange={(next) =>
-                  setBeforeAfterValues(prev => ({ ...prev, [slide.id]: next }))
-                }
-                onViewChange={(next) =>
-                  setBeforeAfterView(prev => ({ ...prev, [slide.id]: next }))
-                }
-              />
-            ))}
-          </div>
-        </div>
+      {/* Before/After Slider Section */}
+      <section className="relative bg-white dark:bg-black py-20 sm:py-28">
+        {/* Section Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+          className="text-center space-y-4 mb-12 px-6"
+        >
+          <p className="text-xs uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-400 font-semibold">
+            The Transformation
+          </p>
+          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white leading-tight">
+            From product image to{' '}
+            <span className="bg-gradient-to-r from-indigo-600 to-blue-600 dark:from-indigo-400 dark:to-blue-400 bg-clip-text text-transparent">
+              real-world magic
+            </span>
+          </h2>
+          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            Upload your product photo. Get stunning lifestyle visuals ready for PDPs, ads, and social.
+          </p>
+        </motion.div>
+
+        {/* Full-width Before/After Slider */}
+        <BeforeAfterSlider slides={PROOF_SLIDES} />
       </section>
 
-      <section className="bg-gray-50/50 dark:bg-white/[0.02] border-b border-gray-100 dark:border-white/5">
+      <section className="bg-[#fafafa] dark:bg-white/[0.02]">
         <div className="max-w-6xl mx-auto px-6 py-24 space-y-10">
           <div className="text-center space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">What you can create</p>
@@ -748,7 +870,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
         </div>
       </section>
 
-      <section className="bg-white dark:bg-black border-b border-gray-100 dark:border-white/5">
+      <section className="bg-white dark:bg-black">
         <div className="max-w-6xl mx-auto px-6 py-16 space-y-10">
           <div className="text-center space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Preview</p>
@@ -795,7 +917,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
 
       <TestimonialsSection />
 
-      <section className="bg-indigo-50/20 dark:bg-indigo-500/[0.02] border-b border-gray-100 dark:border-white/5 overflow-hidden">
+      <section id="how-it-works" className="bg-[#fafafa] dark:bg-white/[0.02] overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 py-20 space-y-12">
           <div className="text-center space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">How it works</p>
@@ -908,7 +1030,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
       </section>
 
       {/* Bento: Product vs Lifestyle */}
-      <section className="bg-white dark:bg-black py-24 border-b border-gray-100 dark:border-white/5 overflow-hidden">
+      <section className="bg-white dark:bg-black py-24 overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 space-y-16">
           <div className="text-center space-y-4">
             <span className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50">
@@ -1010,7 +1132,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
 
       {/* Bento: The Advantage Grid */}
       {/* Why Perfect Mockup: Advantage Grid */}
-      <section className="bg-gray-50/50 dark:bg-white/[0.02] py-24 border-b border-gray-100 dark:border-white/5 overflow-hidden">
+      <section className="bg-[#fafafa] dark:bg-white/[0.02] py-24 overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 space-y-16">
           <div className="text-center space-y-4">
             <span className="text-indigo-600 dark:text-indigo-400 text-[10px] font-bold uppercase tracking-[0.3em]">Why Perfect Mockup</span>
@@ -1111,7 +1233,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
       </section>
 
       {/* Sophisticated Audience Cluster */}
-      <section className="bg-white dark:bg-black py-24 border-b border-gray-100 dark:border-white/5">
+      <section className="bg-white dark:bg-black py-24">
         <div className="max-w-6xl mx-auto px-6 space-y-12">
           <div className="text-center space-y-4">
             <span className="text-indigo-600 text-[10px] font-bold uppercase tracking-[0.3em]">Perfect for Teams</span>
@@ -1140,7 +1262,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
         </div>
       </section>
 
-      <section className="bg-indigo-50/50 dark:bg-white/5 border-y border-indigo-100 dark:border-white/10">
+      <section className="bg-[#fafafa] dark:bg-white/[0.02]">
         <div className="max-w-6xl mx-auto px-6 py-24 space-y-10">
           <div className="text-center space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-400">Resources</p>
@@ -1220,7 +1342,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
         <div className="max-w-6xl mx-auto space-y-16">
           <div className="text-center space-y-4">
             <span className="text-indigo-600 text-[10px] font-bold uppercase tracking-[0.3em]">Scalable Pricing</span>
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight text-balance">Plans built for launch velocity</h2>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight text-balance">Plans built for launch velocity</h2>
             <p className="text-gray-500 max-w-2xl mx-auto text-lg leading-relaxed">
               Scale your visuals as your products and campaigns grow. No hidden fees.
             </p>
