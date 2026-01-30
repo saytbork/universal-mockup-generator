@@ -5158,8 +5158,11 @@ If the model attempts to create a scene or environment, override it and force a 
           'cinematic look',
           'No generic stock look',
           'Lens choice:',
-          'Randomized camera angle',
-          'Randomized distance',
+          // PDP base prompt includes "No randomized camera angles." — so only block the old
+          // pipeline's positive randomization phrasing.
+          'Randomized camera angle:',
+          'Randomized distance:',
+          'CAMERA: Randomized',
           'studio-branding',
         ];
         for (const fragment of promptGuard) {
