@@ -725,9 +725,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
                   Before
                 </span>
               </div>
-              {/* After sequence (1-5) - 4:3 ratio based on heights */}
+              {/* After sequence (1-5) - Also 3:4 ratio now per request */}
               {[1, 2, 3, 4, 5].map((seqNum) => (
-                <div key={`seq-${seqNum}`} className="relative shrink-0 w-[266px] sm:w-[320px] md:w-[373px] lg:w-[426px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
+                <div key={`seq-${seqNum}`} className="relative shrink-0 w-[150px] sm:w-[180px] md:w-[210px] lg:w-[240px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
                   <img
                     src={`/slider/seq-0${seqNum}.jpg`}
                     alt={`Product sequence ${seqNum}`}
@@ -758,9 +758,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
                   Before
                 </span>
               </div>
-              {/* After sequence (1-5) - 4:3 ratio based on heights */}
+              {/* After sequence (1-5) - Also 3:4 ratio now per request */}
               {[1, 2, 3, 4, 5].map((seqNum) => (
-                <div key={`seq2-${seqNum}`} className="relative shrink-0 w-[266px] sm:w-[320px] md:w-[373px] lg:w-[426px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
+                <div key={`seq2-${seqNum}`} className="relative shrink-0 w-[150px] sm:w-[180px] md:w-[210px] lg:w-[240px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
                   <img
                     src={`/slider/seq-0${seqNum}.jpg`}
                     alt={`Product sequence ${seqNum}`}
