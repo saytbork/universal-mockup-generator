@@ -713,36 +713,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
             }}
           >
             {/* First set of paired images - grouped with gap between groups */}
-            {[1, 2, 3, 4, 5, 6, 7].map((num) => (
-              <div key={`first-group-${num}`} className="flex gap-1 sm:gap-2 mr-8 sm:mr-12 lg:mr-16">
-                {/* Before (product) image */}
-                <div className="relative shrink-0 aspect-[3/4] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900 shadow-sm border border-gray-100 dark:border-white/5">
-                  <img
-                    src={`/slider/0${num}-product.jpg`}
-                    alt={`Product shot ${num}`}
-                    loading="lazy"
-                    draggable="false"
-                    className="h-full w-full object-cover pointer-events-none"
-                  />
-                  <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
-                    Before
-                  </span>
-                </div>
-                {/* After (real/lifestyle) image */}
-                <div className="relative shrink-0 aspect-[3/4] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900 shadow-sm border border-gray-100 dark:border-white/5">
-                  <img
-                    src={`/slider/0${num}-real.jpg`}
-                    alt={`Lifestyle usage ${num}`}
-                    loading="lazy"
-                    draggable="false"
-                    className="h-full w-full object-cover pointer-events-none"
-                  />
-                  <span className="absolute left-2 top-2 rounded-full bg-indigo-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">
-                    After
-                  </span>
-                </div>
-              </div>
-            ))}
+
             {/* Sequence group - Before + 5 After images */}
             <div className="flex gap-1 sm:gap-2 mr-8 sm:mr-12 lg:mr-16">
               {/* Before image */}
@@ -775,36 +746,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               ))}
             </div>
             {/* Duplicate set for seamless loop */}
-            {[1, 2, 3, 4, 5, 6, 7].map((num) => (
-              <div key={`second-group-${num}`} className="flex gap-1 sm:gap-2 mr-8 sm:mr-12 lg:mr-16">
-                {/* Before (product) image */}
-                <div className="relative shrink-0 aspect-[3/4] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900 shadow-sm border border-gray-100 dark:border-white/5">
-                  <img
-                    src={`/slider/0${num}-product.jpg`}
-                    alt={`Product shot ${num}`}
-                    loading="lazy"
-                    draggable="false"
-                    className="h-full w-full object-cover pointer-events-none"
-                  />
-                  <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
-                    Before
-                  </span>
-                </div>
-                {/* After (real/lifestyle) image */}
-                <div className="relative shrink-0 aspect-[3/4] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900 shadow-sm border border-gray-100 dark:border-white/5">
-                  <img
-                    src={`/slider/0${num}-real.jpg`}
-                    alt={`Lifestyle usage ${num}`}
-                    loading="lazy"
-                    draggable="false"
-                    className="h-full w-full object-cover pointer-events-none"
-                  />
-                  <span className="absolute left-2 top-2 rounded-full bg-indigo-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">
-                    After
-                  </span>
-                </div>
-              </div>
-            ))}
+
             {/* Duplicate sequence group */}
             <div className="flex gap-1 sm:gap-2 mr-8 sm:mr-12 lg:mr-16">
               {/* Before image */}
