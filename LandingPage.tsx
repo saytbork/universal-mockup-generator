@@ -682,22 +682,28 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
             {[1, 2, 3, 4, 5, 6].map((num) => (
               <div key={`first-group-${num}`} className="flex gap-1 sm:gap-2 mr-8 sm:mr-12 lg:mr-16">
                 {/* Before (product) image */}
-                <div className="shrink-0 aspect-[3/4] w-[140px] sm:w-[180px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/5">
+                <div className="relative shrink-0 aspect-[3/4] w-[140px] sm:w-[180px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/5">
                   <img
                     src={`/slider/0${num}-product.jpg`}
                     alt={`Product shot ${num}`}
                     loading="lazy"
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
+                  <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
+                    Before
+                  </span>
                 </div>
                 {/* After (real/lifestyle) image */}
-                <div className="shrink-0 aspect-[3/4] w-[140px] sm:w-[180px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/5">
+                <div className="relative shrink-0 aspect-[3/4] w-[140px] sm:w-[180px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/5">
                   <img
                     src={`/slider/0${num}-real.jpg`}
                     alt={`Lifestyle usage ${num}`}
                     loading="lazy"
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
+                  <span className="absolute left-2 top-2 rounded-full bg-indigo-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">
+                    After
+                  </span>
                 </div>
               </div>
             ))}
@@ -705,22 +711,28 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
             {[1, 2, 3, 4, 5, 6].map((num) => (
               <div key={`second-group-${num}`} className="flex gap-1 sm:gap-2 mr-8 sm:mr-12 lg:mr-16">
                 {/* Before (product) image */}
-                <div className="shrink-0 aspect-[3/4] w-[140px] sm:w-[180px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/5">
+                <div className="relative shrink-0 aspect-[3/4] w-[140px] sm:w-[180px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/5">
                   <img
                     src={`/slider/0${num}-product.jpg`}
                     alt={`Product shot ${num}`}
                     loading="lazy"
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
+                  <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
+                    Before
+                  </span>
                 </div>
                 {/* After (real/lifestyle) image */}
-                <div className="shrink-0 aspect-[3/4] w-[140px] sm:w-[180px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/5">
+                <div className="relative shrink-0 aspect-[3/4] w-[140px] sm:w-[180px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/5">
                   <img
                     src={`/slider/0${num}-real.jpg`}
                     alt={`Lifestyle usage ${num}`}
                     loading="lazy"
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
+                  <span className="absolute left-2 top-2 rounded-full bg-indigo-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">
+                    After
+                  </span>
                 </div>
               </div>
             ))}
