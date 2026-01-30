@@ -795,7 +795,9 @@ function buildSceneType(state: ProductStudioState): string {
         // Avoid forbidden term "phone" (kept for compatibility, but not intended for Product Studio UI)
         'ugc-phone': 'Casual snapshot of product',
         // Ecommerce PDP is a separate pipeline; this label should not be reused as a prompt foundation.
-        'ecommerce-pdp': 'Ecommerce PDP image canvas'
+        'ecommerce-pdp': 'Ecommerce PDP image canvas',
+        // Hero Landing Page exclusive sceneType
+        'studio-hero': 'Studio hero landing page composition'
     };
     return map[state.sceneType];
 

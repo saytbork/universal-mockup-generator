@@ -14,6 +14,7 @@ import {
   buildPastelPicnicScene,
   buildRoutineCarouselScene,
   buildSplashShotScene,
+  buildStudioHeroScene,
   buildSunriseWellnessCounterScene,
   buildTileAndSpaScene,
   type PhotoModeKey,
@@ -191,6 +192,10 @@ function buildSecondaryProps(mode: PhotoModeKey, randomizer: ReturnType<typeof c
 
 export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAsset | null): ScenePromptResult {
   const randomizer = createRandomizer();
+
+  // CRITICAL: Hero Landing Page gets exclusive sceneType routing
+  const isHeroLandingPage = state.photoMode === 'Hero Landing Page';
+
   const environmentModeActive =
     state.blankSpaceEnabled === false &&
     state.environmentContext != null &&
@@ -205,7 +210,6 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     ? {
       dominant: product.palette.dominant,
       secondary: product.palette.secondary,
-      accent: product.palette.accent,
     }
     : undefined;
 
@@ -223,7 +227,10 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   let scene = '';
   let splashMode: string | undefined;
 
-  if (environmentModeActive) {
+  // CRITICAL: Hero Landing Page uses exclusive studio-hero scene builder
+  if (isHeroLandingPage) {
+    scene = buildStudioHeroScene(sceneInput);
+  } else if (environmentModeActive) {
     scene = buildEnvironmentScene(state, randomizer);
   } else {
     switch (mode) {

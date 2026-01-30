@@ -287,3 +287,24 @@ export function buildCandyGradientLabScene({ randomizer }: SceneBuildInput): str
     'Experimental but premium, with physical realism preserved.'
   ].join(' ');
 }
+
+export function buildStudioHeroScene({ backgroundColor, gradientEnabled, gradientStart, gradientEnd }: SceneBuildInput): string {
+  if (gradientEnabled && gradientStart && gradientEnd) {
+    return [
+      'Clean studio hero composition.',
+      `Smooth gradient background using ${gradientStart} and ${gradientEnd}.`,
+      'No environment, no props, no setting.',
+      'Subtle studio gradient only.',
+      'Product isolated and centered for hero landing page.'
+    ].join(' ');
+  }
+
+  const color = backgroundColor || '#F6F7FB';
+  return [
+    'Clean studio hero composition.',
+    `Seamless solid background in color ${color}.`,
+    'No environment, no props, no setting.',
+    'Flat studio background with subtle depth only.',
+    'Product centered and isolated for hero landing page.'
+  ].join(' ');
+}

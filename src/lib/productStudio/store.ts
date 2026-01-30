@@ -1272,7 +1272,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 return {
                     photoMode: nextMode,
                     environmentContext: null,
-                    sceneType: 'studio-branding',
+                    sceneType: 'studio-hero',
                     proMode: false,
                 };
             }

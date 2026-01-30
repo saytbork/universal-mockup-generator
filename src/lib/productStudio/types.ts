@@ -206,7 +206,7 @@ export type BrandPalette = {
 // ============================================================================
 
 // NOTE: `ecommerce-pdp` is a NEW isolated pipeline. It must not inherit from existing scene pipelines.
-export type SceneType = 'studio-branding' | 'editorial-product' | 'lifestyle-real' | 'ugc-phone' | 'ecommerce-pdp';
+export type SceneType = 'studio-branding' | 'editorial-product' | 'lifestyle-real' | 'ugc-phone' | 'ecommerce-pdp' | 'studio-hero';
 
 // ============================================================================
 // ECOMMERCE PDP IMAGE BUILDER (Isolated Pipeline)
