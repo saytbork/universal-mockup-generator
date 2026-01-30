@@ -716,7 +716,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
             {[1, 2, 3, 4, 5, 6, 7].map((num) => (
               <div key={`first-group-${num}`} className="flex gap-1 sm:gap-2 mr-8 sm:mr-12 lg:mr-16">
                 {/* Before (product) image */}
-                <div className="relative shrink-0 aspect-[3/4] w-[140px] sm:w-[180px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/5">
+                <div className="relative shrink-0 aspect-[3/4] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900 shadow-sm border border-gray-100 dark:border-white/5">
                   <img
                     src={`/slider/0${num}-product.jpg`}
                     alt={`Product shot ${num}`}
@@ -729,7 +729,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
                   </span>
                 </div>
                 {/* After (real/lifestyle) image */}
-                <div className="relative shrink-0 aspect-[3/4] w-[140px] sm:w-[180px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/5">
+                <div className="relative shrink-0 aspect-[3/4] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900 shadow-sm border border-gray-100 dark:border-white/5">
                   <img
                     src={`/slider/0${num}-real.jpg`}
                     alt={`Lifestyle usage ${num}`}
@@ -778,7 +778,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
             {[1, 2, 3, 4, 5, 6, 7].map((num) => (
               <div key={`second-group-${num}`} className="flex gap-1 sm:gap-2 mr-8 sm:mr-12 lg:mr-16">
                 {/* Before (product) image */}
-                <div className="relative shrink-0 aspect-[3/4] w-[140px] sm:w-[180px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/5">
+                <div className="relative shrink-0 aspect-[3/4] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900 shadow-sm border border-gray-100 dark:border-white/5">
                   <img
                     src={`/slider/0${num}-product.jpg`}
                     alt={`Product shot ${num}`}
@@ -791,7 +791,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
                   </span>
                 </div>
                 {/* After (real/lifestyle) image */}
-                <div className="relative shrink-0 aspect-[3/4] w-[140px] sm:w-[180px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/5">
+                <div className="relative shrink-0 aspect-[3/4] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900 shadow-sm border border-gray-100 dark:border-white/5">
                   <img
                     src={`/slider/0${num}-real.jpg`}
                     alt={`Lifestyle usage ${num}`}
