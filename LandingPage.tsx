@@ -175,7 +175,7 @@ const VisualSystem = () => {
         return (
           <React.Fragment key={name}>
             <motion.div
-              className="absolute bg-white dark:bg-white/10 border border-gray-100 dark:border-white/20 px-3 py-1.5 rounded-lg text-[10px] font-black tracking-tighter shadow-sm"
+              className="absolute z-10 bg-white dark:bg-white/10 border border-gray-100 dark:border-white/20 px-3 py-1.5 rounded-lg text-[10px] font-black tracking-tighter"
               style={{ x: pos.x, y: pos.y }}
               variants={{
                 initial: { opacity: 0, scale: 0.8 },
@@ -648,55 +648,99 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
         </div>
       </header>
 
-      <section className="bg-white">
-        <div className="max-w-6xl mx-auto px-6 py-8 sm:py-10">
+      {/* Modern Auto-Scrolling Before/After Carousel */}
+      <section className="bg-white dark:bg-black py-12 sm:py-16 overflow-hidden">
+        <div className="max-w-6xl mx-auto px-6 mb-8 sm:mb-12">
           <div className="text-center space-y-2">
-            <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900">
+            <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white">
               From product image to real-world use
             </h2>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400">
               Visuals ready for PDPs, ads, and ecommerce.
             </p>
           </div>
+        </div>
 
-          <div className="mt-6 overflow-x-auto">
-            <div className="flex gap-8 snap-x snap-mandatory">
-              {[1, 2, 3, 4, 5, 6].map(i => {
-                const left = String(i * 2 - 1).padStart(2, '0');
-                const right = String(i * 2).padStart(2, '0');
-                return (
-                  <div
-                    key={i}
-                    className="shrink-0 w-[85%] sm:w-[70%] lg:w-[60%] snap-center"
-                  >
-                    <div className="grid grid-cols-2 gap-4 sm:gap-6">
-                      <div className="h-[200px] sm:h-[240px] lg:h-[280px] bg-white flex items-center justify-center">
-                        <img
-                          src={`/slider/${left}.jpg`}
-                          alt={`Product image ${left}`}
-                          loading="lazy"
-                          className="h-full w-full object-contain"
-                        />
-                      </div>
+        {/* Full-width carousel container */}
+        <div className="relative w-full group">
+          {/* Gradient fade edges */}
+          <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-r from-white dark:from-black to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-l from-white dark:from-black to-transparent z-10 pointer-events-none" />
 
-                      <div className="h-[200px] sm:h-[240px] lg:h-[280px] bg-white overflow-hidden">
-                        <img
-                          src={`/slider/${right}.jpg`}
-                          alt={`Real-world product usage ${right}`}
-                          loading="lazy"
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+          {/* Infinite scrolling track */}
+          <div
+            className="flex"
+            style={{
+              animation: 'carousel-scroll 50s linear infinite',
+              animationPlayState: 'running',
+              width: 'max-content',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.animationPlayState = 'paused'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.animationPlayState = 'running'; }}
+          >
+            {/* First set of paired images - grouped with gap between groups */}
+            {[1, 2, 3, 4, 5, 6].map((num) => (
+              <div key={`first-group-${num}`} className="flex gap-1 sm:gap-2 mr-8 sm:mr-12 lg:mr-16">
+                {/* Before (product) image */}
+                <div className="shrink-0 aspect-[3/4] w-[140px] sm:w-[180px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/5">
+                  <img
+                    src={`/slider/0${num}-product.jpg`}
+                    alt={`Product shot ${num}`}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                </div>
+                {/* After (real/lifestyle) image */}
+                <div className="shrink-0 aspect-[3/4] w-[140px] sm:w-[180px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/5">
+                  <img
+                    src={`/slider/0${num}-real.jpg`}
+                    alt={`Lifestyle usage ${num}`}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                </div>
+              </div>
+            ))}
+            {/* Duplicate set for seamless loop */}
+            {[1, 2, 3, 4, 5, 6].map((num) => (
+              <div key={`second-group-${num}`} className="flex gap-1 sm:gap-2 mr-8 sm:mr-12 lg:mr-16">
+                {/* Before (product) image */}
+                <div className="shrink-0 aspect-[3/4] w-[140px] sm:w-[180px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/5">
+                  <img
+                    src={`/slider/0${num}-product.jpg`}
+                    alt={`Product shot ${num}`}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                </div>
+                {/* After (real/lifestyle) image */}
+                <div className="shrink-0 aspect-[3/4] w-[140px] sm:w-[180px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/5">
+                  <img
+                    src={`/slider/0${num}-real.jpg`}
+                    alt={`Lifestyle usage ${num}`}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
+
+        {/* CSS Keyframes for infinite scroll */}
+        <style>{`
+          @keyframes carousel-scroll {
+            0% {
+              transform: translateX(0);
+            }
+            100% {
+              transform: translateX(-50%);
+            }
+          }
+        `}</style>
       </section>
 
-      <section className="bg-gray-50/50 dark:bg-white/[0.02]">
+      <section className="bg-[#fafafa] dark:bg-white/[0.02]">
         <div className="max-w-6xl mx-auto px-6 py-24 space-y-10">
           <div className="text-center space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">What you can create</p>
@@ -748,7 +792,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
         </div>
       </section>
 
-      <section className="bg-white dark:bg-black">
+      <section className="bg-white dark:bg-black/95">
         <div className="max-w-6xl mx-auto px-6 py-16 space-y-10">
           <div className="text-center space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Preview</p>
@@ -795,7 +839,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
 
       <TestimonialsSection />
 
-      <section id="how-it-works" className="bg-gray-50/50 dark:bg-white/[0.02] overflow-hidden">
+      <section id="how-it-works" className="bg-[#fafafa] dark:bg-white/[0.02] overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 py-20 space-y-12">
           <div className="text-center space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">How it works</p>
@@ -908,7 +952,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
       </section>
 
       {/* Bento: Product vs Lifestyle */}
-      <section className="bg-white dark:bg-black py-24 overflow-hidden">
+      <section className="bg-white dark:bg-black/95 py-24 overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 space-y-16">
           <div className="text-center space-y-4">
             <span className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50">
@@ -1010,7 +1054,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
 
       {/* Bento: The Advantage Grid */}
       {/* Why Perfect Mockup: Advantage Grid */}
-      <section className="bg-gray-50/50 dark:bg-white/[0.02] py-24 overflow-hidden">
+      <section className="bg-[#fafafa] dark:bg-white/[0.02] py-24 overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 space-y-16">
           <div className="text-center space-y-4">
             <span className="text-indigo-600 dark:text-indigo-400 text-[10px] font-bold uppercase tracking-[0.3em]">Why Perfect Mockup</span>
@@ -1029,7 +1073,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               whileHover="animate"
               whileInView="animate"
               viewport={{ once: true, amount: 0.5 }}
-              className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 p-8 flex flex-col justify-between group min-h-[320px] shadow-sm"
+              className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 p-8 flex flex-col justify-between group min-h-[320px]"
             >
               <div className="space-y-4">
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white text-balance">From Weeks to Minutes</h3>
@@ -1046,7 +1090,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               whileHover="animate"
               whileInView="animate"
               viewport={{ once: true, amount: 0.5 }}
-              className="md:col-span-2 bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 p-8 flex flex-col md:flex-row gap-8 items-center min-h-[320px] shadow-sm"
+              className="md:col-span-2 bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 p-8 flex flex-col md:flex-row gap-8 items-center min-h-[320px]"
             >
               <div className="flex-1 space-y-4">
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-white text-balance">One Visual System. Every Channel.</h3>
@@ -1068,7 +1112,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               whileHover="animate"
               whileInView="animate"
               viewport={{ once: true, amount: 0.5 }}
-              className="md:col-span-2 bg-gray-900 dark:bg-white/[0.03] rounded-2xl p-8 flex flex-col md:flex-row gap-8 items-center min-h-[320px] border border-gray-800 dark:border-white/10 shadow-2xl"
+              className="md:col-span-2 bg-gray-900 dark:bg-white/[0.03] rounded-2xl p-8 flex flex-col md:flex-row gap-8 items-center min-h-[320px] border border-gray-800 dark:border-white/10"
             >
               <div className="flex-1 space-y-4">
                 <div className="inline-flex px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[9px] font-bold uppercase tracking-widest mb-2">
@@ -1090,7 +1134,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               whileHover="animate"
               whileInView="animate"
               viewport={{ once: true, amount: 0.5 }}
-              className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 p-8 flex flex-col justify-between min-h-[320px] shadow-sm"
+              className="bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 p-8 flex flex-col justify-between min-h-[320px]"
             >
               <div className="space-y-4">
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white text-balance">Built to Scale With Your Catalog</h3>
@@ -1111,7 +1155,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
       </section>
 
       {/* Sophisticated Audience Cluster */}
-      <section className="bg-white dark:bg-black py-24">
+      <section className="bg-white dark:bg-black/95 py-24">
         <div className="max-w-6xl mx-auto px-6 space-y-12">
           <div className="text-center space-y-4">
             <span className="text-indigo-600 text-[10px] font-bold uppercase tracking-[0.3em]">Perfect for Teams</span>
@@ -1140,7 +1184,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
         </div>
       </section>
 
-      <section className="bg-gray-50/50 dark:bg-white/[0.02]">
+      <section className="bg-[#fafafa] dark:bg-white/[0.02]">
         <div className="max-w-6xl mx-auto px-6 py-24 space-y-10">
           <div className="text-center space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-400">Resources</p>
@@ -1190,7 +1234,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
         </div>
       </section>
 
-      <section id="faq" className="bg-white dark:bg-black py-24 border-b border-gray-100 dark:border-white/5">
+      <section id="faq" className="bg-white dark:bg-black/95 py-24 border-b border-gray-100 dark:border-white/5">
         <div className="max-w-5xl mx-auto px-6 space-y-12">
           <div className="text-center space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">FAQ</p>
@@ -1216,7 +1260,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
         </div>
       </section>
 
-      <section id="pricing" className="bg-white dark:bg-black relative isolate py-24 px-6 border-b border-gray-100 dark:border-white/5">
+      <section id="pricing" className="bg-[#fafafa] dark:bg-white/[0.02] relative isolate py-24 px-6 border-b border-gray-100 dark:border-white/5">
         <div className="max-w-6xl mx-auto space-y-16">
           <div className="text-center space-y-4">
             <span className="text-indigo-600 text-[10px] font-bold uppercase tracking-[0.3em]">Scalable Pricing</span>
@@ -1404,92 +1448,3 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
 };
 
 export default LandingPage;
-
-function BeforeAfterCard({
-  slide,
-  value,
-  view,
-  onChange,
-  onViewChange,
-}: {
-  slide: BeforeAfterSlide;
-  value: number;
-  view: 'before' | 'after';
-  onChange: (next: number) => void;
-  onViewChange: (next: 'before' | 'after') => void;
-}) {
-  const safeValue = Math.max(0, Math.min(100, value));
-  return (
-    <div className="rounded-3xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 p-3 md:p-4">
-      <div className="md:hidden space-y-3">
-        <div className="flex items-center justify-center gap-2">
-          {(['before', 'after'] as const).map(option => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => onViewChange(option)}
-              className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${
-                view === option
-                  ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
-                  : 'bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-300'
-              }`}
-            >
-              {option === 'before' ? 'Before' : 'After'}
-            </button>
-          ))}
-        </div>
-        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-gray-100 dark:bg-white/10">
-          <img
-            src={view === 'before' ? slide.before : slide.after}
-            alt={slide.alt}
-            className="absolute inset-0 h-full w-full object-cover"
-            loading="lazy"
-            draggable={false}
-          />
-          <span className="absolute left-3 top-3 rounded-full bg-white/85 px-3 py-1 text-[10px] font-semibold text-gray-700 uppercase tracking-widest">
-            {view === 'before' ? 'Before' : 'After'}
-          </span>
-        </div>
-      </div>
-      <div className="hidden md:block">
-        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-gray-100 dark:bg-white/10">
-          <img
-            src={slide.before}
-            alt={slide.alt}
-            className="absolute inset-0 h-full w-full object-cover"
-            loading="lazy"
-            draggable={false}
-          />
-          <div className="absolute inset-y-0 left-0 overflow-hidden" style={{ width: `${safeValue}%` }}>
-            <img
-              src={slide.after}
-              alt={slide.alt}
-              className="absolute inset-0 h-full w-full object-cover"
-              loading="lazy"
-              draggable={false}
-            />
-          </div>
-          <div className="pointer-events-none absolute inset-y-0" style={{ left: `${safeValue}%` }}>
-            <div className="absolute inset-y-0 -translate-x-1/2 w-[2px] bg-white/90" />
-            <div className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-10 rounded-full border border-white bg-gray-900/40 backdrop-blur-sm" />
-          </div>
-          <div className="absolute left-3 top-3 rounded-full bg-white/85 px-3 py-1 text-[10px] font-semibold text-gray-700 uppercase tracking-widest">
-            Before
-          </div>
-          <div className="absolute right-3 top-3 rounded-full bg-white/85 px-3 py-1 text-[10px] font-semibold text-gray-700 uppercase tracking-widest">
-            After
-          </div>
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={safeValue}
-            onChange={(event) => onChange(Number(event.target.value))}
-            aria-label="Before and after comparison"
-            className="absolute inset-0 h-full w-full cursor-ew-resize opacity-0"
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
