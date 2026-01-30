@@ -55,6 +55,7 @@ export type MasterPromptSections = {
   finalize?: string;
   sceneStructure?: string;
   visualGrammar?: string;
+  ecommerceSequence?: string;
 };
 
 /**
@@ -83,7 +84,8 @@ export function buildMasterPrompt(
     identity,
     finalize,
     sceneStructure,
-    visualGrammar
+    visualGrammar,
+    ecommerceSequence
   } = sections;
 
   const selfieCaptureActive = Boolean(selfieCapture && selfieCapture.trim().length > 0);
@@ -97,6 +99,7 @@ export function buildMasterPrompt(
       creationMode,       // 2. Mode rules
       formulationStory,   // 3. Expert credibility
       ecommerceBuilder,   // 4. Blank space layout
+      ecommerceSequence,  // 4.5 Ecommerce Narrative Sequence
       identity,           // 5. Person traits (before selfie capture)
       selfieCapture,      // 6. UGC selfie hard constraints
       cameraFraming,      // 7. Camera composition
@@ -111,6 +114,7 @@ export function buildMasterPrompt(
       creationMode,       // 2. Mode rules
       formulationStory,   // 3. Expert credibility
       ecommerceBuilder,   // 4. Blank space layout
+      ecommerceSequence,  // 4.5 Ecommerce Narrative Sequence
       cameraFraming,      // 5. Camera composition
       environmentLightingMood, // 6. Scene + lighting
       compositionDetails, // 7. Composition instructions

@@ -34,6 +34,8 @@ export interface EcommerceStep3Props {
   slotBaseImages: Partial<Record<EcommerceSlotKey, string | null>>;
   settings: EcommerceGenerationSettings;
   onSettingsChange: (next: EcommerceGenerationSettings) => void;
+  onGenerateSequence?: () => void;
+  isGeneratingSequence?: boolean;
   embedded?: boolean;
 }
 
@@ -72,6 +74,8 @@ export default function EcommerceStep3({
   slotBaseImages,
   settings,
   onSettingsChange,
+  onGenerateSequence,
+  isGeneratingSequence = false,
   embedded = false,
 }: EcommerceStep3Props) {
   const [activeSlot, setActiveSlot] = useState<EcommerceSlotKey | null>(selectedSlots[0] ?? null);
@@ -606,9 +610,8 @@ function PresetCard({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-xl border px-3 py-2 text-left transition ${
-        selected ? 'border-indigo-600 bg-indigo-50/60' : 'border-gray-200 bg-whiteTint hover:border-indigo-300'
-      }`}
+      className={`rounded-xl border px-3 py-2 text-left transition ${selected ? 'border-indigo-600 bg-indigo-50/60' : 'border-gray-200 bg-whiteTint hover:border-indigo-300'
+        }`}
     >
       <p className="text-sm font-semibold text-gray-900">{label}</p>
       <p className="text-xs text-gray-600">{description}</p>

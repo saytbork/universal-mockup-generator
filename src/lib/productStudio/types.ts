@@ -436,21 +436,23 @@ export type ProductStudioState = {
     /** Ingredient Stack only: controls whether ingredients float or rest on the base. */
     ingredientLayout: IngredientStackLayout;
     interaction:
-        | 'none'
-        | 'passive-presence'
-        | 'cropped-hand'
-        | 'supported-hold'
-        | 'holding'
-        | 'two-hand-hold'
-        | 'presenting'
-        | 'framed-presentation'
-        | 'applying-opening'
-        | 'capsule-display'
-        | 'resting-interaction';
+    | 'none'
+    | 'passive-presence'
+    | 'cropped-hand'
+    | 'supported-hold'
+    | 'holding'
+    | 'two-hand-hold'
+    | 'presenting'
+    | 'framed-presentation'
+    | 'applying-opening'
+    | 'capsule-display'
+    | 'resting-interaction';
     proMode: boolean;
     lens: string;
     lightingRig: string;
     finish: string;
+    ecommerceSequenceActive?: boolean;
+    ecommerceSequenceIndex?: number;
 
     // ========================================================================
     // LEGACY (To be removed)

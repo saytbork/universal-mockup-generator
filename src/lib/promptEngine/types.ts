@@ -235,6 +235,8 @@ export interface PromptOptions {
     productStructure?: 'single' | 'bundle' | 'routine';
     sceneIntent?: 'environment' | 'ecommerce';
     ecommerceBlankSpaceMode?: boolean;
+    ecommerceSequenceActive?: boolean;
+    ecommerceSequenceIndex?: number; // 1-5 for the narrative sequence
 
     // Ritual Mode (Lifestyle-only)
     ritualModeActive?: boolean;

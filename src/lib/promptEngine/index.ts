@@ -53,6 +53,7 @@ import { CompositionDetailsBuilder } from './builders/compositionDetails';
 import { SceneStructureBuilder } from './builders/sceneStructure';
 import { VisualGrammarBuilder } from './builders/visualGrammar';
 import { PromptSanitizer } from './sanitizer';
+import { EcommerceNarrativeBuilder } from './builders/ecommerceSequence';
 import { buildStudioPrompt, PRODUCT_STUDIO_CANONICAL_PROMPT } from './studioPresets';
 import type { PromptOptions } from './types';
 import { buildMasterPrompt, MasterPromptSections } from './masterPrompt';
@@ -377,6 +378,7 @@ export class PromptEngine {
     private compositionDetailsBuilder = new CompositionDetailsBuilder();
     private sceneStructureBuilder = new SceneStructureBuilder(); // NEW: Structure Layer
     private visualGrammarBuilder = new VisualGrammarBuilder();   // Priority 1.5: Grammar Layer
+    private ecommerceNarrativeBuilder = new EcommerceNarrativeBuilder();
 
     /**
      * Build complete prompt from options
@@ -402,13 +404,13 @@ export class PromptEngine {
             options.sameCreatorAcrossScenes !== true &&
             options.identityMode !== 'locked';
 
-	        if (shouldRandomizeIdentity) {
-	            const timestamp = Date.now().toString(36).slice(-6);
-	            const random = Math.random().toString(36).substring(2, 8);
-	            options.identityVariationToken = `${timestamp}-${random}`.toUpperCase();
-	            options.identityKey = undefined;
-	            options.identityMode = 'auto';
-	        }
+        if (shouldRandomizeIdentity) {
+            const timestamp = Date.now().toString(36).slice(-6);
+            const random = Math.random().toString(36).substring(2, 8);
+            options.identityVariationToken = `${timestamp}-${random}`.toUpperCase();
+            options.identityKey = undefined;
+            options.identityMode = 'auto';
+        }
 
         if (options.sameCreatorAcrossScenes === true && !options.hasModelReference) {
             options.identityMode = 'locked';
@@ -685,6 +687,7 @@ export class PromptEngine {
             compositionDetails: compositionDetailsSection,
             selfieCapture: selfieCaptureSection,
             identity: narrativeSections.identity || identitySection,
+            ecommerceSequence: this.ecommerceNarrativeBuilder.build(options),
             finalize: finalizeSection
         };
 

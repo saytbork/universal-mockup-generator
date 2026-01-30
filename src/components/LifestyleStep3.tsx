@@ -129,6 +129,8 @@ interface LifestyleStep3Props {
     slotBaseImages: Partial<Record<EcommerceSlotKey, string | null>>;
     settings: EcommerceGenerationSettings;
     onSettingsChange: (next: EcommerceGenerationSettings) => void;
+    onGenerateSequence?: () => void;
+    isGeneratingSequence?: boolean;
   };
 }
 
@@ -848,27 +850,27 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const [openUgcLayerId, setOpenUgcLayerId] = useState<UGCLayerField | null>(null);
   const [touchedSections, setTouchedSections] = useState<Set<string>>(new Set());
   // Removed duplicate isCreatorPro declaration here, managed near top.
-		  const initialValues: Step3Values = {
-		    // Creator/Person
-		    age: 30, // Numeric age
-		    noPerson: initialSceneIntent === 'ecommerce', // UGC Rule: person MUST be present by default
-		    personCount: 'single',
-		    coupleSex: 'different',
-		    coupleStaging: 'Together (side-by-side)',
-		    editSecondaryPerson: false,
-	        secondaryAge: 30,
-		    secondaryGender: '',
-		    secondaryEthnicity: '',
-		    secondarySkinTone: '',
-	    secondaryEyeColor: '',
-	    secondaryBodyType: '',
-	    secondaryHairLength: '',
-	    secondaryHairTexture: '',
-	    secondaryHairColor: '',
-	    gender: 'Female',
-	    skinTone: 'Medium Neutral', // Refined options
-	    ethnicity: 'Non-specific',
-	    bodyType: 'Average',
+  const initialValues: Step3Values = {
+    // Creator/Person
+    age: 30, // Numeric age
+    noPerson: initialSceneIntent === 'ecommerce', // UGC Rule: person MUST be present by default
+    personCount: 'single',
+    coupleSex: 'different',
+    coupleStaging: 'Together (side-by-side)',
+    editSecondaryPerson: false,
+    secondaryAge: 30,
+    secondaryGender: '',
+    secondaryEthnicity: '',
+    secondarySkinTone: '',
+    secondaryEyeColor: '',
+    secondaryBodyType: '',
+    secondaryHairLength: '',
+    secondaryHairTexture: '',
+    secondaryHairColor: '',
+    gender: 'Female',
+    skinTone: 'Medium Neutral', // Refined options
+    ethnicity: 'Non-specific',
+    bodyType: 'Average',
     hair: 'Medium', // DEPRECATED
 
     // NEW: 3D Hair system
@@ -980,12 +982,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     // ==========================================================================
     productType: 'Capsules',
     productTypeCustom: '',
-	    productPackaging: 'Without box',
-	    productScale: 'Medium tabletop',
-	    handsHolding: false,
-	    productStudioInteraction: 'none',
-	    productCount: 1,
-	    productGrouping: 'Aligned',
+    productPackaging: 'Without box',
+    productScale: 'Medium tabletop',
+    handsHolding: false,
+    productStudioInteraction: 'none',
+    productCount: 1,
+    productGrouping: 'Aligned',
 
     productCreativityLevel: 'Off',
     productCreativeTheme: 'Clinical Minimal',
@@ -1863,30 +1865,30 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   }, [values.ugcRealMode, values.formulationStoryEnabled, updateValue]);
   return (
     <div className={embedded ? 'w-full space-y-4' : 'w-full max-w-2xl mx-auto space-y-4 p-4'}>
-	      {!embedded && (
-	        <div className="flex flex-col gap-1">
-	          <p className="text-xs uppercase tracking-widest text-indigo-600">Step 3</p>
-	          <h2 className="text-2xl font-bold text-gray-900">{isEcommerceMode ? 'Product Builder' : 'Scene Builder'}</h2>
-	        </div>
-	      )}
+      {!embedded && (
+        <div className="flex flex-col gap-1">
+          <p className="text-xs uppercase tracking-widest text-indigo-600">Step 3</p>
+          <h2 className="text-2xl font-bold text-gray-900">{isEcommerceMode ? 'Product Builder' : 'Scene Builder'}</h2>
+        </div>
+      )}
 
       {isEcommerceMode && (
         <>
-	          <SmoothAccordion
-	            icon={Layers}
-	            title="01 / Product Setup"
-	            tooltip={`Product setup.\nProduct basics.`}
-	            isOpen={openAccordionId === 'product-setup'}
-	            onToggle={() => toggleSection('product-setup')}
-	            isRequired
-	            isTouched={touchedSections.has('product-setup')}
-	            variant="primary"
-	          >
-	            <div className="space-y-4">
-	              {/* PHOTO TYPE — Mutually exclusive modes to avoid prompt conflicts */}
-	              <div className={SECTION_GROUP_CLASS}>
-	                <p className={GROUP_LABEL_CLASS}>PHOTO TYPE</p>
-	                <div className="flex flex-wrap gap-2">
+          <SmoothAccordion
+            icon={Layers}
+            title="01 / Product Setup"
+            tooltip={`Product setup.\nProduct basics.`}
+            isOpen={openAccordionId === 'product-setup'}
+            onToggle={() => toggleSection('product-setup')}
+            isRequired
+            isTouched={touchedSections.has('product-setup')}
+            variant="primary"
+          >
+            <div className="space-y-4">
+              {/* PHOTO TYPE — Mutually exclusive modes to avoid prompt conflicts */}
+              <div className={SECTION_GROUP_CLASS}>
+                <p className={GROUP_LABEL_CLASS}>PHOTO TYPE</p>
+                <div className="flex flex-wrap gap-2">
                   <Chip
                     onClick={() => {
                       productStore.setEnvironmentContext(null);
@@ -1896,18 +1898,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   >
                     Photo Studio
                   </Chip>
-	                  <Chip
-	                    onClick={() => {
-	                      // Default to a safe, common environment if none selected yet.
-	                      productStore.setEnvironmentContext({ macro: 'kitchen', micro: 'countertop' });
-	                      markSectionTouched('product-setup');
-	                    }}
-	                    selected={productStore.environmentContext != null}
-	                    disabled={productStore.blankSpaceEnabled === true}
-	                    className={productStore.blankSpaceEnabled === true ? 'opacity-50 cursor-not-allowed' : undefined}
-	                  >
-	                    Environment
-	                  </Chip>
+                  <Chip
+                    onClick={() => {
+                      // Default to a safe, common environment if none selected yet.
+                      productStore.setEnvironmentContext({ macro: 'kitchen', micro: 'countertop' });
+                      markSectionTouched('product-setup');
+                    }}
+                    selected={productStore.environmentContext != null}
+                    disabled={productStore.blankSpaceEnabled === true}
+                    className={productStore.blankSpaceEnabled === true ? 'opacity-50 cursor-not-allowed' : undefined}
+                  >
+                    Environment
+                  </Chip>
                 </div>
                 <p className="text-[11px] text-gray-500 mt-1">
                   Photo Studio uses controlled sets. Environment places the product in a real-world setting.
@@ -1969,324 +1971,324 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               {(productStore.sceneType === 'studio-branding' ||
                 productStore.sceneType === 'editorial-product' ||
                 productStore.sceneType === 'lifestyle-real') && (
-                <>
-                  {productStore.environmentContext == null && (
-                    <>
-                      {/* ═══════════════════════════════════════════════════════════
+                  <>
+                    {productStore.environmentContext == null && (
+                      <>
+                        {/* ═══════════════════════════════════════════════════════════
                           1. PHOTO MODE — What am I making?
                           Basic: 4 options | Pro: All options
                           ═══════════════════════════════════════════════════════════ */}
-	                      <div className={SECTION_GROUP_CLASS}>
-	                        <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">PHOTO MODE</p>
-	                        <div className="flex flex-wrap gap-2">
-		                          {(productStore.presetTier === 'basic'
-		                            ? ['Hero Landing Page', 'Color Pop Hero', 'Ingredient Stack']
-		                            : [
-		                              'Hero Landing Page', 'Color Pop Hero', 'Ingredient Stack',
-		                              'Acrylic Blocks', 'Splash Shot',
-		                              'Tile & Spa', 'Foam & Texture', 'Routine Carousel', 'Pastel Picnic',
-		                              'Sunrise Wellness Counter', 'Clinical Lab Counter',
-		                              'Golden Mist Aura', 'Outdoor Energy Boost', 'Crown Wellness Vanity',
-		                              'Candy Gradient Lab'
-		                            ]
-		                          ).map(mode => (
-                            <button
-                              key={mode}
-                              title={
-                                mode === 'Hero Landing Page'
-                                  ? 'Controls background color only.\nDisables environment and lighting.'
-                                  : mode === 'Splash Shot'
-                                    ? 'Classic liquid splash styles.\nLabel visibility always preserved.'
-                                    : mode
-                              }
-                              onClick={() => {
-                                productStore.setPhotoMode(mode);
-                                markSectionTouched('product-setup');
-                              }}
-                              className={`px-4 py-2 rounded-xl text-[10px] font-bold border transition-all duration-300 ${productStore.photoMode === mode
-                                ? 'bg-indigo-600 text-white border-indigo-600'
-                                : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
-                                }`}
-                              style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                            >
-                              {mode}
-                            </button>
-                          ))}
-                        </div>
-
-                        {productStore.photoMode === 'Splash Shot' ? (
-                          <div className="mt-3">
-                            <label
-                              className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold block mb-1"
-                              title={'Classic liquid splash styles.\nLabel visibility always preserved.'}
-                            >
-                              Splash Style
-                            </label>
-                            <div className="flex flex-wrap gap-2">
-                              {(['Basic', 'Intermediate', 'Advanced'] as const).map(style => (
-                                <Chip
-                                  key={style}
-                                  selected={productStore.splashStyle === style}
-                                  onClick={() => {
-                                    productStore.setSplashStyle(style);
-                                    markSectionTouched('product-setup');
-                                  }}
-                                >
-                                  {style}
-                                </Chip>
-                              ))}
-                            </div>
+                        <div className={SECTION_GROUP_CLASS}>
+                          <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">PHOTO MODE</p>
+                          <div className="flex flex-wrap gap-2">
+                            {(productStore.presetTier === 'basic'
+                              ? ['Hero Landing Page', 'Color Pop Hero', 'Ingredient Stack']
+                              : [
+                                'Hero Landing Page', 'Color Pop Hero', 'Ingredient Stack',
+                                'Acrylic Blocks', 'Splash Shot',
+                                'Tile & Spa', 'Foam & Texture', 'Routine Carousel', 'Pastel Picnic',
+                                'Sunrise Wellness Counter', 'Clinical Lab Counter',
+                                'Golden Mist Aura', 'Outdoor Energy Boost', 'Crown Wellness Vanity',
+                                'Candy Gradient Lab'
+                              ]
+                            ).map(mode => (
+                              <button
+                                key={mode}
+                                title={
+                                  mode === 'Hero Landing Page'
+                                    ? 'Controls background color only.\nDisables environment and lighting.'
+                                    : mode === 'Splash Shot'
+                                      ? 'Classic liquid splash styles.\nLabel visibility always preserved.'
+                                      : mode
+                                }
+                                onClick={() => {
+                                  productStore.setPhotoMode(mode);
+                                  markSectionTouched('product-setup');
+                                }}
+                                className={`px-4 py-2 rounded-xl text-[10px] font-bold border transition-all duration-300 ${productStore.photoMode === mode
+                                  ? 'bg-indigo-600 text-white border-indigo-600'
+                                  : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                                  }`}
+                                style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
+                              >
+                                {mode}
+                              </button>
+                            ))}
                           </div>
-                        ) : null}
 
-                        {/* Ingredient Input — Only visible when Ingredient Stack is selected */}
-                        {productStore.photoMode === 'Ingredient Stack' && (
-                          <div className="mt-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                            <label className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold block mb-1">
-                              Ingredients to show
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="e.g. turmeric, ginger, vitamin C capsules"
-                              value={productStore.props || ''}
-                              onChange={(e) => {
-                                productStore.setProps(e.target.value);
-                                markSectionTouched('product-setup');
-                              }}
-                              className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 placeholder:text-gray-400"
-                            />
-                            <p className="text-[9px] text-gray-400 mt-1">These ingredients will appear as props around your product</p>
-
+                          {productStore.photoMode === 'Splash Shot' ? (
                             <div className="mt-3">
-                              <label className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold block mb-1">
-                                Ingredient layout
+                              <label
+                                className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold block mb-1"
+                                title={'Classic liquid splash styles.\nLabel visibility always preserved.'}
+                              >
+                                Splash Style
                               </label>
                               <div className="flex flex-wrap gap-2">
-                                {(
-                                  [
-                                    { value: 'auto', label: 'Auto' },
-                                    { value: 'grounded', label: 'On base' },
-                                    { value: 'floating', label: 'Floating' },
-                                    { value: 'top-view', label: 'Top view' },
-                                  ] as const
-                                ).map(({ value, label }) => (
+                                {(['Basic', 'Intermediate', 'Advanced'] as const).map(style => (
                                   <Chip
-                                    key={value}
-                                    selected={productStore.ingredientLayout === value}
+                                    key={style}
+                                    selected={productStore.splashStyle === style}
                                     onClick={() => {
-                                      productStore.setIngredientLayout(value);
+                                      productStore.setSplashStyle(style);
                                       markSectionTouched('product-setup');
                                     }}
                                   >
-                                    {label}
+                                    {style}
                                   </Chip>
                                 ))}
                               </div>
-                              {/* No persistent explanatory copy; use tooltips only. */}
                             </div>
-                          </div>
-                        )}
-                      </div>
+                          ) : null}
 
-                    </>
-                  )}
+                          {/* Ingredient Input — Only visible when Ingredient Stack is selected */}
+                          {productStore.photoMode === 'Ingredient Stack' && (
+                            <div className="mt-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                              <label className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold block mb-1">
+                                Ingredients to show
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="e.g. turmeric, ginger, vitamin C capsules"
+                                value={productStore.props || ''}
+                                onChange={(e) => {
+                                  productStore.setProps(e.target.value);
+                                  markSectionTouched('product-setup');
+                                }}
+                                className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 placeholder:text-gray-400"
+                              />
+                              <p className="text-[9px] text-gray-400 mt-1">These ingredients will appear as props around your product</p>
 
-                  {/* ═══════════════════════════════════════════════════════════
+                              <div className="mt-3">
+                                <label className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold block mb-1">
+                                  Ingredient layout
+                                </label>
+                                <div className="flex flex-wrap gap-2">
+                                  {(
+                                    [
+                                      { value: 'auto', label: 'Auto' },
+                                      { value: 'grounded', label: 'On base' },
+                                      { value: 'floating', label: 'Floating' },
+                                      { value: 'top-view', label: 'Top view' },
+                                    ] as const
+                                  ).map(({ value, label }) => (
+                                    <Chip
+                                      key={value}
+                                      selected={productStore.ingredientLayout === value}
+                                      onClick={() => {
+                                        productStore.setIngredientLayout(value);
+                                        markSectionTouched('product-setup');
+                                      }}
+                                    >
+                                      {label}
+                                    </Chip>
+                                  ))}
+                                </div>
+                                {/* No persistent explanatory copy; use tooltips only. */}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                      </>
+                    )}
+
+                    {/* ═══════════════════════════════════════════════════════════
                       2. PRODUCT CONTEXT — What is the product?
                       Always visible in both Basic and Pro
                       ═══════════════════════════════════════════════════════════ */}
-                  <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>PRODUCT IDENTITY</p>
-                  </div>
+                    <div className={SECTION_GROUP_CLASS}>
+                      <p className={GROUP_LABEL_CLASS}>PRODUCT IDENTITY</p>
+                    </div>
 
-                  <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>PRODUCT TYPE</p>
-                    <div className="flex flex-wrap gap-2">
-                      {PRODUCT_TYPE_OPTIONS.map(option => (
-                        <Chip
-                          key={option}
-                          onClick={() => {
-                            updateValue('productType', option as any);
-                            const mapped = ({
-                              Capsules: 'capsules',
-                              Gummies: 'gummies',
-                              Drops: 'drops',
-                              Powder: 'powder',
-                              Skincare: 'skincare',
-                              Device: 'device',
-                              Custom: 'custom',
-                            } as const)[option];
-                            if (mapped) productStore.setProductType(mapped);
+                    <div className={SECTION_GROUP_CLASS}>
+                      <p className={GROUP_LABEL_CLASS}>PRODUCT TYPE</p>
+                      <div className="flex flex-wrap gap-2">
+                        {PRODUCT_TYPE_OPTIONS.map(option => (
+                          <Chip
+                            key={option}
+                            onClick={() => {
+                              updateValue('productType', option as any);
+                              const mapped = ({
+                                Capsules: 'capsules',
+                                Gummies: 'gummies',
+                                Drops: 'drops',
+                                Powder: 'powder',
+                                Skincare: 'skincare',
+                                Device: 'device',
+                                Custom: 'custom',
+                              } as const)[option];
+                              if (mapped) productStore.setProductType(mapped);
+                              markSectionTouched('product-setup');
+                            }}
+                            selected={
+                              ({
+                                Capsules: 'capsules',
+                                Gummies: 'gummies',
+                                Drops: 'drops',
+                                Powder: 'powder',
+                                Skincare: 'skincare',
+                                Device: 'device',
+                                Custom: 'custom',
+                              } as const)[option] === productStore.definition.type
+                            }
+                          >
+                            {option}
+                          </Chip>
+                        ))}
+                      </div>
+                      {values.productType === 'Custom' && (
+                        <input
+                          type="text"
+                          value={values.productTypeCustom || ''}
+                          onChange={e => {
+                            updateValue('productTypeCustom', e.target.value);
                             markSectionTouched('product-setup');
                           }}
-                          selected={
-                            ({
-                              Capsules: 'capsules',
-                              Gummies: 'gummies',
-                              Drops: 'drops',
-                              Powder: 'powder',
-                              Skincare: 'skincare',
-                              Device: 'device',
-                              Custom: 'custom',
-                            } as const)[option] === productStore.definition.type
-                          }
-                        >
-                          {option}
-                        </Chip>
-                      ))}
+                          className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                          placeholder="Describe the product category (min 3 words)"
+                        />
+                      )}
                     </div>
-                    {values.productType === 'Custom' && (
-                      <input
-                        type="text"
-                        value={values.productTypeCustom || ''}
-                        onChange={e => {
-                          updateValue('productTypeCustom', e.target.value);
-                          markSectionTouched('product-setup');
-                        }}
-                        className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
-                        placeholder="Describe the product category (min 3 words)"
-                      />
-                    )}
-                  </div>
 
-                  <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>PACKAGING</p>
-                    <div className="flex gap-2">
-                      {(['Without box', 'With box'] as const).map(option => (
-                        <Chip
-                          key={option}
-                          onClick={() => {
-                            updateValue('productPackaging', option);
-                            productStore.setPackagingMode(option === 'With box' ? 'with-box' : 'without-box');
-                            markSectionTouched('product-setup');
-                          }}
-                          selected={
-                            option === 'With box'
-                              ? productStore.packagingMode === 'with-box'
-                              : productStore.packagingMode === 'without-box'
-                          }
-                        >
-                          {option}
-                        </Chip>
-                      ))}
+                    <div className={SECTION_GROUP_CLASS}>
+                      <p className={GROUP_LABEL_CLASS}>PACKAGING</p>
+                      <div className="flex gap-2">
+                        {(['Without box', 'With box'] as const).map(option => (
+                          <Chip
+                            key={option}
+                            onClick={() => {
+                              updateValue('productPackaging', option);
+                              productStore.setPackagingMode(option === 'With box' ? 'with-box' : 'without-box');
+                              markSectionTouched('product-setup');
+                            }}
+                            selected={
+                              option === 'With box'
+                                ? productStore.packagingMode === 'with-box'
+                                : productStore.packagingMode === 'without-box'
+                            }
+                          >
+                            {option}
+                          </Chip>
+                        ))}
+                      </div>
+                      {getInterpretationNote('shadow') && (
+                        <InterpretationNote message={getInterpretationNote('shadow')!} />
+                      )}
                     </div>
-                    {getInterpretationNote('shadow') && (
-                      <InterpretationNote message={getInterpretationNote('shadow')!} />
-                    )}
-                  </div>
 
-                  <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>PHYSICAL SCALE</p>
-                    <div className="flex flex-wrap gap-2">
-                      {(['Small handheld', 'Medium tabletop', 'Large object'] as const).map(option => (
-                        <Chip
-                          key={option}
-                          onClick={() => {
-                            updateValue('productScale', option);
-                            const mapped =
-                              option === 'Small handheld'
-                                ? 'small-handheld'
-                                : option === 'Medium tabletop'
-                                  ? 'medium-tabletop'
-                                  : 'large-object';
-                            productStore.setPhysicalScaleLabel(mapped);
-                            markSectionTouched('product-setup');
-                          }}
-                          selected={
-                            (option === 'Small handheld' && productStore.physicalScaleLabel === 'small-handheld') ||
-                            (option === 'Medium tabletop' && productStore.physicalScaleLabel === 'medium-tabletop') ||
-                            (option === 'Large object' && productStore.physicalScaleLabel === 'large-object')
-                          }
-                        >
-                          {option}
-                        </Chip>
-                      ))}
+                    <div className={SECTION_GROUP_CLASS}>
+                      <p className={GROUP_LABEL_CLASS}>PHYSICAL SCALE</p>
+                      <div className="flex flex-wrap gap-2">
+                        {(['Small handheld', 'Medium tabletop', 'Large object'] as const).map(option => (
+                          <Chip
+                            key={option}
+                            onClick={() => {
+                              updateValue('productScale', option);
+                              const mapped =
+                                option === 'Small handheld'
+                                  ? 'small-handheld'
+                                  : option === 'Medium tabletop'
+                                    ? 'medium-tabletop'
+                                    : 'large-object';
+                              productStore.setPhysicalScaleLabel(mapped);
+                              markSectionTouched('product-setup');
+                            }}
+                            selected={
+                              (option === 'Small handheld' && productStore.physicalScaleLabel === 'small-handheld') ||
+                              (option === 'Medium tabletop' && productStore.physicalScaleLabel === 'medium-tabletop') ||
+                              (option === 'Large object' && productStore.physicalScaleLabel === 'large-object')
+                            }
+                          >
+                            {option}
+                          </Chip>
+                        ))}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>COMPOSITION BASICS</p>
-                    <p className="text-[11px] text-gray-500 mt-1">
-                      High-level layout decisions before creative styling.
-                    </p>
-                  </div>
+                    <div className={SECTION_GROUP_CLASS}>
+                      <p className={GROUP_LABEL_CLASS}>COMPOSITION BASICS</p>
+                      <p className="text-[11px] text-gray-500 mt-1">
+                        High-level layout decisions before creative styling.
+                      </p>
+                    </div>
 
-                  {/* ═══════════════════════════════════════════════════════════
+                    {/* ═══════════════════════════════════════════════════════════
                       3. COMPOSITION — How is it framed?
                       Basic: Centered, Left + space, Right + space
                       ═══════════════════════════════════════════════════════════ */}
-                  <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>COMPOSITION</p>
-                    <div className="flex flex-wrap gap-2">
-                      {[
-                        { key: 'centered', label: 'Centered' },
-                        { key: 'left-space', label: 'Left + space' },
-                        { key: 'right-space', label: 'Right + space' }
-                      ].map(({ key, label }) => (
-                        <Chip
-                          key={key}
-                          onClick={() => {
-                            productStore.setAlignment(key as any);
-                            // Keep prompt coherent: alignment drives composition + negative space.
-                            if (key === 'centered') {
-                              productStore.setComposition('centered' as any);
-                              productStore.setNegativeSpace('none' as any);
-                            } else {
-                              productStore.setComposition('asymmetrical' as any);
-                              productStore.setNegativeSpace('intentional' as any);
-                            }
-                            markSectionTouched('product-setup');
-                          }}
-                          selected={productStore.alignment === key || (key === 'centered' && productStore.alignment === 'center')}
-                        >
-                          {label}
-                        </Chip>
-                      ))}
+                    <div className={SECTION_GROUP_CLASS}>
+                      <p className={GROUP_LABEL_CLASS}>COMPOSITION</p>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { key: 'centered', label: 'Centered' },
+                          { key: 'left-space', label: 'Left + space' },
+                          { key: 'right-space', label: 'Right + space' }
+                        ].map(({ key, label }) => (
+                          <Chip
+                            key={key}
+                            onClick={() => {
+                              productStore.setAlignment(key as any);
+                              // Keep prompt coherent: alignment drives composition + negative space.
+                              if (key === 'centered') {
+                                productStore.setComposition('centered' as any);
+                                productStore.setNegativeSpace('none' as any);
+                              } else {
+                                productStore.setComposition('asymmetrical' as any);
+                                productStore.setNegativeSpace('intentional' as any);
+                              }
+                              markSectionTouched('product-setup');
+                            }}
+                            selected={productStore.alignment === key || (key === 'centered' && productStore.alignment === 'center')}
+                          >
+                            {label}
+                          </Chip>
+                        ))}
+                      </div>
+
+                      {/* ADVANCED COMPOSITION — Pro only extension */}
+                      {productStore.presetTier === 'pro' && (
+                        <div className="mt-3 pt-3 border-t border-gray-100">
+                          <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">ADVANCED</p>
+                          <div className="flex flex-wrap gap-2">
+                            {[
+                              { key: 'rule-of-thirds', label: 'Rule of thirds' },
+                              { key: 'asymmetrical', label: 'Asymmetrical' },
+                              { key: 'flat-lay', label: 'Flat lay' },
+                              { key: 'pedestal', label: 'Pedestal' }
+                            ].map(({ key, label }) => (
+                              <Chip
+                                key={key}
+                                onClick={() => {
+                                  const compositionMap: Record<string, CompositionMode> = {
+                                    'rule-of-thirds': 'thirds',
+                                    'asymmetrical': 'asymmetrical',
+                                    'flat-lay': 'flatlay',
+                                    'pedestal': 'pedestal',
+                                  };
+                                  const mapped = compositionMap[key];
+                                  if (mapped) {
+                                    productStore.setComposition(mapped);
+                                    productStore.setNegativeSpace('none');
+                                  }
+                                  markSectionTouched('product-setup');
+                                }}
+                                selected={
+                                  (key === 'rule-of-thirds' && productStore.composition === 'thirds') ||
+                                  (key === 'asymmetrical' && productStore.composition === 'asymmetrical') ||
+                                  (key === 'flat-lay' && productStore.composition === 'flatlay') ||
+                                  (key === 'pedestal' && productStore.composition === 'pedestal')
+                                }
+                              >
+                                {label}
+                              </Chip>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
-                    {/* ADVANCED COMPOSITION — Pro only extension */}
-                    {productStore.presetTier === 'pro' && (
-                      <div className="mt-3 pt-3 border-t border-gray-100">
-                        <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">ADVANCED</p>
-                        <div className="flex flex-wrap gap-2">
-                          {[
-                            { key: 'rule-of-thirds', label: 'Rule of thirds' },
-                            { key: 'asymmetrical', label: 'Asymmetrical' },
-                            { key: 'flat-lay', label: 'Flat lay' },
-                            { key: 'pedestal', label: 'Pedestal' }
-                          ].map(({ key, label }) => (
-                            <Chip
-                              key={key}
-                              onClick={() => {
-                                const compositionMap: Record<string, CompositionMode> = {
-                                  'rule-of-thirds': 'thirds',
-                                  'asymmetrical': 'asymmetrical',
-                                  'flat-lay': 'flatlay',
-                                  'pedestal': 'pedestal',
-                                };
-                                const mapped = compositionMap[key];
-                                if (mapped) {
-                                  productStore.setComposition(mapped);
-                                  productStore.setNegativeSpace('none');
-                                }
-                                markSectionTouched('product-setup');
-                              }}
-                              selected={
-                                (key === 'rule-of-thirds' && productStore.composition === 'thirds') ||
-                                (key === 'asymmetrical' && productStore.composition === 'asymmetrical') ||
-                                (key === 'flat-lay' && productStore.composition === 'flatlay') ||
-                                (key === 'pedestal' && productStore.composition === 'pedestal')
-                              }
-                            >
-                              {label}
-                            </Chip>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {productStore.photoMode === 'Hero Landing Page' ? (
+                    {productStore.photoMode === 'Hero Landing Page' ? (
                       <div className={SECTION_GROUP_CLASS}>
                         <p className={GROUP_LABEL_CLASS}>HERO BACKGROUND</p>
                         <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">BACKGROUND TYPE</p>
@@ -2411,188 +2413,188 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       </div>
                     ) : null}
 
-                  {productStore.photoMode !== 'Hero Landing Page' ? (
-                    <div className={SECTION_GROUP_CLASS}>
-                      <p className={GROUP_LABEL_CLASS}>SHADOW STYLE</p>
-                      <div className="flex flex-wrap gap-2">
-                        {[
-                          { key: 'soft-drop', label: 'Soft' },
-                          { key: 'hard-drop', label: 'Hard' },
-                          { key: 'floating', label: 'Floating' }
-                        ].map(({ key, label }) => (
-                          <Chip
-                            key={key}
-                            onClick={() => {
-                              productStore.setShadow(key as 'soft-drop' | 'hard-drop' | 'floating');
-                              markSectionTouched('product-setup');
-                            }}
-                            selected={productStore.shadow === key}
-                          >
-                            {label}
-                          </Chip>
-                        ))}
+                    {productStore.photoMode !== 'Hero Landing Page' ? (
+                      <div className={SECTION_GROUP_CLASS}>
+                        <p className={GROUP_LABEL_CLASS}>SHADOW STYLE</p>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            { key: 'soft-drop', label: 'Soft' },
+                            { key: 'hard-drop', label: 'Hard' },
+                            { key: 'floating', label: 'Floating' }
+                          ].map(({ key, label }) => (
+                            <Chip
+                              key={key}
+                              onClick={() => {
+                                productStore.setShadow(key as 'soft-drop' | 'hard-drop' | 'floating');
+                                markSectionTouched('product-setup');
+                              }}
+                              selected={productStore.shadow === key}
+                            >
+                              {label}
+                            </Chip>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ) : null}
+                    ) : null}
 
-                  {/* ═══════════════════════════════════════════════════════════
+                    {/* ═══════════════════════════════════════════════════════════
                       5. PRO ONLY — Advanced Controls
                       Hidden in Basic mode, revealed progressively in Pro
                       ═══════════════════════════════════════════════════════════ */}
-	                  {productStore.presetTier === 'pro' && productStore.photoMode !== 'Hero Landing Page' && (
-	                    <>
-                      {/* PRO PHOTOGRAPHER MODE */}
-                      <div className={SECTION_GROUP_CLASS}>
-                        <div className="flex items-center justify-between gap-3 mb-3">
-                          <div>
-                            <p className={GROUP_LABEL_CLASS}>PRO PHOTOGRAPHER MODE</p>
-                          </div>
-                          <Toggle
-                            checked={productStore.proMode}
-                            onCheckedChange={(next) => {
-                              productStore.setProMode(next);
-                              markSectionTouched('product-setup');
-                            }}
-                            aria-label="Pro photographer mode"
-                          />
-                        </div>
-
-                        <div
-                          className={`overflow-hidden transition-all duration-500 ${productStore.proMode ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
-                            }`}
-                          style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                        >
-                          <div className="space-y-4 pl-3 border-l-2 border-indigo-300">
+                    {productStore.presetTier === 'pro' && productStore.photoMode !== 'Hero Landing Page' && (
+                      <>
+                        {/* PRO PHOTOGRAPHER MODE */}
+                        <div className={SECTION_GROUP_CLASS}>
+                          <div className="flex items-center justify-between gap-3 mb-3">
                             <div>
-                              <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LENS</p>
-                              <div className="flex flex-wrap gap-2">
-                                {[
-                                  '100mm Macro Prime', '50mm Product Prime', 'Tilt-Shift Hero',
-                                  'Ultra-Wide Stylized', 'Cinema Zoom', '70-200mm Compression',
-                                  '35mm Anamorphic Glow'
-                                ].map(lens => (
-                                  <button
-                                    key={lens}
-                                    onClick={() => {
-                                      productStore.setLens(lens);
-                                      markSectionTouched('product-setup');
-                                    }}
-                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.lens === lens
-                                      ? 'bg-indigo-600 text-white border-indigo-600'
-                                      : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
-                                      }`}
-                                    style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                                  >
-                                    {lens}
-                                  </button>
-                                ))}
-                              </div>
-                              {getInterpretationNote('lens') && (
-                                <InterpretationNote message={getInterpretationNote('lens')!} />
-                              )}
+                              <p className={GROUP_LABEL_CLASS}>PRO PHOTOGRAPHER MODE</p>
                             </div>
-
-                            <div>
-                              <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LIGHTING RIG</p>
-                              <div className="flex flex-wrap gap-2">
-                                {([
-                                  { value: 'Three-Point Beauty', label: '3-Point Beauty Dish' },
-                                  { value: 'Softbox Wrap', label: 'Softbox Wrap' },
-                                  { value: 'Hard Edge Gels', label: 'Hard Edge Gels' },
-                                  { value: 'Backlit Acrylic', label: 'Backlit Acrylic' },
-                                  { value: 'High-Speed Splash Rig', label: 'High-Speed Splash Rig' },
-                                  { value: 'Gradient Cyclorama', label: 'Gradient Cyclorama' },
-                                  { value: 'Prism Spotlight Duo', label: 'Prism Spotlight Duo' },
-                                ] as const).map(({ value, label }) => (
-                                  <button
-                                    key={value}
-                                    onClick={() => {
-                                      productStore.setLightingRig(value);
-                                      markSectionTouched('product-setup');
-                                    }}
-                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.lightingRig === value
-                                      ? 'bg-indigo-600 text-white border-indigo-600'
-                                      : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
-                                      }`}
-                                    style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                                  >
-                                    {label}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-
-                            <div>
-                              <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">FINISH / TREATMENT</p>
-                              <div className="flex flex-wrap gap-2">
-                                {[
-                                  'High-Gloss Commercial', 'Film Grain Luxury', 'Matte Editorial',
-                                  'Hyperreal CGI Blend', 'Clinical Lab Polish', 'Vibrant Color Pop'
-                                ].map(finish => (
-                                  <button
-                                    key={finish}
-                                    onClick={() => {
-                                      productStore.setFinish(finish);
-                                      markSectionTouched('product-setup');
-                                    }}
-                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.finish === finish
-                                      ? 'bg-indigo-600 text-white border-indigo-600'
-                                      : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
-                                      }`}
-                                    style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                                  >
-                                    {finish}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* CREATIVE DIRECTION — All creativity controls unified */}
-                      <div className={SECTION_GROUP_CLASS}>
-                        <p className={GROUP_LABEL_CLASS}>CREATIVE DIRECTION</p>
-                        <div className="space-y-3">
-                          <div>
-                            <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">CREATIVITY LEVEL</p>
-                            <div className="flex gap-2">
-                              {([0, 1, 2, 3] as const).map(level => (
-                                <Chip
-                                  key={level}
-                                  onClick={() => {
-                                    productStore.setCreativityLevel(level);
-                                    markSectionTouched('product-setup');
-                                  }}
-                                  selected={productStore.creativityLevel === level}
-                                >
-                                  {level === 0 ? 'Locked' : level === 1 ? 'Low' : level === 2 ? 'Medium' : 'High'}
-                                </Chip>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div>
-                            <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">PROPS</p>
-                            <input
-                              type="text"
-                              value={productStore.props}
-                              onChange={(e) => {
-                                productStore.setProps(e.target.value);
+                            <Toggle
+                              checked={productStore.proMode}
+                              onCheckedChange={(next) => {
+                                productStore.setProMode(next);
                                 markSectionTouched('product-setup');
                               }}
-                              placeholder="e.g., pineapple, lavender sprigs"
-                              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
+                              aria-label="Pro photographer mode"
                             />
                           </div>
 
-                        </div>
-                      </div>
-                    </>
-                  )}
+                          <div
+                            className={`overflow-hidden transition-all duration-500 ${productStore.proMode ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
+                              }`}
+                            style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
+                          >
+                            <div className="space-y-4 pl-3 border-l-2 border-indigo-300">
+                              <div>
+                                <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LENS</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {[
+                                    '100mm Macro Prime', '50mm Product Prime', 'Tilt-Shift Hero',
+                                    'Ultra-Wide Stylized', 'Cinema Zoom', '70-200mm Compression',
+                                    '35mm Anamorphic Glow'
+                                  ].map(lens => (
+                                    <button
+                                      key={lens}
+                                      onClick={() => {
+                                        productStore.setLens(lens);
+                                        markSectionTouched('product-setup');
+                                      }}
+                                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.lens === lens
+                                        ? 'bg-indigo-600 text-white border-indigo-600'
+                                        : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                                        }`}
+                                      style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
+                                    >
+                                      {lens}
+                                    </button>
+                                  ))}
+                                </div>
+                                {getInterpretationNote('lens') && (
+                                  <InterpretationNote message={getInterpretationNote('lens')!} />
+                                )}
+                              </div>
 
-                </>
-              )}
+                              <div>
+                                <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LIGHTING RIG</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {([
+                                    { value: 'Three-Point Beauty', label: '3-Point Beauty Dish' },
+                                    { value: 'Softbox Wrap', label: 'Softbox Wrap' },
+                                    { value: 'Hard Edge Gels', label: 'Hard Edge Gels' },
+                                    { value: 'Backlit Acrylic', label: 'Backlit Acrylic' },
+                                    { value: 'High-Speed Splash Rig', label: 'High-Speed Splash Rig' },
+                                    { value: 'Gradient Cyclorama', label: 'Gradient Cyclorama' },
+                                    { value: 'Prism Spotlight Duo', label: 'Prism Spotlight Duo' },
+                                  ] as const).map(({ value, label }) => (
+                                    <button
+                                      key={value}
+                                      onClick={() => {
+                                        productStore.setLightingRig(value);
+                                        markSectionTouched('product-setup');
+                                      }}
+                                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.lightingRig === value
+                                        ? 'bg-indigo-600 text-white border-indigo-600'
+                                        : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                                        }`}
+                                      style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
+                                    >
+                                      {label}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div>
+                                <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">FINISH / TREATMENT</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {[
+                                    'High-Gloss Commercial', 'Film Grain Luxury', 'Matte Editorial',
+                                    'Hyperreal CGI Blend', 'Clinical Lab Polish', 'Vibrant Color Pop'
+                                  ].map(finish => (
+                                    <button
+                                      key={finish}
+                                      onClick={() => {
+                                        productStore.setFinish(finish);
+                                        markSectionTouched('product-setup');
+                                      }}
+                                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.finish === finish
+                                        ? 'bg-indigo-600 text-white border-indigo-600'
+                                        : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                                        }`}
+                                      style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
+                                    >
+                                      {finish}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* CREATIVE DIRECTION — All creativity controls unified */}
+                        <div className={SECTION_GROUP_CLASS}>
+                          <p className={GROUP_LABEL_CLASS}>CREATIVE DIRECTION</p>
+                          <div className="space-y-3">
+                            <div>
+                              <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">CREATIVITY LEVEL</p>
+                              <div className="flex gap-2">
+                                {([0, 1, 2, 3] as const).map(level => (
+                                  <Chip
+                                    key={level}
+                                    onClick={() => {
+                                      productStore.setCreativityLevel(level);
+                                      markSectionTouched('product-setup');
+                                    }}
+                                    selected={productStore.creativityLevel === level}
+                                  >
+                                    {level === 0 ? 'Locked' : level === 1 ? 'Low' : level === 2 ? 'Medium' : 'High'}
+                                  </Chip>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div>
+                              <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">PROPS</p>
+                              <input
+                                type="text"
+                                value={productStore.props}
+                                onChange={(e) => {
+                                  productStore.setProps(e.target.value);
+                                  markSectionTouched('product-setup');
+                                }}
+                                placeholder="e.g., pineapple, lavender sprigs"
+                                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
+                              />
+                            </div>
+
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                  </>
+                )}
             </div>
           </SmoothAccordion>
 
@@ -3537,575 +3539,575 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             </div>
           </SmoothAccordion>
 
-            {productStore.photoMode !== 'Hero Landing Page' ? (
-	          <SmoothAccordion
-	            icon={Sparkles}
-	            title="06 / Creative Direction"
-	            tooltip="Primary visual decisions. Safe to experiment."
-	            isOpen={openAccordionId === 'product-creativity'}
-	            onToggle={() => toggleSection('product-creativity')}
-	            isTouched={touchedSections.has('product-creativity')}
-	            iconClassName="text-indigo-600 dark:text-indigo-300"
-	            variant="secondary"
-	          >
-            <div className="space-y-6">
-              <p className="text-sm text-gray-500">
-                These choices shape the mood without breaking realism.
-              </p>
+          {productStore.photoMode !== 'Hero Landing Page' ? (
+            <SmoothAccordion
+              icon={Sparkles}
+              title="06 / Creative Direction"
+              tooltip="Primary visual decisions. Safe to experiment."
+              isOpen={openAccordionId === 'product-creativity'}
+              onToggle={() => toggleSection('product-creativity')}
+              isTouched={touchedSections.has('product-creativity')}
+              iconClassName="text-indigo-600 dark:text-indigo-300"
+              variant="secondary"
+            >
+              <div className="space-y-6">
+                <p className="text-sm text-gray-500">
+                  These choices shape the mood without breaking realism.
+                </p>
 
-              {/* CREATIVITY LEVEL */}
-              <div className={SECTION_GROUP_CLASS}>
-                <p className={GROUP_LABEL_CLASS}>CREATIVITY LEVEL</p>
-                <div className="flex gap-2">
-                  {([0, 1, 2, 3] as const).map(level => (
-                    <Chip
-                      key={level}
-                      onClick={() => {
-                        productStore.setCreativityLevel(level);
-                        markSectionTouched('product-creativity');
-                      }}
-                      selected={productStore.creativityLevel === level}
-                    >
-                      {level === 0 ? 'Off' : level === 1 ? 'Subtle' : level === 2 ? 'Bold' : 'Max'}
-                    </Chip>
-                  ))}
-                </div>
-              </div>
-
-              {productStore.creativityLevel > 0 && (
-                <>
-                  {/* CORE */}
-                  <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>CORE</p>
-                    <p className="text-[11px] text-gray-500 mt-1">
-                      Primary visual decisions. Safe to experiment.
-                    </p>
-                  </div>
-
-                  {/* CREATIVE THEME */}
-                  <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>CREATIVE THEME</p>
-                    <div className="flex flex-wrap gap-2">
-                      {CREATIVE_THEME_OPTIONS_V1.map(opt => (
-                        <Chip
-                          key={opt.value}
-                          onClick={() => {
-                            productStore.setCreativeTheme(opt.value);
-                            markSectionTouched('product-creativity');
-                          }}
-                          selected={productStore.creativeTheme === opt.value}
-                        >
-                          {opt.label}
-                        </Chip>
-                      ))}
-                    </div>
-                    <SelectedOptionFooter options={CREATIVE_THEME_OPTIONS_V1} selectedValue={productStore.creativeTheme} />
-                  </div>
-
-                  {/* LIGHT STYLE */}
-                  <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>LIGHT STYLE</p>
-                    <div className="flex flex-wrap gap-2">
-                      {LIGHT_STYLE_OPTIONS_V1.map(opt => (
-                        <Chip
-                          key={opt.value}
-                          onClick={() => {
-                            productStore.setLightStyle(opt.value as LightStyle);
-                            markSectionTouched('product-creativity');
-                          }}
-                          selected={productStore.lightStyle === opt.value}
-                        >
-                          {opt.label}
-                        </Chip>
-                      ))}
-                    </div>
-                    <SelectedOptionFooter options={LIGHT_STYLE_OPTIONS_V1} selectedValue={productStore.lightStyle} />
-                  </div>
-
-                  {/* PROP DENSITY */}
-                  <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>PROP DENSITY</p>
-                    <div className="flex flex-wrap gap-2">
-                      {PROP_DENSITY_OPTIONS.map(opt => (
-                        <Chip
-                          key={opt.value}
-                          onClick={() => {
-                            productStore.setPropDensity(opt.value);
-                            markSectionTouched('product-creativity');
-                          }}
-                          selected={productStore.propDensity === opt.value}
-                        >
-                          {opt.label}
-                        </Chip>
-                      ))}
-                    </div>
-                    <SelectedOptionFooter
-                      options={[
-                        { value: 'none', label: 'None', description: 'No supporting props; product stays the only subject.' },
-                        { value: 'low', label: 'Light', description: 'A few subtle props for context without distraction.' },
-                        { value: 'medium', label: 'Medium', description: 'Balanced styling with clear supporting elements.' },
-                        { value: 'dense', label: 'Dense', description: 'Full set styling; maximal context and texture.' },
-                      ]}
-                      selectedValue={productStore.propDensity}
-                    />
-                  </div>
-
-                  {/* ADVANCED (collapsed by default) */}
-                  <div className={SECTION_GROUP_CLASS}>
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className={GROUP_LABEL_CLASS}>ADVANCED</p>
-                        <p className="text-[11px] text-gray-500 mt-1">
-                          Fine-tune the scene. Optional.
-                        </p>
-                      </div>
-                      <Toggle
-                        checked={productCreativeAdvancedOpen}
-                        onCheckedChange={(next) => {
-                          setProductCreativeAdvancedOpen(next);
+                {/* CREATIVITY LEVEL */}
+                <div className={SECTION_GROUP_CLASS}>
+                  <p className={GROUP_LABEL_CLASS}>CREATIVITY LEVEL</p>
+                  <div className="flex gap-2">
+                    {([0, 1, 2, 3] as const).map(level => (
+                      <Chip
+                        key={level}
+                        onClick={() => {
+                          productStore.setCreativityLevel(level);
+                          markSectionTouched('product-creativity');
                         }}
-                        aria-label="Creative Direction advanced controls"
+                        selected={productStore.creativityLevel === level}
+                      >
+                        {level === 0 ? 'Off' : level === 1 ? 'Subtle' : level === 2 ? 'Bold' : 'Max'}
+                      </Chip>
+                    ))}
+                  </div>
+                </div>
+
+                {productStore.creativityLevel > 0 && (
+                  <>
+                    {/* CORE */}
+                    <div className={SECTION_GROUP_CLASS}>
+                      <p className={GROUP_LABEL_CLASS}>CORE</p>
+                      <p className="text-[11px] text-gray-500 mt-1">
+                        Primary visual decisions. Safe to experiment.
+                      </p>
+                    </div>
+
+                    {/* CREATIVE THEME */}
+                    <div className={SECTION_GROUP_CLASS}>
+                      <p className={GROUP_LABEL_CLASS}>CREATIVE THEME</p>
+                      <div className="flex flex-wrap gap-2">
+                        {CREATIVE_THEME_OPTIONS_V1.map(opt => (
+                          <Chip
+                            key={opt.value}
+                            onClick={() => {
+                              productStore.setCreativeTheme(opt.value);
+                              markSectionTouched('product-creativity');
+                            }}
+                            selected={productStore.creativeTheme === opt.value}
+                          >
+                            {opt.label}
+                          </Chip>
+                        ))}
+                      </div>
+                      <SelectedOptionFooter options={CREATIVE_THEME_OPTIONS_V1} selectedValue={productStore.creativeTheme} />
+                    </div>
+
+                    {/* LIGHT STYLE */}
+                    <div className={SECTION_GROUP_CLASS}>
+                      <p className={GROUP_LABEL_CLASS}>LIGHT STYLE</p>
+                      <div className="flex flex-wrap gap-2">
+                        {LIGHT_STYLE_OPTIONS_V1.map(opt => (
+                          <Chip
+                            key={opt.value}
+                            onClick={() => {
+                              productStore.setLightStyle(opt.value as LightStyle);
+                              markSectionTouched('product-creativity');
+                            }}
+                            selected={productStore.lightStyle === opt.value}
+                          >
+                            {opt.label}
+                          </Chip>
+                        ))}
+                      </div>
+                      <SelectedOptionFooter options={LIGHT_STYLE_OPTIONS_V1} selectedValue={productStore.lightStyle} />
+                    </div>
+
+                    {/* PROP DENSITY */}
+                    <div className={SECTION_GROUP_CLASS}>
+                      <p className={GROUP_LABEL_CLASS}>PROP DENSITY</p>
+                      <div className="flex flex-wrap gap-2">
+                        {PROP_DENSITY_OPTIONS.map(opt => (
+                          <Chip
+                            key={opt.value}
+                            onClick={() => {
+                              productStore.setPropDensity(opt.value);
+                              markSectionTouched('product-creativity');
+                            }}
+                            selected={productStore.propDensity === opt.value}
+                          >
+                            {opt.label}
+                          </Chip>
+                        ))}
+                      </div>
+                      <SelectedOptionFooter
+                        options={[
+                          { value: 'none', label: 'None', description: 'No supporting props; product stays the only subject.' },
+                          { value: 'low', label: 'Light', description: 'A few subtle props for context without distraction.' },
+                          { value: 'medium', label: 'Medium', description: 'Balanced styling with clear supporting elements.' },
+                          { value: 'dense', label: 'Dense', description: 'Full set styling; maximal context and texture.' },
+                        ]}
+                        selectedValue={productStore.propDensity}
                       />
                     </div>
-                  </div>
 
-                  {productCreativeAdvancedOpen && (
-                    <>
-                      {/* COMPOSITION MODE */}
-                      <div className={SECTION_GROUP_CLASS}>
-                        <p className={GROUP_LABEL_CLASS}>COMPOSITION MODE</p>
-                        <div className="flex flex-wrap gap-2">
-                          {COMPOSITION_MODE_V1_OPTIONS.map(opt => (
-                            <div key={opt.value} className="relative group">
-                              <Chip
-                                onClick={() => {
-                                  productStore.setComposition(opt.value as CompositionMode);
-                                  markSectionTouched('product-creativity');
-                                }}
-                                selected={productStore.composition === opt.value}
-                              >
-                                {opt.label}
-                              </Chip>
-                            </div>
-                          ))}
-                        </div>
-                        <SelectedOptionFooter options={COMPOSITION_MODE_V1_OPTIONS} selectedValue={productStore.composition} />
-                      </div>
-
-                      {/* SURFACE / BASE */}
-                      <div className={SECTION_GROUP_CLASS}>
-                        <p className={GROUP_LABEL_CLASS}>SURFACE / BASE</p>
-                        <div className="flex flex-wrap gap-2">
-                          {SURFACE_BASE_OPTIONS.map(opt => (
-                            <Chip
-                              key={opt.value}
-                              onClick={() => {
-                                productStore.setSurface(opt.value as SurfaceBase);
-                                markSectionTouched('product-creativity');
-                              }}
-                              selected={productStore.surface === opt.value}
-                            >
-                              {opt.label}
-                            </Chip>
-                          ))}
-                        </div>
-                        <SelectedOptionFooter options={SURFACE_BASE_OPTIONS} selectedValue={productStore.surface} />
-                      </div>
-
-                      {/* SCALE & SPACING */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className={SECTION_GROUP_CLASS}>
-                          <p className={GROUP_LABEL_CLASS}>SCALE</p>
-                          <div className="flex flex-col gap-2">
-                            {PRODUCT_SCALE_OPTIONS.map(opt => (
-                              <Chip
-                                key={opt.value}
-                                onClick={() => {
-                                  productStore.setScale(opt.value);
-                                  markSectionTouched('product-creativity');
-                                }}
-                                selected={productStore.scale === opt.value}
-                                size="md"
-                                className="w-full justify-center py-3 rounded-full text-[12px] font-semibold"
-                              >
-                                {opt.label}
-                              </Chip>
-                            ))}
-                          </div>
-                          <SelectedOptionFooter
-                            options={[
-                              { value: 'dominant', label: 'Dominant', description: 'Product fills the frame and reads as the hero.' },
-                              { value: 'balanced', label: 'Balanced', description: 'Natural scale with room for accents and styling.' },
-                              { value: 'oversized', label: 'Oversized', description: 'Bigger-than-life hero emphasis for impact.' },
-                            ]}
-                            selectedValue={productStore.scale}
-                          />
-                        </div>
-                        <div className={SECTION_GROUP_CLASS}>
-                          <p className={GROUP_LABEL_CLASS}>SPACING</p>
-                          <div className="flex flex-col gap-2">
-                            {PRODUCT_SPACING_OPTIONS.map(opt => (
-                              <Chip
-                                key={opt.value}
-                                onClick={() => {
-                                  productStore.setSpacing(opt.value);
-                                  markSectionTouched('product-creativity');
-                                }}
-                                selected={productStore.spacing === opt.value}
-                                size="md"
-                                className="w-full justify-center py-3 rounded-full text-[12px] font-semibold"
-                              >
-                                {opt.label}
-                              </Chip>
-                            ))}
-                          </div>
-                          <SelectedOptionFooter
-                            options={[
-                              { value: 'compact', label: 'Compact', description: 'Tighter composition with minimal breathing room.' },
-                              { value: 'balanced', label: 'Balanced', description: 'Comfortable spacing that still feels product-first.' },
-                              { value: 'airy', label: 'Airy', description: 'More breathing room for a premium, spacious layout.' },
-                            ]}
-                            selectedValue={productStore.spacing}
-                          />
-                        </div>
-                      </div>
-
-                      {/* NEGATIVE SPACE */}
-                      <div className={SECTION_GROUP_CLASS}>
-                        <p className={GROUP_LABEL_CLASS}>NEGATIVE SPACE INTENT</p>
-                        <div className="flex flex-wrap gap-2">
-                          {NEGATIVE_SPACE_OPTIONS.map(opt => (
-                            <Chip
-                              key={opt.value}
-                              onClick={() => {
-                                productStore.setNegativeSpace(opt.value);
-                                markSectionTouched('product-creativity');
-                              }}
-                              selected={productStore.negativeSpace === opt.value}
-                            >
-                              {opt.label}
-                            </Chip>
-                          ))}
-                        </div>
-                        <SelectedOptionFooter
-                          options={[
-                            { value: 'none', label: 'None', description: 'Fills the frame with the product and set dressing.' },
-                            { value: 'subtle', label: 'Subtle', description: 'A little breathing room without feeling empty.' },
-                            { value: 'intentional', label: 'Intentional', description: 'Clear copy/CTA room with a deliberate layout.' },
-                            { value: 'heavy', label: 'Heavy', description: 'Lots of open space for strong typography or ads.' },
-                          ]}
-                          selectedValue={productStore.negativeSpace}
-                        />
-                      </div>
-
-                      {/* PALETTE SOURCE */}
-                      <div className={SECTION_GROUP_CLASS}>
-                        <p className={GROUP_LABEL_CLASS}>PALETTE SOURCE</p>
-                        <div className="flex flex-wrap gap-2">
-                          {PALETTE_SOURCE_OPTIONS_V1.map(opt => (
-                            <Chip
-                              key={opt.value}
-                              onClick={() => {
-                                productStore.setPaletteSource(opt.value);
-                                markSectionTouched('product-creativity');
-                              }}
-                              selected={productStore.paletteSource === opt.value}
-                            >
-                              {opt.label}
-                            </Chip>
-                          ))}
-                        </div>
-                        <SelectedOptionFooter
-                          options={[
-                            { value: 'brand', label: 'Product Label Colors', description: 'Pulls tones from the pack/label for brand consistency.' },
-                            { value: 'warm-neutral', label: 'Warm Neutrals', description: 'Creams, sands, and warm grays for softness and warmth.' },
-                            { value: 'cool-neutral', label: 'Cool Neutrals', description: 'Cool grays and whites for a crisp, modern feel.' },
-                            { value: 'complementary', label: 'Complementary Accent', description: 'Adds an accent color that contrasts the pack tastefully.' },
-                            { value: 'custom', label: 'Custom Palette', description: 'Use your own palette (manual colors).' },
-                          ]}
-                          selectedValue={productStore.paletteSource}
-                        />
-                      </div>
-
-                      {/* SUGGESTED PROPS */}
-                      <div className={SECTION_GROUP_CLASS}>
-                        <p className={GROUP_LABEL_CLASS}>SUGGESTED PROPS</p>
-                        <p className="text-[11px] text-gray-500">Optional. Product-safe suggestions based on Product Type.</p>
-                        <div className="grid grid-cols-2 gap-2">
-                          {productSuggestedProps.map(prop => {
-                            const selected = productStore.selectedProps.includes(prop);
-                            return (
-                              <Chip
-                                key={prop}
-                                onClick={() => {
-                                  const current = productStore.selectedProps;
-                                  const next = selected ? current.filter(x => x !== prop) : [...current, prop];
-                                  productStore.setSelectedProps(next);
-                                  markSectionTouched('product-creativity');
-                                }}
-                                selected={selected}
-                                size="xs"
-                                className="w-full justify-center rounded-full"
-                              >
-                                {prop}
-                              </Chip>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </>
-              )}
-            </div>
-	          </SmoothAccordion>
-            ) : null}
-
-          {/* PRODUCT STUDIO — ENVIRONMENT (single source of truth: productStore.environmentContext) */}
-          {productStore.environmentContext != null && (
-          <SmoothAccordion
-            icon={MapPin}
-            title="07 / Environment"
-            tooltip="Place the product into a real setting. Product-only, no people."
-            isOpen={openAccordionId === 'product-environment'}
-            onToggle={() => toggleSection('product-environment')}
-            isTouched={touchedSections.has('product-environment')}
-            variant="primary"
-          >
-            <div className="space-y-6">
-              <p className="text-sm text-gray-500">
-                Place the product into a real setting. Product-only, no people.
-              </p>
-              {(() => {
-              const selectedMacro =
-                (productStore.environmentContext?.macro as EnvironmentMacro | null | undefined)
-                ?? (productStore.environmentMacro && productStore.environmentMacro !== 'studio' ? productStore.environmentMacro : null);
-
-              const selectedMicro =
-                (productStore.environmentContext?.micro as MicroPlace | null | undefined)
-                ?? (productStore.microPlace && productStore.microPlace !== 'neutral-surface' ? productStore.microPlace : null);
-
-              const isDisabled = Boolean(values.ecommerceSidePlacementFlag || productStore.blankSpaceEnabled);
-
-              return (
-                <div className="space-y-6">
-                  {isDisabled && (
-                    <div className="rounded-xl border border-gray-200 bg-white p-3 text-gray-500 text-sm">
-                      Environment is disabled while Background Canvas is On (neutral background mode).
-                    </div>
-                  )}
-
-                  <div className={isDisabled ? 'opacity-50 pointer-events-none' : ''}>
-                    <div className={`${SECTION_GROUP_CLASS} space-y-5`}>
-                      <div className="flex items-center justify-between gap-4">
+                    {/* ADVANCED (collapsed by default) */}
+                    <div className={SECTION_GROUP_CLASS}>
+                      <div className="flex items-center justify-between gap-3">
                         <div>
-                          <p className={GROUP_LABEL_CLASS}>MACRO ENVIRONMENT</p>
-                          <p className="text-[11px] text-gray-500 mt-1">Pick a setting. Keep it simple unless you need specific staging.</p>
+                          <p className={GROUP_LABEL_CLASS}>ADVANCED</p>
+                          <p className="text-[11px] text-gray-500 mt-1">
+                            Fine-tune the scene. Optional.
+                          </p>
                         </div>
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-3">
-                            <span className="text-[11px] font-semibold text-gray-500 dark:text-white/50">More</span>
-                            <Toggle
-                              checked={productEnvironmentShowAllMacros}
-                              onCheckedChange={(next) => setProductEnvironmentShowAllMacros(next)}
-                              aria-label="Show more environments"
-                            />
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              productStore.setEnvironmentContext(null);
-                              markSectionTouched('product-environment');
-                            }}
-                            className="text-[11px] font-semibold text-gray-500 hover:text-gray-900 dark:text-white/50 dark:hover:text-white"
-                          >
-                            Clear
-                          </button>
-                        </div>
+                        <Toggle
+                          checked={productCreativeAdvancedOpen}
+                          onCheckedChange={(next) => {
+                            setProductCreativeAdvancedOpen(next);
+                          }}
+                          aria-label="Creative Direction advanced controls"
+                        />
                       </div>
+                    </div>
 
-                      <div className="mt-4 space-y-6">
-                        {PRODUCT_ENVIRONMENT_MACRO_GROUPS.filter(group => {
-                          if (group.label === 'Home') return true;
-                          return productEnvironmentShowAllMacros;
-                        }).map(group => (
-                          <div key={group.label} className="space-y-3">
-                            <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">
-                              {group.label}
-                            </p>
-                            <div className="grid grid-cols-2 gap-3">
-                              {group.items.map(env => (
+                    {productCreativeAdvancedOpen && (
+                      <>
+                        {/* COMPOSITION MODE */}
+                        <div className={SECTION_GROUP_CLASS}>
+                          <p className={GROUP_LABEL_CLASS}>COMPOSITION MODE</p>
+                          <div className="flex flex-wrap gap-2">
+                            {COMPOSITION_MODE_V1_OPTIONS.map(opt => (
+                              <div key={opt.value} className="relative group">
                                 <Chip
-                                  key={env}
                                   onClick={() => {
-                                    productStore.setEnvironmentContext({ macro: env, micro: null });
-                                    markSectionTouched('product-environment');
+                                    productStore.setComposition(opt.value as CompositionMode);
+                                    markSectionTouched('product-creativity');
                                   }}
-                                  selected={selectedMacro === env}
-                                  size="md"
-                                  className="w-full justify-center whitespace-normal text-center"
+                                  selected={productStore.composition === opt.value}
                                 >
-                                  {env === 'custom'
-                                    ? 'Custom'
-                                    : env === 'cgmp-facility'
-                                      ? 'cGMP Manufacturing Facility'
-                                      : env.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-                                  }
+                                  {opt.label}
+                                </Chip>
+                              </div>
+                            ))}
+                          </div>
+                          <SelectedOptionFooter options={COMPOSITION_MODE_V1_OPTIONS} selectedValue={productStore.composition} />
+                        </div>
+
+                        {/* SURFACE / BASE */}
+                        <div className={SECTION_GROUP_CLASS}>
+                          <p className={GROUP_LABEL_CLASS}>SURFACE / BASE</p>
+                          <div className="flex flex-wrap gap-2">
+                            {SURFACE_BASE_OPTIONS.map(opt => (
+                              <Chip
+                                key={opt.value}
+                                onClick={() => {
+                                  productStore.setSurface(opt.value as SurfaceBase);
+                                  markSectionTouched('product-creativity');
+                                }}
+                                selected={productStore.surface === opt.value}
+                              >
+                                {opt.label}
+                              </Chip>
+                            ))}
+                          </div>
+                          <SelectedOptionFooter options={SURFACE_BASE_OPTIONS} selectedValue={productStore.surface} />
+                        </div>
+
+                        {/* SCALE & SPACING */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className={SECTION_GROUP_CLASS}>
+                            <p className={GROUP_LABEL_CLASS}>SCALE</p>
+                            <div className="flex flex-col gap-2">
+                              {PRODUCT_SCALE_OPTIONS.map(opt => (
+                                <Chip
+                                  key={opt.value}
+                                  onClick={() => {
+                                    productStore.setScale(opt.value);
+                                    markSectionTouched('product-creativity');
+                                  }}
+                                  selected={productStore.scale === opt.value}
+                                  size="md"
+                                  className="w-full justify-center py-3 rounded-full text-[12px] font-semibold"
+                                >
+                                  {opt.label}
                                 </Chip>
                               ))}
                             </div>
+                            <SelectedOptionFooter
+                              options={[
+                                { value: 'dominant', label: 'Dominant', description: 'Product fills the frame and reads as the hero.' },
+                                { value: 'balanced', label: 'Balanced', description: 'Natural scale with room for accents and styling.' },
+                                { value: 'oversized', label: 'Oversized', description: 'Bigger-than-life hero emphasis for impact.' },
+                              ]}
+                              selectedValue={productStore.scale}
+                            />
                           </div>
-                        ))}
-                      </div>
-
-                      {selectedMacro === 'custom' && (
-                        <label className="block space-y-1 mt-3">
-                          <p className="text-[11px] uppercase tracking-wide text-gray-500">Custom environment</p>
-                          <input
-                            value={productStore.customEnvironmentText || ''}
-                            onChange={(e) => {
-                              productStore.setCustomEnvironmentText(e.target.value);
-                              markSectionTouched('product-environment');
-                            }}
-                            placeholder="e.g. modern kitchen countertop"
-                            className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none"
-                          />
-                        </label>
-                      )}
-                    </div>
-
-                    <div className={`${SECTION_GROUP_CLASS} space-y-5`}>
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <p className={GROUP_LABEL_CLASS}>MICRO PLACE</p>
-                          <p className="text-[11px] text-gray-500 mt-1">Optional refinement for where the product sits.</p>
+                          <div className={SECTION_GROUP_CLASS}>
+                            <p className={GROUP_LABEL_CLASS}>SPACING</p>
+                            <div className="flex flex-col gap-2">
+                              {PRODUCT_SPACING_OPTIONS.map(opt => (
+                                <Chip
+                                  key={opt.value}
+                                  onClick={() => {
+                                    productStore.setSpacing(opt.value);
+                                    markSectionTouched('product-creativity');
+                                  }}
+                                  selected={productStore.spacing === opt.value}
+                                  size="md"
+                                  className="w-full justify-center py-3 rounded-full text-[12px] font-semibold"
+                                >
+                                  {opt.label}
+                                </Chip>
+                              ))}
+                            </div>
+                            <SelectedOptionFooter
+                              options={[
+                                { value: 'compact', label: 'Compact', description: 'Tighter composition with minimal breathing room.' },
+                                { value: 'balanced', label: 'Balanced', description: 'Comfortable spacing that still feels product-first.' },
+                                { value: 'airy', label: 'Airy', description: 'More breathing room for a premium, spacious layout.' },
+                              ]}
+                              selectedValue={productStore.spacing}
+                            />
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[11px] font-semibold text-gray-500 dark:text-white/50">Advanced</span>
-                          <Toggle
-                            checked={productEnvironmentAdvancedOpen}
-                            onCheckedChange={(next) => setProductEnvironmentAdvancedOpen(next)}
-                            aria-label="Advanced environment controls"
+
+                        {/* NEGATIVE SPACE */}
+                        <div className={SECTION_GROUP_CLASS}>
+                          <p className={GROUP_LABEL_CLASS}>NEGATIVE SPACE INTENT</p>
+                          <div className="flex flex-wrap gap-2">
+                            {NEGATIVE_SPACE_OPTIONS.map(opt => (
+                              <Chip
+                                key={opt.value}
+                                onClick={() => {
+                                  productStore.setNegativeSpace(opt.value);
+                                  markSectionTouched('product-creativity');
+                                }}
+                                selected={productStore.negativeSpace === opt.value}
+                              >
+                                {opt.label}
+                              </Chip>
+                            ))}
+                          </div>
+                          <SelectedOptionFooter
+                            options={[
+                              { value: 'none', label: 'None', description: 'Fills the frame with the product and set dressing.' },
+                              { value: 'subtle', label: 'Subtle', description: 'A little breathing room without feeling empty.' },
+                              { value: 'intentional', label: 'Intentional', description: 'Clear copy/CTA room with a deliberate layout.' },
+                              { value: 'heavy', label: 'Heavy', description: 'Lots of open space for strong typography or ads.' },
+                            ]}
+                            selectedValue={productStore.negativeSpace}
                           />
                         </div>
-                      </div>
 
-                      {selectedMacro ? (
-                      <div className="flex flex-wrap gap-3 mt-3">
-                        <Chip
-                          onClick={() => {
-                            const macro = (selectedMacro ?? 'kitchen') as EnvironmentMacro;
-                            productStore.setEnvironmentContext({ macro, micro: null });
-                            markSectionTouched('product-environment');
-                          }}
-                          selected={!selectedMicro}
-                          size="md"
-                        >
-                          Auto
-                        </Chip>
-                        {(PRODUCT_ENVIRONMENT_MICRO_BY_MACRO[selectedMacro] ?? ['neutral-surface']).map(place => (
-                          <Chip
-                            key={place}
-                            onClick={() => {
-                              const macro = (selectedMacro ?? 'kitchen') as EnvironmentMacro;
-                              productStore.setEnvironmentContext({ macro, micro: place });
-                              markSectionTouched('product-environment');
-                            }}
-                            selected={selectedMicro === place}
-                            size="md"
-                          >
-                            {place === 'conveyor-belt'
-                              ? 'Conveyor belt'
-                              : place === 'filling-line'
-                                ? 'Filling line'
-                                : place.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-                            }
-                          </Chip>
-                        ))}
-                        {productEnvironmentAdvancedOpen && (
-                          <Chip
-                            onClick={() => {
-                              const macro = (selectedMacro ?? 'kitchen') as EnvironmentMacro;
-                              productStore.setEnvironmentContext({ macro, micro: 'custom' });
-                              markSectionTouched('product-environment');
-                            }}
-                            selected={selectedMicro === 'custom'}
-                            size="md"
-                          >
-                            Custom
-                          </Chip>
-                        )}
-                      </div>
-                      ) : (
-                        <p className="text-[11px] text-gray-500 mt-2">Select a macro environment to refine micro placement.</p>
-                      )}
-
-                      {productEnvironmentAdvancedOpen && selectedMicro === 'custom' && (
-                        <label className="block space-y-1 mt-3">
-                          <p className="text-[11px] uppercase tracking-wide text-gray-500">Custom micro place</p>
-                          <input
-                            value={productStore.customMicroPlaceText || ''}
-                            onChange={(e) => {
-                              productStore.setCustomMicroPlaceText(e.target.value);
-                              markSectionTouched('product-environment');
-                            }}
-                            placeholder="e.g. stainless steel filling station"
-                            className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none"
+                        {/* PALETTE SOURCE */}
+                        <div className={SECTION_GROUP_CLASS}>
+                          <p className={GROUP_LABEL_CLASS}>PALETTE SOURCE</p>
+                          <div className="flex flex-wrap gap-2">
+                            {PALETTE_SOURCE_OPTIONS_V1.map(opt => (
+                              <Chip
+                                key={opt.value}
+                                onClick={() => {
+                                  productStore.setPaletteSource(opt.value);
+                                  markSectionTouched('product-creativity');
+                                }}
+                                selected={productStore.paletteSource === opt.value}
+                              >
+                                {opt.label}
+                              </Chip>
+                            ))}
+                          </div>
+                          <SelectedOptionFooter
+                            options={[
+                              { value: 'brand', label: 'Product Label Colors', description: 'Pulls tones from the pack/label for brand consistency.' },
+                              { value: 'warm-neutral', label: 'Warm Neutrals', description: 'Creams, sands, and warm grays for softness and warmth.' },
+                              { value: 'cool-neutral', label: 'Cool Neutrals', description: 'Cool grays and whites for a crisp, modern feel.' },
+                              { value: 'complementary', label: 'Complementary Accent', description: 'Adds an accent color that contrasts the pack tastefully.' },
+                              { value: 'custom', label: 'Custom Palette', description: 'Use your own palette (manual colors).' },
+                            ]}
+                            selectedValue={productStore.paletteSource}
                           />
-                        </label>
-                      )}
-                    </div>
+                        </div>
 
-                    <div className={`${SECTION_GROUP_CLASS} space-y-5`}>
-                      <div>
-                        <p className={GROUP_LABEL_CLASS}>LIGHTING</p>
-                        <p className="text-[11px] text-gray-500 mt-1">Product-safe lighting style</p>
-                      </div>
-                      <div className="flex flex-wrap gap-3 mt-3">
-                        {(productEnvironmentAdvancedOpen
-                          ? PRODUCT_ENVIRONMENT_LIGHTING_OPTIONS
-                          : PRODUCT_ENVIRONMENT_LIGHTING_OPTIONS.filter(opt =>
-                            opt.value === 'natural-light' ||
-                            opt.value === 'overcast' ||
-                            opt.value === 'cozy-indoors' ||
-                            opt.value === 'ring-light'
-                          )
-                        ).map(option => (
-                          <Chip
-                            key={option.value}
-                            onClick={() => {
-                              productStore.setLighting(option.value);
-                              markSectionTouched('product-environment');
-                            }}
-                            selected={productStore.lighting === option.value}
-                            size="md"
-                          >
-                            {option.label}
-                          </Chip>
-                        ))}
+                        {/* SUGGESTED PROPS */}
+                        <div className={SECTION_GROUP_CLASS}>
+                          <p className={GROUP_LABEL_CLASS}>SUGGESTED PROPS</p>
+                          <p className="text-[11px] text-gray-500">Optional. Product-safe suggestions based on Product Type.</p>
+                          <div className="grid grid-cols-2 gap-2">
+                            {productSuggestedProps.map(prop => {
+                              const selected = productStore.selectedProps.includes(prop);
+                              return (
+                                <Chip
+                                  key={prop}
+                                  onClick={() => {
+                                    const current = productStore.selectedProps;
+                                    const next = selected ? current.filter(x => x !== prop) : [...current, prop];
+                                    productStore.setSelectedProps(next);
+                                    markSectionTouched('product-creativity');
+                                  }}
+                                  selected={selected}
+                                  size="xs"
+                                  className="w-full justify-center rounded-full"
+                                >
+                                  {prop}
+                                </Chip>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </>
+                )}
+              </div>
+            </SmoothAccordion>
+          ) : null}
+
+          {/* PRODUCT STUDIO — ENVIRONMENT (single source of truth: productStore.environmentContext) */}
+          {productStore.environmentContext != null && (
+            <SmoothAccordion
+              icon={MapPin}
+              title="07 / Environment"
+              tooltip="Place the product into a real setting. Product-only, no people."
+              isOpen={openAccordionId === 'product-environment'}
+              onToggle={() => toggleSection('product-environment')}
+              isTouched={touchedSections.has('product-environment')}
+              variant="primary"
+            >
+              <div className="space-y-6">
+                <p className="text-sm text-gray-500">
+                  Place the product into a real setting. Product-only, no people.
+                </p>
+                {(() => {
+                  const selectedMacro =
+                    (productStore.environmentContext?.macro as EnvironmentMacro | null | undefined)
+                    ?? (productStore.environmentMacro && productStore.environmentMacro !== 'studio' ? productStore.environmentMacro : null);
+
+                  const selectedMicro =
+                    (productStore.environmentContext?.micro as MicroPlace | null | undefined)
+                    ?? (productStore.microPlace && productStore.microPlace !== 'neutral-surface' ? productStore.microPlace : null);
+
+                  const isDisabled = Boolean(values.ecommerceSidePlacementFlag || productStore.blankSpaceEnabled);
+
+                  return (
+                    <div className="space-y-6">
+                      {isDisabled && (
+                        <div className="rounded-xl border border-gray-200 bg-white p-3 text-gray-500 text-sm">
+                          Environment is disabled while Background Canvas is On (neutral background mode).
+                        </div>
+                      )}
+
+                      <div className={isDisabled ? 'opacity-50 pointer-events-none' : ''}>
+                        <div className={`${SECTION_GROUP_CLASS} space-y-5`}>
+                          <div className="flex items-center justify-between gap-4">
+                            <div>
+                              <p className={GROUP_LABEL_CLASS}>MACRO ENVIRONMENT</p>
+                              <p className="text-[11px] text-gray-500 mt-1">Pick a setting. Keep it simple unless you need specific staging.</p>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <div className="flex items-center gap-3">
+                                <span className="text-[11px] font-semibold text-gray-500 dark:text-white/50">More</span>
+                                <Toggle
+                                  checked={productEnvironmentShowAllMacros}
+                                  onCheckedChange={(next) => setProductEnvironmentShowAllMacros(next)}
+                                  aria-label="Show more environments"
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  productStore.setEnvironmentContext(null);
+                                  markSectionTouched('product-environment');
+                                }}
+                                className="text-[11px] font-semibold text-gray-500 hover:text-gray-900 dark:text-white/50 dark:hover:text-white"
+                              >
+                                Clear
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 space-y-6">
+                            {PRODUCT_ENVIRONMENT_MACRO_GROUPS.filter(group => {
+                              if (group.label === 'Home') return true;
+                              return productEnvironmentShowAllMacros;
+                            }).map(group => (
+                              <div key={group.label} className="space-y-3">
+                                <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">
+                                  {group.label}
+                                </p>
+                                <div className="grid grid-cols-2 gap-3">
+                                  {group.items.map(env => (
+                                    <Chip
+                                      key={env}
+                                      onClick={() => {
+                                        productStore.setEnvironmentContext({ macro: env, micro: null });
+                                        markSectionTouched('product-environment');
+                                      }}
+                                      selected={selectedMacro === env}
+                                      size="md"
+                                      className="w-full justify-center whitespace-normal text-center"
+                                    >
+                                      {env === 'custom'
+                                        ? 'Custom'
+                                        : env === 'cgmp-facility'
+                                          ? 'cGMP Manufacturing Facility'
+                                          : env.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                                      }
+                                    </Chip>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {selectedMacro === 'custom' && (
+                            <label className="block space-y-1 mt-3">
+                              <p className="text-[11px] uppercase tracking-wide text-gray-500">Custom environment</p>
+                              <input
+                                value={productStore.customEnvironmentText || ''}
+                                onChange={(e) => {
+                                  productStore.setCustomEnvironmentText(e.target.value);
+                                  markSectionTouched('product-environment');
+                                }}
+                                placeholder="e.g. modern kitchen countertop"
+                                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none"
+                              />
+                            </label>
+                          )}
+                        </div>
+
+                        <div className={`${SECTION_GROUP_CLASS} space-y-5`}>
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <p className={GROUP_LABEL_CLASS}>MICRO PLACE</p>
+                              <p className="text-[11px] text-gray-500 mt-1">Optional refinement for where the product sits.</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[11px] font-semibold text-gray-500 dark:text-white/50">Advanced</span>
+                              <Toggle
+                                checked={productEnvironmentAdvancedOpen}
+                                onCheckedChange={(next) => setProductEnvironmentAdvancedOpen(next)}
+                                aria-label="Advanced environment controls"
+                              />
+                            </div>
+                          </div>
+
+                          {selectedMacro ? (
+                            <div className="flex flex-wrap gap-3 mt-3">
+                              <Chip
+                                onClick={() => {
+                                  const macro = (selectedMacro ?? 'kitchen') as EnvironmentMacro;
+                                  productStore.setEnvironmentContext({ macro, micro: null });
+                                  markSectionTouched('product-environment');
+                                }}
+                                selected={!selectedMicro}
+                                size="md"
+                              >
+                                Auto
+                              </Chip>
+                              {(PRODUCT_ENVIRONMENT_MICRO_BY_MACRO[selectedMacro] ?? ['neutral-surface']).map(place => (
+                                <Chip
+                                  key={place}
+                                  onClick={() => {
+                                    const macro = (selectedMacro ?? 'kitchen') as EnvironmentMacro;
+                                    productStore.setEnvironmentContext({ macro, micro: place });
+                                    markSectionTouched('product-environment');
+                                  }}
+                                  selected={selectedMicro === place}
+                                  size="md"
+                                >
+                                  {place === 'conveyor-belt'
+                                    ? 'Conveyor belt'
+                                    : place === 'filling-line'
+                                      ? 'Filling line'
+                                      : place.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                                  }
+                                </Chip>
+                              ))}
+                              {productEnvironmentAdvancedOpen && (
+                                <Chip
+                                  onClick={() => {
+                                    const macro = (selectedMacro ?? 'kitchen') as EnvironmentMacro;
+                                    productStore.setEnvironmentContext({ macro, micro: 'custom' });
+                                    markSectionTouched('product-environment');
+                                  }}
+                                  selected={selectedMicro === 'custom'}
+                                  size="md"
+                                >
+                                  Custom
+                                </Chip>
+                              )}
+                            </div>
+                          ) : (
+                            <p className="text-[11px] text-gray-500 mt-2">Select a macro environment to refine micro placement.</p>
+                          )}
+
+                          {productEnvironmentAdvancedOpen && selectedMicro === 'custom' && (
+                            <label className="block space-y-1 mt-3">
+                              <p className="text-[11px] uppercase tracking-wide text-gray-500">Custom micro place</p>
+                              <input
+                                value={productStore.customMicroPlaceText || ''}
+                                onChange={(e) => {
+                                  productStore.setCustomMicroPlaceText(e.target.value);
+                                  markSectionTouched('product-environment');
+                                }}
+                                placeholder="e.g. stainless steel filling station"
+                                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none"
+                              />
+                            </label>
+                          )}
+                        </div>
+
+                        <div className={`${SECTION_GROUP_CLASS} space-y-5`}>
+                          <div>
+                            <p className={GROUP_LABEL_CLASS}>LIGHTING</p>
+                            <p className="text-[11px] text-gray-500 mt-1">Product-safe lighting style</p>
+                          </div>
+                          <div className="flex flex-wrap gap-3 mt-3">
+                            {(productEnvironmentAdvancedOpen
+                              ? PRODUCT_ENVIRONMENT_LIGHTING_OPTIONS
+                              : PRODUCT_ENVIRONMENT_LIGHTING_OPTIONS.filter(opt =>
+                                opt.value === 'natural-light' ||
+                                opt.value === 'overcast' ||
+                                opt.value === 'cozy-indoors' ||
+                                opt.value === 'ring-light'
+                              )
+                            ).map(option => (
+                              <Chip
+                                key={option.value}
+                                onClick={() => {
+                                  productStore.setLighting(option.value);
+                                  markSectionTouched('product-environment');
+                                }}
+                                selected={productStore.lighting === option.value}
+                                size="md"
+                              >
+                                {option.label}
+                              </Chip>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              );
-              })()}
-            </div>
-          </SmoothAccordion>
+                  );
+                })()}
+              </div>
+            </SmoothAccordion>
           )}
 
-	          <SmoothAccordion
-	            icon={Hand}
-	            title="08 / Product Interaction"
-	            tooltip={`Product interaction.\nOne interaction per scene.`}
-	            isOpen={openAccordionId === 'product-interaction'}
-	            onToggle={() => toggleSection('product-interaction')}
-	            isTouched={touchedSections.has('product-interaction')}
-	            variant="primary"
-	          >
-	            <div className="space-y-4">
-	              <div className={SECTION_GROUP_CLASS}>
-	                <p className={GROUP_LABEL_CLASS}>PRODUCT INTERACTION</p>
-	                <div className="flex flex-wrap gap-2">
+          <SmoothAccordion
+            icon={Hand}
+            title="08 / Product Interaction"
+            tooltip={`Product interaction.\nOne interaction per scene.`}
+            isOpen={openAccordionId === 'product-interaction'}
+            onToggle={() => toggleSection('product-interaction')}
+            isTouched={touchedSections.has('product-interaction')}
+            variant="primary"
+          >
+            <div className="space-y-4">
+              <div className={SECTION_GROUP_CLASS}>
+                <p className={GROUP_LABEL_CLASS}>PRODUCT INTERACTION</p>
+                <div className="flex flex-wrap gap-2">
                   {(
                     [
                       { value: 'none', label: 'None', detail: 'No hands. No skin. No human shadows.' },
@@ -4126,16 +4128,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     return (
                       <Chip
                         key={option.value}
-	                        onClick={() => {
-	                          if (disabled) return;
-	                          productStore.setInteraction(option.value as any);
-	                          productStore.setHandsHolding(option.value !== 'none');
-	                          updateValue('productStudioInteraction', option.value as any);
-	                          updateValue('handsHolding', option.value !== 'none');
-	                          markSectionTouched('product-interaction');
-	                        }}
-	                        selected={productStore.interaction === (option.value as any)}
-	                        disabled={disabled}
+                        onClick={() => {
+                          if (disabled) return;
+                          productStore.setInteraction(option.value as any);
+                          productStore.setHandsHolding(option.value !== 'none');
+                          updateValue('productStudioInteraction', option.value as any);
+                          updateValue('handsHolding', option.value !== 'none');
+                          markSectionTouched('product-interaction');
+                        }}
+                        selected={productStore.interaction === (option.value as any)}
+                        disabled={disabled}
                         tooltip={option.detail}
                       >
                         {option.label}
@@ -4330,26 +4332,26 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             </div>
           </SmoothAccordion>
 
-	          <SmoothAccordion
-	            icon={Building2}
-	            title="10 / Ecommerce Image Builder (BETA)"
-	            tooltip={`Ecommerce builder.\nBeta feature.`}
-	            isOpen={openAccordionId === 'ecommerce'}
-	            onToggle={() => toggleSection('ecommerce')}
-	            isActive
-	            variant="secondary"
-	          >
+          <SmoothAccordion
+            icon={Building2}
+            title="10 / Ecommerce Image Builder (BETA)"
+            tooltip={`Ecommerce builder.\nBeta feature.`}
+            isOpen={openAccordionId === 'ecommerce'}
+            onToggle={() => toggleSection('ecommerce')}
+            isActive
+            variant="secondary"
+          >
             <div className="space-y-4">
-	              <div className="flex items-center gap-2">
-	                <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold tracking-wide text-amber-800">
-	                  BETA
-	                </span>
-	              </div>
-	              <div className={SECTION_GROUP_CLASS}>
-	                <div className="flex items-center justify-between gap-3">
-	                  <div>
-	                    <p className={GROUP_LABEL_CLASS}>BACKGROUND CANVAS</p>
-	                  </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold tracking-wide text-amber-800">
+                  BETA
+                </span>
+              </div>
+              <div className={SECTION_GROUP_CLASS}>
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className={GROUP_LABEL_CLASS}>BACKGROUND CANVAS</p>
+                  </div>
                   <Toggle
                     checked={values.ecommerceSidePlacementFlag}
                     onCheckedChange={(next) => {
@@ -4360,14 +4362,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     aria-label="Background canvas"
                   />
                 </div>
-	              </div>
+              </div>
 
               {values.ecommerceSidePlacementFlag === true && (
                 <>
-	                  <div className={SECTION_GROUP_CLASS}>
-	                    <div>
-	                      <p className={GROUP_LABEL_CLASS}>SIDE PLACEMENT</p>
-	                    </div>
+                  <div className={SECTION_GROUP_CLASS}>
+                    <div>
+                      <p className={GROUP_LABEL_CLASS}>SIDE PLACEMENT</p>
+                    </div>
                     <div className="flex flex-wrap gap-2">
                       {SIDE_PLACEMENT_OPTIONS.map(option => (
                         <Chip
@@ -4606,6 +4608,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     slotBaseImages={ecommerceOverlay.slotBaseImages}
                     settings={ecommerceOverlay.settings}
                     onSettingsChange={ecommerceOverlay.onSettingsChange}
+                    onGenerateSequence={ecommerceOverlay.onGenerateSequence}
+                    isGeneratingSequence={ecommerceOverlay.isGeneratingSequence}
                   />
                 </div>
               )}
@@ -4665,7 +4669,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
                           <span className="text-xs text-gray-600 dark:text-white/60">
-	                            {values.personCount !== 'single' ? 'Age (Person A)' : 'Age'}
+                            {values.personCount !== 'single' ? 'Age (Person A)' : 'Age'}
                           </span>
                           <span className="text-sm font-medium text-gray-900 dark:text-white">{values.age}</span>
                         </div>
@@ -4681,409 +4685,409 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         />
                       </div>
 
-	                      <div className="space-y-2">
-	                        <span className="text-xs text-gray-600 dark:text-white/60">
-	                          {values.personCount === 'couple' ? 'Primary gender' : 'Gender'}
-	                        </span>
-	                        <div className="flex flex-wrap gap-2">
-	                          {(isCreatorPro
-	                            ? (['Female', 'Male', 'Trans', 'Non-binary', 'Gender non-conforming'] as const)
-	                            : (['Female', 'Male'] as const)
-	                          ).map(option => (
-	                            <Chip
-	                              key={option}
-	                              onClick={() => { updateValue('gender', option as any); markSectionTouched('creator'); }}
-	                              selected={values.gender === (option as any)}
-	                              size="md"
-	                            >
-	                              {option}
-	                            </Chip>
-	                          ))}
-	                        </div>
-	                      </div>
+                      <div className="space-y-2">
+                        <span className="text-xs text-gray-600 dark:text-white/60">
+                          {values.personCount === 'couple' ? 'Primary gender' : 'Gender'}
+                        </span>
+                        <div className="flex flex-wrap gap-2">
+                          {(isCreatorPro
+                            ? (['Female', 'Male', 'Trans', 'Non-binary', 'Gender non-conforming'] as const)
+                            : (['Female', 'Male'] as const)
+                          ).map(option => (
+                            <Chip
+                              key={option}
+                              onClick={() => { updateValue('gender', option as any); markSectionTouched('creator'); }}
+                              selected={values.gender === (option as any)}
+                              size="md"
+                            >
+                              {option}
+                            </Chip>
+                          ))}
+                        </div>
+                      </div>
 
-	                      <div className="space-y-2">
-	                        <div className="flex items-center justify-between gap-3">
-	                          <div>
-	                            <span className="text-xs text-gray-600 dark:text-white/60">Person count</span>
-	                            <p className="text-[11px] text-gray-400 dark:text-white/40">
-	                              {values.personCount === 'couple' ? (
-	                                <>
-	                                  Person A and Person B both appear in-frame.
-	                                  <br />
-	                                  Configure Person B identity below and choose Couple staging.
-	                                </>
-	                              ) : values.personCount === 'group' ? (
-	                                '3–5 people in-frame. Person A uses these settings; others are derived automatically with distinct identities.'
-	                              ) : (
-	                                'Choose single creator, a couple, or a small group.'
-	                              )}
-	                            </p>
-	                          </div>
-	                        </div>
-		                        <div className="flex flex-wrap gap-2">
-		                          <Chip
-		                            onClick={() => {
-		                              updateValue('personCount', 'single');
-		                              updateValue('editSecondaryPerson', false);
-		                              markSectionTouched('creator');
-		                            }}
-		                            selected={values.personCount === 'single'}
-		                            size="md"
-		                          >
-		                            Single
-		                          </Chip>
-		                          <Chip
-		                            onClick={() => {
-		                              updateValue('personCount', 'couple');
-		                              updateValue('editSecondaryPerson', true);
-		                              if (!values.coupleStaging) updateValue('coupleStaging', 'Together (side-by-side)');
-		                              if (!values.secondaryAge || values.secondaryAge === 30) updateValue('secondaryAge', Math.min(90, Math.max(18, values.age + 2)));
-		                              markSectionTouched('creator');
-		                            }}
-		                            selected={values.personCount === 'couple'}
-		                            size="md"
-		                          >
-		                            Couple
-		                          </Chip>
-		                          <Chip
-		                            onClick={() => {
-		                              updateValue('personCount', 'group');
-		                              updateValue('editSecondaryPerson', false);
-		                              markSectionTouched('creator');
-		                            }}
-		                            selected={values.personCount === 'group'}
-		                            size="md"
-		                          >
-		                            Group
-		                          </Chip>
-		                        </div>
-		                        {values.personCount === 'couple' && (
-		                          <div className="space-y-2">
-		                            <span className="text-xs text-gray-600 dark:text-white/60">Sex pairing</span>
-	                            <div className="flex flex-wrap gap-2">
-	                              <Chip
-	                                onClick={() => {
-	                                  updateValue('coupleSex', 'same');
-	                                  markSectionTouched('creator');
-	                                }}
-	                                selected={values.coupleSex === 'same'}
-	                                size="md"
-	                              >
-	                                Same sex
-	                              </Chip>
-	                              <Chip
-	                                onClick={() => {
-	                                  updateValue('coupleSex', 'different');
-	                                  markSectionTouched('creator');
-	                                }}
-	                                selected={values.coupleSex === 'different'}
-	                                size="md"
-	                              >
-	                                Different sex
-	                              </Chip>
-	                            </div>
-		                          </div>
-		                        )}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <span className="text-xs text-gray-600 dark:text-white/60">Person count</span>
+                            <p className="text-[11px] text-gray-400 dark:text-white/40">
+                              {values.personCount === 'couple' ? (
+                                <>
+                                  Person A and Person B both appear in-frame.
+                                  <br />
+                                  Configure Person B identity below and choose Couple staging.
+                                </>
+                              ) : values.personCount === 'group' ? (
+                                '3–5 people in-frame. Person A uses these settings; others are derived automatically with distinct identities.'
+                              ) : (
+                                'Choose single creator, a couple, or a small group.'
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Chip
+                            onClick={() => {
+                              updateValue('personCount', 'single');
+                              updateValue('editSecondaryPerson', false);
+                              markSectionTouched('creator');
+                            }}
+                            selected={values.personCount === 'single'}
+                            size="md"
+                          >
+                            Single
+                          </Chip>
+                          <Chip
+                            onClick={() => {
+                              updateValue('personCount', 'couple');
+                              updateValue('editSecondaryPerson', true);
+                              if (!values.coupleStaging) updateValue('coupleStaging', 'Together (side-by-side)');
+                              if (!values.secondaryAge || values.secondaryAge === 30) updateValue('secondaryAge', Math.min(90, Math.max(18, values.age + 2)));
+                              markSectionTouched('creator');
+                            }}
+                            selected={values.personCount === 'couple'}
+                            size="md"
+                          >
+                            Couple
+                          </Chip>
+                          <Chip
+                            onClick={() => {
+                              updateValue('personCount', 'group');
+                              updateValue('editSecondaryPerson', false);
+                              markSectionTouched('creator');
+                            }}
+                            selected={values.personCount === 'group'}
+                            size="md"
+                          >
+                            Group
+                          </Chip>
+                        </div>
+                        {values.personCount === 'couple' && (
+                          <div className="space-y-2">
+                            <span className="text-xs text-gray-600 dark:text-white/60">Sex pairing</span>
+                            <div className="flex flex-wrap gap-2">
+                              <Chip
+                                onClick={() => {
+                                  updateValue('coupleSex', 'same');
+                                  markSectionTouched('creator');
+                                }}
+                                selected={values.coupleSex === 'same'}
+                                size="md"
+                              >
+                                Same sex
+                              </Chip>
+                              <Chip
+                                onClick={() => {
+                                  updateValue('coupleSex', 'different');
+                                  markSectionTouched('creator');
+                                }}
+                                selected={values.coupleSex === 'different'}
+                                size="md"
+                              >
+                                Different sex
+                              </Chip>
+                            </div>
+                          </div>
+                        )}
 
-		                        {values.personCount === 'couple' && (
-		                          <div className="space-y-2">
-		                            <span className="text-xs text-gray-600 dark:text-white/60">Couple staging</span>
-		                            <div className="flex flex-wrap gap-2">
-		                              {RITUAL_COUPLE_STAGING_OPTIONS.map(option => (
-		                                <Chip
-		                                  key={option}
-		                                  onClick={() => {
-		                                    updateValue('coupleStaging', option);
-		                                    markSectionTouched('creator');
-		                                  }}
-		                                  selected={values.coupleStaging === option}
-		                                  size="md"
-		                                >
-		                                  {option}
-		                                </Chip>
-		                              ))}
-		                            </div>
-		                          </div>
-		                        )}
+                        {values.personCount === 'couple' && (
+                          <div className="space-y-2">
+                            <span className="text-xs text-gray-600 dark:text-white/60">Couple staging</span>
+                            <div className="flex flex-wrap gap-2">
+                              {RITUAL_COUPLE_STAGING_OPTIONS.map(option => (
+                                <Chip
+                                  key={option}
+                                  onClick={() => {
+                                    updateValue('coupleStaging', option);
+                                    markSectionTouched('creator');
+                                  }}
+                                  selected={values.coupleStaging === option}
+                                  size="md"
+                                >
+                                  {option}
+                                </Chip>
+                              ))}
+                            </div>
+                          </div>
+                        )}
 
-	                        <div className="space-y-2">
-	                          <span className="text-xs text-gray-600 dark:text-white/60">Eye direction</span>
-	                          <div className="flex flex-wrap gap-2">
-	                            {EYE_DIRECTION_OPTIONS.map(option => {
-	                              const active = values.eyeDirection === option;
-	                              return (
-	                                <Chip
-	                                  key={option}
-	                                  onClick={() => { updateValue('eyeDirection', option); markSectionTouched('creator'); }}
-	                                  selected={active}
-	                                  size="md"
-	                                >
-	                                  {option}
-	                                </Chip>
-	                              );
-	                            })}
-	                          </div>
-	                        </div>
+                        <div className="space-y-2">
+                          <span className="text-xs text-gray-600 dark:text-white/60">Eye direction</span>
+                          <div className="flex flex-wrap gap-2">
+                            {EYE_DIRECTION_OPTIONS.map(option => {
+                              const active = values.eyeDirection === option;
+                              return (
+                                <Chip
+                                  key={option}
+                                  onClick={() => { updateValue('eyeDirection', option); markSectionTouched('creator'); }}
+                                  selected={active}
+                                  size="md"
+                                >
+                                  {option}
+                                </Chip>
+                              );
+                            })}
+                          </div>
+                        </div>
 
-		                        {values.personCount === 'couple' && (
-		                          <div className="pt-2">
-		                            <div className="flex items-center justify-between gap-3">
-		                              <div>
-		                                <p className="text-xs text-gray-600 dark:text-white/60">Person B settings</p>
-		                                <p className="text-[11px] text-gray-400 dark:text-white/40">
-		                                  Toggle on to edit Person B. If left off, Person B will be derived automatically.
-		                                </p>
-		                              </div>
-		                              <Toggle
-		                                checked={values.editSecondaryPerson}
-		                                title={values.editSecondaryPerson ? 'Editing Person B is enabled' : 'Enable editing Person B'}
-	                                aria-label="Enable editing Person B"
-	                                onCheckedChange={(next) => {
-	                                  updateValue('editSecondaryPerson', next);
-	                                  markSectionTouched('creator');
-	                                  if (next) {
-	                                    const primary = String(values.gender || '').toLowerCase();
-	                                    const derivedGender =
-	                                      values.coupleSex === 'same'
-	                                        ? values.gender
-	                                        : (primary.includes('female') ? 'Male' : primary.includes('male') ? 'Female' : '');
-	                                    if (!values.secondaryGender && derivedGender) updateValue('secondaryGender', derivedGender as any);
-	                                    if (!values.secondaryEthnicity && values.ethnicity) updateValue('secondaryEthnicity', values.ethnicity as any);
-	                                    if (!values.secondarySkinTone && values.skinTone) updateValue('secondarySkinTone', values.skinTone as any);
-	                                    if (!values.secondaryEyeColor && values.eyeColor) updateValue('secondaryEyeColor', values.eyeColor as any);
-	                                    if (!values.secondaryHairColor && values.hairColor) updateValue('secondaryHairColor', values.hairColor as any);
-	                                    if (!values.secondaryHairLength && values.hairLength) updateValue('secondaryHairLength', values.hairLength as any);
-	                                    if (!values.secondaryHairTexture && values.hairTexture) updateValue('secondaryHairTexture', values.hairTexture as any);
-	                                    if (!values.secondaryBodyType && values.bodyType) updateValue('secondaryBodyType', values.bodyType as any);
-	                                  }
-	                                }}
-	                              />
-		                            </div>
-		                          </div>
-		                        )}
-	                      </div>
+                        {values.personCount === 'couple' && (
+                          <div className="pt-2">
+                            <div className="flex items-center justify-between gap-3">
+                              <div>
+                                <p className="text-xs text-gray-600 dark:text-white/60">Person B settings</p>
+                                <p className="text-[11px] text-gray-400 dark:text-white/40">
+                                  Toggle on to edit Person B. If left off, Person B will be derived automatically.
+                                </p>
+                              </div>
+                              <Toggle
+                                checked={values.editSecondaryPerson}
+                                title={values.editSecondaryPerson ? 'Editing Person B is enabled' : 'Enable editing Person B'}
+                                aria-label="Enable editing Person B"
+                                onCheckedChange={(next) => {
+                                  updateValue('editSecondaryPerson', next);
+                                  markSectionTouched('creator');
+                                  if (next) {
+                                    const primary = String(values.gender || '').toLowerCase();
+                                    const derivedGender =
+                                      values.coupleSex === 'same'
+                                        ? values.gender
+                                        : (primary.includes('female') ? 'Male' : primary.includes('male') ? 'Female' : '');
+                                    if (!values.secondaryGender && derivedGender) updateValue('secondaryGender', derivedGender as any);
+                                    if (!values.secondaryEthnicity && values.ethnicity) updateValue('secondaryEthnicity', values.ethnicity as any);
+                                    if (!values.secondarySkinTone && values.skinTone) updateValue('secondarySkinTone', values.skinTone as any);
+                                    if (!values.secondaryEyeColor && values.eyeColor) updateValue('secondaryEyeColor', values.eyeColor as any);
+                                    if (!values.secondaryHairColor && values.hairColor) updateValue('secondaryHairColor', values.hairColor as any);
+                                    if (!values.secondaryHairLength && values.hairLength) updateValue('secondaryHairLength', values.hairLength as any);
+                                    if (!values.secondaryHairTexture && values.hairTexture) updateValue('secondaryHairTexture', values.hairTexture as any);
+                                    if (!values.secondaryBodyType && values.bodyType) updateValue('secondaryBodyType', values.bodyType as any);
+                                  }
+                                }}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
 
-		                      {values.personCount === 'couple' && values.editSecondaryPerson && (
-		                        <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-4 dark:bg-black/20 dark:border-white/10">
-		                          <div className="flex items-start justify-between gap-4">
-		                            <div>
-		                              <p className="text-sm font-semibold text-gray-900 dark:text-white">Person B (Secondary)</p>
-		                              <p className="text-[11px] text-gray-400 dark:text-white/40">
-		                                Keep Person B coherent and in-focus. Use Advanced only if you need tighter control.
-		                              </p>
-		                            </div>
-		                            <div className="flex items-center gap-2">
-		                              <span className="text-xs text-gray-500 dark:text-white/50">Advanced</span>
-		                              <Toggle
-		                                checked={personBAdvancedOpen}
-		                                onCheckedChange={(next) => setPersonBAdvancedOpen(next)}
-		                                aria-label="Toggle Person B advanced controls"
-		                              />
-		                            </div>
-		                          </div>
+                      {values.personCount === 'couple' && values.editSecondaryPerson && (
+                        <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-4 dark:bg-black/20 dark:border-white/10">
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <p className="text-sm font-semibold text-gray-900 dark:text-white">Person B (Secondary)</p>
+                              <p className="text-[11px] text-gray-400 dark:text-white/40">
+                                Keep Person B coherent and in-focus. Use Advanced only if you need tighter control.
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-500 dark:text-white/50">Advanced</span>
+                              <Toggle
+                                checked={personBAdvancedOpen}
+                                onCheckedChange={(next) => setPersonBAdvancedOpen(next)}
+                                aria-label="Toggle Person B advanced controls"
+                              />
+                            </div>
+                          </div>
 
-		                          <div className="space-y-4">
-		                            <div className="space-y-2">
-		                              <div className="flex justify-between items-center">
-		                                <span className="text-xs text-gray-600 dark:text-white/60">Age</span>
-		                                <span className="text-sm font-medium text-gray-900 dark:text-white">{values.secondaryAge}</span>
-		                              </div>
-		                              <input
-		                                type="range"
-		                                min={18}
-		                                max={90}
-		                                step={1}
-		                                value={values.secondaryAge}
-		                                onChange={(event) => { updateValue('secondaryAge', Number(event.target.value)); markSectionTouched('creator'); }}
-		                                className="scene-age-slider w-full"
-		                                style={{ ['--progress' as any]: `${Math.round(((values.secondaryAge - 18) / (90 - 18)) * 100)}%` }}
-		                              />
-		                            </div>
+                          <div className="space-y-4">
+                            <div className="space-y-2">
+                              <div className="flex justify-between items-center">
+                                <span className="text-xs text-gray-600 dark:text-white/60">Age</span>
+                                <span className="text-sm font-medium text-gray-900 dark:text-white">{values.secondaryAge}</span>
+                              </div>
+                              <input
+                                type="range"
+                                min={18}
+                                max={90}
+                                step={1}
+                                value={values.secondaryAge}
+                                onChange={(event) => { updateValue('secondaryAge', Number(event.target.value)); markSectionTouched('creator'); }}
+                                className="scene-age-slider w-full"
+                                style={{ ['--progress' as any]: `${Math.round(((values.secondaryAge - 18) / (90 - 18)) * 100)}%` }}
+                              />
+                            </div>
 
-		                            <div className="space-y-2">
-		                              <span className="text-xs text-gray-600 dark:text-white/60">Gender</span>
-		                              <div className="flex flex-wrap gap-2">
-		                                {(['Female', 'Male'] as const).map(option => (
-		                                  <Chip
-		                                    key={option}
-		                                    onClick={() => { updateValue('secondaryGender', option); markSectionTouched('creator'); }}
-		                                    selected={values.secondaryGender === option}
-		                                    size="md"
-		                                  >
-		                                    {option}
-		                                  </Chip>
-		                                ))}
-		                              </div>
-		                            </div>
+                            <div className="space-y-2">
+                              <span className="text-xs text-gray-600 dark:text-white/60">Gender</span>
+                              <div className="flex flex-wrap gap-2">
+                                {(['Female', 'Male'] as const).map(option => (
+                                  <Chip
+                                    key={option}
+                                    onClick={() => { updateValue('secondaryGender', option); markSectionTouched('creator'); }}
+                                    selected={values.secondaryGender === option}
+                                    size="md"
+                                  >
+                                    {option}
+                                  </Chip>
+                                ))}
+                              </div>
+                            </div>
 
-		                            <div className="space-y-2">
-		                              <span className="text-xs text-gray-600 dark:text-white/60">Ethnicity</span>
-		                              <div className="flex flex-wrap gap-2">
-		                                {(isCreatorPro
-		                                  ? ([
-		                                    'Non-specific',
-		                                    'White / European descent',
-		                                    'Black / African descent',
-		                                    'Latino / Hispanic',
-		                                    'Asian',
-		                                    'Middle Eastern',
-		                                    'South Asian',
-		                                    'Mixed',
-		                                  ] as const)
-		                                  : ([
-		                                    'Non-specific',
-		                                    'White / European descent',
-		                                    'Black / African descent',
-		                                    'Latino / Hispanic',
-		                                  ] as const)
-		                                ).map(option => (
-		                                  <Chip
-		                                    key={option}
-		                                    onClick={() => { updateValue('secondaryEthnicity', option); markSectionTouched('creator'); }}
-		                                    selected={values.secondaryEthnicity === option}
-		                                    size="md"
-		                                  >
-		                                    {option}
-		                                  </Chip>
-		                                ))}
-		                              </div>
-		                            </div>
+                            <div className="space-y-2">
+                              <span className="text-xs text-gray-600 dark:text-white/60">Ethnicity</span>
+                              <div className="flex flex-wrap gap-2">
+                                {(isCreatorPro
+                                  ? ([
+                                    'Non-specific',
+                                    'White / European descent',
+                                    'Black / African descent',
+                                    'Latino / Hispanic',
+                                    'Asian',
+                                    'Middle Eastern',
+                                    'South Asian',
+                                    'Mixed',
+                                  ] as const)
+                                  : ([
+                                    'Non-specific',
+                                    'White / European descent',
+                                    'Black / African descent',
+                                    'Latino / Hispanic',
+                                  ] as const)
+                                ).map(option => (
+                                  <Chip
+                                    key={option}
+                                    onClick={() => { updateValue('secondaryEthnicity', option); markSectionTouched('creator'); }}
+                                    selected={values.secondaryEthnicity === option}
+                                    size="md"
+                                  >
+                                    {option}
+                                  </Chip>
+                                ))}
+                              </div>
+                            </div>
 
-		                            <div className="space-y-2">
-		                              <span className="text-xs text-gray-600 dark:text-white/60">Hair</span>
-		                              <div className="grid grid-cols-3 gap-2">
-		                                {(['Short', 'Shoulder', 'Long'] as const).map(option => (
-		                                  <Chip
-		                                    key={option}
-		                                    onClick={() => { updateValue('secondaryHairLength', option); markSectionTouched('creator'); }}
-		                                    selected={values.secondaryHairLength === option}
-		                                    size="md"
-		                                    className="w-full justify-center rounded-full py-2 text-[12px] font-semibold"
-		                                  >
-		                                    {option}
-		                                  </Chip>
-		                                ))}
-		                              </div>
-		                              <div className="flex flex-wrap gap-2">
-		                                {HAIR_COLOR_OPTIONS.map(option => (
-		                                  <Chip
-		                                    key={option}
-		                                    onClick={() => { updateValue('secondaryHairColor', option); markSectionTouched('creator'); }}
-		                                    selected={values.secondaryHairColor === option}
-		                                    size="md"
-		                                  >
-		                                    {option}
-		                                  </Chip>
-		                                ))}
-		                              </div>
-		                            </div>
+                            <div className="space-y-2">
+                              <span className="text-xs text-gray-600 dark:text-white/60">Hair</span>
+                              <div className="grid grid-cols-3 gap-2">
+                                {(['Short', 'Shoulder', 'Long'] as const).map(option => (
+                                  <Chip
+                                    key={option}
+                                    onClick={() => { updateValue('secondaryHairLength', option); markSectionTouched('creator'); }}
+                                    selected={values.secondaryHairLength === option}
+                                    size="md"
+                                    className="w-full justify-center rounded-full py-2 text-[12px] font-semibold"
+                                  >
+                                    {option}
+                                  </Chip>
+                                ))}
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                {HAIR_COLOR_OPTIONS.map(option => (
+                                  <Chip
+                                    key={option}
+                                    onClick={() => { updateValue('secondaryHairColor', option); markSectionTouched('creator'); }}
+                                    selected={values.secondaryHairColor === option}
+                                    size="md"
+                                  >
+                                    {option}
+                                  </Chip>
+                                ))}
+                              </div>
+                            </div>
 
-		                            {personBAdvancedOpen && (
-		                              <>
-		                                <div className="pt-3 border-t border-gray-100 dark:border-white/10" />
+                            {personBAdvancedOpen && (
+                              <>
+                                <div className="pt-3 border-t border-gray-100 dark:border-white/10" />
 
-		                                <div className="space-y-2">
-		                                  <span className="text-xs text-gray-600 dark:text-white/60">Skin tone</span>
-		                                  <div className="flex flex-wrap gap-2">
-		                                    {SKIN_TONE_OPTIONS.map(option => (
-		                                      <Chip
-		                                        key={option}
-		                                        onClick={() => { updateValue('secondarySkinTone', option); markSectionTouched('creator'); }}
-		                                        selected={values.secondarySkinTone === option}
-		                                        size="md"
-		                                      >
-		                                        {option}
-		                                      </Chip>
-		                                    ))}
-		                                  </div>
-		                                </div>
+                                <div className="space-y-2">
+                                  <span className="text-xs text-gray-600 dark:text-white/60">Skin tone</span>
+                                  <div className="flex flex-wrap gap-2">
+                                    {SKIN_TONE_OPTIONS.map(option => (
+                                      <Chip
+                                        key={option}
+                                        onClick={() => { updateValue('secondarySkinTone', option); markSectionTouched('creator'); }}
+                                        selected={values.secondarySkinTone === option}
+                                        size="md"
+                                      >
+                                        {option}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
 
-		                                <div className="space-y-2">
-		                                  <span className="text-xs text-gray-600 dark:text-white/60">Eye color</span>
-		                                  <div className="flex flex-wrap gap-2">
-		                                    {EYE_COLOR_OPTIONS.map(option => (
-		                                      <Chip
-		                                        key={option}
-		                                        onClick={() => { updateValue('secondaryEyeColor', option); markSectionTouched('creator'); }}
-		                                        selected={values.secondaryEyeColor === option}
-		                                        size="md"
-		                                      >
-		                                        {option}
-		                                      </Chip>
-		                                    ))}
-		                                  </div>
-		                                </div>
+                                <div className="space-y-2">
+                                  <span className="text-xs text-gray-600 dark:text-white/60">Eye color</span>
+                                  <div className="flex flex-wrap gap-2">
+                                    {EYE_COLOR_OPTIONS.map(option => (
+                                      <Chip
+                                        key={option}
+                                        onClick={() => { updateValue('secondaryEyeColor', option); markSectionTouched('creator'); }}
+                                        selected={values.secondaryEyeColor === option}
+                                        size="md"
+                                      >
+                                        {option}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
 
-		                                <div className="space-y-2">
-		                                  <span className="text-xs text-gray-600 dark:text-white/60">Hair texture</span>
-		                                  <div className="flex flex-wrap gap-2">
-		                                    {HAIR_TEXTURE_OPTIONS.map(option => (
-		                                      <Chip
-		                                        key={option}
-		                                        onClick={() => { updateValue('secondaryHairTexture', option); markSectionTouched('creator'); }}
-		                                        selected={values.secondaryHairTexture === option}
-		                                        size="md"
-		                                      >
-		                                        {option === 'Coily/Kinky' ? 'Coily / Kinky' : option}
-		                                      </Chip>
-		                                    ))}
-		                                  </div>
-		                                </div>
+                                <div className="space-y-2">
+                                  <span className="text-xs text-gray-600 dark:text-white/60">Hair texture</span>
+                                  <div className="flex flex-wrap gap-2">
+                                    {HAIR_TEXTURE_OPTIONS.map(option => (
+                                      <Chip
+                                        key={option}
+                                        onClick={() => { updateValue('secondaryHairTexture', option); markSectionTouched('creator'); }}
+                                        selected={values.secondaryHairTexture === option}
+                                        size="md"
+                                      >
+                                        {option === 'Coily/Kinky' ? 'Coily / Kinky' : option}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
 
-		                                <div className="space-y-2">
-		                                  <span className="text-xs text-gray-600 dark:text-white/60">Body type</span>
-		                                  <div className="flex flex-wrap gap-2">
-		                                    {BODY_TYPE_OPTIONS.map(option => (
-		                                      <Chip
-		                                        key={option}
-		                                        onClick={() => { updateValue('secondaryBodyType', option as any); markSectionTouched('creator'); }}
-		                                        selected={values.secondaryBodyType === (option as any)}
-		                                        size="md"
-		                                      >
-		                                        {option}
-		                                      </Chip>
-		                                    ))}
-		                                  </div>
-		                                </div>
-		                              </>
-		                            )}
-		                          </div>
-		                        </div>
-		                      )}
+                                <div className="space-y-2">
+                                  <span className="text-xs text-gray-600 dark:text-white/60">Body type</span>
+                                  <div className="flex flex-wrap gap-2">
+                                    {BODY_TYPE_OPTIONS.map(option => (
+                                      <Chip
+                                        key={option}
+                                        onClick={() => { updateValue('secondaryBodyType', option as any); markSectionTouched('creator'); }}
+                                        selected={values.secondaryBodyType === (option as any)}
+                                        size="md"
+                                      >
+                                        {option}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
 
-	                      <div className="space-y-2">
-	                        <span className="text-xs text-gray-600 dark:text-white/60">Ethnicity</span>
-	                        <div className="flex flex-wrap gap-2">
-	                          {(isCreatorPro
-	                            ? ([
-	                              'Non-specific',
-	                              'White / European descent',
-	                              'Black / African descent',
-	                              'Latino / Hispanic',
-	                              'Asian',
-	                              'Middle Eastern',
-	                              'South Asian',
-	                              'Mixed',
-	                            ] as const)
-	                            : ([
-	                              'Non-specific',
-	                              'White / European descent',
-	                              'Black / African descent',
-	                              'Latino / Hispanic',
-	                            ] as const)
-	                          ).map(option => (
-	                            <Chip
-	                              key={option}
-	                              onClick={() => { updateValue('ethnicity', option); markSectionTouched('creator'); }}
-	                              selected={values.ethnicity === option}
-	                              size="md"
-	                            >
-	                              {option}
-	                            </Chip>
-	                          ))}
-	                        </div>
-	                      </div>
+                      <div className="space-y-2">
+                        <span className="text-xs text-gray-600 dark:text-white/60">Ethnicity</span>
+                        <div className="flex flex-wrap gap-2">
+                          {(isCreatorPro
+                            ? ([
+                              'Non-specific',
+                              'White / European descent',
+                              'Black / African descent',
+                              'Latino / Hispanic',
+                              'Asian',
+                              'Middle Eastern',
+                              'South Asian',
+                              'Mixed',
+                            ] as const)
+                            : ([
+                              'Non-specific',
+                              'White / European descent',
+                              'Black / African descent',
+                              'Latino / Hispanic',
+                            ] as const)
+                          ).map(option => (
+                            <Chip
+                              key={option}
+                              onClick={() => { updateValue('ethnicity', option); markSectionTouched('creator'); }}
+                              selected={values.ethnicity === option}
+                              size="md"
+                            >
+                              {option}
+                            </Chip>
+                          ))}
+                        </div>
+                      </div>
                     </section>
 
                     <section className="space-y-6">
@@ -5265,21 +5269,21 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </>
                       )}
 
-	                      <div className={`flex items-center justify-between pt-4 ${(!hasFirstGenerationComplete || hasModelReference) ? 'opacity-50' : ''}`}>
-	                        <div>
-	                          <p className="text-xs text-gray-600 dark:text-white/60">Keep same person</p>
-	                          <p className="text-[11px] text-gray-400 dark:text-white/40">Locks identity across renders (available after first generation)</p>
-	                        </div>
-	                        <Toggle
-	                          checked={values.sameCreatorAcrossScenes}
-	                          disabled={!hasFirstGenerationComplete || hasModelReference}
-	                          onCheckedChange={(next) => {
-	                            if (!hasFirstGenerationComplete || hasModelReference) return;
-	                            updateValue('sameCreatorAcrossScenes', next);
-	                            markSectionTouched('creator');
-	                          }}
-	                          aria-label="Keep same person"
-	                        />
+                      <div className={`flex items-center justify-between pt-4 ${(!hasFirstGenerationComplete || hasModelReference) ? 'opacity-50' : ''}`}>
+                        <div>
+                          <p className="text-xs text-gray-600 dark:text-white/60">Keep same person</p>
+                          <p className="text-[11px] text-gray-400 dark:text-white/40">Locks identity across renders (available after first generation)</p>
+                        </div>
+                        <Toggle
+                          checked={values.sameCreatorAcrossScenes}
+                          disabled={!hasFirstGenerationComplete || hasModelReference}
+                          onCheckedChange={(next) => {
+                            if (!hasFirstGenerationComplete || hasModelReference) return;
+                            updateValue('sameCreatorAcrossScenes', next);
+                            markSectionTouched('creator');
+                          }}
+                          aria-label="Keep same person"
+                        />
                       </div>
                     </section>
                   </>
@@ -5347,53 +5351,53 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </div>
                       </div>
 
-	                      <div className="space-y-2">
-	                        <span className="text-xs font-semibold text-gray-900 dark:text-white">People</span>
-	                        {values.ugcRealMode && (
-	                          <p className="text-[11px] text-gray-500 dark:text-white/40">
-	                            Raw Domestic UGC: multiple people are supported, but results may be less consistent.
-	                          </p>
-	                        )}
-	                        <div className="flex flex-wrap gap-2">
-	                          <Chip
-	                            selected={values.personCount === 'single'}
-	                            onClick={() => {
-	                              updateValue('personCount', 'single');
-	                              updateValue('editSecondaryPerson', false);
-	                              markSectionTouched('creator');
-	                            }}
-	                            size="md"
-	                          >
-	                            Single
-	                          </Chip>
-	                          <Chip
-	                            selected={values.personCount === 'couple'}
-	                            onClick={() => {
-	                              updateValue('personCount', 'couple');
-	                              updateValue('editSecondaryPerson', true);
-	                              if (!values.coupleStaging) updateValue('coupleStaging', 'Together (side-by-side)');
-	                              if (!values.secondaryAge || values.secondaryAge === 30) updateValue('secondaryAge', Math.min(90, Math.max(18, values.age + 2)));
-	                              markSectionTouched('creator');
-	                            }}
-	                            size="md"
-	                          >
-	                            Couple
-	                          </Chip>
-	                          <Chip
-	                            selected={values.personCount === 'group'}
-	                            onClick={() => {
-	                              updateValue('personCount', 'group');
-	                              updateValue('editSecondaryPerson', false);
-	                              markSectionTouched('creator');
-	                            }}
-	                            size="md"
-	                          >
-	                            Group
-	                          </Chip>
-	                        </div>
-	                        {values.personCount === 'couple' && (
-	                          <div className="flex flex-wrap gap-2">
-	                            <Chip
+                      <div className="space-y-2">
+                        <span className="text-xs font-semibold text-gray-900 dark:text-white">People</span>
+                        {values.ugcRealMode && (
+                          <p className="text-[11px] text-gray-500 dark:text-white/40">
+                            Raw Domestic UGC: multiple people are supported, but results may be less consistent.
+                          </p>
+                        )}
+                        <div className="flex flex-wrap gap-2">
+                          <Chip
+                            selected={values.personCount === 'single'}
+                            onClick={() => {
+                              updateValue('personCount', 'single');
+                              updateValue('editSecondaryPerson', false);
+                              markSectionTouched('creator');
+                            }}
+                            size="md"
+                          >
+                            Single
+                          </Chip>
+                          <Chip
+                            selected={values.personCount === 'couple'}
+                            onClick={() => {
+                              updateValue('personCount', 'couple');
+                              updateValue('editSecondaryPerson', true);
+                              if (!values.coupleStaging) updateValue('coupleStaging', 'Together (side-by-side)');
+                              if (!values.secondaryAge || values.secondaryAge === 30) updateValue('secondaryAge', Math.min(90, Math.max(18, values.age + 2)));
+                              markSectionTouched('creator');
+                            }}
+                            size="md"
+                          >
+                            Couple
+                          </Chip>
+                          <Chip
+                            selected={values.personCount === 'group'}
+                            onClick={() => {
+                              updateValue('personCount', 'group');
+                              updateValue('editSecondaryPerson', false);
+                              markSectionTouched('creator');
+                            }}
+                            size="md"
+                          >
+                            Group
+                          </Chip>
+                        </div>
+                        {values.personCount === 'couple' && (
+                          <div className="flex flex-wrap gap-2">
+                            <Chip
                               selected={values.coupleSex === 'same'}
                               onClick={() => {
                                 updateValue('coupleSex', 'same');
@@ -5414,27 +5418,27 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               size="md"
                             >
                               Different sex
-	                            </Chip>
-	                          </div>
-	                        )}
-	                        {values.personCount === 'couple' && (
-	                          <div className="flex flex-wrap gap-2 pt-1">
-	                            {RITUAL_COUPLE_STAGING_OPTIONS.map(option => (
-	                              <Chip
-	                                key={option}
-	                                selected={values.coupleStaging === option}
-	                                onClick={() => {
-	                                  updateValue('coupleStaging', option);
-	                                  markSectionTouched('creator');
-	                                }}
-	                                size="md"
-	                              >
-	                                {option}
-	                              </Chip>
-	                            ))}
-	                          </div>
-	                        )}
-	                      </div>
+                            </Chip>
+                          </div>
+                        )}
+                        {values.personCount === 'couple' && (
+                          <div className="flex flex-wrap gap-2 pt-1">
+                            {RITUAL_COUPLE_STAGING_OPTIONS.map(option => (
+                              <Chip
+                                key={option}
+                                selected={values.coupleStaging === option}
+                                onClick={() => {
+                                  updateValue('coupleStaging', option);
+                                  markSectionTouched('creator');
+                                }}
+                                size="md"
+                              >
+                                {option}
+                              </Chip>
+                            ))}
+                          </div>
+                        )}
+                      </div>
 
                       <div className="space-y-2">
                         <span className="text-xs font-semibold text-gray-900 dark:text-white">Ethnicity</span>
@@ -5868,13 +5872,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       />
                     </div>
 
-	                    {values.ugcRealMode && (
-	                      <>
-	                        <div className="rounded-2xl border border-gray-200 bg-white p-4 space-y-2">
-	                          <div className="flex flex-wrap items-start justify-between gap-3">
-	                            <div className="min-w-0">
-	                              <p className="text-[10px] uppercase tracking-[0.2em] text-gray-500 font-extrabold">IMPERFECTION LEVEL</p>
-	                            </div>
+                    {values.ugcRealMode && (
+                      <>
+                        <div className="rounded-2xl border border-gray-200 bg-white p-4 space-y-2">
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="text-[10px] uppercase tracking-[0.2em] text-gray-500 font-extrabold">IMPERFECTION LEVEL</p>
+                            </div>
                             <div className="flex flex-wrap justify-end gap-2">
                               {(['low', 'medium', 'high'] as const).map(level => (
                                 <button
@@ -5886,18 +5890,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 >
                                   {level === 'low' ? 'Low' : level === 'medium' ? 'Medium' : 'High'}
                                 </button>
-	                              ))}
-	                            </div>
-	                          </div>
-	                        </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
                         <div className="space-y-4">
                           {RAW_DOMESTIC_CAPTURE_SECTIONS.map(section => {
                             const currentSelections = (values[section.field] as string[]) || [];
                             return (
                               <div key={section.field} className="space-y-3">
-	                                <div>
-	                                  <p className="text-xs uppercase tracking-wider text-gray-500">{section.title}</p>
-	                                </div>
+                                <div>
+                                  <p className="text-xs uppercase tracking-wider text-gray-500">{section.title}</p>
+                                </div>
                                 <div className="flex flex-wrap gap-2">
                                   {section.options.map(option => (
                                     <Chip
@@ -6539,16 +6543,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             option.label !== 'Laptop webcam (pro setup)'
                           )
                           .map(option => (
-                          <button
-                            key={option.value}
-                            type="button"
-                            onClick={() => { updateValue('cameraType', option.label); markSectionTouched('camera'); }}
-                            className={getPillClass(values.cameraType === option.label)}
-                            title={option.value}
-                          >
-                            {option.label}
-                          </button>
-                        ))}
+                            <button
+                              key={option.value}
+                              type="button"
+                              onClick={() => { updateValue('cameraType', option.label); markSectionTouched('camera'); }}
+                              className={getPillClass(values.cameraType === option.label)}
+                              title={option.value}
+                            >
+                              {option.label}
+                            </button>
+                          ))}
                       </div>
                       <SelectedOptionFooter
                         options={footerOptionsFromLabelValue(
@@ -7091,7 +7095,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         )
       }
 
-	      {/* No persistent warning blocks; show contextual errors only. */}
+      {/* No persistent warning blocks; show contextual errors only. */}
 
     </div >
   );

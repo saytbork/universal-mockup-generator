@@ -18,10 +18,10 @@ import {
   PERSON_PROP_OPTIONS, MICRO_LOCATION_OPTIONS, MICRO_LOCATION_NONE_VALUE, PERSON_EXPRESSION_OPTIONS, HAIR_STYLE_OPTIONS,
   CREATOR_PRESETS, PROP_BUNDLES, PRO_LENS_OPTIONS, PRO_LIGHTING_RIG_OPTIONS, PRO_POST_TREATMENT_OPTIONS, PRO_LOOK_PRESETS, PRODUCT_PLANE_OPTIONS, SUPPLEMENT_PHOTO_PRESETS, HERO_PERSON_PRESETS, HERO_PERSON_DESCRIPTION_PRESETS,
   HAIR_COLOR_OPTIONS, EYE_COLOR_OPTIONS, SKIN_TONE_OPTIONS, HeroLandingAlignment, HeroLandingShadowStyle, DOWNLOAD_CREDIT_CONFIG, HIGH_RES_UNAVAILABLE_MESSAGE, SKIN_REALISM_OPTIONS,
-	  COMPOSITION_MODE_OPTIONS, SIDE_PLACEMENT_OPTIONS,
-	  CAMERA_SHOT_OPTIONS, CAMERA_ANGLE_OPTIONS, CAMERA_DISTANCE_OPTIONS,
-	  getOptionValueByLabel
-	} from './constants';
+  COMPOSITION_MODE_OPTIONS, SIDE_PLACEMENT_OPTIONS,
+  CAMERA_SHOT_OPTIONS, CAMERA_ANGLE_OPTIONS, CAMERA_DISTANCE_OPTIONS,
+  getOptionValueByLabel
+} from './constants';
 import type { CreatorPreset, DownloadResolution, HeroPosePreset, PropBundle, ProLookPreset, SupplementPhotoPreset } from './constants';
 import BundleSelector from './src/bundles/components/BundleSelector';
 import CustomBundleBuilder from './src/bundles/components/CustomBundleBuilder';
@@ -202,24 +202,24 @@ const pickPersonDetails = (options: MockupOptions): PersonDetails => ({
   pose: options.personPose ?? options.pose,
 });
 
-	const buildActiveProductFromAsset = (asset: ProductAsset): ActiveProduct | null => {
-	  if (!asset.base64 || !asset.mimeType) {
-	    return null;
-	  }
-	  const heightCm = (() => {
-	    if (asset.heightValue === null || asset.heightValue === undefined) return undefined;
-	    const value = Number(asset.heightValue);
-	    if (!Number.isFinite(value) || value <= 0) return undefined;
-	    return asset.heightUnit === 'in' ? value * 2.54 : value;
-	  })();
-	  return {
-	    id: asset.id,
-	    base64: asset.base64,
-	    mimeType: asset.mimeType,
-	    name: asset.label || 'Product',
-	    heightCm,
-	  };
-	};
+const buildActiveProductFromAsset = (asset: ProductAsset): ActiveProduct | null => {
+  if (!asset.base64 || !asset.mimeType) {
+    return null;
+  }
+  const heightCm = (() => {
+    if (asset.heightValue === null || asset.heightValue === undefined) return undefined;
+    const value = Number(asset.heightValue);
+    if (!Number.isFinite(value) || value <= 0) return undefined;
+    return asset.heightUnit === 'in' ? value * 2.54 : value;
+  })();
+  return {
+    id: asset.id,
+    base64: asset.base64,
+    mimeType: asset.mimeType,
+    name: asset.label || 'Product',
+    heightCm,
+  };
+};
 
 const createPersonIdentityPackage = (options: MockupOptions, overrides?: Partial<PersonIdentityPackage>): PersonIdentityPackage => ({
   identityLock: overrides?.identityLock ?? false,
@@ -620,7 +620,7 @@ const describeAgeGroup = (ageGroup: string, gender: string) => {
     default:
       return `a ${genderNoun} aged ${ageGroup}`;
   }
-  };
+};
 
 type MoodSuggestion = {
   moodLabel: string;
@@ -769,7 +769,7 @@ const normalizeGeminiModel = (raw?: string) => raw || '';
 const GEMINI_IMAGE_MODEL = normalizeGeminiModel('gemini-2.5-flash-image') || 'gemini-2.5-flash-image';
 const GOOGLE_MODEL = import.meta.env.VITE_GOOGLE_MODEL ?? '';
 
- const VIDEO_CREDIT_COST = 15;
+const VIDEO_CREDIT_COST = 15;
 
 const PLAN_UNLOCK_CODES: Record<string, PlanTier> = {
   CREATOR15: 'creator',
@@ -1286,16 +1286,16 @@ const App: React.FC = () => {
       for (const asset of productAssets) {
         if (canceled) return;
         if (!asset.base64 || !asset.mimeType) continue;
-	        await addProductWithPalette({
-	          id: asset.id,
-	          name: asset.label || 'Product',
-	          imageUrl: asset.previewUrl || '',
-	          base64: asset.base64,
-	          mimeType: asset.mimeType,
-	          heightValue: asset.heightValue,
-	          heightUnit: asset.heightUnit,
-	        });
-	      }
+        await addProductWithPalette({
+          id: asset.id,
+          name: asset.label || 'Product',
+          imageUrl: asset.previewUrl || '',
+          base64: asset.base64,
+          mimeType: asset.mimeType,
+          heightValue: asset.heightValue,
+          heightUnit: asset.heightUnit,
+        });
+      }
       if (canceled) return;
       console.log('[PRODUCT STUDIO SYNC] Products synced:', useProductStudioStore.getState().products.length);
     })();
@@ -1349,6 +1349,7 @@ const App: React.FC = () => {
   const [isPreparingHiRes, setIsPreparingHiRes] = useState(false);
   const [hiResError, setHiResError] = useState<string | null>(null);
   const [isImageLoading, setIsImageLoading] = useState(false);
+  const [isGeneratingSequence, setIsGeneratingSequence] = useState(false);
   const [imageError, setImageError] = useState<string | null>(null);
   const [editPrompt, setEditPrompt] = useState('');
   const [apiKey, setApiKey] = useState<string>(envApiKey ?? '');
@@ -1541,21 +1542,21 @@ const App: React.FC = () => {
       // ignore
     }
   }, []);
-	  const hasModelReference = Boolean(modelReferenceFile || personIdentityPackage.modelReferenceBase64);
-	  const selectedOutputAspectRatio = useMemo(() => {
-	    if (isProductPlacement) return PRODUCT_DEFAULT_ASPECT_RATIO;
-	    const label = lifestyleStep3Values?.aspectRatio;
-	    if (label) {
-	      const map: Record<string, string> = {
-	        '1:1 (Square)': '1:1',
-	        '4:5 (Portrait)': '4:5',
-	        '9:16 (Story)': '9:16',
-	        '16:9 (Landscape)': '16:9',
-	      };
-	      return map[label] ?? '1:1';
-	    }
-	    return lastAspectRatioRef.current || options.aspectRatio || '1:1';
-	  }, [isProductPlacement, lifestyleStep3Values?.aspectRatio, options.aspectRatio]);
+  const hasModelReference = Boolean(modelReferenceFile || personIdentityPackage.modelReferenceBase64);
+  const selectedOutputAspectRatio = useMemo(() => {
+    if (isProductPlacement) return PRODUCT_DEFAULT_ASPECT_RATIO;
+    const label = lifestyleStep3Values?.aspectRatio;
+    if (label) {
+      const map: Record<string, string> = {
+        '1:1 (Square)': '1:1',
+        '4:5 (Portrait)': '4:5',
+        '9:16 (Story)': '9:16',
+        '16:9 (Landscape)': '16:9',
+      };
+      return map[label] ?? '1:1';
+    }
+    return lastAspectRatioRef.current || options.aspectRatio || '1:1';
+  }, [isProductPlacement, lifestyleStep3Values?.aspectRatio, options.aspectRatio]);
   useEffect(() => {
     if (!hasModelReference) {
       setCompositionMode('balanced');
@@ -1994,22 +1995,22 @@ const App: React.FC = () => {
     setCopyError(null);
   }, [generatedImageUrl]);
 
-	  useEffect(() => {
-	    if (activeProductAsset) {
-	      setUploadedImageFile(activeProductAsset.file);
-	      setUploadedImagePreview(activeProductAsset.previewUrl);
-	      return;
-	    }
-	    // Avoid false "no upload" states during mode switches; fall back to first asset if available.
-	    if (productAssets.length) {
-	      setUploadedImageFile(productAssets[0].file);
-	      setUploadedImagePreview(productAssets[0].previewUrl);
-	      return;
-	    }
-	    setUploadedImageFile(null);
-	    setUploadedImagePreview(null);
-	    setIsMultiProductPackaging(false);
-	  }, [activeProductAsset, productAssets]);
+  useEffect(() => {
+    if (activeProductAsset) {
+      setUploadedImageFile(activeProductAsset.file);
+      setUploadedImagePreview(activeProductAsset.previewUrl);
+      return;
+    }
+    // Avoid false "no upload" states during mode switches; fall back to first asset if available.
+    if (productAssets.length) {
+      setUploadedImageFile(productAssets[0].file);
+      setUploadedImagePreview(productAssets[0].previewUrl);
+      return;
+    }
+    setUploadedImageFile(null);
+    setUploadedImagePreview(null);
+    setIsMultiProductPackaging(false);
+  }, [activeProductAsset, productAssets]);
 
   useEffect(() => {
     if (!isProductPlacement) return;
@@ -4258,16 +4259,16 @@ ${cleanPlacementStyle}
         if (options.customProp) {
           prompt += `Additional prop: ${clean(options.customProp)}. `;
         }
-	        if (options.personProps !== personPropNoneValue) {
-	          prompt += `Add supporting props such as ${cleanPersonProps} to reinforce the lifestyle context. `;
-	        }
-	        if (hasUploadedProduct && !hideProductMode) {
-	          prompt +=
-	            'PRODUCT FOCUS LOCK (CRITICAL): The product must always be the primary subject, on the front-most visual layer, and tack sharp; never in the background or out of focus. ';
-	        }
-	        if (!hasModelReference && options.productInteraction === 'showing to camera') {
-	          prompt += `Ensure the product is held close to the camera lens in the foreground, occupying the main focal plane with crisp sharpness. The person stays behind the product, slightly defocused or secondary in the frame. The product must NOT appear in the background and must always remain in the front-most visual layer. `;
-	        }
+        if (options.personProps !== personPropNoneValue) {
+          prompt += `Add supporting props such as ${cleanPersonProps} to reinforce the lifestyle context. `;
+        }
+        if (hasUploadedProduct && !hideProductMode) {
+          prompt +=
+            'PRODUCT FOCUS LOCK (CRITICAL): The product must always be the primary subject, on the front-most visual layer, and tack sharp; never in the background or out of focus. ';
+        }
+        if (!hasModelReference && options.productInteraction === 'showing to camera') {
+          prompt += `Ensure the product is held close to the camera lens in the foreground, occupying the main focal plane with crisp sharpness. The person stays behind the product, slightly defocused or secondary in the frame. The product must NOT appear in the background and must always remain in the front-most visual layer. `;
+        }
         if (options.microLocation !== microLocationDefault) {
           prompt += `Place them within ${cleanMicroLocation} to ground the scene. `;
         }
@@ -4315,19 +4316,19 @@ No warped, melted, or floating limbs.
         if (heroPosePromptCue) {
           prompt += ` ${clean(heroPosePromptCue)}`;
         }
-	        if (realModeActive) {
-	          if (ugcRealSettings.imperfectLighting) {
-	            prompt += ' Let the lighting stay imperfect with hotspots, hard falloff, and visible shadows on the wall.';
-	          }
-	          if (ugcRealSettings.lowResolution) {
-	            prompt += ' Simulate a low-resolution phone capture with pixel softness and slight chroma noise.';
-	          }
-	          if (ugcRealSettings.offFocus) {
-	            prompt += ' Keep focus stable: the product and label remain tack sharp at all times (no focus breathing on the product).';
-	          }
-	          if (ugcRealSettings.tiltedPhone) {
-	            prompt += ' Keep the camera horizon slightly tilted as if the phone was captured quickly.';
-	          }
+        if (realModeActive) {
+          if (ugcRealSettings.imperfectLighting) {
+            prompt += ' Let the lighting stay imperfect with hotspots, hard falloff, and visible shadows on the wall.';
+          }
+          if (ugcRealSettings.lowResolution) {
+            prompt += ' Simulate a low-resolution phone capture with pixel softness and slight chroma noise.';
+          }
+          if (ugcRealSettings.offFocus) {
+            prompt += ' Keep focus stable: the product and label remain tack sharp at all times (no focus breathing on the product).';
+          }
+          if (ugcRealSettings.tiltedPhone) {
+            prompt += ' Keep the camera horizon slightly tilted as if the phone was captured quickly.';
+          }
           const offCenterPreset = UGC_OFF_CENTER_OPTIONS.find(option => option.id === ugcRealSettings.offCenterId);
           if (offCenterPreset) {
             prompt += ` ${clean(offCenterPreset.prompt)}`;
@@ -4336,11 +4337,11 @@ No warped, melted, or floating limbs.
           if (framingPreset) {
             prompt += ` ${clean(framingPreset.prompt)}`;
           }
-	          if (ugcRealSettings.grainAmount > 0) {
-	            prompt += ` Add roughly ${ugcRealSettings.grainAmount}% grain to mimic raw smartphone texture (no focus blur on the product).`;
-	          }
-	          prompt += ' UGC Real Mode may add grain, lighting imperfections and organic feel to the scene, but must not degrade product clarity, readability or branding. ';
-	        }
+          if (ugcRealSettings.grainAmount > 0) {
+            prompt += ` Add roughly ${ugcRealSettings.grainAmount}% grain to mimic raw smartphone texture (no focus blur on the product).`;
+          }
+          prompt += ' UGC Real Mode may add grain, lighting imperfections and organic feel to the scene, but must not degrade product clarity, readability or branding. ';
+        }
       }
     }
 
@@ -4593,93 +4594,93 @@ If the model attempts to create a scene or environment, override it and force a 
             ? options.creationMode
             : 'studio';
 
-	        const basePromptOptions: any = {
-	          ...options,
-	          modelReferenceLockAccessories,
-	          contentStyle: isProductPlacement ? 'product' : 'ugc',
-	          creationIntent: isProductPlacement ? 'product' : options.creationIntent,
-	          sceneIntent: isProductPlacement ? 'ecommerce' : options.sceneIntent,
-	          creationMode: isProductPlacement
-	            ? safeProductCreationMode
-	            : (options.creationMode || 'lifestyle'),
-	          ...(isProductPlacement
-	            ? {
-	              cameraType:
-	                options.cameraType &&
-	                  !String(options.cameraType).toLowerCase().includes('smartphone') &&
-	                  !String(options.cameraType).toLowerCase().includes('phone')
-	                  ? options.cameraType
-	                  : 'DSLR / mirrorless camera',
-	              compositionMode: undefined,
-	              compositionModeStructural: undefined,
-	              creationModeStructural: undefined,
-	            }
-	            : {}),
-		          personIncluded,
-	          productAssets: (hideProductMode ? [] : generationProducts).map(p => {
-	            const sourceAsset = productAssets.find(asset => asset.id === p.id);
-	            return {
-	              id: p.id,
-	              label: sourceAsset?.label ?? 'Product',
-	              base64: p.base64,
-	              mimeType: p.mimeType,
-	              heightValue: sourceAsset?.heightValue ?? null,
-	              heightUnit: sourceAsset?.heightUnit ?? 'cm',
-	            };
-	          }),
-	          ...(shouldReuseIdentityKey
-	            ? {
-	              identityKey: identityContinuityRef.current?.identityKey,
-	              identitySeed: identityContinuityRef.current?.identitySeed,
-	              identityMode: 'locked',
-	            }
-	            : {}),
-	        };
-	
-	        // Ensure every render produces a different person by default (while keeping age/gender/etc),
-	        // unless the user explicitly enables "Same character" OR uses a Model Reference (which must lock identity).
-	        const shouldForceRandomIdentity =
-	          !isProductPlacement &&
-	          !hasModelReference &&
-	          lifestyleStep3Values?.sameCreatorAcrossScenes !== true &&
-	          personIncluded === true;
-	        if (shouldForceRandomIdentity && !shouldReuseIdentityKey) {
-	          const pickRandomOptionValue = (list: Option[], excludeValues: Set<string> = new Set()) => {
-	            const candidates = list
-	              .map(item => item?.value)
-	              .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
-	              .filter(value => !excludeValues.has(value));
-	            if (!candidates.length) return null;
-	            return candidates[Math.floor(Math.random() * candidates.length)];
-	          };
-	          const runtimeUuid =
-	            (typeof globalThis !== 'undefined' && (globalThis as any)?.crypto?.randomUUID)
-	              ? (globalThis as any).crypto.randomUUID()
-	              : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-	          basePromptOptions.identityMode = 'auto';
-	          basePromptOptions.identityVariationToken = runtimeUuid;
-	          basePromptOptions.identityKey = undefined;
-	          basePromptOptions.identitySeed = runtimeUuid;
+        const basePromptOptions: any = {
+          ...options,
+          modelReferenceLockAccessories,
+          contentStyle: isProductPlacement ? 'product' : 'ugc',
+          creationIntent: isProductPlacement ? 'product' : options.creationIntent,
+          sceneIntent: isProductPlacement ? 'ecommerce' : options.sceneIntent,
+          creationMode: isProductPlacement
+            ? safeProductCreationMode
+            : (options.creationMode || 'lifestyle'),
+          ...(isProductPlacement
+            ? {
+              cameraType:
+                options.cameraType &&
+                  !String(options.cameraType).toLowerCase().includes('smartphone') &&
+                  !String(options.cameraType).toLowerCase().includes('phone')
+                  ? options.cameraType
+                  : 'DSLR / mirrorless camera',
+              compositionMode: undefined,
+              compositionModeStructural: undefined,
+              creationModeStructural: undefined,
+            }
+            : {}),
+          personIncluded,
+          productAssets: (hideProductMode ? [] : generationProducts).map(p => {
+            const sourceAsset = productAssets.find(asset => asset.id === p.id);
+            return {
+              id: p.id,
+              label: sourceAsset?.label ?? 'Product',
+              base64: p.base64,
+              mimeType: p.mimeType,
+              heightValue: sourceAsset?.heightValue ?? null,
+              heightUnit: sourceAsset?.heightUnit ?? 'cm',
+            };
+          }),
+          ...(shouldReuseIdentityKey
+            ? {
+              identityKey: identityContinuityRef.current?.identityKey,
+              identitySeed: identityContinuityRef.current?.identitySeed,
+              identityMode: 'locked',
+            }
+            : {}),
+        };
 
-	          // Make the "different person" perceptible by varying non-sensitive appearance traits
-	          // (without changing age unless the user changes it).
-	          // Only apply when the user hasn't explicitly chosen these controls.
-	          if (!selectedCategories.has('hairStyle')) {
-	            const nextHairStyle = pickRandomOptionValue(HAIR_STYLE_OPTIONS as any, new Set([options.hairStyle]));
-	            if (nextHairStyle) basePromptOptions.hairStyle = nextHairStyle;
-	          }
-	          if (!selectedCategories.has('hairColor')) {
-	            const nextHairColor = pickRandomOptionValue(HAIR_COLOR_OPTIONS as any, new Set([options.hairColor]));
-	            if (nextHairColor) basePromptOptions.hairColor = nextHairColor;
-	          }
-	          if (!selectedCategories.has('eyeColor')) {
-	            const nextEyeColor = pickRandomOptionValue(EYE_COLOR_OPTIONS as any, new Set([options.eyeColor]));
-	            if (nextEyeColor) basePromptOptions.eyeColor = nextEyeColor;
-	          }
-	        } else if (!shouldReuseIdentityKey) {
-	          // Avoid accidental carryover when the toggle is OFF.
-	          basePromptOptions.identityKey = undefined;
-	        }
+        // Ensure every render produces a different person by default (while keeping age/gender/etc),
+        // unless the user explicitly enables "Same character" OR uses a Model Reference (which must lock identity).
+        const shouldForceRandomIdentity =
+          !isProductPlacement &&
+          !hasModelReference &&
+          lifestyleStep3Values?.sameCreatorAcrossScenes !== true &&
+          personIncluded === true;
+        if (shouldForceRandomIdentity && !shouldReuseIdentityKey) {
+          const pickRandomOptionValue = (list: Option[], excludeValues: Set<string> = new Set()) => {
+            const candidates = list
+              .map(item => item?.value)
+              .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+              .filter(value => !excludeValues.has(value));
+            if (!candidates.length) return null;
+            return candidates[Math.floor(Math.random() * candidates.length)];
+          };
+          const runtimeUuid =
+            (typeof globalThis !== 'undefined' && (globalThis as any)?.crypto?.randomUUID)
+              ? (globalThis as any).crypto.randomUUID()
+              : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+          basePromptOptions.identityMode = 'auto';
+          basePromptOptions.identityVariationToken = runtimeUuid;
+          basePromptOptions.identityKey = undefined;
+          basePromptOptions.identitySeed = runtimeUuid;
+
+          // Make the "different person" perceptible by varying non-sensitive appearance traits
+          // (without changing age unless the user changes it).
+          // Only apply when the user hasn't explicitly chosen these controls.
+          if (!selectedCategories.has('hairStyle')) {
+            const nextHairStyle = pickRandomOptionValue(HAIR_STYLE_OPTIONS as any, new Set([options.hairStyle]));
+            if (nextHairStyle) basePromptOptions.hairStyle = nextHairStyle;
+          }
+          if (!selectedCategories.has('hairColor')) {
+            const nextHairColor = pickRandomOptionValue(HAIR_COLOR_OPTIONS as any, new Set([options.hairColor]));
+            if (nextHairColor) basePromptOptions.hairColor = nextHairColor;
+          }
+          if (!selectedCategories.has('eyeColor')) {
+            const nextEyeColor = pickRandomOptionValue(EYE_COLOR_OPTIONS as any, new Set([options.eyeColor]));
+            if (nextEyeColor) basePromptOptions.eyeColor = nextEyeColor;
+          }
+        } else if (!shouldReuseIdentityKey) {
+          // Avoid accidental carryover when the toggle is OFF.
+          basePromptOptions.identityKey = undefined;
+        }
 
         // If LifestyleStep3 values exist, map them to PromptOptions
         let promptOptions = basePromptOptions;
@@ -4751,36 +4752,36 @@ If the model attempts to create a scene or environment, override it and force a 
           };
         }
 
-	        // Product mode safety: force the model to keep the referenced product visible.
-	        if (isProductPlacement) {
-	          finalPrompt = [
-	            finalPrompt,
-	            'CRITICAL: The product shown in the reference image(s) MUST appear in the final image, clearly visible and not cropped out.',
-	            'Do NOT generate an empty scene/background; never omit the product.',
-	          ].join(' ');
-	        } else if (!hideProductMode && generationProducts.length > 0) {
-	          // Lifestyle/UGC safety: ensure the product is foregrounded and tack-sharp.
-	          // This prevents "nice portrait + blurry product" outputs when the user uploads a product reference.
-	          finalPrompt = [
-	            finalPrompt,
-	            'CRITICAL PRODUCT FOCUS: The product must be in the foreground and be the sharpest object in the image.',
-	            'The label/logo must be fully readable (no blur, no glare, no occlusion).',
-	            'Do NOT use shallow depth of field, portrait mode, bokeh, or background separation. Keep a single-plane image with flat focus.',
-	            'If a person is present, they may be slightly less sharp than the product, but the product must be tack sharp.',
-	          ].join(' ');
-	        } else if (isProPhotographer) {
-	          const proBits = [options.proLens, options.proLightingRig, options.proPostTreatment].filter(Boolean);
-	          if (proBits.length) {
-	            finalPrompt = `${finalPrompt} PRO PHOTOGRAPHER OVERRIDES: ${proBits.join(' ')}.`;
-	          }
-	        }
-	
-	        if (!isProductPlacement && personIncluded) {
-	          finalPrompt = [
-	            finalPrompt,
-	            'REALISM HARD RULE: Photorealistic real human photo. Absolutely no 3D/CGI, no cartoon, no illustration, no anime, no doll-like/plastic skin, no game-render look.',
-	          ].join(' ');
-	        }
+        // Product mode safety: force the model to keep the referenced product visible.
+        if (isProductPlacement) {
+          finalPrompt = [
+            finalPrompt,
+            'CRITICAL: The product shown in the reference image(s) MUST appear in the final image, clearly visible and not cropped out.',
+            'Do NOT generate an empty scene/background; never omit the product.',
+          ].join(' ');
+        } else if (!hideProductMode && generationProducts.length > 0) {
+          // Lifestyle/UGC safety: ensure the product is foregrounded and tack-sharp.
+          // This prevents "nice portrait + blurry product" outputs when the user uploads a product reference.
+          finalPrompt = [
+            finalPrompt,
+            'CRITICAL PRODUCT FOCUS: The product must be in the foreground and be the sharpest object in the image.',
+            'The label/logo must be fully readable (no blur, no glare, no occlusion).',
+            'Do NOT use shallow depth of field, portrait mode, bokeh, or background separation. Keep a single-plane image with flat focus.',
+            'If a person is present, they may be slightly less sharp than the product, but the product must be tack sharp.',
+          ].join(' ');
+        } else if (isProPhotographer) {
+          const proBits = [options.proLens, options.proLightingRig, options.proPostTreatment].filter(Boolean);
+          if (proBits.length) {
+            finalPrompt = `${finalPrompt} PRO PHOTOGRAPHER OVERRIDES: ${proBits.join(' ')}.`;
+          }
+        }
+
+        if (!isProductPlacement && personIncluded) {
+          finalPrompt = [
+            finalPrompt,
+            'REALISM HARD RULE: Photorealistic real human photo. Absolutely no 3D/CGI, no cartoon, no illustration, no anime, no doll-like/plastic skin, no game-render look.',
+          ].join(' ');
+        }
 
         // Persist continuity identity only when explicitly requested.
         // Otherwise "locked" mode would mint a new identityKey every click → different person.
@@ -4802,11 +4803,11 @@ If the model attempts to create a scene or environment, override it and force a 
         // MANDATORY LOG - Final prompt string MUST show injected values
         console.log('[FINAL PROMPT STRING]', finalPrompt);
 
-	      const aspectRatio =
-	        isProductPlacement
-	          ? PRODUCT_DEFAULT_ASPECT_RATIO
-	          : (promptOptions.aspectRatio || options.aspectRatio || '1:1');
-	      lastAspectRatioRef.current = aspectRatio;
+        const aspectRatio =
+          isProductPlacement
+            ? PRODUCT_DEFAULT_ASPECT_RATIO
+            : (promptOptions.aspectRatio || options.aspectRatio || '1:1');
+        lastAspectRatioRef.current = aspectRatio;
 
         const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
         if (!resolvedApiKey) {
@@ -4817,79 +4818,79 @@ If the model attempts to create a scene or environment, override it and force a 
         const rawMode = !!promptOptions.ugcRealModeActive;
         const shouldIncludeHumanImage = personIncluded && !(naturalMode || rawMode);
         const shouldSendProductImage = generationProducts.length > 0 && !hideProductMode;
-	        const identityInlinePart = personIdentityPackage.modelReferenceBase64
-	          ? {
-	            inlineData: {
-	              data: personIdentityPackage.modelReferenceBase64,
-	              mimeType: personIdentityPackage.modelReferenceMime ?? 'image/png',
-	            },
-	            reference: true,
-	          }
-	          : null;
-	        const requestParts: any[] = [];
-	        requestParts.push({ text: finalPrompt });
-	        if (shouldSendProductImage) {
-	          for (const product of generationProducts) {
-	            // Higher-fidelity reference helps avoid warped labels/typography on the product.
-	            const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
-	              maxLongEdge: isProductPlacement ? 3072 : 2048,
-	              maxBase64Length: isProductPlacement ? 7_500_000 : 4_000_000,
-	              quality: isProductPlacement ? 0.99 : 0.96,
-	            });
-	            // Force reference images to match the selected Output Format aspect ratio.
-	            // Even with an explicit `aspectRatio` request, some models bias toward the reference image dimensions.
-	            const normalized = await letterboxDataUrlToAspectRatio(
-	              `data:${resized.mimeType};base64,${resized.base64}`,
-	              aspectRatio,
-	              {
-	                maxLongEdge: isProductPlacement ? 3072 : 2048,
-	                background: resized.mimeType === 'image/jpeg' ? '#FFFFFF' : null,
-	                mimeType: (resized.mimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
-	                quality: isProductPlacement ? 0.99 : 0.96,
-	              }
-	            );
-	            requestParts.push({
-	              inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
-	              reference: true,
-	            });
-	          }
-	        }
-	        if (shouldIncludeHumanImage) {
-	          if (identityInlinePart) {
-	            const sourceMime = String(identityInlinePart.inlineData?.mimeType ?? 'image/png');
-	            const normalized = await letterboxDataUrlToAspectRatio(
-	              `data:${sourceMime};base64,${identityInlinePart.inlineData.data}`,
-	              aspectRatio,
-	              {
-	                maxLongEdge: 2048,
-	                background: sourceMime === 'image/jpeg' ? '#FFFFFF' : null,
-	                mimeType: (sourceMime === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
-	                quality: 0.96,
-	              }
-	            );
-	            requestParts.push({
-	              inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
-	              reference: true,
-	            });
-	          } else if (modelReferenceFile) {
-	            const { base64: modelBase64, mimeType: modelMimeType } = await fileToBase64(modelReferenceFile);
-	            const normalized = await letterboxDataUrlToAspectRatio(
-	              `data:${modelMimeType};base64,${modelBase64}`,
-	              aspectRatio,
-	              {
-	                maxLongEdge: 2048,
-	                background: modelMimeType === 'image/jpeg' ? '#FFFFFF' : null,
-	                mimeType: (modelMimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
-	                quality: 0.96,
-	              }
-	            );
-	            requestParts.push({
-	              inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
-	              reference: true,
-	            });
-	          }
-	        }
-	        const payload = { parts: requestParts };
+        const identityInlinePart = personIdentityPackage.modelReferenceBase64
+          ? {
+            inlineData: {
+              data: personIdentityPackage.modelReferenceBase64,
+              mimeType: personIdentityPackage.modelReferenceMime ?? 'image/png',
+            },
+            reference: true,
+          }
+          : null;
+        const requestParts: any[] = [];
+        requestParts.push({ text: finalPrompt });
+        if (shouldSendProductImage) {
+          for (const product of generationProducts) {
+            // Higher-fidelity reference helps avoid warped labels/typography on the product.
+            const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
+              maxLongEdge: isProductPlacement ? 3072 : 2048,
+              maxBase64Length: isProductPlacement ? 7_500_000 : 4_000_000,
+              quality: isProductPlacement ? 0.99 : 0.96,
+            });
+            // Force reference images to match the selected Output Format aspect ratio.
+            // Even with an explicit `aspectRatio` request, some models bias toward the reference image dimensions.
+            const normalized = await letterboxDataUrlToAspectRatio(
+              `data:${resized.mimeType};base64,${resized.base64}`,
+              aspectRatio,
+              {
+                maxLongEdge: isProductPlacement ? 3072 : 2048,
+                background: resized.mimeType === 'image/jpeg' ? '#FFFFFF' : null,
+                mimeType: (resized.mimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
+                quality: isProductPlacement ? 0.99 : 0.96,
+              }
+            );
+            requestParts.push({
+              inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
+              reference: true,
+            });
+          }
+        }
+        if (shouldIncludeHumanImage) {
+          if (identityInlinePart) {
+            const sourceMime = String(identityInlinePart.inlineData?.mimeType ?? 'image/png');
+            const normalized = await letterboxDataUrlToAspectRatio(
+              `data:${sourceMime};base64,${identityInlinePart.inlineData.data}`,
+              aspectRatio,
+              {
+                maxLongEdge: 2048,
+                background: sourceMime === 'image/jpeg' ? '#FFFFFF' : null,
+                mimeType: (sourceMime === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
+                quality: 0.96,
+              }
+            );
+            requestParts.push({
+              inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
+              reference: true,
+            });
+          } else if (modelReferenceFile) {
+            const { base64: modelBase64, mimeType: modelMimeType } = await fileToBase64(modelReferenceFile);
+            const normalized = await letterboxDataUrlToAspectRatio(
+              `data:${modelMimeType};base64,${modelBase64}`,
+              aspectRatio,
+              {
+                maxLongEdge: 2048,
+                background: modelMimeType === 'image/jpeg' ? '#FFFFFF' : null,
+                mimeType: (modelMimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
+                quality: 0.96,
+              }
+            );
+            requestParts.push({
+              inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
+              reference: true,
+            });
+          }
+        }
+        const payload = { parts: requestParts };
         const payloadLog = {
           isNaturalUgc: naturalMode || rawMode,
           productImageSent: shouldSendProductImage,
@@ -4929,30 +4930,30 @@ If the model attempts to create a scene or environment, override it and force a 
           setRemoteCredits(data.remaining_credits);
         }
 
-	        const finalUrl = `data:image/png;base64,${encodedImage}`;
-	        const normalizedOutput = await letterboxDataUrlToAspectRatio(finalUrl, aspectRatio, {
-	          maxLongEdge: 4096,
-	          background: null,
-	          mimeType: 'image/png',
-	        });
-	        const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
-	        setGeneratedImageUrl(outputUrl);
-	        setHasFirstGenerationComplete(true);  // Enable Keep Same Person toggle
-	        try {
-	          const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
-	          void addLocalGalleryEntry({
-	            userId: galleryUserId,
-	            imageUrl: outputUrl,
-	            createdAt: Date.now(),
-	            plan: resolvedPlanTier,
-	            aspectRatio,
-	          });
-	          void pruneLocalGallery(galleryUserId, 30, 120);
-	        } catch (e) {
-	          console.warn('Local gallery save failed', e);
-	        }
-	        void reportGalleryEntry(outputUrl);
-	        runHiResPipeline(outputUrl);
+        const finalUrl = `data:image/png;base64,${encodedImage}`;
+        const normalizedOutput = await letterboxDataUrlToAspectRatio(finalUrl, aspectRatio, {
+          maxLongEdge: 4096,
+          background: null,
+          mimeType: 'image/png',
+        });
+        const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
+        setGeneratedImageUrl(outputUrl);
+        setHasFirstGenerationComplete(true);  // Enable Keep Same Person toggle
+        try {
+          const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
+          void addLocalGalleryEntry({
+            userId: galleryUserId,
+            imageUrl: outputUrl,
+            createdAt: Date.now(),
+            plan: resolvedPlanTier,
+            aspectRatio,
+          });
+          void pruneLocalGallery(galleryUserId, 30, 120);
+        } catch (e) {
+          console.warn('Local gallery save failed', e);
+        }
+        void reportGalleryEntry(outputUrl);
+        runHiResPipeline(outputUrl);
         if (!isTrialBypassActive) {
           if (!isUsingRemoteCredits) {
             const newCount = creditUsage + creditCost;
@@ -5026,110 +5027,110 @@ If the model attempts to create a scene or environment, override it and force a 
     ]
   );
 
-	  const handleGenerateEcommerceClick = useCallback(async () => {
-	    bundleSelectionRef.current = null;
-	    if (isTrialLocked) {
-	      setImageError(`You reached the ${currentPlan.label} limit (${planCreditLimit} credits). Upgrade your plan to keep generating scenes.`);
-	      return;
-	    }
-
-	    const generationProducts = activeProducts;
-	    if (!generationProducts.length) {
-	      setImageError("Please upload a product image first.");
-	      return;
-	    }
-	    if (!ecommerceSelectedSlots.length) {
-	      setImageError('Select at least one Ecommerce slot before generating.');
-	      return;
-	    }
-
-	    const creditCost = getImageCreditCost(options);
-	    const projectedCost = creditCost * ecommerceSelectedSlots.length;
-	    if (!isTrialBypassActive && projectedCost > remainingCredits) {
-	      setImageError('Not enough credits for these slots. Reduce slots or upgrade your plan.');
+  const handleGenerateEcommerceClick = useCallback(async () => {
+    bundleSelectionRef.current = null;
+    if (isTrialLocked) {
+      setImageError(`You reached the ${currentPlan.label} limit (${planCreditLimit} credits). Upgrade your plan to keep generating scenes.`);
       return;
     }
 
-	    resetOutputs();
-	    setGeneratedCopy(null);
-	    setCopyError(null);
-	    setIsImageLoading(true);
-		    setImageError(null);
+    const generationProducts = activeProducts;
+    if (!generationProducts.length) {
+      setImageError("Please upload a product image first.");
+      return;
+    }
+    if (!ecommerceSelectedSlots.length) {
+      setImageError('Select at least one Ecommerce slot before generating.');
+      return;
+    }
 
-		    try {
-		      // Ecommerce overlays are a Product Studio feature; build prompts from the ProductStudioStore
-		      // (not from legacy PromptEngine mapping), so all selected Product Studio options inject.
-		      const baseProductStateRaw = useProductStudioStore.getState();
-		      console.log('[PRODUCT STUDIO STATE][ECOM]', baseProductStateRaw);
+    const creditCost = getImageCreditCost(options);
+    const projectedCost = creditCost * ecommerceSelectedSlots.length;
+    if (!isTrialBypassActive && projectedCost > remainingCredits) {
+      setImageError('Not enough credits for these slots. Reduce slots or upgrade your plan.');
+      return;
+    }
 
-	      // Product Studio: force fixed output ratio (user request).
-		      const aspectRatio = PRODUCT_DEFAULT_ASPECT_RATIO;
-	      const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
-	      if (!resolvedApiKey) {
-	        return;
-	      }
+    resetOutputs();
+    setGeneratedCopy(null);
+    setCopyError(null);
+    setIsImageLoading(true);
+    setImageError(null);
 
-	      let lastUrl: string | null = null;
-	      for (const slotKey of ecommerceSelectedSlots) {
-	        const requiredBlankDir = ECOMMERCE_SLOT_REQUIRED_BLANK_SPACE[slotKey] ?? 'right';
-	        const reserveBlankSpace = ecommerceGenerationSettings.reserveBlankSpace;
+    try {
+      // Ecommerce overlays are a Product Studio feature; build prompts from the ProductStudioStore
+      // (not from legacy PromptEngine mapping), so all selected Product Studio options inject.
+      const baseProductStateRaw = useProductStudioStore.getState();
+      console.log('[PRODUCT STUDIO STATE][ECOM]', baseProductStateRaw);
 
-	        const slotProductState: any = {
-	          ...baseProductStateRaw,
-	          // Enforce studio-safe ecommerce builder; overlay rendering is handled in-app.
-	          mode: 'studio',
-	          sceneType: 'studio-branding',
-	          aspectRatio,
-	          // Slot-based blank-space control
-	          blankSpaceEnabled: reserveBlankSpace && requiredBlankDir !== 'center',
-	          blankSpaceSide:
-	            requiredBlankDir === 'left' || requiredBlankDir === 'right'
-	              ? requiredBlankDir
-	              : (baseProductStateRaw as any).blankSpaceSide ?? 'right',
-	          // Center "blank space" is represented via internal breathing room, not side-placement.
-	          negativeSpace: reserveBlankSpace && requiredBlankDir === 'center' ? 'intentional' : (baseProductStateRaw as any).negativeSpace,
-	          spacing: reserveBlankSpace && requiredBlankDir === 'center' ? 'airy' : (baseProductStateRaw as any).spacing,
-	        };
+      // Product Studio: force fixed output ratio (user request).
+      const aspectRatio = PRODUCT_DEFAULT_ASPECT_RATIO;
+      const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
+      if (!resolvedApiKey) {
+        return;
+      }
 
-	        const jobs = generateProductJobs(slotProductState);
-	        if (!jobs.length) {
-	          throw new Error(`No Product Studio jobs generated for slot ${slotKey}.`);
-	        }
-	        const finalPrompt = jobs[0].prompt;
+      let lastUrl: string | null = null;
+      for (const slotKey of ecommerceSelectedSlots) {
+        const requiredBlankDir = ECOMMERCE_SLOT_REQUIRED_BLANK_SPACE[slotKey] ?? 'right';
+        const reserveBlankSpace = ecommerceGenerationSettings.reserveBlankSpace;
 
-	        try {
-	          validatePrompt(finalPrompt, {
-	            allowHands: slotProductState.interaction !== 'none' || slotProductState.handsHolding === true,
-	          });
-	        } catch (validationError) {
-	          console.error('[PROMPT BLOCKED][ECOM]', validationError);
-	          throw validationError;
-	        }
+        const slotProductState: any = {
+          ...baseProductStateRaw,
+          // Enforce studio-safe ecommerce builder; overlay rendering is handled in-app.
+          mode: 'studio',
+          sceneType: 'studio-branding',
+          aspectRatio,
+          // Slot-based blank-space control
+          blankSpaceEnabled: reserveBlankSpace && requiredBlankDir !== 'center',
+          blankSpaceSide:
+            requiredBlankDir === 'left' || requiredBlankDir === 'right'
+              ? requiredBlankDir
+              : (baseProductStateRaw as any).blankSpaceSide ?? 'right',
+          // Center "blank space" is represented via internal breathing room, not side-placement.
+          negativeSpace: reserveBlankSpace && requiredBlankDir === 'center' ? 'intentional' : (baseProductStateRaw as any).negativeSpace,
+          spacing: reserveBlankSpace && requiredBlankDir === 'center' ? 'airy' : (baseProductStateRaw as any).spacing,
+        };
 
-	        console.log('[ECOM SLOT]', slotKey, {
-	          blankSpace: slotProductState.blankSpaceEnabled ? slotProductState.blankSpaceSide : 'off',
-	          promptPreview: finalPrompt.slice(0, 240),
-	        });
+        const jobs = generateProductJobs(slotProductState);
+        if (!jobs.length) {
+          throw new Error(`No Product Studio jobs generated for slot ${slotKey}.`);
+        }
+        const finalPrompt = jobs[0].prompt;
 
-	        const productParts: any[] = [];
-	        for (const product of generationProducts) {
-	          const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
-	            maxLongEdge: 2048,
-	            maxBase64Length: 4_000_000,
-	            quality: 0.96,
-	          });
-	          const normalized = await letterboxDataUrlToAspectRatio(
-	            `data:${resized.mimeType};base64,${resized.base64}`,
-	            aspectRatio,
-	            {
-	              maxLongEdge: 2048,
-	              background: resized.mimeType === 'image/jpeg' ? '#FFFFFF' : null,
-	              mimeType: (resized.mimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
-	              quality: 0.96,
-	            }
-	          );
-	          productParts.push({ inlineData: { data: normalized.base64, mimeType: normalized.mimeType }, reference: true });
-	        }
+        try {
+          validatePrompt(finalPrompt, {
+            allowHands: slotProductState.interaction !== 'none' || slotProductState.handsHolding === true,
+          });
+        } catch (validationError) {
+          console.error('[PROMPT BLOCKED][ECOM]', validationError);
+          throw validationError;
+        }
+
+        console.log('[ECOM SLOT]', slotKey, {
+          blankSpace: slotProductState.blankSpaceEnabled ? slotProductState.blankSpaceSide : 'off',
+          promptPreview: finalPrompt.slice(0, 240),
+        });
+
+        const productParts: any[] = [];
+        for (const product of generationProducts) {
+          const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
+            maxLongEdge: 2048,
+            maxBase64Length: 4_000_000,
+            quality: 0.96,
+          });
+          const normalized = await letterboxDataUrlToAspectRatio(
+            `data:${resized.mimeType};base64,${resized.base64}`,
+            aspectRatio,
+            {
+              maxLongEdge: 2048,
+              background: resized.mimeType === 'image/jpeg' ? '#FFFFFF' : null,
+              mimeType: (resized.mimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
+              quality: 0.96,
+            }
+          );
+          productParts.push({ inlineData: { data: normalized.base64, mimeType: normalized.mimeType }, reference: true });
+        }
 
         const response = await fetch('/api/generate', {
           method: 'POST',
@@ -5161,52 +5162,52 @@ If the model attempts to create a scene or environment, override it and force a 
           throw new Error(`Image generation failed for slot ${slotKey}.`);
         }
 
-	        const finalUrl = `data:image/png;base64,${encodedImage}`;
-	        const normalizedOutput = await letterboxDataUrlToAspectRatio(finalUrl, aspectRatio, {
-	          maxLongEdge: 4096,
-	          background: null,
-	          mimeType: 'image/png',
-	        });
-	        const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
-	        lastUrl = outputUrl;
-	        setEcommerceSlotBaseImages(prev => ({ ...prev, [slotKey]: outputUrl }));
-	        setGeneratedImageUrl(outputUrl);
-	        try {
-	          const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
-		          void addLocalGalleryEntry({
-		            userId: galleryUserId,
-		            imageUrl: outputUrl,
-		            createdAt: Date.now(),
-		            plan: resolvedPlanTier,
-		            aspectRatio,
-		          });
-		          void pruneLocalGallery(galleryUserId, 30, 120);
-		        } catch (e) {
-		          console.warn('Local gallery save failed', e);
-		        }
-	        void reportGalleryEntry(outputUrl);
-	      }
+        const finalUrl = `data:image/png;base64,${encodedImage}`;
+        const normalizedOutput = await letterboxDataUrlToAspectRatio(finalUrl, aspectRatio, {
+          maxLongEdge: 4096,
+          background: null,
+          mimeType: 'image/png',
+        });
+        const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
+        lastUrl = outputUrl;
+        setEcommerceSlotBaseImages(prev => ({ ...prev, [slotKey]: outputUrl }));
+        setGeneratedImageUrl(outputUrl);
+        try {
+          const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
+          void addLocalGalleryEntry({
+            userId: galleryUserId,
+            imageUrl: outputUrl,
+            createdAt: Date.now(),
+            plan: resolvedPlanTier,
+            aspectRatio,
+          });
+          void pruneLocalGallery(galleryUserId, 30, 120);
+        } catch (e) {
+          console.warn('Local gallery save failed', e);
+        }
+        void reportGalleryEntry(outputUrl);
+      }
 
       if (lastUrl) {
         runHiResPipeline(lastUrl);
       }
 
-	      if (!isTrialBypassActive) {
-          if (!isUsingRemoteCredits) {
-            setCreditUsage(prev => {
-              const next = prev + projectedCost;
-              if (typeof window !== 'undefined') {
-                window.localStorage.setItem(IMAGE_COUNT_KEY, String(next));
-              }
-              return next;
-            });
-          }
-	      }
-	    } catch (err) {
-	      console.error(err);
-	      let errorMessage = '';
-	      if (err instanceof Error) {
-	        errorMessage = err.message;
+      if (!isTrialBypassActive) {
+        if (!isUsingRemoteCredits) {
+          setCreditUsage(prev => {
+            const next = prev + projectedCost;
+            if (typeof window !== 'undefined') {
+              window.localStorage.setItem(IMAGE_COUNT_KEY, String(next));
+            }
+            return next;
+          });
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      let errorMessage = '';
+      if (err instanceof Error) {
+        errorMessage = err.message;
       } else if (typeof err === 'string') {
         errorMessage = err;
       } else {
@@ -5221,26 +5222,176 @@ If the model attempts to create a scene or environment, override it and force a 
       setIsImageLoading(false);
       bundleSelectionRef.current = null;
     }
-		  }, [
-		    activeProducts,
-		    ecommerceGenerationSettings.reserveBlankSpace,
-		    ecommerceSelectedSlots,
-		    getActiveApiKeyOrNotify,
-		    getImageCreditCost,
-		    isTrialBypassActive,
-	    isTrialLocked,
-	    currentPlan.label,
-	    planCreditLimit,
-	    remainingCredits,
-	    resetOutputs,
-	    options,
-		    runHiResPipeline,
-		    setShowPlanModal,
-		    reportGalleryEntry,
-      isAdmin,
-      setRemoteCredits,
-      resolvedPlanTier,
-		  ]);
+  }, [
+    activeProducts,
+    ecommerceGenerationSettings.reserveBlankSpace,
+    ecommerceSelectedSlots,
+    getActiveApiKeyOrNotify,
+    getImageCreditCost,
+    isTrialBypassActive,
+    isTrialLocked,
+    currentPlan.label,
+    planCreditLimit,
+    remainingCredits,
+    resetOutputs,
+    options,
+    runHiResPipeline,
+    setShowPlanModal,
+    reportGalleryEntry,
+    isAdmin,
+    setRemoteCredits,
+    resolvedPlanTier,
+  ]);
+
+  const handleGenerateNarrativeSequenceClick = useCallback(async () => {
+    if (isTrialLocked) {
+      setImageError(`You reached the ${currentPlan.label} limit (${planCreditLimit} credits). Upgrade your plan to keep generating scenes.`);
+      return;
+    }
+
+    const generationProducts = activeProducts;
+    if (!generationProducts.length) {
+      setImageError("Please upload a product image first.");
+      return;
+    }
+
+    const creditCost = getImageCreditCost(options);
+    const projectedCost = creditCost * 5; // 5 images in sequence
+    if (!isTrialBypassActive && projectedCost > remainingCredits) {
+      setImageError('Not enough credits for a 5-image narrative. Reduce slots or upgrade your plan.');
+      return;
+    }
+
+    resetOutputs();
+    setGeneratedCopy(null);
+    setCopyError(null);
+    setIsGeneratingSequence(true);
+    setIsImageLoading(true);
+    setImageError(null);
+
+    try {
+      const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
+      if (!resolvedApiKey) return;
+
+      const aspectRatio = PRODUCT_DEFAULT_ASPECT_RATIO;
+      const productParts: any[] = [];
+      for (const product of generationProducts) {
+        const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
+          maxLongEdge: 2048,
+          maxBase64Length: 4_000_000,
+          quality: 0.96,
+        });
+        const normalized = await letterboxDataUrlToAspectRatio(
+          `data:${resized.mimeType};base64,${resized.base64}`,
+          aspectRatio,
+          {
+            maxLongEdge: 2048,
+            background: resized.mimeType === 'image/jpeg' ? '#FFFFFF' : null,
+            mimeType: (resized.mimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
+            quality: 0.96,
+          }
+        );
+        productParts.push({ inlineData: { data: normalized.base64, mimeType: normalized.mimeType }, reference: true });
+      }
+
+      for (let i = 0; i < 5; i++) {
+        // Update store with sequence index
+        useProductStudioStore.setState({
+          ecommerceSequenceActive: true,
+          ecommerceSequenceIndex: i,
+          mode: 'studio', // Force studio mode for narrative
+        });
+
+        const state = useProductStudioStore.getState();
+        const jobs = generateProductJobs(state as any);
+        const finalPrompt = jobs[0].prompt;
+
+        console.log(`[ECOM SEQUENCE] Step ${i + 1}/5:`, finalPrompt.slice(0, 200));
+
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: GEMINI_IMAGE_MODEL,
+            parts: [{ text: finalPrompt }, ...productParts],
+            aspectRatio,
+            preserveReferenceImage: false,
+            apiKey: resolvedApiKey,
+          }),
+        });
+
+        const responseData = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(typeof responseData?.error === 'string' ? responseData.error : 'Generation failed');
+        }
+
+        if (typeof responseData?.remaining_credits === 'number') {
+          setRemoteCredits(responseData.remaining_credits);
+        }
+
+        const encodedImage = typeof responseData?.imageBase64 === 'string' ? responseData.imageBase64 : '';
+        if (encodedImage) {
+          const finalUrl = `data:image/png;base64,${encodedImage}`;
+          const normalizedOutput = await letterboxDataUrlToAspectRatio(finalUrl, aspectRatio, {
+            maxLongEdge: 4096,
+            background: null,
+            mimeType: 'image/png',
+          });
+          const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
+          setGeneratedImageUrl(outputUrl);
+
+          const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
+          void addLocalGalleryEntry({
+            userId: galleryUserId,
+            imageUrl: outputUrl,
+            createdAt: Date.now(),
+            plan: resolvedPlanTier,
+            aspectRatio,
+          });
+          void reportGalleryEntry(outputUrl);
+          if (i === 4) runHiResPipeline(outputUrl);
+        }
+      }
+
+      if (!isTrialBypassActive && !isUsingRemoteCredits) {
+        setCreditUsage(prev => {
+          const next = prev + projectedCost;
+          if (typeof window !== 'undefined') {
+            window.localStorage.setItem(IMAGE_COUNT_KEY, String(next));
+          }
+          return next;
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      setImageError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setIsGeneratingSequence(false);
+      setIsImageLoading(false);
+      // Reset sequence state in store
+      useProductStudioStore.setState({
+        ecommerceSequenceActive: false,
+        ecommerceSequenceIndex: undefined
+      });
+    }
+  }, [
+    activeProducts,
+    getActiveApiKeyOrNotify,
+    getImageCreditCost,
+    isTrialBypassActive,
+    isTrialLocked,
+    currentPlan.label,
+    planCreditLimit,
+    remainingCredits,
+    resetOutputs,
+    options,
+    runHiResPipeline,
+    reportGalleryEntry,
+    setRemoteCredits,
+    resolvedPlanTier,
+    userEmail,
+    isUsingRemoteCredits
+  ]);
 
   const generateMockup = useCallback(
     (bundleProducts: string[]) => {
@@ -5320,29 +5471,29 @@ If the model attempts to create a scene or environment, override it and force a 
       if (!encodedImage) {
         throw new Error('Image edit failed or returned no images.');
       }
-	      const editedUrl = `data:image/png;base64,${encodedImage}`;
-	      const normalizedOutput = await letterboxDataUrlToAspectRatio(editedUrl, aspectRatio, {
-	        maxLongEdge: 4096,
-	        background: null,
-	        mimeType: 'image/png',
-	      });
-	      const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
-	      setGeneratedImageUrl(outputUrl);
-	      try {
-	        const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
-	        void addLocalGalleryEntry({
-	          userId: galleryUserId,
-	          imageUrl: outputUrl,
-	          createdAt: Date.now(),
-	          plan: planTier,
-	          aspectRatio,
-	        });
-	        void pruneLocalGallery(galleryUserId, 30, 120);
-	      } catch (e) {
-	        console.warn('Local gallery save failed', e);
-	      }
-	      void reportGalleryEntry(outputUrl);
-	      runHiResPipeline(outputUrl);
+      const editedUrl = `data:image/png;base64,${encodedImage}`;
+      const normalizedOutput = await letterboxDataUrlToAspectRatio(editedUrl, aspectRatio, {
+        maxLongEdge: 4096,
+        background: null,
+        mimeType: 'image/png',
+      });
+      const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
+      setGeneratedImageUrl(outputUrl);
+      try {
+        const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
+        void addLocalGalleryEntry({
+          userId: galleryUserId,
+          imageUrl: outputUrl,
+          createdAt: Date.now(),
+          plan: planTier,
+          aspectRatio,
+        });
+        void pruneLocalGallery(galleryUserId, 30, 120);
+      } catch (e) {
+        console.warn('Local gallery save failed', e);
+      }
+      void reportGalleryEntry(outputUrl);
+      runHiResPipeline(outputUrl);
       if (editOptions?.clearManual) {
         setEditPrompt('');
       }
@@ -5508,54 +5659,54 @@ If the model attempts to create a scene or environment, override it and force a 
         </div>
       )}
 
-	      {showPlanModal && (
-	        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm px-4">
-	          <div className="w-full max-w-5xl rounded-3xl border border-gray-200 bg-white/95 p-8 md:p-10 space-y-8">
-	            <div className="flex items-start justify-between gap-6">
-	              <div>
-	                <p className="text-xs uppercase tracking-[0.4em] text-indigo-600">Manage plan</p>
-	                <h3 className="text-3xl font-semibold text-gray-900 mt-2 leading-tight">Choose what fits your launch</h3>
-	              </div>
-	              <button onClick={() => { setShowPlanModal(false); setPlanCodeInput(''); setPlanCodeError(null); setPlanNotice(null); }} className="text-sm text-gray-600 hover:text-gray-900">
-	                Close
-	              </button>
-	            </div>
+      {showPlanModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm px-4">
+          <div className="w-full max-w-5xl rounded-3xl border border-gray-200 bg-white/95 p-8 md:p-10 space-y-8">
+            <div className="flex items-start justify-between gap-6">
+              <div>
+                <p className="text-xs uppercase tracking-[0.4em] text-indigo-600">Manage plan</p>
+                <h3 className="text-3xl font-semibold text-gray-900 mt-2 leading-tight">Choose what fits your launch</h3>
+              </div>
+              <button onClick={() => { setShowPlanModal(false); setPlanCodeInput(''); setPlanCodeError(null); setPlanNotice(null); }} className="text-sm text-gray-600 hover:text-gray-900">
+                Close
+              </button>
+            </div>
 
-	            {planNotice && (
-	              <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
-	                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-	                  <span>{planNotice}</span>
-	                  {!userEmail && (
-	                    <div className="flex flex-col sm:flex-row gap-2">
-	                      <button
-	                        type="button"
-	                        onClick={() => signInWithGoogle()}
-	                        className="rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-900 hover:border-indigo-600 transition"
-	                      >
-	                        Continue with Google
-	                      </button>
-	                      <button
-	                        type="button"
-	                        onClick={() => { window.location.href = '/login'; }}
-	                        className="rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition"
-	                      >
-	                        Get a magic link
-	                      </button>
-	                    </div>
-	                  )}
-	                </div>
-	              </div>
-	            )}
-	            <div className="grid gap-5 md:grid-cols-2">
-	              {Object.entries(PLAN_CONFIG).map(([tier, config]) => (
-	                <button
-	                  key={tier}
-	                  onClick={() => handlePlanTierSelect(tier as PlanTier)}
-	                  className={`rounded-2xl border p-6 text-left transition-all duration-300 ${planTier === tier
-	                    ? 'bg-indigo-600 text-white border-indigo-600'
-	                    : 'border-gray-200 bg-white text-gray-900 hover:border-indigo-600 hover:bg-indigo-50/40'
-	                    }`}
-	                >
+            {planNotice && (
+              <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <span>{planNotice}</span>
+                  {!userEmail && (
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <button
+                        type="button"
+                        onClick={() => signInWithGoogle()}
+                        className="rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-900 hover:border-indigo-600 transition"
+                      >
+                        Continue with Google
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { window.location.href = '/login'; }}
+                        className="rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition"
+                      >
+                        Get a magic link
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            <div className="grid gap-5 md:grid-cols-2">
+              {Object.entries(PLAN_CONFIG).map(([tier, config]) => (
+                <button
+                  key={tier}
+                  onClick={() => handlePlanTierSelect(tier as PlanTier)}
+                  className={`rounded-2xl border p-6 text-left transition-all duration-300 ${planTier === tier
+                    ? 'bg-indigo-600 text-white border-indigo-600'
+                    : 'border-gray-200 bg-white text-gray-900 hover:border-indigo-600 hover:bg-indigo-50/40'
+                    }`}
+                >
                   <p className="text-xl font-semibold flex items-center justify-between">
                     <span>{config.label}</span>
                     <span className={`text-base font-semibold ${planTier === tier ? 'text-white' : 'text-indigo-600'}`}>{config.priceLabel}</span>
@@ -5918,6 +6069,8 @@ If the model attempts to create a scene or environment, override it and force a 
                               slotBaseImages: ecommerceSlotBaseImages,
                               settings: ecommerceGenerationSettings,
                               onSettingsChange: setEcommerceGenerationSettings,
+                              onGenerateSequence: handleGenerateNarrativeSequenceClick,
+                              isGeneratingSequence: isGeneratingSequence,
                             }
                             : undefined
                         }
@@ -5940,13 +6093,13 @@ If the model attempts to create a scene or environment, override it and force a 
                       </div>
                     )}
                     {(() => {
-	                      const isGenerateDisabled = isImageLoading || (!hasUploadedProduct && !hideProductMode);
-	                      const generationRestrictionMessage = (() => {
-	                        if (!isGenerateDisabled) return '';
-	                        if (!hasUploadedProduct && !hideProductMode) return 'Upload a source product photo before generating.';
-	                        if (isImageLoading) return 'Generation is in progress; please wait.';
-	                        return '';
-	                      })();
+                      const isGenerateDisabled = isImageLoading || (!hasUploadedProduct && !hideProductMode);
+                      const generationRestrictionMessage = (() => {
+                        if (!isGenerateDisabled) return '';
+                        if (!hasUploadedProduct && !hideProductMode) return 'Upload a source product photo before generating.';
+                        if (isImageLoading) return 'Generation is in progress; please wait.';
+                        return '';
+                      })();
                       return (
                         <div className={hasUploadedProduct || hideProductMode ? '' : 'opacity-50 pointer-events-none select-none'}>
                           <button
@@ -5958,8 +6111,8 @@ If the model attempts to create a scene or environment, override it and force a 
                             }
                             disabled={isGenerateDisabled}
                             title={generationRestrictionMessage && isGenerateDisabled ? generationRestrictionMessage : undefined}
-	                            className="w-full py-3 rounded-xl font-semibold transition bg-indigo-600 text-white hover:bg-indigo-600 text-white disabled:bg-gray-50 disabled:text-gray-600 disabled:cursor-not-allowed"
-	                          >
+                            className="w-full py-3 rounded-xl font-semibold transition bg-indigo-600 text-white hover:bg-indigo-600 text-white disabled:bg-gray-50 disabled:text-gray-600 disabled:cursor-not-allowed"
+                          >
                             {isImageLoading ? 'Generating...' : 'Generate Mockup'}
                           </button>
                           {generationRestrictionMessage && isGenerateDisabled && (
@@ -5976,13 +6129,13 @@ If the model attempts to create a scene or environment, override it and force a 
 
                 <div className="rounded-xl p-4 transition-all bg-white relative lg:sticky lg:top-4 flex flex-col gap-6 min-h-[360px] sm:min-h-[520px] dark:bg-white/5 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
 
-	                  <GeneratedImage
-	                    imageUrl={twoKVariant?.url ?? generatedImageUrl}
-	                    targetAspectRatio={selectedOutputAspectRatio}
-	                    fourKVariant={fourKVariant}
-	                    twoKVariant={twoKVariant}
-	                    isHiResProcessing={isPreparingHiRes}
-	                    hiResError={hiResError}
+                  <GeneratedImage
+                    imageUrl={twoKVariant?.url ?? generatedImageUrl}
+                    targetAspectRatio={selectedOutputAspectRatio}
+                    fourKVariant={fourKVariant}
+                    twoKVariant={twoKVariant}
+                    isHiResProcessing={isPreparingHiRes}
+                    hiResError={hiResError}
                     isImageLoading={isImageLoading}
                     imageError={imageError}
                     onReset={handleReset}

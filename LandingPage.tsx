@@ -313,30 +313,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [activeStep, setActiveStep] = useState(0);
   const [isHoveringSteps, setIsHoveringSteps] = useState(false);
-
-  // Slider controls
-  const trackRef = useRef<HTMLDivElement>(null);
-  const scrollPosRef = useRef(0);
-  const isDraggingRef = useRef(false);
-  const startXRef = useRef(0);
-  const dragStartPosRef = useRef(0);
-
-  useEffect(() => {
-    let animationId: number;
-    const animate = () => {
-      if (!isDraggingRef.current && trackRef.current) {
-        scrollPosRef.current -= 0.8; // Auto-scroll speed
-        const halfWidth = trackRef.current.scrollWidth / 2;
-        if (Math.abs(scrollPosRef.current) >= halfWidth) {
-          scrollPosRef.current += halfWidth;
-        }
-        trackRef.current.style.transform = `translateX(${scrollPosRef.current}px)`;
-      }
-      animationId = requestAnimationFrame(animate);
-    };
-    animationId = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animationId);
-  }, []);
+  const carouselViewportRef = useRef<HTMLDivElement | null>(null);
+  const carouselPausedRef = useRef(false);
+  const carouselDraggingRef = useRef(false);
+  const carouselDragStateRef = useRef<{ startX: number; startScrollLeft: number }>({
+    startX: 0,
+    startScrollLeft: 0,
+  });
   const seo = {
     title: 'AI Product & Lifestyle Mockups for Ecommerce Brands | Perfect Mockup',
     description:
@@ -398,6 +381,40 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
       },
     ],
   };
+
+  useEffect(() => {
+    const viewport = carouselViewportRef.current;
+    if (!viewport) return;
+
+    let raf = 0;
+    const speedPxPerFrame = 0.35; // ~21px/s @60fps
+
+    const getHalfWidth = () => Math.max(0, viewport.scrollWidth / 2);
+
+    const wrapScroll = () => {
+      const half = getHalfWidth();
+      if (!half) return;
+      if (viewport.scrollLeft <= 0) viewport.scrollLeft += half;
+      if (viewport.scrollLeft >= half) viewport.scrollLeft -= half;
+    };
+
+    // Start from the duplicated half so the user can drag both directions.
+    requestAnimationFrame(() => {
+      const half = getHalfWidth();
+      if (half) viewport.scrollLeft = half;
+    });
+
+    const tick = () => {
+      if (!carouselPausedRef.current && !carouselDraggingRef.current) {
+        viewport.scrollLeft += speedPxPerFrame;
+        wrapScroll();
+      }
+      raf = requestAnimationFrame(tick);
+    };
+
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
 
   const steps = [
     {
@@ -694,130 +711,274 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
           <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-r from-white dark:from-black to-transparent z-20 pointer-events-none" />
           <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-l from-white dark:from-black to-transparent z-20 pointer-events-none" />
 
-          {/* Infinite scrolling track with drag support - No CSS animation, managed by JS */}
+          {/* Scroll viewport (supports mouse drag + native swipe) */}
           <div
-            ref={trackRef}
-            className="flex cursor-grab active:cursor-grabbing select-none"
+            ref={carouselViewportRef}
+            className="landing-carousel-viewport w-full overflow-x-auto overflow-y-hidden select-none cursor-grab active:cursor-grabbing"
             style={{
-              width: 'max-content',
+              WebkitOverflowScrolling: 'touch',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
             }}
-            onMouseDown={(e) => {
-              isDraggingRef.current = true;
-              startXRef.current = e.pageX;
-              dragStartPosRef.current = scrollPosRef.current;
+            tabIndex={0}
+            aria-label="Carousel: drag or swipe to browse product examples"
+            onPointerEnter={() => {
+              carouselPausedRef.current = true;
             }}
-            onMouseLeave={() => {
-              isDraggingRef.current = false;
+            onPointerLeave={() => {
+              if (carouselDraggingRef.current) return;
+              carouselPausedRef.current = false;
             }}
-            onMouseUp={() => {
-              isDraggingRef.current = false;
+            onFocus={() => {
+              carouselPausedRef.current = true;
             }}
-            onMouseMove={(e) => {
-              if (!isDraggingRef.current || !trackRef.current) return;
-              const x = e.pageX;
-              const walk = (x - startXRef.current);
-              scrollPosRef.current = dragStartPosRef.current + walk;
-
-              // Handle looping while dragging
-              const halfWidth = trackRef.current.scrollWidth / 2;
-              if (scrollPosRef.current > 0) {
-                scrollPosRef.current -= halfWidth;
-                dragStartPosRef.current -= halfWidth;
-              } else if (Math.abs(scrollPosRef.current) >= halfWidth) {
-                scrollPosRef.current += halfWidth;
-                dragStartPosRef.current += halfWidth;
+            onBlur={() => {
+              if (carouselDraggingRef.current) return;
+              carouselPausedRef.current = false;
+            }}
+            onKeyDown={(e) => {
+              const viewport = carouselViewportRef.current;
+              if (!viewport) return;
+              if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                viewport.scrollLeft += 120;
+              } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                viewport.scrollLeft -= 120;
               }
-
-              trackRef.current.style.transform = `translateX(${scrollPosRef.current}px)`;
             }}
-            onTouchStart={(e) => {
-              isDraggingRef.current = true;
-              startXRef.current = e.touches[0].pageX;
-              dragStartPosRef.current = scrollPosRef.current;
-            }}
-            onTouchEnd={() => {
-              isDraggingRef.current = false;
-            }}
-            onTouchMove={(e) => {
-              if (!isDraggingRef.current || !trackRef.current) return;
-              const x = e.touches[0].pageX;
-              const walk = (x - startXRef.current);
-              scrollPosRef.current = dragStartPosRef.current + walk;
-
-              const halfWidth = trackRef.current.scrollWidth / 2;
-              if (scrollPosRef.current > 0) {
-                scrollPosRef.current -= halfWidth;
-                dragStartPosRef.current -= halfWidth;
-              } else if (Math.abs(scrollPosRef.current) >= halfWidth) {
-                scrollPosRef.current += halfWidth;
-                dragStartPosRef.current += halfWidth;
+            onWheel={(e) => {
+              const viewport = carouselViewportRef.current;
+              if (!viewport) return;
+              // Optional: hold Shift to wheel-scroll horizontally without blocking page scroll.
+              if (e.shiftKey && Math.abs(e.deltaY) > 0) {
+                viewport.scrollLeft += e.deltaY;
+                e.preventDefault();
               }
-
-              trackRef.current.style.transform = `translateX(${scrollPosRef.current}px)`;
+            }}
+            onPointerDown={(e) => {
+              // For touch, native swipe-scroll is best (keeps vertical page scroll natural).
+              if (e.pointerType !== 'mouse') return;
+              const viewport = carouselViewportRef.current;
+              if (!viewport) return;
+              carouselDraggingRef.current = true;
+              carouselPausedRef.current = true;
+              carouselDragStateRef.current = { startX: e.clientX, startScrollLeft: viewport.scrollLeft };
+              viewport.setPointerCapture?.(e.pointerId);
+            }}
+            onPointerMove={(e) => {
+              if (!carouselDraggingRef.current) return;
+              const viewport = carouselViewportRef.current;
+              if (!viewport) return;
+              const { startX, startScrollLeft } = carouselDragStateRef.current;
+              const dx = e.clientX - startX;
+              viewport.scrollLeft = startScrollLeft - dx;
+              // Wrap within the duplicated content to keep it "infinite"
+              const half = viewport.scrollWidth / 2;
+              if (half) {
+                if (viewport.scrollLeft <= 0) viewport.scrollLeft += half;
+                if (viewport.scrollLeft >= half) viewport.scrollLeft -= half;
+              }
+            }}
+            onPointerUp={(e) => {
+              if (e.pointerType !== 'mouse') return;
+              carouselDraggingRef.current = false;
+            }}
+            onPointerCancel={(e) => {
+              if (e.pointerType !== 'mouse') return;
+              carouselDraggingRef.current = false;
             }}
           >
-            {/* First sequence group */}
-            <div className="flex gap-1 sm:gap-2 mr-8 sm:mr-12 lg:mr-16">
-              {/* Before image - 3:4 ratio */}
-              <div className="relative shrink-0 w-[150px] sm:w-[180px] md:w-[210px] lg:w-[240px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
-                <img
-                  src="/slider/seq-before.png"
-                  alt="Product packshot"
-                  loading="lazy"
-                  draggable="false"
-                  className="absolute inset-0 h-full w-full object-cover pointer-events-none"
-                />
-                <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
-                  Before
-                </span>
-              </div>
-              {/* After sequence (1-5) - 3:4 ratio */}
-              {[1, 2, 3, 4, 5].map((seqNum) => (
-                <div key={`seq-${seqNum}`} className="relative shrink-0 w-[150px] sm:w-[180px] md:w-[210px] lg:w-[240px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
-                  <img
-                    src={`/slider/seq-0${seqNum}.jpg`}
-                    alt={`Product sequence ${seqNum}`}
-                    loading="lazy"
-                    draggable="false"
-                    className="absolute inset-0 h-full w-full object-cover pointer-events-none"
-                  />
-                  <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">
-                    {seqNum}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <div className="flex w-max">
+              {/* First set of paired images - grouped with gap between groups */}
 
-            {/* Duplicate sequence group for seamless loop */}
-            <div className="flex gap-1 sm:gap-2 mr-8 sm:mr-12 lg:mr-16">
-              {/* Before image - 3:4 ratio */}
-              <div className="relative shrink-0 w-[150px] sm:w-[180px] md:w-[210px] lg:w-[240px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
-                <img
-                  src="/slider/seq-before.png"
-                  alt="Product packshot"
-                  loading="lazy"
-                  draggable="false"
-                  className="absolute inset-0 h-full w-full object-cover pointer-events-none"
-                />
-                <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
-                  Before
-                </span>
-              </div>
-              {/* After sequence (1-5) - 3:4 ratio */}
-              {[1, 2, 3, 4, 5].map((seqNum) => (
-                <div key={`seq2-${seqNum}`} className="relative shrink-0 w-[150px] sm:w-[180px] md:w-[210px] lg:w-[240px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
-                  <img
-                    src={`/slider/seq-0${seqNum}.jpg`}
-                    alt={`Product sequence ${seqNum}`}
-                    loading="lazy"
-                    draggable="false"
-                    className="absolute inset-0 h-full w-full object-cover pointer-events-none"
-                  />
-                  <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">
-                    {seqNum}
-                  </span>
+              {/* Sequence group - Manual Pairs + Before + 5 After images */}
+              <div className="flex gap-6 sm:gap-8 lg:gap-10 mr-8 sm:mr-12 lg:mr-16">
+                {/* Pair 1 */}
+                <div className="shrink-0 rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
+                  <div className="grid grid-cols-2 w-[300px] sm:w-[360px] md:w-[420px] lg:w-[480px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] divide-x divide-gray-100 dark:divide-white/10">
+                    <div className="relative">
+                      <img src="/slider/01-before.jpg" alt="Pair 1 Before" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
+                      <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">Before</span>
+                    </div>
+                    <div className="relative">
+                      <img src="/slider/01-after.jpg" alt="Pair 1 After" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
+                      <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">After</span>
+                    </div>
+                  </div>
                 </div>
-              ))}
+
+                {/* Pair 2 */}
+                <div className="shrink-0 rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
+                  <div className="grid grid-cols-2 w-[300px] sm:w-[360px] md:w-[420px] lg:w-[480px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] divide-x divide-gray-100 dark:divide-white/10">
+                    <div className="relative">
+                      <img src="/slider/02-before.jpg" alt="Pair 2 Before" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
+                      <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">Before</span>
+                    </div>
+                    <div className="relative">
+                      <img src="/slider/02-after.jpg" alt="Pair 2 After" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
+                      <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">After</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pair 3 (New) */}
+                <div className="shrink-0 rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
+                  <div className="grid grid-cols-2 w-[300px] sm:w-[360px] md:w-[420px] lg:w-[480px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] divide-x divide-gray-100 dark:divide-white/10">
+                    <div className="relative">
+                      <img src="/slider/before-3.jpg" alt="Pair 3 Before" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
+                      <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">Before</span>
+                    </div>
+                    <div className="relative">
+                      <img src="/slider/after-3.jpg" alt="Pair 3 After" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
+                      <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">After</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sequence Group (Pair 4) */}
+                <div className="shrink-0 rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
+                  <div className="flex divide-x divide-gray-100 dark:divide-white/10">
+                    <div className="relative w-[150px] sm:w-[180px] md:w-[210px] lg:w-[240px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px]">
+                      <img
+                        src="/slider/before 4.jpg"
+                        alt="Product packshot"
+                        loading="lazy"
+                        draggable="false"
+                        className="absolute inset-0 h-full w-full object-cover pointer-events-none"
+                      />
+                      <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
+                        Before
+                      </span>
+                    </div>
+                    {[1, 2, 3, 4].map((seqNum) => (
+                      <div
+                        key={`seq-${seqNum}`}
+                        className="relative w-[150px] sm:w-[180px] md:w-[210px] lg:w-[240px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px]"
+                      >
+                        <img
+                          src={`/slider/after 4 - sec${seqNum}.jpg`}
+                          alt={`Product sequence ${seqNum}`}
+                          loading="lazy"
+                          draggable="false"
+                          className="absolute inset-0 h-full w-full object-cover pointer-events-none"
+                        />
+                        <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">
+                          {seqNum}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Pair 5 (New) */}
+                <div className="shrink-0 rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
+                  <div className="grid grid-cols-2 w-[300px] sm:w-[360px] md:w-[420px] lg:w-[480px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] divide-x divide-gray-100 dark:divide-white/10">
+                    <div className="relative">
+                      <img src="/slider/before-5.png" alt="Pair 5 Before" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
+                      <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">Before</span>
+                    </div>
+                    <div className="relative">
+                      <img src="/slider/after-5.jpg" alt="Pair 5 After" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
+                      <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">After</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Duplicate set for seamless loop */}
+              <div className="flex gap-6 sm:gap-8 lg:gap-10 mr-8 sm:mr-12 lg:mr-16">
+                {/* Pair 1 */}
+                <div className="shrink-0 rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
+                  <div className="grid grid-cols-2 w-[300px] sm:w-[360px] md:w-[420px] lg:w-[480px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] divide-x divide-gray-100 dark:divide-white/10">
+                    <div className="relative">
+                      <img src="/slider/01-before.jpg" alt="Pair 1 Before" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
+                      <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">Before</span>
+                    </div>
+                    <div className="relative">
+                      <img src="/slider/01-after.jpg" alt="Pair 1 After" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
+                      <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">After</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pair 2 */}
+                <div className="shrink-0 rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
+                  <div className="grid grid-cols-2 w-[300px] sm:w-[360px] md:w-[420px] lg:w-[480px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] divide-x divide-gray-100 dark:divide-white/10">
+                    <div className="relative">
+                      <img src="/slider/02-before.jpg" alt="Pair 2 Before" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
+                      <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">Before</span>
+                    </div>
+                    <div className="relative">
+                      <img src="/slider/02-after.jpg" alt="Pair 2 After" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
+                      <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">After</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pair 3 (New) */}
+                <div className="shrink-0 rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
+                  <div className="grid grid-cols-2 w-[300px] sm:w-[360px] md:w-[420px] lg:w-[480px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] divide-x divide-gray-100 dark:divide-white/10">
+                    <div className="relative">
+                      <img src="/slider/before-3.jpg" alt="Pair 3 Before" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
+                      <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">Before</span>
+                    </div>
+                    <div className="relative">
+                      <img src="/slider/after-3.jpg" alt="Pair 3 After" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
+                      <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">After</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sequence Group (Pair 4) */}
+                <div className="shrink-0 rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
+                  <div className="flex divide-x divide-gray-100 dark:divide-white/10">
+                    <div className="relative w-[150px] sm:w-[180px] md:w-[210px] lg:w-[240px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px]">
+                      <img
+                        src="/slider/before 4.jpg"
+                        alt="Product packshot"
+                        loading="lazy"
+                        draggable="false"
+                        className="absolute inset-0 h-full w-full object-cover pointer-events-none"
+                      />
+                      <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
+                        Before
+                      </span>
+                    </div>
+                    {[1, 2, 3, 4].map((seqNum) => (
+                      <div
+                        key={`seq2-${seqNum}`}
+                        className="relative w-[150px] sm:w-[180px] md:w-[210px] lg:w-[240px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px]"
+                      >
+                        <img
+                          src={`/slider/after 4 - sec${seqNum}.jpg`}
+                          alt={`Product sequence ${seqNum}`}
+                          loading="lazy"
+                          draggable="false"
+                          className="absolute inset-0 h-full w-full object-cover pointer-events-none"
+                        />
+                        <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">
+                          {seqNum}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Pair 5 (New) */}
+                <div className="shrink-0 rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
+                  <div className="grid grid-cols-2 w-[300px] sm:w-[360px] md:w-[420px] lg:w-[480px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] divide-x divide-gray-100 dark:divide-white/10">
+                    <div className="relative">
+                      <img src="/slider/before-5.png" alt="Pair 5 Before" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
+                      <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">Before</span>
+                    </div>
+                    <div className="relative">
+                      <img src="/slider/after-5.jpg" alt="Pair 5 After" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
+                      <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">After</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -834,6 +995,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
             </svg>
           </a>
         </div>
+
+        {/* Carousel CSS helpers */}
+        <style>{`
+          .landing-carousel-viewport::-webkit-scrollbar { display: none; }
+        `}</style>
       </section>
 
       <section className="bg-gray-50 dark:bg-white/[0.02]">

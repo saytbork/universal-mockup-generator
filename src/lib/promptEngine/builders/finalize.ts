@@ -19,10 +19,13 @@ export class FinalizeBuilder implements PromptBuilder {
 
         const lines: string[] = [
             'Final render must be high resolution, photorealistic and free of watermarks or text.',
-            'No text, no logos, no watermarks.',
+            'ASPECT RATIO: 3:4 (vertical). The image must fully fill the frame with no empty space, no black bars, and no borders.',
+            'No text, no logos, no watermarks, no UI overlays.',
             'No CGI look or plastic skin.',
             'No distorted hands, fingers or wrists.',
             'No floating limbs.',
+            'No surreal elements, no floating objects, no distortions.',
+            'Sharp focus on the subject (product), with natural lighting and grounded shadows.',
         ];
 
         if (hideProduct) {
@@ -40,15 +43,16 @@ export class FinalizeBuilder implements PromptBuilder {
             lines.push(
                 'No invented labels or product redesign.',
                 'No hallucinated packaging.',
-                'Product geometry, material and label must remain exact.',
+                'PRODUCT INTEGRITY (NON-NEGOTIABLE): The product packaging must remain identical across all images in the sequence. Same size, same proportions, and same orientation.',
+                'No deformation, no scaling inconsistencies. Branding must be sharp and readable.',
+                'Material and texture must look photorealistic (e.g., paper pouch, matte finish). product sits naturally on surfaces, not hovering.',
+                'THE PRODUCT MUST NEVER BE CROPPED: The product must be centered, fully visible, and not cut off at the top or bottom of the frame.',
                 'PRODUCT PRIORITY (CRITICAL): The product must be clearly visible in the foreground/main subject position; never placed in the background/second plane.',
-                'CONTACT REALISM: The product must look physically held (not composited). Fingers must occlude edges naturally with believable grip pressure and contact shadows. No pasted/sticker look and no halo/cutout edges.',
+                'CONTACT REALISM: The product must look physically held or placed naturally (not composited). Natural shadows and believable contact pressure.',
                 ugcDepthLockActive
                     ? 'VISIBILITY LOCK: The product and label remain clearly visible and readable across the frame; never soft or unreadable.'
-                    : 'OPTICS LOCK: The product must be tack sharp and the sharpest object in the frame. Use deep depth of field (f/8–f/11) or focus stacking; absolutely no portrait mode, bokeh, or shallow depth-of-field that blurs the product or label.',
-                ugcDepthLockActive
-                    ? 'Never let the product be unreadable: label text remains clear and legible.'
-                    : 'Never let the product be out of focus: no blurry product, no soft focus on the product, and no depth-of-field that blurs the label.'
+                    : 'OPTICS LOCK: The product must be tack sharp and the sharpest object in the frame. Use eye-level or slight top-down angle (35mm–50mm lens equivalent). Absolutely no wide-angle distortion.',
+                'Avoid dark backgrounds that could create black gaps in the 3:4 vertical framing.'
             );
             if (options.ritualModeActive && options.ritualNoObjects) {
                 lines.push(
