@@ -31,6 +31,26 @@ const sanitizeProductCopy = (value: string): string => {
         .trim();
 };
 
+const normalizeAspectRatio = (value?: string): string => {
+    const raw = String(value || '').trim();
+    if (!raw) return '1:1';
+
+    // Accept raw ratios directly (Product Studio uses these).
+    const normalized = raw.replace(/\s+/g, '');
+    const allowed = new Set(['1:1', '4:5', '9:16', '16:9', '3:4']);
+    if (allowed.has(normalized)) return normalized;
+
+    // Accept UI labels used by other builders.
+    const labelMap: Record<string, string> = {
+        '1:1 (Square)': '1:1',
+        '4:5 (Portrait)': '4:5',
+        '9:16 (Story)': '9:16',
+        '16:9 (Landscape)': '16:9',
+        '3:4 (Portrait)': '3:4'
+    };
+    return labelMap[raw] || '1:1';
+};
+
 const mapProductCameraDistance = (
     distance?: ProductStudioStep3Values['productCameraDistance']
 ): NonNullable<PromptOptions['cameraDistance']> => {
@@ -349,13 +369,7 @@ export function mapProductModeToPromptOptions(
     // OUTPUT FORMAT (Stage 8)
     // ========================================================================
 
-    const aspectRatioMap: Record<string, string> = {
-        '1:1 (Square)': '1:1',
-        '4:5 (Portrait)': '4:5',
-        '9:16 (Story)': '9:16'
-    };
-    const aspectRatioKey = sceneState.aspectRatio ?? '1:1 (Square)';
-    mapped.aspectRatio = aspectRatioMap[aspectRatioKey] || '1:1';
+    mapped.aspectRatio = normalizeAspectRatio(sceneState.aspectRatio);
 
     // ========================================================================
     // VALIDATION - Block all UGC state (Stage 11)

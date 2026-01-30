@@ -544,7 +544,11 @@ export class PromptEngine {
             });
 
             // Prepend the canonical prompt as the authoritative root contract
-            const finalStudioPrompt = `${PRODUCT_STUDIO_CANONICAL_PROMPT}\n\n---\n\nGENERATION INSTRUCTIONS:\n${studioPrompt}`;
+            const resolvedAspectRatio = String(options.aspectRatio || '1:1').trim() || '1:1';
+            const finalStudioPrompt = `${PRODUCT_STUDIO_CANONICAL_PROMPT}\n\n---\n\nGENERATION INSTRUCTIONS:\n${studioPrompt}`.replace(
+                /\{ASPECT_RATIO\}/g,
+                resolvedAspectRatio
+            );
 
             console.log('[CLEANUP-INSTRUMENT] ===== BUILD CALL END (Studio) =====');
             console.log('[FINAL PROMPT STRING]', finalStudioPrompt);

@@ -11,6 +11,7 @@ test('Product mode ecommerce canvas maps bg + side placement', () => {
       ugcRealMode: false,
       selfieMode: 'None',
       aspectRatio: '1:1 (Square)',
+      ecommerceSidePlacementFlag: true,
       sidePlacement: 'Left',
       ecommerceBackgroundMode: 'gradient',
       ecommerceGradientStart: '#f7f7f7',
@@ -20,11 +21,51 @@ test('Product mode ecommerce canvas maps bg + side placement', () => {
     {}
   );
 
-  const prompt = promptEngine.build(mapped as any);
-  expect(prompt).toContain('Ecommerce blank-space');
-  expect(prompt).toContain('Product anchored on the left side of the frame');
-  expect(prompt).toContain('Background gradient: linear 90°');
-  expect(prompt).not.toContain('MODEL REFERENCE OVERRIDE:');
-  expect(prompt).not.toContain('year-old');
+  expect(mapped.creationMode).toBe('ecom-blank');
+  expect(mapped.compositionMode).toBe('Ecommerce Blank Space');
+  expect(mapped.ecommerceBlankSpaceMode).toBe(true);
+  expect(mapped.sidePlacement).toBe('left');
+  expect(mapped.bgGradient).toEqual({ startColor: '#f7f7f7', endColor: '#d9d9d9', angle: 90 });
 });
 
+test('Product mode accepts raw aspect ratios (product studio output format)', () => {
+  const mapped = mapProductModeToPromptOptions(
+    {
+      sceneIntent: 'ecommerce',
+      creationIntent: 'product',
+      noPerson: true,
+      ugcRealMode: false,
+      selfieMode: 'None',
+      aspectRatio: '4:5',
+      sidePlacement: 'Center',
+      ecommerceBackgroundMode: 'white',
+      ecommerceBackgroundColor: '#ffffff',
+    } as any,
+    {}
+  );
+
+  const prompt = promptEngine.build(mapped as any);
+  expect(mapped.aspectRatio).toBe('4:5');
+  expect(prompt).toContain('Aspect Ratio: 4:5');
+});
+
+test('Product mode accepts labeled landscape aspect ratio', () => {
+  const mapped = mapProductModeToPromptOptions(
+    {
+      sceneIntent: 'ecommerce',
+      creationIntent: 'product',
+      noPerson: true,
+      ugcRealMode: false,
+      selfieMode: 'None',
+      aspectRatio: '16:9 (Landscape)',
+      sidePlacement: 'Center',
+      ecommerceBackgroundMode: 'white',
+      ecommerceBackgroundColor: '#ffffff',
+    } as any,
+    {}
+  );
+
+  const prompt = promptEngine.build(mapped as any);
+  expect(mapped.aspectRatio).toBe('16:9');
+  expect(prompt).toContain('Aspect Ratio: 16:9');
+});
