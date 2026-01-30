@@ -740,7 +740,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
         `}</style>
       </section>
 
-      <section className="bg-[#fafafa] dark:bg-white/[0.02]">
+      <section className="bg-gray-50 dark:bg-white/[0.02]">
         <div className="max-w-6xl mx-auto px-6 py-24 space-y-10">
           <div className="text-center space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">What you can create</p>
@@ -839,7 +839,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
 
       <TestimonialsSection />
 
-      <section id="how-it-works" className="bg-[#fafafa] dark:bg-white/[0.02] overflow-hidden">
+      <section id="how-it-works" className="bg-gray-50 dark:bg-white/[0.02] overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 py-20 space-y-12">
           <div className="text-center space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">How it works</p>
@@ -1054,7 +1054,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
 
       {/* Bento: The Advantage Grid */}
       {/* Why Perfect Mockup: Advantage Grid */}
-      <section className="bg-[#fafafa] dark:bg-white/[0.02] py-24 overflow-hidden">
+      <section className="bg-gray-50 dark:bg-white/[0.02] py-24 overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 space-y-16">
           <div className="text-center space-y-4">
             <span className="text-indigo-600 dark:text-indigo-400 text-[10px] font-bold uppercase tracking-[0.3em]">Why Perfect Mockup</span>
@@ -1184,7 +1184,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
         </div>
       </section>
 
-      <section className="bg-[#fafafa] dark:bg-white/[0.02]">
+      <section className="bg-gray-50 dark:bg-white/[0.02]">
         <div className="max-w-6xl mx-auto px-6 py-24 space-y-10">
           <div className="text-center space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-400">Resources</p>
@@ -1260,7 +1260,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
         </div>
       </section>
 
-      <section id="pricing" className="bg-[#fafafa] dark:bg-white/[0.02] relative isolate py-24 px-6 border-b border-gray-100 dark:border-white/5">
+      <section id="pricing" className="bg-gray-50 dark:bg-white/[0.02] relative isolate py-24 px-6 border-b border-gray-100 dark:border-white/5">
         <div className="max-w-6xl mx-auto space-y-16">
           <div className="text-center space-y-4">
             <span className="text-indigo-600 text-[10px] font-bold uppercase tracking-[0.3em]">Scalable Pricing</span>
