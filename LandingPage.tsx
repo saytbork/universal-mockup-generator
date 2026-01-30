@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { CheckCircle2, CreditCard, ShieldCheck, ShoppingBag, Users2, Zap, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -313,6 +313,30 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [activeStep, setActiveStep] = useState(0);
   const [isHoveringSteps, setIsHoveringSteps] = useState(false);
+
+  // Slider controls
+  const trackRef = useRef<HTMLDivElement>(null);
+  const scrollPosRef = useRef(0);
+  const isDraggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const dragStartPosRef = useRef(0);
+
+  useEffect(() => {
+    let animationId: number;
+    const animate = () => {
+      if (!isDraggingRef.current && trackRef.current) {
+        scrollPosRef.current -= 0.8; // Auto-scroll speed
+        const halfWidth = trackRef.current.scrollWidth / 2;
+        if (Math.abs(scrollPosRef.current) >= halfWidth) {
+          scrollPosRef.current += halfWidth;
+        }
+        trackRef.current.style.transform = `translateX(${scrollPosRef.current}px)`;
+      }
+      animationId = requestAnimationFrame(animate);
+    };
+    animationId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationId);
+  }, []);
   const seo = {
     title: 'AI Product & Lifestyle Mockups for Ecommerce Brands | Perfect Mockup',
     description:
@@ -670,47 +694,69 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
           <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-r from-white dark:from-black to-transparent z-20 pointer-events-none" />
           <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-l from-white dark:from-black to-transparent z-20 pointer-events-none" />
 
-          {/* Infinite scrolling track with drag support */}
+          {/* Infinite scrolling track with drag support - No CSS animation, managed by JS */}
           <div
+            ref={trackRef}
             className="flex cursor-grab active:cursor-grabbing select-none"
             style={{
-              animation: 'carousel-scroll 50s linear infinite',
-              animationPlayState: 'running',
               width: 'max-content',
             }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).dataset.dragging = 'false';
-            }}
             onMouseDown={(e) => {
-              const track = e.currentTarget as HTMLElement;
-              track.dataset.dragging = 'true';
-              track.dataset.startX = String(e.pageX);
-              track.dataset.scrollLeft = String(track.scrollLeft || 0);
-              track.style.animationPlayState = 'paused';
+              isDraggingRef.current = true;
+              startXRef.current = e.pageX;
+              dragStartPosRef.current = scrollPosRef.current;
             }}
-            onMouseUp={(e) => {
-              const track = e.currentTarget as HTMLElement;
-              track.dataset.dragging = 'false';
+            onMouseLeave={() => {
+              isDraggingRef.current = false;
+            }}
+            onMouseUp={() => {
+              isDraggingRef.current = false;
             }}
             onMouseMove={(e) => {
-              const track = e.currentTarget as HTMLElement;
-              if (track.dataset.dragging !== 'true') return;
-              e.preventDefault();
+              if (!isDraggingRef.current || !trackRef.current) return;
               const x = e.pageX;
-              const startX = Number(track.dataset.startX || 0);
-              const walk = (x - startX);
-              track.style.transform = `translateX(${walk}px)`;
+              const walk = (x - startXRef.current);
+              scrollPosRef.current = dragStartPosRef.current + walk;
+
+              // Handle looping while dragging
+              const halfWidth = trackRef.current.scrollWidth / 2;
+              if (scrollPosRef.current > 0) {
+                scrollPosRef.current -= halfWidth;
+                dragStartPosRef.current -= halfWidth;
+              } else if (Math.abs(scrollPosRef.current) >= halfWidth) {
+                scrollPosRef.current += halfWidth;
+                dragStartPosRef.current += halfWidth;
+              }
+
+              trackRef.current.style.transform = `translateX(${scrollPosRef.current}px)`;
             }}
             onTouchStart={(e) => {
-              // Nothing to pause on touch start anymore, keep it moving
+              isDraggingRef.current = true;
+              startXRef.current = e.touches[0].pageX;
+              dragStartPosRef.current = scrollPosRef.current;
             }}
-            onTouchEnd={(e) => {
-              // Same here
+            onTouchEnd={() => {
+              isDraggingRef.current = false;
+            }}
+            onTouchMove={(e) => {
+              if (!isDraggingRef.current || !trackRef.current) return;
+              const x = e.touches[0].pageX;
+              const walk = (x - startXRef.current);
+              scrollPosRef.current = dragStartPosRef.current + walk;
+
+              const halfWidth = trackRef.current.scrollWidth / 2;
+              if (scrollPosRef.current > 0) {
+                scrollPosRef.current -= halfWidth;
+                dragStartPosRef.current -= halfWidth;
+              } else if (Math.abs(scrollPosRef.current) >= halfWidth) {
+                scrollPosRef.current += halfWidth;
+                dragStartPosRef.current += halfWidth;
+              }
+
+              trackRef.current.style.transform = `translateX(${scrollPosRef.current}px)`;
             }}
           >
-            {/* First set of paired images - grouped with gap between groups */}
-
-            {/* Sequence group - Before + 5 After images */}
+            {/* First sequence group */}
             <div className="flex gap-1 sm:gap-2 mr-8 sm:mr-12 lg:mr-16">
               {/* Before image - 3:4 ratio */}
               <div className="relative shrink-0 w-[150px] sm:w-[180px] md:w-[210px] lg:w-[240px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
@@ -725,7 +771,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
                   Before
                 </span>
               </div>
-              {/* After sequence (1-5) - Also 3:4 ratio now per request */}
+              {/* After sequence (1-5) - 3:4 ratio */}
               {[1, 2, 3, 4, 5].map((seqNum) => (
                 <div key={`seq-${seqNum}`} className="relative shrink-0 w-[150px] sm:w-[180px] md:w-[210px] lg:w-[240px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
                   <img
@@ -741,9 +787,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
                 </div>
               ))}
             </div>
-            {/* Duplicate set for seamless loop */}
 
-            {/* Duplicate sequence group */}
+            {/* Duplicate sequence group for seamless loop */}
             <div className="flex gap-1 sm:gap-2 mr-8 sm:mr-12 lg:mr-16">
               {/* Before image - 3:4 ratio */}
               <div className="relative shrink-0 w-[150px] sm:w-[180px] md:w-[210px] lg:w-[240px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
@@ -758,7 +803,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
                   Before
                 </span>
               </div>
-              {/* After sequence (1-5) - Also 3:4 ratio now per request */}
+              {/* After sequence (1-5) - 3:4 ratio */}
               {[1, 2, 3, 4, 5].map((seqNum) => (
                 <div key={`seq2-${seqNum}`} className="relative shrink-0 w-[150px] sm:w-[180px] md:w-[210px] lg:w-[240px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
                   <img
@@ -789,18 +834,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
             </svg>
           </a>
         </div>
-
-        {/* CSS Keyframes for infinite scroll */}
-        <style>{`
-          @keyframes carousel-scroll {
-            0% {
-              transform: translateX(0);
-            }
-            100% {
-              transform: translateX(-50%);
-            }
-          }
-        `}</style>
       </section>
 
       <section className="bg-gray-50 dark:bg-white/[0.02]">
