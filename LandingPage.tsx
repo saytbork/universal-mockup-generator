@@ -662,21 +662,65 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
         </div>
 
         {/* Full-width carousel container */}
-        <div className="relative w-full group">
+        <div className="relative w-full group overflow-x-auto scrollbar-hide">
           {/* Gradient fade edges */}
           <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-r from-white dark:from-black to-transparent z-10 pointer-events-none" />
           <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-l from-white dark:from-black to-transparent z-10 pointer-events-none" />
 
-          {/* Infinite scrolling track */}
+          {/* Infinite scrolling track with drag support */}
           <div
-            className="flex"
+            className="flex cursor-grab active:cursor-grabbing select-none"
             style={{
               animation: 'carousel-scroll 50s linear infinite',
               animationPlayState: 'running',
               width: 'max-content',
             }}
             onMouseEnter={(e) => { e.currentTarget.style.animationPlayState = 'paused'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.animationPlayState = 'running'; }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.animationPlayState = 'running';
+              (e.currentTarget as HTMLElement).dataset.dragging = 'false';
+            }}
+            onMouseDown={(e) => {
+              const track = e.currentTarget as HTMLElement;
+              track.dataset.dragging = 'true';
+              track.dataset.startX = String(e.pageX);
+              track.dataset.scrollLeft = String(track.parentElement?.scrollLeft || 0);
+              track.style.animationPlayState = 'paused';
+            }}
+            onMouseUp={(e) => {
+              const track = e.currentTarget as HTMLElement;
+              track.dataset.dragging = 'false';
+            }}
+            onMouseMove={(e) => {
+              const track = e.currentTarget as HTMLElement;
+              if (track.dataset.dragging !== 'true') return;
+              e.preventDefault();
+              const x = e.pageX;
+              const startX = Number(track.dataset.startX || 0);
+              const walk = (x - startX) * 2;
+              if (track.parentElement) {
+                track.parentElement.scrollLeft = Number(track.dataset.scrollLeft || 0) - walk;
+              }
+            }}
+            onTouchStart={(e) => {
+              const track = e.currentTarget as HTMLElement;
+              track.style.animationPlayState = 'paused';
+              track.dataset.startX = String(e.touches[0].pageX);
+              track.dataset.scrollLeft = String(track.parentElement?.scrollLeft || 0);
+            }}
+            onTouchMove={(e) => {
+              const track = e.currentTarget as HTMLElement;
+              const x = e.touches[0].pageX;
+              const startX = Number(track.dataset.startX || 0);
+              const walk = (x - startX) * 2;
+              if (track.parentElement) {
+                track.parentElement.scrollLeft = Number(track.dataset.scrollLeft || 0) - walk;
+              }
+            }}
+            onTouchEnd={(e) => {
+              const track = e.currentTarget as HTMLElement;
+              track.style.animationPlayState = 'running';
+            }}
           >
             {/* First set of paired images - grouped with gap between groups */}
             {[1, 2, 3, 4, 5, 6, 7].map((num) => (
@@ -707,8 +751,21 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
                 </div>
               </div>
             ))}
-            {/* Sequence group - 5 images showing product progression */}
+            {/* Sequence group - Before + 5 After images */}
             <div className="flex gap-1 sm:gap-2 mr-8 sm:mr-12 lg:mr-16">
+              {/* Before image */}
+              <div className="relative shrink-0 aspect-[3/4] w-[140px] sm:w-[180px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/5">
+                <img
+                  src="/slider/seq-before.png"
+                  alt="Product packshot"
+                  loading="lazy"
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
+                  Before
+                </span>
+              </div>
+              {/* After sequence (1-5) */}
               {[1, 2, 3, 4, 5].map((seqNum) => (
                 <div key={`seq-${seqNum}`} className="relative shrink-0 aspect-[3/4] w-[140px] sm:w-[180px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/5">
                   <img
@@ -754,6 +811,19 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
             ))}
             {/* Duplicate sequence group */}
             <div className="flex gap-1 sm:gap-2 mr-8 sm:mr-12 lg:mr-16">
+              {/* Before image */}
+              <div className="relative shrink-0 aspect-[3/4] w-[140px] sm:w-[180px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/5">
+                <img
+                  src="/slider/seq-before.png"
+                  alt="Product packshot"
+                  loading="lazy"
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
+                  Before
+                </span>
+              </div>
+              {/* After sequence (1-5) */}
               {[1, 2, 3, 4, 5].map((seqNum) => (
                 <div key={`seq2-${seqNum}`} className="relative shrink-0 aspect-[3/4] w-[140px] sm:w-[180px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/5">
                   <img
