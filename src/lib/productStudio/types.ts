@@ -205,7 +205,38 @@ export type BrandPalette = {
 // SCENE TYPE (Legacy - maps to MODE)
 // ============================================================================
 
-export type SceneType = 'studio-branding' | 'editorial-product' | 'lifestyle-real' | 'ugc-phone';
+// NOTE: `ecommerce-pdp` is a NEW isolated pipeline. It must not inherit from existing scene pipelines.
+export type SceneType = 'studio-branding' | 'editorial-product' | 'lifestyle-real' | 'ugc-phone' | 'ecommerce-pdp';
+
+// ============================================================================
+// ECOMMERCE PDP IMAGE BUILDER (Isolated Pipeline)
+// ============================================================================
+
+export type EcommerceSlot =
+    | 'WHAT_IS_IT'
+    | 'WHAT_DOES_IT_DO'
+    | 'HOW_IT_WORKS'
+    | 'RESULTS'
+    | 'DIFFERENTIATION'
+    | 'GUARANTEE';
+
+export type EcommercePdpLayout =
+    | 'image-left-text-right'
+    | 'image-right-text-left';
+
+export type EcommercePdpImageSide = 'left' | 'right';
+
+export type EcommercePdpSafeZone = {
+    side: 'left' | 'right';
+    widthPercent: 40;
+};
+
+export type EcommercePdpConfig = {
+    slot: EcommerceSlot;
+    layout: EcommercePdpLayout;
+    imageSide: EcommercePdpImageSide;
+    safeZone: EcommercePdpSafeZone;
+};
 
 // ============================================================================
 // ENVIRONMENT
@@ -406,6 +437,11 @@ export type ProductStudioState = {
     aspectRatio: AspectRatio;
     blankSpaceEnabled: boolean;
     blankSpaceSide: BlankSpaceSide;
+
+    // ========================================================================
+    // ECOMMERCE PDP (Isolated Pipeline)
+    // ========================================================================
+    ecommercePdp: EcommercePdpConfig | null;
 
     // ========================================================================
     // BUNDLE (Sub-system)

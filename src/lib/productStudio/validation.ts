@@ -30,12 +30,15 @@ const BLOCKED_ENVIRONMENTS: Record<ProductType, EnvironmentMacro[]> = {
     'dummy': []
 };
 
+const isStudioLikeScene = (sceneType: ProductStudioState['sceneType']): boolean =>
+    sceneType === 'studio-branding' || sceneType === 'ecommerce-pdp';
+
 function validateProductEnvironment(state: ProductStudioState): string[] {
     const errors: string[] = [];
 
     // If we are in Studio mode, Environment is irrelevant/hidden.
     // But strict check: if sceneType is NOT studio, env is required.
-    if (state.sceneType === 'studio-branding') return errors;
+    if (isStudioLikeScene(state.sceneType)) return errors;
 
     // Use state.definition.type for correct type access
     const productType = state.definition.type;
@@ -76,7 +79,7 @@ function validateLighting(state: ProductStudioState): string[] {
 
     // Rule: Ring Light only interior or studio
     if (lighting === 'ring-light') {
-        if (sceneType !== 'studio-branding' && environmentMacro && !INTERIOR_ENVS.includes(environmentMacro)) {
+        if (!isStudioLikeScene(sceneType) && environmentMacro && !INTERIOR_ENVS.includes(environmentMacro)) {
             errors.push('Ring Light is only available for interior environments.');
         }
     }
@@ -88,7 +91,7 @@ function validateLighting(state: ProductStudioState): string[] {
 
     // Rule: Night Mode only exterior
     if (lighting === 'night-mode') {
-        if (sceneType !== 'studio-branding' && environmentMacro && !EXTERIOR_ENVS.includes(environmentMacro)) {
+        if (!isStudioLikeScene(sceneType) && environmentMacro && !EXTERIOR_ENVS.includes(environmentMacro)) {
             errors.push('Night Mode is only available for exterior environments.');
         }
     }
@@ -99,8 +102,8 @@ function validateLighting(state: ProductStudioState): string[] {
     // "Validation: Flash → urban / parking / street"
     if (lighting === 'flash-photo') {
         const allowedFlashEnvs: EnvironmentMacro[] = ['urban-exterior', 'parking-lot', 'street-corner'];
-        if (sceneType !== 'studio-branding' && environmentMacro && !allowedFlashEnvs.includes(environmentMacro)) {
-            // However, flash is often used indoors too? 
+        if (!isStudioLikeScene(sceneType) && environmentMacro && !allowedFlashEnvs.includes(environmentMacro)) {
+            // However, flash is often used indoors too?
             // User instruction: "Flash Photo only urban / parking / street"
             // I will strictly enforce this override.
             errors.push('Flash Photo style is restricted to urban, parking lot, or street settings.');

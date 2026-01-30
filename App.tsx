@@ -48,7 +48,15 @@ import { ECOMMERCE_SLOT_REQUIRED_BLANK_SPACE } from '@/lib/ecommerceOverlay/temp
 import { PLAN_CONFIG, type PlanTier } from './src/constants/planConfig';
 import { addLocalGalleryEntry, pruneLocalGallery } from './src/services/localGallery';
 // PHASE 2: ProductStudio direct generation
-import { useProductStudioStore, generateProductJobs, validatePrompt } from '@/lib/productStudio';
+import {
+  useProductStudioStore,
+  generateProductJobs,
+  validatePrompt,
+  type EcommerceSlot as EcommercePdpSlot,
+  type EcommercePdpLayout,
+  type EcommercePdpImageSide,
+  type EcommercePdpSafeZone,
+} from '@/lib/productStudio';
 import { addProductWithPalette } from '@/lib/productStudio/store';
 
 
@@ -71,6 +79,15 @@ type UGCRealModeSettings = {
 };
 
 const PRODUCT_DEFAULT_ASPECT_RATIO = '4:3' as const;
+const ECOMMERCE_PDP_ASPECT_RATIO = '1:1' as const;
+
+type EcommercePdpGenerationMeta = {
+  sceneType: 'ecommerce-pdp';
+  slot: EcommercePdpSlot;
+  layout: EcommercePdpLayout;
+  imageSide: EcommercePdpImageSide;
+  safeZone: EcommercePdpSafeZone;
+};
 
 const createDefaultUGCRealSettings = (): UGCRealModeSettings => ({
   isEnabled: false,
@@ -1444,6 +1461,9 @@ const App: React.FC = () => {
   const [ecommerceSelectedSlots, setEcommerceSelectedSlots] = useState<EcommerceSlotKey[]>([]);
   const [ecommerceSlotsConfig, setEcommerceSlotsConfig] = useState<EcommerceSlotsConfig>(() => loadEcommerceSlotsConfig());
   const [ecommerceSlotBaseImages, setEcommerceSlotBaseImages] = useState<Partial<Record<EcommerceSlotKey, string | null>>>({});
+  const [ecommerceSlotGenerationMeta, setEcommerceSlotGenerationMeta] = useState<
+    Partial<Record<EcommerceSlotKey, EcommercePdpGenerationMeta>>
+  >({});
   const [ecommerceGenerationSettings, setEcommerceGenerationSettings] = useState<EcommerceGenerationSettings>({
     reserveBlankSpace: false,
     blankSpaceDirection: 'right',
@@ -5063,33 +5083,64 @@ If the model attempts to create a scene or environment, override it and force a 
       const baseProductStateRaw = useProductStudioStore.getState();
       console.log('[PRODUCT STUDIO STATE][ECOM]', baseProductStateRaw);
 
-      // Product Studio: force fixed output ratio (user request).
-      const aspectRatio = PRODUCT_DEFAULT_ASPECT_RATIO;
+      // Ecommerce PDP Image Builder: force square canvases for overlays (hard rule).
+      const aspectRatio = ECOMMERCE_PDP_ASPECT_RATIO;
       const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
       if (!resolvedApiKey) {
         return;
       }
 
+      const mapSlotKeyToPdpSlot = (slotKey: EcommerceSlotKey): EcommercePdpSlot => {
+        switch (slotKey) {
+          case 'WHAT_IS_PRODUCT':
+            return 'WHAT_IS_IT';
+          case 'WHAT_DOES_IT_DO':
+            return 'WHAT_DOES_IT_DO';
+          case 'HOW_IT_WORKS_3_STEPS':
+            return 'HOW_IT_WORKS';
+          case 'RESULTS_TESTIMONIALS':
+            return 'RESULTS';
+          case 'DIFFERENTIATION':
+            return 'DIFFERENTIATION';
+          case 'BACK_IT_UP_GUARANTEE':
+            return 'GUARANTEE';
+          default:
+            throw new Error(`Unsupported ecommerce slot: ${slotKey}`);
+        }
+      };
+
       let lastUrl: string | null = null;
       for (const slotKey of ecommerceSelectedSlots) {
         const requiredBlankDir = ECOMMERCE_SLOT_REQUIRED_BLANK_SPACE[slotKey] ?? 'right';
-        const reserveBlankSpace = ecommerceGenerationSettings.reserveBlankSpace;
+
+        // Locked layout system: only left/right layouts are supported.
+        const safeZoneSide = (requiredBlankDir === 'left' ? 'left' : 'right') as EcommercePdpSafeZone['side'];
+        const imageSide = (safeZoneSide === 'left' ? 'right' : 'left') as EcommercePdpImageSide;
+        const layout: EcommercePdpLayout =
+          imageSide === 'left' ? 'image-left-text-right' : 'image-right-text-left';
+        const safeZone: EcommercePdpSafeZone = { side: safeZoneSide, widthPercent: 40 };
 
         const slotProductState: any = {
           ...baseProductStateRaw,
-          // Enforce studio-safe ecommerce builder; overlay rendering is handled in-app.
-          mode: 'studio',
-          sceneType: 'studio-branding',
+          // NEW ROOT PIPELINE (do not inherit from studio-branding / lifestyle / editorial)
+          sceneType: 'ecommerce-pdp',
+          mode: 'ecommerce',
           aspectRatio,
-          // Slot-based blank-space control
-          blankSpaceEnabled: reserveBlankSpace && requiredBlankDir !== 'center',
-          blankSpaceSide:
-            requiredBlankDir === 'left' || requiredBlankDir === 'right'
-              ? requiredBlankDir
-              : (baseProductStateRaw as any).blankSpaceSide ?? 'right',
-          // Center "blank space" is represented via internal breathing room, not side-placement.
-          negativeSpace: reserveBlankSpace && requiredBlankDir === 'center' ? 'intentional' : (baseProductStateRaw as any).negativeSpace,
-          spacing: reserveBlankSpace && requiredBlankDir === 'center' ? 'airy' : (baseProductStateRaw as any).spacing,
+          // Force product-only canvas rules
+          environmentContext: null,
+          selectedProps: [],
+          propDensity: 'none',
+          creativityLevel: 0,
+          handsHolding: false,
+          interaction: 'none',
+          stateMotion: 'static',
+          // Safe-zone layout binding (mandatory)
+          ecommercePdp: {
+            slot: mapSlotKeyToPdpSlot(slotKey),
+            layout,
+            imageSide,
+            safeZone,
+          },
         };
 
         const jobs = generateProductJobs(slotProductState);
@@ -5098,22 +5149,39 @@ If the model attempts to create a scene or environment, override it and force a 
         }
         const finalPrompt = jobs[0].prompt;
 
-        try {
-          validatePrompt(finalPrompt, {
-            allowHands: slotProductState.interaction !== 'none' || slotProductState.handsHolding === true,
-          });
-        } catch (validationError) {
-          console.error('[PROMPT BLOCKED][ECOM]', validationError);
-          throw validationError;
+        // Ecommerce PDP prompt uses explicit negative rules ("Do NOT include people/hands/..."),
+        // so ProductStudio's legacy validator would false-positive on those words.
+        // Instead, assert we are NOT accidentally using the old cinematic/editorial/randomized builders.
+        const promptGuard = [
+          'RANDOMIZATION RULES',
+          'High-end editorial',
+          'cinematic look',
+          'No generic stock look',
+          'Lens choice:',
+          'Randomized camera angle',
+          'Randomized distance',
+          'studio-branding',
+        ];
+        for (const fragment of promptGuard) {
+          if (finalPrompt.toLowerCase().includes(fragment.toLowerCase())) {
+            throw new Error(`[ECOMMERCE PDP BUG] Forbidden fragment detected in prompt: "${fragment}"`);
+          }
+        }
+        if (!finalPrompt.includes(`safeZone = { side: '${safeZone.side}', widthPercent: ${safeZone.widthPercent} }`)) {
+          throw new Error('[ECOMMERCE PDP BUG] Safe zone not injected into prompt.');
         }
 
         console.log('[ECOM SLOT]', slotKey, {
-          blankSpace: slotProductState.blankSpaceEnabled ? slotProductState.blankSpaceSide : 'off',
           promptPreview: finalPrompt.slice(0, 240),
+          sceneType: slotProductState.sceneType,
+          safeZone,
+          layout,
+          imageSide,
         });
 
         const productParts: any[] = [];
-        for (const product of generationProducts) {
+        // PDP canvases are designed for a single hero product. Use the first selected product as the reference image.
+        for (const product of generationProducts.slice(0, 1)) {
           const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
             maxLongEdge: 2048,
             maxBase64Length: 4_000_000,
@@ -5171,6 +5239,16 @@ If the model attempts to create a scene or environment, override it and force a 
         const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
         lastUrl = outputUrl;
         setEcommerceSlotBaseImages(prev => ({ ...prev, [slotKey]: outputUrl }));
+        setEcommerceSlotGenerationMeta(prev => ({
+          ...prev,
+          [slotKey]: {
+            sceneType: 'ecommerce-pdp',
+            slot: slotProductState.ecommercePdp.slot,
+            layout: slotProductState.ecommercePdp.layout,
+            imageSide: slotProductState.ecommercePdp.imageSide,
+            safeZone: slotProductState.ecommercePdp.safeZone,
+          },
+        }));
         setGeneratedImageUrl(outputUrl);
         try {
           const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
@@ -6067,6 +6145,7 @@ If the model attempts to create a scene or environment, override it and force a 
                               slotsConfig: ecommerceSlotsConfig,
                               onSlotsConfigChange: setEcommerceSlotsConfig,
                               slotBaseImages: ecommerceSlotBaseImages,
+                              slotGenerationMeta: ecommerceSlotGenerationMeta,
                               settings: ecommerceGenerationSettings,
                               onSettingsChange: setEcommerceGenerationSettings,
                               onGenerateSequence: handleGenerateNarrativeSequenceClick,

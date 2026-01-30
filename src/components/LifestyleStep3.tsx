@@ -12,7 +12,7 @@ import {
 } from '../../constants';
 import type { UGCCaptureSituationId } from '../lib/promptEngine/ugcCaptureSituation';
 import SmoothAccordion from './SmoothAccordion';
-import EcommerceStep3, { type EcommerceGenerationSettings } from './EcommerceStep3';
+import EcommerceStep3, { type EcommerceGenerationSettings, type EcommerceSlotGenerationMeta } from './EcommerceStep3';
 import type { EcommerceSlotKey, EcommerceSlotsConfig } from '@/lib/ecommerceOverlay/types';
 import { Chip } from './ui/Chip';
 import { Toggle } from './ui/Toggle';
@@ -127,6 +127,7 @@ interface LifestyleStep3Props {
     slotsConfig: EcommerceSlotsConfig;
     onSlotsConfigChange: (next: EcommerceSlotsConfig) => void;
     slotBaseImages: Partial<Record<EcommerceSlotKey, string | null>>;
+    slotGenerationMeta: Partial<Record<EcommerceSlotKey, EcommerceSlotGenerationMeta>>;
     settings: EcommerceGenerationSettings;
     onSettingsChange: (next: EcommerceGenerationSettings) => void;
     onGenerateSequence?: () => void;
@@ -4626,6 +4627,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     slotsConfig={ecommerceOverlay.slotsConfig}
                     onSlotsConfigChange={ecommerceOverlay.onSlotsConfigChange}
                     slotBaseImages={ecommerceOverlay.slotBaseImages}
+                    slotGenerationMeta={ecommerceOverlay.slotGenerationMeta}
                     settings={ecommerceOverlay.settings}
                     onSettingsChange={ecommerceOverlay.onSettingsChange}
                     onGenerateSequence={ecommerceOverlay.onGenerateSequence}

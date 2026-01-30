@@ -26,12 +26,21 @@ export interface EcommerceGenerationSettings {
   viewFraming: 'centered' | 'left-negative-space' | 'right-negative-space';
 }
 
+export type EcommerceSlotGenerationMeta = {
+  sceneType: 'ecommerce-pdp';
+  slot: string;
+  layout: 'image-left-text-right' | 'image-right-text-left';
+  imageSide: 'left' | 'right';
+  safeZone: { side: 'left' | 'right'; widthPercent: 40 };
+};
+
 export interface EcommerceStep3Props {
   selectedSlots: EcommerceSlotKey[];
   onSelectedSlotsChange: (next: EcommerceSlotKey[]) => void;
   slotsConfig: EcommerceSlotsConfig;
   onSlotsConfigChange: (next: EcommerceSlotsConfig) => void;
   slotBaseImages: Partial<Record<EcommerceSlotKey, string | null>>;
+  slotGenerationMeta: Partial<Record<EcommerceSlotKey, EcommerceSlotGenerationMeta>>;
   settings: EcommerceGenerationSettings;
   onSettingsChange: (next: EcommerceGenerationSettings) => void;
   onGenerateSequence?: () => void;
@@ -72,6 +81,7 @@ export default function EcommerceStep3({
   slotsConfig,
   onSlotsConfigChange,
   slotBaseImages,
+  slotGenerationMeta,
   settings,
   onSettingsChange,
   onGenerateSequence,
@@ -90,7 +100,23 @@ export default function EcommerceStep3({
 
   const activeSpec = activeSlot ? slotsConfig[activeSlot] : null;
   const activeBaseImageUrl = activeSlot ? slotBaseImages[activeSlot] : null;
+  const activeGenerationMeta = activeSlot ? slotGenerationMeta[activeSlot] : null;
   const hasPreviewImage = Boolean(activeBaseImageUrl);
+
+  const overlayBlockReason = useMemo(() => {
+    if (!activeSlot) return null;
+    if (!activeBaseImageUrl) return null;
+    if (!activeGenerationMeta) return 'Missing generation metadata.';
+    if (activeGenerationMeta.sceneType !== 'ecommerce-pdp') return 'sceneType ≠ ecommerce-pdp.';
+    if (!activeGenerationMeta.slot) return 'slot is undefined.';
+    if (!activeGenerationMeta.safeZone) return 'background was generated without safe zone.';
+    if (activeGenerationMeta.safeZone.widthPercent !== 40) return 'safeZone.widthPercent must equal 40.';
+    const required = ECOMMERCE_SLOT_REQUIRED_BLANK_SPACE[activeSlot];
+    if (required && required !== 'center' && activeGenerationMeta.safeZone.side !== required) {
+      return `safeZone.side mismatch (expected ${required}).`;
+    }
+    return null;
+  }, [activeBaseImageUrl, activeGenerationMeta, activeSlot]);
 
   const overlayWarning = useMemo(() => {
     if (!activeSlot || !activeSpec) return null;
@@ -150,13 +176,23 @@ export default function EcommerceStep3({
       <section className="rounded-xl border border-gray-200 bg-whiteTint p-4 space-y-4">
         <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Live Preview</p>
         <div className="rounded-xl border border-gray-200 bg-whiteTint overflow-hidden">
-          {activeSpec && hasPreviewImage ? (
+          {activeSpec && hasPreviewImage && !overlayBlockReason ? (
             <EcommerceOverlaySvg
               baseImageUrl={activeBaseImageUrl}
               spec={activeSpec}
               className="w-full h-auto block"
               ref={svgRef}
             />
+          ) : activeSpec && hasPreviewImage && overlayBlockReason ? (
+            <div className="p-6 text-sm text-gray-600">
+              <div className="flex items-start gap-2">
+                <AlertTriangle size={16} className="mt-0.5 text-amber-500" />
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-gray-900">Overlays blocked</p>
+                  <p className="text-xs text-gray-600">{overlayBlockReason}</p>
+                </div>
+              </div>
+            </div>
           ) : (
             <div className="p-6 text-sm text-gray-600">
               {activeSlot ? 'Generate this slot to preview overlays on the product image.' : 'Select a slot to preview.'}
@@ -178,9 +214,10 @@ export default function EcommerceStep3({
           </button>
           <button
             type="button"
-            disabled={!activeSlot || !activeBaseImageUrl}
+            disabled={!activeSlot || !activeBaseImageUrl || Boolean(overlayBlockReason)}
             onClick={async () => {
               if (!activeSlot || !activeBaseImageUrl) return;
+              if (overlayBlockReason) return;
               const svg = svgRef.current;
               if (!svg) return;
               await exportSvgElementToPng(svg, { filename: `${activeSlot}-with-overlays.png`, scale: 2 });
@@ -191,6 +228,12 @@ export default function EcommerceStep3({
             Export PNG (with overlays)
           </button>
         </div>
+        {overlayBlockReason && hasPreviewImage && (
+          <p className="text-xs text-amber-600 flex items-center gap-2">
+            <AlertTriangle size={14} />
+            Overlay export disabled: {overlayBlockReason}
+          </p>
+        )}
         {!activeBaseImageUrl && activeSlot && (
           <p className="text-xs text-gray-600">
             Generate <span className="text-gray-900">{ECOMMERCE_SLOT_LABELS[activeSlot]}</span> to enable export.

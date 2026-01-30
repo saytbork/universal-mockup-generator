@@ -493,6 +493,9 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     blankSpaceEnabled: false,
     blankSpaceSide: 'right',
 
+    // ECOMMERCE PDP (Isolated Pipeline)
+    ecommercePdp: null,
+
     // BUNDLE (Sub-system)
     bundle: DEFAULT_BUNDLE,
 

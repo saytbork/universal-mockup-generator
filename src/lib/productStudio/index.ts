@@ -25,6 +25,11 @@ export type {
     BrandPalette,
     // Scene
     SceneType,
+    EcommerceSlot,
+    EcommercePdpLayout,
+    EcommercePdpImageSide,
+    EcommercePdpSafeZone,
+    EcommercePdpConfig,
     EnvironmentMacro,
     MicroPlace,
     Lighting,

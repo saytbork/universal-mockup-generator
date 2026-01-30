@@ -28,6 +28,7 @@ import type {
 
 import { mapSceneToPrompt } from './mapSceneToPrompt';
 import { applyCanonicalPhysicalForMotion } from './motionCoherence';
+import { buildEcommercePdpPrompt } from './prompt-builders/buildEcommercePdpPrompt';
 
 // ============================================================================
 // FORBIDDEN TERMS VALIDATION
@@ -792,7 +793,9 @@ function buildSceneType(state: ProductStudioState): string {
         // Avoid forbidden term "lifestyle" while still allowing real environments in product-only mode.
         'lifestyle-real': 'Real-world product photography',
         // Avoid forbidden term "phone" (kept for compatibility, but not intended for Product Studio UI)
-        'ugc-phone': 'Casual snapshot of product'
+        'ugc-phone': 'Casual snapshot of product',
+        // Ecommerce PDP is a separate pipeline; this label should not be reused as a prompt foundation.
+        'ecommerce-pdp': 'Ecommerce PDP image canvas'
     };
     return map[state.sceneType];
 
@@ -993,7 +996,7 @@ function enforceMotionPromptCoherence(prompt: string, state: ProductStudioState)
         ? [...forbiddenBase, 'PRODUCT_STATE_MOTION: Spilled.']
         : [...forbiddenBase, 'PRODUCT_STATE_MOTION: Falling.'];
     for (const phrase of forbidden) {
-        next = next.replaceAll(phrase, '');
+        next = next.split(phrase).join('');
     }
 
     const required = motion === 'falling'
@@ -1215,6 +1218,49 @@ function buildNegativePrompt(state: ProductStudioState): string {
 // ============================================================================
 
 export function generateProductJobs(state: ProductStudioState): ProductGenerationJob[] {
+    if (state.sceneType === 'ecommerce-pdp') {
+        const pdp = state.ecommercePdp;
+        if (!pdp) {
+            throw new Error('[ECOMMERCE PDP] Missing ecommercePdp config.');
+        }
+        if (state.bundle.enabled) {
+            throw new Error('[ECOMMERCE PDP] Bundles are not supported.');
+        }
+        if (state.products.length === 0) {
+            console.warn('[ECOMMERCE PDP] No products to generate');
+            return [];
+        }
+
+        // Mandatory state logging
+        console.log('[PRODUCT STUDIO STATE][ECOMMERCE PDP]', { sceneType: state.sceneType, ecommercePdp: pdp });
+
+        const jobs: ProductGenerationJob[] = [];
+        for (const product of state.products) {
+            const prompt = buildEcommercePdpPrompt({
+                product,
+                slot: pdp.slot,
+                layout: pdp.layout,
+                imageSide: pdp.imageSide,
+            });
+
+            // NOTE: Do NOT run ProductStudio validatePrompt here:
+            // The PDP prompt explicitly contains negative instructions like "Do NOT include people/hands",
+            // and the legacy validator would false-positive on those words.
+
+            jobs.push({
+                productId: product.id,
+                productName: product.name,
+                prompt,
+                negativePrompt:
+                    'text, logo, watermark, badges, icons, UI, typography, people, hands, faces, props in negative space, gradients, dramatic shadows',
+                aspectRatio: '1:1',
+                sceneType: state.sceneType,
+            });
+        }
+
+        return jobs;
+    }
+
     const normalizedState = normalizeProductStudioStateForPrompt(state);
     // Mandatory state logging
     console.log('[PRODUCT STUDIO STATE]', normalizedState);
