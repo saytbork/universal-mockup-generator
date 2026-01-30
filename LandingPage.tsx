@@ -96,6 +96,22 @@ const pricing: PricingPlan[] = [
 
 const paymentMethods = ['Visa', 'Mastercard', 'American Express', 'Apple Pay', 'Google Pay'];
 
+type BeforeAfterSlide = {
+  id: string;
+  before: string;
+  after: string;
+  alt: string;
+};
+
+const beforeAfterSlides: BeforeAfterSlide[] = [
+  { id: '01', before: '/slider/01-before.jpg', after: '/slider/01-after.jpg', alt: 'Before and after example 01' },
+  { id: '02', before: '/slider/02-before.jpg', after: '/slider/02-after.jpg', alt: 'Before and after example 02' },
+  { id: '03', before: '/slider/03-before.jpg', after: '/slider/03-after.jpg', alt: 'Before and after example 03' },
+  { id: '04', before: '/slider/04-before.jpg', after: '/slider/04-after.jpg', alt: 'Before and after example 04' },
+  { id: '05', before: '/slider/05-before.jpg', after: '/slider/05-after.jpg', alt: 'Before and after example 05' },
+  { id: '06', before: '/slider/06-before.jpg', after: '/slider/06-after.jpg', alt: 'Before and after example 06' },
+];
+
 // --- Advantage Grid Animation Components ---
 
 const WeeksToMinutes = () => {
@@ -309,6 +325,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [activeStep, setActiveStep] = useState(0);
   const [isHoveringSteps, setIsHoveringSteps] = useState(false);
+  const [beforeAfterValues, setBeforeAfterValues] = useState<Record<string, number>>(() =>
+    Object.fromEntries(beforeAfterSlides.map(slide => [slide.id, 50]))
+  );
+  const [beforeAfterView, setBeforeAfterView] = useState<Record<string, 'before' | 'after'>>(() =>
+    Object.fromEntries(beforeAfterSlides.map(slide => [slide.id, 'after']))
+  );
   const seo = {
     title: 'AI Product & Lifestyle Mockups for Ecommerce Brands | Perfect Mockup',
     description:
@@ -643,6 +665,36 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
           </motion.div>
         </div>
       </header>
+
+      <section className="bg-white dark:bg-black border-b border-gray-100 dark:border-white/5">
+        <div className="max-w-6xl mx-auto px-6 py-20 space-y-10">
+          <div className="text-center space-y-3">
+            <h2 className="text-3xl sm:text-4xl font-semibold text-gray-900 dark:text-white">
+              From static product shots to real-looking UGC
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-400">Same product. Real people. Real environments.</p>
+            <p className="text-sm text-gray-500 dark:text-gray-500 max-w-3xl mx-auto">
+              See how a single product image becomes lifestyle and UGC content ready for ads, PDPs, and socials.
+            </p>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2">
+            {beforeAfterSlides.map(slide => (
+              <BeforeAfterCard
+                key={slide.id}
+                slide={slide}
+                value={beforeAfterValues[slide.id] ?? 50}
+                view={beforeAfterView[slide.id] ?? 'after'}
+                onChange={(next) =>
+                  setBeforeAfterValues(prev => ({ ...prev, [slide.id]: next }))
+                }
+                onViewChange={(next) =>
+                  setBeforeAfterView(prev => ({ ...prev, [slide.id]: next }))
+                }
+              />
+            ))}
+          </div>
+        </div>
+      </section>
 
       <section className="bg-gray-50/50 dark:bg-white/[0.02] border-b border-gray-100 dark:border-white/5">
         <div className="max-w-6xl mx-auto px-6 py-24 space-y-10">
@@ -1352,3 +1404,92 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
 };
 
 export default LandingPage;
+
+function BeforeAfterCard({
+  slide,
+  value,
+  view,
+  onChange,
+  onViewChange,
+}: {
+  slide: BeforeAfterSlide;
+  value: number;
+  view: 'before' | 'after';
+  onChange: (next: number) => void;
+  onViewChange: (next: 'before' | 'after') => void;
+}) {
+  const safeValue = Math.max(0, Math.min(100, value));
+  return (
+    <div className="rounded-3xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 p-3 md:p-4">
+      <div className="md:hidden space-y-3">
+        <div className="flex items-center justify-center gap-2">
+          {(['before', 'after'] as const).map(option => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => onViewChange(option)}
+              className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${
+                view === option
+                  ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
+                  : 'bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-300'
+              }`}
+            >
+              {option === 'before' ? 'Before' : 'After'}
+            </button>
+          ))}
+        </div>
+        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-gray-100 dark:bg-white/10">
+          <img
+            src={view === 'before' ? slide.before : slide.after}
+            alt={slide.alt}
+            className="absolute inset-0 h-full w-full object-cover"
+            loading="lazy"
+            draggable={false}
+          />
+          <span className="absolute left-3 top-3 rounded-full bg-white/85 px-3 py-1 text-[10px] font-semibold text-gray-700 uppercase tracking-widest">
+            {view === 'before' ? 'Before' : 'After'}
+          </span>
+        </div>
+      </div>
+      <div className="hidden md:block">
+        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-gray-100 dark:bg-white/10">
+          <img
+            src={slide.before}
+            alt={slide.alt}
+            className="absolute inset-0 h-full w-full object-cover"
+            loading="lazy"
+            draggable={false}
+          />
+          <div className="absolute inset-y-0 left-0 overflow-hidden" style={{ width: `${safeValue}%` }}>
+            <img
+              src={slide.after}
+              alt={slide.alt}
+              className="absolute inset-0 h-full w-full object-cover"
+              loading="lazy"
+              draggable={false}
+            />
+          </div>
+          <div className="pointer-events-none absolute inset-y-0" style={{ left: `${safeValue}%` }}>
+            <div className="absolute inset-y-0 -translate-x-1/2 w-[2px] bg-white/90" />
+            <div className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-10 rounded-full border border-white bg-gray-900/40 backdrop-blur-sm" />
+          </div>
+          <div className="absolute left-3 top-3 rounded-full bg-white/85 px-3 py-1 text-[10px] font-semibold text-gray-700 uppercase tracking-widest">
+            Before
+          </div>
+          <div className="absolute right-3 top-3 rounded-full bg-white/85 px-3 py-1 text-[10px] font-semibold text-gray-700 uppercase tracking-widest">
+            After
+          </div>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={safeValue}
+            onChange={(event) => onChange(Number(event.target.value))}
+            aria-label="Before and after comparison"
+            className="absolute inset-0 h-full w-full cursor-ew-resize opacity-0"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
