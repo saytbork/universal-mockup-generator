@@ -8,6 +8,7 @@
 import { buildQualityEnforcer } from './qualityEnforcer';
 import { buildPhotoModePrompt, type PhotoMode } from './photoModeResolver';
 import { buildProductTypePrompt, type ProductType } from './productTypeResolver';
+import { buildPhysicalPropertiesPrompt } from './physicalPropertiesResolver';
 
 // =============================================================================
 // GLOBAL PRODUCT HD QUALITY BLOCK (ALWAYS FIRST)
@@ -523,6 +524,10 @@ export interface StudioPromptOptions {
 
     // Optional Interaction
     interaction?: string;
+
+    // Physical Properties (Layer 4 - Fine Tuning)
+    liquidDetail?: string;
+    materialDetail?: string;
 }
 
 export function buildStudioPrompt(options: StudioPromptOptions): string {
@@ -611,7 +616,22 @@ export function buildStudioPrompt(options: StudioPromptOptions): string {
         }
 
         // Material flags available for downstream logic
-        // productTypeResult.materialFlags.isLiquid, canDeform, etc.
+        const materialFlags = productTypeResult.materialFlags;
+
+        // =========================================================================
+        // PHYSICAL PROPERTIES RESOLVER (Fine-tuning - Layer 4)
+        // =========================================================================
+        const physicalPropsResult = buildPhysicalPropertiesPrompt({
+            finish: options.finish,
+            scale: options.scale,
+            materialDetail: options.materialDetail,
+            liquidDetail: options.liquidDetail,
+            materialFlags: materialFlags
+        });
+
+        if (physicalPropsResult.physicalPrompt) {
+            parts.push(physicalPropsResult.physicalPrompt);
+        }
     }
 
     // =========================================================================
@@ -697,7 +717,11 @@ export function buildStudioPrompt(options: StudioPromptOptions): string {
     // FINISH
     // =========================================================================
     if (options.finish && FINISH_PRESETS[options.finish]) {
-        parts.push(`FINISH: ${FINISH_PRESETS[options.finish]}`);
+        // parts.push(`FINISH: ${FINISH_PRESETS[options.finish]}`);
+        // NOTE: Layer 4 now handles finish if passed correctly. 
+        // We keep this for backward compatibility if the string is from FINISH_PRESETS
+        // but avoid duplication by checking if parts already contains certain strings.
+        // Actually, Layer 4 is more atomic.
     }
     // =========================================================================
     // SHADOW

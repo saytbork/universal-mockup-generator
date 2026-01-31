@@ -143,6 +143,19 @@ const PHOTO_MODE_MAP: Record<string, PhotoModeKey> = {
   'Clinical Lab Counter': 'CLINICAL_LAB_COUNTER',
   'Golden Mist Aura': 'GOLDEN_MIST_AURA',
   'Candy Gradient Lab': 'CANDY_GRADIENT_LAB',
+  'Ingredient Flat Lay': 'INGREDIENT_STACK',
+  'Glass Pedestal Studio': 'HERO_NEUTRAL',
+  'Minimal Bathroom Vanity': 'HERO_NEUTRAL',
+  'Dark Premium Studio': 'HERO_NEUTRAL',
+  'Monochrome Brand World': 'COLOR_POP_HERO',
+  'Brand Campaign World': 'HERO_NEUTRAL',
+  'UGC Premium Simulation': 'HERO_NEUTRAL',
+  'Tech Clean Studio': 'HERO_NEUTRAL',
+  'Luxury Editorial Tabletop': 'HERO_NEUTRAL',
+  'Soft Wellness Morning': 'HERO_NEUTRAL',
+  'Golden Hour Lifestyle': 'HERO_NEUTRAL',
+  'Outdoor Energy Boost': 'HERO_NEUTRAL',
+  'Pastel Picnic': 'HERO_NEUTRAL',
 };
 
 const SECONDARY_PROPS_BY_MODE: Partial<Record<PhotoModeKey, string[]>> = {

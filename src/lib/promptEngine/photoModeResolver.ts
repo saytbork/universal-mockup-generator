@@ -36,6 +36,9 @@ export type PhotoMode =
     | 'Minimal Bathroom Vanity'
     | 'Dark Premium Studio'
     | 'Monochrome Brand World'
+    | 'Brand Campaign World'
+    | 'UGC Premium Simulation'
+    | 'Tech Clean Studio'
     // Lifestyle modes (6)
     | 'Luxury Editorial Tabletop'
     | 'Soft Wellness Morning'
@@ -192,6 +195,27 @@ const STUDIO_PHOTO_MODE_PROMPTS: Record<string, string> = {
     single-color abstraction using brand color,
     editorial tonal composition,
     controlled monochromatic gradient
+  `,
+    'Brand Campaign World': `
+    hero brand campaign photography,
+    high-end commercial set with architectural geometry,
+    premium material interplay and depth,
+    aspirational advertising aesthetic,
+    sophisticated spatial composition
+  `,
+    'UGC Premium Simulation': `
+    premium UGC-style photography,
+    high-quality smartphone aesthetic with intentional framing,
+    natural lived-in environment with soft window light,
+    authentic brand-focused realism,
+    casual yet elevated product presentation
+  `,
+    'Tech Clean Studio': `
+    minimalist tech studio photography,
+    pristine surfaces with clinical precision,
+    sharp focus and clean digital-ready borders,
+    professional hardware commercial aesthetic,
+    balanced high-key lighting
   `
 };
 
@@ -358,6 +382,30 @@ const PHOTO_MODE_CONTROL_FLAGS: Record<string, PhotoModeControlFlags> = {
         humansAllowed: false,
         motionAllowed: false,
         bundlesAllowed: false,
+        cameraLocked: false
+    },
+    'Brand Campaign World': {
+        propsAllowed: true,
+        environmentAllowed: false,
+        humansAllowed: false,
+        motionAllowed: false,
+        bundlesAllowed: true,
+        cameraLocked: false
+    },
+    'UGC Premium Simulation': {
+        propsAllowed: true,
+        environmentAllowed: true,
+        humansAllowed: true,
+        motionAllowed: false,
+        bundlesAllowed: true,
+        cameraLocked: false
+    },
+    'Tech Clean Studio': {
+        propsAllowed: false,
+        environmentAllowed: false,
+        humansAllowed: false,
+        motionAllowed: false,
+        bundlesAllowed: true,
         cameraLocked: false
     },
 
@@ -667,6 +715,9 @@ export function getAllPhotoModes(): PhotoMode[] {
         'Minimal Bathroom Vanity',
         'Dark Premium Studio',
         'Monochrome Brand World',
+        'Brand Campaign World',
+        'UGC Premium Simulation',
+        'Tech Clean Studio',
         // Lifestyle modes
         'Luxury Editorial Tabletop',
         'Soft Wellness Morning',

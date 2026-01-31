@@ -244,16 +244,31 @@ export type EcommercePdpConfig = {
 // =============================================================================
 
 export type PhotoMode =
+    // Studio modes
     | 'Hero Landing Page'
     | 'Color Pop Hero'
     | 'Ingredient Stack'
+    | 'Ingredient Flat Lay'
     | 'Acrylic Blocks'
+    | 'Glass Pedestal Studio'
     | 'Splash Shot'
     | 'Foam & Texture'
     | 'Routine Carousel'
     | 'Clinical Lab Counter'
-    | 'Golden Mist Aura'
-    | 'Candy Gradient Lab';
+    | 'Minimal Bathroom Vanity'
+    | 'Dark Premium Studio'
+    | 'Monochrome Brand World'
+    | 'Brand Campaign World'
+    | 'UGC Premium Simulation'
+    | 'Tech Clean Studio'
+    // Lifestyle modes
+    | 'Luxury Editorial Tabletop'
+    | 'Soft Wellness Morning'
+    | 'Golden Hour Lifestyle'
+    | 'Outdoor Energy Boost'
+    | 'Pastel Picnic'
+    | 'Candy Gradient Lab'
+    | 'Golden Mist Aura'; // Existing in file but not in resolver category? Wait, it was in the union.
 
 export type HeroLandingPageBackgroundType = 'Solid' | 'Gradient';
 export type HeroLandingPageGradientStyle = 'Soft' | 'Radial' | 'Vertical';
@@ -366,6 +381,20 @@ export type PhotoModeConfig = {
         edgeStyle: CandyGradientLabEdgeStyle;
         playfulness: CandyGradientLabPlayfulness;
     };
+    // New placeholder configs for missing modes to satisfy type system if needed
+    ingredientFlatLay?: Record<string, any>;
+    glassPedestalStudio?: Record<string, any>;
+    minimalBathroomVanity?: Record<string, any>;
+    darkPremiumStudio?: Record<string, any>;
+    monochromeBrandWorld?: Record<string, any>;
+    brandCampaignWorld?: Record<string, any>;
+    ugcPremiumSimulation?: Record<string, any>;
+    techCleanStudio?: Record<string, any>;
+    luxuryEditorialTabletop?: Record<string, any>;
+    softWellnessMorning?: Record<string, any>;
+    goldenHourLifestyle?: Record<string, any>;
+    outdoorEnergyBoost?: Record<string, any>;
+    pastelPicnic?: Record<string, any>;
 };
 
 export type PhotoModeConfigPatch = {
@@ -379,6 +408,19 @@ export type PhotoModeConfigPatch = {
     clinicalLabCounter?: Partial<PhotoModeConfig['clinicalLabCounter']>;
     goldenMistAura?: Partial<PhotoModeConfig['goldenMistAura']>;
     candyGradientLab?: Partial<PhotoModeConfig['candyGradientLab']>;
+    ingredientFlatLay?: Partial<Record<string, any>>;
+    glassPedestalStudio?: Partial<Record<string, any>>;
+    minimalBathroomVanity?: Partial<Record<string, any>>;
+    darkPremiumStudio?: Partial<Record<string, any>>;
+    monochromeBrandWorld?: Partial<Record<string, any>>;
+    brandCampaignWorld?: Partial<Record<string, any>>;
+    ugcPremiumSimulation?: Partial<Record<string, any>>;
+    techCleanStudio?: Partial<Record<string, any>>;
+    luxuryEditorialTabletop?: Partial<Record<string, any>>;
+    softWellnessMorning?: Partial<Record<string, any>>;
+    goldenHourLifestyle?: Partial<Record<string, any>>;
+    outdoorEnergyBoost?: Partial<Record<string, any>>;
+    pastelPicnic?: Partial<Record<string, any>>;
 };
 
 // ============================================================================
