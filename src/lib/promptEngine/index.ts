@@ -55,6 +55,7 @@ import { VisualGrammarBuilder } from './builders/visualGrammar';
 import { PromptSanitizer } from './sanitizer';
 import { EcommerceNarrativeBuilder } from './builders/ecommerceSequence';
 import { buildStudioPrompt, PRODUCT_STUDIO_CANONICAL_PROMPT } from './studioPresets';
+import { buildQualityEnforcer, buildQualityNegatives } from './qualityEnforcer';
 import type { PromptOptions } from './types';
 import { buildMasterPrompt, MasterPromptSections } from './masterPrompt';
 

@@ -5,6 +5,8 @@
  * NO lifestyle. NO real-world environments. Product-only.
  */
 
+import { buildQualityEnforcer } from './qualityEnforcer';
+
 // =============================================================================
 // GLOBAL PRODUCT HD QUALITY BLOCK (ALWAYS FIRST)
 // =============================================================================
@@ -500,9 +502,9 @@ export interface StudioPromptOptions {
 }
 
 export function buildStudioPrompt(options: StudioPromptOptions): string {
-    // CRITICAL: Global quality block MUST be first to prevent model from "deciding to paint"
+    // CRITICAL: Quality enforcer MUST be first to prevent model from "deciding to paint"
     const parts: string[] = [
-        GLOBAL_PRODUCT_HD_QUALITY_BLOCK,  // ← NEW: Global HD quality block ALWAYS FIRST
+        buildQualityEnforcer(),  // ← NEW: Use quality enforcer module (replaces hardcoded constant)
         BASE_STUDIO
     ];
 
