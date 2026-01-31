@@ -7,6 +7,7 @@
 
 import { buildQualityEnforcer } from './qualityEnforcer';
 import { buildPhotoModePrompt, type PhotoMode } from './photoModeResolver';
+import { buildProductTypePrompt, type ProductType } from './productTypeResolver';
 
 // =============================================================================
 // GLOBAL PRODUCT HD QUALITY BLOCK (ALWAYS FIRST)
@@ -463,6 +464,9 @@ export interface StudioPromptOptions {
     // Photo Mode
     photoMode?: string;
 
+    // Product Type (Layer 3 - Physical Nature)
+    productType?: ProductType;
+
     // Props / Ingredients (optional, primarily for Ingredient Stack)
     suggestedProps?: string;
     ingredientLayout?: 'auto' | 'grounded' | 'floating' | 'top-view';
@@ -564,8 +568,31 @@ export function buildStudioPrompt(options: StudioPromptOptions): string {
             parts.push(photoModeResult.modifiers);
         }
 
-        // Control flags are aval for downstream logic (can be used later)
+        // Control flags are available for downstream logic (can be used later)
         // photoModeResult.controlFlags.propsAllowed, etc.
+    }
+
+    // =========================================================================
+    // PRODUCT TYPE RESOLVER (Physical Nature - Layer 3)
+    // =========================================================================
+    if (options.productType) {
+        const productTypeResult = buildProductTypePrompt(options.productType as ProductType, {
+            photoMode: options.photoMode as PhotoMode
+        });
+
+        // CRITICAL: Block execution if Product Type validation fails
+        if (!productTypeResult.isValid) {
+            console.error('[Product Type Resolver] Validation failed:', productTypeResult.validationErrors);
+            throw new Error(`Product Type validation failed: ${productTypeResult.validationErrors.join(', ')}`);
+        }
+
+        // Inject physical nature prompt
+        if (productTypeResult.physicalPrompt) {
+            parts.push(productTypeResult.physicalPrompt);
+        }
+
+        // Material flags available for downstream logic
+        // productTypeResult.materialFlags.isLiquid, canDeform, etc.
     }
 
     // =========================================================================
