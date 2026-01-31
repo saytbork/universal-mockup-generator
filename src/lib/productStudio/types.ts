@@ -268,7 +268,25 @@ export type PhotoMode =
     | 'Outdoor Energy Boost'
     | 'Pastel Picnic'
     | 'Candy Gradient Lab'
-    | 'Golden Mist Aura'; // Existing in file but not in resolver category? Wait, it was in the union.
+    | 'Candy Gradient Lab'
+    | 'Golden Mist Aura';
+
+export interface EnvironmentPhotoModeSchema {
+    id: string;
+    label: string;
+    type: 'environment' | 'studio';
+    description: string;
+    basePrompt: string; // The core Photo Mode prompt segments
+    settingsSchema: {
+        environmentMood?: string[];
+        lighting?: string[];
+        surfaceBackground?: string[];
+        humanPresence?: string[];
+        cameraBias?: string[];
+        [key: string]: string[] | undefined;
+    };
+    constraints: string[];
+}
 
 export type HeroLandingPageBackgroundType = 'Solid' | 'Gradient';
 export type HeroLandingPageGradientStyle = 'Soft' | 'Radial' | 'Vertical';
@@ -395,6 +413,8 @@ export type PhotoModeConfig = {
     goldenHourLifestyle?: Record<string, any>;
     outdoorEnergyBoost?: Record<string, any>;
     pastelPicnic?: Record<string, any>;
+    // Schema-driven dynamic configuration
+    dynamic?: Record<string, Record<string, string>>;
 };
 
 export type PhotoModeConfigPatch = {

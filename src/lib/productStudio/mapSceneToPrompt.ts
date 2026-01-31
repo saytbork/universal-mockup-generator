@@ -1,5 +1,6 @@
-import type { ProductAsset, ProductStudioState } from './types';
+import type { ProductAsset, ProductStudioState, PhotoMode } from './types';
 import { buildBaseContext } from './promptParts/baseContext';
+import { buildPhotoModePrompt } from '../promptEngine/photoModeResolver';
 import {
   buildAcrylicBlocksScene,
   buildCandyGradientLabScene,
@@ -210,6 +211,13 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     }
     : undefined;
 
+  const photoModeResult = buildPhotoModePrompt(state.photoMode as PhotoMode, {
+    suggestedProps: state.props,
+    ingredientLayout: state.ingredientLayout,
+    dynamicSettings: state.photoModeConfig.dynamic?.[state.photoMode as PhotoMode],
+    productType: state.productType, // Assuming it's in state, if not need to check types
+  });
+
   const sceneInput: SceneBuildInput = {
     randomizer,
     palette,
@@ -252,6 +260,8 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   // CRITICAL: Hero Landing Page uses exclusive studio-hero scene builder
   if (environmentModeActive) {
     scene = buildEnvironmentScene(state, randomizer);
+  } else if (photoModeResult.isValid && photoModeResult.basePrompt) {
+    scene = photoModeResult.basePrompt;
   } else {
     switch (mode) {
       case 'HERO_NEUTRAL':
@@ -313,6 +323,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const parts = [
     buildBaseContext({ allowStudio: mode === 'ACRYLIC_BLOCKS' }),
     scene,
+    photoModeResult.modifiers,
     buildSecondaryProps(mode, randomizer, state.props),
     buildLighting(mode, randomizer, lightingOverrideText ? { override: { text: lightingOverrideText } } : undefined),
     buildCamera(mode, randomizer),

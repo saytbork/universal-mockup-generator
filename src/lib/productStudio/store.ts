@@ -522,6 +522,7 @@ const DEFAULT_PHOTO_MODE_CONFIG: PhotoModeConfig = {
     goldenHourLifestyle: {},
     outdoorEnergyBoost: {},
     pastelPicnic: {},
+    dynamic: {},
 };
 
 export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
@@ -759,6 +760,7 @@ type ProductStudioActions = {
     setLens: (lens: string) => void;
     setLightingRig: (rig: string) => void;
     setFinish: (finish: string) => void;
+    updatePhotoModeSubSetting: (mode: PhotoMode, category: string, value: string) => void;
 
     // Reset
     /** Clears only `products` (and disables bundle), preserving all user-selected settings. */
@@ -1558,6 +1560,24 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             return {
                 ...common,
                 sceneType: 'studio-branding',
+            };
+        }),
+    updatePhotoModeSubSetting: (mode, category, value) =>
+        set((state) => {
+            const currentDynamic = state.photoModeConfig.dynamic || {};
+            const modeConfig = currentDynamic[mode] || {};
+
+            return {
+                photoModeConfig: {
+                    ...state.photoModeConfig,
+                    dynamic: {
+                        ...currentDynamic,
+                        [mode]: {
+                            ...modeConfig,
+                            [category]: value
+                        }
+                    }
+                }
             };
         }),
     setPhotoModeConfig: (patch) =>

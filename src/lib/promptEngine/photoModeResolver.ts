@@ -21,31 +21,10 @@
 // TYPES
 // =============================================================================
 
-export type PhotoMode =
-    // Studio modes (13)
-    | 'Hero Landing Page'
-    | 'Color Pop Hero'
-    | 'Ingredient Stack'
-    | 'Ingredient Flat Lay'
-    | 'Acrylic Blocks'
-    | 'Glass Pedestal Studio'
-    | 'Splash Shot'
-    | 'Foam & Texture'
-    | 'Routine Carousel'
-    | 'Clinical Lab Counter'
-    | 'Minimal Bathroom Vanity'
-    | 'Dark Premium Studio'
-    | 'Monochrome Brand World'
-    | 'Brand Campaign World'
-    | 'UGC Premium Simulation'
-    | 'Tech Clean Studio'
-    // Lifestyle modes (6)
-    | 'Luxury Editorial Tabletop'
-    | 'Soft Wellness Morning'
-    | 'Golden Hour Lifestyle'
-    | 'Outdoor Energy Boost'
-    | 'Pastel Picnic'
-    | 'Candy Gradient Lab';
+import { PHOTO_MODE_SCHEMAS } from '../productStudio/photoModeSchema';
+import type { PhotoMode as ProductStudioPhotoMode } from '../productStudio/types';
+
+export type PhotoMode = ProductStudioPhotoMode;
 
 export type ProductType =
     | 'Capsules'
@@ -75,6 +54,10 @@ export interface PhotoModeOptions {
 
     // State (for compatibility checks)
     productState?: ProductState;
+
+    // Schema-driven dynamic settings
+    dynamicSettings?: Record<string, string>;
+    constraints?: string[];
 }
 
 export interface PhotoModeControlFlags {
@@ -100,168 +83,8 @@ export interface PhotoModeResult {
 }
 
 // =============================================================================
-// PHOTO MODE BASE PROMPTS (19 Total)
+// PHOTO MODE BASE PROMPTS (MIGRATED TO PHOTO_MODE_SCHEMAS)
 // =============================================================================
-
-const STUDIO_PHOTO_MODE_PROMPTS: Record<string, string> = {
-    'Hero Landing Page': `
-    hero product photography,
-    clean high-end studio composition,
-    minimalist commercial aesthetic,
-    large intentional negative space for copy,
-    product isolated as the sole focal point,
-    luxury ecommerce advertising style
-  `,
-
-    'Color Pop Hero': `
-    bold color pop studio photography,
-    high-saturation background derived from brand colors,
-    modern DTC advertising aesthetic,
-    smooth cyclorama with controlled contrast
-  `,
-
-    'Ingredient Stack': `
-    ingredient-focused product photography,
-    editorial exploded ingredient stack,
-    clear separation and depth planes,
-    scientific yet premium visual language
-  `,
-
-    'Ingredient Flat Lay': `
-    overhead ingredient flat lay photography,
-    editorial wellness composition,
-    clean material textures and spacing,
-    top-down perspective with controlled shadows
-  `,
-
-    'Acrylic Blocks': `
-    high-end studio photography using acrylic blocks,
-    geometric premium composition,
-    controlled reflections and refractions,
-    museum-like luxury aesthetic
-  `,
-
-    'Glass Pedestal Studio': `
-    premium editorial product photography,
-    product elevated on sculptural glass pedestal,
-    museum-like luxury composition,
-    controlled reflections and transparency
-  `,
-
-    'Splash Shot': `
-    high-speed splash photography,
-    realistic liquid physics frozen mid-action,
-    premium skincare and beverage advertising style,
-    controlled water dynamics
-  `,
-
-    'Foam & Texture': `
-    macro texture-focused photography,
-    sensory material detail emphasis,
-    editorial beauty aesthetic,
-    controlled foam and gel elements
-  `,
-
-    'Routine Carousel': `
-    multi-step routine presentation,
-    clear visual hierarchy,
-    ecommerce carousel-ready composition,
-    repeatable styling across SKUs
-  `,
-
-    'Clinical Lab Counter': `
-    clinical laboratory product photography,
-    scientific trust-driven environment,
-    precise and minimal composition,
-    sterile counter surfaces and subtle equipment
-  `,
-
-    'Minimal Bathroom Vanity': `
-    minimal bathroom vanity photography,
-    clean countertop with subtle bathroom context,
-    soft natural light through window,
-    premium spa-like aesthetic
-  `,
-
-    'Dark Premium Studio': `
-    dark premium studio photography,
-    low-key lighting with dramatic shadows,
-    luxury high-contrast composition,
-    moody editorial aesthetic
-  `,
-
-    'Monochrome Brand World': `
-    monochrome brand world photography,
-    single-color abstraction using brand color,
-    editorial tonal composition,
-    controlled monochromatic gradient
-  `,
-    'Brand Campaign World': `
-    hero brand campaign photography,
-    high-end commercial set with architectural geometry,
-    premium material interplay and depth,
-    aspirational advertising aesthetic,
-    sophisticated spatial composition
-  `,
-    'UGC Premium Simulation': `
-    premium UGC-style photography,
-    high-quality smartphone aesthetic with intentional framing,
-    natural lived-in environment with soft window light,
-    authentic brand-focused realism,
-    casual yet elevated product presentation
-  `,
-    'Tech Clean Studio': `
-    minimalist tech studio photography,
-    pristine surfaces with clinical precision,
-    sharp focus and clean digital-ready borders,
-    professional hardware commercial aesthetic,
-    balanced high-key lighting
-  `
-};
-
-const LIFESTYLE_PHOTO_MODE_PROMPTS: Record<string, string> = {
-    'Luxury Editorial Tabletop': `
-    luxury editorial tabletop photography,
-    premium surface with curated styling,
-    aspirational lifestyle context,
-    controlled depth of field
-  `,
-
-    'Soft Wellness Morning': `
-    soft wellness morning photography,
-    gentle natural light through window,
-    calm bedroom or kitchen counter,
-    aspirational wellness routine aesthetic
-  `,
-
-    'Golden Hour Lifestyle': `
-    golden hour lifestyle photography,
-    warm sunset light with natural glow,
-    outdoor or window-lit environment,
-    aspirational brand-safe composition
-  `,
-
-    'Outdoor Energy Boost': `
-    outdoor energy boost photography,
-    bright natural sunlight with greenery bokeh,
-    clean outdoor surface,
-    fresh vibrant lifestyle aesthetic
-  `,
-
-    'Pastel Picnic': `
-    pastel picnic photography,
-    soft outdoor blanket with warm golden-hour light,
-    gentle lens flare and background bokeh,
-    curated picnic props and fresh fruit
-  `,
-
-    'Candy Gradient Lab': `
-    candy gradient lab photography,
-    playful premium gradient background,
-    modern reflections and clean geometric forms,
-    high saturation with controlled polish
-  `
-};
 
 // =============================================================================
 // CONTROL FLAGS PER PHOTO MODE
@@ -599,6 +422,21 @@ function validatePhotoModeCompatibility(
 // MAIN FUNCTION: BUILD PHOTO MODE PROMPT
 // =============================================================================
 
+const PHOTO_MODE_MEGA_PROMPT = `
+Treat each Photo Mode as a configurable environment, not a flat style.
+For each selected environment:
+- Apply its environment mood as a base
+- Respect lighting, surface, and camera constraints
+- Do NOT alter product geometry or label
+- Human presence must follow physical realism rules
+- If hands are present, visible pressure and skin imperfections are mandatory
+
+Do not invent settings outside the provided schema.
+If a setting is missing, do not assume it.
+The final output must look like a real professional photoshoot,
+never like a digital illustration or mockup.
+`;
+
 /**
  * Build Photo Mode prompt with base + modifiers + control flags.
  * 
@@ -645,10 +483,9 @@ export function buildPhotoModePrompt(
         };
     }
 
-    // Step 2: Get base prompt
-    const basePrompt = STUDIO_PHOTO_MODE_PROMPTS[photoMode] ||
-        LIFESTYLE_PHOTO_MODE_PROMPTS[photoMode] ||
-        '';
+    // Step 2: Get schema and base prompt
+    const schema = PHOTO_MODE_SCHEMAS[photoMode];
+    const basePrompt = schema?.basePrompt || '';
 
     if (!basePrompt) {
         console.warn(`[Photo Mode] No base prompt found for "${photoMode}"`);
@@ -663,13 +500,28 @@ export function buildPhotoModePrompt(
         if (bgMod) modifierParts.push(bgMod);
     }
 
-    // Ingredient modifier
-    if (options.suggestedProps) {
-        const ingredMod = buildIngredientModifier(photoMode, options.suggestedProps, options.ingredientLayout);
-        if (ingredMod) modifierParts.push(ingredMod);
+    // Dynamic schema settings modifier
+    if (options.dynamicSettings) {
+        Object.entries(options.dynamicSettings).forEach(([category, value]) => {
+            modifierParts.push(`${category.replace(/([A-Z])/g, ' $1').toLowerCase()}: ${value}`);
+        });
     }
 
-    const modifiers = modifierParts.join(' ');
+    const modifiers = modifierParts.join(', ');
+
+    // Add constraints from options and schema
+    const allConstraints = [...(options.constraints || []), ...(schema?.constraints || [])];
+    if (allConstraints.length > 0) {
+        modifierParts.push(`Strict Constraints: ${allConstraints.join('. ')}`);
+    }
+
+    const finalModifiers = modifierParts.join(', ');
+
+    // Add Mega Prompt instructions if it's an environment mode or has environment flags
+    const isEnvironmentMode = schema?.type === 'environment' || PHOTO_MODE_CONTROL_FLAGS[photoMode]?.environmentAllowed;
+    const finalBasePrompt = isEnvironmentMode
+        ? `${basePrompt}\nINSTRUCTIONS:\n${PHOTO_MODE_MEGA_PROMPT}`
+        : basePrompt;
 
     // Step 4: Get control flags
     const controlFlags = PHOTO_MODE_CONTROL_FLAGS[photoMode] || {
@@ -683,8 +535,8 @@ export function buildPhotoModePrompt(
 
     // Step 5: Return result
     return {
-        basePrompt: basePrompt.trim().replace(/\s+/g, ' '),
-        modifiers: modifiers.trim().replace(/\s+/g, ' '),
+        basePrompt: finalBasePrompt.trim(),
+        modifiers: finalModifiers.trim(),
         controlFlags,
         isValid: true,
         validationErrors: []
@@ -732,5 +584,5 @@ export function getAllPhotoModes(): PhotoMode[] {
  * Check if a Photo Mode is a Studio mode (vs Lifestyle mode).
  */
 export function isStudioMode(photoMode: PhotoMode): boolean {
-    return photoMode in STUDIO_PHOTO_MODE_PROMPTS;
+    return PHOTO_MODE_SCHEMAS[photoMode]?.type === 'studio';
 }
