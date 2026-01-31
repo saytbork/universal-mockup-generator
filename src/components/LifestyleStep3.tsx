@@ -2053,13 +2053,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                    PRODUCT STUDIO CONTROLS (Studio Mode Only)
                    Basic/Pro Visibility System
                    ============================================================ */}
-	              {(productStore.sceneType === 'studio-branding' ||
-	                productStore.sceneType === 'editorial-product' ||
-	                productStore.sceneType === 'lifestyle-real' ||
-	                productStore.sceneType === 'studio-hero') && (
-	                  <>
-	                    {productStore.environmentContext == null && (
-	                      <>
+              {(productStore.sceneType === 'studio-branding' ||
+                productStore.sceneType === 'editorial-product' ||
+                productStore.sceneType === 'lifestyle-real' ||
+                productStore.sceneType === 'studio-hero') && (
+                  <>
+                    {productStore.environmentContext == null && (
+                      <>
                         {/* ═══════════════════════════════════════════════════════════
                           1. PHOTO MODE — What am I making?
                           Basic: 4 options | Pro: All options
@@ -2096,286 +2096,286 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             ))}
                           </div>
 
-	                          <div className="mt-6 space-y-6">
-	                            {productStore.photoMode === 'Hero Landing Page' && (
-	                              <div className="rounded-2xl border border-gray-200 bg-white p-6 space-y-6">
-	                                {(() => {
-	                                  const heroCfg = productStore.photoModeConfig.heroLandingPage;
-	                                  const bgType = heroCfg.backgroundType;
-	                                  const isGradient = bgType === 'Gradient';
+                          <div className="mt-8 space-y-6">
+                            {productStore.photoMode === 'Hero Landing Page' && (
+                              <div className="rounded-2xl border border-gray-200 bg-white p-6 space-y-6">
+                                {(() => {
+                                  const heroCfg = productStore.photoModeConfig.heroLandingPage;
+                                  const bgType = heroCfg.backgroundType;
+                                  const isGradient = bgType === 'Gradient';
 
-	                                  const dotBase =
-	                                    'h-9 w-9 rounded-full border bg-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2';
-	                                  const dotBorder = (isSelected: boolean) =>
-	                                    isSelected ? 'border-indigo-600' : 'border-gray-200 hover:border-gray-300';
+                                  const dotBase =
+                                    'h-9 w-9 rounded-full border bg-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2';
+                                  const dotBorder = (isSelected: boolean) =>
+                                    isSelected ? 'border-indigo-600' : 'border-gray-200 hover:border-gray-300';
 
-	                                  const getActiveTargetColor = (): string => {
-	                                    if (!isGradient) return normalizeHex(productStore.backgroundColor) ?? '#FFFFFF';
-	                                    if (heroGradientAssignTarget === 'start') return normalizeHex(productStore.gradientStart) ?? '#FFFFFF';
-	                                    if (heroGradientAssignTarget === 'end') return normalizeHex(productStore.gradientEnd) ?? '#FFFFFF';
-	                                    return normalizeHex(productStore.gradientMid) ?? '#FFFFFF';
-	                                  };
+                                  const getActiveTargetColor = (): string => {
+                                    if (!isGradient) return normalizeHex(productStore.backgroundColor) ?? '#FFFFFF';
+                                    if (heroGradientAssignTarget === 'start') return normalizeHex(productStore.gradientStart) ?? '#FFFFFF';
+                                    if (heroGradientAssignTarget === 'end') return normalizeHex(productStore.gradientEnd) ?? '#FFFFFF';
+                                    return normalizeHex(productStore.gradientMid) ?? '#FFFFFF';
+                                  };
 
-	                                  const applyHeroColor = (hex: string) => {
-	                                    if (!isGradient) {
-	                                      productStore.setBackgroundColor(hex);
-	                                      markSectionTouched('product-setup');
-	                                      return;
-	                                    }
-	                                    if (heroGradientAssignTarget === 'start') productStore.setGradientStart(hex);
-	                                    if (heroGradientAssignTarget === 'end') productStore.setGradientEnd(hex);
-	                                    if (heroGradientAssignTarget === 'mid') productStore.setGradientMid(hex);
-	                                    markSectionTouched('product-setup');
-	                                  };
+                                  const applyHeroColor = (hex: string) => {
+                                    if (!isGradient) {
+                                      productStore.setBackgroundColor(hex);
+                                      markSectionTouched('product-setup');
+                                      return;
+                                    }
+                                    if (heroGradientAssignTarget === 'start') productStore.setGradientStart(hex);
+                                    if (heroGradientAssignTarget === 'end') productStore.setGradientEnd(hex);
+                                    if (heroGradientAssignTarget === 'mid') productStore.setGradientMid(hex);
+                                    markSectionTouched('product-setup');
+                                  };
 
-	                                  const brandDots = heroLandingBrandSwatches.slice(0, 3);
-	                                  const hasThird = Boolean(normalizeHex(productStore.gradientMid));
-	                                  const thirdSmallBase =
-	                                    'h-7 w-7 rounded-full border bg-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2';
+                                  const brandDots = heroLandingBrandSwatches.slice(0, 3);
+                                  const hasThird = Boolean(normalizeHex(productStore.gradientMid));
+                                  const thirdSmallBase =
+                                    'h-7 w-7 rounded-full border bg-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2';
 
-	                                  return (
-	                                    <>
-	                                      <div className="space-y-6">
-	                                        <div className="space-y-4">
-	                                          <div>
-	                                            <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Background</p>
-	                                            <div className="flex flex-wrap gap-2">
-	                                              {(['Solid', 'Gradient'] as const).map(v => (
-	                                                <Chip
-	                                                  key={v}
-	                                                  selected={heroCfg.backgroundType === v}
-	                                                  onClick={() => {
-	                                                    productStore.setPhotoModeConfig({ heroLandingPage: { backgroundType: v } });
-	                                                    markSectionTouched('product-setup');
-	                                                  }}
-	                                                >
-	                                                  {v}
-	                                                </Chip>
-	                                              ))}
-	                                            </div>
-	                                          </div>
+                                  return (
+                                    <>
+                                      <div className="space-y-6">
+                                        <div className="space-y-6">
+                                          <div>
+                                            <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Background</p>
+                                            <div className="flex flex-wrap gap-2">
+                                              {(['Solid', 'Gradient'] as const).map(v => (
+                                                <Chip
+                                                  key={v}
+                                                  selected={heroCfg.backgroundType === v}
+                                                  onClick={() => {
+                                                    productStore.setPhotoModeConfig({ heroLandingPage: { backgroundType: v } });
+                                                    markSectionTouched('product-setup');
+                                                  }}
+                                                >
+                                                  {v}
+                                                </Chip>
+                                              ))}
+                                            </div>
+                                          </div>
 
-	                                          {isGradient && (
-	                                            <div>
-	                                              <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Gradient Stops</p>
-	                                              <div className="flex items-center gap-4">
-	                                                <button
-	                                                  type="button"
-	                                                  onClick={() => setHeroGradientAssignTarget('start')}
-	                                                  className={`${dotBase} ${dotBorder(heroGradientAssignTarget === 'start')}`}
-	                                                  style={{ background: normalizeHex(productStore.gradientStart) ?? '#FFFFFF' }}
-	                                                  aria-label="Select Start gradient color"
-	                                                />
-	                                                <button
-	                                                  type="button"
-	                                                  onClick={() => setHeroGradientAssignTarget('end')}
-	                                                  className={`${dotBase} ${dotBorder(heroGradientAssignTarget === 'end')}`}
-	                                                  style={{ background: normalizeHex(productStore.gradientEnd) ?? '#FFFFFF' }}
-	                                                  aria-label="Select End gradient color"
-	                                                />
+                                          {isGradient && (
+                                            <div>
+                                              <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Colors</p>
+                                              <div className="flex items-center gap-4">
+                                                <button
+                                                  type="button"
+                                                  onClick={() => setHeroGradientAssignTarget('start')}
+                                                  className={`${dotBase} ${dotBorder(heroGradientAssignTarget === 'start')}`}
+                                                  style={{ background: normalizeHex(productStore.gradientStart) ?? '#FFFFFF' }}
+                                                  aria-label="Select Start gradient color"
+                                                />
+                                                <button
+                                                  type="button"
+                                                  onClick={() => setHeroGradientAssignTarget('end')}
+                                                  className={`${dotBase} ${dotBorder(heroGradientAssignTarget === 'end')}`}
+                                                  style={{ background: normalizeHex(productStore.gradientEnd) ?? '#FFFFFF' }}
+                                                  aria-label="Select End gradient color"
+                                                />
 
-	                                                {hasThird ? (
-	                                                  <div className="relative">
-	                                                    <button
-	                                                      type="button"
-	                                                      onClick={() => setHeroGradientAssignTarget('mid')}
-	                                                      className={`${thirdSmallBase} ${dotBorder(heroGradientAssignTarget === 'mid')}`}
-	                                                      style={{ background: normalizeHex(productStore.gradientMid) ?? '#FFFFFF' }}
-	                                                      aria-label="Select Third gradient color"
-	                                                    />
-	                                                    <button
-	                                                      type="button"
-	                                                      onClick={() => {
-	                                                        productStore.setGradientMid('');
-	                                                        markSectionTouched('product-setup');
-	                                                        if (heroGradientAssignTarget === 'mid') setHeroGradientAssignTarget('end');
-	                                                      }}
-	                                                      className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-white border border-gray-200 text-[10px] leading-none text-gray-600 hover:border-gray-300"
-	                                                      aria-label="Remove third gradient color"
-	                                                    >
-	                                                      ×
-	                                                    </button>
-	                                                  </div>
-	                                                ) : (
-	                                                  <button
-	                                                    type="button"
-	                                                    onClick={() => {
-	                                                      const suggested =
-	                                                        heroLandingBrandSwatches[2] ||
-	                                                        heroLandingBrandSwatches[1] ||
-	                                                        heroLandingBrandSwatches[0] ||
-	                                                        '#FFFFFF';
-	                                                      productStore.setGradientMid(suggested);
-	                                                      setHeroGradientAssignTarget('mid');
-	                                                      markSectionTouched('product-setup');
-	                                                    }}
-	                                                    className="h-7 w-7 rounded-full border border-gray-200 bg-white text-[12px] font-semibold text-gray-600 hover:border-gray-300"
-	                                                    aria-label="Add third gradient color"
-	                                                  >
-	                                                    +
-	                                                  </button>
-	                                                )}
-	                                              </div>
-	                                            </div>
-	                                          )}
+                                                {hasThird ? (
+                                                  <div className="relative">
+                                                    <button
+                                                      type="button"
+                                                      onClick={() => setHeroGradientAssignTarget('mid')}
+                                                      className={`${thirdSmallBase} ${dotBorder(heroGradientAssignTarget === 'mid')}`}
+                                                      style={{ background: normalizeHex(productStore.gradientMid) ?? '#FFFFFF' }}
+                                                      aria-label="Select Third gradient color"
+                                                    />
+                                                    <button
+                                                      type="button"
+                                                      onClick={() => {
+                                                        productStore.setGradientMid('');
+                                                        markSectionTouched('product-setup');
+                                                        if (heroGradientAssignTarget === 'mid') setHeroGradientAssignTarget('end');
+                                                      }}
+                                                      className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-white border border-gray-200 text-[10px] leading-none text-gray-600 hover:border-gray-300"
+                                                      aria-label="Remove third gradient color"
+                                                    >
+                                                      ×
+                                                    </button>
+                                                  </div>
+                                                ) : (
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                      const suggested =
+                                                        heroLandingBrandSwatches[2] ||
+                                                        heroLandingBrandSwatches[1] ||
+                                                        heroLandingBrandSwatches[0] ||
+                                                        '#FFFFFF';
+                                                      productStore.setGradientMid(suggested);
+                                                      setHeroGradientAssignTarget('mid');
+                                                      markSectionTouched('product-setup');
+                                                    }}
+                                                    className="h-7 w-7 rounded-full border border-gray-200 bg-white text-[12px] font-semibold text-gray-600 hover:border-gray-300"
+                                                    aria-label="Add third gradient color"
+                                                  >
+                                                    +
+                                                  </button>
+                                                )}
+                                              </div>
+                                            </div>
+                                          )}
 
-	                                          <div>
-	                                            <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Brand Colors (auto)</p>
-	                                            <div className="flex flex-wrap gap-2">
-	                                              {brandDots.length > 0 ? (
-	                                                brandDots.map(hex => {
-	                                                  const isSelected = isGradient
-	                                                    ? getActiveTargetColor() === hex
-	                                                    : normalizeHex(productStore.backgroundColor) === hex;
-	                                                  return (
-	                                                    <button
-	                                                      key={hex}
-	                                                      type="button"
-	                                                      onClick={() => applyHeroColor(hex)}
-	                                                      className={`${dotBase} ${dotBorder(isSelected)}`}
-	                                                      style={{ background: hex }}
-	                                                      aria-label={`Use brand color ${hex}`}
-	                                                    />
-	                                                  );
-	                                                })
-	                                              ) : (
-	                                                <p className="text-[11px] text-gray-500">No brand colors available.</p>
-	                                              )}
-	                                            </div>
-	                                          </div>
+                                          <div>
+                                            <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Brand Colors</p>
+                                            <div className="flex flex-wrap gap-2">
+                                              {brandDots.length > 0 ? (
+                                                brandDots.map(hex => {
+                                                  const isSelected = isGradient
+                                                    ? getActiveTargetColor() === hex
+                                                    : normalizeHex(productStore.backgroundColor) === hex;
+                                                  return (
+                                                    <button
+                                                      key={hex}
+                                                      type="button"
+                                                      onClick={() => applyHeroColor(hex)}
+                                                      className={`${dotBase} ${dotBorder(isSelected)}`}
+                                                      style={{ background: hex }}
+                                                      aria-label={`Use brand color ${hex}`}
+                                                    />
+                                                  );
+                                                })
+                                              ) : (
+                                                <p className="text-[11px] text-gray-500">No brand colors available.</p>
+                                              )}
+                                            </div>
+                                          </div>
 
-	                                          <div>
-	                                            <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Override (optional)</p>
-	                                            <div className="flex flex-wrap items-center gap-3">
-	                                              <button
-	                                                type="button"
-	                                                onClick={() => applyHeroColor('#FFFFFF')}
-	                                                className={`${dotBase} ${dotBorder(getActiveTargetColor() === '#FFFFFF')}`}
-	                                                style={{ background: '#FFFFFF' }}
-	                                                aria-label="Set to white"
-	                                              />
-	                                              <label
-	                                                className={`relative inline-block ${dotBase} ${dotBorder(false)}`}
-	                                                style={{ background: getActiveTargetColor() }}
-	                                                aria-label="Pick a custom color"
-	                                              >
-	                                                <input
-	                                                  type="color"
-	                                                  value={getActiveTargetColor()}
-	                                                  onClick={() => {
-	                                                    const target = isGradient ? heroGradientAssignTarget : 'solid';
-	                                                    setHeroHexEditingTarget(target);
-	                                                    setHeroHexDraft(getActiveTargetColor());
-	                                                  }}
-	                                                  onChange={(e) => {
-	                                                    applyHeroColor(e.target.value);
-	                                                    setHeroHexDraft(normalizeHex(e.target.value) ?? e.target.value);
-	                                                  }}
-	                                                  className="absolute inset-0 opacity-0 cursor-pointer"
-	                                                  aria-label="Custom color picker"
-	                                                />
-	                                              </label>
-	                                              {isGradient && (
-	                                                <p className="text-[11px] text-gray-500">
-	                                                  Applies to: {heroGradientAssignTarget === 'start' ? 'Start' : heroGradientAssignTarget === 'end' ? 'End' : 'Third'}
-	                                                </p>
-	                                              )}
-	                                            </div>
+                                          <div>
+                                            <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Custom Color</p>
+                                            <div className="flex flex-wrap items-center gap-3">
+                                              <button
+                                                type="button"
+                                                onClick={() => applyHeroColor('#FFFFFF')}
+                                                className={`${dotBase} ${dotBorder(getActiveTargetColor() === '#FFFFFF')}`}
+                                                style={{ background: '#FFFFFF' }}
+                                                aria-label="Set to white"
+                                              />
+                                              <label
+                                                className={`relative inline-block ${dotBase} ${dotBorder(false)}`}
+                                                style={{ background: getActiveTargetColor() }}
+                                                aria-label="Pick a custom color"
+                                              >
+                                                <input
+                                                  type="color"
+                                                  value={getActiveTargetColor()}
+                                                  onClick={() => {
+                                                    const target = isGradient ? heroGradientAssignTarget : 'solid';
+                                                    setHeroHexEditingTarget(target);
+                                                    setHeroHexDraft(getActiveTargetColor());
+                                                  }}
+                                                  onChange={(e) => {
+                                                    applyHeroColor(e.target.value);
+                                                    setHeroHexDraft(normalizeHex(e.target.value) ?? e.target.value);
+                                                  }}
+                                                  className="absolute inset-0 opacity-0 cursor-pointer"
+                                                  aria-label="Custom color picker"
+                                                />
+                                              </label>
+                                              {isGradient && (
+                                                <p className="text-[11px] text-gray-500">
+                                                  Applies to: {heroGradientAssignTarget === 'start' ? 'Start' : heroGradientAssignTarget === 'end' ? 'End' : 'Third'}
+                                                </p>
+                                              )}
+                                            </div>
 
-	                                            {heroHexEditingTarget && (
-	                                              <div className="mt-4 flex items-center gap-2">
-	                                                <input
-	                                                  type="text"
-	                                                  value={heroHexDraft}
-	                                                  onChange={(e) => setHeroHexDraft(e.target.value)}
-	                                                  onKeyDown={(e) => {
-	                                                    if (e.key === 'Enter') {
-	                                                      applyHeroHexToTarget();
-	                                                      setHeroHexEditingTarget(null);
-	                                                    }
-	                                                    if (e.key === 'Escape') {
-	                                                      setHeroHexEditingTarget(null);
-	                                                    }
-	                                                  }}
-	                                                  onBlur={() => {
-	                                                    applyHeroHexToTarget();
-	                                                    setHeroHexEditingTarget(null);
-	                                                  }}
-	                                                  placeholder="#FFFFFF"
-	                                                  className="h-9 w-36 rounded-lg border border-gray-200 bg-white px-2 text-[11px] font-mono text-gray-900 placeholder:text-gray-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
-	                                                  aria-label="Hex color"
-	                                                  autoFocus
-	                                                />
-	                                              </div>
-	                                            )}
-	                                          </div>
+                                            {heroHexEditingTarget && (
+                                              <div className="mt-4 flex items-center gap-2">
+                                                <input
+                                                  type="text"
+                                                  value={heroHexDraft}
+                                                  onChange={(e) => setHeroHexDraft(e.target.value)}
+                                                  onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                      applyHeroHexToTarget();
+                                                      setHeroHexEditingTarget(null);
+                                                    }
+                                                    if (e.key === 'Escape') {
+                                                      setHeroHexEditingTarget(null);
+                                                    }
+                                                  }}
+                                                  onBlur={() => {
+                                                    applyHeroHexToTarget();
+                                                    setHeroHexEditingTarget(null);
+                                                  }}
+                                                  placeholder="#FFFFFF"
+                                                  className="h-9 w-36 rounded-lg border border-gray-200 bg-white px-2 text-[11px] font-mono text-gray-900 placeholder:text-gray-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                                                  aria-label="Hex color"
+                                                  autoFocus
+                                                />
+                                              </div>
+                                            )}
+                                          </div>
 
-	                                          {isGradient && (
-	                                            <div>
-	                                              <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Gradient Style</p>
-	                                              <div className="flex flex-wrap gap-2">
-	                                                {(['Soft', 'Radial', 'Vertical'] as const).map(v => (
-	                                                  <Chip
-	                                                    key={v}
-	                                                    selected={heroCfg.gradientStyle === v}
-	                                                    onClick={() => {
-	                                                      productStore.setPhotoModeConfig({ heroLandingPage: { gradientStyle: v } });
-	                                                      markSectionTouched('product-setup');
-	                                                    }}
-	                                                  >
-	                                                    {v}
-	                                                  </Chip>
-	                                                ))}
-	                                              </div>
-	                                            </div>
-	                                          )}
-	                                        </div>
-	                                      </div>
+                                          {isGradient && (
+                                            <div>
+                                              <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Gradient Style</p>
+                                              <div className="flex flex-wrap gap-2">
+                                                {(['Soft', 'Radial', 'Vertical'] as const).map(v => (
+                                                  <Chip
+                                                    key={v}
+                                                    selected={heroCfg.gradientStyle === v}
+                                                    onClick={() => {
+                                                      productStore.setPhotoModeConfig({ heroLandingPage: { gradientStyle: v } });
+                                                      markSectionTouched('product-setup');
+                                                    }}
+                                                  >
+                                                    {v}
+                                                  </Chip>
+                                                ))}
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
 
-	                                      <div className="h-px bg-gray-200 my-6" />
+                                      <div className="h-px bg-gray-200 my-6" />
 
-	                                      <div className="space-y-6">
-	                                        <div>
-	                                          <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Palette Source</p>
-	                                          <div className="flex flex-wrap gap-2">
-	                                            {(['Product label colors', 'Neutral brand tones', 'Custom'] as const).map(v => (
-	                                              <Chip
-	                                                key={v}
-	                                                selected={heroCfg.paletteSource === v}
-	                                                onClick={() => {
-	                                                  productStore.setPhotoModeConfig({ heroLandingPage: { paletteSource: v } });
-	                                                  markSectionTouched('product-setup');
-	                                                }}
-	                                              >
-	                                                {v}
-	                                              </Chip>
-	                                            ))}
-	                                          </div>
-	                                        </div>
+                                      <div className="space-y-6">
+                                        <div>
+                                          <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Palette Source</p>
+                                          <div className="flex flex-wrap gap-2">
+                                            {(['Product label colors', 'Neutral brand tones', 'Custom'] as const).map(v => (
+                                              <Chip
+                                                key={v}
+                                                selected={heroCfg.paletteSource === v}
+                                                onClick={() => {
+                                                  productStore.setPhotoModeConfig({ heroLandingPage: { paletteSource: v } });
+                                                  markSectionTouched('product-setup');
+                                                }}
+                                              >
+                                                {v}
+                                              </Chip>
+                                            ))}
+                                          </div>
+                                        </div>
 
-	                                        <div>
-	                                          <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Negative Space</p>
-	                                          <div className="flex flex-wrap gap-2">
-	                                            {(['Tight', 'Balanced', 'Spacious'] as const).map(v => (
-	                                              <Chip
-	                                                key={v}
-	                                                selected={heroCfg.negativeSpace === v}
-	                                                onClick={() => {
-	                                                  productStore.setPhotoModeConfig({ heroLandingPage: { negativeSpace: v } });
-	                                                  markSectionTouched('product-setup');
-	                                                }}
-	                                              >
-	                                                {v}
-	                                              </Chip>
-	                                            ))}
-	                                          </div>
-	                                        </div>
-	                                      </div>
-	                                    </>
-	                                  );
-	                                })()}
-	                              </div>
-	                            )}
+                                        <div>
+                                          <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Negative Space</p>
+                                          <div className="flex flex-wrap gap-2">
+                                            {(['Tight', 'Balanced', 'Spacious'] as const).map(v => (
+                                              <Chip
+                                                key={v}
+                                                selected={heroCfg.negativeSpace === v}
+                                                onClick={() => {
+                                                  productStore.setPhotoModeConfig({ heroLandingPage: { negativeSpace: v } });
+                                                  markSectionTouched('product-setup');
+                                                }}
+                                              >
+                                                {v}
+                                              </Chip>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </>
+                                  );
+                                })()}
+                              </div>
+                            )}
 
                             {productStore.photoMode === 'Color Pop Hero' && (
                               <div className="space-y-3">
