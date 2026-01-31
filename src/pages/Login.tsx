@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Loader2, CheckCircle2 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { isAuthBypassEnabled } from "../lib/auth/authBypass";
 
 export default function Login() {
   const { sendMagicLink, user, loading } = useAuth();
@@ -9,6 +10,12 @@ export default function Login() {
   const [invitationCode, setInvitationCode] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isAuthBypassEnabled()) {
+      window.location.replace("/app");
+    }
+  }, []);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();

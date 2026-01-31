@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { isAuthBypassEnabled } from '../lib/auth/authBypass';
 
 type SessionState = {
   email: string | null;
@@ -12,6 +13,11 @@ export function useSession(redirectOnFail = true): SessionState {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (isAuthBypassEnabled()) {
+      setEmail(null);
+      setLoading(false);
+      return;
+    }
     let mounted = true;
     const fetchSession = async () => {
       try {

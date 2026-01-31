@@ -1,10 +1,11 @@
 import React, { useCallback, useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { CheckCircle2, CreditCard, ShieldCheck, ShoppingBag, Users2, Zap, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import PlanCheckoutModal from './components/PlanCheckoutModal';
 import TestimonialsSection from './components/TestimonialsSection';
 import { getAllBlogArticles } from './src/content/blog';
+import { isAuthBypassEnabled } from './src/lib/auth/authBypass';
 
 type PlanMetadata = {
   plan: 'creator' | 'studio';
@@ -304,6 +305,7 @@ type LandingPageProps = {
 };
 
 const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
+  const navigate = useNavigate();
   const [activePreview, setActivePreview] = useState<
     'product' | 'ugc' | 'editorial' | 'background' | 'aesthetic'
   >('product');
@@ -327,6 +329,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
     url: 'https://perfectmockup.com/',
     image: 'https://perfectmockup.com/preview.png',
   };
+  useEffect(() => {
+    if (isAuthBypassEnabled()) {
+      navigate('/app', { replace: true });
+    }
+  }, [navigate]);
   const faqItems = [
     {
       question: 'What is Perfect Mockup?',

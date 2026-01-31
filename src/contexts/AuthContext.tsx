@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { isAuthBypassEnabled } from '../lib/auth/authBypass';
 
 type AuthUser = { email: string };
 
@@ -31,6 +32,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isGuest, setIsGuest] = useState(false);
 
   useEffect(() => {
+    if (isAuthBypassEnabled()) {
+      setUser(null);
+      setEmailUser(null);
+      setIsGuest(true);
+      setLoading(false);
+      return;
+    }
     const fetchMe = async () => {
       try {
         const res = await fetch('/api/user?action=me');
