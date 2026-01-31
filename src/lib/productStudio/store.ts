@@ -1186,6 +1186,29 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     // Environment — CANONICAL SETTER
     setEnvironmentContext: (ctx) => {
         set((state) => {
+            // INVARIANT: Studio Photo Modes MUST have environment Context = null
+            // Prevents Hero Landing Page lock bug by enforcing state contract
+            const studioPhotoModes: PhotoMode[] = [
+                'Hero Landing Page',
+                'Color Pop Hero',
+                'Ingredient Stack',
+                'Acrylic Blocks',
+                'Splash Shot',
+                'Foam & Texture',
+                'Routine Carousel',
+                'Clinical Lab Counter',
+                'Golden Mist Aura',
+                'Candy Gradient Lab',
+            ];
+
+            const isStudioMode = studioPhotoModes.includes(state.photoMode);
+
+            // If trying to set environmentContext while in studio mode, force null
+            if (ctx !== null && isStudioMode) {
+                console.warn(`[ProductStudio] Cannot set environmentContext while in studio Photo Mode: ${state.photoMode}. Forcing null.`);
+                return { environmentContext: null };
+            }
+
             if (ctx === null) {
                 return {
                     environmentContext: null,
@@ -1453,7 +1476,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             }
 
             return newState;
-    }),
+        }),
 
     // Product Studio UI Controls (NEW)
     setPhotoMode: (mode) =>
