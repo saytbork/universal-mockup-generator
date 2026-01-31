@@ -6,6 +6,66 @@
  */
 
 // =============================================================================
+// GLOBAL PRODUCT HD QUALITY BLOCK (ALWAYS FIRST)
+// =============================================================================
+export const GLOBAL_PRODUCT_HD_QUALITY_BLOCK = `
+GLOBAL PRODUCT QUALITY DIRECTIVE (ALWAYS ON):
+
+The product shown in the reference image(s) MUST be reconstructed as a high-definition, photorealistic physical object.
+
+CRITICAL QUALITY REQUIREMENTS:
+• The final product must look SIGNIFICANTLY higher quality than the uploaded reference
+• This is NOT a raw reuse of the input image
+• This is a professional studio re-photograph of the product
+• Ultra-sharp focus, no blur, no softness
+• High micro-detail on edges, folds, seams, materials
+• Realistic material response (plastic, glass, matte, gloss, foil as applicable)
+• Correct thickness and physical depth, not flat or paper-like
+• Clean, premium, DSLR-level clarity
+• Zero painterly, watercolor, illustration, or diffusion artifacts
+
+PRODUCT RECONSTRUCTION MODE:
+Treat the reference image as ground truth for identity, but rebuild the product at higher fidelity.
+• Accurate geometry and proportions
+• Correct perspective
+• Realistic highlights and shadows
+• No warping, melting, stretching, or deformation
+• No AI smoothing or texture loss
+• No low-detail surfaces
+
+LABEL LOCK – ABSOLUTE RULE:
+The label is a REAL photographic label from the reference image.
+• Reproduce the label EXACTLY as seen
+• Do NOT redraw, reinterpret, stylize, or "improve" it
+• Do NOT invent or complete text
+• Do NOT alter typography, spacing, alignment, or colors
+• The label must appear as a flat printed decal applied to the product
+• No curvature distortion or texture-mapping artifacts
+• Label must remain fully readable at all times
+
+CAMERA & RESOLUTION INTENT:
+• Studio-grade product photography
+• Crisp edge definition
+• Clean tonal transitions
+• No haze, no glow, no fog
+• No grain unless explicitly requested
+• Visual quality comparable to top-tier ecommerce hero images
+
+FORBIDDEN AT ALL TIMES:
+• Illustration look
+• Artistic interpretation
+• Painterly gradients
+• Watercolor textures
+• Over-smoothing
+• Diffusion blur
+• "Concept art" appearance
+• Low-detail plastic look
+• Fake CGI artifacts
+
+If any creative mode conflicts with product clarity, PRODUCT CLARITY ALWAYS WINS.
+`.trim().replace(/\n/g, ' ');
+
+// =============================================================================
 // BASE STUDIO BLOCK (ALWAYS INCLUDED)
 // =============================================================================
 export const BASE_STUDIO = `
@@ -440,7 +500,11 @@ export interface StudioPromptOptions {
 }
 
 export function buildStudioPrompt(options: StudioPromptOptions): string {
-    const parts: string[] = [BASE_STUDIO];
+    // CRITICAL: Global quality block MUST be first to prevent model from "deciding to paint"
+    const parts: string[] = [
+        GLOBAL_PRODUCT_HD_QUALITY_BLOCK,  // ← NEW: Global HD quality block ALWAYS FIRST
+        BASE_STUDIO
+    ];
 
     // =========================================================================
     // AUTO PALETTE EXTRACTION (if palette colors provided)
@@ -669,12 +733,12 @@ export function buildStudioPrompt(options: StudioPromptOptions): string {
             }
         }
 
-    if (validationErrors.length > 0) {
-        console.error('[STUDIO VALIDATION FAILED]', validationErrors);
-        // Don't throw in prod, but log errors
-        console.warn('[STUDIO WARNING] Some UI selections may not appear in the final prompt:', validationErrors);
+        if (validationErrors.length > 0) {
+            console.error('[STUDIO VALIDATION FAILED]', validationErrors);
+            // Don't throw in prod, but log errors
+            console.warn('[STUDIO WARNING] Some UI selections may not appear in the final prompt:', validationErrors);
+        }
     }
-}
 
     const interactionEnabled = (() => {
         const raw = String(options.interaction || '').trim().toLowerCase();
