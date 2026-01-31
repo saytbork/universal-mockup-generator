@@ -27,6 +27,8 @@ export type SceneBuildInput = {
   gradientEnabled?: boolean;
   gradientStart?: string;
   gradientEnd?: string;
+  heroGradientStyle?: 'Soft' | 'Radial' | 'Vertical';
+  heroNegativeSpace?: 'Tight' | 'Balanced' | 'Spacious';
 };
 
 export type SplashMode = 'IMPACT_SPLASH' | 'RISING_SPLASH' | 'SIDE_DISPLACEMENT_SPLASH';
@@ -283,23 +285,53 @@ export function buildCandyGradientLabScene({ randomizer }: SceneBuildInput): str
   ].join(' ');
 }
 
-export function buildStudioHeroScene({ backgroundColor, gradientEnabled, gradientStart, gradientEnd }: SceneBuildInput): string {
+export function buildStudioHeroScene({
+  backgroundColor,
+  gradientEnabled,
+  gradientStart,
+  gradientEnd,
+  heroGradientStyle = 'Soft',
+  heroNegativeSpace = 'Balanced',
+}: SceneBuildInput): string {
+  const negativeSpaceLine = (() => {
+    switch (heroNegativeSpace) {
+      case 'Tight':
+        return 'Negative space is tight and controlled; minimal margins with a small copy-safe area.';
+      case 'Spacious':
+        return 'Negative space is spacious and intentional; large copy-safe area reserved for overlays.';
+      case 'Balanced':
+      default:
+        return 'Negative space is balanced; clear copy-safe area reserved for overlays.';
+    }
+  })();
+
   if (gradientEnabled && gradientStart && gradientEnd) {
+    const gradientLine = (() => {
+      if (heroGradientStyle === 'Radial') {
+        return `Radial gradient background blending ${gradientStart} and ${gradientEnd}.`;
+      }
+      if (heroGradientStyle === 'Vertical') {
+        return `Vertical gradient background from ${gradientStart} to ${gradientEnd}.`;
+      }
+      return `Soft gradient background blending ${gradientStart} and ${gradientEnd}.`;
+    })();
     return [
       'Clean studio hero composition.',
-      `Smooth gradient background using ${gradientStart} and ${gradientEnd}.`,
+      gradientLine,
       'No environment, no props, no setting.',
       'Subtle studio gradient only.',
-      'Product isolated and centered for hero landing page.'
+      negativeSpaceLine,
+      'Product isolated and positioned for hero landing page.'
     ].join(' ');
   }
 
-  const color = backgroundColor || '#F6F7FB';
+  const color = backgroundColor || '#FFFFFF';
   return [
     'Clean studio hero composition.',
     `Seamless solid background in color ${color}.`,
     'No environment, no props, no setting.',
     'Flat studio background with subtle depth only.',
-    'Product centered and isolated for hero landing page.'
+    negativeSpaceLine,
+    'Product isolated and positioned for hero landing page.'
   ].join(' ');
 }

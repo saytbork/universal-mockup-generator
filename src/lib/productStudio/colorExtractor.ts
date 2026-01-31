@@ -9,8 +9,8 @@
  */
 export async function extractDominantColors(
     imageSource: string
-): Promise<{ dominant: string; secondary: string }> {
-    return new Promise((resolve) => {
+): Promise<{ dominant: string; secondary: string; accent?: string }> {
+    return new Promise((resolve, reject) => {
         const img = new Image();
         img.crossOrigin = 'anonymous';
 
@@ -18,8 +18,7 @@ export async function extractDominantColors(
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             if (!ctx) {
-                console.warn('[ColorExtractor] Canvas context not available, using defaults');
-                resolve({ dominant: '#6366f1', secondary: '#818cf8' });
+                reject(new Error('Canvas context not available'));
                 return;
             }
 
@@ -74,8 +73,7 @@ export async function extractDominantColors(
                 .slice(0, 10);
 
             if (sorted.length === 0) {
-                console.warn('[ColorExtractor] No colors found, using defaults');
-                resolve({ dominant: '#6366f1', secondary: '#818cf8' });
+                reject(new Error('No colors found'));
                 return;
             }
 
@@ -85,16 +83,23 @@ export async function extractDominantColors(
                 return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
             };
 
-            const dominant = toHex(sorted[0][0]);
-            const secondary = sorted.length > 1 ? toHex(sorted[1][0]) : dominant;
+            const picked: string[] = [];
+            for (const [rgb] of sorted) {
+                const hex = toHex(rgb).toUpperCase();
+                if (!picked.includes(hex)) picked.push(hex);
+                if (picked.length >= 3) break;
+            }
 
-            console.log('[ColorExtractor] Extracted:', { dominant, secondary });
-            resolve({ dominant, secondary });
+            const dominant = picked[0];
+            const secondary = picked[1] ?? dominant;
+            const accent = picked[2];
+
+            console.log('[ColorExtractor] Extracted:', { dominant, secondary, accent });
+            resolve({ dominant, secondary, accent });
         };
 
         img.onerror = () => {
-            console.warn('[ColorExtractor] Failed to load image, using defaults');
-            resolve({ dominant: '#6366f1', secondary: '#818cf8' });
+            reject(new Error('Failed to load image for palette extraction'));
         };
 
         img.src = imageSource;

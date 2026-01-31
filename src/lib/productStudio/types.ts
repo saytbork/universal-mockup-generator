@@ -19,6 +19,7 @@ export type ProductAsset = {
     palette?: {
         dominant: string;    // Primary color extracted from product
         secondary: string;   // Secondary color extracted from product
+        accent?: string;     // Optional accent color extracted from product
     };
 };
 
@@ -604,6 +605,9 @@ export type ProductStudioState = {
         accent: boolean;
         gradientStart: boolean;
         gradientEnd: boolean;
+    };
+    heroLandingAuto: {
+        backgroundType: boolean;
     };
     alignment: 'left' | 'center' | 'right' | 'centered' | 'left-space' | 'right-space';
     shadow: 'soft-drop' | 'hard-drop' | 'floating';

@@ -205,15 +205,37 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     gradientEnabled: state.gradientEnabled,
     gradientStart: state.gradientStart,
     gradientEnd: state.gradientEnd,
+    heroGradientStyle: state.photoModeConfig.heroLandingPage.gradientStyle,
+    heroNegativeSpace: state.photoModeConfig.heroLandingPage.negativeSpace,
   };
 
   let scene = '';
   let splashMode: string | undefined;
 
-  // CRITICAL: Hero Landing Page uses exclusive studio-hero scene builder
+  // Hero Landing Page (locked): deterministic studio hero module.
+  // No random camera/lighting/materials. No props. No environment. No creative randomization rules.
   if (isHeroLandingPage) {
     scene = buildStudioHeroScene(sceneInput);
-  } else if (environmentModeActive) {
+    const parts = [
+      'HERO LANDING PAGE (LOCKED): Brand-first studio hero module.',
+      'Background is derived from the product brand colors with zero creative randomness.',
+      'No environment. No props. No interactions. No bundles.',
+      scene,
+      'Controlled studio lighting with clean shadows and high clarity.',
+      'Label remains fully readable and centered toward the camera.',
+      'No texture noise, no patterns, no scenery, no staging objects.',
+    ].filter(Boolean);
+
+    return {
+      prompt: parts.join(' '),
+      mode: 'HERO_NEUTRAL',
+      splashMode: undefined,
+      randomSeed: 'hero-locked',
+    };
+  }
+
+  // CRITICAL: Hero Landing Page uses exclusive studio-hero scene builder
+  if (environmentModeActive) {
     scene = buildEnvironmentScene(state, randomizer);
   } else {
     switch (mode) {

@@ -444,6 +444,10 @@ const DEFAULT_PALETTE: BrandPalette = {
     brandPresetId: null,
 };
 
+type HeroLandingAutoFlags = {
+    backgroundType: boolean;
+};
+
 const DEFAULT_PHOTO_MODE_CONFIG: PhotoModeConfig = {
     heroLandingPage: {
         backgroundType: 'Solid',
@@ -570,8 +574,8 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     photoMode: 'Hero Landing Page',
     photoModeConfig: DEFAULT_PHOTO_MODE_CONFIG,
     splashStyle: 'Basic',
-    // Default hero background must not imply a pure white seamless.
-    backgroundColor: '#F6F7FB',
+    // Hero Landing Page fallback safety: clean white solid background (user can still choose gradient manually).
+    backgroundColor: '#FFFFFF',
     accentColor: '#204020',
     colorLocks: {
         background: false,
@@ -579,11 +583,14 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
         gradientStart: false,
         gradientEnd: false,
     },
+    heroLandingAuto: {
+        backgroundType: true,
+    },
     alignment: 'center',
     shadow: 'soft-drop',
     gradientEnabled: false,
-    gradientStart: '#F6F7FB',
-    gradientEnd: '#E9ECF5',
+    gradientStart: '#FFFFFF',
+    gradientEnd: '#FFFFFF',
     gradientAngle: 180,
     props: '',
     ingredientLayout: 'grounded',
@@ -743,6 +750,120 @@ type ProductStudioActions = {
     reset: () => void;
 };
 
+const normalizeHex = (input: string | null | undefined): string | null => {
+    const raw = String(input ?? '').trim();
+    if (!raw) return null;
+    const upper = raw.toUpperCase();
+    if (/^#[0-9A-F]{6}$/.test(upper)) return upper;
+    return null;
+};
+
+const uniqHexes = (colors: Array<string | null | undefined>): string[] => {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const c of colors) {
+        const hex = normalizeHex(c);
+        if (!hex) continue;
+        if (seen.has(hex)) continue;
+        seen.add(hex);
+        out.push(hex);
+    }
+    return out;
+};
+
+function resolveHeroLandingBrandColors(state: ProductStudioState): { colors: string[]; source: 'label' | 'brand' | 'neutral' | 'none' } {
+    const heroCfg = state.photoModeConfig.heroLandingPage;
+    const activeProduct =
+        state.products.find(p => p.id === state.activeProductId) ??
+        state.products[0] ??
+        null;
+
+    if (heroCfg.paletteSource === 'Neutral brand tones') {
+        return { colors: ['#FFFFFF', '#F3F4F6', '#E5E7EB'], source: 'neutral' };
+    }
+
+    if (heroCfg.paletteSource === 'Custom') {
+        // Custom means "user is driving"; do not impose a palette here.
+        return { colors: [], source: 'none' };
+    }
+
+    const labelColors = uniqHexes([
+        activeProduct?.palette?.dominant,
+        activeProduct?.palette?.secondary,
+        activeProduct?.palette?.accent,
+    ]);
+    if (labelColors.length > 0) {
+        return { colors: labelColors, source: 'label' };
+    }
+
+    const brandSystemColors = uniqHexes([
+        state.palette.primaryColor,
+        state.palette.secondaryColor,
+        state.palette.accentColor,
+    ]);
+    if (brandSystemColors.length > 0) {
+        return { colors: brandSystemColors, source: 'brand' };
+    }
+
+    return { colors: [], source: 'none' };
+}
+
+function applyHeroLandingBackgroundDefaults(state: ProductStudioState): Partial<ProductStudioState> {
+    if (state.photoMode !== 'Hero Landing Page') return {};
+
+    const heroCfg = state.photoModeConfig.heroLandingPage;
+    if (heroCfg.paletteSource === 'Custom') {
+        // User is explicitly driving background colors; keep Hero mode constraints but do not override colors or background type.
+        return {
+            gradientEnabled: heroCfg.backgroundType === 'Gradient',
+        };
+    }
+
+    const { colors } = resolveHeroLandingBrandColors(state);
+    const distinct = uniqHexes(colors);
+
+    const primary = distinct[0] ?? '#FFFFFF';
+    const secondary = distinct[1] ?? primary;
+
+    const next: Partial<ProductStudioState> = {};
+
+    // Auto background type selection (unless user explicitly chose it).
+    if (state.heroLandingAuto?.backgroundType !== false) {
+        const autoType = distinct.length >= 2 ? 'Gradient' : 'Solid';
+        next.photoModeConfig = {
+            ...state.photoModeConfig,
+            heroLandingPage: {
+                ...state.photoModeConfig.heroLandingPage,
+                backgroundType: autoType,
+            },
+        };
+        next.gradientEnabled = autoType === 'Gradient';
+    } else {
+        // Keep user selection, but ensure internal gradientEnabled matches it.
+        next.gradientEnabled = state.photoModeConfig.heroLandingPage.backgroundType === 'Gradient';
+    }
+
+    // Auto colors (do not override user-locked fields).
+    const wantsGradient = (next.gradientEnabled ?? state.gradientEnabled) === true;
+    if (wantsGradient) {
+        if (!state.colorLocks.gradientStart) next.gradientStart = primary;
+        if (!state.colorLocks.gradientEnd) next.gradientEnd = secondary;
+    } else {
+        if (!state.colorLocks.background) next.backgroundColor = primary;
+    }
+
+    // Gradient style influences internal angle defaults (prompt builder also uses style text).
+    if (state.photoModeConfig.heroLandingPage.gradientStyle === 'Vertical') {
+        next.gradientAngle = 180;
+    } else if (state.photoModeConfig.heroLandingPage.gradientStyle === 'Soft') {
+        next.gradientAngle = 180;
+    } else if (state.photoModeConfig.heroLandingPage.gradientStyle === 'Radial') {
+        next.gradientAngle = 180;
+    }
+
+    return next;
+}
+
 // ============================================================================
 // CREATE STORE
 // ============================================================================
@@ -791,7 +912,9 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 }
             }
 
-            return { ...state, ...updates };
+            const merged = { ...state, ...updates } as ProductStudioState;
+            const heroUpdates = applyHeroLandingBackgroundDefaults(merged);
+            return { ...merged, ...heroUpdates };
         }),
 
     removeProduct: (id) =>
@@ -1358,12 +1481,16 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             };
 
             if (resolvedMode === 'Hero Landing Page') {
-                return {
+                const merged = {
                     ...common,
                     sceneType: 'studio-hero',
                     proMode: false,
                     // Hero Landing Page rules: bundles are not allowed.
                     bundle: { ...state.bundle, enabled: false },
+                } as ProductStudioState;
+                return {
+                    ...merged,
+                    ...applyHeroLandingBackgroundDefaults(merged),
                 };
             }
 
@@ -1373,12 +1500,13 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             };
         }),
     setPhotoModeConfig: (patch) =>
-        set((state) => ({
-            photoModeConfig: {
-                heroLandingPage: {
-                    ...state.photoModeConfig.heroLandingPage,
-                    ...(patch.heroLandingPage ?? {}),
-                },
+        set((state) => {
+            const nextHeroLandingPage = {
+                ...state.photoModeConfig.heroLandingPage,
+                ...(patch.heroLandingPage ?? {}),
+            };
+            const nextConfig: PhotoModeConfig = {
+                heroLandingPage: nextHeroLandingPage,
                 colorPopHero: {
                     ...state.photoModeConfig.colorPopHero,
                     ...(patch.colorPopHero ?? {}),
@@ -1415,8 +1543,35 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     ...state.photoModeConfig.candyGradientLab,
                     ...(patch.candyGradientLab ?? {}),
                 },
-            },
-        })),
+            };
+
+            const nextState: ProductStudioState = {
+                ...state,
+                photoModeConfig: nextConfig,
+            } as ProductStudioState;
+
+            // If user explicitly clicks Background Type in Hero mode, lock auto-selection.
+            const heroAuto: HeroLandingAutoFlags = {
+                backgroundType:
+                    patch.heroLandingPage && Object.prototype.hasOwnProperty.call(patch.heroLandingPage, 'backgroundType')
+                        ? false
+                        : (state.heroLandingAuto?.backgroundType ?? true),
+            };
+            const withAuto: ProductStudioState = { ...nextState, heroLandingAuto: heroAuto } as ProductStudioState;
+
+            // Apply derived hero background defaults when hero settings change (palette source, background type, etc).
+            const heroDerived = applyHeroLandingBackgroundDefaults(withAuto);
+
+            // Ensure internal gradientEnabled matches Background Type when user changed it.
+            if (withAuto.photoMode === 'Hero Landing Page' && patch.heroLandingPage?.backgroundType) {
+                heroDerived.gradientEnabled = patch.heroLandingPage.backgroundType === 'Gradient';
+            }
+
+            return {
+                ...withAuto,
+                ...heroDerived,
+            };
+        }),
     setSplashStyle: (style) =>
         set(() => ({
             splashStyle: style ?? 'Basic',
@@ -1584,6 +1739,7 @@ export async function addProductWithPalette(
             palette = {
                 dominant: colors.dominant,
                 secondary: colors.secondary,
+                accent: colors.accent,
             };
             console.log('[addProductWithPalette] Extracted palette:', palette);
         } catch (error) {

@@ -1106,6 +1106,54 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // Keep all "environment/lifestyle" UI strictly disabled when `isProductMode` is true.
   const isEnvironmentMode = !isProductMode;
 
+  const normalizeHex = (value: unknown): string | null => {
+    const raw = String(value ?? '').trim().toUpperCase();
+    if (!raw) return null;
+    if (/^#[0-9A-F]{6}$/.test(raw)) return raw;
+    return null;
+  };
+
+  const uniqHexes = (values: Array<unknown>): string[] => {
+    const out: string[] = [];
+    const seen = new Set<string>();
+    for (const v of values) {
+      const hex = normalizeHex(v);
+      if (!hex) continue;
+      if (seen.has(hex)) continue;
+      seen.add(hex);
+      out.push(hex);
+    }
+    return out;
+  };
+
+  const heroLandingBrandSwatches = (() => {
+    const paletteSource = productStore.photoModeConfig?.heroLandingPage?.paletteSource;
+    if (paletteSource === 'Neutral brand tones') {
+      return ['#FFFFFF', '#F3F4F6', '#E5E7EB'];
+    }
+    if (paletteSource === 'Custom') {
+      return [];
+    }
+    const activeProduct =
+      productStore.products.find(p => p.id === productStore.activeProductId) ??
+      productStore.products[0] ??
+      null;
+
+    const labelColors = uniqHexes([
+      (activeProduct as any)?.palette?.dominant,
+      (activeProduct as any)?.palette?.secondary,
+      (activeProduct as any)?.palette?.accent,
+    ]);
+    if (labelColors.length > 0) return labelColors;
+
+    const brandSystemColors = uniqHexes([
+      (productStore as any)?.palette?.primaryColor,
+      (productStore as any)?.palette?.secondaryColor,
+      (productStore as any)?.palette?.accentColor,
+    ]);
+    return brandSystemColors;
+  })();
+
   const normalizeProductStudioAspectRatio = useCallback((raw: unknown): ProductStudioState['aspectRatio'] => {
     const value = String(raw ?? '').trim();
     const labelMap: Record<string, ProductStudioState['aspectRatio']> = {
@@ -2053,6 +2101,119 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     ))}
                                   </div>
                                 </div>
+
+                                {productStore.photoModeConfig.heroLandingPage.backgroundType === 'Solid' && (
+                                  <div className="space-y-2">
+                                    <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Solid Background</p>
+                                    <div className="flex flex-wrap gap-2 items-center">
+                                      {[...heroLandingBrandSwatches, '#FFFFFF']
+                                        .filter((v, i, a) => a.indexOf(v) === i)
+                                        .slice(0, 6)
+                                        .map(hex => (
+                                          <button
+                                            key={hex}
+                                            type="button"
+                                            onClick={() => {
+                                              productStore.setBackgroundColor(hex);
+                                              markSectionTouched('product-setup');
+                                            }}
+                                            className={`h-8 w-8 rounded-xl border ${normalizeHex(productStore.backgroundColor) === hex ? 'border-indigo-600' : 'border-gray-200'
+                                              }`}
+                                            style={{ background: hex }}
+                                            aria-label={`Background color ${hex}`}
+                                          />
+                                        ))}
+                                      <div className="flex items-center gap-2 ml-auto">
+                                        <input
+                                          type="color"
+                                          value={normalizeHex(productStore.backgroundColor) ?? '#FFFFFF'}
+                                          onChange={(e) => {
+                                            productStore.setBackgroundColor(e.target.value);
+                                            markSectionTouched('product-setup');
+                                          }}
+                                          className="h-8 w-12 rounded-lg border border-gray-200 bg-white"
+                                          aria-label="Pick background color"
+                                        />
+                                        <input
+                                          type="text"
+                                          value={normalizeHex(productStore.backgroundColor) ?? ''}
+                                          onChange={(e) => {
+                                            productStore.setBackgroundColor(e.target.value);
+                                            markSectionTouched('product-setup');
+                                          }}
+                                          placeholder="#FFFFFF"
+                                          className="h-8 w-28 rounded-lg border border-gray-200 bg-white px-2 text-[11px] font-mono text-gray-900 placeholder:text-gray-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                                          aria-label="Background hex"
+                                        />
+                                      </div>
+                                    </div>
+                                    <p className="text-[11px] text-gray-500">
+                                      Default uses product brand colors. You can override to white or any custom color.
+                                    </p>
+                                  </div>
+                                )}
+
+                                {productStore.photoModeConfig.heroLandingPage.backgroundType === 'Gradient' && (
+                                  <div className="space-y-3">
+                                    <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Gradient Background</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                      {[
+                                        { key: 'start', label: 'Start', value: productStore.gradientStart, set: productStore.setGradientStart },
+                                        { key: 'end', label: 'End', value: productStore.gradientEnd, set: productStore.setGradientEnd },
+                                      ].map(({ key, label, value, set }) => (
+                                        <div key={key} className="flex items-center gap-2">
+                                          <div className="w-12 text-[11px] text-gray-500">{label}</div>
+                                          <input
+                                            type="color"
+                                            value={normalizeHex(value) ?? '#FFFFFF'}
+                                            onChange={(e) => {
+                                              set(e.target.value);
+                                              markSectionTouched('product-setup');
+                                            }}
+                                            className="h-8 w-12 rounded-lg border border-gray-200 bg-white"
+                                            aria-label={`${label} gradient color`}
+                                          />
+                                          <input
+                                            type="text"
+                                            value={normalizeHex(value) ?? ''}
+                                            onChange={(e) => {
+                                              set(e.target.value);
+                                              markSectionTouched('product-setup');
+                                            }}
+                                            placeholder="#FFFFFF"
+                                            className="h-8 flex-1 rounded-lg border border-gray-200 bg-white px-2 text-[11px] font-mono text-gray-900 placeholder:text-gray-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                                            aria-label={`${label} gradient hex`}
+                                          />
+                                        </div>
+                                      ))}
+                                    </div>
+
+                                    <div className="flex flex-wrap gap-2">
+                                      {heroLandingBrandSwatches.slice(0, 6).map(hex => (
+                                        <button
+                                          key={hex}
+                                          type="button"
+                                          onClick={() => {
+                                            // If start is still default/unset, fill start first; otherwise fill end.
+                                            const start = normalizeHex(productStore.gradientStart);
+                                            const end = normalizeHex(productStore.gradientEnd);
+                                            if (!start || start === '#FFFFFF') {
+                                              productStore.setGradientStart(hex);
+                                            } else if (!end || end === '#FFFFFF') {
+                                              productStore.setGradientEnd(hex);
+                                            } else {
+                                              productStore.setGradientEnd(hex);
+                                            }
+                                            markSectionTouched('product-setup');
+                                          }}
+                                          className="h-8 w-8 rounded-xl border border-gray-200"
+                                          style={{ background: hex }}
+                                          aria-label={`Use ${hex} in gradient`}
+                                        />
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
 
                                 {productStore.photoModeConfig.heroLandingPage.backgroundType === 'Gradient' && (
                                   <div>
