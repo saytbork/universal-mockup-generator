@@ -605,6 +605,7 @@ export type ProductStudioState = {
         accent: boolean;
         gradientStart: boolean;
         gradientEnd: boolean;
+        gradientMid: boolean;
     };
     heroLandingAuto: {
         backgroundType: boolean;
@@ -614,6 +615,8 @@ export type ProductStudioState = {
     gradientEnabled: boolean;
     gradientStart: string;
     gradientEnd: string;
+    /** Optional 3rd stop used by Hero Landing Page brand gradient (can be empty). */
+    gradientMid: string;
     gradientAngle: number;
     props: string;
     /** Ingredient Stack only: controls whether ingredients float or rest on the base. */

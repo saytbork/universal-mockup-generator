@@ -582,6 +582,7 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
         accent: false,
         gradientStart: false,
         gradientEnd: false,
+        gradientMid: false,
     },
     heroLandingAuto: {
         backgroundType: true,
@@ -591,6 +592,7 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     gradientEnabled: false,
     gradientStart: '#FFFFFF',
     gradientEnd: '#FFFFFF',
+    gradientMid: '',
     gradientAngle: 180,
     props: '',
     ingredientLayout: 'grounded',
@@ -734,6 +736,7 @@ type ProductStudioActions = {
     setGradientEnabled: (enabled: boolean) => void;
     setGradientStart: (color: string) => void;
     setGradientEnd: (color: string) => void;
+    setGradientMid: (color: string) => void;
     setGradientAngle: (angle: number) => void;
     setProps: (props: string) => void;
     setIngredientLayout: (layout: ProductStudioState['ingredientLayout']) => void;
@@ -824,6 +827,7 @@ function applyHeroLandingBackgroundDefaults(state: ProductStudioState): Partial<
 
     const primary = distinct[0] ?? '#FFFFFF';
     const secondary = distinct[1] ?? primary;
+    const tertiary = distinct[2] ?? '';
 
     const next: Partial<ProductStudioState> = {};
 
@@ -848,8 +852,10 @@ function applyHeroLandingBackgroundDefaults(state: ProductStudioState): Partial<
     if (wantsGradient) {
         if (!state.colorLocks.gradientStart) next.gradientStart = primary;
         if (!state.colorLocks.gradientEnd) next.gradientEnd = secondary;
+        if (!state.colorLocks.gradientMid) next.gradientMid = tertiary;
     } else {
         if (!state.colorLocks.background) next.backgroundColor = primary;
+        if (!state.colorLocks.gradientMid) next.gradientMid = '';
     }
 
     // Gradient style influences internal angle defaults (prompt builder also uses style text).
@@ -1607,6 +1613,11 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
         set((state) => ({
             gradientEnd: String(color ?? ''),
             colorLocks: { ...state.colorLocks, gradientEnd: true },
+        })),
+    setGradientMid: (color) =>
+        set((state) => ({
+            gradientMid: String(color ?? ''),
+            colorLocks: { ...state.colorLocks, gradientMid: true },
         })),
     setGradientAngle: (angle) => set({ gradientAngle: angle }),
     setProps: (props) =>

@@ -27,6 +27,8 @@ export type SceneBuildInput = {
   gradientEnabled?: boolean;
   gradientStart?: string;
   gradientEnd?: string;
+  /** Optional 3rd stop for brand gradients (Hero Landing Page only). */
+  gradientMid?: string;
   heroGradientStyle?: 'Soft' | 'Radial' | 'Vertical';
   heroNegativeSpace?: 'Tight' | 'Balanced' | 'Spacious';
 };
@@ -290,6 +292,7 @@ export function buildStudioHeroScene({
   gradientEnabled,
   gradientStart,
   gradientEnd,
+  gradientMid,
   heroGradientStyle = 'Soft',
   heroNegativeSpace = 'Balanced',
 }: SceneBuildInput): string {
@@ -305,8 +308,20 @@ export function buildStudioHeroScene({
     }
   })();
 
+  const third = String(gradientMid || '').trim();
+  const hasThird = third.length > 0 && third.toUpperCase() !== String(gradientStart || '').trim().toUpperCase() && third.toUpperCase() !== String(gradientEnd || '').trim().toUpperCase();
+
   if (gradientEnabled && gradientStart && gradientEnd) {
     const gradientLine = (() => {
+      if (hasThird) {
+        if (heroGradientStyle === 'Radial') {
+          return `Radial three-color gradient background transitioning ${gradientStart} → ${third} → ${gradientEnd}.`;
+        }
+        if (heroGradientStyle === 'Vertical') {
+          return `Vertical three-color gradient background transitioning ${gradientStart} → ${third} → ${gradientEnd}.`;
+        }
+        return `Soft three-color gradient background blending ${gradientStart}, ${third}, and ${gradientEnd}.`;
+      }
       if (heroGradientStyle === 'Radial') {
         return `Radial gradient background blending ${gradientStart} and ${gradientEnd}.`;
       }

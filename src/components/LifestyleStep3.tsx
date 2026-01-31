@@ -2159,6 +2159,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                       {[
                                         { key: 'start', label: 'Start', value: productStore.gradientStart, set: productStore.setGradientStart },
+                                        { key: 'mid', label: 'Accent (optional)', value: productStore.gradientMid, set: productStore.setGradientMid },
                                         { key: 'end', label: 'End', value: productStore.gradientEnd, set: productStore.setGradientEnd },
                                       ].map(({ key, label, value, set }) => (
                                         <div key={key} className="flex items-center gap-2">
@@ -2184,6 +2185,19 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                             className="h-8 flex-1 rounded-lg border border-gray-200 bg-white px-2 text-[11px] font-mono text-gray-900 placeholder:text-gray-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
                                             aria-label={`${label} gradient hex`}
                                           />
+                                          {key === 'mid' && (
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                set('');
+                                                markSectionTouched('product-setup');
+                                              }}
+                                              className="h-8 px-2 rounded-lg border border-gray-200 bg-white text-[11px] text-gray-600 hover:border-gray-300"
+                                              aria-label="Clear accent color"
+                                            >
+                                              Clear
+                                            </button>
+                                          )}
                                         </div>
                                       ))}
                                     </div>
@@ -2197,10 +2211,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                             // If start is still default/unset, fill start first; otherwise fill end.
                                             const start = normalizeHex(productStore.gradientStart);
                                             const end = normalizeHex(productStore.gradientEnd);
+                                            const mid = normalizeHex(productStore.gradientMid);
                                             if (!start || start === '#FFFFFF') {
                                               productStore.setGradientStart(hex);
                                             } else if (!end || end === '#FFFFFF') {
                                               productStore.setGradientEnd(hex);
+                                            } else if (!mid) {
+                                              productStore.setGradientMid(hex);
                                             } else {
                                               productStore.setGradientEnd(hex);
                                             }

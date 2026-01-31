@@ -193,6 +193,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     ? {
       dominant: product.palette.dominant,
       secondary: product.palette.secondary,
+      accent: product.palette.accent,
     }
     : undefined;
 
@@ -205,6 +206,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     gradientEnabled: state.gradientEnabled,
     gradientStart: state.gradientStart,
     gradientEnd: state.gradientEnd,
+    gradientMid: state.gradientMid,
     heroGradientStyle: state.photoModeConfig.heroLandingPage.gradientStyle,
     heroNegativeSpace: state.photoModeConfig.heroLandingPage.negativeSpace,
   };
