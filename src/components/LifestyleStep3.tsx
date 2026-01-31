@@ -2091,6 +2091,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               'Outdoor Energy Boost',
                               'Pastel Picnic',
                               'Candy Gradient Lab',
+                              'Golden Mist Aura',
                             ] as const).map(mode => (
                               <button
                                 key={mode}
