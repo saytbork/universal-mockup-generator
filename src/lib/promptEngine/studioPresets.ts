@@ -79,9 +79,28 @@ Abstract, editorial, or neutral composition. The product is the only subject.
 Clean geometry. Premium commercial quality. High clarity. Sharp focus.
 `.trim().replace(/\n/g, ' ');
 
+
 // =============================================================================
 // PHOTO / COMPOSITION MODE PRESETS
 // =============================================================================
+
+/**
+ * @deprecated This constant is maintained for backward compatibility only.
+ * 
+ * For NEW implementations, use photoModeResolver.ts instead:
+ * - import { buildPhotoModePrompt } from './photoModeResolver'
+ * - Call buildPhotoModePrompt(photoMode, options) for scene-aware prompts
+ * 
+ * This constant is still used for:
+ * - Random pools (STUDIO_RANDOM_POOLS.photoMode)
+ * - Dev-mode validation (checking if photoMode appears in prompt)
+ * 
+ * DO NOT use this for prompt injection. Use photoModeResolver.ts which provides:
+ * - Scene authority with control flags
+ * - Compatibility validation with Product Types
+ * - Sub-option modifiers (background, ingredients)
+ * - Material behavior awareness
+ */
 export const PHOTO_MODE_PRESETS: Record<string, string> = {
     'Hero Landing Page': `High-clarity hero module on a clean set. Intentional negative space reserved for copy. Crisp studio lighting, controlled shadows, premium retouch. Product is dominant; full label readable; no clutter.`,
     'Clear': `Pure white #FFFFFF seamless backdrop. No set dressing. No props. No gradients. No textures. No color cast. Product only. Centered packshot. Soft contact shadow only.`,
@@ -90,7 +109,7 @@ export const PHOTO_MODE_PRESETS: Record<string, string> = {
     'Acrylic Blocks': `Clear acrylic blocks and geometric pedestals at varied heights. Crisp edges, controlled reflections, premium studio polish. Add subtle prismatic split highlights on background and acrylic edges (never over label text). Product placed on a hero acrylic pedestal with secondary blocks framing the set.`,
     'Splash Shot': `Dynamic high-speed splash set with frozen droplets and a controlled arc of clear liquid near the product. Splash must never obscure the label. Crisp droplets, clean lighting, no messy pooling, premium campaign polish.`,
     'Tile & Spa': `Glossy tile set with clean grout lines, soft reflections, subtle droplets, and small foam clusters. Bright diffused light. Calm spa-like set styling with ultra-clean surfaces. Product remains the hero; label fully readable.`,
-    'Foam & Texture': `Editorial macro textures used as controlled design elements: foam bubbles, gel ribbons, creamy swatches, and droplets on the set only. Product stays clean and dry; no pooling; no contact distortion; label stays fully readable. The surface plane must be visible and recede in perspective; product front side visible. Camera is eye-level or slight frontal and parallel to the surface; no top-down, no overhead, no aerial, no bird’s-eye, no flatlay.`,
+    'Foam & Texture': `Editorial macro textures used as controlled design elements: foam bubbles, gel ribbons, creamy swatches, and droplets on the set only. Product stays clean and dry; no pooling; no contact distortion; label stays fully readable. The surface plane must be visible and recede in perspective; product front side visible. Camera is eye-level or slight frontal and parallel to the surface; no top-down, no overhead, no aerial, no bird's-eye, no flatlay.`,
     'Routine Carousel': `Repeatable countertop set for carousel outputs: clean surface plane, soft daylight, minimal supporting silhouettes in the background, consistent margins and spacing. Designed to look premium and repeatable across SKUs.`,
     'Pastel Picnic': `Art-directed picnic set with a pastel blanket pattern, warm golden-hour sunlight, gentle lens flare, and soft background greenery bokeh. Styled fruit slices and colorful candies/gummies as secondary props. Campaign-grade polish; label stays crisp.`,
     'Sunrise Wellness Counter': `Warm sunrise beams with long soft shadows on a clean countertop. Subtle breakfast/wellness props in soft blur for set styling only. Premium art-directed look; no clutter. Product remains the hero and label stays readable.`,
