@@ -6,6 +6,7 @@
  */
 
 import { buildQualityEnforcer } from './qualityEnforcer';
+import { buildPhotoModePrompt, type PhotoMode } from './photoModeResolver';
 
 // =============================================================================
 // GLOBAL PRODUCT HD QUALITY BLOCK (ALWAYS FIRST)
@@ -533,26 +534,38 @@ export function buildStudioPrompt(options: StudioPromptOptions): string {
     }
 
     // =========================================================================
-    // PHOTO MODE
+    // PHOTO MODE RESOLVER (Scene Authority - Layer 2)
     // =========================================================================
-    if (options.photoMode && PHOTO_MODE_PRESETS[options.photoMode]) {
-        // Do not echo the photoMode label; some labels include forbidden tokens in Product Studio validation (e.g. "Face").
-        // The preset text alone is deterministic and sufficient.
-        parts.push(`PHOTO_MODE (NON-NEGOTIABLE): ${PHOTO_MODE_PRESETS[options.photoMode]}`);
-    }
+    if (options.photoMode) {
+        const photoModeResult = buildPhotoModePrompt(options.photoMode as PhotoMode, {
+            backgroundType: options.gradientStart && options.gradientEnd ? 'gradient' : 'solid',
+            paletteColors: {
+                primary: options.paletteColor1,
+                secondary: options.paletteColor2,
+                accent: options.paletteColor3
+            },
+            suggestedProps: options.suggestedProps,
+            ingredientLayout: options.ingredientLayout
+        });
 
-    // =========================================================================
-    // PROPS / INGREDIENTS (Injected after Photo Mode)
-    // =========================================================================
-    if (options.suggestedProps) {
-        const layout = options.ingredientLayout ?? 'auto';
-        const layoutHint: Record<NonNullable<StudioPromptOptions['ingredientLayout']>, string> = {
-            auto: 'Arrange in a clean, controlled layout around the product.',
-            grounded: 'All ingredients must rest on the same surface/base as the product. No floating ingredients. Realistic contact shadows. Powders may form small grounded piles.',
-            floating: 'Ingredients float around the product at varied depths. No ingredients resting on a surface. Powders must appear as fine airborne dust/particles (no piles).',
-            'top-view': 'Flat lay top-down arrangement with ingredients placed around the product on a clean surface. No floating ingredients.',
-        };
-        parts.push(`PROPS/INGREDIENTS: ${options.suggestedProps}. ${layoutHint[layout]}`);
+        // CRITICAL: Block execution if Photo Mode validation fails
+        if (!photoModeResult.isValid) {
+            console.error('[Photo Mode Resolver] Validation failed:', photoModeResult.validationErrors);
+            throw new Error(`Photo Mode validation failed: ${photoModeResult.validationErrors.join(', ')}`);
+        }
+
+        // Inject base prompt
+        if (photoModeResult.basePrompt) {
+            parts.push(`PHOTO MODE: ${photoModeResult.basePrompt}`);
+        }
+
+        // Inject modifiers (background + ingredients handled by resolver)
+        if (photoModeResult.modifiers) {
+            parts.push(photoModeResult.modifiers);
+        }
+
+        // Control flags are aval for downstream logic (can be used later)
+        // photoModeResult.controlFlags.propsAllowed, etc.
     }
 
     // =========================================================================
