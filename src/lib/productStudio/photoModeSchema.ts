@@ -39,9 +39,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Label contrast must be preserved'
         ]
     },
-    'Monochrome Brand World': {
+    'Monochrome Brand': {
         id: 'monochrome-brand-world',
-        label: 'Monochrome Brand World',
+        label: 'Monochrome Brand',
         type: 'environment',
         description: 'Single-color brand-driven environment.',
         basePrompt: 'monochrome brand world photography, single-color abstraction using brand color, editorial tonal composition, controlled monochromatic gradient',
@@ -58,9 +58,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Product silhouette must stay dominant'
         ]
     },
-    'Brand Campaign World': {
+    'Brand Campaign': {
         id: 'brand-campaign-world',
-        label: 'Brand Campaign World',
+        label: 'Brand Campaign',
         type: 'environment',
         description: 'Large-scale lifestyle campaign environment.',
         basePrompt: 'hero brand campaign photography, high-end commercial set with architectural geometry, premium material interplay and depth, aspirational advertising aesthetic, sophisticated spatial composition',

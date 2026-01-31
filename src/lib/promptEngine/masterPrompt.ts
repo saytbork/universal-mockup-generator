@@ -56,6 +56,7 @@ export type MasterPromptSections = {
   sceneStructure?: string;
   visualGrammar?: string;
   ecommerceSequence?: string;
+  deterministicFoundation?: string;
 };
 
 /**
@@ -85,7 +86,8 @@ export function buildMasterPrompt(
     finalize,
     sceneStructure,
     visualGrammar,
-    ecommerceSequence
+    ecommerceSequence,
+    deterministicFoundation
   } = sections;
 
   const selfieCaptureActive = Boolean(selfieCapture && selfieCapture.trim().length > 0);
@@ -93,6 +95,7 @@ export function buildMasterPrompt(
   // CANONICAL ORDER - creation intent first, raw domestic UGC last
   const candidateParts = selfieCaptureActive
     ? [
+      deterministicFoundation,
       sceneStructure,     // 0. PHYSICAL STRUCTURE
       visualGrammar,      // 0.5 VISUAL GRAMMAR (Semantics)
       creationIntent,     // 1. Structural context
@@ -108,6 +111,7 @@ export function buildMasterPrompt(
       finalize            // 10. Constraints + output
     ]
     : [
+      deterministicFoundation,
       sceneStructure,     // 0. PHYSICAL STRUCTURE
       visualGrammar,      // 0.5 VISUAL GRAMMAR (Semantics)
       creationIntent,     // 1. Structural context

@@ -257,8 +257,8 @@ export type PhotoMode =
     | 'Clinical Lab Counter'
     | 'Minimal Bathroom Vanity'
     | 'Dark Premium Studio'
-    | 'Monochrome Brand World'
-    | 'Brand Campaign World'
+    | 'Monochrome Brand'
+    | 'Brand Campaign'
     | 'UGC Premium Simulation'
     | 'Tech Clean Studio'
     // Lifestyle modes

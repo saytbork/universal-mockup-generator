@@ -531,9 +531,7 @@ export interface StudioPromptOptions {
 }
 
 export function buildStudioPrompt(options: StudioPromptOptions): string {
-    // CRITICAL: Quality enforcer MUST be first to prevent model from "deciding to paint"
     const parts: string[] = [
-        buildQualityEnforcer(),  // ← NEW: Use quality enforcer module (replaces hardcoded constant)
         BASE_STUDIO
     ];
 
@@ -756,10 +754,6 @@ export function buildStudioPrompt(options: StudioPromptOptions): string {
         parts.push(`OPTIONAL INTERACTION: ${INTERACTION_PRESETS[interactionKey]}`);
     }
 
-    // =========================================================================
-    // QUALITY (always included)
-    // =========================================================================
-    parts.push('QUALITY: Ultra-high resolution. Premium commercial photography. Sharp product edges. Accurate materials. No distortion. No artifacts.');
 
     // =========================================================================
     // DEBUG LOGGING (MANDATORY - per user requirement)

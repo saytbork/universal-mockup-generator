@@ -199,7 +199,7 @@ const PHOTO_MODE_CONTROL_FLAGS: Record<string, PhotoModeControlFlags> = {
         cameraLocked: false
     },
 
-    'Monochrome Brand World': {
+    'Monochrome Brand': {
         propsAllowed: false,
         environmentAllowed: false,
         humansAllowed: false,
@@ -207,7 +207,7 @@ const PHOTO_MODE_CONTROL_FLAGS: Record<string, PhotoModeControlFlags> = {
         bundlesAllowed: false,
         cameraLocked: false
     },
-    'Brand Campaign World': {
+    'Brand Campaign': {
         propsAllowed: true,
         environmentAllowed: false,
         humansAllowed: false,
@@ -347,7 +347,7 @@ function buildBackgroundModifier(
     backgroundType?: 'solid' | 'gradient',
     paletteColors?: { primary?: string; secondary?: string; accent?: string }
 ): string {
-    if (photoMode === 'Hero Landing Page' || photoMode === 'Color Pop Hero' || photoMode === 'Monochrome Brand World') {
+    if (photoMode === 'Hero Landing Page' || photoMode === 'Color Pop Hero' || photoMode === 'Monochrome Brand') {
         if (backgroundType === 'gradient' && paletteColors?.primary && paletteColors?.secondary) {
             return `Background: smooth gradient from ${paletteColors.primary} to ${paletteColors.secondary}.`;
         }
@@ -566,8 +566,8 @@ export function getAllPhotoModes(): PhotoMode[] {
         'Clinical Lab Counter',
         'Minimal Bathroom Vanity',
         'Dark Premium Studio',
-        'Monochrome Brand World',
-        'Brand Campaign World',
+        'Monochrome Brand',
+        'Brand Campaign',
         'UGC Premium Simulation',
         'Tech Clean Studio',
         // Lifestyle modes

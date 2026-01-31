@@ -58,6 +58,7 @@ import { buildStudioPrompt, PRODUCT_STUDIO_CANONICAL_PROMPT } from './studioPres
 import { buildQualityEnforcer, buildQualityNegatives } from './qualityEnforcer';
 import type { PromptOptions } from './types';
 import { buildMasterPrompt, MasterPromptSections } from './masterPrompt';
+import { buildDeterministicFoundation } from './deterministicSystemPrompt';
 
 // ============================================================================
 // NEGATIVE PROMPT - Quality anchors and artifact prevention
@@ -544,9 +545,10 @@ export class PromptEngine {
                 interaction: (options as any).studioInteraction
             });
 
-            // Prepend the canonical prompt as the authoritative root contract
+            // Prepend the deterministic foundation as the authoritative root contract
             const resolvedAspectRatio = String(options.aspectRatio || '1:1').trim() || '1:1';
-            const finalStudioPrompt = `${PRODUCT_STUDIO_CANONICAL_PROMPT}\n\n---\n\nGENERATION INSTRUCTIONS:\n${studioPrompt}`.replace(
+            const deterministicFoundation = buildDeterministicFoundation();
+            const finalStudioPrompt = `${deterministicFoundation}\n\n---\n\nGENERATION INSTRUCTIONS:\n${studioPrompt}`.replace(
                 /\{ASPECT_RATIO\}/g,
                 resolvedAspectRatio
             );
@@ -626,7 +628,9 @@ export class PromptEngine {
             const ugcSection = this.ugcBuilder.build(options);
             const finalizeSection = this.finalizeBuilder.build(options);
             const negative = negativePrompt(options);
+            const deterministicFoundation = buildDeterministicFoundation();
             let finalPrompt = [
+                deterministicFoundation,
                 identitySection,
                 selfieCaptureSection,
                 ugcSection,
@@ -693,6 +697,7 @@ export class PromptEngine {
             selfieCapture: selfieCaptureSection,
             identity: narrativeSections.identity || identitySection,
             ecommerceSequence: this.ecommerceNarrativeBuilder.build(options),
+            deterministicFoundation: buildDeterministicFoundation(),
             finalize: finalizeSection
         };
 
