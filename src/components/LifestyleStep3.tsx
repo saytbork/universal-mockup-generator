@@ -2058,7 +2058,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 productStore.sceneType === 'lifestyle-real' ||
                 productStore.sceneType === 'studio-hero') && (
                   <>
-                    {productStore.environmentContext == null && (
+                    {/*  Photo Mode - ALWAYS visible (Hero lock bugfix) */}
+                    {true && (
                       <>
                         {/* ═══════════════════════════════════════════════════════════
                           1. PHOTO MODE — What am I making?
