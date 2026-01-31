@@ -814,6 +814,12 @@ function resolveHeroLandingBrandColors(state: ProductStudioState): { colors: str
 function applyHeroLandingBackgroundDefaults(state: ProductStudioState): Partial<ProductStudioState> {
     if (state.photoMode !== 'Hero Landing Page') return {};
 
+    // Defensive: photoModeConfig might be undefined when switching between modes
+    if (!state.photoModeConfig?.heroLandingPage) {
+        console.warn('[Hero] photoModeConfig is undefined, skipping Hero defaults');
+        return {};
+    }
+
     const heroCfg = state.photoModeConfig.heroLandingPage;
     if (heroCfg.paletteSource === 'Custom') {
         // User is explicitly driving background colors; keep Hero mode constraints but do not override colors or background type.
