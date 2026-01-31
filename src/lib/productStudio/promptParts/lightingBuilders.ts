@@ -36,10 +36,6 @@ export function buildLighting(mode: PhotoModeKey, randomizer: Randomizer, option
       'High-speed lighting with frozen motion and crisp droplets.',
       'Directional highlights reveal fluid movement.'
     ],
-    TILE_AND_SPA: [
-      'Warm diffused light with gentle steam interaction.',
-      'Soft reflections across tile surfaces.'
-    ],
     FOAM_AND_TEXTURE: [
       'Directional light grazing textures for dimensional detail.',
       'Soft highlights that keep the product label readable.'
@@ -48,14 +44,6 @@ export function buildLighting(mode: PhotoModeKey, randomizer: Randomizer, option
       'Natural daylight with gentle bounce fill.',
       'Consistent, repeatable lighting for sequence harmony.'
     ],
-    PASTEL_PICNIC: [
-      'Diffused daylight with warm pastel glow.',
-      'Soft shadows and gentle highlight roll-off.'
-    ],
-    SUNRISE_WELLNESS_COUNTER: [
-      'Warm sunrise light with long soft shadows.',
-      'Subtle rim light for depth.'
-    ],
     CLINICAL_LAB_COUNTER: [
       'Clean professional lighting, cool and precise.',
       'Soft directional key with controlled reflections.'
@@ -63,14 +51,6 @@ export function buildLighting(mode: PhotoModeKey, randomizer: Randomizer, option
     GOLDEN_MIST_AURA: [
       'Golden ambient light with subtle glow.',
       'Directional key light maintains clarity through mist.'
-    ],
-    OUTDOOR_ENERGY_BOOST: [
-      'Strong natural daylight with crisp shadow edges.',
-      'High-energy highlights with realistic falloff.'
-    ],
-    CROWN_WELLNESS_VANITY: [
-      'Luxury vanity lighting with soft specular highlights.',
-      'Controlled reflections on metallic accents.'
     ],
     CANDY_GRADIENT_LAB: [
       'Creative lighting with controlled gradient spill.',

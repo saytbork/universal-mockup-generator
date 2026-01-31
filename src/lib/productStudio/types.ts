@@ -238,6 +238,148 @@ export type EcommercePdpConfig = {
     safeZone: EcommercePdpSafeZone;
 };
 
+// =============================================================================
+// PHOTO MODE SYSTEM (PHASE 1 — LOCKED)
+// =============================================================================
+
+export type PhotoMode =
+    | 'Hero Landing Page'
+    | 'Color Pop Hero'
+    | 'Ingredient Stack'
+    | 'Acrylic Blocks'
+    | 'Splash Shot'
+    | 'Foam & Texture'
+    | 'Routine Carousel'
+    | 'Clinical Lab Counter'
+    | 'Golden Mist Aura'
+    | 'Candy Gradient Lab';
+
+export type HeroLandingPageBackgroundType = 'Solid' | 'Gradient';
+export type HeroLandingPageGradientStyle = 'Soft' | 'Radial' | 'Vertical';
+export type HeroLandingPagePaletteSource = 'Product label colors' | 'Neutral brand tones' | 'Custom';
+export type HeroLandingPageNegativeSpace = 'Tight' | 'Balanced' | 'Spacious';
+
+export type ColorPopHeroPopStyle = 'Complementary contrast' | 'Neon accent' | 'Bold duotone';
+export type ColorPopHeroColorEnergy = 'Soft pop' | 'Vibrant' | 'Extreme';
+export type ColorPopHeroBackgroundFinish = 'Flat' | 'Soft glow' | 'Subtle grain';
+export type ColorPopHeroProductEmphasis = 'Center punch' | 'Offset pop';
+
+export type IngredientStackIngredientFocus = 'Key active only' | 'Full formula';
+export type IngredientStackStackStyle = 'Vertical stack' | 'Surround' | 'Split composition';
+export type IngredientStackIngredientPresence = 'Subtle' | 'Balanced' | 'Hero';
+export type IngredientStackLabelPriority = 'Always readable' | 'Secondary to ingredients';
+
+export type AcrylicBlocksBlockShape = 'Rectangular' | 'Cylindrical' | 'Mixed geometry';
+export type AcrylicBlocksMaterialFinish = 'Clear' | 'Frosted' | 'Smoked';
+export type AcrylicBlocksReflectionLevel = 'Minimal' | 'Balanced' | 'Glossy';
+export type AcrylicBlocksElevation = 'Grounded' | 'Floating illusion';
+
+export type SplashShotSplashMedium = 'Liquid' | 'Powder' | 'Mist';
+export type SplashShotMotionIntensity = 'Subtle' | 'Dynamic' | 'Explosive';
+export type SplashShotFreezeMoment = 'Early' | 'Mid-splash' | 'Peak';
+export type SplashShotProductStability = 'Fully grounded' | 'Slight interaction';
+
+export type FoamAndTextureTextureType = 'Foam' | 'Cream' | 'Gel' | 'Powder';
+export type FoamAndTextureTextureDensity = 'Light' | 'Rich' | 'Dense';
+export type FoamAndTextureFocusDistance = 'Macro' | 'Close';
+export type FoamAndTextureCleanliness = 'Pristine' | 'Natural imperfections';
+
+export type RoutineCarouselFrameCount = 3 | 4 | 5;
+export type RoutineCarouselRoutineFlow = 'Left → Right' | 'Circular';
+export type RoutineCarouselConsistency = 'Same background' | 'Subtle variation';
+export type RoutineCarouselHeroFrame = 'First' | 'Middle' | 'Last';
+
+export type ClinicalLabCounterClinicalTone = 'Soft clinical' | 'Crisp lab';
+export type ClinicalLabCounterLabElements = 'Minimal' | 'Standard';
+export type ClinicalLabCounterSurfaceType = 'White lab' | 'Neutral lab';
+export type ClinicalLabCounterTrustLevel = 'Friendly' | 'Professional' | 'High authority';
+
+export type GoldenMistAuraGlowStrength = 'Subtle' | 'Warm' | 'Radiant';
+export type GoldenMistAuraMistStyle = 'Backlit' | 'Surround';
+export type GoldenMistAuraMood = 'Calm' | 'Luxurious';
+export type GoldenMistAuraContrast = 'Soft' | 'Cinematic';
+
+export type CandyGradientLabGradientStyle = 'Candy pastel' | 'Bold candy';
+export type CandyGradientLabColorCount = 'Duo' | 'Trio';
+export type CandyGradientLabEdgeStyle = 'Soft blend' | 'Sharp transition';
+export type CandyGradientLabPlayfulness = 'Controlled' | 'Fun' | 'Loud';
+
+export type PhotoModeConfig = {
+    heroLandingPage: {
+        backgroundType: HeroLandingPageBackgroundType;
+        gradientStyle: HeroLandingPageGradientStyle;
+        paletteSource: HeroLandingPagePaletteSource;
+        negativeSpace: HeroLandingPageNegativeSpace;
+    };
+    colorPopHero: {
+        popStyle: ColorPopHeroPopStyle;
+        colorEnergy: ColorPopHeroColorEnergy;
+        backgroundFinish: ColorPopHeroBackgroundFinish;
+        productEmphasis: ColorPopHeroProductEmphasis;
+    };
+    ingredientStack: {
+        ingredientFocus: IngredientStackIngredientFocus;
+        stackStyle: IngredientStackStackStyle;
+        ingredientPresence: IngredientStackIngredientPresence;
+        labelPriority: IngredientStackLabelPriority;
+    };
+    acrylicBlocks: {
+        blockShape: AcrylicBlocksBlockShape;
+        materialFinish: AcrylicBlocksMaterialFinish;
+        reflectionLevel: AcrylicBlocksReflectionLevel;
+        elevation: AcrylicBlocksElevation;
+    };
+    splashShot: {
+        splashMedium: SplashShotSplashMedium;
+        motionIntensity: SplashShotMotionIntensity;
+        freezeMoment: SplashShotFreezeMoment;
+        productStability: SplashShotProductStability;
+    };
+    foamAndTexture: {
+        textureType: FoamAndTextureTextureType;
+        textureDensity: FoamAndTextureTextureDensity;
+        focusDistance: FoamAndTextureFocusDistance;
+        cleanliness: FoamAndTextureCleanliness;
+    };
+    routineCarousel: {
+        frameCount: RoutineCarouselFrameCount;
+        routineFlow: RoutineCarouselRoutineFlow;
+        consistency: RoutineCarouselConsistency;
+        heroFrame: RoutineCarouselHeroFrame;
+    };
+    clinicalLabCounter: {
+        clinicalTone: ClinicalLabCounterClinicalTone;
+        labElements: ClinicalLabCounterLabElements;
+        surfaceType: ClinicalLabCounterSurfaceType;
+        trustLevel: ClinicalLabCounterTrustLevel;
+    };
+    goldenMistAura: {
+        glowStrength: GoldenMistAuraGlowStrength;
+        mistStyle: GoldenMistAuraMistStyle;
+        mood: GoldenMistAuraMood;
+        contrast: GoldenMistAuraContrast;
+    };
+    candyGradientLab: {
+        gradientStyle: CandyGradientLabGradientStyle;
+        colorCount: CandyGradientLabColorCount;
+        edgeStyle: CandyGradientLabEdgeStyle;
+        playfulness: CandyGradientLabPlayfulness;
+    };
+};
+
+export type PhotoModeConfigPatch = {
+    heroLandingPage?: Partial<PhotoModeConfig['heroLandingPage']>;
+    colorPopHero?: Partial<PhotoModeConfig['colorPopHero']>;
+    ingredientStack?: Partial<PhotoModeConfig['ingredientStack']>;
+    acrylicBlocks?: Partial<PhotoModeConfig['acrylicBlocks']>;
+    splashShot?: Partial<PhotoModeConfig['splashShot']>;
+    foamAndTexture?: Partial<PhotoModeConfig['foamAndTexture']>;
+    routineCarousel?: Partial<PhotoModeConfig['routineCarousel']>;
+    clinicalLabCounter?: Partial<PhotoModeConfig['clinicalLabCounter']>;
+    goldenMistAura?: Partial<PhotoModeConfig['goldenMistAura']>;
+    candyGradientLab?: Partial<PhotoModeConfig['candyGradientLab']>;
+};
+
 // ============================================================================
 // ENVIRONMENT
 // ============================================================================
@@ -452,7 +594,8 @@ export type ProductStudioState = {
     // PRODUCT STUDIO UI CONTROLS (NEW)
     // ========================================================================
     interpretationNotes: Partial<Record<string, { message: string; ts: number }>>;
-    photoMode: string;
+    photoMode: PhotoMode;
+    photoModeConfig: PhotoModeConfig;
     splashStyle: 'Basic' | 'Intermediate' | 'Advanced';
     backgroundColor: string;
     accentColor: string;

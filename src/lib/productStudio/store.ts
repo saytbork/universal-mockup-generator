@@ -41,6 +41,9 @@ import type {
     ProductMode,
     BrandPalette,
     EnvironmentContext,
+    PhotoModeConfigPatch,
+    PhotoMode,
+    PhotoModeConfig,
 } from './types';
 
 
@@ -350,7 +353,7 @@ export const BRAND_PRESETS: BrandPreset[] = [
             lightStyle: 'soft',
             paletteSource: 'brand',
             propDensity: 'low',
-            photoMode: 'Sunrise Wellness Counter',
+            photoMode: 'Golden Mist Aura',
             gradientEnabled: true,
             gradientAngle: 180,
             proMode: true,
@@ -441,6 +444,69 @@ const DEFAULT_PALETTE: BrandPalette = {
     brandPresetId: null,
 };
 
+const DEFAULT_PHOTO_MODE_CONFIG: PhotoModeConfig = {
+    heroLandingPage: {
+        backgroundType: 'Solid',
+        gradientStyle: 'Soft',
+        paletteSource: 'Product label colors',
+        negativeSpace: 'Balanced',
+    },
+    colorPopHero: {
+        popStyle: 'Complementary contrast',
+        colorEnergy: 'Soft pop',
+        backgroundFinish: 'Flat',
+        productEmphasis: 'Center punch',
+    },
+    ingredientStack: {
+        ingredientFocus: 'Key active only',
+        stackStyle: 'Vertical stack',
+        ingredientPresence: 'Balanced',
+        labelPriority: 'Always readable',
+    },
+    acrylicBlocks: {
+        blockShape: 'Rectangular',
+        materialFinish: 'Clear',
+        reflectionLevel: 'Balanced',
+        elevation: 'Grounded',
+    },
+    splashShot: {
+        splashMedium: 'Liquid',
+        motionIntensity: 'Subtle',
+        freezeMoment: 'Early',
+        productStability: 'Fully grounded',
+    },
+    foamAndTexture: {
+        textureType: 'Foam',
+        textureDensity: 'Light',
+        focusDistance: 'Macro',
+        cleanliness: 'Pristine',
+    },
+    routineCarousel: {
+        frameCount: 3,
+        routineFlow: 'Left → Right',
+        consistency: 'Same background',
+        heroFrame: 'First',
+    },
+    clinicalLabCounter: {
+        clinicalTone: 'Soft clinical',
+        labElements: 'Minimal',
+        surfaceType: 'White lab',
+        trustLevel: 'Friendly',
+    },
+    goldenMistAura: {
+        glowStrength: 'Subtle',
+        mistStyle: 'Backlit',
+        mood: 'Calm',
+        contrast: 'Soft',
+    },
+    candyGradientLab: {
+        gradientStyle: 'Candy pastel',
+        colorCount: 'Duo',
+        edgeStyle: 'Soft blend',
+        playfulness: 'Controlled',
+    },
+};
+
 export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     products: [],
     activeProductId: null,
@@ -502,6 +568,7 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     // PRODUCT STUDIO UI CONTROLS (NEW)
     interpretationNotes: {},
     photoMode: 'Hero Landing Page',
+    photoModeConfig: DEFAULT_PHOTO_MODE_CONFIG,
     splashStyle: 'Basic',
     // Default hero background must not imply a pure white seamless.
     backgroundColor: '#F6F7FB',
@@ -650,7 +717,8 @@ type ProductStudioActions = {
     applyBrandPreset: (presetId: BrandPresetId) => void;
 
     // Product Studio UI Controls (NEW)
-    setPhotoMode: (mode: string) => void;
+    setPhotoMode: (mode: PhotoMode) => void;
+    setPhotoModeConfig: (patch: PhotoModeConfigPatch) => void;
     setSplashStyle: (style: ProductStudioState['splashStyle']) => void;
     setBackgroundColor: (color: string) => void;
     setAccentColor: (color: string) => void;
@@ -1256,43 +1324,99 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             }
 
             return newState;
-        }),
+    }),
 
     // Product Studio UI Controls (NEW)
     setPhotoMode: (mode) =>
         set((state) => {
-            const nextMode = String(mode ?? '');
+            const nextMode = String(mode ?? '').trim() as PhotoMode;
 
-            // "Clear" is disabled: the Hero background engine always controls background color.
-            if (nextMode === 'Clear') {
-                return { photoMode: 'Hero Landing Page' };
-            }
+            // Phase 1 (locked): Photo Mode is the primary creative selector.
+            // It maps to existing internal sceneType values and fully replaces Brand Look System.
+            const allowed: PhotoMode[] = [
+                'Hero Landing Page',
+                'Color Pop Hero',
+                'Ingredient Stack',
+                'Acrylic Blocks',
+                'Splash Shot',
+                'Foam & Texture',
+                'Routine Carousel',
+                'Clinical Lab Counter',
+                'Golden Mist Aura',
+                'Candy Gradient Lab',
+            ];
 
-            if (nextMode === 'Hero Landing Page') {
+            const resolvedMode: PhotoMode = allowed.includes(nextMode) ? nextMode : 'Hero Landing Page';
+
+            const common: Partial<ProductStudioState> = {
+                photoMode: resolvedMode,
+                // Photo Mode is a Studio contract in Phase 1.
+                environmentContext: null,
+                // Photo Mode contract disallows interactive people/hands controls in UI; keep product-only by default.
+                handsHolding: false,
+                interaction: 'none',
+            };
+
+            if (resolvedMode === 'Hero Landing Page') {
                 return {
-                    photoMode: nextMode,
-                    environmentContext: null,
+                    ...common,
                     sceneType: 'studio-hero',
                     proMode: false,
+                    // Hero Landing Page rules: bundles are not allowed.
+                    bundle: { ...state.bundle, enabled: false },
                 };
             }
 
-            if (nextMode === 'Foam & Texture') {
-                return {
-                    photoMode: nextMode,
-                    // Macro textures do not imply top-down; enforce eye-level + grounded product framing defaults.
-                    angle: 'front',
-                    distance: 'macro',
-                    composition: 'centered',
-                    lens: '100mm Macro Prime',
-                    lightingRig: 'Softbox Wrap',
-                    finish: 'Clinical Lab Polish',
-                    stateMotion: 'static',
-                };
-            }
-
-            return { photoMode: nextMode };
+            return {
+                ...common,
+                sceneType: 'studio-branding',
+            };
         }),
+    setPhotoModeConfig: (patch) =>
+        set((state) => ({
+            photoModeConfig: {
+                heroLandingPage: {
+                    ...state.photoModeConfig.heroLandingPage,
+                    ...(patch.heroLandingPage ?? {}),
+                },
+                colorPopHero: {
+                    ...state.photoModeConfig.colorPopHero,
+                    ...(patch.colorPopHero ?? {}),
+                },
+                ingredientStack: {
+                    ...state.photoModeConfig.ingredientStack,
+                    ...(patch.ingredientStack ?? {}),
+                },
+                acrylicBlocks: {
+                    ...state.photoModeConfig.acrylicBlocks,
+                    ...(patch.acrylicBlocks ?? {}),
+                },
+                splashShot: {
+                    ...state.photoModeConfig.splashShot,
+                    ...(patch.splashShot ?? {}),
+                },
+                foamAndTexture: {
+                    ...state.photoModeConfig.foamAndTexture,
+                    ...(patch.foamAndTexture ?? {}),
+                },
+                routineCarousel: {
+                    ...state.photoModeConfig.routineCarousel,
+                    ...(patch.routineCarousel ?? {}),
+                },
+                clinicalLabCounter: {
+                    ...state.photoModeConfig.clinicalLabCounter,
+                    ...(patch.clinicalLabCounter ?? {}),
+                },
+                goldenMistAura: {
+                    ...state.photoModeConfig.goldenMistAura,
+                    ...(patch.goldenMistAura ?? {}),
+                },
+                candyGradientLab: {
+                    ...state.photoModeConfig.candyGradientLab,
+                    ...(patch.candyGradientLab ?? {}),
+                },
+            },
+        })),
     setSplashStyle: (style) =>
         set(() => ({
             splashStyle: style ?? 'Basic',

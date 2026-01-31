@@ -88,6 +88,7 @@ export type ProfessionalFocus =
     | 'custom';
 
 export type ExpertAttire =
+    | 'none'
     | 'white_medical_coat'
     | 'white_scrubs'
     | 'light_blue_scrubs'

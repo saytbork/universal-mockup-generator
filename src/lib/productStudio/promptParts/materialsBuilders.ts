@@ -25,10 +25,6 @@ export function buildMaterials(mode: PhotoModeKey, randomizer: Randomizer): stri
       'Real liquid physics with clear surface tension and droplets.',
       'Clean surfaces that show reflections and contact wetness.'
     ],
-    TILE_AND_SPA: [
-      'Glossy tile surfaces with realistic grout and moisture.',
-      'Soft steam interaction with smooth ceramic textures.'
-    ],
     FOAM_AND_TEXTURE: [
       'Foam, gel, or cream textures with realistic micro-bubbles.',
       'Surface detail visible without obscuring the product.'
@@ -37,14 +33,6 @@ export function buildMaterials(mode: PhotoModeKey, randomizer: Randomizer): stri
       'Everyday materials like linen, ceramic, and brushed wood.',
       'Clean, believable household textures.'
     ],
-    PASTEL_PICNIC: [
-      'Soft textiles and natural props with gentle fabric grain.',
-      'Outdoor surfaces with realistic daylight response.'
-    ],
-    SUNRISE_WELLNESS_COUNTER: [
-      'Warm stone, wood, and ceramic textures with sunrise glow.',
-      'Subtle material imperfections for realism.'
-    ],
     CLINICAL_LAB_COUNTER: [
       'Sterile lab materials: stainless, glass, and matte polymers.',
       'Clean, precise surfaces with minimal wear.'
@@ -52,14 +40,6 @@ export function buildMaterials(mode: PhotoModeKey, randomizer: Randomizer): stri
     GOLDEN_MIST_AURA: [
       'Soft atmospheric particles with warm light scattering.',
       'Refined surfaces that hold golden highlights.'
-    ],
-    OUTDOOR_ENERGY_BOOST: [
-      'Natural materials like stone, wood, and foliage with real texture.',
-      'Outdoor surfaces with daylight-accurate reflections.'
-    ],
-    CROWN_WELLNESS_VANITY: [
-      'Marble, mirror glass, and brushed metal with luxury polish.',
-      'Premium cosmetic surfaces with clean reflections.'
     ],
     CANDY_GRADIENT_LAB: [
       'Polished acrylics and coated surfaces with gradient reflections.',

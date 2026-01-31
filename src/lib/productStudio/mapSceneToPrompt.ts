@@ -5,18 +5,13 @@ import {
   buildCandyGradientLabScene,
   buildClinicalLabCounterScene,
   buildColorPopHeroScene,
-  buildCrownWellnessVanityScene,
   buildFoamAndTextureScene,
   buildGoldenMistAuraScene,
   buildHeroNeutralScene,
   buildIngredientStackScene,
-  buildOutdoorEnergyBoostScene,
-  buildPastelPicnicScene,
   buildRoutineCarouselScene,
   buildSplashShotScene,
   buildStudioHeroScene,
-  buildSunriseWellnessCounterScene,
-  buildTileAndSpaScene,
   type PhotoModeKey,
   type SceneBuildInput,
 } from './promptParts/sceneBuilders';
@@ -139,21 +134,14 @@ export type ScenePromptResult = {
 
 const PHOTO_MODE_MAP: Record<string, PhotoModeKey> = {
   'Hero Landing Page': 'HERO_NEUTRAL',
-  'Hero Neutral': 'HERO_NEUTRAL',
-  'Clear': 'HERO_NEUTRAL',
   'Color Pop Hero': 'COLOR_POP_HERO',
   'Ingredient Stack': 'INGREDIENT_STACK',
   'Acrylic Blocks': 'ACRYLIC_BLOCKS',
   'Splash Shot': 'SPLASH_SHOT',
-  'Tile & Spa': 'TILE_AND_SPA',
   'Foam & Texture': 'FOAM_AND_TEXTURE',
   'Routine Carousel': 'ROUTINE_CAROUSEL',
-  'Pastel Picnic': 'PASTEL_PICNIC',
-  'Sunrise Wellness Counter': 'SUNRISE_WELLNESS_COUNTER',
   'Clinical Lab Counter': 'CLINICAL_LAB_COUNTER',
   'Golden Mist Aura': 'GOLDEN_MIST_AURA',
-  'Outdoor Energy Boost': 'OUTDOOR_ENERGY_BOOST',
-  'Crown Wellness Vanity': 'CROWN_WELLNESS_VANITY',
   'Candy Gradient Lab': 'CANDY_GRADIENT_LAB',
 };
 
@@ -163,15 +151,10 @@ const SECONDARY_PROPS_BY_MODE: Partial<Record<PhotoModeKey, string[]>> = {
   INGREDIENT_STACK: ['fresh botanicals', 'sliced citrus', 'herbal leaves', 'clean powders'],
   ACRYLIC_BLOCKS: ['additional acrylic risers', 'prismatic edge accents'],
   SPLASH_SHOT: ['minimal liquid surface ripples', 'controlled droplets around the base'],
-  TILE_AND_SPA: ['rolled spa towel', 'small ceramic dish', 'soft steam cues'],
   FOAM_AND_TEXTURE: ['controlled foam clusters', 'gel ribbons', 'micro-bubbles'],
   ROUTINE_CAROUSEL: ['simple glassware', 'minimal ceramic tray', 'soft paper elements'],
-  PASTEL_PICNIC: ['pastel textiles', 'fresh fruit slices', 'soft glassware'],
-  SUNRISE_WELLNESS_COUNTER: ['warm ceramics', 'linen cloth', 'subtle breakfast accents'],
   CLINICAL_LAB_COUNTER: ['clean glassware silhouettes', 'stainless tools', 'measured droppers'],
   GOLDEN_MIST_AURA: ['soft golden haze', 'delicate reflective accents'],
-  OUTDOOR_ENERGY_BOOST: ['sunlit foliage', 'natural stones', 'wind-swept fabric'],
-  CROWN_WELLNESS_VANITY: ['mirror accents', 'metallic trays', 'luxury cosmetic tools'],
   CANDY_GRADIENT_LAB: ['transparent lab forms', 'gradient panels', 'polished geometric props'],
 };
 
@@ -252,32 +235,17 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
         splashMode = splash.splashMode;
         break;
       }
-      case 'TILE_AND_SPA':
-        scene = buildTileAndSpaScene(sceneInput);
-        break;
       case 'FOAM_AND_TEXTURE':
         scene = buildFoamAndTextureScene(sceneInput);
         break;
       case 'ROUTINE_CAROUSEL':
         scene = buildRoutineCarouselScene(sceneInput);
         break;
-      case 'PASTEL_PICNIC':
-        scene = buildPastelPicnicScene(sceneInput);
-        break;
-      case 'SUNRISE_WELLNESS_COUNTER':
-        scene = buildSunriseWellnessCounterScene(sceneInput);
-        break;
       case 'CLINICAL_LAB_COUNTER':
         scene = buildClinicalLabCounterScene(sceneInput);
         break;
       case 'GOLDEN_MIST_AURA':
         scene = buildGoldenMistAuraScene(sceneInput);
-        break;
-      case 'OUTDOOR_ENERGY_BOOST':
-        scene = buildOutdoorEnergyBoostScene(sceneInput);
-        break;
-      case 'CROWN_WELLNESS_VANITY':
-        scene = buildCrownWellnessVanityScene(sceneInput);
         break;
       case 'CANDY_GRADIENT_LAB':
         scene = buildCandyGradientLabScene(sceneInput);

@@ -1963,27 +1963,29 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               )}
 
-              {/* PRESET TIER — Always visible first */}
-              <div className={SECTION_GROUP_CLASS}>
-                <p className={GROUP_LABEL_CLASS}>PRESET TIER</p>
-                <div className="flex gap-2">
-                  {(['basic', 'pro'] as const).map(tier => (
-                    <Chip
-                      key={tier}
-                      onClick={() => {
-                        productStore.setPresetTier(tier);
-                        markSectionTouched('product-setup');
-                      }}
-                      selected={productStore.presetTier === tier}
-                    >
-                      {tier === 'basic' ? 'Basic' : 'Pro'}
-                    </Chip>
-                  ))}
+              {/* PRESET TIER — Hidden when Photo Mode is active (Phase 1) */}
+              {productStore.environmentContext != null && (
+                <div className={SECTION_GROUP_CLASS}>
+                  <p className={GROUP_LABEL_CLASS}>PRESET TIER</p>
+                  <div className="flex gap-2">
+                    {(['basic', 'pro'] as const).map(tier => (
+                      <Chip
+                        key={tier}
+                        onClick={() => {
+                          productStore.setPresetTier(tier);
+                          markSectionTouched('product-setup');
+                        }}
+                        selected={productStore.presetTier === tier}
+                      >
+                        {tier === 'basic' ? 'Basic' : 'Pro'}
+                      </Chip>
+                    ))}
+                  </div>
+                  <p className="text-[11px] text-gray-500 mt-1">
+                    Pro unlocks advanced bundle modes and full prop density.
+                  </p>
                 </div>
-                <p className="text-[11px] text-gray-500 mt-1">
-                  Pro unlocks advanced bundle modes and full prop density.
-                </p>
-              </div>
+              )}
 
               {/* ============================================================
                    PRODUCT STUDIO CONTROLS (Studio Mode Only)
@@ -2002,26 +2004,20 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <div className={SECTION_GROUP_CLASS}>
                           <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">PHOTO MODE</p>
                           <div className="flex flex-wrap gap-2">
-                            {(productStore.presetTier === 'basic'
-                              ? ['Hero Landing Page', 'Color Pop Hero', 'Ingredient Stack']
-                              : [
-                                'Hero Landing Page', 'Color Pop Hero', 'Ingredient Stack',
-                                'Acrylic Blocks', 'Splash Shot',
-                                'Tile & Spa', 'Foam & Texture', 'Routine Carousel', 'Pastel Picnic',
-                                'Sunrise Wellness Counter', 'Clinical Lab Counter',
-                                'Golden Mist Aura', 'Outdoor Energy Boost', 'Crown Wellness Vanity',
-                                'Candy Gradient Lab'
-                              ]
-                            ).map(mode => (
+                            {([
+                              'Hero Landing Page',
+                              'Color Pop Hero',
+                              'Ingredient Stack',
+                              'Acrylic Blocks',
+                              'Splash Shot',
+                              'Foam & Texture',
+                              'Routine Carousel',
+                              'Clinical Lab Counter',
+                              'Golden Mist Aura',
+                              'Candy Gradient Lab',
+                            ] as const).map(mode => (
                               <button
                                 key={mode}
-                                title={
-                                  mode === 'Hero Landing Page'
-                                    ? 'Controls background color only.\nDisables environment and lighting.'
-                                    : mode === 'Splash Shot'
-                                      ? 'Classic liquid splash styles.\nLabel visibility always preserved.'
-                                      : mode
-                                }
                                 onClick={() => {
                                   productStore.setPhotoMode(mode);
                                   markSectionTouched('product-setup');
@@ -2037,222 +2033,748 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             ))}
                           </div>
 
-                          {productStore.photoMode === 'Splash Shot' ? (
-                            <div className="mt-3">
-                              <label
-                                className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold block mb-1"
-                                title={'Classic liquid splash styles.\nLabel visibility always preserved.'}
-                              >
-                                Splash Style
-                              </label>
-                              <div className="flex flex-wrap gap-2">
-                                {(['Basic', 'Intermediate', 'Advanced'] as const).map(style => (
-                                  <Chip
-                                    key={style}
-                                    selected={productStore.splashStyle === style}
-                                    onClick={() => {
-                                      productStore.setSplashStyle(style);
-                                      markSectionTouched('product-setup');
-                                    }}
-                                  >
-                                    {style}
-                                  </Chip>
-                                ))}
-                              </div>
-                            </div>
-                          ) : null}
-
-                          {/* Ingredient Input — Only visible when Ingredient Stack is selected */}
-                          {productStore.photoMode === 'Ingredient Stack' && (
-                            <div className="mt-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                              <label className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold block mb-1">
-                                Ingredients to show
-                              </label>
-                              <input
-                                type="text"
-                                placeholder="e.g. turmeric, ginger, vitamin C capsules"
-                                value={productStore.props || ''}
-                                onChange={(e) => {
-                                  productStore.setProps(e.target.value);
-                                  markSectionTouched('product-setup');
-                                }}
-                                className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 placeholder:text-gray-400"
-                              />
-                              <p className="text-[9px] text-gray-400 mt-1">These ingredients will appear as props around your product</p>
-
-                              <div className="mt-3">
-                                <label className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold block mb-1">
-                                  Ingredient layout
-                                </label>
-                                <div className="flex flex-wrap gap-2">
-                                  {(
-                                    [
-                                      { value: 'auto', label: 'Auto' },
-                                      { value: 'grounded', label: 'On base' },
-                                      { value: 'floating', label: 'Floating' },
-                                      { value: 'top-view', label: 'Top view' },
-                                    ] as const
-                                  ).map(({ value, label }) => (
-                                    <Chip
-                                      key={value}
-                                      selected={productStore.ingredientLayout === value}
-                                      onClick={() => {
-                                        productStore.setIngredientLayout(value);
-                                        markSectionTouched('product-setup');
-                                      }}
-                                    >
-                                      {label}
-                                    </Chip>
-                                  ))}
-                                </div>
-                                {/* No persistent explanatory copy; use tooltips only. */}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* ═══════════════════════════════════════════════════════════
-                          1.1 HERO BACKGROUND — Optional but critical for Hero Landing
-                          Visible only when 'Hero Landing Page' is selected.
-                          ═══════════════════════════════════════════════════════════ */}
-                        {productStore.photoMode === 'Hero Landing Page' && (
-                          <div className={`${SECTION_GROUP_CLASS} animate-in fade-in slide-in-from-top-2 duration-300`}>
-                            <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">HERO BACKGROUND</p>
-
-                            <div className="space-y-4 rounded-xl border border-gray-100 bg-gray-50/50 p-4">
-                              <div className="space-y-2">
-                                <p className="text-[9px] uppercase tracking-widest text-indigo-600 font-bold">BACKGROUND TYPE</p>
-                                <div className="flex gap-2">
-                                  <Chip
-                                    selected={!productStore.gradientEnabled}
-                                    onClick={() => {
-                                      productStore.setGradientEnabled(false);
-                                      markSectionTouched('product-setup');
-                                    }}
-                                  >
-                                    Solid
-                                  </Chip>
-                                  <Chip
-                                    selected={productStore.gradientEnabled}
-                                    onClick={() => {
-                                      productStore.setGradientEnabled(true);
-                                      markSectionTouched('product-setup');
-                                    }}
-                                  >
-                                    Gradient
-                                  </Chip>
-                                </div>
-                              </div>
-
-                              <div className="pt-2 border-t border-gray-100">
-                                <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold mb-2">QUICK COLORS (PRODUCT PALETTE)</p>
-                                <div className="flex flex-wrap gap-2">
-                                  {[
-                                    { hex: '#F6F7FB', label: 'Neutral' },
-                                    { hex: productStore.products.find(p => p.id === productStore.activeProductId)?.palette?.dominant || '#FFFFFF', label: 'Primary' },
-                                    { hex: productStore.products.find(p => p.id === productStore.activeProductId)?.palette?.secondary || '#F0F0F0', label: 'Secondary' },
-                                  ].map((color, idx) => (
-                                    <button
-                                      key={`${color.hex}-${idx}`}
-                                      onClick={() => {
-                                        if (productStore.gradientEnabled) {
-                                          productStore.setGradientStart(color.hex);
-                                          productStore.setGradientEnd('#FFFFFF');
-                                        } else {
-                                          productStore.setBackgroundColor(color.hex);
-                                        }
-                                        markSectionTouched('product-setup');
-                                      }}
-                                      className="group flex items-center gap-1.5 px-2 py-1 rounded-full bg-white border border-gray-200 hover:border-indigo-300 transition-all"
-                                    >
-                                      <div className="w-4 h-4 rounded-full border border-gray-100 shadow-sm" style={{ background: color.hex }} />
-                                      <span className="text-[10px] text-gray-600 font-medium">{color.label}</span>
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
-
-                              <div className="pt-2">
-                                {!productStore.gradientEnabled ? (
-                                  <div className="flex items-center gap-3">
-                                    <label className="relative flex-shrink-0">
-                                      <div
-                                        className="w-10 h-10 rounded-xl border-2 border-white shadow-md cursor-pointer overflow-hidden transition-transform active:scale-95"
-                                        style={{ background: productStore.backgroundColor }}
-                                      />
-                                      <input
-                                        type="color"
-                                        className="absolute inset-0 opacity-0 cursor-pointer"
-                                        value={productStore.backgroundColor || '#F6F7FB'}
-                                        onChange={(e) => {
-                                          productStore.setBackgroundColor(e.target.value);
+                          <div className="mt-3 space-y-4">
+                            {productStore.photoMode === 'Hero Landing Page' && (
+                              <div className="space-y-3">
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Background Type</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Solid', 'Gradient'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.heroLandingPage.backgroundType === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ heroLandingPage: { backgroundType: v } });
                                           markSectionTouched('product-setup');
                                         }}
-                                      />
-                                    </label>
-                                    <div className="flex-1">
-                                      <p className="text-[9px] text-gray-400 mb-0.5">HEX CODE</p>
-                                      <input
-                                        type="text"
-                                        value={(productStore.backgroundColor || '#F6F7FB').toUpperCase()}
-                                        onChange={(e) => {
-                                          const hex = e.target.value.toUpperCase();
-                                          if (/^#[0-9A-F]{0,6}$/i.test(hex)) {
-                                            productStore.setBackgroundColor(hex);
-                                            markSectionTouched('product-setup');
-                                          }
-                                        }}
-                                        className="w-full h-8 px-2 text-[11px] font-mono bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                                      />
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="grid grid-cols-2 gap-4">
-                                    {[
-                                      { key: 'gradientStart', label: 'START' },
-                                      { key: 'gradientEnd', label: 'END' }
-                                    ].map(cfg => (
-                                      <div key={cfg.key} className="space-y-1.5">
-                                        <p className="text-[9px] text-gray-400 font-bold">{cfg.label}</p>
-                                        <div className="flex items-center gap-2">
-                                          <label className="relative flex-shrink-0">
-                                            <div
-                                              className="w-8 h-8 rounded-lg border-2 border-white shadow-sm cursor-pointer overflow-hidden"
-                                              style={{ background: (productStore as any)[cfg.key] || '#FFFFFF' }}
-                                            />
-                                            <input
-                                              type="color"
-                                              className="absolute inset-0 opacity-0 cursor-pointer"
-                                              value={(productStore as any)[cfg.key] || '#FFFFFF'}
-                                              onChange={(e) => {
-                                                if (cfg.key === 'gradientStart') productStore.setGradientStart(e.target.value);
-                                                else productStore.setGradientEnd(e.target.value);
-                                                markSectionTouched('product-setup');
-                                              }}
-                                            />
-                                          </label>
-                                          <input
-                                            type="text"
-                                            value={((productStore as any)[cfg.key] || '#FFFFFF').toUpperCase()}
-                                            onChange={(e) => {
-                                              const hex = e.target.value.toUpperCase();
-                                              if (/^#[0-9A-F]{0,6}$/i.test(hex)) {
-                                                if (cfg.key === 'gradientStart') productStore.setGradientStart(hex);
-                                                else productStore.setGradientEnd(hex);
-                                                markSectionTouched('product-setup');
-                                              }
-                                            }}
-                                            className="w-full h-7 px-1.5 text-[10px] font-mono bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                                          />
-                                        </div>
-                                      </div>
+                                      >
+                                        {v}
+                                      </Chip>
                                     ))}
                                   </div>
+                                </div>
+
+                                {productStore.photoModeConfig.heroLandingPage.backgroundType === 'Gradient' && (
+                                  <div>
+                                    <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Gradient Style</p>
+                                    <div className="flex flex-wrap gap-2">
+                                      {(['Soft', 'Radial', 'Vertical'] as const).map(v => (
+                                        <Chip
+                                          key={v}
+                                          selected={productStore.photoModeConfig.heroLandingPage.gradientStyle === v}
+                                          onClick={() => {
+                                            productStore.setPhotoModeConfig({ heroLandingPage: { gradientStyle: v } });
+                                            markSectionTouched('product-setup');
+                                          }}
+                                        >
+                                          {v}
+                                        </Chip>
+                                      ))}
+                                    </div>
+                                  </div>
                                 )}
+
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Palette Source</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Product label colors', 'Neutral brand tones', 'Custom'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.heroLandingPage.paletteSource === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ heroLandingPage: { paletteSource: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Negative Space</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Tight', 'Balanced', 'Spacious'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.heroLandingPage.negativeSpace === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ heroLandingPage: { negativeSpace: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
                               </div>
-                            </div>
+                            )}
+
+                            {productStore.photoMode === 'Color Pop Hero' && (
+                              <div className="space-y-3">
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Pop Style</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Complementary contrast', 'Neon accent', 'Bold duotone'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.colorPopHero.popStyle === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ colorPopHero: { popStyle: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Color Energy</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Soft pop', 'Vibrant', 'Extreme'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.colorPopHero.colorEnergy === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ colorPopHero: { colorEnergy: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Background Finish</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Flat', 'Soft glow', 'Subtle grain'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.colorPopHero.backgroundFinish === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ colorPopHero: { backgroundFinish: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Product Emphasis</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Center punch', 'Offset pop'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.colorPopHero.productEmphasis === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ colorPopHero: { productEmphasis: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {productStore.photoMode === 'Ingredient Stack' && (
+                              <div className="space-y-3">
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Ingredient Focus</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Key active only', 'Full formula'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.ingredientStack.ingredientFocus === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ ingredientStack: { ingredientFocus: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Stack Style</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Vertical stack', 'Surround', 'Split composition'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.ingredientStack.stackStyle === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ ingredientStack: { stackStyle: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Ingredient Presence</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Subtle', 'Balanced', 'Hero'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.ingredientStack.ingredientPresence === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ ingredientStack: { ingredientPresence: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Label Priority</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Always readable', 'Secondary to ingredients'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.ingredientStack.labelPriority === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ ingredientStack: { labelPriority: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {productStore.photoMode === 'Acrylic Blocks' && (
+                              <div className="space-y-3">
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Block Shape</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Rectangular', 'Cylindrical', 'Mixed geometry'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.acrylicBlocks.blockShape === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ acrylicBlocks: { blockShape: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Material Finish</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Clear', 'Frosted', 'Smoked'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.acrylicBlocks.materialFinish === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ acrylicBlocks: { materialFinish: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Reflection Level</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Minimal', 'Balanced', 'Glossy'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.acrylicBlocks.reflectionLevel === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ acrylicBlocks: { reflectionLevel: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Elevation</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Grounded', 'Floating illusion'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.acrylicBlocks.elevation === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ acrylicBlocks: { elevation: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {productStore.photoMode === 'Splash Shot' && (
+                              <div className="space-y-3">
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Splash Medium</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Liquid', 'Powder', 'Mist'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.splashShot.splashMedium === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ splashShot: { splashMedium: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Motion Intensity</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Subtle', 'Dynamic', 'Explosive'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.splashShot.motionIntensity === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ splashShot: { motionIntensity: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Freeze Moment</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Early', 'Mid-splash', 'Peak'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.splashShot.freezeMoment === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ splashShot: { freezeMoment: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Product Stability</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Fully grounded', 'Slight interaction'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.splashShot.productStability === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ splashShot: { productStability: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {productStore.photoMode === 'Foam & Texture' && (
+                              <div className="space-y-3">
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Texture Type</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Foam', 'Cream', 'Gel', 'Powder'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.foamAndTexture.textureType === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ foamAndTexture: { textureType: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Texture Density</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Light', 'Rich', 'Dense'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.foamAndTexture.textureDensity === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ foamAndTexture: { textureDensity: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Focus Distance</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Macro', 'Close'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.foamAndTexture.focusDistance === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ foamAndTexture: { focusDistance: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Cleanliness</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Pristine', 'Natural imperfections'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.foamAndTexture.cleanliness === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ foamAndTexture: { cleanliness: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {productStore.photoMode === 'Routine Carousel' && (
+                              <div className="space-y-3">
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Frame Count</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {([3, 4, 5] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.routineCarousel.frameCount === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ routineCarousel: { frameCount: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Routine Flow</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Left → Right', 'Circular'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.routineCarousel.routineFlow === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ routineCarousel: { routineFlow: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Consistency</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Same background', 'Subtle variation'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.routineCarousel.consistency === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ routineCarousel: { consistency: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Hero Frame</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['First', 'Middle', 'Last'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.routineCarousel.heroFrame === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ routineCarousel: { heroFrame: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {productStore.photoMode === 'Clinical Lab Counter' && (
+                              <div className="space-y-3">
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Clinical Tone</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Soft clinical', 'Crisp lab'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.clinicalLabCounter.clinicalTone === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ clinicalLabCounter: { clinicalTone: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Lab Elements</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Minimal', 'Standard'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.clinicalLabCounter.labElements === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ clinicalLabCounter: { labElements: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Surface Type</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['White lab', 'Neutral lab'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.clinicalLabCounter.surfaceType === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ clinicalLabCounter: { surfaceType: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Trust Level</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Friendly', 'Professional', 'High authority'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.clinicalLabCounter.trustLevel === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ clinicalLabCounter: { trustLevel: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {productStore.photoMode === 'Golden Mist Aura' && (
+                              <div className="space-y-3">
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Glow Strength</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Subtle', 'Warm', 'Radiant'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.goldenMistAura.glowStrength === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ goldenMistAura: { glowStrength: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Mist Style</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Backlit', 'Surround'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.goldenMistAura.mistStyle === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ goldenMistAura: { mistStyle: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Mood</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Calm', 'Luxurious'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.goldenMistAura.mood === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ goldenMistAura: { mood: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Contrast</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Soft', 'Cinematic'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.goldenMistAura.contrast === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ goldenMistAura: { contrast: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {productStore.photoMode === 'Candy Gradient Lab' && (
+                              <div className="space-y-3">
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Gradient Style</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Candy pastel', 'Bold candy'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.candyGradientLab.gradientStyle === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ candyGradientLab: { gradientStyle: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Color Count</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Duo', 'Trio'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.candyGradientLab.colorCount === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ candyGradientLab: { colorCount: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Edge Style</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Soft blend', 'Sharp transition'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.candyGradientLab.edgeStyle === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ candyGradientLab: { edgeStyle: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Playfulness</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Controlled', 'Fun', 'Loud'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.candyGradientLab.playfulness === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ candyGradientLab: { playfulness: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
-                        )}
+                        </div>
+
+                        {/* Phase 1: Hero Landing Page options are controlled exclusively by Photo Mode sub-options. */}
 
                       </>
                     )}
@@ -2370,265 +2892,270 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       </div>
                     </div>
 
-                    <div className={SECTION_GROUP_CLASS}>
-                      <p className={GROUP_LABEL_CLASS}>COMPOSITION BASICS</p>
-                      <p className="text-[11px] text-gray-500 mt-1">
-                        High-level layout decisions before creative styling.
-                      </p>
-                    </div>
+                    {/* Phase 1: Hide generic composition/lighting/props controls when Photo Mode is active. */}
+                    {productStore.environmentContext != null && (
+                      <>
+                        <div className={SECTION_GROUP_CLASS}>
+                          <p className={GROUP_LABEL_CLASS}>COMPOSITION BASICS</p>
+                          <p className="text-[11px] text-gray-500 mt-1">
+                            High-level layout decisions before creative styling.
+                          </p>
+                        </div>
 
-                    {/* ═══════════════════════════════════════════════════════════
+                        {/* ═══════════════════════════════════════════════════════════
                       3. COMPOSITION — How is it framed?
                       Basic: Centered, Left + space, Right + space
                       ═══════════════════════════════════════════════════════════ */}
-                    <div className={SECTION_GROUP_CLASS}>
-                      <p className={GROUP_LABEL_CLASS}>COMPOSITION</p>
-                      <div className="flex flex-wrap gap-2">
-                        {[
-                          { key: 'centered', label: 'Centered' },
-                          { key: 'left-space', label: 'Left + space' },
-                          { key: 'right-space', label: 'Right + space' }
-                        ].map(({ key, label }) => (
-                          <Chip
-                            key={key}
-                            onClick={() => {
-                              productStore.setAlignment(key as any);
-                              // Keep prompt coherent: alignment drives composition + negative space.
-                              if (key === 'centered') {
-                                productStore.setComposition('centered' as any);
-                                productStore.setNegativeSpace('none' as any);
-                              } else {
-                                productStore.setComposition('asymmetrical' as any);
-                                productStore.setNegativeSpace('intentional' as any);
-                              }
-                              markSectionTouched('product-setup');
-                            }}
-                            selected={productStore.alignment === key || (key === 'centered' && productStore.alignment === 'center')}
-                          >
-                            {label}
-                          </Chip>
-                        ))}
-                      </div>
-
-                      {/* ADVANCED COMPOSITION — Pro only extension */}
-                      {productStore.presetTier === 'pro' && (
-                        <div className="mt-3 pt-3 border-t border-gray-100">
-                          <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">ADVANCED</p>
+                        <div className={SECTION_GROUP_CLASS}>
+                          <p className={GROUP_LABEL_CLASS}>COMPOSITION</p>
                           <div className="flex flex-wrap gap-2">
                             {[
-                              { key: 'rule-of-thirds', label: 'Rule of thirds' },
-                              { key: 'asymmetrical', label: 'Asymmetrical' },
-                              { key: 'flat-lay', label: 'Flat lay' },
-                              { key: 'pedestal', label: 'Pedestal' }
+                              { key: 'centered', label: 'Centered' },
+                              { key: 'left-space', label: 'Left + space' },
+                              { key: 'right-space', label: 'Right + space' }
                             ].map(({ key, label }) => (
                               <Chip
                                 key={key}
                                 onClick={() => {
-                                  const compositionMap: Record<string, CompositionMode> = {
-                                    'rule-of-thirds': 'thirds',
-                                    'asymmetrical': 'asymmetrical',
-                                    'flat-lay': 'flatlay',
-                                    'pedestal': 'pedestal',
-                                  };
-                                  const mapped = compositionMap[key];
-                                  if (mapped) {
-                                    productStore.setComposition(mapped);
-                                    productStore.setNegativeSpace('none');
+                                  productStore.setAlignment(key as any);
+                                  // Keep prompt coherent: alignment drives composition + negative space.
+                                  if (key === 'centered') {
+                                    productStore.setComposition('centered' as any);
+                                    productStore.setNegativeSpace('none' as any);
+                                  } else {
+                                    productStore.setComposition('asymmetrical' as any);
+                                    productStore.setNegativeSpace('intentional' as any);
                                   }
                                   markSectionTouched('product-setup');
                                 }}
-                                selected={
-                                  (key === 'rule-of-thirds' && productStore.composition === 'thirds') ||
-                                  (key === 'asymmetrical' && productStore.composition === 'asymmetrical') ||
-                                  (key === 'flat-lay' && productStore.composition === 'flatlay') ||
-                                  (key === 'pedestal' && productStore.composition === 'pedestal')
-                                }
+                                selected={productStore.alignment === key || (key === 'centered' && productStore.alignment === 'center')}
                               >
                                 {label}
                               </Chip>
                             ))}
                           </div>
-                        </div>
-                      )}
-                    </div>
 
-                    {productStore.photoMode !== 'Hero Landing Page' ? (
-                      <div className={SECTION_GROUP_CLASS}>
-                        <p className={GROUP_LABEL_CLASS}>SHADOW STYLE</p>
-                        <div className="flex flex-wrap gap-2">
-                          {[
-                            { key: 'soft-drop', label: 'Soft' },
-                            { key: 'hard-drop', label: 'Hard' },
-                            { key: 'floating', label: 'Floating' }
-                          ].map(({ key, label }) => (
-                            <Chip
-                              key={key}
-                              onClick={() => {
-                                productStore.setShadow(key as 'soft-drop' | 'hard-drop' | 'floating');
-                                markSectionTouched('product-setup');
-                              }}
-                              selected={productStore.shadow === key}
-                            >
-                              {label}
-                            </Chip>
-                          ))}
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {/* ═══════════════════════════════════════════════════════════
-                      5. PRO ONLY — Advanced Controls
-                      Hidden in Basic mode, revealed progressively in Pro
-                      ═══════════════════════════════════════════════════════════ */}
-                    {productStore.presetTier === 'pro' && productStore.photoMode !== 'Hero Landing Page' && (
-                      <>
-                        {/* PRO PHOTOGRAPHER MODE */}
-                        <div className={SECTION_GROUP_CLASS}>
-                          <div className="flex items-center justify-between gap-3 mb-3">
-                            <div>
-                              <p className={GROUP_LABEL_CLASS}>PRO PHOTOGRAPHER MODE</p>
-                            </div>
-                            <Toggle
-                              checked={productStore.proMode}
-                              onCheckedChange={(next) => {
-                                productStore.setProMode(next);
-                                markSectionTouched('product-setup');
-                              }}
-                              aria-label="Pro photographer mode"
-                            />
-                          </div>
-
-                          <div
-                            className={`overflow-hidden transition-all duration-500 ${productStore.proMode ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
-                              }`}
-                            style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                          >
-                            <div className="space-y-4 pl-3 border-l-2 border-indigo-300">
-                              <div>
-                                <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LENS</p>
-                                <div className="flex flex-wrap gap-2">
-                                  {[
-                                    '100mm Macro Prime', '50mm Product Prime', 'Tilt-Shift Hero',
-                                    'Ultra-Wide Stylized', 'Cinema Zoom', '70-200mm Compression',
-                                    '35mm Anamorphic Glow'
-                                  ].map(lens => (
-                                    <button
-                                      key={lens}
-                                      onClick={() => {
-                                        productStore.setLens(lens);
-                                        markSectionTouched('product-setup');
-                                      }}
-                                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.lens === lens
-                                        ? 'bg-indigo-600 text-white border-indigo-600'
-                                        : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
-                                        }`}
-                                      style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                                    >
-                                      {lens}
-                                    </button>
-                                  ))}
-                                </div>
-                                {getInterpretationNote('lens') && (
-                                  <InterpretationNote message={getInterpretationNote('lens')!} />
-                                )}
-                              </div>
-
-                              <div>
-                                <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LIGHTING RIG</p>
-                                <div className="flex flex-wrap gap-2">
-                                  {([
-                                    { value: 'Three-Point Beauty', label: '3-Point Beauty Dish' },
-                                    { value: 'Softbox Wrap', label: 'Softbox Wrap' },
-                                    { value: 'Hard Edge Gels', label: 'Hard Edge Gels' },
-                                    { value: 'Backlit Acrylic', label: 'Backlit Acrylic' },
-                                    { value: 'High-Speed Splash Rig', label: 'High-Speed Splash Rig' },
-                                    { value: 'Gradient Cyclorama', label: 'Gradient Cyclorama' },
-                                    { value: 'Prism Spotlight Duo', label: 'Prism Spotlight Duo' },
-                                  ] as const).map(({ value, label }) => (
-                                    <button
-                                      key={value}
-                                      onClick={() => {
-                                        productStore.setLightingRig(value);
-                                        markSectionTouched('product-setup');
-                                      }}
-                                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.lightingRig === value
-                                        ? 'bg-indigo-600 text-white border-indigo-600'
-                                        : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
-                                        }`}
-                                      style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                                    >
-                                      {label}
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
-
-                              <div>
-                                <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">FINISH / TREATMENT</p>
-                                <div className="flex flex-wrap gap-2">
-                                  {[
-                                    'High-Gloss Commercial', 'Film Grain Luxury', 'Matte Editorial',
-                                    'Hyperreal CGI Blend', 'Clinical Lab Polish', 'Vibrant Color Pop'
-                                  ].map(finish => (
-                                    <button
-                                      key={finish}
-                                      onClick={() => {
-                                        productStore.setFinish(finish);
-                                        markSectionTouched('product-setup');
-                                      }}
-                                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.finish === finish
-                                        ? 'bg-indigo-600 text-white border-indigo-600'
-                                        : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
-                                        }`}
-                                      style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                                    >
-                                      {finish}
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* CREATIVE DIRECTION — All creativity controls unified */}
-                        <div className={SECTION_GROUP_CLASS}>
-                          <p className={GROUP_LABEL_CLASS}>CREATIVE DIRECTION</p>
-                          <div className="space-y-3">
-                            <div>
-                              <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">CREATIVITY LEVEL</p>
-                              <div className="flex gap-2">
-                                {([0, 1, 2, 3] as const).map(level => (
+                          {/* ADVANCED COMPOSITION — Pro only extension */}
+                          {productStore.presetTier === 'pro' && (
+                            <div className="mt-3 pt-3 border-t border-gray-100">
+                              <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">ADVANCED</p>
+                              <div className="flex flex-wrap gap-2">
+                                {[
+                                  { key: 'rule-of-thirds', label: 'Rule of thirds' },
+                                  { key: 'asymmetrical', label: 'Asymmetrical' },
+                                  { key: 'flat-lay', label: 'Flat lay' },
+                                  { key: 'pedestal', label: 'Pedestal' }
+                                ].map(({ key, label }) => (
                                   <Chip
-                                    key={level}
+                                    key={key}
                                     onClick={() => {
-                                      productStore.setCreativityLevel(level);
+                                      const compositionMap: Record<string, CompositionMode> = {
+                                        'rule-of-thirds': 'thirds',
+                                        'asymmetrical': 'asymmetrical',
+                                        'flat-lay': 'flatlay',
+                                        'pedestal': 'pedestal',
+                                      };
+                                      const mapped = compositionMap[key];
+                                      if (mapped) {
+                                        productStore.setComposition(mapped);
+                                        productStore.setNegativeSpace('none');
+                                      }
                                       markSectionTouched('product-setup');
                                     }}
-                                    selected={productStore.creativityLevel === level}
+                                    selected={
+                                      (key === 'rule-of-thirds' && productStore.composition === 'thirds') ||
+                                      (key === 'asymmetrical' && productStore.composition === 'asymmetrical') ||
+                                      (key === 'flat-lay' && productStore.composition === 'flatlay') ||
+                                      (key === 'pedestal' && productStore.composition === 'pedestal')
+                                    }
                                   >
-                                    {level === 0 ? 'Locked' : level === 1 ? 'Low' : level === 2 ? 'Medium' : 'High'}
+                                    {label}
                                   </Chip>
                                 ))}
                               </div>
                             </div>
+                          )}
+                        </div>
 
-                            <div>
-                              <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">PROPS</p>
-                              <input
-                                type="text"
-                                value={productStore.props}
-                                onChange={(e) => {
-                                  productStore.setProps(e.target.value);
-                                  markSectionTouched('product-setup');
-                                }}
-                                placeholder="e.g., pineapple, lavender sprigs"
-                                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
-                              />
+                        {productStore.photoMode !== 'Hero Landing Page' ? (
+                          <div className={SECTION_GROUP_CLASS}>
+                            <p className={GROUP_LABEL_CLASS}>SHADOW STYLE</p>
+                            <div className="flex flex-wrap gap-2">
+                              {[
+                                { key: 'soft-drop', label: 'Soft' },
+                                { key: 'hard-drop', label: 'Hard' },
+                                { key: 'floating', label: 'Floating' }
+                              ].map(({ key, label }) => (
+                                <Chip
+                                  key={key}
+                                  onClick={() => {
+                                    productStore.setShadow(key as 'soft-drop' | 'hard-drop' | 'floating');
+                                    markSectionTouched('product-setup');
+                                  }}
+                                  selected={productStore.shadow === key}
+                                >
+                                  {label}
+                                </Chip>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null}
+
+                        {/* ═══════════════════════════════════════════════════════════
+                      5. PRO ONLY — Advanced Controls
+                      Hidden in Basic mode, revealed progressively in Pro
+                      ═══════════════════════════════════════════════════════════ */}
+                        {productStore.presetTier === 'pro' && productStore.photoMode !== 'Hero Landing Page' && (
+                          <>
+                            {/* PRO PHOTOGRAPHER MODE */}
+                            <div className={SECTION_GROUP_CLASS}>
+                              <div className="flex items-center justify-between gap-3 mb-3">
+                                <div>
+                                  <p className={GROUP_LABEL_CLASS}>PRO PHOTOGRAPHER MODE</p>
+                                </div>
+                                <Toggle
+                                  checked={productStore.proMode}
+                                  onCheckedChange={(next) => {
+                                    productStore.setProMode(next);
+                                    markSectionTouched('product-setup');
+                                  }}
+                                  aria-label="Pro photographer mode"
+                                />
+                              </div>
+
+                              <div
+                                className={`overflow-hidden transition-all duration-500 ${productStore.proMode ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
+                                  }`}
+                                style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
+                              >
+                                <div className="space-y-4 pl-3 border-l-2 border-indigo-300">
+                                  <div>
+                                    <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LENS</p>
+                                    <div className="flex flex-wrap gap-2">
+                                      {[
+                                        '100mm Macro Prime', '50mm Product Prime', 'Tilt-Shift Hero',
+                                        'Ultra-Wide Stylized', 'Cinema Zoom', '70-200mm Compression',
+                                        '35mm Anamorphic Glow'
+                                      ].map(lens => (
+                                        <button
+                                          key={lens}
+                                          onClick={() => {
+                                            productStore.setLens(lens);
+                                            markSectionTouched('product-setup');
+                                          }}
+                                          className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.lens === lens
+                                            ? 'bg-indigo-600 text-white border-indigo-600'
+                                            : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                                            }`}
+                                          style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
+                                        >
+                                          {lens}
+                                        </button>
+                                      ))}
+                                    </div>
+                                    {getInterpretationNote('lens') && (
+                                      <InterpretationNote message={getInterpretationNote('lens')!} />
+                                    )}
+                                  </div>
+
+                                  <div>
+                                    <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LIGHTING RIG</p>
+                                    <div className="flex flex-wrap gap-2">
+                                      {([
+                                        { value: 'Three-Point Beauty', label: '3-Point Beauty Dish' },
+                                        { value: 'Softbox Wrap', label: 'Softbox Wrap' },
+                                        { value: 'Hard Edge Gels', label: 'Hard Edge Gels' },
+                                        { value: 'Backlit Acrylic', label: 'Backlit Acrylic' },
+                                        { value: 'High-Speed Splash Rig', label: 'High-Speed Splash Rig' },
+                                        { value: 'Gradient Cyclorama', label: 'Gradient Cyclorama' },
+                                        { value: 'Prism Spotlight Duo', label: 'Prism Spotlight Duo' },
+                                      ] as const).map(({ value, label }) => (
+                                        <button
+                                          key={value}
+                                          onClick={() => {
+                                            productStore.setLightingRig(value);
+                                            markSectionTouched('product-setup');
+                                          }}
+                                          className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.lightingRig === value
+                                            ? 'bg-indigo-600 text-white border-indigo-600'
+                                            : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                                            }`}
+                                          style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
+                                        >
+                                          {label}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+
+                                  <div>
+                                    <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">FINISH / TREATMENT</p>
+                                    <div className="flex flex-wrap gap-2">
+                                      {[
+                                        'High-Gloss Commercial', 'Film Grain Luxury', 'Matte Editorial',
+                                        'Hyperreal CGI Blend', 'Clinical Lab Polish', 'Vibrant Color Pop'
+                                      ].map(finish => (
+                                        <button
+                                          key={finish}
+                                          onClick={() => {
+                                            productStore.setFinish(finish);
+                                            markSectionTouched('product-setup');
+                                          }}
+                                          className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.finish === finish
+                                            ? 'bg-indigo-600 text-white border-indigo-600'
+                                            : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                                            }`}
+                                          style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
+                                        >
+                                          {finish}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
 
-                          </div>
-                        </div>
+                            {/* CREATIVE DIRECTION — All creativity controls unified */}
+                            <div className={SECTION_GROUP_CLASS}>
+                              <p className={GROUP_LABEL_CLASS}>CREATIVE DIRECTION</p>
+                              <div className="space-y-3">
+                                <div>
+                                  <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">CREATIVITY LEVEL</p>
+                                  <div className="flex gap-2">
+                                    {([0, 1, 2, 3] as const).map(level => (
+                                      <Chip
+                                        key={level}
+                                        onClick={() => {
+                                          productStore.setCreativityLevel(level);
+                                          markSectionTouched('product-setup');
+                                        }}
+                                        selected={productStore.creativityLevel === level}
+                                      >
+                                        {level === 0 ? 'Locked' : level === 1 ? 'Low' : level === 2 ? 'Medium' : 'High'}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">PROPS</p>
+                                  <input
+                                    type="text"
+                                    value={productStore.props}
+                                    onChange={(e) => {
+                                      productStore.setProps(e.target.value);
+                                      markSectionTouched('product-setup');
+                                    }}
+                                    placeholder="e.g., pineapple, lavender sprigs"
+                                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
+                                  />
+                                </div>
+
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </>
                     )}
 
@@ -3542,43 +4069,48 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           </SmoothAccordion>
 
 
-          {/* BRAND LOOK SYSTEM */}
-          <SmoothAccordion
-            icon={Layers}
-            title="05 / Brand Look System"
-            tooltip="Apply a brand-wide visual baseline (defaults)"
-            isOpen={openAccordionId === 'brand-look'}
-            onToggle={() => toggleSection('brand-look')}
-            isTouched={touchedSections.has('brand-look')}
-            iconClassName="text-purple-600 dark:text-purple-300"
-            variant="secondary"
-          >
-            <div className="space-y-4">
-              <p className="text-sm text-gray-500">
-                Start here for speed or brand consistency. Brand Look sets defaults—you can override later.
-              </p>
-              <div className={SECTION_GROUP_CLASS}>
-                <p className={GROUP_LABEL_CLASS}>APPLY PRESET</p>
-                <div className="flex flex-wrap gap-2">
-                  {BRAND_PRESETS.map(preset => (
-                    <Chip
-                      key={preset.id}
-                      onClick={() => {
-                        productStore.applyBrandPreset(preset.id);
-                        markSectionTouched('brand-look');
-                        setOpenAccordionId('product-creativity');
-                      }}
-                      selected={false}
-                    >
-                      {preset.label}
-                    </Chip>
-                  ))}
+          {/* BRAND LOOK SYSTEM (Phase 1) */}
+          {/* Brand Look System must be fully hidden whenever Photo Mode is active. */}
+          {productStore.environmentContext != null && (
+            <SmoothAccordion
+              icon={Layers}
+              title="05 / Brand Look System"
+              tooltip="Apply a brand-wide visual baseline (defaults)"
+              isOpen={openAccordionId === 'brand-look'}
+              onToggle={() => toggleSection('brand-look')}
+              isTouched={touchedSections.has('brand-look')}
+              iconClassName="text-purple-600 dark:text-purple-300"
+              variant="secondary"
+            >
+              <div className="space-y-4">
+                <p className="text-sm text-gray-500">
+                  Start here for speed or brand consistency. Brand Look sets defaults—you can override later.
+                </p>
+                <div className={SECTION_GROUP_CLASS}>
+                  <p className={GROUP_LABEL_CLASS}>APPLY PRESET</p>
+                  <div className="flex flex-wrap gap-2">
+                    {BRAND_PRESETS.map(preset => (
+                      <Chip
+                        key={preset.id}
+                        onClick={() => {
+                          productStore.applyBrandPreset(preset.id);
+                          markSectionTouched('brand-look');
+                          setOpenAccordionId('product-creativity');
+                        }}
+                        selected={false}
+                      >
+                        {preset.label}
+                      </Chip>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          </SmoothAccordion>
+            </SmoothAccordion>
+          )}
 
-          {productStore.photoMode !== 'Hero Landing Page' ? (
+          {/* CREATIVE DIRECTION (Phase 1) */}
+          {/* Photo Mode fully replaces Creative Direction whenever Photo Mode is active. */}
+          {productStore.environmentContext != null && (
             <SmoothAccordion
               icon={Sparkles}
               title="06 / Creative Direction"
@@ -3900,7 +4432,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 )}
               </div>
             </SmoothAccordion>
-          ) : null}
+          )}
 
           {/* PRODUCT STUDIO — ENVIRONMENT (single source of truth: productStore.environmentContext) */}
           {productStore.environmentContext != null && (
