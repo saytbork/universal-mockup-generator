@@ -2083,47 +2083,58 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                           <div className="mt-3 space-y-4">
                             {productStore.photoMode === 'Hero Landing Page' && (
-                              <div className="space-y-3">
-                                <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Background Type</p>
-                                  <div className="flex flex-wrap gap-2">
-                                    {(['Solid', 'Gradient'] as const).map(v => (
-                                      <Chip
-                                        key={v}
-                                        selected={productStore.photoModeConfig.heroLandingPage.backgroundType === v}
-                                        onClick={() => {
-                                          productStore.setPhotoModeConfig({ heroLandingPage: { backgroundType: v } });
-                                          markSectionTouched('product-setup');
-                                        }}
-                                      >
-                                        {v}
-                                      </Chip>
-                                    ))}
+                              <div className="rounded-2xl border border-gray-200 bg-white p-6 space-y-8">
+                                <div className="space-y-6">
+                                  <div>
+                                    <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Background Type</p>
+                                    <div className="flex flex-wrap gap-2">
+                                      {(['Solid', 'Gradient'] as const).map(v => (
+                                        <Chip
+                                          key={v}
+                                          selected={productStore.photoModeConfig.heroLandingPage.backgroundType === v}
+                                          onClick={() => {
+                                            productStore.setPhotoModeConfig({ heroLandingPage: { backgroundType: v } });
+                                            markSectionTouched('product-setup');
+                                          }}
+                                        >
+                                          {v}
+                                        </Chip>
+                                      ))}
+                                    </div>
                                   </div>
                                 </div>
 
+                                {/* Solid Background UI (separate layout) */}
                                 {productStore.photoModeConfig.heroLandingPage.backgroundType === 'Solid' && (
-                                  <div className="space-y-2">
-                                    <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Solid Background</p>
-                                    <div className="flex flex-wrap gap-2 items-center">
-                                      {[...heroLandingBrandSwatches, '#FFFFFF']
-                                        .filter((v, i, a) => a.indexOf(v) === i)
-                                        .slice(0, 6)
-                                        .map(hex => (
-                                          <button
-                                            key={hex}
-                                            type="button"
-                                            onClick={() => {
-                                              productStore.setBackgroundColor(hex);
-                                              markSectionTouched('product-setup');
-                                            }}
-                                            className={`h-8 w-8 rounded-xl border ${normalizeHex(productStore.backgroundColor) === hex ? 'border-indigo-600' : 'border-gray-200'
-                                              }`}
-                                            style={{ background: hex }}
-                                            aria-label={`Background color ${hex}`}
-                                          />
-                                        ))}
-                                      <div className="flex items-center gap-2 ml-auto">
+                                  <div className="space-y-6">
+                                    <div>
+                                      <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Solid Background</p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {[...heroLandingBrandSwatches, '#FFFFFF']
+                                          .filter((v, i, a) => a.indexOf(v) === i)
+                                          .slice(0, 6)
+                                          .map(hex => (
+                                            <button
+                                              key={hex}
+                                              type="button"
+                                              onClick={() => {
+                                                productStore.setBackgroundColor(hex);
+                                                markSectionTouched('product-setup');
+                                              }}
+                                              className={`h-9 w-9 rounded-xl border ${normalizeHex(productStore.backgroundColor) === hex ? 'border-indigo-600' : 'border-gray-200'
+                                                }`}
+                                              style={{ background: hex }}
+                                              aria-label={`Background color ${hex}`}
+                                            />
+                                          ))}
+                                      </div>
+                                    </div>
+
+                                    <div className="h-px bg-gray-200" />
+
+                                    <div className="space-y-2">
+                                      <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Custom color</p>
+                                      <div className="flex items-center gap-2">
                                         <input
                                           type="color"
                                           value={normalizeHex(productStore.backgroundColor) ?? '#FFFFFF'}
@@ -2131,7 +2142,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                             productStore.setBackgroundColor(e.target.value);
                                             markSectionTouched('product-setup');
                                           }}
-                                          className="h-8 w-12 rounded-lg border border-gray-200 bg-white"
+                                          className="h-9 w-12 rounded-lg border border-gray-200 bg-white"
                                           aria-label="Pick background color"
                                         />
                                         <input
@@ -2142,106 +2153,194 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                             markSectionTouched('product-setup');
                                           }}
                                           placeholder="#FFFFFF"
-                                          className="h-8 w-28 rounded-lg border border-gray-200 bg-white px-2 text-[11px] font-mono text-gray-900 placeholder:text-gray-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                                          className="h-9 w-32 rounded-lg border border-gray-200 bg-white px-2 text-[11px] font-mono text-gray-900 placeholder:text-gray-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
                                           aria-label="Background hex"
                                         />
                                       </div>
+                                      <p className="text-[11px] text-gray-500">
+                                        Default uses product brand colors. You can override to white or any custom color.
+                                      </p>
                                     </div>
-                                    <p className="text-[11px] text-gray-500">
-                                      Default uses product brand colors. You can override to white or any custom color.
-                                    </p>
                                   </div>
                                 )}
 
+                                {/* Gradient Background UI (separate layout) */}
                                 {productStore.photoModeConfig.heroLandingPage.backgroundType === 'Gradient' && (
-                                  <div className="space-y-3">
-                                    <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Gradient Background</p>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                      {[
-                                        { key: 'start', label: 'Start', value: productStore.gradientStart, set: productStore.setGradientStart },
-                                        { key: 'mid', label: 'Accent (optional)', value: productStore.gradientMid, set: productStore.setGradientMid },
-                                        { key: 'end', label: 'End', value: productStore.gradientEnd, set: productStore.setGradientEnd },
-                                      ].map(({ key, label, value, set }) => (
-                                        <div key={key} className="flex items-center gap-2">
-                                          <div className="w-12 text-[11px] text-gray-500">{label}</div>
-                                          <input
-                                            type="color"
-                                            value={normalizeHex(value) ?? '#FFFFFF'}
-                                            onChange={(e) => {
-                                              set(e.target.value);
+                                  <div className="space-y-6">
+                                    <div className="space-y-3">
+                                      <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Gradient Presets</p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {(() => {
+                                          const colors = heroLandingBrandSwatches.filter(Boolean);
+                                          const a = colors[0] ?? '#FFFFFF';
+                                          const b = colors[1] ?? colors[0] ?? '#FFFFFF';
+                                          const c = colors[2];
+                                          const presets: Array<{ id: string; label: string; stops: string[] }> = [
+                                            { id: 'brand-2', label: 'Brand', stops: [a, b] },
+                                          ];
+                                          if (c) presets.push({ id: 'brand-3', label: 'Brand + Accent', stops: [a, c, b] });
+                                          return presets;
+                                        })().map(preset => (
+                                          <button
+                                            key={preset.id}
+                                            type="button"
+                                            onClick={() => {
+                                              productStore.setGradientStart(preset.stops[0]);
+                                              productStore.setGradientEnd(preset.stops[preset.stops.length - 1]);
+                                              if (preset.stops.length === 3) {
+                                                productStore.setGradientMid(preset.stops[1]);
+                                              } else {
+                                                productStore.setGradientMid('');
+                                              }
                                               markSectionTouched('product-setup');
                                             }}
-                                            className="h-8 w-12 rounded-lg border border-gray-200 bg-white"
-                                            aria-label={`${label} gradient color`}
-                                          />
-                                          <input
-                                            type="text"
-                                            value={normalizeHex(value) ?? ''}
-                                            onChange={(e) => {
-                                              set(e.target.value);
+                                            className="h-9 px-4 rounded-full border border-gray-200 hover:border-gray-300 text-[11px] font-semibold text-gray-900"
+                                            style={{
+                                              background:
+                                                preset.stops.length === 3
+                                                  ? `linear-gradient(90deg, ${preset.stops[0]}, ${preset.stops[1]}, ${preset.stops[2]})`
+                                                  : `linear-gradient(90deg, ${preset.stops[0]}, ${preset.stops[1]})`,
+                                            }}
+                                            aria-label={`Use ${preset.label} gradient preset`}
+                                          >
+                                            <span className="px-2 py-1 rounded-full bg-white/80 border border-white/70">
+                                              {preset.label}
+                                            </span>
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </div>
+
+                                    <div className="h-px bg-gray-200" />
+
+                                    <div className="space-y-6">
+                                      <div>
+                                        <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Gradient Colors</p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                          {[
+                                            { key: 'start', label: 'Start', value: productStore.gradientStart, set: productStore.setGradientStart },
+                                            { key: 'end', label: 'End', value: productStore.gradientEnd, set: productStore.setGradientEnd },
+                                          ].map(({ key, label, value, set }) => (
+                                            <div key={key} className="space-y-2">
+                                              <div className="text-[11px] text-gray-500 mb-2">{label}</div>
+                                              <div className="flex items-center gap-2">
+                                                <input
+                                                  type="color"
+                                                  value={normalizeHex(value) ?? '#FFFFFF'}
+                                                  onChange={(e) => {
+                                                    set(e.target.value);
+                                                    markSectionTouched('product-setup');
+                                                  }}
+                                                  className="h-9 w-12 rounded-lg border border-gray-200 bg-white"
+                                                  aria-label={`${label} gradient color`}
+                                                />
+                                                <input
+                                                  type="text"
+                                                  value={normalizeHex(value) ?? ''}
+                                                  onChange={(e) => {
+                                                    set(e.target.value);
+                                                    markSectionTouched('product-setup');
+                                                  }}
+                                                  placeholder="#FFFFFF"
+                                                  className="h-9 flex-1 rounded-lg border border-gray-200 bg-white px-2 text-[11px] font-mono text-gray-900 placeholder:text-gray-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                                                  aria-label={`${label} gradient hex`}
+                                                />
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+
+                                      {!normalizeHex(productStore.gradientMid) ? (
+                                        <div>
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              const suggested =
+                                                heroLandingBrandSwatches[2] ||
+                                                heroLandingBrandSwatches[1] ||
+                                                heroLandingBrandSwatches[0] ||
+                                                '#FFFFFF';
+                                              productStore.setGradientMid(suggested);
                                               markSectionTouched('product-setup');
                                             }}
-                                            placeholder="#FFFFFF"
-                                            className="h-8 flex-1 rounded-lg border border-gray-200 bg-white px-2 text-[11px] font-mono text-gray-900 placeholder:text-gray-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
-                                            aria-label={`${label} gradient hex`}
-                                          />
-                                          {key === 'mid' && (
+                                            className="h-9 px-4 rounded-xl border border-gray-200 bg-white text-[11px] font-semibold text-gray-700 hover:border-gray-300"
+                                          >
+                                            Add third color
+                                          </button>
+                                        </div>
+                                      ) : (
+                                        <div className="space-y-2">
+                                          <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Third color (optional)</p>
+                                          <div className="flex items-center gap-2">
+                                            <input
+                                              type="color"
+                                              value={normalizeHex(productStore.gradientMid) ?? '#FFFFFF'}
+                                              onChange={(e) => {
+                                                productStore.setGradientMid(e.target.value);
+                                                markSectionTouched('product-setup');
+                                              }}
+                                              className="h-9 w-12 rounded-lg border border-gray-200 bg-white"
+                                              aria-label="Third gradient color"
+                                            />
+                                            <input
+                                              type="text"
+                                              value={normalizeHex(productStore.gradientMid) ?? ''}
+                                              onChange={(e) => {
+                                                productStore.setGradientMid(e.target.value);
+                                                markSectionTouched('product-setup');
+                                              }}
+                                              placeholder="#FFFFFF"
+                                              className="h-9 flex-1 rounded-lg border border-gray-200 bg-white px-2 text-[11px] font-mono text-gray-900 placeholder:text-gray-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                                              aria-label="Third gradient hex"
+                                            />
                                             <button
                                               type="button"
                                               onClick={() => {
-                                                set('');
+                                                productStore.setGradientMid('');
                                                 markSectionTouched('product-setup');
                                               }}
-                                              className="h-8 px-2 rounded-lg border border-gray-200 bg-white text-[11px] text-gray-600 hover:border-gray-300"
-                                              aria-label="Clear accent color"
+                                              className="h-9 px-3 rounded-lg border border-gray-200 bg-white text-[11px] font-semibold text-gray-600 hover:border-gray-300"
                                             >
-                                              Clear
+                                              Remove
                                             </button>
-                                          )}
+                                          </div>
                                         </div>
-                                      ))}
-                                    </div>
-
-                                    <div className="flex flex-wrap gap-2">
-                                      {heroLandingBrandSwatches.slice(0, 6).map(hex => (
-                                        <button
-                                          key={hex}
-                                          type="button"
-                                          onClick={() => {
-                                            // If start is still default/unset, fill start first; otherwise fill end.
-                                            const start = normalizeHex(productStore.gradientStart);
-                                            const end = normalizeHex(productStore.gradientEnd);
-                                            const mid = normalizeHex(productStore.gradientMid);
-                                            if (!start || start === '#FFFFFF') {
-                                              productStore.setGradientStart(hex);
-                                            } else if (!end || end === '#FFFFFF') {
-                                              productStore.setGradientEnd(hex);
-                                            } else if (!mid) {
-                                              productStore.setGradientMid(hex);
-                                            } else {
-                                              productStore.setGradientEnd(hex);
-                                            }
-                                            markSectionTouched('product-setup');
-                                          }}
-                                          className="h-8 w-8 rounded-xl border border-gray-200"
-                                          style={{ background: hex }}
-                                          aria-label={`Use ${hex} in gradient`}
-                                        />
-                                      ))}
+                                      )}
                                     </div>
                                   </div>
                                 )}
 
-                                {productStore.photoModeConfig.heroLandingPage.backgroundType === 'Gradient' && (
+                                <div className="space-y-6">
+                                  {productStore.photoModeConfig.heroLandingPage.backgroundType === 'Gradient' && (
+                                    <div>
+                                      <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Gradient Style</p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {(['Soft', 'Radial', 'Vertical'] as const).map(v => (
+                                          <Chip
+                                            key={v}
+                                            selected={productStore.photoModeConfig.heroLandingPage.gradientStyle === v}
+                                            onClick={() => {
+                                              productStore.setPhotoModeConfig({ heroLandingPage: { gradientStyle: v } });
+                                              markSectionTouched('product-setup');
+                                            }}
+                                          >
+                                            {v}
+                                          </Chip>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+
                                   <div>
-                                    <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Gradient Style</p>
+                                    <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Palette Source</p>
                                     <div className="flex flex-wrap gap-2">
-                                      {(['Soft', 'Radial', 'Vertical'] as const).map(v => (
+                                      {(['Product label colors', 'Neutral brand tones', 'Custom'] as const).map(v => (
                                         <Chip
                                           key={v}
-                                          selected={productStore.photoModeConfig.heroLandingPage.gradientStyle === v}
+                                          selected={productStore.photoModeConfig.heroLandingPage.paletteSource === v}
                                           onClick={() => {
-                                            productStore.setPhotoModeConfig({ heroLandingPage: { gradientStyle: v } });
+                                            productStore.setPhotoModeConfig({ heroLandingPage: { paletteSource: v } });
                                             markSectionTouched('product-setup');
                                           }}
                                         >
@@ -2250,41 +2349,23 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       ))}
                                     </div>
                                   </div>
-                                )}
 
-                                <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Palette Source</p>
-                                  <div className="flex flex-wrap gap-2">
-                                    {(['Product label colors', 'Neutral brand tones', 'Custom'] as const).map(v => (
-                                      <Chip
-                                        key={v}
-                                        selected={productStore.photoModeConfig.heroLandingPage.paletteSource === v}
-                                        onClick={() => {
-                                          productStore.setPhotoModeConfig({ heroLandingPage: { paletteSource: v } });
-                                          markSectionTouched('product-setup');
-                                        }}
-                                      >
-                                        {v}
-                                      </Chip>
-                                    ))}
-                                  </div>
-                                </div>
-
-                                <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Negative Space</p>
-                                  <div className="flex flex-wrap gap-2">
-                                    {(['Tight', 'Balanced', 'Spacious'] as const).map(v => (
-                                      <Chip
-                                        key={v}
-                                        selected={productStore.photoModeConfig.heroLandingPage.negativeSpace === v}
-                                        onClick={() => {
-                                          productStore.setPhotoModeConfig({ heroLandingPage: { negativeSpace: v } });
-                                          markSectionTouched('product-setup');
-                                        }}
-                                      >
-                                        {v}
-                                      </Chip>
-                                    ))}
+                                  <div>
+                                    <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Negative Space</p>
+                                    <div className="flex flex-wrap gap-2">
+                                      {(['Tight', 'Balanced', 'Spacious'] as const).map(v => (
+                                        <Chip
+                                          key={v}
+                                          selected={productStore.photoModeConfig.heroLandingPage.negativeSpace === v}
+                                          onClick={() => {
+                                            productStore.setPhotoModeConfig({ heroLandingPage: { negativeSpace: v } });
+                                            markSectionTouched('product-setup');
+                                          }}
+                                        >
+                                          {v}
+                                        </Chip>
+                                      ))}
+                                    </div>
                                   </div>
                                 </div>
                               </div>
