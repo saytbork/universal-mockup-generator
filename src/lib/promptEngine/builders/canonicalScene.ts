@@ -5,7 +5,6 @@ import { buildCamera } from './camera';
 import { buildEnvironment } from './environment';
 import { buildLighting } from './lighting';
 import { FormulationStoryBuilder } from './formulationStory';
-import { PHOTO_MODE_PRESETS } from '../studioPresets';
 
 export interface SceneNarrativeSections {
     creationIntent: string;
@@ -689,12 +688,12 @@ export class SceneNarrativeBuilder {
             );
         }
 
-        // Photo Mode injection (used by some UI flows even outside Studio fast-path).
-        // Keep it explicit and non-negotiable so each mode produces a visible, production-style delta.
-        const photoMode = String(((options as any).photoMode || (options as any).studioPhotoMode || '')).trim();
-        if (photoMode && PHOTO_MODE_PRESETS[photoMode]) {
-            narrativeParts.push(`PHOTO_MODE (NON-NEGOTIABLE): ${photoMode}. ${PHOTO_MODE_PRESETS[photoMode]}`);
-        }
+        // =====================================================================
+        // REMOVED: Photo Mode injection
+        // Photo Mode is now exclusively handled by photoModeResolver.ts
+        // This prevents double scene authority and ensures Photo Mode Resolver
+        // is the single source of truth for scene definition.
+        // =====================================================================
 
         return narrativeParts.join(' ');
     }
