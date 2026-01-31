@@ -2456,6 +2456,26 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                             {productStore.photoMode === 'Ingredient Stack' && (
                               <div className="space-y-3">
+                                {/* CUSTOM INGREDIENTS INPUT */}
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">
+                                    Ingredients <span className="text-red-400">*</span>
+                                  </p>
+                                  <input
+                                    type="text"
+                                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-xs text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                                    placeholder="e.g., strawberries, blueberries, mint leaves, honey"
+                                    value={productStore.props || ''}
+                                    onChange={(e) => {
+                                      productStore.setProps(e.target.value);
+                                      markSectionTouched('product-setup');
+                                    }}
+                                  />
+                                  <p className="text-[9px] text-gray-500 mt-1">
+                                    Describe the specific ingredients to show around the product
+                                  </p>
+                                </div>
+
                                 <div>
                                   <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Ingredient Focus</p>
                                   <div className="flex flex-wrap gap-2">
