@@ -6,141 +6,152 @@
  * STATUS: FROZEN
  * LOCKED DATE: 2026-01-31
  * 
- * ⚠️  DO NOT MODIFY THIS FILE
- * ⚠️  DO NOT ADD EXCEPTIONS
- * ⚠️  DO NOT "FIX" EDGE CASES HERE
- * 
  * This is the root contract for the commercial product photography engine.
- * Any extensions must be implemented in v1.1+ via separate modules.
- * 
- * To extend the engine:
- * - Create deterministicSystemPrompt.v1.1.ts
- * - Import and extend, do not mutate this file
- * 
- * Violations of this contract will break deterministic generation guarantees.
  * ============================================================================
  */
 
 export const DETERMINISTIC_SECTIONS = {
+    GLOBAL_RULES: `
+🔒 SYSTEM PROMPT v1.0 — FINAL MEGA PROMPT (GEMINI)
+GLOBAL RULES (NON-NEGOTIABLE)
+This system is deterministic.
+Do NOT infer, assume, or add missing elements.
+Do NOT introduce people, humans, hands, bodies, or interaction unless explicitly provided in Section 06.
+If a concept is not declared, it must NOT appear.
+Studio scenes are object-only by default.
+Product is always physically grounded and real.
+Never generate an empty scene. The product must always be visible.
+`.trim(),
+
     SECTION_01: `
-01 / QUALITY ENFORCER
-The product must be reconstructed as a real 3D physical object.
-Required:
-- Correct proportions and volume
-- Clean continuous silhouette
-- Sharp edges, no halos, no cutout artifacts
-- Realistic shadows and reflections
-Forbidden:
-- Flat renders
-- Painted or airbrushed look
-- Soft AI edges
-- Graphic or illustrated style
+01 / PRODUCT SETUP
+Ultra-realistic premium advertising photography.
+High-end editorial or cinematic quality.
+Real physical environment with believable materials and realistic scale.
+No stock-photo look. No mockups. No CGI appearance.
+The product is the single visual hero.
 `.trim(),
 
     SECTION_02: `
-02 / PRODUCT IDENTITY
-One real commercial product
-No fictional variations
-No deformation or exaggeration
-Low-quality references must be reconstructed cleanly, not copied.
+02 / PHYSICAL PROPERTIES
+Real-world materials only
+Accurate scale and proportions
+True-to-life surface response to light
+Natural micro-imperfections
+Correct contact shadows and occlusion
+No floating objects. No visual tricks.
 `.trim(),
 
     SECTION_03: `
-03 / PHYSICAL PROPERTIES
-Materials must behave realistically:
-- Glass looks like glass
-- Plastic looks like plastic
-- Liquids show surface tension
-- Paper has natural rigidity
-Lighting must follow real-world physics.
+03 / PRODUCT STATE & MOTION
+PRODUCT_STATE_MOTION: Static
+Fully assembled
+Cap present and attached
+Contents contained
+No movement
+No deformation
 `.trim(),
 
     SECTION_04: `
 04 / PRODUCT STRUCTURE
-Single product unless specified
-Gravity always applies
-Contact shadows are mandatory
-No floating without physical justification
+Single product only (unless bundle mode explicitly enabled)
+No duplicates
+No broken, melted, warped, or partial components
+Label aligned, intact, and readable
 `.trim(),
 
     SECTION_05: `
 05 / PRODUCT PLACEMENT
-Select one:
-- surface → resting on a surface
-- held → supported by realistic hands
-- supported → assisted by stand or block
-- air → suspended with physical logic
-No mixed placements.
+Product is placed in a physically plausible position:
+Resting on a surface
+Supported by gravity
+Correct contact shadows
+No suspension unless explicitly defined.
 `.trim(),
 
     SECTION_06: `
-06 / PRODUCT INTERACTION
-Select one:
-none, cropped-hand, holding, two-hand-hold, presenting, opening, capsule-display (capsules only)
-Rules:
-- Interaction must match placement
-- Hands must look realistic, proportional, and natural
-- No gestures, no symbolism
+06 / PRODUCT INTERACTION (STRICT)
+One interaction per scene.
+Allowed values only:
+None, Passive Presence, Cropped Hand, Supported Hold, Holding, Two-Hand Hold, Presenting, Framed Presentation, Applying / Opening, Capsule Display, Resting Interaction
+RULES:
+If interaction = None, DO NOT mention hands, people, or interaction.
+If interaction ≠ None, inject ONLY the corresponding interaction block.
+No generic interaction language.
+No conditional phrases like “if hands are present”.
 `.trim(),
 
     SECTION_07: `
 07 / VIEWPOINT & VANTAGE
-Defines the physical position of the camera in space.
-Valid: eye-level, top-down, low-angle, high-angle, product-level
-Rules:
-- Viewpoint must match placement
-- No impossible perspectives
-- No mixed viewpoints
+Viewpoint is explicitly defined (e.g. eye-level, slight high-angle, low-angle)
+Perspective must match physical placement
+No impossible camera positions
 `.trim(),
 
     SECTION_08: `
-08 / PHOTO MODE (WORLD)
-Presence rules:
-- Studio worlds → product only, no hands
-- Lifestyle / UGC worlds → hands only, never full people
+08 / PHOTO MODE (ENVIRONMENT SYSTEM)
+Treat Photo Mode as a configurable environment, not a style keyword.
+Apply: Environment mood, Surface logic, Spatial context, Material language
+Do NOT introduce humans unless Section 06 explicitly requires it.
 `.trim(),
 
     SECTION_09: `
 09 / CAMERA & FRAMING
-Professional photography only.
-Camera: DSLR or mirrorless
-Lens behavior: Standard, Macro (only if physically plausible), Telephoto compression (no distortion)
-Framing: Centered hero, Rule of thirds, Left aligned with negative space, Right aligned with negative space, Grid-ready
-Camera must respect viewpoint.
+Real photographic lens behavior
+Physically plausible depth of field
+Natural perspective compression
+Camera properties: Angle: explicitly defined, Distance: explicitly defined, Lens: realistic (50mm, 85mm, 100mm, 70–200mm, etc.)
+Avoid symmetrical default framing.
 `.trim(),
 
     SECTION_10: `
 10 / LIGHTING
-Lighting must be realistic and coherent:
-- Studio lighting is controlled
-- Natural lighting feels natural
-- No glowing edges
-- No fantasy effects
-Lighting derives from Photo Mode unless overridden.
+Directional, realistic lighting only
+No flat lighting
+Controlled highlights
+Natural shadow falloff
+Lighting must match environment context
+No dramatic or artificial effects unless explicitly requested.
 `.trim(),
 
     SECTION_11: `
-11 / FINAL VALIDATION (HARD FAIL)
-The generation must FAIL if:
-- Placement conflicts with interaction
-- Photo Mode conflicts with placement
-- Studio world includes hands
-- Lifestyle world includes full people
-- Viewpoint conflicts with camera
-- Any forbidden term appears
-No silent correction. Fail immediately.
+11 / LABEL LOCK & FINAL VALIDATION (CRITICAL)
+LABEL LOCK:
+The product label comes from the reference image.
+Reproduce exactly.
+Do NOT rewrite, invent, complete, or reinterpret text.
+Do NOT distort, warp, curve, or perspective-bend the label.
+Label must face the camera clearly.
+
+FINAL VALIDATION:
+Product must be visible and centered in intent.
+Never generate an empty background.
+No forbidden terms.
+No humans unless Section 06 allows it.
+Aspect ratio: landscape 4:3.
 `.trim(),
 
-    LEXICAL_COMPLIANCE: `
-LEXICAL COMPLIANCE (CRITICAL)
-Unauthorized Elements: ❌ full personas, ❌ photography style names, ❌ casual descriptors
-Always use: realistic hands, natural interaction, real-world, life-scale, natural point of view
+    QUALITY_ENFORCERS: `
+QUALITY ENFORCERS
+Ultra-realistic textures
+Premium commercial photography quality
+Real physics
+Grounded contact points
+No repetition
+No generic visuals
+The image must look like a real professional photoshoot, never a digital illustration.
+`.trim(),
+
+    FORBIDDEN: `
+FORBIDDEN (GLOBAL)
+Do NOT include: human, people, person, hands (unless Section 06 explicitly injects them), lifestyle, ugc, mannequin, CGI artifacts
 `.trim(),
 
     OUTPUT_GOAL: `
-FINAL OUTPUT REQUIREMENT
-The image must look like a real commercial product photograph suitable for ecommerce, advertising, or editorial use.
-No creativity outside constraints. No interpretation. No deviation.
+OUTPUT GOAL
+Generate a single high-quality product photograph that strictly follows all sections above.
+No assumptions. No creativity outside the schema.
+This is a locked commercial system.
 `.trim()
 };
 

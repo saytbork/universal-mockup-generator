@@ -73,6 +73,7 @@ export class DeterministicPromptBuilder {
 
         // --- ASSEMBLE 11 SECTIONS (v1.0 SPEC) ---
         const promptParts: string[] = [
+            DETERMINISTIC_SECTIONS.GLOBAL_RULES,
             DETERMINISTIC_SECTIONS.SECTION_01,
             `${DETERMINISTIC_SECTIONS.SECTION_02}\n${productResult.section}`,
             `${DETERMINISTIC_SECTIONS.SECTION_03}\nSCALE: ${input.productSetup.physicalScale || 'standard tabletop'}`,
@@ -96,7 +97,8 @@ export class DeterministicPromptBuilder {
         }
 
         promptParts.push(DETERMINISTIC_SECTIONS.SECTION_11);
-        promptParts.push(DETERMINISTIC_SECTIONS.LEXICAL_COMPLIANCE);
+        promptParts.push(DETERMINISTIC_SECTIONS.QUALITY_ENFORCERS);
+        promptParts.push(DETERMINISTIC_SECTIONS.FORBIDDEN);
         promptParts.push(DETERMINISTIC_SECTIONS.OUTPUT_GOAL);
 
         const prompt = promptParts.join('\n\n').trim();
