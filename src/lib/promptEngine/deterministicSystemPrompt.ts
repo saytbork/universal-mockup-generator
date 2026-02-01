@@ -51,6 +51,9 @@ SECTION 02 / PRODUCT IDENTITY
 The product shown in the reference image MUST appear in the final image.
 Do not omit, crop out, replace, or redesign the product.
 Single product only unless bundle mode is explicitly enabled.
+Physical placement is part of product setup:
+• surface, supported, held, or air (only if explicitly allowed)
+• no implied handling unless interaction allows it
 `.trim(),
 
     SECTION_03: `
@@ -77,21 +80,9 @@ SECTION 04 / PRODUCT STATE & MOTION
 • Grounded contact shadows required
 `.trim(),
 
-    SECTION_05: `
-––––––––––––––––––––
-SECTION 05 / PRODUCT PLACEMENT
-––––––––––––––––––––
-Place the product according to the selected Photo Mode.
-Respect required placement rules:
-• tabletop
-• supported surface
-• air (only if explicitly allowed)
-No implied handling or interaction unless allowed by Section 06.
-`.trim(),
-
     SECTION_06: `
 ––––––––––––––––––––
-SECTION 06 / PRODUCT INTERACTION (STRICT)
+SECTION 05 / PRODUCT INTERACTION (STRICT)
 ––––––––––––––––––––
 Product interaction is OPTIONAL and ONLY allowed if explicitly specified.
 Allowed interactions (only one per scene):
@@ -108,7 +99,7 @@ If interaction is not explicitly selected, assume NONE.
 
     SECTION_07: `
 ––––––––––––––––––––
-SECTION 07 / ENVIRONMENT & SURFACE
+SECTION 06 / ENVIRONMENT & SURFACE
 ––––––––––––––––––––
 Build the environment strictly from the selected Photo Mode:
 • Studio modes → controlled set, no lifestyle cues
@@ -119,7 +110,7 @@ Materials must be: physically plausible, true-to-scale, grounded with realistic 
 
     SECTION_08: `
 ––––––––––––––––––––
-SECTION 08 / LIGHTING
+SECTION 07 / LIGHTING
 ––––––––––––––––––––
 Lighting must match the Photo Mode:
 • No dramatic lighting unless specified
@@ -130,7 +121,7 @@ Lighting must match the Photo Mode:
 
     SECTION_09: `
 ––––––––––––––––––––
-SECTION 09 / CAMERA & FRAMING
+SECTION 08 / CAMERA & FRAMING
 ––––––––––––––––––––
 • Real camera logic only
 • Physically plausible lenses
@@ -141,7 +132,7 @@ SECTION 09 / CAMERA & FRAMING
 
     SECTION_10: `
 ––––––––––––––––––––
-SECTION 10 / RANDOMIZATION RULES (MANDATORY)
+SECTION 09 / RANDOMIZATION RULES (MANDATORY)
 ––––––––––––––––––––
 Every generation must differ in:
 • camera angle
@@ -154,7 +145,7 @@ Never reuse the same base composition.
 
     SECTION_11: `
 ––––––––––––––––––––
-SECTION 11 / HARD PROHIBITIONS
+SECTION 10 / HARD PROHIBITIONS
 ––––––––––––––––––––
 DO NOT include:
 • human, person, people, lifestyle (unless explicitly allowed), ugc, selfie, model, mannequin, cgi artifacts, fake realism

@@ -9,7 +9,6 @@ import { getSceneTypeRules } from './sceneTypeRules';
 import { validateInput, checkHardFails, type ValidationResult } from './validation/hardFails';
 import {
     buildProductSetupSection,
-    buildPlacementSection,
     buildCompositionSection,
     buildEnvironmentSection,
     buildLightingSection,
@@ -43,14 +42,11 @@ export class DeterministicPromptBuilder {
 
         // --- Execute Handlers ---
 
-        // 02 & 03: Product Setup
-        const productResult = buildProductSetupSection(input.productSetup, sceneType);
+        // 02 & 03: Product Setup (includes physical placement)
+        const productResult = buildProductSetupSection(input.productSetup, sceneType, input.placement);
 
         // 05 & 07: Composition & Interaction
         const compositionResult = buildCompositionSection(input.compositionRules, sceneType);
-
-        // 06: Placement
-        const placementText = buildPlacementSection(input.placement, sceneType);
 
         // 08: Viewpoint & Vantage Logic
         const viewpointText = this.buildViewpointSection(input);
@@ -79,7 +75,6 @@ export class DeterministicPromptBuilder {
             `${DETERMINISTIC_SECTIONS.SECTION_02}\n${productResult.section}`,
             DETERMINISTIC_SECTIONS.SECTION_03,
             `${DETERMINISTIC_SECTIONS.SECTION_04}\nSTATE: ${input.productSetup.physicalScale || 'Static'}\nCAP: Attached`,
-            `${DETERMINISTIC_SECTIONS.SECTION_05}\n${placementText}`,
             `${DETERMINISTIC_SECTIONS.SECTION_06}\nInteraction: ${input.compositionRules.interactionType || 'None'}`,
         ];
 

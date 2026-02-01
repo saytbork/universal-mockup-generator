@@ -2145,6 +2145,34 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               )}
 
+              {/* PHYSICAL PLACEMENT — Mandatory physics decision */}
+              <div className={SECTION_GROUP_CLASS}>
+                <p className={GROUP_LABEL_CLASS}>PHYSICAL PLACEMENT</p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { id: 'surface', label: 'Surface', desc: 'Rests on a physical surface' },
+                    { id: 'held', label: 'Held', desc: 'Held by human hands' },
+                    { id: 'supported', label: 'Supported', desc: 'On a stand or tray' },
+                    { id: 'air', label: 'Air / Suspended', desc: 'Abstract studio air' }
+                  ].map(opt => (
+                    <Chip
+                      key={opt.id}
+                      onClick={() => {
+                        productStore.setPlacement(opt.id as any);
+                        markSectionTouched('product-setup');
+                      }}
+                      selected={productStore.placement === opt.id}
+                      tooltip={opt.desc}
+                    >
+                      {opt.label}
+                    </Chip>
+                  ))}
+                </div>
+                <p className="text-[11px] text-gray-500 mt-2">
+                  Mandatory physics decision: resolve product placement before environment or camera.
+                </p>
+              </div>
+
               {/* ============================================================
                    PRODUCT STUDIO CONTROLS (Studio Mode Only)
                    Basic/Pro Visibility System
@@ -4491,47 +4519,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         </div>
       </SmoothAccordion>
 
-
-      {/* 05 / PRODUCT PLACEMENT (Section 05 of Deterministic Prompt) */}
-      <SmoothAccordion
-        icon={Box}
-        title="05 / Product Placement"
-        tooltip="Mandatory Physics Decision: Resolve product placement before environment or camera."
-        isOpen={openAccordionId === 'product-placement'}
-        onToggle={() => toggleSection('product-placement')}
-        isTouched={touchedSections.has('product-placement')}
-        iconClassName="text-blue-600 dark:text-blue-300"
-        variant="secondary"
-      >
-        <div className="space-y-4">
-          <p className="text-sm text-gray-500">
-            Mandatory physics decision: determine how the product is supported in space.
-          </p>
-          <div className={SECTION_GROUP_CLASS}>
-            <p className={GROUP_LABEL_CLASS}>PHYSICAL PLACEMENT</p>
-            <div className="flex flex-wrap gap-2">
-              {[
-                { id: 'surface', label: 'Surface', desc: 'Rests on a physical surface' },
-                { id: 'held', label: 'Held', desc: 'Held by human hands' },
-                { id: 'supported', label: 'Supported', desc: 'On a stand or tray' },
-                { id: 'air', label: 'Air / Suspended', desc: 'Abstract studio air' }
-              ].map(opt => (
-                <Chip
-                  key={opt.id}
-                  onClick={() => {
-                    productStore.setPlacement(opt.id as any);
-                    markSectionTouched('product-placement');
-                  }}
-                  selected={productStore.placement === opt.id}
-                  tooltip={opt.desc}
-                >
-                  {opt.label}
-                </Chip>
-              ))}
-            </div>
-          </div>
-        </div>
-      </SmoothAccordion>
 
       {/* Brand Look System must be fully hidden whenever Photo Mode is active. */}
       {

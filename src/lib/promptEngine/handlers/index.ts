@@ -9,5 +9,4 @@ export { buildLightingSection, type LightingResult } from './lighting';
 export { buildCreativitySection, type CreativityResult } from './creativity';
 export { buildCameraSection, type CameraResult } from './camera';
 export { buildEcommerceSection, type EcommerceResult } from './ecommerce';
-export { buildPlacementSection } from './placement';
 export { buildNegativePrompt, getSceneNegativeAdditions } from './negativePrompt';
