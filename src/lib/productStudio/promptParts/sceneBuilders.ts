@@ -178,21 +178,21 @@ export function buildColorPopHeroScene({
 export function buildIngredientStackScene({ randomizer, suggestedProps, ingredientLayout }: SceneBuildInput): string {
   const ingredientList = suggestedProps?.trim()
     ? `Ingredients: ${suggestedProps}.`
-    : 'Ingredients limited to capsules, powder (single measured pile), extract (solid or liquid), dried leaves, roots, or seeds.';
+    : 'Ingredients limited to powders (measured mounds), extracts, seeds, roots, capsules, or minimal contained liquids.';
 
   return [
-    'Ingredient stack advertising photography.',
-    'Formulation-focused visual designed to communicate product composition with clarity and hierarchy.',
-    'Ingredients are presented as a precise vertical or stepped stack aligned with the product axis.',
-    'Clear spacing and order between ingredients.',
-    'No surrounding or radial layouts.',
-    'Neutral studio environment with non-narrative support surface only.',
-    'Clean professional lighting optimized for ingredient legibility.',
-    'No decorative intent. No real-world usage context. No editorial wellness styling.',
-    'No flat lay. No props of any kind.',
+    'Exploded ingredient stack advertising photography.',
+    'High-impact vertical composition designed to communicate formulation strength and complexity.',
+    'Ingredients are vertically separated along a central axis, floating with deliberate spacing and a clear hierarchy.',
+    'Each layer is visually distinct, aligned with the product below.',
+    'The product anchors the base of the composition.',
+    'Clean studio or soft gradient background with no narrative surface.',
+    'Professional studio lighting with soft directional key and subtle grounding shadows.',
+    'No flat lay. No radial or surrounding layouts.',
+    'No decorative wellness styling. No lifestyle or kitchen cues. No props.',
     ingredientList,
-    'Explicitly forbidden: fruits, flowers, berries, decorative herbs, generic botanicals, aesthetic powders.',
-    'Ingredient hierarchy must remain visually readable with clear physical grounding.'
+    'Floating feels intentional and controlled; no chaotic scatter.',
+    'Premium advertising photography with strong energy and clarity.'
   ].join(' ');
 }
 

@@ -350,9 +350,10 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     mode === 'INGREDIENT_STACK'
       ? [
         'RANDOMIZATION RULES (CONTROLLED):',
-        'No random placement.',
-        'No random angles.',
-        'Only spacing and scale may vary within defined limits.'
+        'Vertical spacing may vary.',
+        'Ingredient count may vary.',
+        'Order remains intentional along the central axis.',
+        'No random radial layouts.'
       ].join(' ')
       : buildRandomizationRules(),
     buildQualityEnforcers(),
