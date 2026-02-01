@@ -121,7 +121,7 @@ export class DeterministicPromptBuilder {
             if (angle === 'top') return 'Surface — Aerial / Top-Down View: Camera is positioned directly above the product looking down. Gravity applied downward, visible contact shadows.';
             return 'Surface — Eye-Level View: Product rests on a surface, horizon aligns with surface plane. Eye-level perspective.';
         }
-        if (p === 'held') return 'Held Object — Human POV: Product is held by hands. Viewer perspective matches natural human eye level. Scale is defined by hand-to-product ratio.';
+        if (p === 'held') return 'Held Object — Natural POV: Product is held by hands. Viewer perspective matches natural eye-level. Scale is defined by hand-to-product ratio.';
         if (p === 'supported') return 'Supported Object — Display View: Product rests on a stand or pedestal. Viewer perspective clearly shows support and contact points.';
         if (p === 'air') return 'Suspended View (Abstract Only): Gravity intentionally neutralized. No real-world environment. Floating in abstract studio air.';
 

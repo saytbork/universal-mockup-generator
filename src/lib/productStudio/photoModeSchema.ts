@@ -11,7 +11,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             environmentMood: ['clean', 'spa-like', 'minimal'],
             lighting: ['soft window daylight', 'diffused overhead'],
             surfaceBackground: ['stone vanity', 'ceramic counter'],
-            humanPresence: ['none', 'cropped hand'],
+            subjectPresence: ['none', 'cropped hand'],
             cameraBias: ['eye-level', 'slight top-down']
         },
         constraints: [
@@ -33,7 +33,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             environmentMood: ['luxury', 'dramatic', 'editorial'],
             lighting: ['rim light', 'soft key + shadow fill'],
             surfaceBackground: ['black matte', 'dark stone'],
-            humanPresence: ['none'],
+            subjectPresence: ['none'],
             cameraBias: ['eye-level', 'low angle power']
         },
         constraints: [
@@ -55,7 +55,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             environmentMood: ['calm', 'brand-focused', 'modern'],
             lighting: ['even studio light', 'soft gradient light'],
             surfaceBackground: ['monochrome surface', 'brand-color gradient'],
-            humanPresence: ['none'],
+            subjectPresence: ['none'],
             cameraBias: ['centered hero', 'rule of thirds']
         },
         constraints: [
@@ -77,7 +77,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             environmentMood: ['aspirational', 'confident', 'campaign-ready'],
             lighting: ['natural daylight', 'cinematic soft light'],
             surfaceBackground: ['abstract set', 'lifestyle surface'],
-            humanPresence: ['none', 'cropped hand', 'holding'],
+            subjectPresence: ['none', 'cropped hand', 'holding'],
             cameraBias: ['hero angle', 'slight wide']
         },
         constraints: [
@@ -99,7 +99,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             environmentMood: ['natural', 'authentic', 'everyday'],
             lighting: ['window light', 'indoor ambient'],
             surfaceBackground: ['home table', 'bedside surface'],
-            humanPresence: ['holding', 'two-hand hold'],
+            subjectPresence: ['holding', 'two-hand hold'],
             cameraBias: ['phone eye-level', 'slight tilt']
         },
         constraints: [
@@ -121,7 +121,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             environmentMood: ['precise', 'clinical', 'modern'],
             lighting: ['flat diffused', 'top softbox'],
             surfaceBackground: ['white acrylic', 'light gray surface'],
-            humanPresence: ['none'],
+            subjectPresence: ['none'],
             cameraBias: ['orthographic feel', 'centered']
         },
         constraints: [
@@ -143,7 +143,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             environmentMood: ['editorial', 'luxury', 'crafted'],
             lighting: ['directional soft light', 'editorial contrast'],
             surfaceBackground: ['wood grain', 'stone slab'],
-            humanPresence: ['none', 'cropped hand'],
+            subjectPresence: ['none', 'cropped hand'],
             cameraBias: ['45-degree hero', 'rule of thirds']
         },
         constraints: [
@@ -165,7 +165,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             environmentMood: ['calm', 'warm', 'wellness'],
             lighting: ['morning window light', 'soft haze'],
             surfaceBackground: ['linen fabric', 'light wood'],
-            humanPresence: ['none', 'holding'],
+            subjectPresence: ['none', 'holding'],
             cameraBias: ['eye-level', 'slight top-down']
         },
         constraints: [
@@ -187,7 +187,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             environmentMood: ['warm', 'aspirational', 'natural'],
             lighting: ['golden hour sunlight'],
             surfaceBackground: ['outdoor table', 'window ledge'],
-            humanPresence: ['holding', 'presenting'],
+            subjectPresence: ['holding', 'presenting'],
             cameraBias: ['backlit hero', 'slight wide']
         },
         constraints: [
@@ -209,7 +209,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             environmentMood: ['energetic', 'fresh', 'active'],
             lighting: ['natural daylight'],
             surfaceBackground: ['stone bench', 'outdoor surface'],
-            humanPresence: ['holding', 'active grip'],
+            subjectPresence: ['holding', 'active grip'],
             cameraBias: ['low angle', 'dynamic crop']
         },
         constraints: [
@@ -231,7 +231,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             environmentMood: ['playful', 'light', 'pastel'],
             lighting: ['overcast daylight'],
             surfaceBackground: ['fabric blanket', 'light wood'],
-            humanPresence: ['none', 'cropped hand'],
+            subjectPresence: ['none', 'cropped hand'],
             cameraBias: ['top-down', 'eye-level']
         },
         constraints: [
@@ -253,7 +253,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             environmentMood: ['playful', 'experimental', 'colorful'],
             lighting: ['even studio light'],
             surfaceBackground: ['gradient backdrop'],
-            humanPresence: ['none'],
+            subjectPresence: ['none'],
             cameraBias: ['centered', 'symmetrical']
         },
         constraints: [
@@ -275,7 +275,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             environmentMood: ['minimalist', 'clean', 'luxury'],
             lighting: ['studio softbox', 'rim light'],
             surfaceBackground: ['solid color', 'soft gradient'],
-            humanPresence: ['none'],
+            subjectPresence: ['none'],
             cameraBias: ['centered', 'low-angle hero']
         },
         constraints: [
@@ -297,7 +297,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             environmentMood: ['vibrant', 'bold', 'modern'],
             lighting: ['high-key studio', 'pop light'],
             surfaceBackground: ['saturated cyclorama', 'color-matched surface'],
-            humanPresence: ['none'],
+            subjectPresence: ['none'],
             cameraBias: ['centered punch', 'offset pop']
         },
         constraints: [
@@ -319,7 +319,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             environmentMood: ['scientific', 'premium', 'editorial'],
             lighting: ['precise highlights', 'diffused fill'],
             surfaceBackground: ['neutral studio', 'pedestal'],
-            humanPresence: ['none'],
+            subjectPresence: ['none'],
             cameraBias: ['eye-level', 'slight top-down']
         },
         constraints: [
@@ -341,7 +341,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             environmentMood: ['wellness', 'calm', 'organized'],
             lighting: ['even top-down', 'soft shadows'],
             surfaceBackground: ['clean texture', 'colored paper'],
-            humanPresence: ['none'],
+            subjectPresence: ['none'],
             cameraBias: ['top-down']
         },
         constraints: [
@@ -363,7 +363,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             environmentMood: ['museum-like', 'geometric', 'luxury'],
             lighting: ['prismatic highlights', 'controlled reflections'],
             surfaceBackground: ['dark studio', 'reflective surface'],
-            humanPresence: ['none'],
+            subjectPresence: ['none'],
             cameraBias: ['architectural angle']
         },
         constraints: [
@@ -385,7 +385,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             environmentMood: ['sophisticated', 'elevated', 'minimal'],
             lighting: ['backlit glass', 'soft rim light'],
             surfaceBackground: ['dark void', 'minimal studio'],
-            humanPresence: ['none'],
+            subjectPresence: ['none'],
             cameraBias: ['slightly low angle']
         },
         constraints: [
@@ -407,7 +407,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             environmentMood: ['dynamic', 'refreshing', 'high-speed'],
             lighting: ['strobe lighting', 'sparkling highlights'],
             surfaceBackground: ['liquid surface', 'gradient studio'],
-            humanPresence: ['none'],
+            subjectPresence: ['none'],
             cameraBias: ['eye-level splash']
         },
         constraints: [
@@ -429,7 +429,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             environmentMood: ['sensory', 'macro', 'tactile'],
             lighting: ['grazing light', 'texture emphasis'],
             surfaceBackground: ['macro surface', 'smeared texture'],
-            humanPresence: ['none'],
+            subjectPresence: ['none'],
             cameraBias: ['macro close-up']
         },
         constraints: [
@@ -451,7 +451,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             environmentMood: ['organized', 'consistent', 'professional'],
             lighting: ['even fill', 'repeatable setup'],
             surfaceBackground: ['neutral shelf', 'studio counter'],
-            humanPresence: ['none', 'cropped hand'],
+            subjectPresence: ['none', 'cropped hand'],
             cameraBias: ['eye-level consistent']
         },
         constraints: [
@@ -473,7 +473,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             environmentMood: ['sterile', 'precise', 'trusted'],
             lighting: ['clinical softbox', 'even fluorescent'],
             surfaceBackground: ['stainless steel', 'white lab counter'],
-            humanPresence: ['none', 'gloved hand'],
+            subjectPresence: ['none', 'gloved hand'],
             cameraBias: ['standard eye-level']
         },
         constraints: [
@@ -495,7 +495,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             environmentMood: ['calm', 'luxurious', 'radiant'],
             lighting: ['backlit mist', 'golden hour studio'],
             surfaceBackground: ['reflective dark surface', 'soft mist'],
-            humanPresence: ['none'],
+            subjectPresence: ['none'],
             cameraBias: ['hero centered']
         },
         constraints: [

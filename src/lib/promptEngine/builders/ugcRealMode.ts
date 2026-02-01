@@ -149,7 +149,7 @@ CAMERA (LOCKED)
 Smartphone selfie capture.
 Flat, natural image with no intentional effects.
 
-Angle is imperfect and human:
+Angle is imperfect and natural:
 - slight pitch (+6° to +10° or −6° to −10°)
 - never perfectly level
 - never symmetrical
@@ -223,7 +223,7 @@ distorted limbs,
 centered composition,
 product hero shot,
 editorial styling,
-CGI human,
+CGI person,
 plastic skin,
 fake realism,
 invented packaging,
@@ -466,7 +466,7 @@ export class UGCRealModeBuilder implements PromptBuilder {
             if (hasPhysicalCapture && !isPropped) {
                 parts.push('Arm holding phone must never be visible. Only product-holding hand may show.');
             } else if (isPropped) {
-                parts.push('Stationary surface capture, no human arm enters frame for phone.');
+                parts.push('Stationary surface capture, no person arm enters frame for phone.');
             }
         }
 

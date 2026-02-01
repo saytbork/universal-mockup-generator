@@ -65,7 +65,7 @@ export function buildUGCCaptureSituationText(situationId: UGCCaptureSituationId)
 }
 
 export const UGC_CAPTURE_BASE_SENTENCE =
-  'Casual handheld smartphone capture with imperfect framing, natural human mistakes, non-staged, real-world selfie behavior.';
+  'Casual handheld smartphone capture with imperfect framing, natural person mistakes, non-staged, real-world selfie behavior.';
 
 const UGC_CAPTURE_LAYER_SENTENCES: Record<UGCCaptureSituationId, { category: UGCCaptureCategory; sentence: string }> = {
   'lying-bed-phone-above-face': {
