@@ -22,104 +22,125 @@
  */
 
 export const DETERMINISTIC_SECTIONS = {
-    SECTION_01_QUALITY: `
-01 / QUALITY ENFORCER — HARD FOUNDATION (ALWAYS ON)
-The product MUST be reconstructed as a real, three-dimensional physical object.
-Mandatory reconstruction rules:
-- Correct real-world proportions and physical volume
-- Continuous, clean silhouette
-- Smooth edges, no halos, no cutout artifacts
-- Physically correct materials (glass, plastic, metal, paper)
-- Lighting must interact realistically with materials
-Absolute prohibitions:
-- No flat images, no pasted cutouts, no illustration
-- No painterly or airbrushed textures, no AI softness
-- No black or dark edge outlines
-Label fidelity (ABSOLUTE):
-- Label is a real printed label, sharp, readable, high contrast
-- Physically attached to the product surface, correct scale and alignment
-- No blur, warp, fade, melting, or distortion
-Priority order: Object geometry > Material realism > Edge cleanliness > Label fidelity > Lighting realism
+    SECTION_01: `
+01 / QUALITY ENFORCER
+The product must be reconstructed as a real 3D physical object.
+Required:
+- Correct proportions and volume
+- Clean continuous silhouette
+- Sharp edges, no halos, no cutout artifacts
+- Realistic shadows and reflections
+Forbidden:
+- Flat renders
+- Painted or airbrushed look
+- Soft AI edges
+- Graphic or illustrated style
 `.trim(),
 
-    SECTION_02_IDENTITY: `
-02 / PRODUCT IDENTITY (LOCKED)
-Product identity is fixed. No brand changes. No form changes. No reinterpretation.
+    SECTION_02: `
+02 / PRODUCT IDENTITY
+One real commercial product
+No fictional variations
+No deformation or exaggeration
+Low-quality references must be reconstructed cleanly, not copied.
 `.trim(),
 
-    SECTION_03_TYPE: `
-03 / PRODUCT TYPE (LOCKED)
-Defines allowed behaviors. Product Type restricts: Allowed interactions, Allowed placements, Allowed environments. Invalid combinations must be rejected.
+    SECTION_03: `
+03 / PHYSICAL PROPERTIES
+Materials must behave realistically:
+- Glass looks like glass
+- Plastic looks like plastic
+- Liquids show surface tension
+- Paper has natural rigidity
+Lighting must follow real-world physics.
 `.trim(),
 
-    SECTION_04_PHYSICAL: `
-04 / PHYSICAL PROPERTIES (LOCKED)
-You must respect: Physical scale (handheld, tabletop, large), Weight realism, Material rigidity or flexibility.
-These properties MUST affect: Gravity behavior, Shadow density, Contact deformation.
+    SECTION_04: `
+04 / PRODUCT STRUCTURE
+Single product unless specified
+Gravity always applies
+Contact shadows are mandatory
+No floating without physical justification
 `.trim(),
 
-    SECTION_05_STRUCTURE: `
-05 / PRODUCT STRUCTURE (LOCKED)
-Defines: Single product vs bundle, Grouping and spacing, Relative positioning between products. This step does NOT define gravity or support.
+    SECTION_05: `
+05 / PRODUCT PLACEMENT
+Select one:
+- surface → resting on a surface
+- held → supported by realistic hands
+- supported → assisted by stand or block
+- air → suspended with physical logic
+No mixed placements.
 `.trim(),
 
-    SECTION_06_PLACEMENT: `
-06 / PRODUCT PLACEMENT — MANDATORY PHYSICS DECISION
-Defines how the product exists physically in the scene. Exactly ONE placement must be resolved:
-- On Surface: Product rests on a physical surface. Gravity applied. Contact shadows required.
-- Held in Hands: Product supported by one or two human hands. Gravity defined by hands. Visible pressure and deformation required.
-- Supported (Stand / Tray / Pedestal): Product supported by a visible structure. Contact points visible. No floating illusion.
-- Floating / Suspended (STRICTLY LIMITED): Gravity neutralized. Allowed ONLY in abstract studio contexts. NEVER allowed in real-world environments.
+    SECTION_06: `
+06 / PRODUCT INTERACTION
+Select one:
+none, cropped-hand, holding, two-hand-hold, presenting, opening, capsule-display (capsules only)
+Rules:
+- Interaction must match placement
+- Hands must look realistic, proportional, and natural
+- No gestures, no symbolism
 `.trim(),
 
-    SECTION_07_INTERACTION: `
-07 / PRODUCT INTERACTION (ONE ONLY)
-Defines what is interacting with the product. Must be compatible with Product Type and Placement.
-Human realism rules (MANDATORY if hands appear):
-- Real adult human hands, natural skin texture and imperfections.
-- Asymmetry in fingers and posture, visible pressure on the product.
-- Product deforms where fingers touch.
-- No mannequin hands, no plastic skin, no perfect symmetry.
+    SECTION_07: `
+07 / VIEWPOINT & VANTAGE
+Defines the physical position of the camera in space.
+Valid: eye-level, top-down, low-angle, high-angle, product-level
+Rules:
+- Viewpoint must match placement
+- No impossible perspectives
+- No mixed viewpoints
 `.trim(),
 
-    SECTION_08_VIEWPOINT: `
-08 / VIEWPOINT & VANTAGE — SPATIAL LOGIC (LOCKED)
-Defines how the scene is perceived relative to gravity, not optics. Exactly ONE viewpoint must be applied:
-- Surface — Eye-Level View: Horizon aligns with surface plane.
-- Surface — Aerial / Top-Down View: Gravity applied downward, visible contact shadows.
-- Held Object — Human POV: Viewer perspective matches human eye level.
-- Supported Object — Display View: Clearly shows support and contact points.
-- Suspended View (Abstract Only): Gravity neutralized. No real-world environment implied.
-Hard rule: Viewpoint must be compatible with Product Placement.
+    SECTION_08: `
+08 / PHOTO MODE (WORLD)
+Presence rules:
+- Studio worlds → product only, no hands
+- Lifestyle / UGC worlds → hands only, never full people
 `.trim(),
 
-    SECTION_09_PHOTO_MODE: `
-09 / PHOTO MODE / ENVIRONMENT — SCHEMA-DRIVEN ONLY
-Photo Modes are environments, not styles. Use only the provided schema. Enforce all schema constraints deterministically. Never assume missing values. Never invent props or behaviors outside the schema.
+    SECTION_09: `
+09 / CAMERA & FRAMING
+Professional photography only.
+Camera: DSLR or mirrorless
+Lens behavior: Standard, Macro (only if physically plausible), Telephoto compression (no distortion)
+Framing: Centered hero, Rule of thirds, Left aligned with negative space, Right aligned with negative space, Grid-ready
+Camera must respect viewpoint.
 `.trim(),
 
-    SECTION_10_CAMERA: `
-10 / CAMERA & FRAMING — OPTICAL ONLY
-Camera controls affect only how the scene is captured.
-Allowed: Camera system, Angle, Distance, Rotation (camera axis only), Framing guide.
-Prohibited: Object rotation, geometry distortion, scale manipulation, gravity reinterpretation.
+    SECTION_10: `
+10 / LIGHTING
+Lighting must be realistic and coherent:
+- Studio lighting is controlled
+- Natural lighting feels natural
+- No glowing edges
+- No fantasy effects
+Lighting derives from Photo Mode unless overridden.
 `.trim(),
 
-    SECTION_11_LIGHTING: `
-11 / LIGHTING — PHYSICS-BASED ONLY
-Lighting must follow real physics: Consistent direction, Realistic softness, Contact shadows when applicable.
-No floating shadows, no impossible reflections.
+    SECTION_11: `
+11 / FINAL VALIDATION (HARD FAIL)
+The generation must FAIL if:
+- Placement conflicts with interaction
+- Photo Mode conflicts with placement
+- Studio world includes hands
+- Lifestyle world includes full people
+- Viewpoint conflicts with camera
+- Any forbidden term appears
+No silent correction. Fail immediately.
 `.trim(),
 
-    SECTION_12_VALIDATION: `
-12 / FINAL VALIDATION — HARD FAIL CONDITIONS
-The render is INVALID if: Product appears flat or pasted; Label is unreadable or distorted; Hands look synthetic; Shadows contradict gravity; Placement conflicts with environment; Viewpoint is violated; Any schema constraint is broken.
+    LEXICAL_COMPLIANCE: `
+LEXICAL COMPLIANCE (CRITICAL)
+The following term must never appear: ❌ human
+Always use: realistic hands, natural interaction, real-world, life-scale, natural point of view
 `.trim(),
 
     OUTPUT_GOAL: `
-OUTPUT GOAL
-Produce a real commercial product photograph, shot by a professional team, with physical realism superior to the input reference.
-No interpretation. No shortcuts. No ambiguity.
+FINAL OUTPUT REQUIREMENT
+The image must look like a real commercial product photograph suitable for ecommerce, advertising, or editorial use.
+No creativity outside constraints. No interpretation. No deviation.
 `.trim()
 };
 

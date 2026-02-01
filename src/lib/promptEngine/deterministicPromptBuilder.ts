@@ -71,32 +71,32 @@ export class DeterministicPromptBuilder {
         const creativityResult = buildCreativitySection(input.creativity, sceneType);
         const ecommerceResult = buildEcommerceSection(input.ecommerce, sceneType);
 
-        // --- ASSEMBLE 12 SECTIONS (v1.0 SPEC) ---
+        // --- ASSEMBLE 11 SECTIONS (v1.0 SPEC) ---
         const promptParts: string[] = [
-            DETERMINISTIC_SECTIONS.SECTION_01_QUALITY,
-            `${DETERMINISTIC_SECTIONS.SECTION_02_IDENTITY}\n${productResult.section}`,
-            `${DETERMINISTIC_SECTIONS.SECTION_03_TYPE}\nPRIMARY TYPE: ${input.productSetup.productType}`,
-            `${DETERMINISTIC_SECTIONS.SECTION_04_PHYSICAL}\nSCALE: ${input.productSetup.physicalScale || 'standard tabletop'}`,
-            `${DETERMINISTIC_SECTIONS.SECTION_05_STRUCTURE}\n${compositionResult.section.replace('COMPOSITION:', '').trim()}`,
-            `${DETERMINISTIC_SECTIONS.SECTION_06_PLACEMENT}\n${placementText}`,
-            `${DETERMINISTIC_SECTIONS.SECTION_07_INTERACTION}\nInteraction: ${input.compositionRules.interactionType || 'None'}`,
-            `${DETERMINISTIC_SECTIONS.SECTION_08_VIEWPOINT}\n${viewpointText}`,
+            DETERMINISTIC_SECTIONS.SECTION_01,
+            `${DETERMINISTIC_SECTIONS.SECTION_02}\n${productResult.section}`,
+            `${DETERMINISTIC_SECTIONS.SECTION_03}\nSCALE: ${input.productSetup.physicalScale || 'standard tabletop'}`,
+            `${DETERMINISTIC_SECTIONS.SECTION_04}\n${compositionResult.section.replace('COMPOSITION:', '').trim()}`,
+            `${DETERMINISTIC_SECTIONS.SECTION_05}\n${placementText}`,
+            `${DETERMINISTIC_SECTIONS.SECTION_06}\nInteraction: ${input.compositionRules.interactionType || 'None'}`,
+            `${DETERMINISTIC_SECTIONS.SECTION_07}\n${viewpointText}`,
         ];
 
         if (environmentResult.active) {
-            promptParts.push(`${DETERMINISTIC_SECTIONS.SECTION_09_PHOTO_MODE}\n${environmentResult.section}`);
+            promptParts.push(`${DETERMINISTIC_SECTIONS.SECTION_08}\n${environmentResult.section}`);
         } else {
-            promptParts.push(`${DETERMINISTIC_SECTIONS.SECTION_09_PHOTO_MODE}\nNO ENVIRONMENT: Isolated studio setup.`);
+            promptParts.push(`${DETERMINISTIC_SECTIONS.SECTION_08}\nNO ENVIRONMENT: Isolated studio setup.`);
         }
 
-        promptParts.push(`${DETERMINISTIC_SECTIONS.SECTION_10_CAMERA}\n${cameraResult.section} ${creativityResult.section}`);
-        promptParts.push(`${DETERMINISTIC_SECTIONS.SECTION_11_LIGHTING}\n${lightingResult.section}`);
+        promptParts.push(`${DETERMINISTIC_SECTIONS.SECTION_09}\n${cameraResult.section} ${creativityResult.section}`);
+        promptParts.push(`${DETERMINISTIC_SECTIONS.SECTION_10}\n${lightingResult.section}`);
 
         if (ecommerceResult.active) {
             promptParts.push(`ECOMMERCE OVERRIDES:\n${ecommerceResult.section}`);
         }
 
-        promptParts.push(DETERMINISTIC_SECTIONS.SECTION_12_VALIDATION);
+        promptParts.push(DETERMINISTIC_SECTIONS.SECTION_11);
+        promptParts.push(DETERMINISTIC_SECTIONS.LEXICAL_COMPLIANCE);
         promptParts.push(DETERMINISTIC_SECTIONS.OUTPUT_GOAL);
 
         const prompt = promptParts.join('\n\n').trim();
