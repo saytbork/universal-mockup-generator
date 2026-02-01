@@ -71,34 +71,33 @@ export class DeterministicPromptBuilder {
         const creativityResult = buildCreativitySection(input.creativity, sceneType);
         const ecommerceResult = buildEcommerceSection(input.ecommerce, sceneType);
 
-        // --- ASSEMBLE 11 SECTIONS (v1.0 SPEC) ---
+        // --- ASSEMBLE 11 SECTIONS (REVISED v1.0 SPEC) ---
         const promptParts: string[] = [
-            DETERMINISTIC_SECTIONS.GLOBAL_RULES,
+            DETERMINISTIC_SECTIONS.PREAMBLE,
+            DETERMINISTIC_SECTIONS.GLOBAL_MODE,
             DETERMINISTIC_SECTIONS.SECTION_01,
             `${DETERMINISTIC_SECTIONS.SECTION_02}\n${productResult.section}`,
-            `${DETERMINISTIC_SECTIONS.SECTION_03}\nSCALE: ${input.productSetup.physicalScale || 'standard tabletop'}`,
-            `${DETERMINISTIC_SECTIONS.SECTION_04}\n${compositionResult.section.replace('COMPOSITION:', '').trim()}`,
+            DETERMINISTIC_SECTIONS.SECTION_03,
+            `${DETERMINISTIC_SECTIONS.SECTION_04}\nSTATE: ${input.productSetup.physicalScale || 'Static'}\nCAP: Attached`,
             `${DETERMINISTIC_SECTIONS.SECTION_05}\n${placementText}`,
             `${DETERMINISTIC_SECTIONS.SECTION_06}\nInteraction: ${input.compositionRules.interactionType || 'None'}`,
-            `${DETERMINISTIC_SECTIONS.SECTION_07}\n${viewpointText}`,
         ];
 
         if (environmentResult.active) {
-            promptParts.push(`${DETERMINISTIC_SECTIONS.SECTION_08}\n${environmentResult.section}`);
+            promptParts.push(`${DETERMINISTIC_SECTIONS.SECTION_07}\n${environmentResult.section}`);
         } else {
-            promptParts.push(`${DETERMINISTIC_SECTIONS.SECTION_08}\nNO ENVIRONMENT: Isolated studio setup.`);
+            promptParts.push(`${DETERMINISTIC_SECTIONS.SECTION_07}\nSTUDIO SETUP: Controlled environment.`);
         }
 
+        promptParts.push(`${DETERMINISTIC_SECTIONS.SECTION_08}\n${lightingResult.section}`);
         promptParts.push(`${DETERMINISTIC_SECTIONS.SECTION_09}\n${cameraResult.section} ${creativityResult.section}`);
-        promptParts.push(`${DETERMINISTIC_SECTIONS.SECTION_10}\n${lightingResult.section}`);
 
         if (ecommerceResult.active) {
             promptParts.push(`ECOMMERCE OVERRIDES:\n${ecommerceResult.section}`);
         }
 
+        promptParts.push(DETERMINISTIC_SECTIONS.SECTION_10);
         promptParts.push(DETERMINISTIC_SECTIONS.SECTION_11);
-        promptParts.push(DETERMINISTIC_SECTIONS.QUALITY_ENFORCERS);
-        promptParts.push(DETERMINISTIC_SECTIONS.FORBIDDEN);
         promptParts.push(DETERMINISTIC_SECTIONS.OUTPUT_GOAL);
 
         const prompt = promptParts.join('\n\n').trim();
