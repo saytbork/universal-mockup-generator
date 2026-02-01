@@ -162,7 +162,6 @@ const PHOTO_MODE_MAP: Record<string, PhotoModeKey> = {
 const SECONDARY_PROPS_BY_MODE: Partial<Record<PhotoModeKey, string[]>> = {
   HERO_NEUTRAL: ['minimal ceramic dish', 'clean linen fold', 'subtle glass accent'],
   COLOR_POP_HERO: ['geometric color blocks', 'polished acrylic accent', 'abstract color panel'],
-  INGREDIENT_STACK: ['fresh botanicals', 'sliced citrus', 'herbal leaves', 'clean powders'],
   ACRYLIC_BLOCKS: ['additional acrylic risers', 'prismatic edge accents'],
   SPLASH_SHOT: ['minimal liquid surface ripples', 'controlled droplets around the base'],
   FOAM_AND_TEXTURE: ['controlled foam clusters', 'gel ribbons', 'micro-bubbles'],
@@ -178,6 +177,7 @@ function normalizePhotoMode(photoMode: string | null | undefined): PhotoModeKey 
 }
 
 function buildSecondaryProps(mode: PhotoModeKey, randomizer: ReturnType<typeof createRandomizer>, suggestedProps?: string): string {
+  if (mode === 'INGREDIENT_STACK') return '';
   if (suggestedProps && suggestedProps.trim().length > 0) {
     return `Secondary props: ${suggestedProps}.`;
   }
@@ -259,7 +259,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       'Mandatory negative space reserved for copy placement.',
       'Single product focal point only.',
       'No people, no hands, no body parts.',
-      'No lifestyle interaction, no UGC artifacts.',
+      'No real-world usage context, no UGC artifacts.',
       'No props of any kind, no fabrics, no towels, no linens.',
       'No ingredients, no tools, no narrative elements.',
       'Shot by a professional creative team.',
@@ -347,7 +347,14 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     buildLighting(mode, randomizer, lightingOverrideText ? { override: { text: lightingOverrideText } } : undefined),
     buildCamera(mode, randomizer),
     buildMaterials(mode, randomizer),
-    buildRandomizationRules(),
+    mode === 'INGREDIENT_STACK'
+      ? [
+        'RANDOMIZATION RULES (CONTROLLED):',
+        'No random placement.',
+        'No random angles.',
+        'Only spacing and scale may vary within defined limits.'
+      ].join(' ')
+      : buildRandomizationRules(),
     buildQualityEnforcers(),
   ].filter(Boolean);
 

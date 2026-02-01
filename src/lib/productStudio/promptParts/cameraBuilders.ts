@@ -40,6 +40,20 @@ export type CameraBuildOptions = {
 };
 
 export function buildCamera(mode: PhotoModeKey, randomizer: Randomizer, options: CameraBuildOptions = {}): string {
+  if (mode === 'INGREDIENT_STACK') {
+    const base = [
+      'CAMERA:',
+      'Straight-on or slight elevation (10–15°).',
+      'Vertical or centered composition.',
+      'Ingredients stacked with deliberate spacing.',
+      'No top-down angle.'
+    ];
+    if (options.override?.text) {
+      base.push(options.override.text);
+    }
+    return base.join(' ');
+  }
+
   const angle = randomizer.pick(ANGLES);
   const distance = randomizer.pick(DISTANCES);
   const lens = randomizer.pick(LENSES);

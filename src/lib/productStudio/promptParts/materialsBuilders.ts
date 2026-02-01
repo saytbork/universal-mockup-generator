@@ -2,6 +2,14 @@ import type { PhotoModeKey } from './sceneBuilders';
 import type { Randomizer } from './randomizationRules';
 
 export function buildMaterials(mode: PhotoModeKey, randomizer: Randomizer): string {
+  if (mode === 'INGREDIENT_STACK') {
+    return [
+      'Neutral studio support surface only.',
+      'Surface exists purely for physical grounding.',
+      'No narrative material, no wood, no marble, no warm stone, no textured editorial backgrounds.'
+    ].join(' ');
+  }
+
   const base = 'Natural textures, organic imperfections, and true-to-scale materials.';
 
   const modeSpecific: Partial<Record<PhotoModeKey, string[]>> = {

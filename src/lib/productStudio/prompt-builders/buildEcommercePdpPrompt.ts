@@ -42,7 +42,7 @@ Create a clean, minimal product image designed to receive text and icon overlays
 
 STRICT RULES:
 - Do NOT include any text, labels, badges, icons, UI elements, or typography.
-- Do NOT include people, hands, faces, or lifestyle actions.
+- Do NOT include people, hands, faces, or real-world usage actions.
 - Do NOT include decorative props outside the product support area.
 
 COMPOSITION:

@@ -33,7 +33,7 @@ export function buildEcommerceSection(ecommerce: EcommerceConfig, sceneType: Sce
 
     parts.push('Clean, uncluttered background.');
     parts.push('Commercial composition optimized for UI/text placement.');
-    parts.push('No environment, no lifestyle elements.');
+    parts.push('No environment, no real-world usage context.');
 
     return { section: parts.join(' '), active: true, overrides };
 }

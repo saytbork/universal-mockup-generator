@@ -24,7 +24,7 @@ GLOBAL MODE
 ––––––––––––––––––––
 • Scene Type: STUDIO or ENVIRONMENT (explicitly provided)
 • Product Mode: PRODUCT ONLY
-• No lifestyle scenes unless explicitly allowed
+• No real-world usage scenes unless explicitly allowed
 • No people, no full human presence
 • No UGC, no selfie, no social content language
 • No mannequins, no CGI artifacts
@@ -102,9 +102,9 @@ If interaction is not explicitly selected, assume NONE.
 SECTION 06 / ENVIRONMENT & SURFACE
 ––––––––––––––––––––
 Build the environment strictly from the selected Photo Mode:
-• Studio modes → controlled set, no lifestyle cues
+• Studio modes → controlled set, no real-world usage cues
 • Environment modes → real surfaces, no full people
-• No inferred lifestyle context unless allowed
+• No inferred real-world usage context unless allowed
 Materials must be: physically plausible, true-to-scale, grounded with realistic contact shadows.
 `.trim(),
 
@@ -148,7 +148,7 @@ Never reuse the same base composition.
 SECTION 10 / HARD PROHIBITIONS
 ––––––––––––––––––––
 DO NOT include:
-• human, person, people, lifestyle (unless explicitly allowed), ugc, selfie, model, mannequin, cgi artifacts, fake realism
+• human, person, people, real-world usage context (unless explicitly allowed), ugc, selfie, model, mannequin, cgi artifacts, fake realism
 If a setting is not explicitly provided, DO NOT assume it.
 If a requirement is missing, ABORT generation.
 `.trim(),

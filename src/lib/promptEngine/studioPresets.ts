@@ -2,7 +2,7 @@
  * Studio Presets - MEGA PROMPT V2 Definitions
  * 
  * Deterministic text blocks for Studio-only image generation.
- * NO lifestyle. NO real-world environments. Product-only.
+ * NO real-world usage context. NO real-world environments. Product-only.
  */
 
 import { buildQualityEnforcer } from './qualityEnforcer';
@@ -107,7 +107,7 @@ Clean geometry. Premium commercial quality. High clarity. Sharp focus.
  * - Material behavior awareness
  */
 export const PHOTO_MODE_PRESETS: Record<string, string> = {
-    'Hero Landing Page': `Hero landing page advertising photography. Hero product advertising composition for landing pages, designed for clarity, authority, and conversion. High-end studio environment with clean architectural planes. Professional studio lighting with soft directional key light and controlled rim highlights. Hero camera angle with centered composition and strong visual hierarchy. Mandatory negative space reserved for copy placement. Single product focal point only. No people, no hands, no body parts. No lifestyle interaction, no UGC artifacts. No props of any kind, no fabrics, no towels, no linens. No ingredients, no tools, no narrative elements. Shot by a professional creative team. Magazine-level advertising quality.`,
+    'Hero Landing Page': `Hero landing page advertising photography. Hero product advertising composition for landing pages, designed for clarity, authority, and conversion. High-end studio environment with clean architectural planes. Professional studio lighting with soft directional key light and controlled rim highlights. Hero camera angle with centered composition and strong visual hierarchy. Mandatory negative space reserved for copy placement. Single product focal point only. No people, no hands, no body parts. No real-world usage context, no UGC artifacts. No props of any kind, no fabrics, no towels, no linens. No ingredients, no tools, no narrative elements. Shot by a professional creative team. Magazine-level advertising quality.`,
     'Clear': `Pure white #FFFFFF seamless backdrop. No set dressing. No props. No gradients. No textures. No color cast. Product only. Centered packshot. Soft contact shadow only.`,
     'Color Pop Hero': `Modern supplement hero shot with bold monochrome or two-tone color blocking. High-saturation seamless background, clean drop shadows, punchy highlights. Minimal geometric set pieces only. Premium commercial retouch; label readability perfect.`,
     // Legacy placeholder until Ingredient contracts are finalized.
@@ -869,7 +869,7 @@ PRODUCT STUDIO MODE — CANONICAL PROMPT (LOCKED)
 
 This is a PRODUCT STUDIO render.
 A controlled, abstract studio image of a real, existing physical product.
-This is NOT lifestyle.
+This is NOT a real-world usage context.
 This is NOT UGC.
 This is NOT editorial.
 This is NOT a scene.
@@ -882,7 +882,7 @@ ROOT RULES (NON-NEGOTIABLE)
 - No living subjects.
 - No heads.
 - No hands unless explicitly enabled.
-- No lifestyle context.
+- No real-world usage context.
 - No rooms.
 - No kitchens.
 - No bathrooms.
@@ -1039,7 +1039,7 @@ Rules:
   - Only one hand
   - No head
   - No torso
-  - No lifestyle cues
+  - No real-world usage cues
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 QUALITY & OUTPUT
@@ -1062,7 +1062,7 @@ heads,
 eyes,
 skin,
 hands (unless explicitly enabled),
-lifestyle scenes,
+real-world usage scenes,
 UGC,
 editorial narrative,
 rooms,
@@ -1116,7 +1116,7 @@ heads,
 eyes,
 skin,
 hands,
-lifestyle scenes,
+real-world usage scenes,
 UGC,
 editorial narrative,
 rooms,

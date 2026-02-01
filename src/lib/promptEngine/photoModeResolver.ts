@@ -392,7 +392,18 @@ function buildIngredientModifier(
     suggestedProps?: string,
     ingredientLayout?: 'auto' | 'grounded' | 'floating' | 'top-view'
 ): string {
-    if ((photoMode === 'Ingredient Stack' || photoMode === 'Ingredient Flat Lay') && suggestedProps) {
+    if (photoMode === 'Ingredient Stack' && suggestedProps) {
+        return [
+            `INGREDIENTS: ${suggestedProps}.`,
+            'Ingredients are presented as a precise vertical or stepped stack aligned with the product axis.',
+            'Clear spacing and order between ingredients.',
+            'No surrounding or radial layouts.',
+            'No top-down angle. No floating ingredients.',
+            'Allowed ingredient types only: capsules, powder (single measured pile), extract (solid or liquid), dried leaves, roots, seeds.',
+            'Explicitly forbidden: fruits, flowers, berries, decorative herbs, generic botanicals, aesthetic powders.'
+        ].join(' ');
+    }
+    if (photoMode === 'Ingredient Flat Lay' && suggestedProps) {
         const layoutHints: Record<string, string> = {
             auto: 'Arrange in a clean, controlled layout around the product.',
             grounded: 'All ingredients must rest on the same surface as the product. No floating ingredients. Realistic contact shadows.',

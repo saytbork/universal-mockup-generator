@@ -55,11 +55,11 @@ const BASE_NEGATIVE = [
 ];
 
 const SCENE_NEGATIVE: Record<SceneType, string[]> = {
-    studio_packshot: ['hands', 'humans', 'person', 'environment', 'lifestyle', 'phone camera', 'amateur', 'cluttered', 'busy background'],
+    studio_packshot: ['hands', 'humans', 'person', 'environment', 'real-world usage context', 'phone camera', 'amateur', 'cluttered', 'busy background'],
     editorial_product: ['hands', 'humans', 'person', 'phone camera', 'amateur', 'messy scene', 'cluttered', 'ugc style', 'selfie'],
     lifestyle_product: ['studio backdrop', 'white background', 'product isolation', 'commercial lighting', 'perfect symmetry', 'sterile'],
     ugc_phone: ['studio lighting', 'professional photography', 'perfect symmetry', 'ring light', 'beauty filter', 'skin smoothing', 'influencer pose', 'centered composition', 'HDR look', 'cinematic', 'editorial', 'commercial polish', 'fashion photography', 'retouching', 'depth of field', 'bokeh', 'background blur', 'portrait mode'],
-    ecommerce_blank_space: ['environment', 'lifestyle', 'hands', 'humans', 'person', 'complex background', 'shadows on background', 'cluttered', 'busy composition', 'props', 'contextual elements'],
+    ecommerce_blank_space: ['environment', 'real-world usage context', 'hands', 'humans', 'person', 'complex background', 'shadows on background', 'cluttered', 'busy composition', 'props', 'contextual elements'],
     bundle_kit: ['hands', 'humans', 'person', 'single product only', 'cluttered arrangement', 'overlapping products', 'messy layout']
 };
 

@@ -163,7 +163,7 @@ export function buildColorPopHeroScene({
     'Single product focal point only.',
     'Mandatory clean negative space for headline and CTA placement.',
     'No people, no hands, no body parts.',
-    'No lifestyle interaction, no UGC artifacts.',
+    'No real-world usage context, no UGC artifacts.',
     'No flat lay.',
     'No props of any kind.',
     'No geometric set pieces.',
@@ -176,21 +176,23 @@ export function buildColorPopHeroScene({
 }
 
 export function buildIngredientStackScene({ randomizer, suggestedProps, ingredientLayout }: SceneBuildInput): string {
-  const surfaces = ['warm stone surface', 'matte ceramic counter', 'brushed wood slab', 'clean mineral surface'];
-  const layoutHint: Record<NonNullable<SceneBuildInput['ingredientLayout']>, string> = {
-    auto: 'Ingredients arranged in a controlled, natural layout around the product.',
-    grounded: 'Ingredients rest on the same surface with grounded contact shadows.',
-    floating: 'Ingredients float at varied depths with realistic motion and depth cues.',
-    'top-view': 'Top-down arrangement on a clean surface with organized spacing.'
-  };
+  const ingredientList = suggestedProps?.trim()
+    ? `Ingredients: ${suggestedProps}.`
+    : 'Ingredients limited to capsules, powder (single measured pile), extract (solid or liquid), dried leaves, roots, or seeds.';
 
   return [
-    'Realistic ingredients placed manually around the product.',
-    'Ingredients interact physically with the surface and product scale.',
-    'Editorial wellness composition with precise styling.',
-    `Scene staged on a ${randomizer.pick(surfaces)}.`,
-    suggestedProps ? `Ingredients: ${suggestedProps}.` : 'Use botanicals, fruits, and formulation ingredients that feel authentic to the product.',
-    layoutHint[ingredientLayout ?? 'auto']
+    'Ingredient stack advertising photography.',
+    'Formulation-focused visual designed to communicate product composition with clarity and hierarchy.',
+    'Ingredients are presented as a precise vertical or stepped stack aligned with the product axis.',
+    'Clear spacing and order between ingredients.',
+    'No surrounding or radial layouts.',
+    'Neutral studio environment with non-narrative support surface only.',
+    'Clean professional lighting optimized for ingredient legibility.',
+    'No decorative intent. No real-world usage context. No editorial wellness styling.',
+    'No flat lay. No props of any kind.',
+    ingredientList,
+    'Explicitly forbidden: fruits, flowers, berries, decorative herbs, generic botanicals, aesthetic powders.',
+    'Ingredient hierarchy must remain visually readable with clear physical grounding.'
   ].join(' ');
 }
 

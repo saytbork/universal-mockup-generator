@@ -50,7 +50,7 @@ export class SpecialModesBuilder implements PromptBuilder {
       Mandatory negative space reserved for copy placement.
       Single product focal point only.
       No people, no hands, no body parts.
-      No lifestyle interaction, no UGC artifacts.
+      No real-world usage context, no UGC artifacts.
       No props of any kind, no fabrics, no towels, no linens.
       No ingredients, no tools, no narrative elements.
       ${heroAlignment}

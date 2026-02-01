@@ -1192,7 +1192,7 @@ function buildNegativePrompt(state: ProductStudioState): string {
             'no holding',
             'no presenting',
             'no skin',
-            'no lifestyle',
+            'no real-world usage context',
             'no ugc',
             'no human presence'
         ];

@@ -781,7 +781,7 @@ export class PromptEngine {
             const studioPositiveInjection =
                 'Studio setting. ' +
                 'No real environment. ' +
-                'No lifestyle context. ' +
+                'No real-world usage context. ' +
                 'No home, kitchen, bathroom, vanity, counter, or room. ' +
                 'Abstract studio backdrop or clean gradient only. ';
 
@@ -795,7 +795,7 @@ export class PromptEngine {
 
             // 2. NEGATIVE INJECTION: Append extended anti-lifestyle negatives
             const studioNegativeExtension =
-                ', no lifestyle scene, no home environment, no routine depiction, ' +
+                ', no real-world usage scene, no home environment, no routine depiction, ' +
                 'no daily-use context, no bathroom, no kitchen, no vanity, no counter, ' +
                 'no morning routine, no wellness context, no product in use, no person using product';
 

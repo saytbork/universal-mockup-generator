@@ -10,6 +10,19 @@ export type LightingBuildOptions = {
 };
 
 export function buildLighting(mode: PhotoModeKey, randomizer: Randomizer, options: LightingBuildOptions = {}): string {
+  if (mode === 'INGREDIENT_STACK') {
+    const fixed = [
+      'Clean studio lighting.',
+      'Soft directional key.',
+      'Even illumination to preserve ingredient legibility.',
+      'No dramatic shadows. No cinematic mood.'
+    ].join(' ');
+    if (options.override?.text) {
+      return [fixed, options.override.text].filter(Boolean).join(' ');
+    }
+    return fixed;
+  }
+
   const base = [
     'Editorial or cinematic lighting with clear direction and realistic shadows.',
     'Controlled highlights and realistic shadow falloff.'
