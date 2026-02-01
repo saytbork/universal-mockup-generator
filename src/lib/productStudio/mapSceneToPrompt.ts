@@ -228,8 +228,18 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     gradientStart: state.gradientStart,
     gradientEnd: state.gradientEnd,
     gradientMid: state.gradientMid,
+    heroBackgroundType: state.photoModeConfig.heroLandingPage.backgroundType,
     heroGradientStyle: state.photoModeConfig.heroLandingPage.gradientStyle,
     heroNegativeSpace: state.photoModeConfig.heroLandingPage.negativeSpace,
+    heroColorSource: state.photoModeConfig.heroLandingPage.colorSource,
+    heroPaletteSource: state.photoModeConfig.heroLandingPage.paletteSource,
+    heroContrastLevel: state.photoModeConfig.heroLandingPage.contrastLevel,
+    colorPopBackgroundType: state.photoModeConfig.colorPopHero.backgroundType,
+    colorPopGradientStyle: state.photoModeConfig.colorPopHero.gradientStyle,
+    colorPopColorSource: state.photoModeConfig.colorPopHero.colorSource,
+    colorPopSaturationLevel: state.photoModeConfig.colorPopHero.saturationLevel,
+    colorPopContrastStrategy: state.photoModeConfig.colorPopHero.contrastStrategy,
+    colorPopNegativeSpace: state.photoModeConfig.colorPopHero.negativeSpace,
   };
 
   let scene = '';
@@ -240,13 +250,20 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   if (isHeroLandingPage) {
     scene = buildStudioHeroScene(sceneInput);
     const parts = [
-      'HERO LANDING PAGE (LOCKED): Brand-first studio advertising hero module.',
-      'Background is derived from the product brand colors with zero creative randomness.',
-      'No environment. No props. No interactions. No bundles.',
+      'Hero landing page advertising photography.',
+      'Hero product advertising composition for landing pages, designed for clarity, authority, and conversion.',
       scene,
-      'Controlled studio lighting with clean shadows and high clarity.',
-      'Label remains fully readable and centered toward the camera.',
-      'No texture noise, no patterns, no scenery, no staging objects.',
+      'High-end studio environment with clean architectural planes.',
+      'Professional studio lighting with soft directional key light and controlled rim highlights.',
+      'Hero camera angle with centered composition and strong visual hierarchy.',
+      'Mandatory negative space reserved for copy placement.',
+      'Single product focal point only.',
+      'No people, no hands, no body parts.',
+      'No lifestyle interaction, no UGC artifacts.',
+      'No props of any kind, no fabrics, no towels, no linens.',
+      'No ingredients, no tools, no narrative elements.',
+      'Shot by a professional creative team.',
+      'Magazine-level advertising quality.',
     ].filter(Boolean);
 
     return {
@@ -260,6 +277,8 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   // CRITICAL: Hero Landing Page uses exclusive studio-hero scene builder
   if (environmentModeActive) {
     scene = buildEnvironmentScene(state, randomizer);
+  } else if (mode === 'COLOR_POP_HERO') {
+    scene = buildColorPopHeroScene(sceneInput);
   } else if (photoModeResult.isValid && photoModeResult.basePrompt) {
     scene = photoModeResult.basePrompt;
   } else {

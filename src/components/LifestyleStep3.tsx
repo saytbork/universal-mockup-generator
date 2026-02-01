@@ -1235,6 +1235,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const applyHeroHexToTarget = useCallback(() => {
     const hex = normalizeHex(heroHexDraft);
     if (!hex || !heroHexEditingTarget) return;
+    productStore.setPhotoModeConfig({ heroLandingPage: { colorSource: 'Custom Color' } });
     if (heroHexEditingTarget === 'solid') productStore.setBackgroundColor(hex);
     if (heroHexEditingTarget === 'start') productStore.setGradientStart(hex);
     if (heroHexEditingTarget === 'end') productStore.setGradientEnd(hex);
@@ -2352,6 +2353,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                                   <button
                                                     type="button"
                                                     onClick={() => {
+                                                      productStore.setPhotoModeConfig({ heroLandingPage: { colorSource: 'Brand Colors' } });
                                                       const suggested =
                                                         heroLandingBrandSwatches[2] ||
                                                         heroLandingBrandSwatches[1] ||
@@ -2383,7 +2385,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                                     <button
                                                       key={hex}
                                                       type="button"
-                                                      onClick={() => applyHeroColor(hex)}
+                                                      onClick={() => {
+                                                        productStore.setPhotoModeConfig({ heroLandingPage: { colorSource: 'Brand Colors' } });
+                                                        applyHeroColor(hex);
+                                                      }}
                                                       className={`${dotBase} ${dotBorder(isSelected)}`}
                                                       style={{ background: hex }}
                                                       aria-label={`Use brand color ${hex}`}
@@ -2401,7 +2406,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                             <div className="flex flex-wrap items-center gap-3">
                                               <button
                                                 type="button"
-                                                onClick={() => applyHeroColor('#FFFFFF')}
+                                                onClick={() => {
+                                                  productStore.setPhotoModeConfig({ heroLandingPage: { colorSource: 'Custom Color' } });
+                                                  applyHeroColor('#FFFFFF');
+                                                }}
                                                 className={`${dotBase} ${dotBorder(getActiveTargetColor() === '#FFFFFF')}`}
                                                 style={{ background: '#FFFFFF' }}
                                                 aria-label="Set to white"
@@ -2420,6 +2428,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                                     setHeroHexDraft(getActiveTargetColor());
                                                   }}
                                                   onChange={(e) => {
+                                                    productStore.setPhotoModeConfig({ heroLandingPage: { colorSource: 'Custom Color' } });
                                                     applyHeroColor(e.target.value);
                                                     setHeroHexDraft(normalizeHex(e.target.value) ?? e.target.value);
                                                   }}
@@ -2522,6 +2531,24 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                             ))}
                                           </div>
                                         </div>
+
+                                        <div>
+                                          <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Contrast Level</p>
+                                          <div className="flex flex-wrap gap-2">
+                                            {(['Soft', 'High'] as const).map(v => (
+                                              <Chip
+                                                key={v}
+                                                selected={heroCfg.contrastLevel === v}
+                                                onClick={() => {
+                                                  productStore.setPhotoModeConfig({ heroLandingPage: { contrastLevel: v } });
+                                                  markSectionTouched('product-setup');
+                                                }}
+                                              >
+                                                {v}
+                                              </Chip>
+                                            ))}
+                                          </div>
+                                        </div>
                                       </div>
                                     </>
                                   );
@@ -2532,14 +2559,52 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             {productStore.photoMode === 'Color Pop Hero' && (
                               <div className="space-y-3">
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Pop Style</p>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Background Type</p>
                                   <div className="flex flex-wrap gap-2">
-                                    {(['Complementary contrast', 'Neon accent', 'Bold duotone'] as const).map(v => (
+                                    {(['Solid', 'Gradient'] as const).map(v => (
                                       <Chip
                                         key={v}
-                                        selected={productStore.photoModeConfig.colorPopHero.popStyle === v}
+                                        selected={productStore.photoModeConfig.colorPopHero.backgroundType === v}
                                         onClick={() => {
-                                          productStore.setPhotoModeConfig({ colorPopHero: { popStyle: v } });
+                                          productStore.setPhotoModeConfig({ colorPopHero: { backgroundType: v } });
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        {v}
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                {productStore.photoModeConfig.colorPopHero.backgroundType === 'Gradient' && (
+                                  <div>
+                                    <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Gradient Style</p>
+                                    <div className="flex flex-wrap gap-2">
+                                      {(['Soft', 'Radial', 'Vertical'] as const).map(v => (
+                                        <Chip
+                                          key={v}
+                                          selected={productStore.photoModeConfig.colorPopHero.gradientStyle === v}
+                                          onClick={() => {
+                                            productStore.setPhotoModeConfig({ colorPopHero: { gradientStyle: v } });
+                                            markSectionTouched('product-setup');
+                                          }}
+                                        >
+                                          {v}
+                                        </Chip>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Color Source</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(['Brand Colors', 'Product Label Colors', 'Custom Color'] as const).map(v => (
+                                      <Chip
+                                        key={v}
+                                        selected={productStore.photoModeConfig.colorPopHero.colorSource === v}
+                                        onClick={() => {
+                                          productStore.setPhotoModeConfig({ colorPopHero: { colorSource: v } });
                                           markSectionTouched('product-setup');
                                         }}
                                       >
@@ -2550,14 +2615,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 </div>
 
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Color Energy</p>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Saturation Level</p>
                                   <div className="flex flex-wrap gap-2">
-                                    {(['Soft pop', 'Vibrant', 'Extreme'] as const).map(v => (
+                                    {(['Moderate', 'High'] as const).map(v => (
                                       <Chip
                                         key={v}
-                                        selected={productStore.photoModeConfig.colorPopHero.colorEnergy === v}
+                                        selected={productStore.photoModeConfig.colorPopHero.saturationLevel === v}
                                         onClick={() => {
-                                          productStore.setPhotoModeConfig({ colorPopHero: { colorEnergy: v } });
+                                          productStore.setPhotoModeConfig({ colorPopHero: { saturationLevel: v } });
                                           markSectionTouched('product-setup');
                                         }}
                                       >
@@ -2568,14 +2633,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 </div>
 
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Background Finish</p>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Contrast Strategy</p>
                                   <div className="flex flex-wrap gap-2">
-                                    {(['Flat', 'Soft glow', 'Subtle grain'] as const).map(v => (
+                                    {(['Soft', 'High'] as const).map(v => (
                                       <Chip
                                         key={v}
-                                        selected={productStore.photoModeConfig.colorPopHero.backgroundFinish === v}
+                                        selected={productStore.photoModeConfig.colorPopHero.contrastStrategy === v}
                                         onClick={() => {
-                                          productStore.setPhotoModeConfig({ colorPopHero: { backgroundFinish: v } });
+                                          productStore.setPhotoModeConfig({ colorPopHero: { contrastStrategy: v } });
                                           markSectionTouched('product-setup');
                                         }}
                                       >
@@ -2586,14 +2651,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 </div>
 
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Product Emphasis</p>
+                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Negative Space</p>
                                   <div className="flex flex-wrap gap-2">
-                                    {(['Center punch', 'Offset pop'] as const).map(v => (
+                                    {(['Tight', 'Balanced', 'Spacious'] as const).map(v => (
                                       <Chip
                                         key={v}
-                                        selected={productStore.photoModeConfig.colorPopHero.productEmphasis === v}
+                                        selected={productStore.photoModeConfig.colorPopHero.negativeSpace === v}
                                         onClick={() => {
-                                          productStore.setPhotoModeConfig({ colorPopHero: { productEmphasis: v } });
+                                          productStore.setPhotoModeConfig({ colorPopHero: { negativeSpace: v } });
                                           markSectionTouched('product-setup');
                                         }}
                                       >
@@ -3615,7 +3680,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
       {/* PHYSICAL PROPERTIES - Contextual per Product Type */}
       {
-        values.productType && (
+        isEcommerceMode && values.productType && (
           <SmoothAccordion
             icon={Layers}
             title="02 / Physical Properties"
@@ -4288,6 +4353,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         )
       }
 
+      {isEcommerceMode && (
       <SmoothAccordion
         icon={Activity}
         title="03 / Product State & Motion"
@@ -4395,7 +4461,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           </div>
         </div>
       </SmoothAccordion>
+      )}
 
+      {isEcommerceMode && (
       <SmoothAccordion
         icon={Layers}
         title="04 / Product Structure"
@@ -4518,6 +4586,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           )}
         </div>
       </SmoothAccordion>
+      )}
 
 
       {/* Brand Look System must be fully hidden whenever Photo Mode is active. */}
@@ -5122,6 +5191,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         )
       }
 
+      {isEcommerceMode && (
       <SmoothAccordion
         icon={Hand}
         title="06 / Product Interaction"
@@ -5204,11 +5274,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           </div>
         </div>
       </SmoothAccordion>
+      )}
 
       {/* ============================================================================
            07 / VIEWPOINT & VANTAGE (v1.0 SPEC PLACEHOLDER)
            Auto-configured based on Product Placement and Interaction.
            ============================================================================ */}
+      {isEcommerceMode && (
       <SmoothAccordion
         icon={Eye}
         title="07 / Viewpoint & Vantage"
@@ -5245,6 +5317,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           </div>
         </div>
       </SmoothAccordion>
+      )}
 
       {/* ============================================================================
            08 / PHOTO MODE
@@ -5253,6 +5326,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
            the conceptual position - actual Photo Mode controls remain in 01.
            ============================================================================ */}
 
+      {isEcommerceMode && (
       <SmoothAccordion
         icon={Camera}
         title="09 / Camera & Framing"
@@ -5416,12 +5490,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           </div>
         </div>
       </SmoothAccordion>
+      )}
 
       {/* ============================================================================
            10 / LIGHTING (v1.0 SPEC PLACEHOLDER)
            Lighting is currently derived from Photo Mode.
            Manual overrides will be available in v1.1.
            ============================================================================ */}
+      {isEcommerceMode && (
       <SmoothAccordion
         icon={Sun}
         title="10 / Lighting"
@@ -5448,7 +5524,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           </div>
         </div>
       </SmoothAccordion>
+      )}
 
+      {isEcommerceMode && (
       <SmoothAccordion
         icon={Building2}
         title="11 / Ecommerce Image Builder (BETA)"
@@ -5733,6 +5811,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           )}
         </div>
       </SmoothAccordion>
+      )}
 
       {
         isEnvironmentMode && (
@@ -7044,6 +7123,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             </SmoothAccordion>
 
             {/* Product Interaction */}
+            {isEcommerceMode && (
             <SmoothAccordion
               icon={Hand}
               title="Product Interaction"
@@ -7091,6 +7171,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 )}
               </div>
             </SmoothAccordion>
+            )}
 
             <SmoothAccordion
               icon={Shirt}

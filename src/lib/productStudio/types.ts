@@ -295,13 +295,17 @@ export interface EnvironmentPhotoModeSchema {
 
 export type HeroLandingPageBackgroundType = 'Solid' | 'Gradient';
 export type HeroLandingPageGradientStyle = 'Soft' | 'Radial' | 'Vertical';
+export type HeroLandingPageColorSource = 'Brand Colors' | 'Custom Color';
 export type HeroLandingPagePaletteSource = 'Product label colors' | 'Neutral brand tones' | 'Custom';
 export type HeroLandingPageNegativeSpace = 'Tight' | 'Balanced' | 'Spacious';
+export type HeroLandingPageContrastLevel = 'Soft' | 'High';
 
-export type ColorPopHeroPopStyle = 'Complementary contrast' | 'Neon accent' | 'Bold duotone';
-export type ColorPopHeroColorEnergy = 'Soft pop' | 'Vibrant' | 'Extreme';
-export type ColorPopHeroBackgroundFinish = 'Flat' | 'Soft glow' | 'Subtle grain';
-export type ColorPopHeroProductEmphasis = 'Center punch' | 'Offset pop';
+export type ColorPopHeroBackgroundType = 'Solid' | 'Gradient';
+export type ColorPopHeroGradientStyle = 'Soft' | 'Radial' | 'Vertical';
+export type ColorPopHeroColorSource = 'Brand Colors' | 'Product Label Colors' | 'Custom Color';
+export type ColorPopHeroSaturationLevel = 'Moderate' | 'High';
+export type ColorPopHeroContrastStrategy = 'Soft' | 'High';
+export type ColorPopHeroNegativeSpace = 'Tight' | 'Balanced' | 'Spacious';
 
 export type IngredientStackIngredientFocus = 'Key active only' | 'Full formula';
 export type IngredientStackStackStyle = 'Vertical stack' | 'Surround' | 'Split composition';
@@ -347,14 +351,18 @@ export type PhotoModeConfig = {
     heroLandingPage: {
         backgroundType: HeroLandingPageBackgroundType;
         gradientStyle: HeroLandingPageGradientStyle;
+        colorSource: HeroLandingPageColorSource;
         paletteSource: HeroLandingPagePaletteSource;
         negativeSpace: HeroLandingPageNegativeSpace;
+        contrastLevel: HeroLandingPageContrastLevel;
     };
     colorPopHero: {
-        popStyle: ColorPopHeroPopStyle;
-        colorEnergy: ColorPopHeroColorEnergy;
-        backgroundFinish: ColorPopHeroBackgroundFinish;
-        productEmphasis: ColorPopHeroProductEmphasis;
+        backgroundType: ColorPopHeroBackgroundType;
+        gradientStyle: ColorPopHeroGradientStyle;
+        colorSource: ColorPopHeroColorSource;
+        saturationLevel: ColorPopHeroSaturationLevel;
+        contrastStrategy: ColorPopHeroContrastStrategy;
+        negativeSpace: ColorPopHeroNegativeSpace;
     };
     ingredientStack: {
         ingredientFocus: IngredientStackIngredientFocus;

@@ -29,8 +29,18 @@ export type SceneBuildInput = {
   gradientEnd?: string;
   /** Optional 3rd stop for brand gradients (Hero Landing Page only). */
   gradientMid?: string;
+  heroBackgroundType?: 'Solid' | 'Gradient';
   heroGradientStyle?: 'Soft' | 'Radial' | 'Vertical';
   heroNegativeSpace?: 'Tight' | 'Balanced' | 'Spacious';
+  heroColorSource?: 'Brand Colors' | 'Custom Color';
+  heroPaletteSource?: 'Product label colors' | 'Neutral brand tones' | 'Custom';
+  heroContrastLevel?: 'Soft' | 'High';
+  colorPopBackgroundType?: 'Solid' | 'Gradient';
+  colorPopGradientStyle?: 'Soft' | 'Radial' | 'Vertical';
+  colorPopColorSource?: 'Brand Colors' | 'Product Label Colors' | 'Custom Color';
+  colorPopSaturationLevel?: 'Moderate' | 'High';
+  colorPopContrastStrategy?: 'Soft' | 'High';
+  colorPopNegativeSpace?: 'Tight' | 'Balanced' | 'Spacious';
 };
 
 export type SplashMode = 'IMPACT_SPLASH' | 'RISING_SPLASH' | 'SIDE_DISPLACEMENT_SPLASH';
@@ -82,26 +92,87 @@ export function buildHeroNeutralScene({ randomizer, backgroundColor, gradientEna
   ].join(' ');
 }
 
-export function buildColorPopHeroScene({ randomizer, palette }: SceneBuildInput): string {
-  const structures = [
-    'color-blocked alcove with layered planes',
-    'bold architectural set with intersecting panels',
-    'sculptural color field with dimensional depth',
-  ];
-  const amplifiers = [
-    'reflections and gradients amplify the palette',
-    'materials carry the palette through soft reflections',
-    'color separation comes from layered materials and light',
-  ];
+export function buildColorPopHeroScene({
+  colorPopBackgroundType = 'Solid',
+  colorPopGradientStyle = 'Soft',
+  colorPopColorSource = 'Brand Colors',
+  colorPopSaturationLevel = 'Moderate',
+  colorPopContrastStrategy = 'Soft',
+  colorPopNegativeSpace = 'Balanced',
+}: SceneBuildInput): string {
+  const backgroundTypeInjection =
+    colorPopBackgroundType === 'Gradient'
+      ? 'Bold gradient background with smooth color transitions and no visible banding.'
+      : 'Solid high-saturation studio background with perfectly uniform color field.';
+
+  const gradientStyleInjection = colorPopBackgroundType === 'Gradient'
+    ? (colorPopGradientStyle === 'Radial'
+      ? 'Radial gradient centered behind the product to enhance focal dominance.'
+      : colorPopGradientStyle === 'Vertical'
+        ? 'Vertical gradient with top-to-bottom tonal flow for visual energy.'
+        : 'Soft gradient with subtle tonal transition and premium smoothness.')
+    : '';
+
+  const colorSourceInjection = (() => {
+    switch (colorPopColorSource) {
+      case 'Product Label Colors':
+        return 'Color palette derived directly from the product label hues.';
+      case 'Custom Color':
+        return 'Custom user-defined color used as primary background tone.';
+      case 'Brand Colors':
+      default:
+        return 'Color palette strictly derived from brand-defined colors.';
+    }
+  })();
+
+  const saturationInjection =
+    colorPopSaturationLevel === 'High'
+      ? 'Highly saturated colors designed to aggressively stop scroll.'
+      : 'Moderately saturated colors with premium restraint.';
+
+  const contrastInjection =
+    colorPopContrastStrategy === 'High'
+      ? 'Strong contrast between product and background for maximum separation.'
+      : 'Controlled contrast preserving color harmony and legibility.';
+
+  const negativeSpaceInjection = (() => {
+    switch (colorPopNegativeSpace) {
+      case 'Tight':
+        return 'Compact framing with minimal negative space to amplify visual punch.';
+      case 'Spacious':
+        return 'Generous negative space reserved for headline and CTA overlays.';
+      case 'Balanced':
+      default:
+        return 'Balanced negative space allowing clarity without reducing impact.';
+    }
+  })();
 
   return [
-    'Vibrant environment derived from the product color palette.',
-    'High contrast but controlled, premium and refined.',
-    `Set built as a ${randomizer.pick(structures)} ${paletteDescriptor(palette)}.`,
-    randomizer.pick(amplifiers),
-    'Background amplifies color through materials, reflections, or gradients.',
-    'No flat solid backgrounds.'
-  ].join(' ');
+    'Color pop hero advertising photography.',
+    'High-impact color-driven hero composition designed to stop scroll and maximize brand recall.',
+    'Color-driven composition only.',
+    backgroundTypeInjection,
+    gradientStyleInjection,
+    colorSourceInjection,
+    saturationInjection,
+    contrastInjection,
+    negativeSpaceInjection,
+    'Clean studio environment with perfectly smooth color surfaces.',
+    'Professional commercial lighting optimized for accurate color reproduction and visual punch.',
+    'Hero or straight-on camera angle with strong visual hierarchy.',
+    'Single product focal point only.',
+    'Mandatory clean negative space for headline and CTA placement.',
+    'No people, no hands, no body parts.',
+    'No lifestyle interaction, no UGC artifacts.',
+    'No flat lay.',
+    'No props of any kind.',
+    'No geometric set pieces.',
+    'No ingredients.',
+    'No fabrics, no towels, no linens.',
+    'No reused color schemes from previous generations.',
+    'Shot by a professional creative team.',
+    'Editorial-grade, modern advertising quality with bold color execution.'
+  ].filter(Boolean).join(' ');
 }
 
 export function buildIngredientStackScene({ randomizer, suggestedProps, ingredientLayout }: SceneBuildInput): string {
@@ -288,65 +359,67 @@ export function buildCandyGradientLabScene({ randomizer }: SceneBuildInput): str
 }
 
 export function buildStudioHeroScene({
-  backgroundColor,
   gradientEnabled,
-  gradientStart,
-  gradientEnd,
-  gradientMid,
+  heroBackgroundType = gradientEnabled ? 'Gradient' : 'Solid',
   heroGradientStyle = 'Soft',
   heroNegativeSpace = 'Balanced',
+  heroColorSource = 'Brand Colors',
+  heroPaletteSource = 'Product label colors',
+  heroContrastLevel = 'Soft',
 }: SceneBuildInput): string {
-  const negativeSpaceLine = (() => {
-    switch (heroNegativeSpace) {
-      case 'Tight':
-        return 'Negative space is tight and controlled; minimal margins with a small copy-safe area.';
-      case 'Spacious':
-        return 'Negative space is spacious and intentional; large copy-safe area reserved for overlays.';
-      case 'Balanced':
+  const backgroundInjection =
+    heroBackgroundType === 'Gradient'
+      ? 'Smooth studio gradient background with controlled tonal transition.'
+      : 'Solid studio background with uniform tone and no visible gradients.';
+
+  const colorInjection =
+    heroColorSource === 'Custom Color'
+      ? 'Background color defined by custom user-selected tone, applied uniformly.'
+      : 'Background color derived strictly from brand color palette.';
+
+  const gradientStyleInjection = heroBackgroundType === 'Gradient'
+    ? (heroGradientStyle === 'Radial'
+      ? 'Radial gradient centered behind the product to enhance focal emphasis.'
+      : heroGradientStyle === 'Vertical'
+        ? 'Vertical gradient with top-to-bottom tonal transition.'
+        : 'Soft gradient with subtle tonal shift and no visible edges.')
+    : '';
+
+  const paletteSourceInjection = (() => {
+    switch (heroPaletteSource) {
+      case 'Neutral brand tones':
+        return 'Neutral brand-aligned tones with low chroma and high legibility.';
+      case 'Custom':
+        return 'Custom-defined palette explicitly provided by user input.';
+      case 'Product label colors':
       default:
-        return 'Negative space is balanced; clear copy-safe area reserved for overlays.';
+        return 'Color palette sampled directly from the product label tones.';
     }
   })();
 
-  const third = String(gradientMid || '').trim();
-  const hasThird = third.length > 0 && third.toUpperCase() !== String(gradientStart || '').trim().toUpperCase() && third.toUpperCase() !== String(gradientEnd || '').trim().toUpperCase();
+  const negativeSpaceInjection = (() => {
+    switch (heroNegativeSpace) {
+      case 'Tight':
+        return 'Compact negative space with minimal margins around the product.';
+      case 'Spacious':
+        return 'Generous negative space designed for headline and CTA overlay.';
+      case 'Balanced':
+      default:
+        return 'Balanced negative space allowing clear separation between product and background.';
+    }
+  })();
 
-  if (gradientEnabled && gradientStart && gradientEnd) {
-    const gradientLine = (() => {
-      if (hasThird) {
-        if (heroGradientStyle === 'Radial') {
-          return `Radial three-color gradient background transitioning ${gradientStart} → ${third} → ${gradientEnd}.`;
-        }
-        if (heroGradientStyle === 'Vertical') {
-          return `Vertical three-color gradient background transitioning ${gradientStart} → ${third} → ${gradientEnd}.`;
-        }
-        return `Soft three-color gradient background blending ${gradientStart}, ${third}, and ${gradientEnd}.`;
-      }
-      if (heroGradientStyle === 'Radial') {
-        return `Radial gradient background blending ${gradientStart} and ${gradientEnd}.`;
-      }
-      if (heroGradientStyle === 'Vertical') {
-        return `Vertical gradient background from ${gradientStart} to ${gradientEnd}.`;
-      }
-      return `Soft gradient background blending ${gradientStart} and ${gradientEnd}.`;
-    })();
-    return [
-      'Clean studio hero composition.',
-      gradientLine,
-      'No environment, no props, no setting.',
-      'Subtle studio gradient only.',
-      negativeSpaceLine,
-      'Product isolated and positioned for hero landing page.'
-    ].join(' ');
-  }
+  const contrastLevelInjection =
+    heroContrastLevel === 'High'
+      ? 'High-contrast lighting with clear separation between product and background.'
+      : 'Low-contrast lighting with smooth tonal transitions and gentle highlights.';
 
-  const color = backgroundColor || '#FFFFFF';
   return [
-    'Clean studio hero composition.',
-    `Seamless solid background in color ${color}.`,
-    'No environment, no props, no setting.',
-    'Flat studio background with subtle depth only.',
-    negativeSpaceLine,
-    'Product isolated and positioned for hero landing page.'
-  ].join(' ');
+    backgroundInjection,
+    colorInjection,
+    gradientStyleInjection,
+    paletteSourceInjection,
+    negativeSpaceInjection,
+    contrastLevelInjection,
+  ].filter(Boolean).join(' ');
 }

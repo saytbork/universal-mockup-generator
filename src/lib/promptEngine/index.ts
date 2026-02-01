@@ -701,6 +701,11 @@ export class PromptEngine {
             finalize: finalizeSection
         };
 
+        // Lifestyle guard: prevent any Product Studio prompt foundation from leaking into lifestyle scenes.
+        if ((options as any).sceneType === 'lifestyle_product') {
+            masterSections.deterministicFoundation = '';
+        }
+
         const resolvedUgcStyle = options.ugcStyle ?? 'optimized';
         let finalPrompt = buildMasterPrompt(masterSections, negative, resolvedUgcStyle);
 

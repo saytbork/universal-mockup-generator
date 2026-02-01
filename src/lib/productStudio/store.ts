@@ -453,14 +453,18 @@ const DEFAULT_PHOTO_MODE_CONFIG: PhotoModeConfig = {
     heroLandingPage: {
         backgroundType: 'Solid',
         gradientStyle: 'Soft',
+        colorSource: 'Brand Colors',
         paletteSource: 'Product label colors',
         negativeSpace: 'Balanced',
+        contrastLevel: 'Soft',
     },
     colorPopHero: {
-        popStyle: 'Complementary contrast',
-        colorEnergy: 'Soft pop',
-        backgroundFinish: 'Flat',
-        productEmphasis: 'Center punch',
+        backgroundType: 'Solid',
+        gradientStyle: 'Soft',
+        colorSource: 'Brand Colors',
+        saturationLevel: 'Moderate',
+        contrastStrategy: 'Soft',
+        negativeSpace: 'Balanced',
     },
     ingredientStack: {
         ingredientFocus: 'Key active only',
