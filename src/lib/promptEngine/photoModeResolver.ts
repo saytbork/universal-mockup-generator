@@ -428,8 +428,8 @@ For each selected environment:
 - Apply its environment mood as a base
 - Respect lighting, surface, and camera constraints
 - Do NOT alter product geometry or label
-- Human presence must follow physical realism rules
-- If hands are present, visible pressure and skin imperfections are mandatory
+- Any visible interaction elements must follow physical realism rules
+- If hands are present, they must show natural pressure, proportion, and realistic surface detail
 
 Do not invent settings outside the provided schema.
 If a setting is missing, do not assume it.

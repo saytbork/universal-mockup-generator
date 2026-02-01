@@ -41,7 +41,7 @@ export function buildCreativitySection(creativity: CreativityConfig, sceneType: 
     if (creativity.theme) parts.push(`${creativity.theme} aesthetic.`);
     if (creativity.paletteSource) parts.push(`Color palette: ${creativity.paletteSource}.`);
     if (creativity.propDensity) parts.push(`Prop density: ${creativity.propDensity}.`);
-    parts.push('Stylistic interpretation allowed. No invented objects or persons.');
+    parts.push('Stylistic interpretation allowed. No invented objects or unauthorized elements.');
 
     return { section: parts.join(' '), modifiers };
 }

@@ -44,7 +44,7 @@ Never hero prop or influencer demo. If PDP-ready, mode has failed.
 const UGC_ENVIRONMENT_RULE = `
 BACKGROUND: Incidental domestic clutter, readable but secondary.
 Lower contrast, visually tired, no scenic framing.
-The person and product remain the primary subjects.
+The subject and product remain the primary focus.
 `.trim().replace(/\s+/g, ' ');
 
 const UGC_VALIDATION = `
@@ -223,7 +223,7 @@ distorted limbs,
 centered composition,
 product hero shot,
 editorial styling,
-CGI person,
+CGI figures,
 plastic skin,
 fake realism,
 invented packaging,
@@ -440,9 +440,9 @@ export class UGCRealModeBuilder implements PromptBuilder {
         // ====================================================================
         if (personIncluded) {
             if (isPropped) {
-                parts.push('Human-first: Person anchors scene, phone propped nearby with wobble.');
+                parts.push('Subject-first: Individual anchors scene, phone propped nearby with wobble.');
             } else {
-                parts.push('Human-first: Person is accidental main subject, no hero staging.');
+                parts.push('Subject-first: Individual is accidental main subject, no hero staging.');
             }
         }
 
@@ -466,7 +466,7 @@ export class UGCRealModeBuilder implements PromptBuilder {
             if (hasPhysicalCapture && !isPropped) {
                 parts.push('Arm holding phone must never be visible. Only product-holding hand may show.');
             } else if (isPropped) {
-                parts.push('Stationary surface capture, no person arm enters frame for phone.');
+                parts.push('Stationary surface capture, no visible arm enters frame for phone.');
             }
         }
 
@@ -478,7 +478,7 @@ export class UGCRealModeBuilder implements PromptBuilder {
         // ====================================================================
         // HUMAN REALISM
         // ====================================================================
-        parts.push('Person must look like real smartphone capture of real human. No CGI, mannequin, or synthetic appearance.');
+        parts.push('Subject must look like real smartphone capture of real individual. No CGI, mannequin, or synthetic appearance.');
         parts.push('Face shows real fatigue: subtle under-eye bags, natural expression lines, tired or distracted expression.');
 
         // ====================================================================

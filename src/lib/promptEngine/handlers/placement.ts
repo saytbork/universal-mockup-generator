@@ -10,7 +10,7 @@ export function buildPlacementSection(placement: ProductPlacement | undefined, s
 
     const descriptions: Record<ProductPlacement, string> = {
         surface: 'Product rests on a physical surface. Gravity applied. Contact shadows required. Surface must support weight realistically.',
-        held: 'Product held by one or two person hands. Gravity defined by hands. Visible pressure and deformation required.',
+        held: 'Product held by one or two natural hands. Gravity defined by hands. Visible pressure and deformation required.',
         supported: 'Product rests on a visible support (stand, tray, pedestal). Contact points visible. No floating illusion.',
         air: 'Gravity intentionally neutralized. Abstract studio context only.'
     };

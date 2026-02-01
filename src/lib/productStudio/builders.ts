@@ -35,9 +35,9 @@ import { buildEcommercePdpPrompt } from './prompt-builders/buildEcommercePdpProm
 // ============================================================================
 
 const FORBIDDEN_TERMS = [
-    'model', 'selfie', 'phone', 'lifestyle',
+    'person', 'people', 'model', 'selfie', 'phone', 'lifestyle',
     'identity', 'influencer', 'creator', 'portrait',
-    'woman', 'man', 'girl', 'boy', 'body',
+    'human', 'woman', 'man', 'girl', 'boy', 'body',
     'ugc', 'user-generated', 'candid', 'hand', 'hands', 'face',
 ];
 

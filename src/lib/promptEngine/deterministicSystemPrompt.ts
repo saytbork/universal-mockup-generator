@@ -133,7 +133,7 @@ No silent correction. Fail immediately.
 
     LEXICAL_COMPLIANCE: `
 LEXICAL COMPLIANCE (CRITICAL)
-The following term must never appear: ❌ h-u-m-a-n
+Unauthorized Elements: ❌ full personas, ❌ photography style names, ❌ casual descriptors
 Always use: realistic hands, natural interaction, real-world, life-scale, natural point of view
 `.trim(),
 

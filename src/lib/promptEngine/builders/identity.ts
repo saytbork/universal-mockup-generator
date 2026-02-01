@@ -14,11 +14,11 @@ PERSONAL ADD-ONS: Accessories must look incidental and worn-in. Common jewelry o
 `.trim().replace(/\s+/g, ' ');
 
 const IDENTITY_CONTRACT_TEXT = `
-This subject must be a unique individual. Do not reuse or approximate any previous face or physique. Each render represents a different real human. Avoid generic or stock-photo proportions.
+This subject must be a unique individual. Do not reuse or approximate any previous face or physique. Each render represents a different real individual. Avoid generic or stock-photo proportions.
 `.trim().replace(/\s+/g, ' ');
 
 const ANTI_DOLL_CONSTRAINT = `
-The person must look like a real unedited smartphone photo of a real human. Avoid CGI, 3D render, synthetic human, mannequin, or doll-like appearance.
+The person must look like a real unedited smartphone photo of a real subject. Avoid CGI, 3D render, synthetic appearance, mannequin, or doll-like appearance.
 `.trim().replace(/\s+/g, ' ');
 
 // ============================================================================
@@ -324,7 +324,7 @@ ${primaryHairColorSpecified ? 'Hair color may be dyed; keep the explicitly selec
 
             // Skin Realism (UGC override)
             if (isUgcMode) {
-                identityParts.push('real human appearance, everyday skin texture, natural asymmetry, no retouching');
+                identityParts.push('real subject appearance, everyday skin texture, natural asymmetry, no retouching');
             } else {
                 identityParts.push('realistic skin texture appropriate for age');
             }
@@ -378,7 +378,7 @@ Captured by smartphone so fine edges may appear soft or broken.
             if (personCount === 'couple') {
                 const secondaryAge =
                     typeof (secondaryPersonDetails as any)?.age === 'number' &&
-                    Number.isFinite((secondaryPersonDetails as any).age)
+                        Number.isFinite((secondaryPersonDetails as any).age)
                         ? Number((secondaryPersonDetails as any).age)
                         : null;
                 const secondaryHairColorSpecified = Boolean(secondaryPersonDetails?.hairColor);
@@ -439,10 +439,9 @@ Captured by smartphone so fine edges may appear soft or broken.
 
                     if (secondaryAge >= 75) {
                         parts.push(
-                            `ELDER REALISM (SECONDARY SUBJECT): Deep crow's feet, softened jawline, gentle jowls, age spots on face and hands. Hands show visible veins and knuckle definition. Skin carries micro wrinkles around mouth, eyes, and neck with authentic sag. ${
-                                secondaryHairColorSpecified
-                                    ? 'Do not override explicitly selected hair color.'
-                                    : 'Hair skews gray/silver/white with thinning and irregular texture unless explicitly specified.'
+                            `ELDER REALISM (SECONDARY SUBJECT): Deep crow's feet, softened jawline, gentle jowls, age spots on face and hands. Hands show visible veins and knuckle definition. Skin carries micro wrinkles around mouth, eyes, and neck with authentic sag. ${secondaryHairColorSpecified
+                                ? 'Do not override explicitly selected hair color.'
+                                : 'Hair skews gray/silver/white with thinning and irregular texture unless explicitly specified.'
                             }`
                         );
                     }
