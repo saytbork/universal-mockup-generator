@@ -268,23 +268,19 @@ export type PhotoMode =
     | 'Outdoor Energy Boost'
     | 'Pastel Picnic'
     | 'Candy Gradient Lab'
-    | 'Candy Gradient Lab'
     | 'Golden Mist Aura';
 
 export interface EnvironmentPhotoModeSchema {
     id: string;
     label: string;
-    type: 'environment' | 'studio';
+    scope: 'environment' | 'studio';
     description: string;
     basePrompt: string; // The core Photo Mode prompt segments
-    settingsSchema: {
-        environmentMood?: string[];
-        lighting?: string[];
-        surfaceBackground?: string[];
-        humanPresence?: string[];
-        cameraBias?: string[];
-        [key: string]: string[] | undefined;
-    };
+    subOptions: {
+        key: string;
+        label: string;
+        values: string[];
+    }[];
     constraints: string[];
     /** Required placement for this Photo Mode. Hard-fail if mismatched. */
     requiredPlacement?: 'surface' | 'held' | 'supported' | 'air' | 'any';

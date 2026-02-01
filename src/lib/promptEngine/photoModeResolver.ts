@@ -38,7 +38,9 @@ const PHOTO_MODE_FORBIDDEN_TERMS = [
     'model',
     'holding',
     'presenting',
-    'grip'
+    'grip',
+    'mannequin',
+    'active grip'
 ];
 
 const stripUgcToken = (text: string): string =>
@@ -546,7 +548,7 @@ export function buildPhotoModePrompt(
     }
 
     // Add Mega Prompt instructions if it's an environment mode or has environment flags
-    const isEnvironmentMode = schema?.type === 'environment' || PHOTO_MODE_CONTROL_FLAGS[photoMode]?.environmentAllowed;
+    const isEnvironmentMode = schema?.scope === 'environment' || PHOTO_MODE_CONTROL_FLAGS[photoMode]?.environmentAllowed;
     const finalBasePrompt = isEnvironmentMode
         ? `${basePrompt}\nINSTRUCTIONS:\n${PHOTO_MODE_MEGA_PROMPT}`
         : basePrompt;
@@ -631,5 +633,5 @@ export function getAllPhotoModes(): PhotoMode[] {
  * Check if a Photo Mode is a Studio mode (vs Lifestyle mode).
  */
 export function isStudioMode(photoMode: PhotoMode): boolean {
-    return PHOTO_MODE_SCHEMAS[photoMode]?.type === 'studio';
+    return PHOTO_MODE_SCHEMAS[photoMode]?.scope === 'studio';
 }

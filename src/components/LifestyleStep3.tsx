@@ -55,26 +55,25 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
           <p className="text-[11px] text-gray-500 mb-4">{schema.description}</p>
         </div>
 
-        {Object.entries(schema.settingsSchema).map(([category, options]) => {
-          if (!options) return null;
-          const currentSelection = dynamicConfig[category] || options[0];
+        {schema.subOptions.map((option) => {
+          const currentSelection = dynamicConfig[option.key] || option.values[0];
 
           return (
-            <div key={category} className="space-y-2">
+            <div key={option.key} className="space-y-2">
               <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold">
-                {category.replace(/([A-Z])/g, ' $1').trim()}
+                {option.label}
               </p>
               <div className="flex flex-wrap gap-2">
-                {options.map((option) => (
+                {option.values.map((value) => (
                   <Chip
-                    key={option}
-                    selected={currentSelection === option}
+                    key={value}
+                    selected={currentSelection === value}
                     onClick={() => {
-                      productStore.updatePhotoModeSubSetting(schema.id as PhotoMode, category, option);
+                      productStore.updatePhotoModeSubSetting(schema.id as PhotoMode, option.key, value);
                       markSectionTouched('product-setup');
                     }}
                   >
-                    {option}
+                    {value}
                   </Chip>
                 ))}
               </div>

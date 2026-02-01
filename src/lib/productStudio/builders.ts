@@ -714,7 +714,7 @@ function buildStateMotion(state: ProductStudioState): string {
 }
 
 function buildInteraction(state: ProductStudioState): string {
-    const allowHands = state.interaction !== 'none' || state.handsHolding === true;
+    const allowHands = state.interaction !== 'none';
     if (!allowHands) return '';
 
     const interactionKey = String(state.interaction || '').trim();
@@ -952,7 +952,7 @@ function buildAspectRatio(state: ProductStudioState): string {
 }
 
 function buildNegativeConstraints(state: ProductStudioState): string {
-    const allowHands = state.interaction !== 'none' || state.handsHolding === true;
+    const allowHands = state.interaction !== 'none';
 
     if (allowHands) {
         // Must NOT include forbidden human terms ("people", "person", "face", "body", "human", etc).
@@ -981,7 +981,7 @@ function buildNegativeConstraints(state: ProductStudioState): string {
 }
 
 function buildQualityBar(state: ProductStudioState): string {
-    const allowHands = state.interaction !== 'none' || state.handsHolding === true;
+    const allowHands = state.interaction !== 'none';
     if (allowHands) {
         const interaction = String(state.interaction || '').trim();
         const handsDescriptor = (() => {
@@ -1120,7 +1120,7 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     segments.push(sceneResult.prompt);
     segments.push(buildProductDescription(state, product));
 
-    if (state.interaction !== 'none' || state.handsHolding === true) {
+    if (state.interaction !== 'none') {
         segments.push(buildInteraction(state));
     }
 
@@ -1131,7 +1131,7 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
 
     let finalPrompt = enforceMotionPromptCoherence(segments.filter(Boolean).join(' '), state);
     finalPrompt = appendClosingPhrase(finalPrompt);
-    if (state.interaction === 'none' && state.handsHolding !== true) {
+    if (state.interaction === 'none') {
         finalPrompt = stripForbiddenTermsExceptClosing(finalPrompt, STRIP_TERMS_WHEN_NO_INTERACTION);
     }
     console.log('2. Generated Prompt Parts:', segments);
@@ -1151,7 +1151,7 @@ function assembleBundlePrompt(state: ProductStudioState): string {
         segments.push(buildProductDescription(state, primary));
     }
 
-    if (state.interaction !== 'none' || state.handsHolding === true) {
+    if (state.interaction !== 'none') {
         segments.push(buildInteraction(state));
     }
 
@@ -1166,7 +1166,7 @@ function assembleBundlePrompt(state: ProductStudioState): string {
 
     let finalPrompt = enforceMotionPromptCoherence(segments.filter(Boolean).join(' '), state);
     finalPrompt = appendClosingPhrase(finalPrompt);
-    if (state.interaction === 'none' && state.handsHolding !== true) {
+    if (state.interaction === 'none') {
         finalPrompt = stripForbiddenTermsExceptClosing(finalPrompt, STRIP_TERMS_WHEN_NO_INTERACTION);
     }
     return finalPrompt;
@@ -1178,10 +1178,24 @@ function assembleBundlePrompt(state: ProductStudioState): string {
 
 function buildNegativePrompt(state: ProductStudioState): string {
     const interaction = String(state.interaction || 'none');
-    const allowHands = interaction !== 'none' || state.handsHolding === true;
+    const allowHands = interaction !== 'none';
     const motion = String(state.stateMotion || 'static');
     const splashStyle = state.photoMode === 'Splash Shot' ? (state.splashStyle ?? 'Basic') : null;
     const macroTexturesActive = state.photoMode === 'Foam & Texture';
+
+    const noInteractionBlock = allowHands
+        ? []
+        : [
+            'no humans',
+            'no people',
+            'no hands',
+            'no holding',
+            'no presenting',
+            'no skin',
+            'no lifestyle',
+            'no ugc',
+            'no human presence'
+        ];
 
     const humanNegativesBase = ['person', 'people', 'head', 'face', 'body', 'torso', 'full figure', 'model'];
     const handsNegatives = (() => {
@@ -1233,6 +1247,7 @@ function buildNegativePrompt(state: ProductStudioState): string {
             : [];
 
     return [
+        ...noInteractionBlock,
         ...humanNegativesBase,
         ...handsNegatives,
         ...interactionSpecific,
@@ -1335,7 +1350,7 @@ export function generateProductJobs(state: ProductStudioState): ProductGeneratio
         validateBundleState(normalizedState);
 
         const prompt = assembleBundlePrompt(normalizedState);
-        validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' || normalizedState.handsHolding === true });
+        validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
 
         console.log(`[FINAL PRODUCT PROMPT] Bundle:`, prompt);
 
@@ -1355,7 +1370,7 @@ export function generateProductJobs(state: ProductStudioState): ProductGeneratio
 
     for (const product of normalizedState.products) {
         const prompt = assembleSingleProductPrompt(normalizedState, product);
-        validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' || normalizedState.handsHolding === true });
+        validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
 
         console.log(`[FINAL PRODUCT PROMPT] ${product.name}:`, prompt);
 
@@ -1454,17 +1469,18 @@ function normalizeProductStudioStateForPrompt(state: ProductStudioState): Produc
 // ============================================================================
 
 export function generatePreviewPrompt(state: ProductStudioState): string | null {
-    if (state.bundle.enabled) {
-        const prompt = assembleBundlePrompt(state);
-        validatePrompt(prompt, { allowHands: state.interaction !== 'none' || state.handsHolding === true });
+    const normalizedState = normalizeProductStudioStateForPrompt(state);
+    if (normalizedState.bundle.enabled) {
+        const prompt = assembleBundlePrompt(normalizedState);
+        validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
         return prompt;
     }
 
-    const activeProduct = state.products.find(p => p.id === state.activeProductId);
+    const activeProduct = normalizedState.products.find(p => p.id === normalizedState.activeProductId);
     if (!activeProduct) return null;
 
-    const prompt = assembleSingleProductPrompt(state, activeProduct);
-    validatePrompt(prompt, { allowHands: state.interaction !== 'none' || state.handsHolding === true });
+    const prompt = assembleSingleProductPrompt(normalizedState, activeProduct);
+    validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
 
     return prompt;
 }
