@@ -162,7 +162,7 @@ export function buildColorPopHeroScene({
     'Hero or straight-on camera angle with strong visual hierarchy.',
     'Single product focal point only.',
     'Mandatory clean negative space for headline and CTA placement.',
-    'No people, no hands, no body parts.',
+    'No people, no hands, no human anatomical elements.',
     'No real-world usage context, no UGC artifacts.',
     'No flat lay.',
     'No props of any kind.',

@@ -49,7 +49,7 @@ export class SpecialModesBuilder implements PromptBuilder {
       Hero camera angle with centered composition and strong visual hierarchy.
       Mandatory negative space reserved for copy placement.
       Single product focal point only.
-      No people, no hands, no body parts.
+      No people, no hands, no human anatomical elements.
       No real-world usage context, no UGC artifacts.
       No props of any kind, no fabrics, no towels, no linens.
       No ingredients, no tools, no narrative elements.

@@ -42,7 +42,7 @@ const FORBIDDEN_TERMS = [
 ];
 
 const REQUIRED_CLOSING_PHRASE =
-    'The scene must contain only the product and environmental elements. No people, no visible body parts, no human presence unless explicitly defined by Product Interaction.';
+    'The scene must contain only the product and environmental elements. No people, no visible human anatomical elements, no human presence unless explicitly defined by Product Interaction.';
 
 const STRIP_TERMS_WHEN_NO_INTERACTION = [
     'hand',

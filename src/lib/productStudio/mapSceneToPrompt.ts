@@ -258,7 +258,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       'Hero camera angle with centered composition and strong visual hierarchy.',
       'Mandatory negative space reserved for copy placement.',
       'Single product focal point only.',
-      'No people, no hands, no body parts.',
+    'No people, no hands, no human anatomy elements.',
       'No real-world usage context, no UGC artifacts.',
       'No props of any kind, no fabrics, no towels, no linens.',
       'No ingredients, no tools, no narrative elements.',

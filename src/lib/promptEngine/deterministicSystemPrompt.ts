@@ -88,7 +88,7 @@ Product interaction is OPTIONAL and ONLY allowed if explicitly specified.
 Allowed interactions (only one per scene):
 • None, Passive Presence, Cropped Hand, Supported Hold, Holding, Two-Hand Hold, Presenting, Framed Presentation, Applying / Opening, Capsule Display, Resting Interaction
 Rules:
-• If interaction = None → NO hands, NO body parts, NO implication of people
+• If interaction = None → NO hands, NO human anatomical elements, NO implication of people
 • If Cropped Hand → ONLY partial hand, no wrist, no arm, no person
 • Hands must look real, relaxed, natural, proportional
 • No mannequin hands
