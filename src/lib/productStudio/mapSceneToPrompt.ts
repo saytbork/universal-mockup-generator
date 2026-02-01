@@ -162,6 +162,7 @@ const PHOTO_MODE_MAP: Record<string, PhotoModeKey> = {
 const SECONDARY_PROPS_BY_MODE: Partial<Record<PhotoModeKey, string[]>> = {
   HERO_NEUTRAL: ['minimal ceramic dish', 'clean linen fold', 'subtle glass accent'],
   COLOR_POP_HERO: ['geometric color blocks', 'polished acrylic accent', 'abstract color panel'],
+  INGREDIENT_STACK: ['fresh botanicals', 'sliced citrus', 'herbal leaves', 'clean powders'],
   ACRYLIC_BLOCKS: ['additional acrylic risers', 'prismatic edge accents'],
   SPLASH_SHOT: ['minimal liquid surface ripples', 'controlled droplets around the base'],
   FOAM_AND_TEXTURE: ['controlled foam clusters', 'gel ribbons', 'micro-bubbles'],
@@ -177,7 +178,6 @@ function normalizePhotoMode(photoMode: string | null | undefined): PhotoModeKey 
 }
 
 function buildSecondaryProps(mode: PhotoModeKey, randomizer: ReturnType<typeof createRandomizer>, suggestedProps?: string): string {
-  if (mode === 'INGREDIENT_STACK') return '';
   if (suggestedProps && suggestedProps.trim().length > 0) {
     return `Secondary props: ${suggestedProps}.`;
   }
@@ -228,18 +228,8 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     gradientStart: state.gradientStart,
     gradientEnd: state.gradientEnd,
     gradientMid: state.gradientMid,
-    heroBackgroundType: state.photoModeConfig.heroLandingPage.backgroundType,
     heroGradientStyle: state.photoModeConfig.heroLandingPage.gradientStyle,
     heroNegativeSpace: state.photoModeConfig.heroLandingPage.negativeSpace,
-    heroColorSource: state.photoModeConfig.heroLandingPage.colorSource,
-    heroPaletteSource: state.photoModeConfig.heroLandingPage.paletteSource,
-    heroContrastLevel: state.photoModeConfig.heroLandingPage.contrastLevel,
-    colorPopBackgroundType: state.photoModeConfig.colorPopHero.backgroundType,
-    colorPopGradientStyle: state.photoModeConfig.colorPopHero.gradientStyle,
-    colorPopColorSource: state.photoModeConfig.colorPopHero.colorSource,
-    colorPopSaturationLevel: state.photoModeConfig.colorPopHero.saturationLevel,
-    colorPopContrastStrategy: state.photoModeConfig.colorPopHero.contrastStrategy,
-    colorPopNegativeSpace: state.photoModeConfig.colorPopHero.negativeSpace,
   };
 
   let scene = '';
@@ -250,20 +240,13 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   if (isHeroLandingPage) {
     scene = buildStudioHeroScene(sceneInput);
     const parts = [
-      'Hero landing page advertising photography.',
-      'Hero product advertising composition for landing pages, designed for clarity, authority, and conversion.',
+      'HERO LANDING PAGE (LOCKED): Brand-first studio advertising hero module.',
+      'Background is derived from the product brand colors with zero creative randomness.',
+      'No environment. No props. No interactions. No bundles.',
       scene,
-      'High-end studio environment with clean architectural planes.',
-      'Professional studio lighting with soft directional key light and controlled rim highlights.',
-      'Hero camera angle with centered composition and strong visual hierarchy.',
-      'Mandatory negative space reserved for copy placement.',
-      'Single product focal point only.',
-    'No people, no hands, no human anatomy elements.',
-      'No real-world usage context, no UGC artifacts.',
-      'No props of any kind, no fabrics, no towels, no linens.',
-      'No ingredients, no tools, no narrative elements.',
-      'Shot by a professional creative team.',
-      'Magazine-level advertising quality.',
+      'Controlled studio lighting with clean shadows and high clarity.',
+      'Label remains fully readable and centered toward the camera.',
+      'No texture noise, no patterns, no scenery, no staging objects.',
     ].filter(Boolean);
 
     return {
@@ -277,8 +260,6 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   // CRITICAL: Hero Landing Page uses exclusive studio-hero scene builder
   if (environmentModeActive) {
     scene = buildEnvironmentScene(state, randomizer);
-  } else if (mode === 'COLOR_POP_HERO') {
-    scene = buildColorPopHeroScene(sceneInput);
   } else if (photoModeResult.isValid && photoModeResult.basePrompt) {
     scene = photoModeResult.basePrompt;
   } else {
@@ -347,15 +328,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     buildLighting(mode, randomizer, lightingOverrideText ? { override: { text: lightingOverrideText } } : undefined),
     buildCamera(mode, randomizer),
     buildMaterials(mode, randomizer),
-    mode === 'INGREDIENT_STACK'
-      ? [
-        'RANDOMIZATION RULES (CONTROLLED):',
-        'Vertical spacing may vary.',
-        'Ingredient count may vary.',
-        'Order remains intentional along the central axis.',
-        'No random radial layouts.'
-      ].join(' ')
-      : buildRandomizationRules(),
+    buildRandomizationRules(),
     buildQualityEnforcers(),
   ].filter(Boolean);
 

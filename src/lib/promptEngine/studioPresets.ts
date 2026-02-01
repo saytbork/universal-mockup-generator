@@ -2,7 +2,7 @@
  * Studio Presets - MEGA PROMPT V2 Definitions
  * 
  * Deterministic text blocks for Studio-only image generation.
- * NO real-world usage context. NO real-world environments. Product-only.
+ * NO lifestyle. NO real-world environments. Product-only.
  */
 
 import { buildQualityEnforcer } from './qualityEnforcer';
@@ -96,22 +96,17 @@ Clean geometry. Premium commercial quality. High clarity. Sharp focus.
  * - Random pools (STUDIO_RANDOM_POOLS.photoMode)
  * - Dev-mode validation (checking if photoMode appears in prompt)
  * 
- * DO NOT use this for prompt injection or scene authority.
- * mapSceneToPrompt.ts is the single source of truth for Photo Mode prompts.
- * This file only provides legacy/fallback text for UI pools or dev validation.
- *
- * For scene authority, use photoModeResolver.ts which provides:
+ * DO NOT use this for prompt injection. Use photoModeResolver.ts which provides:
  * - Scene authority with control flags
  * - Compatibility validation with Product Types
  * - Sub-option modifiers (background, ingredients)
  * - Material behavior awareness
  */
 export const PHOTO_MODE_PRESETS: Record<string, string> = {
-    'Hero Landing Page': `Hero landing page advertising photography. Hero product advertising composition for landing pages, designed for clarity, authority, and conversion. High-end studio environment with clean architectural planes. Professional studio lighting with soft directional key light and controlled rim highlights. Hero camera angle with centered composition and strong visual hierarchy. Mandatory negative space reserved for copy placement. Single product focal point only. No people, no hands, no human anatomical elements. No real-world usage context, no UGC artifacts. No props of any kind, no fabrics, no towels, no linens. No ingredients, no tools, no narrative elements. Shot by a professional creative team. Magazine-level advertising quality.`,
+    'Hero Landing Page': `High-clarity hero module on a clean set. Intentional negative space reserved for copy. Crisp studio lighting, controlled shadows, premium retouch. Product is dominant; full label readable; no clutter.`,
     'Clear': `Pure white #FFFFFF seamless backdrop. No set dressing. No props. No gradients. No textures. No color cast. Product only. Centered packshot. Soft contact shadow only.`,
     'Color Pop Hero': `Modern supplement hero shot with bold monochrome or two-tone color blocking. High-saturation seamless background, clean drop shadows, punchy highlights. Minimal geometric set pieces only. Premium commercial retouch; label readability perfect.`,
-    // Legacy placeholder until Ingredient contracts are finalized.
-    'Ingredient Stack': `LEGACY PLACEHOLDER. Do not inject. Ingredient Stack prompt is defined in mapSceneToPrompt.ts.`,
+    'Ingredient Stack': `Surround the product with sliced fruit, herbs, and clean botanical ingredients that hint at benefits. Keep everything vibrant, fresh, art-directed, and premium. No foam, no bubbles, no messy textures. Props are secondary and unbranded.`,
     'Acrylic Blocks': `Clear acrylic blocks and geometric pedestals at varied heights. Crisp edges, controlled reflections, premium studio polish. Add subtle prismatic split highlights on background and acrylic edges (never over label text). Product placed on a hero acrylic pedestal with secondary blocks framing the set.`,
     'Splash Shot': `Dynamic high-speed splash set with frozen droplets and a controlled arc of clear liquid near the product. Splash must never obscure the label. Crisp droplets, clean lighting, no messy pooling, premium campaign polish.`,
     'Tile & Spa': `Glossy tile set with clean grout lines, soft reflections, subtle droplets, and small foam clusters. Bright diffused light. Calm spa-like set styling with ultra-clean surfaces. Product remains the hero; label fully readable.`,
@@ -869,7 +864,7 @@ PRODUCT STUDIO MODE — CANONICAL PROMPT (LOCKED)
 
 This is a PRODUCT STUDIO render.
 A controlled, abstract studio image of a real, existing physical product.
-This is NOT a real-world usage context.
+This is NOT lifestyle.
 This is NOT UGC.
 This is NOT editorial.
 This is NOT a scene.
@@ -882,7 +877,7 @@ ROOT RULES (NON-NEGOTIABLE)
 - No living subjects.
 - No heads.
 - No hands unless explicitly enabled.
-- No real-world usage context.
+- No lifestyle context.
 - No rooms.
 - No kitchens.
 - No bathrooms.
@@ -1039,7 +1034,7 @@ Rules:
   - Only one hand
   - No head
   - No torso
-  - No real-world usage cues
+  - No lifestyle cues
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 QUALITY & OUTPUT
@@ -1062,7 +1057,7 @@ heads,
 eyes,
 skin,
 hands (unless explicitly enabled),
-real-world usage scenes,
+lifestyle scenes,
 UGC,
 editorial narrative,
 rooms,
@@ -1116,7 +1111,7 @@ heads,
 eyes,
 skin,
 hands,
-real-world usage scenes,
+lifestyle scenes,
 UGC,
 editorial narrative,
 rooms,

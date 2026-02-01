@@ -32,6 +32,7 @@ export class SpecialModesBuilder implements PromptBuilder {
 
     private buildHeroLanding(options: PromptOptions): string {
         const {
+            heroBackground = '#FFFFFF',
             heroAlignment = '',
             heroScale = 1,
             heroShadow = '',
@@ -40,24 +41,12 @@ export class SpecialModesBuilder implements PromptBuilder {
         const scalePercent = Math.round(heroScale * 100);
 
         return `
-      Hero landing page advertising photography.
-      Hero product advertising composition for landing pages, designed for clarity, authority, and conversion.
-      Solid studio background with uniform tone and no visible gradients.
-      Background color defined by custom user-selected tone, applied uniformly.
-      High-end studio environment with clean architectural planes.
-      Professional studio lighting with soft directional key light and controlled rim highlights.
-      Hero camera angle with centered composition and strong visual hierarchy.
-      Mandatory negative space reserved for copy placement.
-      Single product focal point only.
-      No people, no hands, no human anatomical elements.
-      No real-world usage context, no UGC artifacts.
-      No props of any kind, no fabrics, no towels, no linens.
-      No ingredients, no tools, no narrative elements.
+      Design this as a seamless ecommerce hero module on a ${heroBackground} backdrop.
+      Keep the set ultra minimal—no room environment, just a clean base plane and negative space perfect for landing pages.
       ${heroAlignment}
       Scale the product so it fills roughly ${scalePercent}% of the frame height without cropping labels.
       ${heroShadow}
-      Shot by a professional creative team.
-      Magazine-level advertising quality.
+      Do not introduce furniture, backgrounds, or lifestyle props—just use subtle geometry or gradients to support the hero.
     `.trim().replace(/\s+/g, ' ');
     }
 
