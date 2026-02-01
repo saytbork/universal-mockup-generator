@@ -290,6 +290,11 @@ export interface EnvironmentPhotoModeSchema {
     requiredPlacement?: 'surface' | 'held' | 'supported' | 'air' | 'any';
     /** Allowed interactions for this Photo Mode. Hard-fail if not in list. */
     allowedInteractions?: ('none' | 'passive-presence' | 'cropped-hand' | 'supported-hold' | 'holding' | 'two-hand-hold' | 'presenting' | 'framed-presentation' | 'applying-opening' | 'capsule-display' | 'resting-interaction')[];
+    /** 
+     * Studio worlds: false (no persons, no hands, no presence)
+     * Lifestyle/UGC worlds: true (persons allowed with valid placement/interaction)
+     */
+    allowsPersonPresence?: boolean;
 }
 
 export type HeroLandingPageBackgroundType = 'Solid' | 'Gradient';

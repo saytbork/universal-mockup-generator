@@ -20,7 +20,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Scale must remain realistic for bathroom surfaces'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none', 'cropped-hand', 'resting-interaction']
+        allowedInteractions: ['none', 'cropped-hand', 'resting-interaction'],
+        allowsPersonPresence: true
     },
     'Dark Premium Studio': {
         id: 'dark-premium-studio',
@@ -41,7 +42,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Label contrast must be preserved'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none']
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
     },
     'Monochrome Brand': {
         id: 'monochrome-brand-world',
@@ -62,7 +64,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Product silhouette must stay dominant'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none']
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
     },
     'Brand Campaign': {
         id: 'brand-campaign-world',
@@ -83,7 +86,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'No clutter competing with product'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none', 'cropped-hand', 'holding', 'presenting']
+        allowedInteractions: ['none', 'cropped-hand', 'holding', 'presenting'],
+        allowsPersonPresence: false
     },
     'UGC Premium Simulation': {
         id: 'ugc-premium-simulation',
@@ -104,7 +108,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'No studio-perfect lighting'
         ],
         requiredPlacement: 'held',
-        allowedInteractions: ['holding', 'two-hand-hold', 'presenting']
+        allowedInteractions: ['holding', 'two-hand-hold', 'presenting'],
+        allowsPersonPresence: true
     },
     'Tech Clean Studio': {
         id: 'tech-clean-studio',
@@ -125,7 +130,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Edges must be extremely sharp'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none']
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
     },
     'Luxury Editorial Tabletop': {
         id: 'luxury-editorial-tabletop',
@@ -146,7 +152,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Product must anchor the scene'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none', 'cropped-hand', 'resting-interaction']
+        allowedInteractions: ['none', 'cropped-hand', 'resting-interaction'],
+        allowsPersonPresence: false
     },
     'Soft Wellness Morning': {
         id: 'soft-wellness-morning',
@@ -167,7 +174,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Soft shadows only'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none', 'holding', 'resting-interaction']
+        allowedInteractions: ['none', 'holding', 'resting-interaction'],
+        allowsPersonPresence: true
     },
     'Golden Hour Lifestyle': {
         id: 'golden-hour-lifestyle',
@@ -188,7 +196,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Label readability mandatory'
         ],
         requiredPlacement: 'held',
-        allowedInteractions: ['holding', 'presenting', 'two-hand-hold']
+        allowedInteractions: ['holding', 'presenting', 'two-hand-hold'],
+        allowsPersonPresence: true
     },
     'Outdoor Energy Boost': {
         id: 'outdoor-energy-boost',
@@ -209,7 +218,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Outdoor scale realism enforced'
         ],
         requiredPlacement: 'held',
-        allowedInteractions: ['holding', 'two-hand-hold']
+        allowedInteractions: ['holding', 'two-hand-hold'],
+        allowsPersonPresence: true
     },
     'Pastel Picnic': {
         id: 'pastel-picnic',
@@ -230,7 +240,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'No clutter'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none', 'cropped-hand', 'resting-interaction']
+        allowedInteractions: ['none', 'cropped-hand', 'resting-interaction'],
+        allowsPersonPresence: true
     },
     'Candy Gradient Lab': {
         id: 'candy-gradient-lab',
@@ -251,7 +262,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Product edges must stay sharp'
         ],
         requiredPlacement: 'air',
-        allowedInteractions: ['none']
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
     },
     'Hero Landing Page': {
         id: 'hero-landing-page',
@@ -272,7 +284,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Single product focal point'
         ],
         requiredPlacement: 'any',
-        allowedInteractions: ['none']
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
     },
     'Color Pop Hero': {
         id: 'color-pop-hero',
@@ -293,7 +306,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Controlled contrast'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none']
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
     },
     'Ingredient Stack': {
         id: 'ingredient-stack',
@@ -314,7 +328,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'No lifestyle clutter'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none']
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
     },
     'Ingredient Flat Lay': {
         id: 'ingredient-flat-lay',
@@ -335,7 +350,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Natural material textures'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none']
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
     },
     'Acrylic Blocks': {
         id: 'acrylic-blocks',
@@ -356,7 +372,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'No soft lifestyle elements'
         ],
         requiredPlacement: 'supported',
-        allowedInteractions: ['none']
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
     },
     'Glass Pedestal Studio': {
         id: 'glass-pedestal-studio',
@@ -377,7 +394,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Product stays as hero'
         ],
         requiredPlacement: 'supported',
-        allowedInteractions: ['none']
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
     },
     'Splash Shot': {
         id: 'splash-shot',
@@ -398,7 +416,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'High clarity in liquid physics'
         ],
         requiredPlacement: 'air',
-        allowedInteractions: ['none']
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
     },
     'Foam & Texture': {
         id: 'foam-and-texture',
@@ -419,7 +438,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Pristine details'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none']
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
     },
     'Routine Carousel': {
         id: 'routine-carousel',
@@ -440,7 +460,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Ecommerce ready'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none', 'cropped-hand']
+        allowedInteractions: ['none', 'cropped-hand'],
+        allowsPersonPresence: false
     },
     'Clinical Lab Counter': {
         id: 'clinical-lab-counter',
@@ -461,7 +482,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Authentic scientific feel'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none', 'cropped-hand']
+        allowedInteractions: ['none', 'cropped-hand'],
+        allowsPersonPresence: false
     },
     'Golden Mist Aura': {
         id: 'golden-mist-aura',
@@ -482,6 +504,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Label remains readable through mist'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none']
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
     }
 };

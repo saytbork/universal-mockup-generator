@@ -4,6 +4,7 @@
 
 import type { DeterministicPromptInput, SceneType } from '../sceneTypes';
 import { getSceneTypeRules, isLightingAllowed, isEnvironmentAllowed, areHandsAllowed } from '../sceneTypeRules';
+import { PHOTO_MODE_SCHEMAS } from '../../productStudio/photoModeSchema';
 
 export interface ValidationResult {
     valid: boolean;
@@ -218,6 +219,15 @@ export function checkHardFails(input: Partial<DeterministicPromptInput>): string
         // Air placement forbids ALL interactions except 'none'
         if (placement === 'air') {
             errors.push(`HARD FAIL: Placement "air" (neutralized gravity) forbids ALL interactions. Current interaction: "${interaction}". ABORT.`);
+        }
+    }
+
+    // HARD FAIL 16: Photo Mode × Person Presence (STUDIO VS LIFESTYLE)
+    // Studio worlds forbid ALL person presence/interaction. lifestyle/UGC only.
+    if (photoMode) {
+        const schema = (PHOTO_MODE_SCHEMAS as any)[photoMode];
+        if (schema && schema.allowsPersonPresence === false && interaction && interaction !== 'none') {
+            errors.push(`HARD FAIL: Photo Mode "${photoMode}" is a STUDIO world and forbids person presence or interaction. Interaction="${interaction}" is INVALID. ABORT.`);
         }
     }
 
