@@ -1822,6 +1822,30 @@ export function mapLifestyleToPromptOptions(
         }
     }
 
+    const isLifestyleAdvertising =
+        sceneState.creationMode === 'lifestyle' && personIncluded;
+    if (isLifestyleAdvertising) {
+        const settingLabel = String(
+            mapped.setting ||
+                mapped.sceneEnvironment ||
+                mapped.environmentOrder ||
+                mapped.microLocation ||
+                ''
+        ).trim();
+        const settingPhrase = settingLabel
+            ? `The ${settingLabel} is styled as an editorial luxury interior or premium campaign set with clean surfaces, intentional styling, and no clutter.`
+            : 'The environment is styled as an editorial luxury set with premium finishes and curated geometry.';
+
+        mapped.lifestyleAdvertisingProfile =
+            'The person must appear as a real advertising model with polished presentation, natural believable features, and campaign-ready grooming; not casual, not domestic, not documentary.';
+        mapped.lifestyleWardrobeRules =
+            'Wardrobe must be premium, clean, intact, and well-fitted; fabrics must appear new, structured, and high-quality; no torn, worn, distressed, frayed, stretched, damaged, or aged garments; no casual homewear, sloppy knits, or everyday worn clothing; styling must resemble a luxury brand advertising campaign.';
+        mapped.lifestyleEnvironmentInterpretation = settingPhrase;
+        mapped.lifestyleHardRestrictions =
+            'Hard restrictions (Lifestyle Advertising): Do NOT depict damaged clothing, distressed fabrics, or signs of wear; do NOT depict domestic realism, casual everyday appearance, or unstyled wardrobe; do NOT produce UGC-like or documentary visuals. If any of these appear, the generation is invalid.';
+        (mapped as any).disableUgcSemantics = true;
+    }
+
     const isEcommerceCanvasActive =
         isEnvironmentSceneIntent &&
         sceneState.ecommerceSidePlacementFlag === true;

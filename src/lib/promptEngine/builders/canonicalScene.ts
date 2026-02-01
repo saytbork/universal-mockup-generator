@@ -128,37 +128,51 @@ export class SceneNarrativeBuilder {
                     'The expert remains the primary subject.'
                 );
                 break;
-            default:
-                if (isProductMode) {
+        default:
+            if (isProductMode) {
+                parts.push(
+                    'Product-focused commercial image.',
+                    'Clean composition designed for ecommerce and ads.',
+                    'No narrative context.'
+                );
+            } else {
+                const ugcStyle = String(options.ugcStyle || 'optimized').toLowerCase();
+                const isUgcReal =
+                    Boolean(options.realModeActive) ||
+                    Boolean(options.ugcRealModeActive) ||
+                    Boolean(options.rawDomesticUgcActive);
+                const wantsUgcLook = isUgcReal || ugcStyle === 'raw' || ugcStyle === 'natural';
+                const isLifestyleCampaign =
+                    options.creationMode === 'lifestyle' && Boolean(options.personIncluded);
+
+                if (isLifestyleCampaign) {
                     parts.push(
-                        'Product-focused commercial image.',
-                        'Clean composition designed for ecommerce and ads.',
-                        'No narrative context.'
+                        'Lifestyle advertising campaign photo with real models and curated luxury styling.',
+                        options.lifestyleAdvertisingProfile ||
+                            'The person must appear as a real advertising model with polished presentation, natural believable features, and campaign-ready grooming; not casual, not domestic, not documentary.',
+                        options.lifestyleWardrobeRules ||
+                            'Wardrobe must be premium, clean, intact, and well-fitted; fabrics must look new, structured, and high-quality; no torn, worn, distressed, frayed, stretched, damaged, or aged garments; no casual homewear or sloppy knits; styling must resemble a luxury brand advertising campaign.',
+                        options.lifestyleEnvironmentInterpretation ||
+                            'The environment feels like a curated editorial luxury interior with clean surfaces, intentional styling, and no clutter.',
+                        options.lifestyleHardRestrictions ||
+                            'Hard restrictions (Lifestyle Advertising): Do NOT depict damaged clothing, distressed fabrics, domestic realism, casual everyday appearance, or UGC/documentary visuals; any of these makes the generation invalid.'
+                    );
+                } else if (wantsUgcLook) {
+                    parts.push(
+                        'UGC-style lifestyle scene.',
+                        'Authentic, casual, real-world feeling.',
+                        'Natural imperfections are acceptable.',
+                        'Allowed creator presence.'
                     );
                 } else {
-                    const ugcStyle = String(options.ugcStyle || 'optimized').toLowerCase();
-                    const isUgcReal =
-                        Boolean(options.realModeActive) ||
-                        Boolean(options.ugcRealModeActive) ||
-                        Boolean(options.rawDomesticUgcActive);
-                    const wantsUgcLook = isUgcReal || ugcStyle === 'raw' || ugcStyle === 'natural';
-
-                    if (wantsUgcLook) {
-                        parts.push(
-                            'UGC-style lifestyle scene.',
-                            'Authentic, casual, real-world feeling.',
-                            'Natural imperfections are acceptable.',
-                            'Allowed creator presence.'
-                        );
-                    } else {
-                        parts.push(
-                            'High-end lifestyle campaign photo.',
-                            'Professional advertising/editorial quality with clean, intentional styling.',
-                            'Spotless environment: no crumbs, stains, dust, fingerprints, clutter, or random mess.',
-                            'Art-directed but natural: curated props only, brand-safe, premium look.'
-                        );
-                    }
+                    parts.push(
+                        'High-end lifestyle campaign photo.',
+                        'Professional advertising/editorial quality with clean, intentional styling.',
+                        'Spotless environment: no crumbs, stains, dust, fingerprints, clutter, or random mess.',
+                        'Art-directed but natural: curated props only, brand-safe, premium look.'
+                    );
                 }
+            }
         }
 
         if (clothingCopy) {

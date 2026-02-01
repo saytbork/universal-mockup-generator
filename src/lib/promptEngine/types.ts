@@ -217,6 +217,10 @@ export interface PromptOptions {
     heroScale?: number;
     heroShadow?: string;
     coreSceneNarrative?: string;
+    lifestyleAdvertisingProfile?: string;
+    lifestyleWardrobeRules?: string;
+    lifestyleEnvironmentInterpretation?: string;
+    lifestyleHardRestrictions?: string;
 
     compositionMode?: string;
     framing?: string;
