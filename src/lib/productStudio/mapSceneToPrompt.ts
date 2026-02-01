@@ -215,7 +215,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     suggestedProps: state.props,
     ingredientLayout: state.ingredientLayout,
     dynamicSettings: state.photoModeConfig.dynamic?.[state.photoMode as PhotoMode],
-    productType: state.productType, // Assuming it's in state, if not need to check types
+    productType: state.definition.type as any,
   });
 
   const sceneInput: SceneBuildInput = {

@@ -286,6 +286,10 @@ export interface EnvironmentPhotoModeSchema {
         [key: string]: string[] | undefined;
     };
     constraints: string[];
+    /** Required placement for this Photo Mode. Hard-fail if mismatched. */
+    requiredPlacement?: 'surface' | 'held' | 'supported' | 'air' | 'any';
+    /** Allowed interactions for this Photo Mode. Hard-fail if not in list. */
+    allowedInteractions?: ('none' | 'passive-presence' | 'cropped-hand' | 'supported-hold' | 'holding' | 'two-hand-hold' | 'presenting' | 'framed-presentation' | 'applying-opening' | 'capsule-display' | 'resting-interaction')[];
 }
 
 export type HeroLandingPageBackgroundType = 'Solid' | 'Gradient';
@@ -561,6 +565,9 @@ export type BrandPreset = {
 // PRODUCT STUDIO STATE (COMPLETE)
 // ============================================================================
 
+
+export type ProductPlacement = 'surface' | 'held' | 'supported' | 'air';
+
 export type ProductStudioState = {
     products: ProductAsset[];
     activeProductId: string | null;
@@ -696,6 +703,8 @@ export type ProductStudioState = {
     | 'capsule-display'
     | 'resting-interaction';
     proMode: boolean;
+    placement: ProductPlacement;
+    viewpoint: string;
     lens: string;
     lightingRig: string;
     finish: string;

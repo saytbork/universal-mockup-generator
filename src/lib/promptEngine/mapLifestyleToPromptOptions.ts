@@ -785,7 +785,8 @@ export function mapLifestyleToPromptOptions(
         ...existingOptions,
         hasModelReference,
         identitySeed,
-        ugcStyle: existingOptions.ugcStyle ?? 'optimized'
+        ugcStyle: existingOptions.ugcStyle ?? 'optimized',
+        placement: sceneState.placement,
     };
 
     // Formulation Story can optionally hide the product entirely (scene-only).
@@ -1268,7 +1269,7 @@ export function mapLifestyleToPromptOptions(
                 'model-first': 'Lifestyle composition in a real environment with the person as the hero while the product remains clearly visible.',
                 'fifty-fifty': 'Lifestyle composition in a real environment with equal emphasis on person and product.',
             } as const)[productProminenceKey] ??
-              'Lifestyle composition in a real environment with the product clearly visible.'
+            'Lifestyle composition in a real environment with the product clearly visible.'
             : 'Environment-first lifestyle composition keeping the product grounded within the lived-in room.'
         : isEcommerceBlankSpaceActive
             ? 'Ecommerce blank-space layout with pure white background, heavy negative space for UX overlays, and no environmental narrative.'
@@ -1299,7 +1300,7 @@ export function mapLifestyleToPromptOptions(
                 'model-first': 'Person-first framing: person in the foreground hero position; product remains clearly visible and readable but secondary.',
                 'fifty-fifty': 'Equal emphasis framing: tight composition where face and product share prominence equally.',
             } as const)[productProminenceKey] ??
-              'Product visible framing: keep product readable and present.'
+            'Product visible framing: keep product readable and present.'
             : 'Environment-first layout with human-first framing and contextual surroundings.'
         : isEcommerceBlankSpaceActive
             ? 'Ecommerce blank-space arrangement with white void for product and copy, no lifestyle embellishments.'

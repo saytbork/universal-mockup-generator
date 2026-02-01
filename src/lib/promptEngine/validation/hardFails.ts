@@ -92,6 +92,135 @@ export function checkHardFails(input: Partial<DeterministicPromptInput>): string
         }
     }
 
+    // =========================================================================
+    // v1.0 CONFLICT VALIDATION CHECKS (COMPLETE COVERAGE)
+    // =========================================================================
+
+    const photoMode = (input as any).photoMode || '';
+    const placement = input.placement;
+    const viewpoint = (input as any).viewpoint;
+    const cameraAngle = input.camera?.angle;
+    const productType = input.productSetup?.productType;
+    const interaction = input.compositionRules?.interactionType;
+
+    // HARD FAIL 11: PhotoMode × Placement (FULL SCHEMA ENFORCEMENT)
+    // Validates ALL requiredPlacement constraints from photoModeSchema
+    if (photoMode && placement) {
+        const PHOTO_MODE_REQUIRED_PLACEMENT: Record<string, string> = {
+            'UGC Premium Simulation': 'held',
+            'Golden Hour Lifestyle': 'held',
+            'Outdoor Energy Boost': 'held',
+            'Candy Gradient Lab': 'air',
+            'Splash Shot': 'air',
+            'Acrylic Blocks': 'supported',
+            'Glass Pedestal Studio': 'supported',
+            // All others default to 'surface' or 'any'
+        };
+        const required = PHOTO_MODE_REQUIRED_PLACEMENT[photoMode];
+        if (required && required !== 'any' && placement !== required) {
+            errors.push(`HARD FAIL: Photo Mode "${photoMode}" requires placement="${required}". Current placement="${placement}". ABORT.`);
+        }
+        // Air placement check (original logic preserved)
+        if (placement === 'air') {
+            const allowedAirModes = ['Candy Gradient Lab', 'Splash Shot', 'Hero Landing Page'];
+            if (!allowedAirModes.includes(photoMode)) {
+                errors.push(`HARD FAIL: Placement "air" (floating/suspended) is ONLY allowed for abstract studio Photo Modes (${allowedAirModes.join(', ')}). Current Photo Mode: "${photoMode}". ABORT.`);
+            }
+        }
+    }
+
+    // HARD FAIL 12: ProductType × Interaction (COMPLETE)
+    // Certain product types forbid certain interactions
+    if (productType && interaction && interaction !== 'none') {
+        const PRODUCT_TYPE_FORBIDDEN_INTERACTIONS: Record<string, string[]> = {
+            'capsules': ['applying-opening', 'resting-interaction'],
+            'gummies': ['applying-opening', 'resting-interaction', 'capsule-display'], // FIXED: added capsule-display
+            'powder': ['capsule-display'],
+            'drops': ['capsule-display'],
+            'device': ['capsule-display', 'applying-opening'],
+            'skincare': ['capsule-display'],
+            'beverage': ['capsule-display', 'applying-opening'],
+        };
+        const forbidden = PRODUCT_TYPE_FORBIDDEN_INTERACTIONS[productType.toLowerCase()] || [];
+        if (forbidden.includes(interaction)) {
+            errors.push(`HARD FAIL: Interaction "${interaction}" is FORBIDDEN for Product Type "${productType}". ABORT.`);
+        }
+    }
+
+    // HARD FAIL 13: Placement × Viewpoint (FULL MATRIX)
+    // Physical logic: placement defines what viewpoints are possible
+    if (placement && viewpoint) {
+        const PLACEMENT_VIEWPOINT_RULES: Record<string, { allowed: string[]; reason: string }> = {
+            'surface': {
+                allowed: ['eye-level', 'top-down', 'display-view'],
+                reason: 'Surface placement requires surface-compatible viewpoints'
+            },
+            'held': {
+                allowed: ['human-pov', 'eye-level'],
+                reason: 'Held objects must use human-level perspectives'
+            },
+            'supported': {
+                allowed: ['eye-level', 'top-down', 'display-view'],
+                reason: 'Supported objects can use display or observation viewpoints'
+            },
+            'air': {
+                allowed: ['suspended', 'eye-level'],
+                reason: 'Suspended objects cannot reference surface-based viewpoints'
+            },
+        };
+        const rules = PLACEMENT_VIEWPOINT_RULES[placement];
+        if (rules && !rules.allowed.includes(viewpoint)) {
+            errors.push(`HARD FAIL: Viewpoint "${viewpoint}" is INVALID for placement="${placement}". ${rules.reason}. Allowed: ${rules.allowed.join(', ')}. ABORT.`);
+        }
+    }
+
+    // HARD FAIL 14: Viewpoint × Camera (FULL MATRIX)
+    // Camera angle must be physically compatible with viewpoint
+    if (viewpoint && cameraAngle) {
+        const VIEWPOINT_CAMERA_CONFLICTS: Record<string, { forbidden: string[]; reason: string }> = {
+            'top-down': {
+                forbidden: ['eye-level', 'low', 'front', '45-degree'],
+                reason: 'Top-down viewpoint requires top/aerial camera angles only'
+            },
+            'eye-level': {
+                forbidden: ['top', 'aerial', 'top-down'],
+                reason: 'Eye-level viewpoint cannot use overhead camera angles'
+            },
+            'human-pov': {
+                forbidden: ['top', 'aerial', 'top-down', 'low'],
+                reason: 'Human POV requires natural eye-level or slight variations'
+            },
+            'suspended': {
+                forbidden: ['top-down'],
+                reason: 'Suspended view implies no surface reference for top-down'
+            },
+        };
+        const conflicts = VIEWPOINT_CAMERA_CONFLICTS[viewpoint];
+        if (conflicts && conflicts.forbidden.includes(cameraAngle)) {
+            errors.push(`HARD FAIL: Camera angle "${cameraAngle}" conflicts with viewpoint "${viewpoint}". ${conflicts.reason}. ABORT.`);
+        }
+    }
+
+    // HARD FAIL 15: Placement × Interaction (PHYSICAL ENFORCEMENT)
+    // Interactions requiring hands must have compatible placement
+    if (placement && interaction && interaction !== 'none') {
+        const HAND_INTERACTIONS = [
+            'holding', 'two-hand-hold', 'presenting', 'framed-presentation',
+            'applying-opening', 'supported-hold', 'capsule-display'
+        ];
+        const isHandInteraction = HAND_INTERACTIONS.includes(interaction);
+
+        // Hand interactions require 'held' or 'supported' placement
+        if (isHandInteraction && placement !== 'held' && placement !== 'supported') {
+            errors.push(`HARD FAIL: Interaction "${interaction}" requires hands, which conflicts with placement="${placement}". Hands require placement "held" or "supported". ABORT.`);
+        }
+
+        // Air placement forbids ALL interactions except 'none'
+        if (placement === 'air') {
+            errors.push(`HARD FAIL: Placement "air" (neutralized gravity) forbids ALL interactions. Current interaction: "${interaction}". ABORT.`);
+        }
+    }
+
     return errors;
 }
 

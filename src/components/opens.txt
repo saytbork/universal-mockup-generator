@@ -1,0 +1,555 @@
+32:    <div className="mt-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-[11px] text-gray-600">
+33:      <div className="text-[10px] font-black tracking-[0.25em] text-gray-500">
+36:      <div>{message}</div>
+49:    <div className="space-y-6">
+50:      <div className="rounded-2xl border border-gray-200 bg-white p-6 space-y-6">
+51:        <div>
+63:            <div key={category} className="space-y-2">
+67:              <div className="flex flex-wrap gap-2">
+86:          <div className="mt-4 pt-4 border-t border-gray-100">
+2016:    <div className={embedded ? 'w-full space-y-4' : 'w-full max-w-2xl mx-auto space-y-4 p-4'}>
+2018:        <div className="flex flex-col gap-1">
+2036:            <div className="space-y-4">
+2038:              <div className={SECTION_GROUP_CLASS}>
+2040:                <div className="flex flex-wrap gap-2">
+2070:                <div className={SECTION_GROUP_CLASS}>
+2072:                  <div className="flex flex-wrap gap-2">
+2096:                <div className={SECTION_GROUP_CLASS}>
+2098:                  <div className="flex gap-2">
+2134:                        <div className={SECTION_GROUP_CLASS}>
+2136:                          <div className="flex flex-wrap gap-2">
+2176:                                  <div className="flex flex-col items-center">
+2185:                          <div className="mt-8 space-y-6">
+2187:                              <div className="rounded-2xl border border-gray-200 bg-white p-6 space-y-6">
+2224:                                      <div className="space-y-6">
+2225:                                        <div className="space-y-6">
+2226:                                          <div>
+2228:                                            <div className="flex flex-wrap gap-2">
+2245:                                            <div>
+2247:                                              <div className="flex items-center gap-4">
+2264:                                                  <div className="relative">
+2308:                                          <div>
+2310:                                            <div className="flex flex-wrap gap-2">
+2333:                                          <div>
+2335:                                            <div className="flex flex-wrap items-center gap-3">
+2372:                                              <div className="mt-4 flex items-center gap-2">
+2400:                                            <div>
+2402:                                              <div className="flex flex-wrap gap-2">
+2421:                                      <div className="h-px bg-gray-200 my-6" />
+2423:                                      <div className="space-y-6">
+2424:                                        <div>
+2426:                                          <div className="flex flex-wrap gap-2">
+2442:                                        <div>
+2444:                                          <div className="flex flex-wrap gap-2">
+2467:                              <div className="space-y-3">
+2468:                                <div>
+2470:                                  <div className="flex flex-wrap gap-2">
+2486:                                <div>
+2488:                                  <div className="flex flex-wrap gap-2">
+2504:                                <div>
+2506:                                  <div className="flex flex-wrap gap-2">
+2522:                                <div>
+2524:                                  <div className="flex flex-wrap gap-2">
+2543:                              <div className="space-y-3">
+2545:                                <div>
+2564:                                <div>
+2566:                                  <div className="flex flex-wrap gap-2">
+2581:                                <div>
+2583:                                  <div className="flex flex-wrap gap-2">
+2598:                                <div>
+2600:                                  <div className="flex flex-wrap gap-2">
+2615:                                <div>
+2617:                                  <div className="flex flex-wrap gap-2">
+2636:                              <div className="space-y-3">
+2637:                                <div>
+2639:                                  <div className="flex flex-wrap gap-2">
+2654:                                <div>
+2656:                                  <div className="flex flex-wrap gap-2">
+2671:                                <div>
+2673:                                  <div className="flex flex-wrap gap-2">
+2688:                                <div>
+2690:                                  <div className="flex flex-wrap gap-2">
+2709:                              <div className="space-y-3">
+2710:                                <div>
+2712:                                  <div className="flex flex-wrap gap-2">
+2727:                                <div>
+2729:                                  <div className="flex flex-wrap gap-2">
+2744:                                <div>
+2746:                                  <div className="flex flex-wrap gap-2">
+2761:                                <div>
+2763:                                  <div className="flex flex-wrap gap-2">
+2791:                              <div className="space-y-3">
+2792:                                <div>
+2794:                                  <div className="flex flex-wrap gap-2">
+2809:                                <div>
+2811:                                  <div className="flex flex-wrap gap-2">
+2826:                                <div>
+2828:                                  <div className="flex flex-wrap gap-2">
+2843:                                <div>
+2845:                                  <div className="flex flex-wrap gap-2">
+2864:                              <div className="space-y-3">
+2865:                                <div>
+2867:                                  <div className="flex flex-wrap gap-2">
+2882:                                <div>
+2884:                                  <div className="flex flex-wrap gap-2">
+2899:                                <div>
+2901:                                  <div className="flex flex-wrap gap-2">
+2916:                                <div>
+2918:                                  <div className="flex flex-wrap gap-2">
+2937:                              <div className="space-y-3">
+2938:                                <div>
+2940:                                  <div className="flex flex-wrap gap-2">
+2955:                                <div>
+2957:                                  <div className="flex flex-wrap gap-2">
+2972:                                <div>
+2974:                                  <div className="flex flex-wrap gap-2">
+2989:                                <div>
+2991:                                  <div className="flex flex-wrap gap-2">
+3010:                              <div className="space-y-3">
+3011:                                <div>
+3013:                                  <div className="flex flex-wrap gap-2">
+3028:                                <div>
+3030:                                  <div className="flex flex-wrap gap-2">
+3045:                                <div>
+3047:                                  <div className="flex flex-wrap gap-2">
+3062:                                <div>
+3064:                                  <div className="flex flex-wrap gap-2">
+3083:                              <div className="space-y-3">
+3084:                                <div>
+3086:                                  <div className="flex flex-wrap gap-2">
+3101:                                <div>
+3103:                                  <div className="flex flex-wrap gap-2">
+3118:                                <div>
+3120:                                  <div className="flex flex-wrap gap-2">
+3135:                                <div>
+3137:                                  <div className="flex flex-wrap gap-2">
+3165:              <div className={SECTION_GROUP_CLASS}>
+3169:              <div className={SECTION_GROUP_CLASS}>
+3171:                <div className="flex flex-wrap gap-2">
+3219:              <div className={SECTION_GROUP_CLASS}>
+3221:                <div className="flex gap-2">
+3245:              <div className={SECTION_GROUP_CLASS}>
+3247:                <div className="flex flex-wrap gap-2">
+3277:                  <div className={SECTION_GROUP_CLASS}>
+3288:                  <div className={SECTION_GROUP_CLASS}>
+3290:                    <div className="flex flex-wrap gap-2">
+3319:                      <div className="mt-3 pt-3 border-t border-gray-100">
+3321:                        <div className="flex flex-wrap gap-2">
+3360:                    <div className={SECTION_GROUP_CLASS}>
+3362:                      <div className="flex flex-wrap gap-2">
+3390:                      <div className={SECTION_GROUP_CLASS}>
+3391:                        <div className="flex items-center justify-between gap-3 mb-3">
+3392:                          <div>
+3405:                        <div
+3410:                          <div className="space-y-4 pl-3 border-l-2 border-indigo-300">
+3411:                            <div>
+3413:                              <div className="flex flex-wrap gap-2">
+3440:                            <div>
+3442:                              <div className="flex flex-wrap gap-2">
+3470:                            <div>
+3472:                              <div className="flex flex-wrap gap-2">
+3499:                      <div className={SECTION_GROUP_CLASS}>
+3501:                        <div className="space-y-3">
+3502:                          <div>
+3504:                            <div className="flex gap-2">
+3520:                          <div>
+3558:            <div className="space-y-4">
+3565:                  <div className={SECTION_GROUP_CLASS}>
+3567:                    <div className="flex flex-wrap gap-2">
+3583:                  <div className={SECTION_GROUP_CLASS}>
+3585:                    <div className="flex items-center gap-4">
+3614:                  <div className={SECTION_GROUP_CLASS}>
+3616:                    <div className="flex gap-2">
+3632:                  <div className={SECTION_GROUP_CLASS}>
+3634:                    <div className="flex gap-2">
+3650:                  <div className={SECTION_GROUP_CLASS}>
+3652:                    <div className="flex gap-2">
+3679:                  <div className={SECTION_GROUP_CLASS}>
+3681:                    <div className="flex items-center gap-4">
+3710:                  <div className={SECTION_GROUP_CLASS}>
+3712:                    <div className="flex gap-2">
+3728:                  <div className={SECTION_GROUP_CLASS}>
+3730:                    <div className="flex gap-2">
+3746:                  <div className={SECTION_GROUP_CLASS}>
+3748:                    <div className="flex gap-2">
+3775:                  <div className={SECTION_GROUP_CLASS}>
+3777:                    <div className="flex flex-wrap gap-2 mb-2">
+3792:                      <div className="flex items-center gap-4 mt-2">
+3822:                  <div className={SECTION_GROUP_CLASS}>
+3824:                    <div className="flex flex-wrap gap-2">
+3840:                  <div className={SECTION_GROUP_CLASS}>
+3842:                    <div className="flex gap-2">
+3859:                    <div className={SECTION_GROUP_CLASS}>
+3861:                      <div className="flex gap-2">
+3898:                  <div className={SECTION_GROUP_CLASS}>
+3900:                    <div className="flex items-center gap-4">
+3929:                  <div className={SECTION_GROUP_CLASS}>
+3931:                    <div className="flex gap-2">
+3947:                  <div className={SECTION_GROUP_CLASS}>
+3949:                    <div className="flex flex-wrap gap-2">
+3965:                  <div className={SECTION_GROUP_CLASS}>
+3967:                    <div className="flex flex-wrap gap-2">
+3983:                  <div className={SECTION_GROUP_CLASS}>
+3985:                    <div className="flex gap-2">
+4021:                  <div className={SECTION_GROUP_CLASS}>
+4023:                    <div className="flex flex-wrap gap-2">
+4039:                  <div className={SECTION_GROUP_CLASS}>
+4041:                    <div className="flex gap-2">
+4057:                  <div className={SECTION_GROUP_CLASS}>
+4059:                    <div className="flex items-center gap-4">
+4088:                  <div className={SECTION_GROUP_CLASS}>
+4090:                    <div className="flex gap-2">
+4106:                  <div className={SECTION_GROUP_CLASS}>
+4108:                    <div className="flex gap-2">
+4144:                  <div className={SECTION_GROUP_CLASS}>
+4146:                    <div className="flex flex-wrap gap-2">
+4162:                  <div className={SECTION_GROUP_CLASS}>
+4164:                    <div className="flex items-center gap-4">
+4193:                  <div className={SECTION_GROUP_CLASS}>
+4195:                    <div className="flex gap-2">
+4230:        <div className="space-y-4">
+4235:          <div className={SECTION_GROUP_CLASS}>
+4237:            <div className="flex flex-wrap gap-2">
+4338:        <div className="space-y-4">
+4343:          <div className={SECTION_GROUP_CLASS}>
+4344:            <div className="flex items-center justify-between">
+4356:            <div className="flex flex-wrap gap-2 mt-2">
+4404:            <div className="space-y-4 pt-4 border-t border-gray-100">
+4406:              <div className={SECTION_GROUP_CLASS}>
+4408:                <div className="flex flex-wrap gap-2">
+4430:              <div className={SECTION_GROUP_CLASS}>
+4432:                <div className="flex gap-2">
+4467:            <div className="space-y-4">
+4471:              <div className={SECTION_GROUP_CLASS}>
+4473:                <div className="flex flex-wrap gap-2">
+4508:            <div className="space-y-6">
+4514:              <div className={SECTION_GROUP_CLASS}>
+4516:                <div className="flex gap-2">
+4535:                  <div className={SECTION_GROUP_CLASS}>
+4543:                  <div className={SECTION_GROUP_CLASS}>
+4545:                    <div className="flex flex-wrap gap-2">
+4563:                  <div className={SECTION_GROUP_CLASS}>
+4565:                    <div className="flex flex-wrap gap-2">
+4583:                  <div className={SECTION_GROUP_CLASS}>
+4585:                    <div className="flex flex-wrap gap-2">
+4611:                  <div className={SECTION_GROUP_CLASS}>
+4612:                    <div className="flex items-center justify-between gap-3">
+4613:                      <div>
+4632:                      <div className={SECTION_GROUP_CLASS}>
+4634:                        <div className="flex flex-wrap gap-2">
+4636:                            <div key={opt.value} className="relative group">
+4653:                      <div className={SECTION_GROUP_CLASS}>
+4655:                        <div className="flex flex-wrap gap-2">
+4673:                      <div className="grid grid-cols-2 gap-4">
+4674:                        <div className={SECTION_GROUP_CLASS}>
+4676:                          <div className="flex flex-col gap-2">
+4701:                        <div className={SECTION_GROUP_CLASS}>
+4703:                          <div className="flex flex-col gap-2">
+4731:                      <div className={SECTION_GROUP_CLASS}>
+4733:                        <div className="flex flex-wrap gap-2">
+4759:                      <div className={SECTION_GROUP_CLASS}>
+4761:                        <div className="flex flex-wrap gap-2">
+4788:                      <div className={SECTION_GROUP_CLASS}>
+4791:                        <div className="grid grid-cols-2 gap-2">
+4834:            <div className="space-y-6">
+4850:                  <div className="space-y-6">
+4852:                      <div className="rounded-xl border border-gray-200 bg-white p-3 text-sm text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white/60">
+4857:                    <div className={isDisabled ? 'opacity-50 pointer-events-none' : ''}>
+4858:                      <div className="space-y-5">
+4859:                        <div className="flex items-center justify-between gap-4">
+4860:                          <div>
+4864:                          <div className="flex items-center gap-4">
+4865:                            <div className="flex items-center gap-3">
+4886:                        <div className="mt-4 space-y-6">
+4891:                            <div key={group.label} className="space-y-3">
+4895:                              <div className="grid grid-cols-2 gap-3">
+4936:                      <div className="space-y-5">
+4937:                        <div className="flex items-start justify-between gap-4">
+4938:                          <div>
+4942:                          <div className="flex items-center gap-2">
+4953:                          <div className="flex flex-wrap gap-3 mt-3">
+5018:                      <div className="space-y-5">
+5019:                        <div>
+5023:                        <div className="flex flex-wrap gap-3 mt-3">
+5065:        <div className="space-y-4">
+5066:          <div className={SECTION_GROUP_CLASS}>
+5068:            <div className="flex flex-wrap gap-2">
+5143:        <div className="space-y-6">
+5145:          <div className={SECTION_GROUP_CLASS}>
+5147:            <div className="flex flex-wrap gap-3">
+5165:          <div className="space-y-5">
+5166:            <div className={SECTION_GROUP_CLASS}>
+5168:              <div className="flex flex-wrap gap-3">
+5206:            <div className={SECTION_GROUP_CLASS}>
+5208:              <div className="flex flex-wrap gap-3">
+5236:          <div className="space-y-5">
+5237:            <div className={SECTION_GROUP_CLASS}>
+5239:              <div className="flex flex-wrap gap-3">
+5256:            <div className={SECTION_GROUP_CLASS}>
+5258:              <div className="flex flex-wrap gap-3">
+5302:        <div className="space-y-4">
+5303:          <div className="flex items-center gap-2">
+5308:          <div className={SECTION_GROUP_CLASS}>
+5309:            <div className="flex items-center justify-between gap-3">
+5310:              <div>
+5327:              <div className={SECTION_GROUP_CLASS}>
+5328:                <div>
+5331:                <div className="flex flex-wrap gap-2">
+5347:              <div className="space-y-5 rounded-xl border border-gray-200 bg-white p-4">
+5348:                <div className="space-y-1">
+5353:                <div className="flex flex-wrap gap-2">
+5381:                  <div className="flex items-center gap-4">
+5403:                    <div className="flex-1">
+5435:                    <div className="space-y-4">
+5442:                        <div key={cfg.key} className="flex items-center gap-4">
+5476:                          <div className="flex-1">
+5515:                    <div className="flex flex-wrap items-center gap-2">
+5537:                    <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white">
+5538:                      <div
+5546:                      <div className="absolute inset-0 ring-1 ring-borderSubtle" />
+5555:            <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-4">
+5556:              <div className="space-y-1">
+5582:            <div
+5585:              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-white/10">
+5586:                <div>
+5612:              <div className="px-4 py-6 space-y-6 bg-gray-50 dark:bg-white/5">
+5614:                  <div className="rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-500 dark:border-white/10 dark:bg-black/20 dark:text-white/60">
+5620:                      <div className="flex items-center gap-2">
+5625:                      <div className="space-y-2">
+5626:                        <div className="flex justify-between items-center">
+5644:                      <div className="space-y-2">
+5648:                        <div className="flex flex-wrap gap-2">
+5665:                      <div className="space-y-2">
+5666:                        <div className="flex items-center justify-between gap-3">
+5667:                          <div>
+5684:                        <div className="flex flex-wrap gap-2">
+5722:                          <div className="space-y-2">
+5724:                            <div className="flex flex-wrap gap-2">
+5750:                          <div className="space-y-2">
+5752:                            <div className="flex flex-wrap gap-2">
+5770:                        <div className="space-y-2">
+5772:                          <div className="flex flex-wrap gap-2">
+5790:                          <div className="pt-2">
+5791:                            <div className="flex items-center justify-between gap-3">
+5792:                              <div>
+5828:                        <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-4 dark:bg-black/20 dark:border-white/10">
+5829:                          <div className="flex items-start justify-between gap-4">
+5830:                            <div>
+5836:                            <div className="flex items-center gap-2">
+5846:                          <div className="space-y-4">
+5847:                            <div className="space-y-2">
+5848:                              <div className="flex justify-between items-center">
+5864:                            <div className="space-y-2">
+5866:                              <div className="flex flex-wrap gap-2">
+5880:                            <div className="space-y-2">
+5882:                              <div className="flex flex-wrap gap-2">
+5913:                            <div className="space-y-2">
+5915:                              <div className="grid grid-cols-3 gap-2">
+5928:                              <div className="flex flex-wrap gap-2">
+5944:                                <div className="pt-3 border-t border-gray-100 dark:border-white/10" />
+5946:                                <div className="space-y-2">
+5948:                                  <div className="flex flex-wrap gap-2">
+5962:                                <div className="space-y-2">
+5964:                                  <div className="flex flex-wrap gap-2">
+5978:                                <div className="space-y-2">
+5980:                                  <div className="flex flex-wrap gap-2">
+5994:                                <div className="space-y-2">
+5996:                                  <div className="flex flex-wrap gap-2">
+6015:                      <div className="space-y-2">
+6017:                        <div className="flex flex-wrap gap-2">
+6052:                      <div className="space-y-2">
+6054:                        <div className="grid grid-cols-3 gap-2">
+6076:                      <div className="grid grid-cols-2 gap-2">
+6105:                      <div className="space-y-2">
+6107:                        <div className="flex flex-wrap gap-2">
+6121:                      <div className="space-y-2">
+6123:                        <div className="flex flex-wrap gap-2">
+6137:                      <div className="space-y-2">
+6139:                        <div className="flex flex-wrap gap-2">
+6153:                      <div className="space-y-2">
+6155:                        <div className="flex flex-wrap gap-2">
+6179:                          <div className="space-y-2">
+6181:                            <div className="flex flex-wrap gap-2">
+6198:                              <div className="pt-2">
+6210:                          <div className="space-y-2">
+6212:                            <div className="flex flex-wrap gap-2">
+6228:                      <div className={`flex items-center justify-between pt-4 ${(!hasFirstGenerationComplete || hasModelReference) ? 'opacity-50' : ''}`}>
+6229:                        <div>
+6264:                  <div className="rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-500 dark:border-white/10 dark:bg-black/20 dark:text-white/60">
+6268:                  <div className="space-y-4">
+6270:                    <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-6 dark:border-white/10 dark:bg-white/5">
+6271:                      <div className="space-y-2">
+6272:                        <div className="flex justify-between items-center">
+6290:                      <div className="space-y-2">
+6292:                        <div className="flex flex-wrap gap-2">
+6310:                      <div className="space-y-2">
+6317:                        <div className="flex flex-wrap gap-2">
+6355:                          <div className="flex flex-wrap gap-2">
+6381:                          <div className="flex flex-wrap gap-2 pt-1">
+6399:                      <div className="space-y-2">
+6401:                        <div className="flex flex-wrap gap-2">
+6425:                      <div className="space-y-2">
+6427:                        <div className="grid grid-cols-3 gap-2">
+6444:                      <div className="space-y-2">
+6446:                        <div className="grid grid-cols-2 gap-2">
+6472:                    <div
+6476:                      <div className="border-t border-gray-100 px-4 py-3 bg-white">
+6481:                      <div className="px-4 py-4 space-y-6">
+6486:                          <div className="space-y-2">
+6488:                            <div className="flex flex-wrap gap-2">
+6502:                          <div className="space-y-2">
+6504:                            <div className="flex flex-wrap gap-2">
+6519:                        <div className="border-t border-gray-100"></div>
+6525:                          <div className="space-y-2">
+6527:                            <div className="flex flex-wrap gap-2">
+6541:                          <div className="space-y-2">
+6543:                            <div className="flex flex-wrap gap-2">
+6557:                          <div className="space-y-2">
+6559:                            <div className="flex flex-wrap gap-2">
+6574:                        <div className="border-t border-gray-100"></div>
+6580:                          <div className="space-y-3">
+6581:                            <div className="flex items-center justify-between">
+6582:                              <div>
+6607:                              <div className="space-y-3">
+6608:                                <div className="space-y-2">
+6610:                                  <div className="flex flex-wrap gap-2">
+6628:                                <div className="space-y-2">
+6630:                                  <div className="flex flex-wrap gap-2">
+6661:                                <div className="space-y-2">
+6663:                                  <div className="flex flex-wrap gap-2">
+6681:                        <div className="border-t border-gray-100"></div>
+6686:                          <div className="space-y-2">
+6688:                            <div className="flex flex-wrap gap-2">
+6703:                        <div className="border-t border-gray-100"></div>
+6709:                          <div className="space-y-3">
+6711:                            <div className="flex flex-wrap gap-2">
+6725:                          <div className="flex items-center justify-between">
+6726:                            <div>
+6765:                <div className="space-y-4">
+6766:                  <div className={SECTION_GROUP_CLASS}>
+6769:                    <div className="flex flex-wrap gap-2">
+6771:                      <div className="w-full">
+6801:              <div id="ugc-real-mode">
+6802:                <div className="pt-2 pb-4 px-2">
+6803:                  <div className="space-y-4">
+6804:                    <div className="flex items-center justify-between gap-4">
+6805:                      <div className="flex-1">
+6833:                        <div className="rounded-2xl border border-gray-200 bg-white p-4 space-y-2">
+6834:                          <div className="flex flex-wrap items-start justify-between gap-3">
+6835:                            <div className="min-w-0">
+6838:                            <div className="flex flex-wrap justify-end gap-2">
+6853:                        <div className="space-y-4">
+6857:                              <div key={section.field} className="space-y-3">
+6858:                                <div>
+6861:                                <div className="flex flex-wrap gap-2">
+6897:              <div className="space-y-3">
+6898:                <div className="flex flex-wrap items-center gap-2">
+6920:                  <div className="mt-2">
+6946:              <div className="space-y-4">
+6947:                <div className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-3 py-2">
+6948:                  <div>
+6963:                  <div className="space-y-3">
+6964:                    <div>
+6966:                      <div className="flex flex-wrap gap-2 mt-2">
+6983:                    <div>
+6985:                      <div className="flex flex-wrap gap-2 mt-2">
+7000:                      <div className="mt-3 flex flex-wrap items-center gap-3 rounded-2xl border border-gray-200 bg-white px-3 py-2">
+7001:                        <div className="min-w-0">
+7005:                        <div className="ml-auto flex items-center gap-2">
+7045:                    <div>
+7047:                      <div className="flex flex-wrap gap-2 mt-2">
+7064:                    <div>
+7066:                      <div className="flex flex-wrap gap-2 mt-2">
+7083:                    <div>
+7085:                      <div className="flex flex-wrap gap-2 mt-2">
+7102:                    <div>
+7132:              <div className="space-y-3">
+7134:                  <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-xs text-gray-500">
+7139:                  <div className="rounded-2xl border border-gray-200 bg-white px-3 py-2 text-[11px] text-gray-600">
+7145:                <div className="flex flex-wrap gap-2">
+7162:                    <div className="flex flex-wrap gap-2">
+7179:                <div className="pt-3">
+7211:                <div className="space-y-4">
+7212:                  <div className="flex items-center justify-between gap-4">
+7213:                    <div className="flex-1">
+7237:                      <div className="rounded-2xl border border-gray-200 bg-white p-4">
+7238:                        <div className="flex items-center justify-between gap-3">
+7239:                          <div className="min-w-0">
+7254:                      <div className="rounded-2xl border border-gray-200 bg-white p-4">
+7255:                        <div className="flex items-center justify-between gap-3">
+7256:                          <div className="min-w-0">
+7272:                        <div className={SECTION_GROUP_CLASS}>
+7275:                          <div className="flex flex-wrap gap-2">
+7293:                      <div className={SECTION_GROUP_CLASS}>
+7296:                        <div className="flex flex-wrap gap-2">
+7313:                      <div className={SECTION_GROUP_CLASS}>
+7316:                        <div className="flex flex-wrap gap-2">
+7339:                      <div className={SECTION_GROUP_CLASS}>
+7369:                <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600">
+7373:                <div className="space-y-3">
+7375:                  <div className={SECTION_GROUP_CLASS}>
+7376:                    <div>
+7380:                    <div className="flex flex-wrap items-center gap-2">
+7404:                  <div className={SECTION_GROUP_CLASS}>
+7405:                    <div>
+7409:                    <div className="flex flex-wrap gap-2">
+7433:              <div className="p-4 pt-0 space-y-3">
+7435:                <div className="flex flex-col gap-2">
+7489:                  <div className="space-y-3">
+7490:                    <div className={SECTION_GROUP_CLASS}>
+7491:                      <div>
+7495:                      <div className="flex flex-wrap gap-2">
+7524:                    <div className={SECTION_GROUP_CLASS}>
+7526:                      <div className="flex flex-wrap items-center gap-2">
+7550:                    <div className={SECTION_GROUP_CLASS}>
+7552:                      <div className="flex flex-wrap gap-2">
+7584:                    <div className={SECTION_GROUP_CLASS}>
+7586:                      <div className="flex flex-wrap items-center gap-2">
+7621:                <div id="bundles" className="mt-6">
+7622:                  <div className="rounded-2xl border border-gray-200 bg-white p-4 space-y-4">
+7623:                    <div className="flex flex-col gap-1">
+7630:                    <div className="flex flex-wrap gap-2">
+7642:                    <div className="space-y-4">
+7643:                      <div className="flex flex-col gap-2">
+7653:                      <div className="rounded-2xl border border-gray-200 bg-white p-4 space-y-3">
+7657:                        <div className="flex flex-wrap gap-3">
+7658:                          <div className="w-28 text-center text-xs text-gray-600">
+7659:                            <div className="relative h-28 w-full overflow-hidden rounded-2xl border border-gray-200 bg-white">
+7661:                              <div className="absolute inset-0 flex items-center justify-center bg-white text-[10px] font-semibold text-gray-500">
+7696:            <div className="space-y-4">
+7697:              <div className="flex items-center justify-between">
+7711:                  <div className={SECTION_GROUP_CLASS}>
+7712:                    <div>
+7716:                    <div className="flex flex-wrap gap-2">
+7733:                  <div className="space-y-5 rounded-2xl border border-gray-200 bg-white p-4">
+7734:                    <div className="space-y-1">
+7738:                    <div className="inline-flex rounded-full border border-gray-200 bg-white p-1">
+7754:                      <div className="space-y-2">
+7756:                        <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white p-2.5 transition-colors hover:border-indigo-600">
+7758:                            <div
+7785:                        <div className="grid grid-cols-2 gap-3">
+7790:                            <div key={cfg.key} className="space-y-2">
+7792:                              <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white p-2.5 transition-colors hover:border-indigo-600">
+7794:                                  <div
+7815:                        <div className="flex items-center gap-3">
+7833:                        <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white">
+7834:                          <div
+7840:                          <div className="absolute inset-0 ring-1 ring-borderSubtle" />
+7864:            <div className="space-y-3">
+7865:              <div className="flex items-center justify-between">
+7878:                <div className="space-y-3">
+7879:                  <div className={SECTION_GROUP_CLASS}>
+7890:                  <div className={SECTION_GROUP_CLASS}>
+7901:                  <div className={SECTION_GROUP_CLASS}>
+7903:                    <div className="flex flex-wrap gap-2">
+7936:                  <div className={SECTION_GROUP_CLASS}>
+7938:                    <div className="flex flex-wrap gap-2">
+7952:                  <div className={SECTION_GROUP_CLASS}>
+7954:                    <div className="flex flex-wrap gap-2">
+7977:                  <div className={SECTION_GROUP_CLASS}>
+7978:                    <div className="flex items-center justify-between">
+7979:                      <div className="space-y-0.5">
+8010:        <div className={SECTION_GROUP_CLASS}>
+8012:          <div className="flex flex-wrap items-center gap-2">
+8040:          <div className="rounded-2xl border border-red-200 bg-red-50 p-4 space-y-2 mt-4">
+8041:            <div className="flex items-center gap-2 text-red-700 font-semibold text-sm uppercase tracking-wide">

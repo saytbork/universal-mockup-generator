@@ -32,6 +32,8 @@ export interface UIState {
     framing?: string;
     blankSpace?: 'left' | 'right' | 'top' | 'bottom';
     aspectRatio?: string;
+    interaction?: string;
+    placement?: string;
 }
 
 // ============================================================================
@@ -171,8 +173,10 @@ export function buildContractFromUI(uiState: UIState): DeterministicPromptInput 
         compositionRules: {
             quantity: clampQuantity(sceneType, uiState.quantity ?? defaults.quantity),
             arrangement: uiState.arrangement || defaults.arrangement,
+            interactionType: (uiState.interaction as any) || 'none',
             interactionObjects: isPropsAllowed(sceneType) ? (uiState.props ?? []) : []
         },
+        placement: (uiState.placement as any),
         environment: isEnvironmentAllowed(sceneType) && (uiState.environment || uiState.place)
             ? { macroEnvironment: uiState.environment, microPlace: uiState.place }
             : {},

@@ -10,6 +10,7 @@ import type {
     CameraShotKey,
     EyeDirectionKey
 } from './parameterMap.types';
+import type { ProductPlacement } from '../productStudio/types';
 
 export interface ProductAsset {
     id: string;
@@ -310,6 +311,7 @@ export interface PromptOptions {
     sceneStructure?: import('../../../types').SceneStructure;
     colorSystem?: import('../../../types').ColorSystem;
     visualGrammar?: import('../../../types').VisualGrammar;
+    placement?: ProductPlacement;
 }
 
 export interface PromptBuilder {

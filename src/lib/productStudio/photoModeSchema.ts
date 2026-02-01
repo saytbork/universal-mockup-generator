@@ -18,7 +18,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'No cluttered backgrounds',
             'No exaggerated reflections',
             'Scale must remain realistic for bathroom surfaces'
-        ]
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none', 'cropped-hand', 'resting-interaction']
     },
     'Dark Premium Studio': {
         id: 'dark-premium-studio',
@@ -37,7 +39,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'No crushed blacks',
             'Edges must remain readable',
             'Label contrast must be preserved'
-        ]
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none']
     },
     'Monochrome Brand': {
         id: 'monochrome-brand-world',
@@ -56,7 +60,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Only one color family allowed',
             'No texture noise',
             'Product silhouette must stay dominant'
-        ]
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none']
     },
     'Brand Campaign': {
         id: 'brand-campaign-world',
@@ -75,7 +81,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'No stock-photo look',
             'Consistent brand tone',
             'No clutter competing with product'
-        ]
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none', 'cropped-hand', 'holding', 'presenting']
     },
     'UGC Premium Simulation': {
         id: 'ugc-premium-simulation',
@@ -94,7 +102,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Visible hand pressure required',
             'No mannequin hands',
             'No studio-perfect lighting'
-        ]
+        ],
+        requiredPlacement: 'held',
+        allowedInteractions: ['holding', 'two-hand-hold', 'presenting']
     },
     'Tech Clean Studio': {
         id: 'tech-clean-studio',
@@ -113,7 +123,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'No lifestyle props',
             'No shadows noise',
             'Edges must be extremely sharp'
-        ]
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none']
     },
     'Luxury Editorial Tabletop': {
         id: 'luxury-editorial-tabletop',
@@ -132,7 +144,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'No messy composition',
             'Natural shadows required',
             'Product must anchor the scene'
-        ]
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none', 'cropped-hand', 'resting-interaction']
     },
     'Soft Wellness Morning': {
         id: 'soft-wellness-morning',
@@ -151,7 +165,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'No harsh light',
             'No saturated colors',
             'Soft shadows only'
-        ]
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none', 'holding', 'resting-interaction']
     },
     'Golden Hour Lifestyle': {
         id: 'golden-hour-lifestyle',
@@ -170,7 +186,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'No overexposure',
             'Skin tones must remain natural',
             'Label readability mandatory'
-        ]
+        ],
+        requiredPlacement: 'held',
+        allowedInteractions: ['holding', 'presenting', 'two-hand-hold']
     },
     'Outdoor Energy Boost': {
         id: 'outdoor-energy-boost',
@@ -189,7 +207,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'No motion blur',
             'Product must remain sharp',
             'Outdoor scale realism enforced'
-        ]
+        ],
+        requiredPlacement: 'held',
+        allowedInteractions: ['holding', 'two-hand-hold']
     },
     'Pastel Picnic': {
         id: 'pastel-picnic',
@@ -208,7 +228,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'No strong contrast',
             'Pastel palette only',
             'No clutter'
-        ]
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none', 'cropped-hand', 'resting-interaction']
     },
     'Candy Gradient Lab': {
         id: 'candy-gradient-lab',
@@ -227,7 +249,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'No realistic environments',
             'Gradient must remain smooth',
             'Product edges must stay sharp'
-        ]
+        ],
+        requiredPlacement: 'air',
+        allowedInteractions: ['none']
     },
     'Hero Landing Page': {
         id: 'hero-landing-page',
@@ -246,7 +270,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Mandatory negative space for copy',
             'No props allowed',
             'Single product focal point'
-        ]
+        ],
+        requiredPlacement: 'any',
+        allowedInteractions: ['none']
     },
     'Color Pop Hero': {
         id: 'color-pop-hero',
@@ -265,7 +291,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Background must be high-saturation',
             'No environment props',
             'Controlled contrast'
-        ]
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none']
     },
     'Ingredient Stack': {
         id: 'ingredient-stack',
@@ -284,7 +312,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Ingredients must be visible and stack-oriented',
             'Scientific precision required',
             'No lifestyle clutter'
-        ]
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none']
     },
     'Ingredient Flat Lay': {
         id: 'ingredient-flat-lay',
@@ -303,7 +333,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Strict top-down perspective',
             'Clean spacing between items',
             'Natural material textures'
-        ]
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none']
     },
     'Acrylic Blocks': {
         id: 'acrylic-blocks',
@@ -322,7 +354,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Acrylic blocks must be primary props',
             'Controlled refractions mandatory',
             'No soft lifestyle elements'
-        ]
+        ],
+        requiredPlacement: 'supported',
+        allowedInteractions: ['none']
     },
     'Glass Pedestal Studio': {
         id: 'glass-pedestal-studio',
@@ -341,7 +375,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Glass pedestal must be visible',
             'Transparency effects mandatory',
             'Product stays as hero'
-        ]
+        ],
+        requiredPlacement: 'supported',
+        allowedInteractions: ['none']
     },
     'Splash Shot': {
         id: 'splash-shot',
@@ -360,7 +396,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Mid-air droplets required',
             'Frozen motion effect',
             'High clarity in liquid physics'
-        ]
+        ],
+        requiredPlacement: 'air',
+        allowedInteractions: ['none']
     },
     'Foam & Texture': {
         id: 'foam-and-texture',
@@ -379,7 +417,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Focus on material texture (foam/gel)',
             'Macro depth of field',
             'Pristine details'
-        ]
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none']
     },
     'Routine Carousel': {
         id: 'routine-carousel',
@@ -398,7 +438,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Clean visual hierarchy',
             'Consistent background across shots',
             'Ecommerce ready'
-        ]
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none', 'cropped-hand']
     },
     'Clinical Lab Counter': {
         id: 'clinical-lab-counter',
@@ -417,7 +459,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Lab equipment must be subtle and clean',
             'No dramatic lighting',
             'Authentic scientific feel'
-        ]
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none', 'cropped-hand']
     },
     'Golden Mist Aura': {
         id: 'golden-mist-aura',
@@ -436,6 +480,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Mist must be soft and golden',
             'No harsh shadows',
             'Label remains readable through mist'
-        ]
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none']
     }
 };

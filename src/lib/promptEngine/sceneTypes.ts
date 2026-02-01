@@ -36,6 +36,7 @@ export interface ProductSetup {
 export interface CompositionRules {
     quantity: number;
     arrangement: string;
+    interactionType: 'none' | 'passive-presence' | 'cropped-hand' | 'supported-hold' | 'holding' | 'two-hand-hold' | 'presenting' | 'framed-presentation' | 'applying-opening' | 'capsule-display' | 'resting-interaction';
     interactionObjects: string[];
 }
 
@@ -106,6 +107,7 @@ export interface DeterministicPromptInput {
     sceneType: SceneType;
     productSetup: ProductSetup;
     compositionRules: CompositionRules;
+    placement?: import('../productStudio/types').ProductPlacement;
     environment: EnvironmentConfig;
     lighting: LightingConfig;
     creativity: CreativityConfig;

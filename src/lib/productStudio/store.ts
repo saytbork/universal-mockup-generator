@@ -44,6 +44,7 @@ import type {
     PhotoModeConfigPatch,
     PhotoMode,
     PhotoModeConfig,
+    ProductPlacement,
 } from './types';
 
 
@@ -612,6 +613,8 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     ingredientLayout: 'grounded',
     interaction: 'none',
     proMode: false,
+    placement: 'surface',
+    viewpoint: 'eye-level',
     lens: '50mm Product Prime',
     lightingRig: 'Softbox Wrap',
     finish: 'High-Gloss Commercial',
@@ -757,6 +760,8 @@ type ProductStudioActions = {
     setInteraction: (interaction: ProductStudioState['interaction']) => void;
     setStateMotion: (motion: ProductStateMotion) => void;
     setProMode: (enabled: boolean) => void;
+    setPlacement: (placement: ProductPlacement) => void;
+    setViewpoint: (viewpoint: string) => void;
     setLens: (lens: string) => void;
     setLightingRig: (rig: string) => void;
     setFinish: (finish: string) => void;
@@ -1734,11 +1739,17 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 };
             }
 
-            return {
+            const updates: Partial<ProductStudioState> = {
                 interaction: effectiveInteraction,
                 handsHolding: effectiveInteraction !== 'none',
                 definition: applyCanonicalPhysicalForMotion(state.definition, state.stateMotion),
             };
+
+            if (effectiveInteraction !== 'none') {
+                updates.placement = 'held';
+            }
+
+            return updates;
         }),
     setStateMotion: (motion) =>
         set((state) => {
@@ -1753,6 +1764,29 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             return next;
         }),
     setProMode: (enabled) => set({ proMode: enabled }),
+    setViewpoint: (viewpoint) => set({ viewpoint }),
+    setPlacement: (placement) =>
+        set((state) => {
+            const next: Partial<ProductStudioState> = { placement };
+
+            // Auto-sync interaction based on placement physics
+            if (placement === 'held') {
+                // If moving to Held, ensure an interaction that involves hands is active
+                if (!['supported-hold', 'holding', 'two-hand-hold', 'presenting', 'framed-presentation', 'applying-opening', 'capsule-display', 'resting-interaction'].includes(state.interaction)) {
+                    next.interaction = 'holding';
+                    next.handsHolding = true;
+                }
+            } else {
+                // Surface, Supported, Air (Neutralized Gravity)
+                // If moving away from Held, clear active holding interactions
+                if (['supported-hold', 'holding', 'two-hand-hold', 'presenting', 'framed-presentation', 'applying-opening', 'capsule-display'].includes(state.interaction)) {
+                    next.interaction = 'none';
+                    next.handsHolding = false;
+                }
+            }
+
+            return next;
+        }),
     setLens: (lens) =>
         set((state) => {
             const next: Partial<ProductStudioState> = { lens };

@@ -3,7 +3,7 @@ import {
   SlidersHorizontal, User, Activity, Scissors, Smile, Eye, Sparkles,
   Sun, Camera, Rotate3d, Layout, Hand, Smartphone, Shirt, Layers, Film,
   Home, MapPin, Coffee, Utensils, Car, Waves, Mountain, Building2, Edit3, Heart, Check,
-  AlertTriangle
+  AlertTriangle, Box
 } from 'lucide-react';
 import {
   LIGHTING_OPTIONS,
@@ -17,7 +17,7 @@ import type { EcommerceSlotKey, EcommerceSlotsConfig } from '@/lib/ecommerceOver
 import { Chip } from './ui/Chip';
 import { Toggle } from './ui/Toggle';
 import { useProductStudioStore, PREBUILT_BUNDLES, BRAND_PRESETS } from '@/lib/productStudio/store';
-import type { ProductStudioState, CameraAngle, CameraDistance, CameraRotation, CameraFraming, CreativeTheme, PaletteSource, PropDensity, BlankSpaceSide, EnvironmentMacro, Lighting, ProductType, MicroPlace, CompositionMode, SurfaceBase, ProductScale, ProductSpacing, LightStyle, NegativeSpace, IngredientStackLayout, ProductStateMotion } from '@/lib/productStudio/types';
+import type { ProductStudioState, CameraAngle, CameraDistance, CameraRotation, CameraFraming, CreativeTheme, PaletteSource, PropDensity, BlankSpaceSide, EnvironmentMacro, Lighting, ProductType, ProductPlacement, MicroPlace, CompositionMode, SurfaceBase, ProductScale, ProductSpacing, LightStyle, NegativeSpace, IngredientStackLayout, ProductStateMotion, PhotoMode } from '@/lib/productStudio/types';
 import { validateProductStudioState } from '@/lib/productStudio/validator';
 import { normalizeOption } from '../system/normalizeOptions';
 import { PHOTO_MODE_SCHEMAS } from '@/lib/productStudio/photoModeSchema';
@@ -202,6 +202,7 @@ interface LifestyleStep3Props {
 }
 
 export interface Step3Values {
+  placement?: ProductPlacement;
   // Creator/Person
   age: number; // Numeric age (18-90)
   noPerson: boolean;
@@ -1815,6 +1816,36 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     }
   }, [values.ecommerceBackgroundColor, updateValue]);
 
+  // ============================================================================
+  // GATING LOGIC (Placement as Mandatory Physics Decision)
+  // ============================================================================
+  const isInteractionAllowedFromPlacement = useCallback((interactionValue: string) => {
+    const p = productStore.placement;
+    if (p === 'held') {
+      // Must be a human hold
+      return !['none', 'passive-presence', 'cropped-hand'].includes(interactionValue);
+    }
+    // Surface, Supported, Air
+    // Disallow active holds (where they are in the air)
+    return ['none', 'passive-presence', 'cropped-hand', 'resting-interaction'].includes(interactionValue);
+  }, [productStore.placement]);
+
+  const isAngleAllowedFromPlacement = useCallback((angleValue: string) => {
+    const p = productStore.placement;
+    if (angleValue === 'top' || angleValue === 'Top-down flat lay') {
+      return p === 'surface'; // Flat lay usually implies surface
+    }
+    return true;
+  }, [productStore.placement]);
+
+  const isPhotoModeAllowedFromPlacement = useCallback((mode: string) => {
+    const p = productStore.placement;
+    if (mode === 'Hero Landing Page' || mode === 'Minimal Bathroom Vanity') return p === 'surface';
+    if (mode === 'Glass Pedestal Studio' || mode === 'Acrylic Blocks') return p === 'supported';
+    if (mode === 'Splash Shot' || mode === 'Falling Objects') return p === 'air';
+    return true;
+  }, [productStore.placement]);
+
   const PRODUCT_TYPE_OPTIONS: Array<NonNullable<Step3Values['productType']>> = [
     'Capsules',
     'Gummies',
@@ -2164,6 +2195,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 <button
                                   key={mode}
                                   onClick={() => {
+                                    // Auto-adjust placement based on mandatory physics
+                                    if (['Acrylic Blocks', 'Glass Pedestal Studio'].includes(mode)) {
+                                      productStore.setPlacement('supported');
+                                    } else if (['Splash Shot'].includes(mode)) {
+                                      productStore.setPlacement('air');
+                                    } else if (['Hero Landing Page', 'Minimal Bathroom Vanity', 'Ingredient Flat Lay'].includes(mode)) {
+                                      productStore.setPlacement('surface');
+                                    }
+
                                     productStore.setPhotoMode(mode);
                                     markSectionTouched('product-setup');
                                   }}
@@ -4453,13 +4493,53 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       </SmoothAccordion>
 
 
-      {/* BRAND LOOK SYSTEM (Phase 1) */}
+      {/* 05 / PRODUCT PLACEMENT (Section 05 of Deterministic Prompt) */}
+      <SmoothAccordion
+        icon={Box}
+        title="05 / Product Placement"
+        tooltip="Mandatory Physics Decision: Resolve product placement before environment or camera."
+        isOpen={openAccordionId === 'product-placement'}
+        onToggle={() => toggleSection('product-placement')}
+        isTouched={touchedSections.has('product-placement')}
+        iconClassName="text-blue-600 dark:text-blue-300"
+        variant="secondary"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-500">
+            Mandatory physics decision: determine how the product is supported in space.
+          </p>
+          <div className={SECTION_GROUP_CLASS}>
+            <p className={GROUP_LABEL_CLASS}>PHYSICAL PLACEMENT</p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { id: 'surface', label: 'Surface', desc: 'Rests on a physical surface' },
+                { id: 'held', label: 'Held', desc: 'Held by human hands' },
+                { id: 'supported', label: 'Supported', desc: 'On a stand or tray' },
+                { id: 'air', label: 'Air / Suspended', desc: 'Abstract studio air' }
+              ].map(opt => (
+                <Chip
+                  key={opt.id}
+                  onClick={() => {
+                    productStore.setPlacement(opt.id as any);
+                    markSectionTouched('product-placement');
+                  }}
+                  selected={productStore.placement === opt.id}
+                  tooltip={opt.desc}
+                >
+                  {opt.label}
+                </Chip>
+              ))}
+            </div>
+          </div>
+        </div>
+      </SmoothAccordion>
+
       {/* Brand Look System must be fully hidden whenever Photo Mode is active. */}
       {
         productStore.environmentContext != null && (
           <SmoothAccordion
             icon={Layers}
-            title="05 / Brand Look System"
+            title="Brand Look System"
             tooltip="Apply a brand-wide visual baseline (defaults)"
             isOpen={openAccordionId === 'brand-look'}
             onToggle={() => toggleSection('brand-look')}
@@ -4500,7 +4580,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         productStore.environmentContext != null && (
           <SmoothAccordion
             icon={Sparkles}
-            title="06 / Creative Direction"
+            title="Creative Direction"
             tooltip="Primary visual decisions. Safe to experiment."
             isOpen={openAccordionId === 'product-creativity'}
             onToggle={() => toggleSection('product-creativity')}
@@ -4827,7 +4907,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         productStore.environmentContext != null && (
           <SmoothAccordion
             icon={MapPin}
-            title="07 / Environment"
+            title="Environment Settings"
             tooltip="Place the product into a real setting. Product-only, no people."
             isOpen={openAccordionId === 'product-environment'}
             onToggle={() => toggleSection('product-environment')}
@@ -5058,7 +5138,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
       <SmoothAccordion
         icon={Hand}
-        title="08 / Product Interaction"
+        title="06 / Product Interaction"
         tooltip={`Product interaction.\nOne interaction per scene.`}
         isOpen={openAccordionId === 'product-interaction'}
         onToggle={() => toggleSection('product-interaction')}
@@ -5084,13 +5164,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   { value: 'resting-interaction', label: 'Resting Interaction', detail: 'Product rests against hand/wrist. Passive contact.' },
                 ] as const
               ).map(option => {
-                const disabled =
-                  option.value === 'capsule-display' && productStore.definition.type !== 'capsules';
+                const isCapsuleRestricted = option.value === 'capsule-display' && productStore.definition.type !== 'capsules';
                 return (
                   <Chip
                     key={option.value}
                     onClick={() => {
-                      if (disabled) return;
+                      if (isCapsuleRestricted) return;
+
+                      // Auto-switch to 'held' if selecting a holding interaction
+                      if (!['none', 'passive-presence', 'cropped-hand'].includes(option.value)) {
+                        productStore.setPlacement('held');
+                      }
+
                       productStore.setInteraction(option.value as any);
                       productStore.setHandsHolding(option.value !== 'none');
                       updateValue('productStudioInteraction', option.value as any);
@@ -5098,7 +5183,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       markSectionTouched('product-interaction');
                     }}
                     selected={productStore.interaction === (option.value as any)}
-                    disabled={disabled}
+                    disabled={isCapsuleRestricted}
                     tooltip={option.detail}
                   >
                     {option.label}
@@ -5133,6 +5218,54 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           </div>
         </div>
       </SmoothAccordion>
+
+      {/* ============================================================================
+           07 / VIEWPOINT & VANTAGE (v1.0 SPEC PLACEHOLDER)
+           Auto-configured based on Product Placement and Interaction.
+           ============================================================================ */}
+      <SmoothAccordion
+        icon={Eye}
+        title="07 / Viewpoint & Vantage"
+        tooltip="Define the physical point of view relative to the product. This is NOT camera or lens."
+        isOpen={openAccordionId === 'viewpoint-vantage'}
+        onToggle={() => toggleSection('viewpoint-vantage')}
+        isTouched={touchedSections.has('viewpoint-vantage')}
+        variant="secondary"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-500">
+            Determines whether the scene is viewed from eye-level, top-down, aerial, or product-level perspective.
+          </p>
+          <p className="text-xs text-amber-600 dark:text-amber-400">
+            Auto-configured based on Product Placement and Interaction. Manual overrides coming in v1.1.
+          </p>
+          <div className={SECTION_GROUP_CLASS}>
+            <p className={GROUP_LABEL_CLASS}>CURRENT VIEWPOINT</p>
+            <div className="flex flex-wrap gap-2">
+              {(['eye-level', 'top-down', 'human-pov', 'suspended', 'display-view'] as const).map(vp => (
+                <Chip
+                  key={vp}
+                  selected={productStore.viewpoint === vp}
+                  onClick={() => {
+                    productStore.setViewpoint(vp);
+                    markSectionTouched('viewpoint-vantage');
+                  }}
+                  disabled={!productStore.placement}
+                >
+                  {vp.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                </Chip>
+              ))}
+            </div>
+          </div>
+        </div>
+      </SmoothAccordion>
+
+      {/* ============================================================================
+           08 / PHOTO MODE
+           Photo Mode is currently part of Product Setup (01). Per v1.0 spec, it should
+           be positioned after Viewpoint & Vantage. This is a placeholder indicating 
+           the conceptual position - actual Photo Mode controls remain in 01.
+           ============================================================================ */}
 
       <SmoothAccordion
         icon={Camera}
@@ -5182,6 +5315,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   <Chip
                     key={option}
                     onClick={() => {
+                      // Auto-switch to surface for flat lays
+                      if (option === 'Top-down flat lay') {
+                        productStore.setPlacement('surface');
+                      }
+
                       updateValue('productCameraAngle', option as any);
                       const angleMap: Record<string, ProductStudioState['angle']> = {
                         'Eye level product': 'front',
@@ -5293,9 +5431,41 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         </div>
       </SmoothAccordion>
 
+      {/* ============================================================================
+           10 / LIGHTING (v1.0 SPEC PLACEHOLDER)
+           Lighting is currently derived from Photo Mode.
+           Manual overrides will be available in v1.1.
+           ============================================================================ */}
+      <SmoothAccordion
+        icon={Sun}
+        title="10 / Lighting"
+        tooltip="Lighting behavior and mood. Currently derived from Photo Mode."
+        isOpen={openAccordionId === 'lighting'}
+        onToggle={() => toggleSection('lighting')}
+        isTouched={touchedSections.has('lighting')}
+        variant="secondary"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-500">
+            Lighting is currently derived from Photo Mode.
+          </p>
+          <p className="text-xs text-amber-600 dark:text-amber-400">
+            Manual overrides will be available in v1.1.
+          </p>
+          <div className={SECTION_GROUP_CLASS}>
+            <p className={GROUP_LABEL_CLASS}>CURRENT LIGHTING</p>
+            <div className="flex flex-wrap gap-2">
+              <Chip selected disabled>
+                {productStore.lightingRig || 'Auto (from Photo Mode)'}
+              </Chip>
+            </div>
+          </div>
+        </div>
+      </SmoothAccordion>
+
       <SmoothAccordion
         icon={Building2}
-        title="10 / Ecommerce Image Builder (BETA)"
+        title="11 / Ecommerce Image Builder (BETA)"
         tooltip={`Ecommerce builder.\nBeta feature.`}
         isOpen={openAccordionId === 'ecommerce'}
         onToggle={() => toggleSection('ecommerce')}
