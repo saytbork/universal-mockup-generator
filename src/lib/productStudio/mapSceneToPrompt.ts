@@ -240,7 +240,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   if (isHeroLandingPage) {
     scene = buildStudioHeroScene(sceneInput);
     const parts = [
-      'HERO LANDING PAGE (LOCKED): Brand-first studio hero module.',
+      'HERO LANDING PAGE (LOCKED): Brand-first studio advertising hero module.',
       'Background is derived from the product brand colors with zero creative randomness.',
       'No environment. No props. No interactions. No bundles.',
       scene,

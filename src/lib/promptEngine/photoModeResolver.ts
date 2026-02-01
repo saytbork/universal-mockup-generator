@@ -26,6 +26,33 @@ import type { PhotoMode as ProductStudioPhotoMode } from '../productStudio/types
 
 export type PhotoMode = ProductStudioPhotoMode;
 
+const PHOTO_MODE_FORBIDDEN_TERMS = [
+    'human',
+    'person',
+    'people',
+    'hands',
+    'hand',
+    'ugc',
+    'lifestyle',
+    'selfie',
+    'model',
+    'holding',
+    'presenting',
+    'grip'
+];
+
+const stripUgcToken = (text: string): string =>
+    text.replace(/\bugc\b/gi, '').replace(/\s+/g, ' ').trim();
+
+const findForbiddenPhotoModeTerm = (text: string): string | null => {
+    const lower = text.toLowerCase();
+    for (const term of PHOTO_MODE_FORBIDDEN_TERMS) {
+        const regex = new RegExp(`\\b${term}\\b`, 'i');
+        if (regex.test(lower)) return term;
+    }
+    return null;
+};
+
 export type ProductType =
     | 'Capsules'
     | 'Drops'
@@ -232,16 +259,16 @@ const PHOTO_MODE_CONTROL_FLAGS: Record<string, PhotoModeControlFlags> = {
         cameraLocked: false
     },
 
-    // Lifestyle modes
     'Luxury Editorial Tabletop': {
         propsAllowed: true,
         environmentAllowed: true,
-        humansAllowed: true,
+        humansAllowed: false,
         motionAllowed: false,
         bundlesAllowed: true,
         cameraLocked: false
     },
 
+    // Lifestyle atmosphere modes
     'Soft Wellness Morning': {
         propsAllowed: true,
         environmentAllowed: true,
@@ -428,8 +455,6 @@ For each selected environment:
 - Apply its environment mood as a base
 - Respect lighting, surface, and camera constraints
 - Do NOT alter product geometry or label
-- Any visible interaction elements must follow physical realism rules
-- If hands are present, they must show natural pressure, proportion, and realistic surface detail
 
 Do not invent settings outside the provided schema.
 If a setting is missing, do not assume it.
@@ -485,7 +510,7 @@ export function buildPhotoModePrompt(
 
     // Step 2: Get schema and base prompt
     const schema = PHOTO_MODE_SCHEMAS[photoMode];
-    const basePrompt = schema?.basePrompt || '';
+    let basePrompt = schema?.basePrompt || '';
 
     if (!basePrompt) {
         console.warn(`[Photo Mode] No base prompt found for "${photoMode}"`);
@@ -507,21 +532,42 @@ export function buildPhotoModePrompt(
         });
     }
 
-    const modifiers = modifierParts.join(', ');
-
     // Add constraints from options and schema
     const allConstraints = [...(options.constraints || []), ...(schema?.constraints || [])];
     if (allConstraints.length > 0) {
         modifierParts.push(`Strict Constraints: ${allConstraints.join('. ')}`);
     }
 
-    const finalModifiers = modifierParts.join(', ');
+    let finalModifiers = modifierParts.join(', ');
+
+    if (photoMode === 'UGC Premium Simulation') {
+        basePrompt = stripUgcToken(basePrompt);
+        finalModifiers = stripUgcToken(finalModifiers);
+    }
 
     // Add Mega Prompt instructions if it's an environment mode or has environment flags
     const isEnvironmentMode = schema?.type === 'environment' || PHOTO_MODE_CONTROL_FLAGS[photoMode]?.environmentAllowed;
     const finalBasePrompt = isEnvironmentMode
         ? `${basePrompt}\nINSTRUCTIONS:\n${PHOTO_MODE_MEGA_PROMPT}`
         : basePrompt;
+
+    const forbiddenTerm = findForbiddenPhotoModeTerm(`${finalBasePrompt} ${finalModifiers}`);
+    if (forbiddenTerm) {
+        return {
+            basePrompt: '',
+            modifiers: '',
+            controlFlags: PHOTO_MODE_CONTROL_FLAGS[photoMode] || {
+                propsAllowed: false,
+                environmentAllowed: false,
+                humansAllowed: false,
+                motionAllowed: false,
+                bundlesAllowed: false,
+                cameraLocked: true
+            },
+            isValid: false,
+            validationErrors: [`Photo Mode "${photoMode}" contains forbidden term "${forbiddenTerm}"`]
+        };
+    }
 
     // Step 4: Get control flags
     const controlFlags = PHOTO_MODE_CONTROL_FLAGS[photoMode] || {
@@ -564,6 +610,7 @@ export function getAllPhotoModes(): PhotoMode[] {
         'Foam & Texture',
         'Routine Carousel',
         'Clinical Lab Counter',
+        'Golden Mist Aura',
         'Minimal Bathroom Vanity',
         'Dark Premium Studio',
         'Monochrome Brand',

@@ -4,14 +4,14 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
     'Minimal Bathroom Vanity': {
         id: 'minimal-bathroom-vanity',
         label: 'Minimal Bathroom Vanity',
-        type: 'environment',
-        description: 'Clean modern bathroom countertop with soft daylight and minimal props.',
-        basePrompt: 'minimal bathroom vanity photography, clean countertop with subtle bathroom context, soft natural light through window, premium spa-like aesthetic',
+        type: 'studio',
+        description: 'Bathroom-inspired advertising surface with clean materials.',
+        basePrompt: 'clean bathroom-inspired advertising surface, neutral materials like stone ceramic and glass, minimal elements, calm wellness-oriented atmosphere',
         settingsSchema: {
             environmentMood: ['clean', 'spa-like', 'minimal'],
             lighting: ['soft window daylight', 'diffused overhead'],
             surfaceBackground: ['stone vanity', 'ceramic counter'],
-            subjectPresence: ['none', 'cropped hand'],
+            subjectPresence: ['none'],
             cameraBias: ['eye-level', 'slight top-down']
         },
         constraints: [
@@ -20,15 +20,15 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Scale must remain realistic for bathroom surfaces'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none', 'cropped-hand', 'resting-interaction'],
-        allowsPersonPresence: true
+        allowedInteractions: ['none', 'cropped-hand'],
+        allowsPersonPresence: false
     },
     'Dark Premium Studio': {
         id: 'dark-premium-studio',
         label: 'Dark Premium Studio',
-        type: 'environment',
-        description: 'High-end dark studio with controlled highlights and luxury mood.',
-        basePrompt: 'dark premium studio photography, low-key lighting with dramatic shadows, luxury high-contrast composition, moody editorial aesthetic',
+        type: 'studio',
+        description: 'Low-key premium advertising studio with controlled highlights.',
+        basePrompt: 'low-key premium advertising studio, dark background with controlled highlights, product edges remain clearly defined',
         settingsSchema: {
             environmentMood: ['luxury', 'dramatic', 'editorial'],
             lighting: ['rim light', 'soft key + shadow fill'],
@@ -48,9 +48,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
     'Monochrome Brand': {
         id: 'monochrome-brand-world',
         label: 'Monochrome Brand',
-        type: 'environment',
-        description: 'Single-color brand-driven environment.',
-        basePrompt: 'monochrome brand world photography, single-color abstraction using brand color, editorial tonal composition, controlled monochromatic gradient',
+        type: 'studio',
+        description: 'Single-color brand advertising environment.',
+        basePrompt: 'single-color brand world advertising composition, all elements remain within one color family, graphic minimal brand-driven abstraction',
         settingsSchema: {
             environmentMood: ['calm', 'brand-focused', 'modern'],
             lighting: ['even studio light', 'soft gradient light'],
@@ -70,14 +70,14 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
     'Brand Campaign': {
         id: 'brand-campaign-world',
         label: 'Brand Campaign',
-        type: 'environment',
-        description: 'Large-scale lifestyle campaign environment.',
-        basePrompt: 'hero brand campaign photography, high-end commercial set with architectural geometry, premium material interplay and depth, aspirational advertising aesthetic, sophisticated spatial composition',
+        type: 'studio',
+        description: 'High-end brand campaign advertising environment.',
+        basePrompt: 'high-end brand campaign advertising environment, architectural composition with premium materials, aspirational controlled hero-focused scene',
         settingsSchema: {
             environmentMood: ['aspirational', 'confident', 'campaign-ready'],
             lighting: ['natural daylight', 'cinematic soft light'],
-            surfaceBackground: ['abstract set', 'lifestyle surface'],
-            subjectPresence: ['none', 'cropped hand', 'holding'],
+            surfaceBackground: ['abstract set', 'campaign surface'],
+            subjectPresence: ['none'],
             cameraBias: ['hero angle', 'slight wide']
         },
         constraints: [
@@ -86,28 +86,28 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'No clutter competing with product'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none', 'cropped-hand', 'holding', 'presenting'],
+        allowedInteractions: ['none', 'cropped-hand'],
         allowsPersonPresence: false
     },
     'UGC Premium Simulation': {
         id: 'ugc-premium-simulation',
         label: 'UGC Premium Simulation',
         type: 'environment',
-        description: 'High-quality UGC-style realism with controlled imperfections.',
-        basePrompt: 'premium UGC-style photography, high-quality smartphone aesthetic with intentional framing, natural lived-in environment with soft window light, authentic brand-focused realism, casual yet elevated product presentation',
+        description: 'Premium casual realism simulation with controlled imperfections.',
+        basePrompt: 'advertising composition inspired by casual realism, natural imperfections in lighting and framing, still polished controlled and brand-safe, no personal context or subject presence',
         settingsSchema: {
             environmentMood: ['natural', 'authentic', 'everyday'],
             lighting: ['window light', 'indoor ambient'],
             surfaceBackground: ['home table', 'bedside surface'],
-            subjectPresence: ['holding', 'two-hand hold'],
+            subjectPresence: ['none'],
             cameraBias: ['phone eye-level', 'slight tilt']
         },
         constraints: [
-            'Visible hand pressure required',
-            'No mannequin hands',
+            'Controlled imperfections only',
+            'No personal context cues',
             'No studio-perfect lighting'
         ],
-        requiredPlacement: 'held',
+        requiredPlacement: 'surface',
         allowedInteractions: ['holding', 'two-hand-hold', 'presenting'],
         allowsPersonPresence: true
     },
@@ -115,8 +115,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         id: 'tech-clean-studio',
         label: 'Tech Clean Studio',
         type: 'environment',
-        description: 'Ultra-clean tech-focused studio environment.',
-        basePrompt: 'minimalist tech studio photography, pristine surfaces with clinical precision, sharp focus and clean digital-ready borders, professional hardware commercial aesthetic, balanced high-key lighting',
+        description: 'Technology-driven advertising studio with precision surfaces.',
+        basePrompt: 'technology-driven advertising studio, precision surfaces clean geometry cool neutral tones, modern minimal performance-oriented atmosphere',
         settingsSchema: {
             environmentMood: ['precise', 'clinical', 'modern'],
             lighting: ['flat diffused', 'top softbox'],
@@ -125,25 +125,25 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             cameraBias: ['orthographic feel', 'centered']
         },
         constraints: [
-            'No lifestyle props',
+            'No casual props',
             'No shadows noise',
             'Edges must be extremely sharp'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none'],
+        allowedInteractions: ['none', 'cropped-hand'],
         allowsPersonPresence: false
     },
     'Luxury Editorial Tabletop': {
         id: 'luxury-editorial-tabletop',
         label: 'Luxury Editorial Tabletop',
         type: 'environment',
-        description: 'Magazine-style tabletop editorial composition.',
-        basePrompt: 'luxury editorial tabletop photography, premium surface with curated styling, aspirational lifestyle context, controlled depth of field',
+        description: 'Luxury editorial tabletop advertising composition.',
+        basePrompt: 'luxury editorial tabletop advertising composition, premium surface materials with curated supporting props, product remains the focal point',
         settingsSchema: {
             environmentMood: ['editorial', 'luxury', 'crafted'],
             lighting: ['directional soft light', 'editorial contrast'],
             surfaceBackground: ['wood grain', 'stone slab'],
-            subjectPresence: ['none', 'cropped hand'],
+            subjectPresence: ['none'],
             cameraBias: ['45-degree hero', 'rule of thirds']
         },
         constraints: [
@@ -152,20 +152,20 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Product must anchor the scene'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none', 'cropped-hand', 'resting-interaction'],
+        allowedInteractions: ['none'],
         allowsPersonPresence: false
     },
     'Soft Wellness Morning': {
         id: 'soft-wellness-morning',
         label: 'Soft Wellness Morning',
         type: 'environment',
-        description: 'Morning wellness vibe with calm natural light.',
-        basePrompt: 'soft wellness morning photography, gentle natural light through window, calm bedroom or kitchen counter, aspirational wellness routine aesthetic',
+        description: 'Soft wellness-inspired advertising atmosphere with diffused light.',
+        basePrompt: 'soft wellness-inspired advertising atmosphere, diffused light calm tones gentle material textures, clean serene product-first composition',
         settingsSchema: {
             environmentMood: ['calm', 'warm', 'wellness'],
             lighting: ['morning window light', 'soft haze'],
             surfaceBackground: ['linen fabric', 'light wood'],
-            subjectPresence: ['none', 'holding'],
+            subjectPresence: ['none'],
             cameraBias: ['eye-level', 'slight top-down']
         },
         constraints: [
@@ -174,42 +174,42 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Soft shadows only'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none', 'holding', 'resting-interaction'],
+        allowedInteractions: ['none', 'holding', 'two-hand-hold', 'presenting'],
         allowsPersonPresence: true
     },
     'Golden Hour Lifestyle': {
         id: 'golden-hour-lifestyle',
         label: 'Golden Hour Lifestyle',
         type: 'environment',
-        description: 'Warm golden-hour lifestyle lighting.',
-        basePrompt: 'golden hour lifestyle photography, warm sunset light with natural glow, outdoor or window-lit environment, aspirational brand-safe composition',
+        description: 'Warm advertising lighting inspired by golden-hour tones.',
+        basePrompt: 'warm advertising lighting inspired by golden-hour tones, soft directional glow and natural color warmth, studio-controlled environment with aspirational mood',
         settingsSchema: {
             environmentMood: ['warm', 'aspirational', 'natural'],
             lighting: ['golden hour sunlight'],
             surfaceBackground: ['outdoor table', 'window ledge'],
-            subjectPresence: ['holding', 'presenting'],
+            subjectPresence: ['none'],
             cameraBias: ['backlit hero', 'slight wide']
         },
         constraints: [
             'No overexposure',
-            'Skin tones must remain natural',
+            'Color tones must remain natural',
             'Label readability mandatory'
         ],
-        requiredPlacement: 'held',
-        allowedInteractions: ['holding', 'presenting', 'two-hand-hold'],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none', 'holding', 'two-hand-hold', 'presenting'],
         allowsPersonPresence: true
     },
     'Outdoor Energy Boost': {
         id: 'outdoor-energy-boost',
         label: 'Outdoor Energy Boost',
         type: 'environment',
-        description: 'Dynamic outdoor environment conveying energy.',
-        basePrompt: 'outdoor energy boost photography, bright natural sunlight with greenery bokeh, clean outdoor surface, fresh vibrant lifestyle aesthetic',
+        description: 'Fresh, energetic advertising atmosphere inspired by outdoor light.',
+        basePrompt: 'fresh energetic advertising atmosphere inspired by outdoor light, bright highlights crisp contrast dynamic framing, studio-controlled environment with vitality cues',
         settingsSchema: {
             environmentMood: ['energetic', 'fresh', 'active'],
             lighting: ['natural daylight'],
             surfaceBackground: ['stone bench', 'outdoor surface'],
-            subjectPresence: ['holding', 'active grip'],
+            subjectPresence: ['none'],
             cameraBias: ['low angle', 'dynamic crop']
         },
         constraints: [
@@ -217,21 +217,21 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Product must remain sharp',
             'Outdoor scale realism enforced'
         ],
-        requiredPlacement: 'held',
-        allowedInteractions: ['holding', 'two-hand-hold'],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none', 'holding', 'two-hand-hold', 'presenting'],
         allowsPersonPresence: true
     },
     'Pastel Picnic': {
         id: 'pastel-picnic',
         label: 'Pastel Picnic',
         type: 'environment',
-        description: 'Soft pastel outdoor picnic environment.',
-        basePrompt: 'pastel picnic photography, soft outdoor blanket with warm golden-hour light, gentle lens flare and background bokeh, curated picnic props and fresh fruit',
+        description: 'Pastel-toned advertising composition with soft palette.',
+        basePrompt: 'pastel-toned advertising composition, soft color palette with playful balance, graphic clean brand-safe environment',
         settingsSchema: {
             environmentMood: ['playful', 'light', 'pastel'],
             lighting: ['overcast daylight'],
             surfaceBackground: ['fabric blanket', 'light wood'],
-            subjectPresence: ['none', 'cropped hand'],
+            subjectPresence: ['none'],
             cameraBias: ['top-down', 'eye-level']
         },
         constraints: [
@@ -240,15 +240,15 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'No clutter'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none', 'cropped-hand', 'resting-interaction'],
+        allowedInteractions: ['none', 'holding', 'two-hand-hold', 'presenting'],
         allowsPersonPresence: true
     },
     'Candy Gradient Lab': {
         id: 'candy-gradient-lab',
         label: 'Candy Gradient Lab',
         type: 'environment',
-        description: 'Playful lab-like environment with candy gradients.',
-        basePrompt: 'candy gradient lab photography, playful premium gradient background, modern reflections and clean geometric forms, high saturation with controlled polish',
+        description: 'Studio gradient lab environment with candy-like colors.',
+        basePrompt: 'studio gradient background with candy-like color transitions, smooth blends and controlled saturation, clean abstraction with physical grounding',
         settingsSchema: {
             environmentMood: ['playful', 'experimental', 'colorful'],
             lighting: ['even studio light'],
@@ -269,8 +269,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         id: 'hero-landing-page',
         label: 'Hero Landing Page',
         type: 'studio',
-        description: 'Clean high-end studio composition for hero sections.',
-        basePrompt: 'hero product photography, clean high-end studio composition, minimalist commercial aesthetic, large intentional negative space for copy, product isolated as the sole focal point, luxury ecommerce advertising style',
+        description: 'Hero product advertising composition for landing pages.',
+        basePrompt: 'hero product photography for landing page use, clean premium advertising composition with strong negative space, product positioned for copy-safe layout, no props competing with the product, high clarity high contrast label fully readable',
         settingsSchema: {
             environmentMood: ['minimalist', 'clean', 'luxury'],
             lighting: ['studio softbox', 'rim light'],
@@ -291,8 +291,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         id: 'color-pop-hero',
         label: 'Color Pop Hero',
         type: 'studio',
-        description: 'Bold color pop studio photography with high-saturation backgrounds.',
-        basePrompt: 'bold color pop studio photography, high-saturation background derived from brand colors, modern DTC advertising aesthetic, smooth cyclorama with controlled contrast',
+        description: 'Bold single-color advertising composition.',
+        basePrompt: 'bold advertising composition driven by a single dominant color, smooth tonal background with controlled saturation, no textures no gradients unless monochromatic, product silhouette remains the visual anchor',
         settingsSchema: {
             environmentMood: ['vibrant', 'bold', 'modern'],
             lighting: ['high-key studio', 'pop light'],
@@ -313,8 +313,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         id: 'ingredient-stack',
         label: 'Ingredient Stack',
         type: 'studio',
-        description: 'Editorial exploded ingredient stack photography.',
-        basePrompt: 'ingredient-focused product photography, editorial exploded ingredient stack, clear separation and depth planes, scientific yet premium visual language',
+        description: 'Ingredient-focused advertising composition with grounded elements.',
+        basePrompt: 'realistic ingredients placed manually around the product, ingredients scaled correctly and physically grounded, editorial advertising arrangement clean and intentional, ingredients rest on the same surface as the product',
         settingsSchema: {
             environmentMood: ['scientific', 'premium', 'editorial'],
             lighting: ['precise highlights', 'diffused fill'],
@@ -325,7 +325,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         constraints: [
             'Ingredients must be visible and stack-oriented',
             'Scientific precision required',
-            'No lifestyle clutter'
+            'No casual clutter'
         ],
         requiredPlacement: 'surface',
         allowedInteractions: ['none'],
@@ -335,8 +335,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         id: 'ingredient-flat-lay',
         label: 'Ingredient Flat Lay',
         type: 'studio',
-        description: 'Overhead ingredient flat lay wellness composition.',
-        basePrompt: 'overhead ingredient flat lay photography, editorial wellness composition, clean material textures and spacing, top-down perspective with controlled shadows',
+        description: 'Top-down advertising flat lay with precise spacing.',
+        basePrompt: 'top-down advertising flat lay composition, product and ingredients arranged with precise spacing, zenith camera angle only, graphic clean editorial balance',
         settingsSchema: {
             environmentMood: ['wellness', 'calm', 'organized'],
             lighting: ['even top-down', 'soft shadows'],
@@ -357,8 +357,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         id: 'acrylic-blocks',
         label: 'Acrylic Blocks',
         type: 'studio',
-        description: 'High-end studio photography using acrylic geometric blocks.',
-        basePrompt: 'high-end studio photography using acrylic blocks, geometric premium composition, controlled reflections and refractions, museum-like luxury aesthetic',
+        description: 'Acrylic block advertising setup with controlled reflections.',
+        basePrompt: 'product staged on transparent or frosted acrylic blocks, geometric advertising setup with controlled reflections, clean edges sharp surfaces premium studio feel',
         settingsSchema: {
             environmentMood: ['museum-like', 'geometric', 'luxury'],
             lighting: ['prismatic highlights', 'controlled reflections'],
@@ -369,7 +369,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         constraints: [
             'Acrylic blocks must be primary props',
             'Controlled refractions mandatory',
-            'No soft lifestyle elements'
+            'No soft domestic elements'
         ],
         requiredPlacement: 'supported',
         allowedInteractions: ['none'],
@@ -379,8 +379,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         id: 'glass-pedestal-studio',
         label: 'Glass Pedestal Studio',
         type: 'studio',
-        description: 'Product elevated on sculptural glass pedestal.',
-        basePrompt: 'premium editorial product photography, product elevated on sculptural glass pedestal, museum-like luxury composition, controlled reflections and transparency',
+        description: 'Glass pedestal advertising studio composition.',
+        basePrompt: 'product elevated on a glass pedestal, subtle reflections and optical depth, luxury advertising studio composition',
         settingsSchema: {
             environmentMood: ['sophisticated', 'elevated', 'minimal'],
             lighting: ['backlit glass', 'soft rim light'],
@@ -401,8 +401,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         id: 'splash-shot',
         label: 'Splash Shot',
         type: 'studio',
-        description: 'High-speed splash photography with realistic liquid physics.',
-        basePrompt: 'high-speed splash photography, realistic liquid physics frozen mid-action, premium skincare and beverage advertising style, controlled water dynamics',
+        description: 'High-speed liquid splash advertising composition.',
+        basePrompt: 'dynamic liquid splash surrounding the product, high-speed advertising photography aesthetic, product remains fully readable and physically plausible',
         settingsSchema: {
             environmentMood: ['dynamic', 'refreshing', 'high-speed'],
             lighting: ['strobe lighting', 'sparkling highlights'],
@@ -423,8 +423,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         id: 'foam-and-texture',
         label: 'Foam & Texture',
         type: 'studio',
-        description: 'Macro texture-focused sensory photography.',
-        basePrompt: 'macro texture-focused photography, sensory material detail emphasis, editorial beauty aesthetic, controlled foam and gel elements',
+        description: 'Macro texture-focused advertising composition.',
+        basePrompt: 'macro-focused texture-driven advertising composition, foam or surface textures arranged around the product, shallow depth of field with premium material detail',
         settingsSchema: {
             environmentMood: ['sensory', 'macro', 'tactile'],
             lighting: ['grazing light', 'texture emphasis'],
@@ -445,13 +445,13 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         id: 'routine-carousel',
         label: 'Routine Carousel',
         type: 'studio',
-        description: 'Multi-step routine presentation for ecommerce carousels.',
-        basePrompt: 'multi-step routine presentation, clear visual hierarchy, ecommerce carousel-ready composition, repeatable styling across SKUs',
+        description: 'Multi-position advertising sequence for carousel layouts.',
+        basePrompt: 'multi-position product sequence on the same surface, consistent lighting and scale across frames, advertising repetition with controlled variation',
         settingsSchema: {
             environmentMood: ['organized', 'consistent', 'professional'],
             lighting: ['even fill', 'repeatable setup'],
             surfaceBackground: ['neutral shelf', 'studio counter'],
-            subjectPresence: ['none', 'cropped hand'],
+            subjectPresence: ['none'],
             cameraBias: ['eye-level consistent']
         },
         constraints: [
@@ -460,20 +460,20 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Ecommerce ready'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none', 'cropped-hand'],
+        allowedInteractions: ['none'],
         allowsPersonPresence: false
     },
     'Clinical Lab Counter': {
         id: 'clinical-lab-counter',
         label: 'Clinical Lab Counter',
         type: 'studio',
-        description: 'Scientific trust-driven environment with lab equipment.',
-        basePrompt: 'clinical laboratory product photography, scientific trust-driven environment, precise and minimal composition, sterile counter surfaces and subtle equipment',
+        description: 'Clinical laboratory-inspired advertising environment.',
+        basePrompt: 'clinical laboratory-inspired advertising environment, sterile counter surface with subtle scientific cues, trust-driven clean precise composition',
         settingsSchema: {
             environmentMood: ['sterile', 'precise', 'trusted'],
             lighting: ['clinical softbox', 'even fluorescent'],
             surfaceBackground: ['stainless steel', 'white lab counter'],
-            subjectPresence: ['none', 'gloved hand'],
+            subjectPresence: ['none'],
             cameraBias: ['standard eye-level']
         },
         constraints: [
@@ -482,15 +482,15 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Authentic scientific feel'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none', 'cropped-hand'],
+        allowedInteractions: ['none'],
         allowsPersonPresence: false
     },
     'Golden Mist Aura': {
         id: 'golden-mist-aura',
         label: 'Golden Mist Aura',
         type: 'studio',
-        description: 'Warm golden mist aura with soft radiant glow.',
-        basePrompt: 'premium product photography with soft golden mist aura, radiant radiant glow, warm atmospheric lighting, luxurious moody composition',
+        description: 'Atmospheric advertising studio lighting with subtle haze.',
+        basePrompt: 'atmospheric advertising studio lighting, subtle haze for depth separation, soft highlights no hard shadows, label clarity remains mandatory',
         settingsSchema: {
             environmentMood: ['calm', 'luxurious', 'radiant'],
             lighting: ['backlit mist', 'golden hour studio'],

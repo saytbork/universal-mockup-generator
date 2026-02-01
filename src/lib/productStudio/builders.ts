@@ -41,8 +41,51 @@ const FORBIDDEN_TERMS = [
     'ugc', 'user-generated', 'candid', 'hand', 'hands', 'face',
 ];
 
+const REQUIRED_CLOSING_PHRASE =
+    'The scene must contain only the product and environmental elements. No people, no visible body parts, no human presence unless explicitly defined by Product Interaction.';
+
+const STRIP_TERMS_WHEN_NO_INTERACTION = [
+    'hand',
+    'hands',
+    'holding',
+    'presenting',
+    'person',
+    'people',
+    'human'
+];
+
+function stripTermsFromText(text: string, terms: string[]): string {
+    let next = text;
+    for (const term of terms) {
+        const regex = new RegExp(`\\b${term}\\b`, 'gi');
+        next = next.replace(regex, '');
+    }
+    return next
+        .replace(/\s+/g, ' ')
+        .replace(/,\s*,/g, ',')
+        .replace(/\s+\./g, '.')
+        .trim();
+}
+
+function stripForbiddenTermsExceptClosing(prompt: string, terms: string[]): string {
+    if (prompt.includes(REQUIRED_CLOSING_PHRASE)) {
+        const parts = prompt.split(REQUIRED_CLOSING_PHRASE);
+        const head = stripTermsFromText(parts[0] ?? '', terms);
+        return `${head.trim()} ${REQUIRED_CLOSING_PHRASE}`.trim();
+    }
+    return stripTermsFromText(prompt, terms);
+}
+
+function appendClosingPhrase(prompt: string): string {
+    if (prompt.includes(REQUIRED_CLOSING_PHRASE)) return prompt;
+    const trimmed = prompt.trim();
+    const spacer = trimmed.endsWith('.') ? ' ' : '. ';
+    return `${trimmed}${spacer}${REQUIRED_CLOSING_PHRASE}`.trim();
+}
+
 export function validatePrompt(prompt: string, options?: { allowHands?: boolean }): void {
     const lower = prompt.toLowerCase();
+    const scrubbed = lower.split(REQUIRED_CLOSING_PHRASE.toLowerCase()).join(' ');
     for (const term of FORBIDDEN_TERMS) {
         // Product Studio can optionally allow a cropped hand interaction.
         // When allowed, we only relax the "hand(s)" filter; people/faces/bodies remain blocked.
@@ -50,7 +93,7 @@ export function validatePrompt(prompt: string, options?: { allowHands?: boolean 
             continue;
         }
         const regex = new RegExp(`\\b${term}\\b`, 'i');
-        if (regex.test(lower)) {
+        if (regex.test(scrubbed)) {
             console.error(`[PROMPT BLOCKED] "${term}" found in: ...${prompt.slice(0, 100)}...`);
             throw new Error(`Prompt contains forbidden term: "${term}"`);
         }
@@ -1076,17 +1119,21 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
 
     segments.push(sceneResult.prompt);
     segments.push(buildProductDescription(state, product));
-    segments.push(buildLabelLock());
-    segments.push(buildStateMotion(state));
 
     if (state.interaction !== 'none' || state.handsHolding === true) {
         segments.push(buildInteraction(state));
     }
 
+    segments.push(buildLabelLock());
+    segments.push(buildStateMotion(state));
     segments.push(buildIntegrityConstraints(state));
     segments.push(buildAspectRatio(state));
 
-    const finalPrompt = enforceMotionPromptCoherence(segments.filter(Boolean).join(' '), state);
+    let finalPrompt = enforceMotionPromptCoherence(segments.filter(Boolean).join(' '), state);
+    finalPrompt = appendClosingPhrase(finalPrompt);
+    if (state.interaction === 'none' && state.handsHolding !== true) {
+        finalPrompt = stripForbiddenTermsExceptClosing(finalPrompt, STRIP_TERMS_WHEN_NO_INTERACTION);
+    }
     console.log('2. Generated Prompt Parts:', segments);
     console.log('3. FINAL PROMPT:', finalPrompt);
     console.groupEnd();
@@ -1102,19 +1149,27 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     segments.push(sceneResult.prompt);
     if (primary) {
         segments.push(buildProductDescription(state, primary));
-        segments.push(buildLabelLock());
     }
-    segments.push(buildStateMotion(state));
-    segments.push(buildBundleComposition(state));
 
     if (state.interaction !== 'none' || state.handsHolding === true) {
         segments.push(buildInteraction(state));
     }
 
+    if (primary) {
+        segments.push(buildLabelLock());
+    }
+    segments.push(buildStateMotion(state));
+    segments.push(buildBundleComposition(state));
+
     segments.push(buildIntegrityConstraints(state));
     segments.push(buildAspectRatio(state));
 
-    return enforceMotionPromptCoherence(segments.filter(Boolean).join(' '), state);
+    let finalPrompt = enforceMotionPromptCoherence(segments.filter(Boolean).join(' '), state);
+    finalPrompt = appendClosingPhrase(finalPrompt);
+    if (state.interaction === 'none' && state.handsHolding !== true) {
+        finalPrompt = stripForbiddenTermsExceptClosing(finalPrompt, STRIP_TERMS_WHEN_NO_INTERACTION);
+    }
+    return finalPrompt;
 }
 
 // ============================================================================
