@@ -3,7 +3,8 @@ import path from 'path';
 
 const repoRoot = process.cwd();
 const distDir = path.join(repoRoot, 'dist');
-const SITE_URL = process.env.SITE_URL || 'https://perfectmockup.com';
+// Canonical domain only. Avoid emitting redirecting hosts (e.g. www) or legacy domains.
+const SITE_URL = 'https://perfectmockup.com';
 
 const escapeHtml = (s) =>
   String(s)

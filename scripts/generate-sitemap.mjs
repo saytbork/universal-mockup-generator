@@ -2,7 +2,8 @@ import fs from 'fs';
 import path from 'path';
 
 const repoRoot = process.cwd();
-const SITE_URL = process.env.SITE_URL || 'https://perfectmockup.com';
+// Canonical domain only. Avoid emitting redirecting hosts (e.g. www) or legacy domains.
+const SITE_URL = 'https://perfectmockup.com';
 
 const CONTENT_DIRS = [
   { dir: path.join(repoRoot, 'src', 'content', 'blog'), prefix: '/blog' },

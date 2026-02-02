@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://boostugc.com/schemas/deterministic-prompt-input.json",
+    "$id": "https://perfectmockup.com/schemas/deterministic-prompt-input.json",
     "title": "DeterministicPromptInput",
     "description": "Input contract for the deterministic prompt engine",
     "type": "object",
