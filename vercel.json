@@ -1,36 +1,23 @@
 {
-  "routes": [
+  "redirects": [
     {
-      "src": "/(.*)",
+      "source": "/:path*",
       "has": [{ "type": "host", "value": "www.perfectmockup.com" }],
-      "status": 301,
-      "headers": {
-        "Location": "https://perfectmockup.com/$1"
-      }
+      "destination": "https://perfectmockup.com/:path*",
+      "permanent": true
     },
     {
-      "src": "/(.*)",
+      "source": "/:path*",
       "has": [{ "type": "host", "value": "boostugc.com" }],
-      "status": 301,
-      "headers": {
-        "Location": "https://perfectmockup.com/$1"
-      }
+      "destination": "https://perfectmockup.com/:path*",
+      "permanent": true
     },
     {
-      "src": "/(.*)",
+      "source": "/:path*",
       "has": [{ "type": "host", "value": "www.boostugc.com" }],
-      "status": 301,
-      "headers": {
-        "Location": "https://perfectmockup.com/$1"
-      }
-    },
-    {
-      "src": "/assets/(.*)",
-      "headers": {
-        "Cache-Control": "no-store"
-      }
-    },
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
+      "destination": "https://perfectmockup.com/:path*",
+      "permanent": true
+    }
   ]
 }
+
