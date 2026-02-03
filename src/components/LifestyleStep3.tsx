@@ -1499,14 +1499,51 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     setValues(prev => {
       const newValues = { ...prev, [key]: value };
 
+      const resolveDefaultMicroForEnvironment = (macro: string): string => {
+        switch (macro) {
+          case 'Kitchen':
+            return 'Countertop';
+          case 'Living Room':
+            return 'Coffee table';
+          case 'Bedroom':
+            return 'Dresser';
+          case 'Bathroom':
+            return 'Vanity sink';
+          case 'Workspace':
+            return 'Desk';
+          case 'Hallway':
+            return 'Entryway';
+          case 'Home Gym':
+            return 'Workout area';
+          case 'Balcony / Indoor Terrace':
+            return 'Balcony seating area';
+          case 'Urban Exterior':
+            return 'Sidewalk';
+          case 'Natural Exterior':
+            return 'Trail';
+          case 'Parking Lot':
+            return 'Parking area';
+          case 'Backyard / Patio':
+            return 'Patio seating';
+          case 'Street Corner':
+            return 'Street corner';
+          default:
+            return '';
+        }
+      };
+
       // CANONICAL SYNC: When legacy environment is updated, sync to environmentContext
       if (key === 'environment' && value) {
         const nextEnvironment = String(value as string).trim();
         if (nextEnvironment === 'Custom') {
           const custom = String(newValues.customEnvironment || '').trim();
-          newValues.environmentContext = { macro: custom || 'Custom', micro: 'Countertop' };
+          const macro = custom || 'Custom';
+          newValues.environmentContext = { macro, micro: resolveDefaultMicroForEnvironment(macro) };
         } else {
-          newValues.environmentContext = { macro: nextEnvironment, micro: 'Countertop' };
+          newValues.environmentContext = {
+            macro: nextEnvironment,
+            micro: resolveDefaultMicroForEnvironment(nextEnvironment),
+          };
         }
         console.log('[STEP3] Synced environment to environmentContext:', newValues.environmentContext);
       }
@@ -1515,10 +1552,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         const custom = String(value as string).trim();
         if (custom) {
           newValues.environment = 'Custom';
-          newValues.environmentContext = { macro: custom, micro: 'Countertop' };
+          newValues.environmentContext = { macro: custom, micro: resolveDefaultMicroForEnvironment(custom) };
         } else if (newValues.environment === 'Custom') {
           newValues.environment = 'Kitchen';
-          newValues.environmentContext = { macro: 'Kitchen', micro: 'Countertop' };
+          newValues.environmentContext = { macro: 'Kitchen', micro: resolveDefaultMicroForEnvironment('Kitchen') };
         }
         console.log('[STEP3] Synced customEnvironment to environmentContext:', newValues.environmentContext);
       }

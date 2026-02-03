@@ -1455,6 +1455,43 @@ export function mapLifestyleToPromptOptions(
     // Rule: If environmentContext.macro → use that as environment source
     const envContext = sceneState.environmentContext;
 
+    const buildUgcEnvironmentDescriptor = (macro: string, isCustom: boolean): string => {
+        if (isCustom) {
+            return `${macro} captured incidentally with lived-in clutter and no deliberate styling.`;
+        }
+        switch (macro) {
+            case 'Kitchen':
+                return 'Kitchen captured incidentally: lived-in countertop clutter, dish rack, everyday items; unstaged and low intent.';
+            case 'Living Room':
+                return 'Living Room captured incidentally: couch and coffee table visible, casual clutter, unstaged and low intent.';
+            case 'Bedroom':
+                return 'Bedroom captured incidentally: rumpled bedding or dresser items visible, lived-in clutter, unstaged and low intent.';
+            case 'Bathroom':
+                return 'Bathroom captured incidentally: vanity sink and toiletries visible, lived-in clutter, unstaged and low intent.';
+            case 'Workspace':
+                return 'Workspace captured incidentally: desk surface, laptop or papers, cable clutter, unstaged and low intent.';
+            case 'Hallway':
+                return 'Hallway captured incidentally: entryway shoes/jackets, lived-in clutter, unstaged and low intent.';
+            case 'Home Gym':
+                return 'Home Gym captured incidentally: real home exercise equipment visible (dumbbells, resistance bands, yoga mat), slightly messy and unstaged.';
+            case 'Balcony / Indoor Terrace':
+                return 'Balcony / Indoor Terrace captured incidentally: railing, small seating area or plants, unstaged and low intent.';
+            default:
+                return `${macro} captured incidentally with lived-in domestic clutter and no deliberate styling.`;
+        }
+    };
+
+    const DEFAULT_MICRO_BY_MACRO: Record<string, string> = {
+        'Kitchen': 'Countertop',
+        'Living Room': 'Coffee table',
+        'Bedroom': 'Dresser',
+        'Bathroom': 'Vanity sink',
+        'Workspace': 'Desk',
+        'Hallway': 'Entryway',
+        'Home Gym': 'Workout area',
+        'Balcony / Indoor Terrace': 'Balcony seating area',
+    };
+
     if (envContext === null) {
         // Studio mode: HARD NULL - no environment allowed
         (mapped as any).selectedEnvironment = '';
@@ -1467,7 +1504,7 @@ export function mapLifestyleToPromptOptions(
     } else if (envContext && envContext.macro) {
         // Lifestyle/UGC: Use environmentContext as source of truth
         const macro = envContext.macro;
-        const micro = envContext.micro || macro;
+        const micro = envContext.micro || '';
 
         const allowedMacroSet = new Set([
             'Kitchen',
@@ -1487,10 +1524,17 @@ export function mapLifestyleToPromptOptions(
         const isCustomMacro = !allowedMacroSet.has(macro);
 
         mapped.setting = macro;
-        // Avoid leaking indoor defaults (e.g. Countertop) into outdoor/custom environments.
-        // If user didn't provide a meaningful micro-location, prefer leaving it blank.
-        mapped.microLocation =
-            isCustomMacro && (micro === 'Countertop' || micro === macro) ? '' : micro;
+
+        const normalizedMicro = micro.trim();
+        const shouldReplaceCountertop =
+            normalizedMicro === 'Countertop' && macro !== 'Kitchen';
+        const resolvedMicro =
+            isCustomMacro
+                ? ''
+                : shouldReplaceCountertop || !normalizedMicro
+                    ? (DEFAULT_MICRO_BY_MACRO[macro] ?? '')
+                    : normalizedMicro;
+        mapped.microLocation = resolvedMicro;
         (mapped as any).sceneEnvironment = macro;
         mapped.environmentOrder = macro;
         (mapped as any).selectedEnvironment = isCustomMacro ? 'Custom' : macro;
@@ -1508,8 +1552,7 @@ export function mapLifestyleToPromptOptions(
                 console.error('[INVALID STATE BLOCKED] Outdoor environments are disabled in UGC');
                 throw new Error('Invalid state: outdoor environment selected in UGC');
             }
-            const descriptorTarget = isCustomMacro ? 'lived-in clutter' : 'lived-in domestic clutter';
-            (mapped as any).sceneEnvironmentDescriptor = `${macro} captured incidentally with ${descriptorTarget} and no deliberate styling.`;
+            (mapped as any).sceneEnvironmentDescriptor = buildUgcEnvironmentDescriptor(macro, isCustomMacro);
         }
 
         console.log('[MAP] environmentContext:', { macro, micro }, '→ setting:', mapped.setting);
