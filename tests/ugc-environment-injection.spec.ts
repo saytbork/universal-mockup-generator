@@ -87,3 +87,32 @@ test('UGC Holding avoids hero presentation and enforces hand safety', () => {
   expect(String(mapped.personDetails?.productInteraction)).toMatch(/no interlaced fingers/i);
   expect(String(mapped.personDetails?.productInteraction)).toMatch(/No hands in frame/i);
 });
+
+test('Lifestyle (non-UGC) Holding includes Lifestyle Hand Safety rules', () => {
+  const mapped = mapLifestyleToPromptOptions(
+    {
+      sceneIntent: 'environment',
+      creationIntent: 'brand',
+      creationMode: 'Aesthetic Builder',
+      compositionMode: '',
+      noPerson: false,
+      sameCreatorAcrossScenes: false,
+
+      ugcRealMode: false,
+      environment: 'Home Gym',
+      customEnvironment: '',
+      productInteraction: 'Holding',
+
+      age: 30,
+      gender: 'Female',
+      timeOfDay: 'Afternoon',
+      lightingStyle: 'Natural',
+    } as any,
+    {},
+    false
+  ) as any;
+
+  expect(String(mapped.personDetails?.productInteraction)).toMatch(/LIFESTYLE HAND SAFETY \(CRITICAL\)/i);
+  expect(String(mapped.personDetails?.productInteraction)).toMatch(/Never show two hands/i);
+  expect(String(mapped.personDetails?.productInteraction)).toMatch(/No triangle grip/i);
+});

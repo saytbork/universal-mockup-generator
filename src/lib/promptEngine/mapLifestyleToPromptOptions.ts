@@ -555,6 +555,36 @@ const INTERACTION_SEMANTIC_MAP: Record<string, string> = {
 const UGC_HAND_SAFETY_RULE =
     'HAND SAFETY (CRITICAL): Avoid any complex finger poses. No interlaced fingers, no fingertip-to-fingertip framing, no symmetric “triangle grip”. If hands appear, show at most one hand, keep fingers mostly hidden behind the product, allow partial crop, and keep a relaxed natural grip. Hands must be anatomically correct (5 fingers), natural proportions, no deformations.';
 
+const LIFESTYLE_HAND_SAFETY_RULE = [
+    'LIFESTYLE HAND SAFETY (CRITICAL):',
+    'Maximum one hand visible.',
+    'Never show two hands.',
+    'Only relaxed natural grip.',
+    'No symmetric poses.',
+    'No triangle grip.',
+    'No fingertip-to-fingertip framing.',
+    'Hand may be partially cropped.',
+    'Hands must be anatomically correct (5 fingers).',
+    'No extra fingers.',
+    'No missing fingers.',
+    'No twisted joints.',
+    'No CGI, doll, or AI hands.',
+].join(' ');
+
+function isHandInteractionLabel(label: string): boolean {
+    const normalized = String(label || '').trim().toLowerCase();
+    return (
+        normalized === 'holding' ||
+        normalized === 'presenting' ||
+        normalized === 'showing to camera' ||
+        normalized === 'placing on surface' ||
+        normalized === 'using' ||
+        normalized === 'applying' ||
+        normalized === 'unboxing' ||
+        normalized === 'unboxing / open box'
+    );
+}
+
 function resolveUgcInteractionSemantic(label: string, usage?: string): string {
     const normalized = String(label || '').trim();
     const base = (() => {
@@ -1085,12 +1115,12 @@ export function mapLifestyleToPromptOptions(
             FACIAL_EXPRESSION_MAP[expressionLabel] || FACIAL_EXPRESSION_MAP['Calm & Serene'];
         mapped.personDetails.facialExpression = expressionSemantic;
 
-        const eyeDirectionLabel = sceneState.eyeDirection || 'Looking at camera';
-        // Expose the UI label for legacy/lifestyle builders that read top-level eyeDirection.
-        mapped.eyeDirection = eyeDirectionLabel as any;
-        mapped.personDetails.eyeDirection =
-            EYE_DIRECTION_SEMANTIC_MAP[eyeDirectionLabel] || eyeDirectionLabel as any;
-        if (sceneState.productInteraction) {
+    const eyeDirectionLabel = sceneState.eyeDirection || 'Looking at camera';
+    // Expose the UI label for legacy/lifestyle builders that read top-level eyeDirection.
+    mapped.eyeDirection = eyeDirectionLabel as any;
+    mapped.personDetails.eyeDirection =
+        EYE_DIRECTION_SEMANTIC_MAP[eyeDirectionLabel] || eyeDirectionLabel as any;
+    if (sceneState.productInteraction) {
             const interactionText = isUGCRealMode
                 ? resolveUgcInteractionSemantic(sceneState.productInteraction, sceneState.productUsageDescription)
                 : (() => {
@@ -1100,12 +1130,15 @@ export function mapLifestyleToPromptOptions(
                     if (sceneState.productInteraction === 'Using' && sceneState.productUsageDescription) {
                         interactionParts.push(sceneState.productUsageDescription.trim());
                     }
+                    if (isHandInteractionLabel(sceneState.productInteraction)) {
+                        interactionParts.push(LIFESTYLE_HAND_SAFETY_RULE);
+                    }
                     return interactionParts.filter(Boolean).join(' ');
                 })();
-            if (mapped.personCount === 'couple') {
-                mapped.personDetails.productInteraction = [
-                    'COUPLE INTERACTION RULE: Only Person A interacts actively with the product.',
-                    'Person B remains supportive and passive (no contact with the product).',
+        if (mapped.personCount === 'couple') {
+            mapped.personDetails.productInteraction = [
+                'COUPLE INTERACTION RULE: Only Person A interacts actively with the product.',
+                'Person B remains supportive and passive (no contact with the product).',
                     `Person A: ${interactionText}.`
                 ].join(' ');
             } else {
