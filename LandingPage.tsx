@@ -566,12 +566,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
       if (checkoutEmail) {
         targetUrl.searchParams.set('prefilled_email', checkoutEmail);
       }
-      if (selectedPlan.metadata) {
-        targetUrl.searchParams.set(
-          'client_reference_id',
-          `${selectedPlan.metadata.plan}-${selectedPlan.metadata.credits}`
-        );
-      }
       window.open(targetUrl.toString(), '_blank', 'noopener,noreferrer');
       handleCloseCheckout();
     } catch (err) {
