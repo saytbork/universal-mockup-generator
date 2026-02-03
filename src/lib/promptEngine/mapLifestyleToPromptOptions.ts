@@ -473,6 +473,9 @@ const FRAMING_SEMANTIC_MAP: Record<string, string> = {
     'Spontaneous': 'spontaneous imperfect framing with natural cropping, slightly off-kilter authentic composition'
 };
 
+const LIFESTYLE_9X16_VERTICAL_FILL_RULE =
+    'VERTICAL FILL RULE (CRITICAL): The subject must occupy at least 85–90% of the vertical frame height. The head should be positioned close to the top edge of the frame. Feet may be partially cropped if necessary. No excessive empty space above or below the subject.';
+
 /**
  * TIME OF DAY → Physical light characteristics and atmosphere
  */
@@ -1977,6 +1980,35 @@ export function mapLifestyleToPromptOptions(
     };
     mapped.aspectRatio = aspectRatioMap[sceneState.aspectRatio] || '1:1';
     console.log('[MAP] aspectRatio:', sceneState.aspectRatio, '→', mapped.aspectRatio);
+
+    // ========================================================================
+    // LIFESTYLE 9:16 → Vertical Fill Override (non-UGC only)
+    // ========================================================================
+    // Prevent composition conflicts that shrink the subject vertically in portrait.
+    // Scope: Lifestyle (non-UGC) only. Do not touch UGC behavior.
+    const isLifestyleNonUgc9x16 =
+        isEnvironmentSceneIntent &&
+        mapped.aspectRatio === '9:16' &&
+        sceneState.ugcRealMode !== true &&
+        mapped.ugcRealModeActive !== true;
+
+    if (isLifestyleNonUgc9x16) {
+        // Remove any strict head-to-toe requirement.
+        const shot = String(mapped.cameraShot || '').trim();
+        if (/(head\s*to\s*toe|full[- ]length)/i.test(shot)) {
+            mapped.cameraShot =
+                'vertical portrait framing with strong vertical fill; feet may be partially cropped if necessary; no full-length framing requirement';
+        }
+
+        // Prevent "balanced negative space" from being interpreted as top/bottom headroom in 9:16.
+        const perspective = String(mapped.perspective || '').trim();
+        if (perspective) {
+            mapped.perspective = perspective
+                .replace(/balanced negative space/gi, 'balanced lateral negative space (left/right) only; minimal headroom');
+        }
+
+        (mapped as any).verticalFillRule = LIFESTYLE_9X16_VERTICAL_FILL_RULE;
+    }
 
     // ========================================================================
     // FORMULATION STORY (Restored)

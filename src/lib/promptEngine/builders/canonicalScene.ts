@@ -438,6 +438,15 @@ export class SceneNarrativeBuilder {
             return undefined;
         }
 
+        const isProductMode =
+            options.creationIntent === 'product' ||
+            options.contentStyle === 'product' ||
+            options.sceneIntent === 'ecommerce';
+        const isLifestyle9x16 = !isProductMode && String(options.aspectRatio || '').trim() === '9:16';
+        const heroCanvasPortraitOverride = isLifestyle9x16
+            ? 'HERO CANVAS OVERRIDE (9:16): Prioritize vertical fill. Do NOT shrink the subject to create negative space. Negative space must be lateral only; keep head near the top edge. Feet may be partially cropped if needed.'
+            : '';
+
         const isEcommerceBlankSpaceMode =
             Boolean(
                 options.ecommerceBlankSpaceMode ||
@@ -458,7 +467,7 @@ export class SceneNarrativeBuilder {
                     : '';
 
         if (!isEcommerceBlankSpaceMode) {
-            return [placement, copySpace].filter(Boolean).join(' ');
+            return [heroCanvasPortraitOverride, placement, copySpace].filter(Boolean).join(' ');
         }
 
         const aspectRatio = String(options.aspectRatio || '1:1').trim() || '1:1';
@@ -472,13 +481,16 @@ export class SceneNarrativeBuilder {
                 ? `Background: neutral solid ${options.bgColor}. The overlay-safe ${oppositeSide} must remain visually uniform with no vignettes, no texture noise, and no contrast shifts.`
                 : `Background: neutral solid. The overlay-safe ${oppositeSide} must remain visually uniform with no vignettes, no texture noise, and no contrast shifts.`;
 
+        const overlaySafePercent = isLifestyle9x16 ? 25 : 40;
+
         return [
             'OVERLAY-READY ECOMMERCE PDP CANVAS (NON-NEGOTIABLE): This image is a product canvas intended to receive overlays later. Do not generate any text, typography, icons, badges, captions, UI elements, frames, borders, arrows, or graphic marks.',
             `Output: ${aspectRatio} aspect ratio. High resolution. Clean edges. Product fully visible and tack sharp. No motion blur.`,
             'Camera: straight-on or slight 3/4 angle only. No dramatic angles. No dutch angles. No wide-angle distortion.',
+            heroCanvasPortraitOverride,
             placement,
             copySpace,
-            `OVERLAY-SAFE ZONE (CRITICAL): The clean ${oppositeSide} side must contain NO objects, NO props, NO highlights, NO reflections, NO shadows, and NO gradients that reduce contrast. Keep it empty and overlay-safe. At least 40% of the frame width must remain clean negative space on the overlay-safe side.`,
+            `OVERLAY-SAFE ZONE (CRITICAL): The clean ${oppositeSide} side must contain NO objects, NO props, NO highlights, NO reflections, NO shadows, and NO gradients that reduce contrast. Keep it empty and overlay-safe. At least ${overlaySafePercent}% of the frame width must remain clean negative space on the overlay-safe side.`,
             backgroundCopy,
             'Lighting: soft studio lighting with even exposure and neutral white balance. No harsh shadows. Any contact shadow must stay near the product and must not drift into the overlay-safe zone.',
             'Props: only allowed if minimal and only on the product side. No visual noise near the overlay-safe zone.',
@@ -535,6 +547,10 @@ export class SceneNarrativeBuilder {
         }
         if (!suppressCameraDescriptors && options.cameraShot) {
             parts.push(`Shot type: ${options.cameraShot}.`);
+        }
+        const verticalFillRule = String((options as any).verticalFillRule || '').trim();
+        if (verticalFillRule) {
+            parts.push(verticalFillRule);
         }
         if (constraints) {
             parts.push(constraints);
