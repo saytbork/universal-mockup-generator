@@ -105,8 +105,8 @@ function buildEnvironmentScene(state: ProductStudioState, randomizer: ReturnType
   })();
 
   const environmentAccents = {
-    kitchen: ['clean ceramic dish near the edge of frame', 'subtle linen cloth folded nearby', 'soft morning reflections on stone'],
-    bathroom: ['clean folded towel texture in background', 'subtle steam haze near tiles', 'ceramic tray partially visible'],
+    kitchen: ['minimal glass accent near the edge of frame', 'clean acrylic riser nearby', 'soft morning reflections on stone'],
+    bathroom: ['minimal glass accent in background', 'subtle steam haze near tiles', 'clean stone accent partially visible'],
     workspace: ['minimal notebook corner peeking in', 'soft desk lamp glow from side', 'muted stationery kept out of focus'],
     'cgmp-facility': ['stainless steel highlights and clean machinery surfaces', 'guide rails and clean line geometry', 'industrial clean-room reflections'],
     'urban-exterior': ['soft bokeh of buildings in distance', 'muted street texture far from product', 'subtle daylight reflections on concrete'],
@@ -160,13 +160,13 @@ const PHOTO_MODE_MAP: Record<string, PhotoModeKey> = {
 };
 
 const SECONDARY_PROPS_BY_MODE: Partial<Record<PhotoModeKey, string[]>> = {
-  HERO_NEUTRAL: ['minimal ceramic dish', 'clean linen fold', 'subtle glass accent'],
+  HERO_NEUTRAL: ['minimal glass accent', 'clean acrylic riser', 'small stone block'],
   COLOR_POP_HERO: ['geometric color blocks', 'polished acrylic accent', 'abstract color panel'],
   INGREDIENT_STACK: ['fresh botanicals', 'sliced citrus', 'herbal leaves', 'clean powders'],
   ACRYLIC_BLOCKS: ['additional acrylic risers', 'prismatic edge accents'],
   SPLASH_SHOT: ['minimal liquid surface ripples', 'controlled droplets around the base'],
   FOAM_AND_TEXTURE: ['controlled foam clusters', 'gel ribbons', 'micro-bubbles'],
-  ROUTINE_CAROUSEL: ['simple glassware', 'minimal ceramic tray', 'soft paper elements'],
+  ROUTINE_CAROUSEL: ['simple glassware', 'clean acrylic tray', 'soft paper elements'],
   CLINICAL_LAB_COUNTER: ['clean glassware silhouettes', 'stainless tools', 'measured droppers'],
   GOLDEN_MIST_AURA: ['soft golden haze', 'delicate reflective accents'],
   CANDY_GRADIENT_LAB: ['transparent lab forms', 'gradient panels', 'polished geometric props'],

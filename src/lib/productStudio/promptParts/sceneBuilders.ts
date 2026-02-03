@@ -54,7 +54,7 @@ export function buildHeroNeutralScene({ randomizer, backgroundColor, gradientEna
     'matte plaster',
     'brushed stone',
     'soft ceramic',
-    'linen-wrapped surface',
+    'polished acrylic',
   ];
   const accents = [
     'subtle shadow gradients along the background plane',
@@ -198,7 +198,7 @@ export function buildRoutineCarouselScene({ randomizer }: SceneBuildInput): stri
     'morning ritual setup with minimal props',
     'repeatable routine scene with consistent surfaces',
   ];
-  const props = ['folded linen', 'simple glassware', 'minimal ceramic dish', 'soft paper elements'];
+  const props = ['simple glassware', 'small stone block', 'clean acrylic tray', 'soft paper elements'];
 
   return [
     'Everyday wellness routine scene with natural composition.',
@@ -209,12 +209,12 @@ export function buildRoutineCarouselScene({ randomizer }: SceneBuildInput): stri
 }
 
 export function buildPastelPicnicScene({ randomizer }: SceneBuildInput): string {
-  const textiles = ['pastel textile layers', 'soft picnic blanket textures', 'muted gingham fabric'];
+  const setPieces = ['pastel color panels', 'soft gradient planes', 'muted geometric blocks'];
   const props = ['fresh fruit slices', 'delicate glassware', 'sunlit petals'];
 
   return [
-    'Outdoor pastel environment with soft textiles and natural props.',
-    `Set includes ${randomizer.pick(textiles)} and ${randomizer.pick(props)}.`,
+    'Outdoor pastel environment with clean, brand-safe set styling.',
+    `Set includes ${randomizer.pick(setPieces)} and ${randomizer.pick(props)}.`,
     'Diffused daylight with premium editorial styling.'
   ].join(' ');
 }

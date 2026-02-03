@@ -14,8 +14,8 @@ export function buildMaterials(mode: PhotoModeKey, randomizer: Randomizer): stri
 
   const modeSpecific: Partial<Record<PhotoModeKey, string[]>> = {
     HERO_NEUTRAL: [
-      'Matte plaster, stone, or ceramic surfaces with subtle grain.',
-      'Soft textile accents with refined weave texture.'
+      'Matte plaster, stone, or concrete surfaces with subtle grain.',
+      'Rigid studio accents only: glass, metal, acrylic, and stone.'
     ],
     COLOR_POP_HERO: [
       'Glossy lacquer panels paired with matte surfaces for contrast.',
@@ -38,8 +38,8 @@ export function buildMaterials(mode: PhotoModeKey, randomizer: Randomizer): stri
       'Surface detail visible without obscuring the product.'
     ],
     ROUTINE_CAROUSEL: [
-      'Everyday materials like linen, ceramic, and brushed wood.',
-      'Clean, believable household textures.'
+      'Studio-safe materials only: glass, acrylic, stone, and coated metal surfaces.',
+      'Clean, rigid materials with controlled reflections and no soft props.'
     ],
     CLINICAL_LAB_COUNTER: [
       'Sterile lab materials: stainless, glass, and matte polymers.',

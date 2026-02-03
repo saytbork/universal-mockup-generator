@@ -211,8 +211,8 @@ const PHOTO_MODE_CONTROL_FLAGS: Record<string, PhotoModeControlFlags> = {
     },
 
     'Minimal Bathroom Vanity': {
-        propsAllowed: true,
-        environmentAllowed: true,    // Bathroom context
+        propsAllowed: false,
+        environmentAllowed: false,
         humansAllowed: false,
         motionAllowed: false,
         bundlesAllowed: true,
@@ -237,7 +237,7 @@ const PHOTO_MODE_CONTROL_FLAGS: Record<string, PhotoModeControlFlags> = {
         cameraLocked: false
     },
     'Brand Campaign': {
-        propsAllowed: true,
+        propsAllowed: false,
         environmentAllowed: false,
         humansAllowed: false,
         motionAllowed: false,
@@ -245,9 +245,9 @@ const PHOTO_MODE_CONTROL_FLAGS: Record<string, PhotoModeControlFlags> = {
         cameraLocked: false
     },
     'UGC Premium Simulation': {
-        propsAllowed: true,
-        environmentAllowed: true,
-        humansAllowed: true,
+        propsAllowed: false,
+        environmentAllowed: false,
+        humansAllowed: false,
         motionAllowed: false,
         bundlesAllowed: true,
         cameraLocked: false
@@ -262,8 +262,8 @@ const PHOTO_MODE_CONTROL_FLAGS: Record<string, PhotoModeControlFlags> = {
     },
 
     'Luxury Editorial Tabletop': {
-        propsAllowed: true,
-        environmentAllowed: true,
+        propsAllowed: false,
+        environmentAllowed: false,
         humansAllowed: false,
         motionAllowed: false,
         bundlesAllowed: true,
@@ -272,9 +272,9 @@ const PHOTO_MODE_CONTROL_FLAGS: Record<string, PhotoModeControlFlags> = {
 
     // Lifestyle atmosphere modes
     'Soft Wellness Morning': {
-        propsAllowed: true,
-        environmentAllowed: true,
-        humansAllowed: true,
+        propsAllowed: false,
+        environmentAllowed: false,
+        humansAllowed: false,
         motionAllowed: false,
         bundlesAllowed: true,
         cameraLocked: false
@@ -290,9 +290,9 @@ const PHOTO_MODE_CONTROL_FLAGS: Record<string, PhotoModeControlFlags> = {
     },
 
     'Outdoor Energy Boost': {
-        propsAllowed: true,
-        environmentAllowed: true,
-        humansAllowed: true,
+        propsAllowed: false,
+        environmentAllowed: false,
+        humansAllowed: false,
         motionAllowed: false,
         bundlesAllowed: true,
         cameraLocked: false

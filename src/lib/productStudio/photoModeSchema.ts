@@ -15,7 +15,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         constraints: [
             'Mandatory negative space for copy',
             'No props allowed',
-            'Single product focal point'
+            'Single product focal point',
+            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
         ],
         requiredPlacement: 'any',
         allowedInteractions: ['none'],
@@ -35,7 +36,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         constraints: [
             'Background must be high-saturation',
             'No environment props',
-            'Controlled contrast'
+            'Controlled contrast',
+            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
         ],
         requiredPlacement: 'surface',
         allowedInteractions: ['none'],
@@ -56,7 +58,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         constraints: [
             'Ingredients must be visible and stack-oriented',
             'Scientific precision required',
-            'No casual clutter'
+            'No casual clutter',
+            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
         ],
         requiredPlacement: 'surface',
         allowedInteractions: ['none'],
@@ -69,7 +72,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         description: 'Top-down advertising flat lay with precise spacing.',
         basePrompt: 'top-down advertising flat lay composition with precise spacing, clean editorial balance, organized ingredient arrangement',
         subOptions: [
-            { key: 'surfaceType', label: 'Surface Type', values: ['Paper', 'Stone', 'Textile'] },
+            { key: 'surfaceType', label: 'Surface Type', values: ['Paper', 'Stone', 'Acrylic'] },
             { key: 'spacingRhythm', label: 'Spacing Rhythm', values: ['Tight', 'Balanced', 'Wide'] },
             { key: 'shadowPresence', label: 'Shadow Presence', values: ['Soft', 'Minimal', 'Defined'] },
             { key: 'cameraAngle', label: 'Camera Angle', values: ['Top-down'] },
@@ -77,7 +80,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         constraints: [
             'Strict top-down perspective',
             'Clean spacing between items',
-            'Natural material textures'
+            'Natural material textures',
+            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
         ],
         requiredPlacement: 'surface',
         allowedInteractions: ['none'],
@@ -97,7 +101,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         constraints: [
             'Acrylic blocks must be primary props',
             'Controlled refractions mandatory',
-            'No soft domestic elements'
+            'No soft domestic elements',
+            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
         ],
         requiredPlacement: 'supported',
         allowedInteractions: ['none'],
@@ -117,7 +122,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         constraints: [
             'Glass pedestal must be visible',
             'Transparency effects mandatory',
-            'Product stays as hero'
+            'Product stays as hero',
+            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
         ],
         requiredPlacement: 'supported',
         allowedInteractions: ['none'],
@@ -138,7 +144,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         constraints: [
             'Mid-air droplets required',
             'Frozen motion effect',
-            'High clarity in liquid physics'
+            'High clarity in liquid physics',
+            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
         ],
         requiredPlacement: 'air',
         allowedInteractions: ['none'],
@@ -158,7 +165,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         constraints: [
             'Focus on material texture',
             'Macro depth of field',
-            'Pristine details'
+            'Pristine details',
+            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
         ],
         requiredPlacement: 'surface',
         allowedInteractions: ['none'],
@@ -178,7 +186,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         constraints: [
             'Clean visual hierarchy',
             'Consistent background across shots',
-            'Ecommerce ready'
+            'Ecommerce ready',
+            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
         ],
         requiredPlacement: 'surface',
         allowedInteractions: ['none'],
@@ -198,7 +207,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         constraints: [
             'Lab equipment must be subtle and clean',
             'No dramatic lighting',
-            'Authentic scientific feel'
+            'Authentic scientific feel',
+            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
         ],
         requiredPlacement: 'surface',
         allowedInteractions: ['none'],
@@ -218,7 +228,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         constraints: [
             'No crushed blacks',
             'Edges must remain readable',
-            'Label contrast must be preserved'
+            'Label contrast must be preserved',
+            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
         ],
         requiredPlacement: 'surface',
         allowedInteractions: ['none'],
@@ -238,7 +249,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         constraints: [
             'Only one color family allowed',
             'No texture noise',
-            'Product silhouette must stay dominant'
+            'Product silhouette must stay dominant',
+            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
         ],
         requiredPlacement: 'surface',
         allowedInteractions: ['none'],
@@ -258,7 +270,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         constraints: [
             'No casual props',
             'No shadow noise',
-            'Edges must be extremely sharp'
+            'Edges must be extremely sharp',
+            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
         ],
         requiredPlacement: 'surface',
         allowedInteractions: ['none'],
@@ -278,7 +291,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         constraints: [
             'No realistic environments',
             'Gradient must remain smooth',
-            'Product edges must stay sharp'
+            'Product edges must stay sharp',
+            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
         ],
         requiredPlacement: 'air',
         allowedInteractions: ['none'],
@@ -298,7 +312,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         constraints: [
             'Mist must be soft and golden',
             'No harsh shadows',
-            'Label remains readable through mist'
+            'Label remains readable through mist',
+            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
         ],
         requiredPlacement: 'surface',
         allowedInteractions: ['none'],
@@ -307,29 +322,29 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
     'Minimal Bathroom Vanity': {
         id: 'minimal-bathroom-vanity',
         label: 'Minimal Bathroom Vanity',
-        scope: 'environment',
-        description: 'Bathroom-inspired advertising surface with clean materials.',
-        basePrompt: 'clean bathroom-inspired advertising surface, neutral materials like stone ceramic and glass, minimal elements, calm wellness-oriented atmosphere',
+        scope: 'studio',
+        description: 'Minimal clean studio surface with rigid materials and controlled reflections.',
+        basePrompt: 'minimal clean advertising studio surface, rigid materials like glass metal acrylic and stone, minimal elements, controlled reflections, product-first composition',
         subOptions: [
-            { key: 'vanityStyle', label: 'Vanity Style', values: ['Modern', 'Classic', 'Minimal'] },
-            { key: 'materialTone', label: 'Material Tone', values: ['Cool', 'Neutral', 'Warm'] },
-            { key: 'lightingSource', label: 'Lighting Source', values: ['Window light', 'Soft overhead'] },
+            { key: 'surfaceStyle', label: 'Surface Style', values: ['Modern', 'Minimal'] },
+            { key: 'materialTone', label: 'Material Tone', values: ['Cool', 'Neutral'] },
+            { key: 'lightingSource', label: 'Lighting Source', values: ['Soft studio', 'Neutral studio'] },
         ],
         constraints: [
             'No cluttered backgrounds',
             'No exaggerated reflections',
-            'Scale must remain realistic for bathroom surfaces'
+            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none', 'cropped-hand'],
+        allowedInteractions: ['none'],
         allowsPersonPresence: false
     },
     'Brand Campaign': {
         id: 'brand-campaign-world',
         label: 'Brand Campaign',
-        scope: 'environment',
-        description: 'High-end brand campaign advertising environment.',
-        basePrompt: 'high-end brand campaign advertising environment, architectural composition with premium materials, aspirational controlled hero-focused scene',
+        scope: 'studio',
+        description: 'High-end brand campaign studio composition with architectural set design.',
+        basePrompt: 'high-end brand campaign advertising studio, architectural composition with premium rigid materials, controlled set design, product remains the focal point',
         subOptions: [
             { key: 'architecturalScale', label: 'Architectural Scale', values: ['Intimate', 'Grand'] },
             { key: 'materialRichness', label: 'Material Richness', values: ['Refined', 'Opulent'] },
@@ -338,38 +353,40 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         constraints: [
             'No stock-photo look',
             'Consistent brand tone',
-            'No clutter competing with product'
+            'No clutter competing with product',
+            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none', 'cropped-hand'],
+        allowedInteractions: ['none'],
         allowsPersonPresence: false
     },
     'Luxury Editorial Tabletop': {
         id: 'luxury-editorial-tabletop',
         label: 'Luxury Editorial Tabletop',
-        scope: 'environment',
-        description: 'Luxury editorial tabletop advertising composition.',
-        basePrompt: 'luxury editorial tabletop advertising composition, premium surface materials with curated supporting props, product remains the focal point',
+        scope: 'studio',
+        description: 'Luxury editorial studio surface composition with minimal rigid accents.',
+        basePrompt: 'luxury editorial advertising studio surface composition, premium rigid surface materials with minimal glass acrylic or stone accents, product remains the focal point',
         subOptions: [
-            { key: 'surfaceMaterial', label: 'Surface Material', values: ['Stone', 'Wood', 'Ceramic'] },
-            { key: 'propDensity', label: 'Prop Density', values: ['Minimal', 'Balanced'] },
+            { key: 'surfaceMaterial', label: 'Surface Material', values: ['Stone', 'Concrete', 'Acrylic', 'Metal'] },
+            { key: 'propDensity', label: 'Prop Density', values: ['None', 'Minimal'] },
             { key: 'editorialMood', label: 'Editorial Mood', values: ['Refined', 'Dramatic', 'Soft'] },
         ],
         constraints: [
             'No messy composition',
             'Natural shadows required',
-            'Product must anchor the scene'
+            'Product must anchor the scene',
+            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none', 'cropped-hand'],
+        allowedInteractions: ['none'],
         allowsPersonPresence: false
     },
     'Soft Wellness Morning': {
         id: 'soft-wellness-morning',
         label: 'Soft Wellness Morning',
-        scope: 'environment',
-        description: 'Soft wellness-inspired advertising atmosphere with diffused light.',
-        basePrompt: 'soft wellness-inspired advertising atmosphere, diffused light, gentle material textures, clean serene product-first composition',
+        scope: 'studio',
+        description: 'Soft diffused studio lighting with clean rigid materials and product-first composition.',
+        basePrompt: 'soft diffused advertising studio lighting, clean rigid materials, minimal set styling, product-first composition with controlled highlights',
         subOptions: [
             { key: 'warmthLevel', label: 'Warmth Level', values: ['Cool', 'Neutral', 'Warm'] },
             { key: 'lightDiffusion', label: 'Light Diffusion', values: ['Soft', 'Very soft'] },
@@ -378,11 +395,12 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         constraints: [
             'No harsh light',
             'No saturated colors',
-            'Soft shadows only'
+            'Soft shadows only',
+            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none', 'holding', 'two-hand-hold', 'presenting'],
-        allowsPersonPresence: true
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
     },
     'Golden Hour Lifestyle': {
         id: 'golden-hour-lifestyle',
@@ -407,11 +425,11 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
     'Outdoor Energy Boost': {
         id: 'outdoor-energy-boost',
         label: 'Outdoor Energy Boost',
-        scope: 'environment',
-        description: 'Fresh, energetic advertising atmosphere inspired by outdoor light.',
-        basePrompt: 'fresh energetic advertising atmosphere inspired by outdoor light, bright highlights, crisp contrast, dynamic framing, controlled set with vitality cues',
+        scope: 'studio',
+        description: 'Fresh, energetic studio lighting with crisp contrast and controlled set design.',
+        basePrompt: 'fresh energetic advertising studio lighting, bright highlights, crisp contrast, dynamic framing, controlled set with clean rigid surfaces',
         subOptions: [
-            { key: 'materialType', label: 'Material Type', values: ['Stone', 'Concrete', 'Wood'] },
+            { key: 'materialType', label: 'Material Type', values: ['Stone', 'Concrete', 'Acrylic', 'Metal'] },
             { key: 'energyMood', label: 'Energy Mood', values: ['Crisp', 'Bold', 'Active'] },
             { key: 'lightQuality', label: 'Light Quality', values: ['Bright', 'Directional', 'Diffuse'] },
             { key: 'backgroundBlurLevel', label: 'Background Blur Level', values: ['Low', 'Medium'] },
@@ -419,11 +437,12 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         constraints: [
             'No motion blur',
             'Product must remain sharp',
-            'Outdoor scale realism enforced'
+            'Crisp scale realism enforced',
+            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none', 'holding', 'two-hand-hold', 'presenting'],
-        allowsPersonPresence: true
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
     },
     'Pastel Picnic': {
         id: 'pastel-picnic',
@@ -448,22 +467,22 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
     'UGC Premium Simulation': {
         id: 'ugc-premium-simulation',
         label: 'UGC Premium Simulation',
-        scope: 'environment',
-        description: 'Premium casual realism simulation with controlled imperfections.',
-        basePrompt: 'small-sensor camera feel with casual framing, natural indoor light and domestic surface, controlled imperfections with brand-safe polish',
+        scope: 'studio',
+        description: 'Premium studio simulation with subtle realism and controlled imperfections (no UGC language).',
+        basePrompt: 'premium studio simulation with subtle realism, controlled advertising studio, clean purpose-built studio surfaces, brand-safe polish, controlled imperfections with studio-grade clarity',
         subOptions: [
-            { key: 'cameraFeel', label: 'Camera Feel', values: ['Small-sensor'] },
-            { key: 'framingStyle', label: 'Framing Style', values: ['Casual'] },
-            { key: 'lightQuality', label: 'Light Quality', values: ['Natural indoor'] },
-            { key: 'surfaceType', label: 'Surface Type', values: ['Domestic surface'] },
+            { key: 'realismLevel', label: 'Realism Level', values: ['Subtle', 'Balanced'] },
+            { key: 'imperfectionControl', label: 'Imperfection Control', values: ['Minimal', 'Controlled'] },
+            { key: 'lightQuality', label: 'Light Quality', values: ['Neutral studio', 'Soft studio'] },
+            { key: 'surfaceType', label: 'Surface Type', values: ['Abstract studio surface'] },
         ],
         constraints: [
             'Controlled imperfections only',
             'No personal context cues',
-            'No studio-perfect lighting'
+            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['holding', 'two-hand-hold', 'presenting'],
-        allowsPersonPresence: true
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
     }
 };
