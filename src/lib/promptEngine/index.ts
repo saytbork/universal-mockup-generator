@@ -624,15 +624,16 @@ export class PromptEngine {
         console.log('[PROMPT ENGINE] Step 2: Identity -',
             shouldIncludeIdentity ? `${identitySection.length} chars` : 'SUPPRESSED');
 
-        if (ugcSelfieDominant) {
-            const ugcSection = this.ugcBuilder.build(options);
-            const finalizeSection = this.finalizeBuilder.build(options);
-            const negative = negativePrompt(options);
-            const deterministicFoundation = buildDeterministicFoundation();
-            let finalPrompt = [
-                deterministicFoundation,
-                identitySection,
-                selfieCaptureSection,
+	        if (ugcSelfieDominant) {
+	            const ugcSection = this.ugcBuilder.build(options);
+	            const finalizeSection = this.finalizeBuilder.build(options);
+	            const negative = negativePrompt(options);
+	            // Deterministic foundation is a Product Studio contract and must NEVER appear in UGC/selfie flows.
+	            const deterministicFoundation = '';
+	            let finalPrompt = [
+	                deterministicFoundation,
+	                identitySection,
+	                selfieCaptureSection,
                 ugcSection,
                 finalizeSection
             ]
@@ -683,28 +684,29 @@ export class PromptEngine {
         // ASSEMBLE MASTER PROMPT (canonical order)
         // ====================================================================
         const negative = negativePrompt(options);
-        const masterSections: MasterPromptSections = {
-            sceneStructure: this.sceneStructureBuilder.build(options),
-            visualGrammar: this.visualGrammarBuilder.build(options),
-            creationIntent: narrativeSections.creationIntent,
-            creationMode: narrativeSections.creationMode,
-            ugcRealMode: ugcSection || narrativeSections.ugcRealMode,
-            formulationStory: [narrativeSections.formulationStory, formulationStoryInjection].filter(Boolean).join(' '),
-            ecommerceBuilder: narrativeSections.ecommerceBuilder,
-            cameraFraming: narrativeSections.cameraFraming,
-            environmentLightingMood: narrativeSections.environmentLightingMood,
-            compositionDetails: compositionDetailsSection,
-            selfieCapture: selfieCaptureSection,
-            identity: narrativeSections.identity || identitySection,
-            ecommerceSequence: this.ecommerceNarrativeBuilder.build(options),
-            deterministicFoundation: buildDeterministicFoundation(),
-            finalize: finalizeSection
-        };
+	        const masterSections: MasterPromptSections = {
+	            sceneStructure: this.sceneStructureBuilder.build(options),
+	            visualGrammar: this.visualGrammarBuilder.build(options),
+	            creationIntent: narrativeSections.creationIntent,
+	            creationMode: narrativeSections.creationMode,
+	            ugcRealMode: ugcSection || narrativeSections.ugcRealMode,
+	            formulationStory: [narrativeSections.formulationStory, formulationStoryInjection].filter(Boolean).join(' '),
+	            ecommerceBuilder: narrativeSections.ecommerceBuilder,
+	            cameraFraming: narrativeSections.cameraFraming,
+	            environmentLightingMood: narrativeSections.environmentLightingMood,
+	            compositionDetails: compositionDetailsSection,
+	            selfieCapture: selfieCaptureSection,
+	            identity: narrativeSections.identity || identitySection,
+	            ecommerceSequence: this.ecommerceNarrativeBuilder.build(options),
+	            // Deterministic foundation is a Product Studio contract and must NEVER appear in lifestyle/ugc.
+	            deterministicFoundation: options.contentStyle === 'product' ? buildDeterministicFoundation() : '',
+	            finalize: finalizeSection
+	        };
 
-        // Lifestyle guard: prevent any Product Studio prompt foundation from leaking into lifestyle scenes.
-        if ((options as any).sceneType === 'lifestyle_product') {
-            masterSections.deterministicFoundation = '';
-        }
+	        // Back-compat guard (in case any older callers set sceneType).
+	        if ((options as any).sceneType === 'lifestyle_product' || (options as any).sceneType === 'ugc_phone') {
+	            masterSections.deterministicFoundation = '';
+	        }
 
         const resolvedUgcStyle = options.ugcStyle ?? 'optimized';
         let finalPrompt = buildMasterPrompt(masterSections, negative, resolvedUgcStyle);
