@@ -1,6 +1,7 @@
 import type { ProductAsset, ProductStudioState, PhotoMode } from './types';
 import { buildBaseContext } from './promptParts/baseContext';
 import { buildPhotoModePrompt } from '../promptEngine/photoModeResolver';
+import { PHOTO_MODE_SCHEMAS } from './photoModeSchema';
 import {
   buildAcrylicBlocksScene,
   buildCandyGradientLabScene,
@@ -160,13 +161,13 @@ const PHOTO_MODE_MAP: Record<string, PhotoModeKey> = {
 };
 
 const SECONDARY_PROPS_BY_MODE: Partial<Record<PhotoModeKey, string[]>> = {
-  HERO_NEUTRAL: ['minimal ceramic dish', 'clean linen fold', 'subtle glass accent'],
+  HERO_NEUTRAL: ['minimal acrylic riser', 'abstract architectural panel', 'subtle glass accent'],
   COLOR_POP_HERO: ['geometric color blocks', 'polished acrylic accent', 'abstract color panel'],
   INGREDIENT_STACK: ['fresh botanicals', 'sliced citrus', 'herbal leaves', 'clean powders'],
   ACRYLIC_BLOCKS: ['additional acrylic risers', 'prismatic edge accents'],
   SPLASH_SHOT: ['minimal liquid surface ripples', 'controlled droplets around the base'],
   FOAM_AND_TEXTURE: ['controlled foam clusters', 'gel ribbons', 'micro-bubbles'],
-  ROUTINE_CAROUSEL: ['simple glassware', 'minimal ceramic tray', 'soft paper elements'],
+  ROUTINE_CAROUSEL: ['simple glassware', 'clean acrylic tray', 'soft paper elements'],
   CLINICAL_LAB_COUNTER: ['clean glassware silhouettes', 'stainless tools', 'measured droppers'],
   GOLDEN_MIST_AURA: ['soft golden haze', 'delicate reflective accents'],
   CANDY_GRADIENT_LAB: ['transparent lab forms', 'gradient panels', 'polished geometric props'],
@@ -185,6 +186,52 @@ function buildSecondaryProps(mode: PhotoModeKey, randomizer: ReturnType<typeof c
   if (!options || options.length === 0) return '';
   const picks = randomizer.pickMany(options, Math.min(2, options.length));
   return `Secondary props: ${picks.join(', ')}.`;
+}
+
+const STUDIO_HARD_ENVIRONMENT_CONSTRAINT = [
+  'STUDIO HARD ENVIRONMENT CONSTRAINT (CRITICAL):',
+  'This is a controlled advertising studio.',
+  'No lifestyle environments.',
+  'No domestic environments.',
+  'No bathrooms, kitchens, bedrooms, or homes.',
+  'No outdoor locations.',
+  'No textiles, fabrics, linens, towels, cloth, curtains.',
+  'No wellness props.',
+  'No tables, vanities, sinks, or furniture unless explicitly defined.',
+  'No ceramic dishes unless explicitly defined.',
+  'No lived-in elements.',
+  'Only abstract, architectural, laboratory, or purpose-built studio surfaces.',
+].join(' ');
+
+function stripStudioBannedTerms(text: string): string {
+  const banned = [
+    'bathroom',
+    'vanity',
+    'sink',
+    'towel',
+    'linen',
+    'textile',
+    'fabric',
+    'cloth',
+    'ceramic dish',
+    'tabletop',
+    'wellness',
+    'serene',
+    'soft materials',
+    'outdoor',
+    'nature',
+    'sunlight',
+    'ugc',
+    'handheld',
+    'selfie',
+  ];
+  let out = text;
+  for (const token of banned) {
+    const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp(escaped, 'gi');
+    out = out.replace(re, '');
+  }
+  return out.replace(/\s+/g, ' ').replace(/\s+([.,;:])/g, '$1').trim();
 }
 
 export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAsset | null): ScenePromptResult {
@@ -214,8 +261,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const photoModeResult = buildPhotoModePrompt(state.photoMode as PhotoMode, {
     suggestedProps: state.props,
     ingredientLayout: state.ingredientLayout,
-    dynamicSettings: state.photoModeConfig.dynamic?.[state.photoMode as PhotoMode],
-    productType: state.definition.type as any,
+    dynamicSettings: state.photoModeConfig?.dynamic?.[state.photoMode as PhotoMode],
+    productType: state.definition?.type as any,
+    sceneType: state.sceneType,
   });
 
   const sceneInput: SceneBuildInput = {
@@ -228,8 +276,8 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     gradientStart: state.gradientStart,
     gradientEnd: state.gradientEnd,
     gradientMid: state.gradientMid,
-    heroGradientStyle: state.photoModeConfig.heroLandingPage.gradientStyle,
-    heroNegativeSpace: state.photoModeConfig.heroLandingPage.negativeSpace,
+    heroGradientStyle: state.photoModeConfig?.heroLandingPage?.gradientStyle,
+    heroNegativeSpace: state.photoModeConfig?.heroLandingPage?.negativeSpace,
   };
 
   let scene = '';
@@ -320,20 +368,34 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     return map[lighting] || '';
   })();
 
+  const isStudioScope = PHOTO_MODE_SCHEMAS[state.photoMode as PhotoMode]?.scope === 'studio';
+  const studioHardConstraintActive = state.sceneType === 'studio-branding' || isStudioScope;
+  const propsAllowed = Boolean(photoModeResult.controlFlags?.propsAllowed);
+  const secondaryProps =
+    studioHardConstraintActive && !propsAllowed
+      ? ''
+      : buildSecondaryProps(mode, randomizer, state.props);
+
   const parts = [
-    buildBaseContext({ allowStudio: mode === 'ACRYLIC_BLOCKS' }),
+    buildBaseContext({ allowStudio: mode === 'ACRYLIC_BLOCKS', studioClosedDomain: studioHardConstraintActive }),
     scene,
     photoModeResult.modifiers,
-    buildSecondaryProps(mode, randomizer, state.props),
+    secondaryProps,
     buildLighting(mode, randomizer, lightingOverrideText ? { override: { text: lightingOverrideText } } : undefined),
     buildCamera(mode, randomizer),
-    buildMaterials(mode, randomizer),
+    buildMaterials(mode, randomizer, { studioHardConstraintActive }),
     buildRandomizationRules(),
     buildQualityEnforcers(),
   ].filter(Boolean);
 
+  let promptCore = parts.join(' ');
+  if (studioHardConstraintActive) {
+    promptCore = stripStudioBannedTerms(promptCore);
+    promptCore = `${promptCore} ${STUDIO_HARD_ENVIRONMENT_CONSTRAINT}`.trim();
+  }
+
   return {
-    prompt: parts.join(' '),
+    prompt: promptCore,
     mode,
     splashMode,
     randomSeed: randomizer.seed,

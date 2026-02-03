@@ -23,6 +23,7 @@
 
 import { PHOTO_MODE_SCHEMAS } from '../productStudio/photoModeSchema';
 import type { PhotoMode as ProductStudioPhotoMode } from '../productStudio/types';
+import type { SceneType } from '../productStudio/types';
 
 export type PhotoMode = ProductStudioPhotoMode;
 
@@ -87,6 +88,9 @@ export interface PhotoModeOptions {
     // Schema-driven dynamic settings
     dynamicSettings?: Record<string, string>;
     constraints?: string[];
+
+    // Scene gating (Studio must be closed domain when required)
+    sceneType?: SceneType;
 }
 
 export interface PhotoModeControlFlags {
@@ -245,9 +249,9 @@ const PHOTO_MODE_CONTROL_FLAGS: Record<string, PhotoModeControlFlags> = {
         cameraLocked: false
     },
     'UGC Premium Simulation': {
-        propsAllowed: true,
-        environmentAllowed: true,
-        humansAllowed: true,
+        propsAllowed: false,
+        environmentAllowed: false,
+        humansAllowed: false,
         motionAllowed: false,
         bundlesAllowed: true,
         cameraLocked: false
@@ -425,6 +429,15 @@ function validatePhotoModeCompatibility(
     options: PhotoModeOptions
 ): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
+    const schema = PHOTO_MODE_SCHEMAS[photoMode];
+
+    // Studio branding is a CLOSED domain: environment/lifestyle photo modes are not allowed.
+    if (options.sceneType === 'studio-branding') {
+        const scope = schema?.scope;
+        if (scope !== 'studio') {
+            errors.push(`BLOCKING: Photo Mode "${photoMode}" is not allowed for sceneType "studio-branding"`);
+        }
+    }
 
     // Check Product Type compatibility
     const typeCompatibility = PHOTO_MODE_PRODUCT_TYPE_COMPATIBILITY[photoMode];
@@ -552,11 +565,6 @@ export function buildPhotoModePrompt(
     }
 
     let finalModifiers = modifierParts.join(', ');
-
-    if (photoMode === 'UGC Premium Simulation') {
-        basePrompt = stripUgcToken(basePrompt);
-        finalModifiers = stripUgcToken(finalModifiers);
-    }
 
     // Add Mega Prompt instructions if it's an environment mode or has environment flags
     const isEnvironmentMode = schema?.scope === 'environment' || PHOTO_MODE_CONTROL_FLAGS[photoMode]?.environmentAllowed;
