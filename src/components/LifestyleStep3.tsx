@@ -973,8 +973,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     environment: initialSceneIntent === 'ecommerce' ? '' : 'Kitchen', // Kitchen has table/counter surface by default
     customEnvironment: '',
     sceneOrderChaos: 'Normal',
-    // Ecommerce canvas (neutral background + negative space) is optional and toggle-driven.
-    ecommerceSidePlacementFlag: false,
+    // Neutral background + placement (Lifestyle-only) is enabled by default in environment mode.
+    ecommerceSidePlacementFlag: initialSceneIntent !== 'ecommerce',
 
     // Time & Lighting - simplified
     timeOfDay: 'Afternoon',
@@ -1717,6 +1717,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     }
   }, [values.ugcRealMode, values.ugcCaptureStyleBase, updateValue]);
 
+  // HARD RULE: UGC Real Mode cannot coexist with neutral background canvas overlay.
+  useEffect(() => {
+    if (!values.ugcRealMode) return;
+    if (values.ecommerceSidePlacementFlag) {
+      updateValue('ecommerceSidePlacementFlag', false);
+    }
+  }, [values.ugcRealMode, values.ecommerceSidePlacementFlag, updateValue]);
+
   // ============================================================================
   // SCENE INTENT - SINGLE SOURCE OF TRUTH
   // Environment and Ecommerce are mutually exclusive
@@ -1802,7 +1810,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         environmentContext: { macro: prev.environment || 'Kitchen', micro: 'Countertop' },  // Restore environment
         environment: prev.environment || 'Kitchen',
         compositionMode: '',
-        ecommerceSidePlacementFlag: false,
+        ecommerceSidePlacementFlag: true,
         sidePlacement: SIDE_PLACEMENT_OPTIONS[1],
         cameraType: prev.cameraType || 'Intentional smartphone camera',
         shotType: prev.shotType || 'Medium',
