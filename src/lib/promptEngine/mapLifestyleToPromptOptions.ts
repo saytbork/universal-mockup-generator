@@ -1496,8 +1496,33 @@ export function mapLifestyleToPromptOptions(
         (mapped as any).selectedEnvironment = isCustomMacro ? 'Custom' : macro;
         (mapped as any).customEnvironment = isCustomMacro ? macro : '';
 
+        if (isUGCRealMode) {
+            const forbiddenUgcOutdoor = new Set([
+                'Urban Exterior',
+                'Natural Exterior',
+                'Parking Lot',
+                'Backyard / Patio',
+                'Street Corner',
+            ]);
+            if (forbiddenUgcOutdoor.has(macro)) {
+                console.error('[INVALID STATE BLOCKED] Outdoor environments are disabled in UGC');
+                throw new Error('Invalid state: outdoor environment selected in UGC');
+            }
+            const descriptorTarget = isCustomMacro ? 'lived-in clutter' : 'lived-in domestic clutter';
+            (mapped as any).sceneEnvironmentDescriptor = `${macro} captured incidentally with ${descriptorTarget} and no deliberate styling.`;
+        }
+
         console.log('[MAP] environmentContext:', { macro, micro }, '→ setting:', mapped.setting);
-    } else if (isEcommerceBlankSpaceActive) {
+    } else if (awkwardEnvironmentOverride && !isUGCRealMode) {
+        mapped.setting = awkwardEnvironmentOverride;
+        mapped.microLocation = awkwardEnvironmentOverride;
+        (mapped as any).sceneEnvironment = awkwardEnvironmentOverride;
+        mapped.environmentOrder = awkwardEnvironmentOverride;
+        (mapped as any).selectedEnvironment = 'Awkward Context Override';
+        (mapped as any).customEnvironment = awkwardEnvironmentOverride;
+        mapped.sceneIntent = 'environment';
+        console.log('[MAP] Awkward context override →', awkwardEnvironmentOverride);
+    } else {
         const ugcIndoorEnvironments = new Set([
             'Kitchen',
             'Living Room',
@@ -1604,15 +1629,6 @@ export function mapLifestyleToPromptOptions(
         mapped.environmentOrder = mapped.setting;
 
         console.log('[MAP] environment:', selectedEnvironment, '→', mapped.setting);
-    } else if (awkwardEnvironmentOverride && !isUGCRealMode) {
-        mapped.setting = awkwardEnvironmentOverride;
-        mapped.microLocation = awkwardEnvironmentOverride;
-        (mapped as any).sceneEnvironment = awkwardEnvironmentOverride;
-        mapped.environmentOrder = awkwardEnvironmentOverride;
-        (mapped as any).selectedEnvironment = 'Awkward Context Override';
-        (mapped as any).customEnvironment = awkwardEnvironmentOverride;
-        mapped.sceneIntent = 'environment';
-        console.log('[MAP] Awkward context override →', awkwardEnvironmentOverride);
     }
 
     // ========================================================================
