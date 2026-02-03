@@ -552,6 +552,39 @@ const INTERACTION_SEMANTIC_MAP: Record<string, string> = {
     'Placing on Surface': 'hands lowering product onto surface, fingers releasing grip, natural placement motion'
 };
 
+const UGC_HAND_SAFETY_RULE =
+    'HAND SAFETY (CRITICAL): Avoid any complex finger poses. No interlaced fingers, no fingertip-to-fingertip framing, no symmetric “triangle grip”. If hands appear, show at most one hand, keep fingers mostly hidden behind the product, allow partial crop, and keep a relaxed natural grip. Hands must be anatomically correct (5 fingers), natural proportions, no deformations.';
+
+function resolveUgcInteractionSemantic(label: string, usage?: string): string {
+    const normalized = String(label || '').trim();
+    const base = (() => {
+        switch (normalized) {
+            case 'Holding':
+            case 'Presenting':
+            case 'Showing to Camera':
+                // UGC should not look like a centered hero presentation; also reduces hand failure rate.
+                return 'Product is placed on a nearby surface within the environment (bench, shelf, floor mat edge). No hands in frame. Product remains clearly visible and readable but not forced into a centered presentation pose.';
+            case 'Placing on Surface':
+                return 'Hands briefly place the product onto a nearby surface, then hands exit the frame. Keep the gesture simple and partially cropped.';
+            case 'Using':
+            case 'Applying':
+                return 'Hands interact naturally while keeping the gesture simple and partially cropped. Avoid complex finger articulation; product remains visible.';
+            case 'Unboxing':
+            case 'Unboxing / Open Box':
+                return 'Packaging is partially opened with minimal hand visibility; keep hands mostly out of frame and avoid complex finger poses.';
+            default:
+                return INTERACTION_SEMANTIC_MAP[normalized] || normalized;
+        }
+    })();
+
+    const parts = [base];
+    if (normalized === 'Using' && usage?.trim()) {
+        parts.push(usage.trim());
+    }
+    parts.push(UGC_HAND_SAFETY_RULE);
+    return parts.filter(Boolean).join(' ');
+}
+
 const normalizeSingleSelectLayer = (entries: string[] | undefined | null, fieldName: string): string[] => {
     if (!Array.isArray(entries)) {
         return [];
@@ -937,13 +970,6 @@ export function mapLifestyleToPromptOptions(
     const isCompositionModeEcommerceBlank = sceneState.compositionMode === 'Ecommerce Blank Space';
     const isEcommerceBlankSpaceActive = isEcommerceSceneIntent;
     const isUGCRealMode = !!sceneState.ugcRealMode;
-    if (isUGCRealMode) {
-        // UGC selfie rule: never show two hands (phone hand must not appear).
-        if (personIncluded && (sceneState.productInteraction || '').trim().toLowerCase() === 'holding') {
-            mapped.productInteraction = 'holding the product with exactly one hand (only that hand visible)';
-            mapped.personDetails.productInteraction = 'holding the product with exactly one hand (only that hand visible)';
-        }
-    }
     const personAge = sceneState.age || 0;
     const is80Plus = isUGCRealMode && personAge >= 80;
     const is85Plus = isUGCRealMode && personAge >= 85;
@@ -1065,12 +1091,17 @@ export function mapLifestyleToPromptOptions(
         mapped.personDetails.eyeDirection =
             EYE_DIRECTION_SEMANTIC_MAP[eyeDirectionLabel] || eyeDirectionLabel as any;
         if (sceneState.productInteraction) {
-            const interactionBase = INTERACTION_SEMANTIC_MAP[sceneState.productInteraction] || sceneState.productInteraction;
-            const interactionParts = [interactionBase];
-            if (sceneState.productInteraction === 'Using' && sceneState.productUsageDescription) {
-                interactionParts.push(sceneState.productUsageDescription.trim());
-            }
-            const interactionText = interactionParts.filter(Boolean).join(' ');
+            const interactionText = isUGCRealMode
+                ? resolveUgcInteractionSemantic(sceneState.productInteraction, sceneState.productUsageDescription)
+                : (() => {
+                    const interactionBase =
+                        INTERACTION_SEMANTIC_MAP[sceneState.productInteraction] || sceneState.productInteraction;
+                    const interactionParts = [interactionBase];
+                    if (sceneState.productInteraction === 'Using' && sceneState.productUsageDescription) {
+                        interactionParts.push(sceneState.productUsageDescription.trim());
+                    }
+                    return interactionParts.filter(Boolean).join(' ');
+                })();
             if (mapped.personCount === 'couple') {
                 mapped.personDetails.productInteraction = [
                     'COUPLE INTERACTION RULE: Only Person A interacts actively with the product.',

@@ -57,3 +57,33 @@ test('UGC Home Gym does not leak Countertop micro-location and injects gym cues'
   expect(mapped.microLocation).not.toBe('Countertop');
   expect(String(mapped.sceneEnvironmentDescriptor)).toMatch(/dumbbells|resistance bands|yoga mat/i);
 });
+
+test('UGC Holding avoids hero presentation and enforces hand safety', () => {
+  const mapped = mapLifestyleToPromptOptions(
+    {
+      sceneIntent: 'environment',
+      creationIntent: 'ugc',
+      creationMode: 'Lifestyle UGC',
+      compositionMode: '',
+      noPerson: false,
+      sameCreatorAcrossScenes: false,
+
+      ugcRealMode: true,
+      ugcCaptureStyleBase: ['torso-level-handheld'],
+      environment: 'Home Gym',
+      customEnvironment: '',
+      productInteraction: 'Holding',
+
+      age: 30,
+      gender: 'Female',
+      timeOfDay: 'Afternoon',
+      lightingStyle: 'Natural',
+    } as any,
+    {},
+    false
+  ) as any;
+
+  expect(String(mapped.personDetails?.productInteraction)).toMatch(/HAND SAFETY \(CRITICAL\)/i);
+  expect(String(mapped.personDetails?.productInteraction)).toMatch(/no interlaced fingers/i);
+  expect(String(mapped.personDetails?.productInteraction)).toMatch(/No hands in frame/i);
+});
