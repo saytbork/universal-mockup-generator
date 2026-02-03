@@ -11,7 +11,7 @@ The app exposes a Lifestyle Step 3 Scene Builder, prompt assembly, and Gemini in
 - `src/` – Application source files
   - `App.tsx` – Entry point that coordinates UI state, handlers (`constructPrompt`, `handleGenerateClick`, talent actions) and pushes prompts to the PromptEngine. Inline data + Gemini calls are routed via `services/imageGenerationService.ts`.
   - `components/` – React UI surface
-    * `LifestyleStep3.tsx` – Fully controlled Scene Builder with accordion sections, UGC mode toggles, hero personas, and mapped controls.
+    * `LifestyleStep3.tsx` – Fully controlled Scene Builder with accordion sections, UGC mode toggles, and mapped controls.
     * `SmoothAccordion.tsx` – Custom height-interpolated accordion used throughout Step 3.
     * Other shared UI atoms (buttons, sliders, iconography) live in the same folder.
   - `store/` – Zustand stores

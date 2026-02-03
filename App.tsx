@@ -30,7 +30,6 @@ import { ALL_PRODUCT_IDS, PRODUCT_MEDIA_LIBRARY, ProductId, ProductMediaLibrary 
 import UGCRealModePanel from './components/UGCRealModePanel';
 import {
   UGC_CLOTHING_PRESETS,
-  UGC_HERO_PERSONA_PRESETS,
   UGC_EXPRESSION_PRESETS,
   UGC_OFF_CENTER_OPTIONS,
   UGC_SPONTANEOUS_FRAMING_OPTIONS,
@@ -63,7 +62,6 @@ import { addProductWithPalette } from '@/lib/productStudio/store';
 
 type UGCRealModeSettings = {
   isEnabled: boolean;
-  selectedHeroPersonaIds: string[];
   selectedClothingPresetIds: string[];
   clothingUpload: File | null;
   clothingPreview: string | null;
@@ -91,7 +89,6 @@ type EcommercePdpGenerationMeta = {
 
 const createDefaultUGCRealSettings = (): UGCRealModeSettings => ({
   isEnabled: false,
-  selectedHeroPersonaIds: [],
   selectedClothingPresetIds: [],
   clothingUpload: null,
   clothingPreview: null,
@@ -108,7 +105,6 @@ const createDefaultUGCRealSettings = (): UGCRealModeSettings => ({
 
 const cloneUGCRealSettings = (settings?: UGCRealModeSettings): UGCRealModeSettings => ({
   isEnabled: settings?.isEnabled ?? false,
-  selectedHeroPersonaIds: [...(settings?.selectedHeroPersonaIds ?? [])],
   selectedClothingPresetIds: [...(settings?.selectedClothingPresetIds ?? [])],
   clothingUpload: settings?.clothingUpload ?? null,
   clothingPreview: settings?.clothingPreview ?? null,
@@ -2326,9 +2322,6 @@ const App: React.FC = () => {
               onUploadClothing={handleCustomClothesUpload}
               onClearClothing={handleClearCustomClothes}
               clothingPreview={ugcRealSettings.clothingPreview}
-              heroPersonaPresets={UGC_HERO_PERSONA_PRESETS}
-              selectedHeroPersonaIds={ugcRealSettings.selectedHeroPersonaIds}
-              onToggleHeroPersona={handleHeroPersonaToggle}
               expressionPresets={UGC_EXPRESSION_PRESETS}
               selectedExpressionId={ugcRealSettings.selectedExpressionId}
               onSelectExpression={handleUGCExpressionSelect}
@@ -2805,19 +2798,6 @@ const App: React.FC = () => {
       return { ...prev, clothingUpload: null, clothingPreview: null };
     });
   }, [persistUgcRealSettings]);
-
-  const handleHeroPersonaToggle = useCallback(
-    (id: string) => {
-      persistUgcRealSettings(prev => {
-        const exists = prev.selectedHeroPersonaIds.includes(id);
-        const nextIds = exists
-          ? prev.selectedHeroPersonaIds.filter(item => item !== id)
-          : [...prev.selectedHeroPersonaIds, id];
-        return { ...prev, selectedHeroPersonaIds: nextIds };
-      });
-    },
-    [persistUgcRealSettings]
-  );
 
   const handleUGCExpressionSelect = useCallback(
     (id: string | null) => {
@@ -4264,15 +4244,6 @@ ${cleanPlacementStyle}
           prompt += `Skin realism mode: ${clean(options.skinRealism)}. Render pores, micro shadows, and natural texture accordingly. `;
         }
         prompt += 'Pores, microtexture, and natural imperfections must be preserved according to the selected skin realism mode. ';
-        if (realModeActive && ugcRealSettings.selectedHeroPersonaIds.length) {
-          const personaText = ugcRealSettings.selectedHeroPersonaIds
-            .map(id => UGC_HERO_PERSONA_PRESETS.find(item => item.id === id)?.prompt)
-            .filter(Boolean)
-            .join(' ');
-          if (personaText) {
-            prompt += ` ${clean(personaText)}`;
-          }
-        }
         if (options.props) {
           prompt += `Props present include ${clean(options.props)}. `;
         }

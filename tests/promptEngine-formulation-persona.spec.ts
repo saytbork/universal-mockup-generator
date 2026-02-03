@@ -43,8 +43,7 @@ test('Formulation Story uses selected person identity (no talent ref required)',
       productStructure: 'single',
       props: 'None',
       hair: 'Medium',
-      wardrobe: '',
-      heroPersona: ''
+      wardrobe: ''
     } as any,
     {},
     false
@@ -89,7 +88,6 @@ test('Formulation Story respects Optional Talent Reference (model ref locks iden
       productInteraction: 'Holding',
       productStructure: 'single',
       props: 'None',
-      heroPersona: ''
     } as any,
     {},
     true

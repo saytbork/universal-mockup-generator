@@ -6,7 +6,6 @@ import BlurGrainControls from './BlurGrainControls';
 import { normalizeOptions } from '../src/system/normalizeOptions';
 import type {
   UGCCustomClothingPreset,
-  UGCHeroPersonaPreset,
   UGCExpressionPreset,
   UGCCameraFramingOption,
 } from '../src/data/ugcPresets';
@@ -33,9 +32,6 @@ interface UGCRealModePanelProps {
   onUploadClothing: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onClearClothing: () => void;
   clothingPreview: string | null;
-  heroPersonaPresets: UGCHeroPersonaPreset[];
-  selectedHeroPersonaIds: string[];
-  onToggleHeroPersona: (id: string) => void;
   expressionPresets: UGCExpressionPreset[];
   selectedExpressionId: string | null;
   onSelectExpression: (id: string | null) => void;
@@ -69,9 +65,6 @@ const UGCRealModePanel: React.FC<UGCRealModePanelProps> = ({
   onUploadClothing,
   onClearClothing,
   clothingPreview,
-  heroPersonaPresets,
-  selectedHeroPersonaIds,
-  onToggleHeroPersona,
   expressionPresets,
   selectedExpressionId,
   onSelectExpression,
@@ -95,9 +88,6 @@ const UGCRealModePanel: React.FC<UGCRealModePanelProps> = ({
   onSelectFraming,
 }) => {
   const panelDisabled = disabled && !enabled;
-  const normalizedHeroPersonaPresets = normalizeOptions(
-    heroPersonaPresets.map(preset => ({ ...preset, value: preset.id }))
-  );
   const normalizedExpressions = normalizeOptions(
     expressionPresets.map(preset => ({ ...preset, value: preset.id }))
   );
@@ -146,36 +136,6 @@ const UGCRealModePanel: React.FC<UGCRealModePanelProps> = ({
             onClearUpload={onClearClothing}
             uploadPreview={clothingPreview}
           />
-          <div className="rounded-2xl border border-gray-200 bg-whiteTint p-4 space-y-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Hero personas</p>
-            <div className="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
-              {normalizedHeroPersonaPresets.map(preset => {
-                const isActive = selectedHeroPersonaIds.includes(preset.id);
-                return (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    onClick={() => onToggleHeroPersona(preset.id)}
-                    className={`rounded-xl border px-3 py-2 text-left transition ${isActive ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-md shadow-indigo-500/20 scale-105 duration-500' : 'border-gray-200 bg-whiteTint text-gray-900 hover:border-indigo-600'
-                      }`}
-                  >
-                    <div className="flex items-center gap-1 relative group">
-                      <span className="text-sm font-semibold">{preset.label}</span>
-                      {preset.tooltip && (
-                        <span className="text-xs text-gray-600 cursor-pointer group-hover:text-gray-900">
-                          ⓘ
-                          <div className="absolute left-0 top-4 z-50 hidden group-hover:block bg-white text-gray-900 text-xs p-2 rounded-2xl border border-gray-200 shadow-sm w-48">
-                            {preset.tooltip}
-                          </div>
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-[11px] text-gray-600">{cleanDescription(preset.description)}</p>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
           <UGCExpressionsSelector
             presets={normalizedExpressions}
             selectedId={selectedExpressionId}

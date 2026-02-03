@@ -62,7 +62,6 @@ export interface PersonDetails {
     personExpression?: string;
     selfieMode?: string;
     selfieType?: string;
-    heroPersona?: string;             // Semantic UGC persona description
 }
 
 export interface IdentityLock {
@@ -289,7 +288,6 @@ export interface PromptOptions {
     // UGC Real Mode
     ugcRealModeActive?: boolean;      // UGC Real Mode toggle
     ugcSelfieDominant?: boolean;      // Derived: UGC selfie pipeline dominance
-    heroPersona?: string;             // Semantic UGC persona description
     ugcCaptureSituation?: string | null; // Selected UGC capture situation
     ugcImperfectionLevel?: UGCImperfectionLevel;
     ugcCaptureStyleBase?: string[];

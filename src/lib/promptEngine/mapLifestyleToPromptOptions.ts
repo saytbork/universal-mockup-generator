@@ -664,44 +664,6 @@ const SELFIE_EXECUTION_SEMANTIC_MAP: Record<string, string> = {};
 // ============================================================================
 
 // ============================================================================
-// MACROS & PRIORITY DEFINITIONS
-// ============================================================================
-
-// HERO PERSONA MACROS - Strict behavioral overrides
-const HERO_PERSONA_MACROS: Record<string, any> = {
-    'The Busy Mom': {
-        expression: 'Hustle & Juggle',
-        wardrobe: 'comfortable casual everyday wear, functional clothing, slightly disheveled realism',
-        pose: 'natural mid-action candid movement',
-        framing: 'spontaneous imperfect framing'
-    },
-    'The Fitness Enthusiast': {
-        expression: 'Joyful & High-Energy',
-        wardrobe: 'modern activewear, moisture-wicking fabric, athletic styling',
-        pose: 'mid-workout movement or post-exercise recovery pose',
-        framing: 'dynamic angled composition'
-    },
-    'The Skincare Obsessed': {
-        expression: 'Calm & Serene',
-        wardrobe: 'minimal clean loungewear, soft fabrics, neutral tones',
-        environment: 'Bathroom', // Hint for environment
-        pose: 'focused self-care application intent'
-    },
-    'The Minimalist': {
-        expression: 'Confident & Editorial',
-        wardrobe: 'high-quality minimal solid colors, structured simple silhouette',
-        environment: 'Modern Living Room', // Hint
-        pose: 'still composed architectural posture'
-    },
-    'The Trendsetter': {
-        expression: 'Playful & Candid',
-        wardrobe: 'bold statement outfit, layers, current fashion trends',
-        pose: 'confident styled candid pose',
-        framing: 'editorial spontaneous framing'
-    }
-};
-
-// ============================================================================
 // MAIN MAPPER FUNCTION
 // ============================================================================
 
@@ -1008,42 +970,6 @@ export function mapLifestyleToPromptOptions(
     }
 
     // ========================================================================
-    // PRIORITY 3: HERO PERSONAS (SEMANTIC MACRO)
-    // ========================================================================
-    const heroPersona = sceneState.heroPersona;
-    let poseOverride = null;
-    let framingOverride = null;
-    let expressionOverride: string | null = null;
-    let wardrobeOverride: string | null = null;
-
-    if (heroPersona && HERO_PERSONA_MACROS[heroPersona]) {
-        console.log(`[PRIORITY 2] Hero Persona Active: ${heroPersona} - Applying MACROS`);
-        const macro = HERO_PERSONA_MACROS[heroPersona];
-
-        if (macro.expression) {
-            expressionOverride = macro.expression;
-        }
-        // Apply Pose Override
-        poseOverride = macro.pose;
-        mapped.personPose = poseOverride;
-        mapped.personDetails.personPose = poseOverride;
-
-        // Apply Framing Override (if exists) only when environment intent is not locked
-        if (!isEnvironmentSceneIntent && macro.framing) {
-            framingOverride = macro.framing;
-            mapped.perspective = framingOverride;
-        }
-
-        if (!hasCustomClothes && macro.wardrobe) {
-            console.log('[PRIORITY 3] Applying Hero Persona Wardrobe');
-            wardrobeOverride = macro.wardrobe;
-            mapped.wardrobeStyle = wardrobeOverride || undefined;
-            mapped.personDetails.wardrobeStyle = wardrobeOverride || undefined;
-        }
-    }
-
-
-    // ========================================================================
     // PRIORITY 4: MANUAL INPUTS (Apply only if not overridden)
     // ========================================================================
 
@@ -1092,15 +1018,15 @@ export function mapLifestyleToPromptOptions(
             mapped.personDetails.skinTone = sceneState.skinTone;
         }
 
-        // POSE (Manual if no Override)
-        if (!poseOverride && sceneState.pose) {
+        // POSE (Manual)
+        if (sceneState.pose) {
             const pose = POSE_SEMANTIC_MAP[sceneState.pose] || sceneState.pose;
             mapped.personPose = pose;
             mapped.personDetails.personPose = pose;
         }
 
-        // WARDROBE (Manual if no Override)
-        if (!wardrobeOverride && sceneState.wardrobe) {
+        // WARDROBE (Manual)
+        if (sceneState.wardrobe) {
             const ward = WARDROBE_SEMANTIC_MAP[sceneState.wardrobe] || sceneState.wardrobe;
             mapped.wardrobeStyle = ward;
             mapped.personDetails.wardrobeStyle = ward;
@@ -1128,7 +1054,7 @@ export function mapLifestyleToPromptOptions(
         }
 
         // OTHER PERSON DETAILS (Non-conflicting)
-        const expressionLabel = expressionOverride || sceneState.facialExpression || 'Calm & Serene';
+        const expressionLabel = sceneState.facialExpression || 'Calm & Serene';
         const expressionSemantic =
             FACIAL_EXPRESSION_MAP[expressionLabel] || FACIAL_EXPRESSION_MAP['Calm & Serene'];
         mapped.personDetails.facialExpression = expressionSemantic;
@@ -1224,8 +1150,8 @@ export function mapLifestyleToPromptOptions(
         delete mapped.skinRealism;
     }
 
-    // FRAMING/PERSPECTIVE (Manual if no Override)
-    if (!sceneState.ugcRealMode && !framingOverride && sceneState.framing) {
+    // FRAMING/PERSPECTIVE (Manual)
+    if (!sceneState.ugcRealMode && sceneState.framing) {
         mapped.perspective = FRAMING_SEMANTIC_MAP[sceneState.framing] || sceneState.framing;
     }
 

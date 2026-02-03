@@ -242,7 +242,6 @@ export interface Step3Values {
 
   // Creator Presets
   creatorPreset: string | null;
-  heroPersona: string; // Semantic persona description for prompt
 
   // Environment — CANONICAL SOURCE OF TRUTH
   environmentContext?: {
@@ -965,7 +964,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
     // Creator Presets
     creatorPreset: null,
-    heroPersona: '', // Empty = no persona selected
 
     // Environment - CANONICAL SOURCE (environmentContext)
     // null = Studio/Ecommerce mode (no environment)
@@ -1707,7 +1705,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         environmentContext: null,  // Studio/Ecommerce = no environment
         environment: '',
         customEnvironment: '',
-        heroPersona: '',
         cameraType: '',
         shotType: '',
         framing: '',
@@ -2012,14 +2009,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       updateValue('ugcRealMode', false);
     }
 
-    if (values.heroPersona) {
-      updateValue('heroPersona', '');
-    }
-
     ALL_UGC_LAYER_FIELDS.forEach(layer => {
       updateValue(layer, []);
     });
-  }, [values.formulationStoryEnabled, values.ugcRealMode, values.heroPersona, updateValue]);
+  }, [values.formulationStoryEnabled, values.ugcRealMode, updateValue]);
 
   useEffect(() => {
     const shouldDisablePerson = values.sceneIntent === 'ecommerce';
@@ -7664,55 +7657,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               )}
             </SmoothAccordion>
-
-            <details className="rounded-2xl border border-gray-200 bg-white transition-colors overflow-hidden">
-              <summary className="cursor-pointer list-none p-4 flex items-center justify-between text-xs uppercase tracking-widest text-gray-500">
-                <span>Advanced · Hero Personas</span>
-                <span className="text-xs text-gray-500">+</span>
-              </summary>
-              <div className="p-4 pt-0 space-y-3">
-                <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Hero personas</p>
-                <div className="flex flex-col gap-2">
-                  {[
-                    { label: 'The Busy Mom', semantic: 'busy mom managing household, natural home environment, multitasking moment, authentic daily routine' },
-                    { label: 'The Fitness Enthusiast', semantic: 'fitness-focused adult after workout, casual activewear, natural indoor or outdoor setting' },
-                    { label: 'The Skincare Obsessed', semantic: 'skincare-focused woman during daily routine, bathroom mirror, natural lighting' },
-                    { label: 'The Minimalist', semantic: 'minimalist person in clean home environment, neutral tones, simple lifestyle' },
-                    { label: 'The Trendsetter', semantic: 'trend-focused young adult in casual lifestyle moment, modern outfit, spontaneous feel' }
-                  ].map(persona => (
-                    <button
-                      key={persona.label}
-                      type="button"
-                      onClick={() => {
-                        updateValue('heroPersona', persona.semantic);
-                        if (persona.label === 'The Busy Mom') {
-                          updateValue('facialExpression', 'Hustle & Juggle');
-                          updateValue('appearanceLevel', 'Running Late');
-                        } else if (persona.label === 'The Fitness Enthusiast') {
-                          updateValue('facialExpression', 'Joyful & High-Energy');
-                          updateValue('appearanceLevel', 'Well-Groomed');
-                        } else if (persona.label === 'The Skincare Obsessed') {
-                          updateValue('facialExpression', 'Calm & Serene');
-                          updateValue('skinRealism', 'Raw / Real');
-                        } else if (persona.label === 'The Minimalist') {
-                          updateValue('facialExpression', 'Confident & Editorial');
-                          updateValue('appearanceLevel', 'Styled');
-                        } else if (persona.label === 'The Trendsetter') {
-                          updateValue('facialExpression', 'Playful & Candid');
-                          updateValue('appearanceLevel', 'Styled');
-                        }
-                      }}
-                      className={`w-full text-left px-3 py-2 rounded-2xl border text-sm transition-colors ${values.heroPersona === persona.label
-                        ? 'bg-indigo-600 text-white border-indigo-600 text-white  shadow-indigo-500/20 scale-105 duration-500'
-                        : 'bg-white border-gray-200 text-gray-900 hover:border-indigo-600 hover:text-gray-900'
-                        }`}
-                    >
-                      {persona.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </details>
 
             {
               !isUGCMode && (
