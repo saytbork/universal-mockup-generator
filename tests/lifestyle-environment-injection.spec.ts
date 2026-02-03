@@ -79,3 +79,71 @@ test('Lifestyle 9:16 hero canvas does not shrink the subject for negative space'
   expect(prompt).not.toContain('head to toe');
 });
 
+test('Ritual Mode uses environment background unless Hero canvas is enabled', () => {
+  const mapped = mapLifestyleToPromptOptions(
+    {
+      sceneIntent: 'environment',
+      creationIntent: 'brand',
+      creationMode: 'Aesthetic Builder',
+      compositionMode: 'Lifestyle Showcase',
+      noPerson: false,
+      sameCreatorAcrossScenes: false,
+      ugcRealMode: false,
+
+      ritualModeEnabled: true,
+      ritualHideProduct: false,
+      ritualNoObjects: true,
+      ritualActivities: ['Sleep Wind-down'],
+
+      environment: 'Kitchen',
+      timeOfDay: 'Evening',
+      lightingStyle: 'Natural window',
+      aspectRatio: '9:16 (Story)',
+    } as any,
+    {},
+    false
+  );
+
+  const prompt = promptEngine.build(mapped as any);
+  expect(prompt).toContain('RITUAL MODE: Lifestyle ritual scene.');
+  expect(prompt).toContain('inside a kitchen');
+  expect(prompt).not.toContain('RITUAL HERO CANVAS (HARD RULE)');
+  expect(prompt).not.toContain('Remove the original environment completely');
+});
+
+test('Ritual Mode becomes neutral only when Hero canvas is enabled', () => {
+  const mapped = mapLifestyleToPromptOptions(
+    {
+      sceneIntent: 'environment',
+      creationIntent: 'brand',
+      creationMode: 'Aesthetic Builder',
+      compositionMode: 'Lifestyle Showcase',
+      noPerson: false,
+      sameCreatorAcrossScenes: false,
+      ugcRealMode: false,
+
+      ritualModeEnabled: true,
+      ritualHideProduct: false,
+      ritualNoObjects: true,
+      ritualActivities: ['Sleep Wind-down'],
+
+      environment: 'Kitchen',
+      timeOfDay: 'Evening',
+      lightingStyle: 'Natural window',
+      aspectRatio: '9:16 (Story)',
+
+      ecommerceSidePlacementFlag: true,
+      sidePlacement: 'Center',
+      ecommerceBackgroundMode: 'white',
+      ecommerceBackgroundColor: '#ffffff',
+    } as any,
+    {},
+    false
+  );
+
+  const prompt = promptEngine.build(mapped as any);
+  expect(prompt).toContain('RITUAL MODE: Lifestyle ritual scene.');
+  expect(prompt).toContain('RITUAL HERO CANVAS (HARD RULE)');
+  expect(prompt).toContain('Remove the original environment completely');
+  expect(prompt).not.toContain('inside a kitchen');
+});

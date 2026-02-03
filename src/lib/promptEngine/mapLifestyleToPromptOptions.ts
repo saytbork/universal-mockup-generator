@@ -835,21 +835,6 @@ export function mapLifestyleToPromptOptions(
         const activities = Array.isArray((sceneState as any).ritualActivities) ? (sceneState as any).ritualActivities : [];
         (mapped as any).ritualActivities = activities.filter((v: any) => typeof v === 'string' && v.trim());
         (mapped as any).ritualCustom = String((sceneState as any).ritualCustom ?? '').trim() || undefined;
-
-        // HARD RULE: Ritual mode uses a neutral hero canvas (background replacement) and must respect the selected background color.
-        // Prefer the global studio background color picker (Composition Basics). Fallback to ecommerce background color, then white.
-        const ritualBg =
-            String((sceneState as any).studioBackgroundColor || '')
-                .trim() ||
-            String((sceneState as any).ecommerceBackgroundColor || '')
-                .trim() ||
-            '#FFFFFF';
-
-        mapped.creationMode = 'bg-replace';
-        mapped.ecommerceSidePlacementFlag = true;
-        mapped.sidePlacement = 'center' as any;
-        mapped.bgColor = ritualBg.toUpperCase();
-        delete mapped.bgGradient;
     } else {
         (mapped as any).ritualModeActive = false;
         (mapped as any).ritualHideProduct = false;
@@ -1746,7 +1731,7 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     // Ritual hero scenes should not inject a literal environment/location even if the user had one selected.
     // CanonicalScene will add the neutral hero canvas language; we must suppress setting/micro so other builders don't re-add rooms.
-    if ((mapped as any).ritualModeActive === true) {
+    if ((mapped as any).ritualModeActive === true && sceneState.ecommerceSidePlacementFlag === true) {
         mapped.setting = '';
         mapped.microLocation = '';
         (mapped as any).sceneEnvironment = '';

@@ -367,8 +367,8 @@ export class SceneNarrativeBuilder {
         }
 
         // Ritual Hero Canvas: neutral background + hero placement (Lifestyle-only).
-        // This must override environment-first mode to avoid injecting real room context.
-        if (!isProductMode && options.ritualModeActive) {
+        // Only active when the user explicitly enables the Hero canvas (neutral background + placement).
+        if (!isProductMode && options.ritualModeActive && options.creationMode === 'bg-replace' && options.ecommerceSidePlacementFlag) {
             return [
                 'RITUAL HERO CANVAS (HARD RULE): neutral seamless background with no location cues.',
                 'Hero placement: centered composition with clean negative space and intentional framing.',
