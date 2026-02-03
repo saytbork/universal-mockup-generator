@@ -2801,6 +2801,146 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                         ))}
                                       </div>
                                     </div>
+
+                                    <div className="rounded-xl border border-gray-200 bg-white p-3 space-y-3">
+                                      <div className="flex items-center justify-between gap-3">
+                                        <div>
+                                          <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold">Background</p>
+                                          <p className="text-[11px] text-gray-600">Optional override (solid or gradient)</p>
+                                        </div>
+                                        <Toggle
+                                          checked={productStore.photoModeConfig.ingredientStack.backgroundEnabled}
+                                          onCheckedChange={(next) => {
+                                            productStore.setPhotoModeConfig({ ingredientStack: { backgroundEnabled: next } });
+                                            markSectionTouched('product-setup');
+                                          }}
+                                          aria-label="Ingredient Stack background override"
+                                        />
+                                      </div>
+
+                                      {productStore.photoModeConfig.ingredientStack.backgroundEnabled && (
+                                        <div className="space-y-3">
+                                          <div>
+                                            <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Background Type</p>
+                                            <div className="flex flex-wrap gap-2">
+                                              {(['Solid', 'Gradient'] as const).map(v => (
+                                                <Chip
+                                                  key={v}
+                                                  selected={productStore.photoModeConfig.ingredientStack.backgroundType === v}
+                                                  onClick={() => {
+                                                    productStore.setPhotoModeConfig({ ingredientStack: { backgroundType: v } });
+                                                    markSectionTouched('product-setup');
+                                                  }}
+                                                >
+                                                  {v}
+                                                </Chip>
+                                              ))}
+                                            </div>
+                                          </div>
+
+                                          {productStore.photoModeConfig.ingredientStack.backgroundType === 'Gradient' && (
+                                            <div>
+                                              <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Gradient Style</p>
+                                              <div className="flex flex-wrap gap-2">
+                                                {(['Soft', 'Radial', 'Vertical'] as const).map(v => (
+                                                  <Chip
+                                                    key={v}
+                                                    selected={productStore.photoModeConfig.ingredientStack.gradientStyle === v}
+                                                    onClick={() => {
+                                                      productStore.setPhotoModeConfig({ ingredientStack: { gradientStyle: v } });
+                                                      markSectionTouched('product-setup');
+                                                    }}
+                                                  >
+                                                    {v}
+                                                  </Chip>
+                                                ))}
+                                              </div>
+                                            </div>
+                                          )}
+
+                                          <div>
+                                            <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Colors</p>
+                                            <div className="flex flex-wrap gap-2">
+                                              {(['Brand Colors', 'Custom Color'] as const).map(v => (
+                                                <Chip
+                                                  key={v}
+                                                  selected={productStore.photoModeConfig.ingredientStack.colorSource === v}
+                                                  onClick={() => {
+                                                    productStore.setPhotoModeConfig({ ingredientStack: { colorSource: v } });
+                                                    markSectionTouched('product-setup');
+                                                  }}
+                                                >
+                                                  {v}
+                                                </Chip>
+                                              ))}
+                                            </div>
+                                          </div>
+
+                                          {productStore.photoModeConfig.ingredientStack.colorSource === 'Custom Color' && (
+                                            <>
+                                              {productStore.photoModeConfig.ingredientStack.backgroundType === 'Solid' ? (
+                                                <div className="flex items-center gap-3">
+                                                  <span
+                                                    className="block h-8 w-8 rounded-full border-2 border-gray-200"
+                                                    style={{ background: (productStore.backgroundColor || '#ffffff') as any }}
+                                                  />
+                                                  <input
+                                                    type="text"
+                                                    value={String(productStore.backgroundColor || '#FFFFFF').toUpperCase()}
+                                                    onChange={(e) => {
+                                                      productStore.setGradientEnabled(false);
+                                                      productStore.setBackgroundColor(e.target.value);
+                                                      markSectionTouched('product-setup');
+                                                    }}
+                                                    placeholder="#FFFFFF"
+                                                    className="w-32 rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-mono text-gray-900 placeholder:text-gray-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                                                  />
+                                                </div>
+                                              ) : (
+                                                <div className="grid grid-cols-1 gap-3">
+                                                  <div className="flex items-center gap-3">
+                                                    <span
+                                                      className="block h-8 w-8 rounded-full border-2 border-gray-200"
+                                                      style={{ background: (productStore.gradientStart || '#ffffff') as any }}
+                                                    />
+                                                    <input
+                                                      type="text"
+                                                      value={String(productStore.gradientStart || '#FFFFFF').toUpperCase()}
+                                                      onChange={(e) => {
+                                                        productStore.setGradientEnabled(true);
+                                                        productStore.setGradientStart(e.target.value);
+                                                        markSectionTouched('product-setup');
+                                                      }}
+                                                      placeholder="#FFFFFF"
+                                                      className="w-32 rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-mono text-gray-900 placeholder:text-gray-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                                                    />
+                                                    <span className="text-xs text-gray-500">Start</span>
+                                                  </div>
+                                                  <div className="flex items-center gap-3">
+                                                    <span
+                                                      className="block h-8 w-8 rounded-full border-2 border-gray-200"
+                                                      style={{ background: (productStore.gradientEnd || '#ffffff') as any }}
+                                                    />
+                                                    <input
+                                                      type="text"
+                                                      value={String(productStore.gradientEnd || '#FFFFFF').toUpperCase()}
+                                                      onChange={(e) => {
+                                                        productStore.setGradientEnabled(true);
+                                                        productStore.setGradientEnd(e.target.value);
+                                                        markSectionTouched('product-setup');
+                                                      }}
+                                                      placeholder="#FFFFFF"
+                                                      className="w-32 rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-mono text-gray-900 placeholder:text-gray-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                                                    />
+                                                    <span className="text-xs text-gray-500">End</span>
+                                                  </div>
+                                                </div>
+                                              )}
+                                            </>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
                                   </>
                                 )}
                               </div>

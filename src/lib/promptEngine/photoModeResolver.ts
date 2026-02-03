@@ -73,8 +73,10 @@ export type ProductState =
 
 export interface PhotoModeOptions {
     // Sub-option modifiers (optional refinements)
+    backgroundEnabled?: boolean;
     backgroundType?: 'solid' | 'gradient';
     paletteColors?: { primary?: string; secondary?: string; accent?: string };
+    gradientStyle?: 'Soft' | 'Radial' | 'Vertical';
     ingredientLayout?: 'auto' | 'grounded' | 'floating' | 'top-view';
     suggestedProps?: string;
 
@@ -373,12 +375,25 @@ const PHOTO_MODE_STATE_COMPATIBILITY: Record<string, {
 
 function buildBackgroundModifier(
     photoMode: PhotoMode,
+    backgroundEnabled?: boolean,
     backgroundType?: 'solid' | 'gradient',
-    paletteColors?: { primary?: string; secondary?: string; accent?: string }
+    paletteColors?: { primary?: string; secondary?: string; accent?: string },
+    gradientStyle?: 'Soft' | 'Radial' | 'Vertical'
 ): string {
-    if (photoMode === 'Hero Landing Page' || photoMode === 'Color Pop Hero' || photoMode === 'Monochrome Brand') {
+    const supportsBackground =
+        photoMode === 'Hero Landing Page' ||
+        photoMode === 'Color Pop Hero' ||
+        photoMode === 'Monochrome Brand' ||
+        (photoMode === 'Ingredient Stack' && backgroundEnabled === true);
+    if (supportsBackground) {
         if (backgroundType === 'gradient' && paletteColors?.primary && paletteColors?.secondary) {
-            return `Background: smooth gradient from ${paletteColors.primary} to ${paletteColors.secondary}.`;
+            const styleText =
+                gradientStyle === 'Radial'
+                    ? 'radial gradient'
+                    : gradientStyle === 'Vertical'
+                        ? 'vertical gradient'
+                        : 'soft gradient';
+            return `Background: ${styleText} from ${paletteColors.primary} to ${paletteColors.secondary}.`;
         }
         if (backgroundType === 'solid' && paletteColors?.primary) {
             return `Background: solid ${paletteColors.primary}.`;
@@ -534,7 +549,13 @@ export function buildPhotoModePrompt(
 
     // Background modifier
     if (options.backgroundType || options.paletteColors) {
-        const bgMod = buildBackgroundModifier(photoMode, options.backgroundType, options.paletteColors);
+        const bgMod = buildBackgroundModifier(
+            photoMode,
+            options.backgroundEnabled,
+            options.backgroundType,
+            options.paletteColors,
+            options.gradientStyle
+        );
         if (bgMod) modifierParts.push(bgMod);
     }
 

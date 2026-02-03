@@ -211,11 +211,38 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     }
     : undefined;
 
+  const ingredientStackBgOptions = (() => {
+    if (state.photoMode !== 'Ingredient Stack') return null;
+    const cfg = state.photoModeConfig?.ingredientStack as any;
+    if (!cfg?.backgroundEnabled) return null;
+
+    const backgroundType = cfg.backgroundType === 'Gradient' ? 'gradient' : 'solid';
+    const gradientStyle = cfg.gradientStyle as 'Soft' | 'Radial' | 'Vertical' | undefined;
+
+    const paletteColors =
+      cfg.colorSource === 'Brand Colors'
+        ? backgroundType === 'solid'
+          ? { primary: palette?.dominant }
+          : { primary: palette?.dominant, secondary: palette?.secondary || palette?.accent || palette?.dominant }
+        : backgroundType === 'solid'
+          ? { primary: state.backgroundColor || '#FFFFFF' }
+          : {
+              primary: state.gradientStart || state.backgroundColor || '#FFFFFF',
+              secondary: state.gradientEnd || state.gradientStart || state.backgroundColor || '#FFFFFF',
+            };
+
+    if (!paletteColors.primary) return null;
+    if (backgroundType === 'gradient' && !paletteColors.secondary) return null;
+
+    return { backgroundEnabled: true, backgroundType, paletteColors, gradientStyle };
+  })();
+
   const photoModeResult = buildPhotoModePrompt(state.photoMode as PhotoMode, {
     suggestedProps: state.props,
     ingredientLayout: state.ingredientLayout,
     dynamicSettings: state.photoModeConfig.dynamic?.[state.photoMode as PhotoMode],
     productType: state.definition.type as any,
+    ...(ingredientStackBgOptions ?? {}),
   });
 
   const sceneInput: SceneBuildInput = {

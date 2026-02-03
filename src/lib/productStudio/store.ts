@@ -471,6 +471,10 @@ const DEFAULT_PHOTO_MODE_CONFIG: PhotoModeConfig = {
         stackStyle: 'Vertical stack',
         ingredientPresence: 'Balanced',
         labelPriority: 'Always readable',
+        backgroundEnabled: false,
+        backgroundType: 'Solid',
+        gradientStyle: 'Soft',
+        colorSource: 'Brand Colors',
     },
     acrylicBlocks: {
         blockShape: 'Rectangular',

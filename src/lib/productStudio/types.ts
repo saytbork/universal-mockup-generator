@@ -311,6 +311,9 @@ export type IngredientStackIngredientFocus = 'Key active only' | 'Full formula';
 export type IngredientStackStackStyle = 'Vertical stack' | 'Surround' | 'Split composition';
 export type IngredientStackIngredientPresence = 'Subtle' | 'Balanced' | 'Hero';
 export type IngredientStackLabelPriority = 'Always readable' | 'Secondary to ingredients';
+export type IngredientStackBackgroundType = 'Solid' | 'Gradient';
+export type IngredientStackGradientStyle = 'Soft' | 'Radial' | 'Vertical';
+export type IngredientStackColorSource = 'Brand Colors' | 'Custom Color';
 
 export type AcrylicBlocksBlockShape = 'Rectangular' | 'Cylindrical' | 'Mixed geometry';
 export type AcrylicBlocksMaterialFinish = 'Clear' | 'Frosted' | 'Smoked';
@@ -369,6 +372,11 @@ export type PhotoModeConfig = {
         stackStyle: IngredientStackStackStyle;
         ingredientPresence: IngredientStackIngredientPresence;
         labelPriority: IngredientStackLabelPriority;
+        /** Optional background override for Ingredient Stack only. */
+        backgroundEnabled: boolean;
+        backgroundType: IngredientStackBackgroundType;
+        gradientStyle: IngredientStackGradientStyle;
+        colorSource: IngredientStackColorSource;
     };
     acrylicBlocks: {
         blockShape: AcrylicBlocksBlockShape;
