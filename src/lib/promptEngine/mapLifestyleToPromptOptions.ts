@@ -1943,7 +1943,7 @@ export function mapLifestyleToPromptOptions(
         mapped.creationModeStructural =
             'Background replacement mode: preserve the subject and replace the original environment with a neutral hero canvas.';
         mapped.compositionModeStructural =
-            'Blank-space layout on a neutral canvas; no environment context.';
+            'Blank-space layout on a neutral canvas; environment selection is used only as a styling reference (not depicted as a room).';
 
         // Suppress environment-style placement hints when canvas is active
         delete mapped.placementStyle;
@@ -1953,12 +1953,8 @@ export function mapLifestyleToPromptOptions(
         delete mapped.sceneOrderChaos;
         delete (mapped as any).sceneOrderChaosDescriptor;
 
-        // Suppress environment output when canvas is active (keep person + lighting)
-        mapped.setting = '';
-        mapped.microLocation = '';
-        (mapped as any).sceneEnvironment = '';
-        mapped.environmentOrder = '';
-        delete (mapped as any).sceneEnvironmentDescriptor;
+        // Keep the selected environment as a styling reference (do not force-reset it),
+        // but suppress environment variation systems that would re-introduce room cues.
         delete (mapped as any).backgroundVariationDescriptor;
         delete mapped.backgroundVariationId;
         delete mapped.lastBackgroundId;

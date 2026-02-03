@@ -973,8 +973,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     environment: initialSceneIntent === 'ecommerce' ? '' : 'Kitchen', // Kitchen has table/counter surface by default
     customEnvironment: '',
     sceneOrderChaos: 'Normal',
-    // Neutral background + placement (Lifestyle-only) is enabled by default in environment mode.
-    ecommerceSidePlacementFlag: initialSceneIntent !== 'ecommerce',
+    // Neutral background + placement (Lifestyle-only) is optional and toggle-driven.
+    ecommerceSidePlacementFlag: false,
 
     // Time & Lighting - simplified
     timeOfDay: 'Afternoon',
@@ -1810,7 +1810,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         environmentContext: { macro: prev.environment || 'Kitchen', micro: 'Countertop' },  // Restore environment
         environment: prev.environment || 'Kitchen',
         compositionMode: '',
-        ecommerceSidePlacementFlag: true,
+        ecommerceSidePlacementFlag: false,
         sidePlacement: SIDE_PLACEMENT_OPTIONS[1],
         cameraType: prev.cameraType || 'Intentional smartphone camera',
         shotType: prev.shotType || 'Medium',

@@ -580,6 +580,10 @@ export class SceneNarrativeBuilder {
         if (isEcommerceCanvasOverlay) {
             const creationModeStructural = (options as any).creationModeStructural || '';
             const compositionModeStructural = (options as any).compositionModeStructural || '';
+            const envRef =
+                !isProductMode
+                    ? String((options as any).sceneEnvironment || options.setting || '').trim()
+                    : '';
             const bgLine = options.bgGradient
                 ? `Background: gradient ${options.bgGradient.angle ?? 90}° from ${options.bgGradient.startColor} to ${options.bgGradient.endColor}.`
                 : options.bgColor
@@ -589,6 +593,7 @@ export class SceneNarrativeBuilder {
             return [
                 'Ecommerce canvas overlay is active.',
                 'Remove the original environment completely; no room context or location cues.',
+                envRef ? `Environment reference (styling only): ${envRef}.` : '',
                 creationModeStructural ? `Creation: ${creationModeStructural}.` : '',
                 compositionModeStructural ? `Composition: ${compositionModeStructural}.` : '',
                 bgLine,
