@@ -74,10 +74,17 @@ If any creative mode conflicts with product clarity, PRODUCT CLARITY ALWAYS WINS
 // BASE STUDIO BLOCK (ALWAYS INCLUDED)
 // =============================================================================
 export const BASE_STUDIO = `
-STUDIO MODE. PRODUCT-ONLY IMAGE.
-Controlled studio environment. No real-world location. No narrative context.
-Abstract, editorial, or neutral composition. The product is the only subject.
-Clean geometry. Premium commercial quality. High clarity. Sharp focus.
+Controlled advertising studio.
+Purpose-built set.
+Abstract, architectural, or laboratory-style surfaces.
+Rigid materials only (glass, metal, acrylic, stone).
+Clean geometry and precise construction.
+Professional product photography.
+High clarity and contrast.
+Product fully grounded with realistic contact shadows.
+Label fully readable and undistorted.
+No people.
+Only elements explicitly defined by the selected Photo Mode.
 `.trim().replace(/\n/g, ' ');
 
 

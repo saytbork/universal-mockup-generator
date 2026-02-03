@@ -97,7 +97,7 @@ const defaultPrompt = buildStudioPrompt({
     shadow: defaultOptions.shadow,
     interaction: defaultOptions.interaction,
 });
-assert(defaultPrompt.includes('STUDIO MODE'), 'Default prompt includes STUDIO MODE');
+assert(defaultPrompt.includes('Controlled advertising studio.'), 'Default prompt includes safe Studio base');
 assert(!defaultPrompt.includes('undefined'), 'No undefined values in prompt');
 assert(!defaultPrompt.includes('null'), 'No null values in prompt');
 console.log('Default prompt length:', defaultPrompt.length, 'characters');
@@ -125,7 +125,7 @@ const customPrompt = buildStudioPrompt({
     shadow: 'Hard Drop',
     interaction: 'Holding',
 });
-assert(customPrompt.includes('STUDIO MODE'), 'Custom prompt includes STUDIO MODE');
+assert(customPrompt.includes('Controlled advertising studio.'), 'Custom prompt includes safe Studio base');
 assert(customPrompt.includes('AUTO PALETTE EXTRACTION'), 'Custom prompt includes palette');
 assert(customPrompt.includes('#FF0000'), 'Custom prompt includes primary color');
 assert(customPrompt.includes('Splash Shot') || customPrompt.includes('splash'), 'Custom prompt includes photo mode');

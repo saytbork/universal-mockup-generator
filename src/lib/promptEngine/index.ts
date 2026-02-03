@@ -545,13 +545,9 @@ export class PromptEngine {
                 interaction: (options as any).studioInteraction
             });
 
-            // Prepend the deterministic foundation as the authoritative root contract
-            const resolvedAspectRatio = String(options.aspectRatio || '1:1').trim() || '1:1';
-            const deterministicFoundation = buildDeterministicFoundation();
-            const finalStudioPrompt = `${deterministicFoundation}\n\n---\n\nGENERATION INSTRUCTIONS:\n${studioPrompt}`.replace(
-                /\{ASPECT_RATIO\}/g,
-                resolvedAspectRatio
-            );
+            // Studio Product uses Studio Presets as the single prompt authority (positive-only whitelist base).
+            // Do not prepend Product Studio deterministic foundation here.
+            const finalStudioPrompt = `GENERATION INSTRUCTIONS:\n${studioPrompt}`;
 
             console.log('[CLEANUP-INSTRUMENT] ===== BUILD CALL END (Studio) =====');
             console.log('[FINAL PROMPT STRING]', finalStudioPrompt);
