@@ -448,22 +448,22 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
     'UGC Premium Simulation': {
         id: 'ugc-premium-simulation',
         label: 'UGC Premium Simulation',
-        scope: 'studio',
-        description: 'Premium studio simulation with subtle realism and controlled imperfections (no UGC language).',
-        basePrompt: 'premium studio simulation with subtle realism, controlled advertising studio, clean purpose-built studio surfaces, brand-safe polish, no domestic context, no handheld or selfie language',
+        scope: 'environment',
+        description: 'Premium casual realism simulation with controlled imperfections.',
+        basePrompt: 'small-sensor camera feel with casual framing, natural indoor light and domestic surface, controlled imperfections with brand-safe polish',
         subOptions: [
-            { key: 'realismLevel', label: 'Realism Level', values: ['Subtle', 'Balanced'] },
-            { key: 'imperfectionControl', label: 'Imperfection Control', values: ['Minimal', 'Controlled'] },
-            { key: 'lightQuality', label: 'Light Quality', values: ['Neutral studio', 'Soft studio'] },
-            { key: 'surfaceType', label: 'Surface Type', values: ['Abstract studio surface'] },
+            { key: 'cameraFeel', label: 'Camera Feel', values: ['Small-sensor'] },
+            { key: 'framingStyle', label: 'Framing Style', values: ['Casual'] },
+            { key: 'lightQuality', label: 'Light Quality', values: ['Natural indoor'] },
+            { key: 'surfaceType', label: 'Surface Type', values: ['Domestic surface'] },
         ],
         constraints: [
             'Controlled imperfections only',
-            'No lifestyle, domestic, or outdoor context',
-            'No handheld/selfie/phone capture language'
+            'No personal context cues',
+            'No studio-perfect lighting'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none'],
-        allowsPersonPresence: false
+        allowedInteractions: ['holding', 'two-hand-hold', 'presenting'],
+        allowsPersonPresence: true
     }
 };

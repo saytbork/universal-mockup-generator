@@ -16,7 +16,8 @@ test.describe('ProductStudio Environment Injection', () => {
 
     expect(result.prompt).toContain('Kitchen interior setting');
     expect(result.prompt).toContain('Product placed on a countertop');
-    expect(result.prompt.toLowerCase()).not.toContain('people');
+    expect(result.prompt).toContain('No people, no hands, no faces');
     expect(result.prompt).toContain('Overcast daylight');
   });
 });
+
