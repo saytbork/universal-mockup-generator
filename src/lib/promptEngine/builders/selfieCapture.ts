@@ -415,11 +415,28 @@ export class SelfieCaptureBuilder implements PromptBuilder {
         const hasProductAssets = (options.productAssets?.length || 0) > 0;
         const needsContactBlock = hasProductAssets || productInteraction.includes('hold');
 
+        const bodyTypeText = (() => {
+            if (options.hasModelReference) return '';
+            const raw = String(options.personDetails?.bodyType || '').trim();
+            if (!raw) return '';
+            const key = raw.toLowerCase();
+            const detail =
+                key === 'slim'
+                    ? 'Slim figure: narrow waist/shoulders, lean arms and neck; face should not read round or full.'
+                    : key === 'curvy'
+                        ? 'Curvy figure: visible hip/waist curve, fuller thighs/arms; face has gentle softness.'
+                        : key === 'plus size' || key === 'plus-size' || key === 'plus'
+                            ? 'Plus-size figure: fuller midsection and arms, thicker neck, softer jawline and fuller cheeks; do NOT render a thin frame.'
+                            : 'Average figure: balanced proportions, neither extremely thin nor plus-size.';
+            return `BODY TYPE ANCHOR: ${raw}. ${detail}`;
+        })();
+
         return [
             UGC_SELFIE_CAPTURE_BLOCK,
             selectedMode,
             angleDirective,
             SELFIE_IMPERFECTION_LEVEL_RULES[imperfectionLevel],
+            bodyTypeText,
             needsContactBlock ? SELFIE_PHYSICAL_CONTACT_BLOCK : '',
             SELFIE_CAPTURE_BLOCKERS
         ].join('\n\n').trim();
