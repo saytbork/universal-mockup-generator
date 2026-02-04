@@ -43,7 +43,7 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
   productStore: any;
   markSectionTouched: (id: string) => void;
 }) {
-  const dynamicConfig = productStore.photoModeConfig.dynamic?.[schema.id as PhotoMode] || {};
+  const dynamicConfig = productStore.photoModeConfig.dynamic?.[schema.label as PhotoMode] || {};
 
   return (
     <div className="space-y-6">
@@ -69,7 +69,7 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
                     key={value}
                     selected={currentSelection === value}
                     onClick={() => {
-                      productStore.updatePhotoModeSubSetting(schema.id as PhotoMode, option.key, value);
+                      productStore.updatePhotoModeSubSetting(schema.label as PhotoMode, option.key, value);
                       markSectionTouched('product-setup');
                     }}
                   >

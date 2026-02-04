@@ -562,7 +562,16 @@ export function buildPhotoModePrompt(
     // Dynamic schema settings modifier
     if (options.dynamicSettings) {
         Object.entries(options.dynamicSettings).forEach(([category, value]) => {
-            modifierParts.push(`${category.replace(/([A-Z])/g, ' $1').toLowerCase()}: ${value}`);
+            const normalizedCategory = String(category || '').trim();
+            const normalizedValue = String(value || '').trim();
+            if (!normalizedCategory || !normalizedValue) return;
+
+            if (normalizedCategory === 'surfaceType' && normalizedValue === 'None') {
+                modifierParts.push('Surface: seamless solid-color plane (flat color field).');
+                return;
+            }
+
+            modifierParts.push(`${normalizedCategory.replace(/([A-Z])/g, ' $1').toLowerCase()}: ${normalizedValue}`);
         });
     }
 

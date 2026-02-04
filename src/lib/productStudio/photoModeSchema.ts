@@ -52,7 +52,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         subOptions: [
             { key: 'ingredientDensity', label: 'Ingredient Density', values: ['Low', 'Medium', 'High'] },
             { key: 'layoutStyle', label: 'Layout Style', values: ['Stacked', 'Surround', 'Split'] },
-            { key: 'surfaceType', label: 'Surface Type', values: ['Stone', 'Ceramic', 'Wood'] },
+            { key: 'surfaceType', label: 'Surface Type', values: ['None', 'Stone', 'Ceramic', 'Wood'] },
             { key: 'cameraAngle', label: 'Camera Angle', values: ['Eye-level', 'Slight top-down'] },
         ],
         constraints: [
