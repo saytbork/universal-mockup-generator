@@ -6,6 +6,7 @@ test.describe('ProductStudio Environment Injection', () => {
   test('Environment mode injects macro/micro into scene prompt', () => {
     const result = mapSceneToPrompt({
       ...DEFAULT_PRODUCT_STUDIO_STATE,
+      sceneType: 'lifestyle-real',
       blankSpaceEnabled: false,
       environmentContext: { macro: 'kitchen', micro: 'countertop' },
       customEnvironmentText: '',

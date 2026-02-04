@@ -193,7 +193,10 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   // CRITICAL: Hero Landing Page gets exclusive sceneType routing
   const isHeroLandingPage = state.photoMode === 'Hero Landing Page';
 
+  const studioLikeScene = state.sceneType === 'studio-branding' || state.sceneType === 'ecommerce-pdp';
+
   const environmentModeActive =
+    studioLikeScene === false &&
     state.blankSpaceEnabled === false &&
     state.environmentContext != null &&
     String(state.environmentContext.macro || '').trim() !== '' &&

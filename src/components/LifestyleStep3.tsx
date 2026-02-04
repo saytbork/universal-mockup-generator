@@ -1741,6 +1741,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // const isEnvironmentMode = values.sceneIntent === 'environment'; // REDUNDANT: Derived from productStore.sceneType now
   const isUGCMode = values.ugcRealMode;
 
+  // Product Builder hard rule: Photo Type does not include Environment.
+  useEffect(() => {
+    if (!isEcommerceMode) return;
+    if (productStore.environmentContext != null) {
+      productStore.setEnvironmentContext(null);
+    }
+  }, [isEcommerceMode, productStore]);
+
   // Scene Intent Handler: Enable Ecommerce Mode
   const enableEcommerce = useCallback(() => {
     console.log('[SCENE INTENT CHANGE] ecommerce');
@@ -2120,22 +2128,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   >
                     Photo Studio
                   </Chip>
-                  <Chip
-                    onClick={() => {
-                      // Default to a safe, common environment if none selected yet.
-                      productStore.setEnvironmentContext({ macro: 'kitchen', micro: 'countertop' });
-                      markSectionTouched('product-setup');
-                    }}
-                    selected={productStore.environmentContext != null}
-                    disabled={productStore.blankSpaceEnabled === true}
-                    className={productStore.blankSpaceEnabled === true ? 'opacity-50 cursor-not-allowed' : undefined}
-                  >
-                    Environment
-                  </Chip>
                 </div>
-                <p className="text-[11px] text-gray-500 mt-1">
-                  Photo Studio uses controlled sets. Environment places the product in a real-world setting.
-                </p>
               </div>
 
               {/* SCENE TYPE — Hidden in Product Studio (product-only mode) */}
