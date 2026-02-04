@@ -28,6 +28,15 @@ type GenerateImageParams = {
     ugcRealModeActive?: boolean;
 };
 
+export function shouldSendProductReferenceImages(prompt: string, products: ActiveProduct[]): boolean {
+    if (!Array.isArray(products) || products.length === 0) return false;
+    const lower = String(prompt || '').toLowerCase();
+    // If the prompt explicitly requires no visible product, do not send product reference images.
+    // Sending them can cause unintended product leakage and aspect-ratio letterboxing.
+    if (lower.includes('no product visible anywhere in frame')) return false;
+    return true;
+}
+
 const fileToBase64 = (file: File): Promise<{ base64: string; mimeType: string }> => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -101,7 +110,7 @@ export async function generateImageWithGemini({
         apiVersion: "v1beta",
     });
 
-    const shouldSendProductImage = products.length > 0;
+    const shouldSendProductImage = shouldSendProductReferenceImages(prompt, products);
 
     const identityInlinePart = personIdentityPackage?.modelReferenceBase64
         ? {

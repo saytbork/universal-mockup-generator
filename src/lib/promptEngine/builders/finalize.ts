@@ -54,7 +54,7 @@ export class FinalizeBuilder implements PromptBuilder {
                 ugcDepthLockActive
                     ? 'VISIBILITY LOCK: The product and label remain clearly visible and readable across the frame; never soft or unreadable.'
                     : 'OPTICS LOCK: The product must be tack sharp and the sharpest object in the frame. Use eye-level or slight top-down angle (35mm–50mm lens equivalent). Absolutely no wide-angle distortion.',
-                'Avoid dark backgrounds that could create black gaps in the 3:4 vertical framing.'
+                'Avoid backgrounds that read as borders or padding. Do not add letterboxing/pillarboxing or any black bars; the scene must fully occupy the requested aspect ratio.'
             );
             if (options.ritualModeActive && options.ritualNoObjects) {
                 lines.push(
