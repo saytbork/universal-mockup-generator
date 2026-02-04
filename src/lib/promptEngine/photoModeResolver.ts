@@ -414,7 +414,7 @@ function buildIngredientModifier(
             'Clear spacing and order between ingredients.',
             'No surrounding or radial layouts.',
             'No top-down angle. No floating ingredients.',
-            'Allowed ingredient types only: capsules, powder (single measured pile), extract (solid or liquid), dried leaves, roots, seeds.',
+            'Allowed ingredient types only: herbs, roots, seeds, dried leaves, and raw botanical ingredients. Powder or extract forms only if explicitly listed.',
             'Explicitly forbidden: fruits, flowers, berries, decorative herbs, generic botanicals, aesthetic powders.'
         ].join(' ');
     }
@@ -557,6 +557,12 @@ export function buildPhotoModePrompt(
             options.gradientStyle
         );
         if (bgMod) modifierParts.push(bgMod);
+    }
+
+    // Ingredient modifier (Ingredient Stack / Flat Lay only)
+    if (options.suggestedProps) {
+        const ingredientMod = buildIngredientModifier(photoMode, options.suggestedProps, options.ingredientLayout);
+        if (ingredientMod) modifierParts.push(ingredientMod);
     }
 
     // Dynamic schema settings modifier

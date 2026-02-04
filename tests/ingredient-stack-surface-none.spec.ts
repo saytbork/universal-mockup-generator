@@ -25,7 +25,8 @@ test('Ingredient Stack surfaceType None yields seamless solid plane and omits "s
   } as any);
 
   expect(result.prompt).toContain('Background: solid #112233');
+  expect(result.prompt).toContain('INGREDIENTS: strawberries, mint leaves.');
   expect(result.prompt).toContain('Surface: seamless solid-color plane');
   expect(result.prompt.toLowerCase()).not.toContain('surface type: none');
+  expect(result.prompt).not.toContain('Secondary props:');
 });
-

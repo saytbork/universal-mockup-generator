@@ -162,7 +162,7 @@ const PHOTO_MODE_MAP: Record<string, PhotoModeKey> = {
 const SECONDARY_PROPS_BY_MODE: Partial<Record<PhotoModeKey, string[]>> = {
   HERO_NEUTRAL: ['minimal glass accent', 'clean acrylic riser', 'small stone block'],
   COLOR_POP_HERO: ['geometric color blocks', 'polished acrylic accent', 'abstract color panel'],
-  INGREDIENT_STACK: ['fresh botanicals', 'sliced citrus', 'herbal leaves', 'clean powders'],
+  INGREDIENT_STACK: [],
   ACRYLIC_BLOCKS: ['additional acrylic risers', 'prismatic edge accents'],
   SPLASH_SHOT: ['minimal liquid surface ripples', 'controlled droplets around the base'],
   FOAM_AND_TEXTURE: ['controlled foam clusters', 'gel ribbons', 'micro-bubbles'],
@@ -351,7 +351,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     buildBaseContext({ allowStudio: mode === 'ACRYLIC_BLOCKS' }),
     scene,
     photoModeResult.modifiers,
-    buildSecondaryProps(mode, randomizer, state.props),
+    mode === 'INGREDIENT_STACK' ? '' : buildSecondaryProps(mode, randomizer, state.props),
     buildLighting(mode, randomizer, lightingOverrideText ? { override: { text: lightingOverrideText } } : undefined),
     buildCamera(mode, randomizer),
     buildMaterials(mode, randomizer),
