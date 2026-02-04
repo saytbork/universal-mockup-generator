@@ -1073,6 +1073,74 @@ const letterboxDataUrlToAspectRatio = async (
   return { base64: base64 ?? '', mimeType: opts.mimeType };
 };
 
+const coverCropDataUrlToAspectRatio = async (
+  dataUrl: string,
+  targetAspectRatio: string,
+  opts: { maxLongEdge: number; background: string | null; mimeType: 'image/png' | 'image/jpeg'; quality?: number }
+): Promise<{ base64: string; mimeType: string }> => {
+  const parsed = parseAspectRatio(targetAspectRatio);
+  if (!parsed) {
+    const [, base64] = String(dataUrl).split(';base64,');
+    return { base64: base64 ?? '', mimeType: opts.mimeType };
+  }
+  const img = await loadImageFromUrl(dataUrl);
+  const imgW = img.naturalWidth;
+  const imgH = img.naturalHeight;
+  if (!imgW || !imgH) {
+    const [, base64] = String(dataUrl).split(';base64,');
+    return { base64: base64 ?? '', mimeType: opts.mimeType };
+  }
+
+  const targetRatio = parsed.w / parsed.h;
+  const imgRatio = imgW / imgH;
+
+  // Crop a centered rectangle from the source image so it exactly matches the target ratio.
+  let cropW = imgW;
+  let cropH = imgH;
+  let cropX = 0;
+  let cropY = 0;
+  if (imgRatio > targetRatio) {
+    cropH = imgH;
+    cropW = Math.round(cropH * targetRatio);
+    cropX = Math.round((imgW - cropW) / 2);
+  } else if (imgRatio < targetRatio) {
+    cropW = imgW;
+    cropH = Math.round(cropW / targetRatio);
+    cropY = Math.round((imgH - cropH) / 2);
+  }
+
+  const scale = Math.min(1, opts.maxLongEdge / Math.max(cropW, cropH));
+  const outW = Math.max(1, Math.round(cropW * scale));
+  const outH = Math.max(1, Math.round(cropH * scale));
+
+  const canvas = document.createElement('canvas');
+  canvas.width = outW;
+  canvas.height = outH;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    const [, base64] = String(dataUrl).split(';base64,');
+    return { base64: base64 ?? '', mimeType: opts.mimeType };
+  }
+
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  if (opts.background) {
+    ctx.fillStyle = opts.background;
+    ctx.fillRect(0, 0, outW, outH);
+  } else {
+    ctx.clearRect(0, 0, outW, outH);
+  }
+
+  ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, outW, outH);
+
+  const out =
+    opts.mimeType === 'image/jpeg'
+      ? canvas.toDataURL('image/jpeg', typeof opts.quality === 'number' ? opts.quality : 0.96)
+      : canvas.toDataURL('image/png');
+  const [, base64] = out.split(';base64,');
+  return { base64: base64 ?? '', mimeType: opts.mimeType };
+};
+
 const maybeDownscaleInlineImage = async (
   base64: string,
   mimeType: string,
@@ -4922,11 +4990,17 @@ If the model attempts to create a scene or environment, override it and force a 
         }
 
         const finalUrl = `data:image/png;base64,${encodedImage}`;
-        const normalizedOutput = await letterboxDataUrlToAspectRatio(finalUrl, aspectRatio, {
-          maxLongEdge: 4096,
-          background: null,
-          mimeType: 'image/png',
-        });
+        const normalizedOutput = isProductPlacement
+          ? await letterboxDataUrlToAspectRatio(finalUrl, aspectRatio, {
+            maxLongEdge: 4096,
+            background: null,
+            mimeType: 'image/png',
+          })
+          : await coverCropDataUrlToAspectRatio(finalUrl, aspectRatio, {
+            maxLongEdge: 4096,
+            background: null,
+            mimeType: 'image/png',
+          });
         const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
         setGeneratedImageUrl(outputUrl);
         setHasFirstGenerationComplete(true);  // Enable Keep Same Person toggle
@@ -5524,11 +5598,17 @@ If the model attempts to create a scene or environment, override it and force a 
         throw new Error('Image edit failed or returned no images.');
       }
       const editedUrl = `data:image/png;base64,${encodedImage}`;
-      const normalizedOutput = await letterboxDataUrlToAspectRatio(editedUrl, aspectRatio, {
-        maxLongEdge: 4096,
-        background: null,
-        mimeType: 'image/png',
-      });
+      const normalizedOutput = isProductPlacement
+        ? await letterboxDataUrlToAspectRatio(editedUrl, aspectRatio, {
+          maxLongEdge: 4096,
+          background: null,
+          mimeType: 'image/png',
+        })
+        : await coverCropDataUrlToAspectRatio(editedUrl, aspectRatio, {
+          maxLongEdge: 4096,
+          background: null,
+          mimeType: 'image/png',
+        });
       const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
       setGeneratedImageUrl(outputUrl);
       try {
