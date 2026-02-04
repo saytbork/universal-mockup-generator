@@ -45,13 +45,14 @@
 import { IdentityBuilder } from './builders/identity';
 import { ConstraintsBuilder } from './builders/constraints';
 import { FinalizeBuilder } from './builders/finalize';
-import { SceneNarrativeBuilder } from './builders/canonicalScene';
-import { UGCRealModeBuilder } from './builders/ugcRealMode';
-import { SelfieCaptureBuilder } from './builders/selfieCapture';
-import { FormulationStoryInjectionBuilder } from './builders/formulationStoryInjection';
-import { CompositionDetailsBuilder } from './builders/compositionDetails';
-import { SceneStructureBuilder } from './builders/sceneStructure';
-import { VisualGrammarBuilder } from './builders/visualGrammar';
+	import { SceneNarrativeBuilder } from './builders/canonicalScene';
+	import { UGCRealModeBuilder } from './builders/ugcRealMode';
+	import { SelfieCaptureBuilder } from './builders/selfieCapture';
+	import { ClothingBuilder } from './builders/clothing';
+	import { FormulationStoryInjectionBuilder } from './builders/formulationStoryInjection';
+	import { CompositionDetailsBuilder } from './builders/compositionDetails';
+	import { SceneStructureBuilder } from './builders/sceneStructure';
+	import { VisualGrammarBuilder } from './builders/visualGrammar';
 import { PromptSanitizer } from './sanitizer';
 import { EcommerceNarrativeBuilder } from './builders/ecommerceSequence';
 import { buildStudioPrompt, PRODUCT_STUDIO_CANONICAL_PROMPT } from './studioPresets';
@@ -636,23 +637,29 @@ export class PromptEngine {
 		                        `Environment: ${environmentSetting}.`,
 		                        environmentMicro && environmentMicro !== environmentSetting ? `Micro-location: ${environmentMicro}.` : '',
 		                        environmentDescriptor
-		                    ]
-		                        .filter(Boolean)
-		                        .join(' ');
+			                    ]
+			                        .filter(Boolean)
+			                        .join(' ');
 
-		            const ugcSection = this.ugcBuilder.build(options);
-		            const finalizeSection = this.finalizeBuilder.build(options);
-		            const negative = negativePrompt(options);
-		            // Deterministic foundation is a Product Studio contract and must NEVER appear in UGC/selfie flows.
-		            const deterministicFoundation = '';
-		            let finalPrompt = [
-		                deterministicFoundation,
-		                environmentHint,
-		                identitySection,
-		                selfieCaptureSection,
-	                ugcSection,
-	                finalizeSection
-	            ]
+			            const customClothesHint =
+			                closeFaceActive || !options.customClothes?.enabled
+			                    ? ''
+			                    : new ClothingBuilder().build(options);
+
+			            const ugcSection = this.ugcBuilder.build(options);
+			            const finalizeSection = this.finalizeBuilder.build(options);
+			            const negative = negativePrompt(options);
+			            // Deterministic foundation is a Product Studio contract and must NEVER appear in UGC/selfie flows.
+			            const deterministicFoundation = '';
+			            let finalPrompt = [
+			                deterministicFoundation,
+			                environmentHint,
+			                customClothesHint,
+			                identitySection,
+			                selfieCaptureSection,
+		                ugcSection,
+		                finalizeSection
+		            ]
                 .filter(Boolean)
                 .join(' ')
                 .replace(/\s+/g, ' ')
