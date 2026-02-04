@@ -31,5 +31,5 @@ test('UGC injects body type anchors (Plus size)', () => {
   expect(prompt).toMatch(/BUILD ANCHOR: Subject must have a/i);
   expect(prompt).toMatch(/PHYSIQUE DETAILS: Plus-size figure/i);
   expect(prompt).toMatch(/BODY TYPE ANCHOR: Plus size/i);
+  expect(prompt).not.toMatch(/\b(haze|mist|smoke|steam)\b/i);
 });
-

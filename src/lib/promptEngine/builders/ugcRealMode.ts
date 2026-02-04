@@ -61,11 +61,11 @@ Keep the image readable and not stylized.
 IMPERFECTIONS (MEDIUM): Include 2–3 obvious phone-capture flaws: visible JPEG compression blocks, oversharpening halos, uneven white balance, clipped highlights, crushed shadows, minor motion smear.
 Avoid any professional look.
 `.trim().replace(/\s+/g, ' '),
-    high: `
-IMPERFECTIONS (HIGH): Include 3–5 strong phone-capture flaws: heavy JPEG compression artifacts, aggressive oversharpening halos, rolling-shutter wobble, fingerprint haze on phone glass, harsh mixed lighting, blown highlights and shadow crush.
-Must feel like a low-quality, unflattering domestic capture.
-`.trim().replace(/\s+/g, ' ')
-};
+	    high: `
+IMPERFECTIONS (HIGH): Include 3–5 strong phone-capture flaws: heavy JPEG compression artifacts, aggressive oversharpening halos, rolling-shutter wobble, harsh mixed lighting, blown highlights and shadow crush.
+	Must feel like a low-quality, unflattering domestic capture.
+	`.trim().replace(/\s+/g, ' ')
+	};
 
 const BLOCKED_VOCABULARY = `
 BLOCKED: "hero shot", "editorial", "studio", "commercial", "luxury", "premium", "perfectly composed", "balanced lighting", "soft lighting", "showcase".
