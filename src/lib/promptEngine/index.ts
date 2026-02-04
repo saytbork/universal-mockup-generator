@@ -620,19 +620,39 @@ export class PromptEngine {
         console.log('[PROMPT ENGINE] Step 2: Identity -',
             shouldIncludeIdentity ? `${identitySection.length} chars` : 'SUPPRESSED');
 
-	        if (ugcSelfieDominant) {
-	            const ugcSection = this.ugcBuilder.build(options);
-	            const finalizeSection = this.finalizeBuilder.build(options);
-	            const negative = negativePrompt(options);
-	            // Deterministic foundation is a Product Studio contract and must NEVER appear in UGC/selfie flows.
-	            const deterministicFoundation = '';
-	            let finalPrompt = [
-	                deterministicFoundation,
-	                identitySection,
-	                selfieCaptureSection,
-                ugcSection,
-                finalizeSection
-            ]
+		        if (ugcSelfieDominant) {
+		            const captureBase =
+		                options.ugcCaptureStyleBase ??
+		                options.ugcRealModeLayers?.captureBase ??
+		                [];
+		            const closeFaceActive = Array.isArray(captureBase) && captureBase.includes('close-face');
+		            const environmentDescriptor = String((options as any).sceneEnvironmentDescriptor || '').trim();
+		            const environmentSetting = String(options.setting || '').trim();
+		            const environmentMicro = String(options.microLocation || '').trim();
+		            const environmentHint =
+		                closeFaceActive || !environmentSetting
+		                    ? ''
+		                    : [
+		                        `Environment: ${environmentSetting}.`,
+		                        environmentMicro && environmentMicro !== environmentSetting ? `Micro-location: ${environmentMicro}.` : '',
+		                        environmentDescriptor
+		                    ]
+		                        .filter(Boolean)
+		                        .join(' ');
+
+		            const ugcSection = this.ugcBuilder.build(options);
+		            const finalizeSection = this.finalizeBuilder.build(options);
+		            const negative = negativePrompt(options);
+		            // Deterministic foundation is a Product Studio contract and must NEVER appear in UGC/selfie flows.
+		            const deterministicFoundation = '';
+		            let finalPrompt = [
+		                deterministicFoundation,
+		                environmentHint,
+		                identitySection,
+		                selfieCaptureSection,
+	                ugcSection,
+	                finalizeSection
+	            ]
                 .filter(Boolean)
                 .join(' ')
                 .replace(/\s+/g, ' ')

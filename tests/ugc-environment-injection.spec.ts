@@ -1,5 +1,6 @@
 import { test, expect } from 'playwright/test';
 import { mapLifestyleToPromptOptions } from '../src/lib/promptEngine/mapLifestyleToPromptOptions';
+import { promptEngine } from '../src/lib/promptEngine/index';
 
 test('Raw Domestic UGC honors selected environment even without environmentContext', () => {
   const mapped = mapLifestyleToPromptOptions(
@@ -56,6 +57,34 @@ test('UGC Home Gym does not leak Countertop micro-location and injects gym cues'
   expect(mapped.setting).toBe('Home Gym');
   expect(mapped.microLocation).not.toBe('Countertop');
   expect(String(mapped.sceneEnvironmentDescriptor)).toMatch(/dumbbells|resistance bands|yoga mat/i);
+});
+
+test('UGC prompt includes selected environment descriptor (Home Gym)', () => {
+  const mapped = mapLifestyleToPromptOptions(
+    {
+      sceneIntent: 'environment',
+      creationIntent: 'ugc',
+      creationMode: 'Lifestyle UGC',
+      compositionMode: '',
+      noPerson: false,
+      sameCreatorAcrossScenes: false,
+
+      ugcRealMode: true,
+      ugcCaptureStyleBase: ['torso-level-handheld'],
+      environmentContext: { macro: 'Home Gym', micro: 'Workout area' },
+
+      age: 47,
+      gender: 'Male',
+      timeOfDay: 'Afternoon',
+      lightingStyle: 'Natural',
+    } as any,
+    {},
+    false
+  );
+
+  const prompt = promptEngine.build(mapped as any);
+  expect(prompt).toMatch(/Environment:\s*Home Gym/i);
+  expect(prompt).toMatch(/dumbbells|resistance bands|yoga mat/i);
 });
 
 test('UGC Holding avoids hero presentation and enforces hand safety', () => {
