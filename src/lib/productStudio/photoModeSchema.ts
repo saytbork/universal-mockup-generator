@@ -51,15 +51,14 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         basePrompt: 'realistic ingredients arranged around the product, physically grounded and scaled correctly, clean editorial advertising arrangement, ingredients rest on the same surface as the product',
         subOptions: [
             { key: 'ingredientDensity', label: 'Ingredient Density', values: ['Low', 'Medium', 'High'] },
-            { key: 'layoutStyle', label: 'Layout Style', values: ['Stacked', 'Surround', 'Split'] },
             { key: 'surfaceType', label: 'Surface Type', values: ['None', 'Stone', 'Ceramic', 'Wood'] },
             { key: 'cameraAngle', label: 'Camera Angle', values: ['Eye-level', 'Slight top-down'] },
         ],
         constraints: [
-            'Ingredients must be visible and stack-oriented',
+            'Ingredients must be visible and clearly separated',
             'Scientific precision required',
             'No casual clutter',
-            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
+            'Rigid studio surfaces only: acrylic and coated metal.'
         ],
         requiredPlacement: 'surface',
         allowedInteractions: ['none'],

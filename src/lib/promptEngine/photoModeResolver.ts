@@ -410,12 +410,11 @@ function buildIngredientModifier(
     if (photoMode === 'Ingredient Stack' && suggestedProps) {
         return [
             `INGREDIENTS: ${suggestedProps}.`,
-            'Ingredients are presented as a precise vertical or stepped stack aligned with the product axis.',
-            'Clear spacing and order between ingredients.',
-            'No surrounding or radial layouts.',
-            'No top-down angle. No floating ingredients.',
-            'Allowed ingredient types only: herbs, roots, seeds, dried leaves, and raw botanical ingredients. Powder or extract forms only if explicitly listed.',
-            'Explicitly forbidden: fruits, flowers, berries, decorative herbs, generic botanicals, aesthetic powders.'
+            'Ingredients are arranged naturally around the product.',
+            'No tower-like ingredient arrangements.',
+            'All ingredients rest on the same surface as the product.',
+            'Each ingredient has its own grounded contact point.',
+            'No floating ingredients. No lab-style ordering.'
         ].join(' ');
     }
     if (photoMode === 'Ingredient Flat Lay' && suggestedProps) {
@@ -447,11 +446,6 @@ function validatePhotoModeCompatibility(
         if (typeCompatibility.forbiddenProductTypes.includes(options.productType)) {
             errors.push(`Photo Mode "${photoMode}" is incompatible with Product Type "${options.productType}"`);
         }
-    }
-
-    // CRITICAL: Ingredient Stack REQUIRES ingredients
-    if (photoMode === 'Ingredient Stack' && !options.suggestedProps) {
-        errors.push('BLOCKING: Ingredient Stack requires ingredients. Execution blocked.');
     }
 
     // Ingredient Flat Lay also requires ingredients
@@ -581,8 +575,19 @@ export function buildPhotoModePrompt(
         });
     }
 
+    // Ingredient Stack is a SCIENTIFIC MODE for CURATED ingredients only.
+    // User-defined ingredients must ALWAYS use editorial surround layout.
+    // Mixing these two is a hard error.
+    const isDynamicIngredients =
+        photoMode === 'Ingredient Stack' &&
+        options.suggestedProps != null &&
+        options.suggestedProps.trim().length > 0;
+
     // Add constraints from options and schema
-    const allConstraints = [...(options.constraints || []), ...(schema?.constraints || [])];
+    // For dynamic Ingredient Stack usage, do NOT inject schema constraints (avoid scientific/stack leakage).
+    const allConstraints = isDynamicIngredients
+        ? (options.constraints || [])
+        : [...(options.constraints || []), ...(schema?.constraints || [])];
     if (allConstraints.length > 0) {
         modifierParts.push(`Strict Constraints: ${allConstraints.join('. ')}`);
     }

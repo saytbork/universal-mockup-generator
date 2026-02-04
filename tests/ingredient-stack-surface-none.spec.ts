@@ -29,4 +29,12 @@ test('Ingredient Stack surfaceType None yields seamless solid plane and omits "s
   expect(result.prompt).toContain('Surface: seamless solid-color plane');
   expect(result.prompt.toLowerCase()).not.toContain('surface type: none');
   expect(result.prompt).not.toContain('Secondary props:');
+  expect(result.prompt).not.toContain('Vary props and micro-environment accents');
+  expect(result.prompt).not.toContain('environment details');
+  expect(result.prompt).toContain('Ingredients are arranged naturally around the product.');
+  expect(result.prompt).toContain('All ingredients rest on the same surface as the product.');
+  expect(result.prompt.toLowerCase()).not.toContain('stack');
+  expect(result.prompt.toLowerCase()).not.toContain('vertical stacking');
+  expect(result.prompt.toLowerCase()).not.toContain('hierarchy');
+  expect(result.prompt.toLowerCase()).not.toContain('layout style:');
 });

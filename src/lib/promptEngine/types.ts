@@ -154,6 +154,7 @@ export interface PromptOptions {
     lighting: string;
     perspective: string;
     environmentOrder: string;
+    sceneEnvironment?: string;
     sceneOrderChaos?: SceneOrderChaosLevel;
     sceneOrderChaosDescriptor?: string;
     productPlane: string;

@@ -6,7 +6,7 @@ export function buildMaterials(mode: PhotoModeKey, randomizer: Randomizer): stri
     return [
       'Neutral studio support surface only.',
       'Surface exists purely for physical grounding.',
-      'No narrative material, no wood, no marble, no warm stone, no textured editorial backgrounds.'
+      'No narrative material, no wood, no marble, no textured editorial backgrounds.'
     ].join(' ');
   }
 

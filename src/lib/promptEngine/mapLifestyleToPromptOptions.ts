@@ -1982,7 +1982,7 @@ export function mapLifestyleToPromptOptions(
         const shot = String(mapped.cameraShot || '').trim();
         if (/(head\s*to\s*toe|full[- ]length)/i.test(shot)) {
             mapped.cameraShot =
-                'vertical portrait framing with strong vertical fill; feet may be partially cropped if necessary; no full-length framing requirement';
+                'vertical portrait framing with strong vertical fill; feet may be partially cropped if necessary; no full-length framing requirement' as any;
         }
 
         // Prevent "balanced negative space" from being interpreted as top/bottom headroom in 9:16.

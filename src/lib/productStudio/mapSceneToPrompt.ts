@@ -216,7 +216,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     const cfg = state.photoModeConfig?.ingredientStack as any;
     if (!cfg?.backgroundEnabled) return null;
 
-    const backgroundType = cfg.backgroundType === 'Gradient' ? 'gradient' : 'solid';
+    const backgroundType: 'solid' | 'gradient' = cfg.backgroundType === 'Gradient' ? 'gradient' : 'solid';
     const gradientStyle = cfg.gradientStyle as 'Soft' | 'Radial' | 'Vertical' | undefined;
 
     const paletteColors =
@@ -237,10 +237,21 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     return { backgroundEnabled: true, backgroundType, paletteColors, gradientStyle };
   })();
 
+  const dynamicSettings = (() => {
+    const settings = state.photoModeConfig.dynamic?.[state.photoMode as PhotoMode];
+    if (!settings) return undefined;
+    if (state.photoMode === 'Ingredient Stack' && 'layoutStyle' in settings) {
+      // Legacy duplicate: "Layout Style" must not coexist with the "Stack Style" control.
+      const { layoutStyle: _layoutStyle, ...rest } = settings as any;
+      return rest;
+    }
+    return settings;
+  })();
+
   const photoModeResult = buildPhotoModePrompt(state.photoMode as PhotoMode, {
     suggestedProps: state.props,
     ingredientLayout: state.ingredientLayout,
-    dynamicSettings: state.photoModeConfig.dynamic?.[state.photoMode as PhotoMode],
+    dynamicSettings,
     productType: state.definition.type as any,
     ...(ingredientStackBgOptions ?? {}),
   });
@@ -298,6 +309,12 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
         scene = buildColorPopHeroScene(sceneInput);
         break;
       case 'INGREDIENT_STACK':
+        // CRITICAL: Dynamic user ingredients must not use stack scene builder
+        if (state.props && state.props.trim().length > 0) {
+          // downgrade to neutral surround behavior
+          scene = buildHeroNeutralScene(sceneInput);
+          break;
+        }
         scene = buildIngredientStackScene(sceneInput);
         break;
       case 'ACRYLIC_BLOCKS':
@@ -355,7 +372,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     buildLighting(mode, randomizer, lightingOverrideText ? { override: { text: lightingOverrideText } } : undefined),
     buildCamera(mode, randomizer),
     buildMaterials(mode, randomizer),
-    buildRandomizationRules(),
+    buildRandomizationRules(mode === 'INGREDIENT_STACK' ? 'ingredientStack' : 'default'),
     buildQualityEnforcers(),
   ].filter(Boolean);
 

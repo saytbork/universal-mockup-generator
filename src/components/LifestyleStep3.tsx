@@ -44,6 +44,10 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
   markSectionTouched: (id: string) => void;
 }) {
   const dynamicConfig = productStore.photoModeConfig.dynamic?.[schema.label as PhotoMode] || {};
+  const subOptions =
+    schema.label === 'Ingredient Stack'
+      ? schema.subOptions.filter(option => option.key !== 'layoutStyle')
+      : schema.subOptions;
 
   return (
     <div className="space-y-6">
@@ -55,7 +59,7 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
           <p className="text-[11px] text-gray-500 mb-4">{schema.description}</p>
         </div>
 
-        {schema.subOptions.map((option) => {
+        {subOptions.map((option) => {
           const currentSelection = dynamicConfig[option.key] || option.values[0];
 
           return (

@@ -59,7 +59,19 @@ export function createRandomizer(): Randomizer {
   return { seed, pick, pickMany, pickOptional };
 }
 
-export function buildRandomizationRules(): string {
+export type RandomizationMode = 'default' | 'ingredientStack';
+
+export function buildRandomizationRules(mode: RandomizationMode = 'default'): string {
+  if (mode === 'ingredientStack') {
+    return [
+      'RANDOMIZATION RULES (CRITICAL):',
+      'Every generation must differ in camera angle, lens distance, lighting setup, and ingredient placement.',
+      'Only the listed ingredients may be rearranged; do not introduce any other objects.',
+      'Never reuse the same base composition or staging structure.',
+      'Avoid symmetrical default framing.'
+    ].join(' ');
+  }
+
   return [
     'RANDOMIZATION RULES (CRITICAL):',
     'Every generation must differ in camera angle, lens distance, lighting setup, object placement, and environment details.',
