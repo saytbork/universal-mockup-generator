@@ -10,8 +10,16 @@ export class ConstraintsBuilder implements PromptBuilder {
         const hasUploadedImage = options.productAssets && options.productAssets.length > 0;
         const isLifestyleMode = options.contentStyle === 'ugc' || options.creationMode === 'lifestyle';
         const isBgReplaceOverlay = options.creationMode === 'bg-replace' && options.ecommerceSidePlacementFlag === true;
+        const hideProduct =
+            (options.ritualModeActive && options.ritualHideProduct === true) ||
+            options.forceHideProduct === true;
 
         if (!hasUploadedImage || !isLifestyleMode) {
+            return '';
+        }
+
+        // If the user explicitly hides the product, do not inject any constraints that reference uploaded product identity.
+        if (hideProduct) {
             return '';
         }
 

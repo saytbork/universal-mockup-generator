@@ -447,6 +447,10 @@ export class SceneNarrativeBuilder {
             ? 'HERO CANVAS OVERRIDE (9:16): Prioritize vertical fill. Do NOT shrink the subject to create negative space. Negative space must be lateral only; keep head near the top edge. Feet may be partially cropped if needed.'
             : '';
 
+        const hideProduct =
+            (options.ritualModeActive && options.ritualHideProduct === true) ||
+            options.forceHideProduct === true;
+
         const isEcommerceBlankSpaceMode =
             Boolean(
                 options.ecommerceBlankSpaceMode ||
@@ -467,6 +471,20 @@ export class SceneNarrativeBuilder {
                     : '';
 
         if (!isEcommerceBlankSpaceMode) {
+            if (hideProduct && options.creationMode === 'bg-replace') {
+                const backgroundCopy = options.bgGradient
+                    ? `Background: neutral gradient (linear ${options.bgGradient.angle ?? 90}° from ${options.bgGradient.startColor} to ${options.bgGradient.endColor}). No room cues, no scenery, no location context.`
+                    : options.bgColor
+                        ? `Background: neutral solid ${options.bgColor}. No room cues, no scenery, no location context.`
+                        : 'Background: neutral solid. No room cues, no scenery, no location context.';
+                return [
+                    heroCanvasPortraitOverride,
+                    placement.replace(/\bproduct\b/gi, 'Subject'),
+                    copySpace,
+                    backgroundCopy,
+                    'Render directly to the requested aspect ratio with no letterboxing, no black bars, and no borders.'
+                ].filter(Boolean).join(' ');
+            }
             return [heroCanvasPortraitOverride, placement, copySpace].filter(Boolean).join(' ');
         }
 

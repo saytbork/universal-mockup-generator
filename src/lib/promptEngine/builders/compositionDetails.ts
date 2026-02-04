@@ -3,13 +3,16 @@ import type { PromptBuilder, PromptOptions } from '../types';
 export class CompositionDetailsBuilder implements PromptBuilder {
     build(options: PromptOptions): string {
         const parts: string[] = [];
+        const hideProduct =
+            (options.ritualModeActive && options.ritualHideProduct === true) ||
+            options.forceHideProduct === true;
 
         if (options.compositionMode) {
             parts.push(`Composition mode: ${options.compositionMode}.`);
         }
 
         if (options.sidePlacement) {
-            parts.push(`Product placement: ${options.sidePlacement} side.`);
+            parts.push(`${hideProduct ? 'Subject' : 'Product'} placement: ${options.sidePlacement} side.`);
         }
 
         if (options.ecommerceSidePlacementFlag && options.sidePlacement) {

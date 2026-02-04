@@ -26,10 +26,10 @@ export class FinalizeBuilder implements PromptBuilder {
             'No distorted hands, fingers or wrists.',
             'No floating limbs.',
             'No surreal elements, no floating objects, no distortions.',
-            'Sharp focus on the subject (product), with natural lighting and grounded shadows.',
         ];
 
         if (hideProduct) {
+            lines.push('Sharp focus on the person and scene with natural lighting and grounded shadows.');
             lines.push(
                 'CRITICAL: No product visible anywhere in frame (no packaging, no bottles, no jars, no labels, no supplement containers).',
                 'Do not include any brand packaging, product hero, or close-up packshot.',
@@ -41,6 +41,7 @@ export class FinalizeBuilder implements PromptBuilder {
                 );
             }
         } else {
+            lines.push('Sharp focus on the subject (product), with natural lighting and grounded shadows.');
             lines.push(
                 'No invented labels or product redesign.',
                 'No hallucinated packaging.',

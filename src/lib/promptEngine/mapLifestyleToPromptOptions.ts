@@ -821,6 +821,7 @@ export function mapLifestyleToPromptOptions(
     if (sceneState.formulationStoryEnabled && sceneState.formulationProductVisible === false) {
         (mapped as any).forceHideProduct = true;
     }
+    const forceHideProductRequested = (mapped as any).forceHideProduct === true;
     const hasUploadedProductAsset = (existingOptions.productAssets?.length ?? 0) > 0;
     const ritualHideProductRequested =
         (sceneState as any).ritualModeEnabled === true && Boolean((sceneState as any).ritualHideProduct);
@@ -1108,7 +1109,7 @@ export function mapLifestyleToPromptOptions(
     mapped.eyeDirection = eyeDirectionLabel as any;
     mapped.personDetails.eyeDirection =
         EYE_DIRECTION_SEMANTIC_MAP[eyeDirectionLabel] || eyeDirectionLabel as any;
-    if (sceneState.productInteraction) {
+    if (!forceHideProductRequested && sceneState.productInteraction) {
             const interactionText = isUGCRealMode
                 ? resolveUgcInteractionSemantic(sceneState.productInteraction, sceneState.productUsageDescription)
                 : (() => {
@@ -1240,7 +1241,7 @@ export function mapLifestyleToPromptOptions(
             | undefined) ?? 'product-first';
 
     const creationModeStructural = isEnvironmentSceneIntent
-        ? hasUploadedProductAsset && !ritualHideProductRequested
+        ? hasUploadedProductAsset && !ritualHideProductRequested && !forceHideProductRequested
             ? ({
                 balanced: 'Lifestyle composition in a real environment with balanced emphasis between person and product.',
                 'product-first': 'Lifestyle composition in a real environment with the product as the hero (product-first).',
@@ -1271,7 +1272,7 @@ export function mapLifestyleToPromptOptions(
     const rawCompositionModeKey = sceneState.compositionMode || 'Lifestyle Showcase';
     const compositionModeKey = isEnvironmentSceneIntent ? 'Lifestyle Showcase' : rawCompositionModeKey;
     const compositionModeStructural = isEnvironmentSceneIntent
-        ? hasUploadedProductAsset && !ritualHideProductRequested
+        ? hasUploadedProductAsset && !ritualHideProductRequested && !forceHideProductRequested
             ? ({
                 balanced: 'Balanced framing: product and person share attention; environment supports the moment without stealing focus.',
                 'product-first': 'Product-first framing: product in the foreground hero position; person supports the story; environment stays contextual.',
@@ -1288,9 +1289,15 @@ export function mapLifestyleToPromptOptions(
     console.log('[MAP] compositionMode:', compositionModeKey, '→', compositionModeStructural);
 
     if (isEnvironmentSceneIntent) {
-        mapped.placementStyle = 'Lifestyle placement with the product integrated in the environment, not hero-focused.';
-        mapped.productPlane =
-            'Mid-ground contextual placement within the room or space. Keep the product and label tack sharp and fully readable; keep both the face and the product in focus at the same time. Do not blur or defocus the product.';
+        if (forceHideProductRequested) {
+            mapped.placementStyle = 'Lifestyle placement with the person integrated in the environment.';
+            mapped.productPlane =
+                'Person-first framing with realistic environment context. Keep the subject tack sharp with grounded contact shadows. No product packaging in frame.';
+        } else {
+            mapped.placementStyle = 'Lifestyle placement with the product integrated in the environment, not hero-focused.';
+            mapped.productPlane =
+                'Mid-ground contextual placement within the room or space. Keep the product and label tack sharp and fully readable; keep both the face and the product in focus at the same time. Do not blur or defocus the product.';
+        }
         mapped.placementCamera = sceneState.cameraType || mapped.placementCamera;
     }
 
@@ -1298,7 +1305,7 @@ export function mapLifestyleToPromptOptions(
     // UGC REAL MODE → HARD OVERRIDES (Highest Priority)
     // ========================================================================
     const lifestyleUgcMode = creationModeKey === 'Lifestyle UGC';
-    if (sceneState.ugcRealMode || lifestyleUgcMode) {
+    if ((sceneState.ugcRealMode || lifestyleUgcMode) && !forceHideProductRequested) {
         console.log('[MAP] UGC Real Mode ACTIVE - applying hard overrides');
 
         // FORCE lifestyle mode
@@ -1329,6 +1336,7 @@ export function mapLifestyleToPromptOptions(
         !sceneState.ugcRealMode &&
         hasUploadedProductAsset &&
         !ritualHideProductRequested &&
+        !forceHideProductRequested &&
         isEnvironmentSceneIntent &&
         (productInteractionLabel === 'Presenting' ||
             productInteractionLabel === 'Holding' ||
@@ -1449,7 +1457,7 @@ export function mapLifestyleToPromptOptions(
     if (foregroundProductFocusRequested) {
         mapped.placementStyle = PRODUCT_PROMINENCE_CONFIG['product-first'].placementStyle;
         mapped.productPlane = PRODUCT_PROMINENCE_CONFIG['product-first'].productPlane;
-    } else if (hasUploadedProductAsset && !ritualHideProductRequested) {
+    } else if (hasUploadedProductAsset && !ritualHideProductRequested && !forceHideProductRequested) {
         const key =
             (sceneState as any).productProminence || ('product-first' as const);
         const config =
@@ -1468,11 +1476,13 @@ export function mapLifestyleToPromptOptions(
 
         // In bg-replace canvas overlay, wide shots consistently shrink the product and defeat "Product First".
         // Force tighter shot types based on the user's composition intent.
-        const effectiveShotTypeKey = isEcommerceCanvasOverlayActive
-            ? productProminenceKey === 'model-first'
-                ? 'Medium'
-                : 'Close'
-            : (sceneState.shotType || 'Medium');
+        const effectiveShotTypeKey = forceHideProductRequested
+            ? 'Medium'
+            : isEcommerceCanvasOverlayActive
+                ? productProminenceKey === 'model-first'
+                    ? 'Medium'
+                    : 'Close'
+                : (sceneState.shotType || 'Medium');
 
         const shotTypeSemantic =
             SHOT_TYPE_SEMANTIC_MAP[effectiveShotTypeKey] ||
