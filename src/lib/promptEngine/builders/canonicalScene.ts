@@ -168,7 +168,7 @@ export class SceneNarrativeBuilder {
                     parts.push(
                         'High-end lifestyle campaign photo.',
                         'Professional advertising/editorial quality with clean, intentional styling.',
-                        'Spotless environment: no crumbs, stains, dust, fingerprints, clutter, or random mess.',
+                        'Spotless environment: no crumbs, stains, dust, clutter, or random mess.',
                         'Art-directed but natural: curated props only, brand-safe, premium look.'
                     );
                 }
