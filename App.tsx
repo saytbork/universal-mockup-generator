@@ -1141,6 +1141,132 @@ const coverCropDataUrlToAspectRatio = async (
   return { base64: base64 ?? '', mimeType: opts.mimeType };
 };
 
+const trimBlackBarsDataUrl = async (
+  dataUrl: string,
+  opts: { mimeType: 'image/png' | 'image/jpeg'; background: string | null; quality?: number }
+): Promise<string> => {
+  const img = await loadImageFromUrl(dataUrl);
+  const imgW = img.naturalWidth;
+  const imgH = img.naturalHeight;
+  if (!imgW || !imgH) return dataUrl;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = imgW;
+  canvas.height = imgH;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return dataUrl;
+
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  if (opts.background) {
+    ctx.fillStyle = opts.background;
+    ctx.fillRect(0, 0, imgW, imgH);
+  } else {
+    ctx.clearRect(0, 0, imgW, imgH);
+  }
+  ctx.drawImage(img, 0, 0, imgW, imgH);
+
+  const pixels = ctx.getImageData(0, 0, imgW, imgH).data;
+  const stride = imgW * 4;
+
+  const isBarRow = (y: number): boolean => {
+    const rowStart = y * stride;
+    let sum = 0;
+    let sumSq = 0;
+    let count = 0;
+    for (let x = 0; x < imgW; x += 1) {
+      const i = rowStart + x * 4;
+      const r = pixels[i];
+      const g = pixels[i + 1];
+      const b = pixels[i + 2];
+      const a = pixels[i + 3];
+      // Treat near-transparent as padding.
+      if (a <= 8) {
+        sum += 0;
+        sumSq += 0;
+        count += 1;
+        continue;
+      }
+      // Luma approximation
+      const luma = (r * 0.2126 + g * 0.7152 + b * 0.0722) * (a / 255);
+      sum += luma;
+      sumSq += luma * luma;
+      count += 1;
+    }
+    if (!count) return false;
+    const mean = sum / count;
+    const variance = Math.max(0, sumSq / count - mean * mean);
+    // "Bar" = uniformly very dark row or mostly transparent.
+    return mean <= 10 && variance <= 20;
+  };
+
+  const isBarCol = (x: number): boolean => {
+    let sum = 0;
+    let sumSq = 0;
+    let count = 0;
+    for (let y = 0; y < imgH; y += 1) {
+      const i = y * stride + x * 4;
+      const r = pixels[i];
+      const g = pixels[i + 1];
+      const b = pixels[i + 2];
+      const a = pixels[i + 3];
+      if (a <= 8) {
+        sum += 0;
+        sumSq += 0;
+        count += 1;
+        continue;
+      }
+      const luma = (r * 0.2126 + g * 0.7152 + b * 0.0722) * (a / 255);
+      sum += luma;
+      sumSq += luma * luma;
+      count += 1;
+    }
+    if (!count) return false;
+    const mean = sum / count;
+    const variance = Math.max(0, sumSq / count - mean * mean);
+    return mean <= 10 && variance <= 20;
+  };
+
+  const maxTrimY = Math.floor(imgH * 0.35);
+  const maxTrimX = Math.floor(imgW * 0.35);
+
+  let top = 0;
+  while (top < maxTrimY && isBarRow(top)) top += 1;
+  let bottom = imgH - 1;
+  while (bottom > imgH - 1 - maxTrimY && isBarRow(bottom)) bottom -= 1;
+  let left = 0;
+  while (left < maxTrimX && isBarCol(left)) left += 1;
+  let right = imgW - 1;
+  while (right > imgW - 1 - maxTrimX && isBarCol(right)) right -= 1;
+
+  const cropW = Math.max(1, right - left + 1);
+  const cropH = Math.max(1, bottom - top + 1);
+
+  // No meaningful trim.
+  if (cropW === imgW && cropH === imgH) return dataUrl;
+  // Safety: never collapse the image too far.
+  if (cropW < imgW * 0.5 || cropH < imgH * 0.5) return dataUrl;
+
+  const outCanvas = document.createElement('canvas');
+  outCanvas.width = cropW;
+  outCanvas.height = cropH;
+  const outCtx = outCanvas.getContext('2d');
+  if (!outCtx) return dataUrl;
+  outCtx.imageSmoothingEnabled = true;
+  outCtx.imageSmoothingQuality = 'high';
+  if (opts.background) {
+    outCtx.fillStyle = opts.background;
+    outCtx.fillRect(0, 0, cropW, cropH);
+  } else {
+    outCtx.clearRect(0, 0, cropW, cropH);
+  }
+  outCtx.drawImage(img, left, top, cropW, cropH, 0, 0, cropW, cropH);
+
+  return opts.mimeType === 'image/jpeg'
+    ? outCanvas.toDataURL('image/jpeg', typeof opts.quality === 'number' ? opts.quality : 0.96)
+    : outCanvas.toDataURL('image/png');
+};
+
 const maybeDownscaleInlineImage = async (
   base64: string,
   mimeType: string,
@@ -4990,17 +5116,20 @@ If the model attempts to create a scene or environment, override it and force a 
         }
 
         const finalUrl = `data:image/png;base64,${encodedImage}`;
+        const cleanedFinalUrl = isProductPlacement
+          ? finalUrl
+          : await trimBlackBarsDataUrl(finalUrl, { mimeType: 'image/png', background: null });
         const normalizedOutput = isProductPlacement
-          ? await letterboxDataUrlToAspectRatio(finalUrl, aspectRatio, {
-            maxLongEdge: 4096,
-            background: null,
-            mimeType: 'image/png',
-          })
-          : await coverCropDataUrlToAspectRatio(finalUrl, aspectRatio, {
-            maxLongEdge: 4096,
-            background: null,
-            mimeType: 'image/png',
-          });
+          ? await letterboxDataUrlToAspectRatio(cleanedFinalUrl, aspectRatio, {
+              maxLongEdge: 4096,
+              background: null,
+              mimeType: 'image/png',
+            })
+          : await coverCropDataUrlToAspectRatio(cleanedFinalUrl, aspectRatio, {
+              maxLongEdge: 4096,
+              background: null,
+              mimeType: 'image/png',
+            });
         const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
         setGeneratedImageUrl(outputUrl);
         setHasFirstGenerationComplete(true);  // Enable Keep Same Person toggle
@@ -5598,17 +5727,20 @@ If the model attempts to create a scene or environment, override it and force a 
         throw new Error('Image edit failed or returned no images.');
       }
       const editedUrl = `data:image/png;base64,${encodedImage}`;
+      const cleanedEditedUrl = isProductPlacement
+        ? editedUrl
+        : await trimBlackBarsDataUrl(editedUrl, { mimeType: 'image/png', background: null });
       const normalizedOutput = isProductPlacement
-        ? await letterboxDataUrlToAspectRatio(editedUrl, aspectRatio, {
-          maxLongEdge: 4096,
-          background: null,
-          mimeType: 'image/png',
-        })
-        : await coverCropDataUrlToAspectRatio(editedUrl, aspectRatio, {
-          maxLongEdge: 4096,
-          background: null,
-          mimeType: 'image/png',
-        });
+        ? await letterboxDataUrlToAspectRatio(cleanedEditedUrl, aspectRatio, {
+            maxLongEdge: 4096,
+            background: null,
+            mimeType: 'image/png',
+          })
+        : await coverCropDataUrlToAspectRatio(cleanedEditedUrl, aspectRatio, {
+            maxLongEdge: 4096,
+            background: null,
+            mimeType: 'image/png',
+          });
       const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
       setGeneratedImageUrl(outputUrl);
       try {
