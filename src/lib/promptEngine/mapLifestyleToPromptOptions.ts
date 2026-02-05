@@ -1943,9 +1943,51 @@ export function mapLifestyleToPromptOptions(
         mapped.compositionModeStructural =
             'Blank-space layout on a neutral canvas; environment selection is used only as a styling reference (not depicted as a room).';
 
-        // Suppress environment-style placement hints when canvas is active
-        delete mapped.placementStyle;
-        delete mapped.productPlane;
+        // Hero canvas still needs explicit composition intent (product vs person prominence).
+        // Use canvas-safe phrasing (no room/environment cues).
+        const productProminenceKey =
+            ((sceneState as any).productProminence as
+                | 'balanced'
+                | 'product-first'
+                | 'model-first'
+                | 'fifty-fifty'
+                | undefined) ?? 'product-first';
+        const canvasProminenceConfig: Record<
+            'balanced' | 'product-first' | 'model-first' | 'fifty-fifty',
+            { placementStyle: string; productPlane: string }
+        > = {
+            balanced: {
+                placementStyle:
+                    'Balanced hero placement on a neutral background: person and product share attention with clean negative space.',
+                productPlane:
+                    'Balanced plane on neutral canvas: keep both the face and the product label tack sharp and fully readable. Avoid heavy blur; avoid tiny product-in-frame compositions.',
+            },
+            'product-first': {
+                placementStyle:
+                    'Product-first hero placement on a neutral background: product is the primary hero; person supports the story with clean negative space.',
+                productPlane:
+                    'Foreground product-first plane on neutral canvas: product and label must be tack sharp and fully readable; product sits closer to camera than the face; face must not obscure or dominate the product.',
+            },
+            'model-first': {
+                placementStyle:
+                    'Person-first hero placement on a neutral background: person is the hero while the product remains clearly visible and readable.',
+                productPlane:
+                    'Person-forward plane on neutral canvas: keep the person prominent without pushing the product into deep background. Keep product on the same visual plane and tack sharp with a fully readable label.',
+            },
+            'fifty-fifty': {
+                placementStyle:
+                    'Fifty/fifty hero placement on a neutral background: person and product share equal prominence with tight, intentional framing.',
+                productPlane:
+                    'Equal emphasis plane on neutral canvas: place the face and product together in the foreground; keep both tack sharp and readable; avoid compositing or unrealistic scale differences.',
+            },
+        };
+        if (!forceHideProductRequested && !ritualHideProductRequested) {
+            const cfg =
+                canvasProminenceConfig[productProminenceKey as keyof typeof canvasProminenceConfig] ??
+                canvasProminenceConfig['product-first'];
+            mapped.placementStyle = cfg.placementStyle;
+            mapped.productPlane = cfg.productPlane;
+        }
 
         // Scene order / chaos is an environment signal; suppress for canvas
         delete mapped.sceneOrderChaos;
