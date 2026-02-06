@@ -1755,14 +1755,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // const isEnvironmentMode = values.sceneIntent === 'environment'; // REDUNDANT: Derived from productStore.sceneType now
   const isUGCMode = values.ugcRealMode;
 
-  // Product Builder hard rule: Photo Type does not include Environment.
-  useEffect(() => {
-    if (!isEcommerceMode) return;
-    if (productStore.environmentContext != null) {
-      productStore.setEnvironmentContext(null);
-    }
-  }, [isEcommerceMode, productStore]);
-
   // Scene Intent Handler: Enable Ecommerce Mode
   const enableEcommerce = useCallback(() => {
     console.log('[SCENE INTENT CHANGE] ecommerce');
