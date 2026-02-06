@@ -5136,10 +5136,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
       {/* PRODUCT STUDIO — ENVIRONMENT (single source of truth: productStore.environmentContext) */}
       {
-        productStore.environmentContext != null && (
+        isEcommerceMode && (
           <SmoothAccordion
             icon={MapPin}
-            title="Environment Settings"
+            title="05 / Environment Settings"
             tooltip="Place the product into a real setting. Product-only, no people."
             isOpen={openAccordionId === 'product-environment'}
             onToggle={() => toggleSection('product-environment')}
@@ -5506,7 +5506,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       {isEcommerceMode && (
       <SmoothAccordion
         icon={Camera}
-        title="09 / Camera & Framing"
+        title="08 / Camera & Framing"
         tooltip="Professional product photography controls"
         isOpen={openAccordionId === 'product-camera'}
         onToggle={() => toggleSection('product-camera')}
@@ -5706,7 +5706,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       {isEcommerceMode && (
       <SmoothAccordion
         icon={Building2}
-        title="11 / Ecommerce Image Builder (BETA)"
+        title="09 / Ecommerce Image Builder (BETA)"
         tooltip={`Ecommerce builder.\nBeta feature.`}
         isOpen={openAccordionId === 'ecommerce'}
         onToggle={() => toggleSection('ecommerce')}
@@ -8369,7 +8369,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       {/* Output Format - LAST */}
       <SmoothAccordion
         icon={Layers}
-        title="Output Format"
+        title={isEcommerceMode ? "10 / Output Format" : "Output Format"}
         tooltip="Aspect ratio for the final image"
         isOpen={openAccordionId === 'output'}
         onToggle={() => toggleSection('output')}
