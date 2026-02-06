@@ -123,10 +123,10 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
           />
         </button>
         <div
-          className={`grid transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] border-t border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-white/5 ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
+          className={`grid transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
         >
           <div className="overflow-hidden">
-            <div className={`p-5 bg-gray-50 dark:bg-white/5 ${contentClassName}`}>{children}</div>
+            <div className={`p-5 space-y-6 ${contentClassName}`}>{children}</div>
           </div>
         </div>
       </div>
@@ -179,9 +179,9 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
         />
       </button>
       <div
-        className={`transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] border-t border-gray-200 overflow-hidden ${open ? 'max-h-[9000px] opacity-100' : 'max-h-0 opacity-0'}`}
+        className={`transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] overflow-hidden ${open ? 'max-h-[9000px] opacity-100' : 'max-h-0 opacity-0'}`}
       >
-        <div className={`p-5 bg-gray-50 dark:bg-white/5 ${contentClassName}`}>{children}</div>
+        <div className={`p-5 space-y-6 ${contentClassName}`}>{children}</div>
       </div>
     </div>
   );

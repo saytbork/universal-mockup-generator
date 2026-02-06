@@ -1738,6 +1738,28 @@ const App: React.FC = () => {
     lifestyleStep3Values?.formulationStoryEnabled === true &&
     lifestyleStep3Values?.formulationProductVisible === false;
   const hideProductMode = ritualNoProductMode || formulationNoProductMode;
+  const [isGenerateBarVisible, setIsGenerateBarVisible] = useState(true);
+  const generateBarInactivityTimerRef = useRef<number | null>(null);
+  const clearGenerateBarInactivityTimer = useCallback(() => {
+    if (generateBarInactivityTimerRef.current !== null && typeof window !== 'undefined') {
+      window.clearTimeout(generateBarInactivityTimerRef.current);
+      generateBarInactivityTimerRef.current = null;
+    }
+  }, []);
+  const showGenerateBar = useCallback(() => {
+    setIsGenerateBarVisible(true);
+  }, []);
+  const scheduleGenerateBarAutoHide = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    clearGenerateBarInactivityTimer();
+    generateBarInactivityTimerRef.current = window.setTimeout(() => {
+      setIsGenerateBarVisible(false);
+    }, 2600);
+  }, [clearGenerateBarInactivityTimer]);
+  const bumpGenerateBarActivity = useCallback(() => {
+    showGenerateBar();
+    scheduleGenerateBarAutoHide();
+  }, [scheduleGenerateBarAutoHide, showGenerateBar]);
   const canUseMood = hasUploadedProduct;
   const [lifestyleTone, setLifestyleTone] = useState<'ugc' | 'editorial'>('ugc');
   const toggleTheme = useCallback(() => {
@@ -1767,6 +1789,39 @@ const App: React.FC = () => {
     }
     return lastAspectRatioRef.current || options.aspectRatio || '1:1';
   }, [isProductPlacement, lifestyleStep3Values?.aspectRatio, options.aspectRatio]);
+  useEffect(() => {
+    const shouldKeepVisible = isImageLoading || (!hasUploadedProduct && !hideProductMode);
+    if (shouldKeepVisible) {
+      showGenerateBar();
+      clearGenerateBarInactivityTimer();
+      return;
+    }
+    bumpGenerateBarActivity();
+    return () => {
+      clearGenerateBarInactivityTimer();
+    };
+  }, [bumpGenerateBarActivity, clearGenerateBarInactivityTimer, hasUploadedProduct, hideProductMode, isImageLoading, showGenerateBar]);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleActivity = () => {
+      if (isImageLoading || (!hasUploadedProduct && !hideProductMode)) {
+        showGenerateBar();
+        clearGenerateBarInactivityTimer();
+        return;
+      }
+      bumpGenerateBarActivity();
+    };
+    window.addEventListener('mousemove', handleActivity, { passive: true });
+    window.addEventListener('scroll', handleActivity, { passive: true });
+    window.addEventListener('touchstart', handleActivity, { passive: true });
+    window.addEventListener('keydown', handleActivity);
+    return () => {
+      window.removeEventListener('mousemove', handleActivity);
+      window.removeEventListener('scroll', handleActivity);
+      window.removeEventListener('touchstart', handleActivity);
+      window.removeEventListener('keydown', handleActivity);
+    };
+  }, [bumpGenerateBarActivity, clearGenerateBarInactivityTimer, hasUploadedProduct, hideProductMode, isImageLoading, showGenerateBar]);
   useEffect(() => {
     if (!hasModelReference) {
       setCompositionMode('balanced');
@@ -6366,8 +6421,18 @@ If the model attempts to create a scene or environment, override it and force a 
                         return '';
                       })();
                       return (
-                        <div className={`fixed inset-x-0 bottom-0 z-[120] px-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] sm:px-6 lg:px-10 ${hasUploadedProduct || hideProductMode ? '' : 'opacity-50 pointer-events-none select-none'}`}>
-                          <div className="pointer-events-auto mx-auto w-full max-w-5xl rounded-2xl border border-gray-200 bg-white/95 p-3 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-black/40">
+                        <div
+                          className={`fixed inset-x-0 bottom-0 z-[120] px-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] sm:px-6 lg:px-10 transition-all duration-300 ease-out ${isGenerateBarVisible || isImageLoading || (!hasUploadedProduct && !hideProductMode)
+                            ? 'opacity-100 translate-y-0'
+                            : 'opacity-0 translate-y-6 pointer-events-none'} ${hasUploadedProduct || hideProductMode ? '' : 'opacity-50 pointer-events-none select-none'}`}
+                        >
+                          <div
+                            className="pointer-events-auto mx-auto w-full max-w-4xl rounded-2xl border border-gray-200 bg-white/95 p-2.5 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-black/45"
+                            onMouseEnter={showGenerateBar}
+                            onMouseLeave={scheduleGenerateBarAutoHide}
+                            onFocusCapture={showGenerateBar}
+                            onBlurCapture={scheduleGenerateBarAutoHide}
+                          >
                             <button
                               type="button"
                               onClick={
@@ -6377,7 +6442,7 @@ If the model attempts to create a scene or environment, override it and force a 
                               }
                               disabled={isGenerateDisabled}
                               title={generationRestrictionMessage && isGenerateDisabled ? generationRestrictionMessage : undefined}
-                              className="w-full rounded-xl bg-indigo-600 py-3 text-base font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-600"
+                              className="w-full rounded-full bg-indigo-600 py-2.5 text-sm font-semibold tracking-tight text-white transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:disabled:bg-white/10 dark:disabled:text-white/50"
                             >
                               {isImageLoading ? 'Generating...' : 'Generate Mockup'}
                             </button>

@@ -481,8 +481,20 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Rigid materials only: glass, metal, acrylic, stone, concrete.'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none'],
-        allowsPersonPresence: false
+        allowedInteractions: [
+            'none',
+            'passive-presence',
+            'cropped-hand',
+            'supported-hold',
+            'holding',
+            'two-hand-hold',
+            'presenting',
+            'framed-presentation',
+            'applying-opening',
+            'capsule-display',
+            'resting-interaction',
+        ],
+        allowsPersonPresence: true
     },
     'UGC Premium Simulation': {
         id: 'ugc-premium-simulation',
@@ -502,7 +514,19 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Rigid materials only: glass, metal, acrylic, stone, concrete.'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none'],
-        allowsPersonPresence: false
+        allowedInteractions: [
+            'none',
+            'passive-presence',
+            'cropped-hand',
+            'supported-hold',
+            'holding',
+            'two-hand-hold',
+            'presenting',
+            'framed-presentation',
+            'applying-opening',
+            'capsule-display',
+            'resting-interaction',
+        ],
+        allowsPersonPresence: true
     }
 };

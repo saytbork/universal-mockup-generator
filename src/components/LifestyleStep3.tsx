@@ -5170,7 +5170,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     )}
 
                     <div className={isDisabled ? 'opacity-50 pointer-events-none' : ''}>
-                      <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-6 dark:border-white/10 dark:bg-white/5">
+                      <div className="p-5 space-y-6">
                         <div className="flex items-center justify-between gap-4">
                           <div>
                             <p className={GROUP_LABEL_CLASS}>MACRO ENVIRONMENT</p>
@@ -5246,7 +5246,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         )}
                       </div>
 
-                      <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-6 dark:border-white/10 dark:bg-white/5">
+                      <div className="p-5 space-y-6">
                         <div className="flex items-start justify-between gap-4">
                           <div>
                             <p className={GROUP_LABEL_CLASS}>MICRO PLACE</p>
@@ -5325,7 +5325,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         )}
                       </div>
 
-                      <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-6 dark:border-white/10 dark:bg-white/5">
+                      <div className="p-5 space-y-6">
                         <div>
                           <p className={GROUP_LABEL_CLASS}>LIGHTING</p>
                           <p className="text-[11px] text-gray-500 mt-1">Product-safe lighting style</p>
@@ -5377,7 +5377,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             const interactionSchema = PHOTO_MODE_SCHEMAS[productStore.photoMode as PhotoMode];
             const modeAllowsPersonPresence = interactionSchema?.allowsPersonPresence !== false;
             const modeAllowedInteractions = interactionSchema?.allowedInteractions ?? null;
-            const interactionCompatibleModes: PhotoMode[] = ['Creator Premium Simulation', 'Golden Hour Lifestyle', 'Pastel Picnic'];
+            const interactionCompatibleModes = (Object.entries(PHOTO_MODE_SCHEMAS) as Array<[PhotoMode, NonNullable<typeof interactionSchema>]>)
+              .filter(([, schema]) => {
+                if (!schema) return false;
+                if (schema.allowsPersonPresence === false) return false;
+                const allowed = Array.isArray(schema.allowedInteractions) ? schema.allowedInteractions : [];
+                return allowed.some((interaction) => interaction !== 'none');
+              })
+              .map(([mode]) => mode);
 
             return (
               <>
