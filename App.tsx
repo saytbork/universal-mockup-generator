@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { MockupOptions, OptionCategory, Option } from './types';
-import { Info, Moon, Sun } from 'lucide-react';
+import { Info, Moon, Sun, X } from 'lucide-react';
 import Logo from './src/components/Logo';
 import {
   CONTENT_STYLE_OPTIONS,
@@ -1323,6 +1323,10 @@ const App: React.FC = () => {
   const studioPlacement = useProductStudioStore((state) => state.placement);
   const studioQualityProfile = useProductStudioStore((state) => state.qualityProfile);
   const studioProductType = useProductStudioStore((state) => state.definition.type);
+  const setStudioPhotoMode = useProductStudioStore((state) => state.setPhotoMode);
+  const setStudioPlacement = useProductStudioStore((state) => state.setPlacement);
+  const setStudioQualityProfile = useProductStudioStore((state) => state.setQualityProfile);
+  const setStudioProductType = useProductStudioStore((state) => state.setProductType);
   const applyOptionsUpdate = useCallback(
     (updater: React.SetStateAction<MockupOptions>) => {
       setOptions(prev => {
@@ -6386,21 +6390,51 @@ If the model attempts to create a scene or environment, override it and force a 
                         return '';
                       })();
                       return (
-                        <div className={`sticky bottom-3 z-20 ${hasUploadedProduct || hideProductMode ? '' : 'opacity-50 pointer-events-none select-none'}`}>
+                        <div className={`fixed bottom-4 left-4 right-4 z-30 lg:sticky lg:top-4 lg:bottom-auto lg:left-auto lg:right-auto ${hasUploadedProduct || hideProductMode ? '' : 'opacity-50 pointer-events-none select-none'}`}>
                           <div className="rounded-2xl border border-gray-200 bg-white/95 p-3 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-black/40">
                             <div className="mb-3 flex flex-wrap gap-2">
-                              <span className="inline-flex items-center rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-gray-600 dark:border-white/10 dark:bg-black/20 dark:text-white/70">
-                                {studioPhotoMode}
-                              </span>
-                              <span className="inline-flex items-center rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-gray-600 dark:border-white/10 dark:bg-black/20 dark:text-white/70">
-                                {placementLabel}
-                              </span>
-                              <span className="inline-flex items-center rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-gray-600 dark:border-white/10 dark:bg-black/20 dark:text-white/70">
-                                {qualityLabel}
-                              </span>
-                              <span className="inline-flex items-center rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-gray-600 dark:border-white/10 dark:bg-black/20 dark:text-white/70">
-                                {productTypeLabel}
-                              </span>
+                              {[
+                                {
+                                  key: 'photoMode',
+                                  label: studioPhotoMode,
+                                  onClear: () => setStudioPhotoMode('Hero Landing Page'),
+                                  clearLabel: 'Reset photo mode',
+                                },
+                                {
+                                  key: 'placement',
+                                  label: placementLabel,
+                                  onClear: () => setStudioPlacement('surface'),
+                                  clearLabel: 'Reset placement',
+                                },
+                                {
+                                  key: 'profile',
+                                  label: qualityLabel,
+                                  onClear: () => setStudioQualityProfile('ecommerce-conversion'),
+                                  clearLabel: 'Reset output profile',
+                                },
+                                {
+                                  key: 'productType',
+                                  label: productTypeLabel,
+                                  onClear: () => setStudioProductType('dummy'),
+                                  clearLabel: 'Reset product type',
+                                },
+                              ].map((chip) => (
+                                <span
+                                  key={chip.key}
+                                  className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-gray-600 dark:border-white/10 dark:bg-black/20 dark:text-white/70"
+                                >
+                                  <span>{chip.label}</span>
+                                  <button
+                                    type="button"
+                                    onClick={chip.onClear}
+                                    className="inline-flex h-4 w-4 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10 dark:hover:text-white/80"
+                                    title={chip.clearLabel}
+                                    aria-label={chip.clearLabel}
+                                  >
+                                    <X size={10} />
+                                  </button>
+                                </span>
+                              ))}
                             </div>
                             <button
                               type="button"
@@ -6421,6 +6455,9 @@ If the model attempts to create a scene or environment, override it and force a 
                                 <span>{generationRestrictionMessage}</span>
                               </div>
                             )}
+                            <div className="mt-2 text-[10px] text-gray-500">
+                              Tip: use <span className="font-semibold">×</span> to remove/reset an injected setting.
+                            </div>
                           </div>
                         </div>
                       );
