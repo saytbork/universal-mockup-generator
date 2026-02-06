@@ -6,7 +6,7 @@ import { getUser, setUser } from '../server/lib/store.js';
 import { addActivity } from '../server/lib/activity.js';
 import { checkAuth } from '../server/lib/checkAuth.js';
 
-const DASHBOARD_REDIRECT_URL = 'https://perfectmockup.com/dashboard';
+const DASHBOARD_REDIRECT_PATH = '/dashboard';
 
 const parseAction = (req: VercelRequest) => {
   const raw = req.query.action;
@@ -104,7 +104,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         await addActivity(email, 'login', { method: 'invite_auto' });
-        res.status(200).json({ ok: true, autoLoggedIn: true, redirect: DASHBOARD_REDIRECT_URL });
+        res.status(200).json({ ok: true, autoLoggedIn: true, redirect: DASHBOARD_REDIRECT_PATH });
         return;
       }
 
@@ -219,7 +219,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       await addActivity(email, 'login', {});
 
-      res.writeHead(302, { Location: DASHBOARD_REDIRECT_URL });
+      res.writeHead(302, { Location: `${origin}${DASHBOARD_REDIRECT_PATH}` });
       res.end();
       return;
     }
