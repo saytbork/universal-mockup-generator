@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { MockupOptions, OptionCategory, Option } from './types';
-import { Info, Moon, Sun, X } from 'lucide-react';
+import { Info, Moon, Sun } from 'lucide-react';
 import Logo from './src/components/Logo';
 import {
   CONTENT_STYLE_OPTIONS,
@@ -524,13 +524,6 @@ const HERO_SHADOW_TEXT: Record<HeroLandingShadowStyle, string> = {
   hardDrop: 'Use a crisp, graphic drop shadow for bold contrast.',
   floating: 'Make it feel like the product floats with a faint contact glow instead of a traditional shadow.',
 };
-
-const STUDIO_DEFAULT_INJECTION = {
-  photoMode: 'Hero Landing Page',
-  placement: 'surface',
-  qualityProfile: 'ecommerce-conversion',
-  productType: 'dummy',
-} as const;
 
 const PERSON_COUNT_OPTIONS: Option[] = [
   { label: 'Single', value: 'single', tooltip: 'One person in the scene.' },
@@ -1326,14 +1319,6 @@ const App: React.FC = () => {
   const hasSelectedIntent = Boolean(options.contentStyle);
   const contentStyleValue = hasSelectedIntent ? options.contentStyle : CONTENT_STYLE_OPTIONS[0].value;
   const isProductPlacement = contentStyleValue === 'product';
-  const studioPhotoMode = useProductStudioStore((state) => state.photoMode);
-  const studioPlacement = useProductStudioStore((state) => state.placement);
-  const studioQualityProfile = useProductStudioStore((state) => state.qualityProfile);
-  const studioProductType = useProductStudioStore((state) => state.definition.type);
-  const setStudioPhotoMode = useProductStudioStore((state) => state.setPhotoMode);
-  const setStudioPlacement = useProductStudioStore((state) => state.setPlacement);
-  const setStudioQualityProfile = useProductStudioStore((state) => state.setQualityProfile);
-  const setStudioProductType = useProductStudioStore((state) => state.setProductType);
   const applyOptionsUpdate = useCallback(
     (updater: React.SetStateAction<MockupOptions>) => {
       setOptions(prev => {
@@ -6374,96 +6359,6 @@ If the model attempts to create a scene or environment, override it and force a 
                     )}
                     {(() => {
                       const isGenerateDisabled = isImageLoading || (!hasUploadedProduct && !hideProductMode);
-                      const humanizeKey = (key: string) =>
-                        key
-                          .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-                          .replace(/[_-]/g, ' ')
-                          .replace(/\s+/g, ' ')
-                          .trim()
-                          .replace(/\b\w/g, (m) => m.toUpperCase());
-                      const formatChipValue = (value: unknown): string => {
-                        if (value == null) return '';
-                        if (typeof value === 'string') return value.trim();
-                        if (typeof value === 'number') return String(value);
-                        if (typeof value === 'boolean') return value ? 'On' : 'Off';
-                        if (Array.isArray(value)) {
-                          const cleaned = value
-                            .map((v) => (typeof v === 'string' ? v.trim() : String(v)))
-                            .filter(Boolean);
-                          return cleaned.join(', ');
-                        }
-                        if (typeof value === 'object') {
-                          const record = value as Record<string, unknown>;
-                          if ('label' in record && typeof record.label === 'string') return record.label;
-                          if ('macro' in record || 'micro' in record) {
-                            const macro = typeof record.macro === 'string' ? record.macro.trim() : '';
-                            const micro = typeof record.micro === 'string' ? record.micro.trim() : '';
-                            return [macro, micro].filter(Boolean).join(' / ');
-                          }
-                          return '';
-                        }
-                        return '';
-                      };
-                      const ignoredSceneStateKeys = new Set([
-                        'seed',
-                        'studioPhotoMode',
-                        'studioAlignment',
-                        'studioShadow',
-                        'studioProps',
-                        'studioIngredientLayout',
-                        'studioInteraction',
-                        'studioLens',
-                        'studioLightingRig',
-                        'studioFinish',
-                        'studioBackgroundColor',
-                        'studioAccentColor',
-                      ]);
-                      const sceneSource = lifestyleStep3Values as Record<string, unknown> | null;
-                      const sceneStateChips = sceneSource
-                        ? Object.entries(sceneSource)
-                          .filter(([key, value]) => {
-                            if (ignoredSceneStateKeys.has(key)) return false;
-                            if (value == null) return false;
-                            if (typeof value === 'string' && value.trim() === '') return false;
-                            if (typeof value === 'boolean') return value;
-                            if (Array.isArray(value)) return value.length > 0;
-                            if (typeof value === 'object') {
-                              const record = value as Record<string, unknown>;
-                              if ('macro' in record || 'micro' in record) {
-                                const macro = typeof record.macro === 'string' ? record.macro.trim() : '';
-                                const micro = typeof record.micro === 'string' ? record.micro.trim() : '';
-                                return Boolean(macro || micro);
-                              }
-                            }
-                            return true;
-                          })
-                          .map(([key, value]) => {
-                            const formatted = formatChipValue(value);
-                            return {
-                              key: `scene-${key}`,
-                              label: `${humanizeKey(key)}: ${formatted}`,
-                            };
-                          })
-                          .filter((chip) => chip.label.replace(/^[^:]+:\s*/, '').trim() !== '')
-                        : [];
-                      const studioModeFallbackChips = isProductPlacement
-                        ? [
-                          { key: 'studio-photoMode', label: `Photo Mode: ${studioPhotoMode}` },
-                          {
-                            key: 'studio-placement',
-                            label: `Placement: ${studioPlacement === 'air' ? 'Air / Suspended' : studioPlacement === 'held' ? 'Held' : studioPlacement === 'supported' ? 'Supported' : 'Surface'}`
-                          },
-                          {
-                            key: 'studio-qualityProfile',
-                            label: `Output Profile: ${studioQualityProfile === 'luxury-brand' ? 'Luxury Brand' : studioQualityProfile === 'editorial' ? 'Editorial' : 'Ecommerce Conversion'}`
-                          },
-                          {
-                            key: 'studio-productType',
-                            label: `Product Type: ${studioProductType.charAt(0).toUpperCase() + studioProductType.slice(1)}`
-                          },
-                        ]
-                        : [];
-                      const injectedChips = sceneStateChips.length > 0 ? sceneStateChips : studioModeFallbackChips;
                       const generationRestrictionMessage = (() => {
                         if (!isGenerateDisabled) return '';
                         if (!hasUploadedProduct && !hideProductMode) return 'Upload a source product photo before generating.';
@@ -6473,33 +6368,6 @@ If the model attempts to create a scene or environment, override it and force a 
                       return (
                         <div className={`fixed inset-x-0 bottom-0 z-[120] px-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] sm:px-6 lg:px-10 ${hasUploadedProduct || hideProductMode ? '' : 'opacity-50 pointer-events-none select-none'}`}>
                           <div className="pointer-events-auto mx-auto w-full max-w-5xl rounded-2xl border border-gray-200 bg-white/95 p-3 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-black/40">
-                            {injectedChips.length > 0 ? (
-                              <div className="mb-3 flex flex-wrap gap-2">
-                                {injectedChips.map((chip) => (
-                                <span
-                                  key={chip.key}
-                                  className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-gray-600 dark:border-white/10 dark:bg-black/20 dark:text-white/70"
-                                >
-                                  <span>{chip.label}</span>
-                                  {'onClear' in chip && typeof (chip as any).onClear === 'function' && (
-                                    <button
-                                      type="button"
-                                      onClick={(chip as any).onClear}
-                                      className="inline-flex h-4 w-4 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10 dark:hover:text-white/80"
-                                      title={(chip as any).clearLabel || 'Reset'}
-                                      aria-label={(chip as any).clearLabel || 'Reset'}
-                                    >
-                                      <X size={10} />
-                                    </button>
-                                  )}
-                                </span>
-                              ))}
-                              </div>
-                            ) : (
-                              <div className="mb-3 text-[10px] text-gray-500">
-                                No injected settings yet.
-                              </div>
-                            )}
                             <button
                               type="button"
                               onClick={
@@ -6517,11 +6385,6 @@ If the model attempts to create a scene or environment, override it and force a 
                               <div className="mt-2 flex items-start gap-2 text-xs text-gray-500">
                                 <Info size={14} />
                                 <span>{generationRestrictionMessage}</span>
-                              </div>
-                            )}
-                            {injectedChips.length > 0 && (
-                              <div className="mt-2 text-[10px] text-gray-500">
-                                Tip: use <span className="font-semibold">×</span> to remove/reset an injected setting.
                               </div>
                             )}
                           </div>
