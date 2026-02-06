@@ -6,6 +6,7 @@
 import { create } from 'zustand';
 import { extractDominantColors } from './colorExtractor';
 import { applyCanonicalPhysicalForMotion } from './motionCoherence';
+import { PHOTO_MODE_SCHEMAS } from './photoModeSchema';
 import type {
     ProductStudioState,
     ProductAsset,
@@ -231,6 +232,12 @@ const INTERPRETATION_MESSAGES = {
         'Hands treated as neutral anatomical elements without human identity.',
     macroTexturesNoAerial:
         'Overhead/flatlay camera is disabled for macro textures. Camera adjusted automatically.',
+    photoModeForcesPlacement:
+        'Photo Mode enforces a mandatory placement. Placement was adjusted automatically.',
+    photoModeForcesInteraction:
+        'Photo Mode constraints adjusted interaction to avoid contradictions.',
+    heldRequiresInteraction:
+        'Held placement requires a hand interaction. State was normalized automatically.',
 } as const;
 
 function withInterpretationNote(
@@ -262,6 +269,39 @@ function isInteractionIncompatibleWithMacro(interaction: ProductStudioState['int
         'applying-opening',
         'capsule-display',
     ]).has(interaction);
+}
+
+const HAND_INTERACTIONS = new Set<ProductStudioState['interaction']>([
+    'supported-hold',
+    'holding',
+    'two-hand-hold',
+    'presenting',
+    'framed-presentation',
+    'applying-opening',
+    'capsule-display',
+    'resting-interaction',
+]);
+
+function interactionNeedsHands(interaction: ProductStudioState['interaction']): boolean {
+    return HAND_INTERACTIONS.has(interaction);
+}
+
+function getPhotoModeRequiredPlacement(photoMode: PhotoMode): ProductPlacement | null {
+    const required = PHOTO_MODE_SCHEMAS[photoMode]?.requiredPlacement;
+    if (!required || required === 'any') return null;
+    return required as ProductPlacement;
+}
+
+function getPhotoModeAllowedInteractions(photoMode: PhotoMode): ProductStudioState['interaction'][] | null {
+    const allowed = PHOTO_MODE_SCHEMAS[photoMode]?.allowedInteractions;
+    if (!allowed || allowed.length === 0) return null;
+    return [...allowed] as ProductStudioState['interaction'][];
+}
+
+function getFallbackInteraction(allowed: ProductStudioState['interaction'][] | null): ProductStudioState['interaction'] {
+    if (!allowed || allowed.length === 0) return 'none';
+    if (allowed.includes('none')) return 'none';
+    return allowed[0];
 }
 
 function reinterpretMacroInteraction(state: ProductStudioState): ProductStudioState['interaction'] {
@@ -1563,15 +1603,62 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             const resolvedMode: PhotoMode = allowed.includes(nextMode) ? nextMode : 'Hero Landing Page';
             const environmentPhotoModes: PhotoMode[] = ['Golden Hour Lifestyle', 'Pastel Picnic'];
             const isEnvironmentPhotoMode = environmentPhotoModes.includes(resolvedMode);
+            const schema = PHOTO_MODE_SCHEMAS[resolvedMode];
+            const requiredPlacement = getPhotoModeRequiredPlacement(resolvedMode);
+            const allowedInteractions = getPhotoModeAllowedInteractions(resolvedMode);
+            let resolvedPlacement: ProductPlacement = requiredPlacement ?? state.placement;
+            let resolvedInteraction: ProductStudioState['interaction'] = state.interaction;
+            let resolvedHandsHolding = state.handsHolding;
+            const notes: Partial<ProductStudioState> = {};
+
+            if (schema?.allowsPersonPresence === false && resolvedInteraction !== 'none') {
+                resolvedInteraction = 'none';
+                resolvedHandsHolding = false;
+                Object.assign(notes, withInterpretationNote(state, 'photoModeInteraction', INTERPRETATION_MESSAGES.photoModeForcesInteraction));
+            }
+
+            if (allowedInteractions && !allowedInteractions.includes(resolvedInteraction)) {
+                resolvedInteraction = getFallbackInteraction(allowedInteractions);
+                resolvedHandsHolding = resolvedInteraction !== 'none';
+                Object.assign(notes, withInterpretationNote(state, 'photoModeInteraction', INTERPRETATION_MESSAGES.photoModeForcesInteraction));
+            }
+
+            if (resolvedPlacement === 'held' && resolvedInteraction === 'none') {
+                const canUseHands = schema?.allowsPersonPresence !== false;
+                const allowedHandInteraction = (allowedInteractions ?? []).find(interactionNeedsHands);
+                if (canUseHands && allowedHandInteraction) {
+                    resolvedInteraction = allowedHandInteraction;
+                    resolvedHandsHolding = true;
+                } else {
+                    resolvedPlacement = requiredPlacement && requiredPlacement !== 'held' ? requiredPlacement : 'surface';
+                    Object.assign(notes, withInterpretationNote(state, 'placement', INTERPRETATION_MESSAGES.heldRequiresInteraction));
+                }
+            }
+
+            if (resolvedPlacement === 'air' && resolvedInteraction !== 'none') {
+                resolvedInteraction = 'none';
+                resolvedHandsHolding = false;
+                Object.assign(notes, withInterpretationNote(state, 'placement', INTERPRETATION_MESSAGES.photoModeForcesInteraction));
+            }
+
+            if (resolvedInteraction !== 'none' && resolvedPlacement !== 'held' && resolvedPlacement !== 'supported') {
+                resolvedPlacement = 'held';
+            }
+
+            if (requiredPlacement && state.placement !== requiredPlacement) {
+                Object.assign(notes, withInterpretationNote(state, 'placement', INTERPRETATION_MESSAGES.photoModeForcesPlacement));
+            }
 
             const common: Partial<ProductStudioState> = {
                 photoMode: resolvedMode,
+                placement: resolvedPlacement,
                 // Studio modes are strict product-only. Environment modes keep/set environment context.
                 environmentContext: isEnvironmentPhotoMode
                     ? (state.environmentContext ?? { macro: 'kitchen', micro: getDefaultMicroPlace('kitchen') })
                     : null,
-                handsHolding: isEnvironmentPhotoMode ? state.handsHolding : false,
-                interaction: isEnvironmentPhotoMode ? state.interaction : 'none',
+                handsHolding: resolvedHandsHolding,
+                interaction: resolvedInteraction,
+                ...notes,
             };
 
             if (resolvedMode === 'Hero Landing Page') {
@@ -1752,6 +1839,8 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             const isCapsules = state.definition.type === 'capsules';
             let effectiveInteraction: ProductStudioState['interaction'] =
                 interaction === 'capsule-display' && !isCapsules ? 'none' : interaction;
+            const schema = PHOTO_MODE_SCHEMAS[state.photoMode];
+            const allowedInteractions = getPhotoModeAllowedInteractions(state.photoMode);
 
             // Rule 1: Macro framing cannot support active/gestural holds.
             if (isMacroFraming(state) && isInteractionIncompatibleWithMacro(effectiveInteraction)) {
@@ -1772,6 +1861,14 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     definition: applyCanonicalPhysicalForMotion(state.definition, state.stateMotion),
                     ...withInterpretationNote(state, 'interaction', INTERPRETATION_MESSAGES.interactionSimplified),
                 };
+            }
+
+            if (schema?.allowsPersonPresence === false && effectiveInteraction !== 'none') {
+                effectiveInteraction = 'none';
+            }
+
+            if (allowedInteractions && !allowedInteractions.includes(effectiveInteraction)) {
+                effectiveInteraction = getFallbackInteraction(allowedInteractions);
             }
 
             const updates: Partial<ProductStudioState> = {
@@ -1802,19 +1899,38 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setViewpoint: (viewpoint) => set({ viewpoint }),
     setPlacement: (placement) =>
         set((state) => {
-            const next: Partial<ProductStudioState> = { placement };
+            const requiredPlacement = getPhotoModeRequiredPlacement(state.photoMode);
+            const schema = PHOTO_MODE_SCHEMAS[state.photoMode];
+            const effectivePlacement: ProductPlacement =
+                requiredPlacement && placement !== requiredPlacement ? requiredPlacement : placement;
+            const next: Partial<ProductStudioState> = { placement: effectivePlacement };
+
+            if (requiredPlacement && placement !== requiredPlacement) {
+                Object.assign(next, withInterpretationNote(state, 'placement', INTERPRETATION_MESSAGES.photoModeForcesPlacement));
+            }
 
             // Auto-sync interaction based on placement physics
-            if (placement === 'held') {
+            if (effectivePlacement === 'held') {
+                if (schema?.allowsPersonPresence === false) {
+                    next.placement = requiredPlacement && requiredPlacement !== 'held' ? requiredPlacement : 'surface';
+                    next.interaction = 'none';
+                    next.handsHolding = false;
+                    Object.assign(next, withInterpretationNote(state, 'placement', INTERPRETATION_MESSAGES.heldRequiresInteraction));
+                    return next;
+                }
                 // If moving to Held, ensure an interaction that involves hands is active
-                if (!['supported-hold', 'holding', 'two-hand-hold', 'presenting', 'framed-presentation', 'applying-opening', 'capsule-display', 'resting-interaction'].includes(state.interaction)) {
+                if (!interactionNeedsHands(state.interaction)) {
                     next.interaction = 'holding';
                     next.handsHolding = true;
                 }
             } else {
                 // Surface, Supported, Air (Neutralized Gravity)
                 // If moving away from Held, clear active holding interactions
-                if (['supported-hold', 'holding', 'two-hand-hold', 'presenting', 'framed-presentation', 'applying-opening', 'capsule-display'].includes(state.interaction)) {
+                if (interactionNeedsHands(state.interaction)) {
+                    next.interaction = 'none';
+                    next.handsHolding = false;
+                }
+                if (effectivePlacement === 'air' && state.interaction !== 'none') {
                     next.interaction = 'none';
                     next.handsHolding = false;
                 }

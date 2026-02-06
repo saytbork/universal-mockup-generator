@@ -107,26 +107,14 @@ export function checkHardFails(input: Partial<DeterministicPromptInput>): string
     // HARD FAIL 11: PhotoMode × Placement (FULL SCHEMA ENFORCEMENT)
     // Validates ALL requiredPlacement constraints from photoModeSchema
     if (photoMode && placement) {
-        const PHOTO_MODE_REQUIRED_PLACEMENT: Record<string, string> = {
-            'UGC Premium Simulation': 'held',
-            'Golden Hour Lifestyle': 'held',
-            'Outdoor Energy Boost': 'held',
-            'Candy Gradient Lab': 'air',
-            'Splash Shot': 'air',
-            'Acrylic Blocks': 'supported',
-            'Glass Pedestal Studio': 'supported',
-            // All others default to 'surface' or 'any'
-        };
-        const required = PHOTO_MODE_REQUIRED_PLACEMENT[photoMode];
+        const schema = (PHOTO_MODE_SCHEMAS as any)[photoMode];
+        const required = schema?.requiredPlacement as string | undefined;
         if (required && required !== 'any' && placement !== required) {
             errors.push(`HARD FAIL: Photo Mode "${photoMode}" requires placement="${required}". Current placement="${placement}". ABORT.`);
         }
-        // Air placement check (original logic preserved)
-        if (placement === 'air') {
-            const allowedAirModes = ['Candy Gradient Lab', 'Splash Shot', 'Hero Landing Page'];
-            if (!allowedAirModes.includes(photoMode)) {
-                errors.push(`HARD FAIL: Placement "air" (floating/suspended) is ONLY allowed for abstract studio Photo Modes (${allowedAirModes.join(', ')}). Current Photo Mode: "${photoMode}". ABORT.`);
-            }
+        // Air placement can only be used in modes that explicitly allow it (requiredPlacement='air' or 'any').
+        if (placement === 'air' && required && required !== 'air' && required !== 'any') {
+            errors.push(`HARD FAIL: Placement "air" is not compatible with Photo Mode "${photoMode}" (requiredPlacement="${required}"). ABORT.`);
         }
     }
 

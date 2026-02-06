@@ -2298,13 +2298,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 <button
                                   key={mode}
                                   onClick={() => {
-                                    // Auto-adjust placement based on mandatory physics
-                                    if (['Acrylic Blocks', 'Glass Pedestal Studio'].includes(mode)) {
-                                      productStore.setPlacement('supported');
-                                    } else if (['Splash Shot'].includes(mode)) {
-                                      productStore.setPlacement('air');
-                                    } else if (['Hero Landing Page', 'Minimal Bathroom Vanity', 'Ingredient Flat Lay'].includes(mode)) {
-                                      productStore.setPlacement('surface');
+                                    // Auto-adjust placement directly from schema to avoid UI/store contradictions.
+                                    if (schema?.requiredPlacement && schema.requiredPlacement !== 'any') {
+                                      productStore.setPlacement(schema.requiredPlacement as ProductPlacement);
                                     }
 
                                     productStore.setPhotoMode(mode);

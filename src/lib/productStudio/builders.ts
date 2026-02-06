@@ -29,6 +29,7 @@ import type {
 import { mapSceneToPrompt } from './mapSceneToPrompt';
 import { applyCanonicalPhysicalForMotion } from './motionCoherence';
 import { buildEcommercePdpPrompt } from './prompt-builders/buildEcommercePdpPrompt';
+import { PHOTO_MODE_SCHEMAS } from './photoModeSchema';
 
 // ============================================================================
 // FORBIDDEN TERMS VALIDATION
@@ -565,6 +566,20 @@ function buildAlignment(state: ProductStudioState): string {
 function buildStateMotion(state: ProductStudioState): string {
     const motion = String(state.stateMotion || 'static');
     const { physical } = state.definition;
+    const placement = String(state.placement || 'surface');
+
+    const placementText = (() => {
+        if (placement === 'supported') {
+            return 'Product resting on a visible stand or tray support with grounded contact shadows.';
+        }
+        if (placement === 'air') {
+            return 'Product suspended in controlled air placement with physically plausible anchor shadows and no visible rig.';
+        }
+        if (placement === 'held') {
+            return 'Product held by hands with realistic grip pressure and contact shadows.';
+        }
+        return 'Product resting on a surface with grounded shadows.';
+    })();
 
     if (motion === 'static') {
         return [
@@ -572,7 +587,7 @@ function buildStateMotion(state: ProductStudioState): string {
             'Product fully assembled.',
             'Cap present and attached.',
             'Contents fully contained.',
-            'Product resting on a surface with grounded shadows.',
+            placementText,
             'No motion.',
         ].join(' ');
     }
@@ -580,7 +595,11 @@ function buildStateMotion(state: ProductStudioState): string {
     if (motion === 'opened') {
         return [
             'PRODUCT_STATE_MOTION: Opened.',
-            'Container is open and resting on a surface.',
+            placement === 'air'
+                ? 'Container is open and suspended in controlled air placement.'
+                : placement === 'supported'
+                    ? 'Container is open and resting on a visible stand or tray support.'
+                    : 'Container is open and resting on a surface.',
             'Cap removed and NOT visible anywhere in frame.',
             'Contents remain contained (no mid-air, no spilling).',
             'No motion.',
@@ -1094,9 +1113,28 @@ function buildLabelLock(): string {
         'LABEL LOCK (CRITICAL): The product label is a real photographic label from the reference image and must be reproduced exactly as seen.',
         'Do not rewrite, invent, complete, or retype label text.',
         'Do not redraw label artwork; do not change typography, font weight, spacing, or alignment.',
-        'Do not warp, curve, stretch, distort, or texture-map the label; keep it as a flat optically captured decal.',
-        'If the bottle rotates, the label rotates rigidly with it; no perspective distortion and no curvature compensation.',
-        'Keep the label facing the camera straight-on with no 3/4 turn to prevent label deformation.',
+        'Do not warp, curve, stretch, distort, or texture-map the label.',
+        'If the bottle rotates, the label rotates rigidly with it and preserves original proportions.',
+        'Natural perspective from camera angle is allowed, but avoid extreme oblique views that reduce readability.',
+    ].join(' ');
+}
+
+function buildProductDesignLock(state: ProductStudioState): string {
+    const placement = String(state.placement || 'surface');
+    const placementRule =
+        placement === 'supported'
+            ? 'Supported placement rule: support can touch the product, but product geometry and silhouette must stay unchanged.'
+            : placement === 'air'
+                ? 'Air placement rule: suspension effect must not bend, stretch, squash, or redesign the product geometry.'
+                : 'Surface/held placement rule: contact points must not deform packaging structure or printed artwork.';
+
+    return [
+        'PRODUCT DESIGN LOCK (CRITICAL): Reproduce the uploaded product design exactly.',
+        'Do not redesign packaging shape, bottle geometry, cap proportions, neck/collar dimensions, or silhouette.',
+        'Do not alter brand artwork, logo shapes, iconography, printed patterns, or label composition.',
+        'Preserve exact color relationships, material finish character, and packaging proportions from the reference.',
+        'No warping, bulging, melted edges, stretched labels, altered aspect ratios, or invented design variants.',
+        placementRule,
     ].join(' ');
 }
 
@@ -1125,6 +1163,7 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     }
 
     segments.push(buildLabelLock());
+    segments.push(buildProductDesignLock(state));
     segments.push(buildStateMotion(state));
     segments.push(buildIntegrityConstraints(state));
     segments.push(buildAspectRatio(state));
@@ -1157,6 +1196,7 @@ function assembleBundlePrompt(state: ProductStudioState): string {
 
     if (primary) {
         segments.push(buildLabelLock());
+        segments.push(buildProductDesignLock(state));
     }
     segments.push(buildStateMotion(state));
     segments.push(buildBundleComposition(state));
@@ -1182,6 +1222,7 @@ function buildNegativePrompt(state: ProductStudioState): string {
     const motion = String(state.stateMotion || 'static');
     const splashStyle = state.photoMode === 'Splash Shot' ? (state.splashStyle ?? 'Basic') : null;
     const macroTexturesActive = state.photoMode === 'Foam & Texture';
+    const placement = String(state.placement || 'surface');
 
     const noInteractionBlock = allowHands
         ? []
@@ -1274,8 +1315,13 @@ function buildNegativePrompt(state: ProductStudioState): string {
         'redrawn label', 'rewritten label', 'invented label text', 'altered typography',
         'warped label', 'curved label', 'stretched label', 'crooked label', 'misaligned label', 'mismatched label proportions',
         'label as texture', 'label texture', 'label distortion', 'label perspective warp',
+        // Packaging / design integrity
+        'rebranded packaging', 'new logo', 'altered logo', 'new artwork', 'different bottle shape', 'changed cap shape',
+        'changed packaging proportions', 'packaging redesign',
         'broken object', 'broken glass', 'cracked', 'shattered', 'fragmented',
-        'floating parts', 'separated parts', 'disconnected components', 'disembodied cap', 'detached dropper',
+        ...(placement === 'air'
+            ? ['detached fragments', 'separated parts', 'disconnected components', 'disembodied cap', 'detached dropper']
+            : ['floating detached fragments', 'separated parts', 'disconnected components', 'disembodied cap', 'detached dropper']),
         'duplicate product', 'multiple bottles', 'extra caps', 'extra droppers',
         'cropped product', 'cut off', 'missing parts', 'tilted horizon',
         // Styling / safety
@@ -1452,6 +1498,54 @@ function normalizeProductStudioStateForPrompt(state: ProductStudioState): Produc
     if (next.interaction === 'applying-opening') {
         next.stateMotion = 'opened';
     }
+
+    // Photo Mode schema coherence (placement + interaction).
+    const schema = PHOTO_MODE_SCHEMAS[next.photoMode];
+    const requiredPlacement = schema?.requiredPlacement;
+    if (requiredPlacement && requiredPlacement !== 'any' && next.placement !== requiredPlacement) {
+        next.placement = requiredPlacement;
+    }
+
+    if (schema?.allowsPersonPresence === false && next.interaction !== 'none') {
+        next.interaction = 'none';
+    }
+
+    const allowedInteractions = schema?.allowedInteractions && schema.allowedInteractions.length > 0
+        ? [...schema.allowedInteractions] as ProductStudioState['interaction'][]
+        : null;
+    if (allowedInteractions && !allowedInteractions.includes(next.interaction)) {
+        next.interaction = allowedInteractions.includes('none')
+            ? 'none'
+            : allowedInteractions[0];
+    }
+
+    if (next.placement === 'air' && next.interaction !== 'none') {
+        next.interaction = 'none';
+    }
+
+    const handInteractions = new Set<ProductStudioState['interaction']>([
+        'supported-hold',
+        'holding',
+        'two-hand-hold',
+        'presenting',
+        'framed-presentation',
+        'applying-opening',
+        'capsule-display',
+        'resting-interaction',
+    ]);
+
+    if (handInteractions.has(next.interaction)) {
+        if (next.placement !== 'held' && next.placement !== 'supported') {
+            next.placement = 'held';
+        }
+    }
+
+    if (next.placement === 'held' && next.interaction === 'none') {
+        next.placement = requiredPlacement && requiredPlacement !== 'any' && requiredPlacement !== 'held'
+            ? requiredPlacement
+            : 'surface';
+    }
+
     next.handsHolding = next.interaction !== 'none';
 
     // Hard canonical physical coherence for motion (silent auto-correct).

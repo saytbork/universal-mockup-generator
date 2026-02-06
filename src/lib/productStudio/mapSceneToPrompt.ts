@@ -1,4 +1,5 @@
 import type { ProductAsset, ProductStudioState, PhotoMode } from './types';
+import { PHOTO_MODE_SCHEMAS } from './photoModeSchema';
 import { buildBaseContext } from './promptParts/baseContext';
 import { buildPhotoModePrompt } from '../promptEngine/photoModeResolver';
 import {
@@ -189,6 +190,42 @@ function buildSecondaryProps(mode: PhotoModeKey, randomizer: ReturnType<typeof c
   if (!options || options.length === 0) return '';
   const picks = randomizer.pickMany(options, Math.min(2, options.length));
   return `Secondary props: ${picks.join(', ')}.`;
+}
+
+function buildPlacementDirective(state: ProductStudioState): string {
+  const requiredPlacement = PHOTO_MODE_SCHEMAS[state.photoMode as PhotoMode]?.requiredPlacement;
+  const effectivePlacement =
+    requiredPlacement && requiredPlacement !== 'any'
+      ? requiredPlacement
+      : (state.placement || 'surface');
+  const placement = String(effectivePlacement);
+  if (placement === 'supported') {
+    return [
+      'PLACEMENT (MANDATORY): Supported.',
+      'Product is on a visible stand, tray, pedestal, or support structure.',
+      'Support must read as physically real with contact shadows and stable balance.',
+      'No invisible levitation. No hand-held pose unless interaction explicitly requires it.'
+    ].join(' ');
+  }
+  if (placement === 'air') {
+    return [
+      'PLACEMENT (MANDATORY): Air / Suspended.',
+      'Product is suspended in controlled air composition with realistic gravity cues.',
+      'No surface contact and no accidental tabletop grounding.',
+      'Use physically plausible anchor shadows and coherent perspective.'
+    ].join(' ');
+  }
+  if (placement === 'held') {
+    return [
+      'PLACEMENT (MANDATORY): Held.',
+      'Product must be clearly held by hand(s) with realistic contact and grip pressure.',
+      'No unsupported floating product state.'
+    ].join(' ');
+  }
+  return [
+    'PLACEMENT (MANDATORY): Surface.',
+    'Product rests on a real surface with grounded contact and physically coherent shadows.'
+  ].join(' ');
 }
 
 function extractModeSpecificDynamicSettings(state: ProductStudioState): Record<string, string> | undefined {
@@ -482,6 +519,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const parts = [
     buildBaseContext({ allowStudio: mode === 'ACRYLIC_BLOCKS', qualityProfile: state.qualityProfile }),
     scene,
+    buildPlacementDirective(state),
     photoModeResult.modifiers,
     mode === 'INGREDIENT_STACK' ? '' : buildSecondaryProps(mode, randomizer, state.props),
     buildLighting(mode, randomizer, {

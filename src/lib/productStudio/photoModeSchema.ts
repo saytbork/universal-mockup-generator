@@ -417,7 +417,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Color tones must remain natural',
             'Label readability mandatory'
         ],
-        requiredPlacement: 'surface',
+        requiredPlacement: 'any',
         allowedInteractions: ['none', 'holding', 'two-hand-hold', 'presenting'],
         allowsPersonPresence: true
     },
@@ -459,7 +459,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Pastel palette only',
             'No clutter'
         ],
-        requiredPlacement: 'surface',
+        requiredPlacement: 'any',
         allowedInteractions: ['none', 'holding', 'two-hand-hold', 'presenting'],
         allowsPersonPresence: true
     },

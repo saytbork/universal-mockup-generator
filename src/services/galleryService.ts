@@ -30,6 +30,8 @@ export interface GalleryImage {
 
 export interface AddGalleryResponse {
     id: string;
+    imageUrl?: string;
+    fallback?: boolean;
 }
 
 export interface ListGalleryResponse {
@@ -70,9 +72,24 @@ export async function addToGallery(
     } catch (error) {
         console.error('❌ Failed to add image to gallery:', error);
         if (axios.isAxiosError(error)) {
-            throw new Error(
-                `Gallery API error: ${error.response?.data?.error || error.message}`
-            );
+            const apiError = String(error.response?.data?.error || error.message || '').trim();
+            const normalized = apiError.toLowerCase();
+            const isInfraGalleryError =
+                normalized.includes('requested project was not found') ||
+                normalized.includes('firebase configuration error') ||
+                normalized.includes('database permission denied');
+
+            // Do not block generation UX when gallery backend is misconfigured/unavailable.
+            if (isInfraGalleryError) {
+                console.warn('⚠️ Gallery backend unavailable; continuing without cloud save:', apiError);
+                return {
+                    id: `fallback-${Date.now()}`,
+                    imageUrl,
+                    fallback: true,
+                };
+            }
+
+            throw new Error(`Gallery API error: ${apiError}`);
         }
         throw error;
     }
@@ -94,9 +111,17 @@ export async function listPublicGallery(): Promise<GalleryImage[]> {
     } catch (error) {
         console.error('❌ Failed to load public gallery:', error);
         if (axios.isAxiosError(error)) {
-            throw new Error(
-                `Gallery API error: ${error.response?.data?.error || error.message}`
-            );
+            const apiError = String(error.response?.data?.error || error.message || '').trim();
+            const normalized = apiError.toLowerCase();
+            const isInfraGalleryError =
+                normalized.includes('requested project was not found') ||
+                normalized.includes('firebase configuration error') ||
+                normalized.includes('database permission denied');
+            if (isInfraGalleryError) {
+                console.warn('⚠️ Gallery backend unavailable; returning empty cloud gallery:', apiError);
+                return [];
+            }
+            throw new Error(`Gallery API error: ${apiError}`);
         }
         throw error;
     }
