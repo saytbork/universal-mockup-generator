@@ -181,8 +181,7 @@ function isModeResolutionRestricted(options: PromptOptions): boolean {
         options.creationIntent === 'ugc' ||
         options.contentStyle === 'ugc' ||
         Boolean(options.ugcRealModeActive) ||
-        Boolean(options.rawDomesticUgcActive) ||
-        options.creationMode === 'lifestyle'
+        Boolean(options.rawDomesticUgcActive)
     );
 }
 
