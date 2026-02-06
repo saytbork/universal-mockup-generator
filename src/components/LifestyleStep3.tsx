@@ -2142,6 +2142,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   >
                     Photo Studio
                   </Chip>
+                  <Chip
+                    onClick={() => {
+                      productStore.setEnvironmentContext({
+                        macro: (productStore.environmentContext?.macro as any) ?? 'kitchen',
+                        micro: (productStore.environmentContext?.micro as any) ?? 'countertop',
+                      });
+                      markSectionTouched('product-setup');
+                    }}
+                    selected={productStore.environmentContext != null}
+                  >
+                    Environment
+                  </Chip>
                 </div>
               </div>
 
@@ -5708,7 +5720,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
            Lighting is currently derived from Photo Mode.
            Manual overrides will be available in v1.1.
            ============================================================================ */}
-      {isEcommerceMode && (
+      {isEcommerceMode && !isProductMode && (
       <SmoothAccordion
         icon={Sun}
         title="10 / Lighting"

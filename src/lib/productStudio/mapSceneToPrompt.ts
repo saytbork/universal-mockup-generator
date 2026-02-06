@@ -36,10 +36,12 @@ function buildEnvironmentScene(state: ProductStudioState, randomizer: ReturnType
   if (state.blankSpaceEnabled) return '';
   if (state.environmentContext == null) return '';
 
-  const macro = String(state.environmentContext.macro || '').trim();
+  const macroRaw = String(state.environmentContext.macro || '').trim();
+  const macro = macroRaw.toLowerCase();
   if (!macro || macro === 'studio') return '';
 
-  const micro = state.environmentContext.micro == null ? '' : String(state.environmentContext.micro).trim();
+  const microRaw = state.environmentContext.micro == null ? '' : String(state.environmentContext.micro).trim();
+  const micro = microRaw.toLowerCase();
 
   const macroText = (() => {
     if (macro === 'custom') return String(state.customEnvironmentText || '').trim() || 'custom environment';
@@ -122,6 +124,7 @@ function buildEnvironmentScene(state: ProductStudioState, randomizer: ReturnType
   const accent = randomizer.pick(accentPool);
 
   const parts: string[] = [];
+  parts.push(`ENVIRONMENT (MANDATORY): macro=${macro}${micro ? `, micro=${micro}` : ''}.`);
   parts.push(`${macroText}.`);
   if (microText) parts.push(`Product placed on a ${microText}.`);
   parts.push(`${accent}.`);
@@ -331,7 +334,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     state.blankSpaceEnabled === false &&
     state.environmentContext != null &&
     String(state.environmentContext.macro || '').trim() !== '' &&
-    String(state.environmentContext.macro || '').trim() !== 'studio';
+    String(state.environmentContext.macro || '').trim().toLowerCase() !== 'studio';
 
   // When "Environment" is enabled in the UI, Photo Mode becomes irrelevant (it's hidden).
   // Force a neutral baseline so lighting/camera/material pools stay coherent, while the scene itself is environment-driven.

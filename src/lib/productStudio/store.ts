@@ -1263,40 +1263,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     // Environment — CANONICAL SETTER
     setEnvironmentContext: (ctx) => {
         set((state) => {
-            // INVARIANT: Studio Photo Modes MUST have environment Context = null
-            // Prevents Hero Landing Page lock bug by enforcing state contract
-            const studioPhotoModes: PhotoMode[] = [
-                'Hero Landing Page',
-                'Color Pop Hero',
-                'Ingredient Stack',
-                'Ingredient Flat Lay',
-                'Acrylic Blocks',
-                'Glass Pedestal Studio',
-                'Splash Shot',
-                'Foam & Texture',
-                'Routine Carousel',
-                'Clinical Lab Counter',
-                'Minimal Bathroom Vanity',
-                'Dark Premium Studio',
-                'Monochrome Brand',
-                'Brand Campaign',
-                'UGC Premium Simulation',
-                'Tech Clean Studio',
-                'Luxury Editorial Tabletop',
-                'Soft Wellness Morning',
-                'Outdoor Energy Boost',
-                'Golden Mist Aura',
-                'Candy Gradient Lab',
-            ];
-
-            const isStudioMode = studioPhotoModes.includes(state.photoMode);
-
-            // If trying to set environmentContext while in studio mode, force null
-            if (ctx !== null && isStudioMode) {
-                console.warn(`[ProductStudio] Cannot set environmentContext while in studio Photo Mode: ${state.photoMode}. Forcing null.`);
-                return { environmentContext: null };
-            }
-
             if (ctx === null) {
                 return {
                     environmentContext: null,
@@ -1318,7 +1284,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 };
             }
 
-            const requestedMacro = (ctx.macro ?? 'kitchen') as EnvironmentMacro;
+            const requestedMacro = String(ctx.macro ?? 'kitchen').trim().toLowerCase() as EnvironmentMacro;
             const validatedMacro = enforceValidEnvironment(
                 requestedMacro,
                 state.definition.type,
@@ -1326,8 +1292,10 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             );
 
             const hasMicro = Object.prototype.hasOwnProperty.call(ctx, 'micro');
-            const requestedMicro = (hasMicro ? ctx.micro : undefined) as unknown as MicroPlace | null | undefined;
-            const validatedMicro = requestedMicro ? requestedMicro : null;
+            const requestedMicro = hasMicro
+                ? (ctx.micro == null ? null : String(ctx.micro).trim().toLowerCase())
+                : undefined;
+            const validatedMicro = (requestedMicro ? requestedMicro : null) as MicroPlace | null;
 
             const validatedLighting = enforceValidLighting(state.lighting, validatedMacro);
 
@@ -1603,6 +1571,8 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             const resolvedMode: PhotoMode = allowed.includes(nextMode) ? nextMode : 'Hero Landing Page';
             const environmentPhotoModes: PhotoMode[] = ['Golden Hour Lifestyle', 'Pastel Picnic'];
             const isEnvironmentPhotoMode = environmentPhotoModes.includes(resolvedMode);
+            const hadEnvironmentEnabled = state.environmentContext != null;
+            const shouldUseEnvironment = isEnvironmentPhotoMode || hadEnvironmentEnabled;
             const schema = PHOTO_MODE_SCHEMAS[resolvedMode];
             const requiredPlacement = getPhotoModeRequiredPlacement(resolvedMode);
             const allowedInteractions = getPhotoModeAllowedInteractions(resolvedMode);
@@ -1652,8 +1622,8 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             const common: Partial<ProductStudioState> = {
                 photoMode: resolvedMode,
                 placement: resolvedPlacement,
-                // Studio modes are strict product-only. Environment modes keep/set environment context.
-                environmentContext: isEnvironmentPhotoMode
+                // Preserve environment once user enables it from PHOTO TYPE.
+                environmentContext: shouldUseEnvironment
                     ? (state.environmentContext ?? { macro: 'kitchen', micro: getDefaultMicroPlace('kitchen') })
                     : null,
                 handsHolding: resolvedHandsHolding,
@@ -1675,7 +1645,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 };
             }
 
-            if (isEnvironmentPhotoMode) {
+            if (shouldUseEnvironment) {
                 return {
                     ...common,
                     sceneType: 'lifestyle-real',
