@@ -180,6 +180,7 @@ const PHOTO_MODE_MAP: Record<string, PhotoModeKey> = {
   'Dark Premium Studio': 'HERO_NEUTRAL',
   'Monochrome Brand': 'COLOR_POP_HERO',
   'Brand Campaign': 'BRAND_CAMPAIGN',
+  'Creator Premium Simulation': 'UGC_PREMIUM_SIM',
   'UGC Premium Simulation': 'UGC_PREMIUM_SIM',
   'Tech Clean Studio': 'HERO_NEUTRAL',
   'Luxury Editorial Tabletop': 'HERO_NEUTRAL',
@@ -526,7 +527,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     }
   }
 
-  const lightingOverrideText = (() => {
+  const lightingStyleOverrideText = (() => {
     const lighting = String((state as any).lighting || '').trim();
     if (!lighting) return '';
     const map: Record<string, string> = {
@@ -542,6 +543,37 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       'clinical-softbox': 'Clinical softbox lighting with clean reflections and neutral color.',
     };
     return map[lighting] || '';
+  })();
+
+  const lightingRigOverrideText = (() => {
+    const rig = String((state as any).lightingRig || '').trim();
+    if (!rig) return '';
+    return `Lighting rig: ${rig}.`;
+  })();
+
+  const lightingOverrideText = [lightingStyleOverrideText, lightingRigOverrideText]
+    .filter(Boolean)
+    .join(' ');
+
+  const finishOverrideText = (() => {
+    const finish = String((state as any).finish || '').trim();
+    if (!finish) return '';
+    return `Finish / Treatment: ${finish}. Keep this treatment consistent across the whole scene.`;
+  })();
+
+  const creativityOverrideText = (() => {
+    const level = Number((state as any).creativityLevel);
+    if (Number.isNaN(level)) return '';
+    if (level <= 0) {
+      return 'Creativity level: Locked. Keep composition conservative and brand-safe.';
+    }
+    if (level === 1) {
+      return 'Creativity level: Low. Subtle variation only; preserve product-first clarity.';
+    }
+    if (level === 2) {
+      return 'Creativity level: Medium. Allow moderate variation while keeping clear commercial readability.';
+    }
+    return 'Creativity level: High. Allow bold styling variation without reducing product legibility.';
   })();
 
   const adaptedPhotoModeBasePrompt = environmentModeActive
@@ -572,7 +604,12 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       qualityProfile: state.qualityProfile,
       ...(lightingOverrideText ? { override: { text: lightingOverrideText } } : {}),
     }),
-    buildCamera(mode, randomizer, { qualityProfile: state.qualityProfile }),
+    buildCamera(mode, randomizer, {
+      qualityProfile: state.qualityProfile,
+      ...(state.lens ? { forceLens: state.lens } : {}),
+    }),
+    finishOverrideText,
+    creativityOverrideText,
     buildMaterialsWithProfile(mode, randomizer, state.qualityProfile),
     buildRandomizationRules(mode === 'INGREDIENT_STACK' ? 'ingredientStack' : 'default', state.qualityProfile),
     buildQualityEnforcers(state.qualityProfile),

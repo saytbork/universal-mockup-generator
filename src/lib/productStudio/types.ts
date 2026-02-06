@@ -259,7 +259,8 @@ export type PhotoMode =
     | 'Dark Premium Studio'
     | 'Monochrome Brand'
     | 'Brand Campaign'
-    | 'UGC Premium Simulation'
+    | 'Creator Premium Simulation'
+    | 'UGC Premium Simulation' // deprecated alias (backward compatibility)
     | 'Tech Clean Studio'
     // Lifestyle modes
     | 'Luxury Editorial Tabletop'

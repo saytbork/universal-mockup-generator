@@ -246,6 +246,14 @@ const PHOTO_MODE_CONTROL_FLAGS: Record<string, PhotoModeControlFlags> = {
         bundlesAllowed: true,
         cameraLocked: false
     },
+    'Creator Premium Simulation': {
+        propsAllowed: false,
+        environmentAllowed: false,
+        humansAllowed: false,
+        motionAllowed: false,
+        bundlesAllowed: true,
+        cameraLocked: false
+    },
     'UGC Premium Simulation': {
         propsAllowed: false,
         environmentAllowed: false,
@@ -594,7 +602,7 @@ export function buildPhotoModePrompt(
 
     let finalModifiers = modifierParts.join(', ');
 
-    if (photoMode === 'UGC Premium Simulation') {
+    if (photoMode === 'UGC Premium Simulation' || photoMode === 'Creator Premium Simulation') {
         basePrompt = stripUgcToken(basePrompt);
         finalModifiers = stripUgcToken(finalModifiers);
     }
@@ -669,7 +677,7 @@ export function getAllPhotoModes(): PhotoMode[] {
         'Dark Premium Studio',
         'Monochrome Brand',
         'Brand Campaign',
-        'UGC Premium Simulation',
+        'Creator Premium Simulation',
         'Tech Clean Studio',
         // Lifestyle modes
         'Luxury Editorial Tabletop',

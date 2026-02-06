@@ -493,7 +493,7 @@ const getAgeCategory = (age: number) => {
 };
 
 const SECTION_GROUP_CLASS =
-  'space-y-2';
+  'space-y-3';
 const GROUP_LABEL_CLASS =
   'text-[11px] uppercase tracking-[0.14em] text-gray-500 font-semibold leading-none';
 
@@ -2287,7 +2287,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               'Dark Premium Studio',
                               'Monochrome Brand',
                               'Brand Campaign',
-                              'UGC Premium Simulation',
+                              'Creator Premium Simulation',
                               'Tech Clean Studio',
                               'Luxury Editorial Tabletop',
                               'Soft Wellness Morning',
@@ -4809,7 +4809,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       {/* CREATIVE DIRECTION (Phase 1) */}
       {/* Photo Mode fully replaces Creative Direction whenever Photo Mode is active. */}
       {
-        productStore.environmentContext != null && (
+        false && (
           <SmoothAccordion
             icon={Sparkles}
             title="Creative Direction"
@@ -5170,7 +5170,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     )}
 
                     <div className={isDisabled ? 'opacity-50 pointer-events-none' : ''}>
-                      <div className="space-y-5">
+                      <div className={SECTION_GROUP_CLASS}>
                         <div className="flex items-center justify-between gap-4">
                           <div>
                             <p className={GROUP_LABEL_CLASS}>MACRO ENVIRONMENT</p>
@@ -5198,7 +5198,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           </div>
                         </div>
 
-                        <div className="mt-4 space-y-5">
+                        <div className="space-y-4">
                           {PRODUCT_ENVIRONMENT_MACRO_GROUPS.filter(group => {
                             if (group.label === 'Home') return true;
                             return productEnvironmentShowAllMacros;
@@ -5207,7 +5207,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">
                                 {group.label}
                               </p>
-                              <div className="grid grid-cols-2 gap-3">
+                              <div className="flex flex-wrap gap-2">
                                 {group.items.map(env => (
                                   <Chip
                                     key={env}
@@ -5216,8 +5216,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       markSectionTouched('product-environment');
                                     }}
                                     selected={selectedMacro === env}
-                                    size="md"
-                                    className="w-full justify-center whitespace-normal text-center"
                                   >
                                     {env === 'custom'
                                       ? 'Custom'
@@ -5233,8 +5231,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </div>
 
                         {selectedMacro === 'custom' && (
-                          <label className="block space-y-1 mt-3">
-                            <p className="text-[11px] uppercase tracking-wide text-gray-500">Custom environment</p>
+                          <label className="block space-y-2">
+                            <p className={GROUP_LABEL_CLASS}>CUSTOM ENVIRONMENT</p>
                             <input
                               value={productStore.customEnvironmentText || ''}
                               onChange={(e) => {
@@ -5248,7 +5246,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         )}
                       </div>
 
-                      <div className="space-y-5">
+                      <div className={SECTION_GROUP_CLASS}>
                         <div className="flex items-start justify-between gap-4">
                           <div>
                             <p className={GROUP_LABEL_CLASS}>MICRO PLACE</p>
@@ -5265,7 +5263,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </div>
 
                         {selectedMacro ? (
-                          <div className="flex flex-wrap gap-3 mt-3">
+                          <div className="flex flex-wrap gap-2">
                             <Chip
                               onClick={() => {
                                 const macro = (selectedMacro ?? 'kitchen') as EnvironmentMacro;
@@ -5273,7 +5271,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 markSectionTouched('product-environment');
                               }}
                               selected={!selectedMicro}
-                              size="md"
                             >
                               Auto
                             </Chip>
@@ -5286,7 +5283,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   markSectionTouched('product-environment');
                                 }}
                                 selected={selectedMicro === place}
-                                size="md"
                               >
                                 {place === 'conveyor-belt'
                                   ? 'Conveyor belt'
@@ -5304,7 +5300,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   markSectionTouched('product-environment');
                                 }}
                                 selected={selectedMicro === 'custom'}
-                                size="md"
                               >
                                 Custom
                               </Chip>
@@ -5315,8 +5310,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         )}
 
                         {productEnvironmentAdvancedOpen && selectedMicro === 'custom' && (
-                          <label className="block space-y-1 mt-3">
-                            <p className="text-[11px] uppercase tracking-wide text-gray-500">Custom micro place</p>
+                          <label className="block space-y-2">
+                            <p className={GROUP_LABEL_CLASS}>CUSTOM MICRO PLACE</p>
                             <input
                               value={productStore.customMicroPlaceText || ''}
                               onChange={(e) => {
@@ -5330,12 +5325,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         )}
                       </div>
 
-                      <div className="space-y-5">
+                      <div className={SECTION_GROUP_CLASS}>
                         <div>
                           <p className={GROUP_LABEL_CLASS}>LIGHTING</p>
                           <p className="text-[11px] text-gray-500 mt-1">Product-safe lighting style</p>
                         </div>
-                        <div className="flex flex-wrap gap-3 mt-3">
+                        <div className="flex flex-wrap gap-2">
                           {(productEnvironmentAdvancedOpen
                             ? PRODUCT_ENVIRONMENT_LIGHTING_OPTIONS
                             : PRODUCT_ENVIRONMENT_LIGHTING_OPTIONS.filter(opt =>
@@ -5352,7 +5347,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 markSectionTouched('product-environment');
                               }}
                               selected={productStore.lighting === option.value}
-                              size="md"
                             >
                               {option.label}
                             </Chip>
@@ -5379,6 +5373,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         variant="primary"
       >
         <div className="space-y-5">
+          {(() => {
+            const interactionSchema = PHOTO_MODE_SCHEMAS[productStore.photoMode as PhotoMode];
+            const modeAllowsPersonPresence = interactionSchema?.allowsPersonPresence !== false;
+            const modeAllowedInteractions = interactionSchema?.allowedInteractions ?? null;
+            const interactionCompatibleModes: PhotoMode[] = ['Creator Premium Simulation', 'Golden Hour Lifestyle', 'Pastel Picnic'];
+
+            return (
+              <>
           <div className={SECTION_GROUP_CLASS}>
             <p className={GROUP_LABEL_CLASS}>PRODUCT INTERACTION</p>
             <div className="flex flex-wrap gap-2">
@@ -5398,11 +5400,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 ] as const
               ).map(option => {
                 const isCapsuleRestricted = option.value === 'capsule-display' && productStore.definition.type !== 'capsules';
+                const blockedByPhotoMode =
+                  (!modeAllowsPersonPresence && option.value !== 'none') ||
+                  (Array.isArray(modeAllowedInteractions) && !modeAllowedInteractions.includes(option.value as ProductStudioState['interaction']));
+                const isDisabled = isCapsuleRestricted || blockedByPhotoMode;
+
                 return (
                   <Chip
                     key={option.value}
                     onClick={() => {
-                      if (isCapsuleRestricted) return;
+                      if (isDisabled) return;
 
                       // Auto-switch to 'held' if selecting a holding interaction
                       if (!['none', 'passive-presence', 'cropped-hand'].includes(option.value)) {
@@ -5416,7 +5423,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       markSectionTouched('product-interaction');
                     }}
                     selected={productStore.interaction === (option.value as any)}
-                    disabled={isCapsuleRestricted}
+                    disabled={isDisabled}
                     tooltip={option.detail}
                   >
                     {option.label}
@@ -5448,7 +5455,37 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 Capsule Display is only available when Product Type is Capsules.
               </p>
             )}
+            {!modeAllowsPersonPresence && (
+              <div className="mt-2 space-y-2">
+                <p className="text-[11px] text-amber-600">
+                  The current Photo Mode allows only `None` interaction. Switch mode to enable hand interactions.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {interactionCompatibleModes.map((mode) => (
+                    <Chip
+                      key={mode}
+                      onClick={() => {
+                        productStore.setPhotoMode(mode);
+                        markSectionTouched('product-setup');
+                        markSectionTouched('product-interaction');
+                      }}
+                      selected={productStore.photoMode === mode}
+                    >
+                      {mode}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+            )}
+            {modeAllowsPersonPresence && Array.isArray(modeAllowedInteractions) && (
+              <p className="text-[11px] text-gray-500 mt-2">
+                Available in this Photo Mode: {modeAllowedInteractions.join(', ')}.
+              </p>
+            )}
           </div>
+              </>
+            );
+          })()}
         </div>
       </SmoothAccordion>
       )}

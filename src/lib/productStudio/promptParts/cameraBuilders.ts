@@ -53,6 +53,7 @@ export type CameraOverride = {
 export type CameraBuildOptions = {
   override?: CameraOverride;
   qualityProfile?: 'luxury-brand' | 'ecommerce-conversion' | 'editorial';
+  forceLens?: string;
 };
 
 export function buildCamera(mode: PhotoModeKey, randomizer: Randomizer, options: CameraBuildOptions = {}): string {
@@ -76,7 +77,7 @@ export function buildCamera(mode: PhotoModeKey, randomizer: Randomizer, options:
   const compositionPool = MODE_COMPOSITION_OVERRIDES[mode] ?? COMPOSITIONS;
 
   const distance = randomizer.pick(distancePool);
-  const lens = randomizer.pick(lensPool);
+  const lens = options.forceLens?.trim() ? options.forceLens.trim() : randomizer.pick(lensPool);
   const composition = randomizer.pick(compositionPool);
 
   const modeNotes: Partial<Record<PhotoModeKey, string>> = {

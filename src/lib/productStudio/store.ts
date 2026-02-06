@@ -1538,7 +1538,8 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setQualityProfile: (profile) => set({ qualityProfile: profile }),
     setPhotoMode: (mode) =>
         set((state) => {
-            const nextMode = String(mode ?? '').trim() as PhotoMode;
+            const rawMode = String(mode ?? '').trim();
+            const nextMode = (rawMode === 'UGC Premium Simulation' ? 'Creator Premium Simulation' : rawMode) as PhotoMode;
 
             // Phase 1 (locked): Photo Mode is the primary creative selector.
             // It maps to existing internal sceneType values and fully replaces Brand Look System.
@@ -1557,7 +1558,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 'Dark Premium Studio',
                 'Monochrome Brand',
                 'Brand Campaign',
-                'UGC Premium Simulation',
+                'Creator Premium Simulation',
                 'Tech Clean Studio',
                 'Luxury Editorial Tabletop',
                 'Soft Wellness Morning',

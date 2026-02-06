@@ -463,9 +463,30 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         allowedInteractions: ['none', 'holding', 'two-hand-hold', 'presenting'],
         allowsPersonPresence: true
     },
+    'Creator Premium Simulation': {
+        id: 'ugc-premium-simulation',
+        label: 'Creator Premium Simulation',
+        scope: 'studio',
+        description: 'Premium studio simulation with subtle realism and controlled imperfections (no UGC language).',
+        basePrompt: 'premium studio simulation with subtle realism, controlled advertising studio, clean purpose-built studio surfaces, brand-safe polish, controlled imperfections with studio-grade clarity',
+        subOptions: [
+            { key: 'realismLevel', label: 'Realism Level', values: ['Subtle', 'Balanced'] },
+            { key: 'imperfectionControl', label: 'Imperfection Control', values: ['Minimal', 'Controlled'] },
+            { key: 'lightQuality', label: 'Light Quality', values: ['Neutral studio', 'Soft studio'] },
+            { key: 'surfaceType', label: 'Surface Type', values: ['Abstract studio surface'] },
+        ],
+        constraints: [
+            'Controlled imperfections only',
+            'No personal context cues',
+            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
     'UGC Premium Simulation': {
         id: 'ugc-premium-simulation',
-        label: 'UGC Premium Simulation',
+        label: 'Creator Premium Simulation',
         scope: 'studio',
         description: 'Premium studio simulation with subtle realism and controlled imperfections (no UGC language).',
         basePrompt: 'premium studio simulation with subtle realism, controlled advertising studio, clean purpose-built studio surfaces, brand-safe polish, controlled imperfections with studio-grade clarity',
