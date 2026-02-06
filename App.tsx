@@ -6374,63 +6374,96 @@ If the model attempts to create a scene or environment, override it and force a 
                     )}
                     {(() => {
                       const isGenerateDisabled = isImageLoading || (!hasUploadedProduct && !hideProductMode);
-                      const qualityLabel =
-                        studioQualityProfile === 'luxury-brand'
-                          ? 'Luxury Brand'
-                          : studioQualityProfile === 'editorial'
-                            ? 'Editorial'
-                            : 'Ecommerce Conversion';
-                      const placementLabel =
-                        studioPlacement === 'supported'
-                          ? 'Supported'
-                          : studioPlacement === 'air'
-                            ? 'Air / Suspended'
-                            : studioPlacement === 'held'
-                              ? 'Held'
-                              : 'Surface';
-                      const productTypeLabel =
-                        studioProductType.charAt(0).toUpperCase() + studioProductType.slice(1);
-                      const injectedChips = isProductPlacement
-                        ? [
-                          studioPhotoMode !== STUDIO_DEFAULT_INJECTION.photoMode
-                            ? {
-                              key: 'photoMode',
-                              label: studioPhotoMode,
-                              onClear: () => setStudioPhotoMode(STUDIO_DEFAULT_INJECTION.photoMode),
-                              clearLabel: 'Reset photo mode',
+                      const humanizeKey = (key: string) =>
+                        key
+                          .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+                          .replace(/[_-]/g, ' ')
+                          .replace(/\s+/g, ' ')
+                          .trim()
+                          .replace(/\b\w/g, (m) => m.toUpperCase());
+                      const formatChipValue = (value: unknown): string => {
+                        if (value == null) return '';
+                        if (typeof value === 'string') return value.trim();
+                        if (typeof value === 'number') return String(value);
+                        if (typeof value === 'boolean') return value ? 'On' : 'Off';
+                        if (Array.isArray(value)) {
+                          const cleaned = value
+                            .map((v) => (typeof v === 'string' ? v.trim() : String(v)))
+                            .filter(Boolean);
+                          return cleaned.join(', ');
+                        }
+                        if (typeof value === 'object') {
+                          const record = value as Record<string, unknown>;
+                          if ('label' in record && typeof record.label === 'string') return record.label;
+                          if ('macro' in record || 'micro' in record) {
+                            const macro = typeof record.macro === 'string' ? record.macro.trim() : '';
+                            const micro = typeof record.micro === 'string' ? record.micro.trim() : '';
+                            return [macro, micro].filter(Boolean).join(' / ');
+                          }
+                          return '';
+                        }
+                        return '';
+                      };
+                      const ignoredSceneStateKeys = new Set([
+                        'seed',
+                        'studioPhotoMode',
+                        'studioAlignment',
+                        'studioShadow',
+                        'studioProps',
+                        'studioIngredientLayout',
+                        'studioInteraction',
+                        'studioLens',
+                        'studioLightingRig',
+                        'studioFinish',
+                        'studioBackgroundColor',
+                        'studioAccentColor',
+                      ]);
+                      const sceneSource = lifestyleStep3Values as Record<string, unknown> | null;
+                      const sceneStateChips = sceneSource
+                        ? Object.entries(sceneSource)
+                          .filter(([key, value]) => {
+                            if (ignoredSceneStateKeys.has(key)) return false;
+                            if (value == null) return false;
+                            if (typeof value === 'string' && value.trim() === '') return false;
+                            if (typeof value === 'boolean') return value;
+                            if (Array.isArray(value)) return value.length > 0;
+                            if (typeof value === 'object') {
+                              const record = value as Record<string, unknown>;
+                              if ('macro' in record || 'micro' in record) {
+                                const macro = typeof record.macro === 'string' ? record.macro.trim() : '';
+                                const micro = typeof record.micro === 'string' ? record.micro.trim() : '';
+                                return Boolean(macro || micro);
+                              }
                             }
-                            : null,
-                          studioPlacement !== STUDIO_DEFAULT_INJECTION.placement
-                            ? {
-                              key: 'placement',
-                              label: placementLabel,
-                              onClear: () => setStudioPlacement(STUDIO_DEFAULT_INJECTION.placement),
-                              clearLabel: 'Reset placement',
-                            }
-                            : null,
-                          studioQualityProfile !== STUDIO_DEFAULT_INJECTION.qualityProfile
-                            ? {
-                              key: 'profile',
-                              label: qualityLabel,
-                              onClear: () => setStudioQualityProfile(STUDIO_DEFAULT_INJECTION.qualityProfile),
-                              clearLabel: 'Reset output profile',
-                            }
-                            : null,
-                          studioProductType !== STUDIO_DEFAULT_INJECTION.productType
-                            ? {
-                              key: 'productType',
-                              label: productTypeLabel,
-                              onClear: () => setStudioProductType(STUDIO_DEFAULT_INJECTION.productType),
-                              clearLabel: 'Reset product type',
-                            }
-                            : null,
-                        ].filter(Boolean) as Array<{
-                          key: string;
-                          label: string;
-                          onClear: () => void;
-                          clearLabel: string;
-                        }>
+                            return true;
+                          })
+                          .map(([key, value]) => {
+                            const formatted = formatChipValue(value);
+                            return {
+                              key: `scene-${key}`,
+                              label: `${humanizeKey(key)}: ${formatted}`,
+                            };
+                          })
+                          .filter((chip) => chip.label.replace(/^[^:]+:\s*/, '').trim() !== '')
                         : [];
+                      const studioModeFallbackChips = isProductPlacement
+                        ? [
+                          { key: 'studio-photoMode', label: `Photo Mode: ${studioPhotoMode}` },
+                          {
+                            key: 'studio-placement',
+                            label: `Placement: ${studioPlacement === 'air' ? 'Air / Suspended' : studioPlacement === 'held' ? 'Held' : studioPlacement === 'supported' ? 'Supported' : 'Surface'}`
+                          },
+                          {
+                            key: 'studio-qualityProfile',
+                            label: `Output Profile: ${studioQualityProfile === 'luxury-brand' ? 'Luxury Brand' : studioQualityProfile === 'editorial' ? 'Editorial' : 'Ecommerce Conversion'}`
+                          },
+                          {
+                            key: 'studio-productType',
+                            label: `Product Type: ${studioProductType.charAt(0).toUpperCase() + studioProductType.slice(1)}`
+                          },
+                        ]
+                        : [];
+                      const injectedChips = sceneStateChips.length > 0 ? sceneStateChips : studioModeFallbackChips;
                       const generationRestrictionMessage = (() => {
                         if (!isGenerateDisabled) return '';
                         if (!hasUploadedProduct && !hideProductMode) return 'Upload a source product photo before generating.';
@@ -6448,15 +6481,17 @@ If the model attempts to create a scene or environment, override it and force a 
                                   className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-gray-600 dark:border-white/10 dark:bg-black/20 dark:text-white/70"
                                 >
                                   <span>{chip.label}</span>
-                                  <button
-                                    type="button"
-                                    onClick={chip.onClear}
-                                    className="inline-flex h-4 w-4 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10 dark:hover:text-white/80"
-                                    title={chip.clearLabel}
-                                    aria-label={chip.clearLabel}
-                                  >
-                                    <X size={10} />
-                                  </button>
+                                  {'onClear' in chip && typeof (chip as any).onClear === 'function' && (
+                                    <button
+                                      type="button"
+                                      onClick={(chip as any).onClear}
+                                      className="inline-flex h-4 w-4 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10 dark:hover:text-white/80"
+                                      title={(chip as any).clearLabel || 'Reset'}
+                                      aria-label={(chip as any).clearLabel || 'Reset'}
+                                    >
+                                      <X size={10} />
+                                    </button>
+                                  )}
                                 </span>
                               ))}
                               </div>

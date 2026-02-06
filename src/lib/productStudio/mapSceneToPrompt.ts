@@ -552,7 +552,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     : photoModeResult.modifiers;
   const photoModeEnvironmentAdaptationText = environmentModeActive
     ? [
-      `PHOTO MODE (${state.photoMode}) ADAPTED TO ENVIRONMENT: preserve the selected mode's visual identity while keeping a real-world location.`,
+      `PHOTO MODE (${state.photoMode}) ADAPTED TO ENVIRONMENT: preserve the selected mode's visual style while keeping a real-world location.`,
       isHeroLandingPage
         ? 'Keep hero-level product prominence, clean negative space, and conversion-first readability while preserving environment realism.'
         : 'Do not switch to abstract studio or blank set logic; environment remains physically present and coherent.',

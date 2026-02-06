@@ -4804,45 +4804,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       )}
 
 
-      {/* Brand Look System must be fully hidden whenever Photo Mode is active. */}
-      {
-        productStore.environmentContext != null && (
-          <SmoothAccordion
-            icon={Layers}
-            title="Brand Look System"
-            tooltip="Apply a brand-wide visual baseline (defaults)"
-            isOpen={openAccordionId === 'brand-look'}
-            onToggle={() => toggleSection('brand-look')}
-            isTouched={touchedSections.has('brand-look')}
-            iconClassName="text-purple-600 dark:text-purple-300"
-            variant="secondary"
-          >
-            <div className="space-y-5">
-              <p className="text-sm text-gray-500">
-                Start here for speed or brand consistency. Brand Look sets defaults—you can override later.
-              </p>
-              <div className={SECTION_GROUP_CLASS}>
-                <p className={GROUP_LABEL_CLASS}>APPLY PRESET</p>
-                <div className="flex flex-wrap gap-2">
-                  {BRAND_PRESETS.map(preset => (
-                    <Chip
-                      key={preset.id}
-                      onClick={() => {
-                        productStore.applyBrandPreset(preset.id);
-                        markSectionTouched('brand-look');
-                        setOpenAccordionId('product-creativity');
-                      }}
-                      selected={false}
-                    >
-                      {preset.label}
-                    </Chip>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </SmoothAccordion>
-        )
-      }
+      {/* Brand Look System intentionally hidden. */}
 
       {/* CREATIVE DIRECTION (Phase 1) */}
       {/* Photo Mode fully replaces Creative Direction whenever Photo Mode is active. */}
