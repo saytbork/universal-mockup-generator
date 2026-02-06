@@ -41,8 +41,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const action = parseAction(req);
+  const galleryDisabled = String(process.env.GALLERY_DISABLED || '').toLowerCase() === 'true';
+  const isPermissionFailure = (error: any): boolean => {
+    const code = error?.code;
+    const message = String(error?.message || '');
+    const details = String(error?.details || '');
+    return (
+      code === 7 ||
+      code === '7' ||
+      code === 'permission-denied' ||
+      /PERMISSION_DENIED/i.test(message) ||
+      /PERMISSION_DENIED/i.test(details) ||
+      /CONSUMER_INVALID/i.test(message) ||
+      /CONSUMER_INVALID/i.test(details)
+    );
+  };
 
   try {
+    if (galleryDisabled) {
+      if (action === 'list') {
+        return res.status(200).json({
+          images: [],
+          warning: 'Gallery is temporarily disabled while backend setup is in progress.',
+        });
+      }
+      if (action === 'add' || action === 'delete') {
+        return res.status(503).json({
+          error: 'Gallery writes are temporarily disabled while backend setup is in progress.',
+        });
+      }
+    }
+
     switch (action) {
       case "add": {
         if (req.method !== "POST") {
@@ -212,6 +241,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   } catch (error: any) {
     console.error("❌ Gallery handler error:", error);
+
+    if (isPermissionFailure(error)) {
+      // Keep the app usable if gallery backend permissions are temporarily misconfigured.
+      if (action === 'list') {
+        return res.status(200).json({
+          images: [],
+          warning: 'Gallery backend unavailable due to Firebase permissions. Check service account, Firestore API, and billing.'
+        });
+      }
+      return res.status(503).json({
+        error: 'Gallery backend unavailable due to Firebase permissions. Check service account, Firestore API, and billing.'
+      });
+    }
 
     // Provide more specific error messages
     let errorMessage = "Internal server error";
