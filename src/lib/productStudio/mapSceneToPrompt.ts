@@ -132,6 +132,30 @@ function buildEnvironmentScene(state: ProductStudioState, randomizer: ReturnType
   return parts.join(' ');
 }
 
+function sanitizePhotoModeTextForEnvironment(text: string): string {
+  if (!text) return '';
+  let next = text;
+
+  // Studio-only hard constraints should not leak when a real environment is active.
+  next = next.replace(/Strict Constraints:[\s\S]*$/i, '').trim();
+
+  // Remove direct contradictions with environment mode.
+  const contradictionPatterns = [
+    /no environment[^,.]*[,.]?/gi,
+    /no props[^,.]*[,.]?/gi,
+    /no setting[^,.]*[,.]?/gi,
+    /no interactions[^,.]*[,.]?/gi,
+    /abstract studio[^,.]*[,.]?/gi,
+    /studio advertising[^,.]*[,.]?/gi,
+    /studio composition[^,.]*[,.]?/gi,
+  ];
+  for (const pattern of contradictionPatterns) {
+    next = next.replace(pattern, ' ');
+  }
+
+  return next.replace(/\s+/g, ' ').replace(/\s+,/g, ',').trim();
+}
+
 export type ScenePromptResult = {
   prompt: string;
   mode: PhotoModeKey;
@@ -324,7 +348,7 @@ function extractModeSpecificDynamicSettings(state: ProductStudioState): Record<s
 export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAsset | null): ScenePromptResult {
   const randomizer = createRandomizer();
 
-  // CRITICAL: Hero Landing Page gets exclusive sceneType routing
+  // CRITICAL: Hero Landing Page gets exclusive sceneType routing in pure studio only.
   const isHeroLandingPage = state.photoMode === 'Hero Landing Page';
 
   const studioLikeScene = state.sceneType === 'studio-branding' || state.sceneType === 'ecommerce-pdp';
@@ -335,6 +359,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     state.environmentContext != null &&
     String(state.environmentContext.macro || '').trim() !== '' &&
     String(state.environmentContext.macro || '').trim().toLowerCase() !== 'studio';
+  const heroStudioLocked = isHeroLandingPage && !environmentModeActive;
 
   // When "Environment" is enabled in the UI, Photo Mode becomes irrelevant (it's hidden).
   // Force a neutral baseline so lighting/camera/material pools stay coherent, while the scene itself is environment-driven.
@@ -416,7 +441,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
 
   // Hero Landing Page (locked): deterministic studio hero module.
   // No random camera/lighting/materials. No props. No environment. No creative randomization rules.
-  if (isHeroLandingPage) {
+  if (heroStudioLocked) {
     scene = buildStudioHeroScene(sceneInput);
     const profileLine =
       state.qualityProfile === 'ecommerce-conversion'
@@ -519,11 +544,29 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     return map[lighting] || '';
   })();
 
+  const adaptedPhotoModeBasePrompt = environmentModeActive
+    ? sanitizePhotoModeTextForEnvironment(photoModeResult.basePrompt || '')
+    : '';
+  const adaptedPhotoModeModifiers = environmentModeActive
+    ? sanitizePhotoModeTextForEnvironment(photoModeResult.modifiers || '')
+    : photoModeResult.modifiers;
+  const photoModeEnvironmentAdaptationText = environmentModeActive
+    ? [
+      `PHOTO MODE (${state.photoMode}) ADAPTED TO ENVIRONMENT: preserve the selected mode's visual identity while keeping a real-world location.`,
+      isHeroLandingPage
+        ? 'Keep hero-level product prominence, clean negative space, and conversion-first readability while preserving environment realism.'
+        : 'Do not switch to abstract studio or blank set logic; environment remains physically present and coherent.',
+      adaptedPhotoModeBasePrompt ? `Mode style cues: ${adaptedPhotoModeBasePrompt}.` : '',
+      adaptedPhotoModeModifiers ? `Mode settings: ${adaptedPhotoModeModifiers}.` : '',
+    ].filter(Boolean).join(' ')
+    : '';
+
   const parts = [
     buildBaseContext({ allowStudio: mode === 'ACRYLIC_BLOCKS', qualityProfile: state.qualityProfile }),
+    photoModeEnvironmentAdaptationText,
     scene,
     buildPlacementDirective(state),
-    photoModeResult.modifiers,
+    environmentModeActive ? '' : photoModeResult.modifiers,
     mode === 'INGREDIENT_STACK' ? '' : buildSecondaryProps(mode, randomizer, state.props),
     buildLighting(mode, randomizer, {
       qualityProfile: state.qualityProfile,

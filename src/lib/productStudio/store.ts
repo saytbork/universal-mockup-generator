@@ -1631,7 +1631,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 ...notes,
             };
 
-            if (resolvedMode === 'Hero Landing Page') {
+            if (resolvedMode === 'Hero Landing Page' && !shouldUseEnvironment) {
                 const merged = {
                     ...common,
                     sceneType: 'studio-hero',

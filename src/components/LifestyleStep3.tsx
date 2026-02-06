@@ -50,8 +50,8 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
       : schema.subOptions;
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 space-y-6">
+    <div className="space-y-5">
+      <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-5">
         <div>
           <p className="text-[10px] font-black tracking-[0.2em] text-indigo-600 uppercase mb-2">
             {schema.label} Atmosphere
@@ -2100,7 +2100,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     }
   }, [values.ugcRealMode, values.formulationStoryEnabled, updateValue]);
   return (
-    <div className={embedded ? 'w-full space-y-4' : 'w-full max-w-2xl mx-auto space-y-4 p-4'}>
+    <div className={embedded ? 'w-full space-y-5' : 'w-full max-w-2xl mx-auto space-y-5 p-5'}>
       {!embedded && (
         <div className="flex flex-col gap-1">
           <p className="text-xs uppercase tracking-widest text-indigo-600">Step 3</p>
@@ -2120,7 +2120,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             isTouched={touchedSections.has('product-setup')}
             variant="primary"
           >
-            <div className="space-y-4">
+            <div className="space-y-5">
               {/* PHOTO TYPE — Mutually exclusive modes to avoid prompt conflicts */}
               <div className={SECTION_GROUP_CLASS}>
                 <p className={GROUP_LABEL_CLASS}>PHOTO TYPE</p>
@@ -2324,9 +2324,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             })}
                           </div>
 
-                          <div className="mt-8 space-y-6">
+                          <div className="mt-8 space-y-5">
                             {productStore.photoMode === 'Hero Landing Page' && (
-                              <div className="rounded-2xl border border-gray-200 bg-white p-6 space-y-6">
+                              <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-5">
                                 {(() => {
                                   const heroCfg = productStore.photoModeConfig.heroLandingPage;
                                   const bgType = heroCfg.backgroundType;
@@ -2363,8 +2363,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                                   return (
                                     <>
-                                      <div className="space-y-6">
-                                        <div className="space-y-6">
+                                      <div className="space-y-5">
+                                        <div className="space-y-5">
                                           <div>
                                             <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Background</p>
                                             <div className="flex flex-wrap gap-2">
@@ -2570,7 +2570,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                                       <div className="h-px bg-gray-200 my-6" />
 
-                                      <div className="space-y-6">
+                                      <div className="space-y-5">
                                         <div>
                                           <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Palette Source</p>
                                           <div className="flex flex-wrap gap-2">
@@ -3758,7 +3758,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             }`}
                           style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
                         >
-                          <div className="space-y-4 pl-3 border-l-2 border-indigo-300">
+                          <div className="space-y-5 pl-3 border-l-2 border-indigo-300">
                             <div>
                               <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LENS</p>
                               <div className="flex flex-wrap gap-2">
@@ -3905,7 +3905,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             isTouched={touchedSections.has('physical-props')}
             variant="primary"
           >
-            <div className="space-y-4">
+            <div className="space-y-5">
               <p className="text-sm text-gray-500">
                 Configure the real, physical appearance of the product itself.
               </p>
@@ -4578,7 +4578,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         isTouched={touchedSections.has('product-state-motion')}
         variant="primary"
       >
-        <div className="space-y-4">
+        <div className="space-y-5">
           <p className="text-sm text-gray-500">
             Product State & Motion describe what the product is doing. Product Interaction describes what hands are doing.
           </p>
@@ -4688,7 +4688,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         isTouched={touchedSections.has('productStructure')}
         variant="primary"
       >
-        <div className="space-y-4">
+        <div className="space-y-5">
           <p className="text-sm text-gray-500">
             Define how products are grouped, bundled, and positioned.
           </p>
@@ -4754,7 +4754,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
           {/* BUNDLE CONTROLS - Only if enabled */}
           {productStore.bundle.enabled && (
-            <div className="space-y-4 pt-4 border-t border-gray-100">
+            <div className="space-y-5 pt-4 border-t border-gray-100">
               {/* STYLE / MODE */}
               <div className={SECTION_GROUP_CLASS}>
                 <p className={GROUP_LABEL_CLASS}>BUNDLE ARRANGEMENT</p>
@@ -4817,7 +4817,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             iconClassName="text-purple-600 dark:text-purple-300"
             variant="secondary"
           >
-            <div className="space-y-4">
+            <div className="space-y-5">
               <p className="text-sm text-gray-500">
                 Start here for speed or brand consistency. Brand Look sets defaults—you can override later.
               </p>
@@ -4858,7 +4858,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             iconClassName="text-indigo-600 dark:text-indigo-300"
             variant="secondary"
           >
-            <div className="space-y-6">
+            <div className="space-y-5">
               <p className="text-sm text-gray-500">
                 These choices shape the mood without breaking realism.
               </p>
@@ -5184,7 +5184,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             isTouched={touchedSections.has('product-environment')}
             variant="primary"
           >
-            <div className="space-y-6">
+            <div className="space-y-5">
               <p className="text-sm text-gray-500">
                 Place the product into a real setting. Product-only, no people.
               </p>
@@ -5200,7 +5200,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 const isDisabled = Boolean(values.ecommerceSidePlacementFlag || productStore.blankSpaceEnabled);
 
                 return (
-                  <div className="space-y-6">
+                  <div className="space-y-5">
                     {isDisabled && (
                       <div className="rounded-xl border border-gray-200 bg-white p-3 text-sm text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white/60">
                         Environment is disabled while Background Canvas is On (neutral background mode).
@@ -5236,7 +5236,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           </div>
                         </div>
 
-                        <div className="mt-4 space-y-6">
+                        <div className="mt-4 space-y-5">
                           {PRODUCT_ENVIRONMENT_MACRO_GROUPS.filter(group => {
                             if (group.label === 'Home') return true;
                             return productEnvironmentShowAllMacros;
@@ -5416,7 +5416,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         isTouched={touchedSections.has('product-interaction')}
         variant="primary"
       >
-        <div className="space-y-4">
+        <div className="space-y-5">
           <div className={SECTION_GROUP_CLASS}>
             <p className={GROUP_LABEL_CLASS}>PRODUCT INTERACTION</p>
             <div className="flex flex-wrap gap-2">
@@ -5505,7 +5505,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         isTouched={touchedSections.has('viewpoint-vantage')}
         variant="secondary"
       >
-        <div className="space-y-4">
+        <div className="space-y-5">
           <p className="text-sm text-gray-500">
             Determines whether the scene is viewed from eye-level, top-down, aerial, or product-level perspective.
           </p>
@@ -5551,7 +5551,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         isTouched={touchedSections.has('product-camera')}
         variant="primary"
       >
-        <div className="space-y-6">
+        <div className="space-y-5">
           <p className="text-sm text-gray-500">Professional photography controls.</p>
           <div className={SECTION_GROUP_CLASS}>
             <p className={GROUP_LABEL_CLASS}>CAMERA SYSTEM</p>
@@ -5722,7 +5722,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         isTouched={touchedSections.has('lighting')}
         variant="secondary"
       >
-        <div className="space-y-4">
+        <div className="space-y-5">
           <p className="text-sm text-gray-500">
             Lighting is currently derived from Photo Mode.
           </p>
@@ -5751,7 +5751,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         isActive
         variant="secondary"
       >
-        <div className="space-y-4">
+        <div className="space-y-5">
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold tracking-wide text-amber-800">
               BETA
@@ -5796,7 +5796,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               </div>
 
-              <div className="space-y-5 rounded-xl border border-gray-200 bg-white p-4">
+              <div className="space-y-5 rounded-xl border border-gray-200 bg-white p-5">
                 <div className="space-y-1">
                   <p className="text-xs uppercase tracking-widest text-indigo-600">Background</p>
                   <p className="text-sm text-gray-600">Neutral color or gradient</p>
@@ -5884,7 +5884,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
                 ) : (
                   <>
-                    <div className="space-y-4">
+                    <div className="space-y-5">
                       {(
                         [
                           { key: 'ecommerceGradientStart', label: 'Start' },
@@ -6004,7 +6004,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           )}
 
           {ecommerceOverlay && (
-            <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-4">
+            <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-5">
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-widest text-indigo-600">Overlays</p>
                 <p className="text-sm text-gray-600">Text + icons are rendered by the app (not the image model).</p>
@@ -6062,14 +6062,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </button>
               </div>
 
-              <div className="px-4 py-6 space-y-6 bg-gray-50 dark:bg-white/5">
+              <div className="px-4 py-6 space-y-5 bg-gray-50 dark:bg-white/5">
                 {isPersonDisabled ? (
-                  <div className="rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-500 dark:border-white/10 dark:bg-black/20 dark:text-white/60">
+                  <div className="rounded-xl border border-gray-200 bg-white p-5 text-sm text-gray-500 dark:border-white/10 dark:bg-black/20 dark:text-white/60">
                     Creator / Person controls are disabled in Product Mode.
                   </div>
                 ) : (
                   <>
-                    <section className="space-y-6">
+                    <section className="space-y-5">
                       <div className="flex items-center gap-2">
                         <p className={GROUP_LABEL_CLASS}>CORE IDENTITY</p>
                         {touchedSections.has('creator') && <Check className="w-4 h-4 text-indigo-600 dark:text-indigo-300" />}
@@ -6278,7 +6278,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       </div>
 
                       {values.personCount === 'couple' && values.editSecondaryPerson && (
-                        <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-4 dark:bg-black/20 dark:border-white/10">
+                        <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-5 dark:bg-black/20 dark:border-white/10">
                           <div className="flex items-start justify-between gap-4">
                             <div>
                               <p className="text-sm font-semibold text-gray-900 dark:text-white">Person B (Secondary)</p>
@@ -6296,7 +6296,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             </div>
                           </div>
 
-                          <div className="space-y-4">
+                          <div className="space-y-5">
                             <div className="space-y-2">
                               <div className="flex justify-between items-center">
                                 <span className="text-xs text-gray-600 dark:text-white/60">Age</span>
@@ -6499,7 +6499,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       </div>
                     </section>
 
-                    <section className="space-y-6">
+                    <section className="space-y-5">
                       <p className={GROUP_LABEL_CLASS}>APPEARANCE</p>
 
                       <div className="space-y-2">
@@ -6524,7 +6524,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                     </section>
 
-                    <section className="space-y-4">
+                    <section className="space-y-5">
                       <p className={GROUP_LABEL_CLASS}>FACIAL EXPRESSION</p>
                       <div className="grid grid-cols-2 gap-2">
                         {(isCreatorPro
@@ -6552,7 +6552,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       </div>
                     </section>
 
-                    <section className="space-y-6 overflow-hidden transition-all duration-300 max-h-0 opacity-0 group-[.is-pro]:max-h-[4000px] group-[.is-pro]:opacity-100">
+                    <section className="space-y-5 overflow-hidden transition-all duration-300 max-h-0 opacity-0 group-[.is-pro]:max-h-[4000px] group-[.is-pro]:opacity-100">
                       <p className={GROUP_LABEL_CLASS}>DETAILS</p>
 
                       <div className="space-y-2">
@@ -6714,13 +6714,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 ui="tokens"
               >
                 {isPersonDisabled ? (
-                  <div className="rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-500 dark:border-white/10 dark:bg-black/20 dark:text-white/60">
+                  <div className="rounded-xl border border-gray-200 bg-white p-5 text-sm text-gray-500 dark:border-white/10 dark:bg-black/20 dark:text-white/60">
                     Creator / Person controls are disabled in Product Mode.
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     {/* Core */}
-                    <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-6 dark:border-white/10 dark:bg-white/5">
+                    <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-5 dark:border-white/10 dark:bg-white/5">
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
                           <span className="text-xs font-semibold text-gray-900 dark:text-white">Age</span>
@@ -6931,9 +6931,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           Advanced identity controls
                         </p>
                       </div>
-                      <div className="px-4 py-4 space-y-6">
+                      <div className="px-4 py-4 space-y-5">
                         {/* SECTION 1 – Extended Identity */}
-                        <section className="space-y-4">
+                        <section className="space-y-5">
                           <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500">SECTION 1 – EXTENDED IDENTITY</p>
 
                           <div className="space-y-2">
@@ -6972,7 +6972,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <div className="border-t border-gray-100"></div>
 
                         {/* SECTION 2 – Physical Appearance */}
-                        <section className="space-y-4 pt-4">
+                        <section className="space-y-5 pt-4">
                           <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500">SECTION 2 – PHYSICAL APPEARANCE</p>
 
                           <div className="space-y-2">
@@ -7027,7 +7027,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <div className="border-t border-gray-100"></div>
 
                         {/* SECTION 3 – Hair Details */}
-                        <section className="space-y-4 pt-4">
+                        <section className="space-y-5 pt-4">
                           <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500">SECTION 3 – HAIR DETAILS</p>
 
                           <div className="space-y-3">
@@ -7156,7 +7156,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <div className="border-t border-gray-100"></div>
 
                         {/* SECTION 5 – Gaze & Persistence */}
-                        <section className="space-y-4 pt-4">
+                        <section className="space-y-5 pt-4">
                           <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500">SECTION 5 – GAZE &amp; PERSISTENCE</p>
 
                           <div className="space-y-3">
@@ -7215,7 +7215,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 isTouched={touchedSections.has('props')}
                 variant="primary"
               >
-                <div className="space-y-4">
+                <div className="space-y-5">
                   <div className={SECTION_GROUP_CLASS}>
                     <p className={GROUP_LABEL_CLASS}>SCENE PROPS</p>
                     <p className="text-[11px] text-gray-500">Select props to include in the scene.</p>
@@ -7253,7 +7253,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             >
               <div id="ugc-real-mode">
                 <div className="pt-2 pb-4 px-2">
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex-1">
                         <p className="text-sm font-medium text-gray-900">Raw Domestic UGC</p>
@@ -7283,7 +7283,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                     {values.ugcRealMode && (
                       <>
-                        <div className="rounded-2xl border border-gray-200 bg-white p-4 space-y-2">
+                        <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-2">
                           <div className="flex flex-wrap items-start justify-between gap-3">
                             <div className="min-w-0">
                               <p className="text-[10px] uppercase tracking-[0.2em] text-gray-500 font-extrabold">IMPERFECTION LEVEL</p>
@@ -7303,7 +7303,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             </div>
                           </div>
                         </div>
-                        <div className="space-y-4">
+                        <div className="space-y-5">
                           {RAW_DOMESTIC_CAPTURE_SECTIONS.map(section => {
                             const currentSelections = (values[section.field] as string[]) || [];
                             return (
@@ -7398,7 +7398,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               isActive={values.customClothesEnabled}
               variant="expert"
             >
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <div className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-3 py-2">
                   <div>
                     <p className="text-sm text-gray-900">Enable outfit customization</p>
@@ -7663,7 +7663,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 isActive={values.ritualModeEnabled}
                 variant="primary"
               >
-                <div className="space-y-4">
+                <div className="space-y-5">
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-900">Ritual Mode</p>
@@ -7689,7 +7689,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                   {values.ritualModeEnabled && (
                     <>
-                      <div className="rounded-2xl border border-gray-200 bg-white p-4">
+                      <div className="rounded-2xl border border-gray-200 bg-white p-5">
                         <div className="flex items-center justify-between gap-3">
                           <div className="min-w-0">
                             <p className="text-[11px] uppercase tracking-wider text-gray-500">Hide product (lifestyle-only)</p>
@@ -7706,7 +7706,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </div>
                       </div>
 
-                      <div className="rounded-2xl border border-gray-200 bg-white p-4">
+                      <div className="rounded-2xl border border-gray-200 bg-white p-5">
                         <div className="flex items-center justify-between gap-3">
                           <div className="min-w-0">
                             <p className="text-[11px] uppercase tracking-wider text-gray-500">No objects (people + environment only)</p>
@@ -8025,7 +8025,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             {
               productCount > 1 && (
                 <div id="bundles" className="mt-6">
-                  <div className="rounded-2xl border border-gray-200 bg-white p-4 space-y-4">
+                  <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-5">
                     <div className="flex flex-col gap-1">
                       <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Bundles</p>
                       <p className="text-sm text-gray-500">
@@ -8045,7 +8045,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       </button>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-5">
                       <div className="flex flex-col gap-2">
                         <label className="text-xs uppercase tracking-[0.3em] text-gray-500">Pick a bundle</label>
                         <select className="rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-600 focus:outline-none">
@@ -8056,7 +8056,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </select>
                       </div>
 
-                      <div className="rounded-2xl border border-gray-200 bg-white p-4 space-y-3">
+                      <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-3">
                         <p className="text-sm font-semibold text-gray-900">Core Essentials Trio</p>
                         <p className="text-xs text-gray-500">Add another product to enable bundles.</p>
 
@@ -8099,7 +8099,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             isActive={values.ecommerceSidePlacementFlag}
             variant="expert"
           >
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-900">Enable hero canvas</span>
                 <Toggle
@@ -8136,7 +8136,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     </div>
                   </div>
 
-                  <div className="space-y-5 rounded-2xl border border-gray-200 bg-white p-4">
+                  <div className="space-y-5 rounded-2xl border border-gray-200 bg-white p-5">
                     <div className="space-y-1">
                       <p className="text-xs uppercase tracking-widest text-indigo-600">Background</p>
                       <p className="text-sm text-gray-600">Neutral color or gradient</p>
@@ -8443,7 +8443,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       {/* VALIADTION ERRORS (Hard Block) */}
       {
         isProductMode && !validationResult.valid && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-4 space-y-2 mt-4">
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-5 space-y-2 mt-4">
             <div className="flex items-center gap-2 text-red-700 font-semibold text-sm uppercase tracking-wide">
               <AlertTriangle className="w-5 h-5" />
               <span>Validation Errors</span>

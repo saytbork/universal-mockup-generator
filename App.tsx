@@ -525,6 +525,13 @@ const HERO_SHADOW_TEXT: Record<HeroLandingShadowStyle, string> = {
   floating: 'Make it feel like the product floats with a faint contact glow instead of a traditional shadow.',
 };
 
+const STUDIO_DEFAULT_INJECTION = {
+  photoMode: 'Hero Landing Page',
+  placement: 'surface',
+  qualityProfile: 'ecommerce-conversion',
+  productType: 'dummy',
+} as const;
+
 const PERSON_COUNT_OPTIONS: Option[] = [
   { label: 'Single', value: 'single', tooltip: 'One person in the scene.' },
   { label: 'Couple', value: 'couple', tooltip: 'Two people in the scene.' },
@@ -6383,6 +6390,47 @@ If the model attempts to create a scene or environment, override it and force a 
                               : 'Surface';
                       const productTypeLabel =
                         studioProductType.charAt(0).toUpperCase() + studioProductType.slice(1);
+                      const injectedChips = isProductPlacement
+                        ? [
+                          studioPhotoMode !== STUDIO_DEFAULT_INJECTION.photoMode
+                            ? {
+                              key: 'photoMode',
+                              label: studioPhotoMode,
+                              onClear: () => setStudioPhotoMode(STUDIO_DEFAULT_INJECTION.photoMode),
+                              clearLabel: 'Reset photo mode',
+                            }
+                            : null,
+                          studioPlacement !== STUDIO_DEFAULT_INJECTION.placement
+                            ? {
+                              key: 'placement',
+                              label: placementLabel,
+                              onClear: () => setStudioPlacement(STUDIO_DEFAULT_INJECTION.placement),
+                              clearLabel: 'Reset placement',
+                            }
+                            : null,
+                          studioQualityProfile !== STUDIO_DEFAULT_INJECTION.qualityProfile
+                            ? {
+                              key: 'profile',
+                              label: qualityLabel,
+                              onClear: () => setStudioQualityProfile(STUDIO_DEFAULT_INJECTION.qualityProfile),
+                              clearLabel: 'Reset output profile',
+                            }
+                            : null,
+                          studioProductType !== STUDIO_DEFAULT_INJECTION.productType
+                            ? {
+                              key: 'productType',
+                              label: productTypeLabel,
+                              onClear: () => setStudioProductType(STUDIO_DEFAULT_INJECTION.productType),
+                              clearLabel: 'Reset product type',
+                            }
+                            : null,
+                        ].filter(Boolean) as Array<{
+                          key: string;
+                          label: string;
+                          onClear: () => void;
+                          clearLabel: string;
+                        }>
+                        : [];
                       const generationRestrictionMessage = (() => {
                         if (!isGenerateDisabled) return '';
                         if (!hasUploadedProduct && !hideProductMode) return 'Upload a source product photo before generating.';
@@ -6392,33 +6440,9 @@ If the model attempts to create a scene or environment, override it and force a 
                       return (
                         <div className={`fixed inset-x-0 bottom-0 z-[120] px-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] sm:px-6 lg:px-10 ${hasUploadedProduct || hideProductMode ? '' : 'opacity-50 pointer-events-none select-none'}`}>
                           <div className="pointer-events-auto mx-auto w-full max-w-5xl rounded-2xl border border-gray-200 bg-white/95 p-3 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-black/40">
-                            <div className="mb-3 flex flex-wrap gap-2">
-                              {[
-                                {
-                                  key: 'photoMode',
-                                  label: studioPhotoMode,
-                                  onClear: () => setStudioPhotoMode('Hero Landing Page'),
-                                  clearLabel: 'Reset photo mode',
-                                },
-                                {
-                                  key: 'placement',
-                                  label: placementLabel,
-                                  onClear: () => setStudioPlacement('surface'),
-                                  clearLabel: 'Reset placement',
-                                },
-                                {
-                                  key: 'profile',
-                                  label: qualityLabel,
-                                  onClear: () => setStudioQualityProfile('ecommerce-conversion'),
-                                  clearLabel: 'Reset output profile',
-                                },
-                                {
-                                  key: 'productType',
-                                  label: productTypeLabel,
-                                  onClear: () => setStudioProductType('dummy'),
-                                  clearLabel: 'Reset product type',
-                                },
-                              ].map((chip) => (
+                            {injectedChips.length > 0 ? (
+                              <div className="mb-3 flex flex-wrap gap-2">
+                                {injectedChips.map((chip) => (
                                 <span
                                   key={chip.key}
                                   className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-gray-600 dark:border-white/10 dark:bg-black/20 dark:text-white/70"
@@ -6435,7 +6459,12 @@ If the model attempts to create a scene or environment, override it and force a 
                                   </button>
                                 </span>
                               ))}
-                            </div>
+                              </div>
+                            ) : (
+                              <div className="mb-3 text-[10px] text-gray-500">
+                                No injected settings yet.
+                              </div>
+                            )}
                             <button
                               type="button"
                               onClick={
@@ -6455,9 +6484,11 @@ If the model attempts to create a scene or environment, override it and force a 
                                 <span>{generationRestrictionMessage}</span>
                               </div>
                             )}
-                            <div className="mt-2 text-[10px] text-gray-500">
-                              Tip: use <span className="font-semibold">×</span> to remove/reset an injected setting.
-                            </div>
+                            {injectedChips.length > 0 && (
+                              <div className="mt-2 text-[10px] text-gray-500">
+                                Tip: use <span className="font-semibold">×</span> to remove/reset an injected setting.
+                              </div>
+                            )}
                           </div>
                         </div>
                       );

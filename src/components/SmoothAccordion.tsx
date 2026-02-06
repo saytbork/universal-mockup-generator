@@ -77,12 +77,12 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
   if (ui === 'tokens') {
     return (
       <div
-        className={`rounded-xl border border-gray-200 bg-white overflow-hidden transition-all ${containerVariantClass} ${className} dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]`}
+        className={`rounded-xl border border-gray-200 bg-white overflow-hidden mb-4 transition-all duration-300 ${containerVariantClass} ${className} dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]`}
       >
         <button
           type="button"
           onClick={handleToggle}
-          className={`w-full flex items-center justify-between p-4 bg-white hover:bg-gray-50 transition-colors focus:outline-none dark:bg-transparent dark:hover:bg-white/5 ${buttonClassName}`}
+          className={`w-full flex items-center justify-between p-5 bg-white hover:bg-gray-50 transition-colors focus:outline-none dark:bg-transparent dark:hover:bg-white/5 ${buttonClassName}`}
           aria-expanded={open}
         >
           <div className="flex items-center gap-3">
@@ -126,7 +126,7 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
           className={`grid transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] border-t border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-white/5 ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
         >
           <div className="overflow-hidden">
-            <div className={`p-4 ${contentClassName}`}>{children}</div>
+            <div className={`p-5 bg-gray-50 dark:bg-white/5 ${contentClassName}`}>{children}</div>
           </div>
         </div>
       </div>
@@ -140,7 +140,7 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
       <button
         type="button"
         onClick={handleToggle}
-        className={`w-full flex items-center justify-between p-4 bg-white hover:bg-gray-50 transition-colors focus:outline-none dark:bg-transparent dark:hover:bg-white/5 ${buttonClassName}`}
+        className={`w-full flex items-center justify-between p-5 bg-white hover:bg-gray-50 transition-colors focus:outline-none dark:bg-transparent dark:hover:bg-white/5 ${buttonClassName}`}
         aria-expanded={open}
       >
         <div className="flex items-center gap-3">
@@ -181,7 +181,7 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
       <div
         className={`transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] border-t border-gray-200 overflow-hidden ${open ? 'max-h-[9000px] opacity-100' : 'max-h-0 opacity-0'}`}
       >
-        <div className={`p-4 bg-gray-50 dark:bg-white/5 ${contentClassName}`}>{children}</div>
+        <div className={`p-5 bg-gray-50 dark:bg-white/5 ${contentClassName}`}>{children}</div>
       </div>
     </div>
   );
