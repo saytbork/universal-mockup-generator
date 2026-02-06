@@ -6390,7 +6390,7 @@ If the model attempts to create a scene or environment, override it and force a 
                         return '';
                       })();
                       return (
-                        <div className={`fixed bottom-4 left-4 right-4 z-30 lg:sticky lg:top-4 lg:bottom-auto lg:left-auto lg:right-auto ${hasUploadedProduct || hideProductMode ? '' : 'opacity-50 pointer-events-none select-none'}`}>
+                        <div className={`fixed bottom-4 left-1/2 z-40 w-[min(980px,calc(100vw-2rem))] -translate-x-1/2 ${hasUploadedProduct || hideProductMode ? '' : 'opacity-50 pointer-events-none select-none'}`}>
                           <div className="rounded-2xl border border-gray-200 bg-white/95 p-3 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-black/40">
                             <div className="mb-3 flex flex-wrap gap-2">
                               {[
