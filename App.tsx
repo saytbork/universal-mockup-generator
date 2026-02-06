@@ -6017,7 +6017,7 @@ If the model attempts to create a scene or environment, override it and force a 
         </div>
       )}
 
-      <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-black dark:text-white p-4 sm:p-10 lg:p-16 pb-24 sm:pb-16">
+      <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-black dark:text-white p-4 sm:p-10 lg:p-16 pb-52 sm:pb-40">
         <div className="max-w-7xl mx-auto relative">
           <header className="relative mb-8 sm:mb-20 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-col">
@@ -6390,8 +6390,8 @@ If the model attempts to create a scene or environment, override it and force a 
                         return '';
                       })();
                       return (
-                        <div className={`fixed bottom-4 left-1/2 z-40 w-[min(980px,calc(100vw-2rem))] -translate-x-1/2 ${hasUploadedProduct || hideProductMode ? '' : 'opacity-50 pointer-events-none select-none'}`}>
-                          <div className="rounded-2xl border border-gray-200 bg-white/95 p-3 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-black/40">
+                        <div className={`fixed inset-x-0 bottom-0 z-[120] px-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] sm:px-6 lg:px-10 ${hasUploadedProduct || hideProductMode ? '' : 'opacity-50 pointer-events-none select-none'}`}>
+                          <div className="pointer-events-auto mx-auto w-full max-w-5xl rounded-2xl border border-gray-200 bg-white/95 p-3 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-black/40">
                             <div className="mb-3 flex flex-wrap gap-2">
                               {[
                                 {
