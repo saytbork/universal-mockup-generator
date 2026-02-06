@@ -1319,6 +1319,10 @@ const App: React.FC = () => {
   const hasSelectedIntent = Boolean(options.contentStyle);
   const contentStyleValue = hasSelectedIntent ? options.contentStyle : CONTENT_STYLE_OPTIONS[0].value;
   const isProductPlacement = contentStyleValue === 'product';
+  const studioPhotoMode = useProductStudioStore((state) => state.photoMode);
+  const studioPlacement = useProductStudioStore((state) => state.placement);
+  const studioQualityProfile = useProductStudioStore((state) => state.qualityProfile);
+  const studioProductType = useProductStudioStore((state) => state.definition.type);
   const applyOptionsUpdate = useCallback(
     (updater: React.SetStateAction<MockupOptions>) => {
       setOptions(prev => {
@@ -6359,6 +6363,22 @@ If the model attempts to create a scene or environment, override it and force a 
                     )}
                     {(() => {
                       const isGenerateDisabled = isImageLoading || (!hasUploadedProduct && !hideProductMode);
+                      const qualityLabel =
+                        studioQualityProfile === 'luxury-brand'
+                          ? 'Luxury Brand'
+                          : studioQualityProfile === 'editorial'
+                            ? 'Editorial'
+                            : 'Ecommerce Conversion';
+                      const placementLabel =
+                        studioPlacement === 'supported'
+                          ? 'Supported'
+                          : studioPlacement === 'air'
+                            ? 'Air / Suspended'
+                            : studioPlacement === 'held'
+                              ? 'Held'
+                              : 'Surface';
+                      const productTypeLabel =
+                        studioProductType.charAt(0).toUpperCase() + studioProductType.slice(1);
                       const generationRestrictionMessage = (() => {
                         if (!isGenerateDisabled) return '';
                         if (!hasUploadedProduct && !hideProductMode) return 'Upload a source product photo before generating.';
@@ -6366,26 +6386,42 @@ If the model attempts to create a scene or environment, override it and force a 
                         return '';
                       })();
                       return (
-                        <div className={hasUploadedProduct || hideProductMode ? '' : 'opacity-50 pointer-events-none select-none'}>
-                          <button
-                            type="button"
-                            onClick={
-                              isProductPlacement && ecommerceSelectedSlots.length > 0
-                                ? () => handleGenerateEcommerceClick()
-                                : () => handleGenerateClick()
-                            }
-                            disabled={isGenerateDisabled}
-                            title={generationRestrictionMessage && isGenerateDisabled ? generationRestrictionMessage : undefined}
-                            className="w-full py-3 rounded-xl font-semibold transition bg-indigo-600 text-white hover:bg-indigo-600 text-white disabled:bg-gray-50 disabled:text-gray-600 disabled:cursor-not-allowed"
-                          >
-                            {isImageLoading ? 'Generating...' : 'Generate Mockup'}
-                          </button>
-                          {generationRestrictionMessage && isGenerateDisabled && (
-                            <div className="mt-2 flex items-start gap-2 text-xs text-gray-500">
-                              <Info size={14} />
-                              <span>{generationRestrictionMessage}</span>
+                        <div className={`sticky bottom-3 z-20 ${hasUploadedProduct || hideProductMode ? '' : 'opacity-50 pointer-events-none select-none'}`}>
+                          <div className="rounded-2xl border border-gray-200 bg-white/95 p-3 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-black/40">
+                            <div className="mb-3 flex flex-wrap gap-2">
+                              <span className="inline-flex items-center rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-gray-600 dark:border-white/10 dark:bg-black/20 dark:text-white/70">
+                                {studioPhotoMode}
+                              </span>
+                              <span className="inline-flex items-center rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-gray-600 dark:border-white/10 dark:bg-black/20 dark:text-white/70">
+                                {placementLabel}
+                              </span>
+                              <span className="inline-flex items-center rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-gray-600 dark:border-white/10 dark:bg-black/20 dark:text-white/70">
+                                {qualityLabel}
+                              </span>
+                              <span className="inline-flex items-center rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-gray-600 dark:border-white/10 dark:bg-black/20 dark:text-white/70">
+                                {productTypeLabel}
+                              </span>
                             </div>
-                          )}
+                            <button
+                              type="button"
+                              onClick={
+                                isProductPlacement && ecommerceSelectedSlots.length > 0
+                                  ? () => handleGenerateEcommerceClick()
+                                  : () => handleGenerateClick()
+                              }
+                              disabled={isGenerateDisabled}
+                              title={generationRestrictionMessage && isGenerateDisabled ? generationRestrictionMessage : undefined}
+                              className="w-full rounded-xl bg-indigo-600 py-3 text-base font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-600"
+                            >
+                              {isImageLoading ? 'Generating...' : 'Generate Mockup'}
+                            </button>
+                            {generationRestrictionMessage && isGenerateDisabled && (
+                              <div className="mt-2 flex items-start gap-2 text-xs text-gray-500">
+                                <Info size={14} />
+                                <span>{generationRestrictionMessage}</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       );
                     })()}
