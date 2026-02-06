@@ -14,8 +14,31 @@ const parseAction = (req: VercelRequest) => {
   return typeof raw === 'string' ? raw.toLowerCase() : '';
 };
 
+const getRequestOrigin = (req: VercelRequest): string => {
+  const envBase = process.env.BASE_URL?.trim();
+  if (envBase) {
+    return envBase.replace(/\/+$/, '');
+  }
+  const host = (req.headers['x-forwarded-host'] as string) || req.headers.host || 'localhost:3000';
+  const proto = (req.headers['x-forwarded-proto'] as string) || (host.includes('localhost') ? 'http' : 'https');
+  return `${proto}://${host}`.replace(/\/+$/, '');
+};
+
+const buildSessionCookie = (email: string, req: VercelRequest) => {
+  const proto = (req.headers['x-forwarded-proto'] as string) || (req.headers.host?.includes('localhost') ? 'http' : 'https');
+  const secureFlag = proto === 'https' ? '; Secure' : '';
+  return `session_email=${encodeURIComponent(email)}; Path=/; HttpOnly${secureFlag}; SameSite=Lax; Max-Age=604800`;
+};
+
+const clearSessionCookie = (req: VercelRequest) => {
+  const proto = (req.headers['x-forwarded-proto'] as string) || (req.headers.host?.includes('localhost') ? 'http' : 'https');
+  const secureFlag = proto === 'https' ? '; Secure' : '';
+  return `session_email=; Path=/; HttpOnly${secureFlag}; SameSite=Lax; Max-Age=0`;
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const action = parseAction(req);
+  const origin = getRequestOrigin(req);
 
   switch (action) {
     case 'login': {
@@ -39,7 +62,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (shouldAutoLogin) {
         res.setHeader('Set-Cookie', [
-          `session_email=${encodeURIComponent(email)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`,
+          buildSessionCookie(email, req),
         ]);
 
         try {
@@ -80,7 +103,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const token = createMagicToken(email, invitationCode);
-      const magicLink = `${process.env.BASE_URL ?? 'https://perfectmockup.com'}/api/auth?action=verify&token=${token}`;
+      const magicLink = `${origin}/api/auth?action=verify&token=${encodeURIComponent(token)}`;
 
       await sendEmail({
         to: email,
@@ -121,7 +144,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return;
       }
 
-      const parsed = verifyMagicToken(token);
+      let parsed: ReturnType<typeof verifyMagicToken> = null;
+      try {
+        parsed = verifyMagicToken(token);
+      } catch (error) {
+        console.error('Magic token verification error', error);
+        parsed = null;
+      }
       if (!parsed) {
         res.status(400).send('Invalid or expired token');
         return;
@@ -131,7 +160,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const invitationCode = parsed.invitationCode || null;
 
       res.setHeader('Set-Cookie', [
-        `session_email=${encodeURIComponent(email)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`,
+        buildSessionCookie(email, req),
       ]);
 
       try {
@@ -184,7 +213,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       await addActivity(email, 'login', {});
 
-      res.writeHead(302, { Location: 'https://perfectmockup.com/dashboard' });
+      res.writeHead(302, { Location: `${origin}/dashboard` });
       res.end();
       return;
     }
@@ -197,7 +226,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const email = checkAuth(req);
       res.setHeader('Set-Cookie', [
-        `session_email=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`,
+        clearSessionCookie(req),
       ]);
       if (email) {
         await addActivity(email, 'logout', {});

@@ -37,8 +37,12 @@ export const verifyMagicToken = (
 ): { email: string; invitationCode?: string | null } | null => {
   if (!token.includes(".")) return null;
   const [body, sig] = token.split(".");
+  if (!body || !sig) return null;
   const expected = crypto.createHmac("sha256", getSecret()).update(body).digest("base64url");
-  if (!crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(sig))) return null;
+  const expectedBuf = Buffer.from(expected);
+  const sigBuf = Buffer.from(sig);
+  if (expectedBuf.length !== sigBuf.length) return null;
+  if (!crypto.timingSafeEqual(expectedBuf, sigBuf)) return null;
   const payloadStr = fromB64Url(body);
   const payload = JSON.parse(payloadStr) as { email: string; invitationCode?: string | null; exp: number };
   if (!payload.email || !payload.exp) return null;
