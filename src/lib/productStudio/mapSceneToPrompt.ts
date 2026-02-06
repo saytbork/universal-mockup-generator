@@ -349,6 +349,15 @@ function extractModeSpecificDynamicSettings(state: ProductStudioState): Record<s
 export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAsset | null): ScenePromptResult {
   const randomizer = createRandomizer();
 
+  const getSafePhotoModeLabel = (raw: string): string => {
+    return String(raw || '')
+      .replace(/\bcreator\b/gi, 'premium')
+      .replace(/\bugc\b/gi, 'premium')
+      .replace(/\blifestyle\b/gi, 'environment')
+      .replace(/\bphone\b/gi, 'camera')
+      .trim();
+  };
+
   // CRITICAL: Hero Landing Page gets exclusive sceneType routing in pure studio only.
   const isHeroLandingPage = state.photoMode === 'Hero Landing Page';
 
@@ -584,7 +593,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     : photoModeResult.modifiers;
   const photoModeEnvironmentAdaptationText = environmentModeActive
     ? [
-      `PHOTO MODE (${state.photoMode}) ADAPTED TO ENVIRONMENT: preserve the selected mode's visual style while keeping a real-world location.`,
+      `PHOTO MODE (${getSafePhotoModeLabel(state.photoMode)}) ADAPTED TO ENVIRONMENT: preserve the selected mode's visual style while keeping a real-world location.`,
       isHeroLandingPage
         ? 'Keep hero-level product prominence, clean negative space, and conversion-first readability while preserving environment realism.'
         : 'Do not switch to abstract studio or blank set logic; environment remains physically present and coherent.',

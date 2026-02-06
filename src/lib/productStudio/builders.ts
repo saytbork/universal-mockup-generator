@@ -55,6 +55,19 @@ const STRIP_TERMS_WHEN_NO_INTERACTION = [
     'human'
 ];
 
+const SANITIZE_ALWAYS = [
+    'creator',
+    'identity',
+    'influencer',
+    'ugc',
+    'user-generated',
+    'lifestyle',
+    'phone',
+    'selfie',
+    'portrait',
+    'model',
+];
+
 function stripTermsFromText(text: string, terms: string[]): string {
     let next = text;
     for (const term of terms) {
@@ -82,6 +95,15 @@ function appendClosingPhrase(prompt: string): string {
     const trimmed = prompt.trim();
     const spacer = trimmed.endsWith('.') ? ' ' : '. ';
     return `${trimmed}${spacer}${REQUIRED_CLOSING_PHRASE}`.trim();
+}
+
+function sanitizePromptBeforeValidation(prompt: string, options?: { allowHands?: boolean }): string {
+    const terms = [...SANITIZE_ALWAYS];
+    if (options?.allowHands !== true) {
+        terms.push('hand', 'hands');
+    }
+    const sanitized = stripForbiddenTermsExceptClosing(prompt, terms);
+    return sanitized.replace(/\s+/g, ' ').replace(/\s+,/g, ',').trim();
 }
 
 export function validatePrompt(prompt: string, options?: { allowHands?: boolean }): void {
@@ -1395,7 +1417,8 @@ export function generateProductJobs(state: ProductStudioState): ProductGeneratio
     if (normalizedState.bundle.enabled) {
         validateBundleState(normalizedState);
 
-        const prompt = assembleBundlePrompt(normalizedState);
+        let prompt = assembleBundlePrompt(normalizedState);
+        prompt = sanitizePromptBeforeValidation(prompt, { allowHands: normalizedState.interaction !== 'none' });
         validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
 
         console.log(`[FINAL PRODUCT PROMPT] Bundle:`, prompt);
@@ -1415,7 +1438,8 @@ export function generateProductJobs(state: ProductStudioState): ProductGeneratio
     const jobs: ProductGenerationJob[] = [];
 
     for (const product of normalizedState.products) {
-        const prompt = assembleSingleProductPrompt(normalizedState, product);
+        let prompt = assembleSingleProductPrompt(normalizedState, product);
+        prompt = sanitizePromptBeforeValidation(prompt, { allowHands: normalizedState.interaction !== 'none' });
         validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
 
         console.log(`[FINAL PRODUCT PROMPT] ${product.name}:`, prompt);
@@ -1565,7 +1589,8 @@ function normalizeProductStudioStateForPrompt(state: ProductStudioState): Produc
 export function generatePreviewPrompt(state: ProductStudioState): string | null {
     const normalizedState = normalizeProductStudioStateForPrompt(state);
     if (normalizedState.bundle.enabled) {
-        const prompt = assembleBundlePrompt(normalizedState);
+        let prompt = assembleBundlePrompt(normalizedState);
+        prompt = sanitizePromptBeforeValidation(prompt, { allowHands: normalizedState.interaction !== 'none' });
         validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
         return prompt;
     }
@@ -1573,7 +1598,8 @@ export function generatePreviewPrompt(state: ProductStudioState): string | null 
     const activeProduct = normalizedState.products.find(p => p.id === normalizedState.activeProductId);
     if (!activeProduct) return null;
 
-    const prompt = assembleSingleProductPrompt(normalizedState, activeProduct);
+    let prompt = assembleSingleProductPrompt(normalizedState, activeProduct);
+    prompt = sanitizePromptBeforeValidation(prompt, { allowHands: normalizedState.interaction !== 'none' });
     validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
 
     return prompt;
