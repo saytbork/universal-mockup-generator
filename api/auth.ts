@@ -6,6 +6,8 @@ import { getUser, setUser } from '../server/lib/store.js';
 import { addActivity } from '../server/lib/activity.js';
 import { checkAuth } from '../server/lib/checkAuth.js';
 
+const DASHBOARD_REDIRECT_URL = 'https://perfectmockup.com/dashboard';
+
 const parseAction = (req: VercelRequest) => {
   const raw = req.query.action;
   if (Array.isArray(raw)) {
@@ -15,13 +17,17 @@ const parseAction = (req: VercelRequest) => {
 };
 
 const getRequestOrigin = (req: VercelRequest): string => {
-  const envBase = process.env.BASE_URL?.trim();
-  if (envBase) {
-    return envBase.replace(/\/+$/, '');
-  }
   const host = (req.headers['x-forwarded-host'] as string) || req.headers.host || 'localhost:3000';
   const proto = (req.headers['x-forwarded-proto'] as string) || (host.includes('localhost') ? 'http' : 'https');
-  return `${proto}://${host}`.replace(/\/+$/, '');
+  const requestOrigin = `${proto}://${host}`.replace(/\/+$/, '');
+  const envBase = process.env.BASE_URL?.trim();
+  if (envBase) {
+    // Keep BASE_URL as fallback only when request host is unavailable or localhost.
+    if (!host || host.includes('localhost')) {
+      return envBase.replace(/\/+$/, '');
+    }
+  }
+  return requestOrigin;
 };
 
 const buildSessionCookie = (email: string, req: VercelRequest) => {
@@ -98,7 +104,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         await addActivity(email, 'login', { method: 'invite_auto' });
-        res.status(200).json({ ok: true, autoLoggedIn: true, redirect: '/app' });
+        res.status(200).json({ ok: true, autoLoggedIn: true, redirect: DASHBOARD_REDIRECT_URL });
         return;
       }
 
@@ -213,7 +219,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       await addActivity(email, 'login', {});
 
-      res.writeHead(302, { Location: `${origin}/dashboard` });
+      res.writeHead(302, { Location: DASHBOARD_REDIRECT_URL });
       res.end();
       return;
     }
