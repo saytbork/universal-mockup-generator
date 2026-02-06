@@ -31,6 +31,21 @@ const COMPOSITIONS = [
   'dynamic diagonal alignment'
 ] as const;
 
+const MODE_LENS_OVERRIDES: Partial<Record<PhotoModeKey, readonly string[]>> = {
+  BRAND_CAMPAIGN: ['85mm', '70-200mm compression'],
+  UGC_PREMIUM_SIM: ['35mm', '50mm'],
+};
+
+const MODE_DISTANCE_OVERRIDES: Partial<Record<PhotoModeKey, readonly string[]>> = {
+  BRAND_CAMPAIGN: ['tight hero crop', 'close framing'],
+  UGC_PREMIUM_SIM: ['medium distance', 'wider contextual view'],
+};
+
+const MODE_COMPOSITION_OVERRIDES: Partial<Record<PhotoModeKey, readonly string[]>> = {
+  BRAND_CAMPAIGN: ['off-center hero placement', 'asymmetrical editorial framing'],
+  UGC_PREMIUM_SIM: ['rule-of-thirds composition', 'off-center hero placement'],
+};
+
 export type CameraOverride = {
   text: string;
 };
@@ -56,14 +71,20 @@ export function buildCamera(mode: PhotoModeKey, randomizer: Randomizer, options:
     }
 
   const angle = randomizer.pick(ANGLES);
-  const distance = randomizer.pick(DISTANCES);
-  const lens = randomizer.pick(LENSES);
-  const composition = randomizer.pick(COMPOSITIONS);
+  const distancePool = MODE_DISTANCE_OVERRIDES[mode] ?? DISTANCES;
+  const lensPool = MODE_LENS_OVERRIDES[mode] ?? LENSES;
+  const compositionPool = MODE_COMPOSITION_OVERRIDES[mode] ?? COMPOSITIONS;
+
+  const distance = randomizer.pick(distancePool);
+  const lens = randomizer.pick(lensPool);
+  const composition = randomizer.pick(compositionPool);
 
   const modeNotes: Partial<Record<PhotoModeKey, string>> = {
     FOAM_AND_TEXTURE: 'Avoid top-down or flat-lay framing; keep a frontal or three-quarter view.',
     SPLASH_SHOT: 'Capture the motion with a dynamic angle that preserves label readability.',
     ACRYLIC_BLOCKS: 'Keep perspective clean to emphasize acrylic geometry.',
+    BRAND_CAMPAIGN: 'Use assertive hero framing with premium campaign presence and disciplined negative space.',
+    UGC_PREMIUM_SIM: 'Keep realism cues subtle: natural perspective with polished commercial intent.',
   };
 
   const base = [

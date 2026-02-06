@@ -38,6 +38,14 @@ export function buildLighting(mode: PhotoModeKey, randomizer: Randomizer, option
       'Punchy lighting with strong color separation.',
       'Highlights emphasize palette contrast without flattening the scene.'
     ],
+    BRAND_CAMPAIGN: [
+      'Hero campaign lighting with sculpted key and elegant rim separation.',
+      'Premium contrast architecture with controlled highlight bloom.'
+    ],
+    UGC_PREMIUM_SIM: [
+      'Naturalistic premium lighting with subtle imperfection cues.',
+      'Real-world believable light direction while preserving ad-grade clarity.'
+    ],
     INGREDIENT_STACK: [
       'Soft directional light that reveals ingredient textures.',
       'Natural shadow depth with subtle rim separation.'

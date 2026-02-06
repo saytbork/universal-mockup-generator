@@ -3,6 +3,8 @@ import type { Randomizer } from './randomizationRules';
 export type PhotoModeKey =
   | 'HERO_NEUTRAL'
   | 'COLOR_POP_HERO'
+  | 'BRAND_CAMPAIGN'
+  | 'UGC_PREMIUM_SIM'
   | 'INGREDIENT_STACK'
   | 'ACRYLIC_BLOCKS'
   | 'SPLASH_SHOT'
@@ -101,6 +103,46 @@ export function buildColorPopHeroScene({ randomizer, palette }: SceneBuildInput)
     randomizer.pick(amplifiers),
     'Background amplifies color through materials, reflections, or gradients.',
     'No flat solid backgrounds.'
+  ].join(' ');
+}
+
+export function buildBrandCampaignScene({ randomizer }: SceneBuildInput): string {
+  const setDesign = [
+    'architectural hero set with layered monolithic planes',
+    'premium campaign stage with sculptural geometry and deep perspective',
+    'high-fashion advertising set with luxury structural forms',
+  ];
+  const styling = [
+    'cinematic but brand-safe polish',
+    'clean luxury styling with controlled drama',
+    'high-end campaign tone with elevated visual hierarchy',
+  ];
+
+  return [
+    'Flagship brand campaign environment with premium set design.',
+    `Scene built as a ${randomizer.pick(setDesign)}.`,
+    `Visual direction: ${randomizer.pick(styling)}.`,
+    'The product is the undeniable hero, supported by upscale architecture and disciplined negative space.',
+  ].join(' ');
+}
+
+export function buildUgcPremiumSimulationScene({ randomizer }: SceneBuildInput): string {
+  const imperfections = [
+    'micro texture variance on surfaces and subtle real-world wear cues',
+    'delicate asymmetry in set alignment and natural lens breathing',
+    'controlled non-perfect details while preserving commercial polish',
+  ];
+  const tone = [
+    'premium realism with disciplined cleanliness',
+    'credible lived-in precision without casual mess',
+    'authentic high-end realism that avoids sterile CGI perfection',
+  ];
+
+  return [
+    'Premium realism simulation inside a controlled studio environment.',
+    `Introduce ${randomizer.pick(imperfections)}.`,
+    `Aesthetic target: ${randomizer.pick(tone)}.`,
+    'No casual personal context, no amateur framing, no domestic clutter.',
   ].join(' ');
 }
 

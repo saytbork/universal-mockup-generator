@@ -21,6 +21,14 @@ export function buildMaterials(mode: PhotoModeKey, randomizer: Randomizer): stri
       'Glossy lacquer panels paired with matte surfaces for contrast.',
       'Polished acrylic surfaces with clean reflections.'
     ],
+    BRAND_CAMPAIGN: [
+      'Luxury architectural materials: honed stone, brushed metal, and premium coated panels.',
+      'Flagship campaign finishes with disciplined reflectance and upscale depth.'
+    ],
+    UGC_PREMIUM_SIM: [
+      'Premium real-world materials with tiny believable imperfections and tactile truth.',
+      'Controlled non-perfect surfaces that read authentic without losing polish.'
+    ],
     INGREDIENT_STACK: [
       'Fresh organic ingredients with natural moisture and realistic texture.',
       'Botanical elements with real scale and surface contact.'

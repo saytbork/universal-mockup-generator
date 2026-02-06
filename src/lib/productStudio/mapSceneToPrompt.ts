@@ -3,6 +3,7 @@ import { buildBaseContext } from './promptParts/baseContext';
 import { buildPhotoModePrompt } from '../promptEngine/photoModeResolver';
 import {
   buildAcrylicBlocksScene,
+  buildBrandCampaignScene,
   buildCandyGradientLabScene,
   buildClinicalLabCounterScene,
   buildColorPopHeroScene,
@@ -13,6 +14,7 @@ import {
   buildRoutineCarouselScene,
   buildSplashShotScene,
   buildStudioHeroScene,
+  buildUgcPremiumSimulationScene,
   type PhotoModeKey,
   type SceneBuildInput,
 } from './promptParts/sceneBuilders';
@@ -149,8 +151,8 @@ const PHOTO_MODE_MAP: Record<string, PhotoModeKey> = {
   'Minimal Bathroom Vanity': 'HERO_NEUTRAL',
   'Dark Premium Studio': 'HERO_NEUTRAL',
   'Monochrome Brand': 'COLOR_POP_HERO',
-  'Brand Campaign': 'HERO_NEUTRAL',
-  'UGC Premium Simulation': 'HERO_NEUTRAL',
+  'Brand Campaign': 'BRAND_CAMPAIGN',
+  'UGC Premium Simulation': 'UGC_PREMIUM_SIM',
   'Tech Clean Studio': 'HERO_NEUTRAL',
   'Luxury Editorial Tabletop': 'HERO_NEUTRAL',
   'Soft Wellness Morning': 'HERO_NEUTRAL',
@@ -162,6 +164,8 @@ const PHOTO_MODE_MAP: Record<string, PhotoModeKey> = {
 const SECONDARY_PROPS_BY_MODE: Partial<Record<PhotoModeKey, string[]>> = {
   HERO_NEUTRAL: ['minimal glass accent', 'clean acrylic riser', 'small stone block'],
   COLOR_POP_HERO: ['geometric color blocks', 'polished acrylic accent', 'abstract color panel'],
+  BRAND_CAMPAIGN: ['architectural hero pedestal', 'luxury monolithic block', 'high-end reflective accent'],
+  UGC_PREMIUM_SIM: ['subtle realistic texture cue', 'controlled asymmetrical accent', 'minimal tactile realism prop'],
   INGREDIENT_STACK: [],
   ACRYLIC_BLOCKS: ['additional acrylic risers', 'prismatic edge accents'],
   SPLASH_SHOT: ['minimal liquid surface ripples', 'controlled droplets around the base'],
@@ -412,6 +416,12 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
         break;
       case 'COLOR_POP_HERO':
         scene = buildColorPopHeroScene(sceneInput);
+        break;
+      case 'BRAND_CAMPAIGN':
+        scene = buildBrandCampaignScene(sceneInput);
+        break;
+      case 'UGC_PREMIUM_SIM':
+        scene = buildUgcPremiumSimulationScene(sceneInput);
         break;
       case 'INGREDIENT_STACK':
         // CRITICAL: Dynamic user ingredients must not use stack scene builder
