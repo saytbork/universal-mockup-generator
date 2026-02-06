@@ -564,6 +564,7 @@ export type PrebuiltBundle = {
 // ============================================================================
 
 export type PresetTier = 'basic' | 'pro';
+export type OutputQualityProfile = 'luxury-brand' | 'ecommerce-conversion' | 'editorial';
 
 // ============================================================================
 // BRAND LOOK SYSTEMS (PRESETS)
@@ -681,6 +682,7 @@ export type ProductStudioState = {
     // PRODUCT STUDIO UI CONTROLS (NEW)
     // ========================================================================
     interpretationNotes: Partial<Record<string, { message: string; ts: number }>>;
+    qualityProfile: OutputQualityProfile;
     photoMode: PhotoMode;
     photoModeConfig: PhotoModeConfig;
     splashStyle: 'Basic' | 'Intermediate' | 'Advanced';

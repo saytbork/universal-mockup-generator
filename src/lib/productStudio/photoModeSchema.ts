@@ -10,7 +10,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         subOptions: [
             { key: 'backgroundType', label: 'Background Type', values: ['Solid', 'Gradient'] },
             { key: 'contrastLevel', label: 'Contrast Level', values: ['Soft', 'High'] },
-            { key: 'negativeSpace', label: 'Negative Space', values: ['Tight', 'Generous'] },
+            { key: 'negativeSpace', label: 'Negative Space', values: ['Tight', 'Balanced', 'Spacious'] },
         ],
         constraints: [
             'Mandatory negative space for copy',
@@ -135,10 +135,10 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         description: 'High-speed liquid splash advertising composition.',
         basePrompt: 'dynamic liquid splash surrounding the product, high-speed advertising photography aesthetic, product remains fully readable and physically plausible',
         subOptions: [
-            { key: 'splashMedium', label: 'Splash Medium', values: ['Liquid', 'Mist'] },
+            { key: 'splashMedium', label: 'Splash Medium', values: ['Liquid', 'Powder', 'Mist'] },
             { key: 'motionIntensity', label: 'Motion Intensity', values: ['Subtle', 'Dynamic', 'Explosive'] },
             { key: 'freezeMoment', label: 'Freeze Moment', values: ['Early', 'Mid-splash', 'Peak'] },
-            { key: 'productStability', label: 'Product Stability', values: ['Fully grounded', 'Slight movement'] },
+            { key: 'productStability', label: 'Product Stability', values: ['Fully grounded', 'Slight interaction'] },
         ],
         constraints: [
             'Mid-air droplets required',

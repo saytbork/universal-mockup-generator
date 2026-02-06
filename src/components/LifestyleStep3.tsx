@@ -17,7 +17,7 @@ import type { EcommerceSlotKey, EcommerceSlotsConfig } from '@/lib/ecommerceOver
 import { Chip } from './ui/Chip';
 import { Toggle } from './ui/Toggle';
 import { useProductStudioStore, PREBUILT_BUNDLES, BRAND_PRESETS } from '@/lib/productStudio/store';
-import type { ProductStudioState, CameraAngle, CameraDistance, CameraRotation, CameraFraming, CreativeTheme, PaletteSource, PropDensity, BlankSpaceSide, EnvironmentMacro, Lighting, ProductType, ProductPlacement, MicroPlace, CompositionMode, SurfaceBase, ProductScale, ProductSpacing, LightStyle, NegativeSpace, IngredientStackLayout, ProductStateMotion, PhotoMode } from '@/lib/productStudio/types';
+import type { ProductStudioState, CameraAngle, CameraDistance, CameraRotation, CameraFraming, CreativeTheme, PaletteSource, PropDensity, BlankSpaceSide, EnvironmentMacro, Lighting, ProductType, ProductPlacement, MicroPlace, CompositionMode, SurfaceBase, ProductScale, ProductSpacing, LightStyle, NegativeSpace, IngredientStackLayout, ProductStateMotion, PhotoMode, OutputQualityProfile } from '@/lib/productStudio/types';
 import { validateProductStudioState } from '@/lib/productStudio/validator';
 import { normalizeOption } from '../system/normalizeOptions';
 import { PHOTO_MODE_SCHEMAS } from '@/lib/productStudio/photoModeSchema';
@@ -104,6 +104,20 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
     </div>
   );
 }
+
+const PHOTO_MODE_WITH_MANUAL_SETTINGS = new Set<PhotoMode>([
+  'Hero Landing Page',
+  'Color Pop Hero',
+  'Ingredient Stack',
+  'Ingredient Flat Lay',
+  'Acrylic Blocks',
+  'Splash Shot',
+  'Foam & Texture',
+  'Routine Carousel',
+  'Clinical Lab Counter',
+  'Golden Mist Aura',
+  'Candy Gradient Lab',
+]);
 
 // **CANONICAL STATE** - SINGLE SOURCE OF TRUTH for Step 3 Scene Builder
 export interface SceneState {
@@ -2131,6 +2145,32 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               </div>
 
+              <div className={SECTION_GROUP_CLASS}>
+                <p className={GROUP_LABEL_CLASS}>OUTPUT PROFILE</p>
+                <div className="flex flex-wrap gap-2">
+                  {([
+                    { id: 'luxury-brand', label: 'Luxury Brand', desc: 'High-end campaign polish with premium materials and tonal depth.' },
+                    { id: 'ecommerce-conversion', label: 'Ecommerce Conversion', desc: 'Max legibility and clean hierarchy for ads and PDP performance.' },
+                    { id: 'editorial', label: 'Editorial', desc: 'Expressive composition with premium storytelling and brand-safe realism.' },
+                  ] as const).map(opt => (
+                    <Chip
+                      key={opt.id}
+                      onClick={() => {
+                        productStore.setQualityProfile(opt.id as OutputQualityProfile);
+                        markSectionTouched('product-setup');
+                      }}
+                      selected={productStore.qualityProfile === opt.id}
+                      tooltip={opt.desc}
+                    >
+                      {opt.label}
+                    </Chip>
+                  ))}
+                </div>
+                <p className="text-[11px] text-gray-500 mt-1">
+                  Defines the global creative intent of the generated prompt.
+                </p>
+              </div>
+
               {/* SCENE TYPE — Hidden in Product Studio (product-only mode) */}
               {!isProductMode && (
                 <div className={SECTION_GROUP_CLASS}>
@@ -3090,7 +3130,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             )}
 
                             {/* DYNAMIC SCHEMA SETTINGS */}
-                            {PHOTO_MODE_SCHEMAS[productStore.photoMode] && (
+                            {PHOTO_MODE_SCHEMAS[productStore.photoMode] && !PHOTO_MODE_WITH_MANUAL_SETTINGS.has(productStore.photoMode as PhotoMode) && (
                               <PhotoModeSettings
                                 schema={PHOTO_MODE_SCHEMAS[productStore.photoMode]!}
                                 productStore={productStore}

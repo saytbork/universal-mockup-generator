@@ -18,7 +18,7 @@ import {
 } from './promptParts/sceneBuilders';
 import { buildLighting } from './promptParts/lightingBuilders';
 import { buildCamera } from './promptParts/cameraBuilders';
-import { buildMaterials } from './promptParts/materialsBuilders';
+import { buildMaterialsWithProfile } from './promptParts/materialsBuilders';
 import { buildRandomizationRules, createRandomizer } from './promptParts/randomizationRules';
 import { buildQualityEnforcers } from './promptParts/qualityEnforcers';
 
@@ -187,6 +187,96 @@ function buildSecondaryProps(mode: PhotoModeKey, randomizer: ReturnType<typeof c
   return `Secondary props: ${picks.join(', ')}.`;
 }
 
+function extractModeSpecificDynamicSettings(state: ProductStudioState): Record<string, string> | undefined {
+  const mode = state.photoMode as PhotoMode;
+  const cfg = state.photoModeConfig;
+  const dynamic: Record<string, string> = {};
+
+  const add = (key: string, value: unknown) => {
+    const v = String(value ?? '').trim();
+    if (!v) return;
+    dynamic[key] = v;
+  };
+
+  if (!cfg) return undefined;
+
+  switch (mode) {
+    case 'Hero Landing Page':
+      add('backgroundType', cfg.heroLandingPage.backgroundType);
+      add('gradientStyle', cfg.heroLandingPage.gradientStyle);
+      add('colorSource', cfg.heroLandingPage.colorSource);
+      add('paletteSource', cfg.heroLandingPage.paletteSource);
+      add('negativeSpace', cfg.heroLandingPage.negativeSpace);
+      add('contrastLevel', cfg.heroLandingPage.contrastLevel);
+      break;
+    case 'Color Pop Hero':
+      add('backgroundType', cfg.colorPopHero.backgroundType);
+      add('gradientStyle', cfg.colorPopHero.gradientStyle);
+      add('colorSource', cfg.colorPopHero.colorSource);
+      add('saturationLevel', cfg.colorPopHero.saturationLevel);
+      add('contrastStrategy', cfg.colorPopHero.contrastStrategy);
+      add('negativeSpace', cfg.colorPopHero.negativeSpace);
+      break;
+    case 'Ingredient Stack':
+      add('ingredientFocus', cfg.ingredientStack.ingredientFocus);
+      add('stackStyle', cfg.ingredientStack.stackStyle);
+      add('ingredientPresence', cfg.ingredientStack.ingredientPresence);
+      add('labelPriority', cfg.ingredientStack.labelPriority);
+      if (cfg.ingredientStack.backgroundEnabled) {
+        add('backgroundType', cfg.ingredientStack.backgroundType);
+        add('gradientStyle', cfg.ingredientStack.gradientStyle);
+        add('colorSource', cfg.ingredientStack.colorSource);
+      }
+      break;
+    case 'Acrylic Blocks':
+      add('blockShape', cfg.acrylicBlocks.blockShape);
+      add('materialFinish', cfg.acrylicBlocks.materialFinish);
+      add('reflectionLevel', cfg.acrylicBlocks.reflectionLevel);
+      add('elevation', cfg.acrylicBlocks.elevation);
+      break;
+    case 'Splash Shot':
+      add('splashMedium', cfg.splashShot.splashMedium);
+      add('motionIntensity', cfg.splashShot.motionIntensity);
+      add('freezeMoment', cfg.splashShot.freezeMoment);
+      add('productStability', cfg.splashShot.productStability);
+      break;
+    case 'Foam & Texture':
+      add('textureType', cfg.foamAndTexture.textureType);
+      add('textureDensity', cfg.foamAndTexture.textureDensity);
+      add('focusDistance', cfg.foamAndTexture.focusDistance);
+      add('cleanliness', cfg.foamAndTexture.cleanliness);
+      break;
+    case 'Routine Carousel':
+      add('frameCount', cfg.routineCarousel.frameCount);
+      add('routineFlow', cfg.routineCarousel.routineFlow);
+      add('consistency', cfg.routineCarousel.consistency);
+      add('heroFrame', cfg.routineCarousel.heroFrame);
+      break;
+    case 'Clinical Lab Counter':
+      add('clinicalTone', cfg.clinicalLabCounter.clinicalTone);
+      add('labElements', cfg.clinicalLabCounter.labElements);
+      add('surfaceType', cfg.clinicalLabCounter.surfaceType);
+      add('trustLevel', cfg.clinicalLabCounter.trustLevel);
+      break;
+    case 'Golden Mist Aura':
+      add('glowStrength', cfg.goldenMistAura.glowStrength);
+      add('mistStyle', cfg.goldenMistAura.mistStyle);
+      add('mood', cfg.goldenMistAura.mood);
+      add('contrast', cfg.goldenMistAura.contrast);
+      break;
+    case 'Candy Gradient Lab':
+      add('gradientStyle', cfg.candyGradientLab.gradientStyle);
+      add('colorCount', cfg.candyGradientLab.colorCount);
+      add('edgeStyle', cfg.candyGradientLab.edgeStyle);
+      add('playfulness', cfg.candyGradientLab.playfulness);
+      break;
+    default:
+      break;
+  }
+
+  return Object.keys(dynamic).length > 0 ? dynamic : undefined;
+}
+
 export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAsset | null): ScenePromptResult {
   const randomizer = createRandomizer();
 
@@ -241,14 +331,18 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   })();
 
   const dynamicSettings = (() => {
-    const settings = state.photoModeConfig.dynamic?.[state.photoMode as PhotoMode];
-    if (!settings) return undefined;
-    if (state.photoMode === 'Ingredient Stack' && 'layoutStyle' in settings) {
+    const modeSpecific = extractModeSpecificDynamicSettings(state) || {};
+    const uiDynamicRaw = state.photoModeConfig.dynamic?.[state.photoMode as PhotoMode] || {};
+    const uiDynamic = { ...uiDynamicRaw } as Record<string, string>;
+    if (state.photoMode === 'Ingredient Stack' && 'layoutStyle' in uiDynamic) {
       // Legacy duplicate: "Layout Style" must not coexist with the "Stack Style" control.
-      const { layoutStyle: _layoutStyle, ...rest } = settings as any;
-      return rest;
+      delete (uiDynamic as any).layoutStyle;
     }
-    return settings;
+    const merged = {
+      ...modeSpecific,
+      ...uiDynamic,
+    };
+    return Object.keys(merged).length > 0 ? merged : undefined;
   })();
 
   const photoModeResult = buildPhotoModePrompt(state.photoMode as PhotoMode, {
@@ -280,11 +374,19 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   // No random camera/lighting/materials. No props. No environment. No creative randomization rules.
   if (isHeroLandingPage) {
     scene = buildStudioHeroScene(sceneInput);
+    const profileLine =
+      state.qualityProfile === 'ecommerce-conversion'
+        ? 'OUTPUT PROFILE: Ecommerce Conversion. Prioritize label readability and clean conversion-focused hierarchy.'
+        : state.qualityProfile === 'editorial'
+          ? 'OUTPUT PROFILE: Editorial. Preserve premium storytelling while keeping product truth and clarity.'
+          : 'OUTPUT PROFILE: Luxury Brand. Preserve campaign-grade polish and premium material rendering.';
     const parts = [
       'HERO LANDING PAGE (LOCKED): Brand-first studio advertising hero module.',
       'Background is derived from the product brand colors with zero creative randomness.',
       'No environment. No props. No interactions. No bundles.',
+      profileLine,
       scene,
+      photoModeResult.modifiers,
       'Controlled studio lighting with clean shadows and high clarity.',
       'Label remains fully readable and centered toward the camera.',
       'No texture noise, no patterns, no scenery, no staging objects.',
@@ -368,15 +470,18 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   })();
 
   const parts = [
-    buildBaseContext({ allowStudio: mode === 'ACRYLIC_BLOCKS' }),
+    buildBaseContext({ allowStudio: mode === 'ACRYLIC_BLOCKS', qualityProfile: state.qualityProfile }),
     scene,
     photoModeResult.modifiers,
     mode === 'INGREDIENT_STACK' ? '' : buildSecondaryProps(mode, randomizer, state.props),
-    buildLighting(mode, randomizer, lightingOverrideText ? { override: { text: lightingOverrideText } } : undefined),
-    buildCamera(mode, randomizer),
-    buildMaterials(mode, randomizer),
-    buildRandomizationRules(mode === 'INGREDIENT_STACK' ? 'ingredientStack' : 'default'),
-    buildQualityEnforcers(),
+    buildLighting(mode, randomizer, {
+      qualityProfile: state.qualityProfile,
+      ...(lightingOverrideText ? { override: { text: lightingOverrideText } } : {}),
+    }),
+    buildCamera(mode, randomizer, { qualityProfile: state.qualityProfile }),
+    buildMaterialsWithProfile(mode, randomizer, state.qualityProfile),
+    buildRandomizationRules(mode === 'INGREDIENT_STACK' ? 'ingredientStack' : 'default', state.qualityProfile),
+    buildQualityEnforcers(state.qualityProfile),
   ].filter(Boolean);
 
   return {

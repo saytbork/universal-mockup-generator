@@ -10,11 +10,11 @@ export function buildMaterials(mode: PhotoModeKey, randomizer: Randomizer): stri
     ].join(' ');
   }
 
-  const base = 'Natural textures, organic imperfections, and true-to-scale materials.';
+  const base = 'Premium real-world materials with true scale, tactile realism, and controlled surface behavior.';
 
   const modeSpecific: Partial<Record<PhotoModeKey, string[]>> = {
     HERO_NEUTRAL: [
-      'Matte plaster, stone, or concrete surfaces with subtle grain.',
+      'Matte plaster, stone, or concrete surfaces with subtle grain and commercial-grade finish.',
       'Rigid studio accents only: glass, metal, acrylic, and stone.'
     ],
     COLOR_POP_HERO: [
@@ -43,7 +43,7 @@ export function buildMaterials(mode: PhotoModeKey, randomizer: Randomizer): stri
     ],
     CLINICAL_LAB_COUNTER: [
       'Sterile lab materials: stainless, glass, and matte polymers.',
-      'Clean, precise surfaces with minimal wear.'
+      'Clean, precise surfaces with minimal wear and premium production polish.'
     ],
     GOLDEN_MIST_AURA: [
       'Soft atmospheric particles with warm light scattering.',
@@ -58,4 +58,18 @@ export function buildMaterials(mode: PhotoModeKey, randomizer: Randomizer): stri
   const picks = modeSpecific[mode];
   if (!picks || picks.length === 0) return base;
   return [base, randomizer.pick(picks)].join(' ');
+}
+
+export function buildMaterialsWithProfile(
+  mode: PhotoModeKey,
+  randomizer: Randomizer,
+  profile: 'luxury-brand' | 'ecommerce-conversion' | 'editorial' = 'luxury-brand'
+): string {
+  const base = buildMaterials(mode, randomizer);
+  const profileText = profile === 'ecommerce-conversion'
+    ? 'Material priority: clean, distraction-free surfaces that support conversion-focused readability.'
+    : profile === 'editorial'
+      ? 'Material priority: tactile editorial textures with controlled brand-safe stylization.'
+      : 'Material priority: premium luxury finishes with refined tactile realism.';
+  return `${base} ${profileText}`.trim();
 }

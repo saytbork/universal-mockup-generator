@@ -60,23 +60,32 @@ export function createRandomizer(): Randomizer {
 }
 
 export type RandomizationMode = 'default' | 'ingredientStack';
+export type RandomizationProfile = 'luxury-brand' | 'ecommerce-conversion' | 'editorial';
 
-export function buildRandomizationRules(mode: RandomizationMode = 'default'): string {
+export function buildRandomizationRules(mode: RandomizationMode = 'default', profile: RandomizationProfile = 'luxury-brand'): string {
+  const profileLine = profile === 'ecommerce-conversion'
+    ? 'Keep visual hierarchy conversion-focused: product and label remain dominant in every variation.'
+    : profile === 'editorial'
+      ? 'Allow expressive composition shifts while preserving product truth and brand safety.'
+      : 'Maintain luxury campaign polish across all variations.';
+
   if (mode === 'ingredientStack') {
     return [
       'RANDOMIZATION RULES (CRITICAL):',
-      'Every generation must differ in camera angle, lens distance, lighting setup, and ingredient placement.',
+      'Every generation must differ in camera angle, lens distance, lighting setup, and ingredient placement while preserving premium ad quality.',
       'Only the listed ingredients may be rearranged; do not introduce any other objects.',
       'Never reuse the same base composition or staging structure.',
-      'Avoid symmetrical default framing.'
+      'Avoid symmetrical default framing unless explicitly required by ecommerce composition.',
+      profileLine
     ].join(' ');
   }
 
   return [
     'RANDOMIZATION RULES (CRITICAL):',
-    'Every generation must differ in camera angle, lens distance, lighting setup, object placement, and environment details.',
+    'Every generation must differ in camera angle, lens distance, lighting setup, object placement, and environment details while staying campaign-grade.',
     'Never reuse the same base composition or staging structure.',
-    'Vary props and micro-environment accents each time.',
-    'Avoid symmetrical default framing.'
+    'Vary props and micro-environment accents each time without reducing product prominence.',
+    'Avoid symmetrical default framing unless explicitly required by ecommerce composition.',
+    profileLine
   ].join(' ');
 }

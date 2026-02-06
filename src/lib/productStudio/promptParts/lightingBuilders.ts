@@ -7,6 +7,7 @@ export type LightingOverride = {
 
 export type LightingBuildOptions = {
   override?: LightingOverride;
+  qualityProfile?: 'luxury-brand' | 'ecommerce-conversion' | 'editorial';
 };
 
 export function buildLighting(mode: PhotoModeKey, randomizer: Randomizer, options: LightingBuildOptions = {}): string {
@@ -24,8 +25,8 @@ export function buildLighting(mode: PhotoModeKey, randomizer: Randomizer, option
   }
 
   const base = [
-    'Editorial or cinematic lighting with clear direction and realistic shadows.',
-    'Controlled highlights and realistic shadow falloff.'
+    'Commercial lighting design with deliberate key/fill hierarchy and physically correct falloff.',
+    'Controlled highlights, premium contrast shaping, and brand-safe shadow density.'
   ];
 
   const modeSpecific: Partial<Record<PhotoModeKey, string[]>> = {
@@ -54,8 +55,8 @@ export function buildLighting(mode: PhotoModeKey, randomizer: Randomizer, option
       'Soft highlights that keep the product label readable.'
     ],
     ROUTINE_CAROUSEL: [
-      'Natural daylight with gentle bounce fill.',
-      'Consistent, repeatable lighting for sequence harmony.'
+      'Repeatable controlled daylight simulation with gentle bounce fill.',
+      'Consistent lighting continuity across all frames for ad sequence cohesion.'
     ],
     CLINICAL_LAB_COUNTER: [
       'Clean professional lighting, cool and precise.',
@@ -73,9 +74,14 @@ export function buildLighting(mode: PhotoModeKey, randomizer: Randomizer, option
 
   const selections = modeSpecific[mode] ?? [];
   const chosen = selections.length > 0 ? randomizer.pick(selections) : '';
+  const profileText = options.qualityProfile === 'ecommerce-conversion'
+    ? 'Lighting priority: maximize label legibility and clean edge separation for ecommerce performance.'
+    : options.qualityProfile === 'editorial'
+      ? 'Lighting priority: controlled editorial drama with preserved product truth.'
+      : 'Lighting priority: luxurious campaign sculpting with premium highlight control.';
   if (options.override?.text) {
-    return [base.join(' '), options.override.text].filter(Boolean).join(' ');
+    return [base.join(' '), chosen, profileText, options.override.text].filter(Boolean).join(' ');
   }
 
-  return [base.join(' '), chosen].filter(Boolean).join(' ');
+  return [base.join(' '), chosen, profileText].filter(Boolean).join(' ');
 }

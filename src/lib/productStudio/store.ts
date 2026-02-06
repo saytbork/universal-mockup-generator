@@ -38,6 +38,7 @@ import type {
     NegativeSpace,
     BrandPreset,
     BrandPresetId,
+    OutputQualityProfile,
     ProductMode,
     BrandPalette,
     EnvironmentContext,
@@ -594,6 +595,7 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
 
     // PRODUCT STUDIO UI CONTROLS (NEW)
     interpretationNotes: {},
+    qualityProfile: 'ecommerce-conversion',
     photoMode: 'Hero Landing Page',
     photoModeConfig: DEFAULT_PHOTO_MODE_CONFIG,
     splashStyle: 'Basic',
@@ -751,6 +753,7 @@ type ProductStudioActions = {
     applyBrandPreset: (presetId: BrandPresetId) => void;
 
     // Product Studio UI Controls (NEW)
+    setQualityProfile: (profile: OutputQualityProfile) => void;
     setPhotoMode: (mode: PhotoMode) => void;
     setPhotoModeConfig: (patch: PhotoModeConfigPatch) => void;
     setSplashStyle: (style: ProductStudioState['splashStyle']) => void;
@@ -1226,11 +1229,22 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 'Hero Landing Page',
                 'Color Pop Hero',
                 'Ingredient Stack',
+                'Ingredient Flat Lay',
                 'Acrylic Blocks',
+                'Glass Pedestal Studio',
                 'Splash Shot',
                 'Foam & Texture',
                 'Routine Carousel',
                 'Clinical Lab Counter',
+                'Minimal Bathroom Vanity',
+                'Dark Premium Studio',
+                'Monochrome Brand',
+                'Brand Campaign',
+                'UGC Premium Simulation',
+                'Tech Clean Studio',
+                'Luxury Editorial Tabletop',
+                'Soft Wellness Morning',
+                'Outdoor Energy Boost',
                 'Golden Mist Aura',
                 'Candy Gradient Lab',
             ];
@@ -1513,6 +1527,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
         }),
 
     // Product Studio UI Controls (NEW)
+    setQualityProfile: (profile) => set({ qualityProfile: profile }),
     setPhotoMode: (mode) =>
         set((state) => {
             const nextMode = String(mode ?? '').trim() as PhotoMode;
@@ -1546,14 +1561,17 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             ];
 
             const resolvedMode: PhotoMode = allowed.includes(nextMode) ? nextMode : 'Hero Landing Page';
+            const environmentPhotoModes: PhotoMode[] = ['Golden Hour Lifestyle', 'Pastel Picnic'];
+            const isEnvironmentPhotoMode = environmentPhotoModes.includes(resolvedMode);
 
             const common: Partial<ProductStudioState> = {
                 photoMode: resolvedMode,
-                // Photo Mode is a Studio contract in Phase 1.
-                environmentContext: null,
-                // Photo Mode contract disallows interactive people/hands controls in UI; keep product-only by default.
-                handsHolding: false,
-                interaction: 'none',
+                // Studio modes are strict product-only. Environment modes keep/set environment context.
+                environmentContext: isEnvironmentPhotoMode
+                    ? (state.environmentContext ?? { macro: 'kitchen', micro: getDefaultMicroPlace('kitchen') })
+                    : null,
+                handsHolding: isEnvironmentPhotoMode ? state.handsHolding : false,
+                interaction: isEnvironmentPhotoMode ? state.interaction : 'none',
             };
 
             if (resolvedMode === 'Hero Landing Page') {
@@ -1570,9 +1588,18 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 };
             }
 
+            if (isEnvironmentPhotoMode) {
+                return {
+                    ...common,
+                    sceneType: 'lifestyle-real',
+                    mode: 'lifestyle-real',
+                };
+            }
+
             return {
                 ...common,
                 sceneType: 'studio-branding',
+                mode: 'studio',
             };
         }),
     updatePhotoModeSubSetting: (mode, category, value) =>

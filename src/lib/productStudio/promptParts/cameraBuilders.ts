@@ -37,9 +37,10 @@ export type CameraOverride = {
 
 export type CameraBuildOptions = {
   override?: CameraOverride;
+  qualityProfile?: 'luxury-brand' | 'ecommerce-conversion' | 'editorial';
 };
 
-  export function buildCamera(mode: PhotoModeKey, randomizer: Randomizer, options: CameraBuildOptions = {}): string {
+export function buildCamera(mode: PhotoModeKey, randomizer: Randomizer, options: CameraBuildOptions = {}): string {
     if (mode === 'INGREDIENT_STACK') {
       const base = [
         'CAMERA:',
@@ -67,12 +68,19 @@ export type CameraBuildOptions = {
 
   const base = [
     'CAMERA:',
-    `Randomized camera angle: ${angle}.`,
-    `Randomized distance: ${distance}.`,
-    `Lens choice: ${lens}.`,
+    `Camera angle: ${angle}.`,
+    `Framing distance: ${distance}.`,
+    `Lens selection: ${lens}.`,
     `${composition}.`,
-    modeNotes[mode] ?? 'Avoid symmetrical default framing.'
+    modeNotes[mode] ?? 'Avoid symmetrical default framing; prioritize premium commercial composition.'
   ];
+
+  const profileText = options.qualityProfile === 'ecommerce-conversion'
+    ? 'Camera priority: conversion clarity with label-forward framing and minimal ambiguity.'
+    : options.qualityProfile === 'editorial'
+      ? 'Camera priority: editorial composition with deliberate visual rhythm and premium direction.'
+      : 'Camera priority: luxury campaign framing with confident hero emphasis.';
+  base.push(profileText);
 
   if (options.override?.text) {
     base.push(options.override.text);
