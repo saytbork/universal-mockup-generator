@@ -42,6 +42,22 @@ type UserInfo = {
   inviteUsed?: boolean;
 };
 
+type AdminSummary = {
+  total: number;
+  free: number;
+  creator: number;
+  studio: number;
+  other: number;
+};
+
+type AdminUserRow = {
+  email: string;
+  plan: string;
+  remaining_credits: number;
+  created_at: number | null;
+  last_login_at: number | null;
+};
+
 const formatTimeAgo = (timestamp: number) => {
   const diff = Date.now() - timestamp;
   const minutes = Math.floor(diff / 60000);
@@ -77,6 +93,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [planNotice, setPlanNotice] = useState<string | null>(null);
+  const [adminSummary, setAdminSummary] = useState<AdminSummary | null>(null);
+  const [adminUsers, setAdminUsers] = useState<AdminUserRow[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -94,6 +112,17 @@ export default function Dashboard() {
           return;
         }
         if (mounted) setUser({ ...data, email });
+        const adminRes = await fetch("/api/admin/users?limit=500");
+        if (adminRes.ok) {
+          const adminData = await adminRes.json();
+          if (mounted) {
+            setAdminSummary(adminData.summary || null);
+            setAdminUsers(Array.isArray(adminData.users) ? adminData.users : []);
+          }
+        } else if (mounted) {
+          setAdminSummary(null);
+          setAdminUsers([]);
+        }
         const act = await fetch("/api/activity/list");
         if (act.ok) {
           const actData = await act.json();
@@ -364,6 +393,65 @@ export default function Dashboard() {
             </div>
           )}
         </motion.div>
+
+        {adminSummary && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut", delay: 0.12 }}
+            className="rounded-xl bg-white border border-gray-200 p-6 space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.25em] text-indigo-600">Admin / Plans</p>
+                <h3 className="text-lg font-semibold">Users by plan</h3>
+              </div>
+              <span className="text-xs text-gray-500">{adminSummary.total} users</span>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              {[
+                { label: "Free", value: adminSummary.free },
+                { label: "Creator", value: adminSummary.creator },
+                { label: "Studio", value: adminSummary.studio },
+                { label: "Other", value: adminSummary.other },
+                { label: "Total", value: adminSummary.total },
+              ].map((item) => (
+                <div key={item.label} className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
+                  <p className="text-xs text-gray-500">{item.label}</p>
+                  <p className="text-lg font-semibold text-gray-900">{item.value}</p>
+                </div>
+              ))}
+            </div>
+            <div className="overflow-auto rounded-xl border border-gray-200">
+              <table className="w-full min-w-[720px] text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 py-2 text-left font-medium text-gray-600">Email</th>
+                    <th className="px-3 py-2 text-left font-medium text-gray-600">Plan</th>
+                    <th className="px-3 py-2 text-left font-medium text-gray-600">Credits</th>
+                    <th className="px-3 py-2 text-left font-medium text-gray-600">Created</th>
+                    <th className="px-3 py-2 text-left font-medium text-gray-600">Last login</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {adminUsers.slice(0, 200).map((row) => (
+                    <tr key={row.email} className="border-t border-gray-200">
+                      <td className="px-3 py-2 text-gray-900">{row.email}</td>
+                      <td className="px-3 py-2 text-gray-700">{row.plan}</td>
+                      <td className="px-3 py-2 text-gray-700">{row.remaining_credits}</td>
+                      <td className="px-3 py-2 text-gray-700">
+                        {row.created_at ? new Date(row.created_at).toLocaleString() : "-"}
+                      </td>
+                      <td className="px-3 py-2 text-gray-700">
+                        {row.last_login_at ? new Date(row.last_login_at).toLocaleString() : "-"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+        )}
 
         {/* My Gallery */}
         <motion.div

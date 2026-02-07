@@ -2,11 +2,12 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { sendEmail } from '../server/lib/sendEmail.js';
 import { createMagicToken, verifyMagicToken } from '../server/lib/magicToken.js';
 import { getStripe } from '../server/lib/stripeClient.js';
-import { getUser, setUser } from '../server/lib/store.js';
+import { getUser, setUser, touchUserLogin } from '../server/lib/store.js';
 import { addActivity } from '../server/lib/activity.js';
 import { checkAuth } from '../server/lib/checkAuth.js';
 
 const DASHBOARD_REDIRECT_PATH = '/dashboard';
+const DEFAULT_REGISTRATION_NOTIFY_EMAIL = 'juanamisano@gmail.com';
 
 const parseAction = (req: VercelRequest) => {
   const raw = req.query.action;
@@ -42,6 +43,23 @@ const clearSessionCookie = (req: VercelRequest) => {
   return `session_email=; Path=/; HttpOnly${secureFlag}; SameSite=Lax; Max-Age=0`;
 };
 
+const sendRegistrationNotification = async (newUserEmail: string, origin: string) => {
+  const notifyEmail = (process.env.REGISTRATION_NOTIFY_EMAIL || DEFAULT_REGISTRATION_NOTIFY_EMAIL).trim();
+  if (!notifyEmail) return;
+  await sendEmail({
+    to: notifyEmail,
+    subject: `New user registered: ${newUserEmail}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+        <h2 style="margin-bottom: 12px;">New registration</h2>
+        <p><strong>Email:</strong> ${newUserEmail}</p>
+        <p><strong>App:</strong> ${origin}</p>
+        <p><strong>Time:</strong> ${new Date().toISOString()}</p>
+      </div>
+    `,
+  });
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const action = parseAction(req);
   const origin = getRequestOrigin(req);
@@ -67,6 +85,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         Boolean(normalizedCode && requiredCode && normalizedCode === requiredCode && !isDisposable);
 
       if (shouldAutoLogin) {
+        const loginEvent = await touchUserLogin(email);
         res.setHeader('Set-Cookie', [
           buildSessionCookie(email, req),
         ]);
@@ -104,6 +123,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         await addActivity(email, 'login', { method: 'invite_auto' });
+        if (loginEvent.isNew) {
+          try {
+            await sendRegistrationNotification(email, origin);
+          } catch (notifyError) {
+            console.warn('Registration notification failed', notifyError);
+          }
+        }
         res.status(200).json({ ok: true, autoLoggedIn: true, redirect: DASHBOARD_REDIRECT_PATH });
         return;
       }
@@ -164,6 +190,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const email = parsed.email;
       const invitationCode = parsed.invitationCode || null;
+      const loginEvent = await touchUserLogin(email);
 
       res.setHeader('Set-Cookie', [
         buildSessionCookie(email, req),
@@ -218,6 +245,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       await addActivity(email, 'login', {});
+      if (loginEvent.isNew) {
+        try {
+          await sendRegistrationNotification(email, origin);
+        } catch (notifyError) {
+          console.warn('Registration notification failed', notifyError);
+        }
+      }
 
       res.writeHead(302, { Location: `${origin}${DASHBOARD_REDIRECT_PATH}` });
       res.end();

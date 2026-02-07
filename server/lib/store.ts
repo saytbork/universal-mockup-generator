@@ -4,6 +4,8 @@ export type UserRecord = {
   trialRemaining: number;
   inviteRemaining: number;
   subscriptionRemaining: number;
+  createdAt?: number;
+  lastLoginAt?: number;
   inviteUsed?: boolean;
   trialUsed?: boolean;
   updatedAt: number;
@@ -29,6 +31,7 @@ const hasKV =
   !!process.env.KV_REST_API_READ_ONLY_TOKEN;
 
 const userKey = (email: string) => `user:${email}`;
+const USERS_INDEX_KEY = 'users:index';
 
 const getKv = async () => {
   const mod = await import("@vercel/kv");
@@ -41,6 +44,8 @@ const defaultUser = (): UserRecord => ({
   trialRemaining: 2,
   inviteRemaining: 0,
   subscriptionRemaining: 0,
+  createdAt: Date.now(),
+  lastLoginAt: 0,
   inviteUsed: false,
   trialUsed: false,
   updatedAt: Date.now(),
@@ -81,6 +86,8 @@ const normalizeUserRecord = (input: UserRecord | any): UserRecord => {
     trialRemaining,
     inviteRemaining,
     subscriptionRemaining,
+    createdAt: Number(input?.createdAt ?? Date.now()),
+    lastLoginAt: Number(input?.lastLoginAt ?? 0),
     inviteUsed: Boolean(input?.inviteUsed) || inviteRemaining > 0,
     trialUsed: Boolean(input?.trialUsed) || trialRemaining <= 0,
     updatedAt: Number(input?.updatedAt ?? Date.now()),
@@ -91,37 +98,103 @@ const normalizeUserRecord = (input: UserRecord | any): UserRecord => {
 };
 
 export const getUser = async (email: string): Promise<UserRecord> => {
+  const normalizedEmail = String(email || '').trim().toLowerCase();
+  if (!normalizedEmail) return defaultUser();
   if (hasKV) {
     const kv = await getKv();
-    const stored = await kv.get<UserRecord>(userKey(email));
+    const stored = await kv.get<UserRecord>(userKey(normalizedEmail));
     if (stored) {
       const normalized = normalizeUserRecord(stored);
       if (JSON.stringify(normalized) !== JSON.stringify(stored)) {
-        await kv.set(userKey(email), normalized);
+        await kv.set(userKey(normalizedEmail), normalized);
       }
+      await kv.sadd(USERS_INDEX_KEY, normalizedEmail);
       return normalized;
     }
     const fresh = defaultUser();
-    await kv.set(userKey(email), fresh);
+    await kv.set(userKey(normalizedEmail), fresh);
+    await kv.sadd(USERS_INDEX_KEY, normalizedEmail);
     return fresh;
   }
-  const existing = memoryStore.get(email);
+  const existing = memoryStore.get(normalizedEmail);
   if (existing) return normalizeUserRecord(existing);
   const fresh = defaultUser();
-  memoryStore.set(email, fresh);
+  memoryStore.set(normalizedEmail, fresh);
   return fresh;
 };
 
 export const setUser = async (email: string, data: Partial<UserRecord>) => {
-  const current = await getUser(email);
+  const normalizedEmail = String(email || '').trim().toLowerCase();
+  const current = await getUser(normalizedEmail);
   const next = normalizeUserRecord({ ...current, ...data, updatedAt: Date.now() });
   if (hasKV) {
     const kv = await getKv();
-    await kv.set(userKey(email), next);
+    await kv.set(userKey(normalizedEmail), next);
+    await kv.sadd(USERS_INDEX_KEY, normalizedEmail);
   } else {
-    memoryStore.set(email, next);
+    memoryStore.set(normalizedEmail, next);
   }
   return next;
+};
+
+export const touchUserLogin = async (email: string): Promise<{ user: UserRecord; isNew: boolean }> => {
+  const normalizedEmail = String(email || '').trim().toLowerCase();
+  if (!normalizedEmail) {
+    return { user: defaultUser(), isNew: false };
+  }
+  const now = Date.now();
+  if (hasKV) {
+    const kv = await getKv();
+    const existing = await kv.get<UserRecord>(userKey(normalizedEmail));
+    const isNew = !existing;
+    const base = isNew ? defaultUser() : normalizeUserRecord(existing);
+    const next = normalizeUserRecord({
+      ...base,
+      createdAt: isNew ? now : base.createdAt ?? now,
+      lastLoginAt: now,
+      updatedAt: now,
+    });
+    await kv.set(userKey(normalizedEmail), next);
+    await kv.sadd(USERS_INDEX_KEY, normalizedEmail);
+    return { user: next, isNew };
+  }
+  const existing = memoryStore.get(normalizedEmail);
+  const isNew = !existing;
+  const base = isNew ? defaultUser() : normalizeUserRecord(existing);
+  const next = normalizeUserRecord({
+    ...base,
+    createdAt: isNew ? now : base.createdAt ?? now,
+    lastLoginAt: now,
+    updatedAt: now,
+  });
+  memoryStore.set(normalizedEmail, next);
+  return { user: next, isNew };
+};
+
+export const listUsers = async (
+  limit = 200
+): Promise<Array<{ email: string; user: UserRecord }>> => {
+  const safeLimit = Math.max(1, Math.min(1000, Number(limit) || 200));
+  if (hasKV) {
+    const kv = await getKv();
+    const emails = (await kv.smembers<string[]>(USERS_INDEX_KEY)) || [];
+    const normalizedEmails = emails
+      .map((e) => String(e || '').trim().toLowerCase())
+      .filter(Boolean)
+      .slice(0, safeLimit);
+    const rows = await Promise.all(
+      normalizedEmails.map(async (email) => {
+        const stored = await kv.get<UserRecord>(userKey(email));
+        if (!stored) return null;
+        return { email, user: normalizeUserRecord(stored) };
+      })
+    );
+    return rows.filter(Boolean) as Array<{ email: string; user: UserRecord }>;
+  }
+  const rows = Array.from(memoryStore.entries())
+    .slice(0, safeLimit)
+    .map(([email, user]) => ({ email, user: normalizeUserRecord(user) }));
+  return rows;
 };
 
 export const getEffectiveCredits = (user: UserRecord): number => computeEffectiveCredits(user);
