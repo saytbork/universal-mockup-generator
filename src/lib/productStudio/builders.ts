@@ -1466,16 +1466,6 @@ function normalizeProductStudioStateForPrompt(state: ProductStudioState): Produc
 
     // Interpretation-first coercion (never refuse on conflicts; resolve to a physically plausible snapshot).
     const type = next.definition.type;
-    // Auto-correct to SPILLED_ON_SURFACE (canonical) when a surface is present to prevent aerial interpretations.
-    const surfacePresent = next.blankSpaceEnabled === false;
-    const discreteSurfaceSpillTypes = new Set(['capsules', 'gummies', 'powder']);
-    if (
-        surfacePresent &&
-        discreteSurfaceSpillTypes.has(type) &&
-        (next.stateMotion === 'falling' || next.stateMotion === 'dispensed' || next.stateMotion === 'spilled')
-    ) {
-        next.stateMotion = 'spilled';
-    }
     const allowedMotionsByType: Record<string, ProductStudioState['stateMotion'][]> = {
         capsules: ['static', 'opened', 'spilled', 'dispensed', 'falling'],
         gummies: ['static', 'opened', 'spilled', 'dispensed', 'falling'],
@@ -1545,6 +1535,15 @@ function normalizeProductStudioStateForPrompt(state: ProductStudioState): Produc
 
     if (next.placement === 'air' && next.interaction !== 'none') {
         next.interaction = 'none';
+    }
+
+    // Motion-placement coherence: keep user-selected motion whenever possible.
+    // Only coerce when the pair is physically contradictory.
+    if (next.stateMotion === 'spilled' && next.placement === 'air') {
+        // Spilled requires a visible support plane.
+        next.placement = requiredPlacement && requiredPlacement !== 'any' && requiredPlacement !== 'air'
+            ? requiredPlacement
+            : 'surface';
     }
 
     const handInteractions = new Set<ProductStudioState['interaction']>([
