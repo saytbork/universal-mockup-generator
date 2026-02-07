@@ -86,7 +86,10 @@ initializeFirebaseAdmin();
 export const adminDB = admin.firestore();
 
 // Export Storage bucket instance
-export const adminStorage = admin.storage().bucket('boostugc-6d83f.firebasestorage.app');
+const configuredBucket = admin.app().options.storageBucket;
+export const adminStorage = configuredBucket
+  ? admin.storage().bucket(configuredBucket)
+  : admin.storage().bucket();
 
 // Export FieldValue for timestamp operations
 export const FieldValue = admin.firestore.FieldValue;

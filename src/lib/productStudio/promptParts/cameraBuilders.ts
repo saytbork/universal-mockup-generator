@@ -54,6 +54,11 @@ export type CameraBuildOptions = {
   override?: CameraOverride;
   qualityProfile?: 'luxury-brand' | 'ecommerce-conversion' | 'editorial';
   forceLens?: string;
+  forceCameraSystem?: string;
+  forceAngle?: string;
+  forceDistance?: string;
+  forceComposition?: string;
+  forceRotation?: string;
 };
 
 export function buildCamera(mode: PhotoModeKey, randomizer: Randomizer, options: CameraBuildOptions = {}): string {
@@ -71,14 +76,16 @@ export function buildCamera(mode: PhotoModeKey, randomizer: Randomizer, options:
       return base.join(' ');
     }
 
-  const angle = randomizer.pick(ANGLES);
+  const angle = options.forceAngle?.trim() ? options.forceAngle.trim() : randomizer.pick(ANGLES);
   const distancePool = MODE_DISTANCE_OVERRIDES[mode] ?? DISTANCES;
   const lensPool = MODE_LENS_OVERRIDES[mode] ?? LENSES;
   const compositionPool = MODE_COMPOSITION_OVERRIDES[mode] ?? COMPOSITIONS;
 
-  const distance = randomizer.pick(distancePool);
+  const distance = options.forceDistance?.trim() ? options.forceDistance.trim() : randomizer.pick(distancePool);
   const lens = options.forceLens?.trim() ? options.forceLens.trim() : randomizer.pick(lensPool);
-  const composition = randomizer.pick(compositionPool);
+  const composition = options.forceComposition?.trim() ? options.forceComposition.trim() : randomizer.pick(compositionPool);
+  const cameraSystem = options.forceCameraSystem?.trim();
+  const rotation = options.forceRotation?.trim();
 
   const modeNotes: Partial<Record<PhotoModeKey, string>> = {
     FOAM_AND_TEXTURE: 'Avoid top-down or flat-lay framing; keep a frontal or three-quarter view.',
@@ -90,9 +97,11 @@ export function buildCamera(mode: PhotoModeKey, randomizer: Randomizer, options:
 
   const base = [
     'CAMERA:',
+    ...(cameraSystem ? [`Camera system: ${cameraSystem}.`] : []),
     `Camera angle: ${angle}.`,
     `Framing distance: ${distance}.`,
     `Lens selection: ${lens}.`,
+    ...(rotation ? [`Rotation: ${rotation}.`] : []),
     `${composition}.`,
     modeNotes[mode] ?? 'Avoid symmetrical default framing; prioritize premium commercial composition.'
   ];
