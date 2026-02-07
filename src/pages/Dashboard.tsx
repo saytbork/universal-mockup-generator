@@ -85,6 +85,14 @@ const activityIcon = (type: ActivityItem["type"]) => {
   }
 };
 
+const activityTitle = (item: ActivityItem) => {
+  if (item.type === "image" && item.meta?.kind === "generation") {
+    const status = String(item.meta?.status || "").toLowerCase();
+    return status === "error" ? "generation failed" : "generation success";
+  }
+  return item.type;
+};
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const { logout } = useAuth();
@@ -419,13 +427,21 @@ export default function Dashboard() {
                   <div className="flex items-center gap-3">
                     {activityIcon(item.type)}
                     <div>
-                      <p className="text-sm font-medium capitalize">{item.type}</p>
+                      <p className="text-sm font-medium capitalize">{activityTitle(item)}</p>
+                      {item.type === "image" && item.meta?.kind === "generation" && (
+                        <p className="text-[11px] text-gray-500">
+                          {String(item.meta?.sceneType || "scene")} · {String(item.meta?.mode || "mode")} · {String(item.meta?.aspectRatio || "ratio")}
+                        </p>
+                      )}
                       <p className="text-xs text-gray-600">{formatTimeAgo(item.timestamp)}</p>
                     </div>
                   </div>
                   <span className="text-xs text-gray-600">
                     {item.type === "invite" && "+10 credits"}
-                    {item.type === "image" && (item.meta?.delta ?? -1)}
+                    {item.type === "image" && item.meta?.kind !== "generation" && (item.meta?.delta ?? -1)}
+                    {item.type === "image" && item.meta?.kind === "generation" && (
+                      String(item.meta?.status || "").toLowerCase() === "error" ? "error" : "ok"
+                    )}
                   </span>
                 </div>
               ))}

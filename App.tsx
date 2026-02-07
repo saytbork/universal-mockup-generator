@@ -39,6 +39,7 @@ import { normalizeOptions } from './src/system/normalizeOptions';
 import { promptEngine } from './src/lib/promptEngine';
 import { mapLifestyleToPromptOptions } from './src/lib/promptEngine/mapLifestyleToPromptOptions';
 import { mapProductModeToPromptOptions } from './src/lib/promptEngine/mapProductModeToPromptOptions';
+import { createGenerationLog, installGenerationLogBridge, updateGenerationLog } from './src/lib/debug/generationLog';
 import LifestyleStep3, { type Step3Values } from "@/components/LifestyleStep3";
 import { type EcommerceGenerationSettings } from '@/components/EcommerceStep3';
 import type { EcommerceSlotKey, EcommerceSlotsConfig } from '@/lib/ecommerceOverlay/types';
@@ -1431,6 +1432,10 @@ const App: React.FC = () => {
       return acc;
     }, {});
   }, [normalizedProductAssets]);
+  useEffect(() => {
+    installGenerationLogBridge();
+  }, []);
+
   useEffect(() => {
     setActiveProducts(prev => {
       const next = prev.flatMap(product => {
@@ -4790,6 +4795,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
   const handleGenerateClick = useCallback(
     async (bundleProducts?: ProductId[], overrideActiveList?: ActiveProduct[], runMode: 'generate' | 'validate' = 'generate') => {
+      let generationLogId: string | null = null;
       bundleSelectionRef.current = bundleProducts ?? null;
       if (isTrialLocked) {
         setImageError(`You reached the ${currentPlan.label} limit (${planCreditLimit} credits). Upgrade your plan to keep generating scenes.`);
@@ -5138,6 +5144,22 @@ If the model attempts to create a scene or environment, override it and force a 
           partsCount: requestParts.length,
         };
         console.log('[UGC PAYLOAD]', payloadLog);
+        generationLogId = createGenerationLog({
+          scope: runMode === 'validate' ? 'handleGenerateClick:validate' : 'handleGenerateClick',
+          sceneType: String((promptOptions as any).sceneType || (options as any).sceneType || ''),
+          mode: String(promptOptions.creationMode || options.creationMode || ''),
+          aspectRatio,
+          promptHash,
+          promptPreview: finalPrompt.slice(0, 600),
+          prompt: finalPrompt,
+          payloadMeta: payloadLog,
+          responseMeta: {
+            isProductPlacement,
+            hasModelReference,
+            personIncluded,
+            productCount: generationProducts.length,
+          },
+        });
         // IMPORTANT: Output Format must control the result aspect ratio.
         // When `preserveReferenceImage` is true, Gemini may keep the reference image framing/ratio
         // even if we request a different `aspectRatio`. We still pass reference images for grounding.
@@ -5151,11 +5173,25 @@ If the model attempts to create a scene or environment, override it and force a 
             aspectRatio,
             preserveReferenceImage,
             apiKey: resolvedApiKey,
+            debugMeta: {
+              promptHash,
+              sceneType: String((promptOptions as any).sceneType || (options as any).sceneType || ''),
+              mode: String(promptOptions.creationMode || options.creationMode || ''),
+              aspectRatio,
+            },
           }),
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
           const message = typeof data?.error === 'string' ? data.error : 'Generation failed';
+          if (generationLogId) {
+            updateGenerationLog(generationLogId, {
+              status: 'http_error',
+              httpStatus: response.status,
+              error: message,
+              responseMeta: { responseBody: data },
+            });
+          }
           setImageError(message);
           if ((response.status === 402 || response.status === 403) && remainingCredits <= 0) {
             setShowPlanModal(true);
@@ -5186,6 +5222,16 @@ If the model attempts to create a scene or environment, override it and force a 
               mimeType: 'image/png',
             });
         const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
+        if (generationLogId) {
+          updateGenerationLog(generationLogId, {
+            status: 'success',
+            responseMeta: {
+              remainingCredits: typeof data?.remaining_credits === 'number' ? data.remaining_credits : undefined,
+              outputMimeType: normalizedOutput.mimeType,
+              outputSizeBase64: normalizedOutput.base64?.length ?? 0,
+            },
+          });
+        }
         setGeneratedImageUrl(outputUrl);
         setHasFirstGenerationComplete(true);  // Enable Keep Same Person toggle
         try {
@@ -5236,6 +5282,12 @@ If the model attempts to create a scene or environment, override it and force a 
           handleApiKeyInvalid();
         } else {
           setImageError(errorMessage);
+        }
+        if (generationLogId) {
+          updateGenerationLog(generationLogId, {
+            status: 'exception',
+            error: errorMessage || 'Unknown generation exception',
+          });
         }
       } finally {
         setIsImageLoading(false);

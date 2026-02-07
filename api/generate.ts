@@ -38,6 +38,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const aspectRatio = typeof body.aspectRatio === 'string' ? body.aspectRatio : '1:1';
   const preserveReferenceImage = Boolean(body.preserveReferenceImage);
   const apiKey = typeof body.apiKey === 'string' && body.apiKey.trim() ? body.apiKey.trim() : process.env.GOOGLE_API_KEY;
+  const rawDebugMeta = body?.debugMeta && typeof body.debugMeta === 'object' ? body.debugMeta : null;
+  const debugMeta = rawDebugMeta
+    ? {
+        promptHash: typeof rawDebugMeta.promptHash === 'string' ? rawDebugMeta.promptHash.slice(0, 128) : undefined,
+        sceneType: typeof rawDebugMeta.sceneType === 'string' ? rawDebugMeta.sceneType.slice(0, 64) : undefined,
+        mode: typeof rawDebugMeta.mode === 'string' ? rawDebugMeta.mode.slice(0, 64) : undefined,
+        aspectRatio: typeof rawDebugMeta.aspectRatio === 'string' ? rawDebugMeta.aspectRatio.slice(0, 16) : undefined,
+      }
+    : null;
 
   if (!apiKey) {
     res.status(400).json({ error: 'Missing API key' });
@@ -112,6 +121,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new Error('Image generation failed.');
     }
     const user = await getUser(email);
+    if (creditResult.bucket !== 'admin') {
+      await addActivity(email, 'image', {
+        kind: 'generation',
+        status: 'success',
+        ...debugMeta,
+      });
+    }
     res.status(200).json({
       ok: true,
       imageBase64: encodedImage,
@@ -124,6 +140,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     await refundCredit(email, creditResult.bucket);
     if (creditResult.bucket !== 'admin') {
       await addActivity(email, 'image', { delta: 1, refund: true, bucket: creditResult.bucket });
+      await addActivity(email, 'image', {
+        kind: 'generation',
+        status: 'error',
+        error: String(error?.message || 'Generation failed').slice(0, 280),
+        ...debugMeta,
+      });
     }
     res.status(500).json({ error: error?.message || 'Generation failed' });
   }
