@@ -8,7 +8,8 @@ type ChatMessage = {
 
 const WIDGET_ENABLED = String(import.meta.env.VITE_SUPPORT_WIDGET_ENABLED || '').toLowerCase() === 'true';
 const AI_ENABLED = String(import.meta.env.VITE_SUPPORT_AI_ENABLED || '').toLowerCase() === 'true';
-const SUPPORT_EMAIL = String(import.meta.env.VITE_SUPPORT_EMAIL || '').trim();
+const WIDGET_ENABLED_BY_DEFAULT =
+  String(import.meta.env.VITE_SUPPORT_WIDGET_ENABLED ?? 'true').toLowerCase() !== 'false';
 
 const trimMessages = (messages: ChatMessage[], max = 12) =>
   messages.length > max ? messages.slice(messages.length - max) : messages;
@@ -73,7 +74,7 @@ export default function SupportAssistant({ email }: { email?: string }) {
     },
   ]);
 
-  const canUse = WIDGET_ENABLED;
+  const canUse = WIDGET_ENABLED_BY_DEFAULT;
   const shownMessages = useMemo(() => messages, [messages]);
 
   useEffect(() => {
@@ -114,29 +115,31 @@ export default function SupportAssistant({ email }: { email?: string }) {
     setMessages(prev => trimMessages([...prev, { role: 'user', content }]));
   };
 
-  const contactSupport = () => {
-    if (!SUPPORT_EMAIL) {
-      appendAssistant('Support email is not configured yet.');
-      return;
-    }
+  const contactSupport = async () => {
     const transcript = messages
       .map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
       .join('\n')
       .slice(0, 6000);
-    const subject = encodeURIComponent('Perfect Mockup support request');
-    const body = encodeURIComponent(
-      [
-        `Page: ${window.location.href}`,
-        `Account: ${email || profile?.email || 'unknown'}`,
-        `Plan: ${profile?.plan || 'unknown'}`,
-        `Credits: ${typeof profile?.remaining_credits === 'number' ? profile.remaining_credits : 'unknown'}`,
-        '',
-        transcript ? `Transcript:\n${transcript}` : '',
-      ]
-        .filter(Boolean)
-        .join('\n')
-    );
-    window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`;
+    try {
+      const res = await fetch('/api/support/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          page: window.location.href,
+          account: email || profile?.email || 'unknown',
+          plan: profile?.plan || 'unknown',
+          credits: typeof profile?.remaining_credits === 'number' ? profile.remaining_credits : 'unknown',
+          transcript,
+        }),
+      });
+      if (!res.ok) {
+        appendAssistant('Could not send the support request right now. Please try again in a minute.');
+        return;
+      }
+      appendAssistant('Support request sent. Our team will review it shortly.');
+    } catch {
+      appendAssistant('Network error while sending support request. Please try again.');
+    }
   };
 
   const localChat = (text: string) => {
@@ -284,7 +287,7 @@ export default function SupportAssistant({ email }: { email?: string }) {
           [
             'I couldn’t match that to a known issue yet.',
             'Try one of these: Sign in, Credits, Upload, Generation failed, Export, Billing.',
-            SUPPORT_EMAIL ? 'Or tap “Contact support” below.' : '',
+            'Or tap “Contact” below and we will review your transcript.',
           ]
             .filter(Boolean)
             .join('\n')
@@ -349,7 +352,8 @@ export default function SupportAssistant({ email }: { email?: string }) {
 
       appendAssistant(reply);
     } catch (error) {
-      appendAssistant('Network error. Please try again in a few seconds.');
+      appendAssistant('AI support is temporarily unavailable — falling back to built-in help.');
+      localChat(text);
     } finally {
       setBusy(false);
     }

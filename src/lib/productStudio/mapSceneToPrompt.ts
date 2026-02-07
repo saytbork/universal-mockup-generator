@@ -110,12 +110,12 @@ function buildEnvironmentScene(state: ProductStudioState, randomizer: ReturnType
   })();
 
   const environmentAccents = {
-    kitchen: ['minimal glass accent near the edge of frame', 'soft morning reflections on stone', 'subtle countertop texture outside focus plane'],
-    bathroom: ['minimal glass accent in background', 'subtle steam haze near tiles', 'clean stone accent partially visible'],
+    kitchen: ['minimal glass accent near the edge of frame', 'soft morning reflections on neutral surfaces', 'subtle countertop texture outside focus plane'],
+    bathroom: ['minimal glass accent in background', 'subtle steam haze near tiles', 'clean neutral accent partially visible'],
     workspace: ['minimal notebook corner peeking in', 'soft desk lamp glow from side', 'muted stationery kept out of focus'],
     'cgmp-facility': ['stainless steel highlights and clean machinery surfaces', 'guide rails and clean line geometry', 'industrial clean-room reflections'],
     'urban-exterior': ['soft bokeh of buildings in distance', 'muted street texture far from product', 'subtle daylight reflections on concrete'],
-    'natural-exterior': ['soft greenery bokeh in distance', 'natural stone texture outside focus plane', 'diffused sky light'],
+    'natural-exterior': ['soft greenery bokeh in distance', 'natural surface texture outside focus plane', 'diffused sky light'],
   } as const;
 
   const accentPool =
@@ -220,16 +220,16 @@ const PHOTO_MODE_MAP: Record<string, PhotoModeKey> = {
 };
 
 const SECONDARY_PROPS_BY_MODE: Partial<Record<PhotoModeKey, string[]>> = {
-  HERO_NEUTRAL: ['minimal glass accent', 'small stone block', 'clean neutral block'],
+  HERO_NEUTRAL: ['minimal glass accent', 'clean neutral block', 'subtle matte support element'],
   COLOR_POP_HERO: ['geometric color blocks', 'abstract color panel', 'clean reflective panel'],
-  BRAND_CAMPAIGN: ['luxury monolithic block', 'high-end reflective accent', 'architectural stone plinth'],
+  BRAND_CAMPAIGN: ['luxury monolithic block', 'high-end reflective accent', 'architectural neutral plinth'],
   UGC_PREMIUM_SIM: ['subtle realistic texture cue', 'controlled asymmetrical accent', 'minimal tactile realism prop'],
   INGREDIENT_STACK: [],
   INGREDIENT_FLAT_LAY: [],
   ACRYLIC_BLOCKS: ['additional acrylic risers', 'prismatic edge accents'],
   SPLASH_SHOT: ['minimal liquid surface ripples', 'controlled droplets around the base'],
   FOAM_AND_TEXTURE: ['controlled foam clusters', 'gel ribbons', 'micro-bubbles'],
-  ROUTINE_CAROUSEL: ['simple glassware', 'clean acrylic tray', 'soft paper elements'],
+  ROUTINE_CAROUSEL: ['simple glassware', 'clean tray', 'soft paper elements'],
   CLINICAL_LAB_COUNTER: ['clean glassware silhouettes', 'stainless tools', 'measured droppers'],
   GOLDEN_MIST_AURA: ['soft golden haze', 'delicate reflective accents'],
   CANDY_GRADIENT_LAB: ['transparent lab forms', 'gradient panels', 'polished geometric props'],

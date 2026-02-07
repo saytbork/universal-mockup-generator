@@ -241,7 +241,7 @@ export function buildRoutineCarouselScene({ randomizer }: SceneBuildInput): stri
     'morning ritual setup with minimal props',
     'repeatable routine scene with consistent surfaces',
   ];
-  const props = ['simple glassware', 'small stone block', 'clean acrylic tray', 'soft paper elements'];
+  const props = ['simple glassware', 'clean tray', 'soft paper elements', 'neutral support element'];
 
   return [
     'Everyday wellness routine scene with natural composition.',
