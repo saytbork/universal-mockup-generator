@@ -1,12 +1,14 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { checkAuth } from '../../server/lib/checkAuth.js';
 import { retrieveSupportContext } from '../../server/lib/supportKnowledge.js';
+import { sendEmail } from '../../server/lib/sendEmail.js';
 
 const AI_ENABLED = String(process.env.SUPPORT_AI_ENABLED || '').toLowerCase() === 'true';
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_MODEL = process.env.OPENAI_SUPPORT_MODEL || 'gpt-4o-mini';
 const DOCS_TOPK = Number(process.env.SUPPORT_AI_DOCS_TOPK || 3);
 const DOCS_MAX_CHARS = Number(process.env.SUPPORT_AI_DOCS_MAX_CHARS || 6000);
+const DEFAULT_SUPPORT_CONTACT_EMAIL = 'juanamisano@gmail.com';
 
 const hasKV =
   !!process.env.KV_REST_API_URL &&
@@ -29,6 +31,25 @@ const parseBody = async (req: VercelRequest) => {
     return {};
   }
 };
+
+const parseAction = (req: VercelRequest) => {
+  const raw = req.query.action;
+  if (Array.isArray(raw)) return raw[0]?.toString().toLowerCase() ?? '';
+  return typeof raw === 'string' ? raw.toLowerCase() : '';
+};
+
+const trim = (value: unknown, fallback = '') => {
+  if (typeof value !== 'string') return fallback;
+  return value.trim();
+};
+
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 
 const getClientIp = (req: VercelRequest): string => {
   const xfwd = String(req.headers['x-forwarded-for'] || '').split(',')[0]?.trim();
@@ -80,6 +101,50 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.setHeader('Allow', 'POST');
     res.status(405).json({ error: 'Method not allowed' });
     return;
+  }
+
+  const action = parseAction(req);
+  if (action === 'contact') {
+    const body = await parseBody(req);
+    const authenticatedEmail = checkAuth(req) || undefined;
+    const recipient = trim(process.env.SUPPORT_CONTACT_EMAIL, DEFAULT_SUPPORT_CONTACT_EMAIL);
+    if (!recipient) {
+      res.status(500).json({ error: 'Support contact is not configured' });
+      return;
+    }
+
+    const account = trim(body.account, authenticatedEmail || 'unknown');
+    const plan = trim(body.plan, 'unknown');
+    const page = trim(body.page, 'unknown');
+    const credits = String(body.credits ?? 'unknown').trim();
+    const transcript = trim(body.transcript, '').slice(0, 6000);
+
+    const subject = `Support request${account !== 'unknown' ? `: ${account}` : ''}`;
+    const html = `
+      <div style="font-family: Arial, sans-serif; color: #222; line-height: 1.45;">
+        <h2 style="margin: 0 0 12px;">Support request</h2>
+        <p><strong>Account:</strong> ${escapeHtml(account)}</p>
+        <p><strong>Authenticated:</strong> ${escapeHtml(authenticatedEmail || 'none')}</p>
+        <p><strong>Plan:</strong> ${escapeHtml(plan)}</p>
+        <p><strong>Credits:</strong> ${escapeHtml(credits)}</p>
+        <p><strong>Page:</strong> ${escapeHtml(page)}</p>
+        <p><strong>Time:</strong> ${new Date().toISOString()}</p>
+        <hr style="margin: 16px 0; border: 0; border-top: 1px solid #ddd;" />
+        <p><strong>Transcript</strong></p>
+        <pre style="white-space: pre-wrap; background: #f8f8f8; border: 1px solid #eee; padding: 12px; border-radius: 8px;">${escapeHtml(
+          transcript || '(empty)'
+        )}</pre>
+      </div>
+    `;
+
+    try {
+      await sendEmail({ to: recipient, subject, html });
+      res.status(200).json({ ok: true });
+      return;
+    } catch (error: any) {
+      res.status(500).json({ error: error?.message || 'Failed to send support request' });
+      return;
+    }
   }
 
   if (!AI_ENABLED) {

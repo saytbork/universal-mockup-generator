@@ -121,7 +121,7 @@ export default function SupportAssistant({ email }: { email?: string }) {
       .join('\n')
       .slice(0, 6000);
     try {
-      const res = await fetch('/api/support/contact', {
+      const res = await fetch('/api/support/chat?action=contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
