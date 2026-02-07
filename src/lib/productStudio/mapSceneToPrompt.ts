@@ -684,6 +684,19 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     ].filter(Boolean).join(' ')
     : '';
 
+  const viewpointDirectiveText = (() => {
+    const viewpoint = String((state as any).viewpoint || '').trim().toLowerCase();
+    if (!viewpoint) return '';
+    const map: Record<string, string> = {
+      'eye-level': 'VIEWPOINT: Eye-level physical vantage relative to the product.',
+      'top-down': 'VIEWPOINT: Overhead physical vantage from above the product plane.',
+      'human-pov': 'VIEWPOINT: Natural eye-height POV framing without visible anatomy.',
+      suspended: 'VIEWPOINT: Suspended vantage with coherent gravity and depth cues.',
+      'display-view': 'VIEWPOINT: Front display vantage optimized for product readability.',
+    };
+    return map[viewpoint] || '';
+  })();
+
   const cameraControlsTraceText = [
     'Camera controls selected:',
     `system=${uiSystemLabel};`,
@@ -698,6 +711,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     photoModeEnvironmentAdaptationText,
     scene,
     buildPlacementDirective(state),
+    viewpointDirectiveText,
     environmentModeActive ? '' : photoModeResult.modifiers,
     mode === 'INGREDIENT_STACK' ? '' : buildSecondaryProps(mode, randomizer, state.props),
     buildLighting(mode, randomizer, {
