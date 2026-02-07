@@ -35,6 +35,11 @@ const normalize = (text: string) =>
     .trim()
     .replace(/\s+/g, ' ');
 
+const isGreeting = (text: string) =>
+  /^(hi|hello|hey|yo|hola|good morning|good afternoon|good evening|sup|what's up|whats up)\b/.test(
+    normalize(text)
+  );
+
 const detectFlow = (text: string): SupportFlow => {
   const t = normalize(text);
   if (!t) return null;
@@ -143,6 +148,23 @@ export default function SupportAssistant({ email }: { email?: string }) {
   };
 
   const localChat = (text: string) => {
+    if (isGreeting(text)) {
+      appendAssistant(
+        [
+          'Hi. I can help with:',
+          '1) Sign in / magic link',
+          '2) Credits / plan limits',
+          '3) Upload issues',
+          '4) Generation failed',
+          '5) Export / download',
+          '6) Billing',
+          '',
+          'Reply with a number or describe the issue.',
+        ].join('\n')
+      );
+      return;
+    }
+
     const activeFlow = flow ?? detectFlow(text);
     if (!flow && activeFlow) setFlow(activeFlow);
 
