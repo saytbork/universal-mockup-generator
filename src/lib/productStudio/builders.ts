@@ -1477,7 +1477,7 @@ function normalizeProductStudioStateForPrompt(state: ProductStudioState): Produc
         // Nearest intent mapping (do not block):
         const fallback: Record<string, ProductStudioState['stateMotion']> = {
             pouring: type === 'powder' ? 'pouring' : 'falling',
-            falling: type === 'drops' ? 'dispensed' : 'falling',
+            falling: type === 'drops' || type === 'powder' ? 'dispensed' : 'falling',
             dispensed: allowed.includes('dispensed') ? 'dispensed' : 'falling',
             spilled: allowed.includes('spilled') ? 'spilled' : 'dispensed',
             opened: allowed.includes('opened') ? 'opened' : 'static',
