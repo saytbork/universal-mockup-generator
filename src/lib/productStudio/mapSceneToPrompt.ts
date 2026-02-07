@@ -355,7 +355,45 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       .replace(/\bugc\b/gi, 'premium')
       .replace(/\blifestyle\b/gi, 'environment')
       .replace(/\bphone\b/gi, 'camera')
+      .replace(/\bpremium\s+premium\b/gi, 'premium')
       .trim();
+  };
+
+  const mapCameraSystemToPrompt = (system: ProductStudioState['cameraSystem']): string => {
+    if (system === 'mirrorless') return 'professional mirrorless camera';
+    return 'professional DSLR camera';
+  };
+
+  const mapAngleToPrompt = (angle: ProductStudioState['angle']): string => {
+    const map: Record<ProductStudioState['angle'], string> = {
+      front: 'eye-level',
+      '45': 'three-quarter angle',
+      top: 'top-down flat lay',
+      detail: 'detail close-up',
+    };
+    return map[angle] || 'three-quarter angle';
+  };
+
+  const mapDistanceToPrompt = (distance: ProductStudioState['distance']): string => {
+    const map: Record<ProductStudioState['distance'], string> = {
+      macro: 'tight hero crop',
+      close: 'close framing',
+      medium: 'medium distance',
+    };
+    return map[distance] || 'medium distance';
+  };
+
+  const mapFramingToPrompt = (framing: ProductStudioState['framing']): string => {
+    const map: Record<ProductStudioState['framing'], string> = {
+      centered: 'centered hero composition',
+      'rule-of-thirds': 'rule-of-thirds composition',
+    };
+    return map[framing] || 'centered hero composition';
+  };
+
+  const mapRotationToPrompt = (rotation: ProductStudioState['rotation']): string => {
+    if (rotation === 'slight') return '5-10 degrees';
+    return '0 degrees';
   };
 
   // CRITICAL: Hero Landing Page gets exclusive sceneType routing in pure studio only.
@@ -616,6 +654,11 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     buildCamera(mode, randomizer, {
       qualityProfile: state.qualityProfile,
       ...(state.lens ? { forceLens: state.lens } : {}),
+      forceCameraSystem: mapCameraSystemToPrompt(state.cameraSystem),
+      forceAngle: mapAngleToPrompt(state.angle),
+      forceDistance: mapDistanceToPrompt(state.distance),
+      forceComposition: mapFramingToPrompt(state.framing),
+      forceRotation: mapRotationToPrompt(state.rotation),
     }),
     finishOverrideText,
     creativityOverrideText,

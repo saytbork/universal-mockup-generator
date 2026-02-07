@@ -5567,8 +5567,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   key={option}
                   onClick={() => {
                     updateValue('productCameraSystem', option);
-                    // Keep ProductStudio prompt camera system stable (used in product-only engine).
-                    // This UI is descriptive; actual camera personality is driven by angle/distance/rig presets.
+                    // Sync into ProductStudio store so prompt camera injection follows the UI selection.
+                    if (option === 'DSLR / mirrorless') {
+                      productStore.setCameraSystem('dslr');
+                    } else {
+                      productStore.setCameraSystem('mirrorless');
+                    }
+                    if (option === 'Macro lens') {
+                      productStore.setLens('100mm Macro Prime');
+                    } else if (option === 'Telephoto compression') {
+                      productStore.setLens('70-200mm Compression');
+                    }
                     markSectionTouched('product-camera');
                   }}
                   selected={values.productCameraSystem === option}
