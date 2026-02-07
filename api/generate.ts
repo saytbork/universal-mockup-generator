@@ -61,7 +61,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const generateWithRetry = async () => {
-      const maxAttempts = 2;
+      const maxAttempts = 4;
       for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
         try {
           return await ai.models.generateContent({
@@ -82,13 +82,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           });
         } catch (error) {
           const message = String((error as any)?.message ?? error);
+          const normalized = message.toLowerCase();
+          const statusCode = Number((error as any)?.status || (error as any)?.code || 0);
           const shouldRetry =
             attempt < maxAttempts &&
             (message.includes('Failed to fetch') ||
               message.includes('ERR_CONNECTION_CLOSED') ||
-              message.includes('NetworkError'));
+              message.includes('NetworkError') ||
+              normalized.includes('internal error encountered') ||
+              normalized.includes('"status":"internal"') ||
+              normalized.includes('"code":500') ||
+              normalized.includes('service unavailable') ||
+              normalized.includes('deadline exceeded') ||
+              statusCode === 500 ||
+              statusCode === 503 ||
+              statusCode === 504);
           if (!shouldRetry) throw error;
-          await new Promise(resolve => setTimeout(resolve, 400 * attempt));
+          await new Promise(resolve => setTimeout(resolve, 600 * attempt * attempt));
         }
       }
       throw new Error('Image generation failed after retries.');
