@@ -5573,6 +5573,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     } else {
                       productStore.setCameraSystem('mirrorless');
                     }
+                    productStore.setCameraUiLabels({ cameraSystem: option });
                     if (option === 'Macro lens') {
                       productStore.setLens('100mm Macro Prime');
                     } else if (option === 'Telephoto compression') {
@@ -5621,6 +5622,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       };
                       const mapped = angleMap[option];
                       if (mapped) productStore.setAngle(mapped);
+                      productStore.setCameraUiLabels({ angle: option });
                       markSectionTouched('product-camera');
                     }}
                     selected={values.productCameraAngle === option}
@@ -5650,6 +5652,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       };
                       const mapped = distanceMap[option];
                       if (mapped) productStore.setDistance(mapped);
+                      productStore.setCameraUiLabels({ distance: option });
                       markSectionTouched('product-camera');
                     }}
                     selected={values.productCameraDistance === option}
@@ -5674,6 +5677,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     onClick={() => {
                       updateValue('productCameraRotation', option);
                       productStore.setRotation(option === 0 ? 'none' : 'slight');
+                      productStore.setCameraUiLabels({ rotation: `${option}°` });
                       markSectionTouched('product-camera');
                     }}
                     selected={values.productCameraRotation === option}
@@ -5705,6 +5709,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       } else if (option === 'Centered hero') {
                         productStore.setFraming('centered');
                       }
+                      productStore.setCameraUiLabels({ framing: option });
                       markSectionTouched('product-camera');
                     }}
                     selected={values.productFramingGuide === option}

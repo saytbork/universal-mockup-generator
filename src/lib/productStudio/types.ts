@@ -661,6 +661,11 @@ export type ProductStudioState = {
     distance: CameraDistance;
     rotation: CameraRotation;
     framing: CameraFraming;
+    cameraUiSystemLabel: string;
+    cameraUiAngleLabel: string;
+    cameraUiDistanceLabel: string;
+    cameraUiRotationLabel: string;
+    cameraUiFramingLabel: string;
 
     // ========================================================================
     // 7️⃣ OUTPUT & EXPORT

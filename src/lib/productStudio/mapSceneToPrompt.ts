@@ -359,41 +359,85 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       .trim();
   };
 
-  const mapCameraSystemToPrompt = (system: ProductStudioState['cameraSystem']): string => {
+  const uiSystemLabel =
+    String((state as any).cameraUiSystemLabel || '').trim() ||
+    (state.cameraSystem === 'mirrorless' ? 'Mirrorless' : 'DSLR / mirrorless');
+  const uiAngleLabel =
+    String((state as any).cameraUiAngleLabel || '').trim() ||
+    (state.angle === 'top' ? 'Top-down flat lay' : state.angle === 'detail' ? 'Detail close-up' : state.angle === 'front' ? 'Eye level product' : '45° hero');
+  const uiDistanceLabel =
+    String((state as any).cameraUiDistanceLabel || '').trim() ||
+    (state.distance === 'macro' ? 'Macro' : state.distance === 'close' ? 'Tight' : 'Standard');
+  const uiRotationLabel =
+    String((state as any).cameraUiRotationLabel || '').trim() ||
+    (state.rotation === 'slight' ? '5°' : '0°');
+  const uiFramingLabel =
+    String((state as any).cameraUiFramingLabel || '').trim() ||
+    (state.framing === 'rule-of-thirds' ? 'Rule of thirds' : 'Centered hero');
+
+  const mapCameraSystemToPrompt = (system: ProductStudioState['cameraSystem'], systemLabel: string): string => {
+    const normalized = systemLabel.toLowerCase();
+    if (normalized.includes('macro lens')) return 'professional macro lens camera setup';
+    if (normalized.includes('telephoto')) return 'professional telephoto compression camera setup';
     if (system === 'mirrorless') return 'professional mirrorless camera';
-    return 'professional DSLR camera';
+    return 'professional DSLR / mirrorless camera';
   };
 
-  const mapAngleToPrompt = (angle: ProductStudioState['angle']): string => {
-    const map: Record<ProductStudioState['angle'], string> = {
-      front: 'eye-level',
-      '45': 'three-quarter angle',
+  const mapAngleToPrompt = (angle: ProductStudioState['angle'], angleLabel: string): string => {
+    const byLabel: Record<string, string> = {
+      'Eye level product': 'eye-level product view',
+      '45° hero': '45-degree hero angle',
+      'Top-down flat lay': 'top-down flat lay',
+      'Low angle power': 'low angle hero view',
+      'High angle overview': 'high angle overview',
+      'Detail close-up': 'detail close-up',
+    };
+    if (byLabel[angleLabel]) return byLabel[angleLabel];
+    const byState: Record<ProductStudioState['angle'], string> = {
+      front: 'eye-level product view',
+      '45': '45-degree hero angle',
       top: 'top-down flat lay',
       detail: 'detail close-up',
     };
-    return map[angle] || 'three-quarter angle';
+    return byState[angle] || '45-degree hero angle';
   };
 
-  const mapDistanceToPrompt = (distance: ProductStudioState['distance']): string => {
-    const map: Record<ProductStudioState['distance'], string> = {
-      macro: 'tight hero crop',
-      close: 'close framing',
-      medium: 'medium distance',
+  const mapDistanceToPrompt = (distance: ProductStudioState['distance'], distanceLabel: string): string => {
+    const byLabel: Record<string, string> = {
+      Wide: 'wide framing',
+      Standard: 'standard framing',
+      Tight: 'tight hero crop',
+      Macro: 'macro close-up',
     };
-    return map[distance] || 'medium distance';
+    if (byLabel[distanceLabel]) return byLabel[distanceLabel];
+    const byState: Record<ProductStudioState['distance'], string> = {
+      macro: 'macro close-up',
+      close: 'tight hero crop',
+      medium: 'standard framing',
+    };
+    return byState[distance] || 'standard framing';
   };
 
-  const mapFramingToPrompt = (framing: ProductStudioState['framing']): string => {
-    const map: Record<ProductStudioState['framing'], string> = {
+  const mapFramingToPrompt = (framing: ProductStudioState['framing'], framingLabel: string): string => {
+    const byLabel: Record<string, string> = {
+      'Centered hero': 'centered hero composition',
+      'Rule of thirds': 'rule-of-thirds composition',
+      'Left aligned + negative space': 'left-aligned composition with negative space',
+      'Right aligned + negative space': 'right-aligned composition with negative space',
+      'Grid-ready': 'grid-ready composition',
+    };
+    if (byLabel[framingLabel]) return byLabel[framingLabel];
+    const byState: Record<ProductStudioState['framing'], string> = {
       centered: 'centered hero composition',
       'rule-of-thirds': 'rule-of-thirds composition',
     };
-    return map[framing] || 'centered hero composition';
+    return byState[framing] || 'centered hero composition';
   };
 
-  const mapRotationToPrompt = (rotation: ProductStudioState['rotation']): string => {
-    if (rotation === 'slight') return '5-10 degrees';
-    return '0 degrees';
+  const mapRotationToPrompt = (rotation: ProductStudioState['rotation'], rotationLabel: string): string => {
+    if (rotationLabel) return rotationLabel.replace(/\s+/g, '').endsWith('°') ? rotationLabel : `${rotationLabel}°`;
+    if (rotation === 'slight') return '5°';
+    return '0°';
   };
 
   // CRITICAL: Hero Landing Page gets exclusive sceneType routing in pure studio only.
@@ -640,6 +684,15 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     ].filter(Boolean).join(' ')
     : '';
 
+  const cameraControlsTraceText = [
+    'Camera controls selected:',
+    `system=${uiSystemLabel};`,
+    `angle=${uiAngleLabel};`,
+    `distance=${uiDistanceLabel};`,
+    `rotation=${uiRotationLabel};`,
+    `framing=${uiFramingLabel}.`,
+  ].join(' ');
+
   const parts = [
     buildBaseContext({ allowStudio: mode === 'ACRYLIC_BLOCKS', qualityProfile: state.qualityProfile }),
     photoModeEnvironmentAdaptationText,
@@ -654,11 +707,12 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     buildCamera(mode, randomizer, {
       qualityProfile: state.qualityProfile,
       ...(state.lens ? { forceLens: state.lens } : {}),
-      forceCameraSystem: mapCameraSystemToPrompt(state.cameraSystem),
-      forceAngle: mapAngleToPrompt(state.angle),
-      forceDistance: mapDistanceToPrompt(state.distance),
-      forceComposition: mapFramingToPrompt(state.framing),
-      forceRotation: mapRotationToPrompt(state.rotation),
+      forceCameraSystem: mapCameraSystemToPrompt(state.cameraSystem, uiSystemLabel),
+      forceAngle: mapAngleToPrompt(state.angle, uiAngleLabel),
+      forceDistance: mapDistanceToPrompt(state.distance, uiDistanceLabel),
+      forceComposition: mapFramingToPrompt(state.framing, uiFramingLabel),
+      forceRotation: mapRotationToPrompt(state.rotation, uiRotationLabel),
+      override: { text: cameraControlsTraceText },
     }),
     finishOverrideText,
     creativityOverrideText,

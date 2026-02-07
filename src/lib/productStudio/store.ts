@@ -621,6 +621,11 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     distance: 'medium',
     rotation: 'none',
     framing: 'centered',
+    cameraUiSystemLabel: 'DSLR / mirrorless',
+    cameraUiAngleLabel: '45° hero',
+    cameraUiDistanceLabel: 'Standard',
+    cameraUiRotationLabel: '0°',
+    cameraUiFramingLabel: 'Centered hero',
 
     // 7️⃣ OUTPUT & EXPORT
     aspectRatio: '4:3',
@@ -757,6 +762,13 @@ type ProductStudioActions = {
     setDistance: (distance: ProductStudioState['distance']) => void;
     setRotation: (rotation: ProductStudioState['rotation']) => void;
     setFraming: (framing: ProductStudioState['framing']) => void;
+    setCameraUiLabels: (labels: Partial<{
+        cameraSystem: string;
+        angle: string;
+        distance: string;
+        rotation: string;
+        framing: string;
+    }>) => void;
 
     // Environment — CANONICAL SETTER
     /** Only use this for environment changes */
@@ -1259,6 +1271,14 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             }
             return next;
         }),
+    setCameraUiLabels: (labels) =>
+        set((state) => ({
+            cameraUiSystemLabel: labels.cameraSystem ?? state.cameraUiSystemLabel,
+            cameraUiAngleLabel: labels.angle ?? state.cameraUiAngleLabel,
+            cameraUiDistanceLabel: labels.distance ?? state.cameraUiDistanceLabel,
+            cameraUiRotationLabel: labels.rotation ?? state.cameraUiRotationLabel,
+            cameraUiFramingLabel: labels.framing ?? state.cameraUiFramingLabel,
+        })),
 
     // Environment — CANONICAL SETTER
     setEnvironmentContext: (ctx) => {
