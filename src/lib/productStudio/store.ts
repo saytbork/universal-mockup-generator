@@ -309,6 +309,21 @@ function reinterpretMacroInteraction(state: ProductStudioState): ProductStudioSt
     return state.distance === 'macro' ? 'none' : 'passive-presence';
 }
 
+function getAllowedMotionsForPhotoMode(photoMode: PhotoMode): ProductStateMotion[] | null {
+    // Keep this aligned with promptEngine/photoModeResolver.ts compatibility map.
+    if (photoMode === 'Hero Landing Page') return ['static', 'opened'];
+    if (photoMode === 'Splash Shot') return ['dispensed', 'pouring'];
+    if (photoMode === 'Foam & Texture') return ['static', 'opened'];
+    if (photoMode === 'Dark Premium Studio') return ['static', 'opened'];
+    return null;
+}
+
+function getFallbackMotionForPhotoMode(photoMode: PhotoMode): ProductStateMotion {
+    const allowed = getAllowedMotionsForPhotoMode(photoMode);
+    if (!allowed || allowed.length === 0) return 'static';
+    return allowed.includes('static') ? 'static' : allowed[0];
+}
+
 function isTelephotoCompressionLens(lens: string): boolean {
     return /\bcompression\b/i.test(lens) || /\b70-200mm\b/i.test(lens);
 }
@@ -1632,7 +1647,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 Object.assign(notes, withInterpretationNote(state, 'placement', INTERPRETATION_MESSAGES.photoModeForcesInteraction));
             }
 
-            if (resolvedInteraction !== 'none' && resolvedPlacement !== 'held' && resolvedPlacement !== 'supported') {
+            if (interactionNeedsHands(resolvedInteraction) && resolvedPlacement !== 'held' && resolvedPlacement !== 'supported') {
                 resolvedPlacement = 'held';
             }
 
@@ -1651,6 +1666,17 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 interaction: resolvedInteraction,
                 ...notes,
             };
+
+            // Keep motion coherent with photo mode compatibility matrix.
+            const allowedMotions = getAllowedMotionsForPhotoMode(resolvedMode);
+            if (allowedMotions && !allowedMotions.includes(state.stateMotion)) {
+                common.stateMotion = getFallbackMotionForPhotoMode(resolvedMode);
+                common.definition = applyCanonicalPhysicalForMotion(
+                    state.definition,
+                    common.stateMotion
+                );
+                Object.assign(common, withInterpretationNote(state, 'stateMotion', 'Photo Mode requires a different product motion. Motion was adjusted automatically.'));
+            }
 
             if (resolvedMode === 'Hero Landing Page' && !shouldUseEnvironment) {
                 const merged = {
@@ -1868,7 +1894,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 definition: applyCanonicalPhysicalForMotion(state.definition, state.stateMotion),
             };
 
-            if (effectiveInteraction !== 'none') {
+            if (interactionNeedsHands(effectiveInteraction)) {
                 updates.placement = 'held';
             }
 
@@ -1876,18 +1902,32 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
         }),
     setStateMotion: (motion) =>
         set((state) => {
+            const allowedMotions = getAllowedMotionsForPhotoMode(state.photoMode);
+            const effectiveMotion =
+                allowedMotions && !allowedMotions.includes(motion)
+                    ? getFallbackMotionForPhotoMode(state.photoMode)
+                    : motion;
             const next: Partial<ProductStudioState> = {
-                stateMotion: motion,
-                definition: applyCanonicalPhysicalForMotion(state.definition, motion),
+                stateMotion: effectiveMotion,
+                definition: applyCanonicalPhysicalForMotion(state.definition, effectiveMotion),
             };
-            if (motion === 'opened' && state.shadow === 'floating') {
+            if (effectiveMotion === 'opened' && state.shadow === 'floating') {
                 next.shadow = 'soft-drop';
                 Object.assign(next, withInterpretationNote(state, 'stateMotion', INTERPRETATION_MESSAGES.openedCannotFloat));
+            }
+            if (effectiveMotion !== motion) {
+                Object.assign(next, withInterpretationNote(state, 'stateMotion', 'Selected Product State & Motion is incompatible with current Photo Mode. Motion was adjusted automatically.'));
             }
             return next;
         }),
     setProMode: (enabled) => set({ proMode: enabled }),
-    setViewpoint: (viewpoint) => set({ viewpoint }),
+    setViewpoint: (viewpoint) =>
+        set((state) => {
+            if (state.photoMode === 'Ingredient Flat Lay') {
+                return { viewpoint: 'top-down' };
+            }
+            return { viewpoint };
+        }),
     setPlacement: (placement) =>
         set((state) => {
             const requiredPlacement = getPhotoModeRequiredPlacement(state.photoMode);

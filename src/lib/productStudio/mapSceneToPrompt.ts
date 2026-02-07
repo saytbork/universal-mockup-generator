@@ -156,6 +156,18 @@ function sanitizePhotoModeTextForEnvironment(text: string): string {
   return next.replace(/\s+/g, ' ').replace(/\s+,/g, ',').trim();
 }
 
+function sanitizeDynamicSettingText(raw: string): string {
+  return String(raw || '')
+    .replace(/\bcreator\b/gi, 'premium')
+    .replace(/\bugc\b/gi, 'premium')
+    .replace(/\bidentity\b/gi, 'style')
+    .replace(/\binfluencer\b/gi, 'premium')
+    .replace(/\blifestyle\b/gi, 'environment')
+    .replace(/\bphone\b/gi, 'camera')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export type ScenePromptResult = {
   prompt: string;
   mode: PhotoModeKey;
@@ -263,7 +275,7 @@ function extractModeSpecificDynamicSettings(state: ProductStudioState): Record<s
   const dynamic: Record<string, string> = {};
 
   const add = (key: string, value: unknown) => {
-    const v = String(value ?? '').trim();
+    const v = sanitizeDynamicSettingText(String(value ?? '').trim());
     if (!v) return;
     dynamic[key] = v;
   };
@@ -496,6 +508,13 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     const modeSpecific = extractModeSpecificDynamicSettings(state) || {};
     const uiDynamicRaw = state.photoModeConfig.dynamic?.[state.photoMode as PhotoMode] || {};
     const uiDynamic = { ...uiDynamicRaw } as Record<string, string>;
+    Object.keys(uiDynamic).forEach((key) => {
+      const safeKey = sanitizeDynamicSettingText(key);
+      const safeValue = sanitizeDynamicSettingText(uiDynamic[key]);
+      delete uiDynamic[key];
+      if (!safeKey || !safeValue) return;
+      uiDynamic[safeKey] = safeValue;
+    });
     if (state.photoMode === 'Ingredient Stack' && 'layoutStyle' in uiDynamic) {
       // Legacy duplicate: "Layout Style" must not coexist with the "Stack Style" control.
       delete (uiDynamic as any).layoutStyle;
@@ -512,6 +531,14 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     ingredientLayout: state.ingredientLayout,
     dynamicSettings,
     productType: state.definition.type as any,
+    productState:
+      state.stateMotion === 'opened'
+        ? 'Opened'
+        : state.stateMotion === 'dispensed'
+          ? 'Dispensing'
+          : state.stateMotion === 'pouring' || state.stateMotion === 'falling' || state.stateMotion === 'spilled'
+            ? 'Pouring'
+            : 'Static',
     ...(ingredientStackBgOptions ?? {}),
   });
 
@@ -582,12 +609,6 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
         scene = buildUgcPremiumSimulationScene(sceneInput);
         break;
       case 'INGREDIENT_STACK':
-        // CRITICAL: Dynamic user ingredients must not use stack scene builder
-        if (state.props && state.props.trim().length > 0) {
-          // downgrade to neutral surround behavior
-          scene = buildHeroNeutralScene(sceneInput);
-          break;
-        }
         scene = buildIngredientStackScene(sceneInput);
         break;
       case 'INGREDIENT_FLAT_LAY':
@@ -707,13 +728,19 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     return map[viewpoint] || '';
   })();
 
+  const effectiveAngleLabel = mode === 'INGREDIENT_FLAT_LAY' ? 'Top-down flat lay' : uiAngleLabel;
+  const effectiveFramingLabel = mode === 'INGREDIENT_FLAT_LAY' ? 'Grid-ready' : uiFramingLabel;
+  const effectiveDistanceLabel = mode === 'INGREDIENT_FLAT_LAY'
+    ? (uiDistanceLabel === 'Macro' ? 'Macro' : 'Standard')
+    : uiDistanceLabel;
+
   const cameraControlsTraceText = [
     'Camera controls selected:',
     `system=${uiSystemLabel};`,
-    `angle=${uiAngleLabel};`,
-    `distance=${uiDistanceLabel};`,
+    `angle=${effectiveAngleLabel};`,
+    `distance=${effectiveDistanceLabel};`,
     `rotation=${uiRotationLabel};`,
-    `framing=${uiFramingLabel}.`,
+    `framing=${effectiveFramingLabel}.`,
   ].join(' ');
 
   const forcedCameraAngle =

@@ -249,7 +249,7 @@ const PHOTO_MODE_CONTROL_FLAGS: Record<string, PhotoModeControlFlags> = {
     'Creator Premium Simulation': {
         propsAllowed: false,
         environmentAllowed: false,
-        humansAllowed: false,
+        humansAllowed: true,
         motionAllowed: false,
         bundlesAllowed: true,
         cameraLocked: false
@@ -257,7 +257,7 @@ const PHOTO_MODE_CONTROL_FLAGS: Record<string, PhotoModeControlFlags> = {
     'UGC Premium Simulation': {
         propsAllowed: false,
         environmentAllowed: false,
-        humansAllowed: false,
+        humansAllowed: true,
         motionAllowed: false,
         bundlesAllowed: true,
         cameraLocked: false
