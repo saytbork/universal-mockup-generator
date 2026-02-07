@@ -110,7 +110,7 @@ function buildEnvironmentScene(state: ProductStudioState, randomizer: ReturnType
   })();
 
   const environmentAccents = {
-    kitchen: ['minimal glass accent near the edge of frame', 'clean acrylic riser nearby', 'soft morning reflections on stone'],
+    kitchen: ['minimal glass accent near the edge of frame', 'soft morning reflections on stone', 'subtle countertop texture outside focus plane'],
     bathroom: ['minimal glass accent in background', 'subtle steam haze near tiles', 'clean stone accent partially visible'],
     workspace: ['minimal notebook corner peeking in', 'soft desk lamp glow from side', 'muted stationery kept out of focus'],
     'cgmp-facility': ['stainless steel highlights and clean machinery surfaces', 'guide rails and clean line geometry', 'industrial clean-room reflections'],
@@ -121,7 +121,14 @@ function buildEnvironmentScene(state: ProductStudioState, randomizer: ReturnType
   const accentPool =
     (environmentAccents as any)[macro] ||
     ['subtle background context out of focus', 'realistic contact shadows and reflections', 'clean negative space preserved'];
-  const accent = randomizer.pick(accentPool);
+  const blockedAccentTerms =
+    state.photoMode !== 'Acrylic Blocks'
+      ? ['acrylic', 'riser', 'pedestal']
+      : [];
+  const filteredAccents = accentPool.filter((item: string) =>
+    blockedAccentTerms.every((term) => !item.toLowerCase().includes(term))
+  );
+  const accent = randomizer.pick(filteredAccents.length > 0 ? filteredAccents : accentPool);
 
   const parts: string[] = [];
   parts.push(`ENVIRONMENT (MANDATORY): macro=${macro}${micro ? `, micro=${micro}` : ''}.`);
@@ -168,6 +175,16 @@ function sanitizeDynamicSettingText(raw: string): string {
     .trim();
 }
 
+function normalizePromptText(prompt: string): string {
+  return String(prompt || '')
+    .replace(/,\s*\./g, '.')
+    .replace(/\.\s*,/g, '. ')
+    .replace(/,\s*,/g, ', ')
+    .replace(/\s+/g, ' ')
+    .replace(/\s+,/g, ',')
+    .trim();
+}
+
 export type ScenePromptResult = {
   prompt: string;
   mode: PhotoModeKey;
@@ -203,9 +220,9 @@ const PHOTO_MODE_MAP: Record<string, PhotoModeKey> = {
 };
 
 const SECONDARY_PROPS_BY_MODE: Partial<Record<PhotoModeKey, string[]>> = {
-  HERO_NEUTRAL: ['minimal glass accent', 'clean acrylic riser', 'small stone block'],
-  COLOR_POP_HERO: ['geometric color blocks', 'polished acrylic accent', 'abstract color panel'],
-  BRAND_CAMPAIGN: ['architectural hero pedestal', 'luxury monolithic block', 'high-end reflective accent'],
+  HERO_NEUTRAL: ['minimal glass accent', 'small stone block', 'clean neutral block'],
+  COLOR_POP_HERO: ['geometric color blocks', 'abstract color panel', 'clean reflective panel'],
+  BRAND_CAMPAIGN: ['luxury monolithic block', 'high-end reflective accent', 'architectural stone plinth'],
   UGC_PREMIUM_SIM: ['subtle realistic texture cue', 'controlled asymmetrical accent', 'minimal tactile realism prop'],
   INGREDIENT_STACK: [],
   INGREDIENT_FLAT_LAY: [],
@@ -582,7 +599,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     ].filter(Boolean);
 
     return {
-      prompt: parts.join(' '),
+      prompt: normalizePromptText(parts.join(' ')),
       mode: 'HERO_NEUTRAL',
       splashMode: undefined,
       randomSeed: 'hero-locked',
@@ -786,7 +803,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   ].filter(Boolean);
 
   return {
-    prompt: parts.join(' '),
+    prompt: normalizePromptText(parts.join(' ')),
     mode,
     splashMode,
     randomSeed: randomizer.seed,
