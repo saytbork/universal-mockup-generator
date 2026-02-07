@@ -159,8 +159,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       <p style="font-size: 13px; color:#666;">
         If you did not request this email, you can safely ignore it.<br>
-        Need help? Contact our support at
-        <a href="mailto:${process.env.SUPPORT_EMAIL}" style="color:#6D4AFF;">${process.env.SUPPORT_EMAIL}</a>.
+        Need help? Contact support from the in-app chat.
       </p>
     </div>
   `,

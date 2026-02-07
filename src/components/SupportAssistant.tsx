@@ -6,10 +6,10 @@ type ChatMessage = {
   content: string;
 };
 
-const WIDGET_ENABLED = String(import.meta.env.VITE_SUPPORT_WIDGET_ENABLED || '').toLowerCase() === 'true';
 const AI_ENABLED = String(import.meta.env.VITE_SUPPORT_AI_ENABLED || '').toLowerCase() === 'true';
+const WIDGET_ENABLED_RAW = String(import.meta.env.VITE_SUPPORT_WIDGET_ENABLED ?? '').trim().toLowerCase();
 const WIDGET_ENABLED_BY_DEFAULT =
-  String(import.meta.env.VITE_SUPPORT_WIDGET_ENABLED ?? 'true').toLowerCase() !== 'false';
+  WIDGET_ENABLED_RAW === '' || WIDGET_ENABLED_RAW === 'true' || WIDGET_ENABLED_RAW === '1' || WIDGET_ENABLED_RAW === 'yes';
 
 const trimMessages = (messages: ChatMessage[], max = 12) =>
   messages.length > max ? messages.slice(messages.length - max) : messages;
@@ -310,14 +310,22 @@ export default function SupportAssistant({ email }: { email?: string }) {
         return;
       }
 
-      const res = await fetch('/api/support/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: text,
-          path: window.location.pathname,
-        }),
-      });
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 8000);
+      let res: Response;
+      try {
+        res = await fetch('/api/support/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            message: text,
+            path: window.location.pathname,
+          }),
+        });
+      } finally {
+        window.clearTimeout(timeout);
+      }
 
       const data = (await res.json().catch(() => ({}))) as {
         reply?: string;
