@@ -435,6 +435,13 @@ function buildIngredientModifier(
 
         return `INGREDIENTS: ${suggestedProps}. ${layoutHints[ingredientLayout || 'auto']}`;
     }
+    if (photoMode === 'Ingredient Flat Lay' && !suggestedProps) {
+        return [
+            'FLAT LAY STRUCTURE: top-down controlled layout on a clean real surface.',
+            'No floating objects.',
+            'Maintain clear product hierarchy and label readability.'
+        ].join(' ');
+    }
     return '';
 }
 
@@ -456,10 +463,8 @@ function validatePhotoModeCompatibility(
         }
     }
 
-    // Ingredient Flat Lay also requires ingredients
-    if (photoMode === 'Ingredient Flat Lay' && !options.suggestedProps) {
-        errors.push('BLOCKING: Ingredient Flat Lay requires ingredients. Execution blocked.');
-    }
+    // Ingredient Flat Lay can run without explicit ingredient list.
+    // If no ingredients are provided, the resolver injects flat-lay structure cues.
 
     // Check State compatibility
     const stateCompat = PHOTO_MODE_STATE_COMPATIBILITY[photoMode];
