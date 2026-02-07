@@ -23,6 +23,17 @@ export function buildLighting(mode: PhotoModeKey, randomizer: Randomizer, option
     }
     return fixed;
   }
+  if (mode === 'INGREDIENT_FLAT_LAY') {
+    const fixed = [
+      'Clean overhead lighting optimized for flat lay separation.',
+      'Soft top light with controlled shadow edges to preserve ingredient spacing.',
+      'No dramatic side-rim mood and no heavy cinematic falloff.'
+    ].join(' ');
+    if (options.override?.text) {
+      return [fixed, options.override.text].filter(Boolean).join(' ');
+    }
+    return fixed;
+  }
 
   const base = [
     'Commercial lighting design with deliberate key/fill hierarchy and physically correct falloff.',
@@ -49,6 +60,10 @@ export function buildLighting(mode: PhotoModeKey, randomizer: Randomizer, option
     INGREDIENT_STACK: [
       'Soft directional light that reveals ingredient textures.',
       'Natural shadow depth with subtle rim separation.'
+    ],
+    INGREDIENT_FLAT_LAY: [
+      'Overhead soft light with clean separation between ingredients and product.',
+      'Minimal, tidy shadows that keep the flat-lay grid readable.'
     ],
     ACRYLIC_BLOCKS: [
       'Controlled studio lighting with soft reflections on acrylic edges.',

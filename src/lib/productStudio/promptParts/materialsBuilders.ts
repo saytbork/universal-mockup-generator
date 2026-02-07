@@ -9,6 +9,13 @@ export function buildMaterials(mode: PhotoModeKey, randomizer: Randomizer): stri
       'No narrative material, no wood, no marble, no textured editorial backgrounds.'
     ].join(' ');
   }
+  if (mode === 'INGREDIENT_FLAT_LAY') {
+    return [
+      'Flat-lay support surface only: clean paper, stone, or acrylic plane with real texture.',
+      'Ingredients and product are arranged on a single coherent overhead plane.',
+      'No pedestals, risers, or depth-stacked architectural props.'
+    ].join(' ');
+  }
 
   const base = 'Premium real-world materials with true scale, tactile realism, and controlled surface behavior.';
 
@@ -32,6 +39,10 @@ export function buildMaterials(mode: PhotoModeKey, randomizer: Randomizer): stri
     INGREDIENT_STACK: [
       'Fresh organic ingredients with natural moisture and realistic texture.',
       'Botanical elements with real scale and surface contact.'
+    ],
+    INGREDIENT_FLAT_LAY: [
+      'Clean overhead-friendly surfaces with subtle tactile texture and controlled reflectance.',
+      'Ingredient elements remain physically grounded and evenly spaced on one plane.'
     ],
     ACRYLIC_BLOCKS: [
       'Real acrylic with visible thickness, refraction, and edge highlights.',

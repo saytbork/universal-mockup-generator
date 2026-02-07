@@ -62,19 +62,46 @@ export type CameraBuildOptions = {
 };
 
 export function buildCamera(mode: PhotoModeKey, randomizer: Randomizer, options: CameraBuildOptions = {}): string {
-    if (mode === 'INGREDIENT_STACK') {
-      const base = [
-        'CAMERA:',
-        'Straight-on or slight elevation (10–15°).',
-        'Vertical or centered composition.',
-        'Ingredients arranged with deliberate spacing around the product.',
-        'No top-down angle.'
-      ];
-      if (options.override?.text) {
-        base.push(options.override.text);
-      }
-      return base.join(' ');
+  if (mode === 'INGREDIENT_STACK') {
+    const base = [
+      'CAMERA:',
+      'Straight-on or slight elevation (10–15°).',
+      'Vertical or centered composition.',
+      'Ingredients arranged with deliberate spacing around the product.',
+      'No top-down angle.'
+    ];
+    if (options.override?.text) {
+      base.push(options.override.text);
     }
+    return base.join(' ');
+  }
+
+  if (mode === 'INGREDIENT_FLAT_LAY') {
+    const distance = options.forceDistance?.trim() ? options.forceDistance.trim() : 'standard framing';
+    const lens = options.forceLens?.trim() ? options.forceLens.trim() : '50mm';
+    const composition = options.forceComposition?.trim() ? options.forceComposition.trim() : 'grid-ready composition';
+    const cameraSystem = options.forceCameraSystem?.trim();
+    const rotation = options.forceRotation?.trim();
+    const base = [
+      'CAMERA:',
+      ...(cameraSystem ? [`Camera system: ${cameraSystem}.`] : []),
+      'Camera angle: top-down flat lay.',
+      `Framing distance: ${distance}.`,
+      `Lens selection: ${lens}.`,
+      ...(rotation ? [`Rotation: ${rotation}.`] : []),
+      `${composition}.`,
+      'Strict overhead framing; avoid eye-level, low-angle, or hero 45-degree viewpoints.',
+      options.qualityProfile === 'ecommerce-conversion'
+        ? 'Camera priority: top-down conversion clarity with clean label legibility.'
+        : options.qualityProfile === 'editorial'
+          ? 'Camera priority: disciplined overhead editorial layout with controlled spacing rhythm.'
+          : 'Camera priority: premium overhead campaign composition with precise balance.',
+    ];
+    if (options.override?.text) {
+      base.push(options.override.text);
+    }
+    return base.join(' ');
+  }
 
   const angle = options.forceAngle?.trim() ? options.forceAngle.trim() : randomizer.pick(ANGLES);
   const distancePool = MODE_DISTANCE_OVERRIDES[mode] ?? DISTANCES;

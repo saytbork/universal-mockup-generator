@@ -167,6 +167,7 @@ const PHOTO_MODE_MAP: Record<string, PhotoModeKey> = {
   'Hero Landing Page': 'HERO_NEUTRAL',
   'Color Pop Hero': 'COLOR_POP_HERO',
   'Ingredient Stack': 'INGREDIENT_STACK',
+  'Ingredient Flat Lay': 'INGREDIENT_FLAT_LAY',
   'Acrylic Blocks': 'ACRYLIC_BLOCKS',
   'Splash Shot': 'SPLASH_SHOT',
   'Foam & Texture': 'FOAM_AND_TEXTURE',
@@ -174,7 +175,6 @@ const PHOTO_MODE_MAP: Record<string, PhotoModeKey> = {
   'Clinical Lab Counter': 'CLINICAL_LAB_COUNTER',
   'Golden Mist Aura': 'GOLDEN_MIST_AURA',
   'Candy Gradient Lab': 'CANDY_GRADIENT_LAB',
-  'Ingredient Flat Lay': 'INGREDIENT_STACK',
   'Glass Pedestal Studio': 'HERO_NEUTRAL',
   'Minimal Bathroom Vanity': 'HERO_NEUTRAL',
   'Dark Premium Studio': 'HERO_NEUTRAL',
@@ -196,6 +196,7 @@ const SECONDARY_PROPS_BY_MODE: Partial<Record<PhotoModeKey, string[]>> = {
   BRAND_CAMPAIGN: ['architectural hero pedestal', 'luxury monolithic block', 'high-end reflective accent'],
   UGC_PREMIUM_SIM: ['subtle realistic texture cue', 'controlled asymmetrical accent', 'minimal tactile realism prop'],
   INGREDIENT_STACK: [],
+  INGREDIENT_FLAT_LAY: [],
   ACRYLIC_BLOCKS: ['additional acrylic risers', 'prismatic edge accents'],
   SPLASH_SHOT: ['minimal liquid surface ripples', 'controlled droplets around the base'],
   FOAM_AND_TEXTURE: ['controlled foam clusters', 'gel ribbons', 'micro-bubbles'],
@@ -453,9 +454,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     String(state.environmentContext.macro || '').trim().toLowerCase() !== 'studio';
   const heroStudioLocked = isHeroLandingPage && !environmentModeActive;
 
-  // When "Environment" is enabled in the UI, Photo Mode becomes irrelevant (it's hidden).
-  // Force a neutral baseline so lighting/camera/material pools stay coherent, while the scene itself is environment-driven.
-  const mode = environmentModeActive ? 'HERO_NEUTRAL' : normalizePhotoMode(state.photoMode);
+  // Keep the selected Photo Mode active even when Environment is enabled.
+  // Environment should drive the scene context, not erase mode-specific camera/lighting/material logic.
+  const mode = normalizePhotoMode(state.photoMode);
 
   const palette = product?.palette
     ? {
@@ -466,7 +467,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     : undefined;
 
   const ingredientStackBgOptions = (() => {
-    if (state.photoMode !== 'Ingredient Stack') return null;
+    if (state.photoMode !== 'Ingredient Stack' && state.photoMode !== 'Ingredient Flat Lay') return null;
     const cfg = state.photoModeConfig?.ingredientStack as any;
     if (!cfg?.backgroundEnabled) return null;
 
@@ -589,6 +590,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
         }
         scene = buildIngredientStackScene(sceneInput);
         break;
+      case 'INGREDIENT_FLAT_LAY':
+        scene = buildIngredientStackScene({ ...sceneInput, ingredientLayout: 'top-view' });
+        break;
       case 'ACRYLIC_BLOCKS':
         scene = buildAcrylicBlocksScene(sceneInput);
         break;
@@ -685,6 +689,12 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     : '';
 
   const viewpointDirectiveText = (() => {
+    if (mode === 'INGREDIENT_FLAT_LAY') {
+      return 'VIEWPOINT: Overhead physical vantage from directly above the product plane (flat-lay lock).';
+    }
+    if (mode === 'INGREDIENT_STACK') {
+      return 'VIEWPOINT: Slightly elevated product-level vantage for grounded ingredient depth.';
+    }
     const viewpoint = String((state as any).viewpoint || '').trim().toLowerCase();
     if (!viewpoint) return '';
     const map: Record<string, string> = {
@@ -706,6 +716,19 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     `framing=${uiFramingLabel}.`,
   ].join(' ');
 
+  const forcedCameraAngle =
+    mode === 'INGREDIENT_FLAT_LAY'
+      ? 'top-down flat lay'
+      : mapAngleToPrompt(state.angle, uiAngleLabel);
+  const forcedCameraFraming =
+    mode === 'INGREDIENT_FLAT_LAY'
+      ? 'grid-ready composition'
+      : mapFramingToPrompt(state.framing, uiFramingLabel);
+  const forcedCameraDistance =
+    mode === 'INGREDIENT_FLAT_LAY'
+      ? (uiDistanceLabel === 'Macro' ? 'macro close-up' : 'standard framing')
+      : mapDistanceToPrompt(state.distance, uiDistanceLabel);
+
   const parts = [
     buildBaseContext({ allowStudio: mode === 'ACRYLIC_BLOCKS', qualityProfile: state.qualityProfile }),
     photoModeEnvironmentAdaptationText,
@@ -713,7 +736,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     buildPlacementDirective(state),
     viewpointDirectiveText,
     environmentModeActive ? '' : photoModeResult.modifiers,
-    mode === 'INGREDIENT_STACK' ? '' : buildSecondaryProps(mode, randomizer, state.props),
+    mode === 'INGREDIENT_STACK' || mode === 'INGREDIENT_FLAT_LAY' ? '' : buildSecondaryProps(mode, randomizer, state.props),
     buildLighting(mode, randomizer, {
       qualityProfile: state.qualityProfile,
       ...(lightingOverrideText ? { override: { text: lightingOverrideText } } : {}),
@@ -722,16 +745,16 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       qualityProfile: state.qualityProfile,
       ...(state.lens ? { forceLens: state.lens } : {}),
       forceCameraSystem: mapCameraSystemToPrompt(state.cameraSystem, uiSystemLabel),
-      forceAngle: mapAngleToPrompt(state.angle, uiAngleLabel),
-      forceDistance: mapDistanceToPrompt(state.distance, uiDistanceLabel),
-      forceComposition: mapFramingToPrompt(state.framing, uiFramingLabel),
+      forceAngle: forcedCameraAngle,
+      forceDistance: forcedCameraDistance,
+      forceComposition: forcedCameraFraming,
       forceRotation: mapRotationToPrompt(state.rotation, uiRotationLabel),
       override: { text: cameraControlsTraceText },
     }),
     finishOverrideText,
     creativityOverrideText,
     buildMaterialsWithProfile(mode, randomizer, state.qualityProfile),
-    buildRandomizationRules(mode === 'INGREDIENT_STACK' ? 'ingredientStack' : 'default', state.qualityProfile),
+    buildRandomizationRules(mode === 'INGREDIENT_STACK' || mode === 'INGREDIENT_FLAT_LAY' ? 'ingredientStack' : 'default', state.qualityProfile),
     buildQualityEnforcers(state.qualityProfile),
   ].filter(Boolean);
 

@@ -6,6 +6,7 @@ export type PhotoModeKey =
   | 'BRAND_CAMPAIGN'
   | 'UGC_PREMIUM_SIM'
   | 'INGREDIENT_STACK'
+  | 'INGREDIENT_FLAT_LAY'
   | 'ACRYLIC_BLOCKS'
   | 'SPLASH_SHOT'
   | 'FOAM_AND_TEXTURE'
