@@ -95,6 +95,8 @@ export default function Dashboard() {
   const [planNotice, setPlanNotice] = useState<string | null>(null);
   const [adminSummary, setAdminSummary] = useState<AdminSummary | null>(null);
   const [adminUsers, setAdminUsers] = useState<AdminUserRow[]>([]);
+  const [adminPlanFilter, setAdminPlanFilter] = useState<"all" | "free" | "creator" | "studio" | "other">("all");
+  const [adminSearch, setAdminSearch] = useState("");
 
   useEffect(() => {
     let mounted = true;
@@ -181,6 +183,43 @@ export default function Dashboard() {
       console.error(err);
       setPlanNotice("Could not open checkout. Please try again.");
     }
+  };
+
+  const filteredAdminUsers = useMemo(() => {
+    const q = adminSearch.trim().toLowerCase();
+    return adminUsers.filter((row) => {
+      const plan = String(row.plan || "free").trim().toLowerCase();
+      const planBucket =
+        plan === "free" || plan === "creator" || plan === "studio" ? plan : "other";
+      const matchPlan = adminPlanFilter === "all" || planBucket === adminPlanFilter;
+      const matchSearch = !q || row.email.toLowerCase().includes(q);
+      return matchPlan && matchSearch;
+    });
+  }, [adminUsers, adminPlanFilter, adminSearch]);
+
+  const exportAdminCsv = () => {
+    const headers = ["email", "plan", "remaining_credits", "created_at", "last_login_at"];
+    const lines = filteredAdminUsers.map((row) =>
+      [
+        row.email,
+        row.plan,
+        String(row.remaining_credits ?? 0),
+        row.created_at ? new Date(row.created_at).toISOString() : "",
+        row.last_login_at ? new Date(row.last_login_at).toISOString() : "",
+      ]
+        .map((cell) => `"${String(cell).replace(/"/g, '""')}"`)
+        .join(",")
+    );
+    const csv = [headers.join(","), ...lines].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `users-plans-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   if (loading) {
@@ -408,6 +447,33 @@ export default function Dashboard() {
               </div>
               <span className="text-xs text-gray-500">{adminSummary.total} users</span>
             </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                value={adminPlanFilter}
+                onChange={(e) => setAdminPlanFilter(e.target.value as any)}
+                className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"
+              >
+                <option value="all">All plans</option>
+                <option value="free">Free</option>
+                <option value="creator">Creator</option>
+                <option value="studio">Studio</option>
+                <option value="other">Other</option>
+              </select>
+              <input
+                value={adminSearch}
+                onChange={(e) => setAdminSearch(e.target.value)}
+                placeholder="Search email"
+                className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 min-w-[220px]"
+              />
+              <button
+                type="button"
+                onClick={exportAdminCsv}
+                className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:border-indigo-500 hover:text-indigo-700"
+              >
+                Export CSV
+              </button>
+              <span className="text-xs text-gray-500">{filteredAdminUsers.length} filtered</span>
+            </div>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               {[
                 { label: "Free", value: adminSummary.free },
@@ -434,7 +500,7 @@ export default function Dashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {adminUsers.slice(0, 200).map((row) => (
+                  {filteredAdminUsers.slice(0, 500).map((row) => (
                     <tr key={row.email} className="border-t border-gray-200">
                       <td className="px-3 py-2 text-gray-900">{row.email}</td>
                       <td className="px-3 py-2 text-gray-700">{row.plan}</td>
