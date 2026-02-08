@@ -629,16 +629,16 @@ export class PromptEngine {
 		            const environmentDescriptor = String((options as any).sceneEnvironmentDescriptor || '').trim();
 		            const environmentSetting = String(options.setting || '').trim();
 		            const environmentMicro = String(options.microLocation || '').trim();
-		            const environmentHint =
-		                closeFaceActive || !environmentSetting
-		                    ? ''
-		                    : [
-		                        `Environment: ${environmentSetting}.`,
-		                        environmentMicro && environmentMicro !== environmentSetting ? `Micro-location: ${environmentMicro}.` : '',
-		                        environmentDescriptor
-			                    ]
-			                        .filter(Boolean)
-			                        .join(' ');
+		            const environmentHint = [
+		                environmentSetting ? `Environment: ${environmentSetting}.` : '',
+		                environmentMicro && environmentMicro !== environmentSetting ? `Micro-location: ${environmentMicro}.` : '',
+		                environmentDescriptor,
+		                closeFaceActive
+		                    ? 'Close-face framing rule: keep the selected environment visible only as incidental background cues around the face/product edges (never as a staged hero background).'
+		                    : ''
+		            ]
+		                .filter(Boolean)
+		                .join(' ');
 
 			            const customClothesHint =
 			                closeFaceActive || !options.customClothes?.enabled
