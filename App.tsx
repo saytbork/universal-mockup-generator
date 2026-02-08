@@ -5076,12 +5076,21 @@ If the model attempts to create a scene or environment, override it and force a 
         const requestParts: any[] = [];
         requestParts.push({ text: finalPrompt });
         if (shouldSendProductImage) {
-          for (const product of generationProducts) {
+          const isMultiProductRequest = generationProducts.length > 1;
+          const maxProductRefs = isProductPlacement ? 5 : 4;
+          const totalReferenceBudget = isProductPlacement ? 3_400_000 : 2_800_000;
+          let totalAttachedReferenceBase64 = 0;
+
+          for (const product of generationProducts.slice(0, maxProductRefs)) {
             // Higher-fidelity reference helps avoid warped labels/typography on the product.
             const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
-              maxLongEdge: isProductPlacement ? 3072 : 2048,
-              maxBase64Length: isProductPlacement ? 7_500_000 : 4_000_000,
-              quality: isProductPlacement ? 0.99 : 0.96,
+              maxLongEdge: isProductPlacement
+                ? (isMultiProductRequest ? 1440 : 3072)
+                : (isMultiProductRequest ? 1024 : 2048),
+              maxBase64Length: isProductPlacement
+                ? (isMultiProductRequest ? 900_000 : 7_500_000)
+                : (isMultiProductRequest ? 550_000 : 4_000_000),
+              quality: isMultiProductRequest ? 0.9 : (isProductPlacement ? 0.99 : 0.96),
             });
             // Force reference images to match the selected Output Format aspect ratio.
             // Even with an explicit `aspectRatio` request, some models bias toward the reference image dimensions.
@@ -5089,16 +5098,40 @@ If the model attempts to create a scene or environment, override it and force a 
               `data:${resized.mimeType};base64,${resized.base64}`,
               aspectRatio,
               {
-                maxLongEdge: isProductPlacement ? 3072 : 2048,
-                background: resized.mimeType === 'image/jpeg' ? '#FFFFFF' : null,
-                mimeType: (resized.mimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
-                quality: isProductPlacement ? 0.99 : 0.96,
+                maxLongEdge: isProductPlacement
+                  ? (isMultiProductRequest ? 1440 : 3072)
+                  : (isMultiProductRequest ? 1024 : 2048),
+                background: isMultiProductRequest ? '#FFFFFF' : (resized.mimeType === 'image/jpeg' ? '#FFFFFF' : null),
+                mimeType: (isMultiProductRequest ? 'image/jpeg' : (resized.mimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png')) as 'image/jpeg' | 'image/png',
+                quality: isMultiProductRequest ? 0.9 : (isProductPlacement ? 0.99 : 0.96),
               }
             );
+            let finalReference = normalized;
+
+            // Keep total payload under serverless limits when multiple products are attached.
+            if (isMultiProductRequest) {
+              finalReference = await maybeDownscaleInlineImage(normalized.base64, normalized.mimeType, {
+                maxLongEdge: isProductPlacement ? 1200 : 960,
+                maxBase64Length: isProductPlacement ? 450_000 : 320_000,
+                quality: 0.86,
+              });
+            }
+
+            if (isMultiProductRequest && totalAttachedReferenceBase64 + finalReference.base64.length > totalReferenceBudget) {
+              console.warn('[UGC PAYLOAD] Skipping product reference to stay within payload budget', {
+                productId: product.id,
+                currentTotal: totalAttachedReferenceBase64,
+                candidateSize: finalReference.base64.length,
+                budget: totalReferenceBudget,
+              });
+              continue;
+            }
+
             requestParts.push({
-              inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
+              inlineData: { data: finalReference.base64, mimeType: finalReference.mimeType },
               reference: true,
             });
+            totalAttachedReferenceBase64 += finalReference.base64.length;
           }
         }
         if (shouldIncludeHumanImage) {
@@ -5140,6 +5173,7 @@ If the model attempts to create a scene or environment, override it and force a 
         const payloadLog = {
           isNaturalUgc: naturalMode || rawMode,
           productImageSent: shouldSendProductImage,
+          productImagesAttached: Math.max(0, requestParts.length - 1),
           humanImageSent: shouldIncludeHumanImage && (Boolean(identityInlinePart) || Boolean(modelReferenceFile)),
           partsCount: requestParts.length,
         };
@@ -5183,7 +5217,10 @@ If the model attempts to create a scene or environment, override it and force a 
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          const message = typeof data?.error === 'string' ? data.error : 'Generation failed';
+          const message =
+            response.status === 413
+              ? 'Generation failed: too many/too large product references in one request. Try with fewer products or lower-size images.'
+              : (typeof data?.error === 'string' ? data.error : 'Generation failed');
           if (generationLogId) {
             updateGenerationLog(generationLogId, {
               status: 'http_error',
