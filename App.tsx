@@ -1142,6 +1142,100 @@ const coverCropDataUrlToAspectRatio = async (
   return { base64: base64 ?? '', mimeType: opts.mimeType };
 };
 
+// Preserve full content while filling extra space by extending edge pixels.
+// This avoids black bars and avoids cropping for product studio outputs.
+const extendEdgesToAspectRatio = async (
+  dataUrl: string,
+  targetAspectRatio: string,
+  opts: { maxLongEdge: number; mimeType: 'image/png' | 'image/jpeg'; quality?: number }
+): Promise<{ base64: string; mimeType: string }> => {
+  const parsed = parseAspectRatio(targetAspectRatio);
+  if (!parsed) {
+    const [, base64] = String(dataUrl).split(';base64,');
+    return { base64: base64 ?? '', mimeType: opts.mimeType };
+  }
+
+  const img = await loadImageFromUrl(dataUrl);
+  const imgW = img.naturalWidth;
+  const imgH = img.naturalHeight;
+  if (!imgW || !imgH) {
+    const [, base64] = String(dataUrl).split(';base64,');
+    return { base64: base64 ?? '', mimeType: opts.mimeType };
+  }
+
+  const targetRatio = parsed.w / parsed.h;
+  const imgRatio = imgW / imgH;
+  let canvasW = imgW;
+  let canvasH = imgH;
+  if (imgRatio > targetRatio) {
+    canvasW = imgW;
+    canvasH = Math.round(canvasW / targetRatio);
+  } else {
+    canvasH = imgH;
+    canvasW = Math.round(canvasH * targetRatio);
+  }
+
+  const scale = Math.min(1, opts.maxLongEdge / Math.max(canvasW, canvasH));
+  const outW = Math.max(1, Math.round(canvasW * scale));
+  const outH = Math.max(1, Math.round(canvasH * scale));
+  const drawW = Math.max(1, Math.round(imgW * scale));
+  const drawH = Math.max(1, Math.round(imgH * scale));
+  const x = Math.round((outW - drawW) / 2);
+  const y = Math.round((outH - drawH) / 2);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = outW;
+  canvas.height = outH;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    const [, base64] = String(dataUrl).split(';base64,');
+    return { base64: base64 ?? '', mimeType: opts.mimeType };
+  }
+
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+
+  // Draw center image.
+  ctx.drawImage(img, x, y, drawW, drawH);
+
+  // Fill vertical pads by stretching top/bottom edge rows.
+  if (y > 0) {
+    ctx.drawImage(img, 0, 0, imgW, 1, x, 0, drawW, y);
+    ctx.drawImage(img, 0, imgH - 1, imgW, 1, x, y + drawH, drawW, outH - (y + drawH));
+  }
+
+  // Fill horizontal pads by stretching left/right edge columns.
+  if (x > 0) {
+    ctx.drawImage(img, 0, 0, 1, imgH, 0, y, x, drawH);
+    ctx.drawImage(img, imgW - 1, 0, 1, imgH, x + drawW, y, outW - (x + drawW), drawH);
+  }
+
+  // Fill corners with nearest corner pixel to avoid transparent gaps.
+  if (x > 0 && y > 0) {
+    ctx.drawImage(img, 0, 0, 1, 1, 0, 0, x, y);
+    ctx.drawImage(img, imgW - 1, 0, 1, 1, x + drawW, 0, outW - (x + drawW), y);
+    ctx.drawImage(img, 0, imgH - 1, 1, 1, 0, y + drawH, x, outH - (y + drawH));
+    ctx.drawImage(
+      img,
+      imgW - 1,
+      imgH - 1,
+      1,
+      1,
+      x + drawW,
+      y + drawH,
+      outW - (x + drawW),
+      outH - (y + drawH)
+    );
+  }
+
+  const out =
+    opts.mimeType === 'image/jpeg'
+      ? canvas.toDataURL('image/jpeg', typeof opts.quality === 'number' ? opts.quality : 0.96)
+      : canvas.toDataURL('image/png');
+  const [, base64] = out.split(';base64,');
+  return { base64: base64 ?? '', mimeType: opts.mimeType };
+};
+
 const trimBlackBarsDataUrl = async (
   dataUrl: string,
   opts: { mimeType: 'image/png' | 'image/jpeg'; background: string | null; quality?: number }
@@ -5265,11 +5359,16 @@ If the model attempts to create a scene or environment, override it and force a 
 
         const finalUrl = `data:image/png;base64,${encodedImage}`;
         const cleanedFinalUrl = await trimBlackBarsDataUrl(finalUrl, { mimeType: 'image/png', background: null });
-        const normalizedOutput = await coverCropDataUrlToAspectRatio(cleanedFinalUrl, aspectRatio, {
-          maxLongEdge: 4096,
-          background: null,
-          mimeType: 'image/png',
-        });
+        const normalizedOutput = isProductPlacement
+          ? await extendEdgesToAspectRatio(cleanedFinalUrl, aspectRatio, {
+              maxLongEdge: 4096,
+              mimeType: 'image/png',
+            })
+          : await coverCropDataUrlToAspectRatio(cleanedFinalUrl, aspectRatio, {
+              maxLongEdge: 4096,
+              background: null,
+              mimeType: 'image/png',
+            });
         const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
         if (generationLogId) {
           updateGenerationLog(generationLogId, {
@@ -5886,11 +5985,16 @@ If the model attempts to create a scene or environment, override it and force a 
       }
       const editedUrl = `data:image/png;base64,${encodedImage}`;
       const cleanedEditedUrl = await trimBlackBarsDataUrl(editedUrl, { mimeType: 'image/png', background: null });
-      const normalizedOutput = await coverCropDataUrlToAspectRatio(cleanedEditedUrl, aspectRatio, {
-        maxLongEdge: 4096,
-        background: null,
-        mimeType: 'image/png',
-      });
+      const normalizedOutput = isProductPlacement
+        ? await extendEdgesToAspectRatio(cleanedEditedUrl, aspectRatio, {
+            maxLongEdge: 4096,
+            mimeType: 'image/png',
+          })
+        : await coverCropDataUrlToAspectRatio(cleanedEditedUrl, aspectRatio, {
+            maxLongEdge: 4096,
+            background: null,
+            mimeType: 'image/png',
+          });
       const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
       setGeneratedImageUrl(outputUrl);
       try {
