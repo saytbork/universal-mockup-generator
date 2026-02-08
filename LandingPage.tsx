@@ -674,10 +674,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               transition={{ duration: 1, ease: [0.23, 1, 0.32, 1] }}
               className="text-3xl sm:text-7xl font-bold text-gray-900 dark:text-white leading-[1.05] tracking-tight text-balance"
             >
-              Ecommerce Product Visuals Ready <br className="hidden md:block" />
-              <span className="text-indigo-600 dark:text-indigo-400">
-                in Minutes, Not Days.
-              </span>
+              Your product photos are the reason your store looks small.
             </motion.h1>
 
             <motion.p
@@ -686,7 +683,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               transition={{ duration: 1, delay: 0.4 }}
               className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed font-medium text-balance"
             >
-              Replace photo shoots, designer handoffs, and render cycles with a production workflow for ecommerce product photography, advertising product images, and online store listings. No prompts or technical skills required.
+              Turn raw product shots into studio-quality visuals.
+              <br className="hidden sm:block" />
+              Same product. No photoshoot. No designer.
             </motion.p>
           </div>
 
@@ -701,14 +700,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               to="/login"
               className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-indigo-600 text-white px-10 py-5 font-bold text-sm transition-all hover:bg-indigo-700 shadow-xl shadow-indigo-600/20 hover:shadow-indigo-600/30 hover:-translate-y-0.5 active:scale-[0.98]"
             >
-              Upload your product and generate an image
+              Try it for free
               <ArrowRight className="ml-2 w-4 h-4" />
             </Link>
             <button
-              onClick={handleSmoothScroll('#pricing')}
+              onClick={handleSmoothScroll('#before-after')}
               className="relative w-full sm:w-auto inline-flex items-center justify-center px-8 py-5 font-bold text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors group"
             >
-              View Plans
+              See the Before → After
               <span className="absolute left-0 right-0 -bottom-1 h-0.5 origin-left scale-x-0 bg-indigo-600 dark:bg-indigo-400 transition-transform duration-300 group-hover:scale-x-100" />
             </button>
           </motion.div>
@@ -719,7 +718,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
       </header>
 
       {/* Modern Auto-Scrolling Before/After Carousel */}
-      <section className="bg-white dark:bg-black py-6 sm:py-16 overflow-hidden">
+      <section id="before-after" className="bg-white dark:bg-black py-6 sm:py-16 overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 mb-8 sm:mb-12">
           <div className="text-center space-y-4">
             <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
