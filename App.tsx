@@ -77,7 +77,7 @@ type UGCRealModeSettings = {
   framingId: string;
 };
 
-const PRODUCT_DEFAULT_ASPECT_RATIO = '4:3' as const;
+const PRODUCT_DEFAULT_ASPECT_RATIO = '1:1' as const;
 const ECOMMERCE_PDP_ASPECT_RATIO = '1:1' as const;
 
 type EcommercePdpGenerationMeta = {
@@ -1780,8 +1780,7 @@ const App: React.FC = () => {
     }
   }, []);
   const hasModelReference = Boolean(modelReferenceFile || personIdentityPackage.modelReferenceBase64);
-  const selectedOutputAspectRatio = useMemo(() => {
-    if (isProductPlacement) return PRODUCT_DEFAULT_ASPECT_RATIO;
+  const resolveOutputAspectRatio = useCallback(() => {
     const label = lifestyleStep3Values?.aspectRatio;
     if (label) {
       const map: Record<string, string> = {
@@ -1790,10 +1789,22 @@ const App: React.FC = () => {
         '9:16 (Story)': '9:16',
         '16:9 (Landscape)': '16:9',
       };
-      return map[label] ?? '1:1';
+      if (map[label]) return map[label];
     }
-    return lastAspectRatioRef.current || options.aspectRatio || '1:1';
+    if (typeof options.aspectRatio === 'string' && options.aspectRatio.trim()) {
+      const normalized = options.aspectRatio.trim();
+      const allowed = new Set(['1:1', '4:5', '9:16', '16:9', '3:4', '4:3']);
+      if (allowed.has(normalized)) return normalized;
+    }
+    if (isProductPlacement) {
+      const productRatio = String(useProductStudioStore.getState().aspectRatio || '').trim();
+      if (productRatio) return productRatio;
+    }
+    return lastAspectRatioRef.current || '1:1';
   }, [isProductPlacement, lifestyleStep3Values?.aspectRatio, options.aspectRatio]);
+  const selectedOutputAspectRatio = useMemo(() => {
+    return resolveOutputAspectRatio();
+  }, [resolveOutputAspectRatio]);
   useEffect(() => {
     const shouldKeepVisible = isImageLoading || (!hasUploadedProduct && !hideProductMode);
     if (shouldKeepVisible) {
@@ -4936,7 +4947,10 @@ If the model attempts to create a scene or environment, override it and force a 
         if (isProductPlacement) {
           // Read directly from ProductStudioStore - SINGLE SOURCE OF TRUTH
           const productStateRaw = useProductStudioStore.getState();
-          const productState = { ...productStateRaw, aspectRatio: PRODUCT_DEFAULT_ASPECT_RATIO as any };
+          const productState = {
+            ...productStateRaw,
+            aspectRatio: (resolveOutputAspectRatio() || productStateRaw.aspectRatio || PRODUCT_DEFAULT_ASPECT_RATIO) as any
+          };
           console.log('[PRODUCT STUDIO STATE]', productState);
 
           // Generate jobs using Product-only builders
@@ -4970,7 +4984,7 @@ If the model attempts to create a scene or environment, override it and force a 
             creationIntent: 'product',
             sceneIntent: 'ecommerce',
             personIncluded: false,
-            aspectRatio: PRODUCT_DEFAULT_ASPECT_RATIO,
+            aspectRatio: resolveOutputAspectRatio(),
           };
         } else if (lifestyleStep3Values) {
           // LIFESTYLE/UGC MODE - Use legacy mapper (unchanged)
@@ -5051,7 +5065,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
         const aspectRatio =
           isProductPlacement
-            ? PRODUCT_DEFAULT_ASPECT_RATIO
+            ? resolveOutputAspectRatio()
             : (promptOptions.aspectRatio || options.aspectRatio || '1:1');
         lastAspectRatioRef.current = aspectRatio;
 
@@ -5361,7 +5375,8 @@ If the model attempts to create a scene or environment, override it and force a 
       normalizeGeminiModel(GOOGLE_MODEL ?? GEMINI_IMAGE_MODEL),
       setRemoteCredits,
       lifestylePrompt,
-      lifestyleStep3Values
+      lifestyleStep3Values,
+      resolveOutputAspectRatio
     ]
   );
 
@@ -5672,7 +5687,7 @@ If the model attempts to create a scene or environment, override it and force a 
       const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
       if (!resolvedApiKey) return;
 
-      const aspectRatio = PRODUCT_DEFAULT_ASPECT_RATIO;
+      const aspectRatio = resolveOutputAspectRatio();
       const productParts: any[] = [];
       for (const product of generationProducts) {
         const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
@@ -5789,7 +5804,8 @@ If the model attempts to create a scene or environment, override it and force a 
     setRemoteCredits,
     resolvedPlanTier,
     userEmail,
-    isUsingRemoteCredits
+    isUsingRemoteCredits,
+    resolveOutputAspectRatio
   ]);
 
   const generateMockup = useCallback(
@@ -5838,7 +5854,7 @@ If the model attempts to create a scene or environment, override it and force a 
       const base64Image = generatedImageUrl.split(',')[1];
 
       const aspectRatio =
-        isProductPlacement ? PRODUCT_DEFAULT_ASPECT_RATIO : (lastAspectRatioRef.current || options.aspectRatio || '1:1');
+        isProductPlacement ? resolveOutputAspectRatio() : (lastAspectRatioRef.current || options.aspectRatio || '1:1');
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -5938,6 +5954,7 @@ If the model attempts to create a scene or environment, override it and force a 
     options.aspectRatio,
     planTier,
     reportGalleryEntry,
+    resolveOutputAspectRatio,
     runHiResPipeline,
     setRemoteCredits,
     setShowPlanModal,
