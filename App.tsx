@@ -1175,6 +1175,7 @@ const trimBlackBarsDataUrl = async (
     let sum = 0;
     let sumSq = 0;
     let count = 0;
+    let darkCount = 0;
     for (let x = 0; x < imgW; x += 1) {
       const i = rowStart + x * 4;
       const r = pixels[i];
@@ -1193,18 +1194,21 @@ const trimBlackBarsDataUrl = async (
       sum += luma;
       sumSq += luma * luma;
       count += 1;
+      if (luma <= 24) darkCount += 1;
     }
     if (!count) return false;
     const mean = sum / count;
     const variance = Math.max(0, sumSq / count - mean * mean);
+    const darkShare = darkCount / count;
     // "Bar" = uniformly very dark row or mostly transparent.
-    return mean <= 10 && variance <= 20;
+    return (mean <= 14 && variance <= 60) || darkShare >= 0.985;
   };
 
   const isBarCol = (x: number): boolean => {
     let sum = 0;
     let sumSq = 0;
     let count = 0;
+    let darkCount = 0;
     for (let y = 0; y < imgH; y += 1) {
       const i = y * stride + x * 4;
       const r = pixels[i];
@@ -1221,11 +1225,13 @@ const trimBlackBarsDataUrl = async (
       sum += luma;
       sumSq += luma * luma;
       count += 1;
+      if (luma <= 24) darkCount += 1;
     }
     if (!count) return false;
     const mean = sum / count;
     const variance = Math.max(0, sumSq / count - mean * mean);
-    return mean <= 10 && variance <= 20;
+    const darkShare = darkCount / count;
+    return (mean <= 14 && variance <= 60) || darkShare >= 0.985;
   };
 
   const maxTrimY = Math.floor(imgH * 0.35);
@@ -5258,20 +5264,12 @@ If the model attempts to create a scene or environment, override it and force a 
         }
 
         const finalUrl = `data:image/png;base64,${encodedImage}`;
-        const cleanedFinalUrl = isProductPlacement
-          ? finalUrl
-          : await trimBlackBarsDataUrl(finalUrl, { mimeType: 'image/png', background: null });
-        const normalizedOutput = isProductPlacement
-          ? await letterboxDataUrlToAspectRatio(cleanedFinalUrl, aspectRatio, {
-              maxLongEdge: 4096,
-              background: null,
-              mimeType: 'image/png',
-            })
-          : await coverCropDataUrlToAspectRatio(cleanedFinalUrl, aspectRatio, {
-              maxLongEdge: 4096,
-              background: null,
-              mimeType: 'image/png',
-            });
+        const cleanedFinalUrl = await trimBlackBarsDataUrl(finalUrl, { mimeType: 'image/png', background: null });
+        const normalizedOutput = await coverCropDataUrlToAspectRatio(cleanedFinalUrl, aspectRatio, {
+          maxLongEdge: 4096,
+          background: null,
+          mimeType: 'image/png',
+        });
         const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
         if (generationLogId) {
           updateGenerationLog(generationLogId, {
@@ -5887,20 +5885,12 @@ If the model attempts to create a scene or environment, override it and force a 
         throw new Error('Image edit failed or returned no images.');
       }
       const editedUrl = `data:image/png;base64,${encodedImage}`;
-      const cleanedEditedUrl = isProductPlacement
-        ? editedUrl
-        : await trimBlackBarsDataUrl(editedUrl, { mimeType: 'image/png', background: null });
-      const normalizedOutput = isProductPlacement
-        ? await letterboxDataUrlToAspectRatio(cleanedEditedUrl, aspectRatio, {
-            maxLongEdge: 4096,
-            background: null,
-            mimeType: 'image/png',
-          })
-        : await coverCropDataUrlToAspectRatio(cleanedEditedUrl, aspectRatio, {
-            maxLongEdge: 4096,
-            background: null,
-            mimeType: 'image/png',
-          });
+      const cleanedEditedUrl = await trimBlackBarsDataUrl(editedUrl, { mimeType: 'image/png', background: null });
+      const normalizedOutput = await coverCropDataUrlToAspectRatio(cleanedEditedUrl, aspectRatio, {
+        maxLongEdge: 4096,
+        background: null,
+        mimeType: 'image/png',
+      });
       const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
       setGeneratedImageUrl(outputUrl);
       try {
