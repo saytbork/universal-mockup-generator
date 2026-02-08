@@ -111,6 +111,8 @@ export default function Dashboard() {
   const [planNotice, setPlanNotice] = useState<string | null>(null);
   const [adminSummary, setAdminSummary] = useState<AdminSummary | null>(null);
   const [adminUsers, setAdminUsers] = useState<AdminUserRow[]>([]);
+  const [adminStatus, setAdminStatus] = useState<string | null>(null);
+  const [adminChecked, setAdminChecked] = useState(false);
   const [adminPlanFilter, setAdminPlanFilter] = useState<"all" | "free" | "creator" | "studio" | "other">("all");
   const [adminSearch, setAdminSearch] = useState("");
   const [debugLogs, setDebugLogs] = useState<DebugLogRow[]>([]);
@@ -140,11 +142,21 @@ export default function Dashboard() {
           if (mounted) {
             setAdminSummary(adminData.summary || null);
             setAdminUsers(Array.isArray(adminData.users) ? adminData.users : []);
+            setAdminStatus(null);
           }
         } else if (mounted) {
+          const body = await adminRes.json().catch(() => ({} as any));
           setAdminSummary(null);
           setAdminUsers([]);
           setDebugLogs([]);
+          if (adminRes.status === 401) {
+            setAdminStatus("Admin panel unavailable: session not authenticated.");
+          } else if (adminRes.status === 403) {
+            setAdminStatus("Admin panel unavailable: this account is not authorized (check ADMIN_EMAILS / UNLIMITED_CREDITS_EMAILS).");
+          } else {
+            const reason = typeof body?.error === "string" ? body.error : `HTTP ${adminRes.status}`;
+            setAdminStatus(`Admin panel unavailable: ${reason}`);
+          }
         }
         const act = await fetch("/api/activity/list");
         if (act.ok) {
@@ -154,7 +166,10 @@ export default function Dashboard() {
       } catch {
         navigate("/login", { replace: true });
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted) {
+          setAdminChecked(true);
+          setLoading(false);
+        }
       }
     };
     load();
@@ -601,6 +616,17 @@ export default function Dashboard() {
                 </tbody>
               </table>
             </div>
+          </motion.div>
+        )}
+
+        {!adminSummary && adminChecked && adminStatus && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut", delay: 0.12 }}
+            className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800"
+          >
+            {adminStatus}
           </motion.div>
         )}
 
