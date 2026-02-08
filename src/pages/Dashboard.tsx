@@ -116,6 +116,7 @@ export default function Dashboard() {
   const [debugLogs, setDebugLogs] = useState<DebugLogRow[]>([]);
   const [debugLoading, setDebugLoading] = useState(false);
   const [debugKindFilter, setDebugKindFilter] = useState("all");
+  const [debugError, setDebugError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -167,6 +168,7 @@ export default function Dashboard() {
     let mounted = true;
     const loadDebugLogs = async () => {
       setDebugLoading(true);
+      setDebugError(null);
       try {
         const params = new URLSearchParams({ action: "debug", limit: "120" });
         if (debugKindFilter !== "all") params.set("kind", debugKindFilter);
@@ -176,9 +178,12 @@ export default function Dashboard() {
           const debugData = await debugRes.json();
           setDebugLogs(Array.isArray(debugData.logs) ? debugData.logs : []);
         } else {
+          const body = await debugRes.json().catch(() => ({} as any));
+          setDebugError(typeof body?.error === "string" ? body.error : `Failed to load debug logs (${debugRes.status})`);
           setDebugLogs([]);
         }
       } catch {
+        if (mounted) setDebugError("Failed to load debug logs.");
         if (mounted) setDebugLogs([]);
       } finally {
         if (mounted) setDebugLoading(false);
@@ -273,6 +278,7 @@ export default function Dashboard() {
   const refreshDebugLogs = async () => {
     if (!adminSummary) return;
     setDebugLoading(true);
+    setDebugError(null);
     try {
       const params = new URLSearchParams({ action: "debug", limit: "120" });
       if (debugKindFilter !== "all") params.set("kind", debugKindFilter);
@@ -281,9 +287,12 @@ export default function Dashboard() {
         const debugData = await debugRes.json();
         setDebugLogs(Array.isArray(debugData.logs) ? debugData.logs : []);
       } else {
+        const body = await debugRes.json().catch(() => ({} as any));
+        setDebugError(typeof body?.error === "string" ? body.error : `Failed to load debug logs (${debugRes.status})`);
         setDebugLogs([]);
       }
     } catch {
+      setDebugError("Failed to load debug logs.");
       setDebugLogs([]);
     } finally {
       setDebugLoading(false);
@@ -631,6 +640,11 @@ export default function Dashboard() {
             </div>
 
             <div className="overflow-auto rounded-xl border border-gray-200">
+              {debugError && (
+                <div className="border-b border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  {debugError}
+                </div>
+              )}
               <table className="w-full min-w-[860px] text-sm">
                 <thead className="bg-gray-50">
                   <tr>

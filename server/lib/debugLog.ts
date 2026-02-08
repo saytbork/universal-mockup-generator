@@ -10,8 +10,7 @@ export type DebugLogRecord = {
 
 const hasKV =
   !!process.env.KV_REST_API_URL &&
-  !!process.env.KV_REST_API_TOKEN &&
-  !!process.env.KV_REST_API_READ_ONLY_TOKEN;
+  !!(process.env.KV_REST_API_TOKEN || process.env.KV_REST_API_READ_ONLY_TOKEN);
 
 const DEBUG_KEY = "debug:events";
 const DEBUG_TTL_SECONDS = 60 * 60 * 24; // 24h
@@ -57,10 +56,18 @@ export async function addDebugLog(
   };
 
   if (hasKV) {
-    const kv = await getKv();
-    await kv.lpush(DEBUG_KEY, JSON.stringify(record));
-    await kv.ltrim(DEBUG_KEY, 0, DEBUG_MAX_ITEMS - 1);
-    await kv.expire(DEBUG_KEY, DEBUG_TTL_SECONDS);
+    try {
+      const kv = await getKv();
+      await kv.lpush(DEBUG_KEY, JSON.stringify(record));
+      await kv.ltrim(DEBUG_KEY, 0, DEBUG_MAX_ITEMS - 1);
+      await kv.expire(DEBUG_KEY, DEBUG_TTL_SECONDS);
+    } catch (error) {
+      console.warn("[debugLog] KV write failed; using memory fallback.", error);
+      memoryStore.unshift(record);
+      if (memoryStore.length > DEBUG_MAX_ITEMS) {
+        memoryStore.length = DEBUG_MAX_ITEMS;
+      }
+    }
   } else {
     memoryStore.unshift(record);
     if (memoryStore.length > DEBUG_MAX_ITEMS) {
@@ -77,17 +84,22 @@ export async function listDebugLogs(limit = 50, kind?: string): Promise<DebugLog
 
   let rows: DebugLogRecord[] = [];
   if (hasKV) {
-    const kv = await getKv();
-    const raw = await kv.lrange<string>(DEBUG_KEY, 0, Math.max(200, safeLimit * 3) - 1);
-    rows = raw
-      .map((item) => {
-        try {
-          return JSON.parse(item) as DebugLogRecord;
-        } catch {
-          return null;
-        }
-      })
-      .filter(Boolean) as DebugLogRecord[];
+    try {
+      const kv = await getKv();
+      const raw = await kv.lrange<string>(DEBUG_KEY, 0, Math.max(200, safeLimit * 3) - 1);
+      rows = raw
+        .map((item) => {
+          try {
+            return JSON.parse(item) as DebugLogRecord;
+          } catch {
+            return null;
+          }
+        })
+        .filter(Boolean) as DebugLogRecord[];
+    } catch (error) {
+      console.warn("[debugLog] KV read failed; using memory fallback.", error);
+      rows = memoryStore.slice();
+    }
   } else {
     rows = memoryStore.slice();
   }
