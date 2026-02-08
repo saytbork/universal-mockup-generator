@@ -58,6 +58,14 @@ type AdminUserRow = {
   last_login_at: number | null;
 };
 
+type DebugLogRow = {
+  id: string;
+  timestamp: number;
+  kind: string;
+  email?: string;
+  data?: Record<string, any>;
+};
+
 const formatTimeAgo = (timestamp: number) => {
   const diff = Date.now() - timestamp;
   const minutes = Math.floor(diff / 60000);
@@ -105,6 +113,9 @@ export default function Dashboard() {
   const [adminUsers, setAdminUsers] = useState<AdminUserRow[]>([]);
   const [adminPlanFilter, setAdminPlanFilter] = useState<"all" | "free" | "creator" | "studio" | "other">("all");
   const [adminSearch, setAdminSearch] = useState("");
+  const [debugLogs, setDebugLogs] = useState<DebugLogRow[]>([]);
+  const [debugLoading, setDebugLoading] = useState(false);
+  const [debugKindFilter, setDebugKindFilter] = useState("all");
 
   useEffect(() => {
     let mounted = true;
@@ -132,6 +143,7 @@ export default function Dashboard() {
         } else if (mounted) {
           setAdminSummary(null);
           setAdminUsers([]);
+          setDebugLogs([]);
         }
         const act = await fetch("/api/activity/list");
         if (act.ok) {
@@ -149,6 +161,34 @@ export default function Dashboard() {
       mounted = false;
     };
   }, [navigate]);
+
+  useEffect(() => {
+    if (!adminSummary) return;
+    let mounted = true;
+    const loadDebugLogs = async () => {
+      setDebugLoading(true);
+      try {
+        const params = new URLSearchParams({ action: "debug", limit: "120" });
+        if (debugKindFilter !== "all") params.set("kind", debugKindFilter);
+        const debugRes = await fetch(`/api/activity/list?${params.toString()}`);
+        if (!mounted) return;
+        if (debugRes.ok) {
+          const debugData = await debugRes.json();
+          setDebugLogs(Array.isArray(debugData.logs) ? debugData.logs : []);
+        } else {
+          setDebugLogs([]);
+        }
+      } catch {
+        if (mounted) setDebugLogs([]);
+      } finally {
+        if (mounted) setDebugLoading(false);
+      }
+    };
+    void loadDebugLogs();
+    return () => {
+      mounted = false;
+    };
+  }, [adminSummary, debugKindFilter]);
 
   const creditsLabel = useMemo(() => {
     if (!user) return "0";
@@ -228,6 +268,26 @@ export default function Dashboard() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+  };
+
+  const refreshDebugLogs = async () => {
+    if (!adminSummary) return;
+    setDebugLoading(true);
+    try {
+      const params = new URLSearchParams({ action: "debug", limit: "120" });
+      if (debugKindFilter !== "all") params.set("kind", debugKindFilter);
+      const debugRes = await fetch(`/api/activity/list?${params.toString()}`);
+      if (debugRes.ok) {
+        const debugData = await debugRes.json();
+        setDebugLogs(Array.isArray(debugData.logs) ? debugData.logs : []);
+      } else {
+        setDebugLogs([]);
+      }
+    } catch {
+      setDebugLogs([]);
+    } finally {
+      setDebugLoading(false);
+    }
   };
 
   if (loading) {
@@ -529,6 +589,88 @@ export default function Dashboard() {
                       </td>
                     </tr>
                   ))}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+        )}
+
+        {adminSummary && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut", delay: 0.14 }}
+            className="rounded-xl bg-white border border-gray-200 p-6 space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.25em] text-indigo-600">Admin / Debug</p>
+                <h3 className="text-lg font-semibold">Debug logs (last 24h)</h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <select
+                  value={debugKindFilter}
+                  onChange={(e) => setDebugKindFilter(e.target.value)}
+                  className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"
+                >
+                  <option value="all">All kinds</option>
+                  <option value="generate.success">generate.success</option>
+                  <option value="generate.error">generate.error</option>
+                  <option value="generate.reject.missing_parts">reject.missing_parts</option>
+                  <option value="generate.reject.missing_api_key">reject.missing_api_key</option>
+                  <option value="generate.reject.no_credits">reject.no_credits</option>
+                </select>
+                <button
+                  type="button"
+                  onClick={refreshDebugLogs}
+                  className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:border-indigo-500 hover:text-indigo-700"
+                >
+                  {debugLoading ? "Refreshing..." : "Refresh"}
+                </button>
+              </div>
+            </div>
+
+            <div className="overflow-auto rounded-xl border border-gray-200">
+              <table className="w-full min-w-[860px] text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 py-2 text-left font-medium text-gray-600">Time</th>
+                    <th className="px-3 py-2 text-left font-medium text-gray-600">Kind</th>
+                    <th className="px-3 py-2 text-left font-medium text-gray-600">Email</th>
+                    <th className="px-3 py-2 text-left font-medium text-gray-600">Prompt Hash</th>
+                    <th className="px-3 py-2 text-left font-medium text-gray-600">Details</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {debugLogs.length === 0 ? (
+                    <tr className="border-t border-gray-200">
+                      <td className="px-3 py-3 text-gray-500" colSpan={5}>
+                        {debugLoading ? "Loading debug logs..." : "No debug logs yet."}
+                      </td>
+                    </tr>
+                  ) : (
+                    debugLogs.map((row) => (
+                      <tr key={row.id} className="border-t border-gray-200">
+                        <td className="px-3 py-2 text-gray-700">
+                          {row.timestamp ? new Date(row.timestamp).toLocaleString() : "-"}
+                        </td>
+                        <td className="px-3 py-2 text-gray-900 font-medium">{row.kind}</td>
+                        <td className="px-3 py-2 text-gray-700">{row.email || "-"}</td>
+                        <td className="px-3 py-2 text-gray-700 font-mono text-xs">
+                          {String(row.data?.promptHash || "-")}
+                        </td>
+                        <td className="px-3 py-2 text-gray-700">
+                          {String(
+                            row.data?.error ||
+                            row.data?.sceneType ||
+                            row.data?.mode ||
+                            row.data?.aspectRatio ||
+                            "-"
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
