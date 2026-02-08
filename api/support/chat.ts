@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { checkAuth } from '../../server/lib/checkAuth.js';
 import { retrieveSupportContext } from '../../server/lib/supportKnowledge.js';
 import { sendEmail } from '../../server/lib/sendEmail.js';
+import { rateLimit } from '../../server/lib/rateLimit.js';
 
 const AI_ENABLED = String(process.env.SUPPORT_AI_ENABLED || '').toLowerCase() === 'true';
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -9,16 +10,6 @@ const OPENAI_MODEL = process.env.OPENAI_SUPPORT_MODEL || 'gpt-4o-mini';
 const DOCS_TOPK = Number(process.env.SUPPORT_AI_DOCS_TOPK || 3);
 const DOCS_MAX_CHARS = Number(process.env.SUPPORT_AI_DOCS_MAX_CHARS || 6000);
 const DEFAULT_SUPPORT_CONTACT_EMAIL = 'juanamisano@gmail.com';
-
-const hasKV =
-  !!process.env.KV_REST_API_URL &&
-  !!process.env.KV_REST_API_TOKEN &&
-  !!process.env.KV_REST_API_READ_ONLY_TOKEN;
-
-const getKv = async () => {
-  const mod = await import('@vercel/kv');
-  return mod.kv;
-};
 
 const parseBody = async (req: VercelRequest) => {
   if (req.body && typeof req.body === 'object') return req.body;
@@ -57,26 +48,6 @@ const getClientIp = (req: VercelRequest): string => {
   return xfwd || realIp || 'unknown';
 };
 
-const rateLimit = async (key: string) => {
-  const windowSeconds = 60 * 10;
-  const max = Number(process.env.SUPPORT_AI_RL_MAX || 20);
-  const kvKey = `rl:support:${key}:${Math.floor(Date.now() / (windowSeconds * 1000))}`;
-
-  if (!hasKV) {
-    if (process.env.NODE_ENV === 'production') {
-      return { ok: false, remaining: 0, reason: 'KV not configured' as const };
-    }
-    return { ok: true, remaining: max };
-  }
-
-  const kv = await getKv();
-  const count = await kv.incr(kvKey);
-  if (count === 1) {
-    await kv.expire(kvKey, windowSeconds);
-  }
-  return { ok: count <= max, remaining: Math.max(0, max - count) };
-};
-
 const systemPrompt = (path?: string) => `
 You are a support assistant for "Perfect Mockup" (a web app).
 Goal: help the user use the product with short, concrete, step-by-step instructions.
@@ -107,6 +78,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (action === 'contact') {
     const body = await parseBody(req);
     const authenticatedEmail = checkAuth(req) || undefined;
+    const ip = getClientIp(req);
+    const contactKey = authenticatedEmail ? `u:${authenticatedEmail}` : `ip:${ip}`;
+    const contactLimit = await rateLimit({
+      key: `support-contact:${contactKey}`,
+      max: 5,
+      windowSeconds: 600,
+      namespace: 'support',
+    });
+    if (!contactLimit.ok) {
+      res.status(429).json({ error: 'Too many requests. Please try again in a few minutes.' });
+      return;
+    }
+
     const recipient = trim(process.env.SUPPORT_CONTACT_EMAIL, DEFAULT_SUPPORT_CONTACT_EMAIL);
     if (!recipient) {
       res.status(500).json({ error: 'Support contact is not configured' });
@@ -160,9 +144,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const email = checkAuth(req) || undefined;
   const ip = getClientIp(req);
   const rlKey = email ? `u:${email}` : `ip:${ip}`;
-  const rl = await rateLimit(rlKey);
+  const rl = await rateLimit({
+    key: rlKey,
+    max: Number(process.env.SUPPORT_AI_RL_MAX || 20),
+    windowSeconds: 60 * 10,
+    namespace: 'support-chat',
+  });
   if (!rl.ok) {
-    res.status(429).json({ error: rl.reason || 'Rate limited', reply: 'Too many requests. Please try again in a few minutes.' });
+    res.status(429).json({ error: 'Rate limited', reply: 'Too many requests. Please try again in a few minutes.' });
     return;
   }
 

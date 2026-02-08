@@ -5,9 +5,12 @@ import { getStripe } from '../server/lib/stripeClient.js';
 import { getUser, setUser, touchUserLogin } from '../server/lib/store.js';
 import { addActivity } from '../server/lib/activity.js';
 import { checkAuth } from '../server/lib/checkAuth.js';
+import { createSessionToken } from '../server/lib/session.js';
+import { rateLimit } from '../server/lib/rateLimit.js';
 
 const DASHBOARD_REDIRECT_PATH = '/dashboard';
 const DEFAULT_REGISTRATION_NOTIFY_EMAIL = 'juanamisano@gmail.com';
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const parseAction = (req: VercelRequest) => {
   const raw = req.query.action;
@@ -18,29 +21,32 @@ const parseAction = (req: VercelRequest) => {
 };
 
 const getRequestOrigin = (req: VercelRequest): string => {
-  const host = (req.headers['x-forwarded-host'] as string) || req.headers.host || 'localhost:3000';
-  const proto = (req.headers['x-forwarded-proto'] as string) || (host.includes('localhost') ? 'http' : 'https');
-  const requestOrigin = `${proto}://${host}`.replace(/\/+$/, '');
   const envBase = process.env.BASE_URL?.trim();
   if (envBase) {
-    // Keep BASE_URL as fallback only when request host is unavailable or localhost.
-    if (!host || host.includes('localhost')) {
-      return envBase.replace(/\/+$/, '');
-    }
+    return envBase.replace(/\/+$/, '');
   }
-  return requestOrigin;
+  const host = (req.headers['x-forwarded-host'] as string) || req.headers.host || 'localhost:3000';
+  const proto = (req.headers['x-forwarded-proto'] as string) || (host.includes('localhost') ? 'http' : 'https');
+  return `${proto}://${host}`.replace(/\/+$/, '');
 };
 
 const buildSessionCookie = (email: string, req: VercelRequest) => {
   const proto = (req.headers['x-forwarded-proto'] as string) || (req.headers.host?.includes('localhost') ? 'http' : 'https');
   const secureFlag = proto === 'https' ? '; Secure' : '';
-  return `session_email=${encodeURIComponent(email)}; Path=/; HttpOnly${secureFlag}; SameSite=Lax; Max-Age=604800`;
+  const token = createSessionToken(email);
+  return `session_email=${encodeURIComponent(token)}; Path=/; HttpOnly${secureFlag}; SameSite=Lax; Max-Age=604800`;
 };
 
 const clearSessionCookie = (req: VercelRequest) => {
   const proto = (req.headers['x-forwarded-proto'] as string) || (req.headers.host?.includes('localhost') ? 'http' : 'https');
   const secureFlag = proto === 'https' ? '; Secure' : '';
   return `session_email=; Path=/; HttpOnly${secureFlag}; SameSite=Lax; Max-Age=0`;
+};
+
+const getClientIp = (req: VercelRequest): string => {
+  const xfwd = String(req.headers['x-forwarded-for'] || '').split(',')[0]?.trim();
+  const realIp = String(req.headers['x-real-ip'] || '').trim();
+  return xfwd || realIp || 'unknown';
 };
 
 const sendRegistrationNotification = async (newUserEmail: string, origin: string) => {
@@ -72,32 +78,46 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return;
       }
       const { email, invitationCode } = req.body || {};
-      if (!email) {
+      const normalizedEmail = String(email || '').trim().toLowerCase();
+      if (!normalizedEmail || !EMAIL_REGEX.test(normalizedEmail)) {
         res.status(400).json({ error: 'Email required' });
+        return;
+      }
+
+      const ip = getClientIp(req);
+      const byIp = await rateLimit({ key: `auth-login-ip:${ip}`, max: 20, windowSeconds: 600, namespace: 'auth' });
+      const byEmail = await rateLimit({
+        key: `auth-login-email:${normalizedEmail}`,
+        max: 6,
+        windowSeconds: 600,
+        namespace: 'auth',
+      });
+      if (!byIp.ok || !byEmail.ok) {
+        res.status(429).json({ error: 'Too many attempts. Please try again in a few minutes.' });
         return;
       }
       const requiredCode = process.env.INVITATION_CODE;
       const disposableDomains = ['mailinator.com', 'yopmail.com', '10minutemail', 'guerrillamail.com'];
-      const domain = String(email).split('@')[1] || '';
+      const domain = String(normalizedEmail).split('@')[1] || '';
       const isDisposable = disposableDomains.some((d) => domain.toLowerCase().includes(d));
       const normalizedCode = typeof invitationCode === 'string' ? invitationCode.trim() : '';
       const shouldAutoLogin =
         Boolean(normalizedCode && requiredCode && normalizedCode === requiredCode && !isDisposable);
 
       if (shouldAutoLogin) {
-        const loginEvent = await touchUserLogin(email);
+        const loginEvent = await touchUserLogin(normalizedEmail);
         res.setHeader('Set-Cookie', [
-          buildSessionCookie(email, req),
+          buildSessionCookie(normalizedEmail, req),
         ]);
 
         try {
           const stripe = getStripe();
-          const customers = await stripe.customers.list({ email, limit: 1 });
+          const customers = await stripe.customers.list({ email: normalizedEmail, limit: 1 });
           const existing = customers.data[0];
           const customer =
             existing ||
             (await stripe.customers.create({
-              email,
+              email: normalizedEmail,
               metadata: {},
             }));
 
@@ -108,24 +128,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             await stripe.customers.update(customer.id, {
               metadata: { ...metadata, invite_bonus_claimed: 'true' },
             });
-            const user = await getUser(email);
+            const user = await getUser(normalizedEmail);
             const plan = String(user.plan ?? 'free').trim().toLowerCase();
             if (plan === 'free') {
-              await setUser(email, {
+              await setUser(normalizedEmail, {
                 inviteRemaining: (user.inviteRemaining || 0) + 10,
                 inviteUsed: true,
               });
-              await addActivity(email, 'invite', { bonus: 10 });
+              await addActivity(normalizedEmail, 'invite', { bonus: 10 });
             }
           }
         } catch (error) {
           console.error('Invitation bonus error', error);
         }
 
-        await addActivity(email, 'login', { method: 'invite_auto' });
+        await addActivity(normalizedEmail, 'login', { method: 'invite_auto' });
         if (loginEvent.isNew) {
           try {
-            await sendRegistrationNotification(email, origin);
+            await sendRegistrationNotification(normalizedEmail, origin);
           } catch (notifyError) {
             console.warn('Registration notification failed', notifyError);
           }
@@ -134,11 +154,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return;
       }
 
-      const token = createMagicToken(email, invitationCode);
+      const token = createMagicToken(normalizedEmail, invitationCode);
       const magicLink = `${origin}/api/auth?action=verify&token=${encodeURIComponent(token)}`;
 
       await sendEmail({
-        to: email,
+        to: normalizedEmail,
         subject: 'Your Perfect Mockup access link',
         html: `
     <div style="font-family: Arial, sans-serif; padding: 20px; line-height: 1.5; color: #333;">
@@ -172,6 +192,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const token = req.query.token;
       if (!token || typeof token !== 'string') {
         res.status(400).send('Invalid or expired token');
+        return;
+      }
+      const ip = getClientIp(req);
+      const byIp = await rateLimit({ key: `auth-verify-ip:${ip}`, max: 40, windowSeconds: 600, namespace: 'auth' });
+      if (!byIp.ok) {
+        res.status(429).send('Too many attempts. Please try again in a few minutes.');
         return;
       }
 

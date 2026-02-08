@@ -11,8 +11,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const sessionEmail = checkAuth(req);
-  const { type, meta, email } = req.body || {};
-  const targetEmail = sessionEmail || email;
+  const { type, meta } = req.body || {};
+  const targetEmail = sessionEmail;
 
   if (!targetEmail) {
     res.status(401).json({ error: "Not authenticated" });
