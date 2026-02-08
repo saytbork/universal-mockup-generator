@@ -28,6 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       userId: 'guest',
       email: null,
       plan: 'free',
+      is_admin: false,
     });
     return;
   }
@@ -52,6 +53,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 	    userId: email,
 	    email,
 	    plan: user.plan ?? 'free',
+      is_admin: isUnlimited,
 	    credits: user.credits ?? getEffectiveCredits(user),
 	    remaining_credits: isUnlimited ? 999_999 : getEffectiveCredits(user),
 	    trial_remaining: user.trialRemaining ?? 0,

@@ -39,6 +39,7 @@ type UserInfo = {
   invite_remaining?: number;
   subscription_remaining?: number;
   plan: string;
+  is_admin?: boolean;
   inviteUsed?: boolean;
 };
 
@@ -136,27 +137,36 @@ export default function Dashboard() {
           return;
         }
         if (mounted) setUser({ ...data, email });
-        const adminRes = await fetch("/api/admin/users?limit=500");
-        if (adminRes.ok) {
-          const adminData = await adminRes.json();
-          if (mounted) {
-            setAdminSummary(adminData.summary || null);
-            setAdminUsers(Array.isArray(adminData.users) ? adminData.users : []);
-            setAdminStatus(null);
+
+        const isAdmin = Boolean(data?.is_admin);
+        if (isAdmin) {
+          const adminRes = await fetch("/api/admin/users?limit=500");
+          if (adminRes.ok) {
+            const adminData = await adminRes.json();
+            if (mounted) {
+              setAdminSummary(adminData.summary || null);
+              setAdminUsers(Array.isArray(adminData.users) ? adminData.users : []);
+              setAdminStatus(null);
+            }
+          } else if (mounted) {
+            const body = await adminRes.json().catch(() => ({} as any));
+            setAdminSummary(null);
+            setAdminUsers([]);
+            setDebugLogs([]);
+            if (adminRes.status === 401) {
+              setAdminStatus("Admin panel unavailable: session not authenticated.");
+            } else if (adminRes.status === 403) {
+              setAdminStatus("Admin panel unavailable: this account is not authorized (check ADMIN_EMAILS / UNLIMITED_CREDITS_EMAILS).");
+            } else {
+              const reason = typeof body?.error === "string" ? body.error : `HTTP ${adminRes.status}`;
+              setAdminStatus(`Admin panel unavailable: ${reason}`);
+            }
           }
         } else if (mounted) {
-          const body = await adminRes.json().catch(() => ({} as any));
           setAdminSummary(null);
           setAdminUsers([]);
           setDebugLogs([]);
-          if (adminRes.status === 401) {
-            setAdminStatus("Admin panel unavailable: session not authenticated.");
-          } else if (adminRes.status === 403) {
-            setAdminStatus("Admin panel unavailable: this account is not authorized (check ADMIN_EMAILS / UNLIMITED_CREDITS_EMAILS).");
-          } else {
-            const reason = typeof body?.error === "string" ? body.error : `HTTP ${adminRes.status}`;
-            setAdminStatus(`Admin panel unavailable: ${reason}`);
-          }
+          setAdminStatus(null);
         }
         const act = await fetch("/api/activity/list");
         if (act.ok) {
@@ -619,7 +629,7 @@ export default function Dashboard() {
           </motion.div>
         )}
 
-        {!adminSummary && adminChecked && adminStatus && (
+        {user?.is_admin && !adminSummary && adminChecked && adminStatus && (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
