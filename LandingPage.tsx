@@ -323,9 +323,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
     startScrollLeft: 0,
   });
   const seo = {
-    title: 'AI Product & Lifestyle Mockups for Ecommerce Brands | Perfect Mockup',
+    title: 'Ecommerce Product Visuals in Minutes | Perfect Mockup',
     description:
-      'Generate premium product visuals, lifestyle scenes, and UGC-style ads in minutes. Built for ecommerce brands, growth teams, and product launches.',
+      'Create ecommerce product images and product photos for ads in minutes. Replace traditional product photography workflows with a fast, consistent production system.',
     url: 'https://perfectmockup.com/',
     image: 'https://perfectmockup.com/preview.png',
   };
@@ -426,17 +426,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
   const steps = [
     {
       title: 'Step 1 — Upload your product',
-      description: 'Use your existing product image. No perfect photography required.',
+      description: 'Upload one product image. No setup or production prep.',
       icon: <ShoppingBag className="w-5 h-5" />,
     },
     {
       title: 'Step 2 — Choose how it’s seen',
-      description: 'Product (Studio) or Lifestyle. UGC or Editorial when lifestyle is selected.',
+      description: 'Pick mode and context with simple selections.',
       icon: <Zap className="w-5 h-5" />,
     },
     {
       title: 'Step 3 — Generate mockups',
-      description: 'Instant visuals ready for ecommerce, ads and social.',
+      description: 'Generate final visuals ready for listings, ads, and landing pages.',
       icon: <Users2 className="w-5 h-5" />,
     },
   ];
@@ -509,7 +509,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
     {
       id: 'aesthetic',
       title: 'Aesthetic Builder',
-      description: 'Create premium creative directions for ecommerce visuals.',
+      description: 'Build conversion-focused visual sets with controlled output structure.',
       image: '/images/home/Aesthetic-Builder.webp',
     },
   ] as const;
@@ -649,9 +649,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               transition={{ duration: 1, ease: [0.23, 1, 0.32, 1] }}
               className="text-5xl sm:text-7xl font-bold text-gray-900 dark:text-white leading-[1.05] tracking-tight text-balance"
             >
-              Create Ecommerce-Ready Product Visuals <br className="hidden md:block" />
+              Ecommerce Product Visuals Ready <br className="hidden md:block" />
               <span className="text-indigo-600 dark:text-indigo-400">
-                & Controlled UGC in Minutes.
+                in Minutes, Not Days.
               </span>
             </motion.h1>
 
@@ -661,7 +661,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               transition={{ duration: 1, delay: 0.4 }}
               className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed font-medium text-balance"
             >
-              Generate consistent product shots and controlled UGC-style visuals for product pages, ads, and conversion funnels. No photoshoots. No agencies. No guessing.
+              Replace photo shoots, designer handoffs, and render cycles with a production workflow for ecommerce product photography, advertising product images, and online store listings. No prompts or technical skills required.
             </motion.p>
           </div>
 
@@ -676,7 +676,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               to="/login"
               className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-indigo-600 text-white px-10 py-5 font-bold text-sm transition-all hover:bg-indigo-700 shadow-xl shadow-indigo-600/20 hover:shadow-indigo-600/30 hover:-translate-y-0.5 active:scale-[0.98]"
             >
-              Create Your First Product Shot
+              Upload your product and generate an image
               <ArrowRight className="ml-2 w-4 h-4" />
             </Link>
             <button
@@ -687,6 +687,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               <span className="absolute left-0 right-0 -bottom-1 h-0.5 origin-left scale-x-0 bg-indigo-600 dark:bg-indigo-400 transition-transform duration-300 group-hover:scale-x-100" />
             </button>
           </motion.div>
+          <p className="mt-4 text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold text-center">
+            No setup. No learning curve. First result in minutes.
+          </p>
         </div>
       </header>
 
@@ -698,10 +701,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               Real World Results
             </span>
             <h2 className="text-4xl md:text-5xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">
-              From product image to real-world use
+              From product upload to sell-ready visuals
             </h2>
             <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto text-lg leading-relaxed">
-              Visuals ready for PDPs, ads, and ecommerce.
+              Product images for ecommerce and product photos for ads generated in minutes, not days, at a fraction of traditional production cost.
             </p>
           </div>
         </div>
@@ -996,11 +999,56 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
             </svg>
           </a>
         </div>
+        <div className="max-w-5xl mx-auto px-6 pt-6">
+          <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+            Built to reduce coordination across photo shoots, designers, and renders while keeping outputs publish-ready.
+          </p>
+        </div>
 
         {/* Carousel CSS helpers */}
         <style>{`
           .landing-carousel-viewport::-webkit-scrollbar { display: none; }
         `}</style>
+      </section>
+
+      <section className="bg-white dark:bg-black py-14 border-b border-gray-100 dark:border-white/5">
+        <div className="max-w-6xl mx-auto px-6 space-y-5">
+          <div className="text-center space-y-2">
+            <h2 className="text-3xl md:text-4xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">
+              From upload to final image in minutes
+            </h2>
+            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
+              No prompts. No design skills.
+            </p>
+          </div>
+          <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5">
+            <video
+              className="w-full h-auto"
+              controls
+              playsInline
+              muted
+              preload="metadata"
+              poster="/images/home/Studio-Hero.webp"
+            >
+              <source src="/videos/perfectmockup-demo.mp4" type="video/mp4" />
+              Your browser does not support this video.
+            </video>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-gray-50 dark:bg-white/[0.02] py-12 border-b border-gray-100 dark:border-white/5">
+        <div className="max-w-6xl mx-auto px-6 text-center space-y-3">
+          <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
+            Category Definition
+          </span>
+          <h2 className="text-3xl md:text-4xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">
+            Built as a visual system, not a generator
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 max-w-4xl mx-auto text-base md:text-lg leading-relaxed">
+            Outputs follow structured rules for consistency and commercial use. The platform does not improvise random results.
+          </p>
+        </div>
       </section>
 
       <section className="bg-gray-50 dark:bg-white/[0.02]">
@@ -1009,7 +1057,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
             <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
               What you can create
             </span>
-            <h2 className="text-4xl md:text-5xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">Create the visuals your product needs to sell</h2>
+            <h2 className="text-4xl md:text-5xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">Create visuals your store can publish immediately</h2>
+            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              Ready for product pages, ecommerce listings, ads, and landing pages without rework.
+            </p>
           </div>
 
           <div className="grid gap-5 md:grid-cols-3">
@@ -1063,9 +1114,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
             <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
               Preview
             </span>
-            <h2 className="text-4xl md:text-5xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">See what you can create</h2>
+            <h2 className="text-4xl md:text-5xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">Production modes for ecommerce product visuals</h2>
             <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto text-lg leading-relaxed">
-              Choose Product or Lifestyle to match your goal. UGC feels authentic. Editorial feels premium.
+              Choose the mode your workflow needs: Product for clean ecommerce output, Lifestyle for controlled ad context.
             </p>
           </div>
 
@@ -1113,6 +1164,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               How it works
             </span>
             <h2 className="text-4xl md:text-5xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">From product to visuals in minutes</h2>
+            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              Fast, predictable, and easy to run across teams.
+            </p>
           </div>
 
           <div className="grid gap-12 lg:grid-cols-2 items-center">
@@ -1432,18 +1486,21 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
             <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
               Perfect for Teams
             </span>
-            <h2 className="text-4xl md:text-5xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">Designed for the modern ecommerce ecosystem</h2>
+            <h2 className="text-4xl md:text-5xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">Who this is for</h2>
+            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              Built for ecommerce brands, supplement companies, beauty and wellness products, DTC teams, and paid media operators.
+            </p>
           </div>
 
           <div className="flex flex-wrap justify-center items-center gap-4 max-w-4xl mx-auto">
             {[
-              { label: 'DTC Brands', weight: 'font-extrabold', size: 'text-2xl', color: 'text-indigo-600', bg: 'bg-indigo-50 border-indigo-100' },
-              { label: 'Founders', weight: 'font-semibold', size: 'text-xl', color: 'text-gray-900', bg: 'bg-gray-50 border-gray-200' },
-              { label: 'Marketing Teams', weight: 'font-bold', size: 'text-lg', color: 'text-indigo-600/80', bg: 'bg-indigo-50/50 border-indigo-100/50' },
-              { label: 'Creative Agencies', weight: 'font-medium', size: 'text-2xl', color: 'text-gray-900', bg: 'bg-gray-50 border-gray-200' },
-              { label: 'Performance Marketers', weight: 'font-bold', size: 'text-xl', color: 'text-indigo-600', bg: 'bg-indigo-50 border-indigo-100' },
-              { label: 'UX Designers', weight: 'font-normal', size: 'text-lg', color: 'text-gray-400', bg: 'bg-transparent border-gray-100' },
-              { label: 'Store Managers', weight: 'font-semibold', size: 'text-lg', color: 'text-gray-900', bg: 'bg-gray-50 border-gray-200' },
+              { label: 'Ecommerce Brands', weight: 'font-extrabold', size: 'text-2xl', color: 'text-indigo-600', bg: 'bg-indigo-50 border-indigo-100' },
+              { label: 'Supplement Companies', weight: 'font-semibold', size: 'text-xl', color: 'text-gray-900', bg: 'bg-gray-50 border-gray-200' },
+              { label: 'Beauty & Skincare Teams', weight: 'font-bold', size: 'text-lg', color: 'text-indigo-600/80', bg: 'bg-indigo-50/50 border-indigo-100/50' },
+              { label: 'Wellness Product Teams', weight: 'font-medium', size: 'text-2xl', color: 'text-gray-900', bg: 'bg-gray-50 border-gray-200' },
+              { label: 'DTC Operators', weight: 'font-bold', size: 'text-xl', color: 'text-indigo-600', bg: 'bg-indigo-50 border-indigo-100' },
+              { label: 'Paid Media Teams', weight: 'font-normal', size: 'text-lg', color: 'text-gray-700', bg: 'bg-gray-50 border-gray-200' },
+              { label: 'Performance Marketers', weight: 'font-semibold', size: 'text-lg', color: 'text-gray-900', bg: 'bg-gray-50 border-gray-200' },
             ].map((item, i) => (
               <div
                 key={item.label}
@@ -1545,7 +1602,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
             </span>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white tracking-tight text-balance">Plans built for launch velocity</h2>
             <p className="text-gray-500 max-w-2xl mx-auto text-lg leading-relaxed">
-              Scale your visuals as your products and campaigns grow. No hidden fees.
+              Monthly cost is typically lower than a single traditional product photo shoot, while supporting ongoing output for ecommerce and ad campaigns.
+            </p>
+            <p className="text-sm text-gray-600 max-w-3xl mx-auto">
+              Generate multiple production-ready images without per-image creative coordination overhead.
             </p>
 
             <div className="mt-8 flex justify-center">
@@ -1700,17 +1760,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
       <section className="bg-gray-900 dark:bg-white/[0.03] py-24 text-center">
         <div className="max-w-4xl mx-auto px-6">
           <h2 className="text-4xl md:text-5xl text-white font-bold tracking-tight text-balance">
-            Launch Products with Visuals That Convert
+            Publish ecommerce visuals without production bottlenecks
           </h2>
           <p className="mt-6 text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
-            Create ecommerce-ready product and lifestyle mockups for ads, product pages, and social. No photoshoots required.
+            Create product visuals for online stores, ads, and landing pages in minutes with a workflow built for speed and consistency.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4">
             <Link
               to="/login"
               className="inline-flex items-center justify-center rounded-xl bg-indigo-600 text-white px-10 py-5 font-bold text-sm transition-all hover:bg-indigo-700 shadow-xl shadow-indigo-600/20 hover:shadow-indigo-600/30 hover:-translate-y-0.5 active:scale-[0.98]"
             >
-              Start Creating Mockups
+              Create your first product visual in minutes
               <ArrowRight className="ml-2 w-4 h-4" />
             </Link>
             <button
