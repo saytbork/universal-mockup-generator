@@ -5077,7 +5077,7 @@ If the model attempts to create a scene or environment, override it and force a 
         requestParts.push({ text: finalPrompt });
         if (shouldSendProductImage) {
           const isMultiProductRequest = generationProducts.length > 1;
-          const maxProductRefs = isProductPlacement ? 5 : 4;
+          const maxProductRefs = 5;
           const totalReferenceBudget = isProductPlacement ? 3_400_000 : 2_800_000;
           let totalAttachedReferenceBase64 = 0;
 
