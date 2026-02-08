@@ -313,8 +313,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
   const [checkoutEmail, setCheckoutEmail] = useState('');
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [demoMode, setDemoMode] = useState<'studio' | 'lifestyle'>('studio');
   const [activeStep, setActiveStep] = useState(0);
   const [isHoveringSteps, setIsHoveringSteps] = useState(false);
+  const demoVideoRef = useRef<HTMLVideoElement | null>(null);
   const carouselViewportRef = useRef<HTMLDivElement | null>(null);
   const carouselPausedRef = useRef(false);
   const carouselDraggingRef = useRef(false);
@@ -334,6 +336,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
       navigate('/app', { replace: true });
     }
   }, [navigate]);
+
+  useEffect(() => {
+    const video = demoVideoRef.current;
+    if (!video) return;
+    video.pause();
+    video.currentTime = 0;
+    video.load();
+  }, [demoMode]);
   const faqItems = [
     {
       question: 'What is Perfect Mockup?',
@@ -1018,11 +1028,34 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               From upload to final image in minutes
             </h2>
             <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
-              No prompts. No design skills.
+              Same workflow. Different visual contexts.
             </p>
+          </div>
+          <div className="flex items-center justify-center gap-4 text-sm">
+            <button
+              type="button"
+              onClick={() => setDemoMode('studio')}
+              className={`px-1 ${demoMode === 'studio'
+                ? 'text-gray-900 dark:text-white font-semibold'
+                : 'text-gray-500 dark:text-gray-400'
+                }`}
+            >
+              Studio
+            </button>
+            <button
+              type="button"
+              onClick={() => setDemoMode('lifestyle')}
+              className={`px-1 ${demoMode === 'lifestyle'
+                ? 'text-gray-900 dark:text-white font-semibold'
+                : 'text-gray-500 dark:text-gray-400'
+                }`}
+            >
+              Lifestyle
+            </button>
           </div>
           <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5">
             <video
+              ref={demoVideoRef}
               className="w-full h-auto"
               controls
               playsInline
@@ -1030,7 +1063,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               preload="metadata"
               poster="/images/home/Studio-Hero.webp"
             >
-              <source src="/videos/perfectmockup-demo.mp4" type="video/mp4" />
+              <source
+                src={demoMode === 'studio' ? '/videos/perfectmockup-demo.mp4' : '/videos/perfectmockup-demo-lifestyle.mp4'}
+                type="video/mp4"
+              />
               Your browser does not support this video.
             </video>
           </div>
