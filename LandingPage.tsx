@@ -672,7 +672,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 1, ease: [0.23, 1, 0.32, 1] }}
-              className="text-5xl sm:text-7xl font-bold text-gray-900 dark:text-white leading-[1.05] tracking-tight text-balance"
+              className="text-3xl sm:text-7xl font-bold text-gray-900 dark:text-white leading-[1.05] tracking-tight text-balance"
             >
               Ecommerce Product Visuals Ready <br className="hidden md:block" />
               <span className="text-indigo-600 dark:text-indigo-400">
