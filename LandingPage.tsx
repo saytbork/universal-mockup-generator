@@ -314,9 +314,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [demoMode, setDemoMode] = useState<'studio' | 'lifestyle'>('studio');
+  const [demoLifestyleVariant, setDemoLifestyleVariant] = useState<0 | 1>(0);
   const [activeStep, setActiveStep] = useState(0);
   const [isHoveringSteps, setIsHoveringSteps] = useState(false);
   const demoVideoRef = useRef<HTMLVideoElement | null>(null);
+  const demoAutoplayNextRef = useRef(false);
   const carouselViewportRef = useRef<HTMLDivElement | null>(null);
   const carouselPausedRef = useRef(false);
   const carouselDraggingRef = useRef(false);
@@ -343,7 +345,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
     video.pause();
     video.currentTime = 0;
     video.load();
-  }, [demoMode]);
+    if (demoAutoplayNextRef.current && demoMode === 'lifestyle') {
+      demoAutoplayNextRef.current = false;
+      void video.play().catch(() => {
+        // Ignore autoplay failures.
+      });
+    }
+  }, [demoMode, demoLifestyleVariant]);
+
+  const demoVideoSrc =
+    demoMode === 'studio'
+      ? '/videos/perfectmockup-demo.mp4'
+      : (demoLifestyleVariant === 0
+        ? '/videos/perfectmockup-demo-lifestyle.mp4'
+        : '/videos/perfectmockup-demo-lifestyle-alt.mp4');
   const faqItems = [
     {
       question: 'What is Perfect Mockup?',
@@ -1027,9 +1042,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
             <h2 className="text-3xl md:text-4xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">
               From upload to final image in minutes
             </h2>
-            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
-              Same workflow. Different visual contexts.
-            </p>
           </div>
           <div className="flex items-center justify-center gap-4 text-sm">
             <button
@@ -1062,14 +1074,22 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               muted
               preload="metadata"
               poster="/images/home/Studio-Hero.webp"
+              onEnded={() => {
+                if (demoMode !== 'lifestyle') return;
+                demoAutoplayNextRef.current = true;
+                setDemoLifestyleVariant(prev => (prev === 0 ? 1 : 0));
+              }}
             >
               <source
-                src={demoMode === 'studio' ? '/videos/perfectmockup-demo.mp4' : '/videos/perfectmockup-demo-lifestyle.mp4'}
+                src={demoVideoSrc}
                 type="video/mp4"
               />
               Your browser does not support this video.
             </video>
           </div>
+          <p className="text-center text-sm md:text-base text-gray-600 dark:text-gray-400">
+            Same workflow. Different visual contexts.
+          </p>
         </div>
       </section>
 
