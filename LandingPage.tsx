@@ -1037,41 +1037,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
         </div>
       </section>
 
-      <section className="bg-gray-50 dark:bg-white/[0.02] py-12 border-b border-gray-100 dark:border-white/5">
-        <div className="max-w-6xl mx-auto px-6 text-center space-y-3">
-          <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
-            Category Definition
-          </span>
-          <h2 className="text-3xl md:text-4xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">
-            Built as a visual system, not a generator
-          </h2>
-          <div className="text-gray-600 dark:text-gray-400 max-w-4xl mx-auto text-base md:text-lg leading-relaxed space-y-4">
-            <p>
-              PerfectMockup is a controlled visual production system built for ecommerce and advertising.
-            </p>
-            <p>
-              Every output follows structured rules to ensure:
-              <br />
-              consistent visuals,
-              <br />
-              accurate product proportions,
-              <br />
-              sell-ready results.
-            </p>
-            <p>
-              The system does not generate random or experimental images.
-              <br />
-              It produces predictable, repeatable visuals for real commercial use.
-            </p>
-            <p>
-              The result:
-              <br />
-              Product images ready for product pages, ads, and landing pages, without rework.
-            </p>
-          </div>
-        </div>
-      </section>
-
       <section className="bg-gray-50 dark:bg-white/[0.02]">
         <div className="max-w-6xl mx-auto px-6 py-24 space-y-10">
           <div className="text-center space-y-3">
