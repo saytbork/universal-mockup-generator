@@ -1045,9 +1045,55 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
           <h2 className="text-3xl md:text-4xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">
             Built as a visual system, not a generator
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 max-w-4xl mx-auto text-base md:text-lg leading-relaxed">
-            Outputs follow structured rules for consistency and commercial use. The platform does not improvise random results.
-          </p>
+          <div className="text-gray-600 dark:text-gray-400 max-w-4xl mx-auto text-base md:text-lg leading-relaxed space-y-4">
+            <p>
+              PerfectMockup is designed as a controlled visual production system, not a creative image generator.
+            </p>
+            <p>
+              Every output follows structured rules to ensure:
+              <br />
+              visual consistency,
+              <br />
+              accurate product representation,
+              <br />
+              commercial usability.
+            </p>
+            <p>
+              The platform does not improvise, experiment, or generate random results.
+              <br />
+              It is built to produce reliable, repeatable, sell-ready product visuals for ecommerce and advertising.
+            </p>
+            <p className="font-semibold text-gray-900 dark:text-white">Why this matters</p>
+            <p>
+              Traditional image generators optimize for creativity.
+              <br />
+              PerfectMockup optimizes for production.
+            </p>
+            <p>
+              That means:
+              <br />
+              products maintain correct proportions,
+              <br />
+              labels remain readable and undistorted,
+              <br />
+              lighting follows commercial photography standards,
+              <br />
+              images are ready for product pages, ads, and landing pages without rework.
+            </p>
+            <p className="font-semibold text-gray-900 dark:text-white">The result</p>
+            <p>
+              A predictable visual workflow that replaces:
+              <br />
+              product photo shoots,
+              <br />
+              designer-led iterations,
+              <br />
+              manual mockup creation.
+            </p>
+            <p>
+              Final images are generated with speed, control, and consistency, ready for real commercial use.
+            </p>
+          </div>
         </div>
       </section>
 
