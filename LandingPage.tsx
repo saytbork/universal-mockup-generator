@@ -719,7 +719,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
       </header>
 
       {/* Modern Auto-Scrolling Before/After Carousel */}
-      <section className="bg-white dark:bg-black py-12 sm:py-16 overflow-hidden">
+      <section className="bg-white dark:bg-black py-6 sm:py-16 overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 mb-8 sm:mb-12">
           <div className="text-center space-y-4">
             <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
@@ -1036,7 +1036,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
         `}</style>
       </section>
 
-      <section className="bg-white dark:bg-black py-14 border-b border-gray-100 dark:border-white/5">
+      <section className="bg-white dark:bg-black py-6 sm:py-14 border-b border-gray-100 dark:border-white/5">
         <div className="max-w-6xl mx-auto px-6 space-y-5">
           <div className="text-center space-y-2">
             <h2 className="text-3xl md:text-4xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">
@@ -1094,7 +1094,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
       </section>
 
       <section className="bg-gray-50 dark:bg-white/[0.02]">
-        <div className="max-w-6xl mx-auto px-6 py-24 space-y-10">
+        <div className="max-w-6xl mx-auto px-6 py-6 sm:py-24 space-y-10">
           <div className="text-center space-y-3">
             <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
               What you can create
@@ -1151,7 +1151,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
       </section>
 
       <section className="bg-white dark:bg-black/95">
-        <div className="max-w-6xl mx-auto px-6 py-16 space-y-10">
+        <div className="max-w-6xl mx-auto px-6 py-6 sm:py-16 space-y-10">
           <div className="text-center space-y-4">
             <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
               Preview
@@ -1200,7 +1200,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
       <TestimonialsSection />
 
       <section id="how-it-works" className="bg-gray-50 dark:bg-white/[0.02] overflow-hidden">
-        <div className="max-w-6xl mx-auto px-6 py-20 space-y-12">
+        <div className="max-w-6xl mx-auto px-6 py-6 sm:py-20 space-y-12">
           <div className="text-center space-y-3">
             <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
               How it works
@@ -1317,7 +1317,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
       </section>
 
       {/* Bento: Product vs Lifestyle */}
-      <section className="bg-white dark:bg-black/95 py-24 overflow-hidden">
+      <section className="bg-white dark:bg-black/95 py-6 sm:py-24 overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 space-y-16">
           <div className="text-center space-y-4">
             <span className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50">
@@ -1419,7 +1419,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
 
       {/* Bento: The Advantage Grid */}
       {/* Why Perfect Mockup: Advantage Grid */}
-      <section className="bg-gray-50 dark:bg-white/[0.02] py-24 overflow-hidden">
+      <section className="bg-gray-50 dark:bg-white/[0.02] py-6 sm:py-24 overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 space-y-16">
           <div className="text-center space-y-4">
             <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
@@ -1522,7 +1522,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
       </section>
 
       {/* Sophisticated Audience Cluster */}
-      <section className="bg-white dark:bg-black/95 py-24">
+      <section className="bg-white dark:bg-black/95 py-6 sm:py-24">
         <div className="max-w-6xl mx-auto px-6 space-y-12">
           <div className="text-center space-y-4">
             <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
@@ -1557,7 +1557,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
       </section>
 
       <section className="bg-gray-50 dark:bg-white/[0.02]">
-        <div className="max-w-6xl mx-auto px-6 py-24 space-y-10">
+        <div className="max-w-6xl mx-auto px-6 py-6 sm:py-24 space-y-10">
           <div className="text-center space-y-3">
             <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
               Resources
@@ -1608,7 +1608,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
         </div>
       </section>
 
-      <section id="faq" className="bg-white dark:bg-black/95 py-24 border-b border-gray-100 dark:border-white/5">
+      <section id="faq" className="bg-white dark:bg-black/95 py-6 sm:py-24 border-b border-gray-100 dark:border-white/5">
         <div className="max-w-5xl mx-auto px-6 space-y-12">
           <div className="text-center space-y-3">
             <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
@@ -1636,7 +1636,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
         </div>
       </section>
 
-      <section id="pricing" className="bg-gray-50 dark:bg-white/[0.02] relative isolate py-24 px-6 border-b border-gray-100 dark:border-white/5">
+      <section id="pricing" className="bg-gray-50 dark:bg-white/[0.02] relative isolate py-6 sm:py-24 px-6 border-b border-gray-100 dark:border-white/5">
         <div className="max-w-6xl mx-auto space-y-16">
           <div className="text-center space-y-4">
             <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
@@ -1799,7 +1799,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
         </div>
       </section>
 
-      <section className="bg-gray-900 dark:bg-white/[0.03] py-24 text-center">
+      <section className="bg-gray-900 dark:bg-white/[0.03] py-6 sm:py-24 text-center">
         <div className="max-w-4xl mx-auto px-6">
           <h2 className="text-4xl md:text-5xl text-white font-bold tracking-tight text-balance">
             Publish ecommerce visuals without production bottlenecks
