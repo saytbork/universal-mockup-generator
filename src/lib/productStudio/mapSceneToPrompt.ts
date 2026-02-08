@@ -163,6 +163,26 @@ function sanitizePhotoModeTextForEnvironment(text: string): string {
   return next.replace(/\s+/g, ' ').replace(/\s+,/g, ',').trim();
 }
 
+function sanitizePhotoModeTextForStudioBranding(text: string): string {
+  if (!text) return '';
+  let next = text;
+
+  // Avoid over-constraining material vocab that introduces irrelevant objects
+  // (e.g. stone/concrete/metal props) in strict studio-branding product shots.
+  next = next.replace(/Strict Constraints:[\s\S]*$/i, '').trim();
+
+  const removePatterns = [
+    /Rigid materials only:[^,.]*[,.]?/gi,
+    /Secondary props:[^,.]*[,.]?/gi,
+    /No environment props[^,.]*[,.]?/gi,
+  ];
+  for (const pattern of removePatterns) {
+    next = next.replace(pattern, ' ');
+  }
+
+  return next.replace(/\s+/g, ' ').replace(/\s+,/g, ',').trim();
+}
+
 function sanitizeDynamicSettingText(raw: string): string {
   return String(raw || '')
     .replace(/\bcreator\b/gi, 'premium')
@@ -482,6 +502,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     String(state.environmentContext.macro || '').trim() !== '' &&
     String(state.environmentContext.macro || '').trim().toLowerCase() !== 'studio';
   const heroStudioLocked = isHeroLandingPage && !environmentModeActive;
+  const strictStudioBranding = state.sceneType === 'studio-branding' && !environmentModeActive;
 
   // Keep the selected Photo Mode active even when Environment is enabled.
   // Environment should drive the scene context, not erase mode-specific camera/lighting/material logic.
@@ -714,7 +735,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     : '';
   const adaptedPhotoModeModifiers = environmentModeActive
     ? sanitizePhotoModeTextForEnvironment(photoModeResult.modifiers || '')
-    : photoModeResult.modifiers;
+    : (strictStudioBranding
+      ? sanitizePhotoModeTextForStudioBranding(photoModeResult.modifiers || '')
+      : photoModeResult.modifiers);
   const photoModeEnvironmentAdaptationText = environmentModeActive
     ? [
       `PHOTO MODE (${getSafePhotoModeLabel(state.photoMode)}) ADAPTED TO ENVIRONMENT: preserve the selected mode's visual style while keeping a real-world location.`,
@@ -780,7 +803,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     buildPlacementDirective(state),
     viewpointDirectiveText,
     environmentModeActive ? '' : photoModeResult.modifiers,
-    mode === 'INGREDIENT_STACK' || mode === 'INGREDIENT_FLAT_LAY' ? '' : buildSecondaryProps(mode, randomizer, state.props),
+    mode === 'INGREDIENT_STACK' || mode === 'INGREDIENT_FLAT_LAY' || strictStudioBranding
+      ? ''
+      : buildSecondaryProps(mode, randomizer, state.props),
     buildLighting(mode, randomizer, {
       qualityProfile: state.qualityProfile,
       ...(lightingOverrideText ? { override: { text: lightingOverrideText } } : {}),
@@ -797,8 +822,13 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     }),
     finishOverrideText,
     creativityOverrideText,
-    buildMaterialsWithProfile(mode, randomizer, state.qualityProfile),
-    buildRandomizationRules(mode === 'INGREDIENT_STACK' || mode === 'INGREDIENT_FLAT_LAY' ? 'ingredientStack' : 'default', state.qualityProfile),
+    strictStudioBranding ? '' : buildMaterialsWithProfile(mode, randomizer, state.qualityProfile),
+    strictStudioBranding
+      ? ''
+      : buildRandomizationRules(
+        mode === 'INGREDIENT_STACK' || mode === 'INGREDIENT_FLAT_LAY' ? 'ingredientStack' : 'default',
+        state.qualityProfile
+      ),
     buildQualityEnforcers(state.qualityProfile),
   ].filter(Boolean);
 
