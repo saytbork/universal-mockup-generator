@@ -3,6 +3,7 @@ import { GoogleGenAI, Modality } from '@google/genai';
 import { checkAuth } from '../server/lib/checkAuth.js';
 import { consumeCredit, refundCredit, getUser, getEffectiveCredits, isUnlimitedCreditsEmail } from '../server/lib/store.js';
 import { addActivity } from '../server/lib/activity.js';
+import { addDebugLog } from '../server/lib/debugLog.js';
 
 const parseBody = async (req: VercelRequest) => {
   if (req.body && typeof req.body === 'object') return req.body;
@@ -49,16 +50,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     : null;
 
   if (!apiKey) {
+    await addDebugLog('generate.reject.missing_api_key', {
+      aspectRatio,
+      model,
+      promptHash: debugMeta?.promptHash,
+    }, email);
     res.status(400).json({ error: 'Missing API key' });
     return;
   }
   if (!parts || parts.length === 0) {
+    await addDebugLog('generate.reject.missing_parts', {
+      aspectRatio,
+      model,
+      promptHash: debugMeta?.promptHash,
+    }, email);
     res.status(400).json({ error: 'Missing prompt parts' });
     return;
   }
 
   const creditResult = await consumeCredit(email);
   if (!creditResult.ok || !creditResult.bucket) {
+    await addDebugLog('generate.reject.no_credits', {
+      aspectRatio,
+      model,
+      promptHash: debugMeta?.promptHash,
+    }, email);
     res.status(402).json({ error: 'No credits remaining' });
     return;
   }
@@ -120,6 +136,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!encodedImage) {
       throw new Error('Image generation failed.');
     }
+    await addDebugLog('generate.success', {
+      aspectRatio,
+      model,
+      promptHash: debugMeta?.promptHash,
+      mode: debugMeta?.mode,
+      sceneType: debugMeta?.sceneType,
+    }, email);
     const user = await getUser(email);
     if (creditResult.bucket !== 'admin') {
       await addActivity(email, 'image', {
@@ -137,6 +160,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       subscription_remaining: user.subscriptionRemaining ?? 0,
     });
   } catch (error: any) {
+    await addDebugLog('generate.error', {
+      aspectRatio,
+      model,
+      promptHash: debugMeta?.promptHash,
+      mode: debugMeta?.mode,
+      sceneType: debugMeta?.sceneType,
+      error: String(error?.message || 'Generation failed').slice(0, 280),
+    }, email);
     await refundCredit(email, creditResult.bucket);
     if (creditResult.bucket !== 'admin') {
       await addActivity(email, 'image', { delta: 1, refund: true, bucket: creditResult.bucket });
