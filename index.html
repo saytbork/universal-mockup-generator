@@ -55,6 +55,28 @@
       } catch (e) { }
     })();
   </script>
+  <script>
+    (function () {
+      try {
+        var reloadedKey = 'pm_css_recover_once';
+        window.addEventListener(
+          'error',
+          function (event) {
+            var target = event && event.target;
+            if (!target || target.tagName !== 'LINK') return;
+            if (target.getAttribute('rel') !== 'stylesheet') return;
+            if (sessionStorage.getItem(reloadedKey)) return;
+            sessionStorage.setItem(reloadedKey, '1');
+            window.location.reload();
+          },
+          true
+        );
+        window.addEventListener('load', function () {
+          sessionStorage.removeItem(reloadedKey);
+        });
+      } catch (e) { }
+    })();
+  </script>
 
   <style>
     /* Custom scrollbar for webkit browsers */
