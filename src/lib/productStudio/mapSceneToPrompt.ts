@@ -262,7 +262,7 @@ const SECONDARY_PROPS_BY_MODE: Partial<Record<PhotoModeKey, string[]>> = {
   INGREDIENT_STACK: [],
   INGREDIENT_FLAT_LAY: [],
   ACRYLIC_BLOCKS: ['additional acrylic risers', 'prismatic edge accents'],
-  SPLASH_SHOT: ['minimal liquid surface ripples', 'controlled droplets around the base'],
+  SPLASH_SHOT: ['single directional splash arc', 'clean high-speed droplets around the hero', 'subtle reflective waterline at base'],
   FOAM_AND_TEXTURE: ['controlled foam clusters', 'gel ribbons', 'micro-bubbles'],
   ROUTINE_CAROUSEL: ['simple glassware', 'clean tray', 'soft paper elements'],
   CLINICAL_LAB_COUNTER: ['clean glassware silhouettes', 'stainless tools', 'measured droppers'],

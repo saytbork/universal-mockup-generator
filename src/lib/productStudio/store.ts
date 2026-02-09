@@ -540,8 +540,8 @@ const DEFAULT_PHOTO_MODE_CONFIG: PhotoModeConfig = {
     },
     splashShot: {
         splashMedium: 'Liquid',
-        motionIntensity: 'Subtle',
-        freezeMoment: 'Early',
+        motionIntensity: 'Dynamic',
+        freezeMoment: 'Mid-splash',
         productStability: 'Fully grounded',
     },
     foamAndTexture: {

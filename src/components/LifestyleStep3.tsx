@@ -1900,7 +1900,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     const p = productStore.placement;
     if (mode === 'Hero Landing Page' || mode === 'Minimal Bathroom Vanity') return p === 'surface';
     if (mode === 'Acrylic Blocks') return p === 'supported';
-    if (mode === 'Splash Shot' || mode === 'Underwater Split' || mode === 'Sky Float Minimal') return p === 'air';
+    if (mode === 'Splash Shot') return p === 'surface';
+    if (mode === 'Underwater Split' || mode === 'Sky Float Minimal') return p === 'air';
     if (mode === 'Hands Application Clean') return p === 'held' || p === 'supported';
     return true;
   }, [productStore.placement]);
@@ -3069,7 +3070,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 <div>
                                   <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Splash Medium</p>
                                   <div className="flex flex-wrap gap-2">
-                                    {(['Liquid', 'Powder', 'Mist'] as const).map(v => (
+                                    {(['Liquid'] as const).map(v => (
                                       <Chip
                                         key={v}
                                         selected={productStore.photoModeConfig.splashShot.splashMedium === v}
@@ -3086,7 +3087,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 <div>
                                   <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Motion Intensity</p>
                                   <div className="flex flex-wrap gap-2">
-                                    {(['Subtle', 'Dynamic', 'Explosive'] as const).map(v => (
+                                    {(['Dynamic', 'Explosive'] as const).map(v => (
                                       <Chip
                                         key={v}
                                         selected={productStore.photoModeConfig.splashShot.motionIntensity === v}
@@ -3103,7 +3104,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 <div>
                                   <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Freeze Moment</p>
                                   <div className="flex flex-wrap gap-2">
-                                    {(['Early', 'Mid-splash', 'Peak'] as const).map(v => (
+                                    {(['Mid-splash', 'Peak'] as const).map(v => (
                                       <Chip
                                         key={v}
                                         selected={productStore.photoModeConfig.splashShot.freezeMoment === v}

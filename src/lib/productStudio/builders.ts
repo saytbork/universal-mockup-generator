@@ -1242,6 +1242,7 @@ function buildNegativePrompt(state: ProductStudioState): string {
     const interaction = String(state.interaction || 'none');
     const allowHands = interaction !== 'none';
     const motion = String(state.stateMotion || 'static');
+    const isSplashShot = state.photoMode === 'Splash Shot';
     const splashStyle = state.photoMode === 'Splash Shot' ? (state.splashStyle ?? 'Basic') : null;
     const macroTexturesActive = state.photoMode === 'Foam & Texture';
     const placement = String(state.placement || 'surface');
@@ -1329,6 +1330,16 @@ function buildNegativePrompt(state: ProductStudioState): string {
         'magical particles',
         ...(splashStyle === 'Advanced' ? ['smoke'] : ['mist', 'smoke']),
         ...(splashStyle ? [] : ['exaggerated splash']),
+        ...(isSplashShot
+            ? [
+                'muddy water',
+                'dirty liquid',
+                'chaotic circular splash',
+                'label obscured by splash',
+                'foam explosion',
+                'messy puddle clutter',
+              ]
+            : []),
         'floating hands', 'stiff fingers', 'mannequin hands', 'plastic hands', 'rubber hands', 'cgi hands',
         'distracting jewelry', 'oversized jewelry',
         // Quality / artifacts

@@ -194,18 +194,19 @@ export function buildSplashShotScene({ randomizer }: SceneBuildInput): { scene: 
   ]);
 
   const modeDescriptions: Record<SplashMode, string> = {
-    IMPACT_SPLASH: 'Product impacting a liquid surface causing an upward explosive splash with physically accurate droplets.',
-    RISING_SPLASH: 'Product emerging from liquid with an upward wrapping splash and natural asymmetry.',
-    SIDE_DISPLACEMENT_SPLASH: 'Product displacing liquid laterally with dynamic movement and directional force.'
+    IMPACT_SPLASH: 'Hero product impacts liquid with a single dominant upward arc and frozen high-speed droplets.',
+    RISING_SPLASH: 'Hero product emerges from liquid with a controlled wrapping splash and campaign-grade asymmetry.',
+    SIDE_DISPLACEMENT_SPLASH: 'Hero product displaces liquid laterally with directional force and clean droplet separation.'
   };
 
   return {
     splashMode,
     scene: [
-      'Dynamic splash environment with real physical liquid behavior.',
+      'Premium advertising splash setup with physically coherent liquid behavior.',
       modeDescriptions[splashMode],
-      'Physics must make sense; no circular decorative splash allowed.',
-      'Surface and surrounding elements remain premium and controlled.'
+      'Physics must make sense; no circular decorative splash rings and no chaotic foam clutter.',
+      'Label and logo zone remain readable and unobstructed.',
+      'Surface and surrounding elements remain premium, minimal, and controlled.'
     ].join(' ')
   };
 }
