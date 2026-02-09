@@ -656,6 +656,7 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     // PRODUCT STUDIO UI CONTROLS (NEW)
     interpretationNotes: {},
     qualityProfile: 'ecommerce-conversion',
+    ultraRealStrict: true,
     photoMode: 'Hero Landing Page',
     photoModeConfig: DEFAULT_PHOTO_MODE_CONFIG,
     splashStyle: 'Basic',
@@ -821,6 +822,7 @@ type ProductStudioActions = {
 
     // Product Studio UI Controls (NEW)
     setQualityProfile: (profile: OutputQualityProfile) => void;
+    setUltraRealStrict: (enabled: boolean) => void;
     setPhotoMode: (mode: PhotoMode) => void;
     setPhotoModeConfig: (patch: PhotoModeConfigPatch) => void;
     setSplashStyle: (style: ProductStudioState['splashStyle']) => void;
@@ -1059,8 +1061,11 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
 
             // Clear environment if mode doesn't allow it
             if (mode === 'studio' || mode === 'ecommerce') {
+                updates.environmentContext = null;
                 updates.environmentMacro = 'studio';
                 updates.microPlace = 'neutral-surface';
+                updates.customEnvironmentText = '';
+                updates.customMicroPlaceText = '';
             }
 
             // Map mode to sceneType (legacy compatibility)
@@ -1203,13 +1208,28 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             if (sceneType === 'lifestyle-real' && state.bundle.enabled) {
                 newBundle = { ...state.bundle, enabled: false };
             }
+            // Lifestyle sceneType requires an active environment context.
+            // If environment is missing, keep Studio to avoid accidental mode switching.
+            const requestedSceneType =
+                sceneType === 'lifestyle-real' && state.environmentContext == null
+                    ? 'studio-branding'
+                    : sceneType;
             // blankSpaceEnabled forces studio
-            const effectiveSceneType = state.blankSpaceEnabled ? 'studio-branding' : sceneType;
+            const effectiveSceneType = state.blankSpaceEnabled ? 'studio-branding' : requestedSceneType;
+            const isStudioLike =
+                effectiveSceneType === 'studio-branding' ||
+                effectiveSceneType === 'studio-hero' ||
+                effectiveSceneType === 'ecommerce-pdp';
             return {
                 sceneType: effectiveSceneType,
                 bundle: newBundle,
                 // studio forces neutral-surface
                 microPlace: effectiveSceneType === 'studio-branding' ? 'neutral-surface' : state.microPlace,
+                environmentContext: isStudioLike ? null : state.environmentContext,
+                environmentMacro: isStudioLike ? 'studio' : state.environmentMacro,
+                customEnvironmentText: isStudioLike ? '' : state.customEnvironmentText,
+                customMicroPlaceText: isStudioLike ? '' : state.customMicroPlaceText,
+                mode: isStudioLike ? 'studio' : state.mode,
             };
         }),
 
@@ -1571,6 +1591,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
 
     // Product Studio UI Controls (NEW)
     setQualityProfile: (profile) => set({ qualityProfile: profile }),
+    setUltraRealStrict: (enabled) => set({ ultraRealStrict: Boolean(enabled) }),
     setPhotoMode: (mode) =>
         set((state) => {
             const rawMode = String(mode ?? '').trim();
@@ -1614,20 +1635,11 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             ];
 
             const resolvedMode: PhotoMode = allowed.includes(nextMode) ? nextMode : 'Hero Landing Page';
-            const environmentPhotoModes: PhotoMode[] = [
-                'Golden Sunset Backlit',
-                'Bathroom Daylight Clean',
-                'Sky Float Minimal',
-                'Wet Rock Ripples',
-                'Hands Application Clean',
-                'Underwater Split',
-                'Sand Palm Shadows',
-                'Botanical Water Garden',
-                'Warm Window Wood',
-            ];
-            const isEnvironmentPhotoMode = environmentPhotoModes.includes(resolvedMode);
             const hadEnvironmentEnabled = state.environmentContext != null;
-            const shouldUseEnvironment = isEnvironmentPhotoMode || hadEnvironmentEnabled;
+            const alreadyInLifestyle = state.mode === 'lifestyle-real' && state.sceneType === 'lifestyle-real';
+            // Preserve environment only when the user is already in Lifestyle mode.
+            // This prevents any stale env state from forcing Studio -> Lifestyle on photo mode changes.
+            const shouldUseEnvironment = hadEnvironmentEnabled && alreadyInLifestyle;
             const schema = PHOTO_MODE_SCHEMAS[resolvedMode];
             const requiredPlacement = getPhotoModeRequiredPlacement(resolvedMode);
             const allowedInteractions = getPhotoModeAllowedInteractions(resolvedMode);

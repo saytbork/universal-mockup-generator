@@ -17,7 +17,11 @@ export function buildMaterials(mode: PhotoModeKey, randomizer: Randomizer): stri
     ].join(' ');
   }
 
-  const base = 'Premium real-world materials with true scale, tactile realism, and controlled surface behavior.';
+  const base = [
+    'Premium real-world materials with true scale, tactile realism, and controlled surface behavior.',
+    'Surface rendering must preserve natural micro-variation (grain, pores, minute roughness) without artificial smoothing.',
+    'No synthetic floor/wall look: materials must read as photographed matter, not CGI shaders.'
+  ].join(' ');
 
   const modeSpecific: Partial<Record<PhotoModeKey, string[]>> = {
     HERO_NEUTRAL: [

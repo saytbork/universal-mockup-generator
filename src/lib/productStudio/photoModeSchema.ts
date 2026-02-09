@@ -548,7 +548,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Sand Palm Shadows',
         scope: 'environment',
         description: 'Sunlit sand scene with palm shadow patterns and clean composition.',
-        basePrompt: 'sunlit sand composition with palm shadow patterns, warm premium tones, grounded product placement and controlled negative space',
+        basePrompt: 'sunlit real-beach sand composition with visible natural grain variation, micro-ridges, and subtle irregular footprints from wind shaping, soft palm shadow patterns, warm premium tones, grounded product placement and controlled negative space',
         subOptions: [
             { key: 'shadowPattern', label: 'Shadow Pattern', values: ['Soft palm', 'Defined palm'] },
             { key: 'sandTexture', label: 'Sand Texture', values: ['Fine', 'Natural'] },
@@ -556,6 +556,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         ],
         constraints: [
             'Shadows must look natural and directional',
+            'Sand must read as natural granular beach sand, not painted concrete or smooth studio floor',
+            'Visible micro-texture and uneven grain depth are mandatory near contact zones',
             'No random tropical clutter',
             'Product remains hero and readable',
         ],

@@ -24,6 +24,7 @@ import { buildCamera } from './promptParts/cameraBuilders';
 import { buildMaterialsWithProfile } from './promptParts/materialsBuilders';
 import { buildRandomizationRules, createRandomizer } from './promptParts/randomizationRules';
 import { buildQualityEnforcers } from './promptParts/qualityEnforcers';
+import { buildUltraRealStrictBlock } from './promptParts/ultraRealStrict';
 
 const titleCaseFromKebab = (value: string): string =>
   value
@@ -838,6 +839,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     finishOverrideText,
     creativityOverrideText,
     strictStudioBranding ? '' : buildMaterialsWithProfile(mode, randomizer, state.qualityProfile),
+    buildUltraRealStrictBlock(Boolean(state.ultraRealStrict), state.qualityProfile),
     strictStudioBranding
       ? ''
       : buildRandomizationRules(

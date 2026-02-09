@@ -705,6 +705,7 @@ export type ProductStudioState = {
     // ========================================================================
     interpretationNotes: Partial<Record<string, { message: string; ts: number }>>;
     qualityProfile: OutputQualityProfile;
+    ultraRealStrict: boolean;
     photoMode: PhotoMode;
     photoModeConfig: PhotoModeConfig;
     splashStyle: 'Basic' | 'Intermediate' | 'Advanced';
