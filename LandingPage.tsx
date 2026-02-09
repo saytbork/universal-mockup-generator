@@ -318,6 +318,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
   const [activeStep, setActiveStep] = useState(0);
   const [isHoveringSteps, setIsHoveringSteps] = useState(false);
   const demoVideoRef = useRef<HTMLVideoElement | null>(null);
+  const demoVideoOverlayRef = useRef<HTMLDivElement | null>(null);
   const demoAutoplayNextRef = useRef(false);
   const carouselViewportRef = useRef<HTMLDivElement | null>(null);
   const carouselPausedRef = useRef(false);
@@ -351,6 +352,71 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
         // Ignore autoplay failures.
       });
     }
+  }, [demoMode, demoLifestyleVariant]);
+
+  useEffect(() => {
+    const video = demoVideoRef.current;
+    const overlay = demoVideoOverlayRef.current;
+    if (!video || !overlay) return;
+
+    const titleEl = overlay.querySelector<HTMLElement>('[data-overlay-title]');
+    const subtextEl = overlay.querySelector<HTMLElement>('[data-overlay-subtext]');
+
+    const showOverlay = () => {
+      overlay.classList.remove('opacity-0', 'pointer-events-none');
+      overlay.classList.add('opacity-100', 'pointer-events-auto');
+    };
+
+    const hideOverlay = () => {
+      overlay.classList.remove('opacity-100', 'pointer-events-auto');
+      overlay.classList.add('opacity-0', 'pointer-events-none');
+    };
+
+    const applyVariantCopy = () => {
+      if (!titleEl || !subtextEl) return;
+      if (video.classList.contains('video-ugc')) {
+        titleEl.textContent = 'UGC Example';
+        subtextEl.textContent = 'Real user-style video';
+        subtextEl.classList.remove('hidden');
+        return;
+      }
+      if (video.classList.contains('video-editorial')) {
+        titleEl.textContent = 'Editorial Style';
+        subtextEl.textContent = 'Polished brand look';
+        subtextEl.classList.remove('hidden');
+        return;
+      }
+      titleEl.textContent = 'Play to see how it works';
+      subtextEl.textContent = '';
+      subtextEl.classList.add('hidden');
+    };
+
+    const handleOverlayClick = (event: Event) => {
+      event.preventDefault();
+      void video.play().catch(() => {
+        // Ignore autoplay/play promise failures; controls remain available.
+      });
+    };
+
+    const handlePlay = () => hideOverlay();
+    const handlePause = () => showOverlay();
+    const handleEnded = () => showOverlay();
+
+    overlay.addEventListener('click', handleOverlayClick);
+    video.addEventListener('play', handlePlay);
+    video.addEventListener('pause', handlePause);
+    video.addEventListener('ended', handleEnded);
+
+    applyVariantCopy();
+    if (video.paused) showOverlay();
+    else hideOverlay();
+
+    return () => {
+      overlay.removeEventListener('click', handleOverlayClick);
+      video.removeEventListener('play', handlePlay);
+      video.removeEventListener('pause', handlePause);
+      video.removeEventListener('ended', handleEnded);
+    };
   }, [demoMode, demoLifestyleVariant]);
 
   const demoVideoSrc =
@@ -1064,10 +1130,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               Lifestyle
             </button>
           </div>
-          <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5">
+          <div className="relative rounded-xl overflow-hidden border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 group">
             <video
               ref={demoVideoRef}
-              className="w-full h-auto"
+              className={`w-full h-auto ${demoMode === 'lifestyle'
+                ? (demoLifestyleVariant === 0 ? 'video-ugc' : 'video-editorial')
+                : ''
+                }`}
               controls
               playsInline
               muted
@@ -1085,6 +1154,29 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               />
               Your browser does not support this video.
             </video>
+            <div
+              ref={demoVideoOverlayRef}
+              className="absolute inset-0 z-10 flex items-center justify-center transition-all duration-200 ease-out opacity-100 pointer-events-auto"
+              aria-label="Play demo video overlay"
+            >
+              <div className="flex flex-col items-center text-center px-4">
+                <div className="w-20 h-20 md:w-24 md:h-24 bg-black/60 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-200 ease-out group-hover:bg-black/70 group-hover:scale-105">
+                  <svg viewBox="0 0 24 24" className="w-8 h-8 text-white fill-current" aria-hidden="true">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </div>
+                <p
+                  data-overlay-title
+                  className="text-white text-xs md:text-sm tracking-wide uppercase mt-3 opacity-90"
+                >
+                  Play to see how it works
+                </p>
+                <p
+                  data-overlay-subtext
+                  className="hidden text-white text-[11px] tracking-wide uppercase opacity-90 mt-1"
+                />
+              </div>
+            </div>
           </div>
           <p className="text-center text-sm md:text-base text-gray-600 dark:text-gray-400">
             Same workflow. Different visual contexts.
