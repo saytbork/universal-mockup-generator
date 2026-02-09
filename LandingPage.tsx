@@ -763,7 +763,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
             className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-12 w-full"
           >
             <Link
-              to="/login"
+              to="/app"
               className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-indigo-600 text-white px-10 py-5 font-bold text-sm transition-all hover:bg-indigo-700 shadow-xl shadow-indigo-600/20 hover:shadow-indigo-600/30 hover:-translate-y-0.5 active:scale-[0.98]"
             >
               Try it for free
@@ -1901,7 +1901,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
           </p>
           <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4">
             <Link
-              to="/login"
+              to="/app"
               className="inline-flex items-center justify-center rounded-xl bg-indigo-600 text-white px-10 py-5 font-bold text-sm transition-all hover:bg-indigo-700 shadow-xl shadow-indigo-600/20 hover:shadow-indigo-600/30 hover:-translate-y-0.5 active:scale-[0.98]"
             >
               Create your first product visual in minutes

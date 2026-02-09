@@ -1966,6 +1966,7 @@ const App: React.FC = () => {
   const canUseStudioFeatures = currentPlan.allowStudio || isTrialBypassActive;
   const canUseCaptionAssistant = false;
   const isUsingRemoteCredits = !isGuest && Boolean(userEmail.trim());
+  const isAnonymousTrialMode = !userEmail.trim();
   const remainingCredits = isTrialBypassActive
     ? 999_999
     : Math.max(
@@ -5344,6 +5345,10 @@ If the model attempts to create a scene or environment, override it and force a 
             });
           }
           setImageError(message);
+          if (data?.upgrade_required || data?.reason === 'trial_limit') {
+            setShowPlanModal(true);
+            setPlanNotice('Free trial limit reached. Sign in to remove watermark and continue generating.');
+          }
           if ((response.status === 402 || response.status === 403) && remainingCredits <= 0) {
             setShowPlanModal(true);
           }
@@ -5650,6 +5655,10 @@ If the model attempts to create a scene or environment, override it and force a 
         if (!response.ok) {
           const message = typeof responseData?.error === 'string' ? responseData.error : 'Generation failed';
           setImageError(message);
+          if (responseData?.upgrade_required || responseData?.reason === 'trial_limit') {
+            setShowPlanModal(true);
+            setPlanNotice('Free trial limit reached. Sign in to remove watermark and continue generating.');
+          }
           if ((response.status === 402 || response.status === 403) && remainingCredits <= 0) {
             setShowPlanModal(true);
           }
@@ -5833,6 +5842,10 @@ If the model attempts to create a scene or environment, override it and force a 
 
         const responseData = await response.json().catch(() => ({}));
         if (!response.ok) {
+          if (responseData?.upgrade_required || responseData?.reason === 'trial_limit') {
+            setShowPlanModal(true);
+            setPlanNotice('Free trial limit reached. Sign in to remove watermark and continue generating.');
+          }
           throw new Error(typeof responseData?.error === 'string' ? responseData.error : 'Generation failed');
         }
 
@@ -5971,6 +5984,10 @@ If the model attempts to create a scene or environment, override it and force a 
       if (!response.ok) {
         const message = typeof data?.error === 'string' ? data.error : 'Image edit failed';
         setImageError(message);
+        if (data?.upgrade_required || data?.reason === 'trial_limit') {
+          setShowPlanModal(true);
+          setPlanNotice('Free trial limit reached. Sign in to remove watermark and continue generating.');
+        }
         if ((response.status === 402 || response.status === 403) && remainingCredits <= 0) {
           setShowPlanModal(true);
         }
@@ -6672,6 +6689,7 @@ If the model attempts to create a scene or environment, override it and force a 
                     imageError={imageError}
                     onReset={handleReset}
                     isFreeUser={isFreeUser}
+                    isAnonymousTrial={isAnonymousTrialMode}
                     downloadCreditConfig={DOWNLOAD_CREDIT_CONFIG}
                     onChargeDownloadCredits={handleDownloadCreditCharge}
                   />

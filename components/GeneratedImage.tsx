@@ -21,6 +21,7 @@ interface GeneratedImageProps {
   imageError: string | null;
   onReset: () => void;
   isFreeUser: boolean;
+  isAnonymousTrial: boolean;
   downloadCreditConfig: DownloadCreditConfig;
   onChargeDownloadCredits: (
     resolution: DownloadResolution
@@ -49,6 +50,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
   imageError,
   onReset,
   isFreeUser,
+  isAnonymousTrial,
   downloadCreditConfig,
   onChargeDownloadCredits,
 }) => {
@@ -210,7 +212,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
-    if (isFreeUser) {
+    if (isFreeUser && !isAnonymousTrial) {
       applyWatermark(canvas);
     }
     return canvasToBlob(canvas);

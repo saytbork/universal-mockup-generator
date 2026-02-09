@@ -1,9 +1,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI, Modality } from '@google/genai';
+import crypto from 'crypto';
+import fs from 'fs/promises';
+import path from 'path';
 import { checkAuth } from '../server/lib/checkAuth.js';
 import { consumeCredit, refundCredit, getUser, getEffectiveCredits, isUnlimitedCreditsEmail } from '../server/lib/store.js';
 import { addActivity } from '../server/lib/activity.js';
 import { addDebugLog } from '../server/lib/debugLog.js';
+import sharp from 'sharp';
 
 const parseBody = async (req: VercelRequest) => {
   if (req.body && typeof req.body === 'object') return req.body;
@@ -19,6 +23,148 @@ const parseBody = async (req: VercelRequest) => {
   }
 };
 
+const hasKV =
+  !!process.env.KV_REST_API_URL &&
+  !!(process.env.KV_REST_API_TOKEN || process.env.KV_REST_API_READ_ONLY_TOKEN);
+const GUEST_TRIAL_COOKIE = 'pm_guest_trial';
+const GUEST_TRIAL_TTL_SECONDS = 60 * 60 * 24;
+const GUEST_TRIAL_CAP = (() => {
+  const parsed = Number(process.env.ANON_FREE_GENERATION_CAP || 3);
+  if (!Number.isFinite(parsed)) return 3;
+  return Math.max(1, Math.min(3, Math.floor(parsed)));
+})();
+const guestMemoryUsage = new Map<string, number>();
+let logoSvgCache: string | null = null;
+
+const getKv = async () => {
+  const mod = await import('@vercel/kv');
+  return mod.kv;
+};
+
+const parseCookies = (req: VercelRequest) => {
+  const cookieHeader = String(req.headers.cookie || '');
+  return cookieHeader
+    .split(';')
+    .map(part => part.trim())
+    .filter(Boolean)
+    .reduce<Record<string, string>>((acc, item) => {
+      const idx = item.indexOf('=');
+      if (idx === -1) return acc;
+      const key = item.slice(0, idx).trim();
+      const value = item.slice(idx + 1).trim();
+      acc[key] = decodeURIComponent(value);
+      return acc;
+    }, {});
+};
+
+const getGuestSecret = () => process.env.SESSION_SECRET || process.env.MAGIC_TOKEN_SECRET || 'guest-fallback-secret';
+
+const createGuestTrialToken = (guestId: string): string => {
+  const payload = Buffer.from(JSON.stringify({
+    guestId,
+    exp: Date.now() + GUEST_TRIAL_TTL_SECONDS * 1000,
+  })).toString('base64url');
+  const sig = crypto.createHmac('sha256', getGuestSecret()).update(payload).digest('base64url');
+  return `${payload}.${sig}`;
+};
+
+const verifyGuestTrialToken = (token: string | null): string | null => {
+  if (!token || !token.includes('.')) return null;
+  const [payload, sig] = token.split('.');
+  if (!payload || !sig) return null;
+  const expected = crypto.createHmac('sha256', getGuestSecret()).update(payload).digest('base64url');
+  const expectedBuf = Buffer.from(expected);
+  const sigBuf = Buffer.from(sig);
+  if (expectedBuf.length !== sigBuf.length) return null;
+  if (!crypto.timingSafeEqual(expectedBuf, sigBuf)) return null;
+  try {
+    const parsed = JSON.parse(Buffer.from(payload, 'base64url').toString()) as { guestId?: string; exp?: number };
+    const guestId = String(parsed.guestId || '').trim();
+    const exp = Number(parsed.exp || 0);
+    if (!guestId || !exp || Date.now() > exp) return null;
+    return guestId;
+  } catch {
+    return null;
+  }
+};
+
+const buildGuestTrialCookie = (req: VercelRequest, guestId: string) => {
+  const proto = String(req.headers['x-forwarded-proto'] || (String(req.headers.host || '').includes('localhost') ? 'http' : 'https'));
+  const secureFlag = proto === 'https' ? '; Secure' : '';
+  const token = createGuestTrialToken(guestId);
+  return `${GUEST_TRIAL_COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly${secureFlag}; SameSite=Lax; Max-Age=${GUEST_TRIAL_TTL_SECONDS}`;
+};
+
+const getGuestTrialUsage = async (guestId: string): Promise<number> => {
+  const key = `guest_trial_usage:${guestId}`;
+  if (hasKV) {
+    try {
+      const kv = await getKv();
+      const value = await kv.get<number>(key);
+      return Math.max(0, Number(value || 0));
+    } catch {
+      return Math.max(0, Number(guestMemoryUsage.get(guestId) || 0));
+    }
+  }
+  return Math.max(0, Number(guestMemoryUsage.get(guestId) || 0));
+};
+
+const incrementGuestTrialUsage = async (guestId: string): Promise<number> => {
+  const key = `guest_trial_usage:${guestId}`;
+  if (hasKV) {
+    try {
+      const kv = await getKv();
+      const next = await kv.incr(key);
+      await kv.expire(key, GUEST_TRIAL_TTL_SECONDS);
+      return Math.max(0, Number(next || 0));
+    } catch {
+      const fallback = Math.max(0, Number(guestMemoryUsage.get(guestId) || 0)) + 1;
+      guestMemoryUsage.set(guestId, fallback);
+      return fallback;
+    }
+  }
+  const next = Math.max(0, Number(guestMemoryUsage.get(guestId) || 0)) + 1;
+  guestMemoryUsage.set(guestId, next);
+  return next;
+};
+
+const getLogoSvg = async (): Promise<string> => {
+  if (logoSvgCache) return logoSvgCache;
+  const logoPath = path.join(process.cwd(), 'public', 'img', 'logos', 'colorlogo.svg');
+  logoSvgCache = await fs.readFile(logoPath, 'utf8');
+  return logoSvgCache;
+};
+
+const applyLogoWatermarkToPngBase64 = async (imageBase64: string): Promise<string> => {
+  const sourceBuffer = Buffer.from(imageBase64, 'base64');
+  const image = sharp(sourceBuffer, { failOn: 'none' });
+  const metadata = await image.metadata();
+  const width = Math.max(1, Number(metadata.width || 0));
+  const height = Math.max(1, Number(metadata.height || 0));
+  if (!width || !height) return imageBase64;
+
+  const logoSvg = await getLogoSvg();
+  const targetLogoWidth = Math.max(140, Math.round(width * 0.17));
+  const logoHeight = Math.max(48, Math.round(targetLogoWidth * 0.28));
+  const margin = Math.max(18, Math.round(Math.min(width, height) * 0.02));
+  const encodedLogo = Buffer.from(logoSvg).toString('base64');
+  const overlaySvg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${targetLogoWidth}" height="${logoHeight}" viewBox="0 0 ${targetLogoWidth} ${logoHeight}">
+      <image href="data:image/svg+xml;base64,${encodedLogo}" width="${targetLogoWidth}" height="${logoHeight}" opacity="0.42" preserveAspectRatio="xMidYMid meet" />
+    </svg>
+  `;
+  const output = await image
+    .composite([{
+      input: Buffer.from(overlaySvg),
+      left: Math.max(0, width - targetLogoWidth - margin),
+      top: Math.max(0, height - logoHeight - margin),
+      blend: 'over',
+    }])
+    .png()
+    .toBuffer();
+  return output.toString('base64');
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -26,12 +172,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const email = checkAuth(req);
-  if (!email) {
-    res.status(401).json({ error: 'Unauthorized' });
-    return;
+  const authenticatedEmail = checkAuth(req);
+  const isAnonymousTrial = !authenticatedEmail;
+  let guestId: string | null = null;
+  let shouldSetGuestCookie = false;
+  if (isAnonymousTrial) {
+    const cookies = parseCookies(req);
+    const existingGuestId = verifyGuestTrialToken(cookies[GUEST_TRIAL_COOKIE] || null);
+    guestId = existingGuestId || `guest_${crypto.randomUUID()}`;
+    shouldSetGuestCookie = !existingGuestId;
+    const usage = await getGuestTrialUsage(guestId);
+    const remaining = Math.max(GUEST_TRIAL_CAP - usage, 0);
+    if (remaining <= 0) {
+      if (shouldSetGuestCookie && guestId) {
+        res.setHeader('Set-Cookie', buildGuestTrialCookie(req, guestId));
+      }
+      res.status(402).json({
+        error: 'Free trial limit reached. Sign in to keep generating and remove watermark.',
+        upgrade_required: true,
+        reason: 'trial_limit',
+        trial_remaining: 0,
+      });
+      return;
+    }
   }
-  const isUnlimited = isUnlimitedCreditsEmail(email);
+  const email = authenticatedEmail || guestId || undefined;
+  const isUnlimited = authenticatedEmail ? isUnlimitedCreditsEmail(authenticatedEmail) : false;
 
   const body = await parseBody(req);
   const parts = Array.isArray(body.parts) ? body.parts : null;
@@ -68,18 +234,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const creditResult = await consumeCredit(email);
-  if (!creditResult.ok || !creditResult.bucket) {
-    await addDebugLog('generate.reject.no_credits', {
-      aspectRatio,
-      model,
-      promptHash: debugMeta?.promptHash,
-    }, email);
-    res.status(402).json({ error: 'No credits remaining' });
-    return;
-  }
-  if (creditResult.bucket !== 'admin') {
-    await addActivity(email, 'image', { delta: -1, bucket: creditResult.bucket });
+  let creditResult: Awaited<ReturnType<typeof consumeCredit>> | null = null;
+  if (!isAnonymousTrial) {
+    creditResult = await consumeCredit(authenticatedEmail!);
+    if (!creditResult.ok || !creditResult.bucket) {
+      await addDebugLog('generate.reject.no_credits', {
+        aspectRatio,
+        model,
+        promptHash: debugMeta?.promptHash,
+      }, authenticatedEmail);
+      res.status(402).json({ error: 'No credits remaining' });
+      return;
+    }
+    if (creditResult.bucket !== 'admin') {
+      await addActivity(authenticatedEmail!, 'image', { delta: -1, bucket: creditResult.bucket });
+    }
   }
 
   const ai = new GoogleGenAI({ apiKey, apiVersion: 'v1beta' });
@@ -136,6 +305,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!encodedImage) {
       throw new Error('Image generation failed.');
     }
+    const maybeWatermarkedImage = isAnonymousTrial
+      ? await applyLogoWatermarkToPngBase64(encodedImage)
+      : encodedImage;
     await addDebugLog('generate.success', {
       aspectRatio,
       model,
@@ -143,9 +315,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       mode: debugMeta?.mode,
       sceneType: debugMeta?.sceneType,
     }, email);
-    const user = await getUser(email);
-    if (creditResult.bucket !== 'admin') {
-      await addActivity(email, 'image', {
+    if (isAnonymousTrial) {
+      const usageAfter = await incrementGuestTrialUsage(guestId!);
+      const remaining = Math.max(GUEST_TRIAL_CAP - usageAfter, 0);
+      if (shouldSetGuestCookie && guestId) {
+        res.setHeader('Set-Cookie', buildGuestTrialCookie(req, guestId));
+      }
+      res.status(200).json({
+        ok: true,
+        imageBase64: maybeWatermarkedImage,
+        anonymous_trial: true,
+        trial_remaining: remaining,
+        trial_cap: GUEST_TRIAL_CAP,
+      });
+      return;
+    }
+
+    const user = await getUser(authenticatedEmail!);
+    if (creditResult?.bucket !== 'admin') {
+      await addActivity(authenticatedEmail!, 'image', {
         kind: 'generation',
         status: 'success',
         ...debugMeta,
@@ -153,7 +341,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     res.status(200).json({
       ok: true,
-      imageBase64: encodedImage,
+      imageBase64: maybeWatermarkedImage,
       remaining_credits: isUnlimited ? 999_999 : getEffectiveCredits(user),
       trial_remaining: user.trialRemaining ?? 0,
       invite_remaining: user.inviteRemaining ?? 0,
@@ -168,10 +356,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       sceneType: debugMeta?.sceneType,
       error: String(error?.message || 'Generation failed').slice(0, 280),
     }, email);
-    await refundCredit(email, creditResult.bucket);
-    if (creditResult.bucket !== 'admin') {
-      await addActivity(email, 'image', { delta: 1, refund: true, bucket: creditResult.bucket });
-      await addActivity(email, 'image', {
+    if (!isAnonymousTrial && creditResult?.bucket) {
+      await refundCredit(authenticatedEmail!, creditResult.bucket);
+    }
+    if (!isAnonymousTrial && creditResult?.bucket !== 'admin') {
+      await addActivity(authenticatedEmail!, 'image', { delta: 1, refund: true, bucket: creditResult.bucket });
+      await addActivity(authenticatedEmail!, 'image', {
         kind: 'generation',
         status: 'error',
         error: String(error?.message || 'Generation failed').slice(0, 280),
