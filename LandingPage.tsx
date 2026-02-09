@@ -1168,7 +1168,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
                 </div>
                 <p
                   data-overlay-title
-                  className="text-white text-xs md:text-sm tracking-wide uppercase mt-3 opacity-90 drop-shadow-md"
+                  className="text-white text-xs font-black md:text-3xl tracking-wide uppercase mt-3 opacity-90 drop-shadow-md"
                 >
                   Play to see how it works
                 </p>
