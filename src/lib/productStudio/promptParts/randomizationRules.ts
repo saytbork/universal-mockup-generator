@@ -61,31 +61,51 @@ export function createRandomizer(): Randomizer {
 
 export type RandomizationMode = 'default' | 'ingredientStack';
 export type RandomizationProfile = 'luxury-brand' | 'ecommerce-conversion' | 'editorial';
+export type RandomizationLocks = {
+  lensLocked?: boolean;
+  lightingLocked?: boolean;
+  finishLocked?: boolean;
+};
 
-export function buildRandomizationRules(mode: RandomizationMode = 'default', profile: RandomizationProfile = 'luxury-brand'): string {
+export function buildRandomizationRules(
+  mode: RandomizationMode = 'default',
+  profile: RandomizationProfile = 'luxury-brand',
+  locks: RandomizationLocks = {}
+): string {
   const profileLine = profile === 'ecommerce-conversion'
     ? 'Keep visual hierarchy conversion-focused: product and label remain dominant in every variation.'
     : profile === 'editorial'
       ? 'Allow expressive composition shifts while preserving product truth and brand safety.'
       : 'Maintain luxury campaign polish across all variations.';
 
+  const lockRules: string[] = [];
+  if (locks.lensLocked) lockRules.push('Lens selection is locked to the user-selected value; do not override it.');
+  if (locks.lightingLocked) lockRules.push('Lighting rig is locked to the user-selected value; do not override it.');
+  if (locks.finishLocked) lockRules.push('Finish / treatment is locked to the user-selected value; do not override it.');
+
+  const variableParts: string[] = ['camera angle', 'lens distance'];
+  if (!locks.lightingLocked) variableParts.push('lighting setup');
+  variableParts.push(mode === 'ingredientStack' ? 'ingredient placement' : 'object placement', 'environment details');
+
   if (mode === 'ingredientStack') {
     return [
       'RANDOMIZATION RULES (CRITICAL):',
-      'Every generation must differ in camera angle, lens distance, lighting setup, and ingredient placement while preserving premium ad quality.',
+      `Every generation must differ in ${variableParts.join(', ')} while preserving premium ad quality.`,
       'Only the listed ingredients may be rearranged; do not introduce any other objects.',
       'Never reuse the same base composition or staging structure.',
       'Avoid symmetrical default framing unless explicitly required by ecommerce composition.',
+      ...lockRules,
       profileLine
     ].join(' ');
   }
 
   return [
     'RANDOMIZATION RULES (CRITICAL):',
-    'Every generation must differ in camera angle, lens distance, lighting setup, object placement, and environment details while staying campaign-grade.',
+    `Every generation must differ in ${variableParts.join(', ')} while staying campaign-grade.`,
     'Never reuse the same base composition or staging structure.',
     'Vary props and micro-environment accents each time without reducing product prominence.',
     'Avoid symmetrical default framing unless explicitly required by ecommerce composition.',
+    ...lockRules,
     profileLine
   ].join(' ');
 }

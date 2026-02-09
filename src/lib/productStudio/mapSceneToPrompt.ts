@@ -827,7 +827,12 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       ? ''
       : buildRandomizationRules(
         mode === 'INGREDIENT_STACK' || mode === 'INGREDIENT_FLAT_LAY' ? 'ingredientStack' : 'default',
-        state.qualityProfile
+        state.qualityProfile,
+        {
+          lensLocked: Boolean(String((state as any).lens || '').trim()),
+          lightingLocked: Boolean(String((state as any).lightingRig || '').trim()),
+          finishLocked: Boolean(String((state as any).finish || '').trim()),
+        }
       ),
     buildQualityEnforcers(state.qualityProfile),
   ].filter(Boolean);
