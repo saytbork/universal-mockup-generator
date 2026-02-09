@@ -1967,19 +1967,22 @@ const App: React.FC = () => {
   const canUseCaptionAssistant = false;
   const isUsingRemoteCredits = !isGuest && Boolean(userEmail.trim());
   const isAnonymousTrialMode = !userEmail.trim();
+  const shouldTrackLocalCredits = !isUsingRemoteCredits && !isAnonymousTrialMode;
   const remainingCredits = isTrialBypassActive
     ? 999_999
-    : Math.max(
-      isUsingRemoteCredits ? (remoteCredits ?? planCreditLimit) : planCreditLimit - creditUsage,
-      0
-    );
+    : isAnonymousTrialMode
+      ? 999_999
+      : Math.max(
+        isUsingRemoteCredits ? (remoteCredits ?? planCreditLimit) : planCreditLimit - creditUsage,
+        0
+      );
   const remainingVideos = Math.max(planVideoLimit - videoGenerationCount, 0);
-  const isTrialLocked = !isTrialBypassActive && remainingCredits <= 0;
+  const isTrialLocked = !isTrialBypassActive && !isAnonymousTrialMode && remainingCredits <= 0;
   const hasPlanVideoAccess = planVideoLimit > 0 || hasVideoAccess || isTrialBypassActive;
   const isVideoLimitReached = !isTrialBypassActive && planVideoLimit > 0 && videoGenerationCount >= planVideoLimit;
   const showCaptionAssistant = false;
   useEffect(() => {
-    if (!isTrialBypassActive && remainingCredits <= 0) {
+    if (!isTrialBypassActive && !isAnonymousTrialMode && remainingCredits <= 0) {
       setShowPlanModal(true);
       setPlanNotice(
         isGuest
@@ -1987,7 +1990,7 @@ const App: React.FC = () => {
           : 'You are out of credits. Upgrade your plan to keep generating.'
       );
     }
-  }, [isTrialBypassActive, remainingCredits, isGuest]);
+  }, [isTrialBypassActive, remainingCredits, isGuest, isAnonymousTrialMode]);
   useEffect(() => {
     if ((!personInScene || isProductPlacement) && ugcRealSettings.isEnabled) {
       persistUgcRealSettings(prev => ({ ...prev, isEnabled: false }));
@@ -3276,7 +3279,7 @@ const App: React.FC = () => {
 
   const handleDownloadCreditCharge = useCallback(
     (resolution: DownloadResolution): { ok: boolean; message?: string } => {
-      if (isTrialBypassActive) {
+      if (isTrialBypassActive || isAnonymousTrialMode) {
         return { ok: true };
       }
       const cost =
@@ -3300,7 +3303,7 @@ const App: React.FC = () => {
       });
       return { ok: true };
     },
-    [isTrialBypassActive, remainingCredits]
+    [isTrialBypassActive, isAnonymousTrialMode, remainingCredits]
   );
 
   const handleHeroPosePresetSelect = useCallback((value: string) => {
@@ -5403,7 +5406,7 @@ If the model attempts to create a scene or environment, override it and force a 
         void reportGalleryEntry(outputUrl);
         runHiResPipeline(outputUrl);
         if (!isTrialBypassActive) {
-          if (!isUsingRemoteCredits) {
+          if (shouldTrackLocalCredits) {
             const newCount = creditUsage + creditCost;
             setCreditUsage(newCount);
             if (typeof window !== 'undefined') {
@@ -5471,7 +5474,7 @@ If the model attempts to create a scene or environment, override it and force a 
       compositionMode,
       creditUsage,
       isAdmin,
-      isUsingRemoteCredits,
+      shouldTrackLocalCredits,
       resolvedPlanTier,
       handleApiKeyInvalid,
       normalizeGeminiModel(GOOGLE_MODEL ?? GEMINI_IMAGE_MODEL),
@@ -5713,7 +5716,7 @@ If the model attempts to create a scene or environment, override it and force a 
       }
 
       if (!isTrialBypassActive) {
-        if (!isUsingRemoteCredits) {
+        if (shouldTrackLocalCredits) {
           setCreditUsage(prev => {
             const next = prev + projectedCost;
             if (typeof window !== 'undefined') {
@@ -5877,7 +5880,7 @@ If the model attempts to create a scene or environment, override it and force a 
         }
       }
 
-      if (!isTrialBypassActive && !isUsingRemoteCredits) {
+      if (!isTrialBypassActive && shouldTrackLocalCredits) {
         setCreditUsage(prev => {
           const next = prev + projectedCost;
           if (typeof window !== 'undefined') {
@@ -5904,6 +5907,7 @@ If the model attempts to create a scene or environment, override it and force a 
     getImageCreditCost,
     isTrialBypassActive,
     isTrialLocked,
+    shouldTrackLocalCredits,
     currentPlan.label,
     planCreditLimit,
     remainingCredits,
@@ -5914,7 +5918,6 @@ If the model attempts to create a scene or environment, override it and force a 
     setRemoteCredits,
     resolvedPlanTier,
     userEmail,
-    isUsingRemoteCredits,
     resolveOutputAspectRatio
   ]);
 
