@@ -59,20 +59,60 @@
     (function () {
       try {
         var reloadedKey = 'pm_css_recover_once';
+        var recoveredKey = 'pm_css_recovered';
+
+        function ensureFallbackStylesheet() {
+          var existing = document.querySelector('link[data-emergency-css="1"]');
+          if (existing) return;
+          var link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = '/emergency.css';
+          link.setAttribute('data-emergency-css', '1');
+          document.head.appendChild(link);
+          document.documentElement.setAttribute('data-css-recovered', '1');
+        }
+
+        function mainCssLooksMissing() {
+          var probe = document.createElement('div');
+          probe.className = 'hidden';
+          probe.style.position = 'absolute';
+          probe.style.left = '-9999px';
+          probe.style.top = '-9999px';
+          document.body.appendChild(probe);
+          var display = window.getComputedStyle(probe).display;
+          document.body.removeChild(probe);
+          return display !== 'none';
+        }
+
+        function recoverFromMissingCss() {
+          if (!mainCssLooksMissing()) return;
+          if (!sessionStorage.getItem(reloadedKey)) {
+            sessionStorage.setItem(reloadedKey, '1');
+            window.location.reload();
+            return;
+          }
+          sessionStorage.setItem(recoveredKey, '1');
+          ensureFallbackStylesheet();
+        }
+
         window.addEventListener(
           'error',
           function (event) {
             var target = event && event.target;
             if (!target || target.tagName !== 'LINK') return;
             if (target.getAttribute('rel') !== 'stylesheet') return;
-            if (sessionStorage.getItem(reloadedKey)) return;
-            sessionStorage.setItem(reloadedKey, '1');
-            window.location.reload();
+            recoverFromMissingCss();
           },
           true
         );
+        window.addEventListener('DOMContentLoaded', function () {
+          recoverFromMissingCss();
+        });
         window.addEventListener('load', function () {
           sessionStorage.removeItem(reloadedKey);
+          if (sessionStorage.getItem(recoveredKey)) {
+            ensureFallbackStylesheet();
+          }
         });
       } catch (e) { }
     })();
