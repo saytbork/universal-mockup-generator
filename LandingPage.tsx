@@ -1626,19 +1626,19 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
             </p>
           </div>
 
-          <div className="flex flex-wrap justify-center items-center gap-4 max-w-4xl mx-auto">
+          <div className="flex flex-wrap justify-center items-center gap-3 sm:gap-4 max-w-4xl mx-auto">
             {[
-              { label: 'Ecommerce Brands', weight: 'font-extrabold', size: 'text-2xl', color: 'text-indigo-600', bg: 'bg-indigo-50 border-indigo-100' },
-              { label: 'Supplement Companies', weight: 'font-semibold', size: 'text-xl', color: 'text-gray-900', bg: 'bg-gray-50 border-gray-200' },
-              { label: 'Beauty & Skincare Teams', weight: 'font-bold', size: 'text-lg', color: 'text-indigo-600/80', bg: 'bg-indigo-50/50 border-indigo-100/50' },
-              { label: 'Wellness Product Teams', weight: 'font-medium', size: 'text-2xl', color: 'text-gray-900', bg: 'bg-gray-50 border-gray-200' },
-              { label: 'DTC Operators', weight: 'font-bold', size: 'text-xl', color: 'text-indigo-600', bg: 'bg-indigo-50 border-indigo-100' },
-              { label: 'Paid Media Teams', weight: 'font-normal', size: 'text-lg', color: 'text-gray-700', bg: 'bg-gray-50 border-gray-200' },
-              { label: 'Performance Marketers', weight: 'font-semibold', size: 'text-lg', color: 'text-gray-900', bg: 'bg-gray-50 border-gray-200' },
+              { label: 'Ecommerce Brands', weight: 'font-extrabold', size: 'text-lg sm:text-2xl', color: 'text-indigo-600', bg: 'bg-indigo-50 border-indigo-100' },
+              { label: 'Supplement Companies', weight: 'font-semibold', size: 'text-base sm:text-xl', color: 'text-gray-900', bg: 'bg-gray-50 border-gray-200' },
+              { label: 'Beauty & Skincare Teams', weight: 'font-bold', size: 'text-base sm:text-lg', color: 'text-indigo-600/80', bg: 'bg-indigo-50/50 border-indigo-100/50' },
+              { label: 'Wellness Product Teams', weight: 'font-medium', size: 'text-lg sm:text-2xl', color: 'text-gray-900', bg: 'bg-gray-50 border-gray-200' },
+              { label: 'DTC Operators', weight: 'font-bold', size: 'text-base sm:text-xl', color: 'text-indigo-600', bg: 'bg-indigo-50 border-indigo-100' },
+              { label: 'Paid Media Teams', weight: 'font-normal', size: 'text-base sm:text-lg', color: 'text-gray-700', bg: 'bg-gray-50 border-gray-200' },
+              { label: 'Performance Marketers', weight: 'font-semibold', size: 'text-base sm:text-lg', color: 'text-gray-900', bg: 'bg-gray-50 border-gray-200' },
             ].map((item, i) => (
               <div
                 key={item.label}
-                className={`px-6 py-4 rounded-full border transition-all hover:scale-105 cursor-default flex items-center gap-3 ${item.bg} ${item.color} ${item.weight} ${item.size}`}
+                className={`max-w-full px-5 py-3 sm:px-6 sm:py-4 rounded-full border transition-all hover:scale-105 cursor-default flex items-center gap-3 text-center leading-tight ${item.bg} ${item.color} ${item.weight} ${item.size}`}
                 style={{ animationDelay: `${i * 0.1}s` }}
               >
                 {item.label}
