@@ -609,6 +609,7 @@ function buildStateMotion(state: ProductStudioState): string {
             'Product fully assembled.',
             'Cap present and attached.',
             'Contents fully contained.',
+            'ORIENTATION LOCK: Keep the product upright on its base. Do not lay the product on its side.',
             placementText,
             'No motion.',
         ].join(' ');
@@ -617,6 +618,7 @@ function buildStateMotion(state: ProductStudioState): string {
     if (motion === 'opened') {
         return [
             'PRODUCT_STATE_MOTION: Opened.',
+            'ORIENTATION LOCK: Keep the product upright on its base. Do not lay the product on its side.',
             placement === 'air'
                 ? 'Container is open and suspended in controlled air placement.'
                 : placement === 'supported'
@@ -705,7 +707,8 @@ function buildStateMotion(state: ProductStudioState): string {
                 : v.liquidColorMode;
             return [
                 'PRODUCT_STATE_MOTION: Dispensed.',
-                'Container open, stabilized angle (controlled dispensing).',
+                'Container open, stabilized near-upright angle (controlled dispensing).',
+                'ORIENTATION LOCK: Keep the container upright or with slight forward pitch only; never laid on its side.',
                 capRule,
                 `A single ${liquidColorDesc} droplet releases from the dropper tip.`,
                 'Realistic surface tension; no streams, no splashes.',
@@ -717,7 +720,8 @@ function buildStateMotion(state: ProductStudioState): string {
             const colorDesc = getColorDescription(v.powderColor);
             return [
                 'PRODUCT_STATE_MOTION: Dispensed.',
-                'Container open, stabilized angle (controlled dispensing).',
+                'Container open, stabilized near-upright angle (controlled dispensing).',
+                'ORIENTATION LOCK: Keep the container upright or with slight forward pitch only; never laid on its side.',
                 capRule,
                 `A controlled amount of ${v.texture} powder in ${colorDesc} tone is dispensed onto the surface.`,
                 'Powder is at rest on the surface (post-dispense).',
@@ -726,7 +730,8 @@ function buildStateMotion(state: ProductStudioState): string {
         }
         return [
             'PRODUCT_STATE_MOTION: Dispensed.',
-            'Container open, stabilized angle (controlled dispensing).',
+            'Container open, stabilized near-upright angle (controlled dispensing).',
+            'ORIENTATION LOCK: Keep the container upright or with slight forward pitch only; never laid on its side.',
             capRule,
             `A controlled amount of contents is released in an ordered cluster. ${physics}.`,
         ].join(' ');
