@@ -1159,21 +1159,22 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               className="absolute inset-0 z-10 flex items-center justify-center transition-all duration-200 ease-out opacity-100 pointer-events-auto"
               aria-label="Play demo video overlay"
             >
-              <div className="flex flex-col items-center text-center px-4">
-                <div className="w-20 h-20 md:w-24 md:h-24 bg-black/60 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-200 ease-out group-hover:bg-black/70 group-hover:scale-105">
+              <div className="absolute inset-0 bg-black/20 transition-opacity duration-200 ease-out group-hover:bg-black/30" />
+              <div className="relative flex flex-col items-center text-center px-4">
+                <div className="w-20 h-20 md:w-24 md:h-24 bg-black/80 border border-white/40 backdrop-blur-sm rounded-full flex items-center justify-center ring-4 ring-black/25 transition-all duration-200 ease-out group-hover:bg-black/90 group-hover:scale-105">
                   <svg viewBox="0 0 24 24" className="w-8 h-8 text-white fill-current" aria-hidden="true">
                     <path d="M8 5v14l11-7z" />
                   </svg>
                 </div>
                 <p
                   data-overlay-title
-                  className="text-white text-xs md:text-sm tracking-wide uppercase mt-3 opacity-90"
+                  className="text-white text-xs md:text-sm tracking-wide uppercase mt-3 opacity-90 drop-shadow-md"
                 >
                   Play to see how it works
                 </p>
                 <p
                   data-overlay-subtext
-                  className="hidden text-white text-[11px] tracking-wide uppercase opacity-90 mt-1"
+                  className="hidden text-white text-[11px] tracking-wide uppercase opacity-90 mt-1 drop-shadow-md"
                 />
               </div>
             </div>
