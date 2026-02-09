@@ -1353,12 +1353,14 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             const validatedMicro = (requestedMicro ? requestedMicro : null) as MicroPlace | null;
 
             const validatedLighting = enforceValidLighting(state.lighting, validatedMacro);
+            const resolvedPlacement: ProductPlacement = state.placement === 'air' ? 'surface' : state.placement;
 
             return {
                 environmentContext: { macro: validatedMacro, micro: validatedMicro },
                 environmentMacro: validatedMacro,
                 microPlace: validatedMicro ?? 'neutral-surface',
                 lighting: validatedLighting,
+                placement: resolvedPlacement,
                 mode: validatedMacro === 'studio' ? 'studio' : 'lifestyle-real',
                 sceneType: validatedMacro === 'studio' ? 'studio-branding' : 'lifestyle-real',
             };
@@ -1963,8 +1965,11 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
         set((state) => {
             const requiredPlacement = getPhotoModeRequiredPlacement(state.photoMode);
             const schema = PHOTO_MODE_SCHEMAS[state.photoMode];
-            const effectivePlacement: ProductPlacement =
+            let effectivePlacement: ProductPlacement =
                 requiredPlacement && placement !== requiredPlacement ? requiredPlacement : placement;
+            if (state.environmentContext != null && effectivePlacement === 'air') {
+                effectivePlacement = 'surface';
+            }
             const next: Partial<ProductStudioState> = { placement: effectivePlacement };
 
             if (requiredPlacement && placement !== requiredPlacement) {

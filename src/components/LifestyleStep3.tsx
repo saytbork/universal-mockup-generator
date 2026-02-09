@@ -1908,7 +1908,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
   const isEnvironmentSelected = productStore.environmentContext != null;
   const canConfigurePlacement = !isEnvironmentSelected || Boolean(productStore.environmentContext?.macro);
-  const canConfigureCamera = canConfigurePlacement && Boolean(productStore.placement);
+  const isSceneConstructionComplete = isEnvironmentSelected
+    ? touchedSections.has('product-environment') && touchedSections.has('product-placement') && touchedSections.has('viewpoint-vantage')
+    : touchedSections.has('product-placement') && touchedSections.has('viewpoint-vantage');
+  const canConfigureCamera = isSceneConstructionComplete && canConfigurePlacement && Boolean(productStore.placement);
   const canConfigurePhotoMode = canConfigureCamera && touchedSections.has('product-camera');
 
   const PRODUCT_TYPE_OPTIONS: Array<NonNullable<Step3Values['productType']>> = [
@@ -2206,7 +2209,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               )}
 
-              {/* PRESET TIER — Hidden when Photo Mode is active (Phase 1) */}
+              {/* PRESET TIER — Hidden when Visual Composition Presets are active (Phase 1) */}
               {productStore.environmentContext != null && (
                 <div className={SECTION_GROUP_CLASS}>
                   <p className={GROUP_LABEL_CLASS}>PRESET TIER</p>
@@ -2239,21 +2242,19 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 productStore.sceneType === 'lifestyle-real' ||
                 productStore.sceneType === 'studio-hero') && (
                   <>
-                    {/*  Photo Mode - ALWAYS visible (Hero lock bugfix) */}
-                    {true && (
+                    {/* Visual Composition Presets (rendered only after scene + camera are configured) */}
+                    {canConfigurePhotoMode && (
                       <>
                         {/* ═══════════════════════════════════════════════════════════
-                          1. PHOTO MODE — What am I making?
+                          1. VISUAL COMPOSITION PRESETS — Style the built scene
                           Basic: 4 options | Pro: All options
                           ═══════════════════════════════════════════════════════════ */}
                         <div className={SECTION_GROUP_CLASS}>
-                          <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">PHOTO MODE</p>
-                          {!canConfigurePhotoMode && (
-                            <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-700">
-                              Complete `Placement` and `Camera & Framing` first. Photo Mode is applied last.
-                            </div>
-                          )}
-                          <div className={`flex flex-wrap gap-2 ${canConfigurePhotoMode ? '' : 'pointer-events-none opacity-50'}`}>
+                          <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">VISUAL COMPOSITION PRESETS</p>
+                          <p className="text-[11px] text-gray-500 mb-3">
+                            These presets style the existing scene and camera setup.
+                          </p>
+                          <div className="flex flex-wrap gap-2">
                             {([
                               'Hero Landing Page',
                               'Color Pop Hero',
@@ -2289,10 +2290,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               'Dried Citrus Earth',
                             ] as const).map(mode => {
                               const schema = PHOTO_MODE_SCHEMAS[mode as PhotoMode];
+                              const disallowedByEnvironment =
+                                isEnvironmentSelected && schema?.requiredPlacement === 'air';
                               return (
                                 <button
                                   key={mode}
                                   onClick={() => {
+                                    if (disallowedByEnvironment) return;
                                     // Auto-adjust placement directly from schema to avoid UI/store contradictions.
                                     if (schema?.requiredPlacement && schema.requiredPlacement !== 'any') {
                                       productStore.setPlacement(schema.requiredPlacement as ProductPlacement);
@@ -2303,9 +2307,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   }}
                                   className={`px-4 py-2 rounded-xl text-[10px] font-bold border transition-all duration-300 ${productStore.photoMode === mode
                                     ? 'bg-indigo-600 text-white border-indigo-600'
-                                    : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                                    : `bg-white text-gray-500 border-gray-200 ${disallowedByEnvironment ? 'opacity-40 cursor-not-allowed' : 'hover:border-gray-400'}`
                                     }`}
                                   style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
+                                  disabled={disallowedByEnvironment}
+                                  title={disallowedByEnvironment ? 'Not available in Environment photo type.' : undefined}
                                 >
                                   <div className="flex flex-col items-center">
                                     <span>{mode}</span>
@@ -3613,7 +3619,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               </div>
 
-              {/* Phase 1: Hide generic composition/lighting/props controls when Photo Mode is active. */}
+              {/* Phase 1: Hide generic composition/lighting/props controls when Visual Composition Presets are active. */}
               {productStore.environmentContext != null && (
                 <>
                   <div className={SECTION_GROUP_CLASS}>
@@ -4798,7 +4804,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       {/* Brand Look System intentionally hidden. */}
 
       {/* CREATIVE DIRECTION (Phase 1) */}
-      {/* Photo Mode fully replaces Creative Direction whenever Photo Mode is active. */}
+      {/* Visual Composition Presets fully replace Creative Direction whenever active. */}
       {
         false && (
           <SmoothAccordion
@@ -5125,13 +5131,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         )
       }
 
-      {/* PRODUCT STUDIO — ENVIRONMENT (single source of truth: productStore.environmentContext) */}
+      {/* PRODUCT STUDIO — SCENE CONSTRUCTION (single source of truth: productStore.environmentContext) */}
       {
         isEcommerceMode && isEnvironmentSelected && (
           <SmoothAccordion
             icon={MapPin}
-            title="05 / Environment Settings"
-            tooltip="Place the product into a real setting. Product-only, no people."
+            title="03 / Scene Construction"
+            tooltip="Build the physical scene context before camera and styling."
             isOpen={openAccordionId === 'product-environment'}
             onToggle={() => toggleSection('product-environment')}
             isTouched={touchedSections.has('product-environment')}
@@ -5139,7 +5145,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           >
             <div className="space-y-7">
               <p className="text-base leading-relaxed text-gray-500 max-w-2xl">
-                Place the product into a real setting. Product-only, no people.
+                Build the physical environment context: macro, micro, surface cues, and placement-ready staging.
               </p>
               {(() => {
                 const selectedMacro =
@@ -5356,8 +5362,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       {isEcommerceMode && (
       <SmoothAccordion
         icon={Layers}
-        title="06 / Product Placement"
-        tooltip="Define the product's physical placement before camera and photo mode."
+        title="03.2 / Placement"
+        tooltip="Define gravity-based product placement before camera and commercial styling."
         isOpen={openAccordionId === 'product-placement'}
         onToggle={() => toggleSection('product-placement')}
         isTouched={touchedSections.has('product-placement')}
@@ -5365,7 +5371,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       >
         <div className="space-y-5">
           <p className="text-sm text-gray-500">
-            Physical placement is mandatory and controls the valid camera and photo mode combinations.
+            Physical placement is mandatory and controls valid camera and preset combinations.
           </p>
           {!canConfigurePlacement && (
             <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-700">
@@ -5403,7 +5409,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               ))}
             </div>
             <p className="text-[11px] text-gray-500 mt-2">
-              Sequence lock: Scene Type → Environment → Placement → Camera → Photo Mode.
+              Sequence lock: Scene Type → Environment → Placement → Camera → Visual Composition Presets.
             </p>
           </div>
         </div>
@@ -5413,7 +5419,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       {isEcommerceMode && (
       <SmoothAccordion
         icon={Hand}
-        title="07 / Product Interaction"
+        title="03.4 / Product Interaction"
         tooltip={`Product interaction.\nOne interaction per scene.`}
         isOpen={openAccordionId === 'product-interaction'}
         onToggle={() => toggleSection('product-interaction')}
@@ -5513,7 +5519,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             {!modeAllowsPersonPresence && (
               <div className="mt-2 space-y-2">
                 <p className="text-[11px] text-amber-600">
-                  The current Photo Mode allows only `None` interaction. Switch mode to enable hand interactions.
+                  The current Visual Composition Preset allows only `None` interaction. Switch preset to enable hand interactions.
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {interactionCompatibleModes.map((mode) => (
@@ -5534,7 +5540,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             )}
             {modeAllowsPersonPresence && Array.isArray(modeAllowedInteractions) && (
               <p className="text-[11px] text-gray-500 mt-2">
-                Available in this Photo Mode: {modeAllowedInteractions.join(', ')}.
+                Available in this preset: {modeAllowedInteractions.join(', ')}.
               </p>
             )}
           </div>
@@ -5546,14 +5552,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       )}
 
       {/* ============================================================================
-           08 / VIEWPOINT & VANTAGE (v1.0 SPEC PLACEHOLDER)
+           03.3 / PHYSICAL VIEWPOINT (v1.0 SPEC PLACEHOLDER)
            Auto-configured based on Product Placement and Interaction.
            ============================================================================ */}
       {isEcommerceMode && (
       <SmoothAccordion
         icon={Eye}
-        title="08 / Viewpoint & Vantage"
-        tooltip="Define the physical point of view relative to the product. This is NOT camera or lens."
+        title="03.3 / Physical Viewpoint"
+        tooltip="Define the observer's physical vantage relative to the product (not camera/lens)."
         isOpen={openAccordionId === 'viewpoint-vantage'}
         onToggle={() => toggleSection('viewpoint-vantage')}
         isTouched={touchedSections.has('viewpoint-vantage')}
@@ -5589,16 +5595,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       )}
 
       {/* ============================================================================
-           09 / PHOTO MODE
-           Photo Mode is currently part of Product Setup (01). Per v1.0 spec, it should
-           be positioned after Viewpoint & Vantage. This is a placeholder indicating 
-           the conceptual position - actual Photo Mode controls remain in 01.
+           04 / CAMERA & FRAMING
            ============================================================================ */}
 
       {isEcommerceMode && (
       <SmoothAccordion
         icon={Camera}
-        title="09 / Camera & Framing"
+        title="04 / Camera & Framing"
         tooltip="Professional product photography controls"
         isOpen={openAccordionId === 'product-camera'}
         onToggle={() => toggleSection('product-camera')}
@@ -5609,7 +5612,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           <p className="text-sm text-gray-500">Professional photography controls.</p>
           {!canConfigureCamera && (
             <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-700">
-              Select Product Placement first to unlock camera controls.
+              Complete Scene Construction (Environment, Placement, Physical Viewpoint) to unlock camera controls.
             </div>
           )}
           <div className={canConfigureCamera ? '' : 'pointer-events-none opacity-50'}>
@@ -5783,15 +5786,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       )}
 
       {/* ============================================================================
-           11 / LIGHTING (v1.0 SPEC PLACEHOLDER)
-           Lighting is currently derived from Photo Mode.
+           05 / LIGHTING (v1.0 SPEC PLACEHOLDER)
+           Lighting is currently derived from Visual Composition Presets.
            Manual overrides will be available in v1.1.
            ============================================================================ */}
       {isEcommerceMode && !isProductMode && (
       <SmoothAccordion
         icon={Sun}
-        title="11 / Lighting"
-        tooltip="Lighting behavior and mood. Currently derived from Photo Mode."
+        title="05 / Lighting"
+        tooltip="Lighting behavior and mood. Currently derived from Visual Composition Presets."
         isOpen={openAccordionId === 'lighting'}
         onToggle={() => toggleSection('lighting')}
         isTouched={touchedSections.has('lighting')}
@@ -5799,7 +5802,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       >
         <div className="space-y-5">
           <p className="text-sm text-gray-500">
-            Lighting is currently derived from Photo Mode.
+            Lighting is currently derived from Visual Composition Presets.
           </p>
           <p className="text-xs text-amber-600 dark:text-amber-400">
             Manual overrides will be available in v1.1.
@@ -5808,7 +5811,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             <p className={GROUP_LABEL_CLASS}>CURRENT LIGHTING</p>
             <div className="flex flex-wrap gap-2">
               <Chip selected disabled>
-                {productStore.lightingRig || 'Auto (from Photo Mode)'}
+                {productStore.lightingRig || 'Auto (from Visual Composition Presets)'}
               </Chip>
             </div>
           </div>
