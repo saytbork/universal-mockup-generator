@@ -324,6 +324,128 @@ const PHOTO_MODE_CONTROL_FLAGS: Record<string, PhotoModeControlFlags> = {
         motionAllowed: false,
         bundlesAllowed: false,
         cameraLocked: false
+    },
+
+    // v2.1 realism modes
+    'Sunlit Stone Editorial': {
+        propsAllowed: false,
+        environmentAllowed: true,
+        humansAllowed: false,
+        motionAllowed: false,
+        bundlesAllowed: true,
+        cameraLocked: false
+    },
+    'Golden Sunset Backlit': {
+        propsAllowed: false,
+        environmentAllowed: true,
+        humansAllowed: false,
+        motionAllowed: false,
+        bundlesAllowed: true,
+        cameraLocked: false
+    },
+    'Bathroom Daylight Clean': {
+        propsAllowed: false,
+        environmentAllowed: true,
+        humansAllowed: false,
+        motionAllowed: false,
+        bundlesAllowed: true,
+        cameraLocked: false
+    },
+    'Sky Float Minimal': {
+        propsAllowed: false,
+        environmentAllowed: true,
+        humansAllowed: false,
+        motionAllowed: false,
+        bundlesAllowed: false,
+        cameraLocked: false
+    },
+    'Wet Rock Ripples': {
+        propsAllowed: false,
+        environmentAllowed: true,
+        humansAllowed: false,
+        motionAllowed: true,
+        bundlesAllowed: false,
+        cameraLocked: false
+    },
+    'Hands Application Clean': {
+        propsAllowed: false,
+        environmentAllowed: true,
+        humansAllowed: true,
+        motionAllowed: true,
+        bundlesAllowed: false,
+        cameraLocked: false
+    },
+    'Underwater Split': {
+        propsAllowed: false,
+        environmentAllowed: true,
+        humansAllowed: false,
+        motionAllowed: true,
+        bundlesAllowed: false,
+        cameraLocked: false
+    },
+    'Sand Palm Shadows': {
+        propsAllowed: false,
+        environmentAllowed: true,
+        humansAllowed: false,
+        motionAllowed: false,
+        bundlesAllowed: true,
+        cameraLocked: false
+    },
+    'Botanical Water Garden': {
+        propsAllowed: false,
+        environmentAllowed: true,
+        humansAllowed: false,
+        motionAllowed: true,
+        bundlesAllowed: false,
+        cameraLocked: false
+    },
+    'Macro Dew Label': {
+        propsAllowed: false,
+        environmentAllowed: false,
+        humansAllowed: false,
+        motionAllowed: false,
+        bundlesAllowed: false,
+        cameraLocked: true
+    },
+    'Warm Window Wood': {
+        propsAllowed: false,
+        environmentAllowed: true,
+        humansAllowed: false,
+        motionAllowed: false,
+        bundlesAllowed: true,
+        cameraLocked: false
+    },
+    'Gel Smear Editorial': {
+        propsAllowed: true,
+        environmentAllowed: false,
+        humansAllowed: false,
+        motionAllowed: false,
+        bundlesAllowed: false,
+        cameraLocked: false
+    },
+    'Citrus Fresh Flat Lay': {
+        propsAllowed: true,
+        environmentAllowed: false,
+        humansAllowed: false,
+        motionAllowed: false,
+        bundlesAllowed: false,
+        cameraLocked: true
+    },
+    'Stones & Crystals Flat Lay': {
+        propsAllowed: true,
+        environmentAllowed: false,
+        humansAllowed: false,
+        motionAllowed: false,
+        bundlesAllowed: false,
+        cameraLocked: true
+    },
+    'Dried Citrus Earth': {
+        propsAllowed: true,
+        environmentAllowed: false,
+        humansAllowed: false,
+        motionAllowed: false,
+        bundlesAllowed: false,
+        cameraLocked: true
     }
 };
 
@@ -672,25 +794,34 @@ export function getAllPhotoModes(): PhotoMode[] {
         'Ingredient Stack',
         'Ingredient Flat Lay',
         'Acrylic Blocks',
-        'Glass Pedestal Studio',
         'Splash Shot',
         'Foam & Texture',
         'Routine Carousel',
         'Clinical Lab Counter',
-        'Golden Mist Aura',
         'Minimal Bathroom Vanity',
         'Dark Premium Studio',
         'Monochrome Brand',
         'Brand Campaign',
         'Creator Premium Simulation',
         'Tech Clean Studio',
-        // Lifestyle modes
-        'Luxury Editorial Tabletop',
         'Soft Wellness Morning',
-        'Golden Hour Lifestyle',
         'Outdoor Energy Boost',
-        'Pastel Picnic',
-        'Candy Gradient Lab'
+        // v2.1 realism modes
+        'Sunlit Stone Editorial',
+        'Golden Sunset Backlit',
+        'Bathroom Daylight Clean',
+        'Sky Float Minimal',
+        'Wet Rock Ripples',
+        'Hands Application Clean',
+        'Underwater Split',
+        'Sand Palm Shadows',
+        'Botanical Water Garden',
+        'Macro Dew Label',
+        'Warm Window Wood',
+        'Gel Smear Editorial',
+        'Citrus Fresh Flat Lay',
+        'Stones & Crystals Flat Lay',
+        'Dried Citrus Earth'
     ];
 }
 

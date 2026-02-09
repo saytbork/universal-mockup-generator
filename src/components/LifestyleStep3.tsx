@@ -115,8 +115,6 @@ const PHOTO_MODE_WITH_MANUAL_SETTINGS = new Set<PhotoMode>([
   'Foam & Texture',
   'Routine Carousel',
   'Clinical Lab Counter',
-  'Golden Mist Aura',
-  'Candy Gradient Lab',
 ]);
 
 // **CANONICAL STATE** - SINGLE SOURCE OF TRUTH for Step 3 Scene Builder
@@ -1901,8 +1899,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const isPhotoModeAllowedFromPlacement = useCallback((mode: string) => {
     const p = productStore.placement;
     if (mode === 'Hero Landing Page' || mode === 'Minimal Bathroom Vanity') return p === 'surface';
-    if (mode === 'Glass Pedestal Studio' || mode === 'Acrylic Blocks') return p === 'supported';
-    if (mode === 'Splash Shot' || mode === 'Falling Objects') return p === 'air';
+    if (mode === 'Acrylic Blocks') return p === 'supported';
+    if (mode === 'Splash Shot' || mode === 'Underwater Split' || mode === 'Sky Float Minimal') return p === 'air';
+    if (mode === 'Hands Application Clean') return p === 'held' || p === 'supported';
     return true;
   }, [productStore.placement]);
 
@@ -2278,7 +2277,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               'Ingredient Stack',
                               'Ingredient Flat Lay',
                               'Acrylic Blocks',
-                              'Glass Pedestal Studio',
                               'Splash Shot',
                               'Foam & Texture',
                               'Routine Carousel',
@@ -2289,13 +2287,23 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               'Brand Campaign',
                               'Creator Premium Simulation',
                               'Tech Clean Studio',
-                              'Luxury Editorial Tabletop',
                               'Soft Wellness Morning',
-                              'Golden Hour Lifestyle',
                               'Outdoor Energy Boost',
-                              'Pastel Picnic',
-                              'Candy Gradient Lab',
-                              'Golden Mist Aura',
+                              'Sunlit Stone Editorial',
+                              'Golden Sunset Backlit',
+                              'Bathroom Daylight Clean',
+                              'Sky Float Minimal',
+                              'Wet Rock Ripples',
+                              'Hands Application Clean',
+                              'Underwater Split',
+                              'Sand Palm Shadows',
+                              'Botanical Water Garden',
+                              'Macro Dew Label',
+                              'Warm Window Wood',
+                              'Gel Smear Editorial',
+                              'Citrus Fresh Flat Lay',
+                              'Stones & Crystals Flat Lay',
+                              'Dried Citrus Earth',
                             ] as const).map(mode => {
                               const schema = PHOTO_MODE_SCHEMAS[mode as PhotoMode];
                               return (

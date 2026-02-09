@@ -269,7 +269,23 @@ export type PhotoMode =
     | 'Outdoor Energy Boost'
     | 'Pastel Picnic'
     | 'Candy Gradient Lab'
-    | 'Golden Mist Aura';
+    | 'Golden Mist Aura'
+    // v2.1 realism modes
+    | 'Sunlit Stone Editorial'
+    | 'Golden Sunset Backlit'
+    | 'Bathroom Daylight Clean'
+    | 'Sky Float Minimal'
+    | 'Wet Rock Ripples'
+    | 'Hands Application Clean'
+    | 'Underwater Split'
+    | 'Sand Palm Shadows'
+    | 'Botanical Water Garden'
+    | 'Macro Dew Label'
+    | 'Warm Window Wood'
+    | 'Gel Smear Editorial'
+    | 'Citrus Fresh Flat Lay'
+    | 'Stones & Crystals Flat Lay'
+    | 'Dried Citrus Earth';
 
 export interface EnvironmentPhotoModeSchema {
     id: string;

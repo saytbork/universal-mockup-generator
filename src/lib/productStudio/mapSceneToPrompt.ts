@@ -237,6 +237,21 @@ const PHOTO_MODE_MAP: Record<string, PhotoModeKey> = {
   'Golden Hour Lifestyle': 'HERO_NEUTRAL',
   'Outdoor Energy Boost': 'HERO_NEUTRAL',
   'Pastel Picnic': 'HERO_NEUTRAL',
+  'Sunlit Stone Editorial': 'HERO_NEUTRAL',
+  'Golden Sunset Backlit': 'BRAND_CAMPAIGN',
+  'Bathroom Daylight Clean': 'HERO_NEUTRAL',
+  'Sky Float Minimal': 'HERO_NEUTRAL',
+  'Wet Rock Ripples': 'SPLASH_SHOT',
+  'Hands Application Clean': 'UGC_PREMIUM_SIM',
+  'Underwater Split': 'SPLASH_SHOT',
+  'Sand Palm Shadows': 'HERO_NEUTRAL',
+  'Botanical Water Garden': 'SPLASH_SHOT',
+  'Macro Dew Label': 'FOAM_AND_TEXTURE',
+  'Warm Window Wood': 'HERO_NEUTRAL',
+  'Gel Smear Editorial': 'FOAM_AND_TEXTURE',
+  'Citrus Fresh Flat Lay': 'INGREDIENT_FLAT_LAY',
+  'Stones & Crystals Flat Lay': 'INGREDIENT_FLAT_LAY',
+  'Dried Citrus Earth': 'INGREDIENT_FLAT_LAY',
 };
 
 const SECONDARY_PROPS_BY_MODE: Partial<Record<PhotoModeKey, string[]>> = {

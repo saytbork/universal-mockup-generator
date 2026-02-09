@@ -401,6 +401,307 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         allowedInteractions: ['none'],
         allowsPersonPresence: false
     },
+    'Sunlit Stone Editorial': {
+        id: 'sunlit-stone-editorial',
+        label: 'Sunlit Stone Editorial',
+        scope: 'studio',
+        description: 'Sunlit architectural stone set with premium editorial contrast.',
+        basePrompt: 'architectural stone blocks with sunlit editorial lighting, strong directional shadows, premium warm-neutral palette, clean product-first framing',
+        subOptions: [
+            { key: 'shadowLength', label: 'Shadow Length', values: ['Medium', 'Long'] },
+            { key: 'stoneTone', label: 'Stone Tone', values: ['Warm beige', 'Neutral sand'] },
+            { key: 'contrastLevel', label: 'Contrast Level', values: ['Balanced', 'High'] },
+        ],
+        constraints: [
+            'Architectural blocks must remain clean and premium',
+            'No cluttered props',
+            'Label readability remains mandatory',
+            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Golden Sunset Backlit': {
+        id: 'golden-sunset-backlit',
+        label: 'Golden Sunset Backlit',
+        scope: 'environment',
+        description: 'Golden backlit hero scene with controlled glow and premium silhouettes.',
+        basePrompt: 'golden-hour backlit hero composition, warm sunset tonal range, controlled flare and edge glow, product remains readable and dominant',
+        subOptions: [
+            { key: 'glowStrength', label: 'Glow Strength', values: ['Soft', 'Balanced', 'Bold'] },
+            { key: 'horizonType', label: 'Horizon Type', values: ['Abstract', 'Natural'] },
+            { key: 'shadowDensity', label: 'Shadow Density', values: ['Soft', 'Balanced'] },
+        ],
+        constraints: [
+            'No overblown highlights',
+            'Product contour must stay crisp',
+            'Label must remain readable',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Bathroom Daylight Clean': {
+        id: 'bathroom-daylight-clean',
+        label: 'Bathroom Daylight Clean',
+        scope: 'environment',
+        description: 'Clean bathroom daylight scene with premium everyday realism.',
+        basePrompt: 'clean bathroom daylight composition, soft window light, premium minimal surfaces, realistic skincare setting with no clutter',
+        subOptions: [
+            { key: 'surfaceType', label: 'Surface Type', values: ['Ceramic', 'Stone', 'Marble'] },
+            { key: 'lightSoftness', label: 'Light Softness', values: ['Soft', 'Very soft'] },
+            { key: 'propDensity', label: 'Prop Density', values: ['None', 'Minimal'] },
+        ],
+        constraints: [
+            'Bathroom setting must stay clean and believable',
+            'No random decorative noise',
+            'Product remains hero',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Sky Float Minimal': {
+        id: 'sky-float-minimal',
+        label: 'Sky Float Minimal',
+        scope: 'environment',
+        description: 'Minimal floating composition against clean sky background.',
+        basePrompt: 'minimal floating product composition against clean sky, airy premium look, soft natural lighting and controlled product silhouette',
+        subOptions: [
+            { key: 'skyTone', label: 'Sky Tone', values: ['Light blue', 'Neutral blue'] },
+            { key: 'floatStability', label: 'Float Stability', values: ['Stable', 'Slight dynamic'] },
+            { key: 'edgeContrast', label: 'Edge Contrast', values: ['Soft', 'Balanced'] },
+        ],
+        constraints: [
+            'Floating illusion must remain physically plausible',
+            'No chaotic background elements',
+            'Label stays readable',
+        ],
+        requiredPlacement: 'air',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Wet Rock Ripples': {
+        id: 'wet-rock-ripples',
+        label: 'Wet Rock Ripples',
+        scope: 'environment',
+        description: 'Product grounded on wet stone with controlled water ripple energy.',
+        basePrompt: 'wet stone surface with controlled shallow water ripples, premium reflective highlights, product grounded and physically coherent',
+        subOptions: [
+            { key: 'rippleIntensity', label: 'Ripple Intensity', values: ['Low', 'Balanced', 'High'] },
+            { key: 'stoneTexture', label: 'Stone Texture', values: ['Smooth', 'Natural'] },
+            { key: 'reflectionLevel', label: 'Reflection Level', values: ['Balanced', 'Glossy'] },
+        ],
+        constraints: [
+            'Water physics must look realistic',
+            'No messy splash chaos',
+            'Product must stay cleanly readable',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Hands Application Clean': {
+        id: 'hands-application-clean',
+        label: 'Hands Application Clean',
+        scope: 'environment',
+        description: 'Clean application moment with hands and product interaction.',
+        basePrompt: 'clean premium skincare application moment with realistic hands, clear product handling, product and label remain readable and central',
+        subOptions: [
+            { key: 'handPose', label: 'Hand Pose', values: ['Applying', 'Opening', 'Holding'] },
+            { key: 'skinLighting', label: 'Skin Lighting', values: ['Soft natural', 'Neutral studio'] },
+            { key: 'cropStyle', label: 'Crop Style', values: ['Tight', 'Medium'] },
+        ],
+        constraints: [
+            'Hands must be anatomically correct',
+            'No exaggerated gestures',
+            'No facial subject required',
+        ],
+        requiredPlacement: 'held',
+        allowedInteractions: ['holding', 'applying-opening', 'supported-hold', 'two-hand-hold'],
+        allowsPersonPresence: true
+    },
+    'Underwater Split': {
+        id: 'underwater-split',
+        label: 'Underwater Split',
+        scope: 'environment',
+        description: 'Split-level aqua scene with clean underwater caustics.',
+        basePrompt: 'split-level water composition with realistic waterline, underwater caustics and bubbles, clean hydration-oriented premium look',
+        subOptions: [
+            { key: 'waterlineHeight', label: 'Waterline Height', values: ['Mid', 'Upper-mid'] },
+            { key: 'bubbleDensity', label: 'Bubble Density', values: ['Low', 'Balanced'] },
+            { key: 'aquaTone', label: 'Aqua Tone', values: ['Light blue', 'Cyan blue'] },
+        ],
+        constraints: [
+            'Waterline must be physically coherent',
+            'No muddy water color',
+            'Label remains as readable as perspective allows',
+        ],
+        requiredPlacement: 'air',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Sand Palm Shadows': {
+        id: 'sand-palm-shadows',
+        label: 'Sand Palm Shadows',
+        scope: 'environment',
+        description: 'Sunlit sand scene with palm shadow patterns and clean composition.',
+        basePrompt: 'sunlit sand composition with palm shadow patterns, warm premium tones, grounded product placement and controlled negative space',
+        subOptions: [
+            { key: 'shadowPattern', label: 'Shadow Pattern', values: ['Soft palm', 'Defined palm'] },
+            { key: 'sandTexture', label: 'Sand Texture', values: ['Fine', 'Natural'] },
+            { key: 'warmthLevel', label: 'Warmth Level', values: ['Warm', 'Golden'] },
+        ],
+        constraints: [
+            'Shadows must look natural and directional',
+            'No random tropical clutter',
+            'Product remains hero and readable',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Botanical Water Garden': {
+        id: 'botanical-water-garden',
+        label: 'Botanical Water Garden',
+        scope: 'environment',
+        description: 'Natural botanical wet scene with controlled premium realism.',
+        basePrompt: 'botanical wet environment with shallow water and subtle natural foliage context, premium realistic lighting, clean product focus',
+        subOptions: [
+            { key: 'foliageDensity', label: 'Foliage Density', values: ['Low', 'Balanced'] },
+            { key: 'waterActivity', label: 'Water Activity', values: ['Still', 'Gentle ripples'] },
+            { key: 'lightDirection', label: 'Light Direction', values: ['Side', 'Back-side'] },
+        ],
+        constraints: [
+            'Botanical elements must remain secondary',
+            'No heavy clutter around label zone',
+            'Product remains dominant',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Macro Dew Label': {
+        id: 'macro-dew-label',
+        label: 'Macro Dew Label',
+        scope: 'studio',
+        description: 'Macro close-up for texture, label fidelity, and droplets.',
+        basePrompt: 'macro close-up of product label and material texture with realistic dew droplets, sharp commercial detail and controlled highlights',
+        subOptions: [
+            { key: 'macroTightness', label: 'Macro Tightness', values: ['Tight', 'Extreme'] },
+            { key: 'dropletDensity', label: 'Droplet Density', values: ['Low', 'Balanced', 'High'] },
+            { key: 'highlightControl', label: 'Highlight Control', values: ['Soft', 'Balanced'] },
+        ],
+        constraints: [
+            'Label typography fidelity is critical',
+            'No blur on key label text',
+            'Droplets must be physically plausible',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Warm Window Wood': {
+        id: 'warm-window-wood',
+        label: 'Warm Window Wood',
+        scope: 'environment',
+        description: 'Warm wooden window scene with natural sunlight realism.',
+        basePrompt: 'warm wooden window environment, natural sunlight and soft interior shadows, realistic lifestyle-adjacent premium product scene',
+        subOptions: [
+            { key: 'woodTone', label: 'Wood Tone', values: ['Light oak', 'Warm walnut'] },
+            { key: 'lightStrength', label: 'Light Strength', values: ['Soft', 'Balanced'] },
+            { key: 'dustMood', label: 'Ambient Particles', values: ['None', 'Subtle'] },
+        ],
+        constraints: [
+            'No messy room clutter',
+            'Window light direction must be coherent',
+            'Product remains crisp and readable',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Gel Smear Editorial': {
+        id: 'gel-smear-editorial',
+        label: 'Gel Smear Editorial',
+        scope: 'studio',
+        description: 'Editorial texture scene with controlled gel smear styling.',
+        basePrompt: 'editorial gel-smear texture composition on clean premium surface, product placed with tactile material contrast and controlled highlights',
+        subOptions: [
+            { key: 'smearWidth', label: 'Smear Width', values: ['Narrow', 'Balanced', 'Wide'] },
+            { key: 'surfaceTone', label: 'Surface Tone', values: ['Cool gray', 'Neutral stone'] },
+            { key: 'textureGloss', label: 'Texture Gloss', values: ['Soft', 'Glossy'] },
+        ],
+        constraints: [
+            'Texture must look intentional and premium',
+            'No chaotic mess',
+            'Product readability remains mandatory',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Citrus Fresh Flat Lay': {
+        id: 'citrus-fresh-flat-lay',
+        label: 'Citrus Fresh Flat Lay',
+        scope: 'studio',
+        description: 'Fresh flat lay composition with ingredient-focused rhythm.',
+        basePrompt: 'fresh ingredient-led flat lay composition with clean circular rhythm around the product, bright premium commercial styling, top-down discipline',
+        subOptions: [
+            { key: 'layoutDensity', label: 'Layout Density', values: ['Balanced', 'Full'] },
+            { key: 'colorEnergy', label: 'Color Energy', values: ['Fresh', 'Vibrant'] },
+            { key: 'dropDetails', label: 'Drop Details', values: ['None', 'Subtle'] },
+        ],
+        constraints: [
+            'Strict top-down framing',
+            'Ingredient props should only be used when explicitly selected',
+            'Label remains readable',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Stones & Crystals Flat Lay': {
+        id: 'stones-crystals-flat-lay',
+        label: 'Stones & Crystals Flat Lay',
+        scope: 'studio',
+        description: 'Grounded flat lay with neutral stones and crystal accents.',
+        basePrompt: 'neutral tactile flat lay with curated stones and crystal accents, balanced spacing and premium wellness editorial tone',
+        subOptions: [
+            { key: 'textureBase', label: 'Texture Base', values: ['Linen', 'Stone'] },
+            { key: 'objectDensity', label: 'Object Density', values: ['Low', 'Balanced'] },
+            { key: 'lightSoftness', label: 'Light Softness', values: ['Soft', 'Balanced'] },
+        ],
+        constraints: [
+            'Objects remain secondary to product',
+            'No chaotic arrangement',
+            'Label readability must be preserved',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Dried Citrus Earth': {
+        id: 'dried-citrus-earth',
+        label: 'Dried Citrus Earth',
+        scope: 'studio',
+        description: 'Earthy warm flat lay with dried botanical accents.',
+        basePrompt: 'earthy warm flat lay on textured natural surface with curated dried botanical accents, premium grounded composition and clear product hierarchy',
+        subOptions: [
+            { key: 'earthTone', label: 'Earth Tone', values: ['Sand', 'Terracotta'] },
+            { key: 'accentDensity', label: 'Accent Density', values: ['Low', 'Balanced'] },
+            { key: 'shadowSharpness', label: 'Shadow Sharpness', values: ['Soft', 'Defined'] },
+        ],
+        constraints: [
+            'Earthy palette must remain controlled',
+            'No random fresh fruit unless explicitly selected by user',
+            'Product remains dominant and readable',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
     'Golden Hour Lifestyle': {
         id: 'golden-hour-lifestyle',
         label: 'Golden Hour Editorial Set',
