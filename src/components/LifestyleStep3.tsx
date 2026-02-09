@@ -1906,11 +1906,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     return true;
   }, [productStore.placement]);
 
-  const isEnvironmentSelected = productStore.environmentContext != null;
-  const canConfigurePlacement = !isEnvironmentSelected || Boolean(productStore.environmentContext?.macro);
-  const canConfigureCamera = canConfigurePlacement && Boolean(productStore.placement);
-  const canConfigurePhotoMode = canConfigureCamera && touchedSections.has('product-camera');
-
   const PRODUCT_TYPE_OPTIONS: Array<NonNullable<Step3Values['productType']>> = [
     'Capsules',
     'Gummies',
@@ -2230,6 +2225,34 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               )}
 
+              {/* PHYSICAL PLACEMENT — Mandatory physics decision */}
+              <div className={SECTION_GROUP_CLASS}>
+                <p className={GROUP_LABEL_CLASS}>PHYSICAL PLACEMENT</p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { id: 'surface', label: 'Surface', desc: 'Rests on a physical surface' },
+                    { id: 'held', label: 'Held', desc: 'Held by human hands' },
+                    { id: 'supported', label: 'Supported', desc: 'On a stand or tray' },
+                    { id: 'air', label: 'Air / Suspended', desc: 'Abstract studio air' }
+                  ].map(opt => (
+                    <Chip
+                      key={opt.id}
+                      onClick={() => {
+                        productStore.setPlacement(opt.id as any);
+                        markSectionTouched('product-setup');
+                      }}
+                      selected={productStore.placement === opt.id}
+                      tooltip={opt.desc}
+                    >
+                      {opt.label}
+                    </Chip>
+                  ))}
+                </div>
+                <p className="text-[11px] text-gray-500 mt-2">
+                  Mandatory physics decision: resolve product placement before environment or camera.
+                </p>
+              </div>
+
               {/* ============================================================
                    PRODUCT STUDIO CONTROLS (Studio Mode Only)
                    Basic/Pro Visibility System
@@ -2248,12 +2271,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           ═══════════════════════════════════════════════════════════ */}
                         <div className={SECTION_GROUP_CLASS}>
                           <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">PHOTO MODE</p>
-                          {!canConfigurePhotoMode && (
-                            <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-700">
-                              Complete `Placement` and `Camera & Framing` first. Photo Mode is applied last.
-                            </div>
-                          )}
-                          <div className={`flex flex-wrap gap-2 ${canConfigurePhotoMode ? '' : 'pointer-events-none opacity-50'}`}>
+                          <div className="flex flex-wrap gap-2">
                             {([
                               'Hero Landing Page',
                               'Color Pop Hero',
@@ -5127,7 +5145,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
       {/* PRODUCT STUDIO — ENVIRONMENT (single source of truth: productStore.environmentContext) */}
       {
-        isEcommerceMode && isEnvironmentSelected && (
+        isEcommerceMode && (
           <SmoothAccordion
             icon={MapPin}
             title="05 / Environment Settings"
@@ -5355,65 +5373,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
       {isEcommerceMode && (
       <SmoothAccordion
-        icon={Layers}
-        title="06 / Product Placement"
-        tooltip="Define the product's physical placement before camera and photo mode."
-        isOpen={openAccordionId === 'product-placement'}
-        onToggle={() => toggleSection('product-placement')}
-        isTouched={touchedSections.has('product-placement')}
-        variant="primary"
-      >
-        <div className="space-y-5">
-          <p className="text-sm text-gray-500">
-            Physical placement is mandatory and controls the valid camera and photo mode combinations.
-          </p>
-          {!canConfigurePlacement && (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-700">
-              Select Environment details first to unlock placement.
-            </div>
-          )}
-          <div className={SECTION_GROUP_CLASS}>
-            <p className={GROUP_LABEL_CLASS}>PHYSICAL PLACEMENT</p>
-            <div className={`flex flex-wrap gap-2 ${canConfigurePlacement ? '' : 'pointer-events-none opacity-50'}`}>
-              {(isEnvironmentSelected
-                ? [
-                    { id: 'surface', label: 'Surface', desc: 'Rests on a physical surface' },
-                    { id: 'held', label: 'Held', desc: 'Held by human hands' },
-                    { id: 'supported', label: 'Supported', desc: 'On a stand or tray' },
-                  ]
-                : [
-                    { id: 'surface', label: 'Surface', desc: 'Rests on a physical surface' },
-                    { id: 'held', label: 'Held', desc: 'Held by human hands' },
-                    { id: 'supported', label: 'Supported', desc: 'On a stand or tray' },
-                    { id: 'air', label: 'Air / Suspended', desc: 'Abstract studio air' },
-                  ]
-              ).map(opt => (
-                <Chip
-                  key={opt.id}
-                  onClick={() => {
-                    if (!canConfigurePlacement) return;
-                    productStore.setPlacement(opt.id as ProductPlacement);
-                    markSectionTouched('product-placement');
-                  }}
-                  selected={productStore.placement === opt.id}
-                  tooltip={opt.desc}
-                >
-                  {opt.label}
-                </Chip>
-              ))}
-            </div>
-            <p className="text-[11px] text-gray-500 mt-2">
-              Sequence lock: Scene Type → Environment → Placement → Camera → Photo Mode.
-            </p>
-          </div>
-        </div>
-      </SmoothAccordion>
-      )}
-
-      {isEcommerceMode && (
-      <SmoothAccordion
         icon={Hand}
-        title="07 / Product Interaction"
+        title="06 / Product Interaction"
         tooltip={`Product interaction.\nOne interaction per scene.`}
         isOpen={openAccordionId === 'product-interaction'}
         onToggle={() => toggleSection('product-interaction')}
@@ -5546,13 +5507,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       )}
 
       {/* ============================================================================
-           08 / VIEWPOINT & VANTAGE (v1.0 SPEC PLACEHOLDER)
+           07 / VIEWPOINT & VANTAGE (v1.0 SPEC PLACEHOLDER)
            Auto-configured based on Product Placement and Interaction.
            ============================================================================ */}
       {isEcommerceMode && (
       <SmoothAccordion
         icon={Eye}
-        title="08 / Viewpoint & Vantage"
+        title="07 / Viewpoint & Vantage"
         tooltip="Define the physical point of view relative to the product. This is NOT camera or lens."
         isOpen={openAccordionId === 'viewpoint-vantage'}
         onToggle={() => toggleSection('viewpoint-vantage')}
@@ -5589,7 +5550,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       )}
 
       {/* ============================================================================
-           09 / PHOTO MODE
+           08 / PHOTO MODE
            Photo Mode is currently part of Product Setup (01). Per v1.0 spec, it should
            be positioned after Viewpoint & Vantage. This is a placeholder indicating 
            the conceptual position - actual Photo Mode controls remain in 01.
@@ -5598,7 +5559,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       {isEcommerceMode && (
       <SmoothAccordion
         icon={Camera}
-        title="09 / Camera & Framing"
+        title="08 / Camera & Framing"
         tooltip="Professional product photography controls"
         isOpen={openAccordionId === 'product-camera'}
         onToggle={() => toggleSection('product-camera')}
@@ -5607,12 +5568,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       >
         <div className="space-y-5">
           <p className="text-sm text-gray-500">Professional photography controls.</p>
-          {!canConfigureCamera && (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-700">
-              Select Product Placement first to unlock camera controls.
-            </div>
-          )}
-          <div className={canConfigureCamera ? '' : 'pointer-events-none opacity-50'}>
           <div className={SECTION_GROUP_CLASS}>
             <p className={GROUP_LABEL_CLASS}>CAMERA SYSTEM</p>
             <div className="flex flex-wrap gap-3">
@@ -5777,20 +5732,19 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               )}
             </div>
           </div>
-          </div>
         </div>
       </SmoothAccordion>
       )}
 
       {/* ============================================================================
-           11 / LIGHTING (v1.0 SPEC PLACEHOLDER)
+           10 / LIGHTING (v1.0 SPEC PLACEHOLDER)
            Lighting is currently derived from Photo Mode.
            Manual overrides will be available in v1.1.
            ============================================================================ */}
       {isEcommerceMode && !isProductMode && (
       <SmoothAccordion
         icon={Sun}
-        title="11 / Lighting"
+        title="10 / Lighting"
         tooltip="Lighting behavior and mood. Currently derived from Photo Mode."
         isOpen={openAccordionId === 'lighting'}
         onToggle={() => toggleSection('lighting')}
@@ -5819,7 +5773,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       {isEcommerceMode && (
       <SmoothAccordion
         icon={Building2}
-        title="10 / Ecommerce Image Builder (BETA)"
+        title="09 / Ecommerce Image Builder (BETA)"
         tooltip={`Ecommerce builder.\nBeta feature.`}
         isOpen={openAccordionId === 'ecommerce'}
         onToggle={() => toggleSection('ecommerce')}

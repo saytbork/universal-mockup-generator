@@ -104,7 +104,6 @@ export function buildRandomizationRules(
     `Every generation must differ in ${variableParts.join(', ')} while staying campaign-grade.`,
     'Never reuse the same base composition or staging structure.',
     'Vary props and micro-environment accents each time without reducing product prominence.',
-    'Do not change product orientation from upright unless PRODUCT_STATE_MOTION explicitly requires tilt, spill, or falling.',
     'Avoid symmetrical default framing unless explicitly required by ecommerce composition.',
     ...lockRules,
     profileLine
