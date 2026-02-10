@@ -44,10 +44,14 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
   markSectionTouched: (id: string) => void;
 }) {
   const dynamicConfig = productStore.photoModeConfig.dynamic?.[schema.label as PhotoMode] || {};
+  const supportsCustomIngredients =
+    schema.label === 'Citrus Fresh Flat Lay' ||
+    schema.label === 'Stones & Crystals Flat Lay' ||
+    schema.label === 'Dried Citrus Earth';
   const subOptions =
     schema.label === 'Ingredient Stack'
-      ? schema.subOptions.filter(option => option.key !== 'layoutStyle')
-      : schema.subOptions;
+      ? schema.subOptions.filter(option => option.key !== 'layoutStyle' && option.key !== 'customIngredients')
+      : schema.subOptions.filter(option => option.key !== 'customIngredients');
 
   return (
     <div className="space-y-5">
@@ -84,6 +88,31 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
             </div>
           );
         })}
+
+        {supportsCustomIngredients && (
+          <div className="space-y-2">
+            <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold">
+              Custom Ingredients
+            </p>
+            <input
+              type="text"
+              value={dynamicConfig.customIngredients || ''}
+              onChange={(e) => {
+                productStore.updatePhotoModeSubSetting(
+                  schema.label as PhotoMode,
+                  'customIngredients',
+                  e.target.value
+                );
+                markSectionTouched('product-setup');
+              }}
+              placeholder="Ej: lemon slice, mint leaf, amber gel smear"
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-[12px] text-gray-700 placeholder:text-gray-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+            />
+            <p className="text-[10px] text-gray-500">
+              Se usa para reemplazar/definir ingredientes del flat lay.
+            </p>
+          </div>
+        )}
 
         {schema.constraints.length > 0 && (
           <div className="mt-4 pt-4 border-t border-gray-100">

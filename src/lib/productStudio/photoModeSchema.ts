@@ -467,8 +467,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         id: 'sky-float-minimal',
         label: 'Sky Float Minimal',
         scope: 'environment',
-        description: 'Minimal floating composition against clean sky background.',
-        basePrompt: 'minimal floating product composition against clean sky, airy premium look, soft natural lighting and controlled product silhouette',
+        description: 'Minimal floating composition against a real open-sky atmosphere.',
+        basePrompt: 'minimal floating product composition against a real open sky with natural atmospheric depth, subtle cloud variation, believable horizon haze, airy premium look, soft natural daylight and controlled product silhouette',
         subOptions: [
             { key: 'skyTone', label: 'Sky Tone', values: ['Light blue', 'Neutral blue'] },
             { key: 'floatStability', label: 'Float Stability', values: ['Stable', 'Slight dynamic'] },
@@ -476,6 +476,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         ],
         constraints: [
             'Floating illusion must remain physically plausible',
+            'Sky must read as real outdoor sky photography, never a flat studio backdrop',
+            'Natural atmospheric gradient and depth are mandatory',
             'No chaotic background elements',
             'Label stays readable',
         ],
@@ -527,8 +529,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         id: 'underwater-split',
         label: 'Underwater Split',
         scope: 'environment',
-        description: 'Split-level aqua scene with clean underwater caustics.',
-        basePrompt: 'split-level water composition with realistic waterline, underwater caustics and bubbles, clean hydration-oriented premium look',
+        description: 'Split-level aqua scene with physically credible underwater depth.',
+        basePrompt: 'split-level water composition with realistic waterline, product visibly submerged below the waterline with true underwater depth cues, underwater caustics, particulate diffusion and bubbles, clean hydration-oriented premium look',
         subOptions: [
             { key: 'waterlineHeight', label: 'Waterline Height', values: ['Mid', 'Upper-mid'] },
             { key: 'bubbleDensity', label: 'Bubble Density', values: ['Low', 'Balanced'] },
@@ -536,6 +538,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         ],
         constraints: [
             'Waterline must be physically coherent',
+            'Submerged portion must clearly read as underwater with authentic light attenuation',
+            'Underwater refraction and caustics must be physically plausible',
             'No muddy water color',
             'Label remains as readable as perspective allows',
         ],
@@ -590,13 +594,15 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Macro Dew Label',
         scope: 'studio',
         description: 'Macro close-up for texture, label fidelity, and droplets.',
-        basePrompt: 'macro close-up of product label and material texture with realistic dew droplets, sharp commercial detail and controlled highlights',
+        basePrompt: 'true macro close-up of the product label and bottle material texture, label occupying most of frame, realistic dew droplets with optical magnification behavior, ultra-sharp commercial detail and controlled highlights',
         subOptions: [
             { key: 'macroTightness', label: 'Macro Tightness', values: ['Tight', 'Extreme'] },
             { key: 'dropletDensity', label: 'Droplet Density', values: ['Low', 'Balanced', 'High'] },
             { key: 'highlightControl', label: 'Highlight Control', values: ['Soft', 'Balanced'] },
         ],
         constraints: [
+            'True macro proximity is mandatory: no medium or wide framing',
+            'Primary label area should dominate the frame while remaining fully legible',
             'Label typography fidelity is critical',
             'No blur on key label text',
             'Droplets must be physically plausible',
@@ -655,6 +661,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             { key: 'layoutDensity', label: 'Layout Density', values: ['Balanced', 'Full'] },
             { key: 'colorEnergy', label: 'Color Energy', values: ['Fresh', 'Vibrant'] },
             { key: 'dropDetails', label: 'Drop Details', values: ['None', 'Subtle'] },
+            { key: 'customIngredients', label: 'Custom Ingredients', values: ['Optional custom list via text input'] },
         ],
         constraints: [
             'Strict top-down framing',
@@ -675,6 +682,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             { key: 'textureBase', label: 'Texture Base', values: ['Linen', 'Stone'] },
             { key: 'objectDensity', label: 'Object Density', values: ['Low', 'Balanced'] },
             { key: 'lightSoftness', label: 'Light Softness', values: ['Soft', 'Balanced'] },
+            { key: 'customIngredients', label: 'Custom Ingredients', values: ['Optional custom list via text input'] },
         ],
         constraints: [
             'Objects remain secondary to product',
@@ -695,6 +703,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             { key: 'earthTone', label: 'Earth Tone', values: ['Sand', 'Terracotta'] },
             { key: 'accentDensity', label: 'Accent Density', values: ['Low', 'Balanced'] },
             { key: 'shadowSharpness', label: 'Shadow Sharpness', values: ['Soft', 'Defined'] },
+            { key: 'customIngredients', label: 'Custom Ingredients', values: ['Optional custom list via text input'] },
         ],
         constraints: [
             'Earthy palette must remain controlled',

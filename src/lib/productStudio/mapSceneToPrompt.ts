@@ -569,6 +569,10 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       if (!safeKey || !safeValue) return;
       uiDynamic[safeKey] = safeValue;
     });
+    // Custom ingredients are injected via suggestedProps to avoid generic key/value phrasing.
+    if ('customIngredients' in uiDynamic) {
+      delete (uiDynamic as any).customIngredients;
+    }
     if (state.photoMode === 'Ingredient Stack' && 'layoutStyle' in uiDynamic) {
       // Legacy duplicate: "Layout Style" must not coexist with the "Stack Style" control.
       delete (uiDynamic as any).layoutStyle;
@@ -580,8 +584,20 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     return Object.keys(merged).length > 0 ? merged : undefined;
   })();
 
+  const customIngredientsText = sanitizeDynamicSettingText(
+    String(state.photoModeConfig.dynamic?.[state.photoMode as PhotoMode]?.customIngredients || '')
+  );
+  const supportsCustomIngredientsMode =
+    state.photoMode === 'Citrus Fresh Flat Lay' ||
+    state.photoMode === 'Stones & Crystals Flat Lay' ||
+    state.photoMode === 'Dried Citrus Earth';
+  const effectiveSuggestedProps =
+    supportsCustomIngredientsMode && customIngredientsText
+      ? customIngredientsText
+      : state.props;
+
   const photoModeResult = buildPhotoModePrompt(state.photoMode as PhotoMode, {
-    suggestedProps: state.props,
+    suggestedProps: effectiveSuggestedProps,
     ingredientLayout: state.ingredientLayout,
     dynamicSettings,
     productType: state.definition.type as any,
@@ -788,7 +804,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const effectiveFramingLabel = mode === 'INGREDIENT_FLAT_LAY' ? 'Grid-ready' : uiFramingLabel;
   const effectiveDistanceLabel = mode === 'INGREDIENT_FLAT_LAY'
     ? (uiDistanceLabel === 'Macro' ? 'Macro' : 'Standard')
-    : uiDistanceLabel;
+    : state.photoMode === 'Macro Dew Label'
+      ? 'Macro'
+      : uiDistanceLabel;
 
   const cameraControlsTraceText = [
     'Camera controls selected:',
@@ -802,6 +820,8 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const forcedCameraAngle =
     mode === 'INGREDIENT_FLAT_LAY'
       ? 'top-down flat lay'
+      : state.photoMode === 'Macro Dew Label'
+        ? 'detail close-up'
       : mapAngleToPrompt(state.angle, uiAngleLabel);
   const forcedCameraFraming =
     mode === 'INGREDIENT_FLAT_LAY'
@@ -810,7 +830,31 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const forcedCameraDistance =
     mode === 'INGREDIENT_FLAT_LAY'
       ? (uiDistanceLabel === 'Macro' ? 'macro close-up' : 'standard framing')
+      : state.photoMode === 'Macro Dew Label'
+        ? 'macro close-up'
       : mapDistanceToPrompt(state.distance, uiDistanceLabel);
+
+  const prismRefractionText = (() => {
+    const definitionType = String(state.definition?.type || '').toLowerCase();
+    const photoMode = String(state.photoMode || '');
+    const likelyTranslucentContainer =
+      definitionType === 'drops' || definitionType === 'skincare';
+    const lightSensitiveMode =
+      photoMode === 'Macro Dew Label' ||
+      photoMode === 'Underwater Split' ||
+      photoMode === 'Wet Rock Ripples' ||
+      photoMode === 'Sky Float Minimal' ||
+      photoMode === 'Sand Palm Shadows' ||
+      photoMode === 'Warm Window Wood' ||
+      photoMode === 'Acrylic Blocks';
+
+    if (!likelyTranslucentContainer && !lightSensitiveMode) return '';
+
+    return [
+      'Optical glass realism: introduce subtle prism dispersion and physically correct luminous refractions where strong light crosses transparent edges.',
+      'Keep dispersion controlled and premium; no rainbow artifacts, no fake CGI glow, and no loss of label readability.'
+    ].join(' ');
+  })();
 
   const parts = [
     buildBaseContext({ allowStudio: mode === 'ACRYLIC_BLOCKS', qualityProfile: state.qualityProfile }),
@@ -839,6 +883,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     finishOverrideText,
     creativityOverrideText,
     strictStudioBranding ? '' : buildMaterialsWithProfile(mode, randomizer, state.qualityProfile),
+    prismRefractionText,
     buildUltraRealStrictBlock(Boolean(state.ultraRealStrict), state.qualityProfile),
     strictStudioBranding
       ? ''
