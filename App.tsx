@@ -5368,9 +5368,8 @@ If the model attempts to create a scene or environment, override it and force a 
 
         const finalUrl = `data:image/png;base64,${encodedImage}`;
         const cleanedFinalUrl = await trimBlackBarsDataUrl(finalUrl, { mimeType: 'image/png', background: null });
-        const normalizedOutput = await coverCropDataUrlToAspectRatio(cleanedFinalUrl, aspectRatio, {
+        const normalizedOutput = await extendEdgesToAspectRatio(cleanedFinalUrl, aspectRatio, {
           maxLongEdge: 4096,
-          background: null,
           mimeType: 'image/png',
         });
         const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
@@ -6001,9 +6000,8 @@ If the model attempts to create a scene or environment, override it and force a 
       }
       const editedUrl = `data:image/png;base64,${encodedImage}`;
       const cleanedEditedUrl = await trimBlackBarsDataUrl(editedUrl, { mimeType: 'image/png', background: null });
-      const normalizedOutput = await coverCropDataUrlToAspectRatio(cleanedEditedUrl, aspectRatio, {
+      const normalizedOutput = await extendEdgesToAspectRatio(cleanedEditedUrl, aspectRatio, {
         maxLongEdge: 4096,
-        background: null,
         mimeType: 'image/png',
       });
       const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
