@@ -8,9 +8,13 @@ export type LightingOverride = {
 export type LightingBuildOptions = {
   override?: LightingOverride;
   qualityProfile?: 'luxury-brand' | 'ecommerce-conversion' | 'editorial';
+  strictRigLock?: boolean;
 };
 
 export function buildLighting(mode: PhotoModeKey, randomizer: Randomizer, options: LightingBuildOptions = {}): string {
+  if (options.strictRigLock && options.override?.text) {
+    return options.override.text;
+  }
   if (mode === 'INGREDIENT_STACK') {
     const fixed = [
       'Clean studio lighting.',

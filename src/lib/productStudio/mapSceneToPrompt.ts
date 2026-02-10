@@ -737,9 +737,10 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     return `Lighting rig: ${rig}. Use this rig as the authoritative lighting setup.`;
   })();
 
-  const lightingOverrideText = [lightingStyleOverrideText, lightingRigOverrideText]
-    .filter(Boolean)
-    .join(' ');
+  const strictLightingRigLock = Boolean((state as any).proMode) && Boolean(lightingRigOverrideText);
+  const lightingOverrideText = strictLightingRigLock
+    ? lightingRigOverrideText
+    : [lightingStyleOverrideText, lightingRigOverrideText].filter(Boolean).join(' ');
 
   const finishOverrideText = (() => {
     const finish = String((state as any).finish || '').trim();
@@ -884,6 +885,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     buildLighting(mode, randomizer, {
       qualityProfile: state.qualityProfile,
       ...(lightingOverrideText ? { override: { text: lightingOverrideText } } : {}),
+      strictRigLock: strictLightingRigLock,
     }),
     buildCamera(mode, randomizer, {
       qualityProfile: state.qualityProfile,
