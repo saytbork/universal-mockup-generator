@@ -1806,6 +1806,7 @@ const App: React.FC = () => {
   const intentRef = useRef<HTMLDivElement>(null);
   const uploadRef = useRef<HTMLDivElement>(null);
   const customizeRef = useRef<HTMLDivElement>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
   const trialInputRef = useRef<HTMLInputElement>(null);
   const googleButtonRef = useRef<HTMLDivElement>(null);
   const googleInitRef = useRef(false);
@@ -6655,11 +6656,17 @@ If the model attempts to create a scene or environment, override it and force a 
                           >
                             <button
                               type="button"
-                              onClick={
-                                isProductPlacement && ecommerceSelectedSlots.length > 0
-                                  ? () => handleGenerateEcommerceClick()
-                                  : () => handleGenerateClick()
-                              }
+                              onClick={() => {
+                                if (isProductPlacement && ecommerceSelectedSlots.length > 0) {
+                                  handleGenerateEcommerceClick();
+                                } else {
+                                  handleGenerateClick();
+                                }
+
+                                if (typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches) {
+                                  resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }
+                              }}
                               disabled={isGenerateDisabled}
                               title={generationRestrictionMessage && isGenerateDisabled ? generationRestrictionMessage : undefined}
                               className="w-full rounded-full bg-indigo-600 py-2.5 text-sm font-semibold tracking-tight text-white transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:disabled:bg-white/10 dark:disabled:text-white/50"
@@ -6679,7 +6686,10 @@ If the model attempts to create a scene or environment, override it and force a 
                   </div>
                 </div>
 
-                <div className="rounded-xl p-4 transition-all bg-white relative lg:sticky lg:top-4 flex flex-col gap-6 min-h-[360px] sm:min-h-[520px] dark:bg-white/5 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+                <div
+                  ref={resultRef}
+                  className="rounded-xl p-4 transition-all bg-white relative lg:sticky lg:top-4 flex flex-col gap-6 min-h-[360px] sm:min-h-[520px] dark:bg-white/5 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]"
+                >
 
                   <GeneratedImage
                     imageUrl={twoKVariant?.url ?? generatedImageUrl}
