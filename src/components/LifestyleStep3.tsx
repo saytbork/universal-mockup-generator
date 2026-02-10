@@ -8361,7 +8361,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             {/* Bundles control product grouping only. */}
             {/* Bundles must never affect modes, composition, or human presence. */}
             {
-              productCount > 1 && (
+              isProductMode && productCount > 1 && (
                 <div id="bundles" className="mt-6">
                   <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-5">
                     <div className="flex flex-col gap-1">
@@ -8396,18 +8396,31 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                       <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-3">
                         <p className="text-sm font-semibold text-gray-900">Core Essentials Trio</p>
-                        <p className="text-xs text-gray-500">Add another product to enable bundles.</p>
+                        <p className="text-xs text-gray-500">
+                          {productStore.products.length > 1
+                            ? `${productStore.products.length} products available for bundle preview.`
+                            : 'Add another product to enable bundles.'}
+                        </p>
 
                         <div className="flex flex-wrap gap-3">
-                          <div className="w-28 text-center text-xs text-gray-600">
-                            <div className="relative h-28 w-full overflow-hidden rounded-2xl border border-gray-200 bg-white">
-                              <img className="h-full w-full object-cover opacity-60" />
-                              <div className="absolute inset-0 flex items-center justify-center bg-white text-[10px] font-semibold text-gray-500">
-                                Upload to fill
+                          {productStore.products.slice(0, 5).map((product, index) => (
+                            <div key={product.id} className="w-28 text-center text-xs text-gray-600">
+                              <div className="relative h-28 w-full overflow-hidden rounded-2xl border border-gray-200 bg-white">
+                                {product.imageUrl ? (
+                                  <img
+                                    src={product.imageUrl}
+                                    alt={product.name || `Product ${index + 1}`}
+                                    className="h-full w-full object-contain"
+                                  />
+                                ) : (
+                                  <div className="absolute inset-0 flex items-center justify-center bg-white text-[10px] font-semibold text-gray-500">
+                                    Upload to fill
+                                  </div>
+                                )}
                               </div>
+                              <p className="mt-1 text-[11px]">{product.name || `Product ${index + 1}`}</p>
                             </div>
-                            <p className="mt-1 text-[11px]">Product 1</p>
-                          </div>
+                          ))}
                         </div>
                       </div>
 

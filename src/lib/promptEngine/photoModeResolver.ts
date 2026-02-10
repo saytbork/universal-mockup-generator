@@ -792,6 +792,34 @@ export function buildPhotoModePrompt(
                 }
             }
 
+            if (photoMode === 'Pool Water' && normalizedCategory === 'waterLevel') {
+                const waterLevel = normalizedValue.toLowerCase();
+                if (waterLevel === 'out of water (pool edge)') {
+                    modifierParts.push(
+                        'Water level: Out of water on pool edge. Product is fully outside the water, firmly grounded on the pool coping/deck edge, with the pool water clearly visible behind or beside it. No submerged portion and no floating look.'
+                    );
+                    return;
+                }
+                if (waterLevel === 'surface') {
+                    modifierParts.push(
+                        'Water level: Surface contact. Product is at the water surface with realistic meniscus and contact behavior.'
+                    );
+                    return;
+                }
+                if (waterLevel === 'half') {
+                    modifierParts.push(
+                        'Water level: Half-submerged. Product intersects the waterline at mid-height with physically coherent refraction and reflections.'
+                    );
+                    return;
+                }
+                if (waterLevel === 'split') {
+                    modifierParts.push(
+                        'Water level: Split composition across the waterline with realistic above/below-water optical behavior.'
+                    );
+                    return;
+                }
+            }
+
             modifierParts.push(`${normalizedCategory.replace(/([A-Z])/g, ' $1').toLowerCase()}: ${normalizedValue}`);
         });
     }

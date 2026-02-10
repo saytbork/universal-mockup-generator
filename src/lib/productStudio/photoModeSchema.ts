@@ -182,13 +182,14 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         description: 'Clear pool water look with ripples, caustics, and refreshing droplets.',
         basePrompt: 'clear pool water look with turquoise ripples and subtle caustic highlights, refreshing droplets and clean wet reflections, premium summertime vibe, product remains sharp and readable',
         subOptions: [
-            { key: 'waterLevel', label: 'Water Level', values: ['Surface', 'Half', 'Split'] },
+            { key: 'waterLevel', label: 'Water Level', values: ['Surface', 'Half', 'Split', 'Out of water (pool edge)'] },
             { key: 'waterEnergy', label: 'Water Energy', values: ['Calm', 'Active', 'Splashy'] },
         ],
         constraints: [
             'Water must look physically real (no CGI plastic water)',
             'Keep composition clean and premium',
-            'Label must remain readable'
+            'Label must remain readable',
+            'If water level is "Out of water (pool edge)", product must be fully outside the water and physically grounded on the pool edge'
         ],
         requiredPlacement: 'surface',
         allowedInteractions: ['none'],
