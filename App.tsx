@@ -1662,6 +1662,10 @@ const App: React.FC = () => {
   const [hiResError, setHiResError] = useState<string | null>(null);
   const [isImageLoading, setIsImageLoading] = useState(false);
   const [isGeneratingSequence, setIsGeneratingSequence] = useState(false);
+  const [isGenerating360, setIsGenerating360] = useState(false);
+  const [view360Frames, setView360Frames] = useState<string[]>([]);
+  const [view360Index, setView360Index] = useState(0);
+  const [view360Error, setView360Error] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
   const [editPrompt, setEditPrompt] = useState('');
   const [apiKey, setApiKey] = useState<string>(envApiKey ?? '');
@@ -1748,6 +1752,11 @@ const App: React.FC = () => {
   const [isMoodProcessing, setIsMoodProcessing] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(1);
+  const drag360StateRef = useRef<{ active: boolean; startX: number; startIndex: number }>({
+    active: false,
+    startX: 0,
+    startIndex: 0,
+  });
 
   // LifestyleStep3 state for PromptEngine
   const [lifestyleStep3Values, setLifestyleStep3Values] = useState<Step3Values | null>(null);
@@ -6076,6 +6085,131 @@ If the model attempts to create a scene or environment, override it and force a 
     userEmail,
   ]);
 
+  const clear360View = useCallback(() => {
+    setView360Frames([]);
+    setView360Index(0);
+    setView360Error(null);
+  }, []);
+
+  const handleGenerate360View = useCallback(async () => {
+    if (!generatedImageUrl) {
+      setView360Error('Generate a product image first.');
+      return;
+    }
+    if (isFreeUser) {
+      setShowPlanModal(true);
+      setPlanNotice('360 View is available on paid plans. Upgrade to unlock.');
+      return;
+    }
+    if (isGenerating360 || isImageLoading) return;
+    const FRAME_COUNT = 12;
+    if (!isTrialBypassActive && !isAnonymousTrialMode && remainingCredits < FRAME_COUNT) {
+      setView360Error(`360 View needs about ${FRAME_COUNT} credits. You have ${remainingCredits}.`);
+      setShowPlanModal(true);
+      setPlanNotice('Not enough credits for 360 View. Upgrade your plan to continue.');
+      return;
+    }
+
+    const resolvedApiKey = getActiveApiKeyOrNotify(setView360Error);
+    if (!resolvedApiKey) return;
+
+    setIsGenerating360(true);
+    setView360Error(null);
+    setView360Frames([]);
+    setView360Index(0);
+    try {
+      const base64Image = generatedImageUrl.split(',')[1];
+      const aspectRatio =
+        isProductPlacement ? resolveOutputAspectRatio() : (lastAspectRatioRef.current || options.aspectRatio || '1:1');
+      const frames: string[] = [];
+      for (let i = 0; i < FRAME_COUNT; i += 1) {
+        const angle = Math.round((i * 360) / FRAME_COUNT);
+        const framePrompt = [
+          `Create frame ${i + 1} of ${FRAME_COUNT} for a smooth horizontal 360 turntable around the same product.`,
+          `Virtual camera azimuth angle: ${angle} degrees around the product center.`,
+          'Keep identical product identity, label, materials, proportions, and lighting style.',
+          'Maintain clean commercial realism and consistent background continuity across frames.',
+          'Do not add people, extra products, text, logos, or watermarks.',
+        ].join(' ');
+
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: GEMINI_IMAGE_MODEL,
+            parts: [
+              { inlineData: { data: base64Image, mimeType: 'image/png' } },
+              { text: framePrompt },
+            ],
+            aspectRatio,
+            preserveReferenceImage: isProductPlacement,
+            apiKey: resolvedApiKey,
+          }),
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const message = typeof data?.error === 'string' ? data.error : `360 frame ${i + 1} failed`;
+          if (data?.upgrade_required || data?.reason === 'trial_limit') {
+            setShowPlanModal(true);
+            setPlanNotice('360 View requires a paid plan with available credits.');
+          }
+          throw new Error(message);
+        }
+        if (typeof data?.remaining_credits === 'number') {
+          setRemoteCredits(data.remaining_credits);
+        }
+        const encodedImage = typeof data?.imageBase64 === 'string' ? data.imageBase64 : '';
+        if (!encodedImage) {
+          throw new Error(`360 frame ${i + 1} returned no image.`);
+        }
+        frames.push(`data:image/png;base64,${encodedImage}`);
+      }
+
+      setView360Frames(frames);
+      setView360Index(0);
+    } catch (err) {
+      console.error(err);
+      setView360Error(err instanceof Error ? err.message : String(err));
+    } finally {
+      setIsGenerating360(false);
+    }
+  }, [
+    generatedImageUrl,
+    getActiveApiKeyOrNotify,
+    isAnonymousTrialMode,
+    isFreeUser,
+    isGenerating360,
+    isImageLoading,
+    isProductPlacement,
+    isTrialBypassActive,
+    options.aspectRatio,
+    remainingCredits,
+    resolveOutputAspectRatio,
+    setRemoteCredits,
+  ]);
+
+  const start360Drag = useCallback((clientX: number) => {
+    if (!view360Frames.length) return;
+    drag360StateRef.current = { active: true, startX: clientX, startIndex: view360Index };
+  }, [view360Frames.length, view360Index]);
+
+  const move360Drag = useCallback((clientX: number) => {
+    const drag = drag360StateRef.current;
+    if (!drag.active || !view360Frames.length) return;
+    const deltaX = clientX - drag.startX;
+    const stepPx = 18;
+    const deltaFrames = Math.round(deltaX / stepPx);
+    const total = view360Frames.length;
+    const next = ((drag.startIndex + deltaFrames) % total + total) % total;
+    setView360Index(next);
+  }, [view360Frames.length]);
+
+  const end360Drag = useCallback(() => {
+    if (!drag360StateRef.current.active) return;
+    drag360StateRef.current.active = false;
+  }, []);
+
   const handleEditImage = useCallback(async () => {
     await applyImageEdit(editPrompt, { clearManual: true });
   }, [applyImageEdit, editPrompt]);
@@ -6747,6 +6881,84 @@ If the model attempts to create a scene or environment, override it and force a 
                           onAccessSubmit={handleVideoAccessSubmit}
                           accessError={videoAccessError}
                         />
+                      </div>
+                    </details>
+                  )}
+
+                  {generatedImageUrl && (
+                    <details key={`view360-${generatedImageUrl}`} className="w-full" open={false}>
+                      <summary className="cursor-pointer select-none rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-900 hover:border-indigo-600 transition dark:border-white/10 dark:bg-black/20 dark:text-white dark:hover:border-white/30">
+                        360 View
+                      </summary>
+                      <div className="mt-3 rounded-2xl border border-gray-200 bg-white p-4 dark:border-white/10 dark:bg-black/20">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <p className="text-xs text-gray-500 dark:text-white/60">
+                            {isFreeUser
+                              ? 'Locked on Free plan. Upgrade to generate 360 frames.'
+                              : 'Generates ~12 frames (horizontal drag). Approx credit cost: 12.'}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={handleGenerate360View}
+                              disabled={isGenerating360 || isImageLoading}
+                              className="rounded-full bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+                            >
+                              {isGenerating360 ? 'Generating 360...' : (view360Frames.length ? 'Regenerate 360' : 'Generate 360')}
+                            </button>
+                            {view360Frames.length > 0 && (
+                              <button
+                                type="button"
+                                onClick={clear360View}
+                                className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:border-indigo-600 hover:text-indigo-600 dark:border-white/15 dark:bg-black/20 dark:text-white/70 dark:hover:text-white"
+                              >
+                                Clear
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {view360Error && (
+                          <p className="mt-3 text-xs text-red-600">{view360Error}</p>
+                        )}
+
+                        {view360Frames.length > 0 && (
+                          <div className="mt-3 space-y-3">
+                            <div
+                              className="relative w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-50 select-none dark:border-white/10 dark:bg-black/10"
+                              onMouseDown={(e) => start360Drag(e.clientX)}
+                              onMouseMove={(e) => move360Drag(e.clientX)}
+                              onMouseUp={end360Drag}
+                              onMouseLeave={end360Drag}
+                              onTouchStart={(e) => start360Drag(e.touches[0]?.clientX ?? 0)}
+                              onTouchMove={(e) => move360Drag(e.touches[0]?.clientX ?? 0)}
+                              onTouchEnd={end360Drag}
+                            >
+                              <img
+                                src={view360Frames[view360Index]}
+                                alt={`360 frame ${view360Index + 1}`}
+                                className="h-auto w-full object-contain"
+                                draggable={false}
+                              />
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="range"
+                                min={0}
+                                max={Math.max(0, view360Frames.length - 1)}
+                                value={view360Index}
+                                onChange={(e) => setView360Index(Number(e.target.value))}
+                                className="w-full"
+                              />
+                              <span className="text-xs text-gray-500 tabular-nums dark:text-white/60">
+                                {view360Index + 1}/{view360Frames.length}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-gray-500 dark:text-white/50">
+                              Drag left/right over the image to rotate.
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </details>
                   )}
