@@ -911,7 +911,14 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const lightingRigOverrideText = (() => {
     const rig = String((state as any).lightingRig || '').trim();
     if (!rig) return '';
+    const prismaRig = (state as any).prismaRig || {};
     const rigCues: Record<string, string> = {
+      Prisma:
+        [
+          'Physical Prisma rig: use a real optical prism modifier as the light object (not a digital overlay).',
+          `Prisma controls: size=${String(prismaRig.size || 'Medium')}, focus=${String(prismaRig.focus || 'Balanced')}, intensity=${String(prismaRig.intensity || 'Medium')}, placement=${String(prismaRig.placement || 'Diagonal')}.`,
+          'Result target: controlled, repeatable, commercial lighting behavior with clean label readability.',
+        ].join(' '),
       'Prism Spotlight Duo':
         'Two controlled prism spot sources with crisp directional falloff, visible split highlights on glass edges, and subtle refraction caustics near transparent boundaries. Prism effect must be visibly present in the final frame (not optional).',
       '3-Point Beauty Dish':
