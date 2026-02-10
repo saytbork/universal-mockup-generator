@@ -2739,7 +2739,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                         {([
                                           { value: '3-Point Beauty Dish', label: '3-Point Beauty Dish' },
                                           { value: 'Softbox Wrap', label: 'Softbox Wrap' },
-                                          { value: 'Prisma', label: 'Prisma' },
                                           { value: 'Hard Edge Gels', label: 'Hard Edge Gels' },
                                           { value: 'Backlit Acrylic', label: 'Backlit Acrylic' },
                                           { value: 'High-Speed Splash Rig', label: 'High-Speed Splash Rig' },
@@ -2759,9 +2758,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                         ))}
                                       </div>
 
-                                      {productStore.lightingRig === 'Prisma' && (
+                                      {productStore.lightingRig === 'Prism Spotlight Duo' && (
                                         <div className="mt-3 space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
-                                          <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold">Prisma Controls</p>
+                                          <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold">Prism Controls</p>
 
                                           <div>
                                             <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 mb-1">Size</p>
@@ -2770,10 +2769,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                                 <Chip
                                                   key={v}
                                                   onClick={() => {
-                                                    productStore.setPrismaRig({ size: v });
+                                                    productStore.setPrismRig({ size: v });
                                                     markSectionTouched('product-setup');
                                                   }}
-                                                  selected={productStore.prismaRig?.size === v}
+                                                  selected={productStore.prismRig?.size === v}
                                                 >
                                                   {v}
                                                 </Chip>
@@ -2788,10 +2787,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                                 <Chip
                                                   key={v}
                                                   onClick={() => {
-                                                    productStore.setPrismaRig({ focus: v });
+                                                    productStore.setPrismRig({ focus: v });
                                                     markSectionTouched('product-setup');
                                                   }}
-                                                  selected={productStore.prismaRig?.focus === v}
+                                                  selected={productStore.prismRig?.focus === v}
                                                 >
                                                   {v}
                                                 </Chip>
@@ -2806,10 +2805,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                                 <Chip
                                                   key={v}
                                                   onClick={() => {
-                                                    productStore.setPrismaRig({ intensity: v });
+                                                    productStore.setPrismRig({ intensity: v });
                                                     markSectionTouched('product-setup');
                                                   }}
-                                                  selected={productStore.prismaRig?.intensity === v}
+                                                  selected={productStore.prismRig?.intensity === v}
                                                 >
                                                   {v}
                                                 </Chip>
@@ -2824,10 +2823,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                                 <Chip
                                                   key={v}
                                                   onClick={() => {
-                                                    productStore.setPrismaRig({ placement: v });
+                                                    productStore.setPrismRig({ placement: v });
                                                     markSectionTouched('product-setup');
                                                   }}
-                                                  selected={productStore.prismaRig?.placement === v}
+                                                  selected={productStore.prismRig?.placement === v}
                                                 >
                                                   {v}
                                                 </Chip>
