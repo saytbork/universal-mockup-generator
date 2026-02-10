@@ -285,7 +285,16 @@ export type PhotoMode =
     | 'Gel Smear Editorial'
     | 'Citrus Fresh Flat Lay'
     | 'Stones & Crystals Flat Lay'
-    | 'Dried Citrus Earth';
+    | 'Dried Citrus Earth'
+    // Beverage/lifestyle effect variants (single-select Photo Modes)
+    | 'Beach Foam Splash'
+    | 'Pool Water'
+    | 'Cheers (Hands Clink)'
+    | 'Ice Cubes'
+    | 'Condensation Droplets'
+    | 'Fruit Garnish / Citrus Accents'
+    | 'Textured Bed / Scatter Base'
+    | 'Floating Particles';
 
 export interface EnvironmentPhotoModeSchema {
     id: string;

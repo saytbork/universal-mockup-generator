@@ -2375,8 +2375,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                             const specialEffectsOptions: Array<{ label: string; mode: PhotoMode }> = [
                               { label: 'Splash Shot', mode: 'Splash Shot' },
+                              { label: 'Beach Foam Splash', mode: 'Beach Foam Splash' },
+                              { label: 'Pool Water', mode: 'Pool Water' },
+                              { label: 'Cheers (Hands Clink)', mode: 'Cheers (Hands Clink)' },
                               { label: 'Acrylic Blocks', mode: 'Acrylic Blocks' },
                               { label: 'Foam & Texture', mode: 'Foam & Texture' },
+                              { label: 'Ice Cubes', mode: 'Ice Cubes' },
+                              { label: 'Condensation Droplets', mode: 'Condensation Droplets' },
+                              { label: 'Fruit Garnish / Citrus Accents', mode: 'Fruit Garnish / Citrus Accents' },
+                              { label: 'Textured Bed / Scatter Base', mode: 'Textured Bed / Scatter Base' },
+                              { label: 'Floating Particles', mode: 'Floating Particles' },
                               { label: 'Gel Smear Editorial', mode: 'Gel Smear Editorial' },
                               { label: 'Underwater Split', mode: 'Underwater Split' },
                               { label: 'Wet Rock Ripples', mode: 'Wet Rock Ripples' },

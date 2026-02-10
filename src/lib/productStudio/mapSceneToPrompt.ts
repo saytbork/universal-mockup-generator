@@ -257,6 +257,14 @@ const PHOTO_MODE_MAP: Record<string, PhotoModeKey> = {
   'Citrus Fresh Flat Lay': 'INGREDIENT_FLAT_LAY',
   'Stones & Crystals Flat Lay': 'INGREDIENT_FLAT_LAY',
   'Dried Citrus Earth': 'INGREDIENT_FLAT_LAY',
+  'Beach Foam Splash': 'SPLASH_SHOT',
+  'Pool Water': 'SPLASH_SHOT',
+  'Cheers (Hands Clink)': 'UGC_PREMIUM_SIM',
+  'Ice Cubes': 'HERO_NEUTRAL',
+  'Condensation Droplets': 'HERO_NEUTRAL',
+  'Fruit Garnish / Citrus Accents': 'HERO_NEUTRAL',
+  'Textured Bed / Scatter Base': 'HERO_NEUTRAL',
+  'Floating Particles': 'HERO_NEUTRAL',
 };
 
 const SECONDARY_PROPS_BY_MODE: Partial<Record<PhotoModeKey, string[]>> = {

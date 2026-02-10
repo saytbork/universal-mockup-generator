@@ -133,7 +133,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Splash Shot',
         scope: 'studio',
         description: 'High-speed advertising splash with controlled motion and hero readability.',
-        basePrompt: 'high-speed advertising splash composition with a controlled directional liquid arc, campaign-grade lighting, crisp droplets, clear product silhouette, and fully readable label',
+        basePrompt: 'classic high-speed advertising splash composition with a clean crown or sheet splash, controlled directional liquid arc, campaign-grade lighting, crisp frozen droplets, clear product silhouette, and fully readable label',
         subOptions: [
             { key: 'splashMedium', label: 'Splash Medium', values: ['Liquid'] },
             { key: 'motionIntensity', label: 'Motion Intensity', values: ['Dynamic', 'Explosive'] },
@@ -145,7 +145,137 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Frozen high-speed motion with physically coherent droplets',
             'Label and logo zone must remain unobstructed',
             'No muddy water, foam clutter, or dirty liquid artifacts',
+            'Avoid CGI splash rings and melted-looking liquid blobs',
             'Rigid materials only: glass, metal, acrylic, stone, concrete.'
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Beach Foam Splash': {
+        id: 'beach-foam-splash',
+        label: 'Beach Foam Splash',
+        scope: 'environment',
+        description: 'Beach foam splash moment with clean premium control and readable hero product.',
+        basePrompt: 'premium beach splash setup: shallow sea foam and clean spray droplets near the base, controlled directional splash sheet, product remains hero and label stays readable, beach sand tones and coastal light vibe without clutter',
+        subOptions: [],
+        constraints: [
+            'Keep foam minimal and controlled (do not bury the product)',
+            'Frozen motion with crisp droplets',
+            'Label must remain readable and unobstructed',
+            'No muddy water or dirty foam'
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Pool Water': {
+        id: 'pool-water',
+        label: 'Pool Water',
+        scope: 'environment',
+        description: 'Clear pool water look with ripples, caustics, and refreshing droplets.',
+        basePrompt: 'clear pool water look with turquoise ripples and subtle caustic highlights, refreshing droplets and clean wet reflections, premium summertime vibe, product remains sharp and readable',
+        subOptions: [],
+        constraints: [
+            'Water must look physically real (no CGI plastic water)',
+            'Keep composition clean and premium',
+            'Label must remain readable'
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Cheers (Hands Clink)': {
+        id: 'cheers-hands-clink',
+        label: 'Cheers (Hands Clink)',
+        scope: 'environment',
+        description: 'Celebratory clink moment with a clean cropped interaction and premium lifestyle light.',
+        basePrompt: 'celebratory clink moment with two products meeting at center frame, premium lifestyle lighting, clean background with soft bokeh, frozen droplets and crisp highlights, product branding remains readable',
+        subOptions: [],
+        constraints: [
+            'Cropped interaction only (no faces, no identity)',
+            'Branding must remain readable',
+            'No chaotic motion blur'
+        ],
+        requiredPlacement: 'held',
+        allowedInteractions: ['two-hand-hold', 'holding', 'supported-hold', 'presenting', 'framed-presentation'],
+        allowsPersonPresence: true
+    },
+    'Ice Cubes': {
+        id: 'ice-cubes',
+        label: 'Ice Cubes',
+        scope: 'studio',
+        description: 'Product staged with realistic ice cubes and meltwater reflections.',
+        basePrompt: 'product staged with realistic translucent ice cubes, meltwater droplets, clean wet reflections on a premium surface, refreshing chilled vibe, label remains fully readable',
+        subOptions: [],
+        constraints: [
+            'Ice must look physically real and correctly scaled',
+            'No plastic-looking cubes',
+            'Label must remain readable'
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Condensation Droplets': {
+        id: 'condensation-droplets',
+        label: 'Condensation Droplets',
+        scope: 'studio',
+        description: 'Cold condensation look with micro-droplets and clean specular highlights.',
+        basePrompt: 'cold condensation look with micro-droplets and subtle streaks on the container, clean specular highlights, premium chilled freshness, label typography remains undistorted and readable',
+        subOptions: [],
+        constraints: [
+            'Do not distort or blur label typography',
+            'Condensation must look physically plausible',
+            'Keep it clean and premium'
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Fruit Garnish / Citrus Accents': {
+        id: 'fruit-garnish-citrus-accents',
+        label: 'Fruit Garnish / Citrus Accents',
+        scope: 'studio',
+        description: 'Product staged with fruit/citrus accents as clean secondary styling elements.',
+        basePrompt: 'product staged with fruit or citrus accents as clean secondary styling elements (slices, peels, wedges), premium advertising composition, controlled reflections and freshness cues, product remains the hero and label stays readable',
+        subOptions: [],
+        constraints: [
+            'Accents must be secondary (do not overpower the product)',
+            'Fresh cut realism and correct scale',
+            'Label must remain readable'
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Textured Bed / Scatter Base': {
+        id: 'textured-bed-scatter-base',
+        label: 'Textured Bed / Scatter Base',
+        scope: 'studio',
+        description: 'Product grounded on a controlled textured bed or scatter base.',
+        basePrompt: 'product grounded on a controlled textured bed or scatter base around the bottom edge of frame, premium advertising styling, realistic contact shadows, label stays readable, keep scatter minimal and intentional',
+        subOptions: [],
+        constraints: [
+            'Scatter must be controlled and premium',
+            'No messy clutter or noise',
+            'Label must remain readable'
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Floating Particles': {
+        id: 'floating-particles',
+        label: 'Floating Particles',
+        scope: 'studio',
+        description: 'Subtle floating particles for atmosphere, kept premium and controlled.',
+        basePrompt: 'subtle floating particles for atmosphere (mist micro-droplets, dust motes, sparkle bokeh), premium controlled look, product remains sharp and readable, no heavy haze',
+        subOptions: [],
+        constraints: [
+            'Particles must be subtle and controlled',
+            'No fog that reduces readability',
+            'Label must remain readable'
         ],
         requiredPlacement: 'surface',
         allowedInteractions: ['none'],

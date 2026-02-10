@@ -1624,6 +1624,14 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 'Citrus Fresh Flat Lay',
                 'Stones & Crystals Flat Lay',
                 'Dried Citrus Earth',
+                'Beach Foam Splash',
+                'Pool Water',
+                'Cheers (Hands Clink)',
+                'Ice Cubes',
+                'Condensation Droplets',
+                'Fruit Garnish / Citrus Accents',
+                'Textured Bed / Scatter Base',
+                'Floating Particles',
             ];
 
             const resolvedMode: PhotoMode = allowed.includes(nextMode) ? nextMode : 'Hero Landing Page';

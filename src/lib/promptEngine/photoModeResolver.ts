@@ -184,6 +184,70 @@ const PHOTO_MODE_CONTROL_FLAGS: Record<string, PhotoModeControlFlags> = {
         bundlesAllowed: false,
         cameraLocked: false
     },
+    'Beach Foam Splash': {
+        propsAllowed: true,
+        environmentAllowed: true,
+        humansAllowed: false,
+        motionAllowed: true,
+        bundlesAllowed: false,
+        cameraLocked: false
+    },
+    'Pool Water': {
+        propsAllowed: true,
+        environmentAllowed: true,
+        humansAllowed: false,
+        motionAllowed: false,
+        bundlesAllowed: false,
+        cameraLocked: false
+    },
+    'Cheers (Hands Clink)': {
+        propsAllowed: false,
+        environmentAllowed: true,
+        humansAllowed: true,
+        motionAllowed: true,
+        bundlesAllowed: false,
+        cameraLocked: false
+    },
+    'Ice Cubes': {
+        propsAllowed: true,
+        environmentAllowed: false,
+        humansAllowed: false,
+        motionAllowed: false,
+        bundlesAllowed: false,
+        cameraLocked: false
+    },
+    'Condensation Droplets': {
+        propsAllowed: true,
+        environmentAllowed: false,
+        humansAllowed: false,
+        motionAllowed: false,
+        bundlesAllowed: false,
+        cameraLocked: false
+    },
+    'Fruit Garnish / Citrus Accents': {
+        propsAllowed: true,
+        environmentAllowed: false,
+        humansAllowed: false,
+        motionAllowed: false,
+        bundlesAllowed: false,
+        cameraLocked: false
+    },
+    'Textured Bed / Scatter Base': {
+        propsAllowed: true,
+        environmentAllowed: false,
+        humansAllowed: false,
+        motionAllowed: false,
+        bundlesAllowed: false,
+        cameraLocked: false
+    },
+    'Floating Particles': {
+        propsAllowed: false,
+        environmentAllowed: false,
+        humansAllowed: false,
+        motionAllowed: false,
+        bundlesAllowed: false,
+        cameraLocked: false
+    },
 
     'Foam & Texture': {
         propsAllowed: true,          // Texture elements allowed
@@ -806,6 +870,14 @@ export function getAllPhotoModes(): PhotoMode[] {
         'Tech Clean Studio',
         'Soft Wellness Morning',
         'Outdoor Energy Boost',
+        'Beach Foam Splash',
+        'Pool Water',
+        'Cheers (Hands Clink)',
+        'Ice Cubes',
+        'Condensation Droplets',
+        'Fruit Garnish / Citrus Accents',
+        'Textured Bed / Scatter Base',
+        'Floating Particles',
         // v2.1 realism modes
         'Sunlit Stone Editorial',
         'Golden Sunset Backlit',
