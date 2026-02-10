@@ -1379,6 +1379,127 @@ const maybeDownscaleInlineImage = async (
   return downscaleDataUrlToJpeg(dataUrl, { maxLongEdge: opts.maxLongEdge, quality: opts.quality });
 };
 
+const removeUploadedBackgroundDataUrl = async (
+  dataUrl: string
+): Promise<{ base64: string; mimeType: 'image/png' }> => {
+  const img = await loadImageFromUrl(dataUrl);
+  const w = img.naturalWidth;
+  const h = img.naturalHeight;
+  if (!w || !h) {
+    const [, base64] = String(dataUrl).split(';base64,');
+    return { base64: base64 ?? '', mimeType: 'image/png' };
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    const [, base64] = String(dataUrl).split(';base64,');
+    return { base64: base64 ?? '', mimeType: 'image/png' };
+  }
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(img, 0, 0, w, h);
+
+  const imageData = ctx.getImageData(0, 0, w, h);
+  const d = imageData.data;
+
+  const read = (x: number, y: number) => {
+    const i = (y * w + x) * 4;
+    return { r: d[i], g: d[i + 1], b: d[i + 2], a: d[i + 3] };
+  };
+
+  const samples = [
+    read(0, 0),
+    read(w - 1, 0),
+    read(0, h - 1),
+    read(w - 1, h - 1),
+  ].filter(p => p.a > 10);
+
+  if (!samples.length) {
+    const out = canvas.toDataURL('image/png');
+    const [, base64] = out.split(';base64,');
+    return { base64: base64 ?? '', mimeType: 'image/png' };
+  }
+
+  const bg = samples.reduce(
+    (acc, p) => ({ r: acc.r + p.r, g: acc.g + p.g, b: acc.b + p.b }),
+    { r: 0, g: 0, b: 0 }
+  );
+  const bgR = bg.r / samples.length;
+  const bgG = bg.g / samples.length;
+  const bgB = bg.b / samples.length;
+
+  const colorDist = (r: number, g: number, b: number) =>
+    Math.sqrt((r - bgR) ** 2 + (g - bgG) ** 2 + (b - bgB) ** 2);
+
+  // Conservative threshold to remove likely backdrop pixels around edges,
+  // while preserving product details that might be close to background color.
+  const threshold = 34;
+
+  const clearPixel = (x: number, y: number) => {
+    const i = (y * w + x) * 4;
+    d[i + 3] = 0;
+  };
+
+  // Strip near-background runs from each edge toward the subject.
+  for (let y = 0; y < h; y += 1) {
+    for (let x = 0; x < w; x += 1) {
+      const i = (y * w + x) * 4;
+      if (d[i + 3] <= 10 || colorDist(d[i], d[i + 1], d[i + 2]) <= threshold) {
+        clearPixel(x, y);
+      } else {
+        break;
+      }
+    }
+    for (let x = w - 1; x >= 0; x -= 1) {
+      const i = (y * w + x) * 4;
+      if (d[i + 3] <= 10 || colorDist(d[i], d[i + 1], d[i + 2]) <= threshold) {
+        clearPixel(x, y);
+      } else {
+        break;
+      }
+    }
+  }
+  for (let x = 0; x < w; x += 1) {
+    for (let y = 0; y < h; y += 1) {
+      const i = (y * w + x) * 4;
+      if (d[i + 3] <= 10 || colorDist(d[i], d[i + 1], d[i + 2]) <= threshold) {
+        clearPixel(x, y);
+      } else {
+        break;
+      }
+    }
+    for (let y = h - 1; y >= 0; y -= 1) {
+      const i = (y * w + x) * 4;
+      if (d[i + 3] <= 10 || colorDist(d[i], d[i + 1], d[i + 2]) <= threshold) {
+        clearPixel(x, y);
+      } else {
+        break;
+      }
+    }
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+  const out = canvas.toDataURL('image/png');
+  const [, base64] = out.split(';base64,');
+  return { base64: base64 ?? '', mimeType: 'image/png' };
+};
+
+const removeUploadedBackgroundInlineImage = async (
+  base64: string,
+  mimeType: string
+): Promise<{ base64: string; mimeType: string }> => {
+  if (!base64) return { base64, mimeType };
+  try {
+    return await removeUploadedBackgroundDataUrl(`data:${mimeType};base64,${base64}`);
+  } catch (error) {
+    console.warn('[PRODUCT REF] Background removal failed, falling back to original image', error);
+    return { base64, mimeType };
+  }
+};
+
 const App: React.FC = () => {
   const GEMINI_DISABLED = false; // Gemini must stay enabled for direct image generation
   const location = useLocation();
@@ -5201,8 +5322,9 @@ If the model attempts to create a scene or environment, override it and force a 
           let totalAttachedReferenceBase64 = 0;
 
           for (const product of generationProducts.slice(0, maxProductRefs)) {
+            const backgroundRemoved = await removeUploadedBackgroundInlineImage(product.base64, product.mimeType);
             // Higher-fidelity reference helps avoid warped labels/typography on the product.
-            const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
+            const resized = await maybeDownscaleInlineImage(backgroundRemoved.base64, backgroundRemoved.mimeType, {
               maxLongEdge: isProductPlacement
                 ? (isMultiProductRequest ? 1440 : 3072)
                 : (isMultiProductRequest ? 1024 : 2048),
@@ -5618,7 +5740,8 @@ If the model attempts to create a scene or environment, override it and force a 
         const productParts: any[] = [];
         // PDP canvases are designed for a single hero product. Use the first selected product as the reference image.
         for (const product of generationProducts.slice(0, 1)) {
-          const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
+          const backgroundRemoved = await removeUploadedBackgroundInlineImage(product.base64, product.mimeType);
+          const resized = await maybeDownscaleInlineImage(backgroundRemoved.base64, backgroundRemoved.mimeType, {
             maxLongEdge: 2048,
             maxBase64Length: 4_000_000,
             quality: 0.96,
@@ -5794,7 +5917,8 @@ If the model attempts to create a scene or environment, override it and force a 
       const aspectRatio = resolveOutputAspectRatio();
       const productParts: any[] = [];
       for (const product of generationProducts) {
-        const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
+        const backgroundRemoved = await removeUploadedBackgroundInlineImage(product.base64, product.mimeType);
+        const resized = await maybeDownscaleInlineImage(backgroundRemoved.base64, backgroundRemoved.mimeType, {
           maxLongEdge: 2048,
           maxBase64Length: 4_000_000,
           quality: 0.96,
