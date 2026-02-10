@@ -2335,16 +2335,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               'Stones & Crystals Flat Lay',
                               'Dried Citrus Earth',
                             ] as const).map(mode => {
-                              const schema = PHOTO_MODE_SCHEMAS[mode as PhotoMode];
                               return (
                                 <button
                                   key={mode}
                                   onClick={() => {
-                                    // Auto-adjust placement directly from schema to avoid UI/store contradictions.
-                                    if (schema?.requiredPlacement && schema.requiredPlacement !== 'any') {
-                                      productStore.setPlacement(schema.requiredPlacement as ProductPlacement);
-                                    }
-
                                     productStore.setPhotoMode(mode);
                                     markSectionTouched('product-setup');
                                   }}

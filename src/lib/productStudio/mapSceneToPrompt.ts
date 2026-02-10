@@ -1,5 +1,4 @@
 import type { ProductAsset, ProductStudioState, PhotoMode } from './types';
-import { PHOTO_MODE_SCHEMAS } from './photoModeSchema';
 import { buildBaseContext } from './promptParts/baseContext';
 import { buildPhotoModePrompt } from '../promptEngine/photoModeResolver';
 import {
@@ -287,11 +286,7 @@ function buildSecondaryProps(mode: PhotoModeKey, randomizer: ReturnType<typeof c
 }
 
 function buildPlacementDirective(state: ProductStudioState): string {
-  const requiredPlacement = PHOTO_MODE_SCHEMAS[state.photoMode as PhotoMode]?.requiredPlacement;
-  const effectivePlacement =
-    requiredPlacement && requiredPlacement !== 'any'
-      ? requiredPlacement
-      : (state.placement || 'surface');
+  const effectivePlacement = state.placement || 'surface';
   const placement = String(effectivePlacement);
   if (placement === 'supported') {
     return [

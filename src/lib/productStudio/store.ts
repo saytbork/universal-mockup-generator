@@ -232,8 +232,6 @@ const INTERPRETATION_MESSAGES = {
         'Hands treated as neutral anatomical elements without human identity.',
     macroTexturesNoAerial:
         'Overhead/flatlay camera is disabled for macro textures. Camera adjusted automatically.',
-    photoModeForcesPlacement:
-        'Photo Mode enforces a mandatory placement. Placement was adjusted automatically.',
     photoModeForcesInteraction:
         'Photo Mode constraints adjusted interaction to avoid contradictions.',
     heldRequiresInteraction:
@@ -284,12 +282,6 @@ const HAND_INTERACTIONS = new Set<ProductStudioState['interaction']>([
 
 function interactionNeedsHands(interaction: ProductStudioState['interaction']): boolean {
     return HAND_INTERACTIONS.has(interaction);
-}
-
-function getPhotoModeRequiredPlacement(photoMode: PhotoMode): ProductPlacement | null {
-    const required = PHOTO_MODE_SCHEMAS[photoMode]?.requiredPlacement;
-    if (!required || required === 'any') return null;
-    return required as ProductPlacement;
 }
 
 function getPhotoModeAllowedInteractions(photoMode: PhotoMode): ProductStudioState['interaction'][] | null {
@@ -1641,9 +1633,8 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             // This prevents any stale env state from forcing Studio -> Lifestyle on photo mode changes.
             const shouldUseEnvironment = hadEnvironmentEnabled && alreadyInLifestyle;
             const schema = PHOTO_MODE_SCHEMAS[resolvedMode];
-            const requiredPlacement = getPhotoModeRequiredPlacement(resolvedMode);
             const allowedInteractions = getPhotoModeAllowedInteractions(resolvedMode);
-            let resolvedPlacement: ProductPlacement = requiredPlacement ?? state.placement;
+            let resolvedPlacement: ProductPlacement = state.placement;
             let resolvedInteraction: ProductStudioState['interaction'] = state.interaction;
             let resolvedHandsHolding = state.handsHolding;
             const notes: Partial<ProductStudioState> = {};
@@ -1667,7 +1658,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     resolvedInteraction = allowedHandInteraction;
                     resolvedHandsHolding = true;
                 } else {
-                    resolvedPlacement = requiredPlacement && requiredPlacement !== 'held' ? requiredPlacement : 'surface';
+                    resolvedPlacement = 'surface';
                     Object.assign(notes, withInterpretationNote(state, 'placement', INTERPRETATION_MESSAGES.heldRequiresInteraction));
                 }
             }
@@ -1680,10 +1671,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
 
             if (interactionNeedsHands(resolvedInteraction) && resolvedPlacement !== 'held' && resolvedPlacement !== 'supported') {
                 resolvedPlacement = 'held';
-            }
-
-            if (requiredPlacement && state.placement !== requiredPlacement) {
-                Object.assign(notes, withInterpretationNote(state, 'placement', INTERPRETATION_MESSAGES.photoModeForcesPlacement));
             }
 
             const common: Partial<ProductStudioState> = {
@@ -1961,20 +1948,14 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
         }),
     setPlacement: (placement) =>
         set((state) => {
-            const requiredPlacement = getPhotoModeRequiredPlacement(state.photoMode);
             const schema = PHOTO_MODE_SCHEMAS[state.photoMode];
-            const effectivePlacement: ProductPlacement =
-                requiredPlacement && placement !== requiredPlacement ? requiredPlacement : placement;
+            const effectivePlacement: ProductPlacement = placement;
             const next: Partial<ProductStudioState> = { placement: effectivePlacement };
-
-            if (requiredPlacement && placement !== requiredPlacement) {
-                Object.assign(next, withInterpretationNote(state, 'placement', INTERPRETATION_MESSAGES.photoModeForcesPlacement));
-            }
 
             // Auto-sync interaction based on placement physics
             if (effectivePlacement === 'held') {
                 if (schema?.allowsPersonPresence === false) {
-                    next.placement = requiredPlacement && requiredPlacement !== 'held' ? requiredPlacement : 'surface';
+                    next.placement = 'surface';
                     next.interaction = 'none';
                     next.handsHolding = false;
                     Object.assign(next, withInterpretationNote(state, 'placement', INTERPRETATION_MESSAGES.heldRequiresInteraction));
