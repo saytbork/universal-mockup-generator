@@ -159,7 +159,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Beach Foam Splash',
         scope: 'environment',
         description: 'Beach foam splash moment with clean premium control and readable hero product.',
-        basePrompt: 'premium beach splash setup: product physically grounded on wet compact sand, shallow sea foam and clean micro-droplets only near the base, restrained directional backwash around the product, product remains hero and label stays readable, beach sand tones and coastal light vibe without clutter',
+        basePrompt: 'premium beach splash setup in bright tropical daylight: product physically grounded on wet compact white Caribbean sand, shallow sea foam and clean micro-droplets only near the base, restrained directional backwash around the product, vibrant turquoise-water coastal mood, joyful sunlit premium look, product remains hero and label stays readable',
         subOptions: [
             { key: 'shoreline', label: 'Shoreline', values: ['Foam line', 'Wave break', 'Backwash'] },
             { key: 'spray', label: 'Spray', values: ['Low', 'Medium', 'High'] },
@@ -172,7 +172,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'No muddy water or dirty foam',
             'Product must stay physically grounded on wet sand (not floating, not submerged)',
             'Backwash/Wave break motion should pass around the base, never replace sand support under the product',
-            'No tall water plumes, no random water jets, no chaotic crossing splash arcs'
+            'No tall water plumes, no random water jets, no chaotic crossing splash arcs',
+            'No dark or moody grading. Keep bright sunny tropical daylight with lively color and commercial clarity',
+            'No visible studio fixtures, no spotlights, no light stands, no theatrical beams, no glowing lamp circles in frame'
         ],
         requiredPlacement: 'surface',
         allowedInteractions: ['none'],
@@ -717,7 +719,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Botanical Water Garden',
         scope: 'environment',
         description: 'Natural botanical wet scene with controlled premium realism.',
-        basePrompt: 'botanical wet environment with shallow water and subtle natural foliage context, premium realistic lighting, clean product focus',
+        basePrompt: 'lush botanical wet environment with shallow water, vibrant green foliage, selective tropical flowers, natural color-rich daylight, premium realistic mood with life and freshness, clean product focus',
         subOptions: [
             { key: 'foliageDensity', label: 'Foliage Density', values: ['Low', 'Balanced'] },
             { key: 'waterActivity', label: 'Water Activity', values: ['Still', 'Gentle ripples'] },
@@ -727,6 +729,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Botanical elements must remain secondary',
             'No heavy clutter around label zone',
             'Product remains dominant',
+            'Avoid flat studio look. Preserve natural environmental depth, color variation, and organic life',
+            'No visible studio fixtures, no spotlights, no light stands, no theatrical beams, no glowing lamp circles in frame',
         ],
         requiredPlacement: 'surface',
         allowedInteractions: ['none'],
