@@ -2396,6 +2396,29 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 .filter(Boolean);
                             };
 
+                            const readPropsSegment = (input: string, key: string): string => {
+                              const needle = `${String(key).toLowerCase()}:`;
+                              const parts = String(input ?? '')
+                                .split('|')
+                                .map(part => part.trim())
+                                .filter(Boolean);
+                              const seg = parts.find(part => part.toLowerCase().startsWith(needle));
+                              if (!seg) return '';
+                              return seg.slice(needle.length).trim();
+                            };
+
+                            const upsertPropsSegment = (input: string, key: string, value: string): string => {
+                              const prefix = `${String(key).toLowerCase()}:`;
+                              const parts = String(input ?? '')
+                                .split('|')
+                                .map(part => part.trim())
+                                .filter(Boolean);
+                              const kept = parts.filter(part => !part.toLowerCase().startsWith(prefix));
+                              const v = String(value ?? '').trim();
+                              if (!v) return kept.join(' | ');
+                              return [...kept, `${prefix} ${v}`].join(' | ');
+                            };
+
                             const upsertEffectsIntoProps = (input: string, effects: string[]) => {
                               const prefix = 'effects:';
                               const parts = String(input ?? '')
@@ -2408,6 +2431,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             };
 
                             const selectedEffects = new Set(parseEffectsFromProps(productStore.props));
+                            const fruitCustom = readPropsSegment(productStore.props, 'fruit');
+                            const bedCustom = readPropsSegment(productStore.props, 'bed');
 
                             return (
                               <div className="p-5 space-y-7">
@@ -2610,7 +2635,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           const next = new Set(selectedEffects);
                                           if (next.has(label)) next.delete(label);
                                           else next.add(label);
-                                          productStore.setProps(upsertEffectsIntoProps(productStore.props, Array.from(next)));
+                                          let nextProps = upsertEffectsIntoProps(productStore.props, Array.from(next));
+                                          if (label === 'Fruit Garnish / Citrus Accents' && !next.has(label)) {
+                                            nextProps = upsertPropsSegment(nextProps, 'fruit', '');
+                                          }
+                                          if (label === 'Textured Bed / Scatter Base' && !next.has(label)) {
+                                            nextProps = upsertPropsSegment(nextProps, 'bed', '');
+                                          }
+                                          productStore.setProps(nextProps);
                                           markSectionTouched('product-setup');
                                         }}
                                       >
@@ -2618,6 +2650,55 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       </Chip>
                                     ))}
                                   </div>
+
+                                  {(selectedEffects.has('Fruit Garnish / Citrus Accents') ||
+                                    selectedEffects.has('Textured Bed / Scatter Base')) && (
+                                      <div className="space-y-4">
+                                        {selectedEffects.has('Fruit Garnish / Citrus Accents') && (
+                                          <div className="space-y-2">
+                                            <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">
+                                              Custom Fruit / Garnish (Optional)
+                                            </p>
+                                            <input
+                                              type="text"
+                                              value={fruitCustom}
+                                              onChange={(e) => {
+                                                const nextProps = upsertPropsSegment(productStore.props, 'fruit', e.target.value);
+                                                productStore.setProps(nextProps);
+                                                markSectionTouched('product-setup');
+                                              }}
+                                              placeholder="e.g., peach slices, orange wedges, mint leaves, lemon peel twist"
+                                              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
+                                            />
+                                            <p className="text-[11px] text-gray-500">
+                                              Adds a specific garnish note while keeping the default effect enabled.
+                                            </p>
+                                          </div>
+                                        )}
+
+                                        {selectedEffects.has('Textured Bed / Scatter Base') && (
+                                          <div className="space-y-2">
+                                            <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">
+                                              Custom Bed / Scatter (Optional)
+                                            </p>
+                                            <input
+                                              type="text"
+                                              value={bedCustom}
+                                              onChange={(e) => {
+                                                const nextProps = upsertPropsSegment(productStore.props, 'bed', e.target.value);
+                                                productStore.setProps(nextProps);
+                                                markSectionTouched('product-setup');
+                                              }}
+                                              placeholder="e.g., ice cubes + water droplets, coffee beans, sand + shells, citrus slices"
+                                              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
+                                            />
+                                            <p className="text-[11px] text-gray-500">
+                                              Describe what the product sits on or is surrounded by.
+                                            </p>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
                                 </div>
                               </div>
                             );
