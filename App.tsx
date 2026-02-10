@@ -1294,8 +1294,8 @@ const trimBlackBarsDataUrl = async (
     const mean = sum / count;
     const variance = Math.max(0, sumSq / count - mean * mean);
     const darkShare = darkCount / count;
-    // "Bar" = uniformly very dark row or mostly transparent.
-    return (mean <= 14 && variance <= 60) || darkShare >= 0.985;
+    // "Bar" = uniformly very dark, mostly transparent, or dark textured row.
+    return (mean <= 14 && variance <= 60) || darkShare >= 0.985 || (mean <= 30 && darkShare >= 0.92);
   };
 
   const isBarCol = (x: number): boolean => {
@@ -1325,7 +1325,7 @@ const trimBlackBarsDataUrl = async (
     const mean = sum / count;
     const variance = Math.max(0, sumSq / count - mean * mean);
     const darkShare = darkCount / count;
-    return (mean <= 14 && variance <= 60) || darkShare >= 0.985;
+    return (mean <= 14 && variance <= 60) || darkShare >= 0.985 || (mean <= 30 && darkShare >= 0.92);
   };
 
   const maxTrimY = Math.floor(imgH * 0.35);
@@ -5220,7 +5220,7 @@ If the model attempts to create a scene or environment, override it and force a 
                 maxLongEdge: isProductPlacement
                   ? (isMultiProductRequest ? 1440 : 3072)
                   : (isMultiProductRequest ? 1024 : 2048),
-                background: isMultiProductRequest ? '#FFFFFF' : (resized.mimeType === 'image/jpeg' ? '#FFFFFF' : null),
+                background: '#FFFFFF',
                 mimeType: (isMultiProductRequest ? 'image/jpeg' : (resized.mimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png')) as 'image/jpeg' | 'image/png',
                 quality: isMultiProductRequest ? 0.9 : (isProductPlacement ? 0.99 : 0.96),
               }
@@ -5261,7 +5261,7 @@ If the model attempts to create a scene or environment, override it and force a 
               aspectRatio,
               {
                 maxLongEdge: 2048,
-                background: sourceMime === 'image/jpeg' ? '#FFFFFF' : null,
+                background: '#FFFFFF',
                 mimeType: (sourceMime === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
                 quality: 0.96,
               }
@@ -5277,7 +5277,7 @@ If the model attempts to create a scene or environment, override it and force a 
               aspectRatio,
               {
                 maxLongEdge: 2048,
-                background: modelMimeType === 'image/jpeg' ? '#FFFFFF' : null,
+                background: '#FFFFFF',
                 mimeType: (modelMimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
                 quality: 0.96,
               }
@@ -5629,7 +5629,7 @@ If the model attempts to create a scene or environment, override it and force a 
             aspectRatio,
             {
               maxLongEdge: 2048,
-              background: resized.mimeType === 'image/jpeg' ? '#FFFFFF' : null,
+              background: '#FFFFFF',
               mimeType: (resized.mimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
               quality: 0.96,
             }
@@ -5805,7 +5805,7 @@ If the model attempts to create a scene or environment, override it and force a 
           aspectRatio,
           {
             maxLongEdge: 2048,
-            background: resized.mimeType === 'image/jpeg' ? '#FFFFFF' : null,
+            background: '#FFFFFF',
             mimeType: (resized.mimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
             quality: 0.96,
           }
