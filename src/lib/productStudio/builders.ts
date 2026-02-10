@@ -1061,6 +1061,9 @@ function buildIntegrityConstraints(state: ProductStudioState): string {
         isStatic
             ? 'no partial or missing parts (cap/lid closed, label aligned and intact)'
             : 'no partial or missing structural parts (label, threads, neck/collar, and opening must be intact). Cap/closure may be removed per motion and must not appear unless motion is Static.',
+        'no letterbox or pillarbox bars',
+        'no mirrored edge extension, no duplicated side strips, no blurred side-fill bands',
+        'scene content must fill the full requested aspect ratio edge-to-edge (no fake padding or border-like filler)',
     ].join(', ');
 }
 
@@ -1359,6 +1362,9 @@ function buildNegativePrompt(state: ProductStudioState): string {
         'cropped product', 'cut off', 'missing parts', 'tilted horizon',
         // Styling / safety
         'watermark', 'text overlay',
+        'letterbox bars', 'pillarbox bars', 'black bars', 'side bars',
+        'mirrored edges', 'mirrored side extension', 'duplicated side panels',
+        'blurred side fill', 'edge smearing', 'frame padding illusion',
         'cartoon', 'illustration', 'drawing', 'anime',
         'oversaturated', 'underexposed', 'overexposed',
     ].join(', ');

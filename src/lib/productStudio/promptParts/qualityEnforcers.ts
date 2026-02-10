@@ -29,7 +29,9 @@ export function buildQualityEnforcers(profile: OutputQualityProfile = 'luxury-br
     'Product remains the hero with tack-sharp, fully readable label and clean silhouette.',
     'No generic stock look. No repetition. No flat lighting. No visual noise.',
     'Never appear as a cutout, pasted object, CGI render, or synthetic composite.',
-    'Hard negatives: no wax skin/plastic texture look, no repeated procedural patterns, no impossible reflections, no floating-shadow mismatch.'
+    'Hard negatives: no wax skin/plastic texture look, no repeated procedural patterns, no impossible reflections, no floating-shadow mismatch.',
+    'Frame integrity lock: no letterbox bars, no pillarbox bars, no mirrored edge extension, no duplicated side panels, and no blurred side-fill bands.',
+    'Composition must occupy the full requested aspect ratio with native scene content edge-to-edge; never simulate padding, borders, or canvas filler.'
     ,
     ...profileRules[profile]
   ].join(' ');
