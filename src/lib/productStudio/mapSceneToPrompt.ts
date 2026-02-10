@@ -118,6 +118,9 @@ function buildEnvironmentScene(state: ProductStudioState, randomizer: ReturnType
     'natural-exterior': ['soft greenery bokeh in distance', 'natural surface texture outside focus plane', 'diffused sky light'],
   } as const;
 
+  const hasExplicitProps =
+    String(state.props || '').trim().length > 0 ||
+    (Array.isArray((state as any).selectedProps) && (state as any).selectedProps.length > 0);
   const accentPool =
     (environmentAccents as any)[macro] ||
     ['subtle background context out of focus', 'realistic contact shadows and reflections', 'clean negative space preserved'];
@@ -128,7 +131,9 @@ function buildEnvironmentScene(state: ProductStudioState, randomizer: ReturnType
   const filteredAccents = accentPool.filter((item: string) =>
     blockedAccentTerms.every((term) => !item.toLowerCase().includes(term))
   );
-  const accent = randomizer.pick(filteredAccents.length > 0 ? filteredAccents : accentPool);
+  const accent = hasExplicitProps
+    ? (filteredAccents[0] || accentPool[0])
+    : 'No additional environmental props or decorative accents unless explicitly selected by user.';
 
   const parts: string[] = [];
   parts.push(`ENVIRONMENT (MANDATORY): macro=${macro}${micro ? `, micro=${micro}` : ''}.`);
@@ -729,7 +734,24 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const lightingRigOverrideText = (() => {
     const rig = String((state as any).lightingRig || '').trim();
     if (!rig) return '';
-    return `Lighting rig: ${rig}. Use this rig as the authoritative lighting setup.`;
+    const rigCues: Record<string, string> = {
+      'Prism Spotlight Duo':
+        'Two controlled prism spot sources with crisp directional falloff, visible split highlights on glass edges, and subtle refraction caustics near transparent boundaries.',
+      '3-Point Beauty Dish':
+        'Classic three-point beauty setup with clean key/fill/back separation and polished commercial skin-safe reflections.',
+      'Softbox Wrap':
+        'Large softbox wrap with broad diffuse highlights and smooth edge transitions.',
+      'Hard Edge Gels':
+        'Directional hard-light edges with controlled gel accents and high-contrast shadow geometry.',
+      'Backlit Acrylic':
+        'Backlit translucent planes with clean edge glow and controlled specular response.',
+      'High-Speed Splash Rig':
+        'High-speed strobe freeze behavior with crisp droplets and minimal motion blur.',
+      'Gradient Cyclorama':
+        'Seamless cyclorama gradient wash with clean tonal rolloff and no banding.',
+    };
+    const cue = rigCues[rig] || '';
+    return [`Lighting rig: ${rig}. Use this rig as the authoritative lighting setup.`, cue].filter(Boolean).join(' ');
   })();
 
   const strictLightingRigLock = Boolean((state as any).proMode) && Boolean(lightingRigOverrideText);
@@ -879,8 +901,20 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     ? [
       'MACRO FRAME LOCK (MANDATORY): full-bleed native macro composition with no side-fill artifacts.',
       'Do not create blurred side bands, mirrored edges, pillarbox/letterbox bars, white margins, black margins, or duplicated vertical strips.'
+      ,
+      'Never deliver a narrow centered subject on a synthetically extended background. Generate native full-width scene detail across the entire 16:9 frame.'
     ].join(' ')
     : '';
+
+  const explicitSecondaryPropsText = (() => {
+    const manual = String(state.props || '').trim();
+    const selected = Array.isArray((state as any).selectedProps)
+      ? (state as any).selectedProps.map((v: unknown) => String(v).trim()).filter(Boolean)
+      : [];
+    if (manual) return manual;
+    if (selected.length > 0) return selected.join(', ');
+    return '';
+  })();
 
   const parts = [
     buildBaseContext({ allowStudio: mode === 'ACRYLIC_BLOCKS', qualityProfile: state.qualityProfile }),
@@ -889,9 +923,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     buildPlacementDirective(state),
     viewpointDirectiveText,
     environmentModeActive ? '' : photoModeResult.modifiers,
-    mode === 'INGREDIENT_STACK' || mode === 'INGREDIENT_FLAT_LAY' || strictStudioBranding
+    mode === 'INGREDIENT_STACK' || mode === 'INGREDIENT_FLAT_LAY' || strictStudioBranding || !explicitSecondaryPropsText
       ? ''
-      : buildSecondaryProps(mode, randomizer, state.props),
+      : buildSecondaryProps(mode, randomizer, explicitSecondaryPropsText),
     buildLighting(mode, randomizer, {
       qualityProfile: state.qualityProfile,
       ...(lightingOverrideText ? { override: { text: lightingOverrideText } } : {}),
