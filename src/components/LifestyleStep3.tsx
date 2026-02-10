@@ -969,6 +969,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const [openUgcLayerId, setOpenUgcLayerId] = useState<UGCLayerField | null>(null);
   const [touchedSections, setTouchedSections] = useState<Set<string>>(new Set());
   const photoModeSettingsRef = useRef<HTMLDivElement | null>(null);
+  const photoModeHintTimerRef = useRef<number | null>(null);
+  const [photoModeHintVisible, setPhotoModeHintVisible] = useState(false);
+  const [photoModeHintMode, setPhotoModeHintMode] = useState<PhotoMode | null>(null);
+  const [photoModeHintShowFirstTimeTip, setPhotoModeHintShowFirstTimeTip] = useState(false);
   const markSectionTouched = useCallback((section: string) => {
     setTouchedSections(prev => {
       const newSet = new Set(prev);
@@ -983,6 +987,33 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         photoModeSettingsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 40);
     });
+  }, []);
+  const showPhotoModeSettingsHint = useCallback((mode: PhotoMode) => {
+    if (typeof window === 'undefined') return;
+    const node = photoModeSettingsRef.current;
+    const rect = node?.getBoundingClientRect();
+    const alreadyVisible = !!rect && rect.top >= 0 && rect.top <= window.innerHeight * 0.6;
+    const firstTimeKey = 'ps_photo_mode_settings_hint_seen';
+    const firstTime = window.sessionStorage.getItem(firstTimeKey) !== '1';
+    if (alreadyVisible && !firstTime) return;
+
+    window.sessionStorage.setItem(firstTimeKey, '1');
+    setPhotoModeHintMode(mode);
+    setPhotoModeHintShowFirstTimeTip(firstTime);
+    setPhotoModeHintVisible(true);
+    if (photoModeHintTimerRef.current != null) {
+      window.clearTimeout(photoModeHintTimerRef.current);
+    }
+    photoModeHintTimerRef.current = window.setTimeout(() => {
+      setPhotoModeHintVisible(false);
+    }, 2600);
+  }, []);
+  useEffect(() => {
+    return () => {
+      if (photoModeHintTimerRef.current != null && typeof window !== 'undefined') {
+        window.clearTimeout(photoModeHintTimerRef.current);
+      }
+    };
   }, []);
   // Removed duplicate isCreatorPro declaration here, managed near top.
   const initialValues: Step3Values = {
@@ -2389,6 +2420,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               if (cleaned !== productStore.props) productStore.setProps(cleaned);
                               markSectionTouched('product-setup');
                               scrollToPhotoModeSettings();
+                              showPhotoModeSettingsHint(mode);
                             };
 
                             const CHIP_TOOLTIPS: Partial<Record<PhotoMode, string>> = {
@@ -2651,8 +2683,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             );
                           })()}
 
-                          <div className="mt-8 space-y-5">
+                          <div className={`mt-8 space-y-5 rounded-2xl transition-all duration-300 ${photoModeHintVisible ? 'ring-2 ring-indigo-500/40 ring-offset-2 ring-offset-white' : ''}`}>
                             <div ref={photoModeSettingsRef} />
+                            {photoModeHintVisible && (
+                              <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-[11px] text-indigo-800">
+                                <p className="font-semibold">Settings for: {photoModeHintMode || productStore.photoMode}</p>
+                                <p className="text-indigo-700/90">Adjust this mode from the controls below.</p>
+                                {photoModeHintShowFirstTimeTip && (
+                                  <p className="text-indigo-700/90">Tip: each Photo Mode has its own settings panel.</p>
+                                )}
+                              </div>
+                            )}
 
                             {productStore.photoMode === 'Hero Landing Page' && (
                               <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-5">
