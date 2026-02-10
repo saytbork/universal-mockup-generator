@@ -778,6 +778,17 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     ...(ingredientStackBgOptions ?? {}),
   });
 
+  if (state.photoMode === 'Hands Application Clean') {
+    console.log('[HANDS APPLICATION RESOLVED]', {
+      dynamicSettings,
+      productState: resolvedProductState,
+      isValid: photoModeResult.isValid,
+      validationErrors: photoModeResult.validationErrors,
+      basePromptPreview: String(photoModeResult.basePrompt || '').slice(0, 220),
+      modifiersPreview: String(photoModeResult.modifiers || '').slice(0, 320),
+    });
+  }
+
   const sceneInput: SceneBuildInput = {
     randomizer,
     palette,
