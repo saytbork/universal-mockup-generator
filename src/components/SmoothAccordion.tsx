@@ -8,6 +8,7 @@ interface SmoothAccordionProps {
   helpTooltip?: string;
   icon: React.ElementType;
   children: React.ReactNode;
+  id?: string;
   isOpen?: boolean;
   onToggle?: () => void;
   defaultOpen?: boolean;
@@ -31,6 +32,7 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
   helpTooltip,
   icon: Icon,
   children,
+  id,
   isOpen,
   onToggle,
   defaultOpen = false,
@@ -77,6 +79,7 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
   if (ui === 'tokens') {
     return (
       <div
+        id={id}
         className={`rounded-xl border border-gray-200 bg-white overflow-hidden mb-4 transition-all duration-300 ${containerVariantClass} ${className} dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]`}
       >
         <button
@@ -135,6 +138,7 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
 
   return (
     <div
+      id={id}
       className={`rounded-xl border border-gray-200 bg-white overflow-hidden mb-4 transition-all duration-300 ${containerVariantClass} ${className} dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]`}
     >
       <button
@@ -179,9 +183,11 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
         />
       </button>
       <div
-        className={`transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] overflow-hidden ${open ? 'max-h-[9000px] opacity-100' : 'max-h-0 opacity-0'}`}
+        className={`grid transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
       >
-        <div className={`p-5 space-y-6 ${contentClassName}`}>{children}</div>
+        <div className="overflow-hidden">
+          <div className={`p-5 space-y-6 ${contentClassName}`}>{children}</div>
+        </div>
       </div>
     </div>
   );

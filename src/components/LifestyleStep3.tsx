@@ -2170,6 +2170,21 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         micro: (productStore.environmentContext?.micro as any) ?? 'countertop',
                       });
                       markSectionTouched('product-setup');
+                      setOpenAccordionId('product-environment');
+
+                      // Mobile: after expanding, force-scroll to the top of the accordion (not the end of its content).
+                      // Use 'auto' to avoid Safari/iOS smooth-scroll anchoring quirks during layout transitions.
+                      const pinToTop = () => {
+                        const container = document.getElementById('product-environment');
+                        if (!container) return;
+                        const top = container.getBoundingClientRect().top + window.scrollY - 12;
+                        window.scrollTo({ top: Math.max(0, top), behavior: 'auto' });
+                      };
+
+                      requestAnimationFrame(() => {
+                        pinToTop();
+                        requestAnimationFrame(pinToTop);
+                      });
                     }}
                     selected={productStore.environmentContext != null}
                   >
@@ -2300,61 +2315,149 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           ═══════════════════════════════════════════════════════════ */}
                         <div className={SECTION_GROUP_CLASS}>
                           <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">PHOTO MODE</p>
-                          <div className="flex flex-wrap gap-2">
-                            {([
-                              'Hero Landing Page',
-                              'Color Pop Hero',
-                              'Ingredient Stack',
-                              'Ingredient Flat Lay',
+                          {(() => {
+                            const compositionOptions: Array<{ label: string; mode: PhotoMode }> = [
+                              { label: 'Hero Landing Page', mode: 'Hero Landing Page' },
+                              { label: 'Color Pop Hero', mode: 'Color Pop Hero' },
+                              { label: 'Ingredient Stack', mode: 'Ingredient Stack' },
+                              { label: 'Ingredient Flat Lay', mode: 'Ingredient Flat Lay' },
+                              { label: 'Routine Carousel', mode: 'Routine Carousel' },
+                              { label: 'Hands Application Clean', mode: 'Hands Application Clean' },
+                              { label: 'Macro Label Shot', mode: 'Macro Dew Label' },
+                            ];
+
+                            const visualStyleOptions: Array<{ label: string; mode: PhotoMode }> = [
+                              { label: 'Clean Clinical', mode: 'Clinical Lab Counter' },
+                              { label: 'Soft Wellness', mode: 'Soft Wellness Morning' },
+                              { label: 'Dark Premium', mode: 'Dark Premium Studio' },
+                              { label: 'Monochrome Brand', mode: 'Monochrome Brand' },
+                              { label: 'Brand Campaign', mode: 'Brand Campaign' },
+                              { label: 'Creator Premium Simulation', mode: 'Creator Premium Simulation' },
+                            ];
+
+                            const lightingOptions: Array<{ label: string; value: ProductStudioState['lighting'] }> = [
+                              { label: 'Natural Light', value: 'natural-light' },
+                              { label: 'Overcast', value: 'overcast' },
+                              { label: 'Cozy Indoors', value: 'cozy-indoors' },
+                              { label: 'Ring Light', value: 'ring-light' },
+                            ];
+
+                            const specialEffectsOptions = [
                               'Acrylic Blocks',
                               'Splash Shot',
                               'Foam & Texture',
-                              'Routine Carousel',
-                              'Clinical Lab Counter',
-                              'Minimal Bathroom Vanity',
-                              'Dark Premium Studio',
-                              'Monochrome Brand',
-                              'Brand Campaign',
-                              'Creator Premium Simulation',
-                              'Tech Clean Studio',
-                              'Soft Wellness Morning',
-                              'Outdoor Energy Boost',
-                              'Sunlit Stone Editorial',
-                              'Golden Sunset Backlit',
-                              'Bathroom Daylight Clean',
-                              'Sky Float Minimal',
-                              'Wet Rock Ripples',
-                              'Hands Application Clean',
+                              'Gel Smear',
                               'Underwater Split',
-                              'Sand Palm Shadows',
-                              'Botanical Water Garden',
-                              'Macro Dew Label',
-                              'Warm Window Wood',
-                              'Gel Smear Editorial',
-                              'Citrus Fresh Flat Lay',
-                              'Stones & Crystals Flat Lay',
-                              'Dried Citrus Earth',
-                            ] as const).map(mode => {
-                              return (
-                                <button
-                                  key={mode}
-                                  onClick={() => {
-                                    productStore.setPhotoMode(mode);
-                                    markSectionTouched('product-setup');
-                                  }}
-                                  className={`px-4 py-2 rounded-xl text-[10px] font-bold border transition-all duration-300 ${productStore.photoMode === mode
-                                    ? 'bg-indigo-600 text-white border-indigo-600'
-                                    : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
-                                    }`}
-                                  style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                                >
-                                  <div className="flex flex-col items-center">
-                                    <span>{mode}</span>
-                                  </div>
-                                </button>
+                              'Sky Float Minimal',
+                            ] as const;
+
+                            const rawEffects = String(
+                              productStore.photoModeConfig.dynamic?.[productStore.photoMode as PhotoMode]?.specialEffects ?? ''
+                            );
+                            const selectedEffects = new Set(
+                              rawEffects
+                                .split(',')
+                                .map(s => s.trim())
+                                .filter(Boolean)
+                            );
+
+                            const toggleEffect = (label: string) => {
+                              const next = new Set(selectedEffects);
+                              if (next.has(label)) next.delete(label);
+                              else next.add(label);
+                              productStore.updatePhotoModeSubSetting(
+                                productStore.photoMode as PhotoMode,
+                                'specialEffects',
+                                Array.from(next).join(', ')
                               );
-                            })}
-                          </div>
+                              markSectionTouched('product-setup');
+                            };
+
+                            return (
+                              <div className="p-5 space-y-7">
+                                <div className="space-y-6">
+                                  <div>
+                                    <p className={GROUP_LABEL_CLASS}>COMPOSITION</p>
+                                    <p className="text-[11px] text-gray-500 mt-1">Choose how the product is framed and presented.</p>
+                                  </div>
+                                  <div className="flex flex-wrap gap-3">
+                                    {compositionOptions.map(({ label, mode }) => (
+                                      <Chip
+                                        key={label}
+                                        selected={productStore.photoMode === mode}
+                                        onClick={() => {
+                                          productStore.setPhotoMode(mode);
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        <span className="truncate max-w-full">{label}</span>
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div className="space-y-6">
+                                  <div>
+                                    <p className={GROUP_LABEL_CLASS}>VISUAL STYLE</p>
+                                    <p className="text-[11px] text-gray-500 mt-1">Overall aesthetic and brand mood.</p>
+                                  </div>
+                                  <div className="flex flex-wrap gap-3">
+                                    {visualStyleOptions.map(({ label, mode }) => (
+                                      <Chip
+                                        key={label}
+                                        selected={productStore.photoMode === mode}
+                                        onClick={() => {
+                                          productStore.setPhotoMode(mode);
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        <span className="truncate max-w-full">{label}</span>
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div className="space-y-6">
+                                  <div>
+                                    <p className={GROUP_LABEL_CLASS}>LIGHTING</p>
+                                    <p className="text-[11px] text-gray-500 mt-1">Product-safe lighting style.</p>
+                                  </div>
+                                  <div className="flex flex-wrap gap-3">
+                                    {lightingOptions.map(({ label, value }) => (
+                                      <Chip
+                                        key={value}
+                                        selected={productStore.lighting === value}
+                                        onClick={() => {
+                                          productStore.setLighting(value);
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        <span className="truncate max-w-full">{label}</span>
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div className="space-y-6">
+                                  <div>
+                                    <p className={GROUP_LABEL_CLASS}>SPECIAL EFFECTS</p>
+                                    <p className="text-[11px] text-gray-500 mt-1">Optional visual enhancements.</p>
+                                  </div>
+                                  <div className="flex flex-wrap gap-3">
+                                    {specialEffectsOptions.map((label) => (
+                                      <Chip
+                                        key={label}
+                                        selected={selectedEffects.has(label)}
+                                        onClick={() => toggleEffect(label)}
+                                      >
+                                        <span className="truncate max-w-full">{label}</span>
+                                      </Chip>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })()}
 
                           <div className="mt-8 space-y-5">
                             {productStore.photoMode === 'Hero Landing Page' && (
@@ -5173,6 +5276,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             icon={MapPin}
             title="05 / Environment Settings"
             tooltip="Place the product into a real setting. Product-only, no people."
+            id="product-environment"
             isOpen={openAccordionId === 'product-environment'}
             onToggle={() => toggleSection('product-environment')}
             isTouched={touchedSections.has('product-environment')}
