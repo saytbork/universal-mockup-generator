@@ -28,10 +28,21 @@ const hasKV =
   !!(process.env.KV_REST_API_TOKEN || process.env.KV_REST_API_READ_ONLY_TOKEN);
 const GUEST_TRIAL_COOKIE = 'pm_guest_trial';
 const GUEST_TRIAL_TTL_SECONDS = 60 * 60 * 24;
+const GUEST_DAILY_WINDOW_SECONDS = 60 * 60 * 24 * 2;
 const GUEST_TRIAL_CAP = (() => {
   const parsed = Number(process.env.ANON_FREE_GENERATION_CAP || 3);
   if (!Number.isFinite(parsed)) return 3;
   return Math.max(1, Math.min(3, Math.floor(parsed)));
+})();
+const GUEST_TRIAL_IP_DAILY_CAP = (() => {
+  const parsed = Number(process.env.ANON_FREE_IP_DAILY_CAP || 4);
+  if (!Number.isFinite(parsed)) return 4;
+  return Math.max(1, Math.min(20, Math.floor(parsed)));
+})();
+const GUEST_TRIAL_FINGERPRINT_DAILY_CAP = (() => {
+  const parsed = Number(process.env.ANON_FREE_DEVICE_DAILY_CAP || 3);
+  if (!Number.isFinite(parsed)) return 3;
+  return Math.max(1, Math.min(20, Math.floor(parsed)));
 })();
 const guestMemoryUsage = new Map<string, number>();
 let logoSvgCache: string | null = null;
@@ -58,6 +69,82 @@ const parseCookies = (req: VercelRequest) => {
 };
 
 const getGuestSecret = () => process.env.SESSION_SECRET || process.env.MAGIC_TOKEN_SECRET || 'guest-fallback-secret';
+const getHeaderString = (value: string | string[] | undefined) => (Array.isArray(value) ? String(value[0] || '') : String(value || ''));
+
+const getUtcDayBucket = () => {
+  const iso = new Date().toISOString();
+  return iso.slice(0, 10);
+};
+
+const hashGuestKeyPart = (value: string): string =>
+  crypto.createHmac('sha256', getGuestSecret()).update(value).digest('hex').slice(0, 24);
+
+const getCoarseIp = (ip: string): string => {
+  const raw = String(ip || '').trim();
+  if (!raw) return 'unknown';
+  if (raw.includes('.')) {
+    const parts = raw.split('.');
+    if (parts.length === 4) return `${parts[0]}.${parts[1]}.${parts[2]}.0/24`;
+  }
+  if (raw.includes(':')) {
+    const parts = raw.split(':').filter(Boolean);
+    return `${parts.slice(0, 4).join(':')}::/64`;
+  }
+  return raw;
+};
+
+const getClientIp = (req: VercelRequest): string => {
+  const forwardedFor = getHeaderString(req.headers['x-forwarded-for']);
+  if (forwardedFor) {
+    const first = forwardedFor.split(',')[0]?.trim();
+    if (first) return first;
+  }
+  const realIp = getHeaderString(req.headers['x-real-ip']);
+  if (realIp) return realIp.trim();
+  const vercelIp = getHeaderString(req.headers['x-vercel-forwarded-for']);
+  if (vercelIp) return vercelIp.trim();
+  return 'unknown';
+};
+
+const getDeviceFingerprint = (req: VercelRequest, ip: string): string => {
+  const userAgent = getHeaderString(req.headers['user-agent']).slice(0, 180);
+  const acceptLanguage = getHeaderString(req.headers['accept-language']).slice(0, 120);
+  const secChUa = getHeaderString(req.headers['sec-ch-ua']).slice(0, 120);
+  const secPlatform = getHeaderString(req.headers['sec-ch-ua-platform']).slice(0, 80);
+  const coarseIp = getCoarseIp(ip);
+  return [userAgent, acceptLanguage, secChUa, secPlatform, coarseIp].join('|');
+};
+
+const getGuestCounterUsage = async (key: string): Promise<number> => {
+  if (hasKV) {
+    try {
+      const kv = await getKv();
+      const value = await kv.get<number>(key);
+      return Math.max(0, Number(value || 0));
+    } catch {
+      return Math.max(0, Number(guestMemoryUsage.get(key) || 0));
+    }
+  }
+  return Math.max(0, Number(guestMemoryUsage.get(key) || 0));
+};
+
+const incrementGuestCounterUsage = async (key: string, ttlSeconds: number): Promise<number> => {
+  if (hasKV) {
+    try {
+      const kv = await getKv();
+      const next = await kv.incr(key);
+      await kv.expire(key, ttlSeconds);
+      return Math.max(0, Number(next || 0));
+    } catch {
+      const fallback = Math.max(0, Number(guestMemoryUsage.get(key) || 0)) + 1;
+      guestMemoryUsage.set(key, fallback);
+      return fallback;
+    }
+  }
+  const next = Math.max(0, Number(guestMemoryUsage.get(key) || 0)) + 1;
+  guestMemoryUsage.set(key, next);
+  return next;
+};
 
 const createGuestTrialToken = (guestId: string): string => {
   const payload = Buffer.from(JSON.stringify({
@@ -176,14 +263,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const isAnonymousTrial = !authenticatedEmail;
   let guestId: string | null = null;
   let shouldSetGuestCookie = false;
+  let guestIpUsageKey: string | null = null;
+  let guestFingerprintUsageKey: string | null = null;
+  let anonymousRemaining = 0;
   if (isAnonymousTrial) {
     const cookies = parseCookies(req);
     const existingGuestId = verifyGuestTrialToken(cookies[GUEST_TRIAL_COOKIE] || null);
     guestId = existingGuestId || `guest_${crypto.randomUUID()}`;
     shouldSetGuestCookie = !existingGuestId;
-    const usage = await getGuestTrialUsage(guestId);
-    const remaining = Math.max(GUEST_TRIAL_CAP - usage, 0);
-    if (remaining <= 0) {
+    const dayBucket = getUtcDayBucket();
+    const clientIp = getClientIp(req);
+    const ipHash = hashGuestKeyPart(getCoarseIp(clientIp));
+    const fpHash = hashGuestKeyPart(getDeviceFingerprint(req, clientIp));
+    guestIpUsageKey = `guest_trial_ip_usage:${dayBucket}:${ipHash}`;
+    guestFingerprintUsageKey = `guest_trial_fp_usage:${dayBucket}:${fpHash}`;
+
+    const [usageByToken, usageByIp, usageByFingerprint] = await Promise.all([
+      getGuestTrialUsage(guestId),
+      getGuestCounterUsage(guestIpUsageKey),
+      getGuestCounterUsage(guestFingerprintUsageKey),
+    ]);
+    const tokenRemaining = Math.max(GUEST_TRIAL_CAP - usageByToken, 0);
+    const ipRemaining = Math.max(GUEST_TRIAL_IP_DAILY_CAP - usageByIp, 0);
+    const fingerprintRemaining = Math.max(GUEST_TRIAL_FINGERPRINT_DAILY_CAP - usageByFingerprint, 0);
+    anonymousRemaining = Math.min(tokenRemaining, ipRemaining, fingerprintRemaining);
+
+    if (anonymousRemaining <= 0) {
       if (shouldSetGuestCookie && guestId) {
         res.setHeader('Set-Cookie', buildGuestTrialCookie(req, guestId));
       }
@@ -192,6 +297,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         upgrade_required: true,
         reason: 'trial_limit',
         trial_remaining: 0,
+        trial_cap: GUEST_TRIAL_CAP,
       });
       return;
     }
@@ -316,8 +422,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       sceneType: debugMeta?.sceneType,
     }, email);
     if (isAnonymousTrial) {
-      const usageAfter = await incrementGuestTrialUsage(guestId!);
-      const remaining = Math.max(GUEST_TRIAL_CAP - usageAfter, 0);
+      const usageTasks: Array<Promise<number>> = [incrementGuestTrialUsage(guestId!)];
+      if (guestIpUsageKey) {
+        usageTasks.push(incrementGuestCounterUsage(guestIpUsageKey, GUEST_DAILY_WINDOW_SECONDS));
+      }
+      if (guestFingerprintUsageKey) {
+        usageTasks.push(incrementGuestCounterUsage(guestFingerprintUsageKey, GUEST_DAILY_WINDOW_SECONDS));
+      }
+      const [usageAfterToken, usageAfterIp = 0, usageAfterFingerprint = 0] = await Promise.all(usageTasks);
+      const remainingByToken = Math.max(GUEST_TRIAL_CAP - usageAfterToken, 0);
+      const remainingByIp = guestIpUsageKey ? Math.max(GUEST_TRIAL_IP_DAILY_CAP - usageAfterIp, 0) : remainingByToken;
+      const remainingByFingerprint = guestFingerprintUsageKey
+        ? Math.max(GUEST_TRIAL_FINGERPRINT_DAILY_CAP - usageAfterFingerprint, 0)
+        : remainingByToken;
+      const remaining = Math.min(remainingByToken, remainingByIp, remainingByFingerprint, Math.max(anonymousRemaining - 1, 0));
       if (shouldSetGuestCookie && guestId) {
         res.setHeader('Set-Cookie', buildGuestTrialCookie(req, guestId));
       }

@@ -365,6 +365,20 @@ function buildBundleComposition(state: ProductStudioState): string {
     };
     parts.push(spacingMap[spacing]);
 
+    const productsWithHeight = state.products
+        .map((p) => {
+            const raw = (p as any)?.heightValue as number | null | undefined;
+            const unit = ((p as any)?.heightUnit as 'cm' | 'in' | undefined) ?? 'cm';
+            if (typeof raw !== 'number' || !Number.isFinite(raw) || raw <= 0) return null;
+            const cm = unit === 'in' ? raw * 2.54 : raw;
+            const rounded = Math.round(cm * 10) / 10;
+            return `${p.name || 'product'} ~${rounded} cm`;
+        })
+        .filter((v): v is string => Boolean(v));
+    if (productsWithHeight.length > 0) {
+        parts.push(`relative scale lock: preserve real-world height ratios across all products (${productsWithHeight.join('; ')})`);
+    }
+
     parts.push('clear visual hierarchy with primary product dominant');
     parts.push('professional ecommerce multi-product photography');
 
