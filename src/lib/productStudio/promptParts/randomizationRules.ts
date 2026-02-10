@@ -65,6 +65,7 @@ export type RandomizationLocks = {
   lensLocked?: boolean;
   lightingLocked?: boolean;
   finishLocked?: boolean;
+  propsLocked?: boolean;
 };
 
 export function buildRandomizationRules(
@@ -82,6 +83,7 @@ export function buildRandomizationRules(
   if (locks.lensLocked) lockRules.push('Lens selection is locked to the user-selected value; do not override it.');
   if (locks.lightingLocked) lockRules.push('Lighting rig is locked to the user-selected value; do not override it.');
   if (locks.finishLocked) lockRules.push('Finish / treatment is locked to the user-selected value; do not override it.');
+  if (locks.propsLocked) lockRules.push('Props are locked: do not add, vary, or invent props/environment accents unless explicitly selected by user.');
 
   const variableParts: string[] = ['camera angle', 'lens distance'];
   if (!locks.lightingLocked) variableParts.push('lighting setup');
@@ -103,7 +105,9 @@ export function buildRandomizationRules(
     'RANDOMIZATION RULES (CRITICAL):',
     `Every generation must differ in ${variableParts.join(', ')} while staying campaign-grade.`,
     'Never reuse the same base composition or staging structure.',
-    'Vary props and micro-environment accents each time without reducing product prominence.',
+    locks.propsLocked
+      ? 'Do not vary props or micro-environment accents unless explicitly selected by user.'
+      : 'Vary props and micro-environment accents each time without reducing product prominence.',
     'Avoid symmetrical default framing unless explicitly required by ecommerce composition.',
     ...lockRules,
     profileLine

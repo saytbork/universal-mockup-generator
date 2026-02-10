@@ -1050,7 +1050,7 @@ function buildIntegrityConstraints(state: ProductStudioState): string {
     // Keep this free of forbidden human terms.
     const motion = String(state.stateMotion || 'static');
     const isStatic = motion === 'static';
-    return [
+    const base = [
         'single product only (unless bundle mode)',
         isStatic
             ? 'product must be fully assembled and physically plausible'
@@ -1064,7 +1064,16 @@ function buildIntegrityConstraints(state: ProductStudioState): string {
         'no letterbox or pillarbox bars',
         'no mirrored edge extension, no duplicated side strips, no blurred side-fill bands',
         'scene content must fill the full requested aspect ratio edge-to-edge (no fake padding or border-like filler)',
-    ].join(', ');
+    ];
+
+    if (state.aspectRatio === '1:1') {
+        base.push(
+            'square integrity lock: render native 1:1 composition with true scene detail to all four edges (top, bottom, left, right)',
+            'no narrow centered subject with synthetic side expansion, no vertical edge cloning, no blurred lateral padding'
+        );
+    }
+
+    return base.join(', ');
 }
 
 function enforceMotionPromptCoherence(prompt: string, state: ProductStudioState): string {

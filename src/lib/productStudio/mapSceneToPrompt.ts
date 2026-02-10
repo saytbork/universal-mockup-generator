@@ -736,7 +736,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     if (!rig) return '';
     const rigCues: Record<string, string> = {
       'Prism Spotlight Duo':
-        'Two controlled prism spot sources with crisp directional falloff, visible split highlights on glass edges, and subtle refraction caustics near transparent boundaries.',
+        'Two controlled prism spot sources with crisp directional falloff, visible split highlights on glass edges, and subtle refraction caustics near transparent boundaries. Prism effect must be visibly present in the final frame (not optional).',
       '3-Point Beauty Dish':
         'Classic three-point beauty setup with clean key/fill/back separation and polished commercial skin-safe reflections.',
       'Softbox Wrap':
@@ -908,12 +908,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
 
   const explicitSecondaryPropsText = (() => {
     const manual = String(state.props || '').trim();
-    const selected = Array.isArray((state as any).selectedProps)
-      ? (state as any).selectedProps.map((v: unknown) => String(v).trim()).filter(Boolean)
-      : [];
-    if (manual) return manual;
-    if (selected.length > 0) return selected.join(', ');
-    return '';
+    return manual;
   })();
 
   const parts = [
@@ -923,7 +918,11 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     buildPlacementDirective(state),
     viewpointDirectiveText,
     environmentModeActive ? '' : photoModeResult.modifiers,
-    mode === 'INGREDIENT_STACK' || mode === 'INGREDIENT_FLAT_LAY' || strictStudioBranding || !explicitSecondaryPropsText
+    mode === 'INGREDIENT_STACK' ||
+      mode === 'INGREDIENT_FLAT_LAY' ||
+      strictStudioBranding ||
+      state.photoMode === 'Macro Dew Label' ||
+      !explicitSecondaryPropsText
       ? ''
       : buildSecondaryProps(mode, randomizer, explicitSecondaryPropsText),
     buildLighting(mode, randomizer, {
@@ -957,6 +956,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
           lensLocked: Boolean(String((state as any).lens || '').trim()),
           lightingLocked: Boolean(String((state as any).lightingRig || '').trim()),
           finishLocked: Boolean(String((state as any).finish || '').trim()),
+          propsLocked: !explicitSecondaryPropsText,
         }
       ),
     buildQualityEnforcers(state.qualityProfile),
