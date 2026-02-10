@@ -113,11 +113,11 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
                 );
                 markSectionTouched('product-setup');
               }}
-              placeholder="Ej: orange wedges, mint leaves, ice shards, coffee beans, sand + shells"
+              placeholder="e.g., orange wedges, mint leaves, ice shards, coffee beans, sand + shells"
               className="w-full rounded-xl border border-gray-200 px-3 py-2 text-[12px] text-gray-700 placeholder:text-gray-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
             />
             <p className="text-[10px] text-gray-500">
-              Agrega props/ingredientes custom sobre el default del modo (opcional).
+              Adds optional custom ingredients/props on top of the mode defaults.
             </p>
           </div>
         )}

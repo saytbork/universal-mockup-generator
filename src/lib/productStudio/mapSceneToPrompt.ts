@@ -258,7 +258,7 @@ const PHOTO_MODE_MAP: Record<string, PhotoModeKey> = {
   'Stones & Crystals Flat Lay': 'INGREDIENT_FLAT_LAY',
   'Dried Citrus Earth': 'INGREDIENT_FLAT_LAY',
   'Beach Foam Splash': 'SPLASH_SHOT',
-  'Pool Water': 'SPLASH_SHOT',
+  'Pool Water': 'HERO_NEUTRAL',
   'Cheers (Hands Clink)': 'UGC_PREMIUM_SIM',
   'Ice Cubes': 'HERO_NEUTRAL',
   'Condensation Droplets': 'HERO_NEUTRAL',
@@ -1077,7 +1077,6 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     environmentModeActive ? '' : photoModeResult.modifiers,
     mode === 'INGREDIENT_STACK' ||
       mode === 'INGREDIENT_FLAT_LAY' ||
-      strictStudioBranding ||
       state.photoMode === 'Macro Dew Label' ||
       !explicitSecondaryPropsText
       ? ''
