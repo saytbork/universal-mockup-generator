@@ -45,9 +45,17 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
 }) {
   const dynamicConfig = productStore.photoModeConfig.dynamic?.[schema.label as PhotoMode] || {};
   const supportsCustomIngredients =
+    schema.label === 'Ingredient Stack' ||
+    schema.label === 'Ingredient Flat Lay' ||
     schema.label === 'Citrus Fresh Flat Lay' ||
     schema.label === 'Stones & Crystals Flat Lay' ||
-    schema.label === 'Dried Citrus Earth';
+    schema.label === 'Dried Citrus Earth' ||
+    schema.label === 'Beach Foam Splash' ||
+    schema.label === 'Pool Water' ||
+    schema.label === 'Ice Cubes' ||
+    schema.label === 'Condensation Droplets' ||
+    schema.label === 'Fruit Garnish / Citrus Accents' ||
+    schema.label === 'Textured Bed / Scatter Base';
   const subOptions =
     schema.label === 'Ingredient Stack'
       ? schema.subOptions.filter(option => option.key !== 'layoutStyle' && option.key !== 'customIngredients')
@@ -105,11 +113,11 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
                 );
                 markSectionTouched('product-setup');
               }}
-              placeholder="Ej: lemon slice, mint leaf, amber gel smear"
+              placeholder="Ej: orange wedges, mint leaves, ice shards, coffee beans, sand + shells"
               className="w-full rounded-xl border border-gray-200 px-3 py-2 text-[12px] text-gray-700 placeholder:text-gray-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
             />
             <p className="text-[10px] text-gray-500">
-              Se usa para reemplazar/definir ingredientes del flat lay.
+              Agrega props/ingredientes custom sobre el default del modo (opcional).
             </p>
           </div>
         )}

@@ -737,12 +737,20 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     String(state.photoModeConfig.dynamic?.[state.photoMode as PhotoMode]?.customIngredients || '')
   );
   const supportsCustomIngredientsMode =
+    state.photoMode === 'Ingredient Stack' ||
+    state.photoMode === 'Ingredient Flat Lay' ||
     state.photoMode === 'Citrus Fresh Flat Lay' ||
     state.photoMode === 'Stones & Crystals Flat Lay' ||
-    state.photoMode === 'Dried Citrus Earth';
+    state.photoMode === 'Dried Citrus Earth' ||
+    state.photoMode === 'Beach Foam Splash' ||
+    state.photoMode === 'Pool Water' ||
+    state.photoMode === 'Ice Cubes' ||
+    state.photoMode === 'Condensation Droplets' ||
+    state.photoMode === 'Fruit Garnish / Citrus Accents' ||
+    state.photoMode === 'Textured Bed / Scatter Base';
   const effectiveSuggestedProps =
     supportsCustomIngredientsMode && customIngredientsText
-      ? [customIngredientsText, state.props].filter(Boolean).join(' | ')
+      ? [state.props, customIngredientsText].filter(Boolean).join(' | ')
       : state.props;
 
   const photoModeResult = buildPhotoModePrompt(state.photoMode as PhotoMode, {
@@ -764,7 +772,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const sceneInput: SceneBuildInput = {
     randomizer,
     palette,
-    suggestedProps: state.props,
+    suggestedProps: effectiveSuggestedProps,
     ingredientLayout: state.ingredientLayout,
     backgroundColor: state.backgroundColor,
     gradientEnabled: state.gradientEnabled,
@@ -1056,7 +1064,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     : '';
 
   const explicitSecondaryPropsText = (() => {
-    const manual = String(state.props || '').trim();
+    const manual = String(effectiveSuggestedProps || '').trim();
     return manual;
   })();
 
