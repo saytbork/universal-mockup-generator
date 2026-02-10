@@ -811,19 +811,41 @@ export function buildPhotoModePrompt(
                 const spray = normalizedValue.toLowerCase();
                 if (spray === 'high') {
                     modifierParts.push(
-                        'Spray profile: controlled and directional only; allow just a few crisp micro-droplets near the base and behind the product, never jet-like streams crossing the label.'
+                        'Spray profile: controlled and directional only; allow crisp micro-droplets near the base and behind the product, never jet-like streams crossing the label.'
                     );
                     return;
                 }
                 if (spray === 'medium') {
                     modifierParts.push(
-                        'Spray profile: subtle premium droplets close to the base, with clean separation and no chaotic splash arcs.'
+                        'Spray profile: subtle premium droplets close to the base, with clean separation and no chaotic crossing arcs.'
                     );
                     return;
                 }
                 if (spray === 'low') {
                     modifierParts.push(
                         'Spray profile: minimal micro-droplets only, mostly confined to the base contact zone.'
+                    );
+                    return;
+                }
+            }
+
+            if (photoMode === 'Beach Foam Splash' && normalizedCategory === 'sand') {
+                const sand = normalizedValue.toLowerCase();
+                if (sand === 'clean') {
+                    modifierParts.push(
+                        'Sand treatment: clean fine white Caribbean sand with subtle natural grain variation and no debris.'
+                    );
+                    return;
+                }
+                if (sand === 'wet') {
+                    modifierParts.push(
+                        'Sand treatment: wet compact white sand with realistic darkened moisture zones around foam contact.'
+                    );
+                    return;
+                }
+                if (sand === 'glossy') {
+                    modifierParts.push(
+                        'Sand treatment: wet glossy white sand with restrained reflective sheen; keep reflections soft and physically plausible.'
                     );
                     return;
                 }
