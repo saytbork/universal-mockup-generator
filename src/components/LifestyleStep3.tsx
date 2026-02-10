@@ -2416,19 +2416,42 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     <p className={GROUP_LABEL_CLASS}>COMPOSITION</p>
                                     <p className="text-[11px] text-gray-500 mt-1">Choose how the product is framed and presented.</p>
                                   </div>
-                                  <div className="flex flex-wrap gap-3">
-                                    {compositionOptions.map(({ label, mode }) => (
-                                      <Chip
-                                        key={label}
-                                        selected={productStore.photoMode === mode}
-                                        onClick={() => {
-                                          productStore.setPhotoMode(mode);
-                                          markSectionTouched('product-setup');
-                                        }}
-                                      >
-                                        <span className="truncate max-w-full">{label}</span>
-                                      </Chip>
-                                    ))}
+                                  <div className="space-y-5">
+                                    <div className="space-y-3">
+                                      <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Core</p>
+                                      <div className="flex flex-wrap gap-3">
+                                        {compositionOptions.map(({ label, mode }) => (
+                                          <Chip
+                                            key={label}
+                                            selected={productStore.photoMode === mode}
+                                            onClick={() => {
+                                              productStore.setPhotoMode(mode);
+                                              markSectionTouched('product-setup');
+                                            }}
+                                          >
+                                            <span className="truncate max-w-full">{label}</span>
+                                          </Chip>
+                                        ))}
+                                      </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                      <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Effect Worlds</p>
+                                      <div className="flex flex-wrap gap-3">
+                                        {effectWorldOptions.map(({ label, mode }) => (
+                                          <Chip
+                                            key={label}
+                                            selected={productStore.photoMode === mode}
+                                            onClick={() => {
+                                              productStore.setPhotoMode(mode);
+                                              markSectionTouched('product-setup');
+                                            }}
+                                          >
+                                            <span className="truncate max-w-full">{label}</span>
+                                          </Chip>
+                                        ))}
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
 
@@ -2536,24 +2559,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           x.mode === 'Sand Palm Shadows' ||
                                           x.mode === 'Botanical Water Garden'
                                         ).map(({ label, mode }) => (
-                                          <Chip
-                                            key={label}
-                                            selected={productStore.photoMode === mode}
-                                            onClick={() => {
-                                              productStore.setPhotoMode(mode);
-                                              markSectionTouched('product-setup');
-                                            }}
-                                          >
-                                            <span className="truncate max-w-full">{label}</span>
-                                          </Chip>
-                                        ))}
-                                      </div>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                      <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Effect Worlds</p>
-                                      <div className="flex flex-wrap gap-3">
-                                        {effectWorldOptions.map(({ label, mode }) => (
                                           <Chip
                                             key={label}
                                             selected={productStore.photoMode === mode}
