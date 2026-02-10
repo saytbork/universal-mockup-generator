@@ -2745,17 +2745,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             );
                           })()}
 
-                          <div className={`mt-8 space-y-5 rounded-2xl transition-all duration-300 ${photoModeHintVisible ? 'ring-2 ring-indigo-500/40 ring-offset-2 ring-offset-white' : ''}`}>
+                          <div className="mt-8 space-y-5 rounded-2xl transition-all duration-300">
                             <div ref={photoModeSettingsRef} />
-                            {photoModeHintVisible && (
-                              <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-[11px] text-indigo-800">
-                                <p className="font-semibold">Settings for: {photoModeHintMode || productStore.photoMode}</p>
-                                <p className="text-indigo-700/90">Adjust this mode from the controls below.</p>
-                                {photoModeHintShowFirstTimeTip && (
-                                  <p className="text-indigo-700/90">Tip: each Photo Mode has its own settings panel.</p>
-                                )}
-                              </div>
-                            )}
 
                             {productStore.presetTier === 'pro' && productStore.photoMode !== 'Hero Landing Page' && (
                               <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-5">
