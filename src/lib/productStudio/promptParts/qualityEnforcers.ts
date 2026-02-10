@@ -31,7 +31,8 @@ export function buildQualityEnforcers(profile: OutputQualityProfile = 'luxury-br
     'Never appear as a cutout, pasted object, CGI render, or synthetic composite.',
     'Hard negatives: no wax skin/plastic texture look, no repeated procedural patterns, no impossible reflections, no floating-shadow mismatch.',
     'Frame integrity lock: no letterbox bars, no pillarbox bars, no mirrored edge extension, no duplicated side panels, and no blurred side-fill bands.',
-    'Composition must occupy the full requested aspect ratio with native scene content edge-to-edge; never simulate padding, borders, or canvas filler.'
+    'Composition must occupy the full requested aspect ratio with native scene content edge-to-edge; never simulate padding, borders, or canvas filler.',
+    'No centered narrow-subject framing with artificial side expansion. Native scene detail must continue naturally to every frame edge.'
     ,
     ...profileRules[profile]
   ].join(' ');

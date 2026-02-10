@@ -812,17 +812,23 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   })();
 
   const effectiveAngleLabel = mode === 'INGREDIENT_FLAT_LAY' ? 'Top-down flat lay' : uiAngleLabel;
-  const effectiveFramingLabel = mode === 'INGREDIENT_FLAT_LAY' ? 'Grid-ready' : uiFramingLabel;
+  const effectiveMacroMode = state.photoMode === 'Macro Dew Label';
+  const effectiveAngleLabelResolved = effectiveMacroMode ? 'Detail close-up' : effectiveAngleLabel;
+  const effectiveFramingLabel = mode === 'INGREDIENT_FLAT_LAY'
+    ? 'Grid-ready'
+    : effectiveMacroMode
+      ? 'Full-bleed macro crop'
+      : uiFramingLabel;
   const effectiveDistanceLabel = mode === 'INGREDIENT_FLAT_LAY'
     ? (uiDistanceLabel === 'Macro' ? 'Macro' : 'Standard')
-    : state.photoMode === 'Macro Dew Label'
+    : effectiveMacroMode
       ? 'Macro'
       : uiDistanceLabel;
 
   const cameraControlsTraceText = [
     'Camera controls selected:',
     `system=${uiSystemLabel};`,
-    `angle=${effectiveAngleLabel};`,
+    `angle=${effectiveAngleLabelResolved};`,
     `distance=${effectiveDistanceLabel};`,
     `rotation=${uiRotationLabel};`,
     `framing=${effectiveFramingLabel}.`,
@@ -837,6 +843,8 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const forcedCameraFraming =
     mode === 'INGREDIENT_FLAT_LAY'
       ? 'grid-ready composition'
+      : effectiveMacroMode
+        ? 'full-bleed macro crop with natural edge detail, no side-fill extension'
       : mapFramingToPrompt(state.framing, uiFramingLabel);
   const forcedCameraDistance =
     mode === 'INGREDIENT_FLAT_LAY'
@@ -866,6 +874,13 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       'Keep dispersion controlled and premium; no rainbow artifacts, no fake CGI glow, and no loss of label readability.'
     ].join(' ');
   })();
+
+  const macroFullBleedLockText = effectiveMacroMode
+    ? [
+      'MACRO FRAME LOCK (MANDATORY): full-bleed native macro composition with no side-fill artifacts.',
+      'Do not create blurred side bands, mirrored edges, pillarbox/letterbox bars, white margins, black margins, or duplicated vertical strips.'
+    ].join(' ')
+    : '';
 
   const parts = [
     buildBaseContext({ allowStudio: mode === 'ACRYLIC_BLOCKS', qualityProfile: state.qualityProfile }),
@@ -898,6 +913,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     strictStudioBranding ? '' : buildMaterialsWithProfile(mode, randomizer, state.qualityProfile),
     prismRefractionText,
     buildUltraRealStrictBlock(Boolean(state.ultraRealStrict), state.qualityProfile),
+    macroFullBleedLockText,
     strictStudioBranding
       ? ''
       : buildRandomizationRules(
