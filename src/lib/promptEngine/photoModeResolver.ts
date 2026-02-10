@@ -852,6 +852,54 @@ export function buildPhotoModePrompt(
                 }
             }
 
+            if (photoMode === 'Splash Shot' && normalizedCategory === 'motionIntensity') {
+                const intensity = normalizedValue.toLowerCase();
+                if (intensity === 'explosive') {
+                    modifierParts.push(
+                        'Splash intensity: energetic but controlled. Keep one dominant splash sheet and secondary droplets only; avoid chaotic multi-directional bursts.'
+                    );
+                    return;
+                }
+                if (intensity === 'dynamic') {
+                    modifierParts.push(
+                        'Splash intensity: dynamic and clean. Maintain a single directional splash path with readable product silhouette.'
+                    );
+                    return;
+                }
+            }
+
+            if (photoMode === 'Splash Shot' && normalizedCategory === 'freezeMoment') {
+                const freeze = normalizedValue.toLowerCase();
+                if (freeze === 'peak') {
+                    modifierParts.push(
+                        'Freeze timing: capture at peak shape with crisp droplet separation and no motion smear.'
+                    );
+                    return;
+                }
+                if (freeze === 'mid-splash') {
+                    modifierParts.push(
+                        'Freeze timing: mid-action with coherent liquid geometry and clean edge detail.'
+                    );
+                    return;
+                }
+            }
+
+            if (photoMode === 'Splash Shot' && normalizedCategory === 'productStability') {
+                const stability = normalizedValue.toLowerCase();
+                if (stability === 'fully grounded') {
+                    modifierParts.push(
+                        'Product stability: clearly grounded and physically supported with stable contact shadows.'
+                    );
+                    return;
+                }
+                if (stability === 'slight interaction') {
+                    modifierParts.push(
+                        'Product stability: slight liquid interaction is allowed, but label plane remains unobstructed and readable.'
+                    );
+                    return;
+                }
+            }
+
             modifierParts.push(`${normalizedCategory.replace(/([A-Z])/g, ' $1').toLowerCase()}: ${normalizedValue}`);
         });
     }

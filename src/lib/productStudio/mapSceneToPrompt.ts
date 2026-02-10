@@ -338,22 +338,24 @@ function buildEffectsDirective(effects: string[], randomizer: ReturnType<typeof 
 
     if (key === 'splash shot') {
       const classic = randomizer.pick([
-        'classic crown splash with a clean upward sheet and crisp droplet scatter',
-        'diagonal splash sheet behind the product with frozen droplets in the air',
-        'base-impact splash that wraps partially around the product with high-speed droplet separation',
+        'classic ad splash with one clean directional sheet and crisp droplet scatter around the product',
+        'diagonal splash sheet mostly behind the product with frozen droplets and clear label visibility',
+        'base-impact splash wrapping around the lower body of the product with coherent droplet separation',
       ]);
       return [
         `SPLASH (CLASSIC): ${classic}.`,
         'High-speed flash look: frozen motion, razor-sharp droplets, physically coherent refraction.',
         'Keep label/logo zone readable: do not cover the typography with water or foam.',
         'No CGI splash rings, no chaotic foam clutter, no melted-looking liquid blobs.',
+        'No random jet streams crossing the frame; one dominant splash direction only.',
       ].join(' ');
     }
 
     if (key === 'beach foam splash') {
       return [
-        'BEACH FOAM: controlled sea-foam splash texture near the base with clean spray droplets.',
+        'BEACH FOAM: controlled sea-foam interaction near the base on wet sand with thin retreating foam contours.',
         'Keep it premium and minimal; do not bury the product in foam.',
+        'No tall water plumes, no chaotic jet streams, no label-crossing splash arcs.',
       ].join(' ');
     }
 

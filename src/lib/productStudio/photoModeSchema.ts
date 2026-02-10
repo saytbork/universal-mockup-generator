@@ -133,7 +133,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Splash Shot',
         scope: 'studio',
         description: 'High-speed advertising splash with controlled motion and hero readability.',
-        basePrompt: 'classic high-speed advertising splash composition with a clean crown or sheet splash, controlled directional liquid arc, campaign-grade lighting, crisp frozen droplets, clear product silhouette, and fully readable label',
+        basePrompt: 'high-speed commercial splash hero: one product as the clear focal point, one dominant splash sheet wrapping behind/around the product, crisp frozen droplets, campaign-grade strobe lighting, clean premium background, label fully readable, and physically coherent liquid behavior',
         subOptions: [
             { key: 'splashMedium', label: 'Splash Medium', values: ['Liquid'] },
             { key: 'motionIntensity', label: 'Motion Intensity', values: ['Dynamic', 'Explosive'] },
@@ -146,6 +146,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Label and logo zone must remain unobstructed',
             'No muddy water, foam clutter, or dirty liquid artifacts',
             'Avoid CGI splash rings and melted-looking liquid blobs',
+            'No random jet streams crossing the frame edges',
+            'No heavy splash occlusion over the label area',
             'Rigid materials only: glass, metal, acrylic, stone, concrete.'
         ],
         requiredPlacement: 'surface',
@@ -157,7 +159,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Beach Foam Splash',
         scope: 'environment',
         description: 'Beach foam splash moment with clean premium control and readable hero product.',
-        basePrompt: 'premium beach splash setup: product physically grounded on wet compact sand, shallow sea foam and clean spray droplets near the base, controlled directional splash sheet, product remains hero and label stays readable, beach sand tones and coastal light vibe without clutter',
+        basePrompt: 'premium beach splash setup: product physically grounded on wet compact sand, shallow sea foam and clean micro-droplets only near the base, restrained directional backwash around the product, product remains hero and label stays readable, beach sand tones and coastal light vibe without clutter',
         subOptions: [
             { key: 'shoreline', label: 'Shoreline', values: ['Foam line', 'Wave break', 'Backwash'] },
             { key: 'spray', label: 'Spray', values: ['Low', 'Medium', 'High'] },
@@ -169,7 +171,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Label must remain readable and unobstructed',
             'No muddy water or dirty foam',
             'Product must stay physically grounded on wet sand (not floating, not submerged)',
-            'Backwash/Wave break motion should pass around the base, never replace sand support under the product'
+            'Backwash/Wave break motion should pass around the base, never replace sand support under the product',
+            'No tall water plumes, no random water jets, no chaotic crossing splash arcs'
         ],
         requiredPlacement: 'surface',
         allowedInteractions: ['none'],
