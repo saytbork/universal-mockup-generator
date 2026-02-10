@@ -359,7 +359,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!isAnonymousTrial && creditResult?.bucket) {
       await refundCredit(authenticatedEmail!, creditResult.bucket);
     }
-    if (!isAnonymousTrial && creditResult?.bucket !== 'admin') {
+    if (!isAnonymousTrial && creditResult?.bucket && creditResult.bucket !== 'admin') {
       await addActivity(authenticatedEmail!, 'image', { delta: 1, refund: true, bucket: creditResult.bucket });
       await addActivity(authenticatedEmail!, 'image', {
         kind: 'generation',
