@@ -915,10 +915,11 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     const rigCues: Record<string, string> = {
       'Prism Spotlight Duo':
         [
-          'Two controlled prism spot sources with crisp directional falloff, visible split highlights on glass edges, and subtle refraction caustics near transparent boundaries. Prism effect must be visibly present in the final frame (not optional).',
+          'Two controlled prism spot sources with diffused directional falloff and subtle refraction behavior near transparent boundaries. Keep prism influence restrained and secondary to clean product readability.',
           `Prism controls: size=${String(prismRig.size || 'Medium')}, focus=${String(prismRig.focus || 'Balanced')}, intensity=${String(prismRig.intensity || 'Medium')}, placement=${String(prismRig.placement || 'Diagonal')}.`,
           'Result target: controlled, repeatable, commercial lighting behavior with clean label readability.',
-          'Hard constraints for highlight behavior: no starburst diffraction spikes, no lens flare streaks, no rainbow flare ghosts, no overexposed sparkle points on label or cap.',
+          'Hard constraints for highlight behavior: no starburst diffraction spikes, no sparkle stars, no twinkle/glint effects, no lens flare streaks, no rainbow flare ghosts, no overexposed sparkle points on label or cap.',
+          'Use broad soft diffusion only. Never create pin-point highlights that turn into cross/star artifacts.',
           'Composition constraint: all light sources must be off-camera. Never show visible lamps, bulbs, LED panels, softboxes, light stands, practical fixtures, or glowing circles in frame.',
         ].join(' '),
       '3-Point Beauty Dish':
