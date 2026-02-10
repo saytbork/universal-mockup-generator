@@ -2353,7 +2353,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               { label: 'Ring Light', value: 'ring-light' },
                             ];
 
-                            const specialEffectsOptions: Array<{ label: string; mode: PhotoMode }> = [
+                            // Photo Modes that are primarily "effect worlds" (kept as selectable modes).
+                            const effectWorldOptions: Array<{ label: string; mode: PhotoMode }> = [
                               { label: 'Acrylic Blocks', mode: 'Acrylic Blocks' },
                               { label: 'Splash Shot', mode: 'Splash Shot' },
                               { label: 'Foam & Texture', mode: 'Foam & Texture' },
@@ -2363,6 +2364,50 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               { label: 'Stones & Crystals Flat Lay', mode: 'Stones & Crystals Flat Lay' },
                               { label: 'Dried Citrus Earth', mode: 'Dried Citrus Earth' },
                             ];
+
+                            // Multi-select modifiers (combinable with COMPOSITION + VISUAL STYLE).
+                            // These never switch Photo Mode; they only annotate the free-text PROPS string.
+                            const specialEffectModifiers = [
+                              'Splash Shot',
+                              'Beach Foam Splash',
+                              'Pool Water',
+                              'Cheers (Hands Clink)',
+                              'Ice Cubes',
+                              'Condensation Droplets',
+                              'Fruit Garnish / Citrus Accents',
+                              'Textured Bed / Scatter Base',
+                              'Floating Particles',
+                              'Acrylic Blocks',
+                              'Gel Smear',
+                              'Foam Texture',
+                            ] as const;
+
+                            const parseEffectsFromProps = (input: string): string[] => {
+                              const parts = String(input ?? '')
+                                .split('|')
+                                .map(part => part.trim())
+                                .filter(Boolean);
+                              const seg = parts.find(part => part.toLowerCase().startsWith('effects:'));
+                              if (!seg) return [];
+                              return seg
+                                .slice('effects:'.length)
+                                .split(',')
+                                .map(s => s.trim())
+                                .filter(Boolean);
+                            };
+
+                            const upsertEffectsIntoProps = (input: string, effects: string[]) => {
+                              const prefix = 'effects:';
+                              const parts = String(input ?? '')
+                                .split('|')
+                                .map(part => part.trim())
+                                .filter(Boolean);
+                              const kept = parts.filter(part => !part.toLowerCase().startsWith(prefix));
+                              if (effects.length === 0) return kept.join(' | ');
+                              return [...kept, `${prefix} ${effects.join(', ')}`].join(' | ');
+                            };
+
+                            const selectedEffects = new Set(parseEffectsFromProps(productStore.props));
 
                             return (
                               <div className="p-5 space-y-7">
@@ -2504,6 +2549,24 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                         ))}
                                       </div>
                                     </div>
+
+                                    <div className="space-y-3">
+                                      <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Effect Worlds</p>
+                                      <div className="flex flex-wrap gap-3">
+                                        {effectWorldOptions.map(({ label, mode }) => (
+                                          <Chip
+                                            key={label}
+                                            selected={productStore.photoMode === mode}
+                                            onClick={() => {
+                                              productStore.setPhotoMode(mode);
+                                              markSectionTouched('product-setup');
+                                            }}
+                                          >
+                                            <span className="truncate max-w-full">{label}</span>
+                                          </Chip>
+                                        ))}
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
 
@@ -2533,71 +2596,22 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     <p className={GROUP_LABEL_CLASS}>SPECIAL EFFECTS</p>
                                     <p className="text-[11px] text-gray-500 mt-1">Optional visual enhancements.</p>
                                   </div>
-                                  <div className="space-y-5">
-                                    <div className="space-y-3">
-                                      <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Texture & Material</p>
-                                      <div className="flex flex-wrap gap-3">
-                                        {specialEffectsOptions.filter(x =>
-                                          x.mode === 'Acrylic Blocks' ||
-                                          x.mode === 'Foam & Texture' ||
-                                          x.mode === 'Gel Smear Editorial'
-                                        ).map(({ label, mode }) => (
-                                          <Chip
-                                            key={label}
-                                            selected={productStore.photoMode === mode}
-                                            onClick={() => {
-                                              productStore.setPhotoMode(mode);
-                                              markSectionTouched('product-setup');
-                                            }}
-                                          >
-                                            <span className="truncate max-w-full">{label}</span>
-                                          </Chip>
-                                        ))}
-                                      </div>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                      <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Liquid & Motion</p>
-                                      <div className="flex flex-wrap gap-3">
-                                        {specialEffectsOptions.filter(x =>
-                                          x.mode === 'Splash Shot' ||
-                                          x.mode === 'Underwater Split'
-                                        ).map(({ label, mode }) => (
-                                          <Chip
-                                            key={label}
-                                            selected={productStore.photoMode === mode}
-                                            onClick={() => {
-                                              productStore.setPhotoMode(mode);
-                                              markSectionTouched('product-setup');
-                                            }}
-                                          >
-                                            <span className="truncate max-w-full">{label}</span>
-                                          </Chip>
-                                        ))}
-                                      </div>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                      <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Ingredient Flat Lays</p>
-                                      <div className="flex flex-wrap gap-3">
-                                        {specialEffectsOptions.filter(x =>
-                                          x.mode === 'Citrus Fresh Flat Lay' ||
-                                          x.mode === 'Stones & Crystals Flat Lay' ||
-                                          x.mode === 'Dried Citrus Earth'
-                                        ).map(({ label, mode }) => (
-                                          <Chip
-                                            key={label}
-                                            selected={productStore.photoMode === mode}
-                                            onClick={() => {
-                                              productStore.setPhotoMode(mode);
-                                              markSectionTouched('product-setup');
-                                            }}
-                                          >
-                                            <span className="truncate max-w-full">{label}</span>
-                                          </Chip>
-                                        ))}
-                                      </div>
-                                    </div>
+                                  <div className="flex flex-wrap gap-3">
+                                    {specialEffectModifiers.map((label) => (
+                                      <Chip
+                                        key={label}
+                                        selected={selectedEffects.has(label)}
+                                        onClick={() => {
+                                          const next = new Set(selectedEffects);
+                                          if (next.has(label)) next.delete(label);
+                                          else next.add(label);
+                                          productStore.setProps(upsertEffectsIntoProps(productStore.props, Array.from(next)));
+                                          markSectionTouched('product-setup');
+                                        }}
+                                      >
+                                        <span className="truncate max-w-full">{label}</span>
+                                      </Chip>
+                                    ))}
                                   </div>
                                 </div>
                               </div>
