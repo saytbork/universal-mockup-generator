@@ -2381,6 +2381,46 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               markSectionTouched('product-setup');
                             };
 
+                            const CHIP_TOOLTIPS: Partial<Record<PhotoMode, string>> = {
+                              'Hero Landing Page': 'Deterministic studio hero with copy-safe negative space (no props).',
+                              'Color Pop Hero': 'Bold studio hero driven by brand color.',
+                              'Ingredient Stack': 'Ingredients arranged around the product on a surface.',
+                              'Ingredient Flat Lay': 'Top-down flat lay with controlled spacing.',
+                              'Routine Carousel': 'Carousel-friendly product sequence styling.',
+                              'Hands Application Clean': 'Clean cropped hand interaction (no identity).',
+                              'Macro Dew Label': 'Macro close-up emphasizing label texture and detail.',
+                              'Clinical Lab Counter': 'Clinical countertop with lab-grade cleanliness.',
+                              'Minimal Bathroom Vanity': 'Clean bathroom counter vibe (minimal context).',
+                              'Dark Premium Studio': 'Premium dark studio mood and contrast.',
+                              'Monochrome Brand': 'Monochrome brand-first studio look.',
+                              'Brand Campaign': 'Campaign-grade studio polish and drama.',
+                              'Creator Premium Simulation': 'Premium UGC-style realism with controlled capture.',
+                              'Tech Clean Studio': 'Techy clean studio surfaces and clarity.',
+                              'Soft Wellness Morning': 'Soft wellness lifestyle mood and light.',
+                              'Outdoor Energy Boost': 'Outdoor energetic lifestyle context.',
+                              'Sunlit Stone Editorial': 'Sunlit editorial realism on stone textures.',
+                              'Golden Sunset Backlit': 'Golden backlight with controlled flare.',
+                              'Bathroom Daylight Clean': 'Daylight bathroom realism, clean and minimal.',
+                              'Sky Float Minimal': 'Airy minimal sky feel with clean silhouette.',
+                              'Wet Rock Ripples': 'Wet stone with ripples and reflective highlights.',
+                              'Sand Palm Shadows': 'Beachy shadow play with sand/palm cues.',
+                              'Botanical Water Garden': 'Botanical + water freshness mood.',
+                              'Warm Window Wood': 'Warm window light with wood tones.',
+                              'Splash Shot': 'Classic high-speed splash with crisp droplets.',
+                              'Beach Foam Splash': 'Near-shore foam/spray with premium control.',
+                              'Pool Water': 'Pool ripples/caustics with refreshing droplets.',
+                              'Cheers (Hands Clink)': 'Two-hand clink moment (hands only, no faces).',
+                              'Acrylic Blocks': 'Geometric acrylic risers with refraction.',
+                              'Foam & Texture': 'Foam/gel textures as controlled accents.',
+                              'Ice Cubes': 'Chilled hero with realistic ice and meltwater.',
+                              'Condensation Droplets': 'Cold condensation micro-droplets, label stays crisp.',
+                              'Fruit Garnish / Citrus Accents': 'Fruit/citrus accents as secondary styling props.',
+                              'Textured Bed / Scatter Base': 'Controlled scatter/bed around the base.',
+                              'Floating Particles': 'Subtle atmosphere particles (premium, controlled).',
+                              'Gel Smear Editorial': 'Editorial gel smear accents (controlled).',
+                              'Underwater Split': 'Split-style underwater look with clean physics.',
+                            };
+
                             const specialEffectsOptions: Array<{ label: string; mode: PhotoMode }> = [
                               { label: 'Splash Shot', mode: 'Splash Shot' },
                               { label: 'Beach Foam Splash', mode: 'Beach Foam Splash' },
@@ -2414,6 +2454,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           <Chip
                                             key={label}
                                             selected={productStore.photoMode === mode}
+                                            tooltip={CHIP_TOOLTIPS[mode] || label}
                                             onClick={() => {
                                               applyPhotoMode(mode);
                                             }}
@@ -2444,6 +2485,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           <Chip
                                             key={label}
                                             selected={productStore.photoMode === mode}
+                                            tooltip={CHIP_TOOLTIPS[mode] || label}
                                             onClick={() => {
                                               applyPhotoMode(mode);
                                             }}
@@ -2465,6 +2507,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           <Chip
                                             key={label}
                                             selected={productStore.photoMode === mode}
+                                            tooltip={CHIP_TOOLTIPS[mode] || label}
                                             onClick={() => {
                                               applyPhotoMode(mode);
                                             }}
@@ -2485,6 +2528,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           <Chip
                                             key={label}
                                             selected={productStore.photoMode === mode}
+                                            tooltip={CHIP_TOOLTIPS[mode] || label}
                                             onClick={() => {
                                               applyPhotoMode(mode);
                                             }}
@@ -2507,6 +2551,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           <Chip
                                             key={label}
                                             selected={productStore.photoMode === mode}
+                                            tooltip={CHIP_TOOLTIPS[mode] || label}
                                             onClick={() => {
                                               applyPhotoMode(mode);
                                             }}
@@ -2529,6 +2574,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           <Chip
                                             key={label}
                                             selected={productStore.photoMode === mode}
+                                            tooltip={CHIP_TOOLTIPS[mode] || label}
                                             onClick={() => {
                                               applyPhotoMode(mode);
                                             }}
@@ -2551,6 +2597,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       <Chip
                                         key={value}
                                         selected={productStore.lighting === value}
+                                        tooltip={
+                                          value === 'natural-light'
+                                            ? 'Soft natural light with realistic shadows.'
+                                            : value === 'overcast'
+                                              ? 'Diffused overcast light, low contrast.'
+                                              : value === 'cozy-indoors'
+                                                ? 'Warm indoor light with gentle falloff.'
+                                                : 'Direct ring light with clean catchlights.'
+                                        }
                                         onClick={() => {
                                           productStore.setLighting(value);
                                           markSectionTouched('product-setup');
@@ -2572,6 +2627,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       <Chip
                                         key={label}
                                         selected={productStore.photoMode === mode}
+                                        tooltip={CHIP_TOOLTIPS[mode] || label}
                                         onClick={() => {
                                           applyPhotoMode(mode);
                                         }}

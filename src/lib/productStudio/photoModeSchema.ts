@@ -158,7 +158,11 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         scope: 'environment',
         description: 'Beach foam splash moment with clean premium control and readable hero product.',
         basePrompt: 'premium beach splash setup: shallow sea foam and clean spray droplets near the base, controlled directional splash sheet, product remains hero and label stays readable, beach sand tones and coastal light vibe without clutter',
-        subOptions: [],
+        subOptions: [
+            { key: 'shoreline', label: 'Shoreline', values: ['Foam line', 'Wave break', 'Backwash'] },
+            { key: 'spray', label: 'Spray', values: ['Low', 'Medium', 'High'] },
+            { key: 'sand', label: 'Sand', values: ['Clean', 'Wet', 'Glossy'] },
+        ],
         constraints: [
             'Keep foam minimal and controlled (do not bury the product)',
             'Frozen motion with crisp droplets',
@@ -176,8 +180,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         description: 'Clear pool water look with ripples, caustics, and refreshing droplets.',
         basePrompt: 'clear pool water look with turquoise ripples and subtle caustic highlights, refreshing droplets and clean wet reflections, premium summertime vibe, product remains sharp and readable',
         subOptions: [
-            { key: 'waterLevel', label: 'Water Level', values: ['Surface', 'Half submerged', 'Underwater split (half above, half below)'] },
-            { key: 'waterEnergy', label: 'Water Energy', values: ['Calm ripples', 'Active ripples', 'Splashy (controlled)'] },
+            { key: 'waterLevel', label: 'Water Level', values: ['Surface', 'Half', 'Split'] },
+            { key: 'waterEnergy', label: 'Water Energy', values: ['Calm', 'Active', 'Splashy'] },
         ],
         constraints: [
             'Water must look physically real (no CGI plastic water)',
