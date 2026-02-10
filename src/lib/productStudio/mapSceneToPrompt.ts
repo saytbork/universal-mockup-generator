@@ -753,19 +753,26 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       ? [state.props, customIngredientsText].filter(Boolean).join(' | ')
       : state.props;
 
-  const photoModeResult = buildPhotoModePrompt(state.photoMode as PhotoMode, {
-    suggestedProps: effectiveSuggestedProps,
-    ingredientLayout: state.ingredientLayout,
-    dynamicSettings,
-    productType: state.definition.type as any,
-    productState:
-      state.stateMotion === 'opened'
+  const isWaterStabilityMode =
+    state.photoMode === 'Beach Foam Splash' || state.photoMode === 'Pool Water';
+  const resolvedProductState =
+    isWaterStabilityMode &&
+    (state.stateMotion === 'dispensed' || state.stateMotion === 'pouring' || state.stateMotion === 'falling' || state.stateMotion === 'spilled')
+      ? 'Static'
+      : state.stateMotion === 'opened'
         ? 'Opened'
         : state.stateMotion === 'dispensed'
           ? 'Dispensing'
           : state.stateMotion === 'pouring' || state.stateMotion === 'falling' || state.stateMotion === 'spilled'
             ? 'Pouring'
-            : 'Static',
+            : 'Static';
+
+  const photoModeResult = buildPhotoModePrompt(state.photoMode as PhotoMode, {
+    suggestedProps: effectiveSuggestedProps,
+    ingredientLayout: state.ingredientLayout,
+    dynamicSettings,
+    productType: state.definition.type as any,
+    productState: resolvedProductState as any,
     ...(ingredientStackBgOptions ?? {}),
   });
 

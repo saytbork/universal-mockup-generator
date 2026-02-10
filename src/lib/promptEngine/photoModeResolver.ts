@@ -560,6 +560,16 @@ const PHOTO_MODE_STATE_COMPATIBILITY: Record<string, {
         allowedStates: ['Static', 'Opened'],
     },
 
+    'Beach Foam Splash': {
+        // Water scene carries the motion; avoid conflicting "product contents stream" behavior.
+        allowedStates: ['Static', 'Opened'],
+    },
+
+    'Pool Water': {
+        // Keep product stable/readable in water contexts.
+        allowedStates: ['Static', 'Opened'],
+    },
+
     // Most modes allow all states - default to all
 };
 
@@ -787,6 +797,28 @@ export function buildPhotoModePrompt(
                 if (shoreline === 'foam line') {
                     modifierParts.push(
                         'Shoreline: Foam line kiss at the sand edge. Product stays grounded on wet sand with a light foam contour near the base only.'
+                    );
+                    return;
+                }
+            }
+
+            if (photoMode === 'Beach Foam Splash' && normalizedCategory === 'spray') {
+                const spray = normalizedValue.toLowerCase();
+                if (spray === 'high') {
+                    modifierParts.push(
+                        'Spray profile: controlled and directional only; allow just a few crisp micro-droplets near the base and behind the product, never jet-like streams crossing the label.'
+                    );
+                    return;
+                }
+                if (spray === 'medium') {
+                    modifierParts.push(
+                        'Spray profile: subtle premium droplets close to the base, with clean separation and no chaotic splash arcs.'
+                    );
+                    return;
+                }
+                if (spray === 'low') {
+                    modifierParts.push(
+                        'Spray profile: minimal micro-droplets only, mostly confined to the base contact zone.'
                     );
                     return;
                 }
