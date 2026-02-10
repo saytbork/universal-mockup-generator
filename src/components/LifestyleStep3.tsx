@@ -2323,16 +2323,27 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               { label: 'Ingredient Flat Lay', mode: 'Ingredient Flat Lay' },
                               { label: 'Routine Carousel', mode: 'Routine Carousel' },
                               { label: 'Hands Application Clean', mode: 'Hands Application Clean' },
-                              { label: 'Macro Label Shot', mode: 'Macro Dew Label' },
+                              { label: 'Macro Dew Label', mode: 'Macro Dew Label' },
                             ];
 
                             const visualStyleOptions: Array<{ label: string; mode: PhotoMode }> = [
-                              { label: 'Clean Clinical', mode: 'Clinical Lab Counter' },
-                              { label: 'Soft Wellness', mode: 'Soft Wellness Morning' },
-                              { label: 'Dark Premium', mode: 'Dark Premium Studio' },
+                              { label: 'Clinical Lab Counter', mode: 'Clinical Lab Counter' },
+                              { label: 'Minimal Bathroom Vanity', mode: 'Minimal Bathroom Vanity' },
+                              { label: 'Dark Premium Studio', mode: 'Dark Premium Studio' },
                               { label: 'Monochrome Brand', mode: 'Monochrome Brand' },
                               { label: 'Brand Campaign', mode: 'Brand Campaign' },
                               { label: 'Creator Premium Simulation', mode: 'Creator Premium Simulation' },
+                              { label: 'Tech Clean Studio', mode: 'Tech Clean Studio' },
+                              { label: 'Soft Wellness Morning', mode: 'Soft Wellness Morning' },
+                              { label: 'Outdoor Energy Boost', mode: 'Outdoor Energy Boost' },
+                              { label: 'Sunlit Stone Editorial', mode: 'Sunlit Stone Editorial' },
+                              { label: 'Golden Sunset Backlit', mode: 'Golden Sunset Backlit' },
+                              { label: 'Bathroom Daylight Clean', mode: 'Bathroom Daylight Clean' },
+                              { label: 'Sky Float Minimal', mode: 'Sky Float Minimal' },
+                              { label: 'Wet Rock Ripples', mode: 'Wet Rock Ripples' },
+                              { label: 'Sand Palm Shadows', mode: 'Sand Palm Shadows' },
+                              { label: 'Botanical Water Garden', mode: 'Botanical Water Garden' },
+                              { label: 'Warm Window Wood', mode: 'Warm Window Wood' },
                             ];
 
                             const lightingOptions: Array<{ label: string; value: ProductStudioState['lighting'] }> = [
@@ -2342,36 +2353,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               { label: 'Ring Light', value: 'ring-light' },
                             ];
 
-                            const specialEffectsOptions = [
-                              'Acrylic Blocks',
-                              'Splash Shot',
-                              'Foam & Texture',
-                              'Gel Smear',
-                              'Underwater Split',
-                              'Sky Float Minimal',
-                            ] as const;
-
-                            const rawEffects = String(
-                              productStore.photoModeConfig.dynamic?.[productStore.photoMode as PhotoMode]?.specialEffects ?? ''
-                            );
-                            const selectedEffects = new Set(
-                              rawEffects
-                                .split(',')
-                                .map(s => s.trim())
-                                .filter(Boolean)
-                            );
-
-                            const toggleEffect = (label: string) => {
-                              const next = new Set(selectedEffects);
-                              if (next.has(label)) next.delete(label);
-                              else next.add(label);
-                              productStore.updatePhotoModeSubSetting(
-                                productStore.photoMode as PhotoMode,
-                                'specialEffects',
-                                Array.from(next).join(', ')
-                              );
-                              markSectionTouched('product-setup');
-                            };
+                            const specialEffectsOptions: Array<{ label: string; mode: PhotoMode }> = [
+                              { label: 'Acrylic Blocks', mode: 'Acrylic Blocks' },
+                              { label: 'Splash Shot', mode: 'Splash Shot' },
+                              { label: 'Foam & Texture', mode: 'Foam & Texture' },
+                              { label: 'Underwater Split', mode: 'Underwater Split' },
+                              { label: 'Gel Smear Editorial', mode: 'Gel Smear Editorial' },
+                              { label: 'Citrus Fresh Flat Lay', mode: 'Citrus Fresh Flat Lay' },
+                              { label: 'Stones & Crystals Flat Lay', mode: 'Stones & Crystals Flat Lay' },
+                              { label: 'Dried Citrus Earth', mode: 'Dried Citrus Earth' },
+                            ];
 
                             return (
                               <div className="p-5 space-y-7">
@@ -2401,19 +2392,118 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     <p className={GROUP_LABEL_CLASS}>VISUAL STYLE</p>
                                     <p className="text-[11px] text-gray-500 mt-1">Overall aesthetic and brand mood.</p>
                                   </div>
-                                  <div className="flex flex-wrap gap-3">
-                                    {visualStyleOptions.map(({ label, mode }) => (
-                                      <Chip
-                                        key={label}
-                                        selected={productStore.photoMode === mode}
-                                        onClick={() => {
-                                          productStore.setPhotoMode(mode);
-                                          markSectionTouched('product-setup');
-                                        }}
-                                      >
-                                        <span className="truncate max-w-full">{label}</span>
-                                      </Chip>
-                                    ))}
+                                  <div className="space-y-5">
+                                    <div className="space-y-3">
+                                      <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Studio Worlds</p>
+                                      <div className="flex flex-wrap gap-3">
+                                        {visualStyleOptions.filter(x =>
+                                          x.mode === 'Clinical Lab Counter' ||
+                                          x.mode === 'Minimal Bathroom Vanity' ||
+                                          x.mode === 'Dark Premium Studio' ||
+                                          x.mode === 'Tech Clean Studio'
+                                        ).map(({ label, mode }) => (
+                                          <Chip
+                                            key={label}
+                                            selected={productStore.photoMode === mode}
+                                            onClick={() => {
+                                              productStore.setPhotoMode(mode);
+                                              markSectionTouched('product-setup');
+                                            }}
+                                          >
+                                            <span className="truncate max-w-full">{label}</span>
+                                          </Chip>
+                                        ))}
+                                      </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                      <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Brand Worlds</p>
+                                      <div className="flex flex-wrap gap-3">
+                                        {visualStyleOptions.filter(x =>
+                                          x.mode === 'Monochrome Brand' ||
+                                          x.mode === 'Brand Campaign' ||
+                                          x.mode === 'Creator Premium Simulation'
+                                        ).map(({ label, mode }) => (
+                                          <Chip
+                                            key={label}
+                                            selected={productStore.photoMode === mode}
+                                            onClick={() => {
+                                              productStore.setPhotoMode(mode);
+                                              markSectionTouched('product-setup');
+                                            }}
+                                          >
+                                            <span className="truncate max-w-full">{label}</span>
+                                          </Chip>
+                                        ))}
+                                      </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                      <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Lifestyle Worlds</p>
+                                      <div className="flex flex-wrap gap-3">
+                                        {visualStyleOptions.filter(x =>
+                                          x.mode === 'Soft Wellness Morning' ||
+                                          x.mode === 'Outdoor Energy Boost'
+                                        ).map(({ label, mode }) => (
+                                          <Chip
+                                            key={label}
+                                            selected={productStore.photoMode === mode}
+                                            onClick={() => {
+                                              productStore.setPhotoMode(mode);
+                                              markSectionTouched('product-setup');
+                                            }}
+                                          >
+                                            <span className="truncate max-w-full">{label}</span>
+                                          </Chip>
+                                        ))}
+                                      </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                      <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Realism</p>
+                                      <div className="flex flex-wrap gap-3">
+                                        {visualStyleOptions.filter(x =>
+                                          x.mode === 'Sunlit Stone Editorial' ||
+                                          x.mode === 'Golden Sunset Backlit' ||
+                                          x.mode === 'Bathroom Daylight Clean' ||
+                                          x.mode === 'Warm Window Wood'
+                                        ).map(({ label, mode }) => (
+                                          <Chip
+                                            key={label}
+                                            selected={productStore.photoMode === mode}
+                                            onClick={() => {
+                                              productStore.setPhotoMode(mode);
+                                              markSectionTouched('product-setup');
+                                            }}
+                                          >
+                                            <span className="truncate max-w-full">{label}</span>
+                                          </Chip>
+                                        ))}
+                                      </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                      <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Nature Elements</p>
+                                      <div className="flex flex-wrap gap-3">
+                                        {visualStyleOptions.filter(x =>
+                                          x.mode === 'Sky Float Minimal' ||
+                                          x.mode === 'Wet Rock Ripples' ||
+                                          x.mode === 'Sand Palm Shadows' ||
+                                          x.mode === 'Botanical Water Garden'
+                                        ).map(({ label, mode }) => (
+                                          <Chip
+                                            key={label}
+                                            selected={productStore.photoMode === mode}
+                                            onClick={() => {
+                                              productStore.setPhotoMode(mode);
+                                              markSectionTouched('product-setup');
+                                            }}
+                                          >
+                                            <span className="truncate max-w-full">{label}</span>
+                                          </Chip>
+                                        ))}
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
 
@@ -2443,16 +2533,71 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     <p className={GROUP_LABEL_CLASS}>SPECIAL EFFECTS</p>
                                     <p className="text-[11px] text-gray-500 mt-1">Optional visual enhancements.</p>
                                   </div>
-                                  <div className="flex flex-wrap gap-3">
-                                    {specialEffectsOptions.map((label) => (
-                                      <Chip
-                                        key={label}
-                                        selected={selectedEffects.has(label)}
-                                        onClick={() => toggleEffect(label)}
-                                      >
-                                        <span className="truncate max-w-full">{label}</span>
-                                      </Chip>
-                                    ))}
+                                  <div className="space-y-5">
+                                    <div className="space-y-3">
+                                      <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Texture & Material</p>
+                                      <div className="flex flex-wrap gap-3">
+                                        {specialEffectsOptions.filter(x =>
+                                          x.mode === 'Acrylic Blocks' ||
+                                          x.mode === 'Foam & Texture' ||
+                                          x.mode === 'Gel Smear Editorial'
+                                        ).map(({ label, mode }) => (
+                                          <Chip
+                                            key={label}
+                                            selected={productStore.photoMode === mode}
+                                            onClick={() => {
+                                              productStore.setPhotoMode(mode);
+                                              markSectionTouched('product-setup');
+                                            }}
+                                          >
+                                            <span className="truncate max-w-full">{label}</span>
+                                          </Chip>
+                                        ))}
+                                      </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                      <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Liquid & Motion</p>
+                                      <div className="flex flex-wrap gap-3">
+                                        {specialEffectsOptions.filter(x =>
+                                          x.mode === 'Splash Shot' ||
+                                          x.mode === 'Underwater Split'
+                                        ).map(({ label, mode }) => (
+                                          <Chip
+                                            key={label}
+                                            selected={productStore.photoMode === mode}
+                                            onClick={() => {
+                                              productStore.setPhotoMode(mode);
+                                              markSectionTouched('product-setup');
+                                            }}
+                                          >
+                                            <span className="truncate max-w-full">{label}</span>
+                                          </Chip>
+                                        ))}
+                                      </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                      <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Ingredient Flat Lays</p>
+                                      <div className="flex flex-wrap gap-3">
+                                        {specialEffectsOptions.filter(x =>
+                                          x.mode === 'Citrus Fresh Flat Lay' ||
+                                          x.mode === 'Stones & Crystals Flat Lay' ||
+                                          x.mode === 'Dried Citrus Earth'
+                                        ).map(({ label, mode }) => (
+                                          <Chip
+                                            key={label}
+                                            selected={productStore.photoMode === mode}
+                                            onClick={() => {
+                                              productStore.setPhotoMode(mode);
+                                              markSectionTouched('product-setup');
+                                            }}
+                                          >
+                                            <span className="truncate max-w-full">{label}</span>
+                                          </Chip>
+                                        ))}
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
