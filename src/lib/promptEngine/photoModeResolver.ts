@@ -770,6 +770,28 @@ export function buildPhotoModePrompt(
                 return;
             }
 
+            if (photoMode === 'Beach Foam Splash' && normalizedCategory === 'shoreline') {
+                const shoreline = normalizedValue.toLowerCase();
+                if (shoreline === 'backwash') {
+                    modifierParts.push(
+                        'Shoreline: Backwash receding flow over wet compact sand. Product must be firmly grounded on wet sand (never floating, never submerged), with thin retreating foam wrapping only around the base.'
+                    );
+                    return;
+                }
+                if (shoreline === 'wave break') {
+                    modifierParts.push(
+                        'Shoreline: Wave break contact near the product. Product must remain planted on wet sand while the breaking wave/foam crosses around the base; no open-water floating look.'
+                    );
+                    return;
+                }
+                if (shoreline === 'foam line') {
+                    modifierParts.push(
+                        'Shoreline: Foam line kiss at the sand edge. Product stays grounded on wet sand with a light foam contour near the base only.'
+                    );
+                    return;
+                }
+            }
+
             modifierParts.push(`${normalizedCategory.replace(/([A-Z])/g, ' $1').toLowerCase()}: ${normalizedValue}`);
         });
     }

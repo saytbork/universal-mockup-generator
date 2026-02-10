@@ -186,7 +186,7 @@ export function buildAcrylicBlocksScene({ randomizer }: SceneBuildInput): string
   ].join(' ');
 }
 
-export function buildSplashShotScene({ randomizer }: SceneBuildInput): { scene: string; splashMode: SplashMode } {
+export function buildSplashShotScene({ randomizer, palette }: SceneBuildInput): { scene: string; splashMode: SplashMode } {
   const splashMode = randomizer.pick<SplashMode>([
     'IMPACT_SPLASH',
     'RISING_SPLASH',
@@ -199,11 +199,20 @@ export function buildSplashShotScene({ randomizer }: SceneBuildInput): { scene: 
     SIDE_DISPLACEMENT_SPLASH: 'Classic side displacement: directional splash sheet with high-speed droplet separation and clean arcs.'
   };
 
+  const backgroundDirection = randomizer.pick([
+    `Core-compatible gradient backdrop ${paletteDescriptor(palette)} with clean tonal separation`,
+    `Core-compatible seamless studio color field ${paletteDescriptor(palette)}`,
+    'Core-compatible neutral studio backdrop with subtle depth falloff',
+  ]);
+
   return {
     splashMode,
     scene: [
       'Premium advertising splash setup with physically coherent liquid behavior (classic high-speed splash aesthetic).',
       modeDescriptions[splashMode],
+      `BACKGROUND (MANDATORY): ${backgroundDirection}.`,
+      'Do not preserve, sample, or reconstruct the original uploaded background.',
+      'Background must be fully regenerated as a clean studio/commercial set and remain combinable with Core modes.',
       'High-speed flash look: frozen motion, razor-sharp droplets, realistic refraction and specular highlights.',
       'Keep label and logo zone readable and unobstructed; do not cover typography with water/foam.',
       'Avoid CGI-looking splash rings, melted blobs, or chaotic foam clutter. Keep it clean, premium, and controlled.'

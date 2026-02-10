@@ -157,7 +157,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Beach Foam Splash',
         scope: 'environment',
         description: 'Beach foam splash moment with clean premium control and readable hero product.',
-        basePrompt: 'premium beach splash setup: shallow sea foam and clean spray droplets near the base, controlled directional splash sheet, product remains hero and label stays readable, beach sand tones and coastal light vibe without clutter',
+        basePrompt: 'premium beach splash setup: product physically grounded on wet compact sand, shallow sea foam and clean spray droplets near the base, controlled directional splash sheet, product remains hero and label stays readable, beach sand tones and coastal light vibe without clutter',
         subOptions: [
             { key: 'shoreline', label: 'Shoreline', values: ['Foam line', 'Wave break', 'Backwash'] },
             { key: 'spray', label: 'Spray', values: ['Low', 'Medium', 'High'] },
@@ -167,7 +167,9 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Keep foam minimal and controlled (do not bury the product)',
             'Frozen motion with crisp droplets',
             'Label must remain readable and unobstructed',
-            'No muddy water or dirty foam'
+            'No muddy water or dirty foam',
+            'Product must stay physically grounded on wet sand (not floating, not submerged)',
+            'Backwash/Wave break motion should pass around the base, never replace sand support under the product'
         ],
         requiredPlacement: 'surface',
         allowedInteractions: ['none'],
