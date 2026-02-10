@@ -5179,6 +5179,7 @@ If the model attempts to create a scene or environment, override it and force a 
       }
       const generationProductsRaw = overrideActiveList?.length ? overrideActiveList : activeProducts;
       const generationProducts = hideProductMode ? [] : generationProductsRaw;
+      let requestReferenceProducts = generationProducts;
       if (!generationProducts.length && !hideProductMode) {
         setImageError("Please upload a product image first.");
         return;
@@ -5327,8 +5328,36 @@ If the model attempts to create a scene or environment, override it and force a 
             return;
           }
 
-          // Use first job's prompt (single product or bundle)
-          finalPrompt = jobs[0].prompt;
+          // In single-product mode, resolve prompt from the currently active product.
+          // This avoids mismatches when multiple uploaded products exist in state.
+          const isBundleJob = Boolean(productState.bundle?.enabled);
+          const activeProductId = String(productState.activeProductId || '').trim();
+          const selectedJob =
+            !isBundleJob && activeProductId
+              ? (jobs.find((job) => job.productId === activeProductId) ?? jobs[0])
+              : jobs[0];
+
+          finalPrompt = selectedJob.prompt;
+
+          // Reference images: single-product mode must send only the selected product.
+          // Sending multiple product refs can cause identity drift and product swapping.
+          if (!isBundleJob) {
+            requestReferenceProducts = generationProducts.filter((p) => p.id === selectedJob.productId);
+            if (!requestReferenceProducts.length && generationProducts.length) {
+              requestReferenceProducts = [generationProducts[0]];
+            }
+          } else {
+            const bundleIds = new Set<string>([
+              String(productState.bundle?.primaryProductId || ''),
+              ...(Array.isArray(productState.bundle?.secondaryProductIds)
+                ? productState.bundle.secondaryProductIds.map(String)
+                : []),
+            ].filter(Boolean));
+            const bundleRefs = generationProducts.filter((p) => bundleIds.has(String(p.id)));
+            if (bundleRefs.length) {
+              requestReferenceProducts = bundleRefs;
+            }
+          }
 
           // PHASE 7: HARDBLOCK VALIDATION - Check forbidden terms
           try {
@@ -5443,7 +5472,7 @@ If the model attempts to create a scene or environment, override it and force a 
         const naturalMode = resolvedUgcStyle === 'natural';
         const rawMode = !!promptOptions.ugcRealModeActive;
         const shouldIncludeHumanImage = personIncluded && !(naturalMode || rawMode);
-        const shouldSendProductImage = generationProducts.length > 0 && !hideProductMode;
+        const shouldSendProductImage = requestReferenceProducts.length > 0 && !hideProductMode;
         const identityInlinePart = personIdentityPackage.modelReferenceBase64
           ? {
             inlineData: {
@@ -5461,7 +5490,7 @@ If the model attempts to create a scene or environment, override it and force a 
           const totalReferenceBudget = isProductPlacement ? 3_400_000 : 2_800_000;
           let totalAttachedReferenceBase64 = 0;
 
-          for (const product of generationProducts.slice(0, maxProductRefs)) {
+          for (const product of requestReferenceProducts.slice(0, maxProductRefs)) {
             const backgroundRemoved = await removeUploadedBackgroundInlineImage(product.base64, product.mimeType);
             // Higher-fidelity reference helps avoid warped labels/typography on the product.
             const resized = await maybeDownscaleInlineImage(backgroundRemoved.base64, backgroundRemoved.mimeType, {
@@ -5572,7 +5601,7 @@ If the model attempts to create a scene or environment, override it and force a 
             isProductPlacement,
             hasModelReference,
             personIncluded,
-            productCount: generationProducts.length,
+            productCount: requestReferenceProducts.length,
           },
         });
         // IMPORTANT: Output Format must control the result aspect ratio.
