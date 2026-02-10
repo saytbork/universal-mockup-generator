@@ -734,7 +734,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const lightingRigOverrideText = (() => {
     const rig = String((state as any).lightingRig || '').trim();
     if (!rig) return '';
-    return `Lighting rig: ${rig}.`;
+    return `Lighting rig: ${rig}. Use this rig as the authoritative lighting setup.`;
   })();
 
   const lightingOverrideText = [lightingStyleOverrideText, lightingRigOverrideText]
@@ -745,6 +745,21 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     const finish = String((state as any).finish || '').trim();
     if (!finish) return '';
     return `Finish / Treatment: ${finish}. Keep this treatment consistent across the whole scene.`;
+  })();
+
+  const proPhotographerLockText = (() => {
+    if (!Boolean((state as any).proMode)) return '';
+    const lens = String((state as any).lens || '').trim();
+    const rig = String((state as any).lightingRig || '').trim();
+    const finish = String((state as any).finish || '').trim();
+    if (!lens && !rig && !finish) return '';
+    return [
+      'PRO PHOTOGRAPHER MODE (LOCKED):',
+      lens ? `Lens=${lens};` : '',
+      rig ? `Lighting Rig=${rig};` : '',
+      finish ? `Finish=${finish};` : '',
+      'Treat these as locked user selections and do not substitute alternative lens, rig, or finish choices.'
+    ].filter(Boolean).join(' ');
   })();
 
   const creativityOverrideText = (() => {
@@ -880,6 +895,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       forceRotation: mapRotationToPrompt(state.rotation, uiRotationLabel),
       override: { text: cameraControlsTraceText },
     }),
+    proPhotographerLockText,
     finishOverrideText,
     creativityOverrideText,
     strictStudioBranding ? '' : buildMaterialsWithProfile(mode, randomizer, state.qualityProfile),

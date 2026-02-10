@@ -3830,7 +3830,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LIGHTING RIG</p>
                               <div className="flex flex-wrap gap-2">
                                 {([
-                                  { value: 'Three-Point Beauty', label: '3-Point Beauty Dish' },
+                                  { value: '3-Point Beauty Dish', label: '3-Point Beauty Dish' },
                                   { value: 'Softbox Wrap', label: 'Softbox Wrap' },
                                   { value: 'Hard Edge Gels', label: 'Hard Edge Gels' },
                                   { value: 'Backlit Acrylic', label: 'Backlit Acrylic' },
@@ -5612,9 +5612,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       productStore.setCameraSystem('mirrorless');
                     }
                     productStore.setCameraUiLabels({ cameraSystem: option });
-                    if (option === 'Macro lens') {
+                    if (!productStore.proMode && option === 'Macro lens') {
                       productStore.setLens('100mm Macro Prime');
-                    } else if (option === 'Telephoto compression') {
+                    } else if (!productStore.proMode && option === 'Telephoto compression') {
                       productStore.setLens('70-200mm Compression');
                     }
                     markSectionTouched('product-camera');
