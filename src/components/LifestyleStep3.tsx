@@ -2749,9 +2749,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             <div ref={photoModeSettingsRef} />
                             {photoModeHintVisible && (
                               <div className="rounded-lg border border-indigo-200/80 bg-indigo-50/80 px-3 py-2 text-[11px] text-indigo-800">
-                                <p className="font-semibold">Aqui puedes ajustar esta opcion: {photoModeHintMode || productStore.photoMode}</p>
+                                <p className="font-semibold">You can adjust this option here: {photoModeHintMode || productStore.photoMode}</p>
                                 {photoModeHintShowFirstTimeTip && (
-                                  <p className="text-indigo-700/90">Este aviso se oculta automaticamente en unos segundos.</p>
+                                  <p className="text-indigo-700/90">This hint will auto-dismiss in a few seconds.</p>
                                 )}
                               </div>
                             )}
