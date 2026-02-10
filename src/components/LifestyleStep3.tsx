@@ -2695,6 +2695,95 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               </div>
                             )}
 
+                            {productStore.presetTier === 'pro' && productStore.photoMode !== 'Hero Landing Page' && (
+                              <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-5">
+                                <div className="flex items-center justify-between gap-3">
+                                  <p className={GROUP_LABEL_CLASS}>PRO PHOTOGRAPHER MODE</p>
+                                  <Toggle
+                                    checked={productStore.proMode}
+                                    onCheckedChange={(next) => {
+                                      productStore.setProMode(next);
+                                      markSectionTouched('product-setup');
+                                    }}
+                                    aria-label="Pro photographer mode"
+                                  />
+                                </div>
+
+                                {productStore.proMode && (
+                                  <div className="space-y-4">
+                                    <div>
+                                      <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LENS</p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {[
+                                          '100mm Macro Prime', '50mm Product Prime', 'Tilt-Shift Hero',
+                                          'Ultra-Wide Stylized', 'Cinema Zoom', '70-200mm Compression',
+                                          '35mm Anamorphic Glow'
+                                        ].map(lens => (
+                                          <Chip
+                                            key={lens}
+                                            onClick={() => {
+                                              productStore.setLens(lens);
+                                              markSectionTouched('product-setup');
+                                            }}
+                                            selected={productStore.lens === lens}
+                                          >
+                                            {lens}
+                                          </Chip>
+                                        ))}
+                                      </div>
+                                    </div>
+
+                                    <div>
+                                      <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LIGHTING RIG</p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {([
+                                          { value: '3-Point Beauty Dish', label: '3-Point Beauty Dish' },
+                                          { value: 'Softbox Wrap', label: 'Softbox Wrap' },
+                                          { value: 'Hard Edge Gels', label: 'Hard Edge Gels' },
+                                          { value: 'Backlit Acrylic', label: 'Backlit Acrylic' },
+                                          { value: 'High-Speed Splash Rig', label: 'High-Speed Splash Rig' },
+                                          { value: 'Gradient Cyclorama', label: 'Gradient Cyclorama' },
+                                          { value: 'Prism Spotlight Duo', label: 'Prism Spotlight Duo' },
+                                        ] as const).map(({ value, label }) => (
+                                          <Chip
+                                            key={value}
+                                            onClick={() => {
+                                              productStore.setLightingRig(value);
+                                              markSectionTouched('product-setup');
+                                            }}
+                                            selected={productStore.lightingRig === value}
+                                          >
+                                            {label}
+                                          </Chip>
+                                        ))}
+                                      </div>
+                                    </div>
+
+                                    <div>
+                                      <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">FINISH / TREATMENT</p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {[
+                                          'High-Gloss Commercial', 'Film Grain Luxury', 'Matte Editorial',
+                                          'Hyperreal CGI Blend', 'Clinical Lab Polish', 'Vibrant Color Pop'
+                                        ].map(finish => (
+                                          <Chip
+                                            key={finish}
+                                            onClick={() => {
+                                              productStore.setFinish(finish);
+                                              markSectionTouched('product-setup');
+                                            }}
+                                            selected={productStore.finish === finish}
+                                          >
+                                            {finish}
+                                          </Chip>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
                             {productStore.photoMode === 'Hero Landing Page' && (
                               <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-5">
                                 {(() => {
@@ -4108,7 +4197,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   {productStore.presetTier === 'pro' && productStore.photoMode !== 'Hero Landing Page' && (
                     <>
                       {/* PRO PHOTOGRAPHER MODE */}
-                      <div className={SECTION_GROUP_CLASS}>
+                      <div className={`${SECTION_GROUP_CLASS} hidden`}>
                         <div className="flex items-center justify-between gap-3 mb-3">
                           <div>
                             <p className={GROUP_LABEL_CLASS}>PRO PHOTOGRAPHER MODE</p>
