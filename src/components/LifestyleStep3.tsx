@@ -2353,86 +2353,35 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               { label: 'Ring Light', value: 'ring-light' },
                             ];
 
-                            // Photo Modes that are primarily "effect worlds" (kept as selectable modes).
-                            const effectWorldOptions: Array<{ label: string; mode: PhotoMode }> = [
-                              { label: 'Acrylic Blocks', mode: 'Acrylic Blocks' },
+                            // Photo Mode is single-select across all groups.
+                            // Clean up legacy "effects:" overlays so switching modes doesn't keep injecting modifiers.
+                            const stripLegacyEffectSegments = (input: string): string => {
+                              const parts = String(input ?? '')
+                                .split('|')
+                                .map((p) => p.trim())
+                                .filter(Boolean);
+                              const blocked = ['effects:', 'fruit:', 'bed:'];
+                              return parts
+                                .filter((p) => !blocked.some((b) => p.toLowerCase().startsWith(b)))
+                                .join(' | ');
+                            };
+
+                            const applyPhotoMode = (mode: PhotoMode) => {
+                              productStore.setPhotoMode(mode);
+                              const cleaned = stripLegacyEffectSegments(productStore.props);
+                              if (cleaned !== productStore.props) productStore.setProps(cleaned);
+                              markSectionTouched('product-setup');
+                            };
+
+                            const specialEffectsOptions: Array<{ label: string; mode: PhotoMode }> = [
                               { label: 'Splash Shot', mode: 'Splash Shot' },
+                              { label: 'Acrylic Blocks', mode: 'Acrylic Blocks' },
                               { label: 'Foam & Texture', mode: 'Foam & Texture' },
-                              { label: 'Underwater Split', mode: 'Underwater Split' },
                               { label: 'Gel Smear Editorial', mode: 'Gel Smear Editorial' },
-                              { label: 'Citrus Fresh Flat Lay', mode: 'Citrus Fresh Flat Lay' },
-                              { label: 'Stones & Crystals Flat Lay', mode: 'Stones & Crystals Flat Lay' },
-                              { label: 'Dried Citrus Earth', mode: 'Dried Citrus Earth' },
+                              { label: 'Underwater Split', mode: 'Underwater Split' },
+                              { label: 'Wet Rock Ripples', mode: 'Wet Rock Ripples' },
+                              { label: 'Botanical Water Garden', mode: 'Botanical Water Garden' },
                             ];
-
-                            // Multi-select modifiers (combinable with COMPOSITION + VISUAL STYLE).
-                            // These never switch Photo Mode; they only annotate the free-text PROPS string.
-                            const specialEffectModifiers = [
-                              'Splash Shot',
-                              'Beach Foam Splash',
-                              'Pool Water',
-                              'Cheers (Hands Clink)',
-                              'Ice Cubes',
-                              'Condensation Droplets',
-                              'Fruit Garnish / Citrus Accents',
-                              'Textured Bed / Scatter Base',
-                              'Floating Particles',
-                              'Acrylic Blocks',
-                              'Gel Smear',
-                              'Foam Texture',
-                            ] as const;
-
-                            const parseEffectsFromProps = (input: string): string[] => {
-                              const parts = String(input ?? '')
-                                .split('|')
-                                .map(part => part.trim())
-                                .filter(Boolean);
-                              const seg = parts.find(part => part.toLowerCase().startsWith('effects:'));
-                              if (!seg) return [];
-                              return seg
-                                .slice('effects:'.length)
-                                .split(',')
-                                .map(s => s.trim())
-                                .filter(Boolean);
-                            };
-
-                            const readPropsSegment = (input: string, key: string): string => {
-                              const needle = `${String(key).toLowerCase()}:`;
-                              const parts = String(input ?? '')
-                                .split('|')
-                                .map(part => part.trim())
-                                .filter(Boolean);
-                              const seg = parts.find(part => part.toLowerCase().startsWith(needle));
-                              if (!seg) return '';
-                              return seg.slice(needle.length).trim();
-                            };
-
-                            const upsertPropsSegment = (input: string, key: string, value: string): string => {
-                              const prefix = `${String(key).toLowerCase()}:`;
-                              const parts = String(input ?? '')
-                                .split('|')
-                                .map(part => part.trim())
-                                .filter(Boolean);
-                              const kept = parts.filter(part => !part.toLowerCase().startsWith(prefix));
-                              const v = String(value ?? '').trim();
-                              if (!v) return kept.join(' | ');
-                              return [...kept, `${prefix} ${v}`].join(' | ');
-                            };
-
-                            const upsertEffectsIntoProps = (input: string, effects: string[]) => {
-                              const prefix = 'effects:';
-                              const parts = String(input ?? '')
-                                .split('|')
-                                .map(part => part.trim())
-                                .filter(Boolean);
-                              const kept = parts.filter(part => !part.toLowerCase().startsWith(prefix));
-                              if (effects.length === 0) return kept.join(' | ');
-                              return [...kept, `${prefix} ${effects.join(', ')}`].join(' | ');
-                            };
-
-                            const selectedEffects = new Set(parseEffectsFromProps(productStore.props));
-                            const fruitCustom = readPropsSegment(productStore.props, 'fruit');
-                            const bedCustom = readPropsSegment(productStore.props, 'bed');
 
                             return (
                               <div className="p-5 space-y-7">
@@ -2450,26 +2399,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                             key={label}
                                             selected={productStore.photoMode === mode}
                                             onClick={() => {
-                                              productStore.setPhotoMode(mode);
-                                              markSectionTouched('product-setup');
-                                            }}
-                                          >
-                                            <span className="truncate max-w-full">{label}</span>
-                                          </Chip>
-                                        ))}
-                                      </div>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                      <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Effect Worlds</p>
-                                      <div className="flex flex-wrap gap-3">
-                                        {effectWorldOptions.map(({ label, mode }) => (
-                                          <Chip
-                                            key={label}
-                                            selected={productStore.photoMode === mode}
-                                            onClick={() => {
-                                              productStore.setPhotoMode(mode);
-                                              markSectionTouched('product-setup');
+                                              applyPhotoMode(mode);
                                             }}
                                           >
                                             <span className="truncate max-w-full">{label}</span>
@@ -2499,8 +2429,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                             key={label}
                                             selected={productStore.photoMode === mode}
                                             onClick={() => {
-                                              productStore.setPhotoMode(mode);
-                                              markSectionTouched('product-setup');
+                                              applyPhotoMode(mode);
                                             }}
                                           >
                                             <span className="truncate max-w-full">{label}</span>
@@ -2521,8 +2450,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                             key={label}
                                             selected={productStore.photoMode === mode}
                                             onClick={() => {
-                                              productStore.setPhotoMode(mode);
-                                              markSectionTouched('product-setup');
+                                              applyPhotoMode(mode);
                                             }}
                                           >
                                             <span className="truncate max-w-full">{label}</span>
@@ -2542,8 +2470,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                             key={label}
                                             selected={productStore.photoMode === mode}
                                             onClick={() => {
-                                              productStore.setPhotoMode(mode);
-                                              markSectionTouched('product-setup');
+                                              applyPhotoMode(mode);
                                             }}
                                           >
                                             <span className="truncate max-w-full">{label}</span>
@@ -2565,8 +2492,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                             key={label}
                                             selected={productStore.photoMode === mode}
                                             onClick={() => {
-                                              productStore.setPhotoMode(mode);
-                                              markSectionTouched('product-setup');
+                                              applyPhotoMode(mode);
                                             }}
                                           >
                                             <span className="truncate max-w-full">{label}</span>
@@ -2588,8 +2514,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                             key={label}
                                             selected={productStore.photoMode === mode}
                                             onClick={() => {
-                                              productStore.setPhotoMode(mode);
-                                              markSectionTouched('product-setup');
+                                              applyPhotoMode(mode);
                                             }}
                                           >
                                             <span className="truncate max-w-full">{label}</span>
@@ -2627,86 +2552,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     <p className="text-[11px] text-gray-500 mt-1">Optional visual enhancements.</p>
                                   </div>
                                   <div className="flex flex-wrap gap-3">
-                                    {specialEffectModifiers.map((label) => (
+                                    {specialEffectsOptions.map(({ label, mode }) => (
                                       <Chip
                                         key={label}
-                                        selected={selectedEffects.has(label)}
+                                        selected={productStore.photoMode === mode}
                                         onClick={() => {
-                                          const next = new Set(selectedEffects);
-                                          const isRemoving = next.has(label);
-                                          if (isRemoving) next.delete(label);
-                                          else next.add(label);
-
-                                          // Hero Landing Page (LOCKED) ignores props/effects in pure studio.
-                                          // If the user selects any Special Effect while in Hero Landing Page,
-                                          // automatically switch to a mode that supports props/effects.
-                                          if (!isRemoving && productStore.photoMode === 'Hero Landing Page') {
-                                            productStore.setPhotoMode('Color Pop Hero');
-                                          }
-                                          let nextProps = upsertEffectsIntoProps(productStore.props, Array.from(next));
-                                          if (label === 'Fruit Garnish / Citrus Accents' && !next.has(label)) {
-                                            nextProps = upsertPropsSegment(nextProps, 'fruit', '');
-                                          }
-                                          if (label === 'Textured Bed / Scatter Base' && !next.has(label)) {
-                                            nextProps = upsertPropsSegment(nextProps, 'bed', '');
-                                          }
-                                          productStore.setProps(nextProps);
-                                          markSectionTouched('product-setup');
+                                          applyPhotoMode(mode);
                                         }}
                                       >
                                         <span className="truncate max-w-full">{label}</span>
                                       </Chip>
                                     ))}
                                   </div>
-
-                                  {(selectedEffects.has('Fruit Garnish / Citrus Accents') ||
-                                    selectedEffects.has('Textured Bed / Scatter Base')) && (
-                                      <div className="space-y-4">
-                                        {selectedEffects.has('Fruit Garnish / Citrus Accents') && (
-                                          <div className="space-y-2">
-                                            <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">
-                                              Custom Fruit / Garnish (Optional)
-                                            </p>
-                                            <input
-                                              type="text"
-                                              value={fruitCustom}
-                                              onChange={(e) => {
-                                                const nextProps = upsertPropsSegment(productStore.props, 'fruit', e.target.value);
-                                                productStore.setProps(nextProps);
-                                                markSectionTouched('product-setup');
-                                              }}
-                                              placeholder="e.g., peach slices, orange wedges, mint leaves, lemon peel twist"
-                                              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
-                                            />
-                                            <p className="text-[11px] text-gray-500">
-                                              Adds a specific garnish note while keeping the default effect enabled.
-                                            </p>
-                                          </div>
-                                        )}
-
-                                        {selectedEffects.has('Textured Bed / Scatter Base') && (
-                                          <div className="space-y-2">
-                                            <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">
-                                              Custom Bed / Scatter (Optional)
-                                            </p>
-                                            <input
-                                              type="text"
-                                              value={bedCustom}
-                                              onChange={(e) => {
-                                                const nextProps = upsertPropsSegment(productStore.props, 'bed', e.target.value);
-                                                productStore.setProps(nextProps);
-                                                markSectionTouched('product-setup');
-                                              }}
-                                              placeholder="e.g., ice cubes + water droplets, coffee beans, sand + shells, citrus slices"
-                                              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
-                                            />
-                                            <p className="text-[11px] text-gray-500">
-                                              Describe what the product sits on or is surrounded by.
-                                            </p>
-                                          </div>
-                                        )}
-                                      </div>
-                                    )}
                                 </div>
                               </div>
                             );
