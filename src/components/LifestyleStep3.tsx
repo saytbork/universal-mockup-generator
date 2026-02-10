@@ -2358,29 +2358,26 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               )}
 
-              {/* PRESET TIER — Hidden when Photo Mode is active (Phase 1) */}
-              {productStore.environmentContext != null && (
-                <div className={SECTION_GROUP_CLASS}>
-                  <p className={GROUP_LABEL_CLASS}>PRESET TIER</p>
-                  <div className="flex gap-2">
-                    {(['basic', 'pro'] as const).map(tier => (
-                      <Chip
-                        key={tier}
-                        onClick={() => {
-                          productStore.setPresetTier(tier);
-                          markSectionTouched('product-setup');
-                        }}
-                        selected={productStore.presetTier === tier}
-                      >
-                        {tier === 'basic' ? 'Basic' : 'Pro'}
-                      </Chip>
-                    ))}
-                  </div>
-                  <p className="text-[11px] text-gray-500 mt-1">
-                    Pro unlocks advanced bundle modes and full prop density.
-                  </p>
+              <div className={SECTION_GROUP_CLASS}>
+                <p className={GROUP_LABEL_CLASS}>PRESET TIER</p>
+                <div className="flex gap-2">
+                  {(['basic', 'pro'] as const).map(tier => (
+                    <Chip
+                      key={tier}
+                      onClick={() => {
+                        productStore.setPresetTier(tier);
+                        markSectionTouched('product-setup');
+                      }}
+                      selected={productStore.presetTier === tier}
+                    >
+                      {tier === 'basic' ? 'Basic' : 'Pro'}
+                    </Chip>
+                  ))}
                 </div>
-              )}
+                <p className="text-[11px] text-gray-500 mt-1">
+                  Pro unlocks advanced controls including Pro Photographer Mode.
+                </p>
+              </div>
 
               {/* PHYSICAL PLACEMENT — Mandatory physics decision */}
               <div className={SECTION_GROUP_CLASS}>
