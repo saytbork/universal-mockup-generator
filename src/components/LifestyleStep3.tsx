@@ -2633,8 +2633,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                         selected={selectedEffects.has(label)}
                                         onClick={() => {
                                           const next = new Set(selectedEffects);
-                                          if (next.has(label)) next.delete(label);
+                                          const isRemoving = next.has(label);
+                                          if (isRemoving) next.delete(label);
                                           else next.add(label);
+
+                                          // Hero Landing Page (LOCKED) ignores props/effects in pure studio.
+                                          // If the user selects any Special Effect while in Hero Landing Page,
+                                          // automatically switch to a mode that supports props/effects.
+                                          if (!isRemoving && productStore.photoMode === 'Hero Landing Page') {
+                                            productStore.setPhotoMode('Color Pop Hero');
+                                          }
                                           let nextProps = upsertEffectsIntoProps(productStore.props, Array.from(next));
                                           if (label === 'Fruit Garnish / Citrus Accents' && !next.has(label)) {
                                             nextProps = upsertPropsSegment(nextProps, 'fruit', '');

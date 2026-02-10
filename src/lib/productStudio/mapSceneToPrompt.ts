@@ -280,9 +280,150 @@ function normalizePhotoMode(photoMode: string | null | undefined): PhotoModeKey 
   return PHOTO_MODE_MAP[key] ?? 'HERO_NEUTRAL';
 }
 
+function parsePropsInput(input: string | undefined | null): {
+  freeText: string;
+  effects: string[];
+  fruit: string;
+  bed: string;
+} {
+  const parts = String(input ?? '')
+    .split('|')
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  const freeTextParts: string[] = [];
+  let effects: string[] = [];
+  let fruit = '';
+  let bed = '';
+
+  for (const part of parts) {
+    const lower = part.toLowerCase();
+    if (lower.startsWith('effects:')) {
+      const raw = part.slice('effects:'.length).trim();
+      const parsed = raw
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      effects = parsed;
+      continue;
+    }
+    if (lower.startsWith('fruit:')) {
+      fruit = part.slice('fruit:'.length).trim();
+      continue;
+    }
+    if (lower.startsWith('bed:')) {
+      bed = part.slice('bed:'.length).trim();
+      continue;
+    }
+    freeTextParts.push(part);
+  }
+
+  return { freeText: freeTextParts.join(' | '), effects, fruit, bed };
+}
+
+function buildEffectsDirective(effects: string[], randomizer: ReturnType<typeof createRandomizer>, extras: { fruit: string; bed: string }): string {
+  if (!effects || effects.length === 0) return '';
+
+  const effectTextFor = (label: string): string => {
+    const key = String(label || '').trim().toLowerCase();
+    if (!key) return '';
+
+    if (key === 'splash shot') {
+      const classic = randomizer.pick([
+        'classic crown splash with a clean upward sheet and crisp droplet scatter',
+        'diagonal splash sheet behind the product with frozen droplets in the air',
+        'base-impact splash that wraps partially around the product with high-speed droplet separation',
+      ]);
+      return [
+        `SPLASH (CLASSIC): ${classic}.`,
+        'High-speed flash look: frozen motion, razor-sharp droplets, physically coherent refraction.',
+        'Keep label/logo zone readable: do not cover the typography with water or foam.',
+        'No CGI splash rings, no chaotic foam clutter, no melted-looking liquid blobs.',
+      ].join(' ');
+    }
+
+    if (key === 'beach foam splash') {
+      return [
+        'BEACH FOAM: controlled sea-foam splash texture near the base with clean spray droplets.',
+        'Keep it premium and minimal; do not bury the product in foam.',
+      ].join(' ');
+    }
+
+    if (key === 'pool water') {
+      return [
+        'POOL WATER: clear turquoise water context with ripples and subtle caustic highlights.',
+        'Add a few suspended droplets; keep product sharp and readable.',
+      ].join(' ');
+    }
+
+    if (key === 'cheers (hands clink)') {
+      return [
+        'CHEERS: two hands clinking the product (hands only, no faces), flash-frozen droplets and natural grip/contact.',
+        'No identity details; focus stays on product branding and label truth.',
+      ].join(' ');
+    }
+
+    if (key === 'ice cubes') {
+      return [
+        'ICE: realistic ice cubes with wet reflections, meltwater droplets, and physically plausible translucency.',
+        'Avoid fake glassy cubes or plastic-looking ice.',
+      ].join(' ');
+    }
+
+    if (key === 'condensation droplets') {
+      return [
+        'CONDENSATION: micro-droplets and streaks on the container and nearby surface, with realistic specular highlights.',
+        'Do not distort or blur label typography.',
+      ].join(' ');
+    }
+
+    if (key === 'fruit garnish / citrus accents') {
+      const detail = String(extras.fruit || '').trim();
+      return detail
+        ? `GARNISH: ${detail}. Keep garnish secondary and physically plausible (fresh cut, natural moisture, correct scale).`
+        : 'GARNISH: citrus or fruit accents as secondary styling (slices, peels, wedges), premium and minimal.';
+    }
+
+    if (key === 'textured bed / scatter base') {
+      const detail = String(extras.bed || '').trim();
+      return detail
+        ? `SCATTER BED: ${detail}. Keep it controlled, premium, and not overpowering the product.`
+        : 'SCATTER BED: a controlled textured bed/scatter around the base (e.g., ice + droplets, beans, sand/shells, stones), not overpowering the product.';
+    }
+
+    if (key === 'floating particles') {
+      return 'FLOATING PARTICLES: subtle suspended particles/bokeh sparkle (mist, spray micro-droplets, dust motes), premium and controlled.';
+    }
+
+    if (key === 'acrylic blocks') {
+      return 'ACRYLIC: add minimal acrylic risers/pedestals with crisp refraction, clean edges, and premium reflections.';
+    }
+
+    if (key === 'gel smear') {
+      return 'GEL SMEAR: editorial glossy gel smear as a controlled styling accent on the surface/background; product remains clean and readable.';
+    }
+
+    if (key === 'foam texture' || key === 'foam & texture') {
+      return 'FOAM TEXTURE: controlled foam/bubble texture accents; keep it minimal and physically coherent, never obscuring label.';
+    }
+
+    return `EFFECT: ${label}.`;
+  };
+
+  const lines = effects.map(effectTextFor).filter(Boolean);
+  if (lines.length === 0) return '';
+  return `SPECIAL EFFECTS: ${lines.join(' ')}`;
+}
+
 function buildSecondaryProps(mode: PhotoModeKey, randomizer: ReturnType<typeof createRandomizer>, suggestedProps?: string): string {
   if (suggestedProps && suggestedProps.trim().length > 0) {
-    return `Secondary props: ${suggestedProps}.`;
+    const parsed = parsePropsInput(suggestedProps);
+    const effectsDirective = buildEffectsDirective(parsed.effects, randomizer, { fruit: parsed.fruit, bed: parsed.bed });
+    const parts = [
+      parsed.freeText ? `Secondary props: ${parsed.freeText}.` : '',
+      effectsDirective,
+    ].filter(Boolean);
+    return parts.join(' ');
   }
   const options = SECONDARY_PROPS_BY_MODE[mode];
   if (!options || options.length === 0) return '';
@@ -593,7 +734,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     state.photoMode === 'Dried Citrus Earth';
   const effectiveSuggestedProps =
     supportsCustomIngredientsMode && customIngredientsText
-      ? customIngredientsText
+      ? [customIngredientsText, state.props].filter(Boolean).join(' | ')
       : state.props;
 
   const photoModeResult = buildPhotoModePrompt(state.photoMode as PhotoMode, {

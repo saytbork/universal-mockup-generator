@@ -194,19 +194,19 @@ export function buildSplashShotScene({ randomizer }: SceneBuildInput): { scene: 
   ]);
 
   const modeDescriptions: Record<SplashMode, string> = {
-    IMPACT_SPLASH: 'Hero product impacts liquid with a single dominant upward arc and frozen high-speed droplets.',
-    RISING_SPLASH: 'Hero product emerges from liquid with a controlled wrapping splash and campaign-grade asymmetry.',
-    SIDE_DISPLACEMENT_SPLASH: 'Hero product displaces liquid laterally with directional force and clean droplet separation.'
+    IMPACT_SPLASH: 'Classic impact splash: a clean crown/sheet splash with a dominant upward arc and crisp droplet scatter.',
+    RISING_SPLASH: 'Classic rising splash: product emerges with a controlled wrapping splash sheet and campaign-grade asymmetry.',
+    SIDE_DISPLACEMENT_SPLASH: 'Classic side displacement: directional splash sheet with high-speed droplet separation and clean arcs.'
   };
 
   return {
     splashMode,
     scene: [
-      'Premium advertising splash setup with physically coherent liquid behavior.',
+      'Premium advertising splash setup with physically coherent liquid behavior (classic high-speed splash aesthetic).',
       modeDescriptions[splashMode],
-      'Physics must make sense; no circular decorative splash rings and no chaotic foam clutter.',
-      'Label and logo zone remain readable and unobstructed.',
-      'Surface and surrounding elements remain premium, minimal, and controlled.'
+      'High-speed flash look: frozen motion, razor-sharp droplets, realistic refraction and specular highlights.',
+      'Keep label and logo zone readable and unobstructed; do not cover typography with water/foam.',
+      'Avoid CGI-looking splash rings, melted blobs, or chaotic foam clutter. Keep it clean, premium, and controlled.'
     ].join(' ')
   };
 }
