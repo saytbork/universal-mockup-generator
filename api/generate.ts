@@ -315,8 +315,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const preserveReferenceImage = Boolean(body.preserveReferenceImage);
   const serverApiKey = String(process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || '').trim();
   const clientApiKey = typeof body.apiKey === 'string' ? body.apiKey.trim() : '';
-  // Keep server key authoritative (same safe behavior as stable flow).
+  // Server key stays primary; client key is a safe fallback when server key is stale/invalid.
   const apiKey = serverApiKey || clientApiKey;
+  const fallbackApiKey = serverApiKey && clientApiKey && clientApiKey !== serverApiKey ? clientApiKey : '';
   const apiKeySource = serverApiKey ? 'server-env' : (clientApiKey ? 'client-body' : 'missing');
   const rawDebugMeta = body?.debugMeta && typeof body.debugMeta === 'object' ? body.debugMeta : null;
   const debugMeta = rawDebugMeta
@@ -371,10 +372,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  const ai = new GoogleGenAI({ apiKey, apiVersion: 'v1beta' });
+  const isApiKeyInvalidError = (error: unknown) => {
+    const text = JSON.stringify(error || {}).toLowerCase();
+    return text.includes('api_key_invalid') || text.includes('api key not valid');
+  };
 
   try {
-    const generateWithRetry = async () => {
+    const generateWithRetry = async (activeApiKey: string) => {
+      const ai = new GoogleGenAI({ apiKey: activeApiKey, apiVersion: 'v1beta' });
       const maxAttempts = 4;
       for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
         try {
@@ -418,7 +423,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new Error('Image generation failed after retries.');
     };
 
-    const response = await generateWithRetry();
+    let response;
+    try {
+      response = await generateWithRetry(apiKey);
+    } catch (error) {
+      if (fallbackApiKey && isApiKeyInvalidError(error)) {
+        console.warn('[GENAI] Primary API key invalid; retrying with client fallback key.');
+        response = await generateWithRetry(fallbackApiKey);
+      } else {
+        throw error;
+      }
+    }
     const responseParts = response?.candidates?.[0]?.content?.parts ?? [];
     const inlineImage = responseParts.find((part: any) => part?.inlineData?.data) as { inlineData?: { data?: string } } | undefined;
     const encodedImage = inlineImage?.inlineData?.data;
