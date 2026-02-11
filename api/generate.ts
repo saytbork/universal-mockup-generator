@@ -313,7 +313,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const model = typeof body.model === 'string' && body.model.trim() ? body.model.trim() : 'gemini-2.0-flash-preview-image-generation';
   const aspectRatio = typeof body.aspectRatio === 'string' ? body.aspectRatio : '1:1';
   const preserveReferenceImage = Boolean(body.preserveReferenceImage);
-  const apiKey = typeof body.apiKey === 'string' && body.apiKey.trim() ? body.apiKey.trim() : process.env.GOOGLE_API_KEY;
+  const serverApiKey = String(process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || '').trim();
+  const clientApiKey = typeof body.apiKey === 'string' ? body.apiKey.trim() : '';
+  // Keep server key authoritative (same safe behavior as stable flow).
+  const apiKey = serverApiKey || clientApiKey;
+  const apiKeySource = serverApiKey ? 'server-env' : (clientApiKey ? 'client-body' : 'missing');
   const rawDebugMeta = body?.debugMeta && typeof body.debugMeta === 'object' ? body.debugMeta : null;
   const debugMeta = rawDebugMeta
     ? {
@@ -333,6 +337,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(400).json({ error: 'Missing API key' });
     return;
   }
+  console.log(`[GENAI] API key source=${apiKeySource}`);
   if (!parts || parts.length === 0) {
     await addDebugLog('generate.reject.missing_parts', {
       aspectRatio,
