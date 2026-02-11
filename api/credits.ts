@@ -10,6 +10,8 @@ import {
 const DEFAULT_INVITE_BONUS_CREDITS = 10;
 const DEFAULT_TRIAL_COUPON_CODE = '2999';
 const DEFAULT_TRIAL_COUPON_BONUS_CREDITS = 30;
+const DEFAULT_TESTER_UPGRADE_CODE = '8714';
+const DEFAULT_TESTER_UPGRADE_BONUS_CREDITS = 99999;
 
 const parseBonus = (value: string | undefined, fallback: number) => {
   const parsed = Number(value || fallback);
@@ -61,10 +63,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return;
       }
       const requiredCode = process.env.INVITATION_CODE;
-      const testerCode = process.env.TESTER_UPGRADE_CODE || '713371';
+      const testerCode = process.env.TESTER_UPGRADE_CODE || DEFAULT_TESTER_UPGRADE_CODE;
       const trialCouponCode = process.env.TRIAL_COUPON_CODE || DEFAULT_TRIAL_COUPON_CODE;
       const inviteBonus = parseBonus(process.env.INVITATION_BONUS_CREDITS, DEFAULT_INVITE_BONUS_CREDITS);
       const trialCouponBonus = parseBonus(process.env.TRIAL_COUPON_BONUS_CREDITS, DEFAULT_TRIAL_COUPON_BONUS_CREDITS);
+      const testerBonus = parseBonus(process.env.TESTER_UPGRADE_BONUS_CREDITS, DEFAULT_TESTER_UPGRADE_BONUS_CREDITS);
 
       const matchesRequired = requiredCode ? normalized === requiredCode : false;
       const matchesTester = normalized === testerCode;
@@ -73,7 +76,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         res.status(400).json({ error: 'Invalid code' });
         return;
       }
-      const bonusCredits = matchesTrialCoupon ? trialCouponBonus : inviteBonus;
+      const bonusCredits = matchesTester
+        ? testerBonus
+        : (matchesTrialCoupon ? trialCouponBonus : inviteBonus);
       const user = await getUser(email);
       const plan = String(user.plan ?? 'free').trim().toLowerCase();
       if (plan !== 'free') {
