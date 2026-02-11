@@ -175,12 +175,12 @@ export default function EcommerceStep3({
 
       <section className="rounded-xl border border-gray-200 bg-whiteTint p-4 space-y-4">
         <p className="text-xs uppercase tracking-[0.35em] text-gray-600">Live Preview</p>
-        <div className="rounded-xl border border-gray-200 bg-whiteTint overflow-hidden">
+        <div className="aspect-square rounded-xl border border-gray-200 bg-whiteTint overflow-hidden">
           {activeSpec && hasPreviewImage && !overlayBlockReason ? (
             <EcommerceOverlaySvg
               baseImageUrl={activeBaseImageUrl}
               spec={activeSpec}
-              className="w-full h-auto block"
+              className="w-full h-full block"
               ref={svgRef}
             />
           ) : activeSpec && hasPreviewImage && overlayBlockReason ? (

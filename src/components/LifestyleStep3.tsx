@@ -8444,12 +8444,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <div className="flex flex-wrap gap-3">
                           {productStore.products.slice(0, 5).map((product, index) => (
                             <div key={product.id} className="w-28 text-center text-xs text-gray-600">
-                              <div className="relative h-28 w-full overflow-hidden rounded-2xl border border-gray-200 bg-white">
+                              <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-gray-200">
                                 {product.imageUrl ? (
                                   <img
                                     src={product.imageUrl}
                                     alt={product.name || `Product ${index + 1}`}
-                                    className="h-full w-full object-contain"
+                                    className="absolute inset-0 h-full w-full object-cover"
                                   />
                                 ) : (
                                   <div className="absolute inset-0 flex items-center justify-center bg-white text-[10px] font-semibold text-gray-500">
