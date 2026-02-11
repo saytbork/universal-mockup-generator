@@ -324,7 +324,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const model = typeof body.model === 'string' && body.model.trim() ? body.model.trim() : 'gemini-2.0-flash-preview-image-generation';
   const aspectRatio = typeof body.aspectRatio === 'string' ? body.aspectRatio : '1:1';
   const preserveReferenceImage = Boolean(body.preserveReferenceImage);
-  const apiKey = typeof body.apiKey === 'string' && body.apiKey.trim() ? body.apiKey.trim() : process.env.GOOGLE_API_KEY;
+  const apiKey = String(process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || '').trim();
+  const bodyApiKeyLength = typeof body.apiKey === 'string' ? body.apiKey.trim().length : 0;
+  console.log('[GENAI] GOOGLE_API_KEY length:', String(process.env.GOOGLE_API_KEY || '').trim().length);
+  console.log('[GENAI] GEMINI_API_KEY length:', String(process.env.GEMINI_API_KEY || '').trim().length);
+  console.log('[GENAI] body.apiKey length (ignored):', bodyApiKeyLength);
   const rawDebugMeta = body?.debugMeta && typeof body.debugMeta === 'object' ? body.debugMeta : null;
   const debugMeta = rawDebugMeta
     ? {
@@ -341,7 +345,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       model,
       promptHash: debugMeta?.promptHash,
     }, email);
-    res.status(400).json({ error: 'Missing API key' });
+    res.status(500).json({ error: 'GOOGLE_API_KEY not configured' });
     return;
   }
   if (!parts || parts.length === 0) {
