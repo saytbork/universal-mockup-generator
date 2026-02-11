@@ -63,14 +63,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return;
       }
       const requiredCode = process.env.INVITATION_CODE;
-      const testerCode = process.env.TESTER_UPGRADE_CODE || DEFAULT_TESTER_UPGRADE_CODE;
+      const testerCode = String(process.env.TESTER_UPGRADE_CODE || '').trim();
       const trialCouponCode = process.env.TRIAL_COUPON_CODE || DEFAULT_TRIAL_COUPON_CODE;
       const inviteBonus = parseBonus(process.env.INVITATION_BONUS_CREDITS, DEFAULT_INVITE_BONUS_CREDITS);
       const trialCouponBonus = parseBonus(process.env.TRIAL_COUPON_BONUS_CREDITS, DEFAULT_TRIAL_COUPON_BONUS_CREDITS);
       const testerBonus = parseBonus(process.env.TESTER_UPGRADE_BONUS_CREDITS, DEFAULT_TESTER_UPGRADE_BONUS_CREDITS);
 
       const matchesRequired = requiredCode ? normalized === requiredCode : false;
-      const matchesTester = normalized === testerCode;
+      const matchesTester = normalized === DEFAULT_TESTER_UPGRADE_CODE || (testerCode.length > 0 && normalized === testerCode);
       const matchesTrialCoupon = normalized === trialCouponCode;
       if (!matchesRequired && !matchesTester && !matchesTrialCoupon) {
         res.status(400).json({ error: 'Invalid code' });
