@@ -613,7 +613,7 @@ export type BrandPreset = {
 // ============================================================================
 
 
-export type ProductPlacement = 'surface' | 'held' | 'supported' | 'air';
+export type ProductPlacement = 'surface' | 'held' | 'supported' | 'air' | 'floating';
 
 export type ProductStudioState = {
     products: ProductAsset[];

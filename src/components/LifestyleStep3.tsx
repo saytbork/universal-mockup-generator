@@ -19,6 +19,7 @@ import { Toggle } from './ui/Toggle';
 import { useProductStudioStore, PREBUILT_BUNDLES, BRAND_PRESETS } from '@/lib/productStudio/store';
 import type { ProductStudioState, CameraAngle, CameraDistance, CameraRotation, CameraFraming, CreativeTheme, PaletteSource, PropDensity, BlankSpaceSide, EnvironmentMacro, Lighting, ProductType, ProductPlacement, MicroPlace, CompositionMode, SurfaceBase, ProductScale, ProductSpacing, LightStyle, NegativeSpace, IngredientStackLayout, ProductStateMotion, PhotoMode, OutputQualityProfile } from '@/lib/productStudio/types';
 import { validateProductStudioState } from '@/lib/productStudio/validator';
+import { getPlacementOptionsForContext, resolvePlacement } from '@/lib/productStudio/placementResolver';
 import { normalizeOption } from '../system/normalizeOptions';
 import { PHOTO_MODE_SCHEMAS } from '@/lib/productStudio/photoModeSchema';
 import type { EnvironmentPhotoModeSchema } from '@/lib/productStudio/types';
@@ -1221,6 +1222,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const [personBAdvancedOpen, setPersonBAdvancedOpen] = useState(false);
   const [productEnvironmentAdvancedOpen, setProductEnvironmentAdvancedOpen] = useState(false);
   const [productEnvironmentShowAllMacros, setProductEnvironmentShowAllMacros] = useState(false);
+  const [placementCorrectionMessage, setPlacementCorrectionMessage] = useState<string | null>(null);
 
   // ============================================================================
   // PHASE 3: PRODUCT STUDIO STORE (SINGLE SOURCE OF TRUTH FOR PRODUCT MODE)
@@ -1234,6 +1236,40 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     if (typeof entry.ts !== 'number') return null;
     return Date.now() - entry.ts < 4000 ? entry.message : null;
   };
+  const placementPhotoType = productStore.environmentContext != null ? 'environment' : 'photo-studio';
+  const placementOptions = getPlacementOptionsForContext(
+    placementPhotoType,
+    String(productStore.photoMode || '')
+  );
+  const placementResolution = resolvePlacement(
+    placementPhotoType,
+    String(productStore.photoMode || ''),
+    productStore.placement || 'surface'
+  );
+
+  useEffect(() => {
+    if (!isProductMode) return;
+    if (!placementResolution.corrected) return;
+    if (placementResolution.resolvedPlacement === productStore.placement) return;
+    productStore.setPlacement(placementResolution.resolvedPlacement);
+    setPlacementCorrectionMessage(
+      `Placement auto-corrected to ${placementResolution.label} for the current Photo Type/Photo Mode context.`
+    );
+  }, [
+    isProductMode,
+    placementResolution.corrected,
+    placementResolution.label,
+    placementResolution.resolvedPlacement,
+    productStore,
+    productStore.placement,
+    placementPhotoType,
+  ]);
+
+  useEffect(() => {
+    if (!placementCorrectionMessage) return;
+    const timer = window.setTimeout(() => setPlacementCorrectionMessage(null), 3500);
+    return () => window.clearTimeout(timer);
+  }, [placementCorrectionMessage]);
 
   useEffect(() => {
     if (!isProductMode) return;
@@ -2283,32 +2319,33 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               )}
 
-              {/* PHYSICAL PLACEMENT — Mandatory physics decision */}
+              {/* PHYSICAL PLACEMENT — Contextual to Photo Type + Photo Mode */}
               <div className={SECTION_GROUP_CLASS}>
                 <p className={GROUP_LABEL_CLASS}>PHYSICAL PLACEMENT</p>
                 <div className="flex flex-wrap gap-2">
-                  {[
-                    { id: 'surface', label: 'Surface', desc: 'Rests on a physical surface' },
-                    { id: 'held', label: 'Held', desc: 'Held by human hands' },
-                    { id: 'supported', label: 'Supported', desc: 'On a stand or tray' },
-                    { id: 'air', label: 'Air / Suspended', desc: 'Abstract studio air' }
-                  ].map(opt => (
+                  {placementOptions.map(opt => (
                     <Chip
                       key={opt.id}
                       onClick={() => {
+                        if (!opt.enabled) return;
                         productStore.setPlacement(opt.id as any);
+                        setPlacementCorrectionMessage(null);
                         markSectionTouched('product-setup');
                       }}
-                      selected={productStore.placement === opt.id}
-                      tooltip={opt.desc}
+                      selected={placementResolution.resolvedPlacement === opt.id}
+                      disabled={!opt.enabled}
+                      tooltip={opt.enabled ? opt.description : `${opt.description} ${opt.disabledReason || ''}`.trim()}
                     >
                       {opt.label}
                     </Chip>
                   ))}
                 </div>
                 <p className="text-[11px] text-gray-500 mt-2">
-                  Mandatory physics decision: resolve product placement before environment or camera.
+                  Placement is resolved contextually from Photo Type + Photo Mode to keep physical coherence.
                 </p>
+                {placementCorrectionMessage && (
+                  <InterpretationNote message={placementCorrectionMessage} />
+                )}
               </div>
 
               {/* ============================================================

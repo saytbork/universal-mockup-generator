@@ -24,6 +24,7 @@ import { buildMaterialsWithProfile } from './promptParts/materialsBuilders';
 import { buildRandomizationRules, createRandomizer } from './promptParts/randomizationRules';
 import { buildQualityEnforcers } from './promptParts/qualityEnforcers';
 import { buildUltraRealStrictBlock } from './promptParts/ultraRealStrict';
+import { resolvePlacement } from './placementResolver';
 
 const titleCaseFromKebab = (value: string): string =>
   value
@@ -477,38 +478,6 @@ function buildSecondaryProps(mode: PhotoModeKey, randomizer: ReturnType<typeof c
   return `Secondary props: ${picks.join(', ')}.`;
 }
 
-function buildPlacementDirective(state: ProductStudioState): string {
-  const effectivePlacement = state.placement || 'surface';
-  const placement = String(effectivePlacement);
-  if (placement === 'supported') {
-    return [
-      'PLACEMENT (MANDATORY): Supported.',
-      'Product is on a visible stand, tray, pedestal, or support structure.',
-      'Support must read as physically real with contact shadows and stable balance.',
-      'No invisible levitation. No hand-held pose unless interaction explicitly requires it.'
-    ].join(' ');
-  }
-  if (placement === 'air') {
-    return [
-      'PLACEMENT (MANDATORY): Air / Suspended.',
-      'Product is suspended in controlled air composition with realistic gravity cues.',
-      'No surface contact and no accidental tabletop grounding.',
-      'Use physically plausible anchor shadows and coherent perspective.'
-    ].join(' ');
-  }
-  if (placement === 'held') {
-    return [
-      'PLACEMENT (MANDATORY): Held.',
-      'Product must be clearly held by hand(s) with realistic contact and grip pressure.',
-      'No unsupported floating product state.'
-    ].join(' ');
-  }
-  return [
-    'PLACEMENT (MANDATORY): Surface.',
-    'Product rests on a real surface with grounded contact and physically coherent shadows.'
-  ].join(' ');
-}
-
 function extractModeSpecificDynamicSettings(state: ProductStudioState): Record<string, string> | undefined {
   const mode = state.photoMode as PhotoMode;
   const cfg = state.photoModeConfig;
@@ -820,6 +789,14 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     supportsCustomIngredientsMode && customIngredientsText
       ? [state.props, customIngredientsText].filter(Boolean).join(' | ')
       : state.props;
+  const placementResolution = resolvePlacement(
+    environmentModeActive ? 'environment' : 'photo-studio',
+    String(state.photoMode || ''),
+    state.placement || 'surface'
+  );
+  if (placementResolution.corrected) {
+    console.log('[PLACEMENT] AUTO_CORRECTED =', `${placementResolution.requestedPlacement} -> ${placementResolution.resolvedPlacement}`);
+  }
 
   const isWaterStabilityMode =
     state.photoMode === 'Beach Foam Splash' || state.photoMode === 'Pool Water';
@@ -1319,7 +1296,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     beachFoamProfileText,
     photoModeEnvironmentAdaptationText,
     scene,
-    buildPlacementDirective(state),
+    placementResolution.promptFragment,
     viewpointDirectiveText,
     environmentModeActive ? '' : adaptedPhotoModeModifiers,
     mode === 'INGREDIENT_STACK' ||
