@@ -968,12 +968,42 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   );
   const [openUgcLayerId, setOpenUgcLayerId] = useState<UGCLayerField | null>(null);
   const [touchedSections, setTouchedSections] = useState<Set<string>>(new Set());
+  const photoModeSettingsRef = useRef<HTMLDivElement | null>(null);
+  const photoModeHintTimerRef = useRef<number | null>(null);
+  const [photoModeHintVisible, setPhotoModeHintVisible] = useState(false);
+  const [photoModeHintMode, setPhotoModeHintMode] = useState<PhotoMode | null>(null);
   const markSectionTouched = useCallback((section: string) => {
     setTouchedSections(prev => {
       const newSet = new Set(prev);
       newSet.add(section);
       return newSet;
     });
+  }, []);
+  const scrollToPhotoModeSettings = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    window.requestAnimationFrame(() => {
+      window.setTimeout(() => {
+        photoModeSettingsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 40);
+    });
+  }, []);
+  const showPhotoModeSettingsHint = useCallback((mode: PhotoMode) => {
+    if (typeof window === 'undefined') return;
+    setPhotoModeHintMode(mode);
+    setPhotoModeHintVisible(true);
+    if (photoModeHintTimerRef.current != null) {
+      window.clearTimeout(photoModeHintTimerRef.current);
+    }
+    photoModeHintTimerRef.current = window.setTimeout(() => {
+      setPhotoModeHintVisible(false);
+    }, 2600);
+  }, []);
+  useEffect(() => {
+    return () => {
+      if (photoModeHintTimerRef.current != null && typeof window !== 'undefined') {
+        window.clearTimeout(photoModeHintTimerRef.current);
+      }
+    };
   }, []);
   // Removed duplicate isCreatorPro declaration here, managed near top.
   const initialValues: Step3Values = {
@@ -2379,6 +2409,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               const cleaned = stripLegacyEffectSegments(productStore.props);
                               if (cleaned !== productStore.props) productStore.setProps(cleaned);
                               markSectionTouched('product-setup');
+                              scrollToPhotoModeSettings();
+                              showPhotoModeSettingsHint(mode);
                             };
 
                             const CHIP_TOOLTIPS: Partial<Record<PhotoMode, string>> = {
@@ -2642,6 +2674,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           })()}
 
                           <div className="mt-8 space-y-5">
+                            <div ref={photoModeSettingsRef} />
+                            {photoModeHintVisible && (
+                              <div className="rounded-lg border border-indigo-200/80 bg-indigo-50/80 px-3 py-2 text-[11px] text-indigo-800">
+                                <p className="font-semibold">You can adjust this option here: {photoModeHintMode || productStore.photoMode}</p>
+                                <p className="text-indigo-700/90">This hint will auto-dismiss in a few seconds.</p>
+                              </div>
+                            )}
                             {productStore.photoMode === 'Hero Landing Page' && (
                               <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-5">
                                 {(() => {
