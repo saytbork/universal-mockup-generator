@@ -500,6 +500,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       subscription_remaining: user.subscriptionRemaining ?? 0,
     });
   } catch (error: any) {
+    const rawErrorText = JSON.stringify(error || {}).toLowerCase();
+    const isApiKeyInvalid =
+      rawErrorText.includes('api_key_invalid') ||
+      rawErrorText.includes('api key not valid');
+    if (isApiKeyInvalid) {
+      console.error('[GENAI] API_KEY_INVALID from server key in this deployment', {
+        googleApiKeyLength: String(process.env.GOOGLE_API_KEY || '').trim().length,
+        vercelEnv,
+      });
+      res.status(500).json({
+        error: 'SERVER_GOOGLE_API_KEY_INVALID (Preview env key is invalid or restricted)',
+      });
+      return;
+    }
     await addDebugLog('generate.error', {
       aspectRatio,
       model,
