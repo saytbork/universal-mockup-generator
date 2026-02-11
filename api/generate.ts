@@ -501,9 +501,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   } catch (error: any) {
     const rawErrorText = JSON.stringify(error || {}).toLowerCase();
+    const messageText = String(error?.message || '').toLowerCase();
     const isApiKeyInvalid =
       rawErrorText.includes('api_key_invalid') ||
-      rawErrorText.includes('api key not valid');
+      rawErrorText.includes('api key not valid') ||
+      messageText.includes('api_key_invalid') ||
+      messageText.includes('api key not valid');
     if (isApiKeyInvalid) {
       console.error('[GENAI] API_KEY_INVALID from server key in this deployment', {
         googleApiKeyLength: String(process.env.GOOGLE_API_KEY || '').trim().length,
