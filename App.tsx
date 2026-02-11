@@ -998,33 +998,6 @@ const downscaleDataUrlToJpeg = async (
   return { base64, mimeType: 'image/jpeg' };
 };
 
-const downscaleDataUrlToPng = async (
-  dataUrl: string,
-  opts: { maxLongEdge: number }
-): Promise<{ base64: string; mimeType: string }> => {
-  const img = await loadImageFromUrl(dataUrl);
-  const longEdge = Math.max(img.naturalWidth, img.naturalHeight);
-  if (!longEdge) {
-    throw new Error('Source image has invalid dimensions.');
-  }
-  const scale = Math.min(1, opts.maxLongEdge / longEdge);
-  const width = Math.max(1, Math.round(img.naturalWidth * scale));
-  const height = Math.max(1, Math.round(img.naturalHeight * scale));
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) {
-    throw new Error('Canvas context is unavailable for scaling.');
-  }
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(img, 0, 0, width, height);
-  const url = canvas.toDataURL('image/png');
-  const [, base64] = url.split(';base64,');
-  return { base64, mimeType: 'image/png' };
-};
-
 const parseAspectRatio = (ratio: string): { w: number; h: number } | null => {
   const raw = String(ratio || '').trim();
   const match = raw.match(/^(\d+(?:\.\d+)?)\s*:\s*(\d+(?:\.\d+)?)$/);
@@ -1403,9 +1376,6 @@ const maybeDownscaleInlineImage = async (
   if (!base64) return { base64, mimeType };
   if (base64.length <= opts.maxBase64Length) return { base64, mimeType };
   const dataUrl = `data:${mimeType};base64,${base64}`;
-  if (mimeType === 'image/png') {
-    return downscaleDataUrlToPng(dataUrl, { maxLongEdge: opts.maxLongEdge });
-  }
   return downscaleDataUrlToJpeg(dataUrl, { maxLongEdge: opts.maxLongEdge, quality: opts.quality });
 };
 
@@ -5365,14 +5335,14 @@ If the model attempts to create a scene or environment, override it and force a 
             });
             // Force reference images to match the selected Output Format aspect ratio.
             // Even with an explicit `aspectRatio` request, some models bias toward the reference image dimensions.
-            const normalized = await coverCropDataUrlToAspectRatio(
+            const normalized = await letterboxDataUrlToAspectRatio(
               `data:${resized.mimeType};base64,${resized.base64}`,
               aspectRatio,
               {
                 maxLongEdge: isProductPlacement
                   ? (isMultiProductRequest ? 1440 : 3072)
                   : (isMultiProductRequest ? 1024 : 2048),
-                background: null,
+                background: '#FFFFFF',
                 mimeType: (isMultiProductRequest ? 'image/jpeg' : (resized.mimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png')) as 'image/jpeg' | 'image/png',
                 quality: isMultiProductRequest ? 0.9 : (isProductPlacement ? 0.99 : 0.96),
               }
@@ -5776,12 +5746,12 @@ If the model attempts to create a scene or environment, override it and force a 
             maxBase64Length: 4_000_000,
             quality: 0.96,
           });
-          const normalized = await coverCropDataUrlToAspectRatio(
+          const normalized = await letterboxDataUrlToAspectRatio(
             `data:${resized.mimeType};base64,${resized.base64}`,
             aspectRatio,
             {
               maxLongEdge: 2048,
-              background: null,
+              background: '#FFFFFF',
               mimeType: (resized.mimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
               quality: 0.96,
             }
@@ -5953,12 +5923,12 @@ If the model attempts to create a scene or environment, override it and force a 
           maxBase64Length: 4_000_000,
           quality: 0.96,
         });
-        const normalized = await coverCropDataUrlToAspectRatio(
+        const normalized = await letterboxDataUrlToAspectRatio(
           `data:${resized.mimeType};base64,${resized.base64}`,
           aspectRatio,
           {
             maxLongEdge: 2048,
-            background: null,
+            background: '#FFFFFF',
             mimeType: (resized.mimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
             quality: 0.96,
           }
