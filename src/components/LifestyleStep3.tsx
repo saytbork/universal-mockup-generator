@@ -4101,6 +4101,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           <Toggle
                             checked={productStore.advancedModeEnabled}
                             onCheckedChange={(next) => {
+                              productStore.setControlTier(next ? 'pro' : 'basic');
                               productStore.setAdvancedModeEnabled(next);
                               markSectionTouched('product-setup');
                             }}

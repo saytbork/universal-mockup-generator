@@ -607,7 +607,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const controlTier = String((state as any).controlTier || '').trim().toLowerCase() === 'pro' ? 'pro' : 'basic';
   const isProTier = controlTier === 'pro';
   const isBasicTier = !isProTier;
-  const advancedModeEnabled = isProTier && Boolean((state as any).advancedModeEnabled);
+  const isProModeActive = isProTier;
   const isConversionSquareOptimized = !isCampaignIntent && String(state.aspectRatio || '').trim() === '1:1';
   console.log('VISUAL_INTENT_ACTIVE =', visualIntent);
   console.log('CONTROL_TIER_ACTIVE =', controlTier);
@@ -1014,7 +1014,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
 
   const strictLightingRigLock =
     !isCampaignIntent &&
-    advancedModeEnabled &&
+    isProModeActive &&
     Boolean(lightingRigOverrideText);
   const lightingOverrideText = (() => {
     if (isBasicTier) {
@@ -1033,7 +1033,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   })();
 
   const finishOverrideText = (() => {
-    if (!advancedModeEnabled) return '';
+    if (!isProModeActive) return '';
     const finish = String((state as any).finish || '').trim();
     if (!finish) return '';
     return `Finish / Treatment: ${finish}. Keep this treatment consistent across the whole scene.`;
@@ -1041,7 +1041,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
 
   const proPhotographerLockText = (() => {
     if (isCampaignIntent) return '';
-    if (!advancedModeEnabled) return '';
+    if (!isProModeActive) return '';
     const lens = String((state as any).lens || '').trim();
     const rig = String((state as any).lightingRig || '').trim();
     const finish = String((state as any).finish || '').trim();
@@ -1344,7 +1344,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       forceDistance: forcedCameraDistance,
       forceComposition: forcedCameraFraming,
       forceRotation: forcedRotation,
-      override: advancedModeEnabled ? { text: cameraControlsTraceText } : undefined,
+      override: isProModeActive ? { text: cameraControlsTraceText } : undefined,
       compactMetadata: isBasicTier,
     }),
     proPhotographerLockText,
@@ -1361,9 +1361,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
         mode === 'INGREDIENT_STACK' || mode === 'INGREDIENT_FLAT_LAY' ? 'ingredientStack' : 'default',
         isCampaignIntent ? 'editorial' : state.qualityProfile,
         {
-          lensLocked: isCampaignIntent ? false : (advancedModeEnabled && Boolean(String((state as any).lens || '').trim())),
-          lightingLocked: isCampaignIntent ? false : (advancedModeEnabled && Boolean(String((state as any).lightingRig || '').trim())),
-          finishLocked: isCampaignIntent ? false : (advancedModeEnabled && Boolean(String((state as any).finish || '').trim())),
+          lensLocked: isCampaignIntent ? false : (isProModeActive && Boolean(String((state as any).lens || '').trim())),
+          lightingLocked: isCampaignIntent ? false : (isProModeActive && Boolean(String((state as any).lightingRig || '').trim())),
+          finishLocked: isCampaignIntent ? false : (isProModeActive && Boolean(String((state as any).finish || '').trim())),
           propsLocked: isCampaignIntent ? false : !explicitSecondaryPropsText,
         }
       ),

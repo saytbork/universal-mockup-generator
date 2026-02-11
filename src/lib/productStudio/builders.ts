@@ -1207,6 +1207,7 @@ function resolveVisualIntentFromQualityProfile(
  */
 function assembleSingleProductPrompt(state: ProductStudioState, product: ProductAsset): string {
     const segments: string[] = [];
+    console.log('>> PRO_MODE_ACTIVE =', String((state as any).controlTier || '').trim().toLowerCase() === 'pro');
     const visualIntent = String(state.visualIntent || 'conversion');
     const controlTier = String((state as any).controlTier || 'basic');
     const conversionSquareOptimized =
@@ -1243,6 +1244,7 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
 
 function assembleBundlePrompt(state: ProductStudioState): string {
     const segments: string[] = [];
+    console.log('>> PRO_MODE_ACTIVE =', String((state as any).controlTier || '').trim().toLowerCase() === 'pro');
     const primary = state.products.find(p => p.id === state.bundle.primaryProductId) ?? null;
     const visualIntent = String(state.visualIntent || 'conversion');
     const controlTier = String((state as any).controlTier || 'basic');
