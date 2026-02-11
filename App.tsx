@@ -791,7 +791,8 @@ const PLAN_UNLOCK_CODES: Record<string, PlanTier> = {
   STUDIO29: 'studio',
   STUDIO290: 'studio',
 };
-const TESTER_UPGRADE_CODE = import.meta.env.VITE_TESTER_CODE || '713371';
+const TESTER_UPGRADE_CODE = import.meta.env.VITE_TESTER_CODE || '8714';
+const TRIAL_BYPASS_CODE = '8714';
 
 const PERSON_FIELD_KEYS = [
   'ageGroup',
@@ -2188,7 +2189,8 @@ const App: React.FC = () => {
       }
     }
 
-    if (window.localStorage.getItem(TRIAL_BYPASS_KEY) === 'true') {
+    const storedTrialBypass = window.localStorage.getItem(TRIAL_BYPASS_KEY);
+    if (storedTrialBypass === 'true' || storedTrialBypass === 'code') {
       setHasTrialBypass(true);
     }
 
@@ -2225,10 +2227,15 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (isAdmin) return;
-    setHasTrialBypass(false);
     if (typeof window !== 'undefined') {
+      const storedTrialBypass = window.localStorage.getItem(TRIAL_BYPASS_KEY);
+      if (storedTrialBypass === 'code') {
+        setHasTrialBypass(true);
+        return;
+      }
       window.localStorage.removeItem(TRIAL_BYPASS_KEY);
     }
+    setHasTrialBypass(false);
   }, [isAdmin]);
 
   useEffect(() => {
@@ -3497,8 +3504,16 @@ const App: React.FC = () => {
     } catch (err) {
       console.warn('Plan code redeem failed', err);
     }
-    if (normalized === TESTER_UPGRADE_CODE.toUpperCase()) {
-      setPlanCodeError('Code already used or not eligible for this account.');
+    if (normalized === TRIAL_BYPASS_CODE || normalized === TESTER_UPGRADE_CODE.toUpperCase()) {
+      setHasTrialBypass(true);
+      setRemoteCredits(99999);
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(TRIAL_BYPASS_KEY, 'code');
+      }
+      setPlanCodeInput('');
+      setPlanCodeError(null);
+      setPlanNotice('Access code applied: +99999 credits enabled.');
+      setShowPlanModal(false);
       return;
     }
     const tier = PLAN_UNLOCK_CODES[normalized];
@@ -5322,7 +5337,12 @@ If the model attempts to create a scene or environment, override it and force a 
         const preserveReferenceImage = false;
         const response = await fetch('/api/generate', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(typeof window !== 'undefined' && window.localStorage.getItem(TRIAL_BYPASS_KEY) === 'code'
+              ? { 'x-trial-bypass-code': TRIAL_BYPASS_CODE }
+              : {}),
+          },
           body: JSON.stringify({
             model: GEMINI_IMAGE_MODEL,
             parts: payload.parts,
@@ -5641,7 +5661,12 @@ If the model attempts to create a scene or environment, override it and force a 
 
         const response = await fetch('/api/generate', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(typeof window !== 'undefined' && window.localStorage.getItem(TRIAL_BYPASS_KEY) === 'code'
+              ? { 'x-trial-bypass-code': TRIAL_BYPASS_CODE }
+              : {}),
+          },
           body: JSON.stringify({
             model: GEMINI_IMAGE_MODEL,
             parts: [{ text: finalPrompt }, ...productParts],
@@ -5831,7 +5856,12 @@ If the model attempts to create a scene or environment, override it and force a 
 
         const response = await fetch('/api/generate', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(typeof window !== 'undefined' && window.localStorage.getItem(TRIAL_BYPASS_KEY) === 'code'
+              ? { 'x-trial-bypass-code': TRIAL_BYPASS_CODE }
+              : {}),
+          },
           body: JSON.stringify({
             model: GEMINI_IMAGE_MODEL,
             parts: [{ text: finalPrompt }, ...productParts],
@@ -5968,7 +5998,12 @@ If the model attempts to create a scene or environment, override it and force a 
         isProductPlacement ? resolveOutputAspectRatio() : (lastAspectRatioRef.current || options.aspectRatio || '1:1');
       const response = await fetch('/api/generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(typeof window !== 'undefined' && window.localStorage.getItem(TRIAL_BYPASS_KEY) === 'code'
+            ? { 'x-trial-bypass-code': TRIAL_BYPASS_CODE }
+            : {}),
+        },
         body: JSON.stringify({
           model: GEMINI_IMAGE_MODEL,
           parts: [

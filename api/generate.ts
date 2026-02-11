@@ -264,6 +264,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const vercelEnv = String(process.env.VERCEL_ENV || '').trim().toLowerCase();
   const isPreview = vercelEnv === 'preview';
   const unlimitedEnv = process.env.UNLIMITED_CREDITS === 'true';
+  const headerBypassRaw = Array.isArray(req.headers['x-trial-bypass-code'])
+    ? req.headers['x-trial-bypass-code'][0]
+    : req.headers['x-trial-bypass-code'];
+  const headerBypassCode = String(headerBypassRaw || '').trim();
+  const testerBypassCode = String(process.env.TESTER_UPGRADE_CODE || '8714').trim();
+  const bypassByCode = Boolean(headerBypassCode && headerBypassCode === testerBypassCode);
+  const bypassCreditLimits = isPreview || unlimitedEnv || bypassByCode;
   let guestId: string | null = null;
   let shouldSetGuestCookie = false;
   let guestIpUsageKey: string | null = null;
@@ -274,35 +281,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const existingGuestId = verifyGuestTrialToken(cookies[GUEST_TRIAL_COOKIE] || null);
     guestId = existingGuestId || `guest_${crypto.randomUUID()}`;
     shouldSetGuestCookie = !existingGuestId;
-    const dayBucket = getUtcDayBucket();
-    const clientIp = getClientIp(req);
-    const ipHash = hashGuestKeyPart(getCoarseIp(clientIp));
-    const fpHash = hashGuestKeyPart(getDeviceFingerprint(req, clientIp));
-    guestIpUsageKey = `guest_trial_ip_usage:${dayBucket}:${ipHash}`;
-    guestFingerprintUsageKey = `guest_trial_fp_usage:${dayBucket}:${fpHash}`;
+    if (!bypassCreditLimits) {
+      const dayBucket = getUtcDayBucket();
+      const clientIp = getClientIp(req);
+      const ipHash = hashGuestKeyPart(getCoarseIp(clientIp));
+      const fpHash = hashGuestKeyPart(getDeviceFingerprint(req, clientIp));
+      guestIpUsageKey = `guest_trial_ip_usage:${dayBucket}:${ipHash}`;
+      guestFingerprintUsageKey = `guest_trial_fp_usage:${dayBucket}:${fpHash}`;
 
-    const [usageByToken, usageByIp, usageByFingerprint] = await Promise.all([
-      getGuestTrialUsage(guestId),
-      getGuestCounterUsage(guestIpUsageKey),
-      getGuestCounterUsage(guestFingerprintUsageKey),
-    ]);
-    const tokenRemaining = Math.max(GUEST_TRIAL_CAP - usageByToken, 0);
-    const ipRemaining = Math.max(GUEST_TRIAL_IP_DAILY_CAP - usageByIp, 0);
-    const fingerprintRemaining = Math.max(GUEST_TRIAL_FINGERPRINT_DAILY_CAP - usageByFingerprint, 0);
-    anonymousRemaining = Math.min(tokenRemaining, ipRemaining, fingerprintRemaining);
+      const [usageByToken, usageByIp, usageByFingerprint] = await Promise.all([
+        getGuestTrialUsage(guestId),
+        getGuestCounterUsage(guestIpUsageKey),
+        getGuestCounterUsage(guestFingerprintUsageKey),
+      ]);
+      const tokenRemaining = Math.max(GUEST_TRIAL_CAP - usageByToken, 0);
+      const ipRemaining = Math.max(GUEST_TRIAL_IP_DAILY_CAP - usageByIp, 0);
+      const fingerprintRemaining = Math.max(GUEST_TRIAL_FINGERPRINT_DAILY_CAP - usageByFingerprint, 0);
+      anonymousRemaining = Math.min(tokenRemaining, ipRemaining, fingerprintRemaining);
 
-    if (anonymousRemaining <= 0) {
-      if (shouldSetGuestCookie && guestId) {
-        res.setHeader('Set-Cookie', buildGuestTrialCookie(req, guestId));
+      if (anonymousRemaining <= 0) {
+        if (shouldSetGuestCookie && guestId) {
+          res.setHeader('Set-Cookie', buildGuestTrialCookie(req, guestId));
+        }
+        res.status(402).json({
+          error: 'Free trial limit reached. Sign in to keep generating and remove watermark.',
+          upgrade_required: true,
+          reason: 'trial_limit',
+          trial_remaining: 0,
+          trial_cap: GUEST_TRIAL_CAP,
+        });
+        return;
       }
-      res.status(402).json({
-        error: 'Free trial limit reached. Sign in to keep generating and remove watermark.',
-        upgrade_required: true,
-        reason: 'trial_limit',
-        trial_remaining: 0,
-        trial_cap: GUEST_TRIAL_CAP,
-      });
-      return;
+    } else {
+      console.log('[CREDITS] Anonymous trial limit bypass active (preview/unlimited mode)');
     }
   }
   const email = authenticatedEmail || guestId || undefined;
@@ -345,9 +356,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   let creditResult: Awaited<ReturnType<typeof consumeCredit>> | null = null;
   if (!isAnonymousTrial) {
-    const creditMode = isPreview ? 'preview' : (unlimitedEnv ? 'unlimited-env' : (vercelEnv || 'standard'));
+    const creditMode = isPreview
+      ? 'preview'
+      : (unlimitedEnv ? 'unlimited-env' : (bypassByCode ? 'tester-code' : (vercelEnv || 'standard')));
     console.log(`[CREDITS] Mode=${creditMode} (VERCEL_ENV=${vercelEnv || 'undefined'}, UNLIMITED_CREDITS=${unlimitedEnv})`);
-    if (isPreview || unlimitedEnv) {
+    if (bypassCreditLimits) {
       console.log('[CREDITS] Skipped decrement in preview/unlimited mode');
     } else {
       creditResult = await consumeCredit(authenticatedEmail!);
@@ -431,20 +444,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       sceneType: debugMeta?.sceneType,
     }, email);
     if (isAnonymousTrial) {
-      const usageTasks: Array<Promise<number>> = [incrementGuestTrialUsage(guestId!)];
-      if (guestIpUsageKey) {
-        usageTasks.push(incrementGuestCounterUsage(guestIpUsageKey, GUEST_DAILY_WINDOW_SECONDS));
+      let remaining = Math.max(anonymousRemaining - 1, 0);
+      if (!bypassCreditLimits) {
+        const usageTasks: Array<Promise<number>> = [incrementGuestTrialUsage(guestId!)];
+        if (guestIpUsageKey) {
+          usageTasks.push(incrementGuestCounterUsage(guestIpUsageKey, GUEST_DAILY_WINDOW_SECONDS));
+        }
+        if (guestFingerprintUsageKey) {
+          usageTasks.push(incrementGuestCounterUsage(guestFingerprintUsageKey, GUEST_DAILY_WINDOW_SECONDS));
+        }
+        const [usageAfterToken, usageAfterIp = 0, usageAfterFingerprint = 0] = await Promise.all(usageTasks);
+        const remainingByToken = Math.max(GUEST_TRIAL_CAP - usageAfterToken, 0);
+        const remainingByIp = guestIpUsageKey ? Math.max(GUEST_TRIAL_IP_DAILY_CAP - usageAfterIp, 0) : remainingByToken;
+        const remainingByFingerprint = guestFingerprintUsageKey
+          ? Math.max(GUEST_TRIAL_FINGERPRINT_DAILY_CAP - usageAfterFingerprint, 0)
+          : remainingByToken;
+        remaining = Math.min(remainingByToken, remainingByIp, remainingByFingerprint, Math.max(anonymousRemaining - 1, 0));
+      } else {
+        remaining = 999_999;
       }
-      if (guestFingerprintUsageKey) {
-        usageTasks.push(incrementGuestCounterUsage(guestFingerprintUsageKey, GUEST_DAILY_WINDOW_SECONDS));
-      }
-      const [usageAfterToken, usageAfterIp = 0, usageAfterFingerprint = 0] = await Promise.all(usageTasks);
-      const remainingByToken = Math.max(GUEST_TRIAL_CAP - usageAfterToken, 0);
-      const remainingByIp = guestIpUsageKey ? Math.max(GUEST_TRIAL_IP_DAILY_CAP - usageAfterIp, 0) : remainingByToken;
-      const remainingByFingerprint = guestFingerprintUsageKey
-        ? Math.max(GUEST_TRIAL_FINGERPRINT_DAILY_CAP - usageAfterFingerprint, 0)
-        : remainingByToken;
-      const remaining = Math.min(remainingByToken, remainingByIp, remainingByFingerprint, Math.max(anonymousRemaining - 1, 0));
       if (shouldSetGuestCookie && guestId) {
         res.setHeader('Set-Cookie', buildGuestTrialCookie(req, guestId));
       }
