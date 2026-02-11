@@ -264,7 +264,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const vercelEnv = String(process.env.VERCEL_ENV || '').trim().toLowerCase();
   const isPreview = vercelEnv === 'preview';
   const unlimitedEnv = process.env.UNLIMITED_CREDITS === 'true';
-  const bypassCreditLimits = isPreview || unlimitedEnv;
+  const headerBypassRaw = Array.isArray(req.headers['x-trial-bypass-code'])
+    ? req.headers['x-trial-bypass-code'][0]
+    : req.headers['x-trial-bypass-code'];
+  const headerBypassCode = String(headerBypassRaw || '').trim();
+  const testerBypassCode = String(process.env.TESTER_UPGRADE_CODE || '8714').trim();
+  const bypassByCode = Boolean(headerBypassCode && headerBypassCode === testerBypassCode);
+  const bypassCreditLimits = isPreview || unlimitedEnv || bypassByCode;
   let guestId: string | null = null;
   let shouldSetGuestCookie = false;
   let guestIpUsageKey: string | null = null;
@@ -350,9 +356,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   let creditResult: Awaited<ReturnType<typeof consumeCredit>> | null = null;
   if (!isAnonymousTrial) {
-    const creditMode = isPreview ? 'preview' : (unlimitedEnv ? 'unlimited-env' : (vercelEnv || 'standard'));
+    const creditMode = isPreview
+      ? 'preview'
+      : (unlimitedEnv ? 'unlimited-env' : (bypassByCode ? 'tester-code' : (vercelEnv || 'standard')));
     console.log(`[CREDITS] Mode=${creditMode} (VERCEL_ENV=${vercelEnv || 'undefined'}, UNLIMITED_CREDITS=${unlimitedEnv})`);
-    if (isPreview || unlimitedEnv) {
+    if (bypassCreditLimits) {
       console.log('[CREDITS] Skipped decrement in preview/unlimited mode');
     } else {
       creditResult = await consumeCredit(authenticatedEmail!);
