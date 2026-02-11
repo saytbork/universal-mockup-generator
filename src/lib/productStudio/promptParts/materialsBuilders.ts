@@ -1,5 +1,6 @@
 import type { PhotoModeKey } from './sceneBuilders';
 import type { Randomizer } from './randomizationRules';
+import type { AuthorityResolution } from './authorityResolver';
 
 export function buildMaterials(mode: PhotoModeKey, randomizer: Randomizer): string {
   if (mode === 'INGREDIENT_STACK') {
@@ -86,12 +87,19 @@ export function buildMaterials(mode: PhotoModeKey, randomizer: Randomizer): stri
 export function buildMaterialsWithProfile(
   mode: PhotoModeKey,
   randomizer: Randomizer,
-  profile: 'luxury-brand' | 'ecommerce-conversion' | 'clinical' = 'luxury-brand'
+  profile: 'luxury-brand' | 'ecommerce-conversion' | 'clinical' = 'luxury-brand',
+  authority?: AuthorityResolution
 ): string {
+  const effectiveProfile =
+    authority?.visualIntent === 'clinical'
+      ? 'clinical'
+      : authority?.visualIntent === 'luxury'
+        ? 'luxury-brand'
+        : profile;
   const base = buildMaterials(mode, randomizer);
-  const profileText = profile === 'ecommerce-conversion'
+  const profileText = effectiveProfile === 'ecommerce-conversion'
     ? 'Material priority: clean, distraction-free surfaces that support conversion-focused readability.'
-    : profile === 'clinical'
+    : effectiveProfile === 'clinical'
       ? 'Material priority: clinical-grade surfaces with precise cleanliness and controlled reflectance.'
       : 'Material priority: premium luxury finishes with refined tactile realism. Atmosphere priority: premium environmental layering with controlled depth separation and refined optical realism. Allow subtle haze, light atmosphere layering, controlled foreground blur, and controlled prism dispersion.';
   return `${base} ${profileText}`.trim();
