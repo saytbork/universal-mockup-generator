@@ -1429,26 +1429,6 @@ const maybeDownscaleInlineImage = async (
   return downscaleDataUrlToJpeg(dataUrl, { maxLongEdge: opts.maxLongEdge, quality: opts.quality });
 };
 
-const sanitizeProductPromptArtifacts = (prompt: string): string => {
-  let next = String(prompt || '');
-  next = next.replace(
-    /Prism effect must be visibly present in the final frame \(not optional\)\.?/gi,
-    'Prism influence must remain subtle and secondary to clean product readability.'
-  );
-  next = next.replace(
-    /Two controlled prism spot sources with crisp directional falloff, visible split highlights on glass edges, and subtle refraction caustics near transparent boundaries\./gi,
-    'Two controlled prism spot sources with diffused directional falloff and restrained refraction cues near transparent boundaries.'
-  );
-  next = next.replace(/sparkle bokeh/gi, 'soft neutral bokeh');
-  if (!/no printed photo frame/i.test(next)) {
-    next = `${next} Frame guardrail: no printed photo frame, no white matte border, no Polaroid-style border, no picture-in-picture layout.`;
-  }
-  if (/Lighting rig:\s*Prism Spotlight Duo/i.test(next) && !/no visible light sources in frame/i.test(next)) {
-    next = `${next} Prism safety: no visible light sources in frame, no bulbs/panels/softboxes/stands, and no star-shaped glints.`;
-  }
-  return next;
-};
-
 const removeUploadedBackgroundDataUrl = async (
   dataUrl: string
 ): Promise<{ base64: string; mimeType: 'image/png' }> => {
@@ -1473,7 +1453,6 @@ const removeUploadedBackgroundDataUrl = async (
   ctx.drawImage(img, 0, 0, w, h);
 
   const imageData = ctx.getImageData(0, 0, w, h);
-  const original = new Uint8ClampedArray(imageData.data);
   const d = imageData.data;
 
   const read = (x: number, y: number) => {
@@ -1481,16 +1460,12 @@ const removeUploadedBackgroundDataUrl = async (
     return { r: d[i], g: d[i + 1], b: d[i + 2], a: d[i + 3] };
   };
 
-  const borderSamples: Array<{ r: number; g: number; b: number; a: number }> = [];
-  const step = Math.max(1, Math.floor(Math.min(w, h) / 40));
-  for (let x = 0; x < w; x += step) {
-    borderSamples.push(read(x, 0), read(x, h - 1));
-  }
-  for (let y = 0; y < h; y += step) {
-    borderSamples.push(read(0, y), read(w - 1, y));
-  }
-  borderSamples.push(read(0, 0), read(w - 1, 0), read(0, h - 1), read(w - 1, h - 1));
-  const samples = borderSamples.filter(p => p.a > 10);
+  const samples = [
+    read(0, 0),
+    read(w - 1, 0),
+    read(0, h - 1),
+    read(w - 1, h - 1),
+  ].filter(p => p.a > 10);
 
   if (!samples.length) {
     const out = canvas.toDataURL('image/png');
@@ -1505,123 +1480,59 @@ const removeUploadedBackgroundDataUrl = async (
   const bgR = bg.r / samples.length;
   const bgG = bg.g / samples.length;
   const bgB = bg.b / samples.length;
-  const bgLuma = bgR * 0.2126 + bgG * 0.7152 + bgB * 0.0722;
 
   const colorDist = (r: number, g: number, b: number) =>
     Math.sqrt((r - bgR) ** 2 + (g - bgG) ** 2 + (b - bgB) ** 2);
-  const luma = (r: number, g: number, b: number) => r * 0.2126 + g * 0.7152 + b * 0.0722;
 
-  const floodMatte = (threshold: number) => {
-    d.set(original);
-    const total = w * h;
-    const visited = new Uint8Array(total);
-    const qx = new Int32Array(total);
-    const qy = new Int32Array(total);
-    let head = 0;
-    let tail = 0;
+  // Conservative threshold to remove likely backdrop pixels around edges,
+  // while preserving product details that might be close to background color.
+  const threshold = 34;
 
-    const tryPush = (x: number, y: number) => {
-      if (x < 0 || y < 0 || x >= w || y >= h) return;
-      const idx = y * w + x;
-      if (visited[idx]) return;
-      const i = idx * 4;
-      const a = d[i + 3];
-      if (a <= 8) {
-        visited[idx] = 1;
-        qx[tail] = x;
-        qy[tail] = y;
-        tail += 1;
-        return;
-      }
-      const dist = colorDist(d[i], d[i + 1], d[i + 2]);
-      const lDiff = Math.abs(luma(d[i], d[i + 1], d[i + 2]) - bgLuma);
-      if (dist <= threshold && lDiff <= 56) {
-        visited[idx] = 1;
-        qx[tail] = x;
-        qy[tail] = y;
-        tail += 1;
-      }
-    };
-
-    for (let x = 0; x < w; x += 1) {
-      tryPush(x, 0);
-      tryPush(x, h - 1);
-    }
-    for (let y = 0; y < h; y += 1) {
-      tryPush(0, y);
-      tryPush(w - 1, y);
-    }
-
-    while (head < tail) {
-      const x = qx[head];
-      const y = qy[head];
-      head += 1;
-      tryPush(x + 1, y);
-      tryPush(x - 1, y);
-      tryPush(x, y + 1);
-      tryPush(x, y - 1);
-    }
-
-    let removed = 0;
-    for (let i = 0; i < total; i += 1) {
-      if (!visited[i]) continue;
-      const p = i * 4 + 3;
-      if (d[p] > 0) {
-        d[p] = 0;
-        removed += 1;
-      }
-    }
-    return removed / total;
+  const clearPixel = (x: number, y: number) => {
+    const i = (y * w + x) * 4;
+    d[i + 3] = 0;
   };
 
-  let removedRatio = floodMatte(42);
-  if (removedRatio < 0.01) {
-    removedRatio = floodMatte(58);
-  }
-
-  let minX = w;
-  let minY = h;
-  let maxX = -1;
-  let maxY = -1;
+  // Strip near-background runs from each edge toward the subject.
   for (let y = 0; y < h; y += 1) {
     for (let x = 0; x < w; x += 1) {
-      const i = (y * w + x) * 4 + 3;
-      if (d[i] <= 14) continue;
-      if (x < minX) minX = x;
-      if (x > maxX) maxX = x;
-      if (y < minY) minY = y;
-      if (y > maxY) maxY = y;
+      const i = (y * w + x) * 4;
+      if (d[i + 3] <= 10 || colorDist(d[i], d[i + 1], d[i + 2]) <= threshold) {
+        clearPixel(x, y);
+      } else {
+        break;
+      }
+    }
+    for (let x = w - 1; x >= 0; x -= 1) {
+      const i = (y * w + x) * 4;
+      if (d[i + 3] <= 10 || colorDist(d[i], d[i + 1], d[i + 2]) <= threshold) {
+        clearPixel(x, y);
+      } else {
+        break;
+      }
+    }
+  }
+  for (let x = 0; x < w; x += 1) {
+    for (let y = 0; y < h; y += 1) {
+      const i = (y * w + x) * 4;
+      if (d[i + 3] <= 10 || colorDist(d[i], d[i + 1], d[i + 2]) <= threshold) {
+        clearPixel(x, y);
+      } else {
+        break;
+      }
+    }
+    for (let y = h - 1; y >= 0; y -= 1) {
+      const i = (y * w + x) * 4;
+      if (d[i + 3] <= 10 || colorDist(d[i], d[i + 1], d[i + 2]) <= threshold) {
+        clearPixel(x, y);
+      } else {
+        break;
+      }
     }
   }
 
-  if (maxX < minX || maxY < minY) {
-    const out = canvas.toDataURL('image/png');
-    const [, base64] = out.split(';base64,');
-    return { base64: base64 ?? '', mimeType: 'image/png' };
-  }
-
-  const pad = Math.max(2, Math.round(Math.min(w, h) * 0.02));
-  minX = Math.max(0, minX - pad);
-  minY = Math.max(0, minY - pad);
-  maxX = Math.min(w - 1, maxX + pad);
-  maxY = Math.min(h - 1, maxY + pad);
-
   ctx.putImageData(imageData, 0, 0);
-  const cropW = maxX - minX + 1;
-  const cropH = maxY - minY + 1;
-  const outCanvas = document.createElement('canvas');
-  outCanvas.width = Math.max(1, cropW);
-  outCanvas.height = Math.max(1, cropH);
-  const outCtx = outCanvas.getContext('2d');
-  if (!outCtx) {
-    const out = canvas.toDataURL('image/png');
-    const [, base64] = out.split(';base64,');
-    return { base64: base64 ?? '', mimeType: 'image/png' };
-  }
-  outCtx.clearRect(0, 0, outCanvas.width, outCanvas.height);
-  outCtx.drawImage(canvas, minX, minY, cropW, cropH, 0, 0, cropW, cropH);
-
-  const out = outCanvas.toDataURL('image/png');
+  const out = canvas.toDataURL('image/png');
   const [, base64] = out.split(';base64,');
   return { base64: base64 ?? '', mimeType: 'image/png' };
 };
@@ -5407,7 +5318,6 @@ If the model attempts to create a scene or environment, override it and force a 
             'REALISM HARD RULE: Photorealistic real human photo. Absolutely no 3D/CGI, no cartoon, no illustration, no anime, no doll-like/plastic skin, no game-render look.',
           ].join(' ');
         }
-        finalPrompt = sanitizeProductPromptArtifacts(finalPrompt);
 
         // Persist continuity identity only when explicitly requested.
         // Otherwise "locked" mode would mint a new identityKey every click → different person.
@@ -5842,7 +5752,7 @@ If the model attempts to create a scene or environment, override it and force a 
         if (!jobs.length) {
           throw new Error(`No Product Studio jobs generated for slot ${slotKey}.`);
         }
-        const finalPrompt = sanitizeProductPromptArtifacts(jobs[0].prompt);
+        const finalPrompt = jobs[0].prompt;
 
         // Ecommerce PDP prompt uses explicit negative rules ("Do NOT include people/hands/..."),
         // so ProductStudio's legacy validator would false-positive on those words.
@@ -6086,7 +5996,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
         const state = useProductStudioStore.getState();
         const jobs = generateProductJobs(state as any);
-        const finalPrompt = sanitizeProductPromptArtifacts(jobs[0].prompt);
+        const finalPrompt = jobs[0].prompt;
 
         console.log(`[ECOM SEQUENCE] Step ${i + 1}/5:`, finalPrompt.slice(0, 200));
 
