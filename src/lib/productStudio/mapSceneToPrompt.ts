@@ -919,7 +919,6 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
           `Prism controls: size=${String(prismRig.size || 'Medium')}, focus=${String(prismRig.focus || 'Balanced')}, intensity=${String(prismRig.intensity || 'Medium')}, placement=${String(prismRig.placement || 'Diagonal')}.`,
           'Result target: controlled, repeatable, commercial lighting behavior with clean label readability.',
           'Hard constraints for highlight behavior: no starburst diffraction spikes, no lens flare streaks, no rainbow flare ghosts, no overexposed sparkle points on label or cap.',
-          'Composition constraint: all light sources must be off-camera. Never show visible lamps, bulbs, LED panels, softboxes, light stands, practical fixtures, or glowing circles in frame.',
         ].join(' '),
       '3-Point Beauty Dish':
         'Classic three-point beauty setup with clean key/fill/back separation and polished commercial skin-safe reflections.',

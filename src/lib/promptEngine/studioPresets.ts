@@ -220,7 +220,7 @@ export const LIGHTING_PRESETS: Record<string, string> = {
     'High-Speed Splash Rig': `High-speed splash lighting optimized for frozen motion. Studio-grade contrast.`,
     'High-Speed Splash': `High-speed splash lighting optimized for frozen motion. Studio-grade contrast.`,
     'Gradient Cyclorama': `Gradient cyclorama lighting with smooth falloff. Controlled highlights.`,
-    'Prism Spotlight Duo': `Two controlled spotlights through prismatic modifiers (split-beam look). Visible light separation on background and edges: crisp highlight gradients, subtle spectral split on specular reflections. Keep the product and label perfectly readable: no rainbow artifacts over the label text. No starburst diffraction spikes, no lens flare streaks, no flare ghosts. Keep all luminaires off-camera: never show bulbs, lamps, LED panels, softboxes, stands, or practical fixtures in frame. Studio-grade contrast.`
+    'Prism Spotlight Duo': `Two controlled spotlights through prismatic modifiers (split-beam look). Visible light separation on background and edges: crisp highlight gradients, subtle spectral split on specular reflections. Keep the product and label perfectly readable: no rainbow artifacts over the label text. No starburst diffraction spikes, no lens flare streaks, no flare ghosts. Studio-grade contrast.`
 };
 
 // =============================================================================
