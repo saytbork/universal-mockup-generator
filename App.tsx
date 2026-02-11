@@ -1897,18 +1897,6 @@ const App: React.FC = () => {
       }
     }
   }, [isProductPlacement, productAssets]);
-
-  // Ensure ProductStudio active product follows current UI active selection.
-  // Without this, store sync can keep the first uploaded product active, causing mismatched generations.
-  useEffect(() => {
-    if (!isProductPlacement) return;
-    const preferredActiveId = activeProducts[activeProducts.length - 1]?.id ?? null;
-    if (!preferredActiveId) return;
-    const store = useProductStudioStore.getState();
-    if (store.activeProductId !== preferredActiveId) {
-      store.setActiveProduct(preferredActiveId);
-    }
-  }, [isProductPlacement, activeProducts]);
   useEffect(() => {
     if (!availableProductIds.length) return;
     if (!availableProductIds.includes(recommendedBaseProduct)) {
