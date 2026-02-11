@@ -154,71 +154,6 @@ const PHOTO_MODE_WITH_MANUAL_SETTINGS = new Set<PhotoMode>([
   'Clinical Lab Counter',
 ]);
 
-type ProPhotographerSectionId = 'lens' | 'lighting_rig' | 'finish_treatment';
-type ProPhotographerItemType = 'option' | 'modifier';
-type ProPhotographerItem = {
-  id: string;
-  label: string;
-  category: ProPhotographerSectionId;
-  type?: ProPhotographerItemType;
-  supports_prism_controls?: boolean;
-};
-
-const PRO_PHOTOGRAPHER_SECTIONS: Array<{
-  id: ProPhotographerSectionId;
-  label: string;
-  description: string;
-  items: ProPhotographerItem[];
-}> = [
-    {
-      id: 'lens',
-      label: 'LENS',
-      description: 'Control de perspectiva y jerarquía visual.',
-      items: [
-        { id: '100mm_macro_prime', label: '100mm Macro Prime', category: 'lens' },
-        { id: '50mm_product_prime', label: '50mm Product Prime', category: 'lens' },
-        { id: 'tilt_shift_hero', label: 'Tilt-Shift Hero', category: 'lens' },
-        { id: 'ultra_wide_stylized', label: 'Ultra-Wide Stylized', category: 'lens' },
-        { id: 'cinema_zoom', label: 'Cinema Zoom', category: 'lens' },
-        { id: '70_200mm_compression', label: '70-200mm Compression', category: 'lens' },
-        { id: '35mm_anamorphic_glow', label: '35mm Anamorphic Glow', category: 'lens' },
-      ],
-    },
-    {
-      id: 'lighting_rig',
-      label: 'LIGHTING RIG',
-      description: 'Configuracion de iluminacion que define forma, material y lectura visual.',
-      items: [
-        { id: '3_point_beauty_dish', label: '3-Point Beauty Dish', category: 'lighting_rig' },
-        { id: 'softbox_wrap', label: 'Softbox Wrap', category: 'lighting_rig' },
-        { id: 'hard_edge_gels', label: 'Hard Edge Gels', category: 'lighting_rig' },
-        { id: 'backlit_acrylic', label: 'Backlit Acrylic', category: 'lighting_rig' },
-        { id: 'high_speed_splash_rig', label: 'High-Speed Splash Rig', category: 'lighting_rig' },
-        { id: 'gradient_cyclorama', label: 'Gradient Cyclorama', category: 'lighting_rig' },
-        { id: 'prism_spotlight_duo', label: 'Prism Spotlight Duo', category: 'lighting_rig', type: 'modifier', supports_prism_controls: true },
-      ],
-    },
-    {
-      id: 'finish_treatment',
-      label: 'FINISH / TREATMENT',
-      description: 'Ajustes finales de postproduccion y tono visual.',
-      items: [
-        { id: 'high_gloss_commercial', label: 'High-Gloss Commercial', category: 'finish_treatment' },
-        { id: 'film_grain_luxury', label: 'Film Grain Luxury', category: 'finish_treatment' },
-        { id: 'matte_editorial', label: 'Matte Editorial', category: 'finish_treatment' },
-        { id: 'hyperreal_cgi_blend', label: 'Hyperreal CGI Blend', category: 'finish_treatment' },
-        { id: 'clinical_lab_polish', label: 'Clinical Lab Polish', category: 'finish_treatment' },
-        { id: 'vibrant_color_pop', label: 'Vibrant Color Pop', category: 'finish_treatment' },
-      ],
-    },
-  ];
-
-const PRO_PHOTOGRAPHER_DEFAULTS = {
-  lens: '50mm Product Prime',
-  lighting_rig: 'Softbox Wrap',
-  finish_treatment: 'High-Gloss Commercial',
-} as const;
-
 // **CANONICAL STATE** - SINGLE SOURCE OF TRUTH for Step 3 Scene Builder
 export interface SceneState {
   mode: 'basic' | 'pro';
@@ -2768,11 +2703,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     checked={productStore.proMode}
                                     onCheckedChange={(next) => {
                                       productStore.setProMode(next);
-                                      if (next) {
-                                        if (!String(productStore.lens || '').trim()) productStore.setLens(PRO_PHOTOGRAPHER_DEFAULTS.lens);
-                                        if (!String(productStore.lightingRig || '').trim()) productStore.setLightingRig(PRO_PHOTOGRAPHER_DEFAULTS.lighting_rig);
-                                        if (!String(productStore.finish || '').trim()) productStore.setFinish(PRO_PHOTOGRAPHER_DEFAULTS.finish_treatment);
-                                      }
                                       markSectionTouched('product-setup');
                                     }}
                                     aria-label="Pro photographer mode"
@@ -2781,117 +2711,152 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                                 {productStore.proMode && (
                                   <div className="space-y-4">
-                                    {PRO_PHOTOGRAPHER_SECTIONS.map(section => (
-                                      <div key={section.id}>
-                                        <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">{section.label}</p>
-                                        <div className="flex flex-wrap gap-2">
-                                          {section.items.map(item => {
-                                            const selected =
-                                              section.id === 'lens'
-                                                ? productStore.lens === item.label
-                                                : section.id === 'lighting_rig'
-                                                  ? productStore.lightingRig === item.label
-                                                  : productStore.finish === item.label;
-
-                                            return (
-                                              <Chip
-                                                key={item.id}
-                                                onClick={() => {
-                                                  if (section.id === 'lens') productStore.setLens(item.label);
-                                                  if (section.id === 'lighting_rig') productStore.setLightingRig(item.label);
-                                                  if (section.id === 'finish_treatment') productStore.setFinish(item.label);
-                                                  markSectionTouched('product-setup');
-                                                }}
-                                                selected={selected}
-                                              >
-                                                {item.label}
-                                              </Chip>
-                                            );
-                                          })}
-                                        </div>
-
-                                        {section.id === 'lighting_rig' &&
-                                          section.items.some(
-                                            item => item.label === productStore.lightingRig && item.supports_prism_controls
-                                          ) && (
-                                            <div className="mt-3 space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
-                                              <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold">Prism Controls</p>
-
-                                              <div>
-                                                <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 mb-1">Size</p>
-                                                <div className="flex flex-wrap gap-2">
-                                                  {(['Small', 'Medium', 'Large'] as const).map(v => (
-                                                    <Chip
-                                                      key={v}
-                                                      onClick={() => {
-                                                        productStore.setPrismRig({ size: v });
-                                                        markSectionTouched('product-setup');
-                                                      }}
-                                                      selected={productStore.prismRig?.size === v}
-                                                    >
-                                                      {v}
-                                                    </Chip>
-                                                  ))}
-                                                </div>
-                                              </div>
-
-                                              <div>
-                                                <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 mb-1">Focus</p>
-                                                <div className="flex flex-wrap gap-2">
-                                                  {(['Soft', 'Balanced', 'Hard'] as const).map(v => (
-                                                    <Chip
-                                                      key={v}
-                                                      onClick={() => {
-                                                        productStore.setPrismRig({ focus: v });
-                                                        markSectionTouched('product-setup');
-                                                      }}
-                                                      selected={productStore.prismRig?.focus === v}
-                                                    >
-                                                      {v}
-                                                    </Chip>
-                                                  ))}
-                                                </div>
-                                              </div>
-
-                                              <div>
-                                                <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 mb-1">Intensity</p>
-                                                <div className="flex flex-wrap gap-2">
-                                                  {(['Low', 'Medium', 'High'] as const).map(v => (
-                                                    <Chip
-                                                      key={v}
-                                                      onClick={() => {
-                                                        productStore.setPrismRig({ intensity: v });
-                                                        markSectionTouched('product-setup');
-                                                      }}
-                                                      selected={productStore.prismRig?.intensity === v}
-                                                    >
-                                                      {v}
-                                                    </Chip>
-                                                  ))}
-                                                </div>
-                                              </div>
-
-                                              <div>
-                                                <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 mb-1">Placement</p>
-                                                <div className="flex flex-wrap gap-2">
-                                                  {(['Front', 'Side', 'Back', 'Diagonal'] as const).map(v => (
-                                                    <Chip
-                                                      key={v}
-                                                      onClick={() => {
-                                                        productStore.setPrismRig({ placement: v });
-                                                        markSectionTouched('product-setup');
-                                                      }}
-                                                      selected={productStore.prismRig?.placement === v}
-                                                    >
-                                                      {v}
-                                                    </Chip>
-                                                  ))}
-                                                </div>
-                                              </div>
-                                            </div>
-                                          )}
+                                    <div>
+                                      <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LENS</p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {[
+                                          '100mm Macro Prime', '50mm Product Prime', 'Tilt-Shift Hero',
+                                          'Ultra-Wide Stylized', 'Cinema Zoom', '70-200mm Compression',
+                                          '35mm Anamorphic Glow'
+                                        ].map(lens => (
+                                          <Chip
+                                            key={lens}
+                                            onClick={() => {
+                                              productStore.setLens(lens);
+                                              markSectionTouched('product-setup');
+                                            }}
+                                            selected={productStore.lens === lens}
+                                          >
+                                            {lens}
+                                          </Chip>
+                                        ))}
                                       </div>
-                                    ))}
+                                    </div>
+
+                                    <div>
+                                      <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LIGHTING RIG</p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {([
+                                          { value: '3-Point Beauty Dish', label: '3-Point Beauty Dish' },
+                                          { value: 'Softbox Wrap', label: 'Softbox Wrap' },
+                                          { value: 'Hard Edge Gels', label: 'Hard Edge Gels' },
+                                          { value: 'Backlit Acrylic', label: 'Backlit Acrylic' },
+                                          { value: 'High-Speed Splash Rig', label: 'High-Speed Splash Rig' },
+                                          { value: 'Gradient Cyclorama', label: 'Gradient Cyclorama' },
+                                          { value: 'Prism Spotlight Duo', label: 'Prism Spotlight Duo' },
+                                        ] as const).map(({ value, label }) => (
+                                          <Chip
+                                            key={value}
+                                            onClick={() => {
+                                              productStore.setLightingRig(value);
+                                              markSectionTouched('product-setup');
+                                            }}
+                                            selected={productStore.lightingRig === value}
+                                          >
+                                            {label}
+                                          </Chip>
+                                        ))}
+                                      </div>
+
+                                      {productStore.lightingRig === 'Prism Spotlight Duo' && (
+                                        <div className="mt-3 space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
+                                          <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold">Prism Controls</p>
+
+                                          <div>
+                                            <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 mb-1">Size</p>
+                                            <div className="flex flex-wrap gap-2">
+                                              {(['Small', 'Medium', 'Large'] as const).map(v => (
+                                                <Chip
+                                                  key={v}
+                                                  onClick={() => {
+                                                    productStore.setPrismRig({ size: v });
+                                                    markSectionTouched('product-setup');
+                                                  }}
+                                                  selected={productStore.prismRig?.size === v}
+                                                >
+                                                  {v}
+                                                </Chip>
+                                              ))}
+                                            </div>
+                                          </div>
+
+                                          <div>
+                                            <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 mb-1">Focus</p>
+                                            <div className="flex flex-wrap gap-2">
+                                              {(['Soft', 'Balanced', 'Hard'] as const).map(v => (
+                                                <Chip
+                                                  key={v}
+                                                  onClick={() => {
+                                                    productStore.setPrismRig({ focus: v });
+                                                    markSectionTouched('product-setup');
+                                                  }}
+                                                  selected={productStore.prismRig?.focus === v}
+                                                >
+                                                  {v}
+                                                </Chip>
+                                              ))}
+                                            </div>
+                                          </div>
+
+                                          <div>
+                                            <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 mb-1">Intensity</p>
+                                            <div className="flex flex-wrap gap-2">
+                                              {(['Low', 'Medium', 'High'] as const).map(v => (
+                                                <Chip
+                                                  key={v}
+                                                  onClick={() => {
+                                                    productStore.setPrismRig({ intensity: v });
+                                                    markSectionTouched('product-setup');
+                                                  }}
+                                                  selected={productStore.prismRig?.intensity === v}
+                                                >
+                                                  {v}
+                                                </Chip>
+                                              ))}
+                                            </div>
+                                          </div>
+
+                                          <div>
+                                            <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 mb-1">Placement</p>
+                                            <div className="flex flex-wrap gap-2">
+                                              {(['Front', 'Side', 'Back', 'Diagonal'] as const).map(v => (
+                                                <Chip
+                                                  key={v}
+                                                  onClick={() => {
+                                                    productStore.setPrismRig({ placement: v });
+                                                    markSectionTouched('product-setup');
+                                                  }}
+                                                  selected={productStore.prismRig?.placement === v}
+                                                >
+                                                  {v}
+                                                </Chip>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    <div>
+                                      <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">FINISH / TREATMENT</p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {[
+                                          'High-Gloss Commercial', 'Film Grain Luxury', 'Matte Editorial',
+                                          'Hyperreal CGI Blend', 'Clinical Lab Polish', 'Vibrant Color Pop'
+                                        ].map(finish => (
+                                          <Chip
+                                            key={finish}
+                                            onClick={() => {
+                                              productStore.setFinish(finish);
+                                              markSectionTouched('product-setup');
+                                            }}
+                                            selected={productStore.finish === finish}
+                                          >
+                                            {finish}
+                                          </Chip>
+                                        ))}
+                                      </div>
+                                    </div>
                                   </div>
                                 )}
                               </div>
