@@ -159,23 +159,22 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Beach Foam Splash',
         scope: 'environment',
         description: 'Beach foam splash moment with clean premium control and readable hero product.',
-        basePrompt: 'premium beach foam splash hero in bright tropical midday sunlight: product physically grounded on wet compact white Caribbean sand, clean sculpted sea-foam clusters wrapping around the base, restrained directional backwash, vibrant turquoise shallow-water horizon, joyful sunlit commercial look, product remains hero and label stays fully readable',
+        basePrompt: 'premium beach splash setup in bright tropical daylight: product physically grounded on wet compact white Caribbean sand, shallow sea foam and clean micro-droplets only near the base, restrained directional backwash around the product, vibrant turquoise-water coastal mood, joyful sunlit premium look, product remains hero and label stays readable',
         subOptions: [
             { key: 'shoreline', label: 'Shoreline', values: ['Foam line', 'Wave break', 'Backwash'] },
             { key: 'spray', label: 'Spray', values: ['Low', 'Medium', 'High'] },
             { key: 'sand', label: 'Sand', values: ['Clean', 'Wet', 'Glossy'] },
         ],
         constraints: [
-            'Foam must look clean, airy, and realistic (no muddy or dirty foam)',
-            'Keep foam controlled around the base (do not bury the product)',
+            'Keep foam minimal and controlled (do not bury the product)',
             'Frozen motion with crisp droplets',
             'Label must remain readable and unobstructed',
+            'No muddy water or dirty foam',
             'Product must stay physically grounded on wet sand (not floating, not submerged)',
             'Backwash/Wave break motion should pass around the base, never replace sand support under the product',
             'No tall water plumes, no random water jets, no chaotic crossing splash arcs',
             'No dark or moody grading. Keep bright sunny tropical daylight with lively color and commercial clarity',
-            'No visible studio fixtures, no spotlights, no light stands, no theatrical beams, no glowing lamp circles in frame',
-            'No dull gray beach mood. Favor white-sand tropical color separation and bright cyan water tones'
+            'No visible studio fixtures, no spotlights, no light stands, no theatrical beams, no glowing lamp circles in frame'
         ],
         requiredPlacement: 'surface',
         allowedInteractions: ['none'],
