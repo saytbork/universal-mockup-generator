@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   SlidersHorizontal, User, Activity, Scissors, Smile, Eye, Sparkles,
   Sun, Camera, Rotate3d, Layout, Hand, Smartphone, Shirt, Layers, Film,
@@ -968,20 +968,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   );
   const [openUgcLayerId, setOpenUgcLayerId] = useState<UGCLayerField | null>(null);
   const [touchedSections, setTouchedSections] = useState<Set<string>>(new Set());
-  const photoModeSettingsRef = useRef<HTMLDivElement | null>(null);
   const markSectionTouched = useCallback((section: string) => {
     setTouchedSections(prev => {
       const newSet = new Set(prev);
       newSet.add(section);
       return newSet;
-    });
-  }, []);
-  const scrollToPhotoModeSettings = useCallback(() => {
-    if (typeof window === 'undefined') return;
-    window.requestAnimationFrame(() => {
-      window.setTimeout(() => {
-        photoModeSettingsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 40);
     });
   }, []);
   // Removed duplicate isCreatorPro declaration here, managed near top.
@@ -2388,7 +2379,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               const cleaned = stripLegacyEffectSegments(productStore.props);
                               if (cleaned !== productStore.props) productStore.setProps(cleaned);
                               markSectionTouched('product-setup');
-                              scrollToPhotoModeSettings();
                             };
 
                             const CHIP_TOOLTIPS: Partial<Record<PhotoMode, string>> = {
@@ -2652,8 +2642,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           })()}
 
                           <div className="mt-8 space-y-5">
-                            <div ref={photoModeSettingsRef} />
-
                             {productStore.photoMode === 'Hero Landing Page' && (
                               <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-5">
                                 {(() => {
