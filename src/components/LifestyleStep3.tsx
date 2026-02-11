@@ -4084,145 +4084,142 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     </div>
                   ) : null}
 
-                  {/* ═══════════════════════════════════════════════════════════
-                      5. PRO ONLY — Advanced Controls
-                      Hidden in Basic mode, revealed progressively in Pro
-                      ═══════════════════════════════════════════════════════════ */}
-                  {productStore.controlTier === 'pro' && productStore.photoMode !== 'Hero Landing Page' && (
-                    <>
-                      <div className={SECTION_GROUP_CLASS}>
-                        <div
-                          className="overflow-hidden transition-all duration-500 max-h-[1000px] opacity-100"
-                          style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                        >
-                          <div className="space-y-5 pl-3 border-l-2 border-indigo-300">
-                            <div>
-                              <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LENS</p>
-                              <div className="flex flex-wrap gap-2">
-                                {[
-                                  '100mm Macro Prime', '50mm Product Prime', 'Tilt-Shift Hero',
-                                  'Ultra-Wide Stylized', 'Cinema Zoom', '70-200mm Compression',
-                                  '35mm Anamorphic Glow'
-                                ].map(lens => (
-                                  <button
-                                    key={lens}
-                                    onClick={() => {
-                                      productStore.setLens(lens);
-                                      markSectionTouched('product-setup');
-                                    }}
-                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.lens === lens
-                                      ? 'bg-indigo-600 text-white border-indigo-600'
-                                      : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
-                                      }`}
-                                    style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                                  >
-                                    {lens}
-                                  </button>
-                                ))}
-                              </div>
-                              {getInterpretationNote('lens') && (
-                                <InterpretationNote message={getInterpretationNote('lens')!} />
-                              )}
-                            </div>
+                </>
+              )}
+              {/* ADVANCED CONTROLS DETAILS — global (not tied to Environment) */}
+              {productStore.controlTier === 'pro' && (
+                <>
+                  <div className={SECTION_GROUP_CLASS}>
+                    <div
+                      className="overflow-hidden transition-all duration-500 max-h-[1000px] opacity-100"
+                      style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
+                    >
+                      <div className="space-y-5 pl-3 border-l-2 border-indigo-300">
+                        <div>
+                          <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LENS</p>
+                          <div className="flex flex-wrap gap-2">
+                            {[
+                              '100mm Macro Prime', '50mm Product Prime', 'Tilt-Shift Hero',
+                              'Ultra-Wide Stylized', 'Cinema Zoom', '70-200mm Compression',
+                              '35mm Anamorphic Glow'
+                            ].map(lens => (
+                              <button
+                                key={lens}
+                                onClick={() => {
+                                  productStore.setLens(lens);
+                                  markSectionTouched('product-setup');
+                                }}
+                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.lens === lens
+                                  ? 'bg-indigo-600 text-white border-indigo-600'
+                                  : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                                  }`}
+                                style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
+                              >
+                                {lens}
+                              </button>
+                            ))}
+                          </div>
+                          {getInterpretationNote('lens') && (
+                            <InterpretationNote message={getInterpretationNote('lens')!} />
+                          )}
+                        </div>
 
-                            <div>
-                              <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LIGHTING RIG</p>
-                              <div className="flex flex-wrap gap-2">
-                                {([
-                                  { value: '3-Point Beauty Dish', label: '3-Point Beauty Dish' },
-                                  { value: 'Softbox Wrap', label: 'Softbox Wrap' },
-                                  { value: 'Hard Edge Gels', label: 'Hard Edge Gels' },
-                                  { value: 'Backlit Acrylic', label: 'Backlit Acrylic' },
-                                  { value: 'High-Speed Splash Rig', label: 'High-Speed Splash Rig' },
-                                  { value: 'Gradient Cyclorama', label: 'Gradient Cyclorama' },
-                                  { value: 'Prism Spotlight Duo', label: 'Prism Spotlight Duo' },
-                                ] as const).map(({ value, label }) => (
-                                  <button
-                                    key={value}
-                                    onClick={() => {
-                                      productStore.setLightingRig(value);
-                                      markSectionTouched('product-setup');
-                                    }}
-                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.lightingRig === value
-                                      ? 'bg-indigo-600 text-white border-indigo-600'
-                                      : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
-                                      }`}
-                                    style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                                  >
-                                    {label}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
+                        <div>
+                          <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LIGHTING RIG</p>
+                          <div className="flex flex-wrap gap-2">
+                            {([
+                              { value: '3-Point Beauty Dish', label: '3-Point Beauty Dish' },
+                              { value: 'Softbox Wrap', label: 'Softbox Wrap' },
+                              { value: 'Hard Edge Gels', label: 'Hard Edge Gels' },
+                              { value: 'Backlit Acrylic', label: 'Backlit Acrylic' },
+                              { value: 'High-Speed Splash Rig', label: 'High-Speed Splash Rig' },
+                              { value: 'Gradient Cyclorama', label: 'Gradient Cyclorama' },
+                              { value: 'Prism Spotlight Duo', label: 'Prism Spotlight Duo' },
+                            ] as const).map(({ value, label }) => (
+                              <button
+                                key={value}
+                                onClick={() => {
+                                  productStore.setLightingRig(value);
+                                  markSectionTouched('product-setup');
+                                }}
+                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.lightingRig === value
+                                  ? 'bg-indigo-600 text-white border-indigo-600'
+                                  : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                                  }`}
+                                style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
+                              >
+                                {label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
 
-                            <div>
-                              <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">FINISH / TREATMENT</p>
-                              <div className="flex flex-wrap gap-2">
-                                {[
-                                  'High-Gloss Commercial', 'Film Grain Luxury', 'Matte Editorial',
-                                  'Hyperreal CGI Blend', 'Clinical Lab Polish', 'Vibrant Color Pop'
-                                ].map(finish => (
-                                  <button
-                                    key={finish}
-                                    onClick={() => {
-                                      productStore.setFinish(finish);
-                                      markSectionTouched('product-setup');
-                                    }}
-                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.finish === finish
-                                      ? 'bg-indigo-600 text-white border-indigo-600'
-                                      : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
-                                      }`}
-                                    style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-                                  >
-                                    {finish}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
+                        <div>
+                          <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">FINISH / TREATMENT</p>
+                          <div className="flex flex-wrap gap-2">
+                            {[
+                              'High-Gloss Commercial', 'Film Grain Luxury', 'Matte Editorial',
+                              'Hyperreal CGI Blend', 'Clinical Lab Polish', 'Vibrant Color Pop'
+                            ].map(finish => (
+                              <button
+                                key={finish}
+                                onClick={() => {
+                                  productStore.setFinish(finish);
+                                  markSectionTouched('product-setup');
+                                }}
+                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.finish === finish
+                                  ? 'bg-indigo-600 text-white border-indigo-600'
+                                  : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                                  }`}
+                                style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
+                              >
+                                {finish}
+                              </button>
+                            ))}
                           </div>
                         </div>
                       </div>
+                    </div>
+                  </div>
 
-                      {/* CREATIVE DIRECTION — All creativity controls unified */}
-                      <div className={SECTION_GROUP_CLASS}>
-                        <p className={GROUP_LABEL_CLASS}>CREATIVE DIRECTION</p>
-                        <div className="space-y-3">
-                          <div>
-                            <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">CREATIVITY LEVEL</p>
-                            <div className="flex gap-2">
-                              {([0, 1, 2, 3] as const).map(level => (
-                                <Chip
-                                  key={level}
-                                  onClick={() => {
-                                    productStore.setCreativityLevel(level);
-                                    markSectionTouched('product-setup');
-                                  }}
-                                  selected={productStore.creativityLevel === level}
-                                >
-                                  {level === 0 ? 'Locked' : level === 1 ? 'Low' : level === 2 ? 'Medium' : 'High'}
-                                </Chip>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div>
-                            <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">PROPS</p>
-                            <input
-                              type="text"
-                              value={productStore.props}
-                              onChange={(e) => {
-                                productStore.setProps(e.target.value);
+                  {/* CREATIVE DIRECTION — All creativity controls unified */}
+                  <div className={SECTION_GROUP_CLASS}>
+                    <p className={GROUP_LABEL_CLASS}>CREATIVE DIRECTION</p>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">CREATIVITY LEVEL</p>
+                        <div className="flex gap-2">
+                          {([0, 1, 2, 3] as const).map(level => (
+                            <Chip
+                              key={level}
+                              onClick={() => {
+                                productStore.setCreativityLevel(level);
                                 markSectionTouched('product-setup');
                               }}
-                              placeholder="e.g., pineapple, lavender sprigs"
-                              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
-                            />
-                          </div>
-
+                              selected={productStore.creativityLevel === level}
+                            >
+                              {level === 0 ? 'Locked' : level === 1 ? 'Low' : level === 2 ? 'Medium' : 'High'}
+                            </Chip>
+                          ))}
                         </div>
                       </div>
-                    </>
-                  )}
+
+                      <div>
+                        <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">PROPS</p>
+                        <input
+                          type="text"
+                          value={productStore.props}
+                          onChange={(e) => {
+                            productStore.setProps(e.target.value);
+                            markSectionTouched('product-setup');
+                          }}
+                          placeholder="e.g., pineapple, lavender sprigs"
+                          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
+                        />
+                      </div>
+
+                    </div>
+                  </div>
                 </>
               )}
             </div>

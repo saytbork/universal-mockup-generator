@@ -54,6 +54,7 @@ export type CameraBuildOptions = {
   override?: CameraOverride;
   qualityProfile?: 'luxury-brand' | 'ecommerce-conversion' | 'editorial';
   compactMetadata?: boolean;
+  disableAutoLens?: boolean;
   forceLens?: string;
   forceCameraSystem?: string;
   forceAngle?: string;
@@ -79,7 +80,8 @@ export function buildCamera(mode: PhotoModeKey, randomizer: Randomizer, options:
 
   if (mode === 'INGREDIENT_FLAT_LAY') {
     const distance = options.forceDistance?.trim() ? options.forceDistance.trim() : 'standard framing';
-    const lens = options.forceLens?.trim() ? options.forceLens.trim() : '50mm';
+    const forcedLens = options.forceLens?.trim() || '';
+    const lens = forcedLens || (options.disableAutoLens ? '' : '50mm');
     const composition = options.forceComposition?.trim() ? options.forceComposition.trim() : 'grid-ready composition';
     const cameraSystem = options.forceCameraSystem?.trim();
     const rotation = options.forceRotation?.trim();
@@ -88,7 +90,7 @@ export function buildCamera(mode: PhotoModeKey, randomizer: Randomizer, options:
       ...(options.compactMetadata ? [] : (cameraSystem ? [`Camera system: ${cameraSystem}.`] : [])),
       'Camera angle: top-down flat lay.',
       `Framing distance: ${distance}.`,
-      ...(options.compactMetadata ? [] : [`Lens selection: ${lens}.`]),
+      ...(options.compactMetadata || !lens ? [] : [`Lens selection: ${lens}.`]),
       ...(options.compactMetadata ? [] : (rotation ? [`Rotation: ${rotation}.`] : [])),
       `${composition}.`,
       'Strict overhead framing; avoid eye-level, low-angle, or hero 45-degree viewpoints.',
@@ -110,7 +112,8 @@ export function buildCamera(mode: PhotoModeKey, randomizer: Randomizer, options:
   const compositionPool = MODE_COMPOSITION_OVERRIDES[mode] ?? COMPOSITIONS;
 
   const distance = options.forceDistance?.trim() ? options.forceDistance.trim() : randomizer.pick(distancePool);
-  const lens = options.forceLens?.trim() ? options.forceLens.trim() : randomizer.pick(lensPool);
+  const forcedLens = options.forceLens?.trim() || '';
+  const lens = forcedLens || (options.disableAutoLens ? '' : randomizer.pick(lensPool));
   const composition = options.forceComposition?.trim() ? options.forceComposition.trim() : randomizer.pick(compositionPool);
   const cameraSystem = options.forceCameraSystem?.trim();
   const rotation = options.forceRotation?.trim();
@@ -128,7 +131,7 @@ export function buildCamera(mode: PhotoModeKey, randomizer: Randomizer, options:
     ...(options.compactMetadata ? [] : (cameraSystem ? [`Camera system: ${cameraSystem}.`] : [])),
     `Camera angle: ${angle}.`,
     `Framing distance: ${distance}.`,
-    ...(options.compactMetadata ? [] : [`Lens selection: ${lens}.`]),
+    ...(options.compactMetadata || !lens ? [] : [`Lens selection: ${lens}.`]),
     ...(options.compactMetadata ? [] : (rotation ? [`Rotation: ${rotation}.`] : [])),
     `${composition}.`,
     modeNotes[mode] ?? 'Avoid symmetrical default framing; prioritize premium commercial composition.'

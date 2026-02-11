@@ -1043,13 +1043,11 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const proPhotographerLockText = (() => {
     if (isCampaignIntent) return '';
     if (!isProModeActive) return '';
-    const lens = String((state as any).lens || '').trim();
     const rig = String((state as any).lightingRig || '').trim();
     const finish = String((state as any).finish || '').trim();
-    if (!lens && !rig && !finish) return '';
+    if (!rig && !finish) return '';
     return [
       'ADVANCED CONTROLS (LOCKED):',
-      lens ? `Lens=${lens};` : '',
       rig ? `Lighting Rig=${rig};` : '',
       finish ? `Finish=${finish};` : '',
       'Treat these as locked user selections and do not substitute alternative lens, rig, or finish choices.'
@@ -1169,13 +1167,16 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   })();
 
   const effectiveAngleLabelResolved = isCampaignIntent ? effectiveAngleLabelResolvedBase : '45° hero';
+  const proLensOverride = String((state as any).lens || '').trim();
   const effectiveFramingLabel = isCampaignIntent
     ? (effectiveFramingLabelBase === 'Centered hero' ? 'Rule of thirds' : effectiveFramingLabelBase)
     : (isConversionSquareOptimized ? 'Centered dominance with mild crop bias' : 'Centered hero');
   const effectiveDistanceLabel = isCampaignIntent
     ? effectiveDistanceLabelBase
     : (isConversionSquareOptimized ? 'Slightly Closer' : 'Standard');
-  const effectiveLensLabel = isCampaignIntent
+  const effectiveLensLabel = isProModeActive && proLensOverride
+    ? proLensOverride
+    : isCampaignIntent
     ? campaignLens
     : (isConversionSquareOptimized ? '45mm equivalent behavior' : '50mm Product Prime');
   const effectiveRotationLabel = isCampaignIntent ? campaignRotation : '0°';
@@ -1337,7 +1338,8 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     }),
     buildCamera(mode, randomizer, {
       qualityProfile: isCampaignIntent ? 'editorial' : state.qualityProfile,
-      forceLens: isProModeActive ? forcedLens : undefined,
+      forceLens: isProModeActive ? (proLensOverride || undefined) : undefined,
+      disableAutoLens: isProModeActive,
       forceCameraSystem: isProModeActive
         ? (isCampaignIntent
           ? mapCameraSystemToPrompt(state.cameraSystem, uiSystemLabel)
@@ -1347,7 +1349,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       forceDistance: forcedCameraDistance,
       forceComposition: forcedCameraFraming,
       forceRotation: isProModeActive ? forcedRotation : undefined,
-      override: isProModeActive ? { text: cameraControlsTraceText } : undefined,
+      override: undefined,
       compactMetadata: isBasicTier,
     }),
     proPhotographerLockText,
