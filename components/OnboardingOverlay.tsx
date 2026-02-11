@@ -24,8 +24,8 @@ const OnboardingOverlay: React.FC<OnboardingOverlayProps> = ({
   const [highlightRect, setHighlightRect] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
 
   const fallbackRect = () => ({
-    top: window.innerHeight / 2 - 80,
-    left: window.innerWidth / 2 - 160,
+    top: window.scrollY + window.innerHeight / 2 - 80,
+    left: window.scrollX + window.innerWidth / 2 - 160,
     width: 320,
     height: 160,
   });
@@ -39,8 +39,8 @@ const OnboardingOverlay: React.FC<OnboardingOverlayProps> = ({
     }
     const rect = element.getBoundingClientRect();
     setHighlightRect({
-      top: Math.max(8, rect.top - 12),
-      left: Math.max(8, rect.left - 12),
+      top: rect.top + window.scrollY - 12,
+      left: rect.left + window.scrollX - 12,
       width: rect.width + 24,
       height: rect.height + 24,
     });
@@ -51,13 +51,8 @@ const OnboardingOverlay: React.FC<OnboardingOverlayProps> = ({
     if (!visible) return;
     updateRect();
     const handleResize = () => updateRect();
-    const handleScroll = () => updateRect();
     window.addEventListener('resize', handleResize);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('scroll', handleScroll);
-    };
+    return () => window.removeEventListener('resize', handleResize);
   }, [visible, currentStep, steps]);
 
   useEffect(() => {
@@ -73,19 +68,17 @@ const OnboardingOverlay: React.FC<OnboardingOverlayProps> = ({
   const step = steps[currentStep - 1];
   const rect = highlightRect ?? fallbackRect();
   const cardWidth = 320;
-  const cardHeight = 190;
+  const cardHeight = 160;
   let cardTop = rect.top + rect.height + 16;
   let cardLeft = rect.left;
 
-  if (cardTop + cardHeight > window.innerHeight - 8) {
+  if (cardTop + cardHeight > window.innerHeight + window.scrollY) {
     cardTop = rect.top - cardHeight - 16;
   }
 
-  if (cardLeft + cardWidth > window.innerWidth - 8) {
-    cardLeft = window.innerWidth - cardWidth - 16;
+  if (cardLeft + cardWidth > window.innerWidth + window.scrollX) {
+    cardLeft = window.innerWidth + window.scrollX - cardWidth - 16;
   }
-  if (cardLeft < 8) cardLeft = 8;
-  if (cardTop < 8) cardTop = 8;
 
   return (
     <div className="fixed inset-0 z-50 pointer-events-none">
@@ -110,12 +103,12 @@ const OnboardingOverlay: React.FC<OnboardingOverlayProps> = ({
         <h3 className="text-gray-900 text-lg font-semibold mt-2">{step.title}</h3>
         <p className="text-gray-600 text-sm mt-2">{step.description}</p>
         <div className="mt-4 flex items-center justify-between text-xs">
-          <button onClick={onSkip} className="text-gray-600 hover:text-gray-900 transition">Omitir</button>
+          <button onClick={onSkip} className="text-gray-600 hover:text-gray-900 transition">Skip</button>
           <button
             onClick={onNext}
             className="rounded-full bg-indigo-600 text-white px-4 py-1.5 text-white font-semibold hover:bg-indigo-600 text-white transition"
           >
-            {currentStep === steps.length ? 'Listo' : 'Siguiente'}
+            {currentStep === steps.length ? 'Got it' : 'Next'}
           </button>
         </div>
       </div>
