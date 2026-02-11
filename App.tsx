@@ -2087,21 +2087,30 @@ const App: React.FC = () => {
     () => [
       {
         title: 'Choose Content Intent',
-        description: 'Pick between authentic UGC or a polished placement. This unlocks the rest of the builder.',
+        description: isProductPlacement
+          ? 'Set Studio mode and lock the product-first workflow before editing scene controls.'
+          : 'Set Lifestyle mode and define the creator-driven context before generation.',
         ref: intentRef,
       },
       {
         title: 'Upload your product',
-        description: 'Drop your product photo once—we’ll reuse it for every variation unless you replace it.',
+        description: 'Upload once, then reuse the same product across variations until you replace it.',
         ref: uploadRef,
       },
       {
-        title: 'Customize the vibe',
-        description: 'Dial in scene, camera, realism, and people details before generating or editing.',
+        title: isProductPlacement ? 'Tune Studio Controls' : 'Tune Lifestyle Controls',
+        description: isProductPlacement
+          ? 'Configure Photo Mode, lighting, composition, and product constraints for a controlled studio render.'
+          : 'Configure environment, styling, and realism cues to shape authentic lifestyle output.',
         ref: customizeRef,
       },
+      {
+        title: 'Generate & Review',
+        description: 'Run generation, inspect output quality, and iterate with edits or settings changes.',
+        ref: resultRef,
+      },
     ],
-    []
+    [isProductPlacement]
   );
 
   // State for video generation
@@ -2271,7 +2280,10 @@ const App: React.FC = () => {
     if (typeof window === 'undefined') return;
     if (window.localStorage.getItem(ONBOARDING_DISMISSED_KEY) === 'true') {
       setShowOnboarding(false);
+      return;
     }
+    setOnboardingStep(1);
+    setShowOnboarding(true);
   }, []);
 
   useEffect(() => {
@@ -3614,12 +3626,12 @@ const App: React.FC = () => {
 
   const advanceOnboardingFromStep = useCallback((step: number) => {
     if (!showOnboarding || onboardingStep !== step) return;
-    if (step >= 3) {
+    if (step >= onboardingStepsMeta.length) {
       skipOnboarding();
     } else {
       setOnboardingStep(step + 1);
     }
-  }, [showOnboarding, onboardingStep, skipOnboarding]);
+  }, [showOnboarding, onboardingStep, skipOnboarding, onboardingStepsMeta.length]);
   const handleOnboardingNext = useCallback(() => {
     advanceOnboardingFromStep(onboardingStep);
   }, [advanceOnboardingFromStep, onboardingStep]);
