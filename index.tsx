@@ -22,6 +22,8 @@ import PrivacyPage from './PrivacyPage';
 import SiteLayout from './src/components/SiteLayout';
 import SupportWidget from './src/components/SupportWidget';
 
+console.log('[BUILD CHECK] VITE_USE_STUDIO_V2 =', import.meta.env.VITE_USE_STUDIO_V2);
+
 class RootErrorBoundary extends React.Component<
   React.PropsWithChildren,
   { error: Error | null }
