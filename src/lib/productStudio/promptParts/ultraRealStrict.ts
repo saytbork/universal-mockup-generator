@@ -2,14 +2,21 @@ type OutputQualityProfile = 'luxury-brand' | 'ecommerce-conversion' | 'clinical'
 
 export function buildUltraRealStrictBlock(
   enabled: boolean,
-  profile: OutputQualityProfile = 'luxury-brand'
+  profile: OutputQualityProfile = 'luxury-brand',
+  authority?: { visualIntent?: 'conversion' | 'campaign' | 'clinical' | 'luxury' }
 ): string {
   if (!enabled) return '';
+  const effectiveProfile: OutputQualityProfile =
+    authority?.visualIntent === 'clinical'
+      ? 'clinical'
+      : authority?.visualIntent === 'luxury' || authority?.visualIntent === 'campaign'
+        ? 'luxury-brand'
+        : profile;
 
   const profileTail =
-    profile === 'ecommerce-conversion'
+    effectiveProfile === 'ecommerce-conversion'
       ? 'Keep this strict realism aligned with conversion clarity and label legibility.'
-      : profile === 'clinical'
+      : effectiveProfile === 'clinical'
         ? 'Keep this strict realism while enforcing controlled clinical precision.'
         : 'Keep this strict realism aligned with luxury campaign polish. Luxury realism guardrail: expressive styling is allowed, but all optical behavior must remain physically coherent and premium-grade.';
 

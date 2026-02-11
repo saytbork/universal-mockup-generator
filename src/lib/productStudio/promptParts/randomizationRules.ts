@@ -71,20 +71,27 @@ export type RandomizationLocks = {
 export function buildRandomizationRules(
   mode: RandomizationMode = 'default',
   profile: RandomizationProfile = 'luxury-brand',
-  locks: RandomizationLocks = {}
+  locks: RandomizationLocks = {},
+  authority?: { visualIntent?: 'conversion' | 'campaign' | 'clinical' | 'luxury' }
 ): string {
-  const profileLine = profile === 'ecommerce-conversion'
+  const effectiveProfile: RandomizationProfile =
+    authority?.visualIntent === 'clinical'
+      ? 'clinical'
+      : authority?.visualIntent === 'luxury' || authority?.visualIntent === 'campaign'
+        ? 'luxury-brand'
+        : profile;
+  const profileLine = effectiveProfile === 'ecommerce-conversion'
     ? 'Keep visual hierarchy conversion-focused: product and label remain dominant in every variation.'
-    : profile === 'clinical'
+    : effectiveProfile === 'clinical'
       ? 'Allow controlled variation while preserving scientific clarity and product truth.'
       : 'Maintain luxury campaign polish across all variations. Allow expressive but controlled variation. Never compromise hero dominance or label readability.';
 
   const luxuryVariationAllowLine =
-    profile === 'luxury-brand'
+    effectiveProfile === 'luxury-brand'
       ? 'Allowed controlled variation: light angle, framing, background gradient, and surface material.'
       : '';
   const luxuryVariationGuardrailLine =
-    profile === 'luxury-brand'
+    effectiveProfile === 'luxury-brand'
       ? 'Disallow extreme product displacement, chaotic splash behavior, and extreme camera roll.'
       : '';
 

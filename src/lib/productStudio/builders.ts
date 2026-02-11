@@ -26,7 +26,7 @@ import type {
     PropDensity,
 } from './types';
 
-import { mapSceneToPrompt } from './mapSceneToPrompt';
+import { routeStudioScenePrompt } from './promptRouter';
 import { applyCanonicalPhysicalForMotion } from './motionCoherence';
 import { buildEcommercePdpPrompt } from './prompt-builders/buildEcommercePdpPrompt';
 import { PHOTO_MODE_SCHEMAS } from './photoModeSchema';
@@ -1215,7 +1215,10 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     console.log('VISUAL_INTENT_ACTIVE =', visualIntent);
     console.log('CONTROL_TIER_ACTIVE =', controlTier);
     console.log('CONVERSION_SQUARE_OPTIMIZED =', conversionSquareOptimized);
-    const sceneResult = mapSceneToPrompt(state, product);
+    // Studio engine router:
+    // - USE_STUDIO_V2=true  -> ProductStudioV2
+    // - otherwise           -> legacy mapSceneToPrompt
+    const sceneResult = routeStudioScenePrompt(state, product);
 
     segments.push(sceneResult.prompt);
     segments.push(buildProductDescription(state, product));
@@ -1253,7 +1256,10 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     console.log('VISUAL_INTENT_ACTIVE =', visualIntent);
     console.log('CONTROL_TIER_ACTIVE =', controlTier);
     console.log('CONVERSION_SQUARE_OPTIMIZED =', conversionSquareOptimized);
-    const sceneResult = mapSceneToPrompt(state, primary ?? undefined);
+    // Studio engine router:
+    // - USE_STUDIO_V2=true  -> ProductStudioV2
+    // - otherwise           -> legacy mapSceneToPrompt
+    const sceneResult = routeStudioScenePrompt(state, primary ?? undefined);
 
     segments.push(sceneResult.prompt);
     if (primary) {

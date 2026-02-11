@@ -1,5 +1,6 @@
 import type { PhotoModeKey } from './sceneBuilders';
 import type { Randomizer } from './randomizationRules';
+import type { AuthorityResolution } from './authorityResolver';
 
 const LENSES = [
   '35mm',
@@ -53,6 +54,7 @@ export type CameraOverride = {
 export type CameraBuildOptions = {
   override?: CameraOverride;
   qualityProfile?: 'luxury-brand' | 'ecommerce-conversion' | 'clinical';
+  authority?: AuthorityResolution;
   compactMetadata?: boolean;
   disableAutoLens?: boolean;
   forceLens?: string;
@@ -64,6 +66,13 @@ export type CameraBuildOptions = {
 };
 
 export function buildCamera(mode: PhotoModeKey, randomizer: Randomizer, options: CameraBuildOptions = {}): string {
+  const qualityProfileFromAuthority =
+    options.authority?.visualIntent === 'clinical'
+      ? 'clinical'
+      : options.authority?.visualIntent === 'luxury'
+        ? 'luxury-brand'
+        : options.qualityProfile;
+  const qualityProfile = qualityProfileFromAuthority ?? options.qualityProfile;
   if (mode === 'INGREDIENT_STACK') {
     const base = [
       'CAMERA:',
@@ -94,9 +103,9 @@ export function buildCamera(mode: PhotoModeKey, randomizer: Randomizer, options:
       ...(options.compactMetadata ? [] : (rotation ? [`Rotation: ${rotation}.`] : [])),
       `${composition}.`,
       'Strict overhead framing; avoid eye-level, low-angle, or hero 45-degree viewpoints.',
-      options.qualityProfile === 'ecommerce-conversion'
+      qualityProfile === 'ecommerce-conversion'
         ? 'Camera priority: top-down conversion clarity with clean label legibility.'
-        : options.qualityProfile === 'clinical'
+        : qualityProfile === 'clinical'
           ? 'Camera priority: disciplined overhead clinical framing with precision readability.'
           : 'Composition priority: premium campaign art direction with controlled expressive framing. Allow non-centered hero placement and rule-of-thirds alignment while preserving label clarity and brand authority. Allow subtle perspective variation and mild depth parallax. Disallow extreme oblique angles, experimental distortion, or any label illegibility.',
     ];
@@ -137,9 +146,9 @@ export function buildCamera(mode: PhotoModeKey, randomizer: Randomizer, options:
     modeNotes[mode] ?? 'Avoid symmetrical default framing; prioritize premium commercial composition.'
   ];
 
-  const profileText = options.qualityProfile === 'ecommerce-conversion'
+  const profileText = qualityProfile === 'ecommerce-conversion'
     ? 'Camera priority: conversion clarity with label-forward framing and minimal ambiguity.'
-    : options.qualityProfile === 'clinical'
+    : qualityProfile === 'clinical'
       ? 'Camera priority: clinical composition with controlled geometry and evidence-grade legibility.'
       : 'Composition priority: premium campaign art direction with controlled expressive framing. Allow non-centered hero placement and rule-of-thirds alignment while preserving label clarity and brand authority. Allow subtle perspective variation and mild depth parallax. Disallow extreme oblique angles, experimental distortion, or any label illegibility.';
   base.push(profileText);

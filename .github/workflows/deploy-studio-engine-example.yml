@@ -1,0 +1,38 @@
+name: Deploy Studio Engine (Example)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-staging-studio-v2:
+    if: github.ref_name != 'main'
+    runs-on: ubuntu-latest
+    env:
+      # Enable ProductStudioV2 for staging validation.
+      VITE_USE_STUDIO_V2: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+  deploy-production-legacy:
+    if: github.ref_name == 'main'
+    runs-on: ubuntu-latest
+    env:
+      # Keep legacy Studio engine in production until V2 rollout is approved.
+      VITE_USE_STUDIO_V2: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build

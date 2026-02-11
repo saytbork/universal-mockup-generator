@@ -194,9 +194,9 @@ export function buildSplashShotScene({ randomizer, palette }: SceneBuildInput): 
   ]);
 
   const modeDescriptions: Record<SplashMode, string> = {
-    IMPACT_SPLASH: 'Classic impact splash: a clean crown/sheet splash with a dominant upward arc and crisp droplet scatter.',
+    IMPACT_SPLASH: 'Classic impact splash: a clean crown/sheet splash from a defined impact source with coherent droplet scatter.',
     RISING_SPLASH: 'Classic rising splash: product emerges with a controlled wrapping splash sheet and campaign-grade asymmetry.',
-    SIDE_DISPLACEMENT_SPLASH: 'Classic side displacement: directional splash sheet with high-speed droplet separation and clean arcs.'
+    SIDE_DISPLACEMENT_SPLASH: 'Classic side displacement: source-defined lateral splash with collision-resolved droplets and bounded spread.'
   };
 
   const backgroundDirection = randomizer.pick([

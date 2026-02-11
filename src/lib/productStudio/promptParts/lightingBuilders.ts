@@ -1,5 +1,6 @@
 import type { PhotoModeKey } from './sceneBuilders';
 import type { Randomizer } from './randomizationRules';
+import type { AuthorityResolution } from './authorityResolver';
 
 export type LightingOverride = {
   text: string;
@@ -8,12 +9,24 @@ export type LightingOverride = {
 export type LightingBuildOptions = {
   override?: LightingOverride;
   qualityProfile?: 'luxury-brand' | 'ecommerce-conversion' | 'clinical';
+  authority?: AuthorityResolution;
   strictRigLock?: boolean;
 };
 
 export function buildLighting(mode: PhotoModeKey, randomizer: Randomizer, options: LightingBuildOptions = {}): string {
+  const authorityLighting = options.authority?.lighting;
+  const authorityLine = authorityLighting
+    ? `LIGHTING AUTHORITY: ${authorityLighting}.`
+    : '';
+  const qualityProfileFromAuthority =
+    options.authority?.visualIntent === 'clinical'
+      ? 'clinical'
+      : options.authority?.visualIntent === 'luxury'
+        ? 'luxury-brand'
+        : options.qualityProfile;
+  const qualityProfile = qualityProfileFromAuthority ?? options.qualityProfile;
   if (options.strictRigLock && options.override?.text) {
-    return options.override.text;
+    return [authorityLine, options.override.text].filter(Boolean).join(' ');
   }
   if (mode === 'INGREDIENT_STACK') {
     const fixed = [
@@ -23,9 +36,9 @@ export function buildLighting(mode: PhotoModeKey, randomizer: Randomizer, option
       'No dramatic shadows. No cinematic mood.'
     ].join(' ');
     if (options.override?.text) {
-      return [fixed, options.override.text].filter(Boolean).join(' ');
+      return [authorityLine, fixed, options.override.text].filter(Boolean).join(' ');
     }
-    return fixed;
+    return [authorityLine, fixed].filter(Boolean).join(' ');
   }
   if (mode === 'INGREDIENT_FLAT_LAY') {
     const fixed = [
@@ -34,9 +47,9 @@ export function buildLighting(mode: PhotoModeKey, randomizer: Randomizer, option
       'No dramatic side-rim mood and no heavy cinematic falloff.'
     ].join(' ');
     if (options.override?.text) {
-      return [fixed, options.override.text].filter(Boolean).join(' ');
+      return [authorityLine, fixed, options.override.text].filter(Boolean).join(' ');
     }
-    return fixed;
+    return [authorityLine, fixed].filter(Boolean).join(' ');
   }
 
   const base = [
@@ -101,14 +114,14 @@ export function buildLighting(mode: PhotoModeKey, randomizer: Randomizer, option
 
   const selections = modeSpecific[mode] ?? [];
   const chosen = selections.length > 0 ? randomizer.pick(selections) : '';
-  const profileText = options.qualityProfile === 'ecommerce-conversion'
+  const profileText = qualityProfile === 'ecommerce-conversion'
     ? 'Lighting priority: maximize label legibility and clean edge separation for ecommerce performance.'
-    : options.qualityProfile === 'clinical'
+    : qualityProfile === 'clinical'
       ? 'Lighting priority: clinical precision, neutral color response, and contamination-free highlight behavior.'
       : 'Lighting priority: sculpted campaign lighting with dimensional depth and controlled specular highlights. Allow directional shaping and subtle atmosphere depth while maintaining product truth. Require directional key, soft fill, controlled rim, and micro specular highlights.';
   if (options.override?.text) {
-    return [base.join(' '), chosen, profileText, options.override.text].filter(Boolean).join(' ');
+    return [authorityLine, base.join(' '), chosen, profileText, options.override.text].filter(Boolean).join(' ');
   }
 
-  return [base.join(' '), chosen, profileText].filter(Boolean).join(' ');
+  return [authorityLine, base.join(' '), chosen, profileText].filter(Boolean).join(' ');
 }

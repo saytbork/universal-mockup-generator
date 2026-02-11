@@ -24,6 +24,12 @@ import { buildMaterialsWithProfile } from './promptParts/materialsBuilders';
 import { buildRandomizationRules, createRandomizer } from './promptParts/randomizationRules';
 import { buildQualityEnforcers } from './promptParts/qualityEnforcers';
 import { buildUltraRealStrictBlock } from './promptParts/ultraRealStrict';
+import { resolveAuthorities } from './promptParts/authorityResolver';
+import { buildMotionAuthorityBlock } from './promptParts/buildMotion';
+import { buildProductStateBlock } from './promptParts/buildProductState';
+import { buildCompositionAuthorityBlock } from './promptParts/buildCompositionRules';
+import { buildSplashPhysicsModel, isSplashPhysicsContext } from './promptParts/buildSplashPhysics';
+import { assemblePrompt } from './promptParts/promptAssembler';
 import { resolvePlacement } from './placementResolver';
 import { resolvePhysicsCoherence } from './physicsCoherenceResolver';
 
@@ -212,13 +218,7 @@ function normalizePromptText(prompt: string): string {
     .trim();
 }
 
-type VisualIntentResolved = 'conversion' | 'campaign';
 type EnergyLevelResolved = 'low' | 'medium' | 'high';
-
-function resolveVisualIntent(state: ProductStudioState): VisualIntentResolved {
-  const raw = String((state as any).visualIntent || 'conversion').trim().toLowerCase();
-  return raw === 'campaign' ? 'campaign' : 'conversion';
-}
 
 function resolveEnergyLevel(state: ProductStudioState): EnergyLevelResolved {
   const raw = String((state as any).energyLevel || 'low').trim().toLowerCase();
@@ -571,15 +571,18 @@ function extractModeSpecificDynamicSettings(state: ProductStudioState): Record<s
 
 export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAsset | null): ScenePromptResult {
   const randomizer = createRandomizer();
-  const visualIntent = resolveVisualIntent(state);
+  const authorities = resolveAuthorities(state);
+  const visualIntent = authorities.visualIntent === 'clinical' || authorities.visualIntent === 'luxury'
+    ? 'conversion'
+    : authorities.visualIntent;
   const energyLevel = resolveEnergyLevel(state);
-  const isCampaignIntent = visualIntent === 'campaign';
+  const isCampaignIntent = authorities.visualIntent === 'campaign';
   const controlTier = String((state as any).controlTier || '').trim().toLowerCase() === 'pro' ? 'pro' : 'basic';
   const isProTier = controlTier === 'pro';
   const isBasicTier = !isProTier;
   const isProModeActive = isProTier;
-  const isConversionSquareOptimized = !isCampaignIntent && String(state.aspectRatio || '').trim() === '1:1';
-  console.log('VISUAL_INTENT_ACTIVE =', visualIntent);
+  const isConversionSquareOptimized = authorities.composition.isConversionSquareOptimized;
+  console.log('VISUAL_INTENT_ACTIVE =', authorities.visualIntent);
   console.log('CONTROL_TIER_ACTIVE =', controlTier);
   console.log('ADVANCED_CONTROLS_ACTIVE =', isProModeActive);
   console.log('CONVERSION_SQUARE_OPTIMIZED =', isConversionSquareOptimized);
@@ -813,21 +816,15 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     resolvedPlacementForPrompt
   );
 
-  const isWaterStabilityMode =
-    state.photoMode === 'Beach Foam Splash' || state.photoMode === 'Pool Water';
+  const resolvedMotion = authorities.motion;
   const resolvedProductState =
-    isCampaignIntent
-      ? 'Static'
-      : isWaterStabilityMode &&
-    (state.stateMotion === 'dispensed' || state.stateMotion === 'pouring' || state.stateMotion === 'falling' || state.stateMotion === 'spilled')
-      ? 'Static'
-      : state.stateMotion === 'opened'
-        ? 'Opened'
-        : state.stateMotion === 'dispensed'
-          ? 'Dispensing'
-          : state.stateMotion === 'pouring' || state.stateMotion === 'falling' || state.stateMotion === 'spilled'
-            ? 'Pouring'
-            : 'Static';
+    resolvedMotion === 'opened'
+      ? 'Opened'
+      : resolvedMotion === 'dispensed'
+        ? 'Dispensing'
+        : resolvedMotion === 'pouring' || resolvedMotion === 'falling' || resolvedMotion === 'spilled'
+          ? 'Pouring'
+          : 'Static';
 
   const isBundleMacroGuardActive = Boolean(state.bundle?.enabled);
   const effectivePhotoModeForPrompt: PhotoMode =
@@ -947,9 +944,14 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
 
   if (isCampaignIntent) {
     scene = scene
-      .replace(/restrained directional backwash/gi, 'organic, directional, environment-driven backwash')
-      .replace(/shallow sea foam and clean micro-droplets only near the base/gi, 'wind-influenced foam and directional spray with irregular shoreline behavior')
-      .replace(/one dominant splash sheet wrapping behind\/around the product/gi, 'directional splash sheets with crossing arcs driven by environmental flow');
+      .replace(/restrained directional backwash/gi, 'controlled directional backwash with source-defined vectors')
+      .replace(/shallow sea foam and clean micro-droplets only near the base/gi, 'coherent foam mass and physically grouped droplets near the liquid source')
+      .replace(/one dominant splash sheet wrapping behind\/around the product/gi, 'controlled splash mass originating from a defined impact plane with collision-resolved flow');
+  }
+  if (/(splash|foam|pool water|underwater)/i.test(String(state.photoMode || ''))) {
+    scene = scene
+      .replace(/one dominant splash sheet wrapping behind\/around the product/gi, 'controlled splash mass originating from a defined impact plane with bounded displacement')
+      .replace(/directional splash sheet with high-speed droplet separation/gi, 'source-defined splash flow with collision-resolved droplet dispersion');
   }
 
   const lightingStyleOverrideText = (() => {
@@ -1171,13 +1173,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   })();
 
   const effectiveAngleLabelResolved = isCampaignIntent ? effectiveAngleLabelResolvedBase : '45° hero';
-  const definitionTypeNormalized = String(state.definition?.type || '').trim().toLowerCase();
-  const isVerticalDominantSubject = definitionTypeNormalized === 'drops' || definitionTypeNormalized === 'skincare';
-  const isSplitLevelWaterMode = String(state.photoMode || '').trim().toLowerCase() === 'underwater split';
-  const disableSquareLateralSpreadForSplitWater =
-    isConversionSquareOptimized &&
-    isSplitLevelWaterMode &&
-    isVerticalDominantSubject;
+  const disableSquareLateralSpreadForSplitWater = authorities.composition.allowVerticalDominance;
   const proLens = isProModeActive ? String((state as any).lens || '').trim() : '';
   const effectiveFramingLabel = isCampaignIntent
     ? (effectiveFramingLabelBase === 'Centered hero' ? 'Rule of thirds' : effectiveFramingLabelBase)
@@ -1197,8 +1193,6 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
         )
     );
   const effectiveRotationLabel = isCampaignIntent ? campaignRotation : '0°';
-  const environmentalSpread = isConversionSquareOptimized && !disableSquareLateralSpreadForSplitWater;
-
   const forcedCameraAngle =
     correctedAngleState
       ? mapAngleToPrompt(effectiveAngleState, correctedUiAngleLabel)
@@ -1273,7 +1267,32 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   })();
 
   const visualIntentDirectiveText = (() => {
-    if (!isCampaignIntent) {
+    if (authorities.visualIntent === 'campaign') {
+      return [
+        'VISUAL INTENT: Campaign Energy Mode.',
+        'Natural directional sunlight with environmental bounce and specular rim highlights.',
+        'Dynamic framing is allowed; non-centered compositions are preferred where physically coherent.',
+        'Motion style: physically coherent directional motion with defined source vectors and collision-resolved liquid behavior.',
+        'Atmosphere tools enabled: lens micro droplets, sun flare, foreground blur, environmental depth layering.',
+        'HARD LOCKS (MANDATORY): LABEL LOCK, PRODUCT DESIGN LOCK, PRODUCT_STATE_MOTION static.',
+        'FRAME INTEGRITY LOCK (MANDATORY): no letterbox/pillarbox bars, no mirrored edge extension, no duplicated side panels, and no blurred side-fill bands.',
+      ].join(' ');
+    }
+    if (authorities.visualIntent === 'clinical') {
+      return [
+        'VISUAL INTENT: Clinical Precision Mode.',
+        'Use sterile controlled lighting behavior, evidence-grade legibility, and strict geometry consistency.',
+        'Preserve label readability and product truth with physically coherent optical behavior.',
+      ].join(' ');
+    }
+    if (authorities.visualIntent === 'luxury') {
+      return [
+        'VISUAL INTENT: Luxury Campaign Mode.',
+        'Use premium campaign art direction with controlled expressiveness, atmospheric depth layering, and physically coherent realism.',
+        'Preserve hero dominance and label readability while allowing refined variation.',
+      ].join(' ');
+    }
+    {
       return [
         'VISUAL INTENT: Conversion Strict Mode.',
         'Use Softbox Wrap as authoritative lighting behavior with controlled reflections.',
@@ -1289,15 +1308,6 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
         'Enforce strict splash minimalism, clinical reflection control, and conservative variation density.',
       ].join(' ');
     }
-    return [
-      'VISUAL INTENT: Campaign Energy Mode.',
-      'Natural directional sunlight with environmental bounce and specular rim highlights.',
-      'Dynamic framing is allowed; non-centered compositions are preferred where physically coherent.',
-      'Motion style: organic, directional, environment-driven motion. Allow crossing splash arcs, irregular foam shapes, and wind interaction.',
-      'Atmosphere tools enabled: lens micro droplets, sun flare, foreground blur, environmental depth layering.',
-      'HARD LOCKS (MANDATORY): LABEL LOCK, PRODUCT DESIGN LOCK, PRODUCT_STATE_MOTION static.',
-      'FRAME INTEGRITY LOCK (MANDATORY): no letterbox/pillarbox bars, no mirrored edge extension, no duplicated side panels, and no blurred side-fill bands.',
-    ].join(' ');
   })();
 
   const beachFoamProfileText = (() => {
@@ -1310,7 +1320,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     }
     return [
       'BeachFoam_Campaign profile:',
-      'golden-hour optional sunlight, wind-influenced foam, irregular shoreline behavior, dynamic wave break, environmental depth layering, non-centered framing allowed.',
+      'golden-hour optional sunlight, source-defined foam behavior, coherent shoreline interaction, dynamic wave break with bounded spread, environmental depth layering, non-centered framing allowed.',
     ].join(' ');
   })();
 
@@ -1346,12 +1356,16 @@ No flat overlay water effects.
 No studio-style suspension shadows underwater.
 `
     : '';
+  const splashPhysicsBlock =
+    isSplashPhysicsContext(String(state.photoMode || ''), authorities)
+      ? buildSplashPhysicsModel(authorities)
+      : '';
 
   const parts = [
     buildBaseContext({
       allowStudio: mode === 'ACRYLIC_BLOCKS',
       qualityProfile: state.qualityProfile,
-      visualIntent: isCampaignIntent ? 'campaign' : 'conversion',
+      visualIntent: authorities.visualIntent === 'campaign' ? 'campaign' : 'conversion',
     }),
     visualIntentDirectiveText,
     energyDirectiveText,
@@ -1360,6 +1374,10 @@ No studio-style suspension shadows underwater.
     scene,
     placementResolution.promptFragment,
     physicsResolution.promptFragment,
+    buildCompositionAuthorityBlock(authorities.composition),
+    buildMotionAuthorityBlock(authorities.motion),
+    splashPhysicsBlock,
+    buildProductStateBlock(authorities.motion),
     gravitationalBlock,
     viewpointDirectiveText,
     environmentModeActive ? '' : adaptedPhotoModeModifiers,
@@ -1371,6 +1389,7 @@ No studio-style suspension shadows underwater.
       : buildSecondaryProps(mode, randomizer, explicitSecondaryPropsText),
     buildCamera(mode, randomizer, {
       qualityProfile: state.qualityProfile,
+      authority: authorities,
       forceLens: forcedLens || undefined,
       disableAutoLens: isProModeActive,
       forceCameraSystem: isProModeActive
@@ -1387,6 +1406,7 @@ No studio-style suspension shadows underwater.
     }),
     buildLighting(mode, randomizer, {
       qualityProfile: state.qualityProfile,
+      authority: authorities,
       ...(lightingOverrideText ? { override: { text: lightingOverrideText } } : {}),
       strictRigLock: strictLightingRigLock,
     }),
@@ -1396,9 +1416,9 @@ No studio-style suspension shadows underwater.
     finishOverrideText,
     creativityOverrideText,
     legacyCreativityTraceText,
-    strictStudioBranding ? '' : buildMaterialsWithProfile(mode, randomizer, state.qualityProfile),
+    strictStudioBranding ? '' : buildMaterialsWithProfile(mode, randomizer, state.qualityProfile, authorities),
     prismRefractionText,
-    isCampaignIntent ? '' : buildUltraRealStrictBlock(Boolean(state.ultraRealStrict), state.qualityProfile),
+    isCampaignIntent ? '' : buildUltraRealStrictBlock(Boolean(state.ultraRealStrict), state.qualityProfile, authorities),
     macroFullBleedLockText,
     strictStudioBranding
       ? ''
@@ -1410,18 +1430,13 @@ No studio-style suspension shadows underwater.
           lightingLocked: isCampaignIntent ? false : (isProModeActive && Boolean(String((state as any).lightingRig || '').trim())),
           finishLocked: isCampaignIntent ? false : (isProModeActive && Boolean(String((state as any).finish || '').trim())),
           propsLocked: isCampaignIntent ? false : !explicitSecondaryPropsText,
-        }
+        },
+        authorities
       ),
     isCampaignIntent ? '' : buildQualityEnforcers(state.qualityProfile),
   ].filter(Boolean);
 
-  const assembledPrompt = normalizePromptText(parts.join(' '));
-  const finalPrompt = assembledPrompt
-    .replace(/(Physics coherence adjustment applied\.)+/g, 'Physics coherence adjustment applied.')
-    .replace(
-      /(Clinical softbox lighting with clean reflections and neutral color\.\s*){2,}/g,
-      'Clinical softbox lighting with clean reflections and neutral color.'
-    );
+  const { prompt: finalPrompt } = assemblePrompt(parts);
 
   return {
     prompt: finalPrompt,
