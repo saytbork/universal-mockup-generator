@@ -611,6 +611,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const isConversionSquareOptimized = !isCampaignIntent && String(state.aspectRatio || '').trim() === '1:1';
   console.log('VISUAL_INTENT_ACTIVE =', visualIntent);
   console.log('CONTROL_TIER_ACTIVE =', controlTier);
+  console.log('ADVANCED_CONTROLS_ACTIVE =', isProModeActive);
   console.log('CONVERSION_SQUARE_OPTIMIZED =', isConversionSquareOptimized);
   const beachFoamProfile =
     state.photoMode === 'Beach Foam Splash'
@@ -1047,7 +1048,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     const finish = String((state as any).finish || '').trim();
     if (!lens && !rig && !finish) return '';
     return [
-      'PRO PHOTOGRAPHER MODE (LOCKED):',
+      'ADVANCED CONTROLS (LOCKED):',
       lens ? `Lens=${lens};` : '',
       rig ? `Lighting Rig=${rig};` : '',
       finish ? `Finish=${finish};` : '',
@@ -1336,14 +1337,16 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     }),
     buildCamera(mode, randomizer, {
       qualityProfile: isCampaignIntent ? 'editorial' : state.qualityProfile,
-      forceLens: forcedLens,
-      forceCameraSystem: isCampaignIntent
-        ? mapCameraSystemToPrompt(state.cameraSystem, uiSystemLabel)
-        : 'professional DSLR / mirrorless camera',
+      forceLens: isProModeActive ? forcedLens : undefined,
+      forceCameraSystem: isProModeActive
+        ? (isCampaignIntent
+          ? mapCameraSystemToPrompt(state.cameraSystem, uiSystemLabel)
+          : 'professional DSLR / mirrorless camera')
+        : undefined,
       forceAngle: forcedCameraAngle,
       forceDistance: forcedCameraDistance,
       forceComposition: forcedCameraFraming,
-      forceRotation: forcedRotation,
+      forceRotation: isProModeActive ? forcedRotation : undefined,
       override: isProModeActive ? { text: cameraControlsTraceText } : undefined,
       compactMetadata: isBasicTier,
     }),

@@ -2283,29 +2283,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               )}
 
-              <div className={SECTION_GROUP_CLASS}>
-                <p className={GROUP_LABEL_CLASS}>CONTROL TIER</p>
-                <div className="flex gap-2">
-                  {(['basic', 'pro'] as const).map(tier => (
-                    <Chip
-                      key={tier}
-                      onClick={() => {
-                        productStore.setControlTier(tier);
-                        // Keep legacy tier in sync while migrating UI gating.
-                        productStore.setPresetTier(tier);
-                        markSectionTouched('product-setup');
-                      }}
-                      selected={productStore.controlTier === tier}
-                    >
-                      {tier === 'basic' ? 'Basic' : 'Pro'}
-                    </Chip>
-                  ))}
-                </div>
-                <p className="text-[11px] text-gray-500 mt-1">
-                  Basic keeps controls simplified. Pro unlocks advanced manual overrides.
-                </p>
-              </div>
-
               {/* PHYSICAL PLACEMENT — Mandatory physics decision */}
               <div className={SECTION_GROUP_CLASS}>
                 <p className={GROUP_LABEL_CLASS}>PHYSICAL PLACEMENT</p>
@@ -3977,6 +3954,27 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               </div>
 
+              {/* ADVANCED CONTROLS — global control layer, decoupled from environment/photo type */}
+              <div className={SECTION_GROUP_CLASS}>
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className={GROUP_LABEL_CLASS}>ADVANCED CONTROLS</p>
+                    <p className="text-[11px] text-gray-500 mt-1">
+                      Enables manual pro overrides (lens, rig, finish, camera micro-controls).
+                    </p>
+                  </div>
+                  <Toggle
+                    checked={productStore.controlTier === 'pro'}
+                    onCheckedChange={(next) => {
+                      productStore.setControlTier(next ? 'pro' : 'basic');
+                      productStore.setAdvancedModeEnabled(next);
+                      markSectionTouched('product-setup');
+                    }}
+                    aria-label="Advanced controls"
+                  />
+                </div>
+              </div>
+
               {/* Phase 1: Hide generic composition/lighting/props controls when Photo Mode is active. */}
               {productStore.environmentContext != null && (
                 <>
@@ -4092,26 +4090,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       ═══════════════════════════════════════════════════════════ */}
                   {productStore.controlTier === 'pro' && productStore.photoMode !== 'Hero Landing Page' && (
                     <>
-                      {/* PRO PHOTOGRAPHER MODE */}
                       <div className={SECTION_GROUP_CLASS}>
-                        <div className="flex items-center justify-between gap-3 mb-3">
-                          <div>
-                            <p className={GROUP_LABEL_CLASS}>PRO PHOTOGRAPHER MODE</p>
-                          </div>
-                          <Toggle
-                            checked={productStore.advancedModeEnabled}
-                            onCheckedChange={(next) => {
-                              productStore.setControlTier(next ? 'pro' : 'basic');
-                              productStore.setAdvancedModeEnabled(next);
-                              markSectionTouched('product-setup');
-                            }}
-                            aria-label="Pro photographer mode"
-                          />
-                        </div>
-
                         <div
-                          className={`overflow-hidden transition-all duration-500 ${productStore.advancedModeEnabled ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
-                            }`}
+                          className="overflow-hidden transition-all duration-500 max-h-[1000px] opacity-100"
                           style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
                         >
                           <div className="space-y-5 pl-3 border-l-2 border-indigo-300">

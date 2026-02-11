@@ -1603,6 +1603,8 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     // Product Studio UI Controls (NEW)
     setControlTier: (controlTier) =>
         set((state) => {
+            const nextIsPro = controlTier === 'pro';
+            console.log("ADVANCED_CONTROLS_ACTIVE =", nextIsPro);
             if (controlTier === 'basic') {
                 return {
                     controlTier,
@@ -1990,17 +1992,10 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             return next;
         }),
     setProMode: (enabled) =>
-        set((state) => {
-            const nextEnabled = Boolean(enabled);
-            if (!nextEnabled) {
-                return { proMode: false, advancedModeEnabled: false };
-            }
-            return {
-                controlTier: 'pro',
-                proMode: true,
-                advancedModeEnabled: true,
-            };
-        }),
+        set(() => ({
+            // Legacy compatibility only. Do not mutate controlTier/advancedModeEnabled here.
+            proMode: Boolean(enabled),
+        })),
     setViewpoint: (viewpoint) =>
         set((state) => {
             if (state.photoMode === 'Ingredient Flat Lay') {
