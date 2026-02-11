@@ -5355,38 +5355,20 @@ If the model attempts to create a scene or environment, override it and force a 
           // Sending multiple product refs can cause identity drift and product swapping.
           if (!isBundleJob) {
             requestReferenceProducts = generationProducts.filter((p) => p.id === selectedJob.productId);
-            if (!requestReferenceProducts.length) {
-              setImageError('Could not resolve the active product reference. Please reselect the product and try again.');
-              return;
+            if (!requestReferenceProducts.length && generationProducts.length) {
+              requestReferenceProducts = [generationProducts[0]];
             }
           } else {
-            const bundleTargetIds = [
+            const bundleIds = new Set<string>([
               String(productState.bundle?.primaryProductId || ''),
               ...(Array.isArray(productState.bundle?.secondaryProductIds)
                 ? productState.bundle.secondaryProductIds.map(String)
                 : []),
-            ].filter(Boolean);
-            const bundleIds = new Set<string>(bundleTargetIds);
+            ].filter(Boolean));
             const bundleRefs = generationProducts.filter((p) => bundleIds.has(String(p.id)));
-            const resolvedIds = new Set(bundleRefs.map((p) => String(p.id)));
-            const missingBundleIds = bundleTargetIds.filter((id) => !resolvedIds.has(id));
-
-            if (missingBundleIds.length > 0) {
-              console.error('[BUNDLE REF ERROR] Missing bundle references', {
-                missingBundleIds,
-                availableGenerationProductIds: generationProducts.map((p) => p.id),
-                bundleTargetIds,
-              });
-              setImageError('Bundle references are out of sync. Please reselect the bundle products and try again.');
-              return;
+            if (bundleRefs.length) {
+              requestReferenceProducts = bundleRefs;
             }
-
-            if (bundleRefs.length < 2) {
-              setImageError('Bundle mode requires at least 2 valid product references.');
-              return;
-            }
-
-            requestReferenceProducts = bundleRefs;
           }
 
           // PHASE 7: HARDBLOCK VALIDATION - Check forbidden terms
