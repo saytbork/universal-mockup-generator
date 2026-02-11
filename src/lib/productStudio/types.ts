@@ -758,7 +758,7 @@ export type ProductStudioState = {
     viewpoint: string;
     lens: string;
     lightingRig: string;
-    prismRig: {
+    prismaRig: {
         size: 'Small' | 'Medium' | 'Large';
         focus: 'Soft' | 'Balanced' | 'Hard';
         intensity: 'Low' | 'Medium' | 'High';

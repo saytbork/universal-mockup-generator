@@ -682,7 +682,7 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     viewpoint: 'eye-level',
     lens: '50mm Product Prime',
     lightingRig: 'Softbox Wrap',
-    prismRig: {
+    prismaRig: {
         size: 'Medium',
         focus: 'Balanced',
         intensity: 'Medium',
@@ -844,7 +844,7 @@ type ProductStudioActions = {
     setViewpoint: (viewpoint: string) => void;
     setLens: (lens: string) => void;
     setLightingRig: (rig: string) => void;
-    setPrismRig: (updates: Partial<ProductStudioState['prismRig']>) => void;
+    setPrismaRig: (updates: Partial<ProductStudioState['prismaRig']>) => void;
     setFinish: (finish: string) => void;
     updatePhotoModeSubSetting: (mode: PhotoMode, category: string, value: string) => void;
 
@@ -2020,10 +2020,10 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             return next;
         }),
     setLightingRig: (rig) => set({ lightingRig: rig }),
-    setPrismRig: (updates) =>
+    setPrismaRig: (updates) =>
         set((state) => ({
-            prismRig: {
-                ...state.prismRig,
+            prismaRig: {
+                ...state.prismaRig,
                 ...updates,
             },
         })),
