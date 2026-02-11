@@ -1297,7 +1297,6 @@ const trimBlackBarsDataUrl = async (
     let sumSq = 0;
     let count = 0;
     let darkCount = 0;
-    let brightCount = 0;
     for (let x = 0; x < imgW; x += 1) {
       const i = rowStart + x * 4;
       const r = pixels[i];
@@ -1317,22 +1316,13 @@ const trimBlackBarsDataUrl = async (
       sumSq += luma * luma;
       count += 1;
       if (luma <= 24) darkCount += 1;
-      if (luma >= 232) brightCount += 1;
     }
     if (!count) return false;
     const mean = sum / count;
     const variance = Math.max(0, sumSq / count - mean * mean);
     const darkShare = darkCount / count;
-    const brightShare = brightCount / count;
     // "Bar" = uniformly very dark, mostly transparent, or dark textured row.
-    return (
-      (mean <= 14 && variance <= 60) ||
-      darkShare >= 0.985 ||
-      (mean <= 30 && darkShare >= 0.92) ||
-      (mean >= 244 && variance <= 80) ||
-      brightShare >= 0.985 ||
-      (mean >= 224 && brightShare >= 0.92)
-    );
+    return (mean <= 14 && variance <= 60) || darkShare >= 0.985 || (mean <= 30 && darkShare >= 0.92);
   };
 
   const isBarCol = (x: number): boolean => {
@@ -1340,7 +1330,6 @@ const trimBlackBarsDataUrl = async (
     let sumSq = 0;
     let count = 0;
     let darkCount = 0;
-    let brightCount = 0;
     for (let y = 0; y < imgH; y += 1) {
       const i = y * stride + x * 4;
       const r = pixels[i];
@@ -1358,21 +1347,12 @@ const trimBlackBarsDataUrl = async (
       sumSq += luma * luma;
       count += 1;
       if (luma <= 24) darkCount += 1;
-      if (luma >= 232) brightCount += 1;
     }
     if (!count) return false;
     const mean = sum / count;
     const variance = Math.max(0, sumSq / count - mean * mean);
     const darkShare = darkCount / count;
-    const brightShare = brightCount / count;
-    return (
-      (mean <= 14 && variance <= 60) ||
-      darkShare >= 0.985 ||
-      (mean <= 30 && darkShare >= 0.92) ||
-      (mean >= 244 && variance <= 80) ||
-      brightShare >= 0.985 ||
-      (mean >= 224 && brightShare >= 0.92)
-    );
+    return (mean <= 14 && variance <= 60) || darkShare >= 0.985 || (mean <= 30 && darkShare >= 0.92);
   };
 
   const maxTrimY = Math.floor(imgH * 0.35);
