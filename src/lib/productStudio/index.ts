@@ -41,6 +41,8 @@ export type {
     CreativeTheme,
     PaletteSource,
     PropDensity,
+    VisualIntent,
+    EnergyLevel,
     BlankSpaceSide,
     AspectRatio,
     BundleModeV2,

@@ -210,6 +210,42 @@ function normalizePromptText(prompt: string): string {
     .trim();
 }
 
+type VisualIntentResolved = 'conversion' | 'campaign';
+type EnergyLevelResolved = 'low' | 'medium' | 'high';
+
+function resolveVisualIntent(state: ProductStudioState): VisualIntentResolved {
+  const raw = String((state as any).visualIntent || 'conversion').trim().toLowerCase();
+  return raw === 'campaign' ? 'campaign' : 'conversion';
+}
+
+function resolveEnergyLevel(state: ProductStudioState): EnergyLevelResolved {
+  const raw = String((state as any).energyLevel || 'low').trim().toLowerCase();
+  if (raw === 'high') return 'high';
+  if (raw === 'medium') return 'medium';
+  return 'low';
+}
+
+function sanitizeCampaignConstraintText(text: string): string {
+  if (!text) return '';
+  // In campaign mode, strip whole strict-tail sections inherited from conversion templates.
+  let next = text.replace(/Strict Constraints:[\s\S]*$/i, '').trim();
+  const patterns = [
+    /No chaotic crossing splash arcs[,.]?/gi,
+    /Keep foam minimal and controlled[^,.]*[,.]?/gi,
+    /Clinical softbox lighting[,.]?/gi,
+    /Centered hero composition[,.]?/gi,
+    /Creativity level:\s*Low[,.]?/gi,
+    /Subtle variation only;?[^.]*\./gi,
+    /conversion-first[^.]*\./gi,
+    /ecommerce[^.]*\./gi,
+    /commercial campaign \+ ecommerce hero asset[^.]*\./gi,
+  ];
+  for (const pattern of patterns) {
+    next = next.replace(pattern, ' ');
+  }
+  return next.replace(/\s+/g, ' ').replace(/\s+,/g, ',').trim();
+}
+
 export type ScenePromptResult = {
   prompt: string;
   mode: PhotoModeKey;
@@ -565,6 +601,13 @@ function extractModeSpecificDynamicSettings(state: ProductStudioState): Record<s
 
 export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAsset | null): ScenePromptResult {
   const randomizer = createRandomizer();
+  const visualIntent = resolveVisualIntent(state);
+  const energyLevel = resolveEnergyLevel(state);
+  const isCampaignIntent = visualIntent === 'campaign';
+  const beachFoamProfile =
+    state.photoMode === 'Beach Foam Splash'
+      ? (isCampaignIntent ? 'BeachFoam_Campaign' : 'BeachFoam_Conversion')
+      : null;
 
   const getSafePhotoModeLabel = (raw: string): string => {
     return String(raw || '')
@@ -668,7 +711,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     state.environmentContext != null &&
     String(state.environmentContext.macro || '').trim() !== '' &&
     String(state.environmentContext.macro || '').trim().toLowerCase() !== 'studio';
-  const heroStudioLocked = isHeroLandingPage && !environmentModeActive;
+  const heroStudioLocked = isHeroLandingPage && !environmentModeActive && !isCampaignIntent;
   const strictStudioBranding = state.sceneType === 'studio-branding' && !environmentModeActive;
 
   // Keep the selected Photo Mode active even when Environment is enabled.
@@ -732,6 +775,20 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       ...modeSpecific,
       ...uiDynamic,
     };
+    if (beachFoamProfile === 'BeachFoam_Conversion') {
+      merged.shoreline = merged.shoreline || 'Backwash';
+      merged.spray = merged.spray || 'Low';
+    }
+    if (beachFoamProfile === 'BeachFoam_Campaign') {
+      merged.shoreline = merged.shoreline || 'Wave break';
+      merged.spray = merged.spray || (energyLevel === 'high' ? 'High' : 'Medium');
+      merged.sand = merged.sand || 'Wet';
+      merged.wave_profile = 'dynamic wave break';
+    }
+    if (isCampaignIntent) {
+      merged.environment_variation = 'natural environmental variation permitted';
+      merged.energy_level = energyLevel;
+    }
     return Object.keys(merged).length > 0 ? merged : undefined;
   })();
 
@@ -758,7 +815,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const isWaterStabilityMode =
     state.photoMode === 'Beach Foam Splash' || state.photoMode === 'Pool Water';
   const resolvedProductState =
-    isWaterStabilityMode &&
+    isCampaignIntent
+      ? 'Static'
+      : isWaterStabilityMode &&
     (state.stateMotion === 'dispensed' || state.stateMotion === 'pouring' || state.stateMotion === 'falling' || state.stateMotion === 'spilled')
       ? 'Static'
       : state.stateMotion === 'opened'
@@ -885,7 +944,25 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     }
   }
 
+  if (isCampaignIntent) {
+    scene = scene
+      .replace(/restrained directional backwash/gi, 'organic, directional, environment-driven backwash')
+      .replace(/shallow sea foam and clean micro-droplets only near the base/gi, 'wind-influenced foam and directional spray with irregular shoreline behavior')
+      .replace(/one dominant splash sheet wrapping behind\/around the product/gi, 'directional splash sheets with crossing arcs driven by environmental flow');
+  }
+
   const lightingStyleOverrideText = (() => {
+    if (isCampaignIntent) {
+      return [
+        'Natural directional sunlight with environmental bounce and specular rim highlights.',
+        'Allow environmental contrast shaping and natural atmosphere depth layering.',
+      ].join(' ');
+    }
+    // Conversion strict fallback
+    return 'Clinical softbox lighting with clean reflections and neutral color.';
+  })();
+
+  const userLightingStyleText = (() => {
     const lighting = String((state as any).lighting || '').trim();
     if (!lighting) return '';
     const map: Record<string, string> = {
@@ -904,6 +981,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   })();
 
   const lightingRigOverrideText = (() => {
+    if (isCampaignIntent) return '';
     const rig = String((state as any).lightingRig || '').trim();
     if (!rig) return '';
     const rigCues: Record<string, string> = {
@@ -926,10 +1004,17 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     return [`Lighting rig: ${rig}. Use this rig as the authoritative lighting setup.`, cue].filter(Boolean).join(' ');
   })();
 
-  const strictLightingRigLock = Boolean((state as any).proMode) && Boolean(lightingRigOverrideText);
+  const strictLightingRigLock =
+    !isCampaignIntent &&
+    Boolean((state as any).proMode) &&
+    Boolean(lightingRigOverrideText);
   const lightingOverrideText = strictLightingRigLock
     ? lightingRigOverrideText
-    : [lightingStyleOverrideText, lightingRigOverrideText].filter(Boolean).join(' ');
+    : [
+      lightingStyleOverrideText,
+      isCampaignIntent ? '' : userLightingStyleText,
+      lightingRigOverrideText,
+    ].filter(Boolean).join(' ');
 
   const finishOverrideText = (() => {
     const finish = String((state as any).finish || '').trim();
@@ -938,6 +1023,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   })();
 
   const proPhotographerLockText = (() => {
+    if (isCampaignIntent) return '';
     if (!Boolean((state as any).proMode)) return '';
     const lens = String((state as any).lens || '').trim();
     const rig = String((state as any).lightingRig || '').trim();
@@ -953,28 +1039,35 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   })();
 
   const creativityOverrideText = (() => {
-    const level = Number((state as any).creativityLevel);
-    if (Number.isNaN(level)) return '';
-    if (level <= 0) {
-      return 'Creativity level: Locked. Keep composition conservative and brand-safe.';
-    }
-    if (level === 1) {
+    if (!isCampaignIntent) {
       return 'Creativity level: Low. Subtle variation only; preserve product-first clarity.';
     }
-    if (level === 2) {
-      return 'Creativity level: Medium. Allow moderate variation while keeping clear commercial readability.';
+    if (energyLevel === 'high') {
+      return 'Creativity level: Medium-High. Natural environmental variation permitted while preserving product readability.';
     }
-    return 'Creativity level: High. Allow bold styling variation without reducing product legibility.';
+    return 'Creativity level: Medium. Natural environmental variation permitted while preserving product readability.';
   })();
 
-  const adaptedPhotoModeBasePrompt = environmentModeActive
+  const legacyCreativityTraceText = (() => {
+    const level = Number((state as any).creativityLevel);
+    if (Number.isNaN(level)) return '';
+    return `Legacy creativity input: ${level}.`;
+  })();
+
+  const adaptedPhotoModeBasePromptRaw = environmentModeActive
     ? sanitizePhotoModeTextForEnvironment(photoModeResult.basePrompt || '')
     : '';
-  const adaptedPhotoModeModifiers = environmentModeActive
+  const adaptedPhotoModeBasePrompt = isCampaignIntent
+    ? sanitizeCampaignConstraintText(adaptedPhotoModeBasePromptRaw)
+    : adaptedPhotoModeBasePromptRaw;
+  const adaptedPhotoModeModifiersRaw = environmentModeActive
     ? sanitizePhotoModeTextForEnvironment(photoModeResult.modifiers || '')
     : (strictStudioBranding
       ? sanitizePhotoModeTextForStudioBranding(photoModeResult.modifiers || '')
       : photoModeResult.modifiers);
+  const adaptedPhotoModeModifiers = isCampaignIntent
+    ? sanitizeCampaignConstraintText(adaptedPhotoModeModifiersRaw)
+    : adaptedPhotoModeModifiersRaw;
   const photoModeEnvironmentAdaptationText = environmentModeActive
     ? [
       `PHOTO MODE (${getSafePhotoModeLabel(state.photoMode)}) ADAPTED TO ENVIRONMENT: preserve the selected mode's visual style while keeping a real-world location.`,
@@ -1009,47 +1102,100 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const effectiveMacroMode = !isBundleMacroGuardActive && state.photoMode === 'Macro Dew Label';
   const bundleMacroDistanceGuardActive = Boolean(state.bundle?.enabled) && uiDistanceLabel === 'Macro';
   const effectiveUiDistanceLabel = bundleMacroDistanceGuardActive ? 'Standard' : uiDistanceLabel;
-  const effectiveAngleLabelResolved = effectiveMacroMode ? 'Detail close-up' : effectiveAngleLabel;
-  const effectiveFramingLabel = mode === 'INGREDIENT_FLAT_LAY'
+  const effectiveAngleLabelResolvedBase = effectiveMacroMode ? 'Detail close-up' : effectiveAngleLabel;
+  const effectiveFramingLabelBase = mode === 'INGREDIENT_FLAT_LAY'
     ? 'Grid-ready'
     : effectiveMacroMode
       ? 'Full-bleed macro crop'
       : uiFramingLabel;
-  const effectiveDistanceLabel = mode === 'INGREDIENT_FLAT_LAY'
+  const effectiveDistanceLabelBase = mode === 'INGREDIENT_FLAT_LAY'
     ? (effectiveUiDistanceLabel === 'Macro' ? 'Macro' : 'Standard')
     : effectiveMacroMode
       ? 'Macro'
       : effectiveUiDistanceLabel;
 
+  const campaignLens = (() => {
+    if (!isCampaignIntent) return '';
+    if (energyLevel === 'high') return randomizer.pick(['35mm Product Prime', '50mm Product Prime', '70mm Product Prime']);
+    if (energyLevel === 'medium') return randomizer.pick(['35mm Product Prime', '50mm Product Prime', '70mm Product Prime']);
+    return randomizer.pick(['50mm Product Prime', '70mm Product Prime']);
+  })();
+
+  const campaignRotation = (() => {
+    if (!isCampaignIntent) return '';
+    if (energyLevel === 'high') return randomizer.pick(['-10°', '-8°', '-6°', '-4°', '4°', '6°', '8°', '10°']);
+    if (energyLevel === 'medium') return randomizer.pick(['-8°', '-6°', '-4°', '-2°', '2°', '4°', '6°', '8°']);
+    return randomizer.pick(['-4°', '-2°', '2°', '4°']);
+  })();
+
+  const campaignAngle = (() => {
+    if (!isCampaignIntent) return '';
+    if (energyLevel === 'high') {
+      return randomizer.pick(['eye-level product view with dynamic horizon bias', 'low angle hero view', 'high angle overview']);
+    }
+    if (energyLevel === 'medium') {
+      return randomizer.pick(['eye-level product view', 'low angle hero view', 'high angle overview']);
+    }
+    return randomizer.pick(['eye-level product view', 'high angle overview']);
+  })();
+
+  const campaignFraming = (() => {
+    if (!isCampaignIntent) return '';
+    if (energyLevel === 'high') {
+      return randomizer.pick(['rule-of-thirds composition', 'off-center hero placement', 'dynamic diagonal alignment']);
+    }
+    if (energyLevel === 'medium') {
+      return randomizer.pick(['rule-of-thirds composition', 'off-center hero placement']);
+    }
+    return 'rule-of-thirds composition';
+  })();
+
+  const effectiveAngleLabelResolved = isCampaignIntent ? effectiveAngleLabelResolvedBase : '45° hero';
+  const effectiveFramingLabel = isCampaignIntent
+    ? (effectiveFramingLabelBase === 'Centered hero' ? 'Rule of thirds' : effectiveFramingLabelBase)
+    : 'Centered hero';
+  const effectiveDistanceLabel = isCampaignIntent ? effectiveDistanceLabelBase : 'Standard';
+  const effectiveLensLabel = isCampaignIntent ? campaignLens : '50mm Product Prime';
+  const effectiveRotationLabel = isCampaignIntent ? campaignRotation : '0°';
+
   const cameraControlsTraceText = [
     'Camera controls selected:',
-    `system=${uiSystemLabel};`,
-    `angle=${effectiveAngleLabelResolved};`,
+    `system=${isCampaignIntent ? mapCameraSystemToPrompt(state.cameraSystem, uiSystemLabel) : 'professional DSLR / mirrorless camera'};`,
+    `angle=${isCampaignIntent ? campaignAngle : effectiveAngleLabelResolved};`,
     `distance=${effectiveDistanceLabel};`,
-    `rotation=${uiRotationLabel};`,
+    `rotation=${effectiveRotationLabel};`,
+    `lens=${effectiveLensLabel};`,
     `framing=${effectiveFramingLabel}.`,
   ].join(' ');
 
   const forcedCameraAngle =
-    mode === 'INGREDIENT_FLAT_LAY'
+    !isCampaignIntent
+      ? '45-degree hero angle'
+      : mode === 'INGREDIENT_FLAT_LAY'
       ? 'top-down flat lay'
       : state.photoMode === 'Macro Dew Label'
         ? 'detail close-up'
-      : mapAngleToPrompt(state.angle, uiAngleLabel);
+      : campaignAngle;
   const forcedCameraFraming =
-    mode === 'INGREDIENT_FLAT_LAY'
+    !isCampaignIntent
+      ? 'centered hero composition'
+      : mode === 'INGREDIENT_FLAT_LAY'
       ? 'grid-ready composition'
       : effectiveMacroMode
         ? 'full-bleed macro crop with natural edge detail, no side-fill extension'
-      : mapFramingToPrompt(state.framing, uiFramingLabel);
+      : campaignFraming;
   const forcedCameraDistance =
-    mode === 'INGREDIENT_FLAT_LAY'
+    !isCampaignIntent
+      ? 'standard framing'
+      : mode === 'INGREDIENT_FLAT_LAY'
       ? (effectiveUiDistanceLabel === 'Macro' ? 'macro close-up' : 'standard framing')
       : effectiveMacroMode
         ? 'macro close-up'
       : (bundleMacroDistanceGuardActive
         ? 'standard framing'
         : mapDistanceToPrompt(state.distance, effectiveUiDistanceLabel));
+  const forcedLens = effectiveLensLabel;
+  const forcedRotation = effectiveRotationLabel;
 
   const prismRefractionText = (() => {
     const definitionType = String(state.definition?.type || '').toLowerCase();
@@ -1087,13 +1233,65 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     return manual;
   })();
 
+  const visualIntentDirectiveText = (() => {
+    if (!isCampaignIntent) {
+      return [
+        'VISUAL INTENT: Conversion Strict Mode.',
+        'Use Softbox Wrap as authoritative lighting behavior with controlled reflections.',
+        'Keep centered hero composition, 45-degree hero camera, 50mm product-prime look, and 0-degree rotation.',
+        'Enforce strict splash minimalism, clinical reflection control, and conservative variation density.',
+      ].join(' ');
+    }
+    return [
+      'VISUAL INTENT: Campaign Energy Mode.',
+      'Natural directional sunlight with environmental bounce and specular rim highlights.',
+      'Dynamic framing is allowed; non-centered compositions are preferred where physically coherent.',
+      'Motion style: organic, directional, environment-driven motion. Allow crossing splash arcs, irregular foam shapes, and wind interaction.',
+      'Atmosphere tools enabled: lens micro droplets, sun flare, foreground blur, environmental depth layering.',
+      'HARD LOCKS (MANDATORY): LABEL LOCK, PRODUCT DESIGN LOCK, PRODUCT_STATE_MOTION static.',
+      'FRAME INTEGRITY LOCK (MANDATORY): no letterbox/pillarbox bars, no mirrored edge extension, no duplicated side panels, and no blurred side-fill bands.',
+    ].join(' ');
+  })();
+
+  const beachFoamProfileText = (() => {
+    if (!beachFoamProfile) return '';
+    if (beachFoamProfile === 'BeachFoam_Conversion') {
+      return [
+        'BeachFoam_Conversion profile:',
+        'minimal foam, softbox-driven polish, centered hero bias, controlled backwash, strict readability.',
+      ].join(' ');
+    }
+    return [
+      'BeachFoam_Campaign profile:',
+      'golden-hour optional sunlight, wind-influenced foam, irregular shoreline behavior, dynamic wave break, environmental depth layering, non-centered framing allowed.',
+    ].join(' ');
+  })();
+
+  const energyDirectiveText = (() => {
+    if (!isCampaignIntent) return '';
+    if (energyLevel === 'low') {
+      return 'Energy Level: Low. Subtle motion, light environmental activity, restrained directional arcs.';
+    }
+    if (energyLevel === 'high') {
+      return 'Energy Level: High. Aggressive directional splash, strong rim light, pronounced foreground blur.';
+    }
+    return 'Energy Level: Medium. Visible splash arcs, stronger contrast shaping, dynamic composition.';
+  })();
+
   const parts = [
-    buildBaseContext({ allowStudio: mode === 'ACRYLIC_BLOCKS', qualityProfile: state.qualityProfile }),
+    buildBaseContext({
+      allowStudio: mode === 'ACRYLIC_BLOCKS',
+      qualityProfile: isCampaignIntent ? 'editorial' : state.qualityProfile,
+      visualIntent: isCampaignIntent ? 'campaign' : 'conversion',
+    }),
+    visualIntentDirectiveText,
+    energyDirectiveText,
+    beachFoamProfileText,
     photoModeEnvironmentAdaptationText,
     scene,
     buildPlacementDirective(state),
     viewpointDirectiveText,
-    environmentModeActive ? '' : photoModeResult.modifiers,
+    environmentModeActive ? '' : adaptedPhotoModeModifiers,
     mode === 'INGREDIENT_STACK' ||
       mode === 'INGREDIENT_FLAT_LAY' ||
       state.photoMode === 'Macro Dew Label' ||
@@ -1101,40 +1299,43 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       ? ''
       : buildSecondaryProps(mode, randomizer, explicitSecondaryPropsText),
     buildLighting(mode, randomizer, {
-      qualityProfile: state.qualityProfile,
+      qualityProfile: isCampaignIntent ? 'editorial' : state.qualityProfile,
       ...(lightingOverrideText ? { override: { text: lightingOverrideText } } : {}),
       strictRigLock: strictLightingRigLock,
     }),
     buildCamera(mode, randomizer, {
-      qualityProfile: state.qualityProfile,
-      ...(state.lens ? { forceLens: state.lens } : {}),
-      forceCameraSystem: mapCameraSystemToPrompt(state.cameraSystem, uiSystemLabel),
+      qualityProfile: isCampaignIntent ? 'editorial' : state.qualityProfile,
+      forceLens: forcedLens,
+      forceCameraSystem: isCampaignIntent
+        ? mapCameraSystemToPrompt(state.cameraSystem, uiSystemLabel)
+        : 'professional DSLR / mirrorless camera',
       forceAngle: forcedCameraAngle,
       forceDistance: forcedCameraDistance,
       forceComposition: forcedCameraFraming,
-      forceRotation: mapRotationToPrompt(state.rotation, uiRotationLabel),
+      forceRotation: forcedRotation,
       override: { text: cameraControlsTraceText },
     }),
     proPhotographerLockText,
     finishOverrideText,
     creativityOverrideText,
-    strictStudioBranding ? '' : buildMaterialsWithProfile(mode, randomizer, state.qualityProfile),
+    legacyCreativityTraceText,
+    strictStudioBranding ? '' : buildMaterialsWithProfile(mode, randomizer, isCampaignIntent ? 'editorial' : state.qualityProfile),
     prismRefractionText,
-    buildUltraRealStrictBlock(Boolean(state.ultraRealStrict), state.qualityProfile),
+    isCampaignIntent ? '' : buildUltraRealStrictBlock(Boolean(state.ultraRealStrict), state.qualityProfile),
     macroFullBleedLockText,
     strictStudioBranding
       ? ''
       : buildRandomizationRules(
         mode === 'INGREDIENT_STACK' || mode === 'INGREDIENT_FLAT_LAY' ? 'ingredientStack' : 'default',
-        state.qualityProfile,
+        isCampaignIntent ? 'editorial' : state.qualityProfile,
         {
-          lensLocked: Boolean(String((state as any).lens || '').trim()),
-          lightingLocked: Boolean(String((state as any).lightingRig || '').trim()),
-          finishLocked: Boolean(String((state as any).finish || '').trim()),
-          propsLocked: !explicitSecondaryPropsText,
+          lensLocked: isCampaignIntent ? false : Boolean(String((state as any).lens || '').trim()),
+          lightingLocked: isCampaignIntent ? false : Boolean(String((state as any).lightingRig || '').trim()),
+          finishLocked: isCampaignIntent ? false : Boolean(String((state as any).finish || '').trim()),
+          propsLocked: isCampaignIntent ? false : !explicitSecondaryPropsText,
         }
       ),
-    buildQualityEnforcers(state.qualityProfile),
+    isCampaignIntent ? '' : buildQualityEnforcers(state.qualityProfile),
   ].filter(Boolean);
 
   return {

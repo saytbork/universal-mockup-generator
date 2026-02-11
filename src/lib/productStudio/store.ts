@@ -614,6 +614,8 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     ambientLighting: 'clinical-softbox',
 
     // 5️⃣ CREATIVE DIRECTION
+    visualIntent: 'conversion',
+    energyLevel: 'low',
     creativityLevel: 1,
     creativeTheme: 'clinical-minimal',
     propDensity: 'none',
@@ -754,6 +756,8 @@ type ProductStudioActions = {
     setSceneType: (sceneType: SceneType) => void;
 
     // Creativity
+    setVisualIntent: (intent: ProductStudioState['visualIntent']) => void;
+    setEnergyLevel: (level: ProductStudioState['energyLevel']) => void;
     setCreativityLevel: (level: 0 | 1 | 2 | 3) => void;
     setCreativeTheme: (theme: ProductStudioState['creativeTheme']) => void;
     setPaletteSource: (source: ProductStudioState['paletteSource']) => void;
@@ -1228,6 +1232,8 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
         }),
 
     // Creativity
+    setVisualIntent: (intent) => set({ visualIntent: intent }),
+    setEnergyLevel: (energyLevel) => set({ energyLevel }),
     setCreativityLevel: (level) => set({ creativityLevel: level }),
     setCreativeTheme: (theme) => set({ creativeTheme: theme }),
     setPaletteSource: (source) => set({ paletteSource: source }),

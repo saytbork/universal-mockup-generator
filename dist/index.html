@@ -52,6 +52,105 @@
       } catch (e) { }
     })();
   </script>
+  <script>
+    (function () {
+      try {
+        var reloadedKey = 'pm_css_recover_once';
+        var recoveredKey = 'pm_css_recovered';
+
+        function ensureFallbackStylesheet() {
+          var existing = document.querySelector('link[data-emergency-css="1"]');
+          if (existing) return;
+          var link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = '/emergency.css';
+          link.setAttribute('data-emergency-css', '1');
+          document.head.appendChild(link);
+          document.documentElement.setAttribute('data-css-recovered', '1');
+        }
+
+        function ensureStableAppStylesheet() {
+          // When old replays (or stale HTML) reference hashed CSS that no longer exists, try loading the stable bundle.
+          // This helps Clarity sessions keep styling after a redeploy.
+          var href = '/assets/app.css';
+          var existing = document.querySelector('link[rel="stylesheet"][href="' + href + '"]');
+          if (existing) return existing;
+          var link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = href;
+          link.setAttribute('data-stable-css', '1');
+          document.head.appendChild(link);
+          return link;
+        }
+
+        function mainCssLooksMissing() {
+          var probe = document.createElement('div');
+          probe.className = 'hidden';
+          probe.style.position = 'absolute';
+          probe.style.left = '-9999px';
+          probe.style.top = '-9999px';
+          document.body.appendChild(probe);
+          var display = window.getComputedStyle(probe).display;
+          document.body.removeChild(probe);
+          return display !== 'none';
+        }
+
+        function recoverFromMissingCss() {
+          if (!mainCssLooksMissing()) return;
+
+          // First try to load the stable CSS bundle (no reload, no timeouts).
+          var stable = ensureStableAppStylesheet();
+          if (stable && !stable.getAttribute('data-stable-css-checked')) {
+            stable.setAttribute('data-stable-css-checked', '1');
+            stable.addEventListener(
+              'load',
+              function () {
+                document.documentElement.setAttribute('data-css-recovered', '1');
+              },
+              { once: true }
+            );
+            stable.addEventListener(
+              'error',
+              function () {
+                // If the stable CSS is also unavailable, continue with the existing recovery path.
+                recoverFromMissingCss();
+              },
+              { once: true }
+            );
+            return;
+          }
+
+          if (!sessionStorage.getItem(reloadedKey)) {
+            sessionStorage.setItem(reloadedKey, '1');
+            window.location.reload();
+            return;
+          }
+          sessionStorage.setItem(recoveredKey, '1');
+          ensureFallbackStylesheet();
+        }
+
+        window.addEventListener(
+          'error',
+          function (event) {
+            var target = event && event.target;
+            if (!target || target.tagName !== 'LINK') return;
+            if (target.getAttribute('rel') !== 'stylesheet') return;
+            recoverFromMissingCss();
+          },
+          true
+        );
+        window.addEventListener('DOMContentLoaded', function () {
+          recoverFromMissingCss();
+        });
+        window.addEventListener('load', function () {
+          sessionStorage.removeItem(reloadedKey);
+          if (sessionStorage.getItem(recoveredKey)) {
+            ensureFallbackStylesheet();
+          }
+        });
+      } catch (e) { }
+    })();
+  </script>
 
   <style>
     /* Custom scrollbar for webkit browsers */
@@ -80,8 +179,8 @@
       scrollbar-color: var(--border) transparent;
     }
   </style>
-  <script type="module" crossorigin src="/assets/index-B-BiU2Hc.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-CFQbmE5v.css">
+  <script type="module" crossorigin src="/assets/app.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/app.css">
 </head>
 
 <body class="bg-gray-50 text-gray-900 dark:bg-black dark:text-white font-sans">

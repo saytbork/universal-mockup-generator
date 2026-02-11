@@ -1,19 +1,25 @@
 export type BaseContextOptions = {
   allowStudio?: boolean;
   qualityProfile?: 'luxury-brand' | 'ecommerce-conversion' | 'editorial';
+  visualIntent?: 'conversion' | 'campaign';
 };
 
 export function buildBaseContext(options: BaseContextOptions = {}): string {
+  const visualIntent = options.visualIntent || 'conversion';
   const base = [
     'Ultra-realistic high-end commercial product photography.',
     'Hyper-real photographic fidelity: true optical behavior, real sensor-like tonal response, and physically plausible light transport.',
-    'Luxury advertising direction with ecommerce conversion clarity.',
+    visualIntent === 'campaign'
+      ? 'Luxury advertising direction with campaign energy and environmental realism.'
+      : 'Luxury advertising direction with ecommerce conversion clarity.',
     'Real physical environment with believable materials, realistic scale, and physically coherent depth.',
     'Product fully integrated into the set with grounded contact shadows, natural reflections, and true material behavior.',
     'Micro-detail integrity is mandatory: preserve fine texture, edge acuity, and natural material irregularities without over-smoothing.',
     'Atmosphere must feel art-directed by a senior creative team for a paid campaign.',
     'No generic stock look. No low-effort mockup feel. No amateur capture cues.',
-    'Output quality target: premium brand campaign + ecommerce hero asset.'
+    visualIntent === 'campaign'
+      ? 'Output quality target: premium brand campaign hero asset.'
+      : 'Output quality target: premium brand campaign + ecommerce hero asset.'
   ];
 
   if (options.allowStudio) {

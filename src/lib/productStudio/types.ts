@@ -542,6 +542,8 @@ export type CameraFraming = 'centered' | 'rule-of-thirds';
 export type CreativeTheme = 'clinical-minimal' | 'premium-clean' | 'bold-graphic' | 'ingredient-color' | 'fresh-bright' | 'dark-dramatic' | 'playful-pop' | 'tech-clean';
 export type PaletteSource = 'brand' | 'warm-neutral' | 'cool-neutral' | 'complementary' | 'custom';
 export type PropDensity = 'none' | 'low' | 'medium' | 'dense';
+export type VisualIntent = 'conversion' | 'campaign';
+export type EnergyLevel = 'low' | 'medium' | 'high';
 
 // NEW CREATIVITY V1 TYPES
 export type CompositionMode = 'centered' | 'thirds' | 'asymmetrical' | 'flatlay' | 'pedestal';
@@ -668,6 +670,8 @@ export type ProductStudioState = {
     // ========================================================================
     // 5️⃣ CREATIVE DIRECTION (AESTHETICS ONLY)
     // ========================================================================
+    visualIntent: VisualIntent;
+    energyLevel: EnergyLevel;
     creativityLevel: 0 | 1 | 2 | 3;
     creativeTheme: CreativeTheme;
     propDensity: PropDensity;
