@@ -1167,31 +1167,26 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   })();
 
   const effectiveAngleLabelResolved = isCampaignIntent ? effectiveAngleLabelResolvedBase : '45° hero';
-  const proLensOverride = String((state as any).lens || '').trim();
+  const proLens = isProModeActive ? String((state as any).lens || '').trim() : '';
   const effectiveFramingLabel = isCampaignIntent
     ? (effectiveFramingLabelBase === 'Centered hero' ? 'Rule of thirds' : effectiveFramingLabelBase)
     : (isConversionSquareOptimized ? 'Centered dominance with mild crop bias' : 'Centered hero');
   const effectiveDistanceLabel = isCampaignIntent
     ? effectiveDistanceLabelBase
     : (isConversionSquareOptimized ? 'Slightly Closer' : 'Standard');
-  const effectiveLensLabel = isProModeActive && proLensOverride
-    ? proLensOverride
-    : isCampaignIntent
-    ? campaignLens
-    : (isConversionSquareOptimized ? '45mm equivalent behavior' : '50mm Product Prime');
+  const effectiveLensLabel = proLens
+    ? proLens
+    : (
+      isCampaignIntent
+        ? campaignLens
+        : (
+          isConversionSquareOptimized
+            ? '45mm equivalent behavior'
+            : '50mm Product Prime'
+        )
+    );
   const effectiveRotationLabel = isCampaignIntent ? campaignRotation : '0°';
   const environmentalSpread = isConversionSquareOptimized;
-
-  const cameraControlsTraceText = [
-    'Camera controls selected:',
-    `system=${isCampaignIntent ? mapCameraSystemToPrompt(state.cameraSystem, uiSystemLabel) : 'professional DSLR / mirrorless camera'};`,
-    `angle=${isCampaignIntent ? campaignAngle : effectiveAngleLabelResolved};`,
-    `distance=${effectiveDistanceLabel};`,
-    `rotation=${effectiveRotationLabel};`,
-    `lens=${effectiveLensLabel};`,
-    `framing=${effectiveFramingLabel}.`,
-    `environmentalSpread=${environmentalSpread}.`,
-  ].join(' ');
 
   const forcedCameraAngle =
     !isCampaignIntent
@@ -1221,7 +1216,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       : (bundleMacroDistanceGuardActive
         ? 'standard framing'
         : mapDistanceToPrompt(state.distance, effectiveUiDistanceLabel));
-  const forcedLens = effectiveLensLabel;
+  const forcedLens = isProModeActive
+    ? proLens
+    : (isCampaignIntent ? campaignLens : '');
   const forcedRotation = effectiveRotationLabel;
 
   const prismRefractionText = (() => {
@@ -1268,10 +1265,10 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
         isConversionSquareOptimized
           ? (isBasicTier
             ? 'For 1:1 output, keep centered product dominance with mild crop bias and controlled horizontal environmental spread to avoid narrow vertical subject bias and artificial side emptiness.'
-            : 'For 1:1 output, keep centered product dominance with mild crop bias and controlled horizontal environmental spread to avoid narrow vertical subject bias and artificial side emptiness; maintain 45-degree hero camera, slightly closer distance, 45mm-equivalent behavior, and 0-degree rotation.')
+            : 'For 1:1 output, keep centered product dominance with mild crop bias and controlled horizontal environmental spread to avoid narrow vertical subject bias and artificial side emptiness; maintain 45-degree hero camera, slightly closer distance, and 0-degree rotation. Respect user-selected pro lens when provided.')
           : (isBasicTier
             ? 'Keep centered product dominance with stable hero perspective and controlled reflections.'
-            : 'Keep centered hero composition, 45-degree hero camera, 50mm product-prime look, and 0-degree rotation.'),
+            : 'Keep centered hero composition, 45-degree hero camera, and 0-degree rotation. Respect user-selected pro lens when provided.'),
         'Enforce strict splash minimalism, clinical reflection control, and conservative variation density.',
       ].join(' ');
     }
@@ -1338,7 +1335,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     }),
     buildCamera(mode, randomizer, {
       qualityProfile: isCampaignIntent ? 'editorial' : state.qualityProfile,
-      forceLens: isProModeActive ? (proLensOverride || undefined) : undefined,
+      forceLens: forcedLens || undefined,
       disableAutoLens: isProModeActive,
       forceCameraSystem: isProModeActive
         ? (isCampaignIntent
@@ -1350,7 +1347,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       forceComposition: forcedCameraFraming,
       forceRotation: isProModeActive ? forcedRotation : undefined,
       override: undefined,
-      compactMetadata: isBasicTier,
+      compactMetadata: isBasicTier && !isCampaignIntent,
     }),
     proPhotographerLockText,
     finishOverrideText,
