@@ -215,7 +215,6 @@ export const LIGHTING_PRESETS: Record<string, string> = {
     '3-Point Beauty Dish': `Three-point studio lighting with beauty dish key light. Controlled highlights. Clean reflections. Studio-grade contrast.`,
     'Three-Point Beauty': `Three-point studio lighting with beauty dish key light. Controlled highlights. Clean reflections. Studio-grade contrast.`,
     'Softbox Wrap': `Softbox wrap lighting with even diffusion and minimal shadow. Controlled highlights. Clean reflections.`,
-    'Prisma': `Physical prisma light object rig with controllable beam shaping (size/focus/intensity/placement). Keep output controlled, repeatable, and commercial with clean label readability.`,
     'Hard Edge Gels': `Hard edge lighting with colored gels and sharp contrast. Studio-grade contrast.`,
     'Backlit Acrylic': `Backlit acrylic lighting with clean rim highlights. Controlled highlights.`,
     'High-Speed Splash Rig': `High-speed splash lighting optimized for frozen motion. Studio-grade contrast.`,

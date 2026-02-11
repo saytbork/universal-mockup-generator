@@ -2739,7 +2739,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                         {([
                                           { value: '3-Point Beauty Dish', label: '3-Point Beauty Dish' },
                                           { value: 'Softbox Wrap', label: 'Softbox Wrap' },
-                                          { value: 'Prisma', label: 'Prisma' },
                                           { value: 'Hard Edge Gels', label: 'Hard Edge Gels' },
                                           { value: 'Backlit Acrylic', label: 'Backlit Acrylic' },
                                           { value: 'High-Speed Splash Rig', label: 'High-Speed Splash Rig' },
@@ -2758,84 +2757,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           </Chip>
                                         ))}
                                       </div>
-
-                                      {productStore.lightingRig === 'Prisma' && (
-                                        <div className="mt-3 space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
-                                          <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold">Prisma Controls</p>
-
-                                          <div>
-                                            <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 mb-1">Size</p>
-                                            <div className="flex flex-wrap gap-2">
-                                              {(['Small', 'Medium', 'Large'] as const).map(v => (
-                                                <Chip
-                                                  key={v}
-                                                  onClick={() => {
-                                                    productStore.setPrismaRig({ size: v });
-                                                    markSectionTouched('product-setup');
-                                                  }}
-                                                  selected={productStore.prismaRig?.size === v}
-                                                >
-                                                  {v}
-                                                </Chip>
-                                              ))}
-                                            </div>
-                                          </div>
-
-                                          <div>
-                                            <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 mb-1">Focus</p>
-                                            <div className="flex flex-wrap gap-2">
-                                              {(['Soft', 'Balanced', 'Hard'] as const).map(v => (
-                                                <Chip
-                                                  key={v}
-                                                  onClick={() => {
-                                                    productStore.setPrismaRig({ focus: v });
-                                                    markSectionTouched('product-setup');
-                                                  }}
-                                                  selected={productStore.prismaRig?.focus === v}
-                                                >
-                                                  {v}
-                                                </Chip>
-                                              ))}
-                                            </div>
-                                          </div>
-
-                                          <div>
-                                            <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 mb-1">Intensity</p>
-                                            <div className="flex flex-wrap gap-2">
-                                              {(['Low', 'Medium', 'High'] as const).map(v => (
-                                                <Chip
-                                                  key={v}
-                                                  onClick={() => {
-                                                    productStore.setPrismaRig({ intensity: v });
-                                                    markSectionTouched('product-setup');
-                                                  }}
-                                                  selected={productStore.prismaRig?.intensity === v}
-                                                >
-                                                  {v}
-                                                </Chip>
-                                              ))}
-                                            </div>
-                                          </div>
-
-                                          <div>
-                                            <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 mb-1">Placement</p>
-                                            <div className="flex flex-wrap gap-2">
-                                              {(['Front', 'Side', 'Back', 'Diagonal'] as const).map(v => (
-                                                <Chip
-                                                  key={v}
-                                                  onClick={() => {
-                                                    productStore.setPrismaRig({ placement: v });
-                                                    markSectionTouched('product-setup');
-                                                  }}
-                                                  selected={productStore.prismaRig?.placement === v}
-                                                >
-                                                  {v}
-                                                </Chip>
-                                              ))}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      )}
                                     </div>
 
                                     <div>

@@ -758,12 +758,6 @@ export type ProductStudioState = {
     viewpoint: string;
     lens: string;
     lightingRig: string;
-    prismaRig: {
-        size: 'Small' | 'Medium' | 'Large';
-        focus: 'Soft' | 'Balanced' | 'Hard';
-        intensity: 'Low' | 'Medium' | 'High';
-        placement: 'Front' | 'Side' | 'Back' | 'Diagonal';
-    };
     finish: string;
     ecommerceSequenceActive?: boolean;
     ecommerceSequenceIndex?: number;
