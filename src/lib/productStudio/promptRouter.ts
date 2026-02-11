@@ -4,16 +4,32 @@ import { generateStudioPromptV2, type StudioUIState } from '../productStudioV2/i
 
 const normalize = (value: unknown): string => String(value || '').trim().toLowerCase();
 
+function readViteFlag(): string | undefined {
+  try {
+    const value = (import.meta as ImportMeta & { env?: Record<string, unknown> }).env?.VITE_USE_STUDIO_V2;
+    return typeof value === 'string' ? value : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function readNodeFlag(): string | undefined {
+  if (typeof process === 'undefined' || !process.env) return undefined;
+  const value = process.env.VITE_USE_STUDIO_V2;
+  return typeof value === 'string' ? value : undefined;
+}
+
 function isStudioV2Enabled(): boolean {
   // Feature flag is intentionally strict for safe rollout.
-  // Frontend (Vite):   VITE_USE_STUDIO_V2=true
-  // Node/test fallback VITE_USE_STUDIO_V2=true
-  const viteFlag =
-    typeof import.meta !== 'undefined'
-      ? (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env?.VITE_USE_STUDIO_V2
-      : undefined;
-  const nodeFlag = typeof process !== 'undefined' ? process.env.VITE_USE_STUDIO_V2 : undefined;
-  return (viteFlag ?? nodeFlag) === 'true';
+  // Frontend (Vite): VITE_USE_STUDIO_V2=true
+  // Node/tests:      VITE_USE_STUDIO_V2=true
+  const viteFlag = readViteFlag();
+  const nodeFlag = readNodeFlag();
+  const source = viteFlag !== undefined ? 'vite' : (nodeFlag !== undefined ? 'node' : 'default');
+  const flagValue = viteFlag ?? nodeFlag ?? 'false';
+  const enabled = normalize(flagValue) === 'true';
+  console.log(`[STUDIO ROUTER] flag v2=${flagValue} source=${source} enabled=${enabled}`);
+  return enabled;
 }
 
 function inferStudioWorld(state: ProductStudioState): StudioUIState['world'] {
@@ -76,9 +92,11 @@ function mapV2ToScenePromptResult(prompt: string): ScenePromptResult {
 
 export function routeStudioScenePrompt(state: ProductStudioState, product?: ProductAsset | null): ScenePromptResult {
   if (!isStudioV2Enabled()) {
+    console.log('[STUDIO ROUTER] engine=legacy');
     return mapSceneToPrompt(state, product);
   }
 
+  console.log('[STUDIO ROUTER] engine=v2');
   const v2State = toStudioV2State(state);
   const v2Prompt = generateStudioPromptV2(v2State);
   return mapV2ToScenePromptResult(v2Prompt);
