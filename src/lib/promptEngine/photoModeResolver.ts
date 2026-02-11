@@ -43,11 +43,6 @@ const PHOTO_MODE_FORBIDDEN_TERMS = [
     'active grip'
 ];
 
-const HANDS_ALLOWED_PHOTO_MODES = new Set<PhotoMode>([
-    'Hands Application Clean',
-    'Cheers (Hands Clink)',
-]);
-
 const stripUgcToken = (text: string): string =>
     text.replace(/\bugc\b/gi, '').replace(/\s+/g, ' ').trim();
 
@@ -905,60 +900,6 @@ export function buildPhotoModePrompt(
                 }
             }
 
-            if (photoMode === 'Hands Application Clean' && normalizedCategory === 'handPose') {
-                const pose = normalizedValue.toLowerCase();
-                if (pose === 'applying') {
-                    modifierParts.push(
-                        'Hand pose: natural applying gesture with one primary hand, relaxed fingers, realistic skin folds, and clean product visibility.'
-                    );
-                    return;
-                }
-                if (pose === 'opening') {
-                    modifierParts.push(
-                        'Hand pose: realistic opening action (twist/lift) with believable finger mechanics and stable product orientation.'
-                    );
-                    return;
-                }
-                if (pose === 'holding') {
-                    modifierParts.push(
-                        'Hand pose: calm natural hold, no exaggerated gesture, no theatrical finger spread.'
-                    );
-                    return;
-                }
-            }
-
-            if (photoMode === 'Hands Application Clean' && normalizedCategory === 'skinLighting') {
-                const skinLighting = normalizedValue.toLowerCase();
-                if (skinLighting === 'soft natural') {
-                    modifierParts.push(
-                        'Skin lighting: soft natural daylight character with gentle transitions and realistic skin texture retention.'
-                    );
-                    return;
-                }
-                if (skinLighting === 'neutral studio') {
-                    modifierParts.push(
-                        'Skin lighting: neutral studio balance with clean color fidelity and controlled specular highlights.'
-                    );
-                    return;
-                }
-            }
-
-            if (photoMode === 'Hands Application Clean' && normalizedCategory === 'cropStyle') {
-                const crop = normalizedValue.toLowerCase();
-                if (crop === 'tight') {
-                    modifierParts.push(
-                        'Crop style: tight crop centered on hands + product interaction zone. No face required.'
-                    );
-                    return;
-                }
-                if (crop === 'medium') {
-                    modifierParts.push(
-                        'Crop style: medium crop around the interaction area while keeping product as the dominant subject.'
-                    );
-                    return;
-                }
-            }
-
             modifierParts.push(`${normalizedCategory.replace(/([A-Z])/g, ' $1').toLowerCase()}: ${normalizedValue}`);
         });
     }
@@ -993,11 +934,7 @@ export function buildPhotoModePrompt(
         ? `${basePrompt}\nINSTRUCTIONS:\n${PHOTO_MODE_MEGA_PROMPT}`
         : basePrompt;
 
-    const allowHandsLanguage =
-        HANDS_ALLOWED_PHOTO_MODES.has(photoMode) ||
-        schema?.allowsPersonPresence === true ||
-        PHOTO_MODE_CONTROL_FLAGS[photoMode]?.humansAllowed === true;
-    const forbiddenTerm = allowHandsLanguage ? null : findForbiddenPhotoModeTerm(`${finalBasePrompt} ${finalModifiers}`);
+    const forbiddenTerm = findForbiddenPhotoModeTerm(`${finalBasePrompt} ${finalModifiers}`);
     if (forbiddenTerm) {
         return {
             basePrompt: '',
