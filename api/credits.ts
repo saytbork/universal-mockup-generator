@@ -3,6 +3,16 @@ import { checkAuth } from '../server/lib/checkAuth.js';
 import { getUser, consumeCredit, refundCredit, getEffectiveCredits, setUser, isUnlimitedCreditsEmail } from '../server/lib/store.js';
 import { addActivity, listActivity } from '../server/lib/activity.js';
 
+const DEFAULT_INVITE_BONUS_CREDITS = 10;
+const DEFAULT_TRIAL_COUPON_CODE = '2999';
+const DEFAULT_TRIAL_COUPON_BONUS_CREDITS = 30;
+
+const parseBonus = (value: string | undefined, fallback: number) => {
+  const parsed = Number(value || fallback);
+  if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
+  return Math.floor(parsed);
+};
+
 const parseAction = (req: VercelRequest) => {
   const raw = req.query.action;
   if (Array.isArray(raw)) {
@@ -48,12 +58,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       const requiredCode = process.env.INVITATION_CODE;
       const testerCode = process.env.TESTER_UPGRADE_CODE || '713371';
-      const matchesRequired = requiredCode ? normalized === requiredCode : true;
+      const trialCouponCode = process.env.TRIAL_COUPON_CODE || DEFAULT_TRIAL_COUPON_CODE;
+      const inviteBonus = parseBonus(process.env.INVITATION_BONUS_CREDITS, DEFAULT_INVITE_BONUS_CREDITS);
+      const trialCouponBonus = parseBonus(process.env.TRIAL_COUPON_BONUS_CREDITS, DEFAULT_TRIAL_COUPON_BONUS_CREDITS);
+
+      const matchesRequired = requiredCode ? normalized === requiredCode : false;
       const matchesTester = normalized === testerCode;
-      if (!matchesRequired && !matchesTester) {
+      const matchesTrialCoupon = normalized === trialCouponCode;
+      if (!matchesRequired && !matchesTester && !matchesTrialCoupon) {
         res.status(400).json({ error: 'Invalid code' });
         return;
       }
+      const bonusCredits = matchesTrialCoupon ? trialCouponBonus : inviteBonus;
       const user = await getUser(email);
       const plan = String(user.plan ?? 'free').trim().toLowerCase();
       if (plan !== 'free') {
@@ -78,12 +94,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       const next = await setUser(email, {
         trialRemaining,
-        inviteRemaining: (user.inviteRemaining || 0) + 10,
+        inviteRemaining: (user.inviteRemaining || 0) + bonusCredits,
         inviteUsed: true,
       });
-      await addActivity(email, 'invite', { bonus: 10, code: normalized });
+      await addActivity(email, 'invite', { bonus: bonusCredits, code: normalized });
       res.json({
         ok: true,
+        bonus_credits: bonusCredits,
         credits: next.credits ?? getEffectiveCredits(next),
         remaining_credits: getEffectiveCredits(next),
         trial_remaining: next.trialRemaining ?? 0,

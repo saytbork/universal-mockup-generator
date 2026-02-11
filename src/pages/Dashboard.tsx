@@ -434,7 +434,7 @@ export default function Dashboard() {
                 <p className="text-sm text-gray-600">Plan: {user.plan || "free"}</p>
                 {user.inviteUsed && (
                   <p className="text-xs text-indigo-600 flex items-center gap-2">
-                    <Sparkles className="h-4 w-4" /> Welcome gift applied (+10 credits)
+                    <Sparkles className="h-4 w-4" /> Welcome gift applied
                   </p>
                 )}
               </div>
@@ -531,7 +531,11 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <span className="text-xs text-gray-600">
-                    {item.type === "invite" && "+10 credits"}
+                    {item.type === "invite" && (() => {
+                      const bonus = Number(item.meta?.bonus ?? 10);
+                      const safeBonus = Number.isFinite(bonus) && bonus > 0 ? Math.floor(bonus) : 10;
+                      return `+${safeBonus} credits`;
+                    })()}
                     {item.type === "image" && item.meta?.kind !== "generation" && (item.meta?.delta ?? -1)}
                     {item.type === "image" && item.meta?.kind === "generation" && (
                       String(item.meta?.status || "").toLowerCase() === "error" ? "error" : "ok"

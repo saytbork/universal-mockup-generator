@@ -3487,7 +3487,10 @@ const App: React.FC = () => {
         }
         setPlanCodeInput('');
         setPlanCodeError(null);
-        setPlanNotice('Access code applied: +10 credits.');
+        const bonus = typeof data?.bonus_credits === 'number' && data.bonus_credits > 0
+          ? Math.floor(data.bonus_credits)
+          : 10;
+        setPlanNotice(`Access code applied: +${bonus} credits.`);
         setShowPlanModal(false);
         return;
       }

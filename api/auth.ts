@@ -11,6 +11,15 @@ import { rateLimit } from '../server/lib/rateLimit.js';
 const DASHBOARD_REDIRECT_PATH = '/dashboard';
 const DEFAULT_REGISTRATION_NOTIFY_EMAIL = 'juanamisano@gmail.com';
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const DEFAULT_INVITE_BONUS_CREDITS = 10;
+const DEFAULT_TRIAL_COUPON_CODE = '2999';
+const DEFAULT_TRIAL_COUPON_BONUS_CREDITS = 30;
+
+const parseBonus = (value: string | undefined, fallback: number) => {
+  const parsed = Number(value || fallback);
+  if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
+  return Math.floor(parsed);
+};
 
 const parseAction = (req: VercelRequest) => {
   const raw = req.query.action;
@@ -97,64 +106,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return;
       }
       const requiredCode = process.env.INVITATION_CODE;
+      const trialCouponCode = process.env.TRIAL_COUPON_CODE || DEFAULT_TRIAL_COUPON_CODE;
+      const inviteBonus = parseBonus(process.env.INVITATION_BONUS_CREDITS, DEFAULT_INVITE_BONUS_CREDITS);
+      const trialCouponBonus = parseBonus(process.env.TRIAL_COUPON_BONUS_CREDITS, DEFAULT_TRIAL_COUPON_BONUS_CREDITS);
       const disposableDomains = ['mailinator.com', 'yopmail.com', '10minutemail', 'guerrillamail.com'];
       const domain = String(normalizedEmail).split('@')[1] || '';
       const isDisposable = disposableDomains.some((d) => domain.toLowerCase().includes(d));
       const normalizedCode = typeof invitationCode === 'string' ? invitationCode.trim() : '';
-      const shouldAutoLogin =
-        Boolean(normalizedCode && requiredCode && normalizedCode === requiredCode && !isDisposable);
+      const matchesRequired = Boolean(requiredCode && normalizedCode === requiredCode);
+      const matchesTrialCoupon = normalizedCode === trialCouponCode;
+      const isRecognizedCode = matchesRequired || matchesTrialCoupon;
+      const shouldAllowMagicLinkCode = Boolean(isRecognizedCode && !isDisposable);
+      const codeForToken = shouldAllowMagicLinkCode ? normalizedCode : undefined;
 
-      if (shouldAutoLogin) {
-        const loginEvent = await touchUserLogin(normalizedEmail);
-        res.setHeader('Set-Cookie', [
-          buildSessionCookie(normalizedEmail, req),
-        ]);
-
-        try {
-          const stripe = getStripe();
-          const customers = await stripe.customers.list({ email: normalizedEmail, limit: 1 });
-          const existing = customers.data[0];
-          const customer =
-            existing ||
-            (await stripe.customers.create({
-              email: normalizedEmail,
-              metadata: {},
-            }));
-
-          const metadata = customer.metadata || {};
-          const alreadyClaimed = metadata.invite_bonus_claimed === 'true';
-
-          if (!alreadyClaimed) {
-            await stripe.customers.update(customer.id, {
-              metadata: { ...metadata, invite_bonus_claimed: 'true' },
-            });
-            const user = await getUser(normalizedEmail);
-            const plan = String(user.plan ?? 'free').trim().toLowerCase();
-            if (plan === 'free') {
-              await setUser(normalizedEmail, {
-                inviteRemaining: (user.inviteRemaining || 0) + 10,
-                inviteUsed: true,
-              });
-              await addActivity(normalizedEmail, 'invite', { bonus: 10 });
-            }
-          }
-        } catch (error) {
-          console.error('Invitation bonus error', error);
-        }
-
-        await addActivity(normalizedEmail, 'login', { method: 'invite_auto' });
-        if (loginEvent.isNew) {
-          try {
-            await sendRegistrationNotification(normalizedEmail, origin);
-          } catch (notifyError) {
-            console.warn('Registration notification failed', notifyError);
-          }
-        }
-        res.status(200).json({ ok: true, autoLoggedIn: true, redirect: DASHBOARD_REDIRECT_PATH });
-        return;
-      }
-
-      const token = createMagicToken(normalizedEmail, invitationCode);
+      const token = createMagicToken(normalizedEmail, codeForToken);
       const magicLink = `${origin}/api/auth?action=verify&token=${encodeURIComponent(token)}`;
 
       await sendEmail({
@@ -223,12 +188,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       try {
         const requiredCode = process.env.INVITATION_CODE;
+        const trialCouponCode = process.env.TRIAL_COUPON_CODE || DEFAULT_TRIAL_COUPON_CODE;
+        const inviteBonus = parseBonus(process.env.INVITATION_BONUS_CREDITS, DEFAULT_INVITE_BONUS_CREDITS);
+        const trialCouponBonus = parseBonus(process.env.TRIAL_COUPON_BONUS_CREDITS, DEFAULT_TRIAL_COUPON_BONUS_CREDITS);
         const disposableDomains = ['mailinator.com', 'yopmail.com', '10minutemail', 'guerrillamail.com'];
         const domain = email.split('@')[1] || '';
         const isDisposable = disposableDomains.some((d) => domain.toLowerCase().includes(d));
+        const bonusCredits = invitationCode === trialCouponCode ? trialCouponBonus : inviteBonus;
 
         const shouldApplyBonus =
-          invitationCode && !isDisposable && (!requiredCode || invitationCode === requiredCode);
+          Boolean(
+            invitationCode &&
+            !isDisposable &&
+            (
+              (requiredCode && invitationCode === requiredCode) ||
+              invitationCode === trialCouponCode
+            )
+          );
 
         if (shouldApplyBonus) {
           const user = await getUser(email);
@@ -237,10 +213,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
           if (plan === 'free' && !alreadyClaimed) {
             await setUser(email, {
-              inviteRemaining: (user.inviteRemaining || 0) + 10,
+              inviteRemaining: (user.inviteRemaining || 0) + bonusCredits,
               inviteUsed: true,
             });
-            await addActivity(email, 'invite', { bonus: 10 });
+            await addActivity(email, 'invite', { bonus: bonusCredits, code: invitationCode });
           }
 
           // Best-effort: keep Stripe metadata in sync if Stripe is configured.

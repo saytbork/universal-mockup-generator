@@ -4,12 +4,16 @@ import { Mail, Loader2, CheckCircle2 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { isAuthBypassEnabled } from "../lib/auth/authBypass";
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function Login() {
   const { sendMagicLink, user, loading } = useAuth();
   const [email, setEmail] = useState("");
   const [invitationCode, setInvitationCode] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
+  const normalizedEmail = email.trim();
+  const normalizedCode = invitationCode.trim();
 
   useEffect(() => {
     if (isAuthBypassEnabled()) {
@@ -17,8 +21,7 @@ export default function Login() {
     }
   }, []);
 
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const requestMagicLink = async () => {
     setStatus("loading");
     setMessage(null);
     try {
@@ -33,6 +36,25 @@ export default function Login() {
       setStatus("error");
       setMessage(err?.message || "Unable to send magic link.");
     }
+  };
+
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await requestMagicLink();
+  };
+
+  const handleRedeem = async () => {
+    if (!EMAIL_REGEX.test(normalizedEmail)) {
+      setStatus("error");
+      setMessage("Enter a valid email.");
+      return;
+    }
+    if (!normalizedCode) {
+      setStatus("error");
+      setMessage("Enter a code.");
+      return;
+    }
+    await requestMagicLink();
   };
 
   if (loading) {
@@ -88,16 +110,25 @@ export default function Login() {
           </div>
           <label className="block text-sm text-gray-600">
             Invitation Code
-            <div className="text-xs text-gray-500 mt-1">Optional — unlock 10 credits</div>
           </label>
           <div className="relative">
-            <input
-              type="text"
-              value={invitationCode}
-              onChange={(e) => setInvitationCode(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-              placeholder="Enter your code"
-            />
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={invitationCode}
+                onChange={(e) => setInvitationCode(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                placeholder="Enter your code"
+              />
+              <button
+                type="button"
+                onClick={handleRedeem}
+                disabled={status === "loading"}
+                className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-900 transition hover:border-indigo-600 hover:text-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Redeem
+              </button>
+            </div>
           </div>
           <button
             type="submit"
