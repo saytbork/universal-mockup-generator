@@ -7,6 +7,10 @@ import { addActivity } from '../server/lib/activity.js';
 import { checkAuth } from '../server/lib/checkAuth.js';
 import { createSessionToken } from '../server/lib/session.js';
 import { rateLimit } from '../server/lib/rateLimit.js';
+import {
+  rollbackTrialCouponRedemption,
+  tryConsumeTrialCouponRedemption,
+} from '../server/lib/trialCouponLimit.js';
 
 const DASHBOARD_REDIRECT_PATH = '/dashboard';
 const DEFAULT_REGISTRATION_NOTIFY_EMAIL = 'juanamisano@gmail.com';
@@ -212,11 +216,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const alreadyClaimed = Boolean(user.inviteUsed);
 
           if (plan === 'free' && !alreadyClaimed) {
-            await setUser(email, {
-              inviteRemaining: (user.inviteRemaining || 0) + bonusCredits,
-              inviteUsed: true,
-            });
-            await addActivity(email, 'invite', { bonus: bonusCredits, code: invitationCode });
+            const isTrialCoupon = invitationCode === trialCouponCode;
+            if (isTrialCoupon) {
+              const redemption = await tryConsumeTrialCouponRedemption(invitationCode);
+              if (!redemption.ok) {
+                // Coupon exhausted globally; proceed with login but skip bonus.
+              } else {
+                try {
+                  await setUser(email, {
+                    inviteRemaining: (user.inviteRemaining || 0) + bonusCredits,
+                    inviteUsed: true,
+                  });
+                  await addActivity(email, 'invite', { bonus: bonusCredits, code: invitationCode });
+                } catch (claimError) {
+                  await rollbackTrialCouponRedemption(invitationCode);
+                  throw claimError;
+                }
+              }
+            } else {
+              await setUser(email, {
+                inviteRemaining: (user.inviteRemaining || 0) + bonusCredits,
+                inviteUsed: true,
+              });
+              await addActivity(email, 'invite', { bonus: bonusCredits, code: invitationCode });
+            }
           }
 
           // Best-effort: keep Stripe metadata in sync if Stripe is configured.

@@ -2,6 +2,10 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { checkAuth } from '../server/lib/checkAuth.js';
 import { getUser, consumeCredit, refundCredit, getEffectiveCredits, setUser, isUnlimitedCreditsEmail } from '../server/lib/store.js';
 import { addActivity, listActivity } from '../server/lib/activity.js';
+import {
+  rollbackTrialCouponRedemption,
+  tryConsumeTrialCouponRedemption,
+} from '../server/lib/trialCouponLimit.js';
 
 const DEFAULT_INVITE_BONUS_CREDITS = 10;
 const DEFAULT_TRIAL_COUPON_CODE = '2999';
@@ -80,6 +84,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         res.status(409).json({ error: 'Code already used' });
         return;
       }
+      if (matchesTrialCoupon) {
+        const redemption = await tryConsumeTrialCouponRedemption(normalized);
+        if (!redemption.ok) {
+          res.status(409).json({ error: 'This code has reached its usage limit' });
+          return;
+        }
+      }
       let trialRemaining = user.trialRemaining ?? 0;
       if (trialRemaining <= 0) {
         try {
@@ -92,12 +103,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           console.warn('Redeem code activity check failed', err);
         }
       }
-      const next = await setUser(email, {
-        trialRemaining,
-        inviteRemaining: (user.inviteRemaining || 0) + bonusCredits,
-        inviteUsed: true,
-      });
-      await addActivity(email, 'invite', { bonus: bonusCredits, code: normalized });
+      let next;
+      try {
+        next = await setUser(email, {
+          trialRemaining,
+          inviteRemaining: (user.inviteRemaining || 0) + bonusCredits,
+          inviteUsed: true,
+        });
+        await addActivity(email, 'invite', { bonus: bonusCredits, code: normalized });
+      } catch (error) {
+        if (matchesTrialCoupon) {
+          await rollbackTrialCouponRedemption(normalized);
+        }
+        throw error;
+      }
       res.json({
         ok: true,
         bonus_credits: bonusCredits,
