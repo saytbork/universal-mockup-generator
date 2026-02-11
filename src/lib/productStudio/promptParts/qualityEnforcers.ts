@@ -1,4 +1,4 @@
-type OutputQualityProfile = 'luxury-brand' | 'ecommerce-conversion' | 'editorial';
+type OutputQualityProfile = 'luxury-brand' | 'ecommerce-conversion' | 'clinical';
 
 export function buildQualityEnforcers(profile: OutputQualityProfile = 'luxury-brand'): string {
   const profileRules: Record<OutputQualityProfile, string[]> = {
@@ -12,10 +12,10 @@ export function buildQualityEnforcers(profile: OutputQualityProfile = 'luxury-br
       'Keep background and secondary elements subordinate to purchase-focused legibility.',
       'Hyper-real clarity without artifacting: no smeared edges, no text warping, no fake sharpen halos.'
     ],
-    'editorial': [
-      'Editorial-grade visual character with deliberate framing and controlled drama.',
-      'Allow expressive styling while preserving brand-safe realism and product truth.',
-      'Editorial stylization must never look rendered or synthetic; physical believability remains mandatory.'
+    'clinical': [
+      'Clinical-grade visual character with precise framing and controlled neutrality.',
+      'Maintain evidence-first readability and scientifically clean presentation.',
+      'Clinical stylization must remain physically believable with no synthetic rendering cues.'
     ]
   };
 

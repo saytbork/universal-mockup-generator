@@ -2318,9 +2318,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 <p className={GROUP_LABEL_CLASS}>OUTPUT PROFILE</p>
                 <div className="flex flex-wrap gap-2">
                   {([
-                    { id: 'luxury-brand', label: 'Luxury Brand', desc: 'High-end campaign polish with premium materials and tonal depth.' },
-                    { id: 'ecommerce-conversion', label: 'Ecommerce Conversion', desc: 'Max legibility and clean hierarchy for ads and PDP performance.' },
-                    { id: 'editorial', label: 'Editorial', desc: 'Expressive composition with premium storytelling and brand-safe realism.' },
+                    { id: 'luxury-brand', label: 'Luxury Campaign', desc: 'High-end campaign polish with premium materials and tonal depth.' },
+                    { id: 'ecommerce-conversion', label: 'Conversion', desc: 'Max legibility and clean hierarchy for ads and PDP performance.' },
+                    { id: 'clinical', label: 'Clinical', desc: 'Sterile precision, strict readability, and neutral product truth.' },
                   ] as const).map(opt => (
                     <Chip
                       key={opt.id}
@@ -4242,7 +4242,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">FINISH / TREATMENT</p>
                           <div className="flex flex-wrap gap-2">
                             {[
-                              'High-Gloss Commercial', 'Film Grain Luxury', 'Matte Editorial',
+                              'High-Gloss Commercial', 'Film Grain Luxury',
                               'Hyperreal CGI Blend', 'Clinical Lab Polish', 'Vibrant Color Pop'
                             ].map(finish => (
                               <button

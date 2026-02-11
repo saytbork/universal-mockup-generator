@@ -417,7 +417,7 @@ export const BRAND_PRESETS: BrandPreset[] = [
             proMode: true,
             lens: '50mm Product Prime',
             lightingRig: 'Gradient Cyclorama',
-            finish: 'Matte Editorial',
+            finish: 'Film Grain Luxury',
             bundle: { enabled: false, mode: 'off', layout: 'lineal', spacing: 'compact', primaryProductId: null, secondaryProductIds: [], selectedBundleId: null },
         },
     },

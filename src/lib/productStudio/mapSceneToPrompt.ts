@@ -868,9 +868,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     const profileLine =
       state.qualityProfile === 'ecommerce-conversion'
         ? 'OUTPUT PROFILE: Ecommerce Conversion. Prioritize label readability and clean conversion-focused hierarchy.'
-        : state.qualityProfile === 'editorial'
-          ? 'OUTPUT PROFILE: Editorial. Preserve premium storytelling while keeping product truth and clarity.'
-          : 'OUTPUT PROFILE: Luxury Brand. Preserve campaign-grade polish and premium material rendering.';
+        : state.qualityProfile === 'clinical'
+          ? 'OUTPUT PROFILE: Clinical. Preserve sterile precision, strict clarity, and product truth.'
+          : 'OUTPUT PROFILE: Luxury Campaign. Preserve campaign-grade polish and premium material rendering.';
     const parts = [
       'HERO LANDING PAGE (LOCKED): Brand-first studio advertising hero module.',
       'Background is derived from the product brand colors with zero creative randomness.',
@@ -1171,6 +1171,13 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   })();
 
   const effectiveAngleLabelResolved = isCampaignIntent ? effectiveAngleLabelResolvedBase : '45° hero';
+  const definitionTypeNormalized = String(state.definition?.type || '').trim().toLowerCase();
+  const isVerticalDominantSubject = definitionTypeNormalized === 'drops' || definitionTypeNormalized === 'skincare';
+  const isSplitLevelWaterMode = String(state.photoMode || '').trim().toLowerCase() === 'underwater split';
+  const disableSquareLateralSpreadForSplitWater =
+    isConversionSquareOptimized &&
+    isSplitLevelWaterMode &&
+    isVerticalDominantSubject;
   const proLens = isProModeActive ? String((state as any).lens || '').trim() : '';
   const effectiveFramingLabel = isCampaignIntent
     ? (effectiveFramingLabelBase === 'Centered hero' ? 'Rule of thirds' : effectiveFramingLabelBase)
@@ -1190,7 +1197,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
         )
     );
   const effectiveRotationLabel = isCampaignIntent ? campaignRotation : '0°';
-  const environmentalSpread = isConversionSquareOptimized;
+  const environmentalSpread = isConversionSquareOptimized && !disableSquareLateralSpreadForSplitWater;
 
   const forcedCameraAngle =
     correctedAngleState
@@ -1204,7 +1211,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       : campaignAngle;
   const forcedCameraFraming =
     !isCampaignIntent
-      ? (isConversionSquareOptimized
+      ? (disableSquareLateralSpreadForSplitWater
+        ? 'centered dominance with vertical subject emphasis and natural edge-to-edge water continuation; no neutral side fill, no white lateral bands, no artificial padding'
+        : isConversionSquareOptimized
         ? 'centered dominance with mild crop bias and controlled horizontal environmental spread; avoid narrow vertical subject bias and artificial lateral emptiness'
         : 'centered hero composition')
       : mode === 'INGREDIENT_FLAT_LAY'
@@ -1269,7 +1278,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
         'VISUAL INTENT: Conversion Strict Mode.',
         'Use Softbox Wrap as authoritative lighting behavior with controlled reflections.',
         isConversionSquareOptimized
-          ? (isBasicTier
+          ? (disableSquareLateralSpreadForSplitWater
+            ? 'Square composition rule: allow vertical subject dominance. Do not artificially expand horizontal environment. Water and atmosphere must extend naturally to all edges. No neutral side fill, no white lateral bands, no artificial padding.'
+            : isBasicTier
             ? 'For 1:1 output, keep centered product dominance with mild crop bias and controlled horizontal environmental spread to avoid narrow vertical subject bias and artificial side emptiness.'
             : 'For 1:1 output, keep centered product dominance with mild crop bias and controlled horizontal environmental spread to avoid narrow vertical subject bias and artificial side emptiness; maintain 45-degree hero camera, slightly closer distance, and 0-degree rotation. Respect user-selected pro lens when provided.')
           : (isBasicTier
@@ -1339,7 +1350,7 @@ No studio-style suspension shadows underwater.
   const parts = [
     buildBaseContext({
       allowStudio: mode === 'ACRYLIC_BLOCKS',
-      qualityProfile: isCampaignIntent ? 'editorial' : state.qualityProfile,
+      qualityProfile: state.qualityProfile,
       visualIntent: isCampaignIntent ? 'campaign' : 'conversion',
     }),
     visualIntentDirectiveText,
@@ -1359,7 +1370,7 @@ No studio-style suspension shadows underwater.
       ? ''
       : buildSecondaryProps(mode, randomizer, explicitSecondaryPropsText),
     buildCamera(mode, randomizer, {
-      qualityProfile: isCampaignIntent ? 'editorial' : state.qualityProfile,
+      qualityProfile: state.qualityProfile,
       forceLens: forcedLens || undefined,
       disableAutoLens: isProModeActive,
       forceCameraSystem: isProModeActive
@@ -1375,7 +1386,7 @@ No studio-style suspension shadows underwater.
       compactMetadata: isBasicTier && !isCampaignIntent,
     }),
     buildLighting(mode, randomizer, {
-      qualityProfile: isCampaignIntent ? 'editorial' : state.qualityProfile,
+      qualityProfile: state.qualityProfile,
       ...(lightingOverrideText ? { override: { text: lightingOverrideText } } : {}),
       strictRigLock: strictLightingRigLock,
     }),
@@ -1385,7 +1396,7 @@ No studio-style suspension shadows underwater.
     finishOverrideText,
     creativityOverrideText,
     legacyCreativityTraceText,
-    strictStudioBranding ? '' : buildMaterialsWithProfile(mode, randomizer, isCampaignIntent ? 'editorial' : state.qualityProfile),
+    strictStudioBranding ? '' : buildMaterialsWithProfile(mode, randomizer, state.qualityProfile),
     prismRefractionText,
     isCampaignIntent ? '' : buildUltraRealStrictBlock(Boolean(state.ultraRealStrict), state.qualityProfile),
     macroFullBleedLockText,
@@ -1393,7 +1404,7 @@ No studio-style suspension shadows underwater.
       ? ''
       : buildRandomizationRules(
         mode === 'INGREDIENT_STACK' || mode === 'INGREDIENT_FLAT_LAY' ? 'ingredientStack' : 'default',
-        isCampaignIntent ? 'editorial' : state.qualityProfile,
+        state.qualityProfile,
         {
           lensLocked: isCampaignIntent ? false : (isProModeActive && Boolean(String((state as any).lens || '').trim())),
           lightingLocked: isCampaignIntent ? false : (isProModeActive && Boolean(String((state as any).lightingRig || '').trim())),

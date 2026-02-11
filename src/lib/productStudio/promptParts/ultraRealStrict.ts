@@ -1,4 +1,4 @@
-type OutputQualityProfile = 'luxury-brand' | 'ecommerce-conversion' | 'editorial';
+type OutputQualityProfile = 'luxury-brand' | 'ecommerce-conversion' | 'clinical';
 
 export function buildUltraRealStrictBlock(
   enabled: boolean,
@@ -9,9 +9,9 @@ export function buildUltraRealStrictBlock(
   const profileTail =
     profile === 'ecommerce-conversion'
       ? 'Keep this strict realism aligned with conversion clarity and label legibility.'
-      : profile === 'editorial'
-        ? 'Keep this strict realism while allowing controlled editorial styling.'
-        : 'Keep this strict realism aligned with luxury campaign polish.';
+      : profile === 'clinical'
+        ? 'Keep this strict realism while enforcing controlled clinical precision.'
+        : 'Keep this strict realism aligned with luxury campaign polish. Luxury realism guardrail: expressive styling is allowed, but all optical behavior must remain physically coherent and premium-grade.';
 
   return [
     'ULTRA-REAL STRICT MODE: ON.',
@@ -22,4 +22,3 @@ export function buildUltraRealStrictBlock(
     profileTail,
   ].join(' ');
 }
-

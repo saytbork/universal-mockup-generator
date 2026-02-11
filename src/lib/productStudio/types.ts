@@ -593,7 +593,7 @@ export type PrebuiltBundle = {
 // ============================================================================
 
 export type PresetTier = 'basic' | 'pro';
-export type OutputQualityProfile = 'luxury-brand' | 'ecommerce-conversion' | 'editorial';
+export type OutputQualityProfile = 'luxury-brand' | 'ecommerce-conversion' | 'clinical';
 
 // ============================================================================
 // BRAND LOOK SYSTEMS (PRESETS)

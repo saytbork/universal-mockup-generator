@@ -6,7 +6,7 @@ export function buildMaterials(mode: PhotoModeKey, randomizer: Randomizer): stri
     return [
       'Neutral studio support surface only.',
       'Surface exists purely for physical grounding.',
-      'No narrative material, no wood, no marble, no textured editorial backgrounds.'
+      'No narrative material, no wood, no marble, no textured stylized backgrounds.'
     ].join(' ');
   }
   if (mode === 'INGREDIENT_FLAT_LAY') {
@@ -86,13 +86,13 @@ export function buildMaterials(mode: PhotoModeKey, randomizer: Randomizer): stri
 export function buildMaterialsWithProfile(
   mode: PhotoModeKey,
   randomizer: Randomizer,
-  profile: 'luxury-brand' | 'ecommerce-conversion' | 'editorial' = 'luxury-brand'
+  profile: 'luxury-brand' | 'ecommerce-conversion' | 'clinical' = 'luxury-brand'
 ): string {
   const base = buildMaterials(mode, randomizer);
   const profileText = profile === 'ecommerce-conversion'
     ? 'Material priority: clean, distraction-free surfaces that support conversion-focused readability.'
-    : profile === 'editorial'
-      ? 'Material priority: tactile editorial textures with controlled brand-safe stylization.'
-      : 'Material priority: premium luxury finishes with refined tactile realism.';
+    : profile === 'clinical'
+      ? 'Material priority: clinical-grade surfaces with precise cleanliness and controlled reflectance.'
+      : 'Material priority: premium luxury finishes with refined tactile realism. Atmosphere priority: premium environmental layering with controlled depth separation and refined optical realism. Allow subtle haze, light atmosphere layering, controlled foreground blur, and controlled prism dispersion.';
   return `${base} ${profileText}`.trim();
 }

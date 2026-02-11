@@ -1,6 +1,6 @@
 export type BaseContextOptions = {
   allowStudio?: boolean;
-  qualityProfile?: 'luxury-brand' | 'ecommerce-conversion' | 'editorial';
+  qualityProfile?: 'luxury-brand' | 'ecommerce-conversion' | 'clinical';
   visualIntent?: 'conversion' | 'campaign';
 };
 
@@ -28,8 +28,8 @@ export function buildBaseContext(options: BaseContextOptions = {}): string {
 
   if (options.qualityProfile === 'ecommerce-conversion') {
     base.push('Conversion-first ecommerce intent: maximize product clarity, label readability, and clean visual hierarchy for ad performance.');
-  } else if (options.qualityProfile === 'editorial') {
-    base.push('Editorial intent: expressive composition and premium visual storytelling while preserving product legibility.');
+  } else if (options.qualityProfile === 'clinical') {
+    base.push('Clinical intent: precision-first visual clarity with controlled lighting and evidence-grade product legibility.');
   } else {
     base.push('Luxury brand intent: polished campaign-grade finish with premium materials and elevated art direction.');
   }

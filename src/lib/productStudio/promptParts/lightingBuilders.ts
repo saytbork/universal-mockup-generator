@@ -7,7 +7,7 @@ export type LightingOverride = {
 
 export type LightingBuildOptions = {
   override?: LightingOverride;
-  qualityProfile?: 'luxury-brand' | 'ecommerce-conversion' | 'editorial';
+  qualityProfile?: 'luxury-brand' | 'ecommerce-conversion' | 'clinical';
   strictRigLock?: boolean;
 };
 
@@ -103,9 +103,9 @@ export function buildLighting(mode: PhotoModeKey, randomizer: Randomizer, option
   const chosen = selections.length > 0 ? randomizer.pick(selections) : '';
   const profileText = options.qualityProfile === 'ecommerce-conversion'
     ? 'Lighting priority: maximize label legibility and clean edge separation for ecommerce performance.'
-    : options.qualityProfile === 'editorial'
-      ? 'Lighting priority: controlled editorial drama with preserved product truth.'
-      : 'Lighting priority: luxurious campaign sculpting with premium highlight control.';
+    : options.qualityProfile === 'clinical'
+      ? 'Lighting priority: clinical precision, neutral color response, and contamination-free highlight behavior.'
+      : 'Lighting priority: sculpted campaign lighting with dimensional depth and controlled specular highlights. Allow directional shaping and subtle atmosphere depth while maintaining product truth. Require directional key, soft fill, controlled rim, and micro specular highlights.';
   if (options.override?.text) {
     return [base.join(' '), chosen, profileText, options.override.text].filter(Boolean).join(' ');
   }

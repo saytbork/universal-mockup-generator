@@ -60,7 +60,7 @@ export function createRandomizer(): Randomizer {
 }
 
 export type RandomizationMode = 'default' | 'ingredientStack';
-export type RandomizationProfile = 'luxury-brand' | 'ecommerce-conversion' | 'editorial';
+export type RandomizationProfile = 'luxury-brand' | 'ecommerce-conversion' | 'clinical';
 export type RandomizationLocks = {
   lensLocked?: boolean;
   lightingLocked?: boolean;
@@ -75,9 +75,18 @@ export function buildRandomizationRules(
 ): string {
   const profileLine = profile === 'ecommerce-conversion'
     ? 'Keep visual hierarchy conversion-focused: product and label remain dominant in every variation.'
-    : profile === 'editorial'
-      ? 'Allow expressive composition shifts while preserving product truth and brand safety.'
-      : 'Maintain luxury campaign polish across all variations.';
+    : profile === 'clinical'
+      ? 'Allow controlled variation while preserving scientific clarity and product truth.'
+      : 'Maintain luxury campaign polish across all variations. Allow expressive but controlled variation. Never compromise hero dominance or label readability.';
+
+  const luxuryVariationAllowLine =
+    profile === 'luxury-brand'
+      ? 'Allowed controlled variation: light angle, framing, background gradient, and surface material.'
+      : '';
+  const luxuryVariationGuardrailLine =
+    profile === 'luxury-brand'
+      ? 'Disallow extreme product displacement, chaotic splash behavior, and extreme camera roll.'
+      : '';
 
   const lockRules: string[] = [];
   if (locks.lensLocked) lockRules.push('Lens selection is locked to the user-selected value; do not override it.');
@@ -97,7 +106,9 @@ export function buildRandomizationRules(
       'Never reuse the same base composition or staging structure.',
       'Avoid symmetrical default framing unless explicitly required by ecommerce composition.',
       ...lockRules,
-      profileLine
+      profileLine,
+      luxuryVariationAllowLine,
+      luxuryVariationGuardrailLine
     ].join(' ');
   }
 
@@ -110,6 +121,8 @@ export function buildRandomizationRules(
       : 'Vary props and micro-environment accents each time without reducing product prominence.',
     'Avoid symmetrical default framing unless explicitly required by ecommerce composition.',
     ...lockRules,
-    profileLine
+    profileLine,
+    luxuryVariationAllowLine,
+    luxuryVariationGuardrailLine
   ].join(' ');
 }
